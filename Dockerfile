@@ -1,6 +1,6 @@
 FROM busybox:stable
 
-COPY ./dist plugin
+COPY dist ni-systemlink-app
 
-ENTRYPOINT ["cp", "-r", "plugin"]
+ENTRYPOINT ["cp", "-R", "ni-systemlink-app"]
 CMD ["/var/lib/grafana/plugins"]

@@ -4,17 +4,21 @@ module.exports = function (plop) {
     prompts: [
       {
         type: 'input',
-        name: 'name',
-        message: 'Name: '
+        name: 'Name',
+        message: 'Enter the plugin\'s name in PascalCase (Foo, FooBar):'
       }
     ],
     actions: [
       {
         type: 'addMany',
-        destination: 'src/datasources/{{name}}',
+        destination: 'src/datasources/{{kebab Name}}',
         templateFiles: 'templates/datasource/**/*',
-        //base: 'plop_templates/component',
+        base: 'templates/datasource',
       },
     ]
   });
+
+  plop.setHelper('kebab', text => text.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase());
+  plop.setHelper('space', text => text.replace(/([a-z])([A-Z])/g, "$1 $2"));
+  plop.setHelper('lower', text => text.toLowerCase());
 };

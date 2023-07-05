@@ -1,12 +1,12 @@
 import React, { ChangeEvent } from 'react';
 import { InlineField, Input } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
-import { TagDataSource } from '../TagDataSource';
-import { MyQuery } from '../types';
+import { {{Name}}DataSource } from '../{{Name}}DataSource';
+import { {{Name}}Query } from '../types';
 
-type Props = QueryEditorProps<TagDataSource, MyQuery>;
+type Props = QueryEditorProps<{{Name}}DataSource, {{Name}}Query>;
 
-export function QueryEditor({ query, onChange, onRunQuery }: Props) {
+export function {{Name}}QueryEditor({ query, onChange, onRunQuery }: Props) {
   const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange({ ...query, queryText: event.target.value });
   };
