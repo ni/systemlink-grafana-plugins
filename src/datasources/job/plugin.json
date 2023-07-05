@@ -1,0 +1,16 @@
+{
+  "type": "datasource",
+  "name": "SystemLink Jobs",
+  "id": "ni-sljob-datasource",
+  "metrics": true,
+  "info": {
+    "description": "TODO",
+    "author": {
+      "name": "NI"
+    },
+    "logos": {
+      "small": "img/logo-ni.svg",
+      "large": "img/logo-ni.svg"
+    }
+  }
+}
