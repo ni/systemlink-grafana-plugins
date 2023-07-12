@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "app",
+  "name": "SystemLink",
+  "id": "ni-systemlink-app",
+  "info": {
+    "keywords": ["app"],
+    "description": "Plugins for visualizing data from SystemLink services",
+    "author": {
+      "name": "NI"
+    },
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "screenshots": [],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaDependency": "9.5.5",
+    "plugins": []
+  }
+}
