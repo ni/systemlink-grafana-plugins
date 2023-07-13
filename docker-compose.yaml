@@ -1,0 +1,17 @@
+version: '3.0'
+
+services:
+  grafana:
+    container_name: 'ni-systemlink-app'
+    build:
+      context: ./.config
+      args:
+        grafana_version: ${GRAFANA_VERSION:-9.5.5}
+        grafana_image: ${GRAFANA_IMAGE:-grafana}
+    environment:
+      - GF_USERS_DEFAULT_THEME=light
+    ports:
+      - 3000:3000/tcp
+    volumes:
+      - ./dist:/var/lib/grafana/plugins/ni-systemlink-app
+      - ./provisioning:/etc/grafana/provisioning
