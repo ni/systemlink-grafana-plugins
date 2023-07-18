@@ -46,7 +46,7 @@ it('should return data ignoring invalid queries', async () => {
   await ds.query(query);
 
   expect(fetchMock).toBeCalledTimes(2);
-  expect(fetchMock).toBeCalledWith(expect.objectContaining({ url: '_/v1/tables/1/query-decimated-data' }));
+  expect(fetchMock).toBeCalledWith(expect.objectContaining({ url: '_/nidataframe/v1/tables/1/query-decimated-data' }));
 });
 
 it('should return data for multiple targets', async () => {
@@ -164,7 +164,7 @@ it('should cache table metadata for subsequent requests', async () => {
   await ds.query(query);
 
   expect(fetchMock).toBeCalledTimes(2);
-  expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/v1/tables/1' }));
+  expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/nidataframe/v1/tables/1' }));
 
   await ds.query(query);
 
