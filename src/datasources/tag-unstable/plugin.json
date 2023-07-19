@@ -1,7 +1,7 @@
 {
   "type": "datasource",
-  "name": "SystemLink Data Frames",
-  "id": "ni-sldataframe-datasource",
+  "name": "SystemLink Tags (Unstable)",
+  "id": "ni-sltag-datasource",
   "info": {
     "author": {
       "name": "NI"
