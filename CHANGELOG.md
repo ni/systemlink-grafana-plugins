@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.2.0...v1.3.0) (2023-07-19)
+
+
+### Features
+
+* Add notebook data source ([905955a](https://github.com/ni/systemlink-grafana-plugins/commit/905955ab925903b9f0101cc857425af24e1c5945))
+
 # [1.2.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.1.0...v1.2.0) (2023-07-19)
 
 
