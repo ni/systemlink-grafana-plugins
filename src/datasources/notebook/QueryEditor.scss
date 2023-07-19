@@ -1,0 +1,74 @@
+.sl-notebook-query-editor {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 15px 0;
+
+    .sl-notebook-selector {
+        flex-basis: 50%;
+        margin-right: 5%;
+    }
+
+    .sl-output {
+        flex-basis: 25%;
+        margin-right: 5%
+    }
+
+    .sl-cache-timeout {
+        flex-basis: 10%;
+        white-space: nowrap;
+    }
+
+    .sl-parameters {
+        width: 50%;
+        margin-bottom: -10px;
+        overflow: visible;
+
+        .sl-parameter {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+
+            .sl-parameter-label {
+                flex: 1;
+                margin: 0 !important;
+            }
+
+            .sl-parameter-value {
+                flex-basis: 66%;
+            }
+        }
+    }
+
+    .sl-label-button {
+        display: flex;
+
+        button {
+            margin-left: 6px;
+        }
+    }
+}
+
+body {
+    --smart-query-builder-editor-width: 150px;
+    --smart-query-builder-default-width: 570px;
+    --smart-filter-builder-group-condition-margin: 3px;
+    --smart-filter-builder-item-margin: 12px;
+
+    &.theme-dark {
+        --smart-primary-rgb: 235, 122, 24;
+        --smart-background: rgb(11, 12, 14);
+        --smart-background-color: rgb(199, 208, 217);
+        --smart-border: rgb(44, 50, 53);
+        --smart-ui-state-focus: rgb(32, 34, 38);
+        --smart-ui-state-color-focus: rgb(199, 208, 217);
+    }
+
+    &.theme-light {
+        --smart-primary-rgb: 235, 122, 24;
+        --smart-background: rgb(255, 255, 255);
+        --smart-background-color: rgb(70, 76, 84);
+        --smart-border: rgb(199, 208, 217);
+        --smart-ui-state-focus: rgb(241, 245, 249);
+        --smart-ui-state-color-focus: rgb(70, 76, 84);
+    }
+}
