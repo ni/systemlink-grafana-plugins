@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.1.0...v1.2.0) (2023-07-19)
+
+
+### Features
+
+* Systems data source template ([#3](https://github.com/ni/systemlink-grafana-plugins/issues/3)) ([6e3c79e](https://github.com/ni/systemlink-grafana-plugins/commit/6e3c79e569669a0dc69de50bd7f2173730d0f759))
+
 # [1.1.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.0.0...v1.1.0) (2023-07-19)
 
 
