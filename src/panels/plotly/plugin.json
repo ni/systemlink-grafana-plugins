@@ -1,0 +1,14 @@
+{
+  "type": "panel",
+  "name": "Plotly chart",
+  "id": "ni-plotly-panel",
+  "info": {
+    "author": {
+      "name": "NI"
+    },
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    }
+  }
+}
