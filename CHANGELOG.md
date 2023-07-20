@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/ni/systemlink-grafana-plugins/compare/v1.4.0...v1.4.1) (2023-07-20)
+
+
+### Bug Fixes
+
+* Broken and missing plugin defintions ([71ef81e](https://github.com/ni/systemlink-grafana-plugins/commit/71ef81e0ed06cb1682e9981a5e08f421535e05a9))
+
 # [1.4.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.3.0...v1.4.0) (2023-07-20)
 
 
