@@ -1,7 +1,7 @@
 {
   "type": "datasource",
-  "name": "SystemLink {{space Name}}s",
-  "id": "ni-sl{{lower Name}}-datasource",
+  "name": "SystemLink Systems",
+  "id": "ni-slsystem-datasource",
   "metrics": true,
   "info": {
     "author": {

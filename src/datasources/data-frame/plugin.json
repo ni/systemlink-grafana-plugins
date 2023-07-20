@@ -2,6 +2,7 @@
   "type": "datasource",
   "name": "SystemLink Data Frames",
   "id": "ni-sldataframe-datasource",
+  "metrics": true,
   "info": {
     "author": {
       "name": "NI"

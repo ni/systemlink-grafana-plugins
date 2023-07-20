@@ -2,6 +2,7 @@
   "type": "datasource",
   "name": "SystemLink Tags (Unstable)",
   "id": "ni-sltag-datasource",
+  "metrics": true,
   "info": {
     "author": {
       "name": "NI"
