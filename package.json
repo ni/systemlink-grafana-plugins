@@ -1,6 +1,6 @@
 {
   "name": "systemlink-grafana-plugins",
-  "version": "1.0.0",
+  "version": "1.4.0",
   "description": "Plugins for visualizing data from SystemLink services",
   "private": true,
   "scripts": {
@@ -35,9 +35,12 @@
     "@types/jest": "^29.5.0",
     "@types/lodash": "^4.14.194",
     "@types/node": "^18.15.11",
+    "@types/plotly.js-basic-dist-min": "^2.12.1",
+    "@types/react-plotly.js": "^2.6.0",
     "@types/react-router-dom": "^5.3.3",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.3",
+    "eslint": "^8.43.0",
     "eslint-webpack-plugin": "^4.0.1",
     "fork-ts-checker-webpack-plugin": "^8.0.0",
     "glob": "^10.2.7",
@@ -68,10 +71,16 @@
     "@grafana/runtime": "9.5.5",
     "@grafana/ui": "9.5.5",
     "@isaacs/ttlcache": "^1.4.1",
+    "@types/file-saver": "^2.0.5",
+    "ajv": "^8.12.0",
+    "file-saver": "^2.0.5",
+    "plotly.js-basic-dist-min": "^2.24.3",
     "react": "17.0.2",
     "react-dom": "17.0.2",
+    "react-plotly.js": "^2.6.0",
     "react-router-dom": "^5.2.0",
     "rxjs": "7.8.0",
+    "smart-webcomponents-react": "^12.0.0",
     "tslib": "2.5.3"
   }
 }

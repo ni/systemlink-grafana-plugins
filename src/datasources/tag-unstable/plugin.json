@@ -1,0 +1,15 @@
+{
+  "type": "datasource",
+  "name": "SystemLink Tags (Unstable)",
+  "id": "ni-sltag-datasource",
+  "metrics": true,
+  "info": {
+    "author": {
+      "name": "NI"
+    },
+    "logos": {
+      "small": "img/logo-ni.svg",
+      "large": "img/logo-ni.svg"
+    }
+  }
+}
