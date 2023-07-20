@@ -15,8 +15,7 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
   baseUrl: string;
   constructor(private instanceSettings: DataSourceInstanceSettings) {
     super(instanceSettings);
-    // TODO: set base path of the service
-    this.baseUrl = this.instanceSettings.url + '/nifoo/v2';
+    this.baseUrl = this.instanceSettings.url + '/nisysmgmt/v1';
   }
 
   async query(options: DataQueryRequest<SystemQuery>): Promise<DataQueryResponse> {
@@ -39,8 +38,7 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
   }
 
   async testDatasource(): Promise<TestingStatus> {
-    // TODO: Implement a health and authentication check
-    await getBackendSrv().get(this.baseUrl + '/bar');
+    await getBackendSrv().get(this.baseUrl + '/get-systems-summary');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }
