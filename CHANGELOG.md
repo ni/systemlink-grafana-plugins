@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.3.0...v1.4.0) (2023-07-20)
+
+
+### Features
+
+* Add plotly panel ([cdd14a0](https://github.com/ni/systemlink-grafana-plugins/commit/cdd14a0fd12289599c069bdf5653299be6a27d30))
+
 # [1.3.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.2.0...v1.3.0) (2023-07-19)
 
 
