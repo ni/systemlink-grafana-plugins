@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.4.1...v1.5.0) (2023-07-21)
+
+
+### Features
+
+* implement testDatasource method for systems data source ([#4](https://github.com/ni/systemlink-grafana-plugins/issues/4)) ([b5a9726](https://github.com/ni/systemlink-grafana-plugins/commit/b5a97267200d7354facd32007e5f2a638e4699d4))
+
 ## [1.4.1](https://github.com/ni/systemlink-grafana-plugins/compare/v1.4.0...v1.4.1) (2023-07-20)
 
 
