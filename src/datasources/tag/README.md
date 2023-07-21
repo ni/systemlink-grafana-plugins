@@ -1,6 +1,4 @@
-# Systemlink Tag data source
+# SystemLink Tag data source
 
-<!--
-    TODO: Write a short description of your plugin and document any extra
-    configuration that is required for development.
--->
+This is a plugin for the Tag Service. It allows you to: 
+- Populate a Stat, Gauge, table, or other panel with the current value, min, max, average values, of a tag. The tag datatype may be numeric or string.
