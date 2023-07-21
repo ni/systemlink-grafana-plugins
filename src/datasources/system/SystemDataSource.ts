@@ -29,7 +29,7 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
         refId: target.refId,
         fields: [
           { name: 'Time', values: [from, to], type: FieldType.time },
-          { name: 'Value', values: [target.constant, target.constant], type: FieldType.number },
+          { name: 'Value', values: [1, 2], type: FieldType.number },
         ],
       });
     });
