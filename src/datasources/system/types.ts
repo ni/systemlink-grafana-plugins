@@ -11,5 +11,5 @@ export interface SystemQuery extends DataQuery {
 
 export interface SystemSummary {
   connectedCount: number,
-	disconnectedCount: number
+  disconnectedCount: number
 }
