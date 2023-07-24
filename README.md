@@ -1,115 +1,165 @@
-# Grafana app plugin template
+# SystemLink Grafana Plugins
+[![Push to
+main](https://github.com/ni/systemlink-grafana-plugins/actions/workflows/push.yml/badge.svg)](https://github.com/ni/systemlink-grafana-plugins/actions/workflows/push.yml)
 
-This template is a starting point for building an app plugin for Grafana.
+Grafana plugins for visualizing data from [SystemLink
+Enterprise](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/systemlink-enterprise.html).
 
-## What are Grafana app plugins?
+## Description
 
-App plugins can let you create a custom out-of-the-box monitoring experience by custom pages, nested datasources and panel plugins.
+This project contains a set of data sources and panel plugins bundled as an [app
+plugin](https://grafana.com/docs/grafana/latest/administration/plugin-management/#app-plugins),
+scaffolded using the [Grafana Plugin
+Tools](https://grafana.github.io/plugin-tools/).
 
-## Getting started
+### Data sources
 
+- [Data frames](src/datasources/data-frame/)
+- [Notebooks](src/datasources/notebook/)
+- [Systems](src/datasources/system/)
+- [Tags](src/datasources/tag/)
 
-### Frontend
+### Panels
 
-1. Install dependencies
+- [Plotly.js chart](src/panels/plotly/)
 
-   ```bash
-   npm install
-   ```
+## Contributing
 
-2. Build plugin in development mode and run in watch mode
+If you're at NI, request to be granted access to the repo. Outside contributors
+can use a fork & pull workflow.
 
-   ```bash
-   npm run dev
-   ```
+### Getting started
 
-3. Build plugin in production mode
+If you're on Windows, you'll need to first [set up WSL](#wsl-setup). Building
+requires [Node.js + npm](https://docs.npmjs.com/cli/v9/configuring-npm/install)
+(18.x is the node version used in build pipelines), and
+[Docker](https://docs.docker.com/engine/install/) is used to run the Grafana
+server in a container for development.
 
-   ```bash
-   npm run build
-   ```
+After cloning the repo:
 
-4. Run the tests (using Jest)
+1. Run `npm install`
+1. Run `npm run dev` to build in development mode. This starts a process that
+   watches for changes to the source code and automatically rebuilds.
+1. In a separate shell session (e.g. another terminal window), run `npm run
+   server`. This starts up Grafana in a container with the `./dist` directory
+   created by the previous step mounted. After a brief startup, you should now
+   be able to access the Grafana UI at http://localhost:3000 .
 
-   ```bash
-   # Runs the tests and watches for changes, requires git init first
-   npm run test
+For panel plugins, there's no extra configuration needed - it will automatically
+show up in the list of available visualizations.
 
-   # Exits after running all the tests
-   npm run test:ci
-   ```
+### Data source configuration
 
-5. Spin up a Grafana instance and run the plugin inside it (using Docker)
+For data source plugins, some manual configuration is required to have it
+connect to a SystemLink service running in the cloud.
 
-   ```bash
-   npm run server
-   ```
+1. Navigate to the data sources configuration page (`/datasources`). You can get
+   there by clicking the gear icon in the sidebar.
+2. Select **Add data source**. Search for the plugin in the list and click on it
+   to enter the data source settings view.
+3. Fill in the **URL** field with the API URL of the Stratus environment you
+   want to use (e.g. https://test-api.lifecyclesolutions.ni.com).
+4. For authentication, click the **Add header** button and add a custom header
+   with the name `x-ni-api-key` and value set to [an API
+   key](https://ni-staging.zoominsoftware.io/docs/en-US/bundle/systemlink-enterprise/page/creating-an-api-key.html)
+   for the SLE instance.
+5. Click **Save & test**. You should see **Success** pop up if the data source
+   was configured correctly and the API key grants the necessary privileges.
 
-6. Run the E2E tests (using Cypress)
+You should now be able to use the data source when building a dashboard or in
+the Explore mode. Navigating to Explore is the easiest way to begin testing the
+plugin.
 
-   ```bash
-   # Spins up a Grafana instance first that we tests against
-   npm run server
+### Testing
 
-   # Starts the tests
-   npm run e2e
-   ```
+If you followed the steps above, a live reload script was injected into the
+Grafana frontend. Any time the plugin rebuilds, the page will automatically
+refresh and load the new bundle.
 
-7. Run the linter
+Run `npm run test` to launch the unit tests in watch mode.
 
-   ```bash
-   npm run lint
+Run `npm run e2e` to run the integration tests.
 
-   # or
+### Submitting changes
 
-   npm run lint:fix
-   ```
+Once you're ready to submit changes to a plugin, all you need to do is open a
+pull request on GitHub to merge your branch. Don't forget to resolve any lint
+errors (`npm run lint:fix`) and ensure that the [tests are passing](#testing)
+locally.
 
+The repo uses
+[semantic-release](https://semantic-release.gitbook.io/semantic-release/) and a
+[GitHub workflow](.github/workflows/push.yml) to automate the versioning and
+release process. For this to work, commits to `main` need to follow a specific
+message format.
 
-# Distributing your plugin
+#### Commit message format
 
-When distributing a Grafana plugin either within the community or privately the plugin must be signed so the Grafana application can verify its authenticity. This can be done with the `@grafana/sign-plugin` package.
+```
+<type>(<scope>): <short summary>
+  │       │             │
+  │       │             └─⫸ Summary in present tense. Not capitalized. No period at the end.
+  │       │
+  │       └─⫸ Commit Scope: If your change applies to a single plugin, put its short name
+  │                          as the scope (e.g. tag, notebook, system).
+  │
+  └─⫸ Commit Type: build|ci|docs|feat|fix|perf|refactor|test
+```
 
-_Note: It's not necessary to sign a plugin during development. The docker development environment that is scaffolded with `@grafana/create-plugin` caters for running the plugin without a signature._
+The `<type>` and `<summary>` fields are mandatory, the `(<scope>)` field is
+optional.
 
-## Initial steps
+`<type>` must be one of the following:
 
-Before signing a plugin please read the Grafana [plugin publishing and signing criteria](https://grafana.com/docs/grafana/latest/developers/plugins/publishing-and-signing-criteria/) documentation carefully.
+- **build**: Changes that affect the build system or external dependencies
+- **ci**: Changes to our CI configuration files and scripts
+- **docs**: Documentation only changes
+- **feat**: A new feature
+- **fix**: A bug fix
+- **perf**: A code change that improves performance
+- **refactor**: A code change that neither fixes a bug nor adds a feature
+- **test**: Adding missing tests or correcting existing tests
+- **chore** Changes that don't fit into the above categories
 
-`@grafana/create-plugin` has added the necessary commands and workflows to make signing and distributing a plugin via the grafana plugins catalog as straightforward as possible.
+For example, if you're making a bug fix to the [Data
+frame](src/datasources/data-frame/) plugin, your PR title (and therefore the
+commit message when merging into `main`) would be something like:
 
-Before signing a plugin for the first time please consult the Grafana [plugin signature levels](https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/#plugin-signature-levels) documentation to understand the differences between the types of signature level.
+`fix(data-frame): prevent crash when user hits their head on the keyboard`
 
-1. Create a [Grafana Cloud account](https://grafana.com/signup).
-2. Make sure that the first part of the plugin ID matches the slug of your Grafana Cloud account.
-   - _You can find the plugin ID in the plugin.json file inside your plugin directory. For example, if your account slug is `acmecorp`, you need to prefix the plugin ID with `acmecorp-`._
-3. Create a Grafana Cloud API key with the `PluginPublisher` role.
-4. Keep a record of this API key as it will be required for signing a plugin
+### WSL setup
 
-## Signing a plugin
+The [plugin tools](https://grafana.github.io/plugin-tools/) provided by Grafana
+do not currently support Windows. However, you can still set up the plugin and
+run commands inside a [WSL](https://learn.microsoft.com/en-us/windows/wsl/)
+environment.
 
-### Using Github actions release workflow
+1. [Enable WSL](https://learn.microsoft.com/en-us/windows/wsl/install). If you
+   installed Docker Desktop, it's likely already enabled. Run `wsl --update` to
+   make sure it's up to date.
+2. If you don't have a distribution installed, run `wsl --install -d ubuntu` to
+   install Ubuntu. Note that your distro needs to be on WSL 2 for Docker to
+   work.
+3. Open Docker Desktop. Go to **Settings > Resources > WSL Integration** and
+   **Enable integration with additional distros**.
+4. Open a shell in your Linux environment. [Windows
+   Terminal](https://learn.microsoft.com/en-us/windows/terminal/install) is
+   recommended for seamlessly managing multiple command lines.
+5. [Install
+   Node.js](https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-wsl).
 
-If the plugin is using the github actions supplied with `@grafana/create-plugin` signing a plugin is included out of the box. The [release workflow](./.github/workflows/release.yml) can prepare everything to make submitting your plugin to Grafana as easy as possible. Before being able to sign the plugin however a secret needs adding to the Github repository.
+You can now follow the [setup steps](#getting-started). Make sure that you're
+running the commands in your Linux environment. The [WSL
+extension](https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-vscode)
+for Visual Studio Code is recommended to simplify development.
 
-1. Please navigate to "settings > secrets > actions" within your repo to create secrets.
-2. Click "New repository secret"
-3. Name the secret "GRAFANA_API_KEY"
-4. Paste your Grafana Cloud API key in the Secret field
-5. Click "Add secret"
+### Creating a new plugin
 
-#### Push a version tag
+To create a new data source, run `npm run generate` in the root directory and
+follow the instructions.
 
-To trigger the workflow we need to push a version tag to github. This can be achieved with the following steps:
+### Helpful links
 
-1. Run `npm version <major|minor|patch>`
-2. Run `git push origin main --follow-tags`
-
-
-## Learn more
-
-Below you can find source code for existing app plugins and other related documentation.
-
-- [Basic app plugin example](https://github.com/grafana/grafana-plugin-examples/tree/master/examples/app-basic#readme)
-- [Plugin.json documentation](https://grafana.com/docs/grafana/latest/developers/plugins/metadata/)
-- [How to sign a plugin?](https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/)
+- [Grafana plugin developer's
+guide](https://grafana.com/docs/grafana/latest/developers/plugins/)

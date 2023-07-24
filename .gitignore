@@ -7,6 +7,8 @@ yarn-error.log*
 .pnpm-debug.log*
 
 node_modules/
+# OS
+.DS_Store
 
 # Runtime data
 pids
