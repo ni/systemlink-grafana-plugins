@@ -20,7 +20,7 @@ export function SystemQueryEditor({ query, onChange, onRunQuery }: Props) {
 
   return (
     <div>
-      <InlineFieldRow >
+      <InlineFieldRow>
         <InlineField label="Query Type">
           <RadioButtonGroup options={QUERY_TYPES} onChange={onQueryTypeChange} value={query.queryClass} />
         </InlineField>
