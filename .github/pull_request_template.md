@@ -29,4 +29,4 @@ Include automated test additions or modifications, manual testing done on a loca
 
 <!--- Review the list and put an x in the boxes that apply or ~~strike through~~ around items that don't (along with an explanation). -->
 
-- [ ] This PR has a title that follows the [commit message format](../README.md#commit-message-format).
+- [ ] This PR has a title that follows the [commit message format](https://github.com/ni/systemlink-grafana-plugins#commit-message-format).
