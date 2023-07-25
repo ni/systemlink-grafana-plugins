@@ -4,7 +4,7 @@ export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<Selec
     const RESULT = [];
 
     for (const [key, value] of Object.entries(stringEnum)) {
-        RESULT.push({ key: key, value: value });
+        RESULT.push({ label: key, value: value });
     }
 
     return RESULT;
