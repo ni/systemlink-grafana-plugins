@@ -12,17 +12,16 @@ const QUERY_TYPES = [
 ]
 
 export function SystemQueryEditor({ query, onChange, onRunQuery }: Props) {
-
   const onQueryTypeChange = (value: QueryType) => {
-    onChange({ ...query, queryClass: value })
+    onChange({ ...query, queryKind: value })
     onRunQuery();
   }
 
   return (
     <div>
       <InlineFieldRow >
-        <InlineField label="Query Type">
-          <RadioButtonGroup options={QUERY_TYPES} onChange={onQueryTypeChange} value={query.queryClass} />
+        <InlineField label="Query type">
+          <RadioButtonGroup options={QUERY_TYPES} onChange={onQueryTypeChange} value={query.queryKind} />
         </InlineField>
       </InlineFieldRow>
     </div>
