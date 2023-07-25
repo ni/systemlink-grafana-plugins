@@ -23,7 +23,7 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
     // Return a constant for each query.
     const data = await Promise.all(options.targets.map(async (target) => {
       if (target.queryKind === QueryType.Summary) {
-        var summaryResponse = await getBackendSrv().get<SystemSummary>(this.baseUrl + '/get-systems-summary');
+        let summaryResponse = await getBackendSrv().get<SystemSummary>(this.baseUrl + '/get-systems-summary');
         return new MutableDataFrame({
           refId: target.refId,
           fields: [
