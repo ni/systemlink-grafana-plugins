@@ -1,6 +1,15 @@
 import { DataQuery } from '@grafana/schema'
 
+export enum QueryType {
+  Metadata = "Metadata",
+  Summary = "Summary"
+}
+
 export interface SystemQuery extends DataQuery {
-  queryText?: string;
-  constant: number;
+  queryKind: QueryType
+}
+
+export interface SystemSummary {
+  connectedCount: number,
+  disconnectedCount: number
 }
