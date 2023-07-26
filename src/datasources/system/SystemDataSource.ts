@@ -6,11 +6,12 @@ import {
   MutableDataFrame,
   FieldType,
   CoreApp,
+  toDataFrame,
 } from '@grafana/data';
 
 import { TestingStatus, getBackendSrv } from '@grafana/runtime';
 
-import { QueryType, SystemQuery, SystemSummary } from './types';
+import { QueryType, SystemInfo, SystemQuery, SystemSummary } from './types';
 
 export class SystemDataSource extends DataSourceApi<SystemQuery> {
   baseUrl: string;
@@ -32,7 +33,8 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
           ],
         });
       } else {
-        throw Error("Not implemented");
+        var metadataResponse = await getBackendSrv().post<{ data: SystemInfo[] }>(this.baseUrl + '/query-systems', { projection: "new(id, alias, connected.data.state, grains.data.minion_blackout as locked, grains.data.boottime as systemStartTime, grains.data.productname as model, grains.data.manufacturer as vendor, grains.data.osfullname as osFullName, grains.data.ip4_interfaces as ip4Interfaces, grains.data.ip6_interfaces as ip6Interfaces, workspace)" });
+        return toDataFrame(metadataResponse.data);
       }
     }));
 
