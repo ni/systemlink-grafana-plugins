@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build:
+  build_and_test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -23,5 +23,8 @@ jobs:
       - name: Unit tests
         run: npm run test:ci
 
-      - name: Build and lint frontend
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
         run: npm run build
