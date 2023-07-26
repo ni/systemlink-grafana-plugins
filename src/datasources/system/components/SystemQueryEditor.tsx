@@ -7,11 +7,6 @@ import { enumToOptions } from 'core/utils';
 
 type Props = QueryEditorProps<SystemDataSource, SystemQuery>;
 
-// const QUERY_TYPES = [
-//   {label: "Metadata", value: QueryType.Metadata},
-//   {label: "Summary", value: QueryType.Summary}
-// ]
-
 export function SystemQueryEditor({ query, onChange, onRunQuery }: Props) {
   const onQueryTypeChange = (value: QueryType) => {
     onChange({ ...query, queryKind: value })
