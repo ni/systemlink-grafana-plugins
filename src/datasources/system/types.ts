@@ -14,7 +14,7 @@ export interface SystemSummary {
   disconnectedCount: number
 }
 
-export interface SystemInfo {
+export interface SystemMetadata {
   id: string,
   alias: string,
   connectionStatus: string,

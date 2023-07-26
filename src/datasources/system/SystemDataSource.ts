@@ -11,7 +11,7 @@ import {
 
 import { TestingStatus, getBackendSrv } from '@grafana/runtime';
 
-import { QueryType, SystemInfo, SystemQuery, SystemSummary } from './types';
+import { QueryType, SystemMetadata, SystemQuery, SystemSummary } from './types';
 
 export class SystemDataSource extends DataSourceApi<SystemQuery> {
   baseUrl: string;
@@ -33,7 +33,7 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
           ],
         });
       } else {
-        let metadataResponse = await getBackendSrv().post<{ data: SystemInfo[] }>(this.baseUrl + '/query-systems', { projection: "new(id, alias, connected.data.state, grains.data.minion_blackout as locked, grains.data.boottime as systemStartTime, grains.data.productname as model, grains.data.manufacturer as vendor, grains.data.osfullname as osFullName, grains.data.ip4_interfaces as ip4Interfaces, grains.data.ip6_interfaces as ip6Interfaces, workspace)" });
+        let metadataResponse = await getBackendSrv().post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', { projection: "new(id, alias, connected.data.state, grains.data.minion_blackout as locked, grains.data.boottime as systemStartTime, grains.data.productname as model, grains.data.manufacturer as vendor, grains.data.osfullname as osFullName, grains.data.ip4_interfaces as ip4Interfaces, grains.data.ip6_interfaces as ip6Interfaces, workspace)" });
         return toDataFrame(metadataResponse.data);
       }
     }));
