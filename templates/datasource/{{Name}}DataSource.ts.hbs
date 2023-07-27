@@ -7,13 +7,16 @@ import {
   FieldType,
 } from '@grafana/data';
 
-import { TestingStatus, getBackendSrv } from '@grafana/runtime';
+import { BackendSrv, TestingStatus, getBackendSrv } from '@grafana/runtime';
 
 import { {{Name}}Query } from './types';
 
 export class {{Name}}DataSource extends DataSourceApi<{{Name}}Query> {
   baseUrl: string;
-  constructor(private instanceSettings: DataSourceInstanceSettings) {
+  constructor(
+    private instanceSettings: DataSourceInstanceSettings,
+    private backendSrv: BackendSrv = getBackendSrv()
+  ) {
     super(instanceSettings);
     // TODO: set base path of the service
     this.baseUrl = this.instanceSettings.url + '/nifoo/v2';
@@ -40,7 +43,7 @@ export class {{Name}}DataSource extends DataSourceApi<{{Name}}Query> {
 
   async testDatasource(): Promise<TestingStatus> {
     // TODO: Implement a health and authentication check
-    await getBackendSrv().get(this.baseUrl + '/bar');
+    await this.backendSrv.get(this.baseUrl + '/bar');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }
