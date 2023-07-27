@@ -2,7 +2,7 @@ import React from 'react';
 import { InlineField, InlineFieldRow, RadioButtonGroup } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { SystemDataSource } from '../SystemDataSource';
-import { QueryType, SystemQuery } from '../types';
+import {  QueryType, SystemQuery } from '../types';
 import { enumToOptions } from 'core/utils';
 
 type Props = QueryEditorProps<SystemDataSource, SystemQuery>;

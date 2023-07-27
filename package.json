@@ -1,6 +1,6 @@
 {
   "name": "systemlink-grafana-plugins",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Plugins for visualizing data from SystemLink services",
   "private": true,
   "scripts": {
@@ -8,6 +8,7 @@
     "dev": "webpack -w -c ./.config/webpack/webpack.config.ts --env development",
     "test": "jest --watch --onlyChanged",
     "test:ci": "jest --passWithNoTests --maxWorkers 4",
+    "test:template": "npx plop datasource Test && npx tsc --noEmit && rimraf src/datasources/test",
     "lint": "eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx .",
     "lint:fix": "npm run lint -- --fix",
     "e2e": "npm exec cypress install && npm exec grafana-e2e run",
@@ -47,6 +48,7 @@
     "identity-obj-proxy": "3.0.0",
     "jest": "^29.5.0",
     "jest-environment-jsdom": "^29.5.0",
+    "jest-mock-extended": "^3.0.4",
     "plop": "^3.1.2",
     "prettier": "^2.8.7",
     "replace-in-file-webpack-plugin": "^1.0.6",

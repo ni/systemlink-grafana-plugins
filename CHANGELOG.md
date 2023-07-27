@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.5.0...v1.6.0) (2023-07-26)
+
+
+### Features
+
+* display system status counts ([#6](https://github.com/ni/systemlink-grafana-plugins/issues/6)) ([285b8b2](https://github.com/ni/systemlink-grafana-plugins/commit/285b8b23d180d54fbcce90a7cc50536a3d3c07c5))
+
 # [1.5.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.4.1...v1.5.0) (2023-07-21)
 
 
