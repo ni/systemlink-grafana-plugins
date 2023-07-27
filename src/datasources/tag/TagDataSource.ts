@@ -4,19 +4,21 @@ import {
   DataSourceApi,
   DataSourceInstanceSettings,
   MutableDataFrame,
-  FieldType,
+  FieldType
 } from '@grafana/data';
 
-import { TestingStatus, getBackendSrv } from '@grafana/runtime';
+import { BackendSrv, TestingStatus, getBackendSrv } from '@grafana/runtime';
 
 import { TagQuery } from './types';
 
 export class TagDataSource extends DataSourceApi<TagQuery> {
   baseUrl: string;
-  constructor(private instanceSettings: DataSourceInstanceSettings) {
+  constructor(
+    private instanceSettings: DataSourceInstanceSettings,
+    private backendSrv: BackendSrv = getBackendSrv()
+  ) {
     super(instanceSettings);
-    // TODO: set base path of the service
-    this.baseUrl = this.instanceSettings.url + '/nifoo/v2';
+    this.baseUrl = this.instanceSettings.url + '/nitag/v2';
   }
 
   async query(options: DataQueryRequest<TagQuery>): Promise<DataQueryResponse> {
@@ -39,8 +41,7 @@ export class TagDataSource extends DataSourceApi<TagQuery> {
   }
 
   async testDatasource(): Promise<TestingStatus> {
-    // TODO: Implement a health and authentication check
-    await getBackendSrv().get(this.baseUrl + '/bar');
+    await this.backendSrv.get(this.baseUrl + '/tags-count');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }
