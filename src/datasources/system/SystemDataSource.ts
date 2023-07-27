@@ -11,13 +11,23 @@ import {
 
 import { TestingStatus, getBackendSrv } from '@grafana/runtime';
 
-import { QueryType, SystemMetadata, SystemQuery, SystemSummary } from './types';
+import { MyVariableQuery, QueryType, SystemMetadata, SystemQuery, SystemSummary } from './types';
 
 export class SystemDataSource extends DataSourceApi<SystemQuery> {
   baseUrl: string;
   constructor(private instanceSettings: DataSourceInstanceSettings) {
     super(instanceSettings);
     this.baseUrl = this.instanceSettings.url + '/nisysmgmt/v1';
+  }
+
+  async metricFindQuery(query: MyVariableQuery, options?: any) { // GC: or query: MyVariableQuery
+    // Retrieve DataQueryResponse based on query.
+    const response = await getBackendSrv().post<{ data: MyVariableQuery[] }>(this.baseUrl + '/query-systems', { projection: "new(id, alias)" });
+  
+    // Convert query results to a MetricFindValue[]
+    const values = response.data.map(frame => ({ text: frame.id }));
+  
+    return values;
   }
 
   async query(options: DataQueryRequest<SystemQuery>): Promise<DataQueryResponse> {

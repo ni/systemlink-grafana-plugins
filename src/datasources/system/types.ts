@@ -26,3 +26,8 @@ export interface SystemMetadata {
   ipAddress: string,
   workspace: string
 }
+
+export interface MyVariableQuery {
+  id: string,
+  alias: string
+}
