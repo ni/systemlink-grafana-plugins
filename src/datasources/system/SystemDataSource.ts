@@ -13,6 +13,7 @@ import { TestingStatus, getBackendSrv } from '@grafana/runtime';
 
 import { QueryType, SystemMetadata, SystemQuery, SystemSummary } from './types';
 import { defaultProjection } from './constants';
+import { keyBy } from 'lodash';
 
 export class SystemDataSource extends DataSourceApi<SystemQuery> {
   baseUrl: string;
@@ -21,7 +22,7 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
     this.baseUrl = this.instanceSettings.url + '/nisysmgmt/v1';
   }
 
-  projectionTransformer (projections: string[]): string { // GYC: why can't i write "function"
+  transformProjection(projections: string[]): string { // GYC: why can't i write "function"
     let result = "new(";
 
     projections.forEach(function (field) {
@@ -34,6 +35,21 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
 
     return result;
   }
+
+  extractIpAddress(ipInterfaces: { [key: string]: string[] }): { name: string, address: string } { // GYC: how to access the two parts
+    for (const ipInterfaceName in ipInterfaces) {
+        if (!ipInterfaceName) {
+            continue;
+        }
+        const ipInterfaceAddresses = ipInterfaces[ipInterfaceName];
+        if (ipInterfaceName !== 'lo' && this.isInterfaceConnected(ipInterfaceAddresses)) {
+            return {
+                name: ipInterfaceName, // GYC: isnt this just a number
+                address: ipInterfaceAddresses[0]
+            };
+        }
+    }
+}
 
   async query(options: DataQueryRequest<SystemQuery>): Promise<DataQueryResponse> {
     // Return a constant for each query.
@@ -48,7 +64,16 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
           ],
         });
       } else {
-        let metadataResponse = await getBackendSrv().post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', { projection: this.projectionTransformer(defaultProjection) });
+        let metadataResponse = await getBackendSrv().post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', { projection: this.transformProjection(defaultProjection) });
+        
+        // console.log(metadataResponse);
+        // TODO: loop through all responses
+        console.log(metadataResponse.data[0]);
+
+        // metadataResponse.data.forEach(function (system) {
+        //   extractIpAddress(system.ipAddress);
+        // });
+
         return toDataFrame(metadataResponse.data);
       }
     }));
