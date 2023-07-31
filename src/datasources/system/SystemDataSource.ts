@@ -12,12 +12,27 @@ import {
 import { TestingStatus, getBackendSrv } from '@grafana/runtime';
 
 import { QueryType, SystemMetadata, SystemQuery, SystemSummary } from './types';
+import { defaultProjection } from './constants';
 
 export class SystemDataSource extends DataSourceApi<SystemQuery> {
   baseUrl: string;
   constructor(private instanceSettings: DataSourceInstanceSettings) {
     super(instanceSettings);
     this.baseUrl = this.instanceSettings.url + '/nisysmgmt/v1';
+  }
+
+  projectionTransformer (projections: string[]): string { // GYC: why can't i write "function"
+    let result = "new(";
+
+    projections.forEach(function (field) {
+      if (field === "workspace") {
+        result = result.concat(field, ")");
+      } else {
+        result = result.concat(field, ", ");
+      }
+    });
+
+    return result;
   }
 
   async query(options: DataQueryRequest<SystemQuery>): Promise<DataQueryResponse> {
@@ -33,7 +48,7 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
           ],
         });
       } else {
-        let metadataResponse = await getBackendSrv().post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', { projection: "new(id, alias, connected.data.state, grains.data.minion_blackout as locked, grains.data.boottime as systemStartTime, grains.data.productname as model, grains.data.manufacturer as vendor, grains.data.osfullname as osFullName, grains.data.ip4_interfaces as ip4Interfaces, grains.data.ip6_interfaces as ip6Interfaces, workspace)" });
+        let metadataResponse = await getBackendSrv().post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', { projection: this.projectionTransformer(defaultProjection) });
         return toDataFrame(metadataResponse.data);
       }
     }));
