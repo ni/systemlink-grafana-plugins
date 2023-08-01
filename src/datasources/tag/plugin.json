@@ -1,7 +1,7 @@
 {
   "type": "datasource",
   "name": "SystemLink Tags",
-  "id": "ni-sltag-datasource",
+  "id": "ni-sltag-datasource-prerelease",
   "metrics": true,
   "info": {
     "author": {

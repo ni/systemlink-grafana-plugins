@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/ni/systemlink-grafana-plugins/compare/v1.6.0...v1.6.1) (2023-07-31)
+
+
+### Bug Fixes
+
+* duplicate tag plugin.json ids ([ac54798](https://github.com/ni/systemlink-grafana-plugins/commit/ac54798dc88c3d8d5e29268e54cd76ba1434a090))
+
 # [1.6.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.5.0...v1.6.0) (2023-07-26)
 
 

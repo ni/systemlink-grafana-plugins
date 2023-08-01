@@ -32,12 +32,18 @@ export class TagDataSource extends DataSourceApi<TagQuery> {
         refId: target.refId,
         fields: [
           { name: 'Time', values: [from, to], type: FieldType.time },
-          { name: 'Value', values: [target.constant, target.constant], type: FieldType.number },
+          { name: 'Value', values: [2.72, 3.14], type: FieldType.number },
         ],
       });
     });
 
     return { data };
+  }
+
+  getDefaultQuery(): Omit<TagQuery, 'refId'> {
+    return {
+      path: ''
+    };
   }
 
   async testDatasource(): Promise<TestingStatus> {
