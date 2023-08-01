@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.6.1...v1.7.0) (2023-08-01)
+
+
+### Features
+
+* display system metadata ([#7](https://github.com/ni/systemlink-grafana-plugins/issues/7)) ([fa5c1f5](https://github.com/ni/systemlink-grafana-plugins/commit/fa5c1f50218449596c545a11362578df3fa303cc))
+
 ## [1.6.1](https://github.com/ni/systemlink-grafana-plugins/compare/v1.6.0...v1.6.1) (2023-07-31)
 
 
