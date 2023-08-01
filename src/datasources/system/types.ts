@@ -17,12 +17,13 @@ export interface SystemSummary {
 export interface SystemMetadata {
   id: string,
   alias: string,
-  connectionStatus: string,
-  lockedStatus: string,
+  state: string,
+  locked: string,
   systemStartTime: string,
   model: string,
   vendor: string,
-  operatingSystem: string,
-  ipAddress: string,
+  osFullName: string,
+  ip4Interfaces: Record<string, string[]>,
+  ip6Interfaces: Record<string, string[]>,
   workspace: string
 }
