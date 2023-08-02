@@ -13,9 +13,11 @@ export function SystemQueryEditor({ query, onChange, onRunQuery }: Props) {
     onRunQuery();
   }
 
+  // GYC: $system_id
+
   return (
     <div>
-      <InlineFieldRow >
+      <InlineFieldRow>
         <InlineField label="Query type">
           <RadioButtonGroup options={enumToOptions(QueryType)} onChange={onQueryTypeChange} value={query.queryKind} />
         </InlineField>
