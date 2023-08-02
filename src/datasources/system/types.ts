@@ -27,3 +27,8 @@ export interface SystemMetadata {
   ip6Interfaces: Record<string, string[]>,
   workspace: string
 }
+
+export interface VariableQuery {
+  id: string,
+  alias: string
+}

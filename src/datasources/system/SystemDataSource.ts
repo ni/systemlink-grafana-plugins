@@ -11,7 +11,7 @@ import {
 
 import { TestingStatus, getBackendSrv } from '@grafana/runtime';
 
-import { QueryType, SystemMetadata, SystemQuery, SystemSummary } from './types';
+import { QueryType, SystemMetadata, SystemQuery, SystemSummary, VariableQuery } from './types';
 import { defaultProjection } from './constants';
 import { NetworkUtils } from './network-utils';
 
@@ -38,6 +38,16 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
 
   private getIpAddress(ip4Interface: Record<string, string[]>, ip6Interface: Record<string, string[]>): string | null {
     return NetworkUtils.getIpAddressFromInterfaces(ip4Interface) || NetworkUtils.getIpAddressFromInterfaces(ip6Interface);
+  }
+
+  async metricFindQuery(query: VariableQuery, options?: any) { 
+    // Retrieve DataQueryResponse based on query.
+    const response = await getBackendSrv().post<{ data: VariableQuery[] }>(this.baseUrl + '/query-systems', { projection: "new(id, alias)" });
+  
+    // Convert query results to a MetricFindValue[]
+    const values = response.data.map(frame => ({ text: frame.id }));
+  
+    return values;
   }
 
   async query(options: DataQueryRequest<SystemQuery>): Promise<DataQueryResponse> {
