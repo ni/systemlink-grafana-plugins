@@ -22,7 +22,7 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
     this.baseUrl = this.instanceSettings.url + '/nisysmgmt/v1';
   }
 
-  transformProjection(projections: string[]): string { 
+  transformProjection(projections: string[]): string {
     let result = "new(";
 
     projections.forEach(function (field) {
@@ -40,13 +40,10 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
     return NetworkUtils.getIpAddressFromInterfaces(ip4Interface) || NetworkUtils.getIpAddressFromInterfaces(ip6Interface);
   }
 
-  async metricFindQuery(query: VariableQuery, options?: any) { 
-    // Retrieve DataQueryResponse based on query.
+  async metricFindQuery(query: VariableQuery, options?: any) {
     const response = await getBackendSrv().post<{ data: VariableQuery[] }>(this.baseUrl + '/query-systems', { projection: "new(id, alias)" });
-  
-    // Convert query results to a MetricFindValue[]
-    const values = response.data.map(frame => ({ text: frame.id }));
-  
+    const values = response.data.map(frame => ({ text: frame.alias }));
+
     return values;
   }
 
@@ -64,19 +61,18 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
         });
       } else {
         let metadataResponse = await getBackendSrv().post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', { projection: this.transformProjection(defaultProjection) });
-        
         return toDataFrame({
           fields: [
-            { name: 'id', values: metadataResponse.data.map(m => m.id)},
-            { name: 'alias', values: metadataResponse.data.map(m => m.alias)},
-            { name: 'connection status', values: metadataResponse.data.map(m => m.state)},
-            { name: 'locked status', values: metadataResponse.data.map(m => m.locked)},
-            { name: 'system start time', values: metadataResponse.data.map(m => m.systemStartTime)},
-            { name: 'model', values: metadataResponse.data.map(m => m.model)},
-            { name: 'vendor', values: metadataResponse.data.map(m => m.vendor)},
-            { name: 'operating system', values: metadataResponse.data.map(m => m.osFullName)},
-            { name: 'ip address', values: metadataResponse.data.map(m => this.getIpAddress(m.ip4Interfaces, m.ip6Interfaces))},
-            { name: 'workspace', values: metadataResponse.data.map(m => m.workspace)},
+            { name: 'id', values: metadataResponse.data.map(m => m.id) },
+            { name: 'alias', values: metadataResponse.data.map(m => m.alias) },
+            { name: 'connection status', values: metadataResponse.data.map(m => m.state) },
+            { name: 'locked status', values: metadataResponse.data.map(m => m.locked) },
+            { name: 'system start time', values: metadataResponse.data.map(m => m.systemStartTime) },
+            { name: 'model', values: metadataResponse.data.map(m => m.model) },
+            { name: 'vendor', values: metadataResponse.data.map(m => m.vendor) },
+            { name: 'operating system', values: metadataResponse.data.map(m => m.osFullName) },
+            { name: 'ip address', values: metadataResponse.data.map(m => this.getIpAddress(m.ip4Interfaces, m.ip6Interfaces)) },
+            { name: 'workspace', values: metadataResponse.data.map(m => m.workspace) },
           ]
         });
       }
