@@ -13,6 +13,11 @@ export function SystemQueryEditor({ query, onChange, onRunQuery }: Props) {
     onRunQuery();
   }
 
+  const onIdBlur = (id: string) => {
+    onChange({ ...query, systemId: id })
+    onRunQuery();
+  }
+
   return (
     <div>
       <InlineFieldRow>
@@ -22,7 +27,7 @@ export function SystemQueryEditor({ query, onChange, onRunQuery }: Props) {
       </InlineFieldRow>
       <InlineFieldRow>
         <InlineField label="Minion ID">
-          <Input placeholder="All systems" />
+          <Input placeholder="All systems" onBlur={onIdBlur}/>
         </InlineField>
       </InlineFieldRow>
     </div>
