@@ -9,7 +9,7 @@ import {
   toDataFrame,
 } from '@grafana/data';
 
-import { TestingStatus, getBackendSrv } from '@grafana/runtime';
+import { TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 
 import { QueryType, SystemMetadata, SystemQuery, SystemSummary, VariableQuery } from './types';
 import { defaultProjection } from './constants';
@@ -42,7 +42,7 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
 
   async metricFindQuery(query: VariableQuery, options?: any) {
     const response = await getBackendSrv().post<{ data: VariableQuery[] }>(this.baseUrl + '/query-systems', { projection: "new(id, alias)" });
-    const values = response.data.map(frame => ({ text: frame.alias }));
+    const values = response.data.map(frame => ({ text: frame.alias, value: frame.id }));
 
     return values;
   }
@@ -60,7 +60,12 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
           ],
         });
       } else {
-        let metadataResponse = await getBackendSrv().post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', { projection: this.transformProjection(defaultProjection) });
+        const resolvedId = getTemplateSrv().replace(target.id);
+        const postBody = {
+          filter: resolvedId ? `id = "${resolvedId}"` : '',
+          projection: this.transformProjection(defaultProjection)
+        };
+        let metadataResponse = await getBackendSrv().post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', postBody);
         return toDataFrame({
           fields: [
             { name: 'id', values: metadataResponse.data.map(m => m.id) },

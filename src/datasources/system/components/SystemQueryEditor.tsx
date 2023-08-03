@@ -13,16 +13,24 @@ export function SystemQueryEditor({ query, onChange, onRunQuery }: Props) {
     onRunQuery();
   }
 
+  const onIdBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const id = e.currentTarget.value;
+    if (query.id !== id) {
+      onChange({ ...query, id: id })
+      onRunQuery(); 
+    }
+  }
+
   return (
     <div>
-      <InlineFieldRow>
+      <InlineFieldRow >
         <InlineField label="Query type">
           <RadioButtonGroup options={enumToOptions(QueryType)} onChange={onQueryTypeChange} value={query.queryKind} />
         </InlineField>
       </InlineFieldRow>
       <InlineFieldRow>
         <InlineField label="Minion ID">
-          <Input placeholder="All systems" />
+          <Input placeholder="All systems" onBlur={onIdBlur}/>
         </InlineField>
       </InlineFieldRow>
     </div>
