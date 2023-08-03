@@ -1,5 +1,5 @@
 import React from 'react';
-import { InlineField, InlineFieldRow, Input, RadioButtonGroup } from '@grafana/ui';
+import { InlineField, InlineFieldRow, RadioButtonGroup } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { SystemDataSource } from '../SystemDataSource';
 import { QueryType, SystemQuery } from '../types';
