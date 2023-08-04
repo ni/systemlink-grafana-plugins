@@ -60,9 +60,9 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
           ],
         });
       } else {
-        const resolvedId = getTemplateSrv().replace(target.id);
+        const resolvedId = getTemplateSrv().replace(target.systemId);
         const postBody = {
-          filter: resolvedId ? `id = "${resolvedId}"` : '',
+          filter: resolvedId ? `id = "${resolvedId}" || alias = "${resolvedId}"` : '',
           projection: this.transformProjection(defaultProjection)
         };
         let metadataResponse = await getBackendSrv().post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', postBody);

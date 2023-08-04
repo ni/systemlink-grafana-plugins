@@ -15,8 +15,8 @@ export function SystemQueryEditor({ query, onChange, onRunQuery }: Props) {
 
   const onIdBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const id = e.currentTarget.value;
-    if (query.id !== id) {
-      onChange({ ...query, id: id })
+    if (query.systemId !== id) {
+      onChange({ ...query, systemId: id }) //change to systemid
       onRunQuery(); 
     }
   }
@@ -30,7 +30,7 @@ export function SystemQueryEditor({ query, onChange, onRunQuery }: Props) {
       </InlineFieldRow>
       <InlineFieldRow>
         <InlineField label="Minion ID">
-          <Input placeholder="All systems" onBlur={onIdBlur}/>
+          <Input placeholder="All systems" onBlur={onIdBlur} />
         </InlineField>
       </InlineFieldRow>
     </div>

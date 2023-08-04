@@ -7,7 +7,7 @@ export enum QueryType {
 
 export interface SystemQuery extends DataQuery {
   queryKind: QueryType,
-  id: string
+  systemId: string
 }
 
 export interface SystemSummary {
