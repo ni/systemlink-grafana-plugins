@@ -17,9 +17,11 @@ import { NetworkUtils } from './network-utils';
 
 export class SystemDataSource extends DataSourceApi<SystemQuery> {
   baseUrl: string;
+  aliasUrl: string;
   constructor(private instanceSettings: DataSourceInstanceSettings) {
     super(instanceSettings);
     this.baseUrl = this.instanceSettings.url + '/nisysmgmt/v1';
+    this.aliasUrl = this.instanceSettings.url + '/niuser/v1';
   }
 
   transformProjection(projections: string[]): string {
@@ -66,10 +68,11 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
           projection: this.transformProjection(defaultProjection)
         };
         let metadataResponse = await getBackendSrv().post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', postBody);
+        let aliasNameResponse = await getBackendSrv().post<{ data: SystemMetadata[] }>(this.aliasUrl + '/workspaces', postBody);
         return toDataFrame({
           fields: [
             { name: 'id', values: metadataResponse.data.map(m => m.id) },
-            { name: 'alias', values: metadataResponse.data.map(m => m.alias) },
+            { name: 'alias', values: aliasNameResponse.data.map(m => m.alias) },
             { name: 'connection status', values: metadataResponse.data.map(m => m.state) },
             { name: 'locked status', values: metadataResponse.data.map(m => m.locked) },
             { name: 'system start time', values: metadataResponse.data.map(m => m.systemStartTime) },
