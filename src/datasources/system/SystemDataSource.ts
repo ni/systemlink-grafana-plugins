@@ -7,6 +7,7 @@ import {
   FieldType,
   CoreApp,
   toDataFrame,
+  MetricFindValue,
 } from '@grafana/data';
 
 import { TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
@@ -40,7 +41,7 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
     return NetworkUtils.getIpAddressFromInterfaces(ip4Interface) || NetworkUtils.getIpAddressFromInterfaces(ip6Interface);
   }
 
-  async metricFindQuery(query: VariableQuery, options?: any) {
+  async metricFindQuery(query: VariableQuery, options?: any): Promise<MetricFindValue[]> {
     const response = await getBackendSrv().post<{ data: VariableQuery[] }>(this.baseUrl + '/query-systems', { projection: "new(id, alias)" });
     const values = response.data.map(frame => ({ text: frame.alias, value: frame.id }));
 
@@ -60,10 +61,11 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
           ],
         });
       } else {
-        const resolvedId = getTemplateSrv().replace(target.systemId);
+        const resolvedId = getTemplateSrv().replace(target.systemName, options.scopedVars);
         const postBody = {
           filter: resolvedId ? `id = "${resolvedId}" || alias = "${resolvedId}"` : '',
-          projection: this.transformProjection(defaultProjection)
+          projection: this.transformProjection(defaultProjection),
+          orderBy: 'createdTimeStamp DESC'
         };
         let metadataResponse = await getBackendSrv().post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', postBody);
         return toDataFrame({

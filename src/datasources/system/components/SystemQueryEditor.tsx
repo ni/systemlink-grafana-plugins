@@ -15,8 +15,8 @@ export function SystemQueryEditor({ query, onChange, onRunQuery }: Props) {
 
   const onIdBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const id = e.currentTarget.value;
-    if (query.systemId !== id) {
-      onChange({ ...query, systemId: id }) //change to systemid
+    if (query.systemName !== id) {
+      onChange({ ...query, systemName: id })
       onRunQuery(); 
     }
   }
@@ -29,8 +29,8 @@ export function SystemQueryEditor({ query, onChange, onRunQuery }: Props) {
         </InlineField>
       </InlineFieldRow>
       <InlineFieldRow>
-        <InlineField label="Minion ID">
-          <Input placeholder="All systems" onBlur={onIdBlur} />
+        <InlineField label="System" tooltip="Enter system ID or alias" >
+          <Input placeholder="All systems" onBlur={onIdBlur} defaultValue={query.systemName} />
         </InlineField>
       </InlineFieldRow>
     </div>
