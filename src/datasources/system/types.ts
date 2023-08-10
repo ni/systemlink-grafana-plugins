@@ -33,3 +33,12 @@ export interface VariableQuery {
   id: string,
   alias: string
 }
+
+export interface AuthResponse {
+  workspaces: Workspace[]
+}
+
+export interface Workspace {
+  id: string,
+  name: string
+}
