@@ -18,9 +18,11 @@ import { NetworkUtils } from './network-utils';
 
 export class SystemDataSource extends DataSourceApi<SystemQuery> {
   baseUrl: string;
+  aliasUrl: string;
   constructor(private instanceSettings: DataSourceInstanceSettings) {
     super(instanceSettings);
     this.baseUrl = this.instanceSettings.url + '/nisysmgmt/v1';
+    this.aliasUrl = this.instanceSettings.url + '/niauth/v1';
   }
 
   transformProjection(projections: string[]): string {
