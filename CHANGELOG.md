@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.8.0...v1.9.0) (2023-08-11)
+
+
+### Features
+
+* display workspace alias instead of workspace ID ([#13](https://github.com/ni/systemlink-grafana-plugins/issues/13)) ([869b01c](https://github.com/ni/systemlink-grafana-plugins/commit/869b01ca68e2668c989483b0407bed0fab50062e))
+
 # [1.8.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.7.0...v1.8.0) (2023-08-11)
 
 
