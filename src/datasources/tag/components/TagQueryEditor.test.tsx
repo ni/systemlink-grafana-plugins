@@ -4,13 +4,10 @@ import { TagQueryEditor } from './TagQueryEditor';
 import { renderQueryEditor } from 'test/fixtures';
 
 it('updates query with new tag path', async () => {
-  // Given - TagQueryEditor with empty query
   const [onChange] = renderQueryEditor(TagQueryEditor, { path: '' });
 
-  // When - user types in tag path
   await userEvent.type(screen.getByLabelText('Tag path'), 'my.tag{enter}');
 
-  // Then - onChange called with new tag path
   expect(onChange).toBeCalledWith(expect.objectContaining({ path: 'my.tag' }));
 });
 
