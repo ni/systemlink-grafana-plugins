@@ -12,7 +12,7 @@ import {
 
 import { TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 
-import { AuthResponse, QueryType, SystemMetadata, SystemQuery, SystemSummary, VariableQuery } from './types';
+import { AuthResponse, QueryType, SystemMetadata, SystemQuery, SystemSummary, VariableQuery, Workspace } from './types';
 import { defaultProjection } from './constants';
 import { NetworkUtils } from './network-utils';
 
@@ -37,6 +37,16 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
     });
 
     return result;
+  }
+
+  findName(workspaces: Workspace[], system: SystemMetadata): string {
+    for (let i = 0; i < workspaces.length; i++) {
+      if (workspaces[i].id === system.workspace) {
+        return workspaces[i].name;
+      }
+    }
+
+    return system.workspace;
   }
 
   private getIpAddress(ip4Interface: Record<string, string[]>, ip6Interface: Record<string, string[]>): string | null {
@@ -70,7 +80,7 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
           orderBy: 'createdTimeStamp DESC'
         };
         let metadataResponse = await getBackendSrv().post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', postBody);
-        let aliasNameResponse = await getBackendSrv().get<{ data: AuthResponse[] }>(this.aliasUrl + '/auth', postBody);
+        let aliasNameResponse = await getBackendSrv().get< AuthResponse >(this.aliasUrl + '/auth', postBody);
         console.log(aliasNameResponse);
         return toDataFrame({
           fields: [
@@ -83,11 +93,7 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
             { name: 'vendor', values: metadataResponse.data.map(m => m.vendor) },
             { name: 'operating system', values: metadataResponse.data.map(m => m.osFullName) },
             { name: 'ip address', values: metadataResponse.data.map(m => this.getIpAddress(m.ip4Interfaces, m.ip6Interfaces)) },
-            //{ name: 'workspace', values: metadataResponse.data.map(m => m.workspace) }, 
-            // cycle through list, match id, get name (find function), check for null (display id)
-            // aliasNameResponse.workspaces.find(w => w.id === m.workspace).name
-            { name: 'workspace', values: aliasNameResponse.data.workspaces.find(m => m.id === metadataResponse.workspace).name }
-            { name: 'workspace', values: aliasNameResponse.data.find(m => m.workspaces.find()) }
+            { name: 'workspace', values: metadataResponse.data.map(m => this.findName(aliasNameResponse.workspaces, m)) }
           ]
         });
       }
