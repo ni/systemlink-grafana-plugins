@@ -79,7 +79,8 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
             { name: 'vendor', values: metadataResponse.data.map(m => m.vendor) },
             { name: 'operating system', values: metadataResponse.data.map(m => m.osFullName) },
             { name: 'ip address', values: metadataResponse.data.map(m => this.getIpAddress(m.ip4Interfaces, m.ip6Interfaces)) },
-            { name: 'workspace', values: metadataResponse.data.map(m => m.workspace) },          ]
+            { name: 'workspace', values: metadataResponse.data.map(m => m.workspace) },
+          ]
         });
       }
     }));
