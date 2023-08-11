@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.7.0...v1.8.0) (2023-08-11)
+
+
+### Features
+
+* implement metricFindQuery  ([#11](https://github.com/ni/systemlink-grafana-plugins/issues/11)) ([a5abed2](https://github.com/ni/systemlink-grafana-plugins/commit/a5abed209d0c18d730a02e02fc269cc7ac3d1368))
+
 # [1.7.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.6.1...v1.7.0) (2023-08-01)
 
 
