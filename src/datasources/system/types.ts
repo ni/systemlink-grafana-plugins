@@ -6,7 +6,8 @@ export enum QueryType {
 }
 
 export interface SystemQuery extends DataQuery {
-  queryKind: QueryType
+  queryKind: QueryType,
+  systemName: string
 }
 
 export interface SystemSummary {
@@ -26,4 +27,9 @@ export interface SystemMetadata {
   ip4Interfaces: Record<string, string[]>,
   ip6Interfaces: Record<string, string[]>,
   workspace: string
+}
+
+export interface VariableQuery {
+  id: string,
+  alias: string
 }

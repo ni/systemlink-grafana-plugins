@@ -5,4 +5,5 @@ import { HttpConfigEditor } from 'core/components/HttpConfigEditor';
 
 export const plugin = new DataSourcePlugin(SystemDataSource)
   .setConfigEditor(HttpConfigEditor)
-  .setQueryEditor(SystemQueryEditor);
+  .setQueryEditor(SystemQueryEditor)
+  .setVariableQueryEditor(() => null);

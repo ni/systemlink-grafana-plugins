@@ -7,11 +7,12 @@ import {
   FieldType,
   CoreApp,
   toDataFrame,
+  MetricFindValue,
 } from '@grafana/data';
 
-import { TestingStatus, getBackendSrv } from '@grafana/runtime';
+import { TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 
-import { QueryType, SystemMetadata, SystemQuery, SystemSummary } from './types';
+import { QueryType, SystemMetadata, SystemQuery, SystemSummary, VariableQuery } from './types';
 import { defaultProjection } from './constants';
 import { NetworkUtils } from './network-utils';
 
@@ -22,7 +23,7 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
     this.baseUrl = this.instanceSettings.url + '/nisysmgmt/v1';
   }
 
-  transformProjection(projections: string[]): string { 
+  transformProjection(projections: string[]): string {
     let result = "new(";
 
     projections.forEach(function (field) {
@@ -40,6 +41,13 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
     return NetworkUtils.getIpAddressFromInterfaces(ip4Interface) || NetworkUtils.getIpAddressFromInterfaces(ip6Interface);
   }
 
+  async metricFindQuery(query: VariableQuery, options?: any): Promise<MetricFindValue[]> {
+    const response = await getBackendSrv().post<{ data: VariableQuery[] }>(this.baseUrl + '/query-systems', { projection: "new(id, alias)" });
+    const values = response.data.map(frame => ({ text: frame.alias, value: frame.id }));
+
+    return values;
+  }
+
   async query(options: DataQueryRequest<SystemQuery>): Promise<DataQueryResponse> {
     // Return a constant for each query.
     const data = await Promise.all(options.targets.map(async (target) => {
@@ -53,20 +61,25 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
           ],
         });
       } else {
-        let metadataResponse = await getBackendSrv().post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', { projection: this.transformProjection(defaultProjection) });
-        
+        const resolvedId = getTemplateSrv().replace(target.systemName, options.scopedVars);
+        const postBody = {
+          filter: resolvedId ? `id = "${resolvedId}" || alias = "${resolvedId}"` : '',
+          projection: this.transformProjection(defaultProjection),
+          orderBy: 'createdTimeStamp DESC'
+        };
+        let metadataResponse = await getBackendSrv().post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', postBody);
         return toDataFrame({
           fields: [
-            { name: 'id', values: metadataResponse.data.map(m => m.id)},
-            { name: 'alias', values: metadataResponse.data.map(m => m.alias)},
-            { name: 'connection status', values: metadataResponse.data.map(m => m.state)},
-            { name: 'locked status', values: metadataResponse.data.map(m => m.locked)},
-            { name: 'system start time', values: metadataResponse.data.map(m => m.systemStartTime)},
-            { name: 'model', values: metadataResponse.data.map(m => m.model)},
-            { name: 'vendor', values: metadataResponse.data.map(m => m.vendor)},
-            { name: 'operating system', values: metadataResponse.data.map(m => m.osFullName)},
-            { name: 'ip address', values: metadataResponse.data.map(m => this.getIpAddress(m.ip4Interfaces, m.ip6Interfaces))},
-            { name: 'workspace', values: metadataResponse.data.map(m => m.workspace)},
+            { name: 'id', values: metadataResponse.data.map(m => m.id) },
+            { name: 'alias', values: metadataResponse.data.map(m => m.alias) },
+            { name: 'connection status', values: metadataResponse.data.map(m => m.state) },
+            { name: 'locked status', values: metadataResponse.data.map(m => m.locked) },
+            { name: 'system start time', values: metadataResponse.data.map(m => m.systemStartTime) },
+            { name: 'model', values: metadataResponse.data.map(m => m.model) },
+            { name: 'vendor', values: metadataResponse.data.map(m => m.vendor) },
+            { name: 'operating system', values: metadataResponse.data.map(m => m.osFullName) },
+            { name: 'ip address', values: metadataResponse.data.map(m => this.getIpAddress(m.ip4Interfaces, m.ip6Interfaces)) },
+            { name: 'workspace', values: metadataResponse.data.map(m => m.workspace) },
           ]
         });
       }
