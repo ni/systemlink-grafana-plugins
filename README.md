@@ -36,15 +36,18 @@ requires [Node.js + npm](https://docs.npmjs.com/cli/v9/configuring-npm/install)
 [Docker](https://docs.docker.com/engine/install/) is used to run the Grafana
 server in a container for development.
 
-After cloning the repo:
+After cloning the repo, `npm install` to fetch dependencies and then `npm run start` to build in development mode. This command does two things:
 
-1. Run `npm install`
-1. Run `npm run dev` to build in development mode. This starts a process that
+1. Starts a process that
    watches for changes to the source code and automatically rebuilds.
-1. In a separate shell session (e.g. another terminal window), run `npm run
-   server`. This starts up Grafana in a container with the `./dist` directory
-   created by the previous step mounted. After a brief startup, you should now
-   be able to access the Grafana UI at http://localhost:3000 .
+1. Starts up Grafana in a container with the `./dist` directory
+   created by the build process mounted. After a brief startup, you should now
+   be able to access the Grafana UI at http://localhost:3000.
+
+Alternatively, if you use VS Code as your editor, this repo contains a launch
+configuration that runs the steps above and then attaches to an instance of
+Chrome for debugging. See [Debugging in Visual Studio
+Code](https://code.visualstudio.com/docs/editor/debugging) for more information.
 
 For panel plugins, there's no extra configuration needed - it will automatically
 show up in the list of available visualizations.
