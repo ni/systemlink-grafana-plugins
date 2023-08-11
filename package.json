@@ -4,6 +4,7 @@
   "description": "Plugins for visualizing data from SystemLink services",
   "private": true,
   "scripts": {
+    "start": "npm run server && npm run dev",
     "build": "webpack -c ./.config/webpack/webpack.config.ts --env production",
     "dev": "webpack -w -c ./.config/webpack/webpack.config.ts --env development",
     "test": "jest --watch --onlyChanged",
@@ -13,7 +14,7 @@
     "lint:fix": "npm run lint -- --fix",
     "e2e": "npm exec cypress install && npm exec grafana-e2e run",
     "e2e:update": "npm exec cypress install && npm exec grafana-e2e run --update-screenshots",
-    "server": "docker-compose up --build",
+    "server": "docker-compose up --build -d",
     "generate": "plop",
     "release": "semantic-release"
   },
