@@ -12,17 +12,15 @@ import {
 
 import { TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 
-import { AuthResponse, QueryType, SystemMetadata, SystemQuery, SystemSummary, VariableQuery, Workspace } from './types';
+import { QueryType, SystemMetadata, SystemQuery, SystemSummary, VariableQuery } from './types';
 import { defaultProjection } from './constants';
 import { NetworkUtils } from './network-utils';
 
 export class SystemDataSource extends DataSourceApi<SystemQuery> {
   baseUrl: string;
-  aliasUrl: string;
   constructor(private instanceSettings: DataSourceInstanceSettings) {
     super(instanceSettings);
     this.baseUrl = this.instanceSettings.url + '/nisysmgmt/v1';
-    this.aliasUrl = this.instanceSettings.url + '/niauth/v1';
   }
 
   transformProjection(projections: string[]): string {
@@ -37,16 +35,6 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
     });
 
     return result;
-  }
-
-  findName(workspaces: Workspace[], system: SystemMetadata): string {
-    for (let i = 0; i < workspaces.length; i++) {
-      if (workspaces[i].id === system.workspace) {
-        return workspaces[i].name;
-      }
-    }
-
-    return system.workspace;
   }
 
   private getIpAddress(ip4Interface: Record<string, string[]>, ip6Interface: Record<string, string[]>): string | null {
@@ -80,8 +68,6 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
           orderBy: 'createdTimeStamp DESC'
         };
         let metadataResponse = await getBackendSrv().post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', postBody);
-        let aliasNameResponse = await getBackendSrv().get< AuthResponse >(this.aliasUrl + '/auth', postBody);
-        console.log(aliasNameResponse);
         return toDataFrame({
           fields: [
             { name: 'id', values: metadataResponse.data.map(m => m.id) },
@@ -93,7 +79,7 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
             { name: 'vendor', values: metadataResponse.data.map(m => m.vendor) },
             { name: 'operating system', values: metadataResponse.data.map(m => m.osFullName) },
             { name: 'ip address', values: metadataResponse.data.map(m => this.getIpAddress(m.ip4Interfaces, m.ip6Interfaces)) },
-            { name: 'workspace', values: metadataResponse.data.map(m => this.findName(aliasNameResponse.workspaces, m)) }
+            { name: 'workspace', values: metadataResponse.data.map(m => m.workspace) },
           ]
         });
       }
