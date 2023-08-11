@@ -11,10 +11,13 @@ beforeEach(() => {
 
 describe('testDatasource', () => {
   test('returns success', async () => {
+    // Given - data source configured correctly
     backendSrv.get.calledWith('/nitag/v2/tags-count').mockResolvedValue(25);
 
+    // When - user tests connection
     const result = await ds.testDatasource();
 
+    // Then - successful message
     expect(result.status).toEqual('success');
   });
 
