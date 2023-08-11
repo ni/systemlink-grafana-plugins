@@ -81,7 +81,6 @@ export class SystemDataSource extends DataSourceApi<SystemQuery> {
         };
         let metadataResponse = await getBackendSrv().post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', postBody);
         let aliasNameResponse = await getBackendSrv().get< AuthResponse >(this.aliasUrl + '/auth', postBody);
-        console.log(aliasNameResponse);
         return toDataFrame({
           fields: [
             { name: 'id', values: metadataResponse.data.map(m => m.id) },
