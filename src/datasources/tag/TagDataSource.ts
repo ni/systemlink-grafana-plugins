@@ -8,7 +8,7 @@ import {
 
 import { BackendSrv, TestingStatus, getBackendSrv } from '@grafana/runtime';
 
-import { TagQuery, TagsWithValues } from './types';
+import { TagQuery, TagWithValue } from './types';
 import { throwIfNullish } from 'core/utils';
 
 export class TagDataSource extends DataSourceApi<TagQuery> {
@@ -20,7 +20,7 @@ export class TagDataSource extends DataSourceApi<TagQuery> {
 
   async query(options: DataQueryRequest<TagQuery>): Promise<DataQueryResponse> {
     const promises = options.targets.map(async (target) => {
-      const { tag, current } = await this.getMostRecentlyUpdatedTag(target.path);
+      const { tag, current } = await this.getLastUpdatedTag(target.path);
 
       return toDataFrame({
         name: tag.properties.displayName ?? tag.path,
@@ -31,17 +31,18 @@ export class TagDataSource extends DataSourceApi<TagQuery> {
     return Promise.all(promises).then((data) => ({ data }));
   }
 
-  private async getMostRecentlyUpdatedTag(path: string) {
-    const response = await this.backendSrv.post<TagsWithValues>(this.baseUrl + '/query-tags-with-values', {
-      filter: `path = "${path}"`,
-      take: 1,
-      orderBy: 'TIMESTAMP',
-      descending: true,
-    });
+  private async getLastUpdatedTag(path: string) {
+    const response = await this.backendSrv.post<{ tagsWithValues: TagWithValue[] }>(
+      this.baseUrl + '/query-tags-with-values',
+      {
+        filter: `path = "${path}"`,
+        take: 1,
+        orderBy: 'TIMESTAMP',
+        descending: true,
+      }
+    );
 
-    const tagWithValue = throwIfNullish(response.tagsWithValues[0], "❌");
-
-    return tagWithValue;
+    return throwIfNullish(response.tagsWithValues[0], '❌');
   }
 
   filterQuery(query: TagQuery): boolean {

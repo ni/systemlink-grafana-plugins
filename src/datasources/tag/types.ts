@@ -17,7 +17,3 @@ export interface TagWithValue {
     properties: { displayName?: string }
   }
 }
-
-export interface TagsWithValues {
-  tagsWithValues: TagWithValue[];
-};
