@@ -1,15 +1,15 @@
 import {
+  DataFrameDTO,
   DataQueryRequest,
   DataQueryResponse,
   DataSourceApi,
   DataSourceInstanceSettings,
-  MutableDataFrame,
-  FieldType
 } from '@grafana/data';
 
 import { BackendSrv, TestingStatus, getBackendSrv } from '@grafana/runtime';
 
-import { TagQuery } from './types';
+import { TagQuery, TagsWithValues } from './types';
+import { throwIfNullish } from 'core/utils';
 
 export class TagDataSource extends DataSourceApi<TagQuery> {
   baseUrl: string;
@@ -22,27 +22,37 @@ export class TagDataSource extends DataSourceApi<TagQuery> {
   }
 
   async query(options: DataQueryRequest<TagQuery>): Promise<DataQueryResponse> {
-    const { range } = options;
-    const from = range!.from.valueOf();
-    const to = range!.to.valueOf();
+    return { data: await Promise.all(options.targets.filter(this.shouldRunQuery).map(this.runQuery, this)) };
+  }
 
-    // Return a constant for each query.
-    const data = options.targets.map((target) => {
-      return new MutableDataFrame({
-        refId: target.refId,
-        fields: [
-          { name: 'Time', values: [from, to], type: FieldType.time },
-          { name: 'Value', values: [2.72, 3.14], type: FieldType.number },
-        ],
-      });
+  private async runQuery(query: TagQuery): Promise<DataFrameDTO> {
+    const { tag, current } = await this.getLastUpdatedTag(query.path);
+
+    return {
+      refId: query.refId,
+      name: tag.properties.displayName ?? tag.path,
+      fields: [{ name: 'value', values: [current.value.value] }],
+    };
+  }
+
+  private async getLastUpdatedTag(path: string) {
+    const response = await this.backendSrv.post<TagsWithValues>(this.baseUrl + '/query-tags-with-values', {
+      filter: `path = "${path}"`,
+      take: 1,
+      orderBy: 'TIMESTAMP',
+      descending: true,
     });
 
-    return { data };
+    return throwIfNullish(response.tagsWithValues[0], `No tags matched the path '${path}'`);
+  }
+
+  private shouldRunQuery(query: TagQuery): boolean {
+    return Boolean(query.path);
   }
 
   getDefaultQuery(): Omit<TagQuery, 'refId'> {
     return {
-      path: ''
+      path: '',
     };
   }
 

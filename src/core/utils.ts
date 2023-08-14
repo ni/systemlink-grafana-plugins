@@ -9,3 +9,23 @@ export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<Selec
 
   return RESULT;
 }
+
+/**
+ * Throws an error when called
+ * @param error either error object or a string
+ */
+export function Throw(error: string | Error): never {
+  if (typeof error === 'string') {
+    throw new Error(error);
+  }
+  throw error;
+};
+
+/**
+ * Throw exception if value is null or undefined
+ * @param value value to be checked for null or undefined
+ * @param error either error object or a string
+ */
+export function throwIfNullish<T>(value: T, error: string | Error): NonNullable<T> {
+  return value === undefined || value === null ? Throw(error) : value!;
+}

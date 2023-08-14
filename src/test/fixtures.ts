@@ -1,4 +1,4 @@
-import { DataSourceApi, DataSourceInstanceSettings, QueryEditorProps } from '@grafana/data';
+import { DataQueryRequest, DataSourceApi, DataSourceInstanceSettings, QueryEditorProps, dateTime } from '@grafana/data';
 import { DataQuery } from '@grafana/schema';
 import { BackendSrv, FetchError } from '@grafana/runtime';
 import { mock } from 'jest-mock-extended';
@@ -41,4 +41,20 @@ export function renderQueryEditor<DSType extends DataSourceApi<TQuery>, TQuery e
 
 export function createFetchError(status: number): FetchError {
   return mock<FetchError>({ status });
+}
+
+export function createQueryRequest<TQuery extends DataQuery>(
+  ...targets: Array<Omit<TQuery, 'refId'>>
+): DataQueryRequest<TQuery> {
+  return {
+    targets: targets.map((t, ix) => ({...t, refId: 'ABCDE'[ix]} as TQuery)),
+    requestId: '',
+    interval: '',
+    intervalMs: 0,
+    range: { from: dateTime().subtract(1, 'h'), to: dateTime(), raw: { from: 'now-6h', to: 'now' } },
+    scopedVars: {},
+    timezone: 'browser',
+    app: 'panel-editor',
+    startTime: 0,
+  };
 }
