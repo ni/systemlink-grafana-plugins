@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.9.1...v1.10.0) (2023-08-14)
+
+
+### Features
+
+* **tag:** tag current value queries ([#16](https://github.com/ni/systemlink-grafana-plugins/issues/16)) ([8360234](https://github.com/ni/systemlink-grafana-plugins/commit/836023440005536fd45de1e7c5e322b0950c3354))
+
 ## [1.9.1](https://github.com/ni/systemlink-grafana-plugins/compare/v1.9.0...v1.9.1) (2023-08-14)
 
 
