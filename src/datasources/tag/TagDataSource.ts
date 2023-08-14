@@ -13,7 +13,10 @@ import { throwIfNullish } from 'core/utils';
 
 export class TagDataSource extends DataSourceApi<TagQuery> {
   baseUrl: string;
-  constructor(private instanceSettings: DataSourceInstanceSettings, private backendSrv: BackendSrv = getBackendSrv()) {
+  constructor(
+    private instanceSettings: DataSourceInstanceSettings,
+    private backendSrv: BackendSrv = getBackendSrv()
+  ) {
     super(instanceSettings);
     this.baseUrl = this.instanceSettings.url + '/nitag/v2';
   }
@@ -33,15 +36,12 @@ export class TagDataSource extends DataSourceApi<TagQuery> {
   }
 
   private async getLastUpdatedTag(path: string) {
-    const response = await this.backendSrv.post<TagsWithValues>(
-      this.baseUrl + '/query-tags-with-values',
-      {
-        filter: `path = "${path}"`,
-        take: 1,
-        orderBy: 'TIMESTAMP',
-        descending: true,
-      }
-    );
+    const response = await this.backendSrv.post<TagsWithValues>(this.baseUrl + '/query-tags-with-values', {
+      filter: `path = "${path}"`,
+      take: 1,
+      orderBy: 'TIMESTAMP',
+      descending: true,
+    });
 
     return throwIfNullish(response.tagsWithValues[0], `No tags matched the path '${path}'`);
   }
