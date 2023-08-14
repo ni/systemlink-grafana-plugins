@@ -20,7 +20,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   const instanceSettings = {
     url: '_',
-    name: 'SystemLink Data Frames',
+    name: 'SystemLink Data Tables',
   };
   ds = new DataFrameDataSource(instanceSettings as DataSourceInstanceSettings);
   setupFetchMock();
