@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/ni/systemlink-grafana-plugins/compare/v1.9.0...v1.9.1) (2023-08-14)
+
+
+### Bug Fixes
+
+* Rename Data Table data source ([#15](https://github.com/ni/systemlink-grafana-plugins/issues/15)) ([d0926ce](https://github.com/ni/systemlink-grafana-plugins/commit/d0926ce4a584658968e38c69a9884482585b1be9))
+
 # [1.9.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.8.0...v1.9.0) (2023-08-11)
 
 
