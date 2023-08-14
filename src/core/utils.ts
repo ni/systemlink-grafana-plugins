@@ -14,7 +14,7 @@ export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<Selec
  * Throws an error when called
  * @param error either error object or a string
  */
-export const Throw = (error: string | Error): never => {
+export function Throw(error: string | Error): never {
   if (typeof error === 'string') {
     throw new Error(error);
   }
@@ -26,5 +26,6 @@ export const Throw = (error: string | Error): never => {
  * @param value value to be checked for null or undefined
  * @param error either error object or a string
  */
-export const throwIfNullish = <T>(value: T, error: string | Error): NonNullable<T> =>
-  value === undefined || value === null ? Throw(error) : value!;
+export function throwIfNullish<T>(value: T, error: string | Error): NonNullable<T> {
+  return value === undefined || value === null ? Throw(error) : value!;
+}

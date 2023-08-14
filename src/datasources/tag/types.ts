@@ -5,15 +5,13 @@ export interface TagQuery extends DataQuery {
 }
 
 export interface TagWithValue {
-  current: {
-    timestamp: string;
-    value: {
-      type: string;
-      value: string;
-    };
-  };
+  current: { value: { value: string } };
   tag: {
     path: string;
-    properties: { displayName?: string }
-  }
+    properties: { displayName?: string };
+  };
+}
+
+export interface TagsWithValues {
+  tagsWithValues: TagWithValue[];
 }

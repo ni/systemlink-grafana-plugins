@@ -1,14 +1,14 @@
 import {
+  DataFrameDTO,
   DataQueryRequest,
   DataQueryResponse,
   DataSourceApi,
   DataSourceInstanceSettings,
-  toDataFrame,
 } from '@grafana/data';
 
 import { BackendSrv, TestingStatus, getBackendSrv } from '@grafana/runtime';
 
-import { TagQuery, TagWithValue } from './types';
+import { TagQuery, TagsWithValues } from './types';
 import { throwIfNullish } from 'core/utils';
 
 export class TagDataSource extends DataSourceApi<TagQuery> {
@@ -19,20 +19,21 @@ export class TagDataSource extends DataSourceApi<TagQuery> {
   }
 
   async query(options: DataQueryRequest<TagQuery>): Promise<DataQueryResponse> {
-    const promises = options.targets.map(async (target) => {
-      const { tag, current } = await this.getLastUpdatedTag(target.path);
+    return { data: await Promise.all(options.targets.filter(this.shouldRunQuery).map(this.runQuery, this)) };
+  }
 
-      return toDataFrame({
-        name: tag.properties.displayName ?? tag.path,
-        fields: [{ name: 'Value', values: [current.value.value] }],
-      });
-    });
+  private async runQuery(query: TagQuery): Promise<DataFrameDTO> {
+    const { tag, current } = await this.getLastUpdatedTag(query.path);
 
-    return Promise.all(promises).then((data) => ({ data }));
+    return {
+      refId: query.refId,
+      name: tag.properties.displayName ?? tag.path,
+      fields: [{ name: 'value', values: [current.value.value] }],
+    };
   }
 
   private async getLastUpdatedTag(path: string) {
-    const response = await this.backendSrv.post<{ tagsWithValues: TagWithValue[] }>(
+    const response = await this.backendSrv.post<TagsWithValues>(
       this.baseUrl + '/query-tags-with-values',
       {
         filter: `path = "${path}"`,
@@ -42,10 +43,10 @@ export class TagDataSource extends DataSourceApi<TagQuery> {
       }
     );
 
-    return throwIfNullish(response.tagsWithValues[0], '❌');
+    return throwIfNullish(response.tagsWithValues[0], `No tags matched the path '${path}'`);
   }
 
-  filterQuery(query: TagQuery): boolean {
+  private shouldRunQuery(query: TagQuery): boolean {
     return Boolean(query.path);
   }
 
