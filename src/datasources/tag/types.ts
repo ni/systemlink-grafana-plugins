@@ -2,6 +2,7 @@ import { DataQuery } from '@grafana/schema';
 
 export interface TagQuery extends DataQuery {
   path: string;
+  aggregates: string[];
 }
 
 export interface TagWithValue {
@@ -9,6 +10,12 @@ export interface TagWithValue {
   tag: {
     path: string;
     properties: { displayName?: string };
+  };
+  aggregate: {
+    min: string;
+    max: string;
+    avg: string;
+    count: string;
   };
 }
 

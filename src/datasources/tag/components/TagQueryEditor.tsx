@@ -1,6 +1,6 @@
 import React, { FormEvent } from 'react';
-import { AutoSizeInput, InlineField } from '@grafana/ui';
-import { QueryEditorProps } from '@grafana/data';
+import { AutoSizeInput, InlineField, MultiSelect } from '@grafana/ui';
+import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { TagDataSource } from '../TagDataSource';
 import { TagQuery } from '../types';
 
@@ -10,7 +10,7 @@ export function TagQueryEditor({ query, onChange, onRunQuery }: Props) {
   const options = [
     { label: 'Min', value: 'min' },
     { label: 'Max', value: 'max' },
-    { label: 'Mean', value: 'mean' },
+    { label: 'Average', value: 'avg' },
     { label: 'Count', value: 'count' },
   ];
 
@@ -19,9 +19,8 @@ export function TagQueryEditor({ query, onChange, onRunQuery }: Props) {
     onRunQuery();
   };
 
-  const handleAggChange = (val: SelectableValue<string>['']) => {
-    set_agg(val);
-    query.aggregates = val;
+  const handleAggChange = (items: Array<SelectableValue<string>>) => {
+    onChange({ ...query, aggregates: items.map((item) => item.value!) });
     onRunQuery();
   };
 
@@ -31,7 +30,7 @@ export function TagQueryEditor({ query, onChange, onRunQuery }: Props) {
         <AutoSizeInput minWidth={150} defaultValue={query.path} onCommitChange={onPathChange} />
       </InlineField>
       <InlineField label="Aggregates">
-        <MultiSelect options={options} value={current_agg} onChange={handleAggChange} onBlur={onRunQuery} />
+        <MultiSelect options={options} value={query.aggregates} onChange={handleAggChange} />
       </InlineField>
     </>
   );
