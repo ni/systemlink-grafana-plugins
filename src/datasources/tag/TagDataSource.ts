@@ -64,7 +64,6 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
     });
 
     const { type, values } = response.results[path];
-    console.log(type);
     return {
       datetimes: values.map(v => dateTime(v.timestamp).valueOf()),
       values: values.map(v => this.convertTagValue(v.value, type)),
