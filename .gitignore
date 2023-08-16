@@ -35,3 +35,5 @@ e2e-results/
 .idea
 
 .eslintcache
+
+provisioning/datasources/datasources.yaml

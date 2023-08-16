@@ -1,42 +1,50 @@
-import {
-  DataFrameDTO,
-  DataQueryRequest,
-  DataQueryResponse,
-  DataSourceApi,
-  DataSourceInstanceSettings,
-} from '@grafana/data';
-
+import { DataFrameDTO, DataSourceInstanceSettings, dateTime, DataQueryRequest, TimeRange } from '@grafana/data';
 import { BackendSrv, TestingStatus, getBackendSrv } from '@grafana/runtime';
-
-import { TagQuery, TagsWithValues } from './types';
+import { DataSourceBase } from 'core/DataSourceBase';
 import { throwIfNullish } from 'core/utils';
+import { TagHistoryResponse, TagQuery, TagQueryType, TagsWithValues } from './types';
 
-export class TagDataSource extends DataSourceApi<TagQuery> {
-  baseUrl: string;
+export class TagDataSource extends DataSourceBase<TagQuery> {
   constructor(
-    private instanceSettings: DataSourceInstanceSettings,
-    private backendSrv: BackendSrv = getBackendSrv()
+    readonly instanceSettings: DataSourceInstanceSettings,
+    readonly backendSrv: BackendSrv = getBackendSrv()
   ) {
     super(instanceSettings);
-    this.baseUrl = this.instanceSettings.url + '/nitag/v2';
   }
 
-  async query(options: DataQueryRequest<TagQuery>): Promise<DataQueryResponse> {
-    return { data: await Promise.all(options.targets.filter(this.shouldRunQuery).map(this.runQuery, this)) };
-  }
+  tagUrl = this.instanceSettings.url + '/nitag/v2';
+  tagHistoryUrl = this.instanceSettings.url + '/nitaghistorian/v2/tags';
 
-  private async runQuery(query: TagQuery): Promise<DataFrameDTO> {
+  defaultQuery = {
+    type: TagQueryType.Current,
+    path: '',
+  };
+
+  async runQuery(query: TagQuery, { range, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
     const { tag, current } = await this.getLastUpdatedTag(query.path);
+    const name = tag.properties.displayName ?? tag.path;
 
+    if (query.type === TagQueryType.Current) {
+      return {
+        refId: query.refId,
+        name,
+        fields: [{ name: 'value', values: [current.value.value] }],
+      };
+    }
+
+    const history = await this.getTagHistoryValues(tag.path, tag.workspace_id, range, maxDataPoints);
     return {
       refId: query.refId,
-      name: tag.properties.displayName ?? tag.path,
-      fields: [{ name: 'value', values: [current.value.value] }],
+      name,
+      fields: [
+        { name: 'time', values: history.datetimes },
+        { name: 'value', values: history.values },
+      ],
     };
   }
 
   private async getLastUpdatedTag(path: string) {
-    const response = await this.backendSrv.post<TagsWithValues>(this.baseUrl + '/query-tags-with-values', {
+    const response = await this.backendSrv.post<TagsWithValues>(this.tagUrl + '/query-tags-with-values', {
       filter: `path = "${path}"`,
       take: 1,
       orderBy: 'TIMESTAMP',
@@ -46,18 +54,33 @@ export class TagDataSource extends DataSourceApi<TagQuery> {
     return throwIfNullish(response.tagsWithValues[0], `No tags matched the path '${path}'`);
   }
 
-  private shouldRunQuery(query: TagQuery): boolean {
-    return Boolean(query.path);
-  }
+  private async getTagHistoryValues(path: string, workspace: string, range: TimeRange, intervals?: number) {
+    const response = await this.backendSrv.post<TagHistoryResponse>(this.tagHistoryUrl + '/query-decimated-history', {
+      paths: [path],
+      workspace,
+      startTime: range.from.toISOString(),
+      endTime: range.to.toISOString(),
+      decimation: intervals ? Math.min(intervals, 1000) : 500,
+    });
 
-  getDefaultQuery(): Omit<TagQuery, 'refId'> {
+    const { type, values } = response.results[path];
+    console.log(type);
     return {
-      path: '',
+      datetimes: values.map(v => dateTime(v.timestamp).valueOf()),
+      values: values.map(v => this.convertTagValue(v.value, type)),
     };
   }
 
+  private convertTagValue(value: string, type: string) {
+    return type === 'DOUBLE' || type === 'INT' || type === 'U_INT64' ? Number(value) : value;
+  }
+
+  shouldRunQuery(query: TagQuery): boolean {
+    return Boolean(query.path);
+  }
+
   async testDatasource(): Promise<TestingStatus> {
-    await this.backendSrv.get(this.baseUrl + '/tags-count');
+    await this.backendSrv.get(this.tagUrl + '/tags-count');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }
