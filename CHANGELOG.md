@@ -1,3 +1,10 @@
+## [1.10.1](https://github.com/ni/systemlink-grafana-plugins/compare/v1.10.0...v1.10.1) (2023-08-16)
+
+
+### Bug Fixes
+
+* Revert Data Frame data source rename ([#17](https://github.com/ni/systemlink-grafana-plugins/issues/17)) ([ba07c95](https://github.com/ni/systemlink-grafana-plugins/commit/ba07c95b819f7b62c1c101688f76aa5a1256ab2b))
+
 # [1.10.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.9.1...v1.10.0) (2023-08-14)
 
 
