@@ -1,6 +1,6 @@
 {
   "type": "datasource",
-  "name": "SystemLink Data Tables",
+  "name": "SystemLink Data Frames",
   "id": "ni-sldataframe-datasource",
   "metrics": true,
   "info": {
