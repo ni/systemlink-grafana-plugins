@@ -5,14 +5,14 @@ import { mock } from 'jest-mock-extended';
 import React from 'react';
 import { render } from '@testing-library/react';
 
-export function createDataSource<T>(
+export function setupDataSource<T>(
   ctor: new (instanceSettings: DataSourceInstanceSettings, backendSrv: BackendSrv) => T
 ) {
   const mockBackendSrv = mock<BackendSrv>(
     {},
     {
-      fallbackMockImplementation: () => {
-        throw new Error('Unexpected request');
+      fallbackMockImplementation: (...args) => {
+        throw new Error('Unexpected request. Arguments were: \n' + JSON.stringify(args, null, 2));
       },
     }
   );
@@ -20,23 +20,26 @@ export function createDataSource<T>(
   return [ds, mockBackendSrv] as const;
 }
 
-export function renderQueryEditor<DSType extends DataSourceApi<TQuery>, TQuery extends DataQuery>(
+export function setupRenderer<DSType extends DataSourceApi<TQuery>, TQuery extends DataQuery>(
   component: (props: QueryEditorProps<DSType, TQuery>) => React.JSX.Element,
-  initialQuery: Omit<TQuery, 'refId'>
+  ds: new (instanceSettings: DataSourceInstanceSettings, backendSrv: BackendSrv) => DSType
 ) {
-  const onChange = jest.fn(),
-    onRunQuery = jest.fn(),
-    ds = mock<DSType>();
+  return (initialQuery: Omit<TQuery, 'refId'>) => {
+    const onChange = jest.fn(),
+      onRunQuery = jest.fn();
 
-  render(
-    React.createElement(component, {
-      datasource: ds,
-      query: { ...initialQuery, refId: 'A' } as TQuery,
-      onRunQuery,
-      onChange,
-    })
-  );
-  return [onChange, onRunQuery, ds] as const;
+    const [datasource] = setupDataSource(ds);
+
+    render(
+      React.createElement(component, {
+        datasource,
+        query: { ...initialQuery, refId: 'A' } as TQuery,
+        onRunQuery,
+        onChange,
+      })
+    );
+    return [onChange, onRunQuery, ds] as const;
+  };
 }
 
 export function createFetchError(status: number): FetchError {
@@ -47,7 +50,7 @@ export function createQueryRequest<TQuery extends DataQuery>(
   ...targets: Array<Omit<TQuery, 'refId'>>
 ): DataQueryRequest<TQuery> {
   return {
-    targets: targets.map((t, ix) => ({...t, refId: 'ABCDE'[ix]} as TQuery)),
+    targets: targets.map((t, ix) => ({ ...t, refId: 'ABCDE'[ix] } as TQuery)),
     requestId: '',
     interval: '',
     intervalMs: 0,
@@ -56,5 +59,6 @@ export function createQueryRequest<TQuery extends DataQuery>(
     timezone: 'browser',
     app: 'panel-editor',
     startTime: 0,
+    maxDataPoints: 300,
   };
 }

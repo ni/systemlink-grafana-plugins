@@ -1,13 +1,13 @@
 import { MockProxy } from 'jest-mock-extended';
 import { TagDataSource } from './TagDataSource';
-import { createQueryRequest, createDataSource, createFetchError } from 'test/fixtures';
+import { createQueryRequest, setupDataSource, createFetchError } from 'test/fixtures';
 import { BackendSrv } from '@grafana/runtime';
-import { TagsWithValues } from './types';
+import { TagHistoryResponse, TagQuery, TagQueryType, TagsWithValues } from './types';
 
 let ds: TagDataSource, backendSrv: MockProxy<BackendSrv>;
 
 beforeEach(() => {
-  [ds, backendSrv] = createDataSource(TagDataSource);
+  [ds, backendSrv] = setupDataSource(TagDataSource);
 });
 
 describe('testDatasource', () => {
@@ -32,7 +32,7 @@ describe('queries', () => {
       .calledWith('/nitag/v2/query-tags-with-values', expect.objectContaining({ filter: 'path = "my.tag"' }))
       .mockResolvedValue(createQueryTagsResponse('my.tag', '3.14'));
 
-    const result = await ds.query(createQueryRequest({ path: 'my.tag' }));
+    const result = await ds.query(createQueryRequest({ type: TagQueryType.Current, path: 'my.tag' }));
 
     expect(result.data).toEqual([
       {
@@ -43,10 +43,18 @@ describe('queries', () => {
     ]);
   });
 
+  test('applies query defaults when missing fields', async () => {
+    backendSrv.post.mockResolvedValue(createQueryTagsResponse('my.tag', '3.14'));
+
+    const result = await ds.query(createQueryRequest({ path: 'my.tag' } as TagQuery));
+
+    expect(result.data[0]).toHaveProperty('fields', [{ name: 'value', values: ['3.14'] }]);
+  });
+
   test('uses displayName property', async () => {
     backendSrv.post.mockResolvedValue(createQueryTagsResponse('my.tag', '3.14', 'My cool tag'));
 
-    const result = await ds.query(createQueryRequest({ path: 'my.tag' }));
+    const result = await ds.query(createQueryRequest({ type: TagQueryType.Current, path: 'my.tag' }));
 
     expect(result.data[0]).toEqual(expect.objectContaining({ name: 'My cool tag' }));
   });
@@ -56,7 +64,13 @@ describe('queries', () => {
       .mockResolvedValueOnce(createQueryTagsResponse('my.tag1', '3.14'))
       .mockResolvedValueOnce(createQueryTagsResponse('my.tag2', 'foo'));
 
-    const result = await ds.query(createQueryRequest({ path: 'my.tag1' }, { path: '' }, { path: 'my.tag2' }));
+    const result = await ds.query(
+      createQueryRequest(
+        { type: TagQueryType.Current, path: 'my.tag1' },
+        { type: TagQueryType.Current, path: '' },
+        { type: TagQueryType.Current, path: 'my.tag2' }
+      )
+    );
 
     expect(backendSrv.post.mock.calls[0][1]).toHaveProperty('filter', 'path = "my.tag1"');
     expect(backendSrv.post.mock.calls[1][1]).toHaveProperty('filter', 'path = "my.tag2"');
@@ -77,10 +91,107 @@ describe('queries', () => {
   test('throw when no tags matched', async () => {
     backendSrv.post.mockResolvedValue({ tagsWithValues: [] });
 
-    await expect(ds.query(createQueryRequest({ path: 'my.tag' }))).rejects.toThrow('my.tag');
+    await expect(ds.query(createQueryRequest({ type: TagQueryType.Current, path: 'my.tag' }))).rejects.toThrow(
+      'my.tag'
+    );
+  });
+
+  test('numeric tag history', async () => {
+    const queryRequest = createQueryRequest<TagQuery>({ type: TagQueryType.History, path: 'my.tag' });
+
+    backendSrv.post
+      .calledWith('/nitag/v2/query-tags-with-values', expect.objectContaining({ filter: 'path = "my.tag"' }))
+      .mockResolvedValue(createQueryTagsResponse('my.tag', '3.14'));
+
+    backendSrv.post
+      .calledWith(
+        '/nitaghistorian/v2/tags/query-decimated-history',
+        expect.objectContaining({
+          paths: ['my.tag'],
+          workspace: '1',
+          startTime: queryRequest.range.from.toISOString(),
+          endTime: queryRequest.range.to.toISOString(),
+          decimation: 300,
+        })
+      )
+      .mockResolvedValue(
+        createTagHistoryResponse('my.tag', 'DOUBLE', [
+          { timestamp: '2023-01-01T00:00:00Z', value: '1' },
+          { timestamp: '2023-01-01T00:01:00Z', value: '2' },
+        ])
+      );
+
+    const result = await ds.query(queryRequest);
+
+    expect(result.data).toEqual([
+      {
+        fields: [
+          { name: 'time', values: [1672531200000, 1672531260000] },
+          { name: 'value', values: [1, 2] },
+        ],
+        name: 'my.tag',
+        refId: 'A',
+      },
+    ]);
+  });
+
+  test('string tag history', async () => {
+    backendSrv.post.mockResolvedValueOnce(createQueryTagsResponse('my.tag', 'foo'));
+    backendSrv.post.mockResolvedValueOnce(
+      createTagHistoryResponse('my.tag', 'STRING', [
+        { timestamp: '2023-01-01T00:00:00Z', value: '3.14' },
+        { timestamp: '2023-01-01T00:01:00Z', value: 'foo' },
+      ])
+    );
+
+    const result = await ds.query(createQueryRequest({ type: TagQueryType.History, path: 'my.tag' }));
+
+    expect(result.data).toEqual([
+      {
+        fields: [
+          { name: 'time', values: [1672531200000, 1672531260000] },
+          { name: 'value', values: ['3.14', 'foo'] },
+        ],
+        name: 'my.tag',
+        refId: 'A',
+      },
+    ]);
+  });
+
+  test('decimation parameter does not go above 1000', async () => {
+    const queryRequest = createQueryRequest<TagQuery>({ type: TagQueryType.History, path: 'my.tag' });
+    queryRequest.maxDataPoints = 1500;
+
+    backendSrv.post.mockResolvedValueOnce(createQueryTagsResponse('my.tag', '3'));
+
+    backendSrv.post.mockResolvedValueOnce(
+      createTagHistoryResponse('my.tag', 'INT', [
+        { timestamp: '2023-01-01T00:00:00Z', value: '1' },
+        { timestamp: '2023-01-01T00:01:00Z', value: '2' },
+      ])
+    );
+
+    await ds.query(queryRequest);
+
+    expect(backendSrv.post.mock.lastCall?.[1]).toHaveProperty('decimation', 1000);
   });
 });
 
 function createQueryTagsResponse(path: string, value: string, displayName?: string): TagsWithValues {
-  return { tagsWithValues: [{ current: { value: { value } }, tag: { path, properties: { displayName } } }] };
+  return {
+    tagsWithValues: [
+      {
+        current: { value: { value } },
+        tag: { path, properties: { displayName }, workspace_id: '1' },
+      },
+    ],
+  };
+}
+
+function createTagHistoryResponse(
+  path: string,
+  type: string,
+  values: Array<{ timestamp: string; value: string }>
+): TagHistoryResponse {
+  return { results: { [path]: { type, values } } };
 }
