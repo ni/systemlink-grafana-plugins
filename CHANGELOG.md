@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.11.0...v1.12.0) (2023-08-17)
+
+
+### Features
+
+* **tag:** add support for tag path as variable ([#19](https://github.com/ni/systemlink-grafana-plugins/issues/19)) ([97e22f9](https://github.com/ni/systemlink-grafana-plugins/commit/97e22f997b038543a91adc73007b9170517e6264))
+
 # [1.11.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.10.1...v1.11.0) (2023-08-17)
 
 
