@@ -1,13 +1,13 @@
 import { MockProxy } from 'jest-mock-extended';
 import { TagDataSource } from './TagDataSource';
 import { createQueryRequest, setupDataSource, createFetchError } from 'test/fixtures';
-import { BackendSrv } from '@grafana/runtime';
+import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { TagHistoryResponse, TagQuery, TagQueryType, TagsWithValues } from './types';
 
-let ds: TagDataSource, backendSrv: MockProxy<BackendSrv>;
+let ds: TagDataSource, backendSrv: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
 
 beforeEach(() => {
-  [ds, backendSrv] = setupDataSource(TagDataSource);
+  [ds, backendSrv, templateSrv] = setupDataSource(TagDataSource);
 });
 
 describe('testDatasource', () => {
@@ -174,6 +174,17 @@ describe('queries', () => {
     await ds.query(queryRequest);
 
     expect(backendSrv.post.mock.lastCall?.[1]).toHaveProperty('decimation', 1000);
+  });
+
+  test('replaces tag path with variable', async () => {
+    templateSrv.replace.calledWith('$my_variable').mockReturnValue('my.tag');
+    backendSrv.post
+      .calledWith('/nitag/v2/query-tags-with-values', expect.objectContaining({ filter: 'path = "my.tag"' }))
+      .mockResolvedValue(createQueryTagsResponse('my.tag', '3.14'));
+
+    const result = await ds.query(createQueryRequest({ type: TagQueryType.Current, path: '$my_variable' }));
+
+    expect(result.data[0]).toHaveProperty('name', 'my.tag');
   });
 });
 
