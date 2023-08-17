@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.10.1...v1.11.0) (2023-08-17)
+
+
+### Features
+
+* **tag:** add support for history queries ([#18](https://github.com/ni/systemlink-grafana-plugins/issues/18)) ([aafd782](https://github.com/ni/systemlink-grafana-plugins/commit/aafd78214210d35f90a0a85e2e22c6fbee0e2a84))
+
 ## [1.10.1](https://github.com/ni/systemlink-grafana-plugins/compare/v1.10.0...v1.10.1) (2023-08-16)
 
 
