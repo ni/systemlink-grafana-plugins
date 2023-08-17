@@ -1,12 +1,12 @@
 import { DataQueryRequest, DataSourceApi, DataSourceInstanceSettings, QueryEditorProps, dateTime } from '@grafana/data';
 import { DataQuery } from '@grafana/schema';
-import { BackendSrv, FetchError } from '@grafana/runtime';
-import { mock } from 'jest-mock-extended';
+import { BackendSrv, FetchError, TemplateSrv } from '@grafana/runtime';
+import { calledWithFn, mock } from 'jest-mock-extended';
 import React from 'react';
 import { render } from '@testing-library/react';
 
 export function setupDataSource<T>(
-  ctor: new (instanceSettings: DataSourceInstanceSettings, backendSrv: BackendSrv) => T
+  ctor: new (instanceSettings: DataSourceInstanceSettings, backendSrv: BackendSrv, templateSrv: TemplateSrv) => T
 ) {
   const mockBackendSrv = mock<BackendSrv>(
     {},
@@ -16,8 +16,11 @@ export function setupDataSource<T>(
       },
     }
   );
-  const ds = new ctor({ url: '' } as DataSourceInstanceSettings, mockBackendSrv);
-  return [ds, mockBackendSrv] as const;
+  const mockTemplateSrv = mock<TemplateSrv>({
+    replace: calledWithFn({ fallbackMockImplementation: target => target ?? '' }),
+  });
+  const ds = new ctor({ url: '' } as DataSourceInstanceSettings, mockBackendSrv, mockTemplateSrv);
+  return [ds, mockBackendSrv, mockTemplateSrv] as const;
 }
 
 export function setupRenderer<DSType extends DataSourceApi<TQuery>, TQuery extends DataQuery>(

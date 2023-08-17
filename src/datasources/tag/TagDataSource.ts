@@ -1,5 +1,5 @@
 import { DataFrameDTO, DataSourceInstanceSettings, dateTime, DataQueryRequest, TimeRange } from '@grafana/data';
-import { BackendSrv, TestingStatus, getBackendSrv } from '@grafana/runtime';
+import { BackendSrv, TemplateSrv, TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { throwIfNullish } from 'core/utils';
 import { TagHistoryResponse, TagQuery, TagQueryType, TagsWithValues } from './types';
@@ -7,7 +7,8 @@ import { TagHistoryResponse, TagQuery, TagQueryType, TagsWithValues } from './ty
 export class TagDataSource extends DataSourceBase<TagQuery> {
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
-    readonly backendSrv: BackendSrv = getBackendSrv()
+    readonly backendSrv: BackendSrv = getBackendSrv(),
+    readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings);
   }
@@ -20,8 +21,8 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
     path: '',
   };
 
-  async runQuery(query: TagQuery, { range, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
-    const { tag, current } = await this.getLastUpdatedTag(query.path);
+  async runQuery(query: TagQuery, { range, maxDataPoints, scopedVars }: DataQueryRequest): Promise<DataFrameDTO> {
+    const { tag, current } = await this.getLastUpdatedTag(this.templateSrv.replace(query.path, scopedVars));
     const name = tag.properties.displayName ?? tag.path;
 
     if (query.type === TagQueryType.Current) {
