@@ -8,12 +8,8 @@ export enum TagQueryType {
 export interface TagQuery extends DataQuery {
   type: TagQueryType;
   path: string;
+  workspace: string;
 }
-
-export const defaultTagQuery: Omit<TagQuery, 'refId'> = {
-  type: TagQueryType.Current,
-  path: '',
-};
 
 export interface TagWithValue {
   current: { value: { value: string } };

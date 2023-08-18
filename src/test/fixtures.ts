@@ -49,19 +49,23 @@ export function createFetchError(status: number): FetchError {
   return mock<FetchError>({ status });
 }
 
-export function createQueryRequest<TQuery extends DataQuery>(
-  ...targets: Array<Omit<TQuery, 'refId'>>
-): DataQueryRequest<TQuery> {
-  return {
-    targets: targets.map((t, ix) => ({ ...t, refId: 'ABCDE'[ix] } as TQuery)),
-    requestId: '',
-    interval: '',
-    intervalMs: 0,
-    range: { from: dateTime().subtract(1, 'h'), to: dateTime(), raw: { from: 'now-6h', to: 'now' } },
-    scopedVars: {},
-    timezone: 'browser',
-    app: 'panel-editor',
-    startTime: 0,
-    maxDataPoints: 300,
+export const defaultQueryOptions: Omit<DataQueryRequest, 'targets'> = {
+  requestId: '',
+  interval: '',
+  intervalMs: 0,
+  range: { from: dateTime().subtract(1, 'h'), to: dateTime(), raw: { from: 'now-6h', to: 'now' } },
+  scopedVars: {},
+  timezone: 'browser',
+  app: 'panel-editor',
+  startTime: 0,
+  maxDataPoints: 300,
+};
+
+export function getQueryBuilder<TQuery extends DataQuery>() {
+  return <K extends keyof TQuery>(defaults: Pick<TQuery, K>) => {
+    return (...targets: Array<Omit<TQuery, K | 'refId'> & Partial<TQuery>>): DataQueryRequest<TQuery> => ({
+      targets: targets.map((t, ix) => ({ ...defaults, ...t, refId: 'ABCDE'[ix] } as TQuery)),
+      ...defaultQueryOptions,
+    });
   };
 }

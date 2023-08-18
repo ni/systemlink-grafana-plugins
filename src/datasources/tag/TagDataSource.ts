@@ -19,10 +19,15 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
   defaultQuery = {
     type: TagQueryType.Current,
     path: '',
+    workspace: '',
   };
 
   async runQuery(query: TagQuery, { range, maxDataPoints, scopedVars }: DataQueryRequest): Promise<DataFrameDTO> {
-    const { tag, current } = await this.getLastUpdatedTag(this.templateSrv.replace(query.path, scopedVars));
+    const { tag, current } = await this.getLastUpdatedTag(
+      this.templateSrv.replace(query.path, scopedVars),
+      query.workspace
+    );
+
     const name = tag.properties.displayName ?? tag.path;
 
     if (query.type === TagQueryType.Current) {
@@ -44,9 +49,12 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
     };
   }
 
-  private async getLastUpdatedTag(path: string) {
+  private async getLastUpdatedTag(path: string, workspace: string) {
+    let filter = `path = "${path}"`;
+    if (workspace) filter += ` && workspace = "${workspace}"`;
+
     const response = await this.backendSrv.post<TagsWithValues>(this.tagUrl + '/query-tags-with-values', {
-      filter: `path = "${path}"`,
+      filter,
       take: 1,
       orderBy: 'TIMESTAMP',
       descending: true,
