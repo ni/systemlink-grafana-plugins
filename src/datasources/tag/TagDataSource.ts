@@ -51,7 +51,9 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
 
   private async getLastUpdatedTag(path: string, workspace: string) {
     let filter = `path = "${path}"`;
-    if (workspace) filter += ` && workspace = "${workspace}"`;
+    if (workspace) {
+      filter += ` && workspace = "${workspace}"`;
+    }
 
     const response = await this.backendSrv.post<TagsWithValues>(this.tagUrl + '/query-tags-with-values', {
       filter,
