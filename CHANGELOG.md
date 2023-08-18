@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.12.0...v1.13.0) (2023-08-18)
+
+
+### Features
+
+* **tag:** add support for explicit workspace ([#21](https://github.com/ni/systemlink-grafana-plugins/issues/21)) ([e037cb3](https://github.com/ni/systemlink-grafana-plugins/commit/e037cb3ab0fe7fed1a3849a95756c1ce5cf2a186))
+
 # [1.12.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.11.0...v1.12.0) (2023-08-17)
 
 
