@@ -21,13 +21,26 @@ export function TagQueryEditor({ query, onChange, onRunQuery, datasource }: Prop
     onRunQuery();
   };
 
+  const onWorkspaceChange = (event: FormEvent<HTMLInputElement>) => {
+    onChange({ ...query, workspace: event.currentTarget.value });
+    onRunQuery();
+  };
+
   return (
     <>
-      <InlineField label="Query type">
+      <InlineField label="Query type" labelWidth={11}>
         <RadioButtonGroup options={enumToOptions(TagQueryType)} value={query.type} onChange={onTypeChange} />
       </InlineField>
-      <InlineField label="Tag path">
+      <InlineField label="Tag path" labelWidth={11}>
         <AutoSizeInput minWidth={20} defaultValue={query.path} onCommitChange={onPathChange} />
+      </InlineField>
+      <InlineField label="Workspace" labelWidth={11}>
+        <AutoSizeInput
+          minWidth={20}
+          placeholder="Any workspace"
+          defaultValue={query.workspace}
+          onCommitChange={onWorkspaceChange}
+        />
       </InlineField>
     </>
   );

@@ -1,6 +1,6 @@
 import { MockProxy } from 'jest-mock-extended';
 import { TagDataSource } from './TagDataSource';
-import { createQueryRequest, setupDataSource, createFetchError } from 'test/fixtures';
+import { setupDataSource, createFetchError, getQueryBuilder, defaultQueryOptions } from 'test/fixtures';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { TagHistoryResponse, TagQuery, TagQueryType, TagsWithValues } from './types';
 
@@ -9,6 +9,8 @@ let ds: TagDataSource, backendSrv: MockProxy<BackendSrv>, templateSrv: MockProxy
 beforeEach(() => {
   [ds, backendSrv, templateSrv] = setupDataSource(TagDataSource);
 });
+
+const buildQuery = getQueryBuilder<TagQuery>()({ type: TagQueryType.Current, workspace: '' });
 
 describe('testDatasource', () => {
   test('returns success', async () => {
@@ -32,7 +34,7 @@ describe('queries', () => {
       .calledWith('/nitag/v2/query-tags-with-values', expect.objectContaining({ filter: 'path = "my.tag"' }))
       .mockResolvedValue(createQueryTagsResponse('my.tag', '3.14'));
 
-    const result = await ds.query(createQueryRequest({ type: TagQueryType.Current, path: 'my.tag' }));
+    const result = await ds.query(buildQuery({ path: 'my.tag' }));
 
     expect(result.data).toEqual([
       {
@@ -46,7 +48,7 @@ describe('queries', () => {
   test('applies query defaults when missing fields', async () => {
     backendSrv.post.mockResolvedValue(createQueryTagsResponse('my.tag', '3.14'));
 
-    const result = await ds.query(createQueryRequest({ path: 'my.tag' } as TagQuery));
+    const result = await ds.query({ ...defaultQueryOptions, targets: [{ path: 'my.tag'} as TagQuery]});
 
     expect(result.data[0]).toHaveProperty('fields', [{ name: 'value', values: ['3.14'] }]);
   });
@@ -54,7 +56,7 @@ describe('queries', () => {
   test('uses displayName property', async () => {
     backendSrv.post.mockResolvedValue(createQueryTagsResponse('my.tag', '3.14', 'My cool tag'));
 
-    const result = await ds.query(createQueryRequest({ type: TagQueryType.Current, path: 'my.tag' }));
+    const result = await ds.query(buildQuery({ path: 'my.tag' }));
 
     expect(result.data[0]).toEqual(expect.objectContaining({ name: 'My cool tag' }));
   });
@@ -64,13 +66,7 @@ describe('queries', () => {
       .mockResolvedValueOnce(createQueryTagsResponse('my.tag1', '3.14'))
       .mockResolvedValueOnce(createQueryTagsResponse('my.tag2', 'foo'));
 
-    const result = await ds.query(
-      createQueryRequest(
-        { type: TagQueryType.Current, path: 'my.tag1' },
-        { type: TagQueryType.Current, path: '' },
-        { type: TagQueryType.Current, path: 'my.tag2' }
-      )
-    );
+    const result = await ds.query(buildQuery({ path: 'my.tag1' }, { path: '' }, { path: 'my.tag2' }));
 
     expect(backendSrv.post.mock.calls[0][1]).toHaveProperty('filter', 'path = "my.tag1"');
     expect(backendSrv.post.mock.calls[1][1]).toHaveProperty('filter', 'path = "my.tag2"');
@@ -91,13 +87,13 @@ describe('queries', () => {
   test('throw when no tags matched', async () => {
     backendSrv.post.mockResolvedValue({ tagsWithValues: [] });
 
-    await expect(ds.query(createQueryRequest({ type: TagQueryType.Current, path: 'my.tag' }))).rejects.toThrow(
+    await expect(ds.query(buildQuery({ path: 'my.tag' }))).rejects.toThrow(
       'my.tag'
     );
   });
 
   test('numeric tag history', async () => {
-    const queryRequest = createQueryRequest<TagQuery>({ type: TagQueryType.History, path: 'my.tag' });
+    const queryRequest = buildQuery({ type: TagQueryType.History, path: 'my.tag' });
 
     backendSrv.post
       .calledWith('/nitag/v2/query-tags-with-values', expect.objectContaining({ filter: 'path = "my.tag"' }))
@@ -144,7 +140,7 @@ describe('queries', () => {
       ])
     );
 
-    const result = await ds.query(createQueryRequest({ type: TagQueryType.History, path: 'my.tag' }));
+    const result = await ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag' }));
 
     expect(result.data).toEqual([
       {
@@ -159,7 +155,7 @@ describe('queries', () => {
   });
 
   test('decimation parameter does not go above 1000', async () => {
-    const queryRequest = createQueryRequest<TagQuery>({ type: TagQueryType.History, path: 'my.tag' });
+    const queryRequest = buildQuery({ type: TagQueryType.History, path: 'my.tag' });
     queryRequest.maxDataPoints = 1500;
 
     backendSrv.post.mockResolvedValueOnce(createQueryTagsResponse('my.tag', '3'));
@@ -182,18 +178,28 @@ describe('queries', () => {
       .calledWith('/nitag/v2/query-tags-with-values', expect.objectContaining({ filter: 'path = "my.tag"' }))
       .mockResolvedValue(createQueryTagsResponse('my.tag', '3.14'));
 
-    const result = await ds.query(createQueryRequest({ type: TagQueryType.Current, path: '$my_variable' }));
+    const result = await ds.query(buildQuery({ type: TagQueryType.Current, path: '$my_variable' }));
 
     expect(result.data[0]).toHaveProperty('name', 'my.tag');
   });
+
+  test('filters by workspace if provided', async () => {
+    backendSrv.post.mockResolvedValueOnce(createQueryTagsResponse('my.tag', '3.14', undefined, '2'));
+    backendSrv.post.mockResolvedValueOnce(createTagHistoryResponse('my.tag', 'DOUBLE', []));
+
+    await ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag', workspace: '2' }));
+
+    expect(backendSrv.post.mock.calls[0][1]).toHaveProperty('filter', 'path = "my.tag" && workspace = "2"');
+    expect(backendSrv.post.mock.calls[1][1]).toHaveProperty('workspace', '2');
+  });
 });
 
-function createQueryTagsResponse(path: string, value: string, displayName?: string): TagsWithValues {
+function createQueryTagsResponse(path: string, value: string, displayName?: string, workspace_id = '1'): TagsWithValues {
   return {
     tagsWithValues: [
       {
         current: { value: { value } },
-        tag: { path, properties: { displayName }, workspace_id: '1' },
+        tag: { path, properties: { displayName }, workspace_id },
       },
     ],
   };
