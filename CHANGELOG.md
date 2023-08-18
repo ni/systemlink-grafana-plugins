@@ -1,3 +1,16 @@
+# [2.0.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.13.0...v2.0.0) (2023-08-18)
+
+
+### chore
+
+* remove tag prototype ([#22](https://github.com/ni/systemlink-grafana-plugins/issues/22)) ([c223329](https://github.com/ni/systemlink-grafana-plugins/commit/c22332976961f5614adaf83b8af876537e7ba405))
+
+
+### BREAKING CHANGES
+
+* replace `ni-sltag-datasource` prototype with new version.
+Saved queries will not be backwards compatible.
+
 # [1.13.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.12.0...v1.13.0) (2023-08-18)
 
 
