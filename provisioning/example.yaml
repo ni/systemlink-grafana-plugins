@@ -14,7 +14,7 @@ config: &config
 
 datasources:
   - name: SystemLink Tags
-    type: ni-sltag-datasource-prerelease
+    type: ni-sltag-datasource
     uid: tag
     <<: *config
   - name: SystemLink Data Frames
