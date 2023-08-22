@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/ni/systemlink-grafana-plugins/compare/v2.0.0...v2.1.0) (2023-08-22)
+
+
+### Features
+
+* **tag:** add query help documentation ([#23](https://github.com/ni/systemlink-grafana-plugins/issues/23)) ([f8ff3d2](https://github.com/ni/systemlink-grafana-plugins/commit/f8ff3d2b49505ee65fd883a4c111564689df116f))
+
 # [2.0.0](https://github.com/ni/systemlink-grafana-plugins/compare/v1.13.0...v2.0.0) (2023-08-18)
 
 
