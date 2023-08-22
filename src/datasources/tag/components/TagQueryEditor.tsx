@@ -28,13 +28,13 @@ export function TagQueryEditor({ query, onChange, onRunQuery, datasource }: Prop
 
   return (
     <>
-      <InlineField label="Query type" labelWidth={11}>
+      <InlineField label="Query type" labelWidth={14} tooltip={tooltips.queryType}>
         <RadioButtonGroup options={enumToOptions(TagQueryType)} value={query.type} onChange={onTypeChange} />
       </InlineField>
-      <InlineField label="Tag path" labelWidth={11}>
+      <InlineField label="Tag path" labelWidth={14} tooltip={tooltips.tagPath}>
         <AutoSizeInput minWidth={20} defaultValue={query.path} onCommitChange={onPathChange} />
       </InlineField>
-      <InlineField label="Workspace" labelWidth={11}>
+      <InlineField label="Workspace" labelWidth={14} tooltip={tooltips.workspace}>
         <AutoSizeInput
           minWidth={20}
           placeholder="Any workspace"
@@ -45,3 +45,14 @@ export function TagQueryEditor({ query, onChange, onRunQuery, datasource }: Prop
     </>
   );
 }
+
+const tooltips = {
+  queryType: `Current allows you to visualize the most recent tag value. History allows you to
+              visualize tag values over time. Historical values use the time range set on the
+              dashboard and are decimated according to the width of the panel.`,
+
+  tagPath: `The full path of the tag to visualize. You can enter a variable into this field.`,
+
+  workspace: `The ID of the workspace to search for the given tag path. If left blank, the plugin
+              finds the most recently updated tag in any workspace.`,
+};
