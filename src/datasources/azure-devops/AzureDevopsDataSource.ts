@@ -17,23 +17,28 @@ export class AzureDevopsDataSource extends DataSourceBase<AzureDevopsQuery> {
   pullRequestsUrl = this.instanceSettings.url + '/DevCentral/_apis/git/pullrequests';
 
   defaultQuery = {
-    constant: 3.14,
+    type: 'Git stats',
   };
 
   async runQuery(query: AzureDevopsQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
-    const repositories = await this.backendSrv.get(this.repositoriesUrl);
-    const activePullRequests = await this.backendSrv.get(this.pullRequestsUrl, {
-      'searchCriteria.status': 'active',
-      'searchCriteria.targetRefName': 'refs/heads/master',
-      $top: 1000,
-    });
+    if (query.type === 'Git stats') {
+      const repositories = await this.backendSrv.get(this.repositoriesUrl);
+      const activePullRequests = await this.backendSrv.get(this.pullRequestsUrl, {
+        'searchCriteria.status': 'active',
+        'searchCriteria.targetRefName': 'refs/heads/master',
+        $top: 1000,
+      });
 
-    return {
-      fields: [
-        { name: 'Repositories', values: [repositories.count] },
-        { name: 'Open Pull Requests', values: [activePullRequests.count] },
-      ],
-    };
+      return {
+        fields: [
+          { name: 'Repositories', values: [repositories.count] },
+          { name: 'Open Pull Requests', values: [activePullRequests.count] },
+        ],
+      };
+    } else {
+      throw Error('Not implemented');
+    }
+
   }
 
   async testDatasource(): Promise<TestingStatus> {

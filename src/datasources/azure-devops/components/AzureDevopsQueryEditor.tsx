@@ -1,32 +1,25 @@
-import React, { ChangeEvent } from 'react';
-import { Input } from '@grafana/ui';
-import { QueryEditorProps } from '@grafana/data';
+import React from 'react';
+import { Badge, RadioButtonGroup } from '@grafana/ui';
+import { QueryEditorProps, toOption } from '@grafana/data';
 import { InlineField } from 'core/components/InlineField';
 import { AzureDevopsDataSource } from '../AzureDevopsDataSource';
 import { AzureDevopsQuery } from '../types';
 
 type Props = QueryEditorProps<AzureDevopsDataSource, AzureDevopsQuery>;
 
-export function AzureDevopsQueryEditor({ query, onChange, onRunQuery }: Props) {
-  const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
-    onChange({ ...query, queryText: event.target.value });
-  };
+export function AzureDevopsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
+  query = datasource.prepareQuery(query);
 
-  const onConstantChange = (event: ChangeEvent<HTMLInputElement>) => {
-    onChange({ ...query, constant: parseFloat(event.target.value) });
-    // executes the query
+  const onTypeChange = (value: string) => {
+    onChange({ ...query, type: value });
     onRunQuery();
   };
 
-  const { queryText, constant } = query;
-
   return (
     <>
-      <InlineField label="Constant">
-        <Input onChange={onConstantChange} value={constant} width={8} type="number" step="0.1" />
-      </InlineField>
-      <InlineField label="Query Text" labelWidth={16} tooltip="Not used yet">
-        <Input onChange={onQueryTextChange} value={queryText || ''} />
+      <Badge color='green' text="Hello NITech 2023!" icon='rocket' style={{marginBottom: 5}} />
+      <InlineField label="Query type">
+        <RadioButtonGroup options={['Git stats', 'Build metrics'].map(toOption)} value={query.type} onChange={onTypeChange} />
       </InlineField>
     </>
   );
