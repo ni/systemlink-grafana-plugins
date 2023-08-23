@@ -38,7 +38,9 @@ export class AzureDevopsDataSource extends DataSourceBase<AzureDevopsQuery> {
         ],
       };
     } else {
-      const { value: metrics } = await this.backendSrv.get(this.buildMetricsUrl);
+      const { value: metrics } = await this.backendSrv.get(this.buildMetricsUrl, {
+        minMetricsTime: range.from.toISOString(),
+      });
 
       return {
         fields: [
