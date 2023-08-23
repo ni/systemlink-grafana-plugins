@@ -1,4 +1,4 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv, TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { AzureDevopsQuery } from './types';
@@ -13,17 +13,25 @@ export class AzureDevopsDataSource extends DataSourceBase<AzureDevopsQuery> {
   }
 
   projectsUrl = this.instanceSettings.url + '/_apis/projects';
+  repositoriesUrl = this.instanceSettings.url + '/DevCentral/_apis/git/repositories';
+  pullRequestsUrl = this.instanceSettings.url + '/DevCentral/_apis/git/pullrequests';
 
   defaultQuery = {
     constant: 3.14,
   };
 
   async runQuery(query: AzureDevopsQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
+    const repositories = await this.backendSrv.get(this.repositoriesUrl);
+    const activePullRequests = await this.backendSrv.get(this.pullRequestsUrl, {
+      'searchCriteria.status': 'active',
+      'searchCriteria.targetRefName': 'refs/heads/master',
+      $top: 1000,
+    });
+
     return {
-      refId: query.refId,
       fields: [
-        { name: 'Time', values: [range.from.valueOf(), range.to.valueOf()], type: FieldType.time },
-        { name: 'Value', values: [query.constant, query.constant], type: FieldType.number },
+        { name: 'Repositories', values: [repositories.count] },
+        { name: 'Open Pull Requests', values: [activePullRequests.count] },
       ],
     };
   }
