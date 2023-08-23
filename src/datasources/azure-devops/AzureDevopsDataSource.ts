@@ -2,6 +2,7 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings } from '@gra
 import { BackendSrv, TemplateSrv, TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { AzureDevopsQuery } from './types';
+import _ from 'lodash';
 
 export class AzureDevopsDataSource extends DataSourceBase<AzureDevopsQuery> {
   constructor(
@@ -15,6 +16,7 @@ export class AzureDevopsDataSource extends DataSourceBase<AzureDevopsQuery> {
   projectsUrl = this.instanceSettings.url + '/_apis/projects';
   repositoriesUrl = this.instanceSettings.url + '/DevCentral/_apis/git/repositories';
   pullRequestsUrl = this.instanceSettings.url + '/DevCentral/_apis/git/pullrequests';
+  buildMetricsUrl = this.instanceSettings.url + '/DevCentral/_apis/build/metrics/hourly';
 
   defaultQuery = {
     type: 'Git stats',
@@ -36,9 +38,21 @@ export class AzureDevopsDataSource extends DataSourceBase<AzureDevopsQuery> {
         ],
       };
     } else {
-      throw Error('Not implemented');
-    }
+      const { value: metrics } = await this.backendSrv.get(this.buildMetricsUrl);
 
+      return {
+        fields: [
+          { name: 'time', values: _(metrics).map('date').compact().uniq().value() },
+          { name: 'Successful builds', values: this.getBuildValues(metrics, 'SuccessfulBuilds') },
+          { name: 'Failed builds', values: this.getBuildValues(metrics, 'FailedBuilds') },
+          { name: 'Canceled builds', values: this.getBuildValues(metrics, 'CanceledBuilds') },
+        ],
+      };
+    }
+  }
+
+  getBuildValues(metrics: any[], name: string) {
+    return metrics.filter(m => m.name === name).map(m => m.intValue);
   }
 
   async testDatasource(): Promise<TestingStatus> {
