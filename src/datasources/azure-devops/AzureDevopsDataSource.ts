@@ -16,13 +16,13 @@ export class AzureDevopsDataSource extends DataSourceBase<AzureDevopsQuery> {
   projectsUrl = this.instanceSettings.url + '/_apis/projects';
   repositoriesUrl = this.instanceSettings.url + '/DevCentral/_apis/git/repositories';
   pullRequestsUrl = this.instanceSettings.url + '/DevCentral/_apis/git/pullrequests';
-  buildMetricsUrl = this.instanceSettings.url + '/DevCentral/_apis/build/metrics/hourly';
+  buildMetricsUrl = this.instanceSettings.url + '/DevCentral/_apis/build/metrics';
 
   defaultQuery = {
     type: 'Git stats',
   };
 
-  async runQuery(query: AzureDevopsQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
+  async runQuery(query: AzureDevopsQuery, { range, intervalMs }: DataQueryRequest): Promise<DataFrameDTO> {
     if (query.type === 'Git stats') {
       const repositories = await this.backendSrv.get(this.repositoriesUrl);
       const activePullRequests = await this.backendSrv.get(this.pullRequestsUrl, {
@@ -38,7 +38,8 @@ export class AzureDevopsDataSource extends DataSourceBase<AzureDevopsQuery> {
         ],
       };
     } else {
-      const { value: metrics } = await this.backendSrv.get(this.buildMetricsUrl, {
+      const interval = intervalMs > 120000 ? '/daily' : '/hourly'
+      const { value: metrics } = await this.backendSrv.get(this.buildMetricsUrl + interval, {
         minMetricsTime: range.from.toISOString(),
       });
 
