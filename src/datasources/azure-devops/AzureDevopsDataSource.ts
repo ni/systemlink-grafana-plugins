@@ -12,8 +12,7 @@ export class AzureDevopsDataSource extends DataSourceBase<AzureDevopsQuery> {
     super(instanceSettings);
   }
 
-  // TODO: set base path of the service
-  baseUrl = this.instanceSettings.url + '/nifoo/v2';
+  projectsUrl = this.instanceSettings.url + '/_apis/projects';
 
   defaultQuery = {
     constant: 3.14,
@@ -30,8 +29,7 @@ export class AzureDevopsDataSource extends DataSourceBase<AzureDevopsQuery> {
   }
 
   async testDatasource(): Promise<TestingStatus> {
-    // TODO: Implement a health and authentication check
-    await this.backendSrv.get(this.baseUrl + '/bar');
+    await this.backendSrv.get(this.projectsUrl, { $top: 1 });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }
