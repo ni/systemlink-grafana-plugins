@@ -1,4 +1,4 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindValue } from '@grafana/data';
 import { BackendSrv, TemplateSrv, TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { AzureDevopsQuery } from './types';
@@ -55,6 +55,11 @@ export class AzureDevopsDataSource extends DataSourceBase<AzureDevopsQuery> {
         ],
       };
     }
+  }
+
+  async metricFindQuery(query: any, options?: any): Promise<MetricFindValue[]> {
+    const projects = await this.backendSrv.get(this.projectsUrl);
+    return projects.value.map((p: any) => ({ text: p.name }));
   }
 
   getBuildValues(metrics: any[], name: string) {

@@ -5,4 +5,5 @@ import { HttpConfigEditor } from 'core/components/HttpConfigEditor';
 
 export const plugin = new DataSourcePlugin(AzureDevopsDataSource)
   .setConfigEditor(HttpConfigEditor)
-  .setQueryEditor(AzureDevopsQueryEditor);
+  .setQueryEditor(AzureDevopsQueryEditor)
+  .setVariableQueryEditor(() => null);
