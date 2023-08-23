@@ -24,9 +24,11 @@ export class AzureDevopsDataSource extends DataSourceBase<AzureDevopsQuery> {
   };
 
   async runQuery(query: AzureDevopsQuery, { range, intervalMs }: DataQueryRequest): Promise<DataFrameDTO> {
+    const project = this.templateSrv.replace(query.project);
+
     if (query.type === 'Git stats') {
-      const repositories = await this.backendSrv.get(this.repositoriesUrl(query.project));
-      const activePullRequests = await this.backendSrv.get(this.pullRequestsUrl(query.project), {
+      const repositories = await this.backendSrv.get(this.repositoriesUrl(project));
+      const activePullRequests = await this.backendSrv.get(this.pullRequestsUrl(project), {
         'searchCriteria.status': 'active',
         'searchCriteria.targetRefName': 'refs/heads/master',
         $top: 1000,
@@ -40,7 +42,7 @@ export class AzureDevopsDataSource extends DataSourceBase<AzureDevopsQuery> {
       };
     } else {
       const interval = intervalMs > 120000 ? '/daily' : '/hourly'
-      const { value: metrics } = await this.backendSrv.get(this.buildMetricsUrl(query.project) + interval, {
+      const { value: metrics } = await this.backendSrv.get(this.buildMetricsUrl(project) + interval, {
         minMetricsTime: range.from.toISOString(),
       });
 
