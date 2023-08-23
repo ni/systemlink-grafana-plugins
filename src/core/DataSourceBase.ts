@@ -21,8 +21,11 @@ export abstract class DataSourceBase<TQuery extends DataQuery> extends DataSourc
     return { ...this.defaultQuery, ...query };
   }
 
+  shouldRunQuery(query: TQuery): boolean {
+    return true;
+  }
+
   abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;
   abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
-  abstract shouldRunQuery(query: TQuery): boolean;
   abstract testDatasource(): Promise<TestingStatus>;
 }
