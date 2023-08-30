@@ -61,6 +61,16 @@ describe('queries', () => {
     expect(result.data[0]).toEqual(expect.objectContaining({ name: 'My cool tag' }));
   });
 
+  test('handles null tag properties', async () => {
+    const response = createQueryTagsResponse('my.tag', '3.14');
+    response.tagsWithValues[0].tag.properties = null;
+    backendSrv.post.mockResolvedValue(response);
+
+    const result = await ds.query(buildQuery({ path: 'my.tag' }));
+
+    expect(result.data[0]).toEqual(expect.objectContaining({ name: 'my.tag' }));
+  });
+
   test('multiple targets - skips invalid queries', async () => {
     backendSrv.post
       .mockResolvedValueOnce(createQueryTagsResponse('my.tag1', '3.14'))

@@ -15,7 +15,7 @@ export interface TagWithValue {
   current: { value: { value: string } };
   tag: {
     path: string;
-    properties: { displayName?: string };
+    properties: { displayName?: string } | null;
     workspace_id: string;
   };
 }
