@@ -1,3 +1,10 @@
+## [2.1.1](https://github.com/ni/systemlink-grafana-plugins/compare/v2.1.0...v2.1.1) (2023-08-30)
+
+
+### Bug Fixes
+
+* **tag:** don't error on null properties ([#24](https://github.com/ni/systemlink-grafana-plugins/issues/24)) ([6431586](https://github.com/ni/systemlink-grafana-plugins/commit/64315869fb247d1386b70a578ca0190d1d71c2ad))
+
 # [2.1.0](https://github.com/ni/systemlink-grafana-plugins/compare/v2.0.0...v2.1.0) (2023-08-22)
 
 
