@@ -1,6 +1,7 @@
 import React, { ChangeEvent } from 'react';
-import { InlineField, Input } from '@grafana/ui';
+import { Input } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
+import { InlineField } from 'core/components/InlineField';
 import { {{Name}}DataSource } from '../{{Name}}DataSource';
 import { {{Name}}Query } from '../types';
 
@@ -20,13 +21,13 @@ export function {{Name}}QueryEditor({ query, onChange, onRunQuery }: Props) {
   const { queryText, constant } = query;
 
   return (
-    <div className="gf-form">
+    <>
       <InlineField label="Constant">
         <Input onChange={onConstantChange} value={constant} width={8} type="number" step="0.1" />
       </InlineField>
       <InlineField label="Query Text" labelWidth={16} tooltip="Not used yet">
         <Input onChange={onQueryTextChange} value={queryText || ''} />
       </InlineField>
-    </div>
+    </>
   );
 }
