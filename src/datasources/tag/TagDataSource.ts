@@ -28,7 +28,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
       query.workspace
     );
 
-    const name = tag.properties.displayName ?? tag.path;
+    const name = tag.properties?.displayName ?? tag.path;
 
     if (query.type === TagQueryType.Current) {
       return {
