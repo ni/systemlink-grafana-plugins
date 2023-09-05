@@ -2,12 +2,18 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataQueryResponse,
-  DataSourceApi
+  DataSourceApi,
+  DataSourceInstanceSettings,
 } from '@grafana/data';
-import { TestingStatus } from '@grafana/runtime';
+import { BackendSrv, TestingStatus } from '@grafana/runtime';
 import { DataQuery } from '@grafana/schema';
+import { Workspace } from './types';
 
 export abstract class DataSourceBase<TQuery extends DataQuery> extends DataSourceApi<TQuery> {
+  constructor(readonly instanceSettings: DataSourceInstanceSettings, readonly backendSrv: BackendSrv) {
+    super(instanceSettings);
+  }
+
   query(request: DataQueryRequest<TQuery>): Promise<DataQueryResponse> {
     const promises = request.targets
       .map(this.prepareQuery, this)
@@ -19,6 +25,20 @@ export abstract class DataSourceBase<TQuery extends DataQuery> extends DataSourc
 
   prepareQuery(query: TQuery): TQuery {
     return { ...this.defaultQuery, ...query };
+  }
+
+  static Workspaces: Workspace[];
+
+  async getWorkspaces() {
+    if (DataSourceBase.Workspaces) {
+      return DataSourceBase.Workspaces;
+    }
+
+    const response = await this.backendSrv.get<{ workspaces: Workspace[] }>(
+      this.instanceSettings.url + '/niauth/v1/user'
+    );
+
+    return (DataSourceBase.Workspaces = response.workspaces);
   }
 
   abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;

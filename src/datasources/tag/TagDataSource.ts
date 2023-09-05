@@ -10,7 +10,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
-    super(instanceSettings);
+    super(instanceSettings, backendSrv);
   }
 
   tagUrl = this.instanceSettings.url + '/nitag/v2';
