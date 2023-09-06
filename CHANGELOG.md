@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/ni/systemlink-grafana-plugins/compare/v2.1.1...v2.2.0) (2023-09-06)
+
+
+### Features
+
+* **tag:** add user-friendly workspace dropdown ([#25](https://github.com/ni/systemlink-grafana-plugins/issues/25)) ([3f56d62](https://github.com/ni/systemlink-grafana-plugins/commit/3f56d62f7655aa3f55cfa8f4b94669f1388edd67))
+
 ## [2.1.1](https://github.com/ni/systemlink-grafana-plugins/compare/v2.1.0...v2.1.1) (2023-08-30)
 
 
