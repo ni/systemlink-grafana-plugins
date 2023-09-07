@@ -6,7 +6,7 @@ services:
     build:
       context: ./.config
       args:
-        grafana_version: ${GRAFANA_VERSION:-9.5.5}
+        grafana_version: ${GRAFANA_VERSION:-9.5.9}
         grafana_image: ${GRAFANA_IMAGE:-grafana}
     environment:
       - GF_USERS_DEFAULT_THEME=light

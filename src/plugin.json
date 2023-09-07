@@ -3,6 +3,7 @@
   "type": "app",
   "name": "SystemLink",
   "id": "ni-systemlink-app",
+  "autoEnabled": true,
   "info": {
     "keywords": ["app"],
     "description": "Plugins for visualizing data from SystemLink services",
@@ -18,7 +19,7 @@
     "updated": "%TODAY%"
   },
   "dependencies": {
-    "grafanaDependency": "9.5.5",
+    "grafanaDependency": "^9.5.8",
     "plugins": []
   }
 }
