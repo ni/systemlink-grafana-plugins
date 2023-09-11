@@ -38,8 +38,7 @@ describe('queries', () => {
 
     expect(result.data).toEqual([
       {
-        fields: [{ name: 'value', values: ['3.14'] }],
-        name: 'my.tag',
+        fields: [{ name: 'my.tag', values: ['3.14'] }],
         refId: 'A',
       },
     ]);
@@ -50,7 +49,7 @@ describe('queries', () => {
 
     const result = await ds.query({ ...defaultQueryOptions, targets: [{ path: 'my.tag'} as TagQuery]});
 
-    expect(result.data[0]).toHaveProperty('fields', [{ name: 'value', values: ['3.14'] }]);
+    expect(result.data[0]).toHaveProperty('fields', [{ name: 'my.tag', values: ['3.14'] }]);
   });
 
   test('uses displayName property', async () => {
@@ -58,7 +57,7 @@ describe('queries', () => {
 
     const result = await ds.query(buildQuery({ path: 'my.tag' }));
 
-    expect(result.data[0]).toEqual(expect.objectContaining({ name: 'My cool tag' }));
+    expect(result.data[0].fields[0]).toHaveProperty('name', 'My cool tag');
   });
 
   test('handles null tag properties', async () => {
@@ -68,7 +67,7 @@ describe('queries', () => {
 
     const result = await ds.query(buildQuery({ path: 'my.tag' }));
 
-    expect(result.data[0]).toEqual(expect.objectContaining({ name: 'my.tag' }));
+    expect(result.data[0]).toHaveProperty('fields', [{ name: 'my.tag', values: ['3.14'] }]);
   });
 
   test('multiple targets - skips invalid queries', async () => {
@@ -82,13 +81,11 @@ describe('queries', () => {
     expect(backendSrv.post.mock.calls[1][1]).toHaveProperty('filter', 'path = "my.tag2"');
     expect(result.data).toEqual([
       {
-        fields: [{ name: 'value', values: ['3.14'] }],
-        name: 'my.tag1',
+        fields: [{ name: 'my.tag1', values: ['3.14'] }],
         refId: 'A',
       },
       {
-        fields: [{ name: 'value', values: ['foo'] }],
-        name: 'my.tag2',
+        fields: [{ name: 'my.tag2', values: ['foo'] }],
         refId: 'C',
       },
     ]);
@@ -133,9 +130,8 @@ describe('queries', () => {
       {
         fields: [
           { name: 'time', values: [1672531200000, 1672531260000] },
-          { name: 'value', values: [1, 2] },
+          { name: 'my.tag', values: [1, 2] },
         ],
-        name: 'my.tag',
         refId: 'A',
       },
     ]);
@@ -156,9 +152,8 @@ describe('queries', () => {
       {
         fields: [
           { name: 'time', values: [1672531200000, 1672531260000] },
-          { name: 'value', values: ['3.14', 'foo'] },
+          { name: 'my.tag', values: ['3.14', 'foo'] },
         ],
-        name: 'my.tag',
         refId: 'A',
       },
     ]);
@@ -190,7 +185,7 @@ describe('queries', () => {
 
     const result = await ds.query(buildQuery({ type: TagQueryType.Current, path: '$my_variable' }));
 
-    expect(result.data[0]).toHaveProperty('name', 'my.tag');
+    expect(result.data[0].fields[0]).toHaveProperty('name', 'my.tag');
   });
 
   test('filters by workspace if provided', async () => {
