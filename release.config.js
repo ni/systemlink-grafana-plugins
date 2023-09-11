@@ -3,7 +3,15 @@ const package = 'systemlink-grafana-plugins';
 module.exports = {
     branches: ['main'],
     plugins: [
-        '@semantic-release/commit-analyzer',
+        ["@semantic-release/commit-analyzer", {
+            preset: "angular",
+            releaseRules: [
+                { type: "feat", release: "minor" },
+                { type: "fix", release: "patch" },
+                { type: "perf", release: "patch" },
+                { type: "build", release: "patch" },
+            ]
+        }],
         '@semantic-release/release-notes-generator',
         '@semantic-release/changelog',
         '@semantic-release/npm',
