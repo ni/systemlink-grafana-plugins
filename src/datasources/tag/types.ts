@@ -12,7 +12,7 @@ export interface TagQuery extends DataQuery {
 }
 
 export interface TagWithValue {
-  current: { value: { value: string } };
+  current: { value: { value: string } } | null;
   tag: {
     path: string;
     properties: { displayName?: string } | null;

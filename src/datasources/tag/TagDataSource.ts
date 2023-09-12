@@ -33,7 +33,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
     if (query.type === TagQueryType.Current) {
       return {
         refId: query.refId,
-        fields: [{ name, values: [current.value.value] }],
+        fields: [{ name, values: [current?.value.value] }],
       };
     }
 
