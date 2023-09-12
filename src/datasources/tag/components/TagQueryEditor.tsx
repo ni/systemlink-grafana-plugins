@@ -34,7 +34,7 @@ export function TagQueryEditor({ query, onChange, onRunQuery, datasource }: Prop
         <RadioButtonGroup options={enumToOptions(TagQueryType)} value={query.type} onChange={onTypeChange} />
       </InlineField>
       <InlineField label="Tag path" labelWidth={14} tooltip={tooltips.tagPath}>
-        <AutoSizeInput minWidth={20} defaultValue={query.path} onCommitChange={onPathChange} />
+        <AutoSizeInput minWidth={20} maxWidth={80} defaultValue={query.path} onCommitChange={onPathChange} />
       </InlineField>
       <InlineField label="Workspace" labelWidth={14} tooltip={tooltips.workspace}>
         <Select
