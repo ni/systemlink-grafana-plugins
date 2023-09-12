@@ -1,3 +1,14 @@
+## [3.0.0](https://github.com/ni/systemlink-grafana-plugins/compare/v2.2.1...v3.0.0) (2023-09-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* **tag:** use tag name instead of 'value' for field name (#27)
+
+### Bug Fixes
+
+* **tag:** use tag name instead of 'value' for field name ([#27](https://github.com/ni/systemlink-grafana-plugins/issues/27)) ([44566ca](https://github.com/ni/systemlink-grafana-plugins/commit/44566ca7fdd0783ba72323d94ac3aa2a1b6d3186))
+
 ## [2.2.1](https://github.com/ni/systemlink-grafana-plugins/compare/v2.2.0...v2.2.1) (2023-09-11)
 
 # [2.2.0](https://github.com/ni/systemlink-grafana-plugins/compare/v2.1.1...v2.2.0) (2023-09-06)
