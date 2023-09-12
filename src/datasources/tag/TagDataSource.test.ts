@@ -70,6 +70,16 @@ describe('queries', () => {
     expect(result.data[0]).toHaveProperty('fields', [{ name: 'my.tag', values: ['3.14'] }]);
   });
 
+  test('handles tag with no current value', async () => {
+    const response = createQueryTagsResponse('my.tag', '');
+    response.tagsWithValues[0].current = null;
+    backendSrv.post.mockResolvedValue(response);
+
+    const result = await ds.query(buildQuery({ path: 'my.tag' }));
+
+    expect(result.data[0]).toHaveProperty('fields', [{ name: 'my.tag', values: [] }]);
+  });
+
   test('multiple targets - skips invalid queries', async () => {
     backendSrv.post
       .mockResolvedValueOnce(createQueryTagsResponse('my.tag1', '3.14'))
