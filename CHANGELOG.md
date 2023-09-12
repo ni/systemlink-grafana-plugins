@@ -1,3 +1,10 @@
+## [3.0.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.0.0...v3.0.1) (2023-09-12)
+
+
+### Bug Fixes
+
+* **tag:** set max width for tag path input ([#28](https://github.com/ni/systemlink-grafana-plugins/issues/28)) ([7c1ca49](https://github.com/ni/systemlink-grafana-plugins/commit/7c1ca49b3c4325a92cee656858e8705f46ffde6f))
+
 ## [3.0.0](https://github.com/ni/systemlink-grafana-plugins/compare/v2.2.1...v3.0.0) (2023-09-12)
 
 
