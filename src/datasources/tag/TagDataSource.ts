@@ -33,18 +33,16 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
     if (query.type === TagQueryType.Current) {
       return {
         refId: query.refId,
-        name,
-        fields: [{ name: 'value', values: [current.value.value] }],
+        fields: [{ name, values: [current.value.value] }],
       };
     }
 
     const history = await this.getTagHistoryValues(tag.path, tag.workspace_id, range, maxDataPoints);
     return {
       refId: query.refId,
-      name,
       fields: [
         { name: 'time', values: history.datetimes },
-        { name: 'value', values: history.values },
+        { name, values: history.values },
       ],
     };
   }
