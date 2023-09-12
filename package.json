@@ -39,7 +39,7 @@
     "@types/plotly.js-basic-dist-min": "^2.12.1",
     "@types/react-plotly.js": "^2.6.0",
     "@types/react-router-dom": "^5.3.3",
-    "conventional-changelog-conventionalcommits": "^7.0.2",
+    "conventional-changelog-conventionalcommits": "^6.0.0",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.3",
     "eslint": "^8.43.0",
