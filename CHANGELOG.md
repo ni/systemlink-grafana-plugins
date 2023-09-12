@@ -1,3 +1,10 @@
+## [3.0.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.0.1...v3.0.2) (2023-09-12)
+
+
+### Bug Fixes
+
+* **tag:** crash when visualizing tag with no value ([#29](https://github.com/ni/systemlink-grafana-plugins/issues/29)) ([81aa28e](https://github.com/ni/systemlink-grafana-plugins/commit/81aa28eecceefd0bfe98e7dd74fe8e323cbf7158))
+
 ## [3.0.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.0.0...v3.0.1) (2023-09-12)
 
 
