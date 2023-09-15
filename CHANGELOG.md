@@ -1,3 +1,10 @@
+## [3.1.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.0.2...v3.1.0) (2023-09-15)
+
+
+### Features
+
+* **tag:** retry requests for 429 error ([#30](https://github.com/ni/systemlink-grafana-plugins/issues/30)) ([48f664c](https://github.com/ni/systemlink-grafana-plugins/commit/48f664c37a6b16124c5cf2cb3a3b17f1d82dce7b))
+
 ## [3.0.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.0.1...v3.0.2) (2023-09-12)
 
 
