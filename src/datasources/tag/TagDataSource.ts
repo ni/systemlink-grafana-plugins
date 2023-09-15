@@ -53,7 +53,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
       filter += ` && workspace = "${workspace}"`;
     }
 
-    const response = await this.backendSrv.post<TagsWithValues>(this.tagUrl + '/query-tags-with-values', {
+    const response = await this.post<TagsWithValues>(this.tagUrl + '/query-tags-with-values', {
       filter,
       take: 1,
       orderBy: 'TIMESTAMP',
@@ -64,7 +64,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
   }
 
   private async getTagHistoryValues(path: string, workspace: string, range: TimeRange, intervals?: number) {
-    const response = await this.backendSrv.post<TagHistoryResponse>(this.tagHistoryUrl + '/query-decimated-history', {
+    const response = await this.post<TagHistoryResponse>(this.tagHistoryUrl + '/query-decimated-history', {
       paths: [path],
       workspace,
       startTime: range.from.toISOString(),
@@ -88,7 +88,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
   }
 
   async testDatasource(): Promise<TestingStatus> {
-    await this.backendSrv.get(this.tagUrl + '/tags-count');
+    await this.get(this.tagUrl + '/tags-count');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }

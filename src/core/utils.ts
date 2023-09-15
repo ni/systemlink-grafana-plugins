@@ -39,3 +39,11 @@ export function useWorkspaceOptions<DSType extends DataSourceBase<any>>(datasour
     return workspaces.map(w => ({ label: w.name, value: w.id }));
   });
 }
+
+/**
+ * Async wrapper for `window.setTimeout`
+ * @param timeout the time to sleep in milliseconds
+ */
+export function sleep(timeout: number) {
+  return new Promise(res => window.setTimeout(res, timeout));
+}

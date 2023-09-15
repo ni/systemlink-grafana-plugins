@@ -1,9 +1,11 @@
 import { DataQueryRequest, DataSourceApi, DataSourceInstanceSettings, QueryEditorProps, dateTime } from '@grafana/data';
+import { BackendSrv, BackendSrvRequest, FetchResponse, TemplateSrv } from '@grafana/runtime';
 import { DataQuery } from '@grafana/schema';
-import { BackendSrv, FetchError, TemplateSrv } from '@grafana/runtime';
-import { calledWithFn, mock } from 'jest-mock-extended';
-import React from 'react';
 import { render } from '@testing-library/react';
+import { Matcher, MatcherCreator, calledWithFn, mock } from 'jest-mock-extended';
+import _ from 'lodash';
+import React from 'react';
+import { Observable, of, throwError } from 'rxjs';
 
 export function setupDataSource<T>(
   ctor: new (instanceSettings: DataSourceInstanceSettings, backendSrv: BackendSrv, templateSrv: TemplateSrv) => T
@@ -45,8 +47,22 @@ export function setupRenderer<DSType extends DataSourceApi<TQuery>, TQuery exten
   };
 }
 
-export function createFetchError(status: number): FetchError {
-  return mock<FetchError>({ status });
+export function createFetchResponse<T = any>(data: T): Observable<FetchResponse<T>> {
+  return of({ data } as FetchResponse);
+}
+
+export function createFetchError(status: number) {
+  return throwError(() => ({ status, data: 'Error' }));
+}
+
+export const requestMatching: MatcherCreator<BackendSrvRequest, Partial<BackendSrvRequest>> = expected =>
+  new Matcher(request => _.isMatch(request, expected!), 'requestMatcher()');
+
+export function mockTimers() {
+  jest.spyOn(window, "setTimeout").mockImplementation((fn) => {
+    fn();
+    return setTimeout(() => 1, 0);
+  });
 }
 
 export const defaultQueryOptions: Omit<DataQueryRequest, 'targets'> = {
