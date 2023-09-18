@@ -1,3 +1,10 @@
+## [3.1.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.1.0...v3.1.1) (2023-09-18)
+
+
+### Bug Fixes
+
+* **tag:** convert strings to numbers for tag current value ([#31](https://github.com/ni/systemlink-grafana-plugins/issues/31)) ([f0d2685](https://github.com/ni/systemlink-grafana-plugins/commit/f0d26854046c5464b76973f45a2bee68119e63f4))
+
 ## [3.1.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.0.2...v3.1.0) (2023-09-15)
 
 
