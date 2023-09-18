@@ -14,6 +14,7 @@ export interface TagQuery extends DataQuery {
 export interface TagWithValue {
   current: { value: { value: string } } | null;
   tag: {
+    datatype: string;
     path: string;
     properties: { displayName?: string } | null;
     workspace_id: string;

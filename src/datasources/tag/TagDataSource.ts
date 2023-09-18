@@ -33,7 +33,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
     if (query.type === TagQueryType.Current) {
       return {
         refId: query.refId,
-        fields: [{ name, values: [current?.value.value] }],
+        fields: [{ name, values: [this.convertTagValue(tag.datatype, current?.value.value)] }],
       };
     }
 
@@ -75,12 +75,12 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
     const { type, values } = response.results[path];
     return {
       datetimes: values.map(v => dateTime(v.timestamp).valueOf()),
-      values: values.map(v => this.convertTagValue(v.value, type)),
+      values: values.map(v => this.convertTagValue(type, v.value)),
     };
   }
 
-  private convertTagValue(value: string, type: string) {
-    return type === 'DOUBLE' || type === 'INT' || type === 'U_INT64' ? Number(value) : value;
+  private convertTagValue(type: string, value?: string) {
+    return value && ['DOUBLE', 'INT', 'U_INT64'].includes(type) ? Number(value) : value;
   }
 
   shouldRunQuery(query: TagQuery): boolean {
