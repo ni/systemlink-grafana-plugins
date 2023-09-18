@@ -1,3 +1,58 @@
+## [3.1.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.1.0...v3.1.1) (2023-09-18)
+
+
+### Bug Fixes
+
+* **tag:** convert strings to numbers for tag current value ([#31](https://github.com/ni/systemlink-grafana-plugins/issues/31)) ([f0d2685](https://github.com/ni/systemlink-grafana-plugins/commit/f0d26854046c5464b76973f45a2bee68119e63f4))
+
+## [3.1.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.0.2...v3.1.0) (2023-09-15)
+
+
+### Features
+
+* **tag:** retry requests for 429 error ([#30](https://github.com/ni/systemlink-grafana-plugins/issues/30)) ([48f664c](https://github.com/ni/systemlink-grafana-plugins/commit/48f664c37a6b16124c5cf2cb3a3b17f1d82dce7b))
+
+## [3.0.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.0.1...v3.0.2) (2023-09-12)
+
+
+### Bug Fixes
+
+* **tag:** crash when visualizing tag with no value ([#29](https://github.com/ni/systemlink-grafana-plugins/issues/29)) ([81aa28e](https://github.com/ni/systemlink-grafana-plugins/commit/81aa28eecceefd0bfe98e7dd74fe8e323cbf7158))
+
+## [3.0.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.0.0...v3.0.1) (2023-09-12)
+
+
+### Bug Fixes
+
+* **tag:** set max width for tag path input ([#28](https://github.com/ni/systemlink-grafana-plugins/issues/28)) ([7c1ca49](https://github.com/ni/systemlink-grafana-plugins/commit/7c1ca49b3c4325a92cee656858e8705f46ffde6f))
+
+## [3.0.0](https://github.com/ni/systemlink-grafana-plugins/compare/v2.2.1...v3.0.0) (2023-09-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* **tag:** use tag name instead of 'value' for field name (#27)
+
+### Bug Fixes
+
+* **tag:** use tag name instead of 'value' for field name ([#27](https://github.com/ni/systemlink-grafana-plugins/issues/27)) ([44566ca](https://github.com/ni/systemlink-grafana-plugins/commit/44566ca7fdd0783ba72323d94ac3aa2a1b6d3186))
+
+## [2.2.1](https://github.com/ni/systemlink-grafana-plugins/compare/v2.2.0...v2.2.1) (2023-09-11)
+
+# [2.2.0](https://github.com/ni/systemlink-grafana-plugins/compare/v2.1.1...v2.2.0) (2023-09-06)
+
+
+### Features
+
+* **tag:** add user-friendly workspace dropdown ([#25](https://github.com/ni/systemlink-grafana-plugins/issues/25)) ([3f56d62](https://github.com/ni/systemlink-grafana-plugins/commit/3f56d62f7655aa3f55cfa8f4b94669f1388edd67))
+
+## [2.1.1](https://github.com/ni/systemlink-grafana-plugins/compare/v2.1.0...v2.1.1) (2023-08-30)
+
+
+### Bug Fixes
+
+* **tag:** don't error on null properties ([#24](https://github.com/ni/systemlink-grafana-plugins/issues/24)) ([6431586](https://github.com/ni/systemlink-grafana-plugins/commit/64315869fb247d1386b70a578ca0190d1d71c2ad))
+
 # [2.1.0](https://github.com/ni/systemlink-grafana-plugins/compare/v2.0.0...v2.1.0) (2023-08-22)
 
 

@@ -10,7 +10,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
-    super(instanceSettings);
+    super(instanceSettings, backendSrv);
   }
 
   tagUrl = this.instanceSettings.url + '/nitag/v2';
@@ -28,23 +28,21 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
       query.workspace
     );
 
-    const name = tag.properties.displayName ?? tag.path;
+    const name = tag.properties?.displayName ?? tag.path;
 
     if (query.type === TagQueryType.Current) {
       return {
         refId: query.refId,
-        name,
-        fields: [{ name: 'value', values: [current.value.value] }],
+        fields: [{ name, values: [this.convertTagValue(tag.datatype, current?.value.value)] }],
       };
     }
 
     const history = await this.getTagHistoryValues(tag.path, tag.workspace_id, range, maxDataPoints);
     return {
       refId: query.refId,
-      name,
       fields: [
         { name: 'time', values: history.datetimes },
-        { name: 'value', values: history.values },
+        { name, values: history.values },
       ],
     };
   }
@@ -55,7 +53,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
       filter += ` && workspace = "${workspace}"`;
     }
 
-    const response = await this.backendSrv.post<TagsWithValues>(this.tagUrl + '/query-tags-with-values', {
+    const response = await this.post<TagsWithValues>(this.tagUrl + '/query-tags-with-values', {
       filter,
       take: 1,
       orderBy: 'TIMESTAMP',
@@ -66,7 +64,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
   }
 
   private async getTagHistoryValues(path: string, workspace: string, range: TimeRange, intervals?: number) {
-    const response = await this.backendSrv.post<TagHistoryResponse>(this.tagHistoryUrl + '/query-decimated-history', {
+    const response = await this.post<TagHistoryResponse>(this.tagHistoryUrl + '/query-decimated-history', {
       paths: [path],
       workspace,
       startTime: range.from.toISOString(),
@@ -77,12 +75,12 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
     const { type, values } = response.results[path];
     return {
       datetimes: values.map(v => dateTime(v.timestamp).valueOf()),
-      values: values.map(v => this.convertTagValue(v.value, type)),
+      values: values.map(v => this.convertTagValue(type, v.value)),
     };
   }
 
-  private convertTagValue(value: string, type: string) {
-    return type === 'DOUBLE' || type === 'INT' || type === 'U_INT64' ? Number(value) : value;
+  private convertTagValue(type: string, value?: string) {
+    return value && ['DOUBLE', 'INT', 'U_INT64'].includes(type) ? Number(value) : value;
   }
 
   shouldRunQuery(query: TagQuery): boolean {
@@ -90,7 +88,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
   }
 
   async testDatasource(): Promise<TestingStatus> {
-    await this.backendSrv.get(this.tagUrl + '/tags-count');
+    await this.get(this.tagUrl + '/tags-count');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }

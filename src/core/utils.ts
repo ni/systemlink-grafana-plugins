@@ -1,4 +1,6 @@
 import { SelectableValue } from '@grafana/data';
+import { useAsync } from 'react-use';
+import { DataSourceBase } from './DataSourceBase';
 
 export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<SelectableValue<T>> {
   const RESULT = [];
@@ -19,7 +21,7 @@ export function Throw(error: string | Error): never {
     throw new Error(error);
   }
   throw error;
-};
+}
 
 /**
  * Throw exception if value is null or undefined
@@ -28,4 +30,20 @@ export function Throw(error: string | Error): never {
  */
 export function throwIfNullish<T>(value: T, error: string | Error): NonNullable<T> {
   return value === undefined || value === null ? Throw(error) : value!;
+}
+
+/** Gets available workspaces as an array of {@link SelectableValue}. */
+export function useWorkspaceOptions<DSType extends DataSourceBase<any>>(datasource: DSType) {
+  return useAsync(async () => {
+    const workspaces = await datasource.getWorkspaces();
+    return workspaces.map(w => ({ label: w.name, value: w.id }));
+  });
+}
+
+/**
+ * Async wrapper for `window.setTimeout`
+ * @param timeout the time to sleep in milliseconds
+ */
+export function sleep(timeout: number) {
+  return new Promise(res => window.setTimeout(res, timeout));
 }

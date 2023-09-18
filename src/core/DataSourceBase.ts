@@ -2,12 +2,25 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataQueryResponse,
-  DataSourceApi
+  DataSourceApi,
+  DataSourceInstanceSettings,
 } from '@grafana/data';
-import { TestingStatus } from '@grafana/runtime';
+import { BackendSrv, BackendSrvRequest, TestingStatus, isFetchError } from '@grafana/runtime';
 import { DataQuery } from '@grafana/schema';
+import { Workspace } from './types';
+import { sleep } from './utils';
+import { lastValueFrom } from 'rxjs';
 
 export abstract class DataSourceBase<TQuery extends DataQuery> extends DataSourceApi<TQuery> {
+  constructor(readonly instanceSettings: DataSourceInstanceSettings, readonly backendSrv: BackendSrv) {
+    super(instanceSettings);
+  }
+
+  abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;
+  abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
+  abstract shouldRunQuery(query: TQuery): boolean;
+  abstract testDatasource(): Promise<TestingStatus>;
+
   query(request: DataQueryRequest<TQuery>): Promise<DataQueryResponse> {
     const promises = request.targets
       .map(this.prepareQuery, this)
@@ -21,11 +34,37 @@ export abstract class DataSourceBase<TQuery extends DataQuery> extends DataSourc
     return { ...this.defaultQuery, ...query };
   }
 
-  shouldRunQuery(query: TQuery): boolean {
-    return true;
+  private async fetch<T>(options: BackendSrvRequest, retries = 0): Promise<T> {
+    try {
+      return (await lastValueFrom(this.backendSrv.fetch<T>(options))).data;
+    } catch (error) {
+      if (isFetchError(error) && error.status === 429 && retries < 3) {
+        await sleep(Math.random() * 1000 * 2 ** retries);
+        return this.fetch(options, retries + 1);
+      }
+      throw error;
+    }
   }
 
-  abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;
-  abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
-  abstract testDatasource(): Promise<TestingStatus>;
+  get<T>(url: string) {
+    return this.fetch<T>({ method: 'GET', url });
+  }
+
+  post<T>(url: string, body: Record<string, any>) {
+    return this.fetch<T>({ method: 'POST', url, data: body });
+  }
+
+  static Workspaces: Workspace[];
+
+  async getWorkspaces() {
+    if (DataSourceBase.Workspaces) {
+      return DataSourceBase.Workspaces;
+    }
+
+    const response = await this.backendSrv.get<{ workspaces: Workspace[] }>(
+      this.instanceSettings.url + '/niauth/v1/user'
+    );
+
+    return (DataSourceBase.Workspaces = response.workspaces);
+  }
 }
