@@ -9,7 +9,7 @@ export class {{Name}}DataSource extends DataSourceBase<{{Name}}Query> {
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
-    super(instanceSettings);
+    super(instanceSettings, backendSrv);
   }
 
   // TODO: set base path of the service
@@ -27,6 +27,10 @@ export class {{Name}}DataSource extends DataSourceBase<{{Name}}Query> {
         { name: 'Value', values: [query.constant, query.constant], type: FieldType.number },
       ],
     };
+  }
+
+  shouldRunQuery(query: {{Name}}Query): boolean {
+    return true;
   }
 
   async testDatasource(): Promise<TestingStatus> {
