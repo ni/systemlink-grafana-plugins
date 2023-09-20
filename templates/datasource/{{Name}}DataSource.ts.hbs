@@ -1,44 +1,36 @@
-import {
-  DataQueryRequest,
-  DataQueryResponse,
-  DataSourceApi,
-  DataSourceInstanceSettings,
-  MutableDataFrame,
-  FieldType,
-} from '@grafana/data';
-
-import { BackendSrv, TestingStatus, getBackendSrv } from '@grafana/runtime';
-
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType } from '@grafana/data';
+import { BackendSrv, TemplateSrv, TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
+import { DataSourceBase } from 'core/DataSourceBase';
 import { {{Name}}Query } from './types';
 
-export class {{Name}}DataSource extends DataSourceApi<{{Name}}Query> {
-  baseUrl: string;
+export class {{Name}}DataSource extends DataSourceBase<{{Name}}Query> {
   constructor(
-    private instanceSettings: DataSourceInstanceSettings,
-    private backendSrv: BackendSrv = getBackendSrv()
+    readonly instanceSettings: DataSourceInstanceSettings,
+    readonly backendSrv: BackendSrv = getBackendSrv(),
+    readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
-    super(instanceSettings);
-    // TODO: set base path of the service
-    this.baseUrl = this.instanceSettings.url + '/nifoo/v2';
+    super(instanceSettings, backendSrv);
   }
 
-  async query(options: DataQueryRequest<{{Name}}Query>): Promise<DataQueryResponse> {
-    const { range } = options;
-    const from = range!.from.valueOf();
-    const to = range!.to.valueOf();
+  // TODO: set base path of the service
+  baseUrl = this.instanceSettings.url + '/nifoo/v2';
 
-    // Return a constant for each query.
-    const data = options.targets.map((target) => {
-      return new MutableDataFrame({
-        refId: target.refId,
-        fields: [
-          { name: 'Time', values: [from, to], type: FieldType.time },
-          { name: 'Value', values: [target.constant, target.constant], type: FieldType.number },
-        ],
-      });
-    });
+  defaultQuery = {
+    constant: 3.14,
+  };
 
-    return { data };
+  async runQuery(query: {{Name}}Query, { range }: DataQueryRequest): Promise<DataFrameDTO> {
+    return {
+      refId: query.refId,
+      fields: [
+        { name: 'Time', values: [range.from.valueOf(), range.to.valueOf()], type: FieldType.time },
+        { name: 'Value', values: [query.constant, query.constant], type: FieldType.number },
+      ],
+    };
+  }
+
+  shouldRunQuery(query: {{Name}}Query): boolean {
+    return true;
   }
 
   async testDatasource(): Promise<TestingStatus> {
