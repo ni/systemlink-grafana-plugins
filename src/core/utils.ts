@@ -1,6 +1,7 @@
 import { SelectableValue } from '@grafana/data';
 import { useAsync } from 'react-use';
 import { DataSourceBase } from './DataSourceBase';
+import { Workspace } from './types';
 
 export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<SelectableValue<T>> {
   const RESULT = [];
@@ -38,6 +39,10 @@ export function useWorkspaceOptions<DSType extends DataSourceBase<any>>(datasour
     const workspaces = await datasource.getWorkspaces();
     return workspaces.map(w => ({ label: w.name, value: w.id }));
   });
+}
+
+export function getWorkspaceName(workspaces: Workspace[], id: string) {
+  return workspaces.find(w => w.id === id)?.name ?? id;
 }
 
 /**
