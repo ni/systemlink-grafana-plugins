@@ -1,38 +1,44 @@
-import React from 'react';
-import { InlineField, InlineFieldRow, Input, RadioButtonGroup } from '@grafana/ui';
+import React, { FormEvent } from 'react';
+import { AutoSizeInput, InlineField, RadioButtonGroup } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { SystemDataSource } from '../SystemDataSource';
-import { QueryType, SystemQuery } from '../types';
+import { SystemQueryType, SystemQuery } from '../types';
 import { enumToOptions } from 'core/utils';
 
 type Props = QueryEditorProps<SystemDataSource, SystemQuery>;
 
-export function SystemQueryEditor({ query, onChange, onRunQuery }: Props) {
-  const onQueryTypeChange = (value: QueryType) => {
-    onChange({ ...query, queryKind: value })
+export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
+  query = datasource.prepareQuery(query);
+  const onQueryTypeChange = (value: SystemQueryType) => {
+    onChange({ ...query, queryKind: value });
     onRunQuery();
-  }
+  };
 
-  const onIdBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const id = e.currentTarget.value;
-    if (query.systemName !== id) {
-      onChange({ ...query, systemName: id })
-      onRunQuery(); 
-    }
-  }
+  const onSystemChange = (event: FormEvent<HTMLInputElement>) => {
+    onChange({ ...query, systemName: event.currentTarget.value });
+    onRunQuery();
+  };
 
   return (
-    <div>
-      <InlineFieldRow >
-        <InlineField label="Query type">
-          <RadioButtonGroup options={enumToOptions(QueryType)} onChange={onQueryTypeChange} value={query.queryKind} />
+    <>
+      <InlineField label="Query type">
+        <RadioButtonGroup
+          options={enumToOptions(SystemQueryType)}
+          onChange={onQueryTypeChange}
+          value={query.queryKind}
+        />
+      </InlineField>
+      {query.queryKind === SystemQueryType.Metadata && (
+        <InlineField label="System" tooltip="Enter system ID or alias">
+          <AutoSizeInput
+            defaultValue={query.systemName}
+            maxWidth={80}
+            minWidth={20}
+            onCommitChange={onSystemChange}
+            placeholder="All systems"
+          />
         </InlineField>
-      </InlineFieldRow>
-      <InlineFieldRow>
-        <InlineField label="System" tooltip="Enter system ID or alias" >
-          <Input placeholder="All systems" onBlur={onIdBlur} defaultValue={query.systemName} />
-        </InlineField>
-      </InlineFieldRow>
-    </div>
+      )}
+    </>
   );
 }

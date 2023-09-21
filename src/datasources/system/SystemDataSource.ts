@@ -1,114 +1,81 @@
-import {
-  DataQueryRequest,
-  DataQueryResponse,
-  DataSourceApi,
-  DataSourceInstanceSettings,
-  MutableDataFrame,
-  FieldType,
-  CoreApp,
-  toDataFrame,
-  MetricFindValue,
-} from '@grafana/data';
-
-import { TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
-
-import { AuthResponse, QueryType, SystemMetadata, SystemQuery, SystemSummary, VariableQuery, Workspace } from './types';
-import { defaultProjection } from './constants';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, MetricFindValue } from '@grafana/data';
+import { BackendSrv, TemplateSrv, TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
+import { DataSourceBase } from 'core/DataSourceBase';
+import { defaultOrderBy, defaultProjection } from './constants';
 import { NetworkUtils } from './network-utils';
+import { SystemMetadata, SystemQuery, SystemQueryType, SystemSummary } from './types';
+import { getWorkspaceName } from 'core/utils';
 
-export class SystemDataSource extends DataSourceApi<SystemQuery> {
-  baseUrl: string;
-  authUrl: string;
-  constructor(private instanceSettings: DataSourceInstanceSettings) {
-    super(instanceSettings);
-    this.baseUrl = this.instanceSettings.url + '/nisysmgmt/v1';
-    this.authUrl = this.instanceSettings.url + '/niauth/v1/auth';
+export class SystemDataSource extends DataSourceBase<SystemQuery> {
+  constructor(
+    readonly instanceSettings: DataSourceInstanceSettings,
+    readonly backendSrv: BackendSrv = getBackendSrv(),
+    readonly templateSrv: TemplateSrv = getTemplateSrv()
+  ) {
+    super(instanceSettings, backendSrv);
   }
 
-  transformProjection(projections: string[]): string {
-    let result = "new(";
+  baseUrl = this.instanceSettings.url + '/nisysmgmt/v1';
 
-    projections.forEach(function (field) {
-      if (field === "workspace") {
-        result = result.concat(field, ")");
-      } else {
-        result = result.concat(field, ", ");
-      }
-    });
+  defaultQuery = {
+    queryKind: SystemQueryType.Summary,
+    systemName: '',
+  };
 
-    return result;
-  }
-
-  getWorkspaceName(workspaces: Workspace[], system: SystemMetadata): string {
-    for (let i = 0; i < workspaces.length; i++) {
-      if (workspaces[i].id === system.workspace) {
-        return workspaces[i].name;
-      }
+  async runQuery(query: SystemQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    if (query.queryKind === SystemQueryType.Summary) {
+      const summary = await this.get<SystemSummary>(this.baseUrl + '/get-systems-summary');
+      return {
+        refId: query.refId,
+        fields: [
+          { name: 'Connected', values: [summary.connectedCount], type: FieldType.number },
+          { name: 'Disconnected', values: [summary.disconnectedCount], type: FieldType.number },
+        ],
+      };
+    } else {
+      const metadata = await this.getSystemMetadata(this.templateSrv.replace(query.systemName, options.scopedVars));
+      const workspaces = await this.getWorkspaces();
+      return {
+        refId: query.refId,
+        fields: [
+          { name: 'id', values: metadata.map(m => m.id) },
+          { name: 'alias', values: metadata.map(m => m.alias) },
+          { name: 'connection status', values: metadata.map(m => m.state) },
+          { name: 'locked status', values: metadata.map(m => m.locked) },
+          { name: 'system start time', values: metadata.map(m => m.systemStartTime) },
+          { name: 'model', values: metadata.map(m => m.model) },
+          { name: 'vendor', values: metadata.map(m => m.vendor) },
+          { name: 'operating system', values: metadata.map(m => m.osFullName) },
+          {
+            name: 'ip address',
+            values: metadata.map(m => NetworkUtils.getIpAddressFromInterfaces(m.ip4Interfaces, m.ip6Interfaces)),
+          },
+          { name: 'workspace', values: metadata.map(m => getWorkspaceName(workspaces, m.workspace)) },
+        ],
+      };
     }
-
-    return system.workspace;
   }
 
-  private getIpAddress(ip4Interface: Record<string, string[]>, ip6Interface: Record<string, string[]>): string | null {
-    return NetworkUtils.getIpAddressFromInterfaces(ip4Interface) || NetworkUtils.getIpAddressFromInterfaces(ip6Interface);
+  async getSystemMetadata(systemFilter: string, projection = defaultProjection) {
+    const response = await this.post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', {
+      filter: systemFilter ? `id = "${systemFilter}" || alias = "${systemFilter}"` : '',
+      projection: `new(${projection.join()})`,
+      orderBy: defaultOrderBy,
+    });
+    return response.data;
   }
 
-  async metricFindQuery(query: VariableQuery, options?: any): Promise<MetricFindValue[]> {
-    const response = await getBackendSrv().post<{ data: VariableQuery[] }>(this.baseUrl + '/query-systems', { projection: "new(id, alias)" });
-    const values = response.data.map(frame => ({ text: frame.alias, value: frame.id }));
-
-    return values;
+  async metricFindQuery(): Promise<MetricFindValue[]> {
+    const metadata = await this.getSystemMetadata('', ['id', 'alias']);
+    return metadata.map(frame => ({ text: frame.alias, value: frame.id }));
   }
 
-  async query(options: DataQueryRequest<SystemQuery>): Promise<DataQueryResponse> {
-    // Return a constant for each query.
-    const data = await Promise.all(options.targets.map(async (target) => {
-      if (target.queryKind === QueryType.Summary) {
-        let summaryResponse = await getBackendSrv().get<SystemSummary>(this.baseUrl + '/get-systems-summary');
-        return new MutableDataFrame({
-          refId: target.refId,
-          fields: [
-            { name: 'Connected', values: [summaryResponse.connectedCount], type: FieldType.number },
-            { name: 'Disconnected', values: [summaryResponse.disconnectedCount], type: FieldType.number },
-          ],
-        });
-      } else {
-        const resolvedId = getTemplateSrv().replace(target.systemName, options.scopedVars);
-        const postBody = {
-          filter: resolvedId ? `id = "${resolvedId}" || alias = "${resolvedId}"` : '',
-          projection: this.transformProjection(defaultProjection),
-          orderBy: 'createdTimeStamp DESC'
-        };
-        const metadataResponse = await getBackendSrv().post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', postBody);
-        const aliasNameResponse = await getBackendSrv().get< AuthResponse >(this.authUrl, postBody);
-        return toDataFrame({
-          fields: [
-            { name: 'id', values: metadataResponse.data.map(m => m.id) },
-            { name: 'alias', values: metadataResponse.data.map(m => m.alias) },
-            { name: 'connection status', values: metadataResponse.data.map(m => m.state) },
-            { name: 'locked status', values: metadataResponse.data.map(m => m.locked) },
-            { name: 'system start time', values: metadataResponse.data.map(m => m.systemStartTime) },
-            { name: 'model', values: metadataResponse.data.map(m => m.model) },
-            { name: 'vendor', values: metadataResponse.data.map(m => m.vendor) },
-            { name: 'operating system', values: metadataResponse.data.map(m => m.osFullName) },
-            { name: 'ip address', values: metadataResponse.data.map(m => this.getIpAddress(m.ip4Interfaces, m.ip6Interfaces)) },
-            { name: 'workspace', values: metadataResponse.data.map(m => this.getWorkspaceName(aliasNameResponse.workspaces, m)) }
-          ]
-        });
-      }
-    }));
-
-    return { data };
-  }
-
-  getDefaultQuery(_core: CoreApp): Partial<SystemQuery> {
-    return {
-      queryKind: QueryType.Summary,
-    };
+  shouldRunQuery(_: SystemQuery): boolean {
+    return true;
   }
 
   async testDatasource(): Promise<TestingStatus> {
-    await getBackendSrv().get(this.baseUrl + '/get-systems-summary');
+    await this.get(this.baseUrl + '/get-systems-summary');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }
