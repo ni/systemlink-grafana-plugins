@@ -1,4 +1,4 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, MetricFindValue } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindValue } from '@grafana/data';
 import { BackendSrv, TemplateSrv, TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { defaultOrderBy, defaultProjection } from './constants';
@@ -28,8 +28,8 @@ export class SystemDataSource extends DataSourceBase<SystemQuery> {
       return {
         refId: query.refId,
         fields: [
-          { name: 'Connected', values: [summary.connectedCount], type: FieldType.number },
-          { name: 'Disconnected', values: [summary.disconnectedCount], type: FieldType.number },
+          { name: 'Connected', values: [summary.connectedCount] },
+          { name: 'Disconnected', values: [summary.disconnectedCount] },
         ],
       };
     } else {
