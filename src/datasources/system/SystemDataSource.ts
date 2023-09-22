@@ -3,7 +3,7 @@ import { BackendSrv, TemplateSrv, TestingStatus, getBackendSrv, getTemplateSrv }
 import { DataSourceBase } from 'core/DataSourceBase';
 import { defaultOrderBy, defaultProjection } from './constants';
 import { NetworkUtils } from './network-utils';
-import { SystemMetadata, SystemQuery, SystemQueryType, SystemSummary } from './types';
+import { SystemMetadata, SystemQuery, SystemQueryType, SystemSummary, SystemVariableQuery } from './types';
 import { getWorkspaceName } from 'core/utils';
 
 export class SystemDataSource extends DataSourceBase<SystemQuery> {
@@ -56,17 +56,21 @@ export class SystemDataSource extends DataSourceBase<SystemQuery> {
     }
   }
 
-  async getSystemMetadata(systemFilter: string, projection = defaultProjection) {
+  async getSystemMetadata(systemFilter: string, projection = defaultProjection, workspace?: string) {
+    const filters = [
+      systemFilter && `id = "${systemFilter}" || alias = "${systemFilter}"`,
+      workspace && `workspace = "${workspace}"`,
+    ];
     const response = await this.post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', {
-      filter: systemFilter ? `id = "${systemFilter}" || alias = "${systemFilter}"` : '',
+      filter: filters.filter(Boolean).join(' '),
       projection: `new(${projection.join()})`,
       orderBy: defaultOrderBy,
     });
     return response.data;
   }
 
-  async metricFindQuery(): Promise<MetricFindValue[]> {
-    const metadata = await this.getSystemMetadata('', ['id', 'alias']);
+  async metricFindQuery({ workspace }: SystemVariableQuery): Promise<MetricFindValue[]> {
+    const metadata = await this.getSystemMetadata('', ['id', 'alias'], workspace);
     return metadata.map(frame => ({ text: frame.alias, value: frame.id }));
   }
 
