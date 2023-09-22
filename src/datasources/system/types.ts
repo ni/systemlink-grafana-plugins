@@ -19,7 +19,7 @@ export interface SystemMetadata {
   id: string,
   alias: string,
   state: string,
-  locked: string,
+  locked: boolean,
   systemStartTime: string,
   model: string,
   vendor: string,

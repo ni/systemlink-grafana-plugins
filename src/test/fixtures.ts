@@ -30,19 +30,19 @@ export function setupRenderer<DSType extends DataSourceApi<TQuery>, TQuery exten
   ds: new (instanceSettings: DataSourceInstanceSettings, backendSrv: BackendSrv) => DSType
 ) {
   return (initialQuery: Omit<TQuery, 'refId'>) => {
-    const onChange = jest.fn(),
+    const onChange = jest.fn<void, [TQuery]>(),
       onRunQuery = jest.fn();
 
     const [datasource] = setupDataSource(ds);
 
-    render(
-      React.createElement(component, {
-        datasource,
-        query: { ...initialQuery, refId: 'A' } as TQuery,
-        onRunQuery,
-        onChange,
-      })
-    );
+    const createElement = (query: TQuery) =>
+      React.createElement(component, { datasource, query, onRunQuery, onChange });
+
+    const { rerender } = render(createElement({ ...initialQuery, refId: 'A' } as TQuery));
+
+    // Mimicks Grafana's query editor by rerendering when onChange is called
+    onChange.mockImplementation(newQuery => rerender(createElement(newQuery)));
+
     return [onChange, onRunQuery, ds] as const;
   };
 }
@@ -59,7 +59,7 @@ export const requestMatching: MatcherCreator<BackendSrvRequest, Partial<BackendS
   new Matcher(request => _.isMatch(request, expected!), 'requestMatcher()');
 
 export function mockTimers() {
-  jest.spyOn(window, "setTimeout").mockImplementation((fn) => {
+  jest.spyOn(window, 'setTimeout').mockImplementation(fn => {
     fn();
     return setTimeout(() => 1, 0);
   });

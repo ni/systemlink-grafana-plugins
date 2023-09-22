@@ -1,9 +1,10 @@
 import React, { FormEvent } from 'react';
-import { AutoSizeInput, InlineField, RadioButtonGroup } from '@grafana/ui';
+import { AutoSizeInput, RadioButtonGroup } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { SystemDataSource } from '../SystemDataSource';
 import { SystemQueryType, SystemQuery } from '../types';
 import { enumToOptions } from 'core/utils';
+import { InlineField } from 'core/components/InlineField';
 
 type Props = QueryEditorProps<SystemDataSource, SystemQuery>;
 
