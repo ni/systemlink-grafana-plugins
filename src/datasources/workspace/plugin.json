@@ -2,7 +2,7 @@
   "type": "datasource",
   "name": "SystemLink Workspaces",
   "id": "ni-slworkspace-datasource",
-  "query": true,
+  "metrics": true,
   "info": {
     "author": {
       "name": "NI"
