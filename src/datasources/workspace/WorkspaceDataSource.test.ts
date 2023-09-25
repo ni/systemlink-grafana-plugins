@@ -15,7 +15,7 @@ beforeEach(() => {
   [ds, backendSrv] = setupDataSource(WorkspaceDataSource);
 });
 
-fdescribe('testDatasource', () => {
+describe('testDatasource', () => {
   test('returns success', async () => {
     backendSrv.fetch
       .calledWith(requestMatching({ url: '/niuser/v1/workspaces' }))
