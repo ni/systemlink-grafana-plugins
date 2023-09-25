@@ -95,20 +95,26 @@ test('query metadata with templated system name', async () => {
   await ds.query(buildQuery({ queryKind: SystemQueryType.Metadata, systemName: '$system_id' }));
 });
 
-test('queries for system variable values', async () => {
+test('queries for system variable values - all workspaces', async () => {
   backendSrv.fetch
-    .calledWith(
-      requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { projection: 'new(id,alias)' } })
-    )
-    .mockReturnValue(createFetchResponse({ data: fakeSystems.map(({id, alias}) => ({id, alias})) }));
+    .calledWith(requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { projection: 'new(id,alias)' } }))
+    .mockReturnValue(createFetchResponse({ data: fakeSystems.map(({ id, alias }) => ({ id, alias })) }));
 
-  const result = await ds.metricFindQuery();
+  const result = await ds.metricFindQuery({ workspace: '' });
 
   expect(result).toEqual([
     { text: 'my system', value: 'system-1' },
     { text: 'Cool system 😎', value: 'system-2' },
   ]);
-})
+});
+
+test('queries for system variable values - single workspace', async () => {
+  backendSrv.fetch
+    .calledWith(requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { filter: 'workspace = "1"' } }))
+    .mockReturnValue(createFetchResponse({ data: fakeSystems.map(({ id, alias }) => ({ id, alias })) }));
+
+  await ds.metricFindQuery({ workspace: '1' });
+});
 
 const fakeSystems: SystemMetadata[] = [
   {

@@ -10,6 +10,10 @@ export interface SystemQuery extends DataQuery {
   systemName: string
 }
 
+export interface SystemVariableQuery {
+  workspace: string;
+}
+
 export interface SystemSummary {
   connectedCount: number,
   disconnectedCount: number
