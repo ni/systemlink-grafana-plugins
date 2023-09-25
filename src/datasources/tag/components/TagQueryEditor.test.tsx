@@ -29,13 +29,13 @@ it('renders with initial query and updates when user makes changes', async () =>
 
   // Users changes query type
   await userEvent.click(screen.getByRole('radio', { name: 'Current' }));
-  expect(onChange).toBeCalledWith(expect.objectContaining({ type: TagQueryType.Current }));
+  expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ type: TagQueryType.Current }));
 
   // User types in new tag path
   await userEvent.type(screen.getByLabelText('Tag path'), '.test{enter}');
-  expect(onChange).toBeCalledWith(expect.objectContaining({ path: 'my.tag.test' }));
+  expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ path: 'my.tag.test' }));
 
   // User selects different workspace
   await select(screen.getByRole('combobox'), 'Other workspace', { container: document.body });
-  expect(onChange).toBeCalledWith(expect.objectContaining({ workspace: '2' }));
+  expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ workspace: '2' }));
 });

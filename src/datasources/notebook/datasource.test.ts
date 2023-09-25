@@ -197,9 +197,9 @@ describe('Notebook data source', () => {
 
       ds.replaceParameterVariables(parameters, options);
 
-      expect(replaceMock).toBeCalledTimes(2);
-      expect(replaceMock).toBeCalledWith(s1, expect.anything());
-      expect(replaceMock).toBeCalledWith(s2, expect.anything());
+      expect(replaceMock).toHaveBeenCalledTimes(2);
+      expect(replaceMock).toHaveBeenCalledWith(s1, expect.anything());
+      expect(replaceMock).toHaveBeenCalledWith(s2, expect.anything());
     });
 
     it('does not attempt to replace variables in non-string parameters', () => {
@@ -213,7 +213,7 @@ describe('Notebook data source', () => {
 
       ds.replaceParameterVariables(parameters, options);
 
-      expect(replaceMock).not.toBeCalled();
+      expect(replaceMock).not.toHaveBeenCalled();
     });
   });
 
@@ -291,7 +291,7 @@ describe('Notebook data source', () => {
         ],
       } as unknown as DataQueryRequest<NotebookQuery>;
 
-      expect(ds.query(options)).rejects.toThrow();
+      await expect(ds.query(options)).rejects.toThrow();
     });
 
     it('throws error for notebook execution with invalid output', async () => {
@@ -306,7 +306,7 @@ describe('Notebook data source', () => {
         ],
       } as unknown as DataQueryRequest<NotebookQuery>;
 
-      expect(ds.query(options)).rejects.toThrow();
+      await expect(ds.query(options)).rejects.toThrow();
     });
 
     it('executes notebook with resultCachePeriod', async () => {

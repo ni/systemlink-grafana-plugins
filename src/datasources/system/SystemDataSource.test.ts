@@ -86,13 +86,11 @@ test('query metadata for one system', async () => {
 
 test('query metadata with templated system name', async () => {
   templateSrv.replace.calledWith('$system_id').mockReturnValue('system-1');
-  backendSrv.fetch
-    .calledWith(
-      requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { filter: 'id = "system-1" || alias = "system-1"' } })
-    )
-    .mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
+  backendSrv.fetch.mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
 
   await ds.query(buildQuery({ queryKind: SystemQueryType.Metadata, systemName: '$system_id' }));
+
+  expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('filter', 'id = "system-1" || alias = "system-1"');
 });
 
 test('queries for system variable values - all workspaces', async () => {
@@ -109,11 +107,11 @@ test('queries for system variable values - all workspaces', async () => {
 });
 
 test('queries for system variable values - single workspace', async () => {
-  backendSrv.fetch
-    .calledWith(requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { filter: 'workspace = "1"' } }))
-    .mockReturnValue(createFetchResponse({ data: fakeSystems.map(({ id, alias }) => ({ id, alias })) }));
+  backendSrv.fetch.mockReturnValue(createFetchResponse({ data: fakeSystems.map(({ id, alias }) => ({ id, alias })) }));
 
   await ds.metricFindQuery({ workspace: '1' });
+
+  expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('filter', 'workspace = "1"');
 });
 
 const fakeSystems: SystemMetadata[] = [

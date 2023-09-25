@@ -26,10 +26,10 @@ it('updates when user interacts with fields', async () => {
 
   // User changes query type
   await userEvent.click(screen.getByRole('radio', { name: 'Metadata' }));
-  expect(onChange).toBeCalledWith(expect.objectContaining({ queryKind: SystemQueryType.Metadata }));
+  expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ queryKind: SystemQueryType.Metadata }));
   expect(screen.getByPlaceholderText('All systems')).toBeInTheDocument();
 
   // User types system name
   await userEvent.type(screen.getByLabelText('System'), 'my-system{enter}');
-  expect(onChange).toBeCalledWith(expect.objectContaining({ systemName: 'my-system' }));
+  expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ systemName: 'my-system' }));
 });

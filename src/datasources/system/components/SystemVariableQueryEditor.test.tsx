@@ -31,5 +31,5 @@ test('user selects new workspace', async () => {
   await workspacesLoaded();
 
   await select(screen.getByRole('combobox'), 'Other workspace', { container: document.body });
-  expect(onChange).toBeCalledWith({ workspace: '2' });
+  expect(onChange).toHaveBeenCalledWith({ workspace: '2' });
 });
