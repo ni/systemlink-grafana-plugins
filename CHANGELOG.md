@@ -1,3 +1,11 @@
+## [3.2.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.1.1...v3.2.0) (2023-09-25)
+
+
+### Features
+
+* **system:** filter query variable by workspace ([#35](https://github.com/ni/systemlink-grafana-plugins/issues/35)) ([08de856](https://github.com/ni/systemlink-grafana-plugins/commit/08de856c677f959869360caa751c1d89f7ac4888))
+* **workspace:** Add skeleton workspace data source ([#36](https://github.com/ni/systemlink-grafana-plugins/issues/36)) ([1ff0282](https://github.com/ni/systemlink-grafana-plugins/commit/1ff0282af4ced0bbc87ddbf2a1f9bbd89cfdf49d))
+
 ## [3.1.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.1.0...v3.1.1) (2023-09-18)
 
 
