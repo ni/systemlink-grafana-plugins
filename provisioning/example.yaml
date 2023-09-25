@@ -29,3 +29,7 @@ datasources:
     type: ni-slsystem-datasource
     uid: system
     <<: *config
+  - name: SystemLink Workspaces
+    type: ni-slworkspace-datasource
+    uid: workspace
+    <<: *config

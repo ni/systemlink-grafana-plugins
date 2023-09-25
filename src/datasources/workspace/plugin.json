@@ -1,0 +1,15 @@
+{
+  "type": "datasource",
+  "name": "SystemLink Workspaces",
+  "id": "ni-slworkspace-datasource",
+  "metrics": true,
+  "info": {
+    "author": {
+      "name": "NI"
+    },
+    "logos": {
+      "small": "img/logo-ni.svg",
+      "large": "img/logo-ni.svg"
+    }
+  }
+}
