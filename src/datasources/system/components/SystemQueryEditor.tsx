@@ -22,7 +22,7 @@ export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: P
 
   return (
     <>
-      <InlineField label="Query type">
+      <InlineField label="Query type" labelWidth={14} tooltip={tooltips.queryType}>
         <RadioButtonGroup
           options={enumToOptions(SystemQueryType)}
           onChange={onQueryTypeChange}
@@ -30,7 +30,7 @@ export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: P
         />
       </InlineField>
       {query.queryKind === SystemQueryType.Metadata && (
-        <InlineField label="System" tooltip="Enter system ID or alias">
+        <InlineField label="System" labelWidth={14} tooltip={tooltips.system}>
           <AutoSizeInput
             defaultValue={query.systemName}
             maxWidth={80}
@@ -43,3 +43,10 @@ export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: P
     </>
   );
 }
+
+const tooltips = {
+  queryType: `Metadata allows you to visualize one or more systems' properties.
+              Summary allows you to visualize the number of disconnected and connected systems.`,
+  system: `Query for a specific system by its name or ID. If left blank, the plugin returns all
+            available systems. You can enter a variable into this field.`,
+};
