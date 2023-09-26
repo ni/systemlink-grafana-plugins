@@ -1,3 +1,10 @@
+## [3.2.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.2.0...v3.2.1) (2023-09-26)
+
+
+### Bug Fixes
+
+* **system:** improve query help docs ([#39](https://github.com/ni/systemlink-grafana-plugins/issues/39)) ([49487f0](https://github.com/ni/systemlink-grafana-plugins/commit/49487f04743f181b4b3fa49b25a4f96cc926962b))
+
 ## [3.2.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.1.1...v3.2.0) (2023-09-25)
 
 
