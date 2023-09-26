@@ -1,4 +1,5 @@
 import {
+  DataFrame,
   DataFrameDTO,
   DataQueryRequest,
   DataQueryResponse,
@@ -17,7 +18,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery> extends DataSourc
   }
 
   abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;
-  abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
+  abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrame | DataFrameDTO>;
   abstract shouldRunQuery(query: TQuery): boolean;
   abstract testDatasource(): Promise<TestingStatus>;
 
@@ -56,7 +57,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery> extends DataSourc
 
   static Workspaces: Workspace[];
 
-  async getWorkspaces() {
+  async getWorkspaces(): Promise<Workspace[]> {
     if (DataSourceBase.Workspaces) {
       return DataSourceBase.Workspaces;
     }

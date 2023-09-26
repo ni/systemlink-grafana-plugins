@@ -1,33 +1,16 @@
-import React, { ChangeEvent } from 'react';
-import { Input } from '@grafana/ui';
-import { QueryEditorProps } from '@grafana/data';
-import { InlineField } from 'core/components/InlineField';
-import { WorkspaceDataSource } from '../WorkspaceDataSource';
+import React, { useEffect } from 'react';
 import { WorkspaceQuery } from '../types';
+import { QueryEditorProps } from '@grafana/data';
+import { WorkspaceDataSource } from '../WorkspaceDataSource';
 
 type Props = QueryEditorProps<WorkspaceDataSource, WorkspaceQuery>;
 
-export function WorkspaceQueryEditor({ query, onChange, onRunQuery }: Props) {
-  const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
-    onChange({ ...query, queryText: event.target.value });
-  };
-
-  const onConstantChange = (event: ChangeEvent<HTMLInputElement>) => {
-    onChange({ ...query, constant: parseFloat(event.target.value) });
-    // executes the query
+export function WorkspaceQueryEditor({ onRunQuery }: Props) {
+  useEffect(() => {
     onRunQuery();
-  };
-
-  const { queryText, constant } = query;
+  }, [onRunQuery]);
 
   return (
-    <>
-      <InlineField label="Constant">
-        <Input onChange={onConstantChange} value={constant} width={8} type="number" step="0.1" />
-      </InlineField>
-      <InlineField label="Query Text" labelWidth={16} tooltip="Not used yet">
-        <Input onChange={onQueryTextChange} value={queryText || ''} />
-      </InlineField>
-    </>
+    <span>This data source does not include a query editor - it simply returns all of the SystemLink Workspaces.</span>
   );
 }

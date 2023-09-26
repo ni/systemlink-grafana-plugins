@@ -1,6 +1,8 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType } from '@grafana/data';
+import { DataFrame, DataQueryRequest, DataSourceInstanceSettings, toDataFrame } from '@grafana/data';
 import { BackendSrv, TemplateSrv, TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
+import { Workspace } from 'core/types';
+import { WorkspaceVariableSupport } from './variables';
 import { WorkspaceQuery } from './types';
 
 export class WorkspaceDataSource extends DataSourceBase<WorkspaceQuery> {
@@ -10,30 +12,38 @@ export class WorkspaceDataSource extends DataSourceBase<WorkspaceQuery> {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv);
+
+    this.variables = new WorkspaceVariableSupport();
   }
 
   baseUrl = this.instanceSettings.url + '/niuser/v1';
 
-  defaultQuery = {
-    constant: 3.14,
-  };
+  defaultQuery = {};
 
-  async runQuery(query: WorkspaceQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
-    return {
-      refId: query.refId,
-      fields: [
-        { name: 'Time', values: [range.from.valueOf(), range.to.valueOf()], type: FieldType.time },
-        { name: 'Value', values: [query.constant, query.constant], type: FieldType.number },
-      ],
-    };
+  async runQuery(_query: WorkspaceQuery, { app }: DataQueryRequest): Promise<DataFrame> {
+    return toDataFrame({ fields: this.workspaceToFields(app, await this.getWorkspaces()) });
   }
 
-  shouldRunQuery(query: WorkspaceQuery): boolean {
+  shouldRunQuery(): boolean {
     return true;
   }
 
   async testDatasource(): Promise<TestingStatus> {
     await this.get(this.baseUrl + '/workspaces');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
+  }
+
+  private workspaceToFields(app: string, workspaces: Workspace[]): Array<{ name: string, values: string[] }> {
+    const ids: string[] = [];
+    const names: string[] = [];
+    const queryVariableEditor = app === 'dashboard';
+    workspaces.forEach((workspace: Workspace) => {
+      ids.push(workspace.id);
+      names.push(workspace.name);
+    });
+    return [
+      { name: queryVariableEditor ? 'value' : 'ID', values: ids },
+      { name: queryVariableEditor ? 'text' : 'Name', values: names }
+    ]
   }
 }
