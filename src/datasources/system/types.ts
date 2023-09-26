@@ -1,13 +1,17 @@
 import { DataQuery } from '@grafana/schema'
 
-export enum QueryType {
+export enum SystemQueryType {
   Metadata = "Metadata",
   Summary = "Summary"
 }
 
 export interface SystemQuery extends DataQuery {
-  queryKind: QueryType,
+  queryKind: SystemQueryType,
   systemName: string
+}
+
+export interface SystemVariableQuery {
+  workspace: string;
 }
 
 export interface SystemSummary {
@@ -19,7 +23,7 @@ export interface SystemMetadata {
   id: string,
   alias: string,
   state: string,
-  locked: string,
+  locked: boolean,
   systemStartTime: string,
   model: string,
   vendor: string,
@@ -27,18 +31,4 @@ export interface SystemMetadata {
   ip4Interfaces: Record<string, string[]>,
   ip6Interfaces: Record<string, string[]>,
   workspace: string
-}
-
-export interface VariableQuery {
-  id: string,
-  alias: string
-}
-
-export interface AuthResponse {
-  workspaces: Workspace[]
-}
-
-export interface Workspace {
-  id: string,
-  name: string
 }
