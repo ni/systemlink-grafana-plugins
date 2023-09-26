@@ -45,7 +45,7 @@ export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: P
 }
 
 const tooltips = {
-  queryType: `Metadata allows you to visualize one or more systems' properties.
+  queryType: `Metadata allows you to visualize the properties of one or more systems.
               Summary allows you to visualize the number of disconnected and connected systems.`,
   system: `Query for a specific system by its name or ID. If left blank, the plugin returns all
             available systems. You can enter a variable into this field.`,
