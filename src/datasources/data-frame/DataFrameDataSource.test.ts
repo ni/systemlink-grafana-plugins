@@ -45,8 +45,8 @@ it('should return data ignoring invalid queries', async () => {
 
   await ds.query(query);
 
-  expect(fetchMock).toBeCalledTimes(2);
-  expect(fetchMock).toBeCalledWith(expect.objectContaining({ url: '_/nidataframe/v1/tables/1/query-decimated-data' }));
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+  expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/nidataframe/v1/tables/1/query-decimated-data' }));
 });
 
 it('should return data for multiple targets', async () => {
@@ -57,7 +57,7 @@ it('should return data for multiple targets', async () => {
 
   const response = await ds.query(query);
 
-  expect(fetchMock).toBeCalledTimes(4);
+  expect(fetchMock).toHaveBeenCalledTimes(4);
   expect(response.data).toHaveLength(2);
 });
 
@@ -99,7 +99,7 @@ it('should automatically apply time filters when index column is a timestamp', a
 
   await ds.query(query);
 
-  expect(fetchMock).toBeCalledWith(
+  expect(fetchMock).toHaveBeenCalledWith(
     expect.objectContaining({
       data: expect.objectContaining({
         filters: [
@@ -123,7 +123,7 @@ it('should apply null and NaN filters', async () => {
 
   await ds.query(query);
 
-  expect(fetchMock).toBeCalledWith(
+  expect(fetchMock).toHaveBeenCalledWith(
     expect.objectContaining({
       data: expect.objectContaining({
         filters: [
@@ -149,7 +149,7 @@ it('should provide decimation parameters correctly', async () => {
 
   await ds.query(query);
 
-  expect(fetchMock).toBeCalledWith(
+  expect(fetchMock).toHaveBeenCalledWith(
     expect.objectContaining({
       data: expect.objectContaining({
         decimation: { intervals: 300, method: 'ENTRY_EXIT', yColumns: ['int', 'float'] },
@@ -163,12 +163,12 @@ it('should cache table metadata for subsequent requests', async () => {
 
   await ds.query(query);
 
-  expect(fetchMock).toBeCalledTimes(2);
+  expect(fetchMock).toHaveBeenCalledTimes(2);
   expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/nidataframe/v1/tables/1' }));
 
   await ds.query(query);
 
-  expect(fetchMock).toBeCalledTimes(3);
+  expect(fetchMock).toHaveBeenCalledTimes(3);
 });
 
 it('should return error if query columns do not match table metadata', async () => {
@@ -188,7 +188,7 @@ it('should migrate queries using columns of arrays of objects', async () => {
 
   await ds.query(query);
 
-  expect(fetchMock).toBeCalledWith(expect.objectContaining({ data: expect.objectContaining({ columns: ['float'] }) }));
+  expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ columns: ['float'] }) }));
 });
 
 it('attempts to replace variables in metadata query', async () => {
@@ -197,7 +197,7 @@ it('attempts to replace variables in metadata query', async () => {
 
   await ds.getTableMetadata(tableId);
 
-  expect(replaceMock).toBeCalledTimes(1);
+  expect(replaceMock).toHaveBeenCalledTimes(1);
   expect(replaceMock).toHaveBeenCalledWith(tableId);
 });
 
@@ -207,7 +207,7 @@ it('attempts to replace variables in data query', async () => {
 
   await ds.query(query);
 
-  expect(replaceMock).toBeCalledTimes(2);
+  expect(replaceMock).toHaveBeenCalledTimes(2);
   expect(replaceMock).toHaveBeenCalledWith(query.targets[0].tableId, expect.anything());
 });
 
