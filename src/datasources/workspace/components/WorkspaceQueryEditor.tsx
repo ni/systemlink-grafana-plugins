@@ -11,6 +11,6 @@ export function WorkspaceQueryEditor({ onRunQuery }: Props) {
   }, [onRunQuery]);
 
   return (
-    <span>This data source does not include a query editor - it simply returns all of the SystemLink Workspaces.</span>
+    <span>This data source returns all SystemLink workspaces and does not include a query editor.</span>
   );
 }
