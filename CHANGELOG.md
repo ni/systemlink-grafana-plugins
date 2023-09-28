@@ -1,3 +1,10 @@
+## [3.3.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.2.1...v3.3.0) (2023-09-28)
+
+
+### Features
+
+* **data-frame:** Data Frame data source displays associated Workspace ([#40](https://github.com/ni/systemlink-grafana-plugins/issues/40)) ([7dfc0c5](https://github.com/ni/systemlink-grafana-plugins/commit/7dfc0c5c011f0fbaa154e1a7cbc6eb7a1ea6e35a))
+
 ## [3.2.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.2.0...v3.2.1) (2023-09-26)
 
 
