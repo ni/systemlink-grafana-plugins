@@ -4,14 +4,12 @@ import _ from 'lodash';
 import {
   createFetchError,
   createFetchResponse,
-  defaultQueryOptions,
   getQueryBuilder,
   mockTimers,
   requestMatching,
   setupDataSource,
 } from 'test/fixtures';
 import { WorkspaceDataSource } from './WorkspaceDataSource';
-import { ArrayVector } from '@grafana/data';
 import { WorkspaceQuery } from './types';
 
 let ds: WorkspaceDataSource, backendSrv: MockProxy<BackendSrv>;
