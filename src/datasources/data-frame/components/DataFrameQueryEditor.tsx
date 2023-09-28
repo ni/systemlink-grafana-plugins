@@ -9,6 +9,7 @@ import _ from 'lodash';
 import { getTemplateSrv } from '@grafana/runtime';
 import { isValidId } from '../utils';
 import { FloatingError, parseErrorMessage } from '../errors';
+import { getWorkspaceName } from 'core/utils';
 
 type Props = QueryEditorProps<DataFrameDataSource, DataFrameQuery>;
 
@@ -40,9 +41,8 @@ export const DataFrameQueryEditor = (props: Props) => {
   };
 
   const loadTableOptions = _.debounce((query: string, cb?: LoadOptionsCallback<string>) => {
-    datasource
-      .queryTables(query)
-      .then((tables) => cb?.(tables.map((t) => ({ label: t.name, value: t.id, description: t.id }))))
+    Promise.all([datasource.queryTables(query), datasource.getWorkspaces()])
+      .then(([tables, workspaces]) => cb?.(tables.map((t) => ({ label: t.name, value: t.id, title: t.id, description: getWorkspaceName(workspaces, t.workspace) }))))
       .catch(handleError);
   }, 300);
 

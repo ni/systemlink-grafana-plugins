@@ -1,23 +1,22 @@
-import { lastValueFrom, map } from 'rxjs';
 import TTLCache from '@isaacs/ttlcache';
 import deepEqual from 'fast-deep-equal';
 import {
   DataQueryRequest,
-  DataQueryResponse,
-  DataSourceApi,
   DataSourceInstanceSettings,
   toDataFrame,
   TableData,
   FieldType,
   standardTransformers,
   DataFrame,
-  TimeRange,
-  DataQueryError,
-  CoreApp,
+  TimeRange
 } from '@grafana/data';
-
-import { BackendSrvRequest, getBackendSrv, getTemplateSrv, isFetchError } from '@grafana/runtime';
-
+import {
+  BackendSrv,
+  TemplateSrv,
+  TestingStatus,
+  getBackendSrv,
+  getTemplateSrv
+} from '@grafana/runtime';
 import {
   ColumnDataType,
   DataFrameQuery,
@@ -31,54 +30,43 @@ import {
 } from './types';
 import { metadataCacheTTL } from './constants';
 import _ from 'lodash';
+import { DataSourceBase } from 'core/DataSourceBase';
 
-interface TestingStatus {
-  message?: string;
-  status: string;
-}
-
-export class DataFrameDataSource extends DataSourceApi<DataFrameQuery> {
+export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
   private readonly metadataCache: TTLCache<string, TableMetadata> = new TTLCache({ ttl: metadataCacheTTL });
 
-  constructor(private instanceSettings: DataSourceInstanceSettings) {
-    super(instanceSettings);
+  constructor(
+    readonly instanceSettings: DataSourceInstanceSettings,
+    readonly backendSrv: BackendSrv = getBackendSrv(),
+    readonly templateSrv: TemplateSrv = getTemplateSrv()
+  ) {
+    super(instanceSettings, backendSrv);
   }
 
-  async query(options: DataQueryRequest<DataFrameQuery>): Promise<DataQueryResponse> {
-    try {
-      const targets = options.targets.map(this.processQuery).filter(this.shouldRunQuery);
+  baseUrl = this.instanceSettings.url + '/nidataframe/v1';
 
-      const data = await Promise.all(
-        targets.map(async (query) => {
-          query.tableId = getTemplateSrv().replace(query.tableId, options.scopedVars);
+  defaultQuery = defaultQuery
 
-          const tableMetadata = await this.getTableMetadata(query.tableId);
-          const columns = this.getColumnTypes(query.columns, tableMetadata?.columns ?? []);
-
-          const tableData = await this.getDecimatedTableData(query, columns, options.range, options.maxDataPoints);
-
-          const frame = toDataFrame({
-            refId: query.refId,
-            name: query.tableId,
-            columns: query.columns.map((name) => ({ text: name })),
-            rows: tableData.frame.data,
-          } as TableData);
-
-          return this.convertDataFrameFields(frame, columns);
-        })
-      );
-
-      return { data };
-    } catch (error) {
-      return { data: [], error: this.createDataQueryError(error) };
-    }
+  async runQuery(query: DataFrameQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrame> {
+    const processedQuery = this.processQuery(query);
+    processedQuery.tableId = getTemplateSrv().replace(processedQuery.tableId, scopedVars);
+    const tableMetadata = await this.getTableMetadata(processedQuery.tableId);
+    const columns = this.getColumnTypes(processedQuery.columns, tableMetadata?.columns ?? []);
+    const tableData = await this.getDecimatedTableData(processedQuery, columns, range, maxDataPoints);
+    const frame = toDataFrame({
+      refId: processedQuery.refId,
+      name: processedQuery.tableId,
+      columns: processedQuery.columns.map((name) => ({ text: name })),
+      rows: tableData.frame.data,
+    } as TableData);
+    return this.convertDataFrameFields(frame, columns);
   }
 
-  getDefaultQuery(_core: CoreApp): Partial<DataFrameQuery> {
-    return _.clone(defaultQuery);
+  shouldRunQuery(query: ValidDataFrameQuery): boolean {
+    return Boolean(query.tableId) && Boolean(query.columns.length);
   }
 
-  async getTableMetadata(id?: string) {
+  async getTableMetadata(id?: string): Promise<TableMetadata | null> {
     const resolvedId = getTemplateSrv().replace(id);
     if (!resolvedId) {
       return null;
@@ -87,16 +75,14 @@ export class DataFrameDataSource extends DataSourceApi<DataFrameQuery> {
     let metadata = this.metadataCache.get(resolvedId);
 
     if (!metadata) {
-      metadata = await lastValueFrom(
-        this.fetch<TableMetadata>('GET', `tables/${resolvedId}`).pipe(map((res) => res.data))
-      );
+      metadata = await this.get<TableMetadata>(`${this.baseUrl}/tables/${resolvedId}`);
       this.metadataCache.set(resolvedId, metadata);
     }
 
     return metadata;
   }
 
-  async getDecimatedTableData(query: DataFrameQuery, columns: Column[], timeRange: TimeRange, intervals = 1000) {
+  async getDecimatedTableData(query: DataFrameQuery, columns: Column[], timeRange: TimeRange, intervals = 1000): Promise<TableDataRows> {
     const filters: ColumnFilter[] = [];
 
     if (query.applyTimeFilters) {
@@ -107,39 +93,26 @@ export class DataFrameDataSource extends DataSourceApi<DataFrameQuery> {
       filters.push(...this.constructNullFilters(columns));
     }
 
-    return lastValueFrom(
-      this.fetch<TableDataRows>('POST', `tables/${query.tableId}/query-decimated-data`, {
-        data: {
-          columns: query.columns,
-          filters,
-          decimation: {
-            intervals,
-            method: query.decimationMethod,
-            yColumns: this.getNumericColumns(columns).map((c) => c.name),
-          },
-        },
-      }).pipe(map((res) => res.data))
-    );
+    return await this.post<TableDataRows>(`${this.baseUrl}/tables/${query.tableId}/query-decimated-data`, {
+      columns: query.columns,
+      filters,
+      decimation: {
+        intervals,
+        method: query.decimationMethod,
+        yColumns: this.getNumericColumns(columns).map((c) => c.name),
+      },
+    });
   }
 
-  async queryTables(query: string) {
+  async queryTables(query: string): Promise<TableMetadata[]> {
     const filter = `name.Contains("${query}")`;
 
-    return lastValueFrom(
-      this.fetch<TableMetadataList>('POST', 'query-tables', { data: { filter, take: 5 } }).pipe(
-        map((res) => res.data.tables)
-      )
-    );
+    return (await this.post<TableMetadataList>(`${this.baseUrl}/query-tables`,  { filter, take: 5 })).tables;
   }
 
   async testDatasource(): Promise<TestingStatus> {
-    return lastValueFrom(
-      this.fetch<TableMetadataList>('GET', 'tables', { params: { take: 1 } }).pipe(
-        map((_) => {
-          return { status: 'success', message: 'Data source connected and authentication successful!' };
-        })
-      )
-    );
+    await this.get(`${this.baseUrl}/tables`, { take: 1 });
+    return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 
   processQuery(query: DataFrameQuery): ValidDataFrameQuery {
@@ -154,7 +127,7 @@ export class DataFrameDataSource extends DataSourceApi<DataFrameQuery> {
     return deepEqual(migratedQuery, query) ? query as ValidDataFrameQuery : migratedQuery;
   };
 
-  private getColumnTypes(columnNames: string[], tableMetadata: Column[]) {
+  private getColumnTypes(columnNames: string[], tableMetadata: Column[]): Column[] {
     return columnNames.map((c) => {
       const column = tableMetadata.find(({ name }) => name === c);
 
@@ -179,7 +152,7 @@ export class DataFrameDataSource extends DataSourceApi<DataFrameQuery> {
     }
   }
 
-  private convertDataFrameFields(frame: DataFrame, columns: Column[]) {
+  private convertDataFrameFields(frame: DataFrame, columns: Column[]): DataFrame {
     const transformer = standardTransformers.convertFieldTypeTransformer.transformer;
     const conversions = columns.map(({ name, dataType }) => ({
       targetField: name,
@@ -216,11 +189,11 @@ export class DataFrameDataSource extends DataSourceApi<DataFrameQuery> {
     });
   }
 
-  private getNumericColumns(columns: Column[]) {
+  private getNumericColumns(columns: Column[]): Column[] {
     return columns.filter(this.isColumnNumeric);
   }
 
-  private isColumnNumeric(column: Column) {
+  private isColumnNumeric(column: Column): boolean {
     switch (column.dataType) {
       case 'FLOAT32':
       case 'FLOAT64':
@@ -231,33 +204,5 @@ export class DataFrameDataSource extends DataSourceApi<DataFrameQuery> {
       default:
         return false;
     }
-  }
-
-  private fetch<T>(method: string, route: string, config?: Omit<BackendSrvRequest, 'url' | 'method'>) {
-    const url = `${this.instanceSettings.url}/nidataframe/v1/${route}`;
-    const req: BackendSrvRequest = {
-      url,
-      method,
-      ...config,
-    };
-
-    return getBackendSrv().fetch<T>(req);
-  }
-
-  private createDataQueryError(error: unknown): DataQueryError {
-    if (!isFetchError(error)) {
-      throw error;
-    }
-
-    return {
-      message: `${error.status} - ${error.statusText}`,
-      status: error.status,
-      statusText: error.statusText,
-      data: error.data,
-    };
-  }
-
-  private shouldRunQuery(query: ValidDataFrameQuery) {
-    return Boolean(query.tableId) && Boolean(query.columns.length);
   }
 }
