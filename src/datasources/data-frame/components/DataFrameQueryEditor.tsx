@@ -41,15 +41,9 @@ export const DataFrameQueryEditor = (props: Props) => {
   };
 
   const loadTableOptions = _.debounce((query: string, cb?: LoadOptionsCallback<string>) => {
-    const tablesPromise = datasource
-      .queryTables(query)
+    Promise.all([datasource.queryTables(query), datasource.getWorkspaces()])
+      .then(([tables, workspaces]) => cb?.(tables.map((t) => ({ label: t.name, value: t.id, title: t.id, description: getWorkspaceName(workspaces, t.workspace) }))))
       .catch(handleError);
-    const workspacesPromise = datasource
-      .getWorkspaces()
-      .catch(handleError);
-    Promise
-      .all([tablesPromise, workspacesPromise])
-      .then((values) => cb?.(values[0]!.map((t) => ({ label: t.name, value: t.id, title: t.id, description: getWorkspaceName(values[1]!, t.workspace) }))));
   }, 300);
 
   const handleLoadOptions = (query: string, cb?: LoadOptionsCallback<string>) => {

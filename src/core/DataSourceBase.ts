@@ -47,7 +47,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery> extends DataSourc
     }
   }
 
-  get<T>(url: string, params: Record<string, any> | undefined = undefined) {
+  get<T>(url: string, params?: Record<string, any>) {
     return this.fetch<T>({ method: 'GET', url, params });
   }
 
