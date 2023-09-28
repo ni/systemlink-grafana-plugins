@@ -6,9 +6,7 @@ import { WorkspaceDataSource } from '../WorkspaceDataSource';
 type Props = QueryEditorProps<WorkspaceDataSource, WorkspaceQuery>;
 
 export function WorkspaceQueryEditor({ onRunQuery }: Props) {
-  useEffect(() => {
-    onRunQuery();
-  }, [onRunQuery]);
+  useEffect(onRunQuery, [onRunQuery]);
 
   return (
     <span>This data source returns all SystemLink workspaces and does not include a query editor.</span>

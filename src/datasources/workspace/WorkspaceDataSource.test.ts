@@ -48,19 +48,17 @@ describe('queries', () => {
     const result = await ds.query(buildQuery({}));
 
     expect(result.data[0]).toHaveProperty('fields', [
-      { config: {}, name: 'ID', type: 'number', values: new ArrayVector(['1', '2']) },
-      { config: {}, name: 'Name', type: 'string', values: new ArrayVector(['Default workspace', 'Other workspace']) }
+      { name: 'ID', values: ['1', '2'] },
+      { name: 'Name', values: ['Default workspace', 'Other workspace'] }
     ]);
   });
 
-  test('returns expected field names in query variable editor', async () => {
-    const queryOptions = defaultQueryOptions;
-    queryOptions.app = 'dashboard';
-    const result = await ds.query(buildQuery({ ...queryOptions } as Partial<WorkspaceQuery>));
+  test('metricFindQuery returns all workspaces', async () => {
+    const result = await ds.metricFindQuery();
 
-    expect(result.data[0]).toHaveProperty('fields', [
-      { config: {}, name: 'value', type: 'number', values: new ArrayVector(['1', '2']) },
-      { config: {}, name: 'text', type: 'string', values: new ArrayVector(['Default workspace', 'Other workspace']) }
+    expect(result).toEqual([
+      { value: '1', text: 'Default workspace' },
+      { value: '2', text: 'Other workspace' }
     ]);
   });
 });

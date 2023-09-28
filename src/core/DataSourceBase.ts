@@ -1,5 +1,4 @@
 import {
-  DataFrame,
   DataFrameDTO,
   DataQueryRequest,
   DataQueryResponse,
@@ -18,7 +17,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery> extends DataSourc
   }
 
   abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;
-  abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrame | DataFrameDTO>;
+  abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
   abstract shouldRunQuery(query: TQuery): boolean;
   abstract testDatasource(): Promise<TestingStatus>;
 
