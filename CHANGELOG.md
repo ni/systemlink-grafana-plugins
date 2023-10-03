@@ -1,3 +1,10 @@
+## [3.4.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.3.0...v3.4.0) (2023-10-03)
+
+
+### Features
+
+* **workspace:** Workspace data source returns workspaces ([#38](https://github.com/ni/systemlink-grafana-plugins/issues/38)) ([a8877ba](https://github.com/ni/systemlink-grafana-plugins/commit/a8877ba22deef270d0eb8df874739eb650bfd121))
+
 ## [3.3.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.2.1...v3.3.0) (2023-09-28)
 
 
