@@ -36,15 +36,8 @@ export class WorkspaceDataSource extends DataSourceBase<WorkspaceQuery> {
   }
 
   private workspacesToFields(workspaces: Workspace[]): Array<{ name: string, values: string[] }> {
-    const ids: string[] = [];
-    const names: string[] = [];
-    workspaces.forEach((workspace: Workspace) => {
-      ids.push(workspace.id);
-      names.push(workspace.name);
-    });
     return [
-      { name: 'ID', values: ids },
-      { name: 'Name', values: names }
+      { name: 'name', values: workspaces.map((workspace: Workspace) => workspace.name) }
     ]
   }
 }

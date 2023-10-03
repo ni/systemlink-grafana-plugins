@@ -5,7 +5,6 @@ import {
   createFetchError,
   createFetchResponse,
   getQueryBuilder,
-  mockTimers,
   requestMatching,
   setupDataSource,
 } from 'test/fixtures';
@@ -19,7 +18,6 @@ beforeEach(() => {
 });
 
 const buildQuery = getQueryBuilder<WorkspaceQuery>()({});
-mockTimers();
 
 describe('testDatasource', () => {
   test('returns success', async () => {
@@ -46,8 +44,7 @@ describe('queries', () => {
     const result = await ds.query(buildQuery({}));
 
     expect(result.data[0]).toHaveProperty('fields', [
-      { name: 'ID', values: ['1', '2'] },
-      { name: 'Name', values: ['Default workspace', 'Other workspace'] }
+      { name: 'name', values: ['Default workspace', 'Other workspace'] }
     ]);
   });
 
