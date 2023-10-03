@@ -57,7 +57,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery> extends DataSourc
 
   static Workspaces: Workspace[];
 
-  async getWorkspaces() {
+  async getWorkspaces(): Promise<Workspace[]> {
     if (DataSourceBase.Workspaces) {
       return DataSourceBase.Workspaces;
     }

@@ -1,6 +1,7 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType } from '@grafana/data';
+import { DataFrameDTO, DataSourceInstanceSettings, MetricFindValue } from '@grafana/data';
 import { BackendSrv, TemplateSrv, TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
+import { Workspace } from 'core/types';
 import { WorkspaceQuery } from './types';
 
 export class WorkspaceDataSource extends DataSourceBase<WorkspaceQuery> {
@@ -14,26 +15,29 @@ export class WorkspaceDataSource extends DataSourceBase<WorkspaceQuery> {
 
   baseUrl = this.instanceSettings.url + '/niuser/v1';
 
-  defaultQuery = {
-    constant: 3.14,
-  };
+  defaultQuery = {};
 
-  async runQuery(query: WorkspaceQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
-    return {
-      refId: query.refId,
-      fields: [
-        { name: 'Time', values: [range.from.valueOf(), range.to.valueOf()], type: FieldType.time },
-        { name: 'Value', values: [query.constant, query.constant], type: FieldType.number },
-      ],
-    };
+  async runQuery(_query: WorkspaceQuery): Promise<DataFrameDTO> {
+    return { fields: this.workspacesToFields( await this.getWorkspaces()) };
   }
 
-  shouldRunQuery(query: WorkspaceQuery): boolean {
+  shouldRunQuery(): boolean {
     return true;
   }
 
   async testDatasource(): Promise<TestingStatus> {
     await this.get(this.baseUrl + '/workspaces');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
+  }
+
+  async metricFindQuery(): Promise<MetricFindValue[]> {
+    const workspaces = await this.getWorkspaces();
+    return workspaces.map(ws => ({ text: ws.name, value: ws.id }));
+  }
+
+  private workspacesToFields(workspaces: Workspace[]): Array<{ name: string, values: string[] }> {
+    return [
+      { name: 'name', values: workspaces.map((workspace: Workspace) => workspace.name) }
+    ]
   }
 }
