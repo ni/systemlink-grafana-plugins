@@ -1,5 +1,37 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`queries appends tag properties to query result 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "my.tag",
+        "values": [
+          3.14,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+      {
+        "name": "foo",
+        "values": [
+          "bar",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
 exports[`queries applies query defaults when missing fields 1`] = `
 [
   {

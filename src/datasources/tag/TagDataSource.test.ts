@@ -228,6 +228,14 @@ describe('queries', () => {
 
     expect(backendSrv.fetch).toHaveBeenCalledTimes(5);
   });
+
+  test('appends tag properties to query result', async () => {
+    backendSrv.fetch.mockReturnValue(createQueryTagsResponse({ properties: { nitagHistoryTTLDays: '7', foo: 'bar' } }));
+
+    const result = await ds.query(buildQuery({ path: 'my.tag', properties: true }));
+
+    expect(result.data).toMatchSnapshot();
+  });
 });
 
 function createQueryTagsResponse(
