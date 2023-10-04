@@ -20,7 +20,7 @@ beforeEach(() => {
   [ds, backendSrv, templateSrv] = setupDataSource(TagDataSource);
 });
 
-const buildQuery = getQueryBuilder<TagQuery>()({ type: TagQueryType.Current, workspace: '' });
+const buildQuery = getQueryBuilder<TagQuery>()({ type: TagQueryType.Current, workspace: '', properties: false });
 mockTimers();
 
 describe('testDatasource', () => {
@@ -51,20 +51,15 @@ describe('queries', () => {
 
     const result = await ds.query(buildQuery({ path: 'my.tag' }));
 
-    expect(result.data).toEqual([
-      {
-        fields: [{ name: 'my.tag', values: [3.14] }],
-        refId: 'A',
-      },
-    ]);
+    expect(result.data).toMatchSnapshot();
   });
 
   test('applies query defaults when missing fields', async () => {
     backendSrv.fetch.mockReturnValue(createQueryTagsResponse());
 
-    const result = await ds.query({ ...defaultQueryOptions, targets: [{ path: 'my.tag' } as TagQuery] });
+    const result = await ds.query({ ...defaultQueryOptions, targets: [{ path: 'my.tag', refId: 'A' } as TagQuery] });
 
-    expect(result.data[0]).toHaveProperty('fields', [{ name: 'my.tag', values: [3.14] }]);
+    expect(result.data).toMatchSnapshot();
   });
 
   test('uses displayName property', async () => {
@@ -72,7 +67,7 @@ describe('queries', () => {
 
     const result = await ds.query(buildQuery({ path: 'my.tag' }));
 
-    expect(result.data[0].fields[0]).toHaveProperty('name', 'My cool tag');
+    expect(result.data).toMatchSnapshot();
   });
 
   test('handles null tag properties', async () => {
@@ -80,7 +75,7 @@ describe('queries', () => {
 
     const result = await ds.query(buildQuery({ path: 'my.tag' }));
 
-    expect(result.data[0]).toHaveProperty('fields', [{ name: 'my.tag', values: [3.14] }]);
+    expect(result.data).toMatchSnapshot();
   });
 
   test('handles tag with no current value', async () => {
@@ -88,7 +83,7 @@ describe('queries', () => {
 
     const result = await ds.query(buildQuery({ path: 'my.tag' }));
 
-    expect(result.data[0]).toHaveProperty('fields', [{ name: 'my.tag', values: [] }]);
+    expect(result.data).toMatchSnapshot();
   });
 
   test('multiple targets - skips invalid queries', async () => {
@@ -101,16 +96,7 @@ describe('queries', () => {
 
     const result = await ds.query(buildQuery({ path: 'my.tag1' }, { path: '' }, { path: 'my.tag2' }));
 
-    expect(result.data).toEqual([
-      {
-        fields: [{ name: 'my.tag1', values: [3.14] }],
-        refId: 'A',
-      },
-      {
-        fields: [{ name: 'my.tag2', values: [41.3] }],
-        refId: 'C',
-      },
-    ]);
+    expect(result.data).toMatchSnapshot();
   });
 
   test('current value for all data types', async () => {
@@ -127,13 +113,7 @@ describe('queries', () => {
       buildQuery({ path: 'tag1' }, { path: 'tag2' }, { path: 'tag3' }, { path: 'tag4' }, { path: 'tag5' })
     );
 
-    expect(result.data.map(frames => frames.fields[0])).toEqual([
-      { name: 'tag1', values: [3] },
-      { name: 'tag2', values: [3.3] },
-      { name: 'tag3', values: ['foo'] },
-      { name: 'tag4', values: ['True'] },
-      { name: 'tag5', values: [2147483648] },
-    ]);
+    expect(result.data).toMatchSnapshot();
   });
 
   test('throw when no tags matched', async () => {
@@ -171,15 +151,7 @@ describe('queries', () => {
 
     const result = await ds.query(queryRequest);
 
-    expect(result.data).toEqual([
-      {
-        fields: [
-          { name: 'time', values: [1672531200000, 1672531260000] },
-          { name: 'my.tag', values: [1, 2] },
-        ],
-        refId: 'A',
-      },
-    ]);
+    expect(result.data).toMatchSnapshot();
   });
 
   test('string tag history', async () => {
@@ -193,15 +165,7 @@ describe('queries', () => {
 
     const result = await ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag' }));
 
-    expect(result.data).toEqual([
-      {
-        fields: [
-          { name: 'time', values: [1672531200000, 1672531260000] },
-          { name: 'my.tag', values: ['3.14', 'foo'] },
-        ],
-        refId: 'A',
-      },
-    ]);
+    expect(result.data).toMatchSnapshot();
   });
 
   test('decimation parameter does not go above 1000', async () => {
@@ -230,7 +194,7 @@ describe('queries', () => {
 
     const result = await ds.query(buildQuery({ type: TagQueryType.Current, path: '$my_variable' }));
 
-    expect(result.data[0].fields[0]).toHaveProperty('name', 'my.tag');
+    expect(result.data).toMatchSnapshot();
   });
 
   test('filters by workspace if provided', async () => {
@@ -275,7 +239,7 @@ function createQueryTagsResponse(
       _.defaultsDeep(
         { tag, current },
         {
-          current: { value: { value: '3.14' } },
+          current: { value: { value: '3.14' }, timestamp: '2023-10-04T00:00:00.000000Z' },
           tag: { datatype: 'DOUBLE', path: 'my.tag', properties: {}, workspace_id: '1' },
         }
       ),

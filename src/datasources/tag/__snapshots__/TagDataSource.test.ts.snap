@@ -1,0 +1,362 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`queries applies query defaults when missing fields 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "my.tag",
+        "values": [
+          3.14,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries current value for all data types 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "tag1",
+        "values": [
+          3,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+  {
+    "fields": [
+      {
+        "name": "tag2",
+        "values": [
+          3.3,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "B",
+  },
+  {
+    "fields": [
+      {
+        "name": "tag3",
+        "values": [
+          "foo",
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "C",
+  },
+  {
+    "fields": [
+      {
+        "name": "tag4",
+        "values": [
+          "True",
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "D",
+  },
+  {
+    "fields": [
+      {
+        "name": "tag5",
+        "values": [
+          2147483648,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "E",
+  },
+]
+`;
+
+exports[`queries handles null tag properties 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "my.tag",
+        "values": [
+          3.14,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries handles tag with no current value 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "my.tag",
+        "values": [
+          undefined,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          undefined,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries multiple targets - skips invalid queries 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "my.tag1",
+        "values": [
+          3.14,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+  {
+    "fields": [
+      {
+        "name": "my.tag2",
+        "values": [
+          41.3,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "C",
+  },
+]
+`;
+
+exports[`queries numeric tag history 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "time",
+        "values": [
+          1672531200000,
+          1672531260000,
+        ],
+      },
+      {
+        "name": "my.tag",
+        "values": [
+          1,
+          2,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries replaces tag path with variable 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "my.tag",
+        "values": [
+          3.14,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries string tag history 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "time",
+        "values": [
+          1672531200000,
+          1672531260000,
+        ],
+      },
+      {
+        "name": "my.tag",
+        "values": [
+          "3.14",
+          "foo",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries tag current value 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "my.tag",
+        "values": [
+          3.14,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries uses displayName property 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "My cool tag",
+        "values": [
+          3.14,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;

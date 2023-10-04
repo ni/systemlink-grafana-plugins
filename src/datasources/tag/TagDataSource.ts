@@ -1,4 +1,12 @@
-import { DataFrameDTO, DataSourceInstanceSettings, dateTime, DataQueryRequest, TimeRange } from '@grafana/data';
+import {
+  DataFrameDTO,
+  DataSourceInstanceSettings,
+  dateTime,
+  DataQueryRequest,
+  TimeRange,
+  FieldDTO,
+  FieldType,
+} from '@grafana/data';
 import { BackendSrv, TemplateSrv, TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { throwIfNullish } from 'core/utils';
@@ -20,6 +28,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
     type: TagQueryType.Current,
     path: '',
     workspace: '',
+    properties: false,
   };
 
   async runQuery(query: TagQuery, { range, maxDataPoints, scopedVars }: DataQueryRequest): Promise<DataFrameDTO> {
@@ -29,22 +38,26 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
     );
 
     const name = tag.properties?.displayName ?? tag.path;
+    const result: DataFrameDTO = { refId: query.refId, fields: [] };
 
     if (query.type === TagQueryType.Current) {
-      return {
-        refId: query.refId,
-        fields: [{ name, values: [this.convertTagValue(tag.datatype, current?.value.value)] }],
-      };
-    }
-
-    const history = await this.getTagHistoryValues(tag.path, tag.workspace_id, range, maxDataPoints);
-    return {
-      refId: query.refId,
-      fields: [
+      result.fields = [
+        { name, values: [this.convertTagValue(tag.datatype, current?.value.value)] },
+        { name: 'updated', values: [current?.timestamp], type: FieldType.time, config: { unit: 'dateTimeFromNow' } },
+      ];
+    } else {
+      const history = await this.getTagHistoryValues(tag.path, tag.workspace_id, range, maxDataPoints);
+      result.fields = [
         { name: 'time', values: history.datetimes },
         { name, values: history.values },
-      ],
-    };
+      ];
+    }
+
+    if (query.properties) {
+      result.fields = result.fields.concat(this.getPropertiesAsFields(tag.properties));
+    }
+
+    return result;
   }
 
   private async getLastUpdatedTag(path: string, workspace: string) {
@@ -81,6 +94,16 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
 
   private convertTagValue(type: string, value?: string) {
     return value && ['DOUBLE', 'INT', 'U_INT64'].includes(type) ? Number(value) : value;
+  }
+
+  private getPropertiesAsFields(properties: Record<string, string> | null): FieldDTO[] {
+    if (!properties) {
+      return [];
+    }
+
+    return Object.keys(properties)
+      .filter(name => !name.startsWith('nitag'))
+      .map(name => ({ name, values: [properties[name]] }));
   }
 
   shouldRunQuery(query: TagQuery): boolean {
