@@ -17,7 +17,6 @@ import { TagQuery, TagQueryType, TagWithValue } from './types';
 let ds: TagDataSource, backendSrv: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
 
 beforeEach(() => {
-  jest.clearAllMocks();
   [ds, backendSrv, templateSrv] = setupDataSource(TagDataSource);
 });
 
