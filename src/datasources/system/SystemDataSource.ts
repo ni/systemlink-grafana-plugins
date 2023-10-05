@@ -12,7 +12,7 @@ export class SystemDataSource extends DataSourceBase<SystemQuery> {
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
-    super(instanceSettings, backendSrv);
+    super(instanceSettings, backendSrv, templateSrv);
   }
 
   baseUrl = this.instanceSettings.url + '/nisysmgmt/v1';

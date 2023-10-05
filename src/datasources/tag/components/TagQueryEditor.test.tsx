@@ -4,7 +4,7 @@ import { select } from 'react-select-event';
 import { setupRenderer } from 'test/fixtures';
 import { TagDataSource } from '../TagDataSource';
 import { TagQuery, TagQueryType } from '../types';
-import { TagQueryEditor } from './TagQueryEditor';
+import { TagQueryEditor } from './TagQueryEditor';;
 
 const render = setupRenderer(TagQueryEditor, TagDataSource);
 const workspacesLoaded = () => waitForElementToBeRemoved(screen.getByTestId('Spinner'));
