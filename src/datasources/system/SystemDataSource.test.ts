@@ -10,7 +10,7 @@ beforeEach(() => {
   [ds, backendSrv, templateSrv] = setupDataSource(SystemDataSource);
 });
 
-const buildQuery = getQueryBuilder<SystemQuery>()({ systemName: '' });
+const buildQuery = getQueryBuilder<SystemQuery>()({ systemName: '', workspace: '' });
 
 test('query for summary counts', async () => {
   backendSrv.fetch

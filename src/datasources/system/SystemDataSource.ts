@@ -20,6 +20,7 @@ export class SystemDataSource extends DataSourceBase<SystemQuery> {
   defaultQuery = {
     queryKind: SystemQueryType.Summary,
     systemName: '',
+    workspace: ''
   };
 
   async runQuery(query: SystemQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
