@@ -1,3 +1,10 @@
+## [3.5.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.4.0...v3.5.0) (2023-10-05)
+
+
+### Features
+
+* **tag:** Workspace variable resolution ([#41](https://github.com/ni/systemlink-grafana-plugins/issues/41)) ([f4fe35a](https://github.com/ni/systemlink-grafana-plugins/commit/f4fe35aeb760f2dc45ada144ac25e53b87963a56))
+
 ## [3.4.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.3.0...v3.4.0) (2023-10-03)
 
 
