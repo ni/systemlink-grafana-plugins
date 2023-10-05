@@ -125,6 +125,17 @@ test('attempts to replace variables in metadata query', async () => {
   expect(templateSrv.replace.mock.calls[1][0]).toBe(workspaceVariable);
 });
 
+test('attempts to replace variables in metricFindQuery', async () => {
+  const workspaceVariable = '$workspace';
+  backendSrv.fetch.mockReturnValue(createFetchResponse({ data: fakeSystems.map(({ id, alias }) => ({ id, alias })) }));
+  templateSrv.replace.calledWith(workspaceVariable).mockReturnValue('1');
+
+  await ds.metricFindQuery({ workspace: workspaceVariable });
+
+  expect(templateSrv.replace).toHaveBeenCalledTimes(1);
+  expect(templateSrv.replace.mock.calls[0][0]).toBe(workspaceVariable);
+});
+
 const fakeSystems: SystemMetadata[] = [
   {
     id: 'system-1',
