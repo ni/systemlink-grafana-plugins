@@ -69,5 +69,5 @@ const tooltips = {
               Summary allows you to visualize the number of disconnected and connected systems.`,
   system: `Query for a specific system by its name or ID. If left blank, the plugin returns all
             available systems. You can enter a variable into this field.`,
-  workspace: `The workspace to search for the given system.`,
+  workspace: `The workspace to search for the system specified.`,
 };
