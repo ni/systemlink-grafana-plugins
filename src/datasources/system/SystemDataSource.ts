@@ -75,7 +75,7 @@ export class SystemDataSource extends DataSourceBase<SystemQuery> {
   }
 
   async metricFindQuery({ workspace }: SystemVariableQuery): Promise<MetricFindValue[]> {
-    const metadata = await this.getSystemMetadata('', ['id', 'alias'], workspace);
+    const metadata = await this.getSystemMetadata('', ['id', 'alias'], this.templateSrv.replace(workspace));
     return metadata.map(frame => ({ text: frame.alias, value: frame.id }));
   }
 
