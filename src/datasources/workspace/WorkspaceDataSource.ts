@@ -10,7 +10,7 @@ export class WorkspaceDataSource extends DataSourceBase<WorkspaceQuery> {
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
-    super(instanceSettings, backendSrv);
+    super(instanceSettings, backendSrv, templateSrv);
   }
 
   baseUrl = this.instanceSettings.url + '/niuser/v1';
