@@ -20,6 +20,7 @@ export class SystemDataSource extends DataSourceBase<SystemQuery> {
   defaultQuery = {
     queryKind: SystemQueryType.Summary,
     systemName: '',
+    workspace: ''
   };
 
   async runQuery(query: SystemQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
@@ -33,7 +34,11 @@ export class SystemDataSource extends DataSourceBase<SystemQuery> {
         ],
       };
     } else {
-      const metadata = await this.getSystemMetadata(this.templateSrv.replace(query.systemName, options.scopedVars));
+      const metadata = await this.getSystemMetadata(
+        this.templateSrv.replace(query.systemName, options.scopedVars),
+        defaultProjection,
+        this.templateSrv.replace(query.workspace, options.scopedVars)
+      );
       const workspaces = await this.getWorkspaces();
       return {
         refId: query.refId,

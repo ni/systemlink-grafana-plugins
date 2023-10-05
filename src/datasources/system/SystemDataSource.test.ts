@@ -10,7 +10,7 @@ beforeEach(() => {
   [ds, backendSrv, templateSrv] = setupDataSource(SystemDataSource);
 });
 
-const buildQuery = getQueryBuilder<SystemQuery>()({ systemName: '' });
+const buildQuery = getQueryBuilder<SystemQuery>()({ systemName: '', workspace: '' });
 
 test('query for summary counts', async () => {
   backendSrv.fetch
@@ -112,6 +112,17 @@ test('queries for system variable values - single workspace', async () => {
   await ds.metricFindQuery({ workspace: '1' });
 
   expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('filter', 'workspace = "1"');
+});
+
+test('attempts to replace variables in metadata query', async () => {
+  const workspaceVariable = '$workspace';
+  backendSrv.fetch.mockReturnValue(createFetchResponse({ data: fakeSystems.map(({ id, alias }) => ({ id, alias })) }));
+  templateSrv.replace.calledWith(workspaceVariable).mockReturnValue('1');
+
+  await ds.query(buildQuery({ queryKind: SystemQueryType.Metadata, systemName: 'system', workspace: workspaceVariable }));
+
+  expect(templateSrv.replace).toHaveBeenCalledTimes(2);
+  expect(templateSrv.replace.mock.calls[1][0]).toBe(workspaceVariable);
 });
 
 const fakeSystems: SystemMetadata[] = [
