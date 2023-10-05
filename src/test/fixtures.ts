@@ -20,6 +20,7 @@ export function setupDataSource<T>(
   );
   const mockTemplateSrv = mock<TemplateSrv>({
     replace: calledWithFn({ fallbackMockImplementation: target => target ?? '' }),
+    getVariables: calledWithFn({ fallbackMockImplementation: () => [] })
   });
   const ds = new ctor({ url: '' } as DataSourceInstanceSettings, mockBackendSrv, mockTemplateSrv);
   return [ds, mockBackendSrv, mockTemplateSrv] as const;
