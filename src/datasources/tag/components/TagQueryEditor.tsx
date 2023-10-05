@@ -5,7 +5,6 @@ import { enumToOptions, useWorkspaceOptions } from 'core/utils';
 import React, { FormEvent } from 'react';
 import { TagDataSource } from '../TagDataSource';
 import { TagQuery, TagQueryType } from '../types';
-import { getTemplateSrv } from '@grafana/runtime';
 
 type Props = QueryEditorProps<TagDataSource, TagQuery>;
 
@@ -29,23 +28,6 @@ export function TagQueryEditor({ query, onChange, onRunQuery, datasource }: Prop
     onRunQuery();
   };
 
-  const getWorkspaceOptions = () => {
-    if (!workspaces.loading) {
-      const options = workspaces.value;
-      options?.unshift(...getVariableOptions())
-      return options;
-    }
-    else {
-      return [];
-    }
-  }
-
-  const getVariableOptions = () => {
-    return getTemplateSrv()
-      .getVariables()
-      .map((variable) => ({ label: '$' + variable.name, value: '$' + variable.name }));
-  };
-
   return (
     <>
       <InlineField label="Query type" labelWidth={14} tooltip={tooltips.queryType}>
@@ -59,7 +41,7 @@ export function TagQueryEditor({ query, onChange, onRunQuery, datasource }: Prop
           isClearable
           isLoading={workspaces.loading}
           onChange={onWorkspaceChange}
-          options={getWorkspaceOptions()}
+          options={workspaces.value}
           placeholder="Any workspace"
           value={query.workspace}
         />

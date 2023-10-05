@@ -4,14 +4,7 @@ import { select } from 'react-select-event';
 import { setupRenderer } from 'test/fixtures';
 import { TagDataSource } from '../TagDataSource';
 import { TagQuery, TagQueryType } from '../types';
-import { TagQueryEditor } from './TagQueryEditor';
-
-jest.mock('@grafana/runtime', () => ({
-  ...jest.requireActual('@grafana/runtime'),
-  getTemplateSrv: () => ({ getVariables: getVariablesMock }),
-}));
-
-const getVariablesMock = jest.fn(() => [{ name: 'testVar' }]);
+import { TagQueryEditor } from './TagQueryEditor';;
 
 const render = setupRenderer(TagQueryEditor, TagDataSource);
 const workspacesLoaded = () => waitForElementToBeRemoved(screen.getByTestId('Spinner'));
