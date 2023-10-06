@@ -116,7 +116,7 @@ test('queries for system variable values - single workspace', async () => {
 
 test('attempts to replace variables in metadata query', async () => {
   const workspaceVariable = '$workspace';
-  backendSrv.fetch.mockReturnValue(createFetchResponse({ data: fakeSystems.map(({ id, alias }) => ({ id, alias })) }));
+  backendSrv.fetch.mockReturnValue(createFetchResponse({ data: fakeSystems }));
   templateSrv.replace.calledWith(workspaceVariable).mockReturnValue('1');
 
   await ds.query(buildQuery({ queryKind: SystemQueryType.Metadata, systemName: 'system', workspace: workspaceVariable }));

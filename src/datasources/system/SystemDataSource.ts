@@ -64,7 +64,7 @@ export class SystemDataSource extends DataSourceBase<SystemQuery> {
   async getSystemMetadata(systemFilter: string, projection = defaultProjection, workspace?: string) {
     const filters = [
       systemFilter && `id = "${systemFilter}" || alias = "${systemFilter}"`,
-      workspace && `workspace = "${workspace}"`,
+      workspace && !systemFilter && `workspace = "${workspace}"`,
     ];
     const response = await this.post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', {
       filter: filters.filter(Boolean).join(' '),

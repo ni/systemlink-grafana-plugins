@@ -48,16 +48,18 @@ export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: P
               placeholder="All systems"
             />
           </InlineField>
-          <InlineField label="Workspace" labelWidth={14} tooltip={tooltips.workspace}>
-            <Select
-              isClearable
-              isLoading={workspaces.loading}
-              onChange={onWorkspaceChange}
-              options={workspaces.value}
-              placeholder="Any workspace"
-              value={query.workspace}
-            />
-          </InlineField>
+          {query.systemName === '' && (
+            <InlineField label="Workspace" labelWidth={14} tooltip={tooltips.workspace}>
+              <Select
+                isClearable
+                isLoading={workspaces.loading}
+                onChange={onWorkspaceChange}
+                options={workspaces.value}
+                placeholder="Any workspace"
+                value={query.workspace}
+              />
+            </InlineField>
+          )}
         </>
       )}
     </>
