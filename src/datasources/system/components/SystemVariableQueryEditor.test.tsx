@@ -33,3 +33,11 @@ test('user selects new workspace', async () => {
   await select(screen.getByRole('combobox'), 'Other workspace', { container: document.body });
   expect(onChange).toHaveBeenCalledWith({ workspace: '2' });
 });
+
+test('populates workspace drop-down with variables', async () => {
+  render(<SystemVariableQueryEditor {...{ onChange, datasource, query: { workspace: '$test_var' } }} />);
+
+  await workspacesLoaded();
+
+  expect(screen.getByText('$test_var')).toBeInTheDocument();
+});
