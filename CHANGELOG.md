@@ -1,3 +1,10 @@
+## [3.6.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.5.0...v3.6.0) (2023-10-06)
+
+
+### Features
+
+* **tag:** include properties in query result ([#42](https://github.com/ni/systemlink-grafana-plugins/issues/42)) ([0ffc1e2](https://github.com/ni/systemlink-grafana-plugins/commit/0ffc1e2541d10716551ec42648974c2149298655))
+
 ## [3.5.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.4.0...v3.5.0) (2023-10-05)
 
 
