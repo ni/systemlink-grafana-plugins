@@ -9,14 +9,18 @@ export interface TagQuery extends DataQuery {
   type: TagQueryType;
   path: string;
   workspace: string;
+  properties: boolean;
 }
 
 export interface TagWithValue {
-  current: { value: { value: string } } | null;
+  current: {
+    value: { value: string };
+    timestamp: string;
+  } | null;
   tag: {
     datatype: string;
     path: string;
-    properties: { displayName?: string } | null;
+    properties: Record<string, string> | null;
     workspace_id: string;
   };
 }

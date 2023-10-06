@@ -1,5 +1,5 @@
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
-import { AutoSizeInput, RadioButtonGroup, Select } from '@grafana/ui';
+import { AutoSizeInput, InlineSwitch, RadioButtonGroup, Select } from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
 import { enumToOptions, useWorkspaceOptions } from 'core/utils';
 import React, { FormEvent } from 'react';
@@ -28,6 +28,11 @@ export function TagQueryEditor({ query, onChange, onRunQuery, datasource }: Prop
     onRunQuery();
   };
 
+  const onPropertiesChange = () => {
+    onChange({ ...query, properties: !query.properties });
+    onRunQuery();
+  };
+
   return (
     <>
       <InlineField label="Query type" labelWidth={14} tooltip={tooltips.queryType}>
@@ -46,6 +51,9 @@ export function TagQueryEditor({ query, onChange, onRunQuery, datasource }: Prop
           value={query.workspace}
         />
       </InlineField>
+      <InlineField label="Properties" labelWidth={14} tooltip={tooltips.properties}>
+        <InlineSwitch onChange={onPropertiesChange} value={query.properties} />
+      </InlineField>
     </>
   );
 }
@@ -59,4 +67,6 @@ const tooltips = {
 
   workspace: `The workspace to search for the given tag path. If left blank, the plugin
               finds the most recently updated tag in any workspace.`,
+
+  properties: `If enabled, include the tag properties in the query result.`,
 };

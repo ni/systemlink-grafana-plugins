@@ -16,10 +16,11 @@ it('renders with query defaults', async () => {
   expect(screen.getByRole('radio', { name: 'Current' })).toBeChecked();
   expect(screen.getByLabelText('Tag path')).not.toHaveValue();
   expect(screen.getByRole('combobox')).toHaveAccessibleDescription('Any workspace');
+  expect(screen.getByRole('checkbox')).not.toBeChecked();
 });
 
 it('renders with initial query and updates when user makes changes', async () => {
-  const [onChange] = render({ type: TagQueryType.History, path: 'my.tag', workspace: '1' });
+  const [onChange] = render({ type: TagQueryType.History, path: 'my.tag', workspace: '1', properties: true });
   await workspacesLoaded();
 
   // Renders saved query
@@ -38,4 +39,8 @@ it('renders with initial query and updates when user makes changes', async () =>
   // User selects different workspace
   await select(screen.getByRole('combobox'), 'Other workspace', { container: document.body });
   expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ workspace: '2' }));
+
+  // User toggles properties
+  await userEvent.click(screen.getByRole('checkbox'));
+  expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ properties: false }));
 });
