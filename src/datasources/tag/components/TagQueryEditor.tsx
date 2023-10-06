@@ -68,5 +68,5 @@ const tooltips = {
   workspace: `The workspace to search for the given tag path. If left blank, the plugin
               finds the most recently updated tag in any workspace.`,
 
-  properties: `If toggled, include the tag's properties in the query result.`,
+  properties: `If enabled, include the tag properties in the query result.`,
 };
