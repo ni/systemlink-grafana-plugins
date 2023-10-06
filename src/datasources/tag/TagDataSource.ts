@@ -18,7 +18,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
-    super(instanceSettings, backendSrv);
+    super(instanceSettings, backendSrv, templateSrv);
   }
 
   tagUrl = this.instanceSettings.url + '/nitag/v2';
@@ -34,7 +34,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
   async runQuery(query: TagQuery, { range, maxDataPoints, scopedVars }: DataQueryRequest): Promise<DataFrameDTO> {
     const { tag, current } = await this.getLastUpdatedTag(
       this.templateSrv.replace(query.path, scopedVars),
-      query.workspace
+      this.templateSrv.replace(query.workspace, scopedVars)
     );
 
     const name = tag.properties?.displayName ?? tag.path;

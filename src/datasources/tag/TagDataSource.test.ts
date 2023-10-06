@@ -236,6 +236,17 @@ describe('queries', () => {
 
     expect(result.data).toMatchSnapshot();
   });
+
+  test('attempts to replace variables in history query', async () => {
+    const workspaceVariable = '$workspace';
+    backendSrv.fetch.mockReturnValueOnce(createQueryTagsResponse());
+    templateSrv.replace.calledWith(workspaceVariable).mockReturnValue('1');
+
+    await ds.query(buildQuery({ path: 'my.tag', workspace: workspaceVariable }));
+
+    expect(templateSrv.replace).toHaveBeenCalledTimes(2);
+    expect(templateSrv.replace.mock.calls[1][0]).toBe(workspaceVariable);
+  });
 });
 
 function createQueryTagsResponse(

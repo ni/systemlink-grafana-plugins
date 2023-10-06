@@ -6,14 +6,24 @@ import {
   DataSourceApi,
   DataSourceInstanceSettings,
 } from '@grafana/data';
-import { BackendSrv, BackendSrvRequest, TestingStatus, isFetchError } from '@grafana/runtime';
+import {
+  BackendSrv,
+  BackendSrvRequest,
+  TemplateSrv,
+  TestingStatus,
+  isFetchError
+} from '@grafana/runtime';
 import { DataQuery } from '@grafana/schema';
 import { Workspace } from './types';
 import { sleep } from './utils';
 import { lastValueFrom } from 'rxjs';
 
 export abstract class DataSourceBase<TQuery extends DataQuery> extends DataSourceApi<TQuery> {
-  constructor(readonly instanceSettings: DataSourceInstanceSettings, readonly backendSrv: BackendSrv) {
+  constructor(
+    readonly instanceSettings: DataSourceInstanceSettings,
+    readonly backendSrv: BackendSrv,
+    readonly templateSrv: TemplateSrv
+  ) {
     super(instanceSettings);
   }
 

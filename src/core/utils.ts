@@ -37,8 +37,17 @@ export function throwIfNullish<T>(value: T, error: string | Error): NonNullable<
 export function useWorkspaceOptions<DSType extends DataSourceBase<any>>(datasource: DSType) {
   return useAsync(async () => {
     const workspaces = await datasource.getWorkspaces();
-    return workspaces.map(w => ({ label: w.name, value: w.id }));
+    const workspaceOptions = workspaces.map(w => ({ label: w.name, value: w.id }));
+    workspaceOptions?.unshift(...getVariableOptions(datasource))
+    return workspaceOptions;
   });
+}
+
+/** Gets Dashboard variables as an array of {@link SelectableValue}. */
+export function getVariableOptions<DSType extends DataSourceBase<any>>(datasource: DSType) {
+  return datasource.templateSrv
+    .getVariables()
+    .map((variable) => ({ label: '$' + variable.name, value: '$' + variable.name }));
 }
 
 export function getWorkspaceName(workspaces: Workspace[], id: string) {

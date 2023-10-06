@@ -40,7 +40,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
-    super(instanceSettings, backendSrv);
+    super(instanceSettings, backendSrv, templateSrv);
   }
 
   baseUrl = this.instanceSettings.url + '/nidataframe/v1';
