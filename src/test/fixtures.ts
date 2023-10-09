@@ -1,4 +1,4 @@
-import { DataQueryRequest, DataSourceApi, DataSourceInstanceSettings, QueryEditorProps, dateTime } from '@grafana/data';
+import { DataQueryRequest, DataSourceApi, DataSourceInstanceSettings, LoadingState, QueryEditorProps, TypedVariableModel, dateTime } from '@grafana/data';
 import { BackendSrv, BackendSrvRequest, FetchResponse, TemplateSrv } from '@grafana/runtime';
 import { DataQuery } from '@grafana/schema';
 import { render } from '@testing-library/react';
@@ -6,6 +6,24 @@ import { Matcher, MatcherCreator, calledWithFn, mock } from 'jest-mock-extended'
 import _ from 'lodash';
 import React from 'react';
 import { Observable, of, throwError } from 'rxjs';
+
+const mockVariables: TypedVariableModel[] = [{
+  type: 'textbox',
+  name: 'test_var',
+  current: { text: '123', value: '123', selected: false },
+  originalQuery: '',
+  options: [],
+  query: '',
+  id: 'test_var',
+  rootStateKey: '',
+  global: false,
+  hide: 0,
+  skipUrlSync: false,
+  index: 0,
+  state: LoadingState.Done,
+  error: null,
+  description: null
+}]
 
 export function setupDataSource<T>(
   ctor: new (instanceSettings: DataSourceInstanceSettings, backendSrv: BackendSrv, templateSrv: TemplateSrv) => T
@@ -20,7 +38,7 @@ export function setupDataSource<T>(
   );
   const mockTemplateSrv = mock<TemplateSrv>({
     replace: calledWithFn({ fallbackMockImplementation: target => target ?? '' }),
-    getVariables: calledWithFn({ fallbackMockImplementation: () => [] })
+    getVariables: calledWithFn({ fallbackMockImplementation: () => mockVariables })
   });
   const ds = new ctor({ url: '' } as DataSourceInstanceSettings, mockBackendSrv, mockTemplateSrv);
   return [ds, mockBackendSrv, mockTemplateSrv] as const;

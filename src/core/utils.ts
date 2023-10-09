@@ -47,7 +47,8 @@ export function useWorkspaceOptions<DSType extends DataSourceBase<any>>(datasour
 export function getVariableOptions<DSType extends DataSourceBase<any>>(datasource: DSType) {
   return datasource.templateSrv
     .getVariables()
-    .map((variable) => ({ label: '$' + variable.name, value: '$' + variable.name }));
+    .filter((variable: any) => !variable.datasource || variable.datasource.uid !== datasource.uid)
+    .map(variable => ({ label: '$' + variable.name, value: '$' + variable.name }));
 }
 
 export function getWorkspaceName(workspaces: Workspace[], id: string) {

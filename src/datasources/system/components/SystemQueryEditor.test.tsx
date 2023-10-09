@@ -15,14 +15,14 @@ it('renders with query defaults', () => {
 });
 
 it('renders with saved metadata query', async () => {
-  render({ queryKind: SystemQueryType.Metadata, systemName: 'my-system'});
+  render({ queryKind: SystemQueryType.Metadata, systemName: 'my-system', workspace: '' });
 
   expect(screen.getByRole('radio', { name: 'Metadata' })).toBeChecked();
   expect(screen.queryByLabelText('System')).toHaveValue('my-system');
 });
 
 it('updates when user interacts with fields', async () => {
-  const [onChange] = render({ queryKind: SystemQueryType.Summary, systemName: '' });
+  const [onChange] = render({ queryKind: SystemQueryType.Summary, systemName: '', workspace: '' });
 
   // User changes query type
   await userEvent.click(screen.getByRole('radio', { name: 'Metadata' }));

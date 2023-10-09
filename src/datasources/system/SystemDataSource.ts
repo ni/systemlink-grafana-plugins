@@ -20,6 +20,7 @@ export class SystemDataSource extends DataSourceBase<SystemQuery> {
   defaultQuery = {
     queryKind: SystemQueryType.Summary,
     systemName: '',
+    workspace: ''
   };
 
   async runQuery(query: SystemQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
@@ -33,7 +34,11 @@ export class SystemDataSource extends DataSourceBase<SystemQuery> {
         ],
       };
     } else {
-      const metadata = await this.getSystemMetadata(this.templateSrv.replace(query.systemName, options.scopedVars));
+      const metadata = await this.getSystemMetadata(
+        this.templateSrv.replace(query.systemName, options.scopedVars),
+        defaultProjection,
+        this.templateSrv.replace(query.workspace, options.scopedVars)
+      );
       const workspaces = await this.getWorkspaces();
       return {
         refId: query.refId,
@@ -59,7 +64,7 @@ export class SystemDataSource extends DataSourceBase<SystemQuery> {
   async getSystemMetadata(systemFilter: string, projection = defaultProjection, workspace?: string) {
     const filters = [
       systemFilter && `id = "${systemFilter}" || alias = "${systemFilter}"`,
-      workspace && `workspace = "${workspace}"`,
+      workspace && !systemFilter && `workspace = "${workspace}"`,
     ];
     const response = await this.post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', {
       filter: filters.filter(Boolean).join(' '),
@@ -70,7 +75,7 @@ export class SystemDataSource extends DataSourceBase<SystemQuery> {
   }
 
   async metricFindQuery({ workspace }: SystemVariableQuery): Promise<MetricFindValue[]> {
-    const metadata = await this.getSystemMetadata('', ['id', 'alias'], workspace);
+    const metadata = await this.getSystemMetadata('', ['id', 'alias'], this.templateSrv.replace(workspace));
     return metadata.map(frame => ({ text: frame.alias, value: frame.id }));
   }
 
