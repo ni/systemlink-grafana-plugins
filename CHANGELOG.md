@@ -1,3 +1,10 @@
+## [3.7.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.6.0...v3.7.0) (2023-10-09)
+
+
+### Features
+
+* **system:** Filter system metadata by workspace and variable chaining ([#43](https://github.com/ni/systemlink-grafana-plugins/issues/43)) ([14de6ed](https://github.com/ni/systemlink-grafana-plugins/commit/14de6ed4e85a7a58d8315155a381e1ee1a51f405))
+
 ## [3.6.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.5.0...v3.6.0) (2023-10-06)
 
 
