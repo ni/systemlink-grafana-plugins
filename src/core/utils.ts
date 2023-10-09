@@ -47,7 +47,7 @@ export function useWorkspaceOptions<DSType extends DataSourceBase<any>>(datasour
 export function getVariableOptions<DSType extends DataSourceBase<any>>(datasource: DSType) {
   return datasource.templateSrv
     .getVariables()
-    .filter(variable => (variable as any).current.value)
+    .filter((variable: any) => !variable.datasource || variable.datasource.uid !== datasource.uid)
     .map(variable => ({ label: '$' + variable.name, value: '$' + variable.name }));
 }
 

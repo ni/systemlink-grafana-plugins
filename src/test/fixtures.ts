@@ -7,6 +7,24 @@ import _ from 'lodash';
 import React from 'react';
 import { Observable, of, throwError } from 'rxjs';
 
+const mockVariables: TypedVariableModel[] = [{
+  type: 'textbox',
+  name: 'test_var',
+  current: { text: '123', value: '123', selected: false },
+  originalQuery: '',
+  options: [],
+  query: '',
+  id: 'test_var',
+  rootStateKey: '',
+  global: false,
+  hide: 0,
+  skipUrlSync: false,
+  index: 0,
+  state: LoadingState.Done,
+  error: null,
+  description: null
+}]
+
 export function setupDataSource<T>(
   ctor: new (instanceSettings: DataSourceInstanceSettings, backendSrv: BackendSrv, templateSrv: TemplateSrv) => T
 ) {
@@ -18,23 +36,6 @@ export function setupDataSource<T>(
       },
     }
   );
-  const mockVariables: TypedVariableModel[] = [{
-    type: 'textbox',
-    name: 'test_var',
-    current: { text: '123', value: '123', selected: false },
-    originalQuery: '',
-    options: [],
-    query: '',
-    id: 'test_var',
-    rootStateKey: '',
-    global: false,
-    hide: 0,
-    skipUrlSync: false,
-    index: 0,
-    state: LoadingState.Done,
-    error: null,
-    description: null
-  }]
   const mockTemplateSrv = mock<TemplateSrv>({
     replace: calledWithFn({ fallbackMockImplementation: target => target ?? '' }),
     getVariables: calledWithFn({ fallbackMockImplementation: () => mockVariables })
