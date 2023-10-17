@@ -21,7 +21,7 @@ export interface TagWithValue {
     datatype: string;
     path: string;
     properties: Record<string, string> | null;
-    workspace_id: string;
+    workspace: string;
   };
 }
 
