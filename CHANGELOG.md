@@ -1,3 +1,10 @@
+## [3.7.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.7.0...v3.7.1) (2023-10-18)
+
+
+### Bug Fixes
+
+* **tag:** Update tag fields to camel case ([#45](https://github.com/ni/systemlink-grafana-plugins/issues/45)) ([2e15cd1](https://github.com/ni/systemlink-grafana-plugins/commit/2e15cd179f8d3fe661a54c8e93f42e4ec9c61c6d))
+
 ## [3.7.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.6.0...v3.7.0) (2023-10-09)
 
 
