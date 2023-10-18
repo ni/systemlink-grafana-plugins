@@ -73,14 +73,13 @@ it('should convert columns to Grafana fields', async () => {
   const response = await ds.query(query);
 
   const fields = response.data[0].fields as Field[];
-  const actual = fields.map(({ name, type, values }) => ({ name, type, values: values.toArray() }));
+  const actual = fields.map(({ name, type, values, config }) => ({ name, type, values: values.toArray(), config }));
   expect(actual).toEqual([
-    { name: 'int', type: FieldType.number, values: [1, 2] },
-    { name: 'float', type: FieldType.number, values: [1.1, 2.2] },
-    { name: 'string', type: FieldType.string, values: ['first', 'second'] },
-    { name: 'time', type: FieldType.time, values: [1663135260000, 1663135320000] },
-    // TODO: Boolean columns are not being converted correctly (should be true, false)
-    { name: 'bool', type: FieldType.boolean, values: [true, true] },
+    { name: 'int', type: FieldType.number, values: [1, 2], config: { displayName: 'int' } },
+    { name: 'float', type: FieldType.number, values: [1.1, 2.2], config: { displayName: 'float' } },
+    { name: 'string', type: FieldType.string, values: ['first', 'second'], config: { displayName: 'string' } },
+    { name: 'time', type: FieldType.time, values: [1663135260000, 1663135320000], config: { displayName: 'time' } },
+    { name: 'bool', type: FieldType.boolean, values: [true, false], config: { displayName: 'bool' } },
   ]);
 });
 
