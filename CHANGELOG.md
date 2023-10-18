@@ -1,3 +1,10 @@
+## [3.7.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.7.1...v3.7.2) (2023-10-18)
+
+
+### Bug Fixes
+
+* **tag:** support both `workspace` and `workspace_id` properties ([#47](https://github.com/ni/systemlink-grafana-plugins/issues/47)) ([67dc4ed](https://github.com/ni/systemlink-grafana-plugins/commit/67dc4ed1af3444975aee17ed1741fdbe0377414c))
+
 ## [3.7.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.7.0...v3.7.1) (2023-10-18)
 
 
