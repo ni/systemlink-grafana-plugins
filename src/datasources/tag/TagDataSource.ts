@@ -46,7 +46,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
         { name: 'updated', values: [current?.timestamp], type: FieldType.time, config: { unit: 'dateTimeFromNow' } },
       ];
     } else {
-      const history = await this.getTagHistoryValues(tag.path, tag.workspace, range, maxDataPoints);
+      const history = await this.getTagHistoryValues(tag.path, tag.workspace ?? tag.workspace_id, range, maxDataPoints);
       result.fields = [
         { name: 'time', values: history.datetimes },
         { name, values: history.values },
