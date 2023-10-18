@@ -198,7 +198,7 @@ describe('queries', () => {
   });
 
   test('filters by workspace if provided', async () => {
-    backendSrv.fetch.mockReturnValueOnce(createQueryTagsResponse({ workspace_id: '2' }));
+    backendSrv.fetch.mockReturnValueOnce(createQueryTagsResponse({ workspace: '2' }));
     backendSrv.fetch.mockReturnValueOnce(createTagHistoryResponse('my.tag', 'DOUBLE', []));
 
     await ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag', workspace: '2' }));
@@ -259,7 +259,7 @@ function createQueryTagsResponse(
         { tag, current },
         {
           current: { value: { value: '3.14' }, timestamp: '2023-10-04T00:00:00.000000Z' },
-          tag: { datatype: 'DOUBLE', path: 'my.tag', properties: {}, workspace_id: '1' },
+          tag: { datatype: 'DOUBLE', path: 'my.tag', properties: {}, workspace: '1' },
         }
       ),
     ],
