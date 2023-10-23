@@ -12,19 +12,36 @@ export interface TagQuery extends DataQuery {
   properties: boolean;
 }
 
-export interface TagWithValue {
+interface TagWithValueBase {
   current: {
     value: { value: string };
     timestamp: string;
   } | null;
   tag: {
-    datatype: string;
     path: string;
     properties: Record<string, string> | null;
-    workspace: string;
-    workspace_id: string;
   };
 }
+
+// Legacy tag properties from SystemLink Server
+interface TagWithValueV1 {
+  tag: {
+    collect_aggregates: boolean;
+    datatype: string;
+    last_updated: number;
+    workspace_id: string;
+  }
+}
+
+// Tag properties renamed in SystemLink Enterprise
+interface TagWithValueV2 {
+  tag: {
+    type: string;
+    workspace: string;
+  }
+}
+
+export type TagWithValue = TagWithValueBase & TagWithValueV1 & TagWithValueV2;
 
 export interface TagsWithValues {
   tagsWithValues: TagWithValue[];
