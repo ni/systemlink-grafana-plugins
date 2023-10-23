@@ -66,7 +66,7 @@ it('should convert columns to Grafana fields', async () => {
     {
       refId: 'A',
       tableId: '_',
-      columns: ['int', 'float', 'string', 'time', 'bool'],
+      columns: ['int', 'float', 'string', 'time', 'bool', 'Value'],
     },
   ]);
 
@@ -75,11 +75,12 @@ it('should convert columns to Grafana fields', async () => {
   const fields = response.data[0].fields as Field[];
   const actual = fields.map(({ name, type, values, config }) => ({ name, type, values: values.toArray(), config }));
   expect(actual).toEqual([
-    { name: 'int', type: FieldType.number, values: [1, 2], config: { displayName: 'int' } },
-    { name: 'float', type: FieldType.number, values: [1.1, 2.2], config: { displayName: 'float' } },
-    { name: 'string', type: FieldType.string, values: ['first', 'second'], config: { displayName: 'string' } },
-    { name: 'time', type: FieldType.time, values: [1663135260000, 1663135320000], config: { displayName: 'time' } },
-    { name: 'bool', type: FieldType.boolean, values: [true, false], config: { displayName: 'bool' } },
+    { name: 'int', type: FieldType.number, values: [1, 2], config: {} },
+    { name: 'float', type: FieldType.number, values: [1.1, 2.2], config: {} },
+    { name: 'string', type: FieldType.string, values: ['first', 'second'], config: {} },
+    { name: 'time', type: FieldType.time, values: [1663135260000, 1663135320000], config: {} },
+    { name: 'bool', type: FieldType.boolean, values: [true, false], config: {} },
+    { name: 'Value', type: FieldType.string, values: ['test1', 'test2'], config: { displayName: 'Value' } },
   ]);
 });
 
@@ -251,6 +252,7 @@ const fakeMetadataResponse: TableMetadata = {
     { name: 'float', dataType: 'FLOAT32', columnType: 'NULLABLE', properties: {} },
     { name: 'string', dataType: 'STRING', columnType: 'NULLABLE', properties: {} },
     { name: 'bool', dataType: 'BOOL', columnType: 'NORMAL', properties: {} },
+    { name: 'Value', dataType: 'STRING', columnType: 'NULLABLE', properties: {} },
   ],
   id: '_',
   name: 'Test Table',
@@ -259,10 +261,10 @@ const fakeMetadataResponse: TableMetadata = {
 
 const fakeDataResponse: TableDataRows = {
   frame: {
-    columns: ['int', 'float', 'string', 'time', 'bool'],
+    columns: ['int', 'float', 'string', 'time', 'bool', 'Value'],
     data: [
-      ['1', '1.1', 'first', '2022-09-14T06:01:00.0000000Z', 'True'],
-      ['2', '2.2', 'second', '2022-09-14T06:02:00.0000000Z', 'False'],
+      ['1', '1.1', 'first', '2022-09-14T06:01:00.0000000Z', 'True', 'test1'],
+      ['2', '2.2', 'second', '2022-09-14T06:02:00.0000000Z', 'False', 'test2'],
     ],
   },
   continuationToken: '_',
