@@ -53,13 +53,12 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
     const tableMetadata = await this.getTableMetadata(processedQuery.tableId);
     const columns = this.getColumnTypes(processedQuery.columns, tableMetadata?.columns ?? []);
     const tableData = await this.getDecimatedTableData(processedQuery, columns, range, maxDataPoints);
-    const frame = toDataFrame({
+    return this.convertDataFrameFields({
       refId: processedQuery.refId,
       name: processedQuery.tableId,
       columns: processedQuery.columns.map((name) => ({ text: name })),
       rows: tableData.frame.data,
-    } as TableData);
-    return this.convertDataFrameFields(frame, columns);
+    } as TableData, columns);
   }
 
   shouldRunQuery(query: ValidDataFrameQuery): boolean {
@@ -152,7 +151,14 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
     }
   }
 
-  private convertDataFrameFields(frame: DataFrame, columns: Column[]): DataFrame {
+  private convertDataFrameFields(tableData: TableData, columns: Column[]): DataFrame {
+    this.transformBooleanFields(tableData, columns);
+    const frame = toDataFrame(tableData);
+    frame.fields.forEach(field => {
+      if (field.name.toLowerCase() === 'value') {
+        field.config.displayName = field.name;
+      }
+    })
     const transformer = standardTransformers.convertFieldTypeTransformer.transformer;
     const conversions = columns.map(({ name, dataType }) => ({
       targetField: name,
@@ -160,6 +166,20 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
       dateFormat: 'YYYY-MM-DDTHH:mm:ss.SZ',
     }));
     return transformer({ conversions }, { interpolate: _.identity })([frame])[0];
+  }
+
+  private transformBooleanFields(tableData: TableData, columns: Column[]): void {
+    const boolColumnIndices: number[] = [];
+    columns.forEach((column, i) => {
+      if (column.dataType === 'BOOL') {
+        boolColumnIndices.push(i);
+      }
+    });
+    if (!!boolColumnIndices.length) {
+      tableData.rows.forEach(row => {
+        boolColumnIndices.forEach(i => row[i] = row[i].toLowerCase() === 'true');
+      })
+    }
   }
 
   private constructTimeFilters(columns: Column[], timeRange: TimeRange): ColumnFilter[] {
