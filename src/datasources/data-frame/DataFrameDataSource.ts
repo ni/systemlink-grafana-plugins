@@ -155,7 +155,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
     this.transformBooleanFields(tableData, columns);
     const frame = toDataFrame(tableData);
     frame.fields.forEach(field => {
-      if (field.name.toLocaleLowerCase() === 'value') {
+      if (field.name.toLowerCase() === 'value') {
         field.config.displayName = field.name;
       }
     })
