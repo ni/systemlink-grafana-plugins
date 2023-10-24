@@ -341,6 +341,32 @@ exports[`queries string tag history 1`] = `
 ]
 `;
 
+exports[`queries supports legacy tag service property "datatype" 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "my.tag",
+        "values": [
+          3.14,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
 exports[`queries tag current value 1`] = `
 [
   {

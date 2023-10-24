@@ -42,7 +42,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
 
     if (query.type === TagQueryType.Current) {
       result.fields = [
-        { name, values: [this.convertTagValue(tag.datatype, current?.value.value)] },
+        { name, values: [this.convertTagValue(tag.type ?? tag.datatype, current?.value.value)] },
         { name: 'updated', values: [current?.timestamp], type: FieldType.time, config: { unit: 'dateTimeFromNow' } },
       ];
     } else {

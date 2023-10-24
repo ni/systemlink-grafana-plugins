@@ -101,12 +101,12 @@ describe('queries', () => {
 
   test('current value for all data types', async () => {
     backendSrv.fetch
-      .mockReturnValueOnce(createQueryTagsResponse({ datatype: 'INT', path: 'tag1' }, { value: { value: '3' } }))
-      .mockReturnValueOnce(createQueryTagsResponse({ datatype: 'DOUBLE', path: 'tag2' }, { value: { value: '3.3' } }))
-      .mockReturnValueOnce(createQueryTagsResponse({ datatype: 'STRING', path: 'tag3' }, { value: { value: 'foo' } }))
-      .mockReturnValueOnce(createQueryTagsResponse({ datatype: 'BOOLEAN', path: 'tag4' }, { value: { value: 'True' } }))
+      .mockReturnValueOnce(createQueryTagsResponse({ type: 'INT', path: 'tag1' }, { value: { value: '3' } }))
+      .mockReturnValueOnce(createQueryTagsResponse({ type: 'DOUBLE', path: 'tag2' }, { value: { value: '3.3' } }))
+      .mockReturnValueOnce(createQueryTagsResponse({ type: 'STRING', path: 'tag3' }, { value: { value: 'foo' } }))
+      .mockReturnValueOnce(createQueryTagsResponse({ type: 'BOOLEAN', path: 'tag4' }, { value: { value: 'True' } }))
       .mockReturnValueOnce(
-        createQueryTagsResponse({ datatype: 'U_INT64', path: 'tag5' }, { value: { value: '2147483648' } })
+        createQueryTagsResponse({ type: 'U_INT64', path: 'tag5' }, { value: { value: '2147483648' } })
       );
 
     const result = await ds.query(
@@ -247,6 +247,37 @@ describe('queries', () => {
     expect(templateSrv.replace).toHaveBeenCalledTimes(2);
     expect(templateSrv.replace.mock.calls[1][0]).toBe(workspaceVariable);
   });
+
+  test('supports legacy tag service property "workspace_id"', async () => {
+    backendSrv.fetch
+      .mockReturnValueOnce(
+        createFetchResponse({
+          tagsWithValues: [{ tag: { datatype: 'DOUBLE', path: 'my.tag', workspace_id: '1' } }],
+        })
+      )
+      .mockReturnValueOnce(createTagHistoryResponse('my.tag', 'DOUBLE', []));
+
+    await ds.query(buildQuery({ path: 'my.tag', type: TagQueryType.History }));
+
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('workspace', '1');
+  });
+
+  test('supports legacy tag service property "datatype"', async () => {
+    backendSrv.fetch.mockReturnValueOnce(
+      createFetchResponse({
+        tagsWithValues: [
+          {
+            current: { value: { value: '3.14' }, timestamp: '2023-10-04T00:00:00.000000Z' },
+            tag: { datatype: 'DOUBLE', path: 'my.tag', workspace_id: '1' },
+          },
+        ],
+      })
+    );
+
+    const result = await ds.query(buildQuery({ path: 'my.tag' }));
+
+    expect(result.data).toMatchSnapshot();
+  });
 });
 
 function createQueryTagsResponse(
@@ -259,7 +290,7 @@ function createQueryTagsResponse(
         { tag, current },
         {
           current: { value: { value: '3.14' }, timestamp: '2023-10-04T00:00:00.000000Z' },
-          tag: { datatype: 'DOUBLE', path: 'my.tag', properties: {}, workspace: '1' },
+          tag: { type: 'DOUBLE', path: 'my.tag', properties: {}, workspace: '1' },
         }
       ),
     ],
