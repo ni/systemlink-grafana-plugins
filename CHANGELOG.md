@@ -1,3 +1,10 @@
+## [3.7.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.7.3...v3.7.4) (2023-10-24)
+
+
+### Bug Fixes
+
+* **tag:** support `datatype` and `type` properties ([#48](https://github.com/ni/systemlink-grafana-plugins/issues/48)) ([0004773](https://github.com/ni/systemlink-grafana-plugins/commit/00047738960b535efa2ca1280f7079f59090a720))
+
 ## [3.7.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.7.2...v3.7.3) (2023-10-24)
 
 
