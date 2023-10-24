@@ -23,7 +23,7 @@ interface TagWithValueBase {
   };
 }
 
-// Legacy tag properties from SystemLink Server
+// Legacy tag properties from SystemLink Cloud
 interface TagWithValueV1 {
   tag: {
     collect_aggregates: boolean;
@@ -33,7 +33,7 @@ interface TagWithValueV1 {
   }
 }
 
-// Tag properties renamed in SystemLink Enterprise
+// Tag properties renamed in SystemLink Server and Enterprise
 interface TagWithValueV2 {
   tag: {
     type: string;
