@@ -1,3 +1,10 @@
+## [3.7.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.7.2...v3.7.3) (2023-10-24)
+
+
+### Bug Fixes
+
+* **data-frame:** Boolean and "Value" columns ([#46](https://github.com/ni/systemlink-grafana-plugins/issues/46)) ([941dce3](https://github.com/ni/systemlink-grafana-plugins/commit/941dce3782dbeaa6cc0e30eb39504b4b45717efc))
+
 ## [3.7.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.7.1...v3.7.2) (2023-10-18)
 
 
