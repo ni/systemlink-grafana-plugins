@@ -1,6 +1,12 @@
 import { DataQuery } from '@grafana/schema';
 
+export enum DataFrameQueryType {
+  Data = 'Data',
+  Metadata = 'Metadata',
+}
+
 export interface DataFrameQuery extends DataQuery {
+  type: DataFrameQueryType;
   tableId?: string;
   columns?: string[];
   decimationMethod?: string;
@@ -9,6 +15,7 @@ export interface DataFrameQuery extends DataQuery {
 }
 
 export const defaultQuery: Omit<ValidDataFrameQuery, 'refId'> = {
+  type: DataFrameQueryType.Data,
   tableId: '',
   columns: [],
   decimationMethod: 'LOSSY',
@@ -46,6 +53,7 @@ export interface TableMetadata {
   id: string;
   name: string;
   workspace: string;
+  properties: Record<string, string>;
 }
 
 export interface TableMetadataList {
@@ -55,7 +63,6 @@ export interface TableMetadataList {
 
 export interface TableDataRows {
   frame: { columns: string[]; data: string[][] };
-  continuationToken: string;
 }
 
 export interface SystemLinkError {
