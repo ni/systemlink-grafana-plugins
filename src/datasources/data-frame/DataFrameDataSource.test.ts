@@ -52,7 +52,7 @@ it('should return data ignoring invalid queries', async () => {
 it('should return data for multiple targets', async () => {
   const query = buildQuery([
     { refId: 'A', type: DataFrameQueryType.Data, tableId: '1', columns: ['int'] },
-    { refId: 'B', type: DataFrameQueryType.Data, tableId: '2', columns: ['float'] },
+    { refId: 'B', type: DataFrameQueryType.Data, tableId: '1', columns: ['float'] },
   ]);
 
   const response = await ds.query(query);
@@ -66,7 +66,7 @@ it('should convert columns to Grafana fields', async () => {
     {
       refId: 'A',
       type: DataFrameQueryType.Data,
-      tableId: '_',
+      tableId: '1',
       columns: ['int', 'float', 'string', 'time', 'bool', 'Value'],
     },
   ]);
@@ -89,7 +89,7 @@ it('should automatically apply time filters when index column is a timestamp', a
     {
       refId: 'A',
       type: DataFrameQueryType.Data,
-      tableId: '_',
+      tableId: '1',
       columns: ['time'],
       applyTimeFilters: true,
     },
@@ -117,7 +117,7 @@ it('should apply null and NaN filters', async () => {
     {
       refId: 'A',
       type: DataFrameQueryType.Data,
-      tableId: '_',
+      tableId: '1',
       columns: ['int', 'float', 'string'],
       filterNulls: true,
     },
@@ -143,7 +143,7 @@ it('should provide decimation parameters correctly', async () => {
     {
       refId: 'A',
       type: DataFrameQueryType.Data,
-      tableId: '_',
+      tableId: '1',
       columns: ['int', 'string', 'float'],
       decimationMethod: 'ENTRY_EXIT',
     },
@@ -196,7 +196,7 @@ it('should migrate queries using columns of arrays of objects', async () => {
 
 it('attempts to replace variables in metadata query', async () => {
   const tableId = '$tableId';
-  replaceMock.mockReturnValue('1');
+  replaceMock.mockReturnValueOnce('1');
 
   await ds.getTableMetadata(tableId);
 
@@ -206,7 +206,7 @@ it('attempts to replace variables in metadata query', async () => {
 
 it('attempts to replace variables in data query', async () => {
   const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Data, tableId: '$tableId', columns: ['float'] }]);
-  replaceMock.mockReturnValue('1');
+  replaceMock.mockReturnValueOnce('1');
 
   await ds.query(query);
 
@@ -226,6 +226,19 @@ it('returns table properties for metadata query', async () => {
   ])
 });
 
+it('handles metadata query when table has no properties', async () => {
+  const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Metadata, tableId: '2' }]);
+
+  const response = await ds.query(query);
+
+  console.log(fetchMock.mock.calls)
+  expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/nidataframe/v1/tables/2' }));
+  expect(response.data[0].fields).toEqual([
+    { name: 'name', values: [] },
+    { name: 'value', values: [] },
+  ])
+});
+
 const buildQuery = (targets: DataFrameQuery[]): DataQueryRequest<DataFrameQuery> => {
   return {
     ...defaultQuery,
@@ -235,9 +248,14 @@ const buildQuery = (targets: DataFrameQuery[]): DataQueryRequest<DataFrameQuery>
 
 const setupFetchMock = () => {
   fetchMock.mockImplementation((options: BackendSrvRequest) => {
-    if (/\/tables\/\w+$/.test(options.url)) {
+    if (/\/tables\/1$/.test(options.url)) {
       return of(createFetchResponse(fakeMetadataResponse));
     }
+
+    if (/\/tables\/2$/.test(options.url)) {
+      return of(createFetchResponse(fakeMetadataResponseNoProperties));
+    }
+
     if (/\/tables\/\w+\/query-decimated-data$/.test(options.url)) {
       return of(createFetchResponse(getFakeDataResponse(options.data.columns)));
     }
@@ -272,6 +290,14 @@ const fakeMetadataResponse: TableMetadata = {
   id: '_',
   properties: { hello: 'world', foo: 'bar' },
   name: 'Test Table',
+  workspace: '_',
+};
+
+const fakeMetadataResponseNoProperties: TableMetadata = {
+  columns: [{ name: 'time', dataType: 'TIMESTAMP', columnType: 'INDEX', properties: {} }],
+  id: '_',
+  properties: {},
+  name: 'Test Table no properties',
   workspace: '_',
 };
 
