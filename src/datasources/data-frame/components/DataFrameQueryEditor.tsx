@@ -138,15 +138,14 @@ const getVariableOptions = () => {
 };
 
 const tooltips = {
-  queryType: `Data allows you to visualize the rows of data in a table. Metadata allows you
-              to visualize the properties associated with a table.`,
+  queryType: `Specifies whether to visualize the data rows or properties associated with a table.`,
 
   columns: `Specifies the columns to include in the response data.`,
 
   decimation: `Specifies the method used to decimate the data.`,
 
-  filterNulls: `Filters out null and NaN values before decimating the data.`,
+  filterNulls: `Specifies whether to filter out null and NaN values before decimating the data.`,
 
-  useTimeRange: `Queries only for data within the dashboard time range if the table index is a
-                timestamp. Enable when interacting with your data on a graph.`,
+  useTimeRange: `Specifies whether to query only for data within the dashboard time range if the
+                table index is a timestamp. Enable when interacting with your data on a graph.`,
 };
