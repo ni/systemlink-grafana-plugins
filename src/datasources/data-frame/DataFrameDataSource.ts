@@ -8,7 +8,8 @@ import {
   FieldType,
   standardTransformers,
   DataFrame,
-  TimeRange
+  TimeRange,
+  MetricFindValue
 } from '@grafana/data';
 import {
   BackendSrv,
@@ -50,6 +51,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
   async runQuery(query: DataFrameQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrame> {
     const processedQuery = this.processQuery(query);
     processedQuery.tableId = getTemplateSrv().replace(processedQuery.tableId, scopedVars);
+    processedQuery.columns = processedQuery.columns.map(col => getTemplateSrv().replace(col, scopedVars));
     const tableMetadata = await this.getTableMetadata(processedQuery.tableId);
     const columns = this.getColumnTypes(processedQuery.columns, tableMetadata?.columns ?? []);
     const tableData = await this.getDecimatedTableData(processedQuery, columns, range, maxDataPoints);
@@ -125,6 +127,11 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
     // If we didn't make any changes to the query, then return the original object
     return deepEqual(migratedQuery, query) ? query as ValidDataFrameQuery : migratedQuery;
   };
+
+  async metricFindQuery(tableQuery: DataFrameQuery): Promise<MetricFindValue[]> {
+    const tableMetadata = await this.getTableMetadata(tableQuery.tableId);
+    return tableMetadata ? tableMetadata.columns!.map(col => ({ text: col.name, value: col.name })) : [];
+  }
 
   private getColumnTypes(columnNames: string[], tableMetadata: Column[]): Column[] {
     return columnNames.map((c) => {

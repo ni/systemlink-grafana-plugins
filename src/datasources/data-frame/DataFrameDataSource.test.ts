@@ -193,7 +193,7 @@ it('should migrate queries using columns of arrays of objects', async () => {
 
 it('attempts to replace variables in metadata query', async () => {
   const tableId = '$tableId';
-  replaceMock.mockReturnValue('1');
+  replaceMock.mockReturnValueOnce('1');
 
   await ds.getTableMetadata(tableId);
 
@@ -202,13 +202,24 @@ it('attempts to replace variables in metadata query', async () => {
 });
 
 it('attempts to replace variables in data query', async () => {
-  const query = buildQuery([{ refId: 'A', tableId: '$tableId', columns: ['float'] }]);
-  replaceMock.mockReturnValue('1');
+  const query = buildQuery([{ refId: 'A', tableId: '$tableId', columns: ['$column'] }]);
+  replaceMock.mockReturnValueOnce('1').mockReturnValueOnce('time');
 
   await ds.query(query);
 
-  expect(replaceMock).toHaveBeenCalledTimes(2);
+  expect(replaceMock).toHaveBeenCalledTimes(3);
   expect(replaceMock).toHaveBeenCalledWith(query.targets[0].tableId, expect.anything());
+  expect(replaceMock).toHaveBeenCalledWith(query.targets[0].columns![0], expect.anything());
+});
+
+it('metricFindQuery returns table columns', async () => {
+  const tableId = '12345';
+  const expectedColumns = fakeMetadataResponse.columns.map(col => ({ text: col.name, value: col.name }));
+
+  const columns = await ds.metricFindQuery({ tableId } as DataFrameQuery);
+
+  expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: `_/nidataframe/v1/tables/${tableId}` }));
+  expect(columns).toEqual(expect.arrayContaining(expectedColumns));
 });
 
 const buildQuery = (targets: DataFrameQuery[]): DataQueryRequest<DataFrameQuery> => {
