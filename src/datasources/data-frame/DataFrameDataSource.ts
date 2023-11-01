@@ -1,6 +1,6 @@
 import TTLCache from '@isaacs/ttlcache';
 import deepEqual from 'fast-deep-equal';
-import { DataQueryRequest, DataSourceInstanceSettings, FieldType, TimeRange, FieldDTO, dateTime } from '@grafana/data';
+import { DataQueryRequest, DataSourceInstanceSettings, FieldType, TimeRange, FieldDTO, dateTime, DataFrameDTO } from '@grafana/data';
 import { BackendSrv, TemplateSrv, TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import {
   ColumnDataType,
@@ -33,7 +33,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
 
   defaultQuery = defaultQuery;
 
-  async runQuery(query: DataFrameQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest) {
+  async runQuery(query: DataFrameQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
     const processedQuery = this.processQuery(query);
     processedQuery.tableId = getTemplateSrv().replace(processedQuery.tableId, scopedVars);
     const metadata = await this.getTableMetadata(processedQuery.tableId);
