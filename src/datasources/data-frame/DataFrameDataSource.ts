@@ -1,22 +1,7 @@
 import TTLCache from '@isaacs/ttlcache';
 import deepEqual from 'fast-deep-equal';
-import {
-  DataQueryRequest,
-  DataSourceInstanceSettings,
-  toDataFrame,
-  TableData,
-  FieldType,
-  standardTransformers,
-  DataFrame,
-  TimeRange
-} from '@grafana/data';
-import {
-  BackendSrv,
-  TemplateSrv,
-  TestingStatus,
-  getBackendSrv,
-  getTemplateSrv
-} from '@grafana/runtime';
+import { DataQueryRequest, DataSourceInstanceSettings, FieldType, TimeRange, FieldDTO, dateTime, DataFrameDTO } from '@grafana/data';
+import { BackendSrv, TemplateSrv, TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import {
   ColumnDataType,
   DataFrameQuery,
@@ -27,6 +12,7 @@ import {
   Column,
   defaultQuery,
   ValidDataFrameQuery,
+  DataFrameQueryType,
 } from './types';
 import { metadataCacheTTL } from './constants';
 import _ from 'lodash';
@@ -45,32 +31,39 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
 
   baseUrl = this.instanceSettings.url + '/nidataframe/v1';
 
-  defaultQuery = defaultQuery
+  defaultQuery = defaultQuery;
 
-  async runQuery(query: DataFrameQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrame> {
+  async runQuery(query: DataFrameQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
     const processedQuery = this.processQuery(query);
     processedQuery.tableId = getTemplateSrv().replace(processedQuery.tableId, scopedVars);
-    const tableMetadata = await this.getTableMetadata(processedQuery.tableId);
-    const columns = this.getColumnTypes(processedQuery.columns, tableMetadata?.columns ?? []);
-    const tableData = await this.getDecimatedTableData(processedQuery, columns, range, maxDataPoints);
-    return this.convertDataFrameFields({
-      refId: processedQuery.refId,
-      name: processedQuery.tableId,
-      columns: processedQuery.columns.map((name) => ({ text: name })),
-      rows: tableData.frame.data,
-    } as TableData, columns);
+    const metadata = await this.getTableMetadata(processedQuery.tableId);
+
+    if (processedQuery.type === DataFrameQueryType.Metadata) {
+      return {
+        refId: processedQuery.refId,
+        name: metadata.name,
+        fields: [
+          { name: 'name', values: Object.keys(metadata.properties) },
+          { name: 'value', values: Object.values(metadata.properties) },
+        ],
+      };
+    } else {
+      const columns = this.getColumnTypes(processedQuery.columns, metadata?.columns ?? []);
+      const tableData = await this.getDecimatedTableData(processedQuery, columns, range, maxDataPoints);
+      return {
+        refId: processedQuery.refId,
+        name: metadata.name,
+        fields: this.dataFrameToFields(tableData.frame.data, columns),
+      };
+    }
   }
 
   shouldRunQuery(query: ValidDataFrameQuery): boolean {
-    return Boolean(query.tableId) && Boolean(query.columns.length);
+    return Boolean(query.tableId) && (query.type === DataFrameQueryType.Metadata || Boolean(query.columns.length));
   }
 
-  async getTableMetadata(id?: string): Promise<TableMetadata | null> {
+  async getTableMetadata(id?: string): Promise<TableMetadata> {
     const resolvedId = getTemplateSrv().replace(id);
-    if (!resolvedId) {
-      return null;
-    }
-
     let metadata = this.metadataCache.get(resolvedId);
 
     if (!metadata) {
@@ -98,7 +91,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
       decimation: {
         intervals,
         method: query.decimationMethod,
-        yColumns: this.getNumericColumns(columns).map((c) => c.name),
+        yColumns: this.getNumericColumns(columns).map(c => c.name),
       },
     });
   }
@@ -106,7 +99,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
   async queryTables(query: string): Promise<TableMetadata[]> {
     const filter = `name.Contains("${query}")`;
 
-    return (await this.post<TableMetadataList>(`${this.baseUrl}/query-tables`,  { filter, take: 5 })).tables;
+    return (await this.post<TableMetadataList>(`${this.baseUrl}/query-tables`, { filter, take: 5 })).tables;
   }
 
   async testDatasource(): Promise<TestingStatus> {
@@ -119,15 +112,15 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
 
     // Migration for 1.6.0: DataFrameQuery.columns changed to string[]
     if (_.isObject(migratedQuery.columns[0])) {
-      migratedQuery.columns = (migratedQuery.columns as any[]).map((c) => c.name);
+      migratedQuery.columns = (migratedQuery.columns as any[]).map(c => c.name);
     }
 
     // If we didn't make any changes to the query, then return the original object
-    return deepEqual(migratedQuery, query) ? query as ValidDataFrameQuery : migratedQuery;
-  };
+    return deepEqual(migratedQuery, query) ? (query as ValidDataFrameQuery) : migratedQuery;
+  }
 
   private getColumnTypes(columnNames: string[], tableMetadata: Column[]): Column[] {
-    return columnNames.map((c) => {
+    return columnNames.map(c => {
       const column = tableMetadata.find(({ name }) => name === c);
 
       if (!column) {
@@ -138,52 +131,33 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
     });
   }
 
-  private getFieldType(dataType: ColumnDataType): FieldType {
+  private getFieldTypeAndConverter(dataType: ColumnDataType): [FieldType, (v: string) => any] {
     switch (dataType) {
       case 'BOOL':
-        return FieldType.boolean;
+        return [FieldType.boolean, v => v.toLowerCase() === 'true'];
       case 'STRING':
-        return FieldType.string;
+        return [FieldType.string, v => v];
       case 'TIMESTAMP':
-        return FieldType.time;
+        return [FieldType.time, v => dateTime(v).valueOf()];
       default:
-        return FieldType.number;
+        return [FieldType.number, v => Number(v)];
     }
   }
 
-  private convertDataFrameFields(tableData: TableData, columns: Column[]): DataFrame {
-    this.transformBooleanFields(tableData, columns);
-    const frame = toDataFrame(tableData);
-    frame.fields.forEach(field => {
-      if (field.name.toLowerCase() === 'value') {
-        field.config.displayName = field.name;
-      }
-    })
-    const transformer = standardTransformers.convertFieldTypeTransformer.transformer;
-    const conversions = columns.map(({ name, dataType }) => ({
-      targetField: name,
-      destinationType: this.getFieldType(dataType),
-      dateFormat: 'YYYY-MM-DDTHH:mm:ss.SZ',
-    }));
-    return transformer({ conversions }, { interpolate: _.identity })([frame])[0];
-  }
-
-  private transformBooleanFields(tableData: TableData, columns: Column[]): void {
-    const boolColumnIndices: number[] = [];
-    columns.forEach((column, i) => {
-      if (column.dataType === 'BOOL') {
-        boolColumnIndices.push(i);
-      }
+  private dataFrameToFields(rows: string[][], columns: Column[]): FieldDTO[] {
+    return columns.map((col, ix) => {
+      const [type, converter] = this.getFieldTypeAndConverter(col.dataType);
+      return {
+        name: col.name,
+        type,
+        values: rows.map(row => (row[ix] !== null ? converter(row[ix]) : null)),
+        ...(col.name.toLowerCase() === 'value' && { config: { displayName: col.name } }),
+      };
     });
-    if (!!boolColumnIndices.length) {
-      tableData.rows.forEach(row => {
-        boolColumnIndices.forEach(i => row[i] = row[i].toLowerCase() === 'true');
-      })
-    }
   }
 
   private constructTimeFilters(columns: Column[], timeRange: TimeRange): ColumnFilter[] {
-    const timeIndex = columns.find((c) => c.dataType === 'TIMESTAMP' && c.columnType === 'INDEX');
+    const timeIndex = columns.find(c => c.dataType === 'TIMESTAMP' && c.columnType === 'INDEX');
 
     if (!timeIndex) {
       return [];
