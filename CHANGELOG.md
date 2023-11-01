@@ -1,3 +1,10 @@
+## [3.8.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.7.4...v3.8.0) (2023-11-01)
+
+
+### Features
+
+* **dataframe:** visualize table properties ([#49](https://github.com/ni/systemlink-grafana-plugins/issues/49)) ([8006749](https://github.com/ni/systemlink-grafana-plugins/commit/80067499e4b5cffdd895ec7c03f4cc97157ac4f2))
+
 ## [3.7.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.7.3...v3.7.4) (2023-10-24)
 
 
