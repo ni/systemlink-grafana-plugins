@@ -8,11 +8,21 @@ import { DataFrameDataSource } from './DataFrameDataSource';
 jest.mock('@grafana/runtime', () => ({
   ...jest.requireActual('@grafana/runtime'),
   getBackendSrv: () => ({ fetch: fetchMock }),
-  getTemplateSrv: () => ({ replace: replaceMock }),
+  getTemplateSrv: () => ({ replace: replaceMock, containsTemplate: containsTemplateMock, getVariables: getVariablesMock }),
 }));
+
+const mockVariables = [{
+  name: 'tableId',
+  current: { value: '1' }
+}, {
+  name: 'columns',
+  current: { value: ['time', 'int'] }
+}];
 
 const fetchMock = jest.fn<Observable<FetchResponse>, [BackendSrvRequest]>();
 const replaceMock = jest.fn((a: string, ...rest: any) => a);
+const containsTemplateMock = jest.fn((a: string) => mockVariables.map(v => `$${v.name}`).includes(a));
+const getVariablesMock = jest.fn(() => mockVariables);
 
 let ds: DataFrameDataSource;
 
@@ -202,14 +212,15 @@ it('attempts to replace variables in metadata query', async () => {
 });
 
 it('attempts to replace variables in data query', async () => {
-  const query = buildQuery([{ refId: 'A', tableId: '$tableId', columns: ['$column'] }]);
-  replaceMock.mockReturnValueOnce('1').mockReturnValueOnce('time');
+  const query = buildQuery([{ refId: 'A', tableId: '$tableId', columns: ['$columns'] }]);
+  replaceMock.mockReturnValueOnce('1');
 
   await ds.query(query);
 
-  expect(replaceMock).toHaveBeenCalledTimes(3);
+  expect(replaceMock).toHaveBeenCalledTimes(2);
   expect(replaceMock).toHaveBeenCalledWith(query.targets[0].tableId, expect.anything());
-  expect(replaceMock).toHaveBeenCalledWith(query.targets[0].columns![0], expect.anything());
+  expect(containsTemplateMock).toHaveBeenCalledTimes(1);
+  expect(containsTemplateMock).toHaveBeenCalledWith(query.targets[0].columns![0]);
 });
 
 it('metricFindQuery returns table columns', async () => {

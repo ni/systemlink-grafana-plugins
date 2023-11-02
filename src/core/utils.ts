@@ -2,6 +2,7 @@ import { SelectableValue } from '@grafana/data';
 import { useAsync } from 'react-use';
 import { DataSourceBase } from './DataSourceBase';
 import { Workspace } from './types';
+import { TemplateSrv } from '@grafana/runtime';
 
 export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<SelectableValue<T>> {
   const RESULT = [];
@@ -61,4 +62,23 @@ export function getWorkspaceName(workspaces: Workspace[], id: string) {
  */
 export function sleep(timeout: number) {
   return new Promise(res => window.setTimeout(res, timeout));
+}
+
+/**
+ * Replace variables in an array of values.
+ * Useful for multi-value variables.
+ */
+export function replaceVariables(values: string[], templateSrv: TemplateSrv) {
+  const replaced: string[] = [];
+  values.forEach((col: string, index) => {
+    let value = col;
+    if (templateSrv.containsTemplate(col)) {
+      const variables = templateSrv.getVariables() as any[];
+      const variable = variables.find(v => v.name === col.split('$')[1]);
+      value = variable.current.value;
+    }
+    replaced.push(value);
+  });
+  // Dedupe and flatten
+  return [...new Set(replaced.flat())];
 }

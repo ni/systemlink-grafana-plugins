@@ -32,6 +32,7 @@ import {
 import { metadataCacheTTL } from './constants';
 import _ from 'lodash';
 import { DataSourceBase } from 'core/DataSourceBase';
+import { replaceVariables } from 'core/utils';
 
 export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
   private readonly metadataCache: TTLCache<string, TableMetadata> = new TTLCache({ ttl: metadataCacheTTL });
@@ -50,8 +51,8 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
 
   async runQuery(query: DataFrameQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrame> {
     const processedQuery = this.processQuery(query);
-    processedQuery.tableId = getTemplateSrv().replace(processedQuery.tableId, scopedVars);
-    processedQuery.columns = processedQuery.columns.map(col => getTemplateSrv().replace(col, scopedVars));
+    processedQuery.tableId = this.templateSrv.replace(processedQuery.tableId, scopedVars);
+    processedQuery.columns = replaceVariables(processedQuery.columns, this.templateSrv);
     const tableMetadata = await this.getTableMetadata(processedQuery.tableId);
     const columns = this.getColumnTypes(processedQuery.columns, tableMetadata?.columns ?? []);
     const tableData = await this.getDecimatedTableData(processedQuery, columns, range, maxDataPoints);
@@ -68,7 +69,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
   }
 
   async getTableMetadata(id?: string): Promise<TableMetadata | null> {
-    const resolvedId = getTemplateSrv().replace(id);
+    const resolvedId = this.templateSrv.replace(id);
     if (!resolvedId) {
       return null;
     }
