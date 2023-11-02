@@ -27,6 +27,13 @@ export const DataFrameQueryEditor = (props: Props) => {
 
   return (
     <div style={{ position: 'relative' }}>
+      <InlineField label="Query type" tooltip={tooltips.queryType}>
+        <RadioButtonGroup
+          options={enumToOptions(DataFrameQueryType)}
+          value={query.type}
+          onChange={value => handleQueryChange({ ...query, type: value }, true)}
+        />
+      </InlineField>
       <InlineField label="Id">
         <AsyncSelect
           allowCreateWhileLoading
@@ -80,5 +87,18 @@ export const DataFrameQueryEditor = (props: Props) => {
 const getVariableOptions = () => {
   return getTemplateSrv()
     .getVariables()
-    .map((v) => toOption('$' + v.name));
+    .map(v => toOption('$' + v.name));
+};
+
+const tooltips = {
+  queryType: `Specifies whether to visualize the data rows or properties associated with a table.`,
+
+  columns: `Specifies the columns to include in the response data.`,
+
+  decimation: `Specifies the method used to decimate the data.`,
+
+  filterNulls: `Specifies whether to filter out null and NaN values before decimating the data.`,
+
+  useTimeRange: `Specifies whether to query only for data within the dashboard time range if the
+                table index is a timestamp. Enable when interacting with your data on a graph.`,
 };
