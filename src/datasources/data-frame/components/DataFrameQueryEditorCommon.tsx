@@ -3,7 +3,7 @@ import { LoadOptionsCallback } from "@grafana/ui";
 import { getWorkspaceName, getVariableOptions } from "core/utils";
 import _ from "lodash";
 import { DataFrameDataSource } from "../DataFrameDataSource";
-import { DataFrameQuery, ValidDataFrameQuery } from "../types";
+import { DataFrameQuery, DataFrameQueryType, ValidDataFrameQuery } from "../types";
 
 export type Props = QueryEditorProps<DataFrameDataSource, DataFrameQuery>;
 
@@ -31,14 +31,23 @@ export class DataFrameQueryEditorCommon {
 
   readonly handleIdChange = (item: SelectableValue<string>) => {
     if (this.query.tableId !== item.value) {
-      this.handleQueryChange({ ...this.query, tableId: item.value, columns: [] }, false);
+      this.handleQueryChange({ ...this.query, tableId: item.value, columns: [] }, this.query.type === DataFrameQueryType.Metadata);
     }
   };
 
   readonly loadTableOptions = _.debounce((query: string, cb?: LoadOptionsCallback<string>) => {
     Promise.all([this.datasource.queryTables(query), this.datasource.getWorkspaces()])
-      .then(([tables, workspaces]) => cb?.(tables.map((t) => ({ label: t.name, value: t.id, title: t.id, description: getWorkspaceName(workspaces, t.workspace) }))))
-      .catch(this.handleError);
+      .then(([tables, workspaces]) =>
+      cb?.(
+        tables.map(t => ({
+          label: t.name,
+          value: t.id,
+          title: t.id,
+          description: getWorkspaceName(workspaces, t.workspace),
+        }))
+      )
+    )
+    .catch(this.handleError);
   }, 300);
 
   readonly handleLoadOptions = (query: string, cb?: LoadOptionsCallback<string>) => {

@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useAsync } from 'react-use';
 import { SelectableValue, toOption } from '@grafana/data';
-import { InlineField, InlineSwitch, MultiSelect, Select, AsyncSelect } from '@grafana/ui';
+import { InlineField, InlineSwitch, MultiSelect, Select, AsyncSelect, RadioButtonGroup } from '@grafana/ui';
 import { decimationMethods } from '../constants';
 import _ from 'lodash';
 import { getTemplateSrv } from '@grafana/runtime';
 import { isValidId } from '../utils';
 import { FloatingError, parseErrorMessage } from '../errors';
 import { DataFrameQueryEditorCommon, Props } from './DataFrameQueryEditorCommon';
+import { enumToOptions } from 'core/utils';
+import { DataFrameQueryType } from '../types';
 
 export const DataFrameQueryEditor = (props: Props) => {
   const [errorMsg, setErrorMsg] = useState<string>('');
@@ -30,8 +32,8 @@ export const DataFrameQueryEditor = (props: Props) => {
       <InlineField label="Query type" tooltip={tooltips.queryType}>
         <RadioButtonGroup
           options={enumToOptions(DataFrameQueryType)}
-          value={query.type}
-          onChange={value => handleQueryChange({ ...query, type: value }, true)}
+          value={common.query.type}
+          onChange={value => common.handleQueryChange({ ...common.query, type: value }, true)}
         />
       </InlineField>
       <InlineField label="Id">
@@ -48,37 +50,38 @@ export const DataFrameQueryEditor = (props: Props) => {
           value={common.query.tableId ? toOption(common.query.tableId) : null}
         />
       </InlineField>
-      <InlineField label="Columns" shrink={true} tooltip="Specifies the columns to include in the response data.">
-        <MultiSelect
-          isLoading={tableMetadata.loading}
-          options={loadColumnOptions()}
-          onChange={handleColumnChange}
-          onBlur={common.onRunQuery}
-          value={(common.query.columns).map(toOption)}
-        />
-      </InlineField>
-      <InlineField label="Decimation" tooltip="Specifies the method used to decimate the data.">
-        <Select
-          options={decimationMethods}
-          onChange={(item) => common.handleQueryChange({ ...common.query, decimationMethod: item.value! }, true)}
-          value={common.query.decimationMethod}
-        />
-      </InlineField>
-      <InlineField label="Filter nulls" tooltip="Filters out null and NaN values before decimating the data.">
-        <InlineSwitch
-          value={common.query.filterNulls}
-          onChange={(event) => common.handleQueryChange({ ...common.query, filterNulls: event.currentTarget.checked }, true)}
-        ></InlineSwitch>
-      </InlineField>
-      <InlineField
-        label="Use time range"
-        tooltip="Queries only for data within the dashboard time range if the table index is a timestamp. Enable when interacting with your data on a graph."
-      >
-        <InlineSwitch
-          value={common.query.applyTimeFilters}
-          onChange={(event) => common.handleQueryChange({ ...common.query, applyTimeFilters: event.currentTarget.checked }, true)}
-        ></InlineSwitch>
-      </InlineField>
+      {common.query.type === DataFrameQueryType.Data && (
+        <>
+          <InlineField label="Columns" shrink={true} tooltip={tooltips.columns}>
+            <MultiSelect
+              isLoading={tableMetadata.loading}
+              options={loadColumnOptions()}
+              onChange={handleColumnChange}
+              onBlur={common.onRunQuery}
+              value={common.query.columns.map(toOption)}
+            />
+          </InlineField>
+          <InlineField label="Decimation" tooltip={tooltips.decimation}>
+            <Select
+              options={decimationMethods}
+              onChange={item => common.handleQueryChange({ ...common.query, decimationMethod: item.value! }, true)}
+              value={common.query.decimationMethod}
+            />
+          </InlineField>
+          <InlineField label="Filter nulls" tooltip={tooltips.filterNulls}>
+            <InlineSwitch
+              value={common.query.filterNulls}
+              onChange={event => common.handleQueryChange({ ...common.query, filterNulls: event.currentTarget.checked }, true)}
+            ></InlineSwitch>
+          </InlineField>
+          <InlineField label="Use time range" tooltip={tooltips.useTimeRange}>
+            <InlineSwitch
+              value={common.query.applyTimeFilters}
+              onChange={event => common.handleQueryChange({ ...common.query, applyTimeFilters: event.currentTarget.checked }, true)}
+            ></InlineSwitch>
+          </InlineField>
+        </>
+      )}
       <FloatingError message={errorMsg} />
     </div>
   );

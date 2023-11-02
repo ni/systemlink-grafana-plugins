@@ -227,7 +227,7 @@ it('attempts to replace variables in data query', async () => {
 });
 
 it('metricFindQuery returns table columns', async () => {
-  const tableId = '12345';
+  const tableId = '1';
   const expectedColumns = fakeMetadataResponse.columns.map(col => ({ text: col.name, value: col.name }));
 
   const columns = await ds.metricFindQuery({ tableId } as DataFrameQuery);
