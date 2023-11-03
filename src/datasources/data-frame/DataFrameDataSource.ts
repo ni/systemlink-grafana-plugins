@@ -1,6 +1,6 @@
 import TTLCache from '@isaacs/ttlcache';
 import deepEqual from 'fast-deep-equal';
-import { DataQueryRequest, DataSourceInstanceSettings, FieldType, TimeRange, FieldDTO, dateTime, DataFrameDTO } from '@grafana/data';
+import { DataQueryRequest, DataSourceInstanceSettings, FieldType, TimeRange, FieldDTO, dateTime, DataFrameDTO, MetricFindValue } from '@grafana/data';
 import { BackendSrv, TemplateSrv, TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import {
   ColumnDataType,
@@ -17,6 +17,7 @@ import {
 import { metadataCacheTTL } from './constants';
 import _ from 'lodash';
 import { DataSourceBase } from 'core/DataSourceBase';
+import { replaceVariables } from 'core/utils';
 
 export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
   private readonly metadataCache: TTLCache<string, TableMetadata> = new TTLCache({ ttl: metadataCacheTTL });
@@ -35,7 +36,8 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
 
   async runQuery(query: DataFrameQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
     const processedQuery = this.processQuery(query);
-    processedQuery.tableId = getTemplateSrv().replace(processedQuery.tableId, scopedVars);
+    processedQuery.tableId = this.templateSrv.replace(processedQuery.tableId, scopedVars);
+    processedQuery.columns = replaceVariables(processedQuery.columns, this.templateSrv);
     const metadata = await this.getTableMetadata(processedQuery.tableId);
 
     if (processedQuery.type === DataFrameQueryType.Metadata) {
@@ -63,7 +65,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
   }
 
   async getTableMetadata(id?: string): Promise<TableMetadata> {
-    const resolvedId = getTemplateSrv().replace(id);
+    const resolvedId = this.templateSrv.replace(id);
     let metadata = this.metadataCache.get(resolvedId);
 
     if (!metadata) {
@@ -117,6 +119,11 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
 
     // If we didn't make any changes to the query, then return the original object
     return deepEqual(migratedQuery, query) ? (query as ValidDataFrameQuery) : migratedQuery;
+  }
+
+  async metricFindQuery(tableQuery: DataFrameQuery): Promise<MetricFindValue[]> {
+    const tableMetadata = await this.getTableMetadata(tableQuery.tableId);
+    return tableMetadata.columns.map(col => ({ text: col.name, value: col.name }));
   }
 
   private getColumnTypes(columnNames: string[], tableMetadata: Column[]): Column[] {

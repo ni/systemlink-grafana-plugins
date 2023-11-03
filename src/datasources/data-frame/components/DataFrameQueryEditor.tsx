@@ -1,83 +1,39 @@
 import React, { useState } from 'react';
 import { useAsync } from 'react-use';
-import { CoreApp, QueryEditorProps, SelectableValue, toOption } from '@grafana/data';
-import { DataFrameDataSource } from '../DataFrameDataSource';
-import { DataFrameQuery, DataFrameQueryType } from '../types';
-import {
-  InlineField,
-  InlineSwitch,
-  MultiSelect,
-  Select,
-  AsyncSelect,
-  LoadOptionsCallback,
-  RadioButtonGroup,
-} from '@grafana/ui';
+import { SelectableValue, toOption } from '@grafana/data';
+import { InlineField, InlineSwitch, MultiSelect, Select, AsyncSelect, RadioButtonGroup } from '@grafana/ui';
 import { decimationMethods } from '../constants';
 import _ from 'lodash';
 import { getTemplateSrv } from '@grafana/runtime';
 import { isValidId } from '../utils';
 import { FloatingError, parseErrorMessage } from '../errors';
-import { enumToOptions, getWorkspaceName } from 'core/utils';
-
-type Props = QueryEditorProps<DataFrameDataSource, DataFrameQuery>;
+import { DataFrameQueryEditorCommon, Props } from './DataFrameQueryEditorCommon';
+import { enumToOptions } from 'core/utils';
+import { DataFrameQueryType } from '../types';
 
 export const DataFrameQueryEditor = (props: Props) => {
-  const { datasource, onChange } = props;
-  const query = datasource.processQuery(props.query);
-  const onRunQuery = () => props.app !== CoreApp.Explore && props.onRunQuery();
-
   const [errorMsg, setErrorMsg] = useState<string>('');
   const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
-
-  const tableMetadata = useAsync(() => datasource.getTableMetadata(query.tableId).catch(handleError), [query.tableId]);
-
-  const handleQueryChange = (value: DataFrameQuery, runQuery: boolean) => {
-    onChange(value);
-    if (runQuery) {
-      onRunQuery();
-    }
-  };
-
-  const handleIdChange = (item: SelectableValue<string>) => {
-    if (query.tableId !== item.value) {
-      handleQueryChange({ ...query, tableId: item.value, columns: [] }, query.type === DataFrameQueryType.Metadata);
-    }
-  };
+  const common = new DataFrameQueryEditorCommon(props, handleError);
+  const tableMetadata = useAsync(() => common.datasource.getTableMetadata(common.query.tableId).catch(handleError), [common.query.tableId]);
 
   const handleColumnChange = (items: Array<SelectableValue<string>>) => {
-    handleQueryChange({ ...query, columns: items.map(i => i.value!) }, false);
+    common.handleQueryChange({ ...common.query, columns: items.map(i => i.value!) }, false);
   };
 
-  const loadTableOptions = _.debounce((query: string, cb?: LoadOptionsCallback<string>) => {
-    Promise.all([datasource.queryTables(query), datasource.getWorkspaces()])
-      .then(([tables, workspaces]) =>
-        cb?.(
-          tables.map(t => ({
-            label: t.name,
-            value: t.id,
-            title: t.id,
-            description: getWorkspaceName(workspaces, t.workspace),
-          }))
-        )
-      )
-      .catch(handleError);
-  }, 300);
-
-  const handleLoadOptions = (query: string, cb?: LoadOptionsCallback<string>) => {
-    if (!query || query.startsWith('$')) {
-      return cb?.(getVariableOptions().filter(v => v.value?.includes(query)));
-    }
-
-    loadTableOptions(query, cb);
-  };
+  const loadColumnOptions = () => {
+    const columnOptions = (tableMetadata.value?.columns ?? []).map(c => toOption(c.name));
+    columnOptions.unshift(...getVariableOptions());
+    return columnOptions;
+  }
 
   return (
     <div style={{ position: 'relative' }}>
       <InlineField label="Query type" tooltip={tooltips.queryType}>
         <RadioButtonGroup
           options={enumToOptions(DataFrameQueryType)}
-          value={query.type}
-          onChange={value => handleQueryChange({ ...query, type: value }, true)}
+          value={common.query.type}
+          onChange={value => common.handleQueryChange({ ...common.query, type: value }, true)}
         />
       </InlineField>
       <InlineField label="Id">
@@ -87,41 +43,41 @@ export const DataFrameQueryEditor = (props: Props) => {
           cacheOptions={false}
           defaultOptions
           isValidNewOption={isValidId}
-          loadOptions={handleLoadOptions}
-          onChange={handleIdChange}
+          loadOptions={common.handleLoadOptions}
+          onChange={common.handleIdChange}
           placeholder="Search by name or enter id"
           width={30}
-          value={query.tableId ? toOption(query.tableId) : null}
+          value={common.query.tableId ? toOption(common.query.tableId) : null}
         />
       </InlineField>
-      {query.type === DataFrameQueryType.Data && (
+      {common.query.type === DataFrameQueryType.Data && (
         <>
           <InlineField label="Columns" shrink={true} tooltip={tooltips.columns}>
             <MultiSelect
               isLoading={tableMetadata.loading}
-              options={(tableMetadata.value?.columns ?? []).map(c => toOption(c.name))}
+              options={loadColumnOptions()}
               onChange={handleColumnChange}
-              onBlur={onRunQuery}
-              value={query.columns.map(toOption)}
+              onBlur={common.onRunQuery}
+              value={common.query.columns.map(toOption)}
             />
           </InlineField>
           <InlineField label="Decimation" tooltip={tooltips.decimation}>
             <Select
               options={decimationMethods}
-              onChange={item => handleQueryChange({ ...query, decimationMethod: item.value! }, true)}
-              value={query.decimationMethod}
+              onChange={item => common.handleQueryChange({ ...common.query, decimationMethod: item.value! }, true)}
+              value={common.query.decimationMethod}
             />
           </InlineField>
           <InlineField label="Filter nulls" tooltip={tooltips.filterNulls}>
             <InlineSwitch
-              value={query.filterNulls}
-              onChange={event => handleQueryChange({ ...query, filterNulls: event.currentTarget.checked }, true)}
+              value={common.query.filterNulls}
+              onChange={event => common.handleQueryChange({ ...common.query, filterNulls: event.currentTarget.checked }, true)}
             ></InlineSwitch>
           </InlineField>
           <InlineField label="Use time range" tooltip={tooltips.useTimeRange}>
             <InlineSwitch
-              value={query.applyTimeFilters}
-              onChange={event => handleQueryChange({ ...query, applyTimeFilters: event.currentTarget.checked }, true)}
+              value={common.query.applyTimeFilters}
+              onChange={event => common.handleQueryChange({ ...common.query, applyTimeFilters: event.currentTarget.checked }, true)}
             ></InlineSwitch>
           </InlineField>
         </>
