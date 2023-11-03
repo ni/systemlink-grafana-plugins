@@ -1,3 +1,10 @@
+## [3.9.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.8.0...v3.9.0) (2023-11-03)
+
+
+### Features
+
+* **dataframe:** Column variable support ([#50](https://github.com/ni/systemlink-grafana-plugins/issues/50)) ([db00fa6](https://github.com/ni/systemlink-grafana-plugins/commit/db00fa670928dda01562d645b21a4da582c9d188))
+
 ## [3.8.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.7.4...v3.8.0) (2023-11-01)
 
 
