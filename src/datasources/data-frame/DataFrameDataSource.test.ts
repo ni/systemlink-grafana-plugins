@@ -243,8 +243,8 @@ it('returns table properties for metadata query', async () => {
 
   expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/nidataframe/v1/tables/1' }));
   expect(response.data[0].fields).toEqual([
-    { name: 'name', values: ['hello', 'foo'] },
-    { name: 'value', values: ['world', 'bar'] },
+    { name: 'hello', values: ['world'] },
+    { name: 'foo', values: ['bar'] },
   ])
 });
 
@@ -253,12 +253,8 @@ it('handles metadata query when table has no properties', async () => {
 
   const response = await ds.query(query);
 
-  console.log(fetchMock.mock.calls)
   expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/nidataframe/v1/tables/2' }));
-  expect(response.data[0].fields).toEqual([
-    { name: 'name', values: [] },
-    { name: 'value', values: [] },
-  ])
+  expect(response.data[0].fields).toEqual([]);
 });
 
 const buildQuery = (targets: DataFrameQuery[]): DataQueryRequest<DataFrameQuery> => {
