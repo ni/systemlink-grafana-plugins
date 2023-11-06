@@ -44,10 +44,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
       return {
         refId: processedQuery.refId,
         name: metadata.name,
-        fields: [
-          { name: 'name', values: Object.keys(metadata.properties) },
-          { name: 'value', values: Object.values(metadata.properties) },
-        ],
+        fields: Object.entries(metadata.properties).map(([name, value]) => ({ name, values: [value] })),
       };
     } else {
       const columns = this.getColumnTypes(processedQuery.columns, metadata?.columns ?? []);
