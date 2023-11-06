@@ -1,3 +1,10 @@
+## [3.9.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.9.0...v3.9.1) (2023-11-06)
+
+
+### Bug Fixes
+
+* **dataframe:** switch orientation of metadata frame ([#51](https://github.com/ni/systemlink-grafana-plugins/issues/51)) ([bd9a0b9](https://github.com/ni/systemlink-grafana-plugins/commit/bd9a0b9490af62213f13e33631dde9a257645780))
+
 ## [3.9.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.8.0...v3.9.0) (2023-11-03)
 
 
