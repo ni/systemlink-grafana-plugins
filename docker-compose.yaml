@@ -11,7 +11,7 @@ services:
     environment:
       - GF_USERS_DEFAULT_THEME=light
     ports:
-      - 3000:3000/tcp
+      - 3004:3004/tcp
     volumes:
       - ./dist:/var/lib/grafana/plugins/ni-systemlink-app
       - ./provisioning:/etc/grafana/provisioning
