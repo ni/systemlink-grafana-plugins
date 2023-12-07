@@ -50,7 +50,7 @@ export function AssetUtilizationQueryEditor({query, onChange, onRunQuery, dataso
 
 
         if (query.minionId) {
-            const resolvedId = getTemplateSrv().replace(query.minionId);
+            const resolvedId = datasource.templateSrv.replace(query.minionId);
             filterArray.push(`${AssetFilterProperties.LocationMinionId} = "${resolvedId}"`)
         }
 
@@ -107,6 +107,12 @@ export function AssetUtilizationQueryEditor({query, onChange, onRunQuery, dataso
         if (query.isPeak !== item) {
             handleQueryChange({...query, isPeak: item}, true);
         }
+    };
+
+    const getVariableOptions = () => {
+        return datasource.templateSrv
+            .getVariables()
+            .map((v) => toOption('$' + v.name));
     };
 
     const loadMinionIdOptions = () => {
@@ -218,8 +224,8 @@ export function AssetUtilizationQueryEditor({query, onChange, onRunQuery, dataso
     );
 }
 
-const getVariableOptions = () => {
-    return getTemplateSrv()
-        .getVariables()
-        .map((v) => toOption('$' + v.name));
-};
+// const getVariableOptions = () => {
+//     return getTemplateSrv()
+//         .getVariables()
+//         .map((v) => toOption('$' + v.name));
+// };
