@@ -55,7 +55,7 @@ export class AssetUtilizationDataSource extends DataSourceBase<AssetUtilizationQ
         const from = (new Date(range!.from.valueOf())).toISOString();
         const to = (new Date(range!.to.valueOf())).toISOString();
 
-        query.assetIdentifier = getTemplateSrv().replace(query.assetIdentifier, options.scopedVars);
+        query.assetIdentifier = this.templateSrv.replace(query.assetIdentifier, options.scopedVars);
         // todo add time range logic to onLoadUtilizationHistory
         const result: DataFrameDTO = {refId: query.refId, fields: []};
 
@@ -132,20 +132,20 @@ export class AssetUtilizationDataSource extends DataSourceBase<AssetUtilizationQ
 
         // Removes data outside the grafana 'from' and 'to' range from an array
         const filteredData = filterDataByTimeRange(patchedData, from, to)
-
+       
         // Merge overlapping utilizations
         const dataWithoutOverlaps = mergeOverlappingIntervals(filteredData)
-
+        
         //smallest startTimestamp and biggest endTimestamp
         const [smallestStartTimestamp, biggestEndTimestamp] = getStartEndDates(dataWithoutOverlaps)
 
         // todo add null utilization to chart if data not exists
         const dailyBusinessHoursArray = getBusinessHours(smallestStartTimestamp, biggestEndTimestamp, workingHoursPolicyUTC, isPeak, peakDays, timeFrequency)
-
+       
         const overlaps = splitIntervalsByDays(dailyBusinessHoursArray, dataWithoutOverlaps, peakDays, isPeak)
-
+        
         const utilization = calculateDailyUtilization(overlaps)
-
+        
         return {
             datetimes: utilization.map(v => dateTime(v.day).valueOf()),
             values: utilization.map(v => v.utilization)
@@ -179,7 +179,7 @@ export class AssetUtilizationDataSource extends DataSourceBase<AssetUtilizationQ
                 }
             ]
         }
-        this.post(this.baseUrl + '/query-asset-utilization', testRequestBody)
+        await this.post(this.baseUrl + '/query-asset-utilization', testRequestBody)
         return {status: 'success', message: 'Data source connected and authentication successful!'};
     }
 }

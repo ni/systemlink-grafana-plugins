@@ -2,7 +2,7 @@ import { DataQueryRequest, DataSourceApi, DataSourceInstanceSettings, LoadingSta
 import { BackendSrv, BackendSrvRequest, FetchResponse, TemplateSrv } from '@grafana/runtime';
 import { DataQuery } from '@grafana/schema';
 import { render } from '@testing-library/react';
-import { Weekday, ValidAssetUtilizationQuery, IsPeak, UtilizationCategory, IsNIAsset, Interval, AssetUtilizationQuery, AssetUtilizationHistory, AssetModel, AssetPresenceWithSystemConnectionModel, UtilizationTimeFrequency } from 'datasources/asset-utilization/types';
+import { Weekday, Interval, AssetUtilizationHistory, AssetModel, AssetPresenceWithSystemConnectionModel, SystemConnection } from 'datasources/asset-utilization/types';
 import { Matcher, MatcherCreator, calledWithFn, mock } from 'jest-mock-extended';
 import _ from 'lodash';
 import React from 'react';
@@ -172,7 +172,7 @@ export const assetModelMock: AssetModel[] = [
     serialNumber: '',
     vendorName: '',
     vendorNumber: 123,
-    name: '',
+    name: 'asset1',
     visaResourceName: '',
     temperatureSensors: [],
     supportsSelfCalibration: true,
