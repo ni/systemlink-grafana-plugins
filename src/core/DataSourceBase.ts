@@ -31,7 +31,9 @@ export abstract class DataSourceBase<TQuery extends DataQuery> extends DataSourc
       .filter(this.shouldRunQuery, this)
       .map(q => this.runQuery(q, request), this);
 
-    return Promise.all(promises).then(data => ({ data }));
+    return Promise.all(promises)
+      .then(data => ({ data }))
+      .catch(error => ({ data: [], error: { message: error.data.error.message }}));
   }
 
   prepareQuery(query: TQuery): TQuery {
