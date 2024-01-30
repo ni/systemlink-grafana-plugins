@@ -10,6 +10,7 @@
     "test": "jest --watch --onlyChanged",
     "test:ci": "jest --passWithNoTests --maxWorkers 4",
     "test:template": "npx plop datasource Test && npx tsc --noEmit && rimraf src/datasources/test",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx .",
     "lint:fix": "npm run lint --fix",
     "e2e": "npm exec cypress install && npm exec grafana-e2e run",
@@ -86,7 +87,7 @@
     "react-dom": "18.2.0",
     "react-plotly.js": "^2.6.0",
     "react-router-dom": "^5.3.3",
-    "rxjs": "7.8.0",
+    "rxjs": "7.8.1",
     "smart-webcomponents-react": "^12.0.0",
     "tslib": "2.5.3"
   },
