@@ -1,6 +1,10 @@
 // Jest setup provided by Grafana scaffolding
 import './.config/jest-setup';
 import { DataSourceBase } from './src/core/DataSourceBase';
+import { TextEncoder, TextDecoder } from 'util';
+
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
 
 // Called by @grafana/ui AutoSizeInput
 HTMLCanvasElement.prototype.getContext = () => ({

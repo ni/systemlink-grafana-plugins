@@ -6,6 +6,11 @@
  */
 
 import '@testing-library/jest-dom';
+import { TextEncoder } from 'util';
+
+// Fix missing globals when `jsdom` is used in a test environment.
+// See https://github.com/jsdom/jsdom/issues/2524
+global.TextEncoder = TextEncoder;
 
 // https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(global, 'matchMedia', {

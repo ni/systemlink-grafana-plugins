@@ -1,5 +1,5 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindValue } from '@grafana/data';
-import { BackendSrv, TemplateSrv, TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
+import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { defaultOrderBy, defaultProjection } from './constants';
 import { NetworkUtils } from './network-utils';
@@ -83,7 +83,7 @@ export class SystemDataSource extends DataSourceBase<SystemQuery> {
     return true;
   }
 
-  async testDatasource(): Promise<TestingStatus> {
+  async testDatasource(): Promise<TestDataSourceResponse> {
     await this.get(this.baseUrl + '/get-systems-summary');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }

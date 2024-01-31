@@ -1,5 +1,5 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType } from '@grafana/data';
-import { BackendSrv, TemplateSrv, TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, TestDataSourceResponse } from '@grafana/data';
+import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { {{Name}}Query } from './types';
 
@@ -9,7 +9,7 @@ export class {{Name}}DataSource extends DataSourceBase<{{Name}}Query> {
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
-    super(instanceSettings, backendSrv);
+    super(instanceSettings, backendSrv, templateSrv);
   }
 
   // TODO: set base path of the service
@@ -33,7 +33,7 @@ export class {{Name}}DataSource extends DataSourceBase<{{Name}}Query> {
     return true;
   }
 
-  async testDatasource(): Promise<TestingStatus> {
+  async testDatasource(): Promise<TestDataSourceResponse> {
     // TODO: Implement a health and authentication check
     await this.backendSrv.get(this.baseUrl + '/bar');
     return { status: 'success', message: 'Data source connected and authentication successful!' };

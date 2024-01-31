@@ -1,7 +1,7 @@
 import TTLCache from '@isaacs/ttlcache';
 import deepEqual from 'fast-deep-equal';
-import { DataQueryRequest, DataSourceInstanceSettings, FieldType, TimeRange, FieldDTO, dateTime, DataFrameDTO, MetricFindValue } from '@grafana/data';
-import { BackendSrv, TemplateSrv, TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
+import { DataQueryRequest, DataSourceInstanceSettings, FieldType, TimeRange, FieldDTO, dateTime, DataFrameDTO, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
+import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import {
   ColumnDataType,
   DataFrameQuery,
@@ -101,7 +101,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery> {
     return (await this.post<TableMetadataList>(`${this.baseUrl}/query-tables`, { filter, take: 5 })).tables;
   }
 
-  async testDatasource(): Promise<TestingStatus> {
+  async testDatasource(): Promise<TestDataSourceResponse> {
     await this.get(`${this.baseUrl}/tables`, { take: 1 });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }

@@ -14,17 +14,20 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Unit tests
-        run: npm run test:ci
+      - name: Check types
+        run: npm run typecheck
 
       - name: Lint
         run: npm run lint
+
+      - name: Unit tests
+        run: npm run test:ci
 
       - name: Build
         run: npm run build
