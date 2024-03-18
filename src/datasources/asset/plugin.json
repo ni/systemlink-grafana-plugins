@@ -1,7 +1,7 @@
 {
   "type": "datasource",
-  "name": "SystemLink Asset Utilizations",
-  "id": "ni-slassetutilization-datasource",
+  "name": "SystemLink Assets",
+  "id": "ni-slasset-datasource",
   "metrics": true,
   "info": {
     "author": {

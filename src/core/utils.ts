@@ -82,3 +82,16 @@ export function replaceVariables(values: string[], templateSrv: TemplateSrv) {
   // Dedupe and flatten
   return [...new Set(replaced.flat())];
 }
+
+export interface SystemLinkError {
+  error: {
+    args: string[];
+    code: number;
+    message: string;
+    name: string;
+  }
+}
+
+export function isSystemLinkError(error: any): error is SystemLinkError {
+  return Boolean(error?.error?.code) && Boolean(error?.error?.name);
+}

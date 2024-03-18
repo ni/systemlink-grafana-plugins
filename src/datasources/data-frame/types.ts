@@ -64,16 +64,3 @@ export interface TableMetadataList {
 export interface TableDataRows {
   frame: { columns: string[]; data: string[][] };
 }
-
-export interface SystemLinkError {
-  error: {
-    args: string[];
-    code: number;
-    message: string;
-    name: string;
-  }
-}
-
-export function isSystemLinkError(error: any): error is SystemLinkError {
-  return Boolean(error?.error?.code) && Boolean(error?.error?.name);
-}

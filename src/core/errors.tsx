@@ -1,9 +1,9 @@
 import { isFetchError } from '@grafana/runtime';
 import { Alert } from '@grafana/ui';
-import { errorCodes } from './constants';
+import { errorCodes } from '../datasources/data-frame/constants';
 import React, { useState, useEffect } from 'react';
 import { useTimeoutFn } from 'react-use';
-import { isSystemLinkError } from './types';
+import { isSystemLinkError } from './utils';
 
 export const FloatingError = ({ message = '' }) => {
   const [hide, setHide] = useState(false);
@@ -19,7 +19,7 @@ export const FloatingError = ({ message = '' }) => {
   return <Alert title={message} elevated style={{ position: 'absolute', top: 0, right: 0, width: '50%' }} />;
 };
 
-export const parseErrorMessage = (error: Error) => {
+export const parseErrorMessage = (error: Error): string | undefined => {
   if (isFetchError(error)) {
     if (isSystemLinkError(error.data)) {
       return errorCodes[error.data.error.code] ?? error.data.error.message;

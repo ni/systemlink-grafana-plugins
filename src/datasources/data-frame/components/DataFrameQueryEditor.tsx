@@ -6,13 +6,13 @@ import { decimationMethods } from '../constants';
 import _ from 'lodash';
 import { getTemplateSrv } from '@grafana/runtime';
 import { isValidId } from '../utils';
-import { FloatingError, parseErrorMessage } from '../errors';
+import { FloatingError, parseErrorMessage } from '../../../core/errors';
 import { DataFrameQueryEditorCommon, Props } from './DataFrameQueryEditorCommon';
 import { enumToOptions } from 'core/utils';
 import { DataFrameQueryType } from '../types';
 
 export const DataFrameQueryEditor = (props: Props) => {
-  const [errorMsg, setErrorMsg] = useState<string>('');
+  const [errorMsg, setErrorMsg] = useState<string | undefined>('');
   const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
   const common = new DataFrameQueryEditorCommon(props, handleError);
   const tableMetadata = useAsync(() => common.datasource.getTableMetadata(common.query.tableId).catch(handleError), [common.query.tableId]);
