@@ -21,5 +21,11 @@
   "dependencies": {
     "grafanaDependency": "^10.2.3",
     "plugins": []
-  }
+  },
+  "routes": [
+    {
+      "path": "ninbparser",
+      "url": "http://host.docker.internal:12600/ninbparser"
+    }
+  ]
 }

@@ -11,5 +11,11 @@
       "small": "img/logo-ni.svg",
       "large": "img/logo-ni.svg"
     }
-  }
+  },
+  "routes": [
+    {
+      "path": "ninbparser",
+      "url": "http://host.docker.internal:12600/ninbparser"
+    }
+  ]
 }
