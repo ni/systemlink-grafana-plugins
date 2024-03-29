@@ -1,8 +1,8 @@
 import { DataSourcePlugin } from '@grafana/data';
-import { ProductDataSource } from './ProductDataSource';
-import { ProductQueryEditor } from './components/ProductQueryEditor';
+import { productDataSource } from './productDataSource';
+import { productQueryEditor } from './components/productQueryEditor';
 import { HttpConfigEditor } from 'core/components/HttpConfigEditor';
 
-export const plugin = new DataSourcePlugin(ProductDataSource)
+export const plugin = new DataSourcePlugin(productDataSource)
   .setConfigEditor(HttpConfigEditor)
-  .setQueryEditor(ProductQueryEditor);
+  .setQueryEditor(productQueryEditor);

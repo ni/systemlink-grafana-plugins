@@ -1,6 +1,6 @@
 {
   "type": "datasource",
-  "name": "SystemLink Products",
+  "name": "SystemLink products",
   "id": "ni-slproduct-datasource",
   "metrics": true,
   "info": {

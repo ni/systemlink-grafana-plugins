@@ -1,4 +1,4 @@
-# Systemlink Product data source
+# Systemlink product data source
 
 <!--
     TODO: Write a short description of your plugin and document any extra
