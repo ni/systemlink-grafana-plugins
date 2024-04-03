@@ -2,6 +2,7 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, M
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv, TestingStatus } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
+  AssetFilterProperties,
   AssetModel, AssetQuery,
   AssetQueryType,
   AssetsResponse,
@@ -75,7 +76,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
         conditions.push(`workspace = "${workspace_id}"`);
       }
       if (minion_id) {
-        conditions.push(`location.MinionId = "${minion_id}"`);
+        conditions.push(`${AssetFilterProperties.LocationMinionId} = "${minion_id}"`);
       }
       const assetFilter = conditions.join(' and ');
       let assetResponse: AssetModel[] = await this.queryAssets(assetFilter);
@@ -123,7 +124,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
       } else {
         const filterArr: string[] = [];
         idsArray.forEach((id) => {
-          filterArr.push(`AssetIdentifier == "${id}"`);
+          filterArr.push(`${AssetFilterProperties.AssetIdentifier} == "${id}"`);
         });
         const filterStr = workspace_id ? ` (${filterArr.join(' or ')}) and workspace = "${workspace_id}"` : filterArr.join(' or ');
         const assetsResponse = await this.queryAssets(filterStr, -1);
@@ -203,7 +204,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
           conditions.push(`workspace = "${workspace_id}"`);
         }
         if (minion_id) {
-          conditions.push(`Location.MinionId = "${minion_id}"`);
+          conditions.push(`${AssetFilterProperties.LocationMinionId} = "${minion_id}"`);
         }
         const assetFilter = conditions.join(' and ');
         const assetsResponse = await this.queryAssets(assetFilter, 25);
@@ -238,9 +239,9 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
             "orderByDescending": false
           }
           if (query.entityType === EntityType.ASSET) {
-            requestBody.assetFilter = `assetIdentifier = "${arrayOfEntityIds[index]}"`;
+            requestBody.assetFilter = `${AssetFilterProperties.AssetIdentifier} = "${arrayOfEntityIds[index]}"`;
           } else {
-            requestBody.assetFilter = `Location.MinionId = "${arrayOfEntityIds[index]}" and isSystemController = true`;
+            requestBody.assetFilter = `${AssetFilterProperties.LocationMinionId} = "${arrayOfEntityIds[index]}" and ${AssetFilterProperties.IsSystemController} = true`;
           }
           const response: AssetUtilizationHistoryResponse = await this.post<AssetUtilizationHistoryResponse>(this.baseUrl + '/query-asset-utilization-history', requestBody);
           requestCount++;
