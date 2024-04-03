@@ -162,6 +162,8 @@ export class productDataSource extends DataSourceBase<ProductQuery> {
             { name: 'Tags', values: duts.map(d => d.tags) },
           ],
         };
+      case ProductQueryOutput.TestPlansCountByState:
+        return await this.getTestPlansCountByStateOutput(query.refId, partNumber);
     }
   }
 
@@ -175,6 +177,39 @@ export class productDataSource extends DataSourceBase<ProductQuery> {
         { name: 'Failed', values: [failedResultsCount] }
       ],
     };
+  }
+
+  async getTestPlansCountByStateOutput(refId: string, partNumber: string): Promise<DataFrameDTO> {
+    const newCount = await this.getTestPlansCountByState(partNumber, 'New');
+    const definedCount = await this.getTestPlansCountByState(partNumber, 'Defined');
+    const reviewedCount = await this.getTestPlansCountByState(partNumber, 'Reviewed');
+    const scheduledCount = await this.getTestPlansCountByState(partNumber, 'Scheduled');
+    const inProgressCount = await this.getTestPlansCountByState(partNumber, 'InProgress');
+    const pendingApprovalCount = await this.getTestPlansCountByState(partNumber, 'PendingApproval');
+    const closedCount = await this.getTestPlansCountByState(partNumber, 'Closed');
+    const canceledCount = await this.getTestPlansCountByState(partNumber, 'Canceled');
+
+    return {
+      refId,
+      fields: [
+        { name: 'New', values: [newCount] },
+        { name: 'Defined', values: [definedCount] },
+        { name: 'Reviewed', values: [reviewedCount] },
+        { name: 'Scheduled', values: [scheduledCount] },
+        { name: 'In Progress', values: [inProgressCount] },
+        { name: 'Pending Approval', values: [pendingApprovalCount] },
+        { name: 'Closed', values: [closedCount] },
+        { name: 'Canceled', values: [canceledCount] }
+      ],
+    };
+  }
+
+  async getTestPlansCountByState(partNumber: string, state: string): Promise<number> {
+    return await this.post<QueryCountResponse>(`${this.queryTestPlansUrl}`, {
+      filter: `partNumber = "${partNumber}" && state = "${state}"`,
+      returnCount: true,
+      take: 0
+    }).then(response => response.totalCount);
   }
 
   async getProductDetailsOutput(refId: string, partNumber: string): Promise<DataFrameDTO> {

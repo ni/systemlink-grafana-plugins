@@ -7,7 +7,8 @@ export enum ProductQueryOutput {
   TestResults = 'Test Results',
   TestPlans = 'Test Plans',
   Specs = 'Specs',
-  Duts = 'Duts'
+  Duts = 'Duts',
+  TestPlansCountByState = 'Test Plans Count By State',
 }
 
 export interface ProductQuery extends DataQuery {
