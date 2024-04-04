@@ -1,5 +1,5 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, MetricFindValue, } from '@grafana/data';
-import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv, TestingStatus } from '@grafana/runtime';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, MetricFindValue, TestDataSourceResponse, } from '@grafana/data';
+import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
   AssetFilterProperties,
@@ -311,7 +311,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     }
   }
 
-  async testDatasource(): Promise<TestingStatus> {
+  async testDatasource(): Promise<TestDataSourceResponse> {
     await this.get(this.baseUrl + '/assets');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
