@@ -5,7 +5,7 @@ import {
   DataSourceApi,
   DataSourceInstanceSettings,
 } from '@grafana/data';
-import { BackendSrv, BackendSrvRequest, TemplateSrv, TestingStatus, isFetchError } from '@grafana/runtime';
+import { BackendSrv, BackendSrvRequest, TemplateSrv, isFetchError } from '@grafana/runtime';
 import { DataQuery } from '@grafana/schema';
 import { Workspace } from './types';
 import { sleep } from './utils';
@@ -23,7 +23,6 @@ export abstract class DataSourceBase<TQuery extends DataQuery> extends DataSourc
   abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;
   abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
   abstract shouldRunQuery(query: TQuery): boolean;
-  abstract testDatasource(): Promise<TestingStatus>;
 
   query(request: DataQueryRequest<TQuery>): Promise<DataQueryResponse> {
     const promises = request.targets

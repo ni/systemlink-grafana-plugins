@@ -1,3 +1,10 @@
+## [3.9.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.9.1...v3.9.2) (2024-01-04)
+
+
+### Bug Fixes
+
+* **system:** Run query on initial load ([#55](https://github.com/ni/systemlink-grafana-plugins/issues/55)) ([0f8ec32](https://github.com/ni/systemlink-grafana-plugins/commit/0f8ec324dd18eafdd339a37433188ae509804db6))
+
 ## [3.9.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.9.0...v3.9.1) (2023-11-06)
 
 

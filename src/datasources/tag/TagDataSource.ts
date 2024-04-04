@@ -6,8 +6,9 @@ import {
   TimeRange,
   FieldDTO,
   FieldType,
+  TestDataSourceResponse,
 } from '@grafana/data';
-import { BackendSrv, TemplateSrv, TestingStatus, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
+import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { throwIfNullish } from 'core/utils';
 import { TagHistoryResponse, TagQuery, TagQueryType, TagsWithValues } from './types';
@@ -110,7 +111,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
     return Boolean(query.path);
   }
 
-  async testDatasource(): Promise<TestingStatus> {
+  async testDatasource(): Promise<TestDataSourceResponse> {
     await this.get(this.tagUrl + '/tags-count');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }

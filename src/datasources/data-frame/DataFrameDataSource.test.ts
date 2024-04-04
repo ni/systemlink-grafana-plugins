@@ -339,7 +339,7 @@ function getFakeDataResponse(columns: string[]): TableDataRows {
 
 const defaultQuery: DataQueryRequest<DataFrameQuery> = {
   requestId: '1',
-  dashboardId: 0,
+  dashboardUID: '1',
   interval: '0',
   intervalMs: 10,
   panelId: 0,

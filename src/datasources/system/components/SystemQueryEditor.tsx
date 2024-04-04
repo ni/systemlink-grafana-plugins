@@ -1,4 +1,4 @@
-import React, { FormEvent } from 'react';
+import React, { FormEvent, useEffect } from 'react';
 import { AutoSizeInput, RadioButtonGroup, Select } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { SystemDataSource } from '../SystemDataSource';
@@ -10,6 +10,14 @@ type Props = QueryEditorProps<SystemDataSource, SystemQuery>;
 
 export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
+
+  useEffect(() => {
+    if (query.queryKind === SystemQueryType.Summary) {
+      onChange(query);
+      onRunQuery();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
 
   const workspaces = useWorkspaceOptions(datasource);
 

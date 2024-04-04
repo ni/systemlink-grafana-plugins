@@ -160,6 +160,7 @@ export class QueryEditor extends PureComponent<Props, State> {
           <div className="sl-label-button">
             <Label>{param.display_name}</Label>
             <IconButton
+              aria-label="Show code"
               name={this.state.showTextQuery ? 'list-ul' : 'pen'}
               size="sm"
               onClick={() => this.setState({ showTextQuery: !this.state.showTextQuery })}
