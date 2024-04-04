@@ -82,3 +82,41 @@ export function replaceVariables(values: string[], templateSrv: TemplateSrv) {
   // Dedupe and flatten
   return [...new Set(replaced.flat())];
 }
+
+export const expandMultipleValueVariableAfterReplace = (input: string): string[] => {
+  // Helper function to recursively generate combinations
+  const generateCombinations = (text: string, start = 0): string[] => {
+    // Find the next pattern in the string
+    const open = text.indexOf('{{', start);
+    if (open === -1) {
+      // No more patterns, return the current string
+      return [text];
+    }
+    const close = text.indexOf('}}', open);
+    if (close === -1) {
+      throw new Error('Unmatched braces');
+    }
+
+    // Check for nested braces
+    const nestedOpen = text.indexOf('{{', open + 1);
+    if (nestedOpen !== -1 && nestedOpen < close) {
+      throw new Error('Nested braces are not allowed');
+    }
+
+    // Extract the options within the braces and generate combinations
+    const options = text.substring(open + 2, close).split(',').filter((option) => option !== '');
+    const prefix = text.substring(0, open);
+    const suffix = text.substring(close + 2);
+
+    let combinations: string[] = [];
+    for (const option of options) {
+      // For each option, replace the pattern with the option and generate further combinations
+      const newCombinations = generateCombinations(prefix + option + suffix);
+      combinations = combinations.concat(newCombinations);
+    }
+
+    return combinations;
+  };
+
+  return generateCombinations(input);
+};

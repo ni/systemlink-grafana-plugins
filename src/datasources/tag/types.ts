@@ -12,6 +12,11 @@ export interface TagQuery extends DataQuery {
   properties: boolean;
 }
 
+export interface TagVariableQuery {
+  path: string;
+  workspace: string;
+}
+
 interface TagWithValueBase {
   current: {
     value: { value: string };
@@ -27,7 +32,7 @@ interface TagWithValueBase {
 interface TagWithValueV1 {
   tag: {
     collect_aggregates: boolean;
-    datatype: string;
+    datatype: TagDataType;
     last_updated: number;
     workspace_id: string;
   }
@@ -36,7 +41,7 @@ interface TagWithValueV1 {
 // Tag properties renamed in SystemLink Server and Enterprise
 interface TagWithValueV2 {
   tag: {
-    type: string;
+    type: TagDataType;
     workspace: string;
   }
 }
@@ -47,11 +52,30 @@ export interface TagsWithValues {
   tagsWithValues: TagWithValue[];
 }
 
+export interface HttpHistoricalValue {
+  timestamp: string;
+  value: string
+}
+
+export interface TypeAndValues {
+  type: TagDataType;
+  values: HttpHistoricalValue[];
+}
+
 export interface TagHistoryResponse {
-  results: {
-    [path: string]: {
-      type: string;
-      values: Array<{ timestamp: string; value: string }>;
-    };
-  };
+  results: Record<string, TypeAndValues>
+}
+
+export enum TagDataType {
+  DOUBLE = "DOUBLE",
+  INT = "INT",
+  STRING = "STRING",
+  BOOLEAN = "BOOLEAN",
+  U_INT64 = "U_INT64",
+  DATE_TIME = "DATE_TIME"
+}
+
+export interface TimeAndTagTypeValues {
+  timestamps: string[],
+  values: Record<string, { 'type': TagDataType, values: string[] }>
 }

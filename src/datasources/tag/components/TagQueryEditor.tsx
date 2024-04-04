@@ -2,7 +2,7 @@ import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { AutoSizeInput, InlineSwitch, RadioButtonGroup, Select } from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
 import { enumToOptions, useWorkspaceOptions } from 'core/utils';
-import React, { FormEvent } from 'react';
+import React, { FormEvent, JSX } from 'react';
 import { TagDataSource } from '../TagDataSource';
 import { TagQuery, TagQueryType } from '../types';
 
@@ -33,13 +33,25 @@ export function TagQueryEditor({ query, onChange, onRunQuery, datasource }: Prop
     onRunQuery();
   };
 
+  const EnablePropertiesComponent: JSX.Element | null = query.type !== TagQueryType.History ?
+    <InlineField label="Properties" labelWidth={14} tooltip={tooltips.properties}>
+      <InlineSwitch onChange={onPropertiesChange} value={query.properties}/>
+    </InlineField> : null
+
   return (
     <>
       <InlineField label="Query type" labelWidth={14} tooltip={tooltips.queryType}>
-        <RadioButtonGroup options={enumToOptions(TagQueryType)} value={query.type} onChange={onTypeChange} />
+        <RadioButtonGroup options={enumToOptions(TagQueryType)} value={query.type} onChange={onTypeChange}/>
       </InlineField>
       <InlineField label="Tag path" labelWidth={14} tooltip={tooltips.tagPath}>
-        <AutoSizeInput minWidth={20} maxWidth={80} defaultValue={query.path} onCommitChange={onPathChange} />
+        <AutoSizeInput
+          placeholder={'Enter path'}
+          minWidth={20}
+          maxWidth={80}
+          defaultValue={query.path}
+          onCommitChange={onPathChange}
+          onVolumeChange={onPathChange}
+        />
       </InlineField>
       <InlineField label="Workspace" labelWidth={14} tooltip={tooltips.workspace}>
         <Select
@@ -51,9 +63,7 @@ export function TagQueryEditor({ query, onChange, onRunQuery, datasource }: Prop
           value={query.workspace}
         />
       </InlineField>
-      <InlineField label="Properties" labelWidth={14} tooltip={tooltips.properties}>
-        <InlineSwitch onChange={onPropertiesChange} value={query.properties} />
-      </InlineField>
+      {EnablePropertiesComponent}
     </>
   );
 }
