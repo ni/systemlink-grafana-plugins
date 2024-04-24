@@ -52,14 +52,14 @@ export interface TagsWithValues {
   tagsWithValues: TagWithValue[];
 }
 
-export interface HttpHistoricalValue {
+export interface TimestampedValue {
   timestamp: string;
   value: string
 }
 
 export interface TypeAndValues {
   type: TagDataType;
-  values: HttpHistoricalValue[];
+  values: TimestampedValue[];
 }
 
 export interface TagHistoryResponse {

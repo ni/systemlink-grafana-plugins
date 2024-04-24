@@ -45,14 +45,16 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
   async runQuery(query: TagQuery, { range, maxDataPoints, scopedVars }: DataQueryRequest): Promise<DataFrameDTO> {
     let paths: string[] = [query.path];
     if (this.templateSrv.containsTemplate(query.path)) {
-      // wrap replaced variable in extra curly braces, protecting original {} tags from misinterpretation.
-      const replaced_path = this.templateSrv.replace(query.path, {}, (a: string) => `{{${a}}}`);
-      paths = expandMultipleValueVariableAfterReplace(replaced_path);
+      // wrap replaced variable in extra curly braces, protecting original {} in tag path from misinterpretation.
+      const replacedPath = this.templateSrv.replace(
+        query.path,
+        {},
+        (v: string | string[]): string => `{{${v}}}`
+      );
+      paths = expandMultipleValueVariableAfterReplace(replacedPath);
     }
     const workspace = this.templateSrv.replace(query.workspace, scopedVars);
-
     const tagsLastUpdates: TagWithValue[] = await this.getLastUpdatedTag(paths, workspace);
-
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
 
     if (query.type === TagQueryType.Current) {
@@ -63,7 +65,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
           values: tagsLastUpdates.map((tag: TagWithValue) => tag.tag.properties?.displayName || tag.tag.path)
         },
         {
-          name: 'current_value',
+          name: 'currentValue',
           values: tagsLastUpdates.map((tag: TagWithValue) => this.convertTagValue(tag.tag.type ?? tag.tag.datatype, tag.current?.value.value)),
         },
         {
@@ -83,6 +85,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
           );
         });
       }
+
       return result
     } else {
       const tagPropertiesMap: Record<string, Record<string, string> | null> = {};
@@ -91,7 +94,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
       });
       const workspaceFromResponse = tagsLastUpdates[0].tag.workspace ?? tagsLastUpdates[0].tag.workspace_id;
       const tagHistoryResponse = await this.getTagHistoryWithChunks(Object.keys(tagPropertiesMap), workspaceFromResponse, range, maxDataPoints);
-      let mergedTagValuesWithType = this.mergeTagsHistoryValues(tagHistoryResponse.results);
+      const mergedTagValuesWithType = this.mergeTagsHistoryValues(tagHistoryResponse.results);
       result.fields.push({
         name: 'time', 'values': mergedTagValuesWithType.timestamps, type: FieldType.time
       });
@@ -120,7 +123,6 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
   }
 
   private async getLastUpdatedTag(paths: string[], workspace: string) {
-
     let filter = '';
     const pathsFilter: string[] = [];
     paths.forEach((path: string) => {
@@ -178,7 +180,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
   }
 
   private getAllProperties(data: TagWithValue[]) {
-    let props: Set<string> = new Set();
+    const props: Set<string> = new Set();
     data.forEach((tag) => {
       if (tag.tag.properties) {
         Object.keys(tag.tag.properties)
@@ -203,12 +205,16 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
     }
     let paths: string[] = [path];
     // wrap replaced variable in extra curly braces, protecting original {} tags from misinterpretation.
-    let parsed_workspace = this.templateSrv.replace(workspace,);
+    const parsedWorkspace = this.templateSrv.replace(workspace);
     if (this.templateSrv.containsTemplate(path)) {
-      let replaced_path = this.templateSrv.replace(path, {}, (v: string) => `{{${v}}}`);
-      paths = expandMultipleValueVariableAfterReplace(replaced_path);
+      const replacedPath = this.templateSrv.replace(
+        path,
+        {},
+        (v: string | string[]): string => `{{${v}}}`
+      );
+      paths = expandMultipleValueVariableAfterReplace(replacedPath);
     }
-    const metadata = await this.getLastUpdatedTag(paths, parsed_workspace);
+    const metadata = await this.getLastUpdatedTag(paths, parsedWorkspace);
     return metadata.map((frame) => {
       return {
         text: frame.tag.properties?.displayName ? frame.tag.properties['displayName'] : frame.tag.path,
