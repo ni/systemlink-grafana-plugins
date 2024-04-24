@@ -5,7 +5,13 @@ exports[`queries appends tag properties to query result 1`] = `
   {
     "fields": [
       {
-        "name": "my.tag",
+        "name": "name",
+        "values": [
+          "my.tag",
+        ],
+      },
+      {
+        "name": "currentValue",
         "values": [
           3.14,
         ],
@@ -37,7 +43,13 @@ exports[`queries applies query defaults when missing fields 1`] = `
   {
     "fields": [
       {
-        "name": "my.tag",
+        "name": "name",
+        "values": [
+          "my.tag",
+        ],
+      },
+      {
+        "name": "currentValue",
         "values": [
           3.14,
         ],
@@ -63,7 +75,13 @@ exports[`queries current value for all data types 1`] = `
   {
     "fields": [
       {
-        "name": "tag1",
+        "name": "name",
+        "values": [
+          "tag1",
+        ],
+      },
+      {
+        "name": "currentValue",
         "values": [
           3,
         ],
@@ -84,7 +102,13 @@ exports[`queries current value for all data types 1`] = `
   {
     "fields": [
       {
-        "name": "tag2",
+        "name": "name",
+        "values": [
+          "tag2",
+        ],
+      },
+      {
+        "name": "currentValue",
         "values": [
           3.3,
         ],
@@ -105,7 +129,13 @@ exports[`queries current value for all data types 1`] = `
   {
     "fields": [
       {
-        "name": "tag3",
+        "name": "name",
+        "values": [
+          "tag3",
+        ],
+      },
+      {
+        "name": "currentValue",
         "values": [
           "foo",
         ],
@@ -126,7 +156,13 @@ exports[`queries current value for all data types 1`] = `
   {
     "fields": [
       {
-        "name": "tag4",
+        "name": "name",
+        "values": [
+          "tag4",
+        ],
+      },
+      {
+        "name": "currentValue",
         "values": [
           "True",
         ],
@@ -147,7 +183,13 @@ exports[`queries current value for all data types 1`] = `
   {
     "fields": [
       {
-        "name": "tag5",
+        "name": "name",
+        "values": [
+          "tag5",
+        ],
+      },
+      {
+        "name": "currentValue",
         "values": [
           2147483648,
         ],
@@ -173,7 +215,13 @@ exports[`queries handles null tag properties 1`] = `
   {
     "fields": [
       {
-        "name": "my.tag",
+        "name": "name",
+        "values": [
+          "my.tag",
+        ],
+      },
+      {
+        "name": "currentValue",
         "values": [
           3.14,
         ],
@@ -199,7 +247,13 @@ exports[`queries handles tag with no current value 1`] = `
   {
     "fields": [
       {
-        "name": "my.tag",
+        "name": "name",
+        "values": [
+          "my.tag",
+        ],
+      },
+      {
+        "name": "currentValue",
         "values": [
           undefined,
         ],
@@ -225,7 +279,13 @@ exports[`queries multiple targets - skips invalid queries 1`] = `
   {
     "fields": [
       {
-        "name": "my.tag1",
+        "name": "name",
+        "values": [
+          "my.tag1",
+        ],
+      },
+      {
+        "name": "currentValue",
         "values": [
           3.14,
         ],
@@ -246,7 +306,13 @@ exports[`queries multiple targets - skips invalid queries 1`] = `
   {
     "fields": [
       {
-        "name": "my.tag2",
+        "name": "name",
+        "values": [
+          "my.tag2",
+        ],
+      },
+      {
+        "name": "currentValue",
         "values": [
           41.3,
         ],
@@ -296,7 +362,13 @@ exports[`queries replaces tag path with variable 1`] = `
   {
     "fields": [
       {
-        "name": "my.tag",
+        "name": "name",
+        "values": [
+          "my.tag",
+        ],
+      },
+      {
+        "name": "currentValue",
         "values": [
           3.14,
         ],
@@ -346,7 +418,13 @@ exports[`queries supports legacy tag service property "datatype" 1`] = `
   {
     "fields": [
       {
-        "name": "my.tag",
+        "name": "name",
+        "values": [
+          "my.tag",
+        ],
+      },
+      {
+        "name": "currentValue",
         "values": [
           3.14,
         ],
@@ -372,7 +450,13 @@ exports[`queries tag current value 1`] = `
   {
     "fields": [
       {
-        "name": "my.tag",
+        "name": "name",
+        "values": [
+          "my.tag",
+        ],
+      },
+      {
+        "name": "currentValue",
         "values": [
           3.14,
         ],
@@ -398,7 +482,13 @@ exports[`queries uses displayName property 1`] = `
   {
     "fields": [
       {
-        "name": "My cool tag",
+        "name": "name",
+        "values": [
+          "My cool tag",
+        ],
+      },
+      {
+        "name": "currentValue",
         "values": [
           3.14,
         ],

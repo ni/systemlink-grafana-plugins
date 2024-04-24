@@ -10,8 +10,8 @@ import {
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { throwIfNullish } from 'core/utils';
-import { TagHistoryResponse, TagQuery, TagQueryType, TagsWithValues } from './types';
+import { TagHistoryResponse, TagQuery, TagQueryType, TagsWithValues, TagWithValue } from './types';
+import { Throw } from 'core/utils';
 
 export class TagDataSource extends DataSourceBase<TagQuery> {
   constructor(
@@ -25,7 +25,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
   tagUrl = this.instanceSettings.url + '/nitag/v2';
   tagHistoryUrl = this.instanceSettings.url + '/nitaghistorian/v2/tags';
 
-  defaultQuery = {
+  defaultQuery: Omit<TagQuery, 'refId'> = {
     type: TagQueryType.Current,
     path: '',
     workspace: '',
@@ -33,19 +33,45 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
   };
 
   async runQuery(query: TagQuery, { range, maxDataPoints, scopedVars }: DataQueryRequest): Promise<DataFrameDTO> {
-    const { tag, current } = await this.getLastUpdatedTag(
+    const tagsLastUpdates: TagWithValue[] = await this.getLastUpdatedTag(
       this.templateSrv.replace(query.path, scopedVars),
       this.templateSrv.replace(query.workspace, scopedVars)
     );
 
+    const tag = tagsLastUpdates[0].tag
     const name = tag.properties?.displayName ?? tag.path;
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
 
     if (query.type === TagQueryType.Current) {
+      const allPossibleProps = this.getAllProperties(tagsLastUpdates);
       result.fields = [
-        { name, values: [this.convertTagValue(tag.type ?? tag.datatype, current?.value.value)] },
-        { name: 'updated', values: [current?.timestamp], type: FieldType.time, config: { unit: 'dateTimeFromNow' } },
-      ];
+        {
+          name: 'name',
+          values: tagsLastUpdates.map((tag: TagWithValue) => tag.tag.properties?.displayName || tag.tag.path)
+        },
+        {
+          name: 'currentValue',
+          values: tagsLastUpdates.map((tag: TagWithValue) => this.convertTagValue(tag.tag.type ?? tag.tag.datatype, tag.current?.value.value)),
+        },
+        {
+          name: 'updated',
+          values: tagsLastUpdates.map((tag: TagWithValue) => tag.current?.timestamp),
+          type: FieldType.time,
+          config: { unit: 'dateTimeFromNow' }
+        }
+      ]
+      if (query.properties) {
+        allPossibleProps.forEach((prop) => {
+          result.fields.push(
+            {
+              name: prop,
+              values: tagsLastUpdates.map((tag: TagWithValue) => tag.tag.properties ? tag.tag.properties[prop] : '')
+            }
+          );
+        });
+      }
+
+      return result
     } else {
       const history = await this.getTagHistoryValues(tag.path, tag.workspace ?? tag.workspace_id, range, maxDataPoints);
       result.fields = [
@@ -69,12 +95,12 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
 
     const response = await this.post<TagsWithValues>(this.tagUrl + '/query-tags-with-values', {
       filter,
-      take: 1,
+      take: 10,
       orderBy: 'TIMESTAMP',
       descending: true,
     });
 
-    return throwIfNullish(response.tagsWithValues[0], `No tags matched the path '${path}'`);
+    return response.tagsWithValues.length ? response.tagsWithValues : Throw(`No tags matched the path '${path}'`)
   }
 
   private async getTagHistoryValues(path: string, workspace: string, range: TimeRange, intervals?: number) {
@@ -105,6 +131,21 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
     return Object.keys(properties)
       .filter(name => !name.startsWith('nitag'))
       .map(name => ({ name, values: [properties[name]] }));
+  }
+
+  private getAllProperties(data: TagWithValue[]) {
+    const props: Set<string> = new Set();
+    data.forEach((tag) => {
+      if (tag.tag.properties) {
+        Object.keys(tag.tag.properties)
+          .filter(name => !name.startsWith('nitag'))
+          .forEach((name) => {
+            props.add(name)
+          })
+      }
+    })
+
+    return props
   }
 
   shouldRunQuery(query: TagQuery): boolean {
