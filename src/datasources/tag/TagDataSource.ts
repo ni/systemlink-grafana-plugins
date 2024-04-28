@@ -33,29 +33,29 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
   };
 
   async runQuery(query: TagQuery, { range, maxDataPoints, scopedVars }: DataQueryRequest): Promise<DataFrameDTO> {
-    const tagsLastUpdates: TagWithValue[] = await this.getLastUpdatedTag(
+    const tagsWithValues = await this.getMostRecentTags(
       this.templateSrv.replace(query.path, scopedVars),
       this.templateSrv.replace(query.workspace, scopedVars)
     );
 
-    const tag = tagsLastUpdates[0].tag
+    const tag = tagsWithValues[0].tag
     const name = tag.properties?.displayName ?? tag.path;
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
 
     if (query.type === TagQueryType.Current) {
-      const allPossibleProps = this.getAllProperties(tagsLastUpdates);
+      const allPossibleProps = this.getAllProperties(tagsWithValues);
       result.fields = [
         {
           name: 'name',
-          values: tagsLastUpdates.map((tag: TagWithValue) => tag.tag.properties?.displayName || tag.tag.path)
+          values: tagsWithValues.map((tag: TagWithValue) => tag.tag.properties?.displayName || tag.tag.path)
         },
         {
           name: 'currentValue',
-          values: tagsLastUpdates.map((tag: TagWithValue) => this.convertTagValue(tag.tag.type ?? tag.tag.datatype, tag.current?.value.value)),
+          values: tagsWithValues.map((tag: TagWithValue) => this.convertTagValue(tag.tag.type ?? tag.tag.datatype, tag.current?.value.value)),
         },
         {
           name: 'updated',
-          values: tagsLastUpdates.map((tag: TagWithValue) => tag.current?.timestamp),
+          values: tagsWithValues.map((tag: TagWithValue) => tag.current?.timestamp),
           type: FieldType.time,
           config: { unit: 'dateTimeFromNow' }
         }
@@ -65,7 +65,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
           result.fields.push(
             {
               name: prop,
-              values: tagsLastUpdates.map((tag: TagWithValue) => tag.tag.properties ? tag.tag.properties[prop] : '')
+              values: tagsWithValues.map((tag: TagWithValue) => tag.tag.properties ? tag.tag.properties[prop] : '')
             }
           );
         });
@@ -87,7 +87,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
     return result;
   }
 
-  private async getLastUpdatedTag(path: string, workspace: string) {
+  private async getMostRecentTags(path: string, workspace: string) {
     let filter = `path = "${path}"`;
     if (workspace) {
       filter += ` && workspace = "${workspace}"`;
@@ -95,7 +95,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
 
     const response = await this.post<TagsWithValues>(this.tagUrl + '/query-tags-with-values', {
       filter,
-      take: 10,
+      take: 32,
       orderBy: 'TIMESTAMP',
       descending: true,
     });
