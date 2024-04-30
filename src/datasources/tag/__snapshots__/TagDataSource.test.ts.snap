@@ -11,7 +11,7 @@ exports[`queries appends tag properties to query result 1`] = `
         ],
       },
       {
-        "name": "currentValue",
+        "name": "value",
         "values": [
           3.14,
         ],
@@ -49,7 +49,7 @@ exports[`queries applies query defaults when missing fields 1`] = `
         ],
       },
       {
-        "name": "currentValue",
+        "name": "value",
         "values": [
           3.14,
         ],
@@ -81,7 +81,7 @@ exports[`queries current value for all data types 1`] = `
         ],
       },
       {
-        "name": "currentValue",
+        "name": "value",
         "values": [
           3,
         ],
@@ -108,7 +108,7 @@ exports[`queries current value for all data types 1`] = `
         ],
       },
       {
-        "name": "currentValue",
+        "name": "value",
         "values": [
           3.3,
         ],
@@ -135,7 +135,7 @@ exports[`queries current value for all data types 1`] = `
         ],
       },
       {
-        "name": "currentValue",
+        "name": "value",
         "values": [
           "foo",
         ],
@@ -162,7 +162,7 @@ exports[`queries current value for all data types 1`] = `
         ],
       },
       {
-        "name": "currentValue",
+        "name": "value",
         "values": [
           "True",
         ],
@@ -189,7 +189,7 @@ exports[`queries current value for all data types 1`] = `
         ],
       },
       {
-        "name": "currentValue",
+        "name": "value",
         "values": [
           2147483648,
         ],
@@ -221,7 +221,7 @@ exports[`queries handles null tag properties 1`] = `
         ],
       },
       {
-        "name": "currentValue",
+        "name": "value",
         "values": [
           3.14,
         ],
@@ -253,7 +253,7 @@ exports[`queries handles tag with no current value 1`] = `
         ],
       },
       {
-        "name": "currentValue",
+        "name": "value",
         "values": [
           undefined,
         ],
@@ -274,6 +274,97 @@ exports[`queries handles tag with no current value 1`] = `
 ]
 `;
 
+exports[`queries multiple current values with properties 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "name",
+        "values": [
+          "my.1.tag",
+          "my.2.tag",
+        ],
+      },
+      {
+        "name": "value",
+        "values": [
+          3.14,
+          41.3,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+      {
+        "name": "unit",
+        "values": [
+          "A",
+          "A",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries multiple current values with different properties 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "name",
+        "values": [
+          "my.1.tag",
+          "my.2.tag",
+        ],
+      },
+      {
+        "name": "value",
+        "values": [
+          3.14,
+          41.3,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+      {
+        "name": "upperCriticalThreshold",
+        "values": [
+          "15",
+          "",
+        ],
+      },
+      {
+        "name": "unit",
+        "values": [
+          "",
+          "A",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
 exports[`queries multiple targets - skips invalid queries 1`] = `
 [
   {
@@ -285,7 +376,7 @@ exports[`queries multiple targets - skips invalid queries 1`] = `
         ],
       },
       {
-        "name": "currentValue",
+        "name": "value",
         "values": [
           3.14,
         ],
@@ -312,7 +403,7 @@ exports[`queries multiple targets - skips invalid queries 1`] = `
         ],
       },
       {
-        "name": "currentValue",
+        "name": "value",
         "values": [
           41.3,
         ],
@@ -368,7 +459,7 @@ exports[`queries replaces tag path with variable 1`] = `
         ],
       },
       {
-        "name": "currentValue",
+        "name": "value",
         "values": [
           3.14,
         ],
@@ -424,7 +515,7 @@ exports[`queries supports legacy tag service property "datatype" 1`] = `
         ],
       },
       {
-        "name": "currentValue",
+        "name": "value",
         "values": [
           3.14,
         ],
@@ -456,7 +547,7 @@ exports[`queries tag current value 1`] = `
         ],
       },
       {
-        "name": "currentValue",
+        "name": "value",
         "values": [
           3.14,
         ],
@@ -488,7 +579,7 @@ exports[`queries uses displayName property 1`] = `
         ],
       },
       {
-        "name": "currentValue",
+        "name": "value",
         "values": [
           3.14,
         ],

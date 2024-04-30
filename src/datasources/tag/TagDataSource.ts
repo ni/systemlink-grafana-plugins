@@ -50,7 +50,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
           values: tagsWithValues.map((tag: TagWithValue) => tag.tag.properties?.displayName || tag.tag.path)
         },
         {
-          name: 'currentValue',
+          name: 'value',
           values: tagsWithValues.map((tag: TagWithValue) => this.convertTagValue(tag.tag.type ?? tag.tag.datatype, tag.current?.value.value)),
         },
         {
@@ -65,7 +65,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
           result.fields.push(
             {
               name: prop,
-              values: tagsWithValues.map((tag: TagWithValue) => tag.tag.properties ? tag.tag.properties[prop] : '')
+              values: tagsWithValues.map((tag: TagWithValue) => tag.tag.properties && tag.tag.properties[prop] ? tag.tag.properties[prop] : '')
             }
           );
         });

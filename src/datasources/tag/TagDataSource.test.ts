@@ -63,15 +63,37 @@ describe('queries', () => {
   });
 
   test('uses displayName property', async () => {
-    backendSrv.fetch.mockReturnValue(createQueryTagsResponse({ properties: { displayName: 'My cool tag' } }));
+    backendSrv.fetch.mockReturnValue(createQueryTagsResponse([{ tag: { properties: { displayName: 'My cool tag' } } }]));
 
     const result = await ds.query(buildQuery({ path: 'my.tag' }));
 
     expect(result.data).toMatchSnapshot();
   });
 
+  test('multiple current values with properties', async () => {
+    backendSrv.fetch.mockReturnValue(createQueryTagsResponse([
+      { tag: { path: 'my.1.tag', properties: { unit: 'A' } } },
+      { tag: { path: 'my.2.tag', properties: { unit: 'A' } }, current: { value: { value: '41.3' } } }
+    ]));
+
+    const result = await ds.query(buildQuery({ path: 'my.*.tag', properties: true }));
+
+    expect(result.data).toMatchSnapshot();
+  });
+
+  test('multiple current values with different properties', async () => {
+    backendSrv.fetch.mockReturnValue(createQueryTagsResponse([
+      { tag: { path: 'my.1.tag', properties: {  upperCriticalThreshold: '15'} } },
+      { tag: { path: 'my.2.tag', properties: { unit: 'A' } }, current: { value: { value: '41.3' } } }
+    ]));
+
+    const result = await ds.query(buildQuery({ path: 'my.*.tag', properties: true }));
+
+    expect(result.data).toMatchSnapshot();
+  });
+
   test('handles null tag properties', async () => {
-    backendSrv.fetch.mockReturnValue(createQueryTagsResponse({ properties: null }));
+    backendSrv.fetch.mockReturnValue(createQueryTagsResponse([{ tag: { properties: null } }]));
 
     const result = await ds.query(buildQuery({ path: 'my.tag' }));
 
@@ -79,7 +101,7 @@ describe('queries', () => {
   });
 
   test('handles tag with no current value', async () => {
-    backendSrv.fetch.mockReturnValue(createQueryTagsResponse({}, null));
+    backendSrv.fetch.mockReturnValue(createQueryTagsResponse([{ tag: {}, current: null }]));
 
     const result = await ds.query(buildQuery({ path: 'my.tag' }));
 
@@ -89,10 +111,10 @@ describe('queries', () => {
   test('multiple targets - skips invalid queries', async () => {
     backendSrv.fetch
       .calledWith(requestMatching({ data: { filter: 'path = "my.tag1"' } }))
-      .mockReturnValue(createQueryTagsResponse({ path: 'my.tag1' }));
+      .mockReturnValue(createQueryTagsResponse([{ tag: { path: 'my.tag1' } }]));
     backendSrv.fetch
       .calledWith(requestMatching({ data: { filter: 'path = "my.tag2"' } }))
-      .mockReturnValue(createQueryTagsResponse({ path: 'my.tag2' }, { value: { value: '41.3' } }));
+      .mockReturnValue(createQueryTagsResponse([{ tag: { path: 'my.tag2' }, current: { value: { value: '41.3' } } }]));
 
     const result = await ds.query(buildQuery({ path: 'my.tag1' }, { path: '' }, { path: 'my.tag2' }));
 
@@ -101,12 +123,27 @@ describe('queries', () => {
 
   test('current value for all data types', async () => {
     backendSrv.fetch
-      .mockReturnValueOnce(createQueryTagsResponse({ type: 'INT', path: 'tag1' }, { value: { value: '3' } }))
-      .mockReturnValueOnce(createQueryTagsResponse({ type: 'DOUBLE', path: 'tag2' }, { value: { value: '3.3' } }))
-      .mockReturnValueOnce(createQueryTagsResponse({ type: 'STRING', path: 'tag3' }, { value: { value: 'foo' } }))
-      .mockReturnValueOnce(createQueryTagsResponse({ type: 'BOOLEAN', path: 'tag4' }, { value: { value: 'True' } }))
+      .mockReturnValueOnce(createQueryTagsResponse([{
+        tag: { type: 'INT', path: 'tag1' },
+        current: { value: { value: '3' } }
+      }]))
+      .mockReturnValueOnce(createQueryTagsResponse([{
+        tag: { type: 'DOUBLE', path: 'tag2' },
+        current: { value: { value: '3.3' } }
+      }]))
+      .mockReturnValueOnce(createQueryTagsResponse([{
+        tag: { type: 'STRING', path: 'tag3' },
+        current: { value: { value: 'foo' } }
+      }]))
+      .mockReturnValueOnce(createQueryTagsResponse([{
+        tag: { type: 'BOOLEAN', path: 'tag4' },
+        current: { value: { value: 'True' } }
+      }]))
       .mockReturnValueOnce(
-        createQueryTagsResponse({ type: 'U_INT64', path: 'tag5' }, { value: { value: '2147483648' } })
+        createQueryTagsResponse([{
+          tag: { type: 'U_INT64', path: 'tag5' },
+          current: { value: { value: '2147483648' } }
+        }])
       );
 
     const result = await ds.query(
@@ -117,7 +154,7 @@ describe('queries', () => {
   });
 
   test('throw when no tags matched', async () => {
-    backendSrv.fetch.mockReturnValue(createFetchResponse({ tagsWithValues: [] }));
+    backendSrv.fetch.mockReturnValue(createQueryTagsResponse([]));
 
     await expect(ds.query(buildQuery({ path: 'my.tag' }))).rejects.toThrow("No tags matched the path 'my.tag'");
   });
@@ -198,7 +235,7 @@ describe('queries', () => {
   });
 
   test('filters by workspace if provided', async () => {
-    backendSrv.fetch.mockReturnValueOnce(createQueryTagsResponse({ workspace: '2' }));
+    backendSrv.fetch.mockReturnValueOnce(createQueryTagsResponse([{ tag: { workspace: '2' } }]));
     backendSrv.fetch.mockReturnValueOnce(createTagHistoryResponse('my.tag', 'DOUBLE', []));
 
     await ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag', workspace: '2' }));
@@ -230,7 +267,14 @@ describe('queries', () => {
   });
 
   test('appends tag properties to query result', async () => {
-    backendSrv.fetch.mockReturnValue(createQueryTagsResponse({ properties: { nitagHistoryTTLDays: '7', foo: 'bar' } }));
+    backendSrv.fetch.mockReturnValue(createQueryTagsResponse([{
+      tag: {
+        properties: {
+          nitagHistoryTTLDays: '7',
+          foo: 'bar'
+        }
+      }
+    }]));
 
     const result = await ds.query(buildQuery({ path: 'my.tag', properties: true }));
 
@@ -281,20 +325,37 @@ describe('queries', () => {
 });
 
 function createQueryTagsResponse(
-  tag?: DeepPartial<TagWithValue['tag']>,
-  current?: DeepPartial<TagWithValue['current']>
+  tags?: Array<{
+    tag?: DeepPartial<TagWithValue['tag']>,
+    current?: DeepPartial<TagWithValue['current']>
+  }>
 ) {
-  return createFetchResponse({
-    tagsWithValues: [
-      _.defaultsDeep(
-        { tag, current },
-        {
-          current: { value: { value: '3.14' }, timestamp: '2023-10-04T00:00:00.000000Z' },
-          tag: { type: 'DOUBLE', path: 'my.tag', properties: {}, workspace: '1' },
-        }
-      ),
-    ],
-  });
+  if (tags) {
+    if (tags?.length) {
+      return createFetchResponse({
+        tagsWithValues: [
+          ...tags.map(({ tag, current }) => _.defaultsDeep(
+            { tag, current },
+            {
+              current: { value: { value: '3.14' }, timestamp: '2023-10-04T00:00:00.000000Z' },
+              tag: { type: 'DOUBLE', path: 'my.tag', properties: {}, workspace: '1' },
+            }
+          ))
+        ],
+      });
+    } else {
+      return createFetchResponse({
+        tagsWithValues: [],
+      });
+    }
+  } else {
+    return createFetchResponse({
+      tagsWithValues: [{
+        current: { value: { value: '3.14' }, timestamp: '2023-10-04T00:00:00.000000Z' },
+        tag: { type: 'DOUBLE', path: 'my.tag', properties: {}, workspace: '1' },
+      }],
+    });
+  }
 }
 
 function createTagHistoryResponse(path: string, type: string, values: Array<{ timestamp: string; value: string }>) {
