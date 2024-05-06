@@ -83,7 +83,7 @@ describe('queries', () => {
 
   test('multiple current values with different properties', async () => {
     backendSrv.fetch.mockReturnValue(createQueryTagsResponse([
-      { tag: { path: 'my.1.tag', properties: {  upperCriticalThreshold: '15'} } },
+      { tag: { path: 'my.1.tag', properties: { upperCriticalThreshold: '15' } } },
       { tag: { path: 'my.2.tag', properties: { unit: 'A' } }, current: { value: { value: '41.3' } } }
     ]));
 
