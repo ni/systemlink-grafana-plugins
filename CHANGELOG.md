@@ -1,3 +1,10 @@
+## [3.10.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.9.2...v3.10.0) (2024-05-07)
+
+
+### Features
+
+* **tag:** visualizing current value of multiple tags ([#58](https://github.com/ni/systemlink-grafana-plugins/issues/58)) ([9ac340a](https://github.com/ni/systemlink-grafana-plugins/commit/9ac340acf493220008382653cac3c7df08ef4bd3))
+
 ## [3.9.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.9.1...v3.9.2) (2024-01-04)
 
 
