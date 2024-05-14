@@ -27,9 +27,11 @@ it('renders with initial query and updates when user makes changes', async () =>
   expect(screen.getByRole('radio', { name: 'History' })).toBeChecked();
   expect(screen.getByLabelText('Tag path')).toHaveValue('my.tag');
   expect(screen.getByText('Default workspace')).toBeInTheDocument();
+  expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
 
   // Users changes query type
   await userEvent.click(screen.getByRole('radio', { name: 'Current' }));
+  expect(screen.queryByRole('checkbox')).toBeInTheDocument();
   expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ type: TagQueryType.Current }));
 
   // User types in new tag path

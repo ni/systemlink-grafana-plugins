@@ -430,16 +430,64 @@ exports[`queries numeric tag history 1`] = `
     "fields": [
       {
         "name": "time",
+        "type": "time",
         "values": [
-          1672531200000,
-          1672531260000,
+          "2023-01-01T00:00:00Z",
+          "2023-01-01T00:01:00Z",
         ],
       },
       {
+        "config": {},
         "name": "my.tag",
         "values": [
           1,
           2,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries numeric multiple tags history 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "time",
+        "type": "time",
+        "values": [
+          "2023-01-01T00:00:00Z",
+          "2023-01-01T00:01:00Z",
+          "2023-01-01T00:02:00Z",
+        ],
+      },
+      {
+        "config": {},
+        "name": "my.tag.1",
+        "values": [
+          1,
+          2,
+          null,
+        ],
+      },
+      {
+        "config": {},
+        "name": "my.tag.2",
+        "values": [
+          2,
+          3,
+          null,
+        ],
+      },
+      {
+        "config": {},
+        "name": "my.tag.3",
+        "values": [
+          3,
+          null,
+          4,
         ],
       },
     ],
@@ -486,12 +534,14 @@ exports[`queries string tag history 1`] = `
     "fields": [
       {
         "name": "time",
+        "type": "time",
         "values": [
-          1672531200000,
-          1672531260000,
+          "2023-01-01T00:00:00Z",
+          "2023-01-01T00:01:00Z",
         ],
       },
       {
+        "config": {},
         "name": "my.tag",
         "values": [
           "3.14",
