@@ -47,7 +47,7 @@ export class QueryEditor extends PureComponent<Props, State> {
       this.setState({ notebooks, loadingNotebooks: false });
 
       if (this.props.query.id) {
-        const notebook = this.getNotebook(this.props.query.id);
+        const notebook = notebooks.find((notebook: Notebook) => notebook.id === this.props.query.id);
         if (notebook) {
           await this.populateNotebookMetadata(notebook);
         }
