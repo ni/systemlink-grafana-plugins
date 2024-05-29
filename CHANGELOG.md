@@ -1,3 +1,10 @@
+## [3.10.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.10.0...v3.10.1) (2024-05-29)
+
+
+### Bug Fixes
+
+* **notebook:** fix notebook plugin not loading notebook parameters when opening visualization ([#61](https://github.com/ni/systemlink-grafana-plugins/issues/61)) ([c81d963](https://github.com/ni/systemlink-grafana-plugins/commit/c81d96336e48e17c798317a10e5c567baabac4e0))
+
 ## [3.10.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.9.2...v3.10.0) (2024-05-07)
 
 
