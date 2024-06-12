@@ -86,15 +86,6 @@ exports[`queries run metadata query 1`] = `
         ],
       },
       {
-        "name": "workspace",
-        "values": [
-          "e73fcd94-649b-4d0a-b164-bf647a5d0946",
-          "e73fcd94-649b-4d0a-b164-bf647a5d0946",
-          "e73fcd94-649b-4d0a-b164-bf647a5d0946",
-          "e73fcd94-649b-4d0a-b164-bf647a5d0946",
-        ],
-      },
-      {
         "name": "last updated timestamp",
         "values": [
           "2024-02-21T12:54:20.069Z",
@@ -137,6 +128,15 @@ exports[`queries run metadata query 1`] = `
           null,
           null,
           null,
+        ],
+      },
+      {
+        "name": "workspace",
+        "values": [
+          "e73fcd94-649b-4d0a-b164-bf647a5d0946",
+          "e73fcd94-649b-4d0a-b164-bf647a5d0946",
+          "e73fcd94-649b-4d0a-b164-bf647a5d0946",
+          "e73fcd94-649b-4d0a-b164-bf647a5d0946",
         ],
       },
     ],

@@ -62,7 +62,6 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
       { name: 'is NI asset', values: assets.map(a => a.isNIAsset) },
       { name: 'calibration status', values: assets.map(a => a.calibrationStatus) },
       { name: 'is system controller', values: assets.map(a => a.isSystemController) },
-      { name: 'workspace', values: assets.map(a => a.workspace) },
       { name: 'last updated timestamp', values: assets.map(a => a.lastUpdatedTimestamp) },
       { name: 'minionId', values: assets.map(a => a.location.minionId) },
       { name: 'parent name', values: assets.map(a => a.location.parent) },
