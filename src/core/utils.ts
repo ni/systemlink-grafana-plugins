@@ -1,7 +1,7 @@
 import { SelectableValue } from '@grafana/data';
 import { useAsync } from 'react-use';
 import { DataSourceBase } from './DataSourceBase';
-import { Workspace } from './types';
+import { SystemLinkError, Workspace } from './types';
 import { TemplateSrv } from '@grafana/runtime';
 
 export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<SelectableValue<T>> {
@@ -81,4 +81,8 @@ export function replaceVariables(values: string[], templateSrv: TemplateSrv) {
   });
   // Dedupe and flatten
   return [...new Set(replaced.flat())];
+}
+
+export function isSystemLinkError(error: any): error is SystemLinkError {
+  return Boolean(error?.error?.code) && Boolean(error?.error?.name);
 }

@@ -7,7 +7,7 @@ import {
 } from '@grafana/data';
 import { BackendSrv, BackendSrvRequest, TemplateSrv, isFetchError } from '@grafana/runtime';
 import { DataQuery } from '@grafana/schema';
-import { Workspace } from './types';
+import { QuerySystemResponse, QuerySystemsRequest, Workspace } from './types';
 import { sleep } from './utils';
 import { lastValueFrom } from 'rxjs';
 
@@ -21,7 +21,9 @@ export abstract class DataSourceBase<TQuery extends DataQuery> extends DataSourc
   }
 
   abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;
+
   abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
+
   abstract shouldRunQuery(query: TQuery): boolean;
 
   query(request: DataQueryRequest<TQuery>): Promise<DataQueryResponse> {
@@ -69,5 +71,11 @@ export abstract class DataSourceBase<TQuery extends DataQuery> extends DataSourc
     );
 
     return (DataSourceBase.Workspaces = response.workspaces);
+  }
+
+  async getSystems(body: QuerySystemsRequest): Promise<QuerySystemResponse> {
+    return await this.post<QuerySystemResponse>(
+      this.instanceSettings.url + '/nisysmgmt/v1/query-systems', body
+    )
   }
 }

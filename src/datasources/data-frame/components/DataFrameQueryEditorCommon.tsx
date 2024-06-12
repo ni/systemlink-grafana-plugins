@@ -31,23 +31,27 @@ export class DataFrameQueryEditorCommon {
 
   readonly handleIdChange = (item: SelectableValue<string>) => {
     if (this.query.tableId !== item.value) {
-      this.handleQueryChange({ ...this.query, tableId: item.value, columns: [] }, this.query.type === DataFrameQueryType.Metadata);
+      this.handleQueryChange({
+        ...this.query,
+        tableId: item.value,
+        columns: []
+      }, this.query.type === DataFrameQueryType.Metadata);
     }
   };
 
   readonly loadTableOptions = _.debounce((query: string, cb?: LoadOptionsCallback<string>) => {
     Promise.all([this.datasource.queryTables(query), this.datasource.getWorkspaces()])
       .then(([tables, workspaces]) =>
-      cb?.(
-        tables.map(t => ({
-          label: t.name,
-          value: t.id,
-          title: t.id,
-          description: getWorkspaceName(workspaces, t.workspace),
-        }))
+        cb?.(
+          tables.map(t => ({
+            label: t.name,
+            value: t.id,
+            title: t.id,
+            description: getWorkspaceName(workspaces, t.workspace),
+          }))
+        )
       )
-    )
-    .catch(this.handleError);
+      .catch(this.handleError);
   }, 300);
 
   readonly handleLoadOptions = (query: string, cb?: LoadOptionsCallback<string>) => {

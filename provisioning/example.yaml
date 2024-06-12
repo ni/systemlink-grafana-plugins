@@ -33,3 +33,7 @@ datasources:
     type: ni-slworkspace-datasource
     uid: workspace
     <<: *config
+  - name: SystemLink Assets
+    type: ni-slasset-datasource
+    uid: asset
+    <<: *config
