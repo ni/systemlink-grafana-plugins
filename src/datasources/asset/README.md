@@ -1,6 +1,4 @@
 # Systemlink Asset data source
 
-<!--
-    TODO: Write a short description of your plugin and document any extra
-    configuration that is required for development.
--->
+This is a plugin for the Asset Performance Management service. It allows you to:
+- Visualize asset metadata on a dashboard

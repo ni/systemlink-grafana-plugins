@@ -7,7 +7,7 @@ import {
 } from '@grafana/data';
 import { BackendSrv, BackendSrvRequest, TemplateSrv, isFetchError } from '@grafana/runtime';
 import { DataQuery } from '@grafana/schema';
-import { QuerySystemResponse, QuerySystemsRequest, Workspace } from './types';
+import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
 import { sleep } from './utils';
 import { lastValueFrom } from 'rxjs';
 
@@ -73,8 +73,8 @@ export abstract class DataSourceBase<TQuery extends DataQuery> extends DataSourc
     return (DataSourceBase.Workspaces = response.workspaces);
   }
 
-  async getSystems(body: QuerySystemsRequest): Promise<QuerySystemResponse> {
-    return await this.post<QuerySystemResponse>(
+  async getSystems(body: QuerySystemsRequest): Promise<QuerySystemsResponse> {
+    return await this.post<QuerySystemsResponse>(
       this.instanceSettings.url + '/nisysmgmt/v1/query-systems', body
     )
   }

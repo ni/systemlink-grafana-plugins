@@ -15,13 +15,6 @@ export enum EntityType {
   System = "System"
 }
 
-export interface Workspace {
-  "default": Boolean,
-  "enabled": Boolean,
-  "id": string,
-  "name": string
-}
-
 export interface AssetsResponse {
   assets: AssetModel[],
   totalCount: number
@@ -55,9 +48,7 @@ export interface AssetModel {
   isSystemController: boolean,
   externalCalibration?: ExternalCalibrationModel,
   discoveryType: 'MANUAL' | 'AUTOMATIC',
-  properties: {
-    [key: string]: string
-  },
+  properties: Record<string, string>,
   keywords: string[],
   lastUpdatedTimestamp: string,
 }

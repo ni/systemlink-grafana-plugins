@@ -2,7 +2,7 @@
  * Utility functions for parsing IP addresses
  */
 export class NetworkUtils {
-  static getIpAddressFromInterfaces(...protocols: Array<{ [key: string]: string[] }>): string | null {
+  static getIpAddressFromInterfaces(...protocols: Array<Record<string, string[]> | undefined>): string | null {
     for (const ipInterfaces of protocols) {
       if (ipInterfaces) {
         const firstConnectedInterface = NetworkUtils.getFirstConnectedInterface(ipInterfaces);
@@ -15,9 +15,7 @@ export class NetworkUtils {
     return null;
   }
 
-  static getFirstConnectedInterface(ipInterfaces: {
-    [key: string]: string[];
-  }): { name: string; address: string } | null {
+  static getFirstConnectedInterface(ipInterfaces: Record<string, string[]>): { name: string; address: string } | null {
     for (const ipInterfaceName in ipInterfaces) {
       if (!ipInterfaceName) {
         continue;

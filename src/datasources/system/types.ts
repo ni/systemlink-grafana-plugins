@@ -22,14 +22,14 @@ export interface SystemSummary {
 
 export interface SystemMetadata {
   id: string;
-  alias: string;
+  alias?: string;
   state: string;
-  locked: boolean;
-  systemStartTime: string;
-  model: string;
-  vendor: string;
-  osFullName: string;
-  ip4Interfaces: Record<string, string[]>;
-  ip6Interfaces: Record<string, string[]>;
+  locked?: boolean;
+  systemStartTime?: string;
+  model?: string;
+  vendor?: string;
+  osFullName?: string;
+  ip4Interfaces?: Record<string, string[]>;
+  ip6Interfaces?: Record<string, string[]>;
   workspace: string;
 }

@@ -70,7 +70,7 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
   };
   const loadMinionIdOptions = (): Array<SelectableValue<string>> => {
     let options: SelectableValue[] = (minionIds.value ?? []).map((system: SystemMetadata): SelectableValue<string> => ({
-        'label': system.alias,
+        'label': system.alias ?? system.id,
         'value': system.id,
         'description': system.state,
       })

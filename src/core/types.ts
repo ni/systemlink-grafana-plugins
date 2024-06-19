@@ -1,8 +1,10 @@
 import { SystemMetadata } from "../datasources/system/types";
 
 export interface Workspace {
-  name: string;
-  id: string;
+  id: string,
+  name: string,
+  default: boolean,
+  enabled: boolean,
 }
 
 export interface QuerySystemsRequest {
@@ -13,7 +15,7 @@ export interface QuerySystemsRequest {
   orderBy?: string
 }
 
-export interface QuerySystemResponse {
+export interface QuerySystemsResponse {
   data: SystemMetadata[]
   count: number
 }
