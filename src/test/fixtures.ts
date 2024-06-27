@@ -62,7 +62,7 @@ export function setupRenderer<DSType extends DataSourceApi<TQuery>, TQuery exten
     // Mimicks Grafana's query editor by rerendering when onChange is called
     onChange.mockImplementation(newQuery => rerender(createElement(newQuery)));
 
-    return [onChange, onRunQuery, ds] as const;
+    return [onChange, onRunQuery, datasource] as const;
   };
 }
 
