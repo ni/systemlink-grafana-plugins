@@ -26,17 +26,17 @@ export interface AssetModel {
   serialNumber: string,
   vendorName: string,
   vendorNumber: number,
-  busType: 'BUILT_IN_SYSTEM' | 'PCI_PXI' | 'USB' | 'GPIB' | 'VXI' | 'SERIAL' | 'TCP_IP' | 'CRIO' | 'SCXI' | 'CDAQ' | 'SWITCH_BLOCK' | 'SCC' | 'FIRE_WIRE' | 'ACCESSORY' | 'CAN' | 'SWITCH_BLOCK_DEVICE' | 'SLSC',
+  busType: 'BUILT_IN_SYSTEM' | 'PCI_PXI' | 'USB' | 'GPIB' | 'VXI' | 'SERIAL' | 'TCP_IP' | 'CRIO' | 'SCXI' | 'CDAQ' | 'SWITCH_BLOCK' | 'SCC' | 'FIRE_WIRE' | 'ACCESSORY' | 'CAN' | 'SWITCH_BLOCK_DEVICE' | 'SLSC' | string,
   name: string,
-  assetType: 'GENERIC' | 'DEVICE_UNDER_TEST' | 'FIXTURE' | 'SYSTEM',
+  assetType: 'GENERIC' | 'DEVICE_UNDER_TEST' | 'FIXTURE' | 'SYSTEM' | string,
   firmwareVersion: string,
   hardwareVersion: string,
   visaResourceName: string,
-  temperatureSensors: any[], // todo TemperatureSensorModel
+  temperatureSensors: any[],
   supportsSelfCalibration: boolean,
   supportsExternalCalibration: boolean,
   customCalibrationInterval?: number,
-  selfCalibration?: any, // todo SelfCalibrationModel
+  selfCalibration?: any,
   isNIAsset: boolean,
   workspace: string,
   fileIds: string[],
@@ -44,18 +44,18 @@ export interface AssetModel {
   supportsReset: boolean,
   id: string,
   location: AssetLocationModel,
-  calibrationStatus: 'OK' | 'APPROACHING_RECOMMENDED_DUE_DATE' | 'PAST_RECOMMENDED_DUE_DATE',
+  calibrationStatus: 'OK' | 'APPROACHING_RECOMMENDED_DUE_DATE' | 'PAST_RECOMMENDED_DUE_DATE' | string,
   isSystemController: boolean,
   externalCalibration?: ExternalCalibrationModel,
-  discoveryType: 'MANUAL' | 'AUTOMATIC',
+  discoveryType: 'MANUAL' | 'AUTOMATIC' | string,
   properties: Record<string, string>,
   keywords: string[],
   lastUpdatedTimestamp: string,
 }
 
 export interface AssetPresenceWithSystemConnectionModel {
-  assetPresence: AssetPresence,
-  systemConnection?: SystemConnection
+  assetPresence: "INITIALIZING" | "UNKNOWN" | "NOT_PRESENT" | "PRESENT" | string,
+  systemConnection?: "APPROVED" | "DISCONNECTED" | "CONNECTED_UPDATE_PENDING" | "CONNECTED_UPDATE_SUCCESSFUL" | "CONNECTED_UPDATE_FAILED" | "UNSUPPORTED" | "ACTIVATED" | "CONNECTED" | string
 }
 
 export interface AssetLocationModel {
@@ -63,8 +63,8 @@ export interface AssetLocationModel {
   parent: string,
   resourceUri: string,
   slotNumber: number,
-  systemName: string,
-  state: AssetPresenceWithSystemConnectionModel
+  state: AssetPresenceWithSystemConnectionModel,
+  physicalLocation?: string
 }
 
 export interface ExternalCalibrationModel {
@@ -75,7 +75,7 @@ export interface ExternalCalibrationModel {
   nextRecommendedDate: string,
   nextCustomDueDate?: string,
   comments: string,
-  entryType: ExternalCalibrationEntryType,
+  entryType: "AUTOMATIC" | "MANUAL" | string,
   operator: ExternalCalibrationOperatorModel
 }
 
@@ -98,7 +98,6 @@ export enum AssetFilterProperties {
   Keywords = 'Keywords',
   Properties = 'Properties',
   LocationMinionId = 'Location.MinionId',
-  LocationSystemName = 'Location.SystemName',
   LocationSlotNumber = 'Location.SlotNumber',
   LocationAssetStateSystemConnection = 'Location.AssetState.SystemConnection',
   LocationAssetStateAssetPresence = 'Location.AssetState.AssetPresence',
@@ -114,27 +113,5 @@ export enum AssetFilterProperties {
   ExternalCalibrationIsLimited = 'ExternalCalibration.IsLimited',
   ExternalCalibrationOperatorDisplayName = 'ExternalCalibration.Operator.DisplayName',
   IsSystemController = 'IsSystemController'
-}
-
-export enum AssetPresence {
-  INITIALIZING = "INITIALIZING",
-  UNKNOWN = "UNKNOWN",
-  NOT_PRESENT = "NOT_PRESENT",
-  PRESENT = "PRESENT"
-}
-
-export enum ExternalCalibrationEntryType {
-  AUTOMATIC = 'AUTOMATIC',
-  MANUAL = 'MANUAL'
-}
-
-export enum SystemConnection {
-  APPROVED = "APPROVED",
-  DISCONNECTED = "DISCONNECTED",
-  CONNECTED_UPDATE_PENDING = "CONNECTED_UPDATE_PENDING",
-  CONNECTED_UPDATE_SUCCESSFUL = "CONNECTED_UPDATE_SUCCESSFUL",
-  CONNECTED_UPDATE_FAILED = "CONNECTED_UPDATE_FAILED",
-  UNSUPPORTED = "UNSUPPORTED",
-  ACTIVATED = "ACTIVATED"
 }
 

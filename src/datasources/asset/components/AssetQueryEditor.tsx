@@ -13,12 +13,10 @@ import { useWorkspaceOptions } from "../../../core/utils";
 import { SystemMetadata } from "../../system/types";
 import _ from "lodash";
 import { useAsync } from "react-use";
-import { selectors } from "../../../test/selectors";
 
 type Props = QueryEditorProps<AssetDataSource, AssetQuery>;
 
 export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
-
   query = datasource.prepareQuery(query);
   const workspaces = useWorkspaceOptions(datasource);
   const [errorMsg, setErrorMsg] = useState<string | undefined>('');
@@ -40,23 +38,23 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
   };
 
   const onWorkspaceChange = (item?: SelectableValue<string>): void => {
-    if (item?.value) {
+    if (item?.value && item.value !== query.workspace) {
       // if workspace changed, reset Systems and Assets fields
       handleQueryChange(
         { ...query, workspace: item.value, minionIds: [] },
         // do not run query if workspace not changed
-        query.workspace !== item.value
+        true
       );
     } else {
       handleQueryChange({ ...query, workspace: '' }, true);
     }
   };
   const handleMinionIdChange = (items: Array<SelectableValue<string>>): void => {
-    if (items) {
+    if (items && !_.isEqual(query.minionIds, items)) {
       handleQueryChange(
         { ...query, minionIds: items.map(i => i.value!) },
         // do not run query if minionIds not changed
-        !_.isEqual(query.minionIds, items)
+        true
       );
     } else {
       handleQueryChange({ ...query, minionIds: [] }, true);
@@ -84,8 +82,7 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
     <div style={{ position: 'relative' }}>
       <InlineField label="Workspace"
                    tooltip={tooltips.workspace[EntityType.Asset]}
-                   labelWidth={22}
-                   data-testid={selectors.components.assetPlugin.workspace}>
+                   labelWidth={22}>
         <Select
           isClearable
           isLoading={workspaces.loading}
@@ -97,8 +94,7 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
       </InlineField>
       <InlineField label="Systems"
                    tooltip={tooltips.system[EntityType.Asset]}
-                   labelWidth={22}
-                   data-testid={selectors.components.assetPlugin.system}>
+                   labelWidth={22}>
         <MultiSelect
           isClearable
           allowCreateWhileLoading

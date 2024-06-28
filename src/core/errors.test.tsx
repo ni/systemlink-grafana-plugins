@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { FetchError } from '@grafana/runtime';
 import { act } from 'react-dom/test-utils';
 import { FloatingError, parseErrorMessage } from './errors';
@@ -7,15 +7,15 @@ import React from 'react';
 import { errorCodes } from "../datasources/data-frame/constants";
 
 test('renders with error message', () => {
-  const { container } = render(<FloatingError message='error msg'/>)
+  render(<FloatingError message='error msg'/>)
 
-  expect(container.innerHTML).toBeTruthy() // refact: get by text
+  expect(screen.getByText('error msg')).toBeInTheDocument()
 })
 
 test('does not render without error message', () => {
   const { container } = render(<FloatingError message=''/>)
 
-  expect(container.innerHTML).toBeFalsy() // refact: get by text
+  expect(container.innerHTML).toBeFalsy()
 })
 
 test('hides after timeout', () => {

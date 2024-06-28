@@ -9,7 +9,6 @@ import {
 } from "test/fixtures";
 import { AssetDataSource } from "./AssetDataSource";
 import {
-  AssetPresence,
   AssetPresenceWithSystemConnectionModel,
   AssetQuery,
   AssetQueryType,
@@ -77,9 +76,8 @@ const assetsResponseMock: AssetsResponse =
           "parent": "",
           "resourceUri": "system",
           "slotNumber": -1,
-          "systemName": "NI-sbRIO-9629-01FE20D1",
           "state": {
-            "assetPresence": AssetPresence.PRESENT
+            "assetPresence": "PRESENT"
           }
         },
         "calibrationStatus": "OK",
@@ -115,7 +113,6 @@ const assetsResponseMock: AssetsResponse =
           "parent": "sbRIO1",
           "resourceUri": "7/4243/31303/01FE20D1/3",
           "slotNumber": 3,
-          "systemName": "NI-sbRIO-9629-01FE20D1",
           "state": {
             "assetPresence": "PRESENT",
             "systemConnection": "DISCONNECTED"
@@ -154,7 +151,6 @@ const assetsResponseMock: AssetsResponse =
           "parent": "sbRIO1",
           "resourceUri": "7/4243/31304/01FE20D1/4",
           "slotNumber": 4,
-          "systemName": "NI-sbRIO-9629-01FE20D1",
           "state": {
             "assetPresence": "PRESENT",
             "systemConnection": "DISCONNECTED"
@@ -193,7 +189,6 @@ const assetsResponseMock: AssetsResponse =
           "parent": "sbRIO1",
           "resourceUri": "7/4243/31305/01FE20D1/5",
           "slotNumber": 5,
-          "systemName": "NI-sbRIO-9629-01FE20D1",
           "state": {
             "assetPresence": "PRESENT",
             "systemConnection": "DISCONNECTED"

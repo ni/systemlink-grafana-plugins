@@ -39,8 +39,8 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
 
   async processMetadataQuery(query: AssetQuery) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
-    let workspaceId = this.templateSrv.replace(query.workspace);
     const minionIds = replaceVariables(query.minionIds, this.templateSrv);
+    let workspaceId = this.templateSrv.replace(query.workspace);
     const conditions = [];
     if (workspaceId) {
       conditions.push(`workspace = "${workspaceId}"`);
@@ -65,11 +65,6 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
       { name: 'last updated timestamp', values: assets.map(a => a.lastUpdatedTimestamp) },
       { name: 'minionId', values: assets.map(a => a.location.minionId) },
       { name: 'parent name', values: assets.map(a => a.location.parent) },
-      { name: 'system name', values: assets.map(a => a.location.systemName) },
-      {
-        name: 'calibration due date',
-        values: assets.map(a => a.externalCalibration ? a.externalCalibration.nextRecommendedDate : null)
-      },
       { name: 'workspace', values: assets.map(a => getWorkspaceName(workspaces, a.workspace)) },
     ];
     return result;
