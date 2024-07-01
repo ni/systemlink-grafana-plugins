@@ -42,15 +42,15 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     const minionIds = replaceVariables(query.minionIds, this.templateSrv);
     let workspaceId = this.templateSrv.replace(query.workspace);
     const conditions = [];
-    if (workspaceId) {
-      conditions.push(`workspace = "${workspaceId}"`);
-    }
     if (minionIds.length) {
       const systemsCondition = minionIds.map(id => `${AssetFilterProperties.LocationMinionId} = "${id}"`)
       conditions.push(`(${systemsCondition.join(' or ')})`);
     }
+    if (workspaceId) {
+      conditions.push(`workspace = "${workspaceId}"`);
+    }
     const assetFilter = conditions.join(' and ');
-    const assets: AssetModel[] = await this.queryAssets(assetFilter);
+    const assets: AssetModel[] = await this.queryAssets(assetFilter, 1000);
     const workspaces = await this.getWorkspaces();
     result.fields = [
       { name: 'id', values: assets.map(a => a.id) },

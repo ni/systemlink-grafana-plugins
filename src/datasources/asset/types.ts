@@ -55,6 +55,7 @@ export interface AssetModel {
 
 export interface AssetPresenceWithSystemConnectionModel {
   assetPresence: "INITIALIZING" | "UNKNOWN" | "NOT_PRESENT" | "PRESENT" | string,
+  // to be compatible with both SLS and SLE
   systemConnection?: "APPROVED" | "DISCONNECTED" | "CONNECTED_UPDATE_PENDING" | "CONNECTED_UPDATE_SUCCESSFUL" | "CONNECTED_UPDATE_FAILED" | "UNSUPPORTED" | "ACTIVATED" | "CONNECTED" | string
 }
 
