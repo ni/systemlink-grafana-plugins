@@ -1,7 +1,7 @@
 {
   "type": "datasource",
-  "name": "SystemLink Notebooks (Old)",
-  "id": "ni-slnotebook-datasource-old",
+  "name": "SystemLink Notebooks",
+  "id": "ni-slnotebook-datasource",
   "metrics": true,
   "info": {
     "author": {
