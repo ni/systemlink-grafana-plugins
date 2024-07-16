@@ -1,3 +1,10 @@
+## [3.11.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.10.1...v3.11.0) (2024-07-16)
+
+
+### Features
+
+* **asset:** add asset data source ([#62](https://github.com/ni/systemlink-grafana-plugins/issues/62)) ([b641456](https://github.com/ni/systemlink-grafana-plugins/commit/b64145685e14f22c1db8ef27a67e70d228a544a6))
+
 ## [3.10.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.10.0...v3.10.1) (2024-05-29)
 
 
