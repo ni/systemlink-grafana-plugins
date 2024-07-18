@@ -275,6 +275,90 @@ describe('queries', () => {
     expect(result.data).toMatchSnapshot();
   });
 
+  test('history of tags from different workspaces', async () => {
+    const queryRequest = buildQuery({ type: TagQueryType.History, path: 'my.tag.*' });
+
+    backendSrv.fetch
+      .calledWith(requestMatching({ url: '/nitag/v2/query-tags-with-values', data: { filter: 'path = "my.tag.*"' } }))
+      .mockReturnValue(createQueryTagsResponse([
+        { tag: { path: 'my.tag.1', workspace: '1' } },
+        { tag: { path: 'my.tag.2', workspace: '1' } },
+        { tag: { path: 'my.tag.3', workspace: '2' } },
+        { tag: { path: 'my.tag.4', workspace: '2' } }
+      ]));
+
+    backendSrv.fetch
+      .calledWith(
+        requestMatching({
+          url: '/nitaghistorian/v2/tags/query-decimated-history',
+          data: {
+            paths: ['my.tag.1', 'my.tag.2'],
+            workspace: '1',
+            startTime: queryRequest.range.from.toISOString(),
+            endTime: queryRequest.range.to.toISOString(),
+            decimation: 300,
+          },
+        })
+      )
+      .mockReturnValue(
+        createTagHistoryResponse([
+          {
+            path: 'my.tag.1',
+            type: TagDataType.DOUBLE,
+            values: [
+              { timestamp: '2023-01-01T00:00:00Z', value: '1' },
+              { timestamp: '2023-01-01T00:01:00Z', value: '2' },
+            ],
+          },
+          {
+            path: 'my.tag.2',
+            type: TagDataType.DOUBLE,
+            values: [
+              { timestamp: '2023-01-01T00:00:00Z', value: '2' },
+              { timestamp: '2023-01-01T00:01:00Z', value: '3' },
+            ]
+          }
+        ])
+      )
+
+    backendSrv.fetch.calledWith(
+      requestMatching({
+        url: '/nitaghistorian/v2/tags/query-decimated-history',
+        data: {
+          paths: ['my.tag.3', 'my.tag.4'],
+          workspace: '2',
+          startTime: queryRequest.range.from.toISOString(),
+          endTime: queryRequest.range.to.toISOString(),
+          decimation: 300,
+        },
+      })
+    )
+      .mockReturnValue(
+        createTagHistoryResponse([
+          {
+            path: 'my.tag.3',
+            type: TagDataType.DOUBLE,
+            values: [
+              { timestamp: '2023-01-01T00:00:00Z', value: '3' },
+              { timestamp: '2023-01-01T00:01:00Z', value: '4' },
+            ],
+          },
+          {
+            path: 'my.tag.4',
+            type: TagDataType.DOUBLE,
+            values: [
+              { timestamp: '2023-01-01T00:00:00Z', value: '4' },
+              { timestamp: '2023-01-01T00:01:00Z', value: '5' },
+            ]
+          }
+        ])
+      )
+
+    const result = await ds.query(queryRequest);
+
+    expect(result.data).toMatchSnapshot();
+  });
+
   test('decimation parameter does not go above 1000', async () => {
     const queryRequest = buildQuery({ type: TagQueryType.History, path: 'my.tag' });
     queryRequest.maxDataPoints = 1500;

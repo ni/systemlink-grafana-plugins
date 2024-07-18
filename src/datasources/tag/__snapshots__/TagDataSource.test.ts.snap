@@ -649,3 +649,53 @@ exports[`queries uses displayName property 1`] = `
   },
 ]
 `;
+
+exports[`queries history of tags from different workspaces 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "time",
+        "type": "time",
+        "values": [
+          "2023-01-01T00:00:00Z",
+          "2023-01-01T00:01:00Z",
+        ],
+      },
+      {
+        "config": {},
+        "name": "Default workspace.my.tag.1",
+        "values": [
+          1,
+          2,
+        ],
+      },
+      {
+        "config": {},
+        "name": "Default workspace.my.tag.2",
+        "values": [
+          2,
+          3,
+        ],
+      },
+      {
+        "config": {},
+        "name": "Other workspace.my.tag.3",
+        "values": [
+          3,
+          4,
+        ],
+      },
+      {
+        "config": {},
+        "name": "Other workspace.my.tag.4",
+        "values": [
+          4,
+          5,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;

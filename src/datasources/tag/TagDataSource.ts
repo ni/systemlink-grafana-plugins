@@ -18,7 +18,7 @@ import {
   TimeAndTagTypeValues,
   TypeAndValues,
 } from './types';
-import { Throw } from 'core/utils';
+import { Throw, getWorkspaceName } from 'core/utils';
 
 export class TagDataSource extends DataSourceBase<TagQuery> {
   constructor(
@@ -44,7 +44,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
       this.templateSrv.replace(query.path, scopedVars),
       this.templateSrv.replace(query.workspace, scopedVars)
     );
-
+    const workspaces = await this.getWorkspaces();
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
 
     if (query.type === TagQueryType.Current) {
@@ -78,18 +78,36 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
 
       return result
     } else {
+      const workspaceTagMap: Record<string, TagWithValue[]> = {};
       const tagPropertiesMap: Record<string, Record<string, string> | null> = {};
-      tagsWithValues.forEach((tag: TagWithValue) => {
-        tagPropertiesMap[tag.tag.path] = tag.tag.properties
+
+      tagsWithValues.forEach(tagWithValue => {
+        let workspace = tagWithValue.tag.workspace ?? tagWithValue.tag.workspace_id
+        if (!workspaceTagMap[workspace]) {
+          workspaceTagMap[workspace] = [];
+        }
+        workspaceTagMap[workspace].push(tagWithValue);
+        tagPropertiesMap[`${getWorkspaceName(workspaces, workspace)}.${tagWithValue.tag.path}`] = tagWithValue.tag.properties
       });
-      const workspaceFromFirstTag = tagsWithValues[0].tag.workspace ?? tagsWithValues[0].tag.workspace_id;
-      const tagHistoryResponse = await this.getTagHistoryWithChunks(
-        Object.keys(tagPropertiesMap),
-        workspaceFromFirstTag,
-        range,
-        maxDataPoints
-      )
-      const mergedTagValuesWithType = this.mergeTagsHistoryValues(tagHistoryResponse.results);
+      let tagsDecimatedHistory: { [key: string]: TypeAndValues } = {}
+      for (const workspace in workspaceTagMap) {
+        const tagHistoryResponse = await this.getTagHistoryWithChunks(
+          workspaceTagMap[workspace],
+          workspace,
+          range,
+          maxDataPoints
+        )
+        for (const path in tagHistoryResponse.results) {
+          // If tags are mixed from different workspaces, add the workspace name as a prefix
+          if (Object.keys(workspaceTagMap).length === 1) {
+            tagsDecimatedHistory[path] = tagHistoryResponse.results[path]
+          } else {
+            tagsDecimatedHistory[`${getWorkspaceName(await this.getWorkspaces(), workspace)}.${path}`] = tagHistoryResponse.results[path]
+          }
+        }
+      }
+
+      const mergedTagValuesWithType = this.mergeTagsHistoryValues(tagsDecimatedHistory);
       result.fields.push({
         name: 'time', 'values': mergedTagValuesWithType.timestamps, type: FieldType.time
       });
@@ -133,15 +151,15 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
     return response.tagsWithValues.length ? response.tagsWithValues : Throw(`No tags matched the path '${path}'`)
   }
 
-  private async getTagHistoryWithChunks(paths: string[], workspace: string, range: TimeRange, intervals?: number): Promise<TagHistoryResponse> {
-    const pathChunks: string[][] = [];
+  private async getTagHistoryWithChunks(paths: TagWithValue[], workspace: string, range: TimeRange, intervals?: number): Promise<TagHistoryResponse> {
+    const pathChunks: TagWithValue[][] = [];
     for (let i = 0; i < paths.length; i += 10) {
       pathChunks.push(paths.slice(i, i + 10));
     }
     // Fetch and aggregate the data from each chunk
     const aggregatedResults: TagHistoryResponse = { results: {} };
     for (const chunk of pathChunks) {
-      const chunkResult = await this.getTagHistoryValues(chunk, workspace, range, intervals);
+      const chunkResult = await this.getTagHistoryValues(chunk.map(tag => tag.tag.path), workspace, range, intervals);
       // Merge the results from the current chunk with the aggregated results
       for (const [path, data] of Object.entries(chunkResult.results)) {
         if (!aggregatedResults.results[path]) {
