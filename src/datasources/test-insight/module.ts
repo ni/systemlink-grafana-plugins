@@ -5,4 +5,4 @@ import { HttpConfigEditor } from 'core/components/HttpConfigEditor';
 
 export const plugin = new DataSourcePlugin(TestInsightDataSource)
   .setConfigEditor(HttpConfigEditor)
-  .setQueryEditor(TestInsightQueryEditor);
+  .setQueryEditor(TestInsightQueryEditor)
