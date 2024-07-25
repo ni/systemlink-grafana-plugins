@@ -1,21 +1,18 @@
 import { DataQuery } from '@grafana/schema'
 
-export interface TestInsightQuery extends DataQuery {
-  type: TestInsightQueryType;
+export interface ProductsQuery extends DataQuery {
+  type: ProductsQueryType;
   partNumber: string;
   output?: ProductQueryOutput;
-  resultFilter?: any;
   productFilter?: any;
-  parameters?: any;
 }
 
-export enum TestInsightQueryType {
+export enum ProductsQueryType {
   Products = 'Products',
-  Results = 'Results',
   Summary = 'Summary',
 }
 
-export interface TestInsightVariableQuery {
+export interface ProductsVariableQuery {
   workspace: string;
 }
 

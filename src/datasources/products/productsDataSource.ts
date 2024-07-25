@@ -1,32 +1,19 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldType, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { ProductQueryOutput, QueryProductResponse, QueryCountResponse, QueryResultsHttpResponse, TestInsightQuery, TestInsightQueryType, TestInsightVariableQuery, QuerySpecsResponse, QueryTestPlansResponse, StatusType } from './types';
-// import { TestInsightsVariableSupport } from './variables';
+import { ProductQueryOutput, ProductsQueryType, ProductsQuery, ProductsVariableQuery, QueryCountResponse, QueryProductResponse, QueryResultsHttpResponse, QuerySpecsResponse, QueryTestPlansResponse, StatusType } from './types';
 
-export class TestInsightDataSource extends DataSourceBase<TestInsightQuery> {
+export class productsDataSource extends DataSourceBase<ProductsQuery> {
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
-    // this.variables = new TestInsightsVariableSupport();
   }
 
+  // TODO: set base path of the service
   baseUrl = this.instanceSettings.url;
-
-  defaultQuery = {
-    type: TestInsightQueryType.Products,
-    workspace: '',
-    family: '',
-    partNumber: '',
-    name: '',
-    parameters: ''
-  };
-
-  productFilter = '';
-  resultFilter = '';
 
   queryProductsUrl = this.baseUrl + '/nitestmonitor/v2/query-products';
   queryResultsUrl = this.baseUrl + '/nitestmonitor/v2/query-results';
@@ -34,88 +21,12 @@ export class TestInsightDataSource extends DataSourceBase<TestInsightQuery> {
   queryTestPlansUrl = this.baseUrl + '/niworkorder/v1/query-testplans'
   queryAssetsUrl = this.baseUrl + '/niapm/v1/query-assets'
 
+  defaultQuery = {
+    type: ProductsQueryType.Products,
+    partNumber: '',
+  };
 
-  async runQuery(query: TestInsightQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    if (query.type === TestInsightQueryType.Products) {
-      if (!query.productFilter) {
-        return {
-          refId: query.refId,
-          fields: [ { name: 'Test program', values: [] },
-                    { name: 'Serial number', values: [] }
-                  ],
-        };
-      } else {
-      this.productFilter = query.productFilter;
-      const responseData = (await this.queryProducts(query.productFilter,false)).products;
-      return {
-        refId: query.refId,
-        fields: [
-          { name: 'id', values: responseData.map(m => m.id) },
-          { name: 'name', values: responseData.map(m => m.name) },
-          { name: 'partNumber', values: responseData.map(m => m.partNumber) },
-          { name: 'family', values: responseData.map(m => m.family) },
-          { name: 'updatedAt', values: responseData.map(m => m.updatedAt), type: FieldType.time},
-        ],
-      };
-    }
-    } else if (query.type === TestInsightQueryType.Results){
-      if (!query.resultFilter) {
-        return {
-          refId: query.refId,
-          fields: [ { name: 'Test program', values: [] },
-                    { name: 'Serial number', values: [] }
-                  ],
-        };
-      } else {
-        const results = (await this.queryResults(query.resultFilter, this.productFilter)).results;
-        return {
-          refId: query.refId,
-          fields: [
-            { name: 'Test program', values: results.map(r => r.programName) },
-            { name: 'Serial number', values: results.map(r => r.serialNumber) },
-            { name: 'System', values: results.map(r => r.systemId) },
-            { name: 'Status', values: results.map(r => r.status?.statusType) },
-            { name: 'Elapsed time (s)', values: results.map(r => r.totalTimeInSeconds) },
-            { name: 'Started', values: results.map(r => dateTime(r.startedAt).format('MMM DD, YYYY, h:mm:ss A')) },
-            { name: 'Updated', values: results.map(r => dateTime(r.updatedAt).format('MMM DD, YYYY, h:mm:ss A')) },
-            { name: 'Part number', values: results.map(r => r.partNumber) },
-            { name: 'Data tables', values: results.map(r => r.dataTableIds)},
-            { name: 'File ids', values: results.map(r => r.fileIds)},
-            { name: 'Id', values: results.map(r => r.id) },
-            { name: 'Host name', values: results.map(r => r.hostName)},
-            { name: 'Operator', values: results.map(r => r.operator)},
-            { name: 'Keywords', values: results.map(r => r.keywords)},
-            { name: 'Properties', values: results.map(r => r.properties)},
-            { name: 'Status summary', values: results.map(r => r.statusTypeSummary)},
-            { name: 'Workspace', values: results.map(r => r.workspace)},
-          ],
-        };
-      }
-    } else {
-      const partNumber = this.templateSrv.replace(query.partNumber, options.scopedVars);
-      if (partNumber !== '') {
-        switch (query.output) {
-          case ProductQueryOutput.TestResultsCountByStatus:
-            return await this.getTestResultsCountByStatusOutput(query.refId, partNumber);
-          case ProductQueryOutput.TestPlansCountByState:
-            return await this.getTestPlansCountByStateOutput(query.refId, partNumber);
-          default:
-            return await this.getEntityCountsOutput(query.refId, partNumber);
-            }
-      }
-      else {
-        return {
-          refId: query.refId,
-          fields: [ { name: 'Specs', values: [] },
-                    { name: 'Test Plans', values: [] },
-                    { name: 'Results', values: [] },
-                    { name: 'Duts', values: [] }
-                  ],
-        };
-      }
-    }
-
-  }
+  
 
   async queryProducts(filter: string, returnCount: boolean ): Promise<QueryProductResponse> {
     const response = await this.post<QueryProductResponse>(this.baseUrl + '/nitestmonitor/v2/query-products', {
@@ -123,10 +34,6 @@ export class TestInsightDataSource extends DataSourceBase<TestInsightQuery> {
       returnCount: returnCount
     });    
     return response;
-  }
-
-  shouldRunQuery(_: TestInsightQuery): boolean {
-    return true;
   }
 
   async queryResults(filter: string , productFilter = ''): Promise<QueryResultsHttpResponse> {
@@ -201,7 +108,6 @@ export class TestInsightDataSource extends DataSourceBase<TestInsightQuery> {
     }).then(response => response.totalCount);
   }
 
-
   async getEntityCountsOutput(refId: string, partNumber: string): Promise<DataFrameDTO> {
     const product = ((await this.queryProducts(`partNumber = "${partNumber}"`, false)));
     const productId = product.products[0].id;
@@ -248,12 +154,6 @@ export class TestInsightDataSource extends DataSourceBase<TestInsightQuery> {
     }).then(response => response.totalCount);
   }
 
-  async queryTestResultValues(field: string, startsWith: string): Promise<string[]> {
-    const data = { field, startsWith };
-    const values = await getBackendSrv().post(this.baseUrl + '/nitestmonitor/v2/query-result-values', data);
-    return values.slice(0, 20).filter((value: string) => value);
-  }
-
   async queryProductValues(field: string, startsWith: string): Promise<string[]> {
     if (!startsWith || startsWith.startsWith('$')) {
       return this.getVariableOptions();
@@ -268,9 +168,59 @@ export class TestInsightDataSource extends DataSourceBase<TestInsightQuery> {
       .getVariables()
       .map(v => '$' + v.name);
   };
-  
 
-  async metricFindQuery({ workspace }: TestInsightVariableQuery): Promise<MetricFindValue[]> {
+  async runQuery(query: ProductsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    if (query.type === ProductsQueryType.Products) {
+      if (!query.productFilter) {
+        return {
+          refId: query.refId,
+          fields: [ { name: 'Test program', values: [] },
+                    { name: 'Serial number', values: [] }
+            ],
+          };
+        } else {
+        const responseData = (await this.queryProducts(query.productFilter,false)).products;
+        return {
+          refId: query.refId,
+          fields: [
+            { name: 'id', values: responseData.map(m => m.id) },
+            { name: 'name', values: responseData.map(m => m.name) },
+            { name: 'partNumber', values: responseData.map(m => m.partNumber) },
+            { name: 'family', values: responseData.map(m => m.family) },
+            { name: 'updatedAt', values: responseData.map(m => m.updatedAt), type: FieldType.time},
+          ],
+        };
+      }
+    } else {
+      const partNumber = this.templateSrv.replace(query.partNumber, options.scopedVars);
+      if (partNumber !== '') {
+        switch (query.output) {
+          case ProductQueryOutput.TestResultsCountByStatus:
+            return await this.getTestResultsCountByStatusOutput(query.refId, partNumber);
+          case ProductQueryOutput.TestPlansCountByState:
+            return await this.getTestPlansCountByStateOutput(query.refId, partNumber);
+          default:
+            return await this.getEntityCountsOutput(query.refId, partNumber);
+            }
+      }
+      else {
+        return {
+          refId: query.refId,
+          fields: [ { name: 'Specs', values: [] },
+                    { name: 'Test Plans', values: [] },
+                    { name: 'Results', values: [] },
+                    { name: 'Duts', values: [] }
+                  ],
+        };
+      }
+    }
+  }
+
+  shouldRunQuery(query: ProductsQuery): boolean {
+    return true;
+  }
+
+  async metricFindQuery({ workspace }: ProductsVariableQuery): Promise<MetricFindValue[]> {
     const metadata = (await this.queryProducts('', false)).products;
     return metadata.map(frame => ({ text: frame.family, value: frame.family, }));
   }

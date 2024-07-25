@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { AsyncSelect, LoadOptionsCallback, RadioButtonGroup, Select } from '@grafana/ui';
-import { QueryEditorProps, SelectableValue, toOption } from '@grafana/data';
+import { QueryEditorProps, QueryVariableModel, SelectableValue, toOption } from '@grafana/data';
 import { InlineField } from 'core/components/InlineField';
 import { TestInsightDataSource } from '../TestInsightDataSource';
 import { ProductQueryOutput, TestInsightQuery, TestInsightQueryType } from '../types';
@@ -8,7 +8,7 @@ import { enumToOptions } from 'core/utils';
 import { isValidId } from 'datasources/data-frame/utils';
 import _ from 'lodash';
 import { getTemplateSrv } from '@grafana/runtime';
-import { TestResultsQueryBuilder } from '../ResultsQueryBuilder';
+import { TestResultsQueryBuilder } from '../QueryBuilder';
 
 type Props = QueryEditorProps<TestInsightDataSource, TestInsightQuery>;
 
@@ -45,13 +45,20 @@ export function TestInsightQueryEditor({ query, onChange, onRunQuery, datasource
   // }
 
   const onResultsParameterChange = (value: string) => {
-    onChange({ ...query, resultParameters: value });
+    onChange({ ...query, resultFilter: value });
     onRunQuery();
   };
 
   
   const onProductsParameterChange = (value: string) => {
-    onChange({ ...query, productParameters: value });
+    const matchingVariables = getTemplateSrv().getVariables().filter(variable => value.includes(variable.name)) as QueryVariableModel[];
+    const variableDictionary: Record<string, string> = {};
+    matchingVariables.forEach(variable => {
+      variableDictionary[variable.name] =  variable.current.value as string;
+    });
+   value = value.replace(/\$[a-zA-Z0-9_]+/g, (match) => variableDictionary[match.slice(1)]);
+  
+    onChange({ ...query, productFilter: value});
     onRunQuery();
   };
 
@@ -154,18 +161,20 @@ export function TestInsightQueryEditor({ query, onChange, onRunQuery, datasource
       )}
       { query.type === TestInsightQueryType.Products && (
         <>
-            <TestResultsQueryBuilder 
+            <TestResultsQueryBuilder
+              autoComplete={datasource.queryProductValues.bind(datasource)}
               onChange={(event: any) => onProductsParameterChange(event.detail.linq) }
               queryType={query.type}
-              defaultValue={query.productParameters}/>
+              defaultValue={query.productFilter}/>
         </>
       )}
       { query.type === TestInsightQueryType.Results && (
         <>
             <TestResultsQueryBuilder 
+              autoComplete={datasource.queryTestResultValues.bind(datasource)}
               onChange={(event: any) => onResultsParameterChange(event.detail.linq) }
               queryType={query.type}
-              defaultValue={query.resultParameters}/>
+              defaultValue={query.resultFilter}/>
         </>
       )}
       

@@ -12,7 +12,7 @@ import { TestInsightQueryType } from './types';
 type TestResultsQueryBuilderProps = Omit<QueryBuilderProps, 'customOperations' | 'fields' | 'messages' | 'showIcons'> &
   React.HTMLAttributes<Element> & {
     queryType: string
-    // autoComplete: (field: string, startsWith: string) => Promise<string[]>;
+    autoComplete: (field: string, startsWith: string) => Promise<string[]>;
     defaultValue?: string;
   };
 
@@ -26,11 +26,11 @@ export const TestResultsQueryBuilder: React.FC<TestResultsQueryBuilderProps> = (
     initialize.current = false;
   }, []);
 
-  // const getDataSource = (field: string) => {
-  //   return async (query: string, callback: Function) => {
-  //     callback(await props.autoComplete(field, query));
-  //   };
-  // };
+  const getDataSource = (field: string) => {
+    return async (query: string, callback: Function) => {
+      callback(await props.autoComplete(field, query));
+    };
+  };
 
   const fields = [
     {
@@ -38,19 +38,21 @@ export const TestResultsQueryBuilder: React.FC<TestResultsQueryBuilderProps> = (
       dataField: 'partNumber',
       dataType: 'string',
       filterOperations: ['=', '<>', 'startswith', 'endswith', 'contains', 'notcontains', 'isblank', 'isnotblank'],
-      // lookup: { dataSource: getDataSource('PART_NUMBER'), minLength: 2 },
+      lookup: { dataSource: getDataSource('PART_NUMBER'), minLength: 1 },
     },
     {
       label: 'Family',
       dataField: 'family',
       dataType: 'string',
       filterOperations: ['=', '<>', 'contains', 'notcontains', 'isblank', 'isnotblank'],
+      lookup: { dataSource: getDataSource('FAMILY'), minLength: 1},
     },
     {
       label: 'Name',
       dataField: 'name',
       dataType: 'string',
       filterOperations: ['=', '<>', 'contains', 'notcontains', 'isblank', 'isnotblank'],
+      lookup: { dataSource: getDataSource('NAME'), minLength: 1 },
     },
     {
       label: 'Updated at',
@@ -80,14 +82,14 @@ export const TestResultsQueryBuilder: React.FC<TestResultsQueryBuilderProps> = (
       dataField: 'partNumber',
       dataType: 'string',
       filterOperations: ['=', '<>', 'startswith', 'endswith', 'contains', 'notcontains', 'isblank', 'isnotblank'],
-      // lookup: { dataSource: getDataSource('PART_NUMBER'), minLength: 2 },
+      lookup: { dataSource: getDataSource('PART_NUMBER'), minLength: 1 },
     },
     {
       label: 'Test Program',
       dataField: 'programName',
       dataType: 'string',
       filterOperations: ['=', '<>', 'startswith', 'endswith', 'contains', 'notcontains', 'isblank', 'isnotblank'],
-      // lookup: { dataSource: getDataSource('PROGRAM_NAME'), minLength: 2 },
+      lookup: { dataSource: getDataSource('PROGRAM_NAME'), minLength: 1 },
     },
     {
       label: 'Serial Number',
@@ -115,14 +117,14 @@ export const TestResultsQueryBuilder: React.FC<TestResultsQueryBuilderProps> = (
       dataField: 'operator',
       dataType: 'string',
       filterOperations: ['=', '<>', 'startswith', 'endswith', 'contains', 'notcontains', 'isblank', 'isnotblank'],
-      // lookup: { dataSource: getDataSource('OPERATOR'), minLength: 2 },
+      lookup: { dataSource: getDataSource('OPERATOR'), minLength: 1 },
     },
     {
       label: 'Serial Number',
       dataField: 'serialNumber',
       dataType: 'string',
       filterOperations: ['=', '<>', 'startswith', 'endswith', 'contains', 'notcontains', 'isblank', 'isnotblank'],
-      // lookup: { dataSource: getDataSource('SERIAL_NUMBER'), minLength: 2 },
+      lookup: { dataSource: getDataSource('SERIAL_NUMBER'), minLength: 1 },
     },
     {
       label: 'Started at',
@@ -181,7 +183,7 @@ export const TestResultsQueryBuilder: React.FC<TestResultsQueryBuilderProps> = (
       dataField: 'systemId',
       dataType: 'string',
       filterOperations: ['=', '<>', 'contains', 'notcontains'],
-      // lookup: { dataSource: getDataSource('SYSTEM_ID'), minLength: 2 },
+      lookup: { dataSource: getDataSource('SYSTEM_ID'), minLength: 1 },
     },
     {
       label: 'System Alias',
