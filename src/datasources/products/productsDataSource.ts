@@ -39,7 +39,7 @@ export class productsDataSource extends DataSourceBase<ProductsQuery> {
       filter: filter,
       orderBy: orderBy,
       descending: descending,
-      projection: projection.length > 0 ? projection : undefined,
+      projection: projection ? projection : undefined,
       take: recordCount,
       returnCount: returnCount
     });    
@@ -62,16 +62,27 @@ export class productsDataSource extends DataSourceBase<ProductsQuery> {
   };
 
   async runQuery(query: ProductsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    if (!query.queryBy) {
+    const filter = [
+      query.partNumber ? `partNumber = (\"${query.partNumber}\")` : '',
+      query.family ? `family = (\"${query.family}\")` : '',
+      query.workspace ? `workspace = (\"${query.workspace}\")` : '',
+    ].filter(Boolean).join(' && ');
+
+    if (!query.queryBy && (query.partNumber || query.family || query.workspace)) {
+      const responseData = (await this.queryProducts(filter, query.orderBy, query.metaData!, query.recordCount, query.descending, false)).products;
       return {
         refId: query.refId,
-        fields: [ 
-            { name: 'Test program', values: [] },
-            { name: 'Serial number', values: [] }
-          ],
-        };
+        fields: [
+          { name: 'id', values: responseData.map(m => m.id) },
+          { name: 'name', values: responseData.map(m => m.name) },
+          { name: 'partNumber', values: responseData.map(m => m.partNumber) },
+          { name: 'family', values: responseData.map(m => m.family) },
+          { name: 'updatedAt', values: responseData.map(m => m.updatedAt), type: FieldType.time},
+        ],
+      };
     } else {
-        const responseData = (await this.queryProducts( query.queryBy, query.orderBy, query.metaData!, query.recordCount, query.descending, false)).products;
+        const queryBy = filter && query.queryBy ? `${filter} && ${query.queryBy}` : filter || query.queryBy;
+        const responseData = (await this.queryProducts( queryBy, query.orderBy, query.metaData!, query.recordCount, query.descending, false)).products;
         return {
           refId: query.refId,
           fields: [

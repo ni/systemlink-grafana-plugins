@@ -8,14 +8,13 @@ import 'smart-webcomponents-react/source/styles/components/smart.base.css';
 import 'smart-webcomponents-react/source/styles/components/smart.common.css';
 import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
 
-
-type TestProductsQueryBuilderProps = Omit<QueryBuilderProps, 'customOperations' | 'fields' | 'messages' | 'showIcons'> &
+type TestStepsQueryBuilderProps = Omit<QueryBuilderProps, 'customOperations' | 'fields' | 'messages' | 'showIcons'> &
   React.HTMLAttributes<Element> & {
     autoComplete: (field: string, startsWith: string) => Promise<string[]>;
     defaultValue?: string;
   };
 
-export const TestResultsQueryBuilder: React.FC<TestProductsQueryBuilderProps> = (props) => {
+export const TestStepsQueryBuilder: React.FC<TestStepsQueryBuilderProps> = (props) => {
   const theme = useTheme2();
   // Need to set on body to affect dropdowns
   document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
@@ -32,48 +31,61 @@ export const TestResultsQueryBuilder: React.FC<TestProductsQueryBuilderProps> = 
   };
 
   const fields = [
-    // {
-    //   label: 'Part Number',
-    //   dataField: 'partNumber',
-    //   dataType: 'string',
-    //   filterOperations: ['=', '<>', 'startswith', 'endswith', 'contains', 'notcontains', 'isblank', 'isnotblank'],
-    //   lookup: { dataSource: getDataSource('PART_NUMBER'), minLength: 1 },
-    // },
-    // {
-    //   label: 'Family',
-    //   dataField: 'family',
-    //   dataType: 'string',
-    //   filterOperations: ['=', '<>', 'contains', 'notcontains', 'isblank', 'isnotblank'],
-    //   lookup: { dataSource: getDataSource('FAMILY'), minLength: 1},
-    // },
     {
-      label: 'Name',
+      label: 'Step name',
       dataField: 'name',
       dataType: 'string',
-      filterOperations: ['=', '<>', 'contains', 'notcontains', 'isblank', 'isnotblank'],
+      filterOperations: ['=', '<>', 'startswith', 'endswith', 'contains', 'notcontains', 'isblank', 'isnotblank'],
       lookup: { dataSource: getDataSource('NAME'), minLength: 1 },
     },
     {
-      label: 'Updated at',
-      dataField: 'updatedAt',
+      label: 'Step keywords',
+      dataField: 'keywords',
       dataType: 'string',
-      filterOperations: ['>', '>=', '<', '<='],
-      lookup: {
-        dataSource: [
-          { label: 'From', value: '${__from:date}' },
-          { label: 'To', value: '${__to:date}' },
-          { label: 'From (YYYY-MM-DD)', value: '${__from:date:YYYY-MM-DD}' },
-          { label: 'To (YYYY-MM-DD)', value: '${__to:date:YYYY-MM-DD}' },
-        ],
-      },
+      filterOperations: ['=', '<>', 'contains', 'notcontains',]
     },
-    // {
-    //   label: 'Workspace',
-    //   dataField: 'workspace',
-    //   dataType: 'SelectableValue<string>',
-    //   filterOperations: ['=', '<>'],
-    //   lookup: { dataSource: getDataSource('WORKSPACE'), minLength: 1 },
-    // },
+    {
+      label: 'Step path',
+      dataField: 'path',
+      dataType: 'string',
+      filterOperations: ['=', '<>', 'startswith'],
+      lookup: { dataSource: getDataSource('PATH'), minLength: 1}
+    },
+    {
+      label: 'Step type',
+      dataField: 'stepType',
+      dataType: 'string',
+      filterOperations: ['=', '<>'],
+      lookup: { dataSource: ['NumericLimitTest', 'MultipleNumericLimitTest', 'StringValueTest'] },
+    },
+    {
+      label: 'Step status',
+      dataField: 'status.statusType',
+      dataType: 'string',
+      filterOperations: ['=', '<>',],
+      lookup: { dataSource: ['custom', 'failed', 'passed', 'skipped', 'done', 'running', 'waiting', 'errored', 'looping', 'timedout', 'terminated'] },
+    },
+    {
+      label: 'Step started at',
+      dataField: 'stepStartedAt',
+      dataType: 'string',
+      filterOperations: ['is after', 'is before',],
+      // lookup: { dataSource: getDataSource('NAME'), minLength: 1 },
+    },
+    {
+      label: 'Step total time',
+      dataField: 'totalTimeInSeconds ',
+      dataType: 'string',
+      filterOperations: ['=', '<>', '>', '>=', '<', '<='],
+    },
+    {
+      label: 'Step updated at',
+      dataField: 'stepUpdatedAt',
+      dataType: 'string',
+      filterOperations: ['is after', 'is before',],
+      // lookup: { dataSource: getDataSource('NAME'), minLength: 1 },
+    },
+    
   ];
 
   return (

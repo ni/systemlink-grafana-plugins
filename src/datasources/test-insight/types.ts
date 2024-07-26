@@ -7,6 +7,7 @@ export interface TestInsightQuery extends DataQuery {
   resultFilter?: any;
   productFilter?: any;
   parameters?: any;
+  options?: string;
 }
 
 export enum TestInsightQueryType {
