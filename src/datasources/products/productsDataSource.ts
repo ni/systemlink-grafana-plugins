@@ -1,4 +1,4 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, QueryVariableModel, TestDataSourceResponse } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { ProductsQuery, QueryProductResponse, MetaData } from './types';
@@ -28,13 +28,6 @@ export class productsDataSource extends DataSourceBase<ProductsQuery> {
   };
 
   async queryProducts(filter: string, orderBy: string, projection: MetaData[], recordCount = 1000, descending = false ,returnCount= false ): Promise<QueryProductResponse> {
-    const matchingVariables = getTemplateSrv().getVariables().filter(variable => filter.includes(variable.name)) as QueryVariableModel[];
-    const variableDictionary: Record<string, string> = {};
-    matchingVariables.forEach(variable => {
-      variableDictionary[variable.name] = variable.current.value as string;
-    });
-   filter = filter.replace(/\$[a-zA-Z0-9_]+/g, (match) => variableDictionary[match.slice(1)]);
-
     const response = await this.post<QueryProductResponse>(this.baseUrl + '/nitestmonitor/v2/query-products', {
       filter: filter,
       orderBy: orderBy,
@@ -69,7 +62,8 @@ export class productsDataSource extends DataSourceBase<ProductsQuery> {
     ].filter(Boolean).join(' && ');
 
     if (!query.queryBy && (query.partNumber || query.family || query.workspace)) {
-      const responseData = (await this.queryProducts(filter, query.orderBy, query.metaData!, query.recordCount, query.descending, false)).products;
+      const variableReplacedFilter = getTemplateSrv().replace(filter, options.scopedVars)
+      const responseData = (await this.queryProducts(variableReplacedFilter, query.orderBy, query.metaData!, query.recordCount, query.descending, false)).products;
       return {
         refId: query.refId,
         fields: [
@@ -81,8 +75,9 @@ export class productsDataSource extends DataSourceBase<ProductsQuery> {
         ],
       };
     } else {
-        const queryBy = filter && query.queryBy ? `${filter} && ${query.queryBy}` : filter || query.queryBy;
-        const responseData = (await this.queryProducts( queryBy, query.orderBy, query.metaData!, query.recordCount, query.descending, false)).products;
+        const queryByFilter = filter && query.queryBy ? `${filter} && ${query.queryBy}` : filter || query.queryBy;
+        const variableReplacedFilter = getTemplateSrv().replace(queryByFilter, options.scopedVars)
+        const responseData = (await this.queryProducts( variableReplacedFilter, query.orderBy, query.metaData!, query.recordCount, query.descending, false)).products;
         return {
           refId: query.refId,
           fields: [
