@@ -15,7 +15,7 @@ type TestProductsQueryBuilderProps = Omit<QueryBuilderProps, 'customOperations' 
     defaultValue?: string;
   };
 
-export const TestResultsQueryBuilder: React.FC<TestProductsQueryBuilderProps> = (props) => {
+export const TestProductsQueryBuilder: React.FC<TestProductsQueryBuilderProps> = (props) => {
   const theme = useTheme2();
   // Need to set on body to affect dropdowns
   document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
@@ -32,20 +32,20 @@ export const TestResultsQueryBuilder: React.FC<TestProductsQueryBuilderProps> = 
   };
 
   const fields = [
-    // {
-    //   label: 'Part Number',
-    //   dataField: 'partNumber',
-    //   dataType: 'string',
-    //   filterOperations: ['=', '<>', 'startswith', 'endswith', 'contains', 'notcontains', 'isblank', 'isnotblank'],
-    //   lookup: { dataSource: getDataSource('PART_NUMBER'), minLength: 1 },
-    // },
-    // {
-    //   label: 'Family',
-    //   dataField: 'family',
-    //   dataType: 'string',
-    //   filterOperations: ['=', '<>', 'contains', 'notcontains', 'isblank', 'isnotblank'],
-    //   lookup: { dataSource: getDataSource('FAMILY'), minLength: 1},
-    // },
+    {
+      label: 'Part Number',
+      dataField: 'partNumber',
+      dataType: 'string',
+      filterOperations: ['=', '<>', 'startswith', 'endswith', 'contains', 'notcontains', 'isblank', 'isnotblank'],
+      lookup: { dataSource: getDataSource('PART_NUMBER'), minLength: 1 },
+    },
+    {
+      label: 'Family',
+      dataField: 'family',
+      dataType: 'string',
+      filterOperations: ['=', '<>', 'contains', 'notcontains', 'isblank', 'isnotblank'],
+      lookup: { dataSource: getDataSource('FAMILY'), minLength: 1},
+    },
     {
       label: 'Name',
       dataField: 'name',
@@ -70,7 +70,7 @@ export const TestResultsQueryBuilder: React.FC<TestProductsQueryBuilderProps> = 
     // {
     //   label: 'Workspace',
     //   dataField: 'workspace',
-    //   dataType: 'SelectableValue<string>',
+    //   dataType: 'string',
     //   filterOperations: ['=', '<>'],
     //   lookup: { dataSource: getDataSource('WORKSPACE'), minLength: 1 },
     // },
@@ -84,7 +84,7 @@ export const TestResultsQueryBuilder: React.FC<TestProductsQueryBuilderProps> = 
       messages={messages}
       showIcons
       // Only set value on first render
-      {...(initialize.current && { value: props.value })}
+      {...(initialize.current && { value: props.defaultValue })}
       {...props}
     />
   );

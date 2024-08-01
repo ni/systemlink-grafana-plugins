@@ -1,8 +1,10 @@
 import { DataSourcePlugin } from '@grafana/data';
-import { ResultsDataSource } from './ResultsDataSource';
-import { ResultsQueryEditor } from './components/ResultsQueryEditor';
+import { TestResultsDataSource } from './ResultsDataSource';
+import { ResultsQueryEditor as TestResultsQueryEditor } from './components/ResultsQueryEditor';
 import { HttpConfigEditor } from 'core/components/HttpConfigEditor';
+import { ResultsVariableQueryEditor } from './components/resultsVariableQueryEditor';
 
-export const plugin = new DataSourcePlugin(ResultsDataSource)
+export const plugin = new DataSourcePlugin(TestResultsDataSource)
   .setConfigEditor(HttpConfigEditor)
-  .setQueryEditor(ResultsQueryEditor);
+  .setQueryEditor(TestResultsQueryEditor)
+  .setVariableQueryEditor(ResultsVariableQueryEditor);

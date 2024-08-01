@@ -1,7 +1,7 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, TestDataSourceResponse } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { ProductsQuery, QueryProductResponse, MetaData } from './types';
+import { ProductsQuery, QueryProductResponse, MetaData, ProductsVariableQuery } from './types';
 
 export class productsDataSource extends DataSourceBase<ProductsQuery> {
   constructor(
@@ -27,7 +27,7 @@ export class productsDataSource extends DataSourceBase<ProductsQuery> {
     orderBy: '',
   };
 
-  async queryProducts(filter: string, orderBy: string, projection: MetaData[], recordCount = 1000, descending = false ,returnCount= false ): Promise<QueryProductResponse> {
+  async queryProducts(filter: string, orderBy?: string, projection?: MetaData[], recordCount = 1000, descending = false ,returnCount= false ): Promise<QueryProductResponse> {
     const response = await this.post<QueryProductResponse>(this.baseUrl + '/nitestmonitor/v2/query-products', {
       filter: filter,
       orderBy: orderBy,
@@ -64,29 +64,34 @@ export class productsDataSource extends DataSourceBase<ProductsQuery> {
     if (!query.queryBy && (query.partNumber || query.family || query.workspace)) {
       const variableReplacedFilter = getTemplateSrv().replace(filter, options.scopedVars)
       const responseData = (await this.queryProducts(variableReplacedFilter, query.orderBy, query.metaData!, query.recordCount, query.descending, false)).products;
+      
+      const filteredFields = query.metaData?.filter((field: MetaData) => Object.keys(responseData[0]).includes(field)) || [];
+
+      const fields = filteredFields.map((field) => {
+        const fieldType = field === MetaData.updatedAt ? FieldType.time : FieldType.string;
+        const values = responseData.map(m => m[field]);
+        return { name: field, values, type: fieldType };
+      });
+      
       return {
         refId: query.refId,
-        fields: [
-          { name: 'id', values: responseData.map(m => m.id) },
-          { name: 'name', values: responseData.map(m => m.name) },
-          { name: 'partNumber', values: responseData.map(m => m.partNumber) },
-          { name: 'family', values: responseData.map(m => m.family) },
-          { name: 'updatedAt', values: responseData.map(m => m.updatedAt), type: FieldType.time},
-        ],
+        fields: fields,
       };
     } else {
         const queryByFilter = filter && query.queryBy ? `${filter} && ${query.queryBy}` : filter || query.queryBy;
         const variableReplacedFilter = getTemplateSrv().replace(queryByFilter, options.scopedVars)
         const responseData = (await this.queryProducts( variableReplacedFilter, query.orderBy, query.metaData!, query.recordCount, query.descending, false)).products;
+       
+        const filteredFields = query.metaData?.filter((field: MetaData) => Object.keys(responseData[0]).includes(field)) || [];
+        const fields = filteredFields.map((field) => {{
+          const fieldType = field === MetaData.updatedAt ? FieldType.time : FieldType.string;
+          const values = responseData.map(m => m[field]);
+          return { name: field, values, type: fieldType };
+        }});
+
         return {
           refId: query.refId,
-          fields: [
-            { name: 'id', values: responseData.map(m => m.id) },
-            { name: 'name', values: responseData.map(m => m.name) },
-            { name: 'partNumber', values: responseData.map(m => m.partNumber) },
-            { name: 'family', values: responseData.map(m => m.family) },
-            { name: 'updatedAt', values: responseData.map(m => m.updatedAt), type: FieldType.time},
-          ],
+          fields: fields
         };
       }
   }
@@ -95,10 +100,15 @@ export class productsDataSource extends DataSourceBase<ProductsQuery> {
     return true;
   }
 
-  // async metricFindQuery({ workspace }: ProductsVariableQuery): Promise<MetricFindValue[]> {
-  //   const metadata = (await this.queryProducts('', false)).products;
-  //   return metadata.map(frame => ({ text: frame.family, value: frame.family, }));
-  // }
+  async metricFindQuery({ workspace, family }: ProductsVariableQuery): Promise<MetricFindValue[]> {
+    const filter = [
+      family ? `family = (\"${family}\")` : '',
+      workspace ? `workspace = (\"${workspace}\")` : '',
+    ].filter(Boolean).join(' && ');
+
+    const metadata = (await this.queryProducts(filter)).products;
+    return metadata.map(frame => ({ text: `${frame.partNumber}(${frame.family})`, value: frame.partNumber, }));
+  }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
     // TODO: Implement a health and authentication check

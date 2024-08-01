@@ -1,7 +1,7 @@
 {
   "type": "datasource",
-  "name": "SystemLink Results",
-  "id": "ni-slresults-datasource",
+  "name": "SystemLink Test Results",
+  "id": "ni-sltestresults-datasource",
   "metrics": true,
   "info": {
     "author": {

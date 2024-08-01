@@ -2,16 +2,36 @@ import { DataQuery } from '@grafana/schema'
 
 export interface ResultsQuery extends DataQuery {
   type: ResultsQueryType;
+  metadata?: MetaData[];
+  partNumber?: string;
+  testProgram?: string;
+  workspace?: string;
+  queryBy?: string;
+  orderBy?: any;
+  descending?: boolean;
+  recordCount?: number;
   useTimeRange?: boolean;
   useTimeRangeFor?: string;
   outputType: OutputType;
   resultFilter?: string;
   stepFilter?: string;
+  measurementAsEntries?: boolean; 
 }
 
 export enum ResultsQueryType {
   MetaData = 'MetaData',
   StepData = 'StepData',
+  DataTables = 'DataTables',
+}
+
+export interface ResultsVariableQuery{
+  type: ResultsQueryType;
+  queryBy: string;
+  workspace: string;
+  useTimeRange: boolean;
+  useTimeRangeFor: string;
+  resultFilter: string;
+  stepFilter: string;
 }
 
 export enum useTimeRange {
@@ -68,6 +88,26 @@ export interface ErrorBody {
   message?: string;
   args?: string[];
   innerErrors?: ErrorBody[];
+}
+
+export enum MetaData {
+    TestProgram = 'PROGRAM_NAME',
+    SerialNumber = 'SERIAL_NUMBER',
+    System = 'SYSTEM_ID',
+    Status = 'STATUS',
+    ElapsedTime = 'TOTAL_TIME_IN_SECONDS',
+    Started = 'STARTED_AT',
+    Updated = 'UPDATED_AT',
+    PartNumber = 'PART_NUMBER',
+    DataTables = 'DATA_TABLES',
+    FileIds = 'FILE_IDS',
+    Id = 'ID',
+    HostName = 'HOST_NAME',
+    Operator = 'OPERATOR',
+    Keywords = 'KEYWORDS',
+    Properties = 'PROPERTIES',
+    StatusSummary = 'STATUS_SUMMARY',
+    Workspace = 'WORKSPACE',
 }
 
 

@@ -4,6 +4,7 @@ export interface ProductsQuery extends DataQuery {
   metaData?: MetaData[];
   queryBy: string;
   partNumber?: string;
+  tags?: string[];
   family?: string;
   workspace?: string;
   orderBy?: any;
@@ -18,6 +19,7 @@ export enum ProductsQueryType {
 
 export interface ProductsVariableQuery {
   workspace: string;
+  family: string;
 }
 
 export enum ProductQueryOutput {
@@ -27,16 +29,29 @@ export enum ProductQueryOutput {
 }
 
 export enum MetaData {
-  Id = 'ID',
-  PartNumber = 'PART_NUMBER',
-  Name = 'NAME',
-  Family = 'FAMILY',
-  UpdatedAt = 'UPDATED_AT',
-  Workspace = 'WORKSPACE',
-  Keywords = 'KEYWORDS',
-  Properties = 'PROPERTIES',
-  FileIds = 'FILE_IDS',
+  id = 'ID',
+  partNumber = 'PART_NUMBER',
+  name = 'NAME',
+  family = 'FAMILY',
+  updatedAt = 'UPDATED_AT',
+  workspace = 'WORKSPACE',
+  keywords = 'KEYWORDS',
+  properties = 'PROPERTIES',
+  fileIds = 'FILE_IDS',
 }
+
+export const MetaDataOptions = {
+  ID: 'id',
+  PART_NUMBER: 'partNumber',
+  NAME: 'name',
+  FAMILY: 'family',
+  UPDATEDAT: 'updatedAt',
+  WORKSPACE: 'workspace',
+  KEYWORDS: 'keywords',
+  PROPERTIES: 'properties',
+  FILE_IDS: 'fileIds',
+};
+
 
 export const MetaDataType = [
   {
