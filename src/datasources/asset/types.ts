@@ -1,13 +1,23 @@
 import { DataQuery } from '@grafana/schema'
 
 export interface AssetQuery extends DataQuery {
-  type: AssetQueryType,
+  queryKind: AssetQueryType,
+  groupBy: string[],
+  timeSpan: number,
   workspace: string,
   minionIds: string[]
 }
 
 export enum AssetQueryType {
   Metadata = "Metadata",
+  CalibrationForecast = "Calibration Forecast",
+}
+
+export enum AssetCalibrationForecastGroupByType {
+  Day = "Day",
+  Week = "Week",
+  Month = "Month",
+  Location = "Location",
 }
 
 export enum EntityType {

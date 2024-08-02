@@ -7,6 +7,7 @@ import {
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
+  AssetCalibrationForecastGroupByType,
   AssetFilterProperties,
   AssetModel, AssetQuery,
   AssetQueryType,
@@ -28,9 +29,11 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
   baseUrl = this.instanceSettings.url + '/niapm/v1';
 
   defaultQuery = {
-    type: AssetQueryType.Metadata,
+    queryKind: AssetQueryType.Metadata,
     workspace: '',
     minionIds: [],
+    groupBy: [AssetCalibrationForecastGroupByType.Month],
+    timeSpan: 365,
   };
 
   async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {

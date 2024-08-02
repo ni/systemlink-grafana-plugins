@@ -1,6 +1,6 @@
 import { AssetDataSource } from "../AssetDataSource"
 import { setupRenderer } from "test/fixtures"
-import { AssetQuery, AssetQueryType } from "../types"
+import { AssetCalibrationForecastGroupByType, AssetQuery, AssetQueryType } from "../types"
 import { screen, waitFor, waitForElementToBeRemoved } from "@testing-library/react"
 import { AssetQueryEditor } from "./AssetQueryEditor"
 import { select } from "react-select-event";
@@ -37,7 +37,7 @@ it('renders with query defaults', async () => {
 })
 
 it('renders with initial query and updates when user makes changes', async () => {
-  const [onChange] = render({ type: AssetQueryType.Metadata, minionIds: ['1'], workspace: '2' });
+  const [onChange] = render({ queryKind: AssetQueryType.Metadata, minionIds: ['1'], workspace: '2', groupBy: [AssetCalibrationForecastGroupByType.Month], timeSpan: 365 });
   await workspacesLoaded();
 
   // Renders saved query
