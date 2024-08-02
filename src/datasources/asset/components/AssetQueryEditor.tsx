@@ -3,13 +3,15 @@ import { QueryEditorProps, SelectableValue, toOption } from '@grafana/data';
 import { InlineField } from 'core/components/InlineField';
 import { AssetDataSource } from "../AssetDataSource";
 import {
+  AssetCalibrationForecastGroupByType,
   AssetQuery,
+  AssetQueryType,
   EntityType,
 } from '../types';
 import { FloatingError, parseErrorMessage } from "../../../core/errors";
-import { MultiSelect, Select } from "@grafana/ui";
+import { MultiSelect, RadioButtonGroup, Select } from "@grafana/ui";
 import { isValidId } from "../../data-frame/utils";
-import { useWorkspaceOptions } from "../../../core/utils";
+import { enumToOptions, useWorkspaceOptions } from "../../../core/utils";
 import { SystemMetadata } from "../../system/types";
 import _ from "lodash";
 import { useAsync } from "react-use";
@@ -34,6 +36,30 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
     onChange(value);
     if (runQuery) {
       onRunQuery();
+    }
+  };
+
+  const handleQueryTypeChange = (item: AssetQueryType): void => {
+    handleQueryChange({ ...query, queryKind: item}, true);
+  };
+
+  const handleGroupByChange = (items?: Array<SelectableValue<string>>): void => {
+    if (items && !_.isEqual(query.groupBy, items)) {
+
+      let groupBy = [];
+      let locationIndex = items.findIndex((item) => item.value === AssetCalibrationForecastGroupByType.Location)
+      if (locationIndex !== -1) {
+        groupBy.push(AssetCalibrationForecastGroupByType.Location);
+        items.splice(locationIndex, 1);
+      }
+        
+      if (items.length) {
+        groupBy.push(items[items.length - 1].value!);
+      }
+      
+      if (!_.isEqual(query.groupBy, groupBy)) {
+        handleQueryChange({ ...query, groupBy: groupBy }, true);
+      }
     }
   };
 
@@ -80,9 +106,28 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
 
   return (
     <div style={{ position: 'relative' }}>
-      <InlineField label="Workspace"
-                   tooltip={tooltips.workspace[EntityType.Asset]}
-                   labelWidth={22}>
+      <InlineField label="Query Type" labelWidth={22}>
+        <RadioButtonGroup
+          options={enumToOptions(AssetQueryType)}
+          onChange={handleQueryTypeChange}
+          value={query.queryKind}
+        />
+      </InlineField>
+      {query.queryKind === AssetQueryType.CalibrationForecast && (
+        <>
+          <InlineField label="Group By" tooltip={tooltips.calibrationForecast.groupBy} labelWidth={22}>
+            <MultiSelect
+              isClearable
+              options={groupByOption}
+              placeholder="Day / Weak / Month and Location"
+              onChange={handleGroupByChange}
+              width={85}
+              value={query.groupBy.map(toOption) || []}
+            />
+          </InlineField>
+        </>
+      )}
+      <InlineField label="Workspace" tooltip={tooltips.workspace[EntityType.Asset]} labelWidth={22}>
         <Select
           isClearable
           isLoading={workspaces.loading}
@@ -92,9 +137,7 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
           value={query.workspace}
         />
       </InlineField>
-      <InlineField label="Systems"
-                   tooltip={tooltips.system[EntityType.Asset]}
-                   labelWidth={22}>
+      <InlineField label="Systems" tooltip={tooltips.system[EntityType.Asset]} labelWidth={22}>
         <MultiSelect
           isClearable
           allowCreateWhileLoading
@@ -103,19 +146,26 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
           onChange={handleMinionIdChange}
           placeholder="Select systems"
           width={85}
-          value={query.minionIds.map(toOption)}
+          value={query.minionIds.map(toOption) || []} // Add default value
         />
       </InlineField>
-      <FloatingError message={errorMsg}/>
+      <FloatingError message={errorMsg} />
     </div>
   );
 }
 
+const groupByOption = [
+  { label: 'Day', value: AssetCalibrationForecastGroupByType.Day },
+  { label: 'Week', value: AssetCalibrationForecastGroupByType.Week },
+  { label: 'Month', value: AssetCalibrationForecastGroupByType.Month },
+  { label: 'Location', value: AssetCalibrationForecastGroupByType.Location },
+]
+
+
 const tooltips = {
-
   queryType: `Metadata allows you to visualize the properties of one or more assets.
-              Utilization allows you to visualize usage as a percentage.`,
-
+  Calibration Forecast allows you to forecast calibration for one or more assets.`,
+    
   entityType: `Calculate utilization for one or more systems or assets.`,
 
   workspace: {
@@ -146,7 +196,12 @@ const tooltips = {
 
   workingHours: `Calculate utilization for peak or non-peak hours.`,
 
-  peakDays: `Calculate utilization for peak or non-peak days.`
+  peakDays: `Calculate utilization for peak or non-peak days.`,
+
+  calibrationForecast: {
+    groupBy: `Group the calibration forecast by day, week, or month.`,
+    timeSpan: `The number of days to forecast calibration.`,
+  }
 };
 
 

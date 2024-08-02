@@ -9,6 +9,7 @@ import {
 } from "test/fixtures";
 import { AssetDataSource } from "./AssetDataSource";
 import {
+  AssetCalibrationForecastGroupByType,
   AssetPresenceWithSystemConnectionModel,
   AssetQuery,
   AssetQueryType,
@@ -209,14 +210,16 @@ const assetsResponseMock: AssetsResponse =
   }
 
 const assetUtilizationQueryMock: AssetQuery = {
-  type: AssetQueryType.Metadata,
+  queryKind: AssetQueryType.Metadata,
   workspace: '',
   refId: '',
   minionIds: ['123'],
+  groupBy: [AssetCalibrationForecastGroupByType.Month],
+  timeSpan: 365,
 }
 
 const buildQuery = getQueryBuilder<AssetQuery>()({
-  type: AssetQueryType.Metadata,
+  queryKind: AssetQueryType.Metadata,
   workspace: '',
   minionIds: [],
 });
