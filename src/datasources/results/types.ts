@@ -2,7 +2,7 @@ import { DataQuery } from '@grafana/schema'
 
 export interface ResultsQuery extends DataQuery {
   type: ResultsQueryType;
-  metadata?: MetaData[];
+  metadata?: ResultsMetaData[];
   partNumber?: string;
   testProgram?: string;
   workspace?: string;
@@ -73,11 +73,26 @@ export interface Results {
   dataTableIds: string[];
 }
 
+export interface DataTable {
+  columns: any;
+  id: string;
+  name: string;
+  properties: { [key: string]: string };
+  rowCount: number;
+  workspace: string;
+  createdAt: string;
+}
+
 export interface QueryResultsHttpResponse {
   results: Results[];
   continuationToken: string;
   totalCount?: number;
   error?: ErrorBody;
+}
+
+export interface QueryDataTablesHttpResponse {
+  dataTables: DataTable[];
+  continuationToken: string;
 }
 
 export interface ErrorBody {
@@ -90,24 +105,56 @@ export interface ErrorBody {
   innerErrors?: ErrorBody[];
 }
 
-export enum MetaData {
-    TestProgram = 'PROGRAM_NAME',
-    SerialNumber = 'SERIAL_NUMBER',
-    System = 'SYSTEM_ID',
-    Status = 'STATUS',
-    ElapsedTime = 'TOTAL_TIME_IN_SECONDS',
-    Started = 'STARTED_AT',
-    Updated = 'UPDATED_AT',
-    PartNumber = 'PART_NUMBER',
-    DataTables = 'DATA_TABLES',
-    FileIds = 'FILE_IDS',
-    Id = 'ID',
-    HostName = 'HOST_NAME',
-    Operator = 'OPERATOR',
-    Keywords = 'KEYWORDS',
-    Properties = 'PROPERTIES',
-    StatusSummary = 'STATUS_SUMMARY',
-    Workspace = 'WORKSPACE',
+export enum ResultsMetaData {
+    id = 'ID',
+    programName = 'PROGRAM_NAME',
+    serialNumber = 'SERIAL_NUMBER',
+    systemId = 'SYSTEM_ID',
+    status = 'STATUS',
+    totalTimeInSeconds = 'TOTAL_TIME_IN_SECONDS',
+    startedAt= 'STARTED_AT',
+    updated = 'UPDATED_AT',
+    partNumber = 'PART_NUMBER',
+    dataTablesIds= 'DATA_TABLE_IDS',
+    fileIds = 'FILE_IDS',
+    hostName = 'HOST_NAME',
+    operator = 'OPERATOR',
+    keywords = 'KEYWORDS',
+    properties = 'PROPERTIES',
+    statusSummary = 'STATUS_SUMMARY',
+    workspace = 'WORKSPACE',
+}
+
+export enum StepsMetaData{
+  stepType = 'STEP_TYPE',
+  name = 'NAME',
+  stepId = 'STEP_ID',
+  parentId = 'PARENT_ID',
+  resultId = 'RESULT_ID',
+  path = 'PATH',
+  pathIds = 'PATH_IDS', 
+  status = 'STATUS',
+  totalTimeInSeconds = 'TOTAL_TIME_IN_SECONDS',
+  startedAt = 'STARTED_AT',
+  updatedAt = 'UPDATED_AT',
+  inputs = 'INPUTS',
+  outputs = 'OUTPUTS',
+  dataModel = 'DATA_MODEL',
+  data = 'DATA',
+  hasChildren = 'HAS_CHILDREN',
+  workspace = 'WORKSPACE',
+  keywords = 'KEYWORDS',
+  properties = 'PROPERTIES',
+}
+
+export enum DataTablesMetaData{
+  columns = 'COLUMNS',
+  id = 'ID',
+  name = 'NAME',
+  properties = 'PROPERTIES',
+  rowCount = 'ROW_COUNT',
+  workspace = 'WORKSPACE',
+  createdAt = 'CREATED_AT',
 }
 
 

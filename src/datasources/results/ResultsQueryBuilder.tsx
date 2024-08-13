@@ -12,12 +12,14 @@ type TestProductsQueryBuilderProps = Omit<QueryBuilderProps, 'customOperations' 
   React.HTMLAttributes<Element> & {
     autoComplete: (field: string, startsWith: string) => Promise<string[]>;
     defaultValue?: string;
+    workspaceList?: Promise<{ label: string, value: string }[]>;
   };
 
 export const TestResultsQueryBuilder: React.FC<TestProductsQueryBuilderProps> = (props) => {
   const theme = useTheme2();
   // Need to set on body to affect dropdowns
   document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
+
 
   const initialize = useRef(true);
   useEffect(() => {
@@ -30,7 +32,8 @@ export const TestResultsQueryBuilder: React.FC<TestProductsQueryBuilderProps> = 
     };
   };
 
-  const fields =  [
+
+  const fields = [
     {
       label: 'Part Number',
       dataField: 'partNumber',
@@ -65,6 +68,12 @@ export const TestResultsQueryBuilder: React.FC<TestProductsQueryBuilderProps> = 
       dataField: 'keywords',
       dataType: 'string',
       filterOperations: ['listequals', 'listnotequals', 'listcontains', 'listnotcontains'],
+    },
+    {
+      label: 'Properties',
+      dataField: 'properties',
+      dataType: 'string',
+      filterOperations: ['key_value_matches'],
     },
     {
       label: 'Operator',
@@ -147,9 +156,10 @@ export const TestResultsQueryBuilder: React.FC<TestProductsQueryBuilderProps> = 
     },
     {
       label: 'Workspace',
-      dataField: 'workspaceName',
+      dataField: 'workspace',
       dataType: 'string',
       filterOperations: ['=', '<>'],
+      lookup: { dataSource: props.workspaceList }
     },
   ];
 
@@ -157,7 +167,7 @@ export const TestResultsQueryBuilder: React.FC<TestProductsQueryBuilderProps> = 
     <QueryBuilder
       customOperations={customOperations}
       getDynamicField={getDynamicField}
-      fields={ fields}
+      fields={fields}
       messages={messages}
       showIcons
       // Only set value on first render
@@ -166,6 +176,68 @@ export const TestResultsQueryBuilder: React.FC<TestProductsQueryBuilderProps> = 
     />
   );
 };
+
+
+function labeledEditorTemplate(keyPlaceholder: string, valuePlaceholder: string, value: any): HTMLElement {
+  const template = `
+  <div id="sl-query-builder-key-value-editor">
+      <ul style="list-style: none; padding-left: 0; padding-right: 10px;">
+          <li>
+              <smart-input class="key-input" style="width: auto; padding-left: 5px;"
+                  placeholder="${keyPlaceholder}"
+                  value="${value?.key ?? ''}">
+              </smart-input>
+          </li>
+          <li>
+              <smart-input class="value-input" style="width: auto; margin-top: 10px; padding-left: 5px;"
+                  placeholder="${valuePlaceholder}"
+                  value="${value?.value ?? ''}">
+              </smart-input>
+          </li>
+      </ul>
+  </div>`;
+
+  const templateBody = new DOMParser().parseFromString(template, 'text/html').body;
+  return templateBody.querySelector('#sl-query-builder-key-value-editor')!;
+}
+
+function valueTemplate(editor: HTMLElement | null | undefined, value: { key: string; value: string | number;}): string {
+  if (value) {
+    const keyValuePair = value as { key: string; value: string | number;};
+    return `${keyValuePair.key} : ${keyValuePair.value}`;
+  }
+  if (editor) {
+    const keyInput = editor.querySelector<HTMLInputElement>('.key-input');
+    const valueInput = editor.querySelector<HTMLInputElement>('.value-input');
+    if (keyInput && valueInput) {
+      return `${keyInput.value} : ${valueInput.value}`;
+    }
+  }
+  return '';
+}
+
+function retrieveKeyValueInputs(editor: HTMLElement | null | undefined): { key: string, value: string } {
+  let pair = { key: '', value: '' };
+  if (editor) {
+      const keyInput = editor.querySelector<HTMLInputElement>('.key-input');
+      const valueInput = editor.querySelector<HTMLInputElement>('.value-input');
+      if (keyInput && valueInput) {
+          pair = {
+              key: keyInput.value,
+              value: valueInput.value
+          };
+      }
+  }
+  return pair;
+}
+
+function handleStringValue(editor: HTMLElement | null | undefined): any {
+  const inputs = retrieveKeyValueInputs(editor);
+  return {
+      label: inputs,
+      value: inputs
+  };
+}
 
 const customOperations = [
   // Regular field expressions
@@ -295,6 +367,14 @@ const customOperations = [
     expressionTemplate: '!string.IsNullOrEmpty(properties["{0}"])',
     hideValue: true,
   },
+  {
+    label: 'matches',
+    name: 'key_value_matches',
+    expressionTemplate: '{0}["{1}"] = "{2}"',
+    editorTemplate: labeledEditorTemplate.bind(this),
+    valueTemplate: valueTemplate.bind(this),
+    handleValue: handleStringValue.bind(this)
+  }
 ];
 
 const getDynamicField = () => ({
@@ -307,6 +387,7 @@ const getDynamicField = () => ({
     'propertynotcontains',
     'propertyisblank',
     'propertyisnotblank',
+    'key_value_matches',
   ],
 });
 

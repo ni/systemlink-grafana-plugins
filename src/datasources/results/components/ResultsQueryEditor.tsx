@@ -1,14 +1,13 @@
 import React from 'react';
-import { AutoSizeInput, HorizontalGroup, InlineFormLabel, InlineSwitch, LoadOptionsCallback, MultiSelect, RadioButtonGroup, Select, VerticalGroup } from '@grafana/ui';
-import { QueryEditorProps, SelectableValue, toOption } from '@grafana/data';
+import { AutoSizeInput, HorizontalGroup, InlineFormLabel, InlineSwitch, MultiSelect, RadioButtonGroup, Select, VerticalGroup } from '@grafana/ui';
+import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { InlineField } from 'core/components/InlineField';
 import { TestResultsDataSource } from '../ResultsDataSource';
-import { MetaData, OutputType, ResultsQuery, ResultsQueryType, useTimeRange } from '../types';
-import { enumToOptions, useWorkspaceOptions } from 'core/utils';
+import { ResultsMetaData, OutputType, ResultsQuery, ResultsQueryType, useTimeRange, StepsMetaData, DataTablesMetaData } from '../types';
+import { enumToOptions } from 'core/utils';
 import { TestResultsQueryBuilder } from '../ResultsQueryBuilder';
 import { TestStepsQueryBuilder } from '../StepsQueryBuilder';
 import { OrderBy } from 'datasources/products/types';
-import { getTemplateSrv } from '@grafana/runtime';
 import _ from 'lodash';
 import './resultsQueryEditor.scss'
 
@@ -16,8 +15,7 @@ type Props = QueryEditorProps<TestResultsDataSource, ResultsQuery>;
 
 export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
-  const workspaces = useWorkspaceOptions(datasource);
-  const partNumber = query.partNumber;
+  const workspaces = datasource.getWorkspaceNames()
 
   const onQueryTypeChange = (value: ResultsQueryType) => {
     onChange({ ...query, type: value });
@@ -31,7 +29,8 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
 
   const onMetaDataChange = (items: Array<SelectableValue<string>>) => {
     if (items !== undefined) {
-      onChange({ ...query, metadata: items.map(i => i.value as MetaData) });
+      onChange({ ...query, metadata: items.map(i => i.value as ResultsMetaData) });
+      onRunQuery();
     }
   };
 
@@ -51,78 +50,13 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
     onRunQuery();
   }
 
-  const onWorkspaceChange = (option?: SelectableValue<string>) => {
-    onChange({ ...query, workspace: option?.value ?? '' });
-    onRunQuery();
-  };
-
-  const handleLoadPartNumberOptions = (query: string, cb?: LoadOptionsCallback<string>) => {
-    if (!query || query.startsWith('$')) {
-      return cb?.(getVariableOptions());
-    }
-
-    loadPartNumberOptions(`PART_NUMBER`, query, undefined, cb);
-
-  };
-
-  const getVariableOptions = () => {
-    return getTemplateSrv()
-      .getVariables()
-      .map(v => toOption('$' + v.name));
-  };
-
-  const handlePartNumberChange = (item: SelectableValue<string>) => {
-    if (!item) {
-      onChange({ ...query, partNumber: item });
-      onRunQuery();
-    }
-    else if (query.partNumber !== item.value) {
-      onChange({ ...query, partNumber: item.value! });
-      onRunQuery();
-    }
-  };
-
-  const loadPartNumberOptions = _.debounce((field: string, query: string, filter?: string, cb?: LoadOptionsCallback<string>) => {
-    Promise.all([datasource.queryTestResultValues(field, query, filter)])
-      .then(([partNumbers]) =>
-        cb?.(
-          partNumbers.map(partNumber => ({
-            label: partNumber,
-            value: partNumber,
-            title: partNumber,
-          }))
-        )
-      )
-  }, 300);
-
-  const handleLoadTestProgramOptions = (query: string, cb?: LoadOptionsCallback<string>) => {
-    if (!query || query.startsWith('$')) {
-      return cb?.(getVariableOptions());
-    }
-
-    const filter = partNumber ? `partNumber = (\"${partNumber}\")` : ''
-
-    loadPartNumberOptions('PROGRAM_NAME', query, filter, cb);
-
-  };
-
-  const handleTestProgramChange = (item: SelectableValue<string>) => {
-    if (!item) {
-      onChange({ ...query, testProgram: item });
-      onRunQuery();
-    }
-    else if (query.testProgram !== item.value) {
-      onChange({ ...query, testProgram: item.value! });
-      onRunQuery();
-    }
-  };
-
   const onUseTimeRangeChecked = (value: boolean) => {
     onChange({ ...query, useTimeRange: value });
   }
 
   const onShowMeasurementChecked = (value: boolean) => {
     onChange({ ...query, measurementAsEntries: value });
+    onRunQuery();
   }
 
   const onUseTimeRangeChanged = (value: SelectableValue<string>) => {
@@ -144,6 +78,12 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
     onChange({ ...query, stepFilter: value });
     onRunQuery();
   }
+
+  const metaData = query.type === ResultsQueryType.MetaData
+    ? ResultsMetaData 
+    : query.type === ResultsQueryType.StepData 
+    ? StepsMetaData 
+    : DataTablesMetaData;
 
   return (
     <>
@@ -170,42 +110,24 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
             )}
           </div>
           <div>
-            {(query.type === ResultsQueryType.StepData || query.outputType === OutputType.Data && query.type === ResultsQueryType.MetaData) && (
+            {(query.type === ResultsQueryType.StepData || query.outputType === OutputType.Data) && (
               <>
                 <InlineField label="Metadata" labelWidth={20} tooltip={tooltip.metaData}>
                   <MultiSelect
                     placeholder='Select Metadata'
-                    options={Object.keys(MetaData).map(value => ({ label: value, value })) as SelectableValue[]}
+                    options={Object.keys(metaData).map(value => ({ label: value, value })) as SelectableValue[]}
                     onChange={onMetaDataChange}
                     value={query.metadata}
                     defaultValue={query.metadata!}
                     width={40}
+                    allowCustomValue={true}
                     closeMenuOnSelect={false}
                   />
                 </InlineField>
               </>
             )}
-            <InlineField label="Workspace" labelWidth={20} tooltip={tooltip.workspace}>
-              <Select
-                isClearable
-                isLoading={workspaces.loading}
-                onChange={onWorkspaceChange}
-                options={workspaces.value}
-                placeholder="Any workspace"
-                value={query.workspace}
-              />
-            </InlineField>
             {query.type === ResultsQueryType.StepData && (
               <>
-                {/* <InlineField label="Step Name" labelWidth={20} tooltip={tooltip.testProgram}>
-                  <AutoSizeInput
-                    minWidth={30}
-                    defaultValue={query.testProgram}
-                    onCommitChange={handleTestProgramChange}
-                    placeholder="Step Name"
-                    value={query.testProgram}
-                  />
-                </InlineField> */}
                 <InlineField
                   label="Show measurements"
                   tooltip={tooltip.useTimeRange}
@@ -217,8 +139,6 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
                 </InlineField>
               </>
             )}
-          </div>
-          <div>
             {(query.type === ResultsQueryType.StepData || query.outputType === OutputType.Data) && (
               <>
                 <div>
@@ -280,6 +200,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
                   autoComplete={datasource.queryTestResultValues.bind(datasource)}
                   onChange={(event: any) => onQueryByChange(event.detail.linq)}
                   defaultValue={query.queryBy}
+                  workspaceList={workspaces}
                 />
               </>
             )}
@@ -290,12 +211,8 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
                   autoComplete={datasource.queryTestResultValues.bind(datasource)}
                   onChange={(event: any) => onResultsParameterChange(event.detail.linq)}
                   defaultValue={query.resultFilter}
+                  workspaceList={workspaces}
                 />
-                <InlineFormLabel width={'auto'} className='queryBuilder-toggle-button'> Query by step metadata
-                  <InlineSwitch
-                    height={'auto'}
-                    onChange={event => onShowMeasurementChecked(event.currentTarget.checked)}
-                    value={query.measurementAsEntries} /> </InlineFormLabel>
                 <TestStepsQueryBuilder
                   autoComplete={datasource.queryStepsValues.bind(datasource)}
                   onChange={(event: any) => onStepsParameterChange(event.detail.linq)}

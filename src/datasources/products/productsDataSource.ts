@@ -16,16 +16,20 @@ export class productsDataSource extends DataSourceBase<ProductsQuery> {
   baseUrl = this.instanceSettings.url;
 
   queryProductsUrl = this.baseUrl + '/nitestmonitor/v2/query-products';
-  queryResultsUrl = this.baseUrl + '/nitestmonitor/v2/query-results';
-  querySpecsUrl = this.baseUrl + '/nispec/v1/query-specs';
-  queryTestPlansUrl = this.baseUrl + '/niworkorder/v1/query-testplans'
-  queryAssetsUrl = this.baseUrl + '/niapm/v1/query-assets'
 
   defaultQuery = {
     queryBy: '',
     recordCount: 1000,
     orderBy: '',
   };
+
+  async getWorkspaceNames(): Promise<{label:string, value:string}[]> {
+    const workspaces = await this.getWorkspaces();
+    const workspaceOptions = workspaces.map(w => ({ label: w.name, value: w.id }));
+    const variables = this.getVariableOptions().map(v => ({ label: v, value: v }))
+    workspaceOptions?.unshift(...variables)
+    return workspaceOptions;
+  }
 
   async queryProducts(filter: string, orderBy?: string, projection?: MetaData[], recordCount = 1000, descending = false ,returnCount= false ): Promise<QueryProductResponse> {
     const response = await this.post<QueryProductResponse>(this.baseUrl + '/nitestmonitor/v2/query-products', {
