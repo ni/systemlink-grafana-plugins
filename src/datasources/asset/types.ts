@@ -3,7 +3,6 @@ import { DataQuery } from '@grafana/schema'
 export interface AssetQuery extends DataQuery {
   queryKind: AssetQueryType,
   groupBy: string[],
-  timeSpan: number,
   workspace: string,
   minionIds: string[]
 }

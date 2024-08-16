@@ -31,13 +31,22 @@ const workspacesLoaded = () => waitForElementToBeRemoved(screen.getByTestId('Spi
 it('renders with query defaults', async () => {
   render({} as AssetQuery)
   await workspacesLoaded()
-
+  expect(screen.getByRole('radio', { name: AssetQueryType.Metadata })).toBeChecked();
+  expect(screen.queryByLabelText('Group by')).not.toBeInTheDocument();
   expect(screen.getAllByRole('combobox')[0]).toHaveAccessibleDescription('Any workspace');
   expect(screen.getAllByRole('combobox')[1]).toHaveAccessibleDescription('Select systems');
 })
 
+it('renders with query type calibration forecast', async () => {
+  render({queryKind: AssetQueryType.CalibrationForecast} as AssetQuery)
+  await workspacesLoaded()
+  expect(screen.getByRole('radio', { name: "Calibration forecast" })).toBeChecked()
+  expect(screen.getAllByRole('combobox')[1]).toHaveAccessibleDescription('Any workspace');
+  expect(screen.getAllByRole('combobox')[2]).toHaveAccessibleDescription('Select systems');
+})
+
 it('renders with initial query and updates when user makes changes', async () => {
-  const [onChange] = render({ queryKind: AssetQueryType.Metadata, minionIds: ['1'], workspace: '2', groupBy: [AssetCalibrationForecastGroupByType.Month], timeSpan: 365 });
+  const [onChange] = render({ queryKind: AssetQueryType.Metadata, minionIds: ['1'], workspace: '2', groupBy: [AssetCalibrationForecastGroupByType.Month] });
   await workspacesLoaded();
 
   // Renders saved query
@@ -65,5 +74,68 @@ it('renders with initial query and updates when user makes changes', async () =>
   await select(screen.getAllByRole('combobox')[1], '$test_var', { container: document.body });
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ minionIds: ['2', '$test_var'] }));
+  });
+});
+
+
+it('renders with query type calibration forecast and updates group by', async () => {
+  const [onChange] = render({ queryKind: AssetQueryType.CalibrationForecast, minionIds: ['1'], workspace: '2', groupBy: [AssetCalibrationForecastGroupByType.Month] });
+  await workspacesLoaded();
+
+  // User selects group by
+  const groupBy = screen.getAllByRole('combobox')[0];
+  await select(groupBy, AssetCalibrationForecastGroupByType.Day , { container: document.body });
+  await waitFor(() => {
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ groupBy: [AssetCalibrationForecastGroupByType.Day] }));
+  });
+
+  // User selects group by location
+  await select(groupBy, AssetCalibrationForecastGroupByType.Location , { container: document.body });
+  await waitFor(() => {
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ groupBy: [AssetCalibrationForecastGroupByType.Location, AssetCalibrationForecastGroupByType.Day] }));
+  });
+
+   // User selects group by location and week, overrides time
+  await select(groupBy, AssetCalibrationForecastGroupByType.Week , { container: document.body });
+  await waitFor(() => {
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ groupBy: [AssetCalibrationForecastGroupByType.Location, AssetCalibrationForecastGroupByType.Week] }));
+  });
+
+  // User selects group by location and month, overrides time
+  await select(groupBy, AssetCalibrationForecastGroupByType.Month , { container: document.body });
+  await waitFor(() => {
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ groupBy: [AssetCalibrationForecastGroupByType.Location, AssetCalibrationForecastGroupByType.Month] }));
+  });
+});
+
+it('renders with query type calibration forecast and updates when user makes changes', async () => {
+  const [onChange] = render({ queryKind: AssetQueryType.CalibrationForecast, minionIds: ['1'], workspace: '2', groupBy: [AssetCalibrationForecastGroupByType.Month] });
+  await workspacesLoaded();
+
+  // Renders saved query
+  expect(screen.getByText('Other workspace')).toBeInTheDocument();
+  expect(screen.getByText('1')).toBeInTheDocument();
+
+  // User selects group by
+  await select(screen.getAllByRole('combobox')[0], AssetCalibrationForecastGroupByType.Day , { container: document.body });
+  await waitFor(() => {
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ groupBy: [AssetCalibrationForecastGroupByType.Day] }));
+  });
+
+  // User selects different workspace
+  await select(screen.getAllByRole('combobox')[1], 'Default workspace', { container: document.body });
+  await waitFor(() => {
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ workspace: '1' }));
+  });
+
+  // After selecting different workspace minionIds must be empty
+  await waitFor(() => {
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ minionIds: [] }));
+  });
+
+  // User selects system
+  await select(screen.getAllByRole('combobox')[2], '2', { container: document.body });
+  await waitFor(() => {
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ minionIds: ['2'] }));
   });
 });

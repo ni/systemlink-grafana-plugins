@@ -106,19 +106,19 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
 
   return (
     <div style={{ position: 'relative' }}>
-      <InlineField label="Query Type" labelWidth={22}>
+      <InlineField label="Query type" labelWidth={22}>
         <RadioButtonGroup
-          options={enumToOptions(AssetQueryType)}
+          options={queryTypeOptions}
           onChange={handleQueryTypeChange}
           value={query.queryKind}
         />
       </InlineField>
       {query.queryKind === AssetQueryType.CalibrationForecast && (
         <>
-          <InlineField label="Group By" tooltip={tooltips.calibrationForecast.groupBy} labelWidth={22}>
+          <InlineField label="Group by" tooltip={tooltips.calibrationForecast.groupBy} labelWidth={22}>
             <MultiSelect
               isClearable
-              options={groupByOption}
+              options={enumToOptions(AssetCalibrationForecastGroupByType)}
               placeholder="Day / Weak / Month and Location"
               onChange={handleGroupByChange}
               width={85}
@@ -154,13 +154,10 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
   );
 }
 
-const groupByOption = [
-  { label: 'Day', value: AssetCalibrationForecastGroupByType.Day },
-  { label: 'Week', value: AssetCalibrationForecastGroupByType.Week },
-  { label: 'Month', value: AssetCalibrationForecastGroupByType.Month },
-  { label: 'Location', value: AssetCalibrationForecastGroupByType.Location },
-]
-
+const queryTypeOptions = [
+  { label: AssetQueryType.Metadata, value: AssetQueryType.Metadata },
+  { label: "Calibration forecast", value: AssetQueryType.CalibrationForecast },
+];
 
 const tooltips = {
   queryType: `Metadata allows you to visualize the properties of one or more assets.

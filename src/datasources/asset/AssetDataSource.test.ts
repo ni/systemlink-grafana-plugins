@@ -214,8 +214,7 @@ const assetUtilizationQueryMock: AssetQuery = {
   workspace: '',
   refId: '',
   minionIds: ['123'],
-  groupBy: [AssetCalibrationForecastGroupByType.Month],
-  timeSpan: 365,
+  groupBy: [AssetCalibrationForecastGroupByType.Month]
 }
 
 const buildQuery = getQueryBuilder<AssetQuery>()({
