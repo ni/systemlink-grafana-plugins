@@ -127,28 +127,32 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
           </InlineField>
         </>
       )}
-      <InlineField label="Workspace" tooltip={tooltips.workspace[EntityType.Asset]} labelWidth={22}>
-        <Select
-          isClearable
-          isLoading={workspaces.loading}
-          onChange={onWorkspaceChange}
-          options={workspaces.value}
-          placeholder="Any workspace"
-          value={query.workspace}
-        />
-      </InlineField>
-      <InlineField label="Systems" tooltip={tooltips.system[EntityType.Asset]} labelWidth={22}>
-        <MultiSelect
-          isClearable
-          allowCreateWhileLoading
-          options={loadMinionIdOptions()}
-          isValidNewOption={isValidId}
-          onChange={handleMinionIdChange}
-          placeholder="Select systems"
-          width={85}
-          value={query.minionIds.map(toOption) || []} // Add default value
-        />
-      </InlineField>
+      {query.queryKind === AssetQueryType.Metadata && (
+        <>
+          <InlineField label="Workspace" tooltip={tooltips.workspace[EntityType.Asset]} labelWidth={22}>
+          <Select
+            isClearable
+            isLoading={workspaces.loading}
+            onChange={onWorkspaceChange}
+            options={workspaces.value}
+            placeholder="Any workspace"
+            value={query.workspace}
+          />
+        </InlineField>
+        <InlineField label="Systems" tooltip={tooltips.system[EntityType.Asset]} labelWidth={22}>
+          <MultiSelect
+            isClearable
+            allowCreateWhileLoading
+            options={loadMinionIdOptions()}
+            isValidNewOption={isValidId}
+            onChange={handleMinionIdChange}
+            placeholder="Select systems"
+            width={85}
+            value={query.minionIds.map(toOption) || []} // Add default value
+          />
+        </InlineField>
+        </>
+      )}
       <FloatingError message={errorMsg} />
     </div>
   );
