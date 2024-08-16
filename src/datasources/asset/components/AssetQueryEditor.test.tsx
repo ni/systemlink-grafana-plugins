@@ -31,6 +31,7 @@ const workspacesLoaded = () => waitForElementToBeRemoved(screen.getByTestId('Spi
 it('renders with query defaults', async () => {
   render({} as AssetQuery)
   await workspacesLoaded()
+
   expect(screen.getByRole('radio', { name: AssetQueryType.Metadata })).toBeChecked();
   expect(screen.queryByLabelText('Group by')).not.toBeInTheDocument();
   expect(screen.getAllByRole('combobox')[0]).toHaveAccessibleDescription('Any workspace');
@@ -38,7 +39,8 @@ it('renders with query defaults', async () => {
 })
 
 it('renders with query type calibration forecast', async () => {
-  render({queryKind: AssetQueryType.CalibrationForecast} as AssetQuery)
+  render({ queryKind: AssetQueryType.CalibrationForecast } as AssetQuery)
+
   expect(screen.getByRole('radio', { name: "Calibration forecast" })).toBeChecked()
   expect(screen.queryByLabelText('Systems')).not.toBeInTheDocument();
   expect(screen.queryByLabelText('Workspace')).not.toBeInTheDocument();
