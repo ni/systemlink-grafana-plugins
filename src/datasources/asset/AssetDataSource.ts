@@ -32,8 +32,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     queryKind: AssetQueryType.Metadata,
     workspace: '',
     minionIds: [],
-    groupBy: [AssetCalibrationForecastGroupByType.Month],
-    timeSpan: 365,
+    groupBy: [AssetCalibrationForecastGroupByType.Month]
   };
 
   async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {

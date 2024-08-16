@@ -161,7 +161,7 @@ const queryTypeOptions = [
 
 const tooltips = {
   queryType: `Metadata allows you to visualize the properties of one or more assets.
-  Calibration Forecast allows you to forecast calibration for one or more assets.`,
+  Calibration forecast allows you to forecast calibration for one or more assets.`,
     
   entityType: `Calculate utilization for one or more systems or assets.`,
 
