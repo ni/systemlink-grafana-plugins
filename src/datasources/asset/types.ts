@@ -1,3 +1,4 @@
+import { FieldDTO } from '@grafana/data'
 import { DataQuery } from '@grafana/schema'
 
 export interface AssetQuery extends DataQuery {
@@ -125,3 +126,17 @@ export enum AssetFilterProperties {
   IsSystemController = 'IsSystemController'
 }
 
+export interface CalibrationForecastResponse {
+  calibrationSummary: CalibrationSummaryModel,
+  calibrationForecast: CalibrationForecastModel
+}
+
+export interface CalibrationSummaryModel {
+  totalAssets: number,
+  assetsApproachingCalibration: number,
+  assetsPastDueCalibration: number,
+}
+
+export interface CalibrationForecastModel {
+  columns: FieldDTO[]
+}

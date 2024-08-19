@@ -14,6 +14,7 @@ import {
   AssetQuery,
   AssetQueryType,
   AssetsResponse,
+  CalibrationForecastResponse,
 } from "./types";
 
 let ds: AssetDataSource, backendSrv: MockProxy<BackendSrv>
@@ -209,11 +210,34 @@ const assetsResponseMock: AssetsResponse =
     "totalCount": 4
   }
 
+const assetsResponseMockCalibrationForecast: CalibrationForecastResponse = {
+  calibrationSummary: {
+    totalAssets: 10,
+    assetsApproachingCalibration: 6,
+    assetsPastDueCalibration: 4,
+  },
+  calibrationForecast: {
+    columns: [
+      { name: 'Month', values: ['2024-03', '2024-04', '2024-05', '2024-06', '2024-07', '2024-08', '2024-09', '2024-10', '2024-11', '2024-12'] },
+      { name: 'Approaching Calibration', values: [1, 2, 3, 4, 5, 6, 5, 4, 3, 2] },
+      { name: 'Past Due Calibration', values: [0, 1, 2, 3, 4, 4, 3, 2, 1, 0] },
+    ],
+  }
+}
+
 const assetUtilizationQueryMock: AssetQuery = {
   queryKind: AssetQueryType.Metadata,
   workspace: '',
   refId: '',
   minionIds: ['123'],
+  groupBy: null!
+}
+
+const queryMockCalibrationForecast: AssetQuery = {
+  queryKind: AssetQueryType.CalibrationForecast,
+  workspace: null!,
+  refId: null!,
+  minionIds: null!,
   groupBy: [AssetCalibrationForecastGroupByType.Month]
 }
 
@@ -254,11 +278,29 @@ describe('queries', () => {
     expect(result.data).toMatchSnapshot()
   })
 
-  test('handles query error', async () => {
+  test('handles metadata query error', async () => {
     backendSrv.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
       .mockReturnValue(createFetchError(418))
 
     await expect(ds.query(buildQuery(assetUtilizationQueryMock))).rejects.toThrow()
+  })
+
+  test('run calibration forecast query', async () => {
+    backendSrv.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(assetsResponseMockCalibrationForecast as CalibrationForecastResponse))
+
+    const result = await ds.query(buildQuery(queryMockCalibrationForecast))
+
+    expect(result.data).toMatchSnapshot()
+  })
+
+  test('handles calibration forecast query error', async () => {
+    backendSrv.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchError(418))
+
+    await expect(ds.query(buildQuery(queryMockCalibrationForecast))).rejects.toThrow()
   })
 })

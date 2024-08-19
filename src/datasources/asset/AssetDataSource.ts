@@ -12,6 +12,7 @@ import {
   AssetModel, AssetQuery,
   AssetQueryType,
   AssetsResponse,
+  CalibrationForecastResponse,
 } from './types';
 import { getWorkspaceName, replaceVariables } from "../../core/utils";
 import { SystemMetadata } from "../system/types";
@@ -36,7 +37,14 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
   };
 
   async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    return await this.processMetadataQuery(query)
+    switch (query.queryKind) {
+      case AssetQueryType.Metadata:
+        return await this.processMetadataQuery(query); 
+      case AssetQueryType.CalibrationForecast:
+        return await this.processCalibrationForecastQuery(query, options);
+      default:
+        throw new Error(`Unknown query type: ${query.queryKind}`);
+    }
   }
 
   async processMetadataQuery(query: AssetQuery) {
@@ -72,6 +80,16 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     return result;
   }
 
+  async processCalibrationForecastQuery(query: AssetQuery, options: DataQueryRequest) {
+    const result: DataFrameDTO = { refId: query.refId, fields: [] };
+    const from = options.range!.from.toISOString();
+    const to = options.range!.to.toISOString();
+
+    const calibrationForecastResponse: CalibrationForecastResponse = await this.queryCalibrationForecast(query.groupBy, from, to);
+
+    result.fields = calibrationForecastResponse.calibrationForecast.columns;
+    return result;
+  }
 
   shouldRunQuery(_: AssetQuery): boolean {
     return true;
@@ -84,6 +102,16 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
       return response.assets;
     } catch (error) {
       throw new Error(`An error occurred while querying assets: ${error}`);
+    }
+  }
+
+  async queryCalibrationForecast(groupBy: string[], startDate: string, endDate: string, filter = ''): Promise<CalibrationForecastResponse> {
+    let data = { groupBy, startDate, endDate, filter };
+    try {
+      let response = await this.post<CalibrationForecastResponse>(this.baseUrl + '/assets/calibration-forecast', data);
+      return response;
+    } catch (error) {
+      throw new Error(`An error occurred while querying assets calibration forecast: ${error}`);
     }
   }
 
