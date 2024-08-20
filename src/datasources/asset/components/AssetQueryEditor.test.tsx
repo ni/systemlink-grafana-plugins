@@ -38,12 +38,10 @@ it('renders with query defaults', async () => {
   expect(screen.getAllByRole('combobox')[1]).toHaveAccessibleDescription('Select systems');
 })
 
-
 it('renders with initial query and updates when user makes changes', async () => {
   const [onChange] = render({ queryKind: AssetQueryType.Metadata, minionIds: ['1'], workspace: '2' } as AssetMetadataQuery);
   await workspacesLoaded();
 
-  // User selects metadata
   expect(screen.getByRole('radio', { name: AssetQueryLabel.Metadata })).toBeChecked();
 
   // Renders saved query
