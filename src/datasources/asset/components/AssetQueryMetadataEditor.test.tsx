@@ -1,21 +1,21 @@
-import { AssetDataSource } from "../AssetDataSource"
-import { setupRenderer } from "test/fixtures"
-import { AssetCalibrationForecastGroupByType, AssetCalibrationForecastQuery, AssetMetadataQuery, AssetQuery, AssetQueryType } from "../types"
-import { screen, waitFor, waitForElementToBeRemoved } from "@testing-library/react"
-import { AssetQueryEditor } from "./AssetQueryEditor"
-import { select } from "react-select-event";
+import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { SystemMetadata } from "../../system/types";
+import { AssetDataSource } from "../AssetDataSource";
+import { AssetQueryEditor } from "./AssetQueryEditor";
+import { setupRenderer } from "../../../test/fixtures";
+import { AssetMetadataQuery, AssetQueryType } from '../types';
+import { select } from 'react-select-event';
 
 const fakeSystems: SystemMetadata[] = [
   {
     id: '1',
     state: 'CONNECTED',
-    workspace: '1'
+    workspace: '1',
   },
   {
     id: '2',
     state: 'CONNECTED',
-    workspace: '2'
+    workspace: '2',
   },
 ];
 
@@ -28,19 +28,21 @@ class FakeAssetDataSource extends AssetDataSource {
 const render = setupRenderer(AssetQueryEditor, FakeAssetDataSource);
 const workspacesLoaded = () => waitForElementToBeRemoved(screen.getByTestId('Spinner'));
 
-it('renders with query defaults', async () => {
-  render({} as AssetQuery)
-  await workspacesLoaded()
+it('renders with metadata query defaults', async () => {
+  render({} as AssetMetadataQuery);
+  await workspacesLoaded();
 
   expect(screen.getByRole('radio', { name: AssetQueryType.Metadata })).toBeChecked();
-  expect(screen.queryByLabelText('Group by')).not.toBeInTheDocument();
   expect(screen.getAllByRole('combobox')[0]).toHaveAccessibleDescription('Any workspace');
   expect(screen.getAllByRole('combobox')[1]).toHaveAccessibleDescription('Select systems');
-})
-
+});
 
 it('renders with initial query and updates when user makes changes', async () => {
-  const [onChange] = render({ queryKind: AssetQueryType.Metadata, minionIds: ['1'], workspace: '2' } as AssetMetadataQuery);
+  const [onChange] = render({
+    queryKind: AssetQueryType.Metadata,
+    minionIds: ['1'],
+    workspace: '2',
+  } as AssetMetadataQuery);
   await workspacesLoaded();
 
   // Renders saved query
@@ -68,16 +70,5 @@ it('renders with initial query and updates when user makes changes', async () =>
   await select(screen.getAllByRole('combobox')[1], '$test_var', { container: document.body });
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ minionIds: ['2', '$test_var'] }));
-  });
-});
-
-
-it('renders with query type calibration forecast and updates when user makes changes', async () => {
-  const [onChange] = render({ queryKind: AssetQueryType.CalibrationForecast, groupBy: [AssetCalibrationForecastGroupByType.Month] } as AssetCalibrationForecastQuery);
-
-  // User selects group by
-  await select(screen.getAllByRole('combobox')[0], AssetCalibrationForecastGroupByType.Day , { container: document.body });
-  await waitFor(() => {
-    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ groupBy: [AssetCalibrationForecastGroupByType.Day] }));
   });
 });

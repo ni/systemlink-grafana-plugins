@@ -1,12 +1,18 @@
 import { FieldDTO } from '@grafana/data'
 import { DataQuery } from '@grafana/schema'
 
-export interface AssetQuery extends DataQuery {
+export interface AssetMetadataQuery extends DataQuery {
   queryKind: AssetQueryType,
-  groupBy: string[],
   workspace: string,
   minionIds: string[]
 }
+
+export interface AssetCalibrationForecastQuery extends DataQuery {
+  queryKind: AssetQueryType,
+  groupBy: string[]
+}
+
+export type AssetQuery = AssetCalibrationForecastQuery | AssetMetadataQuery;
 
 export enum AssetQueryType {
   Metadata = "Metadata",

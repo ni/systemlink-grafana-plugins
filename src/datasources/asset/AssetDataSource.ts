@@ -8,8 +8,11 @@ import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
   AssetCalibrationForecastGroupByType,
+  AssetCalibrationForecastQuery,
   AssetFilterProperties,
-  AssetModel, AssetQuery,
+  AssetMetadataQuery,
+  AssetModel,
+  AssetQuery,
   AssetQueryType,
   AssetsResponse,
   CalibrationForecastResponse,
@@ -39,15 +42,15 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
   async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     switch (query.queryKind) {
       case AssetQueryType.Metadata:
-        return await this.processMetadataQuery(query); 
+        return await this.processMetadataQuery(query as AssetMetadataQuery); 
       case AssetQueryType.CalibrationForecast:
-        return await this.processCalibrationForecastQuery(query, options);
+        return await this.processCalibrationForecastQuery(query as AssetCalibrationForecastQuery, options);
       default:
         throw new Error(`Unknown query type: ${query.queryKind}`);
     }
   }
 
-  async processMetadataQuery(query: AssetQuery) {
+  async processMetadataQuery(query: AssetMetadataQuery) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
     const minionIds = replaceVariables(query.minionIds, this.templateSrv);
     let workspaceId = this.templateSrv.replace(query.workspace);
@@ -80,7 +83,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     return result;
   }
 
-  async processCalibrationForecastQuery(query: AssetQuery, options: DataQueryRequest) {
+  async processCalibrationForecastQuery(query: AssetCalibrationForecastQuery, options: DataQueryRequest) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
     const from = options.range!.from.toISOString();
     const to = options.range!.to.toISOString();
