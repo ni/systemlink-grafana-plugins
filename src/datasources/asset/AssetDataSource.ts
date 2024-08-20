@@ -91,13 +91,6 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
 
     result.fields = calibrationForecastResponse.calibrationForecast.columns;
 
-    result.fields = [
-      { name: "Month", values: ["2024-08-20T11:24:58.849Z", "2024-09-20T11:24:58.849Z", "2025-10-02T11:24:58.849Z"] },
-      { name: "Lab 1", values: [1, 2, 3] },
-      { name: "Lab 2", values: [4, 5, 6] },
-      { name: "Lab 3", values: [7, 8, 9] },
-    ];
-    
     return result;
   }
 

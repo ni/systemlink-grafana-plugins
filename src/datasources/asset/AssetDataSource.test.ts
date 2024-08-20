@@ -246,7 +246,7 @@ const buildMetadataQuery = getQueryBuilder<AssetMetadataQuery>()({
 });
 
 const buildCalibrationForecastQuery = getQueryBuilder<AssetCalibrationForecastQuery>()({
-  queryKind: AssetQueryType.Metadata,
+  queryKind: AssetQueryType.CalibrationForecast,
   groupBy: [AssetCalibrationForecastGroupByType.Month]
 });
 
