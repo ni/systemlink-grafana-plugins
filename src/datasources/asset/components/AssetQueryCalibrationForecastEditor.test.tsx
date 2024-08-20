@@ -3,7 +3,7 @@ import { setupRenderer } from '../../../test/fixtures';
 import { SystemMetadata } from '../../system/types';
 import { AssetDataSource } from '../AssetDataSource';
 import { AssetQueryEditor } from './AssetQueryEditor';
-import { AssetCalibrationForecastGroupByType, AssetCalibrationForecastQuery, AssetMetadataQuery, AssetQueryLabel, AssetQueryType } from '../types';
+import { AssetCalibrationForecastGroupByType, AssetCalibrationForecastQuery, AssetQueryLabel, AssetQueryType } from '../types';
 import { select } from 'react-select-event';
 
 const fakeSystems: SystemMetadata[] = [
@@ -28,7 +28,7 @@ class FakeAssetDataSource extends AssetDataSource {
 const render = setupRenderer(AssetQueryEditor, FakeAssetDataSource);
 
 it('renders with query type calibration forecast', async () => {
-  render({ queryKind: AssetQueryType.CalibrationForecast } as AssetMetadataQuery);
+  render({ queryKind: AssetQueryType.CalibrationForecast } as AssetCalibrationForecastQuery);
 
   expect(screen.getByRole('radio', { name: AssetQueryLabel.CalibrationForecast })).toBeChecked();
   const groupBy = screen.getAllByRole('combobox')[0];

@@ -89,7 +89,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
 
     const calibrationForecastResponse: CalibrationForecastResponse = await this.queryCalibrationForecast(query.groupBy, from, to);
 
-    result.fields = calibrationForecastResponse.calibrationForecast.columns;
+    result.fields = calibrationForecastResponse.calibrationForecast.columns || [];
 
     return result;
   }
