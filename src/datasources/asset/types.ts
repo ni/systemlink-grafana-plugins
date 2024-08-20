@@ -19,6 +19,11 @@ export enum AssetQueryType {
   CalibrationForecast = "Calibration Forecast",
 }
 
+export enum AssetQueryLabel {
+  Metadata = "Metadata",
+  CalibrationForecast = "Calibration Forecast",
+}
+
 export enum AssetCalibrationForecastGroupByType {
   Day = "Day",
   Week = "Week",

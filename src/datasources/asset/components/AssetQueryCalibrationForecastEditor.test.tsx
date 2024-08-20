@@ -1,9 +1,9 @@
-import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { setupRenderer } from '../../../test/fixtures';
 import { SystemMetadata } from '../../system/types';
 import { AssetDataSource } from '../AssetDataSource';
 import { AssetQueryEditor } from './AssetQueryEditor';
-import { AssetCalibrationForecastGroupByType, AssetCalibrationForecastQuery, AssetMetadataQuery, AssetQuery, AssetQueryType } from '../types';
+import { AssetCalibrationForecastGroupByType, AssetCalibrationForecastQuery, AssetMetadataQuery, AssetQueryType } from '../types';
 import { select } from 'react-select-event';
 
 const fakeSystems: SystemMetadata[] = [

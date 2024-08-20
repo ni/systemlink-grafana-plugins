@@ -7,7 +7,6 @@ import {
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
-  AssetCalibrationForecastGroupByType,
   AssetCalibrationForecastQuery,
   AssetFilterProperties,
   AssetMetadataQuery,
@@ -36,7 +35,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     queryKind: AssetQueryType.Metadata,
     workspace: '',
     minionIds: [],
-    groupBy: [AssetCalibrationForecastGroupByType.Month]
+    groupBy: []
   };
 
   async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {

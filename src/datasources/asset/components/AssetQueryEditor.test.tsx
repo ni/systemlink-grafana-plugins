@@ -1,6 +1,6 @@
 import { AssetDataSource } from "../AssetDataSource"
 import { setupRenderer } from "test/fixtures"
-import { AssetCalibrationForecastGroupByType, AssetCalibrationForecastQuery, AssetMetadataQuery, AssetQuery, AssetQueryType } from "../types"
+import { AssetCalibrationForecastGroupByType, AssetCalibrationForecastQuery, AssetMetadataQuery, AssetQuery, AssetQueryLabel, AssetQueryType } from "../types"
 import { screen, waitFor, waitForElementToBeRemoved } from "@testing-library/react"
 import { AssetQueryEditor } from "./AssetQueryEditor"
 import { select } from "react-select-event";
@@ -43,6 +43,9 @@ it('renders with initial query and updates when user makes changes', async () =>
   const [onChange] = render({ queryKind: AssetQueryType.Metadata, minionIds: ['1'], workspace: '2' } as AssetMetadataQuery);
   await workspacesLoaded();
 
+  // User selects metadata
+  expect(screen.getByRole('radio', { name: AssetQueryType.Metadata })).toBeChecked();
+
   // Renders saved query
   expect(screen.getByText('Other workspace')).toBeInTheDocument();
   expect(screen.getByText('1')).toBeInTheDocument();
@@ -74,6 +77,9 @@ it('renders with initial query and updates when user makes changes', async () =>
 
 it('renders with query type calibration forecast and updates when user makes changes', async () => {
   const [onChange] = render({ queryKind: AssetQueryType.CalibrationForecast, groupBy: [AssetCalibrationForecastGroupByType.Month] } as AssetCalibrationForecastQuery);
+
+  // User selects calibration forecast
+  expect(screen.getByRole('radio', { name: AssetQueryLabel.CalibrationForecast })).toBeChecked();
 
   // User selects group by
   await select(screen.getAllByRole('combobox')[0], AssetCalibrationForecastGroupByType.Day , { container: document.body });

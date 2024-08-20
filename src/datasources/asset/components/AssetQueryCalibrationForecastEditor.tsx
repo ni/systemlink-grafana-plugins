@@ -52,7 +52,6 @@ export function QueryCalibrationForecastEditor({ query, handleQueryChange, datas
 
 const tooltips = {
   calibrationForecast: {
-    groupBy: `Group the calibration forecast by day, week, or month.`,
-    timeSpan: `The number of days to forecast calibration.`,
+    groupBy: `Group the calibration forecast by day, week, or month. Only one time based grouping is allowed.`
   },
 };
