@@ -41,7 +41,9 @@ it('renders with query type calibration forecast and updates group by', async ()
     groupBy: [AssetCalibrationForecastGroupByType.Month],
   } as AssetCalibrationForecastQuery);
 
-  // User selects group by
+  expect(screen.getByRole('radio', { name: AssetQueryLabel.CalibrationForecast })).toBeChecked();
+
+  // User selects group by day
   const groupBy = screen.getAllByRole('combobox')[0];
   await select(groupBy, AssetCalibrationForecastGroupByType.Day, { container: document.body });
   await waitFor(() => {
