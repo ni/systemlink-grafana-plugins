@@ -32,7 +32,7 @@ it('renders with query defaults', async () => {
   render({} as AssetQuery)
   await workspacesLoaded()
 
-  expect(screen.getByRole('radio', { name: AssetQueryType.Metadata })).toBeChecked();
+  expect(screen.getByRole('radio', { name: AssetQueryLabel.Metadata })).toBeChecked();
   expect(screen.queryByLabelText('Group by')).not.toBeInTheDocument();
   expect(screen.getAllByRole('combobox')[0]).toHaveAccessibleDescription('Any workspace');
   expect(screen.getAllByRole('combobox')[1]).toHaveAccessibleDescription('Select systems');
@@ -44,7 +44,7 @@ it('renders with initial query and updates when user makes changes', async () =>
   await workspacesLoaded();
 
   // User selects metadata
-  expect(screen.getByRole('radio', { name: AssetQueryType.Metadata })).toBeChecked();
+  expect(screen.getByRole('radio', { name: AssetQueryLabel.Metadata })).toBeChecked();
 
   // Renders saved query
   expect(screen.getByText('Other workspace')).toBeInTheDocument();
