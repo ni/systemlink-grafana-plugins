@@ -211,7 +211,7 @@ const assetsResponseMock: AssetsResponse =
     "totalCount": 4
   }
 
-const assetsResponseMockCalibrationForecast: CalibrationForecastResponse = {
+const calibrationForecastResponseMock: CalibrationForecastResponse = {
   calibrationSummary: {
     totalAssets: 10,
     assetsApproachingCalibration: 6,
@@ -226,14 +226,14 @@ const assetsResponseMockCalibrationForecast: CalibrationForecastResponse = {
   }
 }
 
-const assetUtilizationQueryMock: AssetMetadataQuery = {
+const assetMetadataQueryMock: AssetMetadataQuery = {
   queryKind: AssetQueryType.Metadata,
   workspace: '',
   refId: '',
   minionIds: ['123']
 }
 
-const queryMockCalibrationForecast: AssetCalibrationForecastQuery = {
+const calibrationForecastQueryMock: AssetCalibrationForecastQuery = {
   queryKind: AssetQueryType.CalibrationForecast,
   refId: null!,
   groupBy: [AssetCalibrationForecastGroupByType.Month]
@@ -276,7 +276,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
       .mockReturnValue(createFetchResponse(assetsResponseMock as AssetsResponse))
 
-    const result = await ds.query(buildMetadataQuery(assetUtilizationQueryMock))
+    const result = await ds.query(buildMetadataQuery(assetMetadataQueryMock))
 
     expect(result.data).toMatchSnapshot()
   })
@@ -286,15 +286,15 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
       .mockReturnValue(createFetchError(418))
 
-    await expect(ds.query(buildMetadataQuery(assetUtilizationQueryMock))).rejects.toThrow()
+    await expect(ds.query(buildMetadataQuery(assetMetadataQueryMock))).rejects.toThrow()
   })
 
   test('run calibration forecast query', async () => {
     backendSrv.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(assetsResponseMockCalibrationForecast as CalibrationForecastResponse))
+      .mockReturnValue(createFetchResponse(calibrationForecastResponseMock as CalibrationForecastResponse))
 
-    const result = await ds.query(buildCalibrationForecastQuery(queryMockCalibrationForecast))
+    const result = await ds.query(buildCalibrationForecastQuery(calibrationForecastQueryMock))
 
     expect(result.data).toMatchSnapshot()
   })
@@ -304,6 +304,6 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchError(418))
 
-    await expect(ds.query(buildCalibrationForecastQuery(queryMockCalibrationForecast))).rejects.toThrow()
+    await expect(ds.query(buildCalibrationForecastQuery(calibrationForecastQueryMock))).rejects.toThrow()
   })
 })
