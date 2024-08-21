@@ -32,24 +32,22 @@ it('renders with query defaults', async () => {
   render({} as AssetQuery)
   await workspacesLoaded()
 
-  expect(screen.getByRole('radio', { name: AssetQueryLabel.Metadata })).toBeChecked();
+  expect(screen.getAllByRole('combobox')[0]).toHaveAccessibleDescription('');
   expect(screen.queryByLabelText('Group by')).not.toBeInTheDocument();
-  expect(screen.getAllByRole('combobox')[0]).toHaveAccessibleDescription('Any workspace');
-  expect(screen.getAllByRole('combobox')[1]).toHaveAccessibleDescription('Select systems');
+  expect(screen.getAllByRole('combobox')[1]).toHaveAccessibleDescription('Any workspace');
+  expect(screen.getAllByRole('combobox')[2]).toHaveAccessibleDescription('Select systems');
 })
 
 it('renders with initial query and updates when user makes changes', async () => {
   const [onChange] = render({ queryKind: AssetQueryType.Metadata, minionIds: ['1'], workspace: '2' } as AssetMetadataQuery);
   await workspacesLoaded();
 
-  expect(screen.getByRole('radio', { name: AssetQueryLabel.Metadata })).toBeChecked();
-
   // Renders saved query
   expect(screen.getByText('Other workspace')).toBeInTheDocument();
   expect(screen.getByText('1')).toBeInTheDocument();
 
   // User selects different workspace
-  await select(screen.getAllByRole('combobox')[0], 'Default workspace', { container: document.body });
+  await select(screen.getAllByRole('combobox')[1], 'Default workspace', { container: document.body });
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ workspace: '1' }));
   });
@@ -60,13 +58,13 @@ it('renders with initial query and updates when user makes changes', async () =>
   });
 
   // User selects system
-  await select(screen.getAllByRole('combobox')[1], '2', { container: document.body });
+  await select(screen.getAllByRole('combobox')[2], '2', { container: document.body });
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ minionIds: ['2'] }));
   });
 
   // User adds another system
-  await select(screen.getAllByRole('combobox')[1], '$test_var', { container: document.body });
+  await select(screen.getAllByRole('combobox')[2], '$test_var', { container: document.body });
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ minionIds: ['2', '$test_var'] }));
   });
@@ -76,11 +74,8 @@ it('renders with initial query and updates when user makes changes', async () =>
 it('renders with query type calibration forecast and updates when user makes changes', async () => {
   const [onChange] = render({ queryKind: AssetQueryType.CalibrationForecast, groupBy: [AssetCalibrationForecastGroupByType.Month] } as AssetCalibrationForecastQuery);
 
-  // User selects calibration forecast
-  expect(screen.getByRole('radio', { name: AssetQueryLabel.CalibrationForecast })).toBeChecked();
-
   // User selects group by
-  await select(screen.getAllByRole('combobox')[0], AssetCalibrationForecastGroupByType.Day , { container: document.body });
+  await select(screen.getAllByRole('combobox')[1], AssetCalibrationForecastGroupByType.Day , { container: document.body });
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ groupBy: [AssetCalibrationForecastGroupByType.Day] }));
   });

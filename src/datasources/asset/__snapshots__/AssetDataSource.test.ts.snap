@@ -7,34 +7,33 @@ exports[`queries run calibration forecast query 1`] = `
       {
         "name": "Month",
         "values": [
-          "2024-07-24T00:00:00Z",
-          "2024-08-24T00:00:00Z",
-          "2024-09-24T00:00:00Z",
-          "2024-10-24T00:00:00Z",
-          "2024-11-24T00:00:00Z",
-          "2024-12-24T00:00:00Z",
+          "August 2024",
+          "September 2024",
+          "December 2025",
         ],
       },
       {
-        "name": "Lab1",
+        "name": "Lab 1",
         "values": [
           1,
           2,
           3,
+        ],
+      },
+      {
+        "name": "Lab 2",
+        "values": [
           4,
           5,
           6,
         ],
       },
       {
-        "name": "Lab2",
+        "name": "Lab 3",
         "values": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          4,
+          7,
+          8,
+          9,
         ],
       },
     ],

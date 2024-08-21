@@ -30,8 +30,7 @@ const render = setupRenderer(AssetQueryEditor, FakeAssetDataSource);
 it('renders with query type calibration forecast', async () => {
   render({ queryKind: AssetQueryType.CalibrationForecast } as AssetCalibrationForecastQuery);
 
-  expect(screen.getByRole('radio', { name: AssetQueryLabel.CalibrationForecast })).toBeChecked();
-  const groupBy = screen.getAllByRole('combobox')[0];
+  const groupBy = screen.getAllByRole('combobox')[1];
   expect(groupBy).not.toBeNull();
 });
 
@@ -41,10 +40,8 @@ it('renders with query type calibration forecast and updates group by', async ()
     groupBy: [AssetCalibrationForecastGroupByType.Month],
   } as AssetCalibrationForecastQuery);
 
-  expect(screen.getByRole('radio', { name: AssetQueryLabel.CalibrationForecast })).toBeChecked();
-
   // User selects group by day
-  const groupBy = screen.getAllByRole('combobox')[0];
+  const groupBy = screen.getAllByRole('combobox')[1];
   await select(groupBy, AssetCalibrationForecastGroupByType.Day, { container: document.body });
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(
