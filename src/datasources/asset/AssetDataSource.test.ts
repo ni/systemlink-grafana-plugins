@@ -219,9 +219,9 @@ const calibrationForecastResponseMock: CalibrationForecastResponse = {
   },
   calibrationForecast: {
     columns: [
-      { name: 'Month', values: ['2024-03', '2024-04', '2024-05', '2024-06', '2024-07', '2024-08', '2024-09', '2024-10', '2024-11', '2024-12'] },
-      { name: 'Approaching Calibration', values: [1, 2, 3, 4, 5, 6, 5, 4, 3, 2] },
-      { name: 'Past Due Calibration', values: [0, 1, 2, 3, 4, 4, 3, 2, 1, 0] },
+      { name: 'Month', values: ['2024-07-24T00:00:00Z', '2024-08-24T00:00:00Z', '2024-09-24T00:00:00Z', '2024-10-24T00:00:00Z', '2024-11-24T00:00:00Z', '2024-12-24T00:00:00Z'] },
+      { name: 'Lab1', values: [1, 2, 3, 4, 5, 6] },
+      { name: 'Lab2', values: [0, 1, 2, 3, 4, 4] },
     ],
   }
 }
