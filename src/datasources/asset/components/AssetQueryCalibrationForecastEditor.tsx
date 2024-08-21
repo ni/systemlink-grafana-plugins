@@ -19,16 +19,22 @@ export function QueryCalibrationForecastEditor({ query, handleQueryChange, datas
       return;
     }
 
-    let groupBy = [];
-    let locationIndex = items.findIndex(item => item.value === AssetCalibrationForecastGroupByType.Location);
-    if (locationIndex !== -1) {
-      groupBy.push(AssetCalibrationForecastGroupByType.Location);
-      items.splice(locationIndex, 1);
+    let groupBy: string[] = [];
+    let timeGrouping: string = null!;
+
+    for (let item of items) {
+        if (item.value === AssetCalibrationForecastGroupByType.Day || item.value === AssetCalibrationForecastGroupByType.Week || item.value === AssetCalibrationForecastGroupByType.Month) {
+          timeGrouping = item.value;
+          continue;
+      }
+      
+      groupBy.push(item.value!);
     }
 
-    if (items.length) {
-      groupBy.push(items[items.length - 1].value!);
+    if (timeGrouping) {
+      groupBy.push(timeGrouping);
     }
+    groupBy = groupBy.slice(-2);
 
     if (!_.isEqual(query.groupBy, groupBy)) {
       handleQueryChange({ ...query, groupBy: groupBy }, true);

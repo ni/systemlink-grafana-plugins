@@ -28,7 +28,7 @@ export enum AssetCalibrationForecastGroupByType {
   Day = "Day",
   Week = "Week",
   Month = "Month",
-  Location = "Location",
+  Location = "Location"
 }
 
 export enum EntityType {
