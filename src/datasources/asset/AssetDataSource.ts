@@ -2,11 +2,13 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
+  FieldDTO,
   TestDataSourceResponse,
 } from '@grafana/data';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
+  AssetCalibrationForecastGroupByType,
   AssetCalibrationForecastQuery,
   AssetFilterProperties,
   AssetMetadataQuery,
@@ -41,7 +43,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
   async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     switch (query.queryKind) {
       case AssetQueryType.Metadata:
-        return await this.processMetadataQuery(query as AssetMetadataQuery); 
+        return await this.processMetadataQuery(query as AssetMetadataQuery);
       case AssetQueryType.CalibrationForecast:
         return await this.processCalibrationForecastQuery(query as AssetCalibrationForecastQuery, options);
       default:
@@ -90,8 +92,39 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     const calibrationForecastResponse: CalibrationForecastResponse = await this.queryCalibrationForecast(query.groupBy, from, to);
 
     result.fields = calibrationForecastResponse.calibrationForecast.columns || [];
+    result.fields = result.fields.map(field => this.formatField(field));
 
     return result;
+  }
+
+  formatField(field: FieldDTO): FieldDTO {
+    if (!field.values) {
+      return field;
+    }
+
+    switch (field.name) {
+      case AssetCalibrationForecastGroupByType.Day:
+        field.values = field.values.map((value: string) => {
+          return new Date(value).toISOString().split('T')[0];
+        });
+        break;
+      case AssetCalibrationForecastGroupByType.Week:
+        field.values = field.values.map((value: string) => {
+          const startDate = new Date(value);
+          const endDate = new Date(startDate);
+          endDate.setDate(startDate.getDate() + 6);
+          return `${startDate.toISOString().split('T')[0]} : ${endDate.toISOString().split('T')[0]}`;
+        });
+        break;
+      case AssetCalibrationForecastGroupByType.Month:
+        field.values = field.values.map((value: string) => {
+          return new Date(value).toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+        });
+        break;
+      default:
+        break;
+    }
+    return field;
   }
 
   shouldRunQuery(_: AssetQuery): boolean {

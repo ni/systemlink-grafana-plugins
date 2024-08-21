@@ -1,9 +1,9 @@
 import React from 'react';
-import { QueryEditorProps } from '@grafana/data';
+import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { InlineField } from 'core/components/InlineField';
 import { AssetDataSource } from '../AssetDataSource';
 import { AssetCalibrationForecastQuery, AssetMetadataQuery, AssetQuery, AssetQueryLabel, AssetQueryType } from '../types';
-import { RadioButtonGroup } from '@grafana/ui';
+import { Select } from '@grafana/ui';
 
 import _ from 'lodash';
 import { QueryCalibrationForecastEditor } from './AssetQueryCalibrationForecastEditor';
@@ -21,14 +21,18 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
     }
   };
 
-  const handleQueryTypeChange = (item: AssetQueryType): void => {
-    handleQueryChange({ ...query, queryKind: item }, true);
+  const handleQueryTypeChange = (item: SelectableValue<AssetQueryType>): void => {
+    handleQueryChange({ ...query, queryKind: item.value! }, true);
   };
 
   return (
     <div style={{ position: 'relative' }}>
       <InlineField label="Query type" labelWidth={22} tooltip={tooltips.queryType}>
-        <RadioButtonGroup options={queryTypeOptions} onChange={handleQueryTypeChange} value={query.queryKind} />
+        <Select
+          options={queryTypeOptions}
+          onChange={handleQueryTypeChange}
+          value={query.queryKind}
+          width={85} />
       </InlineField>
       {query.queryKind === AssetQueryType.CalibrationForecast &&
         QueryCalibrationForecastEditor({
@@ -43,11 +47,19 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
 }
 
 const queryTypeOptions = [
-  { label: AssetQueryLabel.Metadata, value: AssetQueryType.Metadata },
-  { label: AssetQueryLabel.CalibrationForecast, value: AssetQueryType.CalibrationForecast },
+  {
+    label: AssetQueryLabel.Metadata,
+    value: AssetQueryType.Metadata,
+    description: 'Metadata allows you to visualize the properties of one or more assets.',
+  },
+  {
+    label: AssetQueryLabel.CalibrationForecast,
+    value: AssetQueryType.CalibrationForecast,
+    description:
+      'Calibration forecast allows you visualize the upcoming asset calibrations in the configured timeframe.',
+  },
 ];
 
 const tooltips = {
-  queryType: `Metadata allows you to visualize the properties of one or more assets.
-  Calibration forecast allows you visualize the upcoming asset calibrations in the configured timeframe.`,
+  queryType: 'Select the type of query you want to run.',
 };
