@@ -1,6 +1,6 @@
 import { AssetDataSource } from "../AssetDataSource"
 import { setupRenderer } from "test/fixtures"
-import { AssetCalibrationForecastGroupByType, AssetCalibrationForecastQuery, AssetMetadataQuery, AssetQuery, AssetQueryLabel, AssetQueryType } from "../types"
+import { AssetCalibrationForecastGroupByType, AssetCalibrationForecastQuery, AssetMetadataQuery, AssetQuery, AssetQueryType } from "../types"
 import { screen, waitFor, waitForElementToBeRemoved } from "@testing-library/react"
 import { AssetQueryEditor } from "./AssetQueryEditor"
 import { select } from "react-select-event";

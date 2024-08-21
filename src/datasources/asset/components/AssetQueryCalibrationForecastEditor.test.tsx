@@ -3,7 +3,7 @@ import { setupRenderer } from '../../../test/fixtures';
 import { SystemMetadata } from '../../system/types';
 import { AssetDataSource } from '../AssetDataSource';
 import { AssetQueryEditor } from './AssetQueryEditor';
-import { AssetCalibrationForecastGroupByType, AssetCalibrationForecastQuery, AssetQueryLabel, AssetQueryType } from '../types';
+import { AssetCalibrationForecastGroupByType, AssetCalibrationForecastQuery, AssetQueryType } from '../types';
 import { select } from 'react-select-event';
 
 const fakeSystems: SystemMetadata[] = [
