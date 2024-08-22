@@ -22,8 +22,16 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
   };
 
   const handleQueryTypeChange = (item: SelectableValue<AssetQueryType>): void => {
+    if (item.value === AssetQueryType.CalibrationForecast) {
+      handleQueryChange({ ...query, queryKind: item.value! }, isValidAssetCalibrationForecastQuery(query as AssetCalibrationForecastQuery));
+      return;
+    }
     handleQueryChange({ ...query, queryKind: item.value! }, true);
   };
+
+  const isValidAssetCalibrationForecastQuery = (query: AssetCalibrationForecastQuery): boolean => {
+    return query.groupBy.length > 0;
+  }
 
   return (
     <div style={{ position: 'relative' }}>

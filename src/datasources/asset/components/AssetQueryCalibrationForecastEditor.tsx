@@ -37,7 +37,7 @@ export function QueryCalibrationForecastEditor({ query, handleQueryChange, datas
     groupBy = groupBy.slice(-2);
 
     if (!_.isEqual(query.groupBy, groupBy)) {
-      handleQueryChange({ ...query, groupBy: groupBy }, true);
+      handleQueryChange({ ...query, groupBy: groupBy }, groupBy.length === 0);
     }
   };
 
@@ -45,7 +45,6 @@ export function QueryCalibrationForecastEditor({ query, handleQueryChange, datas
     <>
       <InlineField label="Group by" tooltip={tooltips.calibrationForecast.groupBy} labelWidth={22}>
         <MultiSelect
-          isClearable
           options={enumToOptions(AssetCalibrationForecastGroupByType)}
           onChange={handleGroupByChange}
           width={85}
@@ -58,6 +57,6 @@ export function QueryCalibrationForecastEditor({ query, handleQueryChange, datas
 
 const tooltips = {
   calibrationForecast: {
-    groupBy: `Group the calibration forecast by day, week, month, or location. Only one time-based grouping is allowed.`
+    groupBy: `Group the calibration forecast by day, week, month. Only one time-based grouping is allowed. Only two groupings are allowed. This is a required field.`,
   },
 };

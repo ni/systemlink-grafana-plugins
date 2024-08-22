@@ -75,7 +75,7 @@ it('renders with query type calibration forecast and updates when user makes cha
   const [onChange] = render({ queryKind: AssetQueryType.CalibrationForecast, groupBy: [AssetCalibrationForecastGroupByType.Month] } as AssetCalibrationForecastQuery);
 
   // User selects group by
-  await select(screen.getAllByRole('combobox')[1], AssetCalibrationForecastGroupByType.Day , { container: document.body });
+  await select(screen.getAllByRole('combobox')[1], "Day" , { container: document.body });
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ groupBy: [AssetCalibrationForecastGroupByType.Day] }));
   });

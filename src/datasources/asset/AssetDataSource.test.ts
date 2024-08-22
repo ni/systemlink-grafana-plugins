@@ -212,14 +212,9 @@ const assetsResponseMock: AssetsResponse =
 }
 
 const calibrationForecastResponseMock: CalibrationForecastResponse = {
-  calibrationSummary: {
-    totalAssets: 10,
-    assetsApproachingCalibration: 6,
-    assetsPastDueCalibration: 4,
-  },
   calibrationForecast: {
     columns: [
-      { name: 'Month', values: ['2024-07-24T00:00:00Z', '2024-08-24T00:00:00Z', '2024-09-24T00:00:00Z', '2024-10-24T00:00:00Z', '2024-11-24T00:00:00Z', '2024-12-24T00:00:00Z'] },
+      { name: 'Time', values: ['2024-07-24T00:00:00Z', '2024-08-24T00:00:00Z', '2024-09-24T00:00:00Z', '2024-10-24T00:00:00Z', '2024-11-24T00:00:00Z', '2024-12-24T00:00:00Z'] },
       { name: 'Lab1', values: [1, 2, 3, 4, 5, 6] },
       { name: 'Lab2', values: [0, 1, 2, 3, 4, 4] },
     ],
@@ -309,17 +304,17 @@ describe('queries', () => {
 
   describe('format dates', () => {
     test('format day', () => {
-      const field = ds.formatField({ name: AssetCalibrationForecastGroupByType.Day, values: ['2024-07-24T00:00:00Z'] })
+      const field = ds.formatField({ name: "Time", values: ['2024-07-24T00:00:00Z'] }, { groupBy: [AssetCalibrationForecastGroupByType.Day], queryKind: null!, refId: null! })
       expect(field.values).toEqual(['2024-07-24'])
     })
 
     test('format week', () => {
-      const field = ds.formatField({ name: AssetCalibrationForecastGroupByType.Week, values: ['2024-07-24T00:00:00Z'] })
+      const field = ds.formatField({ name: "Time", values: ['2024-07-24T00:00:00Z'] }, { groupBy: [AssetCalibrationForecastGroupByType.Week], queryKind: null!, refId: null! })
       expect(field.values).toEqual(['2024-07-24 : 2024-07-30'])
     })
 
     test('format month', () => {
-      const field = ds.formatField({ name: AssetCalibrationForecastGroupByType.Month, values: ['2024-07-24T00:00:00Z'] })
+      const field = ds.formatField({ name: "Time", values: ['2024-07-24T00:00:00Z'] }, { groupBy: [AssetCalibrationForecastGroupByType.Month], queryKind: null!, refId: null! })
       expect(field.values).toEqual(['July 2024'])
     })
   })

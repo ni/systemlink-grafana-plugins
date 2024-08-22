@@ -42,39 +42,29 @@ it('renders with query type calibration forecast and updates group by', async ()
 
   // User selects group by day
   const groupBy = screen.getAllByRole('combobox')[1];
-  await select(groupBy, AssetCalibrationForecastGroupByType.Day, { container: document.body });
+  await select(groupBy, "Day", { container: document.body });
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({ groupBy: [AssetCalibrationForecastGroupByType.Day] })
     );
   });
 
-  // User selects group by location
-  await select(groupBy, AssetCalibrationForecastGroupByType.Location, { container: document.body });
-  await waitFor(() => {
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        groupBy: [AssetCalibrationForecastGroupByType.Location, AssetCalibrationForecastGroupByType.Day],
-      })
-    );
-  });
-
   // User selects group by location and week, overrides time
-  await select(groupBy, AssetCalibrationForecastGroupByType.Week, { container: document.body });
+  await select(groupBy,"Week", { container: document.body });
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
-        groupBy: [AssetCalibrationForecastGroupByType.Location, AssetCalibrationForecastGroupByType.Week],
+        groupBy: [AssetCalibrationForecastGroupByType.Week],
       })
     );
   });
 
   // User selects group by location and month, overrides time
-  await select(groupBy, AssetCalibrationForecastGroupByType.Month, { container: document.body });
+  await select(groupBy, "Month", { container: document.body });
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
-        groupBy: [AssetCalibrationForecastGroupByType.Location, AssetCalibrationForecastGroupByType.Month],
+        groupBy: [AssetCalibrationForecastGroupByType.Month],
       })
     );
   });

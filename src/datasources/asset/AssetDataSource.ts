@@ -9,6 +9,7 @@ import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
   AssetCalibrationForecastGroupByType,
+  AssetCalibrationForecastKey,
   AssetCalibrationForecastQuery,
   AssetFilterProperties,
   AssetMetadataQuery,
@@ -92,39 +93,56 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     const calibrationForecastResponse: CalibrationForecastResponse = await this.queryCalibrationForecast(query.groupBy, from, to);
 
     result.fields = calibrationForecastResponse.calibrationForecast.columns || [];
-    result.fields = result.fields.map(field => this.formatField(field));
+    result.fields = result.fields.map(field => this.formatField(field, query));
 
     return result;
   }
 
-  formatField(field: FieldDTO): FieldDTO {
+  formatField(field: FieldDTO, query: AssetCalibrationForecastQuery): FieldDTO {
     if (!field.values) {
       return field;
     }
 
-    switch (field.name) {
-      case AssetCalibrationForecastGroupByType.Day:
-        field.values = field.values.map((value: string) => {
-          return new Date(value).toISOString().split('T')[0];
-        });
-        break;
-      case AssetCalibrationForecastGroupByType.Week:
-        field.values = field.values.map((value: string) => {
-          const startDate = new Date(value);
-          const endDate = new Date(startDate);
-          endDate.setDate(startDate.getDate() + 6);
-          return `${startDate.toISOString().split('T')[0]} : ${endDate.toISOString().split('T')[0]}`;
-        });
-        break;
-      case AssetCalibrationForecastGroupByType.Month:
-        field.values = field.values.map((value: string) => {
-          return new Date(value).toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
-        });
-        break;
-      default:
-        break;
+    if (field.name === AssetCalibrationForecastKey.Time) {
+      field.values = this.formatTimeField(field.values, query);
+      field.name= 'Formatted Time';
+      return field;
     }
+
     return field;
+  }
+
+  formatTimeField(values: string[], query: AssetCalibrationForecastQuery): string[] {
+    const timeGrouping = query.groupBy.find(item =>
+      [AssetCalibrationForecastGroupByType.Day,
+      AssetCalibrationForecastGroupByType.Week,
+      AssetCalibrationForecastGroupByType.Month].includes(item as AssetCalibrationForecastGroupByType)
+    ) as AssetCalibrationForecastGroupByType | undefined;
+
+    const formatFunctionMap = {
+      [AssetCalibrationForecastGroupByType.Day]: this.formatDateForDay,
+      [AssetCalibrationForecastGroupByType.Week]: this.formatDateForWeek,
+      [AssetCalibrationForecastGroupByType.Month]: this.formatDateForMonth,
+    };
+
+    const formatFunction = formatFunctionMap[timeGrouping!] || ((v: string) => v);
+    values = values.map(formatFunction);
+    return values;
+  }
+
+  formatDateForDay(date: string): string {
+    return new Date(date).toISOString().split('T')[0];
+  }
+
+  formatDateForWeek(date: string): string {
+    const startDate = new Date(date);
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 6);
+    return `${startDate.toISOString().split('T')[0]} : ${endDate.toISOString().split('T')[0]}`;
+  }
+
+  formatDateForMonth(date: string): string {
+    return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
   }
 
   shouldRunQuery(_: AssetQuery): boolean {

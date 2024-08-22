@@ -5,35 +5,36 @@ exports[`queries run calibration forecast query 1`] = `
   {
     "fields": [
       {
-        "name": "Month",
+        "name": "Formatted Time",
         "values": [
+          "July 2024",
           "August 2024",
           "September 2024",
-          "December 2025",
+          "October 2024",
+          "November 2024",
+          "December 2024",
         ],
       },
       {
-        "name": "Lab 1",
+        "name": "Lab1",
         "values": [
           1,
           2,
           3,
-        ],
-      },
-      {
-        "name": "Lab 2",
-        "values": [
           4,
           5,
           6,
         ],
       },
       {
-        "name": "Lab 3",
+        "name": "Lab2",
         "values": [
-          7,
-          8,
-          9,
+          0,
+          1,
+          2,
+          3,
+          4,
+          4,
         ],
       },
     ],

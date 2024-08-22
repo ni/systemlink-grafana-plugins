@@ -25,10 +25,13 @@ export enum AssetQueryLabel {
 }
 
 export enum AssetCalibrationForecastGroupByType {
-  Day = "Day",
-  Week = "Week",
-  Month = "Month",
-  Location = "Location"
+  Day = "DAY",
+  Week = "WEEK",
+  Month = "MONTH",
+}
+
+export enum AssetCalibrationForecastKey {
+  Time = "Time",
 }
 
 export enum EntityType {
@@ -138,16 +141,9 @@ export enum AssetFilterProperties {
 }
 
 export interface CalibrationForecastResponse {
-  calibrationSummary: CalibrationSummaryModel,
   calibrationForecast: CalibrationForecastModel
 }
 
-export interface CalibrationSummaryModel {
-  totalAssets: number,
-  assetsApproachingCalibration: number,
-  assetsPastDueCalibration: number,
-}
-
 export interface CalibrationForecastModel {
-  columns: FieldDTO[]
+  columns: FieldDTO[],
 }
