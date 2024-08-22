@@ -109,7 +109,7 @@ const tooltips = {
 
   system: {
     [EntityType.Asset]: `Filter assets by system.`,
-    [EntityType.System]: `Search systems by name or enter id`,
+    [EntityType.System]: `Search systems by name or enter an ID`,
   },
 
   vendor: {
