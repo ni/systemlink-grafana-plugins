@@ -159,8 +159,8 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     }
   }
 
-  async queryCalibrationForecast(groupBy: string[], startDate: string, endDate: string, filter = ''): Promise<CalibrationForecastResponse> {
-    let data = { groupBy, startDate, endDate, filter };
+  async queryCalibrationForecast(groupBy: string[], startTime: string, endTime: string, filter = ''): Promise<CalibrationForecastResponse> {
+    let data = { groupBy, startTime, endTime, filter };
     try {
       let response = await this.post<CalibrationForecastResponse>(this.baseUrl + '/assets/calibration-forecast', data);
       return response;

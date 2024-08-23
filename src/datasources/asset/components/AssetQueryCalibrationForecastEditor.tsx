@@ -37,7 +37,7 @@ export function QueryCalibrationForecastEditor({ query, handleQueryChange, datas
     groupBy = groupBy.slice(-2);
 
     if (!_.isEqual(query.groupBy, groupBy)) {
-      handleQueryChange({ ...query, groupBy: groupBy }, groupBy.length === 0);
+      handleQueryChange({ ...query, groupBy: groupBy }, groupBy.length !== 0);
     }
   };
 
