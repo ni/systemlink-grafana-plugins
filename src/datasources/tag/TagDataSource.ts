@@ -81,15 +81,25 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
       const workspaceTagMap: Record<string, TagWithValue[]> = {};
       const tagPropertiesMap: Record<string, Record<string, string> | null> = {};
 
-      tagsWithValues.forEach(tagWithValue => {
-        let workspace = tagWithValue.tag.workspace ?? tagWithValue.tag.workspace_id
+      // Identify tags that exist in more than one workspace
+      const tagPathCount: Record<string, number> = {};
+      for (const tagWithValue of tagsWithValues) {
+        tagPathCount[tagWithValue.tag.path] = (tagPathCount[tagWithValue.tag.path] || 0) + 1;
+      }
+
+      for (const tagWithValue of tagsWithValues) {
+        const workspace = tagWithValue.tag.workspace ?? tagWithValue.tag.workspace_id;
         if (!workspaceTagMap[workspace]) {
           workspaceTagMap[workspace] = [];
         }
         workspaceTagMap[workspace].push(tagWithValue);
-        tagPropertiesMap[`${getWorkspaceName(workspaces, workspace)}.${tagWithValue.tag.path}`] = tagWithValue.tag.properties
-      });
-      let tagsDecimatedHistory: { [key: string]: TypeAndValues } = {}
+        const prefixedPath = tagPathCount[tagWithValue.tag.path] > 1
+            ? `${getWorkspaceName(workspaces, workspace)}.${tagWithValue.tag.path}`
+            : tagWithValue.tag.path;
+        tagPropertiesMap[prefixedPath] = tagWithValue.tag.properties;
+      };
+
+      let tagsDecimatedHistory: { [key: string]: TypeAndValues } = {};
       for (const workspace in workspaceTagMap) {
         const tagHistoryResponse = await this.getTagHistoryWithChunks(
           workspaceTagMap[workspace],
@@ -98,18 +108,16 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
           maxDataPoints
         )
         for (const path in tagHistoryResponse.results) {
-          // If tags are mixed from different workspaces, add the workspace name as a prefix
-          if (Object.keys(workspaceTagMap).length === 1) {
-            tagsDecimatedHistory[path] = tagHistoryResponse.results[path]
-          } else {
-            tagsDecimatedHistory[`${getWorkspaceName(await this.getWorkspaces(), workspace)}.${path}`] = tagHistoryResponse.results[path]
-          }
+          const prefixedPath = tagPathCount[path] > 1
+            ? `${getWorkspaceName(workspaces, workspace)}.${path}`
+            : path;
+          tagsDecimatedHistory[prefixedPath] = tagHistoryResponse.results[path];
         }
       }
 
       const mergedTagValuesWithType = this.mergeTagsHistoryValues(tagsDecimatedHistory);
       result.fields.push({
-        name: 'time', 'values': mergedTagValuesWithType.timestamps, type: FieldType.time
+        name: 'time', values: mergedTagValuesWithType.timestamps, type: FieldType.time
       });
 
       for (const path in mergedTagValuesWithType.values) {

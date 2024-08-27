@@ -650,7 +650,7 @@ exports[`queries uses displayName property 1`] = `
 ]
 `;
 
-exports[`queries history of tags from different workspaces 1`] = `
+exports[`queries add workspace prefix only when a tag with the same path exists in multiple workspaces 1`] = `
 [
   {
     "fields": [
@@ -680,7 +680,23 @@ exports[`queries history of tags from different workspaces 1`] = `
       },
       {
         "config": {},
-        "name": "Other workspace.my.tag.3",
+        "name": "Other workspace.my.tag.1",
+        "values": [
+          1,
+          2,
+        ],
+      },
+      {
+        "config": {},
+        "name": "Other workspace.my.tag.2",
+        "values": [
+          2,
+          3,
+        ],
+      },
+      {
+        "config": {},
+        "name": "my.tag.3",
         "values": [
           3,
           4,
@@ -688,7 +704,7 @@ exports[`queries history of tags from different workspaces 1`] = `
       },
       {
         "config": {},
-        "name": "Other workspace.my.tag.4",
+        "name": "my.tag.4",
         "values": [
           4,
           5,
