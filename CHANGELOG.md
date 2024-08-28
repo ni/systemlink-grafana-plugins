@@ -1,3 +1,10 @@
+## [3.12.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.11.0...v3.12.0) (2024-08-28)
+
+
+### Features
+
+* **asset:** add the query type and group by buttons for calibration forecast ([#64](https://github.com/ni/systemlink-grafana-plugins/issues/64)) ([7ab470b](https://github.com/ni/systemlink-grafana-plugins/commit/7ab470b2c888c72ea65bfc1bf9243ede7ed2a55f))
+
 ## [3.11.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.10.1...v3.11.0) (2024-07-16)
 
 
