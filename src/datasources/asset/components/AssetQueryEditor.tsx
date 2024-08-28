@@ -1,34 +1,18 @@
-import React, { useState } from 'react';
-import { QueryEditorProps, SelectableValue, toOption } from '@grafana/data';
+import React from 'react';
+import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { InlineField } from 'core/components/InlineField';
-import { AssetDataSource } from "../AssetDataSource";
-import {
-  AssetQuery,
-  EntityType,
-} from '../types';
-import { FloatingError, parseErrorMessage } from "../../../core/errors";
-import { MultiSelect, Select } from "@grafana/ui";
-import { isValidId } from "../../data-frame/utils";
-import { useWorkspaceOptions } from "../../../core/utils";
-import { SystemMetadata } from "../../system/types";
-import _ from "lodash";
-import { useAsync } from "react-use";
+import { AssetDataSource } from '../AssetDataSource';
+import { AssetCalibrationForecastQuery, AssetMetadataQuery, AssetQuery, AssetQueryLabel, AssetQueryType } from '../types';
+import { Select } from '@grafana/ui';
+
+import _ from 'lodash';
+import { QueryCalibrationForecastEditor } from './AssetQueryCalibrationForecastEditor';
+import { QueryMetadataEditor } from './AssetQueryMetadataEditor';
 
 type Props = QueryEditorProps<AssetDataSource, AssetQuery>;
 
 export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
-  const workspaces = useWorkspaceOptions(datasource);
-  const [errorMsg, setErrorMsg] = useState<string | undefined>('');
-  const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
-
-  const minionIds = useAsync(() => {
-    let filterString = '';
-    if (query.workspace) {
-      filterString += `workspace = "${query.workspace}"`;
-    }
-    return datasource.querySystems(filterString).catch(handleError);
-  }, [query.workspace]);
 
   const handleQueryChange = (value: AssetQuery, runQuery: boolean): void => {
     onChange(value);
@@ -37,116 +21,53 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
     }
   };
 
-  const onWorkspaceChange = (item?: SelectableValue<string>): void => {
-    if (item?.value && item.value !== query.workspace) {
-      // if workspace changed, reset Systems and Assets fields
-      handleQueryChange(
-        { ...query, workspace: item.value, minionIds: [] },
-        // do not run query if workspace not changed
-        true
-      );
-    } else {
-      handleQueryChange({ ...query, workspace: '' }, true);
+  const handleQueryTypeChange = (item: SelectableValue<AssetQueryType>): void => {
+    if (item.value === AssetQueryType.CalibrationForecast) {
+      handleQueryChange({ ...query, queryKind: item.value! }, isValidAssetCalibrationForecastQuery(query as AssetCalibrationForecastQuery));
+      return;
     }
-  };
-  const handleMinionIdChange = (items: Array<SelectableValue<string>>): void => {
-    if (items && !_.isEqual(query.minionIds, items)) {
-      handleQueryChange(
-        { ...query, minionIds: items.map(i => i.value!) },
-        // do not run query if minionIds not changed
-        true
-      );
-    } else {
-      handleQueryChange({ ...query, minionIds: [] }, true);
-    }
+    handleQueryChange({ ...query, queryKind: item.value! }, true);
   };
 
-  const getVariableOptions = (): Array<SelectableValue<string>> => {
-    return datasource.templateSrv
-      .getVariables()
-      .map((v) => toOption('$' + v.name));
-  };
-  const loadMinionIdOptions = (): Array<SelectableValue<string>> => {
-    let options: SelectableValue[] = (minionIds.value ?? []).map((system: SystemMetadata): SelectableValue<string> => ({
-        'label': system.alias ?? system.id,
-        'value': system.id,
-        'description': system.state,
-      })
-    )
-    options.unshift(...getVariableOptions());
-
-    return options;
+  const isValidAssetCalibrationForecastQuery = (query: AssetCalibrationForecastQuery): boolean => {
+    return query.groupBy.length > 0;
   }
 
   return (
     <div style={{ position: 'relative' }}>
-      <InlineField label="Workspace"
-                   tooltip={tooltips.workspace[EntityType.Asset]}
-                   labelWidth={22}>
+      <InlineField label="Query type" labelWidth={22} tooltip={tooltips.queryType}>
         <Select
-          isClearable
-          isLoading={workspaces.loading}
-          onChange={onWorkspaceChange}
-          options={workspaces.value}
-          placeholder="Any workspace"
-          value={query.workspace}
-        />
+          options={queryTypeOptions}
+          onChange={handleQueryTypeChange}
+          value={query.queryKind}
+          width={85} />
       </InlineField>
-      <InlineField label="Systems"
-                   tooltip={tooltips.system[EntityType.Asset]}
-                   labelWidth={22}>
-        <MultiSelect
-          isClearable
-          allowCreateWhileLoading
-          options={loadMinionIdOptions()}
-          isValidNewOption={isValidId}
-          onChange={handleMinionIdChange}
-          placeholder="Select systems"
-          width={85}
-          value={query.minionIds.map(toOption)}
-        />
-      </InlineField>
-      <FloatingError message={errorMsg}/>
+      {query.queryKind === AssetQueryType.CalibrationForecast &&
+        QueryCalibrationForecastEditor({
+          query: query as AssetCalibrationForecastQuery,
+          handleQueryChange,
+          datasource,
+        })}
+      {query.queryKind === AssetQueryType.Metadata &&
+        QueryMetadataEditor({ query: query as AssetMetadataQuery, handleQueryChange, datasource })}
     </div>
   );
 }
 
+const queryTypeOptions = [
+  {
+    label: AssetQueryLabel.Metadata,
+    value: AssetQueryType.Metadata,
+    description: 'Metadata allows you to visualize the properties of one or more assets.',
+  },
+  {
+    label: AssetQueryLabel.CalibrationForecast,
+    value: AssetQueryType.CalibrationForecast,
+    description:
+      'Calibration forecast allows you visualize the upcoming asset calibrations in the configured timeframe.',
+  },
+];
+
 const tooltips = {
-
-  queryType: `Metadata allows you to visualize the properties of one or more assets.
-              Utilization allows you to visualize usage as a percentage.`,
-
-  entityType: `Calculate utilization for one or more systems or assets.`,
-
-  workspace: {
-    [EntityType.Asset]: `The workspace where you want to search for the assets.`,
-    [EntityType.System]: `The workspace where you want to search for the systems.`,
-  },
-
-  system: {
-    [EntityType.Asset]: `Filter assets by system.`,
-    [EntityType.System]: `Search systems by name or enter id`,
-  },
-
-  vendor: {
-    [EntityType.Asset]: `Filter assets by vendor.`,
-    [EntityType.System]: `Filter systems by vendor.`,
-  },
-
-  assetIdentifier: 'Search assets by name or enter id.',
-
-  utilizationCategory: {
-    [EntityType.Asset]: `Filter assets by vendor.`,
-    [EntityType.System]: `Filter systems by vendor.`,
-  },
-
-  timeFrequency: `Calculate utilization for different spans of time.`,
-
-  workingHoursPolicy: `Account for typical working hours when calculating utilization.`,
-
-  workingHours: `Calculate utilization for peak or non-peak hours.`,
-
-  peakDays: `Calculate utilization for peak or non-peak days.`
+  queryType: 'Select the type of query you want to run.',
 };
-
-

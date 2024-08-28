@@ -1,13 +1,37 @@
+import { FieldDTO } from '@grafana/data'
 import { DataQuery } from '@grafana/schema'
 
-export interface AssetQuery extends DataQuery {
-  type: AssetQueryType,
+export interface AssetMetadataQuery extends DataQuery {
+  queryKind: AssetQueryType,
   workspace: string,
   minionIds: string[]
 }
 
+export interface AssetCalibrationForecastQuery extends DataQuery {
+  queryKind: AssetQueryType,
+  groupBy: string[]
+}
+
+export type AssetQuery = AssetCalibrationForecastQuery | AssetMetadataQuery;
+
 export enum AssetQueryType {
   Metadata = "Metadata",
+  CalibrationForecast = "Calibration Forecast",
+}
+
+export enum AssetQueryLabel {
+  Metadata = "Metadata",
+  CalibrationForecast = "Calibration Forecast",
+}
+
+export enum AssetCalibrationForecastGroupByType {
+  Day = "DAY",
+  Week = "WEEK",
+  Month = "MONTH",
+}
+
+export enum AssetCalibrationForecastKey {
+  Time = "Time",
 }
 
 export enum EntityType {
@@ -116,3 +140,10 @@ export enum AssetFilterProperties {
   IsSystemController = 'IsSystemController'
 }
 
+export interface CalibrationForecastResponse {
+  calibrationForecast: CalibrationForecastModel
+}
+
+export interface CalibrationForecastModel {
+  columns: FieldDTO[],
+}
