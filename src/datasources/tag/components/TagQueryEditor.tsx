@@ -60,11 +60,11 @@ export function TagQueryEditor({ query, onChange, onRunQuery, datasource }: Prop
 }
 
 const tooltips = {
-  queryType: `Current allows you to visualize the most recent value of multiple tags. History allows you to
+  queryType: `Current allows you to visualize the most recent value of one or more tags. History allows you to
               visualize the values of multiple tags over time. Historical values use the time range set on the
               dashboard and are decimated according to the width of the panel.`,
 
-  tagPath: `The path to search for the tags you want to visualize. You can enter a variable into this field and use glob-style patterns as wildcards.`,
+  tagPath: `The path to search for the tags you want to visualize. Use * as a wildcard to match multiple tags.`,
 
   workspace: `The workspace to search for the given tag path. If left blank, the plugin
               finds the most recently updated tag in any workspace.`,
