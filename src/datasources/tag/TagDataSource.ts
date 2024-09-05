@@ -6,6 +6,7 @@ import {
   FieldType,
   TestDataSourceResponse,
   FieldConfig,
+  dateTime,
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
@@ -94,10 +95,10 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
         }
         workspaceTagMap[workspace].push(tagWithValue);
         const prefixedPath = tagPathCount[tagWithValue.tag.path] > 1
-            ? `${getWorkspaceName(workspaces, workspace)}.${tagWithValue.tag.path}`
-            : tagWithValue.tag.path;
+          ? `${getWorkspaceName(workspaces, workspace)}.${tagWithValue.tag.path}`
+          : tagWithValue.tag.path;
         tagPropertiesMap[prefixedPath] = tagWithValue.tag.properties;
-      };
+      }
 
       let tagsDecimatedHistory: { [key: string]: TypeAndValues } = {};
       for (const workspace in workspaceTagMap) {
@@ -117,7 +118,7 @@ export class TagDataSource extends DataSourceBase<TagQuery> {
 
       const mergedTagValuesWithType = this.mergeTagsHistoryValues(tagsDecimatedHistory);
       result.fields.push({
-        name: 'time', values: mergedTagValuesWithType.timestamps, type: FieldType.time
+        name: 'time', values: mergedTagValuesWithType.timestamps.map(v => dateTime(v).valueOf()), type: FieldType.time
       });
 
       for (const path in mergedTagValuesWithType.values) {

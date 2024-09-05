@@ -432,8 +432,8 @@ exports[`queries numeric tag history 1`] = `
         "name": "time",
         "type": "time",
         "values": [
-          "2023-01-01T00:00:00Z",
-          "2023-01-01T00:01:00Z",
+          1672531200000,
+          1672531260000,
         ],
       },
       {
@@ -458,9 +458,9 @@ exports[`queries numeric multiple tags history 1`] = `
         "name": "time",
         "type": "time",
         "values": [
-          "2023-01-01T00:00:00Z",
-          "2023-01-01T00:01:00Z",
-          "2023-01-01T00:02:00Z",
+          1672531200000,
+          1672531260000,
+          1672531320000,
         ],
       },
       {
@@ -536,8 +536,8 @@ exports[`queries string tag history 1`] = `
         "name": "time",
         "type": "time",
         "values": [
-          "2023-01-01T00:00:00Z",
-          "2023-01-01T00:01:00Z",
+          1672531200000,
+          1672531260000,
         ],
       },
       {
@@ -658,8 +658,8 @@ exports[`queries add workspace prefix only when a tag with the same path exists 
         "name": "time",
         "type": "time",
         "values": [
-          "2023-01-01T00:00:00Z",
-          "2023-01-01T00:01:00Z",
+          1672531200000,
+          1672531260000,
         ],
       },
       {
