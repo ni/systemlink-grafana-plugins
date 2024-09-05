@@ -12,16 +12,41 @@ export interface AssetCalibrationForecastQuery extends DataQuery {
   groupBy: string[]
 }
 
-export type AssetQuery = AssetCalibrationForecastQuery | AssetMetadataQuery;
+export interface AssetUtilizationQuery extends DataQuery {
+  queryKind: AssetQueryType,
+  workspace: string,
+  entityType: EntityType
+  assetIdentifiers: string[],
+  minionIds: string[],
+}
+
+export enum EntityType {
+  Asset = "Asset",
+  System = "System"
+}
+
+export enum Weekday {
+  Sunday = 0,
+  Monday = 1,
+  Tuesday = 2,
+  Wednesday = 3,
+  Thursday = 4,
+  Friday = 5,
+  Saturday = 6,
+}
+
+export type AssetQuery = AssetCalibrationForecastQuery | AssetMetadataQuery | AssetUtilizationQuery;
 
 export enum AssetQueryType {
   Metadata = "Metadata",
   CalibrationForecast = "Calibration Forecast",
+  Utilization = "Utilization"
 }
 
 export enum AssetQueryLabel {
   Metadata = "Metadata",
   CalibrationForecast = "Calibration Forecast",
+  Utilization = "Utilization"
 }
 
 export enum AssetCalibrationForecastGroupByType {
@@ -34,14 +59,44 @@ export enum AssetCalibrationForecastKey {
   Time = "Time",
 }
 
-export enum EntityType {
-  Asset = "Asset",
-  System = "System"
-}
-
 export interface AssetsResponse {
   assets: AssetModel[],
   totalCount: number
+}
+
+export interface AssetUtilizationHistory {
+  utilizationIdentifier: string,
+  assetIdentifier: string,
+  minionId: string,
+  category: string,
+  taskName?: string,
+  userName?: string,
+  startTimestamp: string,
+  endTimestamp?: string,
+  heartbeatTimestamp?: string,
+}
+
+export interface ServicePolicyModel {
+  calibrationPolicy: {
+    daysForApproachingCalibrationDueDate: number
+  },
+  workingHoursPolicy: {
+    startTime: string,
+    endTime: string
+  }
+}
+
+export interface Interval<T> {
+  'startTimestamp': T,
+  'endTimestamp': T
+}
+
+export interface IntervalsWithPeakFlag<T> extends Interval<T> {
+  isWorking: boolean
+}
+
+export interface IntervalWithHeartbeat<T> extends Interval<T> {
+  'heartbeatTimestamp': T
 }
 
 export interface AssetModel {
@@ -138,6 +193,30 @@ export enum AssetFilterProperties {
   ExternalCalibrationIsLimited = 'ExternalCalibration.IsLimited',
   ExternalCalibrationOperatorDisplayName = 'ExternalCalibration.Operator.DisplayName',
   IsSystemController = 'IsSystemController'
+}
+
+export interface AssetUtilizationHistoryResponse {
+  assetUtilizations: AssetUtilizationHistory[];
+  continuationToken: string;
+}
+
+export interface QueryAssetUtilizationHistoryRequest {
+  utilizationFilter?: string,
+  assetFilter?: string,
+  continuationToken?: string,
+  take?: number,
+  orderBy?: AssetUtilizationOrderBy,
+  orderByDescending?: boolean
+}
+
+export enum AssetUtilizationOrderBy {
+  UTILIZATION_IDENTIFIER = 'UTILIZATION_IDENTIFIER',
+  ASSET_IDENTIFIER = 'ASSET_IDENTIFIER',
+  MINION_ID = 'MINION_ID',
+  CATEGORY = 'CATEGORY',
+  TASK_NAME = 'TASK_NAME',
+  USER_NAME = 'USER_NAME',
+  START_TIMESTAMP = 'START_TIMESTAMP',
 }
 
 export interface CalibrationForecastResponse {

@@ -2,12 +2,20 @@ import React from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { InlineField } from 'core/components/InlineField';
 import { AssetDataSource } from '../AssetDataSource';
-import { AssetCalibrationForecastQuery, AssetMetadataQuery, AssetQuery, AssetQueryLabel, AssetQueryType } from '../types';
+import {
+  AssetCalibrationForecastQuery,
+  AssetMetadataQuery,
+  AssetQuery,
+  AssetQueryLabel,
+  AssetQueryType,
+  AssetUtilizationQuery
+} from '../types';
 import { Select } from '@grafana/ui';
 
 import _ from 'lodash';
 import { QueryCalibrationForecastEditor } from './AssetQueryCalibrationForecastEditor';
 import { QueryMetadataEditor } from './AssetQueryMetadataEditor';
+import { QueryUtilizationEditor } from "./AssetQueryUtilizationEditor";
 
 type Props = QueryEditorProps<AssetDataSource, AssetQuery>;
 
@@ -23,7 +31,10 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
 
   const handleQueryTypeChange = (item: SelectableValue<AssetQueryType>): void => {
     if (item.value === AssetQueryType.CalibrationForecast) {
-      handleQueryChange({ ...query, queryKind: item.value! }, isValidAssetCalibrationForecastQuery(query as AssetCalibrationForecastQuery));
+      handleQueryChange({
+        ...query,
+        queryKind: item.value!
+      }, isValidAssetCalibrationForecastQuery(query as AssetCalibrationForecastQuery));
       return;
     }
     handleQueryChange({ ...query, queryKind: item.value! }, true);
@@ -40,16 +51,23 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
           options={queryTypeOptions}
           onChange={handleQueryTypeChange}
           value={query.queryKind}
-          width={85} />
+          width={85}/>
       </InlineField>
-      {query.queryKind === AssetQueryType.CalibrationForecast &&
-        QueryCalibrationForecastEditor({
-          query: query as AssetCalibrationForecastQuery,
-          handleQueryChange,
-          datasource,
-        })}
       {query.queryKind === AssetQueryType.Metadata &&
-        QueryMetadataEditor({ query: query as AssetMetadataQuery, handleQueryChange, datasource })}
+          <QueryMetadataEditor
+              query={query as AssetMetadataQuery}
+              handleQueryChange={handleQueryChange}
+              datasource={datasource}/>}
+      {query.queryKind === AssetQueryType.CalibrationForecast &&
+          <QueryCalibrationForecastEditor
+              query={query as AssetCalibrationForecastQuery}
+              handleQueryChange={handleQueryChange}
+              datasource={datasource}/>}
+      {query.queryKind === AssetQueryType.Utilization &&
+          <QueryUtilizationEditor
+              query={query as AssetUtilizationQuery}
+              handleQueryChange={handleQueryChange}
+              datasource={datasource}/>}
     </div>
   );
 }
@@ -65,6 +83,12 @@ const queryTypeOptions = [
     value: AssetQueryType.CalibrationForecast,
     description:
       'Calibration forecast allows you visualize the upcoming asset calibrations in the configured timeframe.',
+  },
+  {
+    label: AssetQueryLabel.Utilization,
+    value: AssetQueryType.Utilization,
+    description:
+      'Utilization allows you to visualize the utilization of one or more assets.',
   },
 ];
 
