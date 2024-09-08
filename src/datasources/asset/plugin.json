@@ -1,6 +1,6 @@
 {
   "type": "datasource",
-  "name": "SystemLink Assets Utilization",
+  "name": "SystemLink Assets",
   "id": "ni-slasset-datasource",
   "metrics": true,
   "info": {

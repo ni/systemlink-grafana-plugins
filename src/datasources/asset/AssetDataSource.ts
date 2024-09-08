@@ -16,7 +16,7 @@ import { getWorkspaceName, replaceVariables } from "../../core/utils";
 import { SystemMetadata } from "../system/types";
 import { defaultOrderBy, defaultProjection } from "../system/constants";
 
-export class AssetUtilizationDataSource extends DataSourceBase<AssetMetadataQuery> {
+export class AssetDataSource extends DataSourceBase<AssetMetadataQuery> {
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),

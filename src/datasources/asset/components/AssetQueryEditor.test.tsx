@@ -1,8 +1,8 @@
-import { AssetUtilizationDataSource } from "../AssetUtilizationDataSource"
+import { AssetDataSource } from "../AssetDataSource"
 import { setupRenderer } from "test/fixtures"
 import { AssetMetadataQuery } from "../types"
 import { screen, waitFor, waitForElementToBeRemoved } from "@testing-library/react"
-import { AssetUtilizationQueryEditor } from "./AssetUtilizationQueryEditor"
+import { AssetQueryEditor } from "./AssetQueryEditor"
 import { select } from "react-select-event";
 import { SystemMetadata } from "../../system/types";
 
@@ -19,13 +19,13 @@ const fakeSystems: SystemMetadata[] = [
   },
 ];
 
-class FakeAssetUtilizationDataSource extends AssetUtilizationDataSource {
+class FakeAssetDataSource extends AssetDataSource {
   querySystems(filter?: string, projection?: string[]): Promise<SystemMetadata[]> {
     return Promise.resolve(fakeSystems);
   }
 }
 
-const render = setupRenderer(AssetUtilizationQueryEditor, FakeAssetUtilizationDataSource);
+const render = setupRenderer(AssetQueryEditor, FakeAssetDataSource);
 const workspacesLoaded = () => waitForElementToBeRemoved(screen.getByTestId('Spinner'));
 
 it('renders with query defaults', async () => {

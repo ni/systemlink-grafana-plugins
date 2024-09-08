@@ -1,8 +1,8 @@
 import { DataSourcePlugin } from '@grafana/data';
-import { AssetUtilizationDataSource } from './AssetUtilizationDataSource';
-import { AssetUtilizationQueryEditor } from './components/AssetUtilizationQueryEditor';
+import { AssetDataSource } from './AssetDataSource';
+import { AssetQueryEditor } from './components/AssetQueryEditor';
 import { HttpConfigEditor } from 'core/components/HttpConfigEditor';
 
-export const plugin = new DataSourcePlugin(AssetUtilizationDataSource)
+export const plugin = new DataSourcePlugin(AssetDataSource)
   .setConfigEditor(HttpConfigEditor)
-  .setQueryEditor(AssetUtilizationQueryEditor);
+  .setQueryEditor(AssetQueryEditor);

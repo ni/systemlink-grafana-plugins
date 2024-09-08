@@ -4,16 +4,16 @@ import { QueryEditorProps, SelectableValue, toOption } from '@grafana/data';
 import _ from 'lodash';
 import { AssetMetadataQuery, EntityType } from '../types';
 import { InlineField, MultiSelect, Select } from '@grafana/ui';
-import { AssetUtilizationDataSource } from '../AssetUtilizationDataSource';
+import { AssetDataSource } from '../AssetDataSource';
 import { useWorkspaceOptions } from '../../../core/utils';
 import { FloatingError, parseErrorMessage } from '../../../core/errors';
 import { isValidId } from '../../data-frame/utils';
 import { SystemMetadata } from '../../system/types';
 import { useAsync } from 'react-use';
 
-type Props = QueryEditorProps<AssetUtilizationDataSource, AssetMetadataQuery>;
+type Props = QueryEditorProps<AssetDataSource, AssetMetadataQuery>;
 
-export function AssetUtilizationQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
+export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
 
   const handleQueryChange = (value: AssetMetadataQuery, runQuery: boolean): void => {

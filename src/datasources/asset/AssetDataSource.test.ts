@@ -7,17 +7,17 @@ import {
   requestMatching,
   setupDataSource,
 } from "test/fixtures";
-import { AssetUtilizationDataSource } from "./AssetUtilizationDataSource";
+import { AssetDataSource } from "./AssetDataSource";
 import {
   AssetMetadataQuery,
   AssetPresenceWithSystemConnectionModel,
   AssetsResponse,
 } from "./types";
 
-let ds: AssetUtilizationDataSource, backendSrv: MockProxy<BackendSrv>
+let ds: AssetDataSource, backendSrv: MockProxy<BackendSrv>
 
 beforeEach(() => {
-  [ds, backendSrv] = setupDataSource(AssetUtilizationDataSource);
+  [ds, backendSrv] = setupDataSource(AssetDataSource);
 });
 
 const assetsResponseMock: AssetsResponse =

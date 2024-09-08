@@ -18,7 +18,7 @@ Tools](https://grafana.github.io/plugin-tools/).
 - [Notebooks](src/datasources/notebook/)
 - [Systems](src/datasources/system/)
 - [Tags](src/datasources/tag/)
-- [Assets utilization](src/datasources/asset/)
+- [Assets](src/datasources/asset/)
 - [Assets calibration](src/datasources/asset-calibration/)
 
 ### Panels
