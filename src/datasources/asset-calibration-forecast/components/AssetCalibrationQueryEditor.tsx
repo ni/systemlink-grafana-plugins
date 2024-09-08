@@ -1,23 +1,26 @@
-import { SelectableValue, toOption } from '@grafana/data';
-import { AssetDataSource } from '../AssetDataSource';
-import { AssetCalibrationForecastGroupByType, AssetCalibrationForecastQuery, AssetQuery } from '../types';
+import { QueryEditorProps, SelectableValue, toOption } from '@grafana/data';
+import { AssetCalibrationDataSource } from '../AssetCalibrationDataSource';
+import { AssetCalibrationForecastGroupByType, AssetCalibrationQuery } from '../types';
 import { InlineField, MultiSelect } from '@grafana/ui';
 import React from 'react';
 import { enumToOptions } from '../../../core/utils';
 import _ from 'lodash';
 
-type Props = {
-  query: AssetCalibrationForecastQuery;
-  handleQueryChange: (value: AssetQuery, runQuery: boolean) => void;
-  datasource: AssetDataSource;
-};
+type Props = QueryEditorProps<AssetCalibrationDataSource, AssetCalibrationQuery>;
 
-export function QueryCalibrationForecastEditor({ query, handleQueryChange, datasource }: Props) {
-  query = datasource.prepareQuery(query) as AssetCalibrationForecastQuery;
+export function AssetCalibrationQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
+  query = datasource.prepareQuery(query) as AssetCalibrationQuery;
   const handleGroupByChange = (items?: Array<SelectableValue<string>>): void => {
     if (!items || _.isEqual(query.groupBy, items)) {
       return;
     }
+
+    const handleQueryChange = (value: AssetCalibrationQuery, runQuery: boolean): void => {
+      onChange(value);
+      if (runQuery) {
+        onRunQuery();
+      }
+    };
 
     let groupBy: string[] = [];
     let timeGrouping: string = null!;

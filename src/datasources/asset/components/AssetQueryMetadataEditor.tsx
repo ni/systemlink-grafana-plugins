@@ -1,6 +1,6 @@
 import { SelectableValue, toOption } from '@grafana/data';
 import { AssetDataSource } from '../AssetDataSource';
-import { AssetMetadataQuery, AssetQuery, EntityType } from '../types';
+import { AssetMetadataQuery, EntityType } from '../types';
 import { InlineField, MultiSelect, Select } from '@grafana/ui';
 import React, { useState } from 'react';
 import { useWorkspaceOptions } from '../../../core/utils';
@@ -12,7 +12,7 @@ import { useAsync } from 'react-use';
 
 type Props = {
   query: AssetMetadataQuery;
-  handleQueryChange: (value: AssetQuery, runQuery: boolean) => void;
+  handleQueryChange: (value: AssetMetadataQuery, runQuery: boolean) => void;
   datasource: AssetDataSource;
 };
 

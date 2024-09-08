@@ -1,47 +1,29 @@
 import { screen, waitFor } from '@testing-library/react';
 import { setupRenderer } from '../../../test/fixtures';
-import { SystemMetadata } from '../../system/types';
-import { AssetDataSource } from '../AssetDataSource';
-import { AssetQueryEditor } from './AssetQueryEditor';
-import { AssetCalibrationForecastGroupByType, AssetCalibrationForecastQuery, AssetQueryType } from '../types';
+import { AssetCalibrationForecastGroupByType, AssetCalibrationQuery } from '../types';
 import { select } from 'react-select-event';
+import { AssetCalibrationDataSource } from '../AssetCalibrationDataSource';
+import { AssetCalibrationQueryEditor } from './AssetCalibrationQueryEditor';
 
-const fakeSystems: SystemMetadata[] = [
-  {
-    id: '1',
-    state: 'CONNECTED',
-    workspace: '1',
-  },
-  {
-    id: '2',
-    state: 'CONNECTED',
-    workspace: '2',
-  },
-];
-
-class FakeAssetDataSource extends AssetDataSource {
-  querySystems(filter?: string, projection?: string[]): Promise<SystemMetadata[]> {
-    return Promise.resolve(fakeSystems);
-  }
+class FakeAssetCalibrationDataSource extends AssetCalibrationDataSource {
 }
 
-const render = setupRenderer(AssetQueryEditor, FakeAssetDataSource);
+const render = setupRenderer(AssetCalibrationQueryEditor ,FakeAssetCalibrationDataSource);
 
 it('renders with query type calibration forecast', async () => {
-  render({ queryKind: AssetQueryType.CalibrationForecast } as AssetCalibrationForecastQuery);
+  render({} as AssetCalibrationQuery);
 
-  const groupBy = screen.getAllByRole('combobox')[1];
+  const groupBy = screen.getAllByRole('combobox')[0];
   expect(groupBy).not.toBeNull();
 });
 
 it('renders with query type calibration forecast and updates group by', async () => {
   const [onChange] = render({
-    queryKind: AssetQueryType.CalibrationForecast,
     groupBy: [AssetCalibrationForecastGroupByType.Month],
-  } as AssetCalibrationForecastQuery);
+  } as AssetCalibrationQuery);
 
   // User selects group by day
-  const groupBy = screen.getAllByRole('combobox')[1];
+  const groupBy = screen.getAllByRole('combobox')[0];
   await select(groupBy, "Day", { container: document.body });
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(
