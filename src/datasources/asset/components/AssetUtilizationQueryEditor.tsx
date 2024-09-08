@@ -1,22 +1,28 @@
-import { SelectableValue, toOption } from '@grafana/data';
-import { AssetDataSource } from '../AssetDataSource';
+import React, { useState } from 'react';
+import { QueryEditorProps, SelectableValue, toOption } from '@grafana/data';
+
+import _ from 'lodash';
 import { AssetMetadataQuery, EntityType } from '../types';
 import { InlineField, MultiSelect, Select } from '@grafana/ui';
-import React, { useState } from 'react';
+import { AssetUtilizationDataSource } from '../AssetUtilizationDataSource';
 import { useWorkspaceOptions } from '../../../core/utils';
-import _ from 'lodash';
 import { FloatingError, parseErrorMessage } from '../../../core/errors';
 import { isValidId } from '../../data-frame/utils';
 import { SystemMetadata } from '../../system/types';
 import { useAsync } from 'react-use';
 
-type Props = {
-  query: AssetMetadataQuery;
-  handleQueryChange: (value: AssetMetadataQuery, runQuery: boolean) => void;
-  datasource: AssetDataSource;
-};
+type Props = QueryEditorProps<AssetUtilizationDataSource, AssetMetadataQuery>;
 
-export function QueryMetadataEditor({ query, handleQueryChange, datasource }: Props) {
+export function AssetUtilizationQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
+  query = datasource.prepareQuery(query);
+
+  const handleQueryChange = (value: AssetMetadataQuery, runQuery: boolean): void => {
+    onChange(value);
+    if (runQuery) {
+      onRunQuery();
+    }
+  };
+
   const workspaces = useWorkspaceOptions(datasource);
   const [errorMsg, setErrorMsg] = useState<string | undefined>('');
   const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
@@ -69,9 +75,9 @@ export function QueryMetadataEditor({ query, handleQueryChange, datasource }: Pr
 
     return options;
   };
-
+  
   return (
-      <>
+    <div style={{ position: 'relative' }}>
         <InlineField label="Workspace" tooltip={tooltips.workspace[EntityType.Asset]} labelWidth={22}>
           <Select
             isClearable
@@ -95,7 +101,7 @@ export function QueryMetadataEditor({ query, handleQueryChange, datasource }: Pr
           />
         </InlineField>
         <FloatingError message={errorMsg} />
-      </>
+    </div>
   );
 }
 
@@ -117,3 +123,4 @@ const tooltips = {
     [EntityType.System]: `Filter systems by vendor.`,
   },
 };
+

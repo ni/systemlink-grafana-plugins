@@ -45,7 +45,7 @@ export function AssetCalibrationQueryEditor({ query, onChange, onRunQuery, datas
   };
 
   return (
-    <>
+    <div style={{ position: 'relative' }}>
       <InlineField label="Group by" tooltip={tooltips.calibrationForecast.groupBy} labelWidth={22}>
         <MultiSelect
           options={enumToOptions(AssetCalibrationForecastGroupByType)}
@@ -54,7 +54,7 @@ export function AssetCalibrationQueryEditor({ query, onChange, onRunQuery, datas
           value={query.groupBy.map(toOption) || []}
         />
       </InlineField>
-    </>
+    </div>
   );
 }
 

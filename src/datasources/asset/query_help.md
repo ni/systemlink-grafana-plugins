@@ -1,4 +1,4 @@
-The _SystemLink Assets_ data source allows you to display asset
+The _SystemLink Assets Utilization_ data source allows you to display asset
 metadata in dashboards.
 
 For more information, refer to [Managing Your Assets - SystemLink

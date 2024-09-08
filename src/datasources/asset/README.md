@@ -1,4 +1,4 @@
-# Systemlink Asset data source
+# Systemlink Asset Utilization data source
 
 This is a plugin for the Asset Performance Management service. It allows you to:
 
