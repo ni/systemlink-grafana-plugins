@@ -1,3 +1,10 @@
+## [3.12.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.12.0...v3.12.1) (2024-09-09)
+
+
+### Bug Fixes
+
+* **assets:** split asset utilization plugin code from asset calibration plugin code ([#65](https://github.com/ni/systemlink-grafana-plugins/issues/65)) ([2c99c56](https://github.com/ni/systemlink-grafana-plugins/commit/2c99c56cc4a77fcb2c537c0ce47868e8c18723dd))
+
 ## [3.12.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.11.0...v3.12.0) (2024-08-28)
 
 
