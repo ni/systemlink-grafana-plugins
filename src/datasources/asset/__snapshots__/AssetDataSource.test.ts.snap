@@ -1,48 +1,4 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`queries run calibration forecast query 1`] = `
-[
-  {
-    "fields": [
-      {
-        "name": "Formatted Time",
-        "values": [
-          "July 2024",
-          "August 2024",
-          "September 2024",
-          "October 2024",
-          "November 2024",
-          "December 2024",
-        ],
-      },
-      {
-        "name": "Lab1",
-        "values": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-        ],
-      },
-      {
-        "name": "Lab2",
-        "values": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          4,
-        ],
-      },
-    ],
-    "refId": "A",
-  },
-]
-`;
-
 exports[`queries run metadata query 1`] = `
 [
   {

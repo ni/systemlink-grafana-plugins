@@ -9,13 +9,9 @@ import {
 } from "test/fixtures";
 import { AssetDataSource } from "./AssetDataSource";
 import {
-  AssetCalibrationForecastGroupByType,
-  AssetCalibrationForecastQuery,
   AssetMetadataQuery,
   AssetPresenceWithSystemConnectionModel,
-  AssetQueryType,
   AssetsResponse,
-  CalibrationForecastResponse,
 } from "./types";
 
 let ds: AssetDataSource, backendSrv: MockProxy<BackendSrv>
@@ -211,38 +207,16 @@ const assetsResponseMock: AssetsResponse =
   "totalCount": 4
 }
 
-const calibrationForecastResponseMock: CalibrationForecastResponse = {
-  calibrationForecast: {
-    columns: [
-      { name: 'Time', values: ['2024-07-24T00:00:00Z', '2024-08-24T00:00:00Z', '2024-09-24T00:00:00Z', '2024-10-24T00:00:00Z', '2024-11-24T00:00:00Z', '2024-12-24T00:00:00Z'] },
-      { name: 'Lab1', values: [1, 2, 3, 4, 5, 6] },
-      { name: 'Lab2', values: [0, 1, 2, 3, 4, 4] },
-    ],
-  }
-}
 
 const assetMetadataQueryMock: AssetMetadataQuery = {
-  queryKind: AssetQueryType.Metadata,
   workspace: '',
   refId: '',
   minionIds: ['123']
 }
 
-const calibrationForecastQueryMock: AssetCalibrationForecastQuery = {
-  queryKind: AssetQueryType.CalibrationForecast,
-  refId: null!,
-  groupBy: [AssetCalibrationForecastGroupByType.Month]
-}
-
 const buildMetadataQuery = getQueryBuilder<AssetMetadataQuery>()({
-  queryKind: AssetQueryType.Metadata,
   workspace: '',
   minionIds: [],
-});
-
-const buildCalibrationForecastQuery = getQueryBuilder<AssetCalibrationForecastQuery>()({
-  queryKind: AssetQueryType.CalibrationForecast,
-  groupBy: [AssetCalibrationForecastGroupByType.Month]
 });
 
 describe('testDatasource', () => {
@@ -282,40 +256,5 @@ describe('queries', () => {
       .mockReturnValue(createFetchError(418))
 
     await expect(ds.query(buildMetadataQuery(assetMetadataQueryMock))).rejects.toThrow()
-  })
-
-  test('run calibration forecast query', async () => {
-    backendSrv.fetch
-      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(calibrationForecastResponseMock as CalibrationForecastResponse))
-
-    const result = await ds.query(buildCalibrationForecastQuery(calibrationForecastQueryMock))
-
-    expect(result.data).toMatchSnapshot()
-  })
-
-  test('handles calibration forecast query error', async () => {
-    backendSrv.fetch
-      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchError(418))
-
-    await expect(ds.query(buildCalibrationForecastQuery(calibrationForecastQueryMock))).rejects.toThrow()
-  })
-
-  describe('format dates', () => {
-    test('format day', () => {
-      const field = ds.formatField({ name: "Time", values: ['2024-07-24T00:00:00Z'] }, { groupBy: [AssetCalibrationForecastGroupByType.Day], queryKind: null!, refId: null! })
-      expect(field.values).toEqual(['2024-07-24'])
-    })
-
-    test('format week', () => {
-      const field = ds.formatField({ name: "Time", values: ['2024-07-24T00:00:00Z'] }, { groupBy: [AssetCalibrationForecastGroupByType.Week], queryKind: null!, refId: null! })
-      expect(field.values).toEqual(['2024-07-24 : 2024-07-30'])
-    })
-
-    test('format month', () => {
-      const field = ds.formatField({ name: "Time", values: ['2024-07-24T00:00:00Z'] }, { groupBy: [AssetCalibrationForecastGroupByType.Month], queryKind: null!, refId: null! })
-      expect(field.values).toEqual(['July 2024'])
-    })
   })
 })

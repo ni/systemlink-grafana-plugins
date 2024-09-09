@@ -1,48 +1,28 @@
-import { FieldDTO } from '@grafana/data'
+import { FieldDTO } from '@grafana/data';
 import { DataQuery } from '@grafana/schema'
 
-export interface AssetMetadataQuery extends DataQuery {
-  workspace: string,
-  minionIds: string[]
+export interface AssetCalibrationQuery extends DataQuery {
+  groupBy: string[];
 }
 
-export enum AssetFilterProperties {
-  AssetIdentifier = 'AssetIdentifier',
-  SerialNumber = 'SerialNumber',
-  ModelName = 'ModelName',
-  VendorName = 'VendorName',
-  VendorNumber = 'VendorNumber',
-  AssetName = 'AssetName',
-  FirmwareVersion = 'FirmwareVersion',
-  HardwareVersion = 'HardwareVersion',
-  BusType = 'BusType',
-  IsNIAsset = 'IsNIAsset',
-  Keywords = 'Keywords',
-  Properties = 'Properties',
-  LocationMinionId = 'Location.MinionId',
-  LocationSlotNumber = 'Location.SlotNumber',
-  LocationAssetStateSystemConnection = 'Location.AssetState.SystemConnection',
-  LocationAssetStateAssetPresence = 'Location.AssetState.AssetPresence',
-  SupportsSelfCalibration = 'SupportsSelfCalibration',
-  SelfCalibrationCalibrationDate = 'SelfCalibration.CalibrationDate',
-  SupportsExternalCalibration = 'SupportsExternalCalibration',
-  CustomCalibrationInterval = 'CustomCalibrationInterval',
-  CalibrationStatus = 'CalibrationStatus',
-  ExternalCalibrationCalibrationDate = 'ExternalCalibration.CalibrationDate',
-  ExternalCalibrationNextRecommendedDate = 'ExternalCalibration.NextRecommendedDate',
-  ExternalCalibrationRecommendedInterval = 'ExternalCalibration.RecommendedInterval',
-  ExternalCalibrationComments = 'ExternalCalibration.Comments',
-  ExternalCalibrationIsLimited = 'ExternalCalibration.IsLimited',
-  ExternalCalibrationOperatorDisplayName = 'ExternalCalibration.Operator.DisplayName',
-  IsSystemController = 'IsSystemController'
+export enum AssetQueryLabel {
+  Metadata = "Metadata",
+  CalibrationForecast = "Calibration Forecast",
 }
 
-export interface CalibrationForecastResponse {
-  calibrationForecast: CalibrationForecastModel
+export enum AssetCalibrationForecastGroupByType {
+  Day = "DAY",
+  Week = "WEEK",
+  Month = "MONTH",
 }
 
-export interface CalibrationForecastModel {
-  columns: FieldDTO[],
+export enum AssetCalibrationForecastKey {
+  Time = "Time",
+}
+
+export enum EntityType {
+  Asset = "Asset",
+  System = "System"
 }
 
 export interface AssetsResponse {
@@ -115,7 +95,41 @@ export interface ExternalCalibrationOperatorModel {
   userId: string
 }
 
-export enum EntityType {
-  Asset = "Asset",
-  System = "System"
+export interface CalibrationForecastResponse {
+  calibrationForecast: CalibrationForecastModel
+}
+
+export enum AssetFilterProperties {
+  AssetIdentifier = 'AssetIdentifier',
+  SerialNumber = 'SerialNumber',
+  ModelName = 'ModelName',
+  VendorName = 'VendorName',
+  VendorNumber = 'VendorNumber',
+  AssetName = 'AssetName',
+  FirmwareVersion = 'FirmwareVersion',
+  HardwareVersion = 'HardwareVersion',
+  BusType = 'BusType',
+  IsNIAsset = 'IsNIAsset',
+  Keywords = 'Keywords',
+  Properties = 'Properties',
+  LocationMinionId = 'Location.MinionId',
+  LocationSlotNumber = 'Location.SlotNumber',
+  LocationAssetStateSystemConnection = 'Location.AssetState.SystemConnection',
+  LocationAssetStateAssetPresence = 'Location.AssetState.AssetPresence',
+  SupportsSelfCalibration = 'SupportsSelfCalibration',
+  SelfCalibrationCalibrationDate = 'SelfCalibration.CalibrationDate',
+  SupportsExternalCalibration = 'SupportsExternalCalibration',
+  CustomCalibrationInterval = 'CustomCalibrationInterval',
+  CalibrationStatus = 'CalibrationStatus',
+  ExternalCalibrationCalibrationDate = 'ExternalCalibration.CalibrationDate',
+  ExternalCalibrationNextRecommendedDate = 'ExternalCalibration.NextRecommendedDate',
+  ExternalCalibrationRecommendedInterval = 'ExternalCalibration.RecommendedInterval',
+  ExternalCalibrationComments = 'ExternalCalibration.Comments',
+  ExternalCalibrationIsLimited = 'ExternalCalibration.IsLimited',
+  ExternalCalibrationOperatorDisplayName = 'ExternalCalibration.Operator.DisplayName',
+  IsSystemController = 'IsSystemController'
+}
+
+export interface CalibrationForecastModel {
+  columns: FieldDTO[],
 }
