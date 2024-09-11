@@ -1,3 +1,10 @@
+## [3.13.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.12.1...v3.13.0) (2024-09-11)
+
+
+### Features
+
+* **tag:** visualize history of multiple tags ([#60](https://github.com/ni/systemlink-grafana-plugins/issues/60)) ([5826522](https://github.com/ni/systemlink-grafana-plugins/commit/5826522ef3bb59ff01162cb6c20eca50fe9a00e9))
+
 ## [3.12.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.12.0...v3.12.1) (2024-09-09)
 
 
