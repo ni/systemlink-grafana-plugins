@@ -12,8 +12,8 @@ import { AssetQueryEditorCommon, Props } from "./AssetQueryEditorCommon";
 export function QueryMetadataEditor(props: Props) {
   const [errorMsg, setErrorMsg] = useState<string | undefined>('');
   const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
-  const common = new AssetQueryEditorCommon(props, handleError)
-  const query = common.query as AssetMetadataQuery
+  const common = new AssetQueryEditorCommon(props, handleError);
+  const query = common.query as AssetMetadataQuery;
   const workspaces = useWorkspaceOptions(common.datasource);
 
   const minionIds = useAsync(() => {

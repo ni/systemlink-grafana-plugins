@@ -58,7 +58,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
       case AssetQueryType.Metadata:
         return await this.processMetadataQuery(query as AssetMetadataQuery);
       case AssetQueryType.Utilization:
-        return await this.processUtilizationQuery(query as AssetUtilizationQuery, options)
+        return await this.processUtilizationQuery(query as AssetUtilizationQuery, options);
       default:
         throw new Error(`Unknown query type: ${query.queryKind}`);
     }
@@ -70,7 +70,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     let workspaceId = this.templateSrv.replace(query.workspace);
     const conditions = [];
     if (minionIds.length) {
-      const systemsCondition = minionIds.map(id => `${AssetFilterProperties.LocationMinionId} = "${id}"`)
+      const systemsCondition = minionIds.map(id => `${AssetFilterProperties.LocationMinionId} = "${id}"`);
       conditions.push(`(${systemsCondition.join(' or ')})`);
     }
     if (workspaceId) {
@@ -147,12 +147,12 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
               max: 100
             }
           }
-        )
+        );
       })
 
-      return result
+      return result;
     } else {
-      return result
+      return result;
     }
   }
 
@@ -172,7 +172,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
       assetIdentifiers,
       minionIds
     } = query;
-    const workingHoursPolicy = await this.getServicePolicy()
+    const workingHoursPolicy = await this.getServicePolicy();
     let assets: string[] = replaceVariables(assetIdentifiers, this.templateSrv);
     let systems: string[] = replaceVariables(minionIds, this.templateSrv);
     let entityIds: string[];
@@ -215,7 +215,6 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
         })
       }
     }
-
     const resultArray: Array<{
       id: string,
       datetimes: number[],
@@ -255,7 +254,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
       )
       let dataWithoutOverlaps: Array<Interval<number>> = [];
       if (!data.length) {
-        return resultArray
+        continue;
       }
       const extractedTimestamps = extractTimestampsFromData(data);
       // Fill missing endTimestamps
@@ -263,7 +262,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
       // Removes data outside the grafana 'from' and 'to' range from an array
       const filteredData = filterDataByTimeRange(patchedData, from, to);
       if (!filteredData.length) {
-        return resultArray
+        continue;
       }
       // Merge overlapping utilizations
       dataWithoutOverlaps = mergeOverlappingIntervals(filteredData);
@@ -320,13 +319,13 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
   }
 
   async metricFindQuery({ minionIds, workspace }: AssetMetadataQuery): Promise<MetricFindValue[]> {
-    minionIds = replaceVariables(minionIds, this.templateSrv);
-    workspace = this.templateSrv.replace(workspace);
     const conditions = [];
-    if (minionIds.length) {
-      const systemsCondition = minionIds.map(id => `${AssetFilterProperties.LocationMinionId} = "${id}"`)
+    if (minionIds?.length) {
+      minionIds = replaceVariables(minionIds, this.templateSrv);
+      const systemsCondition = minionIds.map(id => `${AssetFilterProperties.LocationMinionId} = "${id}"`);
       conditions.push(`(${systemsCondition.join(' or ')})`);
     }
+    workspace = this.templateSrv.replace(workspace);
     if (workspace) {
       conditions.push(`workspace = "${workspace}"`);
     }

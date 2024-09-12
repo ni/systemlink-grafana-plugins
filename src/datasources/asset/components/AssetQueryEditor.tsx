@@ -15,7 +15,7 @@ import { AssetQueryEditorCommon } from "./AssetQueryEditorCommon";
 type Props = QueryEditorProps<AssetDataSource, AssetQuery>;
 
 export function AssetQueryEditor(props: Props) {
-  const common = new AssetQueryEditorCommon(props, () => {})
+  const common = new AssetQueryEditorCommon(props, () => {});
 
   const handleQueryTypeChange = (item: SelectableValue<AssetQueryType>): void => {
     common.handleQueryChange({ ...common.query, queryKind: item.value! }, true);

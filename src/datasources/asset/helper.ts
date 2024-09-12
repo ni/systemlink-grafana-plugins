@@ -14,7 +14,7 @@ export const extractTimestampsFromData = (history: AssetUtilizationHistory[]): A
       endTimestamp: item.endTimestamp ? new Date(item.endTimestamp).getTime() : 0,
       heartbeatTimestamp: item.heartbeatTimestamp ? new Date(item.heartbeatTimestamp).getTime() : 0
     }
-  })
+  });
 }
 
 export const patchMissingEndTimestamps = (history: Array<IntervalWithHeartbeat<number>>): Array<Interval<number>> => {
@@ -25,22 +25,22 @@ export const patchMissingEndTimestamps = (history: Array<IntervalWithHeartbeat<n
     }
     if (!item.endTimestamp) {
       if (!item.heartbeatTimestamp) {
-        newItem.endTimestamp = new Date(item.startTimestamp).getTime() + 10 * minuteInSeconds
+        newItem.endTimestamp = new Date(item.startTimestamp).getTime() + 10 * minuteInSeconds;
       } else {
-        newItem.endTimestamp = new Date(item.heartbeatTimestamp).getTime()
+        newItem.endTimestamp = new Date(item.heartbeatTimestamp).getTime();
       }
     } else {
-      newItem.endTimestamp = new Date(item.endTimestamp).getTime()
+      newItem.endTimestamp = new Date(item.endTimestamp).getTime();
     }
 
-    return newItem
+    return newItem;
   })
 }
 
 export const filterDataByTimeRange = (data: Array<Interval<number>>, from: number, to: number): Array<Interval<number>> => {
   return data.filter((interval: Interval<number>) => {
     return interval.endTimestamp > from && interval.startTimestamp < to;
-  })
+  });
 }
 
 export const mergeOverlappingIntervals = (intervals: Array<Interval<number>>): Array<Interval<number>> => {
@@ -107,8 +107,8 @@ export const groupDataByIntervals = (
 }
 
 export const calculatePeakMilliseconds = (businessHours: IntervalsWithPeakFlag<Date>): number => {
-  let { startTimestamp, endTimestamp } = businessHours
-  return endTimestamp.getTime() - startTimestamp.getTime()
+  let { startTimestamp, endTimestamp } = businessHours;
+  return endTimestamp.getTime() - startTimestamp.getTime();
 }
 
 export const calculateUtilization = (intervalsByDay: Array<{
@@ -119,22 +119,22 @@ export const calculateUtilization = (intervalsByDay: Array<{
   const utilization: Array<{ day: Date, utilization: number }> = []
 
   for (const intervals of intervalsByDay) {
-    const peakSecondsInDay = calculatePeakMilliseconds(intervals.interval)
-    let utilizationInSeconds = 0
+    const peakSecondsInDay = calculatePeakMilliseconds(intervals.interval);
+    let utilizationInSeconds = 0;
     for (const interval of intervals.overlapsWith) {
       utilizationInSeconds += interval[1].getTime() - interval[0].getTime()
     }
     if (peakSecondsInDay === 0) {
-      utilization.push({ day: intervals.day, utilization: 0 })
+      utilization.push({ day: intervals.day, utilization: 0 });
     } else {
       utilization.push({
         day: intervals.day,
         utilization: (utilizationInSeconds * 100) / peakSecondsInDay
-      })
+      });
     }
   }
 
-  return utilization
+  return utilization;
 }
 
 export const addDays = (currentDate: Date, daysToAdd: number): Date => {
@@ -157,7 +157,7 @@ export const patchZeroPoints = (
   }
   const patchedData: Array<{ day: Date, utilization: number }> = [];
   for (let i = 0; i < data.length - 1; i++) {
-    patchedData.push(data[i])
+    patchedData.push(data[i]);
     let currentDate = new Date(data[i].day);
     let nextDate = new Date(data[i + 1].day);
     while (getTimeFromEpoch(currentDate) + 1 < getTimeFromEpoch(nextDate)) {
@@ -166,7 +166,7 @@ export const patchZeroPoints = (
     }
   }
   // add last value
-  patchedData.push(data[data.length - 1])
+  patchedData.push(data[data.length - 1]);
 
   return patchedData;
 }
@@ -189,16 +189,16 @@ export const divideTimeRangeToBusinessIntervals = (
 
   let startTimeParts = workingHours.startTime.split(":").map(Number);
   let endTimeParts = workingHours.endTime.split(":").map(Number);
-  let peakMillisecondsInDay = Math.abs(new Date().setHours(startTimeParts[0], startTimeParts[1], 0, 0) - new Date().setHours(endTimeParts[0], endTimeParts[1], 0, 0))
-  let nonPeakMillisecondsInDay = 24 * 60 * 60 * 1000 - peakMillisecondsInDay
+  let peakMillisecondsInDay = Math.abs(new Date().setHours(startTimeParts[0], startTimeParts[1], 0, 0) - new Date().setHours(endTimeParts[0], endTimeParts[1], 0, 0));
+  let nonPeakMillisecondsInDay = 24 * 60 * 60 * 1000 - peakMillisecondsInDay;
 
   const dayOfWeek = rangeStart.getDay();
-  const isWeekend = !peakDays.includes(dayOfWeek)
+  const isWeekend = !peakDays.includes(dayOfWeek);
 
-  let currentDayPeakStart = new Date(new Date(rangeStart).setHours(startTimeParts[0], startTimeParts[1], 0, 0))
-  let currentDayNonPeakStart = new Date(new Date(rangeStart).setHours(endTimeParts[0], endTimeParts[1], 0, 0))
-  let nextDayPeakStart = addDays(new Date(new Date(rangeStart).setHours(startTimeParts[0], startTimeParts[1], 0, 0)), 1)
-  let nextDayNonPeakStart = addDays(new Date(new Date(rangeStart).setHours(endTimeParts[0], endTimeParts[1], 0, 0)), 1)
+  let currentDayPeakStart = new Date(new Date(rangeStart).setHours(startTimeParts[0], startTimeParts[1], 0, 0));
+  let currentDayNonPeakStart = new Date(new Date(rangeStart).setHours(endTimeParts[0], endTimeParts[1], 0, 0));
+  let nextDayPeakStart = addDays(new Date(new Date(rangeStart).setHours(startTimeParts[0], startTimeParts[1], 0, 0)), 1);
+  let nextDayNonPeakStart = addDays(new Date(new Date(rangeStart).setHours(endTimeParts[0], endTimeParts[1], 0, 0)), 1);
   if (currentDayNonPeakStart > rangeEnd) {
     currentDayNonPeakStart = rangeEnd
   }
@@ -214,8 +214,8 @@ export const divideTimeRangeToBusinessIntervals = (
       startTimestamp: rangeStart,
       endTimestamp: nextDayPeakStart,
       isWorking: false
-    })
-    currentDayPeakStart = new Date(nextDayPeakStart)
+    });
+    currentDayPeakStart = new Date(nextDayPeakStart);
   } else {
     if (currentDayPeakStart < currentDayNonPeakStart) {
       if (rangeStart < currentDayPeakStart) {
@@ -223,7 +223,7 @@ export const divideTimeRangeToBusinessIntervals = (
           startTimestamp: rangeStart,
           endTimestamp: currentDayPeakStart,
           isWorking: false
-        })
+        });
         // is same
         // currentDayPeakStart = new Date(currentDayPeakStart)
       } else if (currentDayPeakStart <= rangeStart && rangeStart < currentDayNonPeakStart) {
@@ -231,20 +231,20 @@ export const divideTimeRangeToBusinessIntervals = (
           startTimestamp: rangeStart,
           endTimestamp: currentDayNonPeakStart,
           isWorking: true
-        })
+        });
         intervals.push({
           startTimestamp: currentDayNonPeakStart,
           endTimestamp: nextDayPeakStart,
           isWorking: false
-        })
-        currentDayPeakStart = new Date(nextDayPeakStart)
+        });
+        currentDayPeakStart = new Date(nextDayPeakStart);
       } else {
         intervals.push({
           startTimestamp: rangeStart,
           endTimestamp: nextDayPeakStart,
           isWorking: false
-        })
-        currentDayPeakStart = new Date(nextDayPeakStart)
+        });
+        currentDayPeakStart = new Date(nextDayPeakStart);
       }
     } else if (currentDayPeakStart > currentDayNonPeakStart) {
       if (rangeStart < currentDayNonPeakStart) {
@@ -252,18 +252,18 @@ export const divideTimeRangeToBusinessIntervals = (
           startTimestamp: rangeStart,
           endTimestamp: currentDayNonPeakStart,
           isWorking: true
-        })
+        });
         intervals.push({
           startTimestamp: currentDayNonPeakStart,
           endTimestamp: currentDayPeakStart,
           isWorking: false
-        })
+        });
       } else if (currentDayNonPeakStart <= rangeStart && rangeStart < currentDayPeakStart) {
         intervals.push({
           startTimestamp: rangeStart,
           endTimestamp: currentDayPeakStart,
           isWorking: false
-        })
+        });
         // is same
         // currentDayPeakStart = new Date(currentDayPeakStart)
       } else {
@@ -271,40 +271,40 @@ export const divideTimeRangeToBusinessIntervals = (
           startTimestamp: rangeStart,
           endTimestamp: nextDayNonPeakStart,
           isWorking: true
-        })
+        });
         intervals.push({
           startTimestamp: nextDayNonPeakStart,
           endTimestamp: nextDayPeakStart,
           isWorking: false
-        })
-        currentDayPeakStart = new Date(nextDayPeakStart)
+        });
+        currentDayPeakStart = new Date(nextDayPeakStart);
       }
     } else {
       intervals.push({
         startTimestamp: rangeStart,
         endTimestamp: nextDayPeakStart,
         isWorking: true
-      })
-      currentDayPeakStart = new Date(nextDayPeakStart)
+      });
+      currentDayPeakStart = new Date(nextDayPeakStart);
     }
   }
-  let start = new Date(currentDayPeakStart)
+  let start = new Date(currentDayPeakStart);
 
   // the equal sign is necessary for beautiful last point of graph
   while (rangeEnd >= start) {
     const dayOfWeek = start.getDay();
-    const isWeekend = !peakDays.includes(dayOfWeek)
+    const isWeekend = !peakDays.includes(dayOfWeek);
 
-    let currentDayPeakStart = new Date(new Date(start).setHours(startTimeParts[0], startTimeParts[1], 0, 0))
-    let currentDayNonPeakStart = addMilliseconds(currentDayPeakStart, peakMillisecondsInDay)
-    let nextDayPeakStart = addMilliseconds(currentDayNonPeakStart, nonPeakMillisecondsInDay)
+    let currentDayPeakStart = new Date(new Date(start).setHours(startTimeParts[0], startTimeParts[1], 0, 0));
+    let currentDayNonPeakStart = addMilliseconds(currentDayPeakStart, peakMillisecondsInDay);
+    let nextDayPeakStart = addMilliseconds(currentDayNonPeakStart, nonPeakMillisecondsInDay);
 
     if (isWeekend) {
       intervals.push({
         startTimestamp: start,
         endTimestamp: nextDayPeakStart,
         isWorking: false
-      })
+      });
     } else {
       if (currentDayPeakStart < currentDayNonPeakStart) {
         if (currentDayNonPeakStart >= rangeEnd) {
@@ -312,40 +312,40 @@ export const divideTimeRangeToBusinessIntervals = (
             startTimestamp: currentDayPeakStart,
             endTimestamp: rangeEnd,
             isWorking: true
-          })
-          break
+          });
+          break;
         } else {
           intervals.push({
             startTimestamp: currentDayPeakStart,
             endTimestamp: currentDayNonPeakStart,
             isWorking: true
-          })
+          });
         }
         if (nextDayPeakStart >= rangeEnd) {
           intervals.push({
             startTimestamp: currentDayNonPeakStart,
             endTimestamp: rangeEnd,
             isWorking: false
-          })
-          break
+          });
+          break;
         } else {
           intervals.push({
             startTimestamp: currentDayNonPeakStart,
             endTimestamp: nextDayPeakStart,
             isWorking: false
-          })
+          });
         }
       } else {
         intervals.push({
           startTimestamp: currentDayPeakStart,
           endTimestamp: nextDayPeakStart,
           isWorking: true
-        })
-        currentDayPeakStart = new Date(nextDayPeakStart)
+        });
+        currentDayPeakStart = new Date(nextDayPeakStart);
       }
     }
-    start = new Date(nextDayPeakStart)
+    start = new Date(nextDayPeakStart);
   }
 
-  return intervals
+  return intervals;
 }

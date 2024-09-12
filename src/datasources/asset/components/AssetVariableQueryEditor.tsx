@@ -22,7 +22,6 @@ export function AssetVariableQueryEditor(props: Props) {
       filterString += `workspace = "${query.workspace}"`;
     }
     return common.datasource.querySystems(filterString).catch(handleError);
-    ;
   }, [query.workspace]);
 
   const onWorkspaceChange = (item?: SelectableValue<string>): void => {

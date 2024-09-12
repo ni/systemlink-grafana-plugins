@@ -9,15 +9,15 @@ export class AssetQueryEditorCommon {
   readonly datasource: AssetDataSource;
   readonly onChange: (value: AssetQuery) => void;
   readonly query: AssetQuery;
-  readonly onRunQuery: () => false | void
-  readonly handleError: (error: Error) => void
+  readonly onRunQuery: () => false | void;
+  readonly handleError: (error: Error) => void;
 
   constructor(readonly props: Props, readonly errorHandler: (error: Error) => void) {
-    this.datasource = this.props.datasource
-    this.onChange = this.props.onChange
-    this.query = this.datasource.prepareQuery(this.props.query)
-    this.onRunQuery = () => props.app !== CoreApp.Explore && props.onRunQuery()
-    this.handleError = errorHandler
+    this.datasource = this.props.datasource;
+    this.onChange = this.props.onChange;
+    this.query = this.datasource.prepareQuery(this.props.query);
+    this.onRunQuery = () => props.app !== CoreApp.Explore && props.onRunQuery();
+    this.handleError = errorHandler;
   }
 
   readonly handleQueryChange = (value: AssetQuery, runQuery: boolean) => {

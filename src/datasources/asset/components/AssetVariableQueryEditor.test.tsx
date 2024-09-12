@@ -18,15 +18,15 @@ const workspacesLoaded = () => waitForElementToBeRemoved(screen.getByTestId('Spi
 
 
 test('default render', async () => {
-  render({ minionIds: [], workspace: "", queryKind: AssetQueryType.Metadata })
-  await workspacesLoaded()
+  render({ minionIds: [], workspace: "", queryKind: AssetQueryType.Metadata });
+  await workspacesLoaded();
 
   expect(screen.getAllByRole('combobox')[0]).toHaveAccessibleDescription('Any workspace');
   expect(screen.getAllByRole('combobox')[1]).toHaveAccessibleDescription('Select system');
 })
 
 test('renders with initial query and updates when user makes changes', async () => {
-  const [onChange] = render({ queryKind: AssetQueryType.Metadata, workspace: '2', minionIds: ['1'] })
+  const [onChange] = render({ queryKind: AssetQueryType.Metadata, workspace: '2', minionIds: ['1'] });
   await workspacesLoaded();
 
   // Renders saved query
