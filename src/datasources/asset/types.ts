@@ -1,53 +1,87 @@
-import { FieldDTO } from '@grafana/data'
 import { DataQuery } from '@grafana/schema'
 
 export interface AssetMetadataQuery extends DataQuery {
+  queryKind: AssetQueryType,
   workspace: string,
   minionIds: string[]
 }
 
-export enum AssetFilterProperties {
-  AssetIdentifier = 'AssetIdentifier',
-  SerialNumber = 'SerialNumber',
-  ModelName = 'ModelName',
-  VendorName = 'VendorName',
-  VendorNumber = 'VendorNumber',
-  AssetName = 'AssetName',
-  FirmwareVersion = 'FirmwareVersion',
-  HardwareVersion = 'HardwareVersion',
-  BusType = 'BusType',
-  IsNIAsset = 'IsNIAsset',
-  Keywords = 'Keywords',
-  Properties = 'Properties',
-  LocationMinionId = 'Location.MinionId',
-  LocationSlotNumber = 'Location.SlotNumber',
-  LocationAssetStateSystemConnection = 'Location.AssetState.SystemConnection',
-  LocationAssetStateAssetPresence = 'Location.AssetState.AssetPresence',
-  SupportsSelfCalibration = 'SupportsSelfCalibration',
-  SelfCalibrationCalibrationDate = 'SelfCalibration.CalibrationDate',
-  SupportsExternalCalibration = 'SupportsExternalCalibration',
-  CustomCalibrationInterval = 'CustomCalibrationInterval',
-  CalibrationStatus = 'CalibrationStatus',
-  ExternalCalibrationCalibrationDate = 'ExternalCalibration.CalibrationDate',
-  ExternalCalibrationNextRecommendedDate = 'ExternalCalibration.NextRecommendedDate',
-  ExternalCalibrationRecommendedInterval = 'ExternalCalibration.RecommendedInterval',
-  ExternalCalibrationComments = 'ExternalCalibration.Comments',
-  ExternalCalibrationIsLimited = 'ExternalCalibration.IsLimited',
-  ExternalCalibrationOperatorDisplayName = 'ExternalCalibration.Operator.DisplayName',
-  IsSystemController = 'IsSystemController'
+export interface AssetUtilizationQuery extends DataQuery {
+  queryKind: AssetQueryType,
+  workspace: string,
+  entityType: EntityType
+  assetIdentifiers: string[],
+  minionIds: string[],
 }
 
-export interface CalibrationForecastResponse {
-  calibrationForecast: CalibrationForecastModel
+export type AssetQuery = AssetMetadataQuery | AssetUtilizationQuery;
+
+
+export enum EntityType {
+  Asset = "Asset",
+  System = "System"
 }
 
-export interface CalibrationForecastModel {
-  columns: FieldDTO[],
+export enum Weekday {
+  Sunday = 0,
+  Monday = 1,
+  Tuesday = 2,
+  Wednesday = 3,
+  Thursday = 4,
+  Friday = 5,
+  Saturday = 6,
 }
+
+
+export enum AssetQueryType {
+  Metadata = "Metadata",
+  Utilization = "Utilization"
+}
+
+export enum AssetQueryLabel {
+  Metadata = "Metadata",
+  Utilization = "Utilization"
+}
+
 
 export interface AssetsResponse {
   assets: AssetModel[],
   totalCount: number
+}
+
+export interface AssetUtilizationHistory {
+  utilizationIdentifier: string,
+  assetIdentifier: string,
+  minionId: string,
+  category: string,
+  taskName?: string,
+  userName?: string,
+  startTimestamp: string,
+  endTimestamp?: string,
+  heartbeatTimestamp?: string,
+}
+
+export interface ServicePolicyModel {
+  calibrationPolicy: {
+    daysForApproachingCalibrationDueDate: number
+  },
+  workingHoursPolicy: {
+    startTime: string,
+    endTime: string
+  }
+}
+
+export interface Interval<T> {
+  'startTimestamp': T,
+  'endTimestamp': T
+}
+
+export interface IntervalsWithPeakFlag<T> extends Interval<T> {
+  isWorking: boolean
+}
+
+export interface IntervalWithHeartbeat<T> extends Interval<T> {
+  'heartbeatTimestamp': T
 }
 
 export interface AssetModel {
@@ -115,7 +149,57 @@ export interface ExternalCalibrationOperatorModel {
   userId: string
 }
 
-export enum EntityType {
-  Asset = "Asset",
-  System = "System"
+export enum AssetFilterProperties {
+  AssetIdentifier = 'AssetIdentifier',
+  SerialNumber = 'SerialNumber',
+  ModelName = 'ModelName',
+  VendorName = 'VendorName',
+  VendorNumber = 'VendorNumber',
+  AssetName = 'AssetName',
+  FirmwareVersion = 'FirmwareVersion',
+  HardwareVersion = 'HardwareVersion',
+  BusType = 'BusType',
+  IsNIAsset = 'IsNIAsset',
+  Keywords = 'Keywords',
+  Properties = 'Properties',
+  LocationMinionId = 'Location.MinionId',
+  LocationSlotNumber = 'Location.SlotNumber',
+  LocationAssetStateSystemConnection = 'Location.AssetState.SystemConnection',
+  LocationAssetStateAssetPresence = 'Location.AssetState.AssetPresence',
+  SupportsSelfCalibration = 'SupportsSelfCalibration',
+  SelfCalibrationCalibrationDate = 'SelfCalibration.CalibrationDate',
+  SupportsExternalCalibration = 'SupportsExternalCalibration',
+  CustomCalibrationInterval = 'CustomCalibrationInterval',
+  CalibrationStatus = 'CalibrationStatus',
+  ExternalCalibrationCalibrationDate = 'ExternalCalibration.CalibrationDate',
+  ExternalCalibrationNextRecommendedDate = 'ExternalCalibration.NextRecommendedDate',
+  ExternalCalibrationRecommendedInterval = 'ExternalCalibration.RecommendedInterval',
+  ExternalCalibrationComments = 'ExternalCalibration.Comments',
+  ExternalCalibrationIsLimited = 'ExternalCalibration.IsLimited',
+  ExternalCalibrationOperatorDisplayName = 'ExternalCalibration.Operator.DisplayName',
+  IsSystemController = 'IsSystemController'
+}
+
+export interface AssetUtilizationHistoryResponse {
+  assetUtilizations: AssetUtilizationHistory[];
+  continuationToken: string;
+}
+
+export interface QueryAssetUtilizationHistoryRequest {
+  utilizationFilter?: string,
+  assetFilter?: string,
+  continuationToken?: string,
+  take?: number,
+  orderBy?: AssetUtilizationOrderBy,
+  orderByDescending?: boolean
+}
+
+export enum AssetUtilizationOrderBy {
+  UTILIZATION_IDENTIFIER = 'UTILIZATION_IDENTIFIER',
+  ASSET_IDENTIFIER = 'ASSET_IDENTIFIER',
+  MINION_ID = 'MINION_ID',
+  CATEGORY = 'CATEGORY',
+  TASK_NAME = 'TASK_NAME',
+  USER_NAME = 'USER_NAME',
+  START_TIMESTAMP = 'START_TIMESTAMP',
 }

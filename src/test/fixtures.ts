@@ -97,10 +97,10 @@ export const defaultQueryOptions: Omit<DataQueryRequest, 'targets'> = {
 };
 
 export function getQueryBuilder<TQuery extends DataQuery>() {
-  return <K extends keyof TQuery>(defaults: Pick<TQuery, K>) => {
+  return <K extends keyof TQuery>(defaults: Pick<TQuery, K>, options?: Partial<Omit<DataQueryRequest, 'targets'>>) => {
     return (...targets: Array<Omit<TQuery, K | 'refId'> & Partial<TQuery>>): DataQueryRequest<TQuery> => ({
       targets: targets.map((t, ix) => ({ ...defaults, ...t, refId: 'ABCDE'[ix] } as TQuery)),
-      ...defaultQueryOptions,
+      ...defaultQueryOptions, ...options
     });
   };
 }
