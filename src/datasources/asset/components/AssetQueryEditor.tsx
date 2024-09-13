@@ -18,7 +18,7 @@ export function AssetQueryEditor(props: Props) {
   const common = new AssetQueryEditorCommon(props, () => {});
 
   const handleQueryTypeChange = (item: SelectableValue<AssetQueryType>): void => {
-    common.handleQueryChange({ ...common.query, queryKind: item.value! }, true);
+    common.handleQueryChange({ ...common.query, type: item.value! }, true);
   };
 
 
@@ -28,12 +28,12 @@ export function AssetQueryEditor(props: Props) {
         <Select
           options={queryTypeOptions}
           onChange={handleQueryTypeChange}
-          value={common.query.queryKind}
+          value={common.query.type}
           width={85}/>
       </InlineField>
-      {common.query.queryKind === AssetQueryType.Metadata &&
+      {common.query.type === AssetQueryType.Metadata &&
           <QueryMetadataEditor {...props}/>}
-      {common.query.queryKind === AssetQueryType.Utilization &&
+      {common.query.type === AssetQueryType.Utilization &&
           <QueryUtilizationEditor {...props}/>}
     </div>
   );

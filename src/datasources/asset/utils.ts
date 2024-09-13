@@ -73,10 +73,10 @@ export const groupDataByIntervals = (
 ): Array<{ day: Date, interval: IntervalsWithPeakFlag<Date>, overlapsWith: Date[][] }> => {
   let overlaps = [];
 
-  // // filter from first utilization to now
-  // businessIntervals = businessIntervals.filter(interval => (
-  //   interval.startTimestamp >= new Date(utilizationIntervals[0].endTimestamp) && interval.endTimestamp <= new Date()
-  // ))
+  // filter intervals from first to last utilization
+  businessIntervals = businessIntervals.filter(interval => (
+    interval.startTimestamp >= new Date(utilizationIntervals[0].endTimestamp) && interval.endTimestamp <= new Date()
+  ))
   for (let businessInterval of businessIntervals) {
     let overlappingSegments = [];
     for (let utilizationInterval of utilizationIntervals) {

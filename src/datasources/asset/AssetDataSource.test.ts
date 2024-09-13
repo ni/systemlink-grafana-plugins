@@ -211,14 +211,14 @@ const assetsResponseMock: AssetsResponse = {
 }
 
 const assetMetadataQueryMock: AssetMetadataQuery = {
-  queryKind: AssetQueryType.Metadata,
+  type: AssetQueryType.Metadata,
   workspace: '',
   refId: '',
   minionIds: ['123']
 }
 
 const buildMetadataQuery = getQueryBuilder<AssetMetadataQuery>()({
-  queryKind: AssetQueryType.Metadata,
+  type: AssetQueryType.Metadata,
   workspace: '',
   minionIds: [],
 });
@@ -817,7 +817,7 @@ const queryAssetsResponseMock = {
 }
 
 const buildUtilizationQuery = getQueryBuilder<AssetUtilizationQuery>()({
-  queryKind: AssetQueryType.Metadata,
+  type: AssetQueryType.Utilization,
   workspace: '',
   assetIdentifiers: [],
   minionIds: [],
@@ -875,7 +875,7 @@ describe('query', () => {
   describe('utilization GMT+4', () => {
     test('from 9 to 17 and weekday are peak', async () => {
       const queryRequest = buildUtilizationQuery({
-        queryKind: AssetQueryType.Utilization,
+        type: AssetQueryType.Utilization,
         entityType: EntityType.Asset,
         workspace: '',
         minionIds: ["System_Product_Name--SN-System_Serial_Number--MAC-40-B0-76-44-7F-26"],

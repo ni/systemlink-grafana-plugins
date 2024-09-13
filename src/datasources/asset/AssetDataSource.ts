@@ -30,7 +30,7 @@ import {
   filterDataByTimeRange, groupDataByIntervals,
   mergeOverlappingIntervals,
   patchMissingEndTimestamps, patchZeroPoints
-} from "./helper";
+} from "./utils";
 import { peakDays } from "./constants";
 
 export class AssetDataSource extends DataSourceBase<AssetQuery> {
@@ -45,22 +45,21 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
   baseUrl = this.instanceSettings.url + '/niapm/v1';
 
   defaultQuery = {
-    queryKind: AssetQueryType.Metadata,
+    type: AssetQueryType.Metadata,
     workspace: '',
     assetIdentifiers: [],
     minionIds: [],
     entityType: EntityType.Asset,
-    groupBy: []
   };
 
   async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    switch (query.queryKind) {
+    switch (query.type) {
       case AssetQueryType.Metadata:
         return await this.processMetadataQuery(query as AssetMetadataQuery);
       case AssetQueryType.Utilization:
         return await this.processUtilizationQuery(query as AssetUtilizationQuery, options);
       default:
-        throw new Error(`Unknown query type: ${query.queryKind}`);
+        throw new Error(`Unknown query type: ${query.type}`);
     }
   }
 

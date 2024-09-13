@@ -5,7 +5,7 @@ import { setupRenderer } from "../../../test/fixtures";
 import { AssetMetadataQuery, AssetQueryType } from '../types';
 import { select } from 'react-select-event';
 import { QueryMetadataEditor } from "./AssetQueryMetadataEditor";
-import { fakeSystems } from "../constants";
+import { fakeSystems } from "../test/fakeSystems";
 
 const workspacesLoaded = () => waitForElementToBeRemoved(screen.getByTestId('Spinner'));
 
@@ -26,7 +26,7 @@ it('renders with metadata query defaults', async () => {
 
 it('renders with initial query and updates when user makes changes', async () => {
   const [onChange] = render({
-    queryKind: AssetQueryType.Metadata,
+    type: AssetQueryType.Metadata,
     minionIds: ['1'],
     workspace: '2',
   } as AssetMetadataQuery);

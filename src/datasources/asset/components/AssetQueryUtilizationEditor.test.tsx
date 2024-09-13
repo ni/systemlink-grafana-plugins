@@ -5,7 +5,7 @@ import { setupRenderer } from "../../../test/fixtures";
 import { AssetQueryType, AssetUtilizationQuery, EntityType, } from '../types';
 import userEvent from "@testing-library/user-event";
 import { QueryUtilizationEditor } from "./AssetQueryUtilizationEditor";
-import { fakeSystems } from "../constants";
+import { fakeSystems } from "../test/fakeSystems";
 
 const workspacesLoaded = () => waitForElementToBeRemoved(screen.getByTestId('Spinner'));
 
@@ -19,7 +19,7 @@ const render = setupRenderer(QueryUtilizationEditor, FakeAssetDataSource);
 
 it('renders with query defaults', async () => {
   render({
-    queryKind: AssetQueryType.Utilization
+    type: AssetQueryType.Utilization
   } as AssetUtilizationQuery);
   await workspacesLoaded();
 
@@ -30,7 +30,7 @@ it('renders with query defaults', async () => {
 
 it('renders with query different than defaults', async () => {
   render({
-    queryKind: AssetQueryType.Utilization,
+    type: AssetQueryType.Utilization,
     entityType: EntityType.System,
     minionIds: ['1']
   } as AssetUtilizationQuery);
@@ -42,7 +42,7 @@ it('renders with query different than defaults', async () => {
 
 it('updates when user interacts with fields', async () => {
   render({
-    queryKind: AssetQueryType.Utilization,
+    type: AssetQueryType.Utilization,
     entityType: EntityType.Asset
   } as AssetUtilizationQuery);
   await workspacesLoaded();

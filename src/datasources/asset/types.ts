@@ -1,13 +1,13 @@
 import { DataQuery } from '@grafana/schema'
 
 export interface AssetMetadataQuery extends DataQuery {
-  queryKind: AssetQueryType,
+  type: AssetQueryType,
   workspace: string,
   minionIds: string[]
 }
 
 export interface AssetUtilizationQuery extends DataQuery {
-  queryKind: AssetQueryType,
+  type: AssetQueryType,
   workspace: string,
   entityType: EntityType
   assetIdentifiers: string[],
@@ -15,7 +15,6 @@ export interface AssetUtilizationQuery extends DataQuery {
 }
 
 export type AssetQuery = AssetMetadataQuery | AssetUtilizationQuery;
-
 
 export enum EntityType {
   Asset = "Asset",

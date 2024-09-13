@@ -5,7 +5,7 @@ import { select } from 'react-select-event';
 import { SystemMetadata } from "../../system/types";
 import { AssetQueryType } from "../types";
 import { AssetVariableQueryEditor } from "./AssetVariableQueryEditor";
-import { fakeSystems } from "../constants";
+import { fakeSystems } from "../test/fakeSystems";
 
 class FakeAssetDataSource extends AssetDataSource {
   querySystems(filter?: string, projection?: string[]): Promise<SystemMetadata[]> {
@@ -18,7 +18,7 @@ const workspacesLoaded = () => waitForElementToBeRemoved(screen.getByTestId('Spi
 
 
 test('default render', async () => {
-  render({ minionIds: [], workspace: "", queryKind: AssetQueryType.Metadata });
+  render({ minionIds: [], workspace: "", type: AssetQueryType.Metadata });
   await workspacesLoaded();
 
   expect(screen.getAllByRole('combobox')[0]).toHaveAccessibleDescription('Any workspace');
@@ -26,7 +26,7 @@ test('default render', async () => {
 })
 
 test('renders with initial query and updates when user makes changes', async () => {
-  const [onChange] = render({ queryKind: AssetQueryType.Metadata, workspace: '2', minionIds: ['1'] });
+  const [onChange] = render({ type: AssetQueryType.Metadata, workspace: '2', minionIds: ['1'] });
   await workspacesLoaded();
 
   // Renders saved query

@@ -1,11 +1,11 @@
 import { AssetDataSource } from "../AssetDataSource"
 import { setupRenderer } from "test/fixtures"
-import { AssetMetadataQuery, AssetQuery, AssetQueryType } from "../types"
+import { AssetQuery, AssetQueryType, AssetUtilizationQuery } from "../types"
 import { screen, waitFor, waitForElementToBeRemoved } from "@testing-library/react"
 import { AssetQueryEditor } from "./AssetQueryEditor"
 import { select } from "react-select-event";
 import { SystemMetadata } from "../../system/types";
-import { fakeSystems } from "../constants";
+import { fakeSystems } from "../test/fakeSystems";
 
 class FakeAssetDataSource extends AssetDataSource {
   querySystems(filter?: string, projection?: string[]): Promise<SystemMetadata[]> {
@@ -23,15 +23,15 @@ it('renders with default query', async () => {
   // User changes query type
   const queryType = screen.getAllByRole('combobox')[0];
   await select(queryType, "Utilization", { container: document.body });
-  expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ queryKind: AssetQueryType.Utilization }));
+  expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ type: AssetQueryType.Utilization }));
 })
 
 it('renders with query and updates', async () => {
   const [onChange] = render({
-    queryKind: AssetQueryType.Utilization,
+    type: AssetQueryType.Utilization,
     minionIds: ['1'],
     workspace: '2'
-  } as AssetMetadataQuery);
+  } as AssetUtilizationQuery);
   await workspacesLoaded();
 
   // Renders saved query
