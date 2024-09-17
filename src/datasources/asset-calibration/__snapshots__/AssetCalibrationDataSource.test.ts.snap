@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`queries run asset calibration forecast query 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "Month",
+        "values": [
+          "2022-01-01T00:00:00.0000000Z",
+          "2022-02-01T00:00:00.0000000Z",
+          "2022-03-01T00:00:00.0000000Z",
+        ],
+      },
+      {
+        "name": "Assets",
+        "values": [
+          1,
+          0,
+          3,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;

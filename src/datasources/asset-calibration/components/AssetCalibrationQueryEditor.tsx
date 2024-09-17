@@ -60,6 +60,6 @@ export function AssetCalibrationQueryEditor({ query, onChange, onRunQuery, datas
 
 const tooltips = {
   calibrationForecast: {
-    groupBy: `Group the calibration forecast by day, week, month. Only one time-based grouping is allowed. Only two groupings are allowed. This is a required field.`,
+    groupBy: `Group the calibration forecast by time and properties. Only one time-based selection is allowed. There can be at most two selections. This is a required field.`,
   },
 };
