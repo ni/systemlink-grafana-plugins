@@ -49,7 +49,7 @@ export function AssetVariableQueryEditor(props: Props) {
 
   return (
     <>
-      <InlineField label="Workspace" tooltip={'Workspace'} labelWidth={22}>
+      <InlineField label="Workspace" labelWidth={22}>
         <Select
           isClearable
           isLoading={workspaces.loading}
@@ -59,11 +59,11 @@ export function AssetVariableQueryEditor(props: Props) {
           value={query.workspace}
         />
       </InlineField>
-      <InlineField label="System" tooltip={'System'} labelWidth={22}>
+      <InlineField label="System" labelWidth={22}>
         <MultiSelect
           isClearable
           allowCreateWhileLoading
-          options={common.loadMinionIdOptions(minionIds)}
+          options={common.loadMinionIdOptions(minionIds.value)}
           isValidNewOption={isValidId}
           onChange={handleMinionIdsChange}
           placeholder="Select system"

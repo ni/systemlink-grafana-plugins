@@ -4,6 +4,7 @@ import {
   Interval,
   IntervalWithHeartbeat,
   Weekday,
+  AssetUtilizationTiming,
 } from "./types";
 import { minuteInSeconds } from "./constants";
 
@@ -348,4 +349,21 @@ export const divideTimeRangeToBusinessIntervals = (
   }
 
   return intervals;
+}
+
+export const assetUtilizationHistoryFactory = (history: AssetUtilizationTiming[]) => {
+  return {
+    assetUtilizations: history.map((u: AssetUtilizationTiming): AssetUtilizationHistory => {
+      return {
+        utilizationIdentifier: '71e0838a-0dda-4df7-9c6d-6e6c77320f22',
+        assetIdentifier: 'cc87e897-79e2-4cbf-9655-1b145d78a306',
+        minionId: '',
+        category: '',
+        startTimestamp: u.startTimestamp,
+        ...(u.endTimestamp && { endTimestamp: u.endTimestamp }),
+        ...(u.heartbeatTimestamp && { heartbeatTimestamp: u.heartbeatTimestamp })
+      }
+    }),
+    continuationToken: ''
+  }
 }

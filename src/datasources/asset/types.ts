@@ -83,6 +83,8 @@ export interface IntervalWithHeartbeat<T> extends Interval<T> {
   'heartbeatTimestamp': T
 }
 
+export type AssetUtilizationTiming = Pick<AssetUtilizationHistory, "startTimestamp" | "endTimestamp" | "heartbeatTimestamp">
+
 export interface AssetModel {
   modelName: string,
   modelNumber: number,

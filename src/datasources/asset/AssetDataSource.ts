@@ -100,10 +100,10 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
     let workspaceId = this.templateSrv.replace(query.workspace);
     // fetch and process utilization raw data for chosen assets/systems
-    const utilization_array = await this.fetchAndProcessUtilizationData(query, options);
-    if (utilization_array.length) {
-      let utilization_array_with_alias: Array<{ id: string, datetimes: number[], values: number[], alias: string }>;
-      const idsArray = utilization_array.map((data) => {
+    const utilizationArray = await this.fetchAndProcessUtilizationData(query, options);
+    if (utilizationArray.length) {
+      let utilizationArrayWithAlias: Array<{ id: string, datetimes: number[], values: number[], alias: string }>;
+      const idsArray = utilizationArray.map((data) => {
         return data.id
       });
       // find and add aliases to data
@@ -114,9 +114,9 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
         });
         const filterStr = workspaceId ? `(${filterArr.join(' or ')}) and workspace = "${workspaceId}"` : filterArr.join(' or ');
         const systems = await this.querySystems(filterStr, defaultProjection);
-        utilization_array_with_alias = utilization_array.map(system_utilization_df => {
-          const foundItem = systems.find((system: SystemMetadata) => system.id === system_utilization_df.id);
-          return { ...system_utilization_df, alias: foundItem?.alias ? foundItem.alias : 'System' };
+        utilizationArrayWithAlias = utilizationArray.map(df => {
+          const foundItem = systems.find((system: SystemMetadata) => system.id === df.id);
+          return { ...df, alias: foundItem?.alias ? foundItem.alias : 'System' };
         });
       } else {
         const filterArr: string[] = [];
@@ -125,15 +125,15 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
         });
         const filterStr = workspaceId ? ` (${filterArr.join(' or ')}) and workspace = "${workspaceId}"` : filterArr.join(' or ');
         const assetsResponse = await this.queryAssets(filterStr, -1);
-        utilization_array_with_alias = utilization_array.map(asset_utilization_df => {
-          const foundItem = assetsResponse.find((asset: AssetModel) => asset.id === asset_utilization_df.id);
-          return { ...asset_utilization_df, alias: foundItem ? foundItem.name : 'Asset' };
+        utilizationArrayWithAlias = utilizationArray.map(df => {
+          const foundItem = assetsResponse.find((asset: AssetModel) => asset.id === df.id);
+          return { ...df, alias: foundItem ? foundItem.name : 'Asset' };
         });
       }
       result.fields = [
-        { name: 'time', values: utilization_array_with_alias[0].datetimes },
+        { name: 'time', values: utilizationArrayWithAlias[0].datetimes },
       ];
-      utilization_array_with_alias.forEach((data) => {
+      utilizationArrayWithAlias.forEach((data) => {
         result.fields.push(
           {
             name: data.id,
@@ -277,13 +277,13 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
       // patch zero points to data for better visualisation
       const patchedUtilization = patchZeroPoints(utilization);
 
-      let utilization_data: { id: string, datetimes: number[], values: number[] } =
+      let utilizationData: { id: string, datetimes: number[], values: number[] } =
         {
           id: entityIds[index],
           datetimes: patchedUtilization.map(v => dateTime(v.day).valueOf()),
           values: patchedUtilization.map(v => v.utilization)
         }
-      resultArray.push(utilization_data);
+      resultArray.push(utilizationData);
     }
 
     return resultArray;

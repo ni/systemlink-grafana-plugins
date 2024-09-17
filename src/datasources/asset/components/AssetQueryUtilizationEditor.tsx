@@ -124,7 +124,7 @@ export function QueryUtilizationEditor(props: Props) {
         <MultiSelect
           isClearable
           allowCreateWhileLoading
-          options={common.loadMinionIdOptions(minionIds)}
+          options={common.loadMinionIdOptions(minionIds.value)}
           isValidNewOption={isValidId}
           onChange={handleMinionIdsChange}
           placeholder="Select systems"
@@ -161,10 +161,10 @@ const tooltips = {
     [EntityType.System]: `The workspace where you want to search for the systems.`,
   },
 
-  assetIdentifiers: 'Search assets by name or enter id.',
+  assetIdentifiers: 'Search assets by name or enter an ID.',
 
   system: {
     [EntityType.Asset]: `Filter assets by system.`,
-    [EntityType.System]: `Search systems by name or enter an ID`,
+    [EntityType.System]: `Search systems by name or enter an ID.`,
   },
 };

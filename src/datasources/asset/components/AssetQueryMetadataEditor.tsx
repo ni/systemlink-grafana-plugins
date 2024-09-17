@@ -64,7 +64,7 @@ export function QueryMetadataEditor(props: Props) {
         <MultiSelect
           isClearable
           allowCreateWhileLoading
-          options={common.loadMinionIdOptions(minionIds)}
+          options={common.loadMinionIdOptions(minionIds.value)}
           isValidNewOption={isValidId}
           onChange={handleMinionIdsChange}
           placeholder="Select systems"
@@ -78,8 +78,6 @@ export function QueryMetadataEditor(props: Props) {
 }
 
 const tooltips = {
-  entityType: `Calculate utilization for one or more systems or assets.`,
-
   workspace: {
     [EntityType.Asset]: `The workspace where you want to search for the assets.`,
     [EntityType.System]: `The workspace where you want to search for the systems.`,
@@ -88,10 +86,5 @@ const tooltips = {
   system: {
     [EntityType.Asset]: `Filter assets by system.`,
     [EntityType.System]: `Search systems by name or enter an ID`,
-  },
-
-  vendor: {
-    [EntityType.Asset]: `Filter assets by vendor.`,
-    [EntityType.System]: `Filter systems by vendor.`,
   },
 };

@@ -26,22 +26,18 @@ export class AssetQueryEditorCommon {
       this.onRunQuery();
     }
   };
+
   readonly getVariableOptions = (): Array<SelectableValue<string>> => {
     return this.datasource.templateSrv
       .getVariables()
       .map(v => toOption('$' + v.name));
   };
 
-  readonly loadMinionIdOptions = (minionIds: { loading: boolean; error?: undefined; value?: undefined } | {
-    loading: true;
-    error?: Error | undefined;
-    value?: SystemMetadata[] | void
-  } | { loading: false; error: Error; value?: undefined } | {
-    loading: false;
-    error?: undefined;
-    value: SystemMetadata[] | void
-  }): Array<SelectableValue<string>> => {
-    let options: SelectableValue[] = (minionIds.value ?? []).map(
+  readonly loadMinionIdOptions = (ids: SystemMetadata[] | void): Array<SelectableValue<string>> => {
+    if (!ids) {
+      return []
+    }
+    let options: SelectableValue[] = (ids ?? []).map(
       (system: SystemMetadata): SelectableValue<string> => ({
         label: system.alias ?? system.id,
         value: system.id,
