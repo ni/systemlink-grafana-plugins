@@ -1,15 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`queries run asset calibration forecast query 1`] = `
+exports[`queries asset calibration forecast with time groupBy 1`] = `
 [
   {
     "fields": [
       {
         "name": "Month",
         "values": [
-          "2022-01-01T00:00:00.0000000Z",
-          "2022-02-01T00:00:00.0000000Z",
-          "2022-03-01T00:00:00.0000000Z",
+          "January 2022",
+          "February 2022",
+          "March 2022",
         ],
       },
       {
@@ -17,6 +17,32 @@ exports[`queries run asset calibration forecast query 1`] = `
         "values": [
           1,
           0,
+          3,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries calibration forecast with location groupBy 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "Group",
+        "values": [
+          "Location1",
+          "Location2",
+          "Location3",
+        ],
+      },
+      {
+        "name": "Assets",
+        "values": [
+          1,
+          2,
           3,
         ],
       },

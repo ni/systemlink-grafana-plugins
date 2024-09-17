@@ -62,7 +62,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     formattedFields.push({ name: "Group", values: [] } as FieldDTO);
     formattedFields.push({ name: "Assets", values: [] } as FieldDTO);
 
-    for (let columnIndex = 1; columnIndex < result.fields.length; columnIndex++) {
+    for (let columnIndex = 0; columnIndex < result.fields.length; columnIndex++) {
       formattedFields[0].values?.push(result.fields[columnIndex].name)
       formattedFields[1].values?.push(result.fields[columnIndex].values?.at(0))
     }
@@ -75,9 +75,10 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
       return field;
     }
 
-    if (field.name === AssetCalibrationForecastKey.Time) {
+    if ([AssetCalibrationForecastKey.Day,
+      AssetCalibrationForecastKey.Week,
+      AssetCalibrationForecastKey.Month].includes(field.name as AssetCalibrationForecastKey)) {
       field.values = this.formatTimeField(field.values, query);
-      field.name = 'Formatted Time';
       return field;
     }
 
