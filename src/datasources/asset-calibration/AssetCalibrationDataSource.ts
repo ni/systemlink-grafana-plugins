@@ -45,8 +45,29 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
 
     result.fields = calibrationForecastResponse.calibrationForecast.columns || [];
     result.fields = result.fields.map(field => this.formatField(field, query));
+    result.fields = this.formatResultsWhenNoTimeSpecified(result, query);
 
     return result;
+  }
+
+  formatResultsWhenNoTimeSpecified(result: DataFrameDTO, query: AssetCalibrationQuery): FieldDTO[] {
+    if (query.groupBy.includes(AssetCalibrationForecastGroupByType.Day) ||
+      query.groupBy.includes(AssetCalibrationForecastGroupByType.Week) ||
+      query.groupBy.includes(AssetCalibrationForecastGroupByType.Month)) {
+
+      return result.fields;
+    }
+
+    const formattedFields = [] as FieldDTO[];
+    formattedFields.push({ name: "Group", values: [] } as FieldDTO);
+    formattedFields.push({ name: "Assets", values: [] } as FieldDTO);
+
+    for (let columnIndex = 1; columnIndex < result.fields.length; columnIndex++) {
+      formattedFields[0].values?.push(result.fields[columnIndex].name)
+      formattedFields[1].values?.push(result.fields[columnIndex].values?.at(0))
+    }
+
+    return formattedFields;
   }
 
   formatField(field: FieldDTO, query: AssetCalibrationQuery): FieldDTO {
@@ -74,6 +95,8 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
       [AssetCalibrationForecastGroupByType.Day]: this.formatDateForDay,
       [AssetCalibrationForecastGroupByType.Week]: this.formatDateForWeek,
       [AssetCalibrationForecastGroupByType.Month]: this.formatDateForMonth,
+      [AssetCalibrationForecastGroupByType.Location]: (v: string) => v,
+      [AssetCalibrationForecastGroupByType.Model]: (v: string) => v,
     };
 
     const formatFunction = formatFunctionMap[timeGrouping!] || ((v: string) => v);
