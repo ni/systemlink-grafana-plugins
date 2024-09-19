@@ -1,0 +1,204 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`queries asset calibration forecast with day groupBy 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "Week",
+        "values": [
+          "2022-01-03 : 2022-01-09",
+          "2022-01-10 : 2022-01-16",
+          "2022-01-17 : 2022-01-23",
+        ],
+      },
+      {
+        "name": "Assets",
+        "values": [
+          1,
+          2,
+          2,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries asset calibration forecast with month groupBy 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "Month",
+        "values": [
+          "January 2022",
+          "February 2022",
+          "March 2022",
+        ],
+      },
+      {
+        "name": "Assets",
+        "values": [
+          1,
+          0,
+          3,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries asset calibration forecast with week groupBy 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "Day",
+        "values": [
+          "2022-01-01",
+          "2022-01-02",
+          "2022-01-03",
+        ],
+      },
+      {
+        "name": "Assets",
+        "values": [
+          1,
+          2,
+          2,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries calibration forecast with location groupBy 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "Group",
+        "values": [
+          "Location1",
+          "Location2",
+          "Location3",
+        ],
+      },
+      {
+        "name": "Assets",
+        "values": [
+          1,
+          2,
+          3,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries calibration forecast with model and location groupBy 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "Group",
+        "values": [
+          "Model1 - Localtion1",
+          "Model2 - Localtion1",
+        ],
+      },
+      {
+        "name": "Assets",
+        "values": [
+          1,
+          2,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries calibration forecast with model groupBy 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "Group",
+        "values": [
+          "Model1",
+          "Model2",
+        ],
+      },
+      {
+        "name": "Assets",
+        "values": [
+          1,
+          2,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries calibration forecast with month and location groupBy 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "Month",
+        "values": [
+          "January 2022",
+          "February 2022",
+          "March 2022",
+        ],
+      },
+      {
+        "name": "Location1",
+        "values": [
+          1,
+          2,
+          3,
+        ],
+      },
+      {
+        "name": "Location2",
+        "values": [
+          2,
+          4,
+          1,
+        ],
+      },
+      {
+        "name": "Location3",
+        "values": [
+          4,
+          3,
+          1,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries calibration forecast with month groupBy returns empty results 1`] = `
+[
+  {
+    "fields": [],
+    "refId": "A",
+  },
+]
+`;
