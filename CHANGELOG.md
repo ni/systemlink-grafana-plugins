@@ -1,3 +1,10 @@
+## [3.14.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.13.0...v3.14.0) (2024-09-19)
+
+
+### Features
+
+* **asset:** add calibration forecast property only row formatting ([#68](https://github.com/ni/systemlink-grafana-plugins/issues/68)) ([162d782](https://github.com/ni/systemlink-grafana-plugins/commit/162d7826c9219ccfc1fc807aae2a61ea0b6b031d))
+
 ## [3.13.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.12.1...v3.13.0) (2024-09-11)
 
 
