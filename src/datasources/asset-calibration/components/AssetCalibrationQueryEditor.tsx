@@ -1,6 +1,6 @@
 import { QueryEditorProps, SelectableValue, toOption } from '@grafana/data';
 import { AssetCalibrationDataSource } from '../AssetCalibrationDataSource';
-import { AssetCalibrationForecastGroupByType, AssetCalibrationQuery } from '../types';
+import { AssetCalibrationPropertyGroupByType, AssetCalibrationQuery, AssetCalibrationTimeBasedGroupByType } from '../types';
 import { InlineField, MultiSelect } from '@grafana/ui';
 import React from 'react';
 import { enumToOptions } from '../../../core/utils';
@@ -26,7 +26,7 @@ export function AssetCalibrationQueryEditor({ query, onChange, onRunQuery, datas
     let timeGrouping: string = null!;
 
     for (let item of items) {
-        if (item.value === AssetCalibrationForecastGroupByType.Day || item.value === AssetCalibrationForecastGroupByType.Week || item.value === AssetCalibrationForecastGroupByType.Month) {
+        if (item.value === AssetCalibrationTimeBasedGroupByType.Day || item.value === AssetCalibrationTimeBasedGroupByType.Week || item.value === AssetCalibrationTimeBasedGroupByType.Month) {
           timeGrouping = item.value;
           continue;
       }
@@ -48,7 +48,7 @@ export function AssetCalibrationQueryEditor({ query, onChange, onRunQuery, datas
     <div style={{ position: 'relative' }}>
       <InlineField label="Group by" tooltip={tooltips.calibrationForecast.groupBy} labelWidth={22}>
         <MultiSelect
-          options={enumToOptions(AssetCalibrationForecastGroupByType)}
+          options={[...enumToOptions(AssetCalibrationTimeBasedGroupByType), ...enumToOptions(AssetCalibrationPropertyGroupByType)]}
           onChange={handleGroupByChange}
           width={85}
           value={query.groupBy.map(toOption) || []}

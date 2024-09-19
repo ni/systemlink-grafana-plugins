@@ -10,13 +10,18 @@ export enum AssetQueryLabel {
   CalibrationForecast = "Calibration Forecast",
 }
 
-export enum AssetCalibrationForecastGroupByType {
-  Day = "DAY",
-  Week = "WEEK",
-  Month = "MONTH",
+export enum AssetCalibrationPropertyGroupByType {
   Location = "LOCATION",
   Model = "MODEL",
 }
+
+export enum AssetCalibrationTimeBasedGroupByType {
+  Day = "DAY",
+  Week = "WEEK",
+  Month = "MONTH",
+}
+
+export type AssetCalibrationGroupByType = AssetCalibrationPropertyGroupByType | AssetCalibrationTimeBasedGroupByType;
 
 export enum AssetCalibrationForecastKey {
   Day = "Day",

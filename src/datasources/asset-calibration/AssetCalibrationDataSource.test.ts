@@ -9,15 +9,16 @@ import {
 } from "test/fixtures";
 import { AssetCalibrationDataSource } from "./AssetCalibrationDataSource";
 import {
-  AssetCalibrationForecastGroupByType,
+  AssetCalibrationPropertyGroupByType,
   AssetCalibrationQuery,
+  AssetCalibrationTimeBasedGroupByType,
   CalibrationForecastResponse,
 } from "./types";
 
-let ds: AssetCalibrationDataSource, backendSrv: MockProxy<BackendSrv>
+let datastore: AssetCalibrationDataSource, backendServer: MockProxy<BackendSrv>
 
 beforeEach(() => {
-  [ds, backendSrv] = setupDataSource(AssetCalibrationDataSource);
+  [datastore, backendServer] = setupDataSource(AssetCalibrationDataSource);
 });
 
 const monthGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
@@ -26,6 +27,26 @@ const monthGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
         columns: [
             { name: "Month", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"] },
             { name: "Assets", values: [1, 0, 3] },
+        ]
+    }
+}
+
+const weekGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
+{
+    calibrationForecast: {
+        columns: [
+            { name: "Day", values: ["2022-01-01T00:00:00.0000000Z", "2022-01-02T00:00:00.0000000Z", "2022-01-03T00:00:00.0000000Z"] },
+            { name: "Assets", values: [1, 2, 2] },
+        ]
+    }
+}
+
+const dayGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
+{
+    calibrationForecast: {
+        columns: [
+            { name: "Week", values: ["2022-01-03T00:00:00.0000000Z", "2022-01-10T00:00:00.0000000Z", "2022-01-17T00:00:00.0000000Z"] },
+            { name: "Assets", values: [1, 2, 2] },
         ]
     }
 }
@@ -41,14 +62,71 @@ const locationGroupCalibrationForecastResponseMock: CalibrationForecastResponse 
     }
 }
 
-const timeBasedCalibrationForecastQueryMock: AssetCalibrationQuery = {
+const modelGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
+{
+    calibrationForecast: {
+        columns: [
+          { name: "Model1", values: [1] },
+          { name: "Model2", values: [2] },
+        ]
+    }
+}
+
+const modelLocationGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
+{
+    calibrationForecast: {
+        columns: [
+          { name: "Model1 - Localtion1", values: [1] },
+          { name: "Model2 - Localtion1", values: [2] },
+        ]
+    }
+}
+
+const monthLocationGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
+{
+    calibrationForecast: {
+        columns: [
+            { name: "Month", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"] },
+            { name: "Location1", values: [1, 2, 3] },
+            { name: "Location2", values: [2, 4, 1] },
+            { name: "Location3", values: [4, 3, 1] },
+        ]
+    }
+}
+
+const monthBasedCalibrationForecastQueryMock: AssetCalibrationQuery = {
   refId: '',
-  groupBy: [AssetCalibrationForecastGroupByType.Month],
+  groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+}
+
+const weekBasedCalibrationForecastQueryMock: AssetCalibrationQuery = {
+  refId: '',
+  groupBy: [AssetCalibrationTimeBasedGroupByType.Week],
+}
+
+const dayBasedCalibrationForecastQueryMock: AssetCalibrationQuery = {
+  refId: '',
+  groupBy: [AssetCalibrationTimeBasedGroupByType.Day],
 }
 
 const locationBasedCalibrationForecastQueryMock: AssetCalibrationQuery = {
   refId: '',
-  groupBy: [AssetCalibrationForecastGroupByType.Location],
+  groupBy: [AssetCalibrationPropertyGroupByType.Location],
+}
+
+const modelBasedCalibrationForecastQueryMock: AssetCalibrationQuery = {
+  refId: '',
+  groupBy: [AssetCalibrationPropertyGroupByType.Model],
+}
+
+const modelLocationBasedCalibrationForecastQueryMock: AssetCalibrationQuery = {
+  refId: '',
+  groupBy: [AssetCalibrationPropertyGroupByType.Model, AssetCalibrationPropertyGroupByType.Location],
+}
+
+const monthLocationBasedCalibrationForecastQueryMock: AssetCalibrationQuery = {
+  refId: '',
+  groupBy: [AssetCalibrationTimeBasedGroupByType.Month, AssetCalibrationPropertyGroupByType.Location],
 }
 
 const buildCalibrationForecastQuery = getQueryBuilder<AssetCalibrationQuery>()({
@@ -58,50 +136,100 @@ const buildCalibrationForecastQuery = getQueryBuilder<AssetCalibrationQuery>()({
 
 describe('testDatasource', () => {
   test('returns success', async () => {
-    backendSrv.fetch
+    backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets?take=1' }))
       .mockReturnValue(createFetchResponse(25));
 
-    const result = await ds.testDatasource();
+    const result = await datastore.testDatasource();
 
     expect(result.status).toEqual('success');
   });
 
   test('bubbles up exception', async () => {
-    backendSrv.fetch
+    backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets?take=1' }))
       .mockReturnValue(createFetchError(400));
 
-    await expect(ds.testDatasource()).rejects.toHaveProperty('status', 400);
+    await expect(datastore.testDatasource()).rejects.toHaveProperty('status', 400);
   });
 })
 
 describe('queries', () => {
-  test('asset calibration forecast with time groupBy', async () => {
-    backendSrv.fetch
+  test('asset calibration forecast with month groupBy', async () => {
+    backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(monthGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
 
-    const result = await ds.query(buildCalibrationForecastQuery(timeBasedCalibrationForecastQueryMock))
+    const result = await datastore.query(buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock))
+
+    expect(result.data).toMatchSnapshot()
+  })
+
+  test('asset calibration forecast with week groupBy', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(weekGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+
+    const result = await datastore.query(buildCalibrationForecastQuery(weekBasedCalibrationForecastQueryMock))
+
+    expect(result.data).toMatchSnapshot()
+  })
+
+  test('asset calibration forecast with day groupBy', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(dayGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+
+    const result = await datastore.query(buildCalibrationForecastQuery(dayBasedCalibrationForecastQueryMock))
 
     expect(result.data).toMatchSnapshot()
   })
 
   test('calibration forecast with location groupBy', async () => {
-    backendSrv.fetch
+    backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(locationGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
 
-    const result = await ds.query(buildCalibrationForecastQuery(locationBasedCalibrationForecastQueryMock))
+    const result = await datastore.query(buildCalibrationForecastQuery(locationBasedCalibrationForecastQueryMock))
+
+    expect(result.data).toMatchSnapshot()
+  })
+
+  test('calibration forecast with model groupBy', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(modelGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+
+    const result = await datastore.query(buildCalibrationForecastQuery(modelBasedCalibrationForecastQueryMock))
+
+    expect(result.data).toMatchSnapshot()
+  })
+
+  test('calibration forecast with model and location groupBy', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(modelLocationGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+
+    const result = await datastore.query(buildCalibrationForecastQuery(modelLocationBasedCalibrationForecastQueryMock))
+
+    expect(result.data).toMatchSnapshot()
+  })
+
+  test('calibration forecast with month and location groupBy', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(monthLocationGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+
+    const result = await datastore.query(buildCalibrationForecastQuery(monthLocationBasedCalibrationForecastQueryMock))
 
     expect(result.data).toMatchSnapshot()
   })
 
   test('handles metadata query error', async () => {
-    backendSrv.fetch
+    backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchError(418))
 
-    await expect(ds.query(buildCalibrationForecastQuery(timeBasedCalibrationForecastQueryMock))).rejects.toThrow()
+    await expect(datastore.query(buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock))).rejects.toThrow()
   })
 })

@@ -8,9 +8,9 @@ import {
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
-  AssetCalibrationForecastGroupByType,
   AssetCalibrationForecastKey,
   AssetCalibrationQuery,
+  AssetCalibrationTimeBasedGroupByType,
   AssetModel,
   AssetsResponse,
   CalibrationForecastResponse,
@@ -44,20 +44,40 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     const calibrationForecastResponse: CalibrationForecastResponse = await this.queryCalibrationForecast(query.groupBy, from, to);
 
     result.fields = calibrationForecastResponse.calibrationForecast.columns || [];
-    result.fields = result.fields.map(field => this.formatField(field, query));
-    result.fields = this.formatResultsWhenNoTimeSpecified(result, query);
+    if (this.isGroupByTime(query)) {
+      this.processResultsGroupedByTime(result)
+    } else {
+      this.processResultsGroupedByProperties(result)
+    }
 
     return result;
   }
 
-  formatResultsWhenNoTimeSpecified(result: DataFrameDTO, query: AssetCalibrationQuery): FieldDTO[] {
-    if (query.groupBy.includes(AssetCalibrationForecastGroupByType.Day) ||
-      query.groupBy.includes(AssetCalibrationForecastGroupByType.Week) ||
-      query.groupBy.includes(AssetCalibrationForecastGroupByType.Month)) {
+  isGroupByTime(query: AssetCalibrationQuery) {
+    return query.groupBy.includes(AssetCalibrationTimeBasedGroupByType.Day) ||
+      query.groupBy.includes(AssetCalibrationTimeBasedGroupByType.Week) ||
+      query.groupBy.includes(AssetCalibrationTimeBasedGroupByType.Month);
+  }
 
-      return result.fields;
-    }
+  processResultsGroupedByTime(result: DataFrameDTO) {
+    result.fields.forEach(field => {
+      switch (field.name) {
+        case AssetCalibrationForecastKey.Day:
+          field.values = field.values!.map(this.formatDateForDay)
+          break;
+        case AssetCalibrationForecastKey.Week:
+          field.values = field.values!.map(this.formatDateForWeek)
+          break;
+        case AssetCalibrationForecastKey.Month:
+          field.values = field.values!.map(this.formatDateForMonth)
+          break;
+        default:
+          break;
+      }
+    });
+  }
 
+  processResultsGroupedByProperties(result: DataFrameDTO) {
     const formattedFields = [] as FieldDTO[];
     formattedFields.push({ name: "Group", values: [] } as FieldDTO);
     formattedFields.push({ name: "Assets", values: [] } as FieldDTO);
@@ -67,42 +87,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
       formattedFields[1].values?.push(result.fields[columnIndex].values?.at(0))
     }
 
-    return formattedFields;
-  }
-
-  formatField(field: FieldDTO, query: AssetCalibrationQuery): FieldDTO {
-    if (!field.values) {
-      return field;
-    }
-
-    if ([AssetCalibrationForecastKey.Day,
-      AssetCalibrationForecastKey.Week,
-      AssetCalibrationForecastKey.Month].includes(field.name as AssetCalibrationForecastKey)) {
-      field.values = this.formatTimeField(field.values, query);
-      return field;
-    }
-
-    return field;
-  }
-
-  formatTimeField(values: string[], query: AssetCalibrationQuery): string[] {
-    const timeGrouping = query.groupBy.find(item =>
-      [AssetCalibrationForecastGroupByType.Day,
-      AssetCalibrationForecastGroupByType.Week,
-      AssetCalibrationForecastGroupByType.Month].includes(item as AssetCalibrationForecastGroupByType)
-    ) as AssetCalibrationForecastGroupByType | undefined;
-
-    const formatFunctionMap = {
-      [AssetCalibrationForecastGroupByType.Day]: this.formatDateForDay,
-      [AssetCalibrationForecastGroupByType.Week]: this.formatDateForWeek,
-      [AssetCalibrationForecastGroupByType.Month]: this.formatDateForMonth,
-      [AssetCalibrationForecastGroupByType.Location]: (v: string) => v,
-      [AssetCalibrationForecastGroupByType.Model]: (v: string) => v,
-    };
-
-    const formatFunction = formatFunctionMap[timeGrouping!] || ((v: string) => v);
-    values = values.map(formatFunction);
-    return values;
+    result.fields = formattedFields;
   }
 
   formatDateForDay(date: string): string {
@@ -120,8 +105,8 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
   }
 
-  shouldRunQuery(_: AssetCalibrationQuery): boolean {
-    return true;
+  shouldRunQuery(calibrationQuery: AssetCalibrationQuery): boolean {
+    return calibrationQuery.groupBy.length > 0;
   }
 
   async queryAssets(filter = '', take = -1): Promise<AssetModel[]> {

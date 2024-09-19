@@ -1,6 +1,6 @@
 import { screen, waitFor } from '@testing-library/react';
 import { setupRenderer } from '../../../test/fixtures';
-import { AssetCalibrationForecastGroupByType, AssetCalibrationQuery } from '../types';
+import { AssetCalibrationQuery, AssetCalibrationTimeBasedGroupByType, AssetCalibrationPropertyGroupByType } from '../types';
 import { select } from 'react-select-event';
 import { AssetCalibrationDataSource } from '../AssetCalibrationDataSource';
 import { AssetCalibrationQueryEditor } from './AssetCalibrationQueryEditor';
@@ -19,7 +19,7 @@ it('renders with query type calibration forecast', async () => {
 
 it('renders with query type calibration forecast and updates group by time', async () => {
   const [onChange] = render({
-    groupBy: [AssetCalibrationForecastGroupByType.Month],
+    groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
   } as AssetCalibrationQuery);
 
   // User selects group by day
@@ -27,7 +27,7 @@ it('renders with query type calibration forecast and updates group by time', asy
   await select(groupBy, "Day", { container: document.body });
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({ groupBy: [AssetCalibrationForecastGroupByType.Day] })
+      expect.objectContaining({ groupBy: [AssetCalibrationTimeBasedGroupByType.Day] })
     );
   });
 
@@ -36,7 +36,7 @@ it('renders with query type calibration forecast and updates group by time', asy
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
-        groupBy: [AssetCalibrationForecastGroupByType.Week],
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Week],
       })
     );
   });
@@ -46,7 +46,7 @@ it('renders with query type calibration forecast and updates group by time', asy
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
-        groupBy: [AssetCalibrationForecastGroupByType.Month],
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
       })
     );
   });
@@ -65,7 +65,7 @@ it('renders with query type calibration forecast and updates group by properties
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
-        groupBy: [AssetCalibrationForecastGroupByType.Location],
+        groupBy: [AssetCalibrationPropertyGroupByType.Location],
       })
     );
   });
@@ -75,7 +75,7 @@ it('renders with query type calibration forecast and updates group by properties
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
-        groupBy: [AssetCalibrationForecastGroupByType.Location, AssetCalibrationForecastGroupByType.Model],
+        groupBy: [AssetCalibrationPropertyGroupByType.Location, AssetCalibrationPropertyGroupByType.Model],
       })
     );
   });
@@ -85,7 +85,7 @@ it('renders with query type calibration forecast and updates group by properties
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
-        groupBy: [AssetCalibrationForecastGroupByType.Model, AssetCalibrationForecastGroupByType.Day],
+        groupBy: [AssetCalibrationPropertyGroupByType.Model, AssetCalibrationTimeBasedGroupByType.Day],
       })
     );
   });
