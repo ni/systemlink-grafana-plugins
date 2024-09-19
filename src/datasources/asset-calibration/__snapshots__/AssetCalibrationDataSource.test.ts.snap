@@ -193,3 +193,12 @@ exports[`queries calibration forecast with month and location groupBy 1`] = `
   },
 ]
 `;
+
+exports[`queries calibration forecast with month groupBy returns empty results 1`] = `
+[
+  {
+    "fields": [],
+    "refId": "A",
+  },
+]
+`;

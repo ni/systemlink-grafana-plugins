@@ -83,8 +83,8 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     formattedFields.push({ name: "Assets", values: [] } as FieldDTO);
 
     for (let columnIndex = 0; columnIndex < result.fields.length; columnIndex++) {
-      formattedFields[0].values?.push(result.fields[columnIndex].name)
-      formattedFields[1].values?.push(result.fields[columnIndex].values?.at(0))
+      formattedFields[0].values!.push(result.fields[columnIndex].name)
+      formattedFields[1].values!.push(result.fields[columnIndex].values?.at(0))
     }
 
     result.fields = formattedFields;

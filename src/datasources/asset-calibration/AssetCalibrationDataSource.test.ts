@@ -72,6 +72,14 @@ const modelGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
     }
 }
 
+const emptyGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
+{
+    calibrationForecast: {
+        columns: [
+        ]
+    }
+}
+
 const modelLocationGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
 {
     calibrationForecast: {
@@ -221,6 +229,16 @@ describe('queries', () => {
       .mockReturnValue(createFetchResponse(monthLocationGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery(monthLocationBasedCalibrationForecastQueryMock))
+
+    expect(result.data).toMatchSnapshot()
+  })
+
+  test('calibration forecast with month groupBy returns empty results', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(emptyGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+
+    const result = await datastore.query(buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock))
 
     expect(result.data).toMatchSnapshot()
   })
