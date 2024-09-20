@@ -5,8 +5,8 @@ import { InlineField } from 'core/components/InlineField';
 import { productsDataSource } from '../productsDataSource';
 import { ProductsQuery, OrderBy, MetaData } from '../types';
 import _ from 'lodash';
-import { TestProductsQueryBuilder } from '../QueryBuilder';
 import './productsQueryEditor.scss'
+import { TestMonitorQueryBuilder } from 'shared/queryBuilder';
 
 
 type Props = QueryEditorProps<productsDataSource, ProductsQuery>;
@@ -43,6 +43,63 @@ export function productsQueryEditor({ query, onChange, onRunQuery, datasource }:
     onRunQuery();
   }
 
+  const getDataSource = (field: string) => {
+    return async (query: string, callback: Function) => {
+      callback(await datasource.queryProductValues(field, query));
+    };
+  };
+
+  const fields = [
+    {
+      label: 'Part Number',
+      dataField: 'partNumber',
+      dataType: 'string',
+      filterOperations: ['=', '<>', 'startswith', 'endswith', 'contains', 'notcontains', 'isblank', 'isnotblank',],
+      lookup: { dataSource: getDataSource('PART_NUMBER'), minLength: 1 },
+    },
+    {
+      label: 'Family',
+      dataField: 'family',
+      dataType: 'string',
+      filterOperations: ['=', '<>', 'contains', 'notcontains', 'isblank', 'isnotblank'],
+      lookup: { dataSource: getDataSource('FAMILY'), minLength: 1},
+    },
+    {
+      label: 'Name',
+      dataField: 'name',
+      dataType: 'string',
+      filterOperations: ['=', '<>', 'contains', 'notcontains', 'isblank', 'isnotblank'],
+      lookup: { dataSource: getDataSource('NAME'), minLength: 1 },
+    },
+    {
+      label: 'Properties',
+      dataField: 'properties',
+      dataType: 'Object',
+      filterOperations: ['key_value_matches'],
+    },
+    {
+      label: 'Updated at',
+      dataField: 'updatedAt',
+      dataType: 'string',
+      filterOperations: ['>', '>=', '<', '<='],
+      lookup: {
+        dataSource: [
+          { label: 'From', value: '${__from:date}' },
+          { label: 'To', value: '${__to:date}' },
+          { label: 'From (YYYY-MM-DD)', value: '${__from:date:YYYY-MM-DD}' },
+          { label: 'To (YYYY-MM-DD)', value: '${__to:date:YYYY-MM-DD}' },
+        ],
+      },
+    },
+    {
+      label: 'Workspace',
+      dataField: 'workspace',
+      dataType: 'string',
+      filterOperations: ['=', '<>'],
+      lookup: { dataSource: workspaces},
+    },
+  ];
+
   return (
     <>
       <HorizontalGroup spacing='lg' align='flex-start'>
@@ -55,7 +112,7 @@ export function productsQueryEditor({ query, onChange, onRunQuery, datasource }:
               value={query.metaData}
               defaultValue={query.metaData!}
               width={40}
-              allowCustomValue={true}
+              allowCustomValue={false}
               closeMenuOnSelect={false}
             />
           </InlineField>
@@ -89,11 +146,10 @@ export function productsQueryEditor({ query, onChange, onRunQuery, datasource }:
         </VerticalGroup>
         <VerticalGroup spacing='none'>
           <InlineFormLabel>Query By</InlineFormLabel>
-          <TestProductsQueryBuilder
-            autoComplete={datasource.queryProductValues.bind(datasource)}
+          <TestMonitorQueryBuilder
             onChange={(event: any) => onQueryByChange(event.detail.linq)}
             defaultValue={query.queryBy}
-            workspaceList={workspaces}
+            fields={fields}
           />
         </VerticalGroup>
       </HorizontalGroup>

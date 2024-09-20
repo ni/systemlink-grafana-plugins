@@ -1,0 +1,311 @@
+import { QueryBuilderCustomOperation } from "smart-webcomponents-react";
+import { KeyValueOperationTemplate } from "./keyValueOperation";
+
+export enum SlFilterOperations {
+    Equals = '===',
+    NotEquals = '!==',
+    Contains = 'strincludes',
+    NotContains = 'strnotincludes',
+    StartsWith = 'startswith',
+    IsEmpty = 'strisblank',
+    IsNotEmpty = 'strisnotblank',
+    IsGreaterThan = '>',
+    IsAfter = 'date>',
+    IsBefore = 'date<',
+    DateTimeIsAfter = 'datetime>',
+    DateTimeIsBefore = 'datetime<',
+    DateTimeIsEmpty = 'datetime_is_blank',
+    DateTimeIsNotEmpty = 'datetime_is_not_blank',
+    IsGreaterThanOrEqual = '>=',
+    IsLessThan = '<',
+    IsLessThanOrEqual = '<=',
+    EndsWith = 'endswith',
+    IsOnOrAfter = 'date>=',
+    IsOnOrBefore = 'date<=',
+    IsInList = 'is_in_list',
+    IsNotInList = 'is_not_in_list',
+    ListElementContains = 'list_element_contains',
+    NoListElementContains = 'no_list_element_contains',
+    KeyValueMatches = 'key_value_matches',
+    KeyValueNotMatches = 'key_value_not_matches',
+    KeyValueContains = 'key_value_contains',
+    KeyValueNotContains = 'key_value_not_contains',
+    KeyValueIsGreaterThan = 'key_value_>',
+    KeyValueIsGreaterThanOrEqual = 'key_value_>=',
+    KeyValueIsLessThan = 'key_value_<',
+    KeyValueIsLessThanOrEqual = 'key_value_<=',
+    KeyValueIsNumericallyEqual = 'key_value_===',
+    KeyValueIsNumericallyNotEqual = 'key_value_!==',
+    BooleanEquals = 'boolean_equals',
+    BooleanNotEquals = 'boolean_not_equals',
+    ContainsKey = 'contains_key',
+    NotContainsKey = 'not_contains_key'
+}
+
+/**
+ * Defines all filter expressions that are supported by the query builder.
+ */
+export enum SlFilterExpressions {
+    EqualsString = '{0} = "{1}"',
+    NotEqualsString = '{0} != "{1}"',
+    Contains = '{0}.Contains("{1}")',
+    NotContains = '!{0}.Contains("{1}")',
+    StartsWith = '{0}.StartsWith("{1}")',
+    IsEmpty = 'string.IsNullOrEmpty({0})',
+    IsNotEmpty = '!string.IsNullOrEmpty({0})',
+    DateTimeIsEmpty = '({0} = null || {0} = "")',
+    DateTimeIsNotEmpty = '!({0} = null || {0} = "")',
+    IsGreaterThan = '{0} > "{1}"',
+    IsGreaterThanOrEqual = '{0} >= "{1}"',
+    IsLessThan = '{0} < "{1}"',
+    IsLessThanOrEqual = '{0} <= "{1}"',
+    KeyValueMatches = '{0}["{1}"] = "{2}"',
+    KeyValueNotMatches = '{0}["{1}"] != "{2}"',
+    EndsWith = '{0}.EndsWith("{1}")',
+    KeyValueContains = '{0}["{1}"].Contains("{2}")',
+    KeyValueNotContains = '!{0}["{1}"].Contains("{2}")',
+    KeyValueIsGreaterThan = 'SafeConvert.ToDecimal({0}["{1}"]) > {2}',
+    KeyValueIsGreaterThanOrEqual = 'SafeConvert.ToDecimal({0}["{1}"]) >= {2}',
+    KeyValueIsLessThan = 'SafeConvert.ToDecimal({0}["{1}"]) < {2}',
+    KeyValueIsLessThanOrEqual = 'SafeConvert.ToDecimal({0}["{1}"]) <= {2}',
+    KeyValueIsNumericallyEqual = 'SafeConvert.ToDecimal({0}["{1}"]) = {2}',
+    KeyValueIsNumericallyNotEqual = 'SafeConvert.ToDecimal({0}["{1}"]) != {2}',
+    NoListElementContains = '!{0}.Any(element => element.Contains("{1}"))',
+    ListElementContains = '{0}.Any(element => element.Contains("{1}"))',
+    Equals = '{0}.Equals({1})',
+    NotEquals = '!{0}.Equals({1})',
+    IsAfter = 'DateTime({0}) > DateTime.parse("{1}")',
+    IsOnOrAfter = 'DateTime({0}) >= DateTime.parse("{1}")',
+    IsBefore = 'DateTime({0}) < DateTime.parse("{1}")',
+    IsOnOrBefore = 'DateTime({0}) <= DateTime.parse("{1}")',
+    ContainsKey = '{0}.ContainsKey("{1}")',
+    NotContainsKey = '!{0}.ContainsKey("{1}")'
+}
+
+export const customOperations: QueryBuilderCustomOperation[] = [
+    // Regular field expressions
+    {
+        label: 'Equals',
+        name: '=',
+        expressionTemplate: '{0} = "{1}"',
+    },
+    {
+        label: 'Does not equal',
+        name: '<>',
+        expressionTemplate: '{0} != "{1}"',
+    },
+    {
+        label: 'Starts with',
+        name: 'startswith',
+        expressionTemplate: '{0}.StartsWith("{1}")',
+    },
+    {
+        label: 'Ends with',
+        name: 'endswith',
+        expressionTemplate: '{0}.EndsWith("{1}")',
+    },
+    {
+        label: 'Contains',
+        name: 'contains',
+        expressionTemplate: '{0}.Contains("{1}")',
+    },
+    {
+        label: 'Does not contain',
+        name: 'notcontains',
+        expressionTemplate: '!({0}.Contains("{1}"))',
+    },
+    {
+        label: 'Is blank',
+        name: 'isblank',
+        expressionTemplate: 'string.IsNullOrEmpty({0})',
+        hideValue: true,
+    },
+    {
+        label: 'Is not blank',
+        name: 'isnotblank',
+        expressionTemplate: '!string.IsNullOrEmpty({0})',
+        hideValue: true,
+    },
+    {
+        label: 'Greater than',
+        name: '>',
+        expressionTemplate: '{0} > "{1}"',
+    },
+    {
+        label: 'Greater than or equal to',
+        name: '>=',
+        expressionTemplate: '{0} >= "{1}"',
+    },
+    {
+        label: 'Less than',
+        name: '<',
+        expressionTemplate: '{0} < "{1}"',
+    },
+    {
+        label: 'Less than or equal to',
+        name: '<=',
+        expressionTemplate: '{0} <= "{1}"',
+    },
+    // List expressions
+    {
+        label: 'Equals',
+        name: 'listequals',
+        expressionTemplate: '{0}.Contains("{1}")',
+    },
+    {
+        label: 'Does not equal',
+        name: 'listnotequals',
+        expressionTemplate: '!({0}.Contains("{1}"))',
+    },
+    {
+        label: 'Contains',
+        name: 'listcontains',
+        expressionTemplate: '{0}.Any(it.Contains("{1}"))',
+    },
+    {
+        label: 'Does not contain',
+        name: 'listnotcontains',
+        expressionTemplate: '{0}.Any(!it.Contains("{1}"))',
+    },
+    // Properties expressions
+    {
+        label: 'Equals',
+        name: 'propertyequals',
+        expressionTemplate: 'properties["{0}"] = "{1}"',
+    },
+    {
+        label: 'Does not equal',
+        name: 'propertynotequals',
+        expressionTemplate: 'properties["{0}"] != "{1}"',
+    },
+    {
+        label: 'Starts with',
+        name: 'propertystartswith',
+        expressionTemplate: 'properties["{0}"].StartsWith("{1}")',
+    },
+    {
+        label: 'Ends with',
+        name: 'propertyendswith',
+        expressionTemplate: 'properties["{0}"].EndsWith("{1}")',
+    },
+    {
+        label: 'Contains',
+        name: 'propertycontains',
+        expressionTemplate: 'properties["{0}"].Contains("{1}")',
+    },
+    {
+        label: 'Does not contains',
+        name: 'propertynotcontains',
+        expressionTemplate: '!(properties["{0}"].Contains("{1}"))',
+    },
+    {
+        label: 'Is blank',
+        name: 'propertyisblank',
+        expressionTemplate: 'string.IsNullOrEmpty(properties["{0}"])',
+        hideValue: true,
+    },
+    {
+        label: 'Is not blank',
+        name: 'propertyisnotblank',
+        expressionTemplate: '!string.IsNullOrEmpty(properties["{0}"])',
+        hideValue: true,
+    },
+    {
+        label: `matches`,
+        name: SlFilterOperations.KeyValueMatches,
+        expressionTemplate: SlFilterExpressions.KeyValueMatches,
+        editorTemplate: KeyValueOperationTemplate.editorTemplate,
+        valueTemplate: KeyValueOperationTemplate.valueTemplate,
+        handleValue: KeyValueOperationTemplate.handleStringValue,
+        expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
+        expressionReaderCallback: KeyValueOperationTemplate.stringKeyValueExpressionReaderCallback,
+        validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValuePair
+    },
+    {
+        label: `does not match`,
+        name: SlFilterOperations.KeyValueNotMatches,
+        expressionTemplate: SlFilterExpressions.KeyValueNotMatches,
+        editorTemplate: KeyValueOperationTemplate.editorTemplate,
+        valueTemplate: KeyValueOperationTemplate.valueTemplate,
+        handleValue: KeyValueOperationTemplate.handleStringValue,
+        expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
+        expressionReaderCallback: KeyValueOperationTemplate.stringKeyValueExpressionReaderCallback,
+        validateValue: KeyValueOperationTemplate.validateNotEmptyKey
+    },
+    {
+        label: `does not contain`,
+        name: SlFilterOperations.KeyValueNotContains,
+        expressionTemplate: SlFilterExpressions.KeyValueNotContains,
+        editorTemplate: KeyValueOperationTemplate.editorTemplate,
+        valueTemplate: KeyValueOperationTemplate.valueTemplate,
+        handleValue: KeyValueOperationTemplate.handleStringValue,
+        expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
+        expressionReaderCallback: KeyValueOperationTemplate.stringKeyValueExpressionReaderCallback,
+        validateValue: KeyValueOperationTemplate.validateNotEmptyKey
+    },
+    {
+        label: `contains`,
+        name: SlFilterOperations.KeyValueContains,
+        expressionTemplate: SlFilterExpressions.KeyValueContains,
+        editorTemplate: KeyValueOperationTemplate.editorTemplate,
+        valueTemplate: KeyValueOperationTemplate.valueTemplate,
+        handleValue: KeyValueOperationTemplate.handleStringValue,
+        expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
+        expressionReaderCallback: KeyValueOperationTemplate.stringKeyValueExpressionReaderCallback,
+        validateValue: KeyValueOperationTemplate.validateNotEmptyKey
+    }
+];
+
+export const getDynamicField = () => ({
+    filterOperations: [
+        'propertyequals',
+        'propertynotequals',
+        'propertystartswith',
+        'propertyendswith',
+        'propertycontains',
+        'propertynotcontains',
+        'propertyisblank',
+        'propertyisnotblank',
+        'key_value_matches',
+    ],
+});
+
+export const messages = {
+    en: {
+        propertyUnknownType: "'' property is with undefined 'type' member!",
+        propertyInvalidValue: "Invalid '!",
+        propertyInvalidValueType: "Invalid '!",
+        elementNotInDOM: 'Element does not exist in DOM! Please, add the element to the DOM, before invoking a method.',
+        moduleUndefined: 'Module is undefined.',
+        missingReference: '.',
+        htmlTemplateNotSuported: ": Browser doesn't support HTMLTemplate elements.",
+        invalidTemplate: "' property accepts a string that must match the id of an HTMLTemplate element from the DOM.",
+        add: 'Add',
+        addCondition: 'Add Condition',
+        addGroup: 'Add Group',
+        and: 'And',
+        notand: 'Not And',
+        or: 'Or',
+        notor: 'Not Or',
+        '=': 'Equals',
+        '<>': 'Does not equal',
+        '>': 'Greater than',
+        '>=': 'Greater than or equal to',
+        '<': 'Less than',
+        '<=': 'Less than or equal to',
+        startswith: 'Starts with',
+        endswith: 'Ends with',
+        contains: 'Contains',
+        notcontains: 'Does not contain',
+        isblank: 'Is blank',
+        isnotblank: 'Is not blank',
+        wrongParentGroupIndex: "' method.",
+        missingFields:
+            ': Fields are required for proper condition\'s adding. Set "fields" source and then conditions will be added as expected.',
+        wrongElementNode: "' method.",
+        invalidDataStructure: ': Used invalid data structure in updateCondition/updateGroup method.',
+        dateTabLabel: 'DATE',
+        timeTabLabel: 'TIME',
+        queryLabel: '',
+    },
+};

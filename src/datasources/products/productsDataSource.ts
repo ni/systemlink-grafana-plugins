@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { ProductsQuery, QueryProductResponse, MetaData, ProductsVariableQuery } from './types';
+import { ProductsQuery, QueryProductResponse, MetaData, ProductsVariableQuery, MetaDataOptions } from './types';
 
 export class productsDataSource extends DataSourceBase<ProductsQuery> {
   constructor(
@@ -21,6 +21,7 @@ export class productsDataSource extends DataSourceBase<ProductsQuery> {
     queryBy: '',
     recordCount: 1000,
     orderBy: '',
+    metaData: [MetaDataOptions.ID, MetaDataOptions.PART_NUMBER,MetaDataOptions.NAME, MetaDataOptions.FAMILY, MetaDataOptions.UPDATEDAT, MetaDataOptions.WORKSPACE] as MetaData[]
   };
 
   async getWorkspaceNames(): Promise<{label:string, value:string}[]> {
@@ -59,21 +60,18 @@ export class productsDataSource extends DataSourceBase<ProductsQuery> {
   };
 
   async runQuery(query: ProductsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    const filter = [
-      query.partNumber ? `partNumber = (\"${query.partNumber}\")` : '',
-      query.family ? `family = (\"${query.family}\")` : '',
-      query.workspace ? `workspace = (\"${query.workspace}\")` : '',
-    ].filter(Boolean).join(' && ');
-
-    if (!query.queryBy && (query.partNumber || query.family || query.workspace)) {
-      const variableReplacedFilter = getTemplateSrv().replace(filter, options.scopedVars)
-      const responseData = (await this.queryProducts(variableReplacedFilter, query.orderBy, query.metaData!, query.recordCount, query.descending, false)).products;
+    if (!query.queryBy) {
+      const variableReplacedFilter = getTemplateSrv().replace(query.queryBy, options.scopedVars)
+      const responseData = (await this.queryProducts(variableReplacedFilter, query.orderBy, query.metaData, query.recordCount, query.descending, false)).products;
       
       const filteredFields = query.metaData?.filter((field: MetaData) => Object.keys(responseData[0]).includes(field)) || [];
 
       const fields = filteredFields.map((field) => {
         const fieldType = field === MetaData.updatedAt ? FieldType.time : FieldType.string;
         const values = responseData.map(m => m[field]);
+        if (field === MetaDataOptions.PROPERTIES) {
+          return { name: field, values: values.map(v => v.StatusName), type: FieldType.string };
+        }
         return { name: field, values, type: fieldType };
       });
       
@@ -82,9 +80,7 @@ export class productsDataSource extends DataSourceBase<ProductsQuery> {
         fields: fields,
       };
     } else {
-        const queryByFilter = filter && query.queryBy ? `${filter} && ${query.queryBy}` : filter || query.queryBy;
-        const variableReplacedFilter = getTemplateSrv().replace(queryByFilter, options.scopedVars)
-        const responseData = (await this.queryProducts( variableReplacedFilter, query.orderBy, query.metaData!, query.recordCount, query.descending, false)).products;
+        const responseData = (await this.queryProducts( query.queryBy, query.orderBy, query.metaData!, query.recordCount, query.descending, false)).products;
        
         const filteredFields = query.metaData?.filter((field: MetaData) => Object.keys(responseData[0]).includes(field)) || [];
         const fields = filteredFields.map((field) => {{

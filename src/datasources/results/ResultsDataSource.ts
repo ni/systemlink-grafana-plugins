@@ -2,6 +2,7 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, 
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { OutputType, QueryResultsHttpResponse, QueryStepsHttpResponse, ResultsQuery as TestResultsQuery, ResultsQueryType, ResultsVariableQuery, ResultsMetaData, QueryDataTablesHttpResponse, DataTablesMetaData } from './types';
+import { MetaData } from 'datasources/products/types';
 
 export class TestResultsDataSource extends DataSourceBase<TestResultsQuery> {
   constructor(
@@ -100,9 +101,14 @@ export class TestResultsDataSource extends DataSourceBase<TestResultsQuery> {
 
           const filteredFields = query.metadata?.filter((field: ResultsMetaData) => Object.keys(response[0]).includes(field)) || [];
 
+          const status = response.map(result => result['status']?.statusType);
+
           const fields = filteredFields.map((field) => {
             const fieldType = field === ResultsMetaData.updated ? FieldType.time : FieldType.string;
             const values = response.map(m => m[field]);
+            if (field === ResultsMetaData.status.toLowerCase()) {
+              return { name: field, values: status.flat(), type: FieldType.string };
+            }
             return { name: field, values, type: fieldType };
           });
 
