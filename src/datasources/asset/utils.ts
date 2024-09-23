@@ -5,8 +5,11 @@ import {
   IntervalWithHeartbeat,
   Weekday,
   AssetUtilizationTiming,
+  TimeSeriesUtilization,
+  TimeSeriesUtilizationWithAlias,
 } from "./types";
 import { minuteInSeconds } from "./constants";
+import { FieldDTO } from "@grafana/data";
 
 export const extractTimestampsFromData = (history: AssetUtilizationHistory[]): Array<IntervalWithHeartbeat<number>> => {
   return history.map((item) => {
@@ -74,7 +77,6 @@ export const groupDataByIntervals = (
 ): Array<{ day: Date, interval: IntervalsWithPeakFlag<Date>, overlapsWith: Date[][] }> => {
   let overlaps = [];
 
-  // filter intervals from first to now
   businessIntervals = businessIntervals.filter(interval => (
     interval.endTimestamp >= new Date(utilizationIntervals[0].endTimestamp) && interval.endTimestamp <= new Date()
   ))
@@ -85,9 +87,7 @@ export const groupDataByIntervals = (
       let businessIntervalEnd = new Date(businessInterval["endTimestamp"]);
       let utilizationIntervalStart = new Date(utilizationInterval['startTimestamp']);
       let utilizationIntervalEnd = new Date(utilizationInterval["endTimestamp"]);
-      // Check for overlap
       if (businessIntervalStart < utilizationIntervalEnd && utilizationIntervalStart < businessIntervalEnd) {
-        // Overlapping interval found
         let overlapStart = businessIntervalStart > utilizationIntervalStart ? businessIntervalStart : utilizationIntervalStart;
         let overlapEnd = businessIntervalEnd < utilizationIntervalEnd ? businessIntervalEnd : utilizationIntervalEnd;
         overlappingSegments.push([overlapStart, overlapEnd]);
@@ -166,7 +166,6 @@ export const patchZeroPoints = (
       patchedData.push({ day: currentDate, utilization: 0 })
     }
   }
-  // add last value
   patchedData.push(data[data.length - 1]);
 
   return patchedData;
@@ -225,8 +224,6 @@ export const divideTimeRangeToBusinessIntervals = (
           endTimestamp: currentDayPeakStart,
           isWorking: false
         });
-        // is same
-        // currentDayPeakStart = new Date(currentDayPeakStart)
       } else if (currentDayPeakStart <= rangeStart && rangeStart < currentDayNonPeakStart) {
         intervals.push({
           startTimestamp: rangeStart,
@@ -265,8 +262,6 @@ export const divideTimeRangeToBusinessIntervals = (
           endTimestamp: currentDayPeakStart,
           isWorking: false
         });
-        // is same
-        // currentDayPeakStart = new Date(currentDayPeakStart)
       } else {
         intervals.push({
           startTimestamp: rangeStart,
@@ -291,7 +286,6 @@ export const divideTimeRangeToBusinessIntervals = (
   }
   let start = new Date(currentDayPeakStart);
 
-  // the equal sign is necessary for beautiful last point of graph
   while (rangeEnd >= start) {
     const dayOfWeek = start.getDay();
     const isWeekend = !peakDays.includes(dayOfWeek);
@@ -366,4 +360,33 @@ export const assetUtilizationHistoryFactory = (history: AssetUtilizationTiming[]
     }),
     continuationToken: ''
   }
+}
+
+export const prepareFields = (data: TimeSeriesUtilizationWithAlias[]) => {
+  const fields: FieldDTO[] = []
+  fields.push(
+    { name: 'time', values: data[0].datetimes }
+  )
+  data.forEach((value, index, array) => {
+    fields.push({
+      name: value.id,
+      values: value.values,
+      config: {
+        displayName: value.alias,
+        unit: '%',
+        min: 0,
+        max: 100
+      }
+    })
+  })
+
+  return fields
+}
+
+export const buildEntityFilterString = (utilizationArray: TimeSeriesUtilization[], idField: string, workspaceId?: string): string => {
+  const idsArray = utilizationArray.map(data => data.id);
+  const filterArr: string[] = idsArray.map((id) => `${idField} == "${id}"`);
+  return workspaceId
+    ? `(${filterArr.join(' or ')}) and workspace = "${workspaceId}"`
+    : filterArr.join(' or ');
 }

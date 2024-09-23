@@ -1,6 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-
 exports[`query metadata run 1`] = `
 [
   {
@@ -8,53 +7,41 @@ exports[`query metadata run 1`] = `
       {
         "name": "id",
         "values": [
-          "7f6d0d74-bc75-4d78-9edd-00c253b3a0de",
-          "71fbef61-fae6-4364-82d4-29feb79c7146",
-          "cf1ac843-06a2-4713-ab43-f9d1d8dfdc32",
-          "456e8812-1da4-4818-afab-f0cd34f74567",
+          "cc87e897-79e2-4cbf-9655-1b145d78a306",
+          "a4fac9f7-2637-4014-b727-cc50dd30113e",
         ],
       },
       {
         "name": "name",
         "values": [
-          "NI-sbRIO-9629-01FE20D1",
-          "Conn0_AI",
-          "Conn0_AO",
-          "Conn0_DIO0-3",
+          "cDAQ1Mod1",
+          "cDAQ9189-1DCDB90_FHMMod4",
         ],
       },
       {
         "name": "model name",
         "values": [
-          "sbRIO-9629",
-          "AI 0-15",
-          "AO 0-3",
-          "DIO 0-3",
+          "NI 9236",
+          "NI 9234",
         ],
       },
       {
         "name": "serial number",
         "values": [
-          "01FE20D1",
-          "01FE20D1",
-          "01FE20D1",
-          "01FE20D1",
+          "01860492",
+          "01851A95",
         ],
       },
       {
         "name": "bus type",
         "values": [
-          "BUILT_IN_SYSTEM",
-          "CRIO",
-          "CRIO",
-          "CRIO",
+          "CDAQ",
+          "CDAQ",
         ],
       },
       {
         "name": "asset type",
         "values": [
-          "SYSTEM",
-          "GENERIC",
           "GENERIC",
           "GENERIC",
         ],
@@ -64,24 +51,18 @@ exports[`query metadata run 1`] = `
         "values": [
           true,
           true,
-          true,
-          true,
         ],
       },
       {
         "name": "calibration status",
         "values": [
           "OK",
-          "OK",
-          "OK",
-          "OK",
+          "PAST_RECOMMENDED_DUE_DATE",
         ],
       },
       {
         "name": "is system controller",
         "values": [
-          true,
-          false,
           false,
           false,
         ],
@@ -89,36 +70,28 @@ exports[`query metadata run 1`] = `
       {
         "name": "last updated timestamp",
         "values": [
-          "2024-02-21T12:54:20.069Z",
-          "2024-02-21T12:54:20.072Z",
-          "2024-02-21T12:54:20.076Z",
-          "2024-02-21T12:54:20.078Z",
+          "2023-12-28T15:25:39.77Z",
+          "2024-05-07T11:52:47.71Z",
         ],
       },
       {
         "name": "minionId",
         "values": [
-          "NI_sbRIO-9629--SN-01FE20D1--MAC-00-80-2F-33-30-18",
-          "NI_sbRIO-9629--SN-01FE20D1--MAC-00-80-2F-33-30-18",
-          "NI_sbRIO-9629--SN-01FE20D1--MAC-00-80-2F-33-30-18",
-          "NI_sbRIO-9629--SN-01FE20D1--MAC-00-80-2F-33-30-18",
+          "System_Product_Name--SN-System_Serial_Number--MAC-40-B0-76-44-7F-26",
+          "System_Product_Name--SN-System_Serial_Number--MAC-50-EB-F6-B5-9D-5A",
         ],
       },
       {
         "name": "parent name",
         "values": [
-          "",
-          "sbRIO1",
-          "sbRIO1",
-          "sbRIO1",
+          "cDAQ1",
+          "cDAQ9189-1DCDB90_FHM",
         ],
       },
       {
         "name": "workspace",
         "values": [
-          "e73fcd94-649b-4d0a-b164-bf647a5d0946",
-          "e73fcd94-649b-4d0a-b164-bf647a5d0946",
-          "e73fcd94-649b-4d0a-b164-bf647a5d0946",
+          "eb9a089b-053d-4a8c-9596-70093a42df9b",
           "e73fcd94-649b-4d0a-b164-bf647a5d0946",
         ],
       },
@@ -128,7 +101,7 @@ exports[`query metadata run 1`] = `
 ]
 `;
 
-exports[`query utilization GMT+4 from 9 to 17 and weekday are peak 1`] = `
+exports[`query utilization GMT+4 asset from 9 to 17 and weekday are peak 1`] = `
 [
   {
     "fields": [
@@ -170,6 +143,118 @@ exports[`query utilization GMT+4 from 9 to 17 and weekday are peak 1`] = `
           62.039239583333334,
           66.97873611111112,
           6.594555555555556,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`query utilization GMT+4 asset whole day and weekday are peak 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "time",
+        "values": [
+          1702324800000,
+          1702411200000,
+          1702497600000,
+          1702584000000,
+          1702670400000,
+          1702756800000,
+          1702843200000,
+          1702929600000,
+          1703016000000,
+          1703102400000,
+          1703188800000,
+          1703275200000,
+        ],
+      },
+      {
+        "config": {
+          "displayName": "cDAQ9189-1DCDB90_FHMMod4",
+          "max": 100,
+          "min": 0,
+          "unit": "%",
+        },
+        "name": "a4fac9f7-2637-4014-b727-cc50dd30113e",
+        "values": [
+          3.160158564814815,
+          11.521769675925926,
+          26.34704398148148,
+          5.7563912037037035,
+          0,
+          0,
+          0,
+          23.63362037037037,
+          100,
+          100,
+          100,
+          100,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`query utilization GMT+4 asset not utilized 1`] = `
+[
+  {
+    "fields": [],
+    "refId": "A",
+  },
+]
+`;
+
+
+
+
+exports[`query utilization GMT+4 sys controller whole day and weekday are peak 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "time",
+        "values": [
+          1702324800000,
+          1702411200000,
+          1702497600000,
+          1702584000000,
+          1702670400000,
+          1702756800000,
+          1702843200000,
+          1702929600000,
+          1703016000000,
+          1703102400000,
+          1703188800000,
+          1703275200000,
+        ],
+      },
+      {
+        "config": {
+          "displayName": "DESKTOP-NS7K9UR",
+          "max": 100,
+          "min": 0,
+          "unit": "%",
+        },
+        "name": "System_Product_Name--SN-System_Serial_Number--MAC-50-EB-F6-B5-9D-5A",
+        "values": [
+          23.01695023148148,
+          23.437622685185186,
+          19.099909722222222,
+          22.885886574074075,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
         ],
       },
     ],

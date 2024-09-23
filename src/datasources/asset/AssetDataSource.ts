@@ -18,18 +18,19 @@ import {
   AssetUtilizationHistoryResponse,
   AssetUtilizationOrderBy,
   AssetUtilizationQuery,
-  EntityType, Interval,
-  QueryAssetUtilizationHistoryRequest, ServicePolicyModel,
+  EntityType, TimeSeriesUtilization, TimeSeriesUtilizationWithAlias,
+  QueryAssetUtilizationHistoryRequest, ServicePolicyModel, TimestampedUtilization,
 } from './types';
 import { getWorkspaceName, replaceVariables } from "../../core/utils";
 import { SystemMetadata } from "../system/types";
 import { defaultOrderBy, defaultProjection } from "../system/constants";
 import {
+  buildEntityFilterString,
   calculateUtilization,
   divideTimeRangeToBusinessIntervals, extractTimestampsFromData,
   filterDataByTimeRange, groupDataByIntervals,
   mergeOverlappingIntervals,
-  patchMissingEndTimestamps, patchZeroPoints
+  patchMissingEndTimestamps, patchZeroPoints, prepareFields
 } from "./utils";
 import { peakDays } from "./constants";
 
@@ -55,15 +56,15 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
   async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     switch (query.type) {
       case AssetQueryType.Metadata:
-        return await this.processMetadataQuery(query as AssetMetadataQuery);
+        return await this.handleMetadataQuery(query as AssetMetadataQuery);
       case AssetQueryType.Utilization:
-        return await this.processUtilizationQuery(query as AssetUtilizationQuery, options);
+        return await this.handleUtilizationQuery(query as AssetUtilizationQuery, options);
       default:
         throw new Error(`Unknown query type: ${query.type}`);
     }
   }
 
-  async processMetadataQuery(query: AssetMetadataQuery) {
+  async handleMetadataQuery(query: AssetMetadataQuery) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
     const minionIds = replaceVariables(query.minionIds, this.templateSrv);
     let workspaceId = this.templateSrv.replace(query.workspace);
@@ -96,197 +97,176 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     return result;
   }
 
-  async processUtilizationQuery(query: AssetUtilizationQuery, options: DataQueryRequest) {
+  async handleUtilizationQuery(query: AssetUtilizationQuery, options: DataQueryRequest) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
     let workspaceId = this.templateSrv.replace(query.workspace);
-    // fetch and process utilization raw data for chosen assets/systems
-    const utilizationArray = await this.fetchAndProcessUtilizationData(query, options);
-    if (utilizationArray.length) {
-      let utilizationArrayWithAlias: Array<{ id: string, datetimes: number[], values: number[], alias: string }>;
-      const idsArray = utilizationArray.map((data) => {
-        return data.id
-      });
-      // find and add aliases to data
-      if (query.entityType === EntityType.System) {
-        const filterArr: string[] = [];
-        idsArray.forEach((id) => {
-          filterArr.push(`id == "${id}" `);
-        });
-        const filterStr = workspaceId ? `(${filterArr.join(' or ')}) and workspace = "${workspaceId}"` : filterArr.join(' or ');
-        const systems = await this.querySystems(filterStr, defaultProjection);
-        utilizationArrayWithAlias = utilizationArray.map(df => {
-          const foundItem = systems.find((system: SystemMetadata) => system.id === df.id);
-          return { ...df, alias: foundItem?.alias ? foundItem.alias : 'System' };
-        });
-      } else {
-        const filterArr: string[] = [];
-        idsArray.forEach((id) => {
-          filterArr.push(`${AssetFilterProperties.AssetIdentifier} == "${id}"`);
-        });
-        const filterStr = workspaceId ? ` (${filterArr.join(' or ')}) and workspace = "${workspaceId}"` : filterArr.join(' or ');
-        const assetsResponse = await this.queryAssets(filterStr, -1);
-        utilizationArrayWithAlias = utilizationArray.map(df => {
-          const foundItem = assetsResponse.find((asset: AssetModel) => asset.id === df.id);
-          return { ...df, alias: foundItem ? foundItem.name : 'Asset' };
-        });
-      }
-      result.fields = [
-        { name: 'time', values: utilizationArrayWithAlias[0].datetimes },
-      ];
-      utilizationArrayWithAlias.forEach((data) => {
-        result.fields.push(
-          {
-            name: data.id,
-            values: data.values,
-            // default configuration for visualizations
-            config: {
-              displayName: data.alias,
-              unit: '%',
-              min: 0,
-              max: 100
-            }
-          }
-        );
-      })
-
-      return result;
-    } else {
-      return result;
+    const timeSeriesUtilization = await this.fetchAndProcessUtilizationData(query, options, workspaceId);
+    if (timeSeriesUtilization.length) {
+      let timeSeriesUtilizationWithAlias: TimeSeriesUtilizationWithAlias[] = await this.addAliasesToData(query.entityType, timeSeriesUtilization, workspaceId)
+      result.fields = prepareFields(timeSeriesUtilizationWithAlias);
     }
+    return result
   }
 
   shouldRunQuery(_: AssetQuery): boolean {
     return true;
   }
 
-  private async fetchAndProcessUtilizationData(query: AssetUtilizationQuery, options: DataQueryRequest): Promise<Array<{
-    id: string,
-    datetimes: number[],
-    values: number[]
-  }>> {
+  private async fetchAndProcessUtilizationData(query: AssetUtilizationQuery, options: DataQueryRequest, workspaceId: string): Promise<TimeSeriesUtilization[]> {
     const [from, to] = [options.range.from.valueOf(), options.range.to.valueOf()];
-    const workspaceId = this.templateSrv.replace(query.workspace);
-    let continuationToken = '';
-    const {
-      assetIdentifiers,
-      minionIds
-    } = query;
     const workingHoursPolicy = await this.getServicePolicy();
-    let assets: string[] = replaceVariables(assetIdentifiers, this.templateSrv);
-    let systems: string[] = replaceVariables(minionIds, this.templateSrv);
-    let entityIds: string[];
-    if (query.entityType === EntityType.Asset) {
-      entityIds = assets
-    } else {
-      entityIds = systems
-    }
-    // filter empty values
+    let entityIds = await this.getEntityIds(query, workspaceId);
+    return await this.processEntities(entityIds, query, from, to, workingHoursPolicy, options);
+  }
+
+  private async getEntityIds(query: AssetUtilizationQuery, workspaceId: string): Promise<string[]> {
+    const assets = replaceVariables(query.assetIdentifiers, this.templateSrv);
+    const systems = replaceVariables(query.minionIds, this.templateSrv);
+    let entityIds = query.entityType === EntityType.Asset ? assets : systems;
     entityIds = entityIds.filter(Boolean);
-    // retrieve the first 10 asset or system IDs to display some data, ensuring the utilization graph is not empty.
+
     if (!entityIds.length) {
       if (query.entityType === EntityType.Asset) {
-        let conditions: string[] = [];
-        if (workspaceId) {
-          conditions.push(`workspace = "${workspaceId}"`);
-        }
-        if (systems.length) {
-          const systemsCondition = systems.map(id => `${AssetFilterProperties.LocationMinionId} = "${id}"`)
-          conditions.push(`(${systemsCondition.join(' or ')})`);
-        }
-        const assetFilter = conditions.join(' and ');
-        const assetsResponse = await this.queryAssets(assetFilter, 10);
-        entityIds = assetsResponse.map((asset) => {
-          return asset.id;
-        })
+        return await this.retrieveAssetIds(workspaceId, query.minionIds);
       } else {
-        let filterString = '';
-        if (query.workspace) {
-          filterString += `workspace = "${query.workspace}"`;
-        }
-        let systemMetadata = await this.getSystems({
-          filter: filterString,
-          projection: `new(${defaultProjection.join()})`,
-          orderBy: defaultOrderBy,
-          take: 10
-        })
-        entityIds = systemMetadata.data.map((system) => {
-          return system.id;
-        })
+        return await this.retrieveSystemIds(query.workspace);
       }
     }
-    const resultArray: Array<{
-      id: string,
-      datetimes: number[],
-      values: number[]
-    }> = [];
-    for (let index = 0; index < entityIds.length; index++) {
-      let data: AssetUtilizationHistory[] = [];
-      let requestCount = 0;
-      do {
-        try {
-          let requestBody: QueryAssetUtilizationHistoryRequest = {
-            utilizationFilter: '',
-            continuationToken: continuationToken,
-            orderBy: AssetUtilizationOrderBy.START_TIMESTAMP,
-            orderByDescending: true
-          }
-          if (query.entityType === EntityType.Asset) {
-            requestBody.assetFilter = `${AssetFilterProperties.AssetIdentifier} = "${entityIds[index]}"`;
-          } else {
-            requestBody.assetFilter = `${AssetFilterProperties.LocationMinionId} = "${entityIds[index]}" and ${AssetFilterProperties.IsSystemController} = true`;
-          }
-          const response: AssetUtilizationHistoryResponse = await this.post<AssetUtilizationHistoryResponse>(this.baseUrl + '/query-asset-utilization-history', requestBody);
-          requestCount++;
-          continuationToken = response.continuationToken || '';
-          data = data.concat(response.assetUtilizations);
-        } catch (error) {
-          throw new Error(`An error occurred while retrieving utilization history: ${error}`);
-        }
-      } while (
-        continuationToken && (requestCount < 25) &&
-        //do not continue if currently out of interval range
-        options.range.from.isBefore(dateTime(data[data.length - 1].startTimestamp))
-        );
-      data.sort(
-        (a, b) =>
-          new Date(a.startTimestamp).getTime() - new Date(b.startTimestamp).getTime()
-      )
-      let dataWithoutOverlaps: Array<Interval<number>> = [];
-      if (!data.length) {
-        continue;
-      }
-      const extractedTimestamps = extractTimestampsFromData(data);
-      // Fill missing endTimestamps
-      const patchedData = patchMissingEndTimestamps(extractedTimestamps);
-      // Removes data outside the grafana 'from' and 'to' range from an array
-      const filteredData = filterDataByTimeRange(patchedData, from, to);
-      if (!filteredData.length) {
-        continue;
-      }
-      // Merge overlapping utilizations
-      dataWithoutOverlaps = mergeOverlappingIntervals(filteredData);
-      // Divide given time range to peak/non-peak intervals
-      const businessIntervals = divideTimeRangeToBusinessIntervals(new Date(from), new Date(to), {
-        startTime: workingHoursPolicy.workingHoursPolicy.startTime,
-        endTime: workingHoursPolicy.workingHoursPolicy.endTime
-      }, peakDays);
-      // Group raw utilization data by intervals
-      const overlaps = groupDataByIntervals(businessIntervals, dataWithoutOverlaps);
-      // Calculate utilization percentage by intervals
-      const utilization = calculateUtilization(overlaps);
-      // patch zero points to data for better visualisation
-      const patchedUtilization = patchZeroPoints(utilization);
+    return Promise.resolve(entityIds);
+  }
 
-      let utilizationData: { id: string, datetimes: number[], values: number[] } =
-        {
-          id: entityIds[index],
-          datetimes: patchedUtilization.map(v => dateTime(v.day).valueOf()),
-          values: patchedUtilization.map(v => v.utilization)
-        }
-      resultArray.push(utilizationData);
+  private async retrieveAssetIds(workspaceId: string, systems: string[]): Promise<string[]> {
+    let conditions: string[] = [];
+    if (workspaceId) {
+      conditions.push(`workspace = "${workspaceId}"`);
+    }
+    if (systems.length) {
+      const systemsCondition = systems.map(id => `${AssetFilterProperties.LocationMinionId} = "${id}"`);
+      conditions.push(`(${systemsCondition.join(' or ')})`);
+    }
+    const assetFilter = conditions.join(' and ');
+    const assetsResponse = await this.queryAssets(assetFilter, 10);
+    return assetsResponse.map(asset => asset.id);
+  }
+
+  private async retrieveSystemIds(workspace: string): Promise<string[]> {
+    const filterString = workspace ? `workspace = "${workspace}"` : '';
+    const systemMetadata = await this.getSystems({
+      filter: filterString,
+      projection: `new(${defaultProjection.join()})`,
+      orderBy: defaultOrderBy,
+      take: 10
+    });
+    return systemMetadata.data.map(system => system.id);
+  }
+
+  private async processEntities(entityIds: string[], query: AssetUtilizationQuery, from: number, to: number, workingHoursPolicy: ServicePolicyModel, options: DataQueryRequest): Promise<TimeSeriesUtilization[]> {
+    const timeSeriesUtilizations: TimeSeriesUtilization[] = [];
+
+    for (const entityId of entityIds) {
+      const utilizationData = await this.processEntity(entityId, query, from, to, workingHoursPolicy, options);
+      if (utilizationData) {
+        timeSeriesUtilizations.push(utilizationData);
+      }
     }
 
-    return resultArray;
+    return timeSeriesUtilizations;
+  }
+
+  private async processEntity(entityId: string, query: AssetUtilizationQuery, from: number, to: number, workingHoursPolicy: ServicePolicyModel, options: DataQueryRequest): Promise<TimeSeriesUtilization | null> {
+    let continuationToken = '';
+    let history: AssetUtilizationHistory[] = [];
+    let requestCount = 0;
+
+    do {
+      const response = await this.fetchUtilizationHistory({
+        utilizationFilter: '',
+        continuationToken,
+        orderBy: AssetUtilizationOrderBy.START_TIMESTAMP,
+        orderByDescending: true,
+        assetFilter: query.entityType === EntityType.Asset
+          ? `${AssetFilterProperties.AssetIdentifier} = "${entityId}"`
+          : `${AssetFilterProperties.LocationMinionId} = "${entityId}" and ${AssetFilterProperties.IsSystemController} = true`
+      });
+      continuationToken = response.continuationToken || '';
+      history = history.concat(response.assetUtilizations);
+      requestCount++;
+    } while (continuationToken && requestCount < 25 && options.range.from.isBefore(dateTime(history[history.length - 1].startTimestamp)));
+
+    if (!history.length) {
+      return null;
+    }
+    history.sort(
+      (a, b) =>
+        new Date(a.startTimestamp).getTime() - new Date(b.startTimestamp).getTime()
+    )
+    const timestampedUtilizations = this.filterAndProcessHistory(history, from, to, workingHoursPolicy);
+    if (!timestampedUtilizations.length) {
+      return null;
+    }
+
+    return this.prepareTimeSeriesUtilization(entityId, timestampedUtilizations);
+  }
+
+  private async fetchUtilizationHistory(requestBody: QueryAssetUtilizationHistoryRequest): Promise<AssetUtilizationHistoryResponse> {
+    try {
+      return await this.post<AssetUtilizationHistoryResponse>(this.baseUrl + '/query-asset-utilization-history', requestBody);
+    } catch (error) {
+      throw new Error(`Error retrieving utilization history: ${error}`);
+    }
+  }
+
+  private filterAndProcessHistory(data: AssetUtilizationHistory[], from: number, to: number, workingHoursPolicy: ServicePolicyModel): TimestampedUtilization[] {
+    const extractedTimestamps = extractTimestampsFromData(data);
+    const patchedData = patchMissingEndTimestamps(extractedTimestamps);
+    const filteredData = filterDataByTimeRange(patchedData, from, to);
+    if (!filteredData.length) {
+      return [];
+    }
+    const dataWithoutOverlaps = mergeOverlappingIntervals(filteredData);
+    const businessIntervals = divideTimeRangeToBusinessIntervals(new Date(from), new Date(to), {
+      startTime: workingHoursPolicy.workingHoursPolicy.startTime,
+      endTime: workingHoursPolicy.workingHoursPolicy.endTime
+    }, peakDays);
+
+    const overlaps = groupDataByIntervals(businessIntervals, dataWithoutOverlaps);
+    return patchZeroPoints(calculateUtilization(overlaps));
+  }
+
+  private prepareTimeSeriesUtilization(entityId: string, utilizationData: TimestampedUtilization[]): TimeSeriesUtilization {
+    return {
+      id: entityId,
+      datetimes: utilizationData.map(v => dateTime(v.day).valueOf()),
+      values: utilizationData.map(v => v.utilization)
+    };
+  }
+
+  async addAliasesToData(query: EntityType, utilizations: TimeSeriesUtilization[], workspaceId: string): Promise<TimeSeriesUtilizationWithAlias[]> {
+    if (query === EntityType.System) {
+      return await this.addSystemAliases(utilizations, workspaceId);
+    } else {
+      return await this.addAssetAliases(utilizations, workspaceId);
+    }
+  }
+
+  private async addSystemAliases(utilizations: TimeSeriesUtilization[], workspaceId?: string) {
+    const filterStr = buildEntityFilterString(utilizations, 'id', workspaceId);
+    const systems = await this.querySystems(filterStr, defaultProjection);
+
+    return utilizations.map(df => {
+      const foundItem = systems.find((system: SystemMetadata) => system.id === df.id);
+      return { ...df, alias: foundItem?.alias ? foundItem.alias : 'System' };
+    });
+  }
+
+  private async addAssetAliases(utilizations: TimeSeriesUtilization[], workspaceId?: string) {
+    const filterStr = buildEntityFilterString(utilizations, AssetFilterProperties.AssetIdentifier, workspaceId);
+    const assetsResponse = await this.queryAssets(filterStr, -1);
+
+    return utilizations.map(df => {
+      const foundItem = assetsResponse.find((asset: AssetModel) => asset.id === df.id);
+      return { ...df, alias: foundItem ? foundItem.name : 'Asset' };
+    });
   }
 
   async getServicePolicy(): Promise<ServicePolicyModel> {
@@ -337,4 +317,5 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     await this.get(this.baseUrl + '/assets?take=1');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
+
 }

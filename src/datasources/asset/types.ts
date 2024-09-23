@@ -204,3 +204,18 @@ export enum AssetUtilizationOrderBy {
   USER_NAME = 'USER_NAME',
   START_TIMESTAMP = 'START_TIMESTAMP',
 }
+
+export interface TimestampedUtilization {
+  day: Date,
+  utilization: number
+}
+
+export interface TimeSeriesUtilization {
+  id: string,
+  datetimes: number[],
+  values: number[]
+}
+
+export interface TimeSeriesUtilizationWithAlias extends TimeSeriesUtilization {
+  alias: string
+}
