@@ -9,12 +9,11 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import {
   AssetFilterProperties,
   AssetMetadataQuery,
-  AssetModel,
-  AssetsResponse,
 } from './types';
 import { getWorkspaceName, replaceVariables } from "../../core/utils";
 import { SystemMetadata } from "../system/types";
 import { defaultOrderBy, defaultProjection } from "../system/constants";
+import { AssetModel, AssetsResponse } from 'datasources/asset-common/types';
 
 export class AssetDataSource extends DataSourceBase<AssetMetadataQuery> {
   constructor(
