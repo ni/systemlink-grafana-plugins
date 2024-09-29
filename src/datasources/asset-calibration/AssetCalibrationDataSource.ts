@@ -14,6 +14,7 @@ import {
   AssetModel,
   AssetsResponse,
   CalibrationForecastResponse,
+  FieldDTOWithDescriptor,
 } from './types';
 import { SystemMetadata } from "../system/types";
 import { defaultOrderBy, defaultProjection } from "../system/constants";
@@ -61,6 +62,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
 
   processResultsGroupedByTime(result: DataFrameDTO) {
     result.fields.forEach(field => {
+      field.name = this.createColumnNameFromDrescriptor(field as FieldDTOWithDescriptor);
       switch (field.name) {
         case AssetCalibrationForecastKey.Day:
           field.values = field.values!.map(this.formatDateForDay)
@@ -83,11 +85,17 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     formattedFields.push({ name: "Assets", values: [] } as FieldDTO);
 
     for (let columnIndex = 0; columnIndex < result.fields.length; columnIndex++) {
-      formattedFields[0].values!.push(result.fields[columnIndex].name)
-      formattedFields[1].values!.push(result.fields[columnIndex].values?.at(0))
+      const columnName = this.createColumnNameFromDrescriptor(result.fields[columnIndex] as FieldDTOWithDescriptor);
+      const columnValue = result.fields[columnIndex].values?.at(0);
+      formattedFields[0].values!.push(columnName);
+      formattedFields[1].values!.push(columnValue);
     }
 
     result.fields = formattedFields;
+  }
+
+  createColumnNameFromDrescriptor(field: FieldDTOWithDescriptor): string {
+    return field.columnDescriptors.map(descriptor => descriptor.value).join(' - ');
   }
 
   formatDateForDay(date: string): string {

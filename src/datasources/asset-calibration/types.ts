@@ -141,5 +141,21 @@ export enum AssetFilterProperties {
 }
 
 export interface CalibrationForecastModel {
-  columns: FieldDTO[],
+  columns: FieldDTOWithDescriptor[],
+}
+
+export interface FieldDTOWithDescriptor extends FieldDTO {
+  columnDescriptors: ColumnDescriptor[]
+}
+
+export interface ColumnDescriptor {
+  value: string
+  type: string
+}
+
+export enum ColumnDescriptorType {
+  Time = "Time",
+  Count = "Count",
+  StringValue = "StringValue",
+  MinionId = "MinionId",
 }
