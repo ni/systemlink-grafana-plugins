@@ -5,14 +5,26 @@ exports[`queries asset calibration forecast with day groupBy 1`] = `
   {
     "fields": [
       {
-        "name": "Week",
+        "columnDescriptors": [
+          {
+            "type": "Time",
+            "value": "Day",
+          },
+        ],
+        "name": "Day",
         "values": [
-          "2022-01-03 : 2022-01-09",
-          "2022-01-10 : 2022-01-16",
-          "2022-01-17 : 2022-01-23",
+          "2022-01-01",
+          "2022-01-02",
+          "2022-01-03",
         ],
       },
       {
+        "columnDescriptors": [
+          {
+            "type": "Count",
+            "value": "Assets",
+          },
+        ],
         "name": "Assets",
         "values": [
           1,
@@ -31,6 +43,12 @@ exports[`queries asset calibration forecast with month groupBy 1`] = `
   {
     "fields": [
       {
+        "columnDescriptors": [
+          {
+            "type": "Time",
+            "value": "Month",
+          },
+        ],
         "name": "Month",
         "values": [
           "January 2022",
@@ -39,6 +57,12 @@ exports[`queries asset calibration forecast with month groupBy 1`] = `
         ],
       },
       {
+        "columnDescriptors": [
+          {
+            "type": "Count",
+            "value": "Assets",
+          },
+        ],
         "name": "Assets",
         "values": [
           1,
@@ -57,14 +81,26 @@ exports[`queries asset calibration forecast with week groupBy 1`] = `
   {
     "fields": [
       {
-        "name": "Day",
+        "columnDescriptors": [
+          {
+            "type": "Time",
+            "value": "Week",
+          },
+        ],
+        "name": "Week",
         "values": [
-          "2022-01-01",
-          "2022-01-02",
-          "2022-01-03",
+          "2022-01-03 : 2022-01-09",
+          "2022-01-10 : 2022-01-16",
+          "2022-01-17 : 2022-01-23",
         ],
       },
       {
+        "columnDescriptors": [
+          {
+            "type": "Count",
+            "value": "Assets",
+          },
+        ],
         "name": "Assets",
         "values": [
           1,
@@ -111,8 +147,8 @@ exports[`queries calibration forecast with model and location groupBy 1`] = `
       {
         "name": "Group",
         "values": [
-          "Model1 - Localtion1",
-          "Model2 - Localtion1",
+          "Model1 - Location1",
+          "Model2 - Location1",
         ],
       },
       {
@@ -157,6 +193,12 @@ exports[`queries calibration forecast with month and location groupBy 1`] = `
   {
     "fields": [
       {
+        "columnDescriptors": [
+          {
+            "type": "Time",
+            "value": "Month",
+          },
+        ],
         "name": "Month",
         "values": [
           "January 2022",
@@ -165,6 +207,12 @@ exports[`queries calibration forecast with month and location groupBy 1`] = `
         ],
       },
       {
+        "columnDescriptors": [
+          {
+            "type": "StringValue",
+            "value": "Location1",
+          },
+        ],
         "name": "Location1",
         "values": [
           1,
@@ -173,6 +221,12 @@ exports[`queries calibration forecast with month and location groupBy 1`] = `
         ],
       },
       {
+        "columnDescriptors": [
+          {
+            "type": "StringValue",
+            "value": "Location2",
+          },
+        ],
         "name": "Location2",
         "values": [
           2,
@@ -181,6 +235,12 @@ exports[`queries calibration forecast with month and location groupBy 1`] = `
         ],
       },
       {
+        "columnDescriptors": [
+          {
+            "type": "StringValue",
+            "value": "Location3",
+          },
+        ],
         "name": "Location3",
         "values": [
           4,

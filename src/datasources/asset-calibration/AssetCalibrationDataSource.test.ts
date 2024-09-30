@@ -13,6 +13,7 @@ import {
   AssetCalibrationQuery,
   AssetCalibrationTimeBasedGroupByType,
   CalibrationForecastResponse,
+  ColumnDescriptorType,
 } from "./types";
 
 let datastore: AssetCalibrationDataSource, backendServer: MockProxy<BackendSrv>
@@ -23,83 +24,83 @@ beforeEach(() => {
 
 const monthGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
 {
-    calibrationForecast: {
-        columns: [
-            { name: "Month", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"] },
-            { name: "Assets", values: [1, 0, 3] },
-        ]
-    }
-}
-
-const weekGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
-{
-    calibrationForecast: {
-        columns: [
-            { name: "Day", values: ["2022-01-01T00:00:00.0000000Z", "2022-01-02T00:00:00.0000000Z", "2022-01-03T00:00:00.0000000Z"] },
-            { name: "Assets", values: [1, 2, 2] },
-        ]
-    }
+  calibrationForecast: {
+    columns: [
+      { name: "", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"], columnDescriptors: [{ value: "Month", type: ColumnDescriptorType.Time }] },
+      { name: "", values: [1, 0, 3], columnDescriptors: [{ value: "Assets", type: ColumnDescriptorType.Count }] }
+    ]
+  }
 }
 
 const dayGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
 {
-    calibrationForecast: {
-        columns: [
-            { name: "Week", values: ["2022-01-03T00:00:00.0000000Z", "2022-01-10T00:00:00.0000000Z", "2022-01-17T00:00:00.0000000Z"] },
-            { name: "Assets", values: [1, 2, 2] },
-        ]
-    }
+  calibrationForecast: {
+    columns: [
+      { name: "", values: ["2022-01-01T00:00:00.0000000Z", "2022-01-02T00:00:00.0000000Z", "2022-01-03T00:00:00.0000000Z"], columnDescriptors: [{ value: "Day", type: ColumnDescriptorType.Time }] },
+      { name: "", values: [1, 2, 2], columnDescriptors: [{ value: "Assets", type: ColumnDescriptorType.Count }] }
+    ]
+  }
+}
+
+const weekGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
+{
+  calibrationForecast: {
+    columns: [
+      { name: "", values: ["2022-01-03T00:00:00.0000000Z", "2022-01-10T00:00:00.0000000Z", "2022-01-17T00:00:00.0000000Z"], columnDescriptors: [{ value: "Week", type: ColumnDescriptorType.Time }] },
+      { name: "", values: [1, 2, 2], columnDescriptors: [{ value: "Assets", type: ColumnDescriptorType.Count }] }
+    ]
+  }
 }
 
 const locationGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
 {
-    calibrationForecast: {
-        columns: [
-          { name: "Location1", values: [1] },
-          { name: "Location2", values: [2] },
-          { name: "Location3", values: [3] },
-        ]
-    }
+  calibrationForecast: {
+    columns: [
+      { name: "", values: [1], columnDescriptors: [{ value: "Location1", type: ColumnDescriptorType.StringValue }] },
+      { name: "", values: [2], columnDescriptors: [{ value: "Location2", type: ColumnDescriptorType.StringValue }] },
+      { name: "", values: [3], columnDescriptors: [{ value: "Location3", type: ColumnDescriptorType.StringValue }] }
+    ]
+  }
 }
 
 const modelGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
 {
-    calibrationForecast: {
-        columns: [
-          { name: "Model1", values: [1] },
-          { name: "Model2", values: [2] },
-        ]
-    }
+  calibrationForecast: {
+    columns: [
+      { name: "", values: [1], columnDescriptors: [{ value: "Model1", type: ColumnDescriptorType.StringValue }] },
+      { name: "", values: [2], columnDescriptors: [{ value: "Model2", type: ColumnDescriptorType.StringValue }] }
+    ]
+  }
 }
 
 const emptyGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
 {
-    calibrationForecast: {
-        columns: [
-        ]
-    }
+  calibrationForecast: {
+    columns: [
+    ]
+  }
 }
 
 const modelLocationGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
 {
-    calibrationForecast: {
-        columns: [
-          { name: "Model1 - Localtion1", values: [1] },
-          { name: "Model2 - Localtion1", values: [2] },
-        ]
-    }
+  calibrationForecast: {
+    columns: [
+      { name: "", values: [1], columnDescriptors: [{ value: "Model1", type: ColumnDescriptorType.StringValue }, { value: "Location1", type: ColumnDescriptorType.StringValue }] },
+      { name: "", values: [2], columnDescriptors: [{ value: "Model2", type: ColumnDescriptorType.StringValue }, { value: "Location1", type: ColumnDescriptorType.StringValue }] }
+    ]
+  }
 }
 
 const monthLocationGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
 {
-    calibrationForecast: {
-        columns: [
-            { name: "Month", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"] },
-            { name: "Location1", values: [1, 2, 3] },
-            { name: "Location2", values: [2, 4, 1] },
-            { name: "Location3", values: [4, 3, 1] },
-        ]
-    }
+  calibrationForecast: {
+    columns: [
+      { name: "", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"], columnDescriptors: [{ value: "Month", type: ColumnDescriptorType.Time }] },
+      { name: "", values: [1, 2, 3], columnDescriptors: [{ value: "Location1", type: ColumnDescriptorType.StringValue }] },
+      { name: "", values: [2, 4, 1], columnDescriptors: [{ value: "Location2", type: ColumnDescriptorType.StringValue }] },
+      { name: "", values: [4, 3, 1], columnDescriptors: [{ value: "Location3", type: ColumnDescriptorType.StringValue }] }
+    ]
+  }
 }
 
 const monthBasedCalibrationForecastQueryMock: AssetCalibrationQuery = {
