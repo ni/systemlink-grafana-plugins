@@ -1,5 +1,4 @@
-## [3.14.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.13.0...v3.14.0) (2024-09-19)
-
+## [3.14.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.13.0...v3.14.0) (2024-09-24)
 
 ### Features
 
