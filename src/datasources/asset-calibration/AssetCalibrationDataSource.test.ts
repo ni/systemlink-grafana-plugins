@@ -85,8 +85,8 @@ const modelLocationGroupCalibrationForecastResponseMock: CalibrationForecastResp
 {
   calibrationForecast: {
     columns: [
-      { name: "", values: [1], columnDescriptors: [{ value: "Model1", type: ColumnDescriptorType.StringValue }, { value: "Localtion1", type: ColumnDescriptorType.StringValue }] },
-      { name: "", values: [2], columnDescriptors: [{ value: "Model2", type: ColumnDescriptorType.StringValue }, { value: "Localtion1", type: ColumnDescriptorType.StringValue }] }
+      { name: "", values: [1], columnDescriptors: [{ value: "Model1", type: ColumnDescriptorType.StringValue }, { value: "Location1", type: ColumnDescriptorType.StringValue }] },
+      { name: "", values: [2], columnDescriptors: [{ value: "Model2", type: ColumnDescriptorType.StringValue }, { value: "Location1", type: ColumnDescriptorType.StringValue }] }
     ]
   }
 }
