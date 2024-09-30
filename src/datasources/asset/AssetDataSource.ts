@@ -3,12 +3,13 @@ import {
   DataQueryRequest,
   DataSourceInstanceSettings,
   TestDataSourceResponse,
+  MetricFindValue,
 } from '@grafana/data';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
   AssetFilterProperties,
-  AssetMetadataQuery,
+  AssetQuery,
   AssetModel,
   AssetsResponse,
 } from './types';
@@ -16,7 +17,7 @@ import { getWorkspaceName, replaceVariables } from "../../core/utils";
 import { SystemMetadata } from "../system/types";
 import { defaultOrderBy, defaultProjection } from "../system/constants";
 
-export class AssetDataSource extends DataSourceBase<AssetMetadataQuery> {
+export class AssetDataSource extends DataSourceBase<AssetQuery> {
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
@@ -33,11 +34,11 @@ export class AssetDataSource extends DataSourceBase<AssetMetadataQuery> {
     groupBy: []
   };
 
-  async runQuery(query: AssetMetadataQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    return this.processMetadataQuery(query as AssetMetadataQuery);
+  async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    return this.processMetadataQuery(query as AssetQuery);
   }
 
-  async processMetadataQuery(query: AssetMetadataQuery) {
+  async processMetadataQuery(query: AssetQuery) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
     const minionIds = replaceVariables(query.minionIds, this.templateSrv);
     let workspaceId = this.templateSrv.replace(query.workspace);
@@ -70,7 +71,7 @@ export class AssetDataSource extends DataSourceBase<AssetMetadataQuery> {
     return result;
   }
 
-  shouldRunQuery(_: AssetMetadataQuery): boolean {
+  shouldRunQuery(_: AssetQuery): boolean {
     return true;
   }
 
@@ -96,6 +97,22 @@ export class AssetDataSource extends DataSourceBase<AssetMetadataQuery> {
     } catch (error) {
       throw new Error(`An error occurred while querying systems: ${error}`);
     }
+  }
+
+  async metricFindQuery({ minionIds, workspace }: AssetQuery): Promise<MetricFindValue[]> {
+    const conditions = [];
+    if (minionIds?.length) {
+      minionIds = replaceVariables(minionIds, this.templateSrv);
+      const systemsCondition = minionIds.map(id => `${AssetFilterProperties.LocationMinionId} = "${id}"`);
+      conditions.push(`(${systemsCondition.join(' or ')})`);
+    }
+    workspace = this.templateSrv.replace(workspace);
+    if (workspace) {
+      conditions.push(`workspace = "${workspace}"`);
+    }
+    const assetFilter = conditions.join(' and ');
+    const assetsResponse: AssetModel[] = await this.queryAssets(assetFilter, 1000);
+    return assetsResponse.map((asset: AssetModel) => ({ text: asset.name, value: asset.id }));
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
