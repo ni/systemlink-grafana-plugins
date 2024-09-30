@@ -150,7 +150,7 @@ export interface FieldDTOWithDescriptor extends FieldDTO {
 
 export interface ColumnDescriptor {
   value: string
-  type: string
+  type: ColumnDescriptorType
 }
 
 export enum ColumnDescriptorType {
