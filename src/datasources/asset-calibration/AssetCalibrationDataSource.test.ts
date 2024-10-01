@@ -217,6 +217,7 @@ describe('queries', () => {
       .mockReturnValue(createFetchResponse(locationGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery(locationBasedCalibrationForecastQueryMock))
+
     expect(result.data).toMatchSnapshot()
   })
 

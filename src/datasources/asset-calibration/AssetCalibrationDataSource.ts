@@ -108,7 +108,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     return field.columnDescriptors.map(descriptor => {
       if (descriptor.type === ColumnDescriptorType.MinionId && this.state.systems) {
           const system = this.state.systems.find(system => system.id === descriptor.value);
-          console.log(system)
+
           return system?.alias || descriptor.value
       }
       return descriptor.value
