@@ -15,11 +15,13 @@ import {
   CalibrationForecastResponse,
   ColumnDescriptorType,
 } from "./types";
+import { SystemMetadata } from "datasources/system/types";
 
 let datastore: AssetCalibrationDataSource, backendServer: MockProxy<BackendSrv>
 
 beforeEach(() => {
   [datastore, backendServer] = setupDataSource(AssetCalibrationDataSource);
+  datastore.state.systems = fakeSystems as SystemMetadata[];
 });
 
 const monthGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
@@ -56,9 +58,9 @@ const locationGroupCalibrationForecastResponseMock: CalibrationForecastResponse 
 {
   calibrationForecast: {
     columns: [
-      { name: "", values: [1], columnDescriptors: [{ value: "Location1", type: ColumnDescriptorType.StringValue }] },
-      { name: "", values: [2], columnDescriptors: [{ value: "Location2", type: ColumnDescriptorType.StringValue }] },
-      { name: "", values: [3], columnDescriptors: [{ value: "Location3", type: ColumnDescriptorType.StringValue }] }
+      { name: "", values: [1], columnDescriptors: [{ value: "Location1", type: ColumnDescriptorType.MinionId }] },
+      { name: "", values: [2], columnDescriptors: [{ value: "Location2", type: ColumnDescriptorType.MinionId }] },
+      { name: "", values: [3], columnDescriptors: [{ value: "Location3", type: ColumnDescriptorType.MinionId }] }
     ]
   }
 }
@@ -143,6 +145,21 @@ const buildCalibrationForecastQuery = getQueryBuilder<AssetCalibrationQuery>()({
   groupBy: []
 });
 
+const fakeSystems: SystemMetadata[] = [
+  {
+    id: 'Location1',
+    alias: 'my system',
+    state: 'CONNECTED',
+    workspace: '1',
+  },
+  {
+    id: 'Location2',
+    alias: 'Cool system 😎',
+    state: 'DISCONNECTED',
+    workspace: '2',
+  },
+];
+
 describe('testDatasource', () => {
   test('returns success', async () => {
     backendServer.fetch
@@ -200,7 +217,6 @@ describe('queries', () => {
       .mockReturnValue(createFetchResponse(locationGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery(locationBasedCalibrationForecastQueryMock))
-
     expect(result.data).toMatchSnapshot()
   })
 
