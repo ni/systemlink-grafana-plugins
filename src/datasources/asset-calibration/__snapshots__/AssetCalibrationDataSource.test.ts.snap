@@ -121,8 +121,8 @@ exports[`queries calibration forecast with location groupBy 1`] = `
       {
         "name": "Group",
         "values": [
-          "Location1",
-          "Location2",
+          "my system",
+          "Cool system 😎",
           "Location3",
         ],
       },
