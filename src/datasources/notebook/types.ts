@@ -46,6 +46,8 @@ export interface Execution {
   status: 'QUEUED' | 'IN_PROGRESS' | 'FAILED' | 'SUCCEEDED' | 'CANCELED' | 'TIMED_OUT';
   result: any;
   cachedResult: boolean;
+  exception: string | undefined;
+  errorCode: "NO_ERROR" | "NOTEBOOK_ERROR" | "NOTEBOOK_TIMEOUT_ERROR" | "NOTEBOOK_NOT_FOUND_ERROR" | "NOTEBOOK_RESULT_TOO_BIG_ERROR" | "NOT_PUBLISHED_ERROR" | "OUT_OF_MEMORY_ERROR" | "UNKNOWN_ERROR" | undefined;
 }
 
 export enum ExecutionPriority {
