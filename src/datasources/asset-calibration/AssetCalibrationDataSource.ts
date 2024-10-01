@@ -30,8 +30,8 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     super(instanceSettings, backendSrv, templateSrv);
 
     this.querySystems().then(
-      systems => this.state.systems = systems
-    ).catch( _ => { return;});
+      systems => this.state.systems = new Map(systems.map(system => [system.id, system]))
+    ).catch( _ => { return; });
   }
 
   defaultQuery = {
@@ -107,9 +107,9 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
   createColumnNameFromDescriptor(field: FieldDTOWithDescriptor): string {
     return field.columnDescriptors.map(descriptor => {
       if (descriptor.type === ColumnDescriptorType.MinionId && this.state.systems) {
-          const system = this.state.systems.find(system => system.id === descriptor.value);
+        const system = this.state.systems.get(descriptor.value);
 
-          return system?.alias || descriptor.value
+        return system?.alias || descriptor.value
       }
       return descriptor.value
     }).join(' - ');

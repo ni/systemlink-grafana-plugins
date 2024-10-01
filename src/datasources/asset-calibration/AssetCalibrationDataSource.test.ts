@@ -21,7 +21,7 @@ let datastore: AssetCalibrationDataSource, backendServer: MockProxy<BackendSrv>
 
 beforeEach(() => {
   [datastore, backendServer] = setupDataSource(AssetCalibrationDataSource);
-  datastore.state.systems = fakeSystems as SystemMetadata[];
+  datastore.state.systems = new Map(fakeSystems.map(system => [system.id, system]))
 });
 
 const monthGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
