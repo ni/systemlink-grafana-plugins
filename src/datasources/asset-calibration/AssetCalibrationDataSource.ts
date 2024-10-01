@@ -8,12 +8,14 @@ import {
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
+  AssetCalibrationDataSourceState,
   AssetCalibrationForecastKey,
   AssetCalibrationQuery,
   AssetCalibrationTimeBasedGroupByType,
   AssetModel,
   AssetsResponse,
   CalibrationForecastResponse,
+  ColumnDescriptorType,
   FieldDTOWithDescriptor,
 } from './types';
 import { SystemMetadata } from "../system/types";
@@ -26,6 +28,15 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+
+    this.querySystems().then(
+      systems => {
+        this.state.systems = {
+          loading: false,
+          value: systems
+        }
+      }
+    )
   }
 
   defaultQuery = {
@@ -33,6 +44,13 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
   };
 
   baseUrl = this.instanceSettings.url + '/niapm/v1';
+
+  state: AssetCalibrationDataSourceState = {
+    systems: {
+      loading: true,
+      value: null
+    }
+  }
 
   async runQuery(query: AssetCalibrationQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     return await this.processCalibrationForecastQuery(query as AssetCalibrationQuery, options);
@@ -95,7 +113,13 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
   }
 
   createColumnNameFromDescriptor(field: FieldDTOWithDescriptor): string {
-    return field.columnDescriptors.map(descriptor => descriptor.value).join(' - ');
+    return field.columnDescriptors.map(descriptor => {
+      if (descriptor.type === ColumnDescriptorType.MinionId && !this.state.systems.loading) {
+          const system = this.state.systems.value!.find( system => system.id === descriptor.value);
+          return system?.alias || descriptor.value
+      }
+      return descriptor.value
+    }).join(' - ');
   }
 
   formatDateForDay(date: string): string {

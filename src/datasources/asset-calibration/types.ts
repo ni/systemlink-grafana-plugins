@@ -1,5 +1,6 @@
 import { FieldDTO } from '@grafana/data';
 import { DataQuery } from '@grafana/schema'
+import { SystemMetadata } from 'datasources/system/types';
 
 export interface AssetCalibrationQuery extends DataQuery {
   groupBy: string[];
@@ -139,6 +140,13 @@ export enum AssetFilterProperties {
   ExternalCalibrationOperatorDisplayName = 'ExternalCalibration.Operator.DisplayName',
   IsSystemController = 'IsSystemController'
 }
+
+export interface AssetCalibrationDataSourceState {
+  systems: {
+    loading: boolean,
+    value: SystemMetadata[] | null
+  }
+};
 
 export interface CalibrationForecastModel {
   columns: FieldDTOWithDescriptor[],
