@@ -121,9 +121,61 @@ exports[`queries calibration forecast with location groupBy 1`] = `
       {
         "name": "Group",
         "values": [
-          "my system",
+          "Location1",
           "Location2",
           "Location3",
+        ],
+      },
+      {
+        "name": "Assets",
+        "values": [
+          1,
+          2,
+          3,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries calibration forecast with location groupBy 2`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "Group",
+        "values": [
+          "Location1",
+          "Location2",
+          "Location3",
+        ],
+      },
+      {
+        "name": "Assets",
+        "values": [
+          1,
+          2,
+          3,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries calibration forecast with minion ID location groupBy 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "Group",
+        "values": [
+          "Minion1-alias",
+          "Minion2",
+          "Minion3",
         ],
       },
       {

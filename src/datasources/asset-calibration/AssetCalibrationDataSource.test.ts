@@ -58,12 +58,24 @@ const locationGroupCalibrationForecastResponseMock: CalibrationForecastResponse 
 {
   calibrationForecast: {
     columns: [
-      { name: "", values: [1], columnDescriptors: [{ value: "Location1", type: ColumnDescriptorType.MinionId }] },
-      { name: "", values: [2], columnDescriptors: [{ value: "Location2", type: ColumnDescriptorType.MinionId }] },
-      { name: "", values: [3], columnDescriptors: [{ value: "Location3", type: ColumnDescriptorType.MinionId }] }
+      { name: "", values: [1], columnDescriptors: [{ value: "Location1", type: ColumnDescriptorType.StringValue }] },
+      { name: "", values: [2], columnDescriptors: [{ value: "Location2", type: ColumnDescriptorType.StringValue }] },
+      { name: "", values: [3], columnDescriptors: [{ value: "Location3", type: ColumnDescriptorType.StringValue }] }
     ]
   }
 }
+
+const minionIdLocationGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
+{
+  calibrationForecast: {
+    columns: [
+      { name: "", values: [1], columnDescriptors: [{ value: "Minion1", type: ColumnDescriptorType.MinionId }] },
+      { name: "", values: [2], columnDescriptors: [{ value: "Minion2", type: ColumnDescriptorType.MinionId }] },
+      { name: "", values: [3], columnDescriptors: [{ value: "Minion3", type: ColumnDescriptorType.MinionId }] }
+    ]
+  }
+}
+
 
 const modelGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
 {
@@ -147,13 +159,13 @@ const buildCalibrationForecastQuery = getQueryBuilder<AssetCalibrationQuery>()({
 
 const fakeSystems: SystemMetadata[] = [
   {
-    id: 'Location1',
-    alias: 'my system',
+    id: 'Minion1',
+    alias: 'Minion1-alias',
     state: 'CONNECTED',
     workspace: '1',
   },
   {
-    id: 'Location2',
+    id: 'Minion2',
     alias: undefined,
     state: 'DISCONNECTED',
     workspace: '2',
@@ -215,6 +227,16 @@ describe('queries', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(locationGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+
+    const result = await datastore.query(buildCalibrationForecastQuery(locationBasedCalibrationForecastQueryMock))
+
+    expect(result.data).toMatchSnapshot()
+  })
+
+  test('calibration forecast with minion ID location groupBy', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(minionIdLocationGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery(locationBasedCalibrationForecastQueryMock))
 
