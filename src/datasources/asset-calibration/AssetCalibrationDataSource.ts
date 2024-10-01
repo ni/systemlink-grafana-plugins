@@ -47,6 +47,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
   async runQuery(query: AssetCalibrationQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     return await this.processCalibrationForecastQuery(query as AssetCalibrationQuery, options);
   }
+
   async processCalibrationForecastQuery(query: AssetCalibrationQuery, options: DataQueryRequest) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
     const from = options.range!.from.toISOString();
