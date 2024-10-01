@@ -142,10 +142,7 @@ export enum AssetFilterProperties {
 }
 
 export interface AssetCalibrationDataSourceState {
-  systems: {
-    loading: boolean,
-    value: SystemMetadata[] | null
-  }
+  systems: SystemMetadata[] | null
 };
 
 export interface CalibrationForecastModel {

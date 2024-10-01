@@ -31,10 +31,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
 
     this.querySystems().then(
       systems => {
-        this.state.systems = {
-          loading: false,
-          value: systems
-        }
+        this.state.systems = systems
       }
     )
   }
@@ -46,10 +43,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
   baseUrl = this.instanceSettings.url + '/niapm/v1';
 
   state: AssetCalibrationDataSourceState = {
-    systems: {
-      loading: true,
-      value: null
-    }
+    systems: null
   }
 
   async runQuery(query: AssetCalibrationQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
@@ -114,8 +108,8 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
 
   createColumnNameFromDescriptor(field: FieldDTOWithDescriptor): string {
     return field.columnDescriptors.map(descriptor => {
-      if (descriptor.type === ColumnDescriptorType.MinionId && !this.state.systems.loading) {
-          const system = this.state.systems.value!.find( system => system.id === descriptor.value);
+      if (descriptor.type === ColumnDescriptorType.MinionId && this.state.systems) {
+          const system = this.state.systems.find(system => system.id === descriptor.value);
           return system?.alias || descriptor.value
       }
       return descriptor.value
