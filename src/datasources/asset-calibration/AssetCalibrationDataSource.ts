@@ -106,7 +106,6 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
 
   createColumnNameFromDescriptor(field: FieldDTOWithDescriptor): string {
     return field.columnDescriptors.map(descriptor => {
-      console.log(this.state.systems)
       if (descriptor.type === ColumnDescriptorType.MinionId && this.state.systems) {
           const system = this.state.systems.find(system => system.id === descriptor.value);
           console.log(system)

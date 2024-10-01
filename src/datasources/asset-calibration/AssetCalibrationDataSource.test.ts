@@ -154,7 +154,7 @@ const fakeSystems: SystemMetadata[] = [
   },
   {
     id: 'Location2',
-    alias: 'Cool system 😎',
+    alias: undefined,
     state: 'DISCONNECTED',
     workspace: '2',
   },
