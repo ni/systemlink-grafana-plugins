@@ -1,3 +1,10 @@
+## [3.14.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.14.0...v3.14.1) (2024-10-02)
+
+
+### Bug Fixes
+
+* **notebook:** More specific error in query inspector ([#72](https://github.com/ni/systemlink-grafana-plugins/issues/72)) ([90bb8e9](https://github.com/ni/systemlink-grafana-plugins/commit/90bb8e9055fdfac08aa9c7b153d20c83ae7be903))
+
 ## [3.14.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.13.0...v3.14.0) (2024-09-24)
 
 
