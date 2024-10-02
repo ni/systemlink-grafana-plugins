@@ -11,38 +11,43 @@ import {
   AssetCalibrationForecastKey,
   AssetCalibrationQuery,
   AssetCalibrationTimeBasedGroupByType,
-  AssetModel,
-  AssetsResponse,
   CalibrationForecastResponse,
   FieldDTOWithDescriptor,
 } from './types';
-import { SystemMetadata } from "../system/types";
-import { defaultOrderBy, defaultProjection } from "../system/constants";
+import { transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { AssetComputedDataFields } from './constants';
+import { AssetModel, AssetsResponse } from 'datasources/asset-common/types';
 
 export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQuery> {
+  public defaultQuery = {
+    groupBy: [],
+    filter: ''
+  };
+
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
-    readonly templateSrv: TemplateSrv = getTemplateSrv()
+    readonly templateSrv: TemplateSrv = getTemplateSrv(),
   ) {
     super(instanceSettings, backendSrv, templateSrv);
   }
 
-  defaultQuery = {
-    groupBy: [],
-  };
-
   baseUrl = this.instanceSettings.url + '/niapm/v1';
 
   async runQuery(query: AssetCalibrationQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    if (query.filter) {
+      query.filter = this.templateSrv.replace(transformComputedFieldsQuery(query.filter, AssetComputedDataFields), options.scopedVars);
+    }
+
     return await this.processCalibrationForecastQuery(query as AssetCalibrationQuery, options);
   }
+
   async processCalibrationForecastQuery(query: AssetCalibrationQuery, options: DataQueryRequest) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
     const from = options.range!.from.toISOString();
     const to = options.range!.to.toISOString();
 
-    const calibrationForecastResponse: CalibrationForecastResponse = await this.queryCalibrationForecast(query.groupBy, from, to);
+    const calibrationForecastResponse: CalibrationForecastResponse = await this.queryCalibrationForecast(query.groupBy, from, to, query.filter);
 
     result.fields = calibrationForecastResponse.calibrationForecast.columns || [];
     if (this.isGroupByTime(query)) {
@@ -134,20 +139,6 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
       return response;
     } catch (error) {
       throw new Error(`An error occurred while querying assets calibration forecast: ${error}`);
-    }
-  }
-
-  async querySystems(filter = '', projection = defaultProjection): Promise<SystemMetadata[]> {
-    try {
-      let response = await this.getSystems({
-        filter: filter,
-        projection: `new(${projection.join()})`,
-        orderBy: defaultOrderBy,
-      })
-
-      return response.data;
-    } catch (error) {
-      throw new Error(`An error occurred while querying systems: ${error}`);
     }
   }
 

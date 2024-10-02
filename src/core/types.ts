@@ -32,3 +32,8 @@ export interface SystemLinkError {
     name: string;
   }
 }
+
+export interface QueryBuilderOption {
+  label: string;
+  value: string;
+}
