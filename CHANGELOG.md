@@ -1,3 +1,10 @@
+## [3.15.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.14.1...v3.15.0) (2024-10-02)
+
+
+### Features
+
+* **asset:** Added calibration forecast query builder ([#69](https://github.com/ni/systemlink-grafana-plugins/issues/69)) ([99f2fff](https://github.com/ni/systemlink-grafana-plugins/commit/99f2fff82c10c8567b3056d8035712a0e4c309d6))
+
 ## [3.14.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.14.0...v3.14.1) (2024-10-02)
 
 
