@@ -159,8 +159,8 @@ export interface ColumnDescriptor {
 }
 
 export enum ColumnDescriptorType {
-  Time = "Time",
-  Count = "Count",
-  StringValue = "StringValue",
-  MinionId = "MinionId",
+  Time = "TIME",
+  Count = "COUNT",
+  StringValue = "STRING_VALUE",
+  MinionId = "MINION_ID",
 }

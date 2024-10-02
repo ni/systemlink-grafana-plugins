@@ -7,7 +7,7 @@ exports[`queries asset calibration forecast with day groupBy 1`] = `
       {
         "columnDescriptors": [
           {
-            "type": "Time",
+            "type": "TIME",
             "value": "Day",
           },
         ],
@@ -21,7 +21,7 @@ exports[`queries asset calibration forecast with day groupBy 1`] = `
       {
         "columnDescriptors": [
           {
-            "type": "Count",
+            "type": "COUNT",
             "value": "Assets",
           },
         ],
@@ -45,7 +45,7 @@ exports[`queries asset calibration forecast with month groupBy 1`] = `
       {
         "columnDescriptors": [
           {
-            "type": "Time",
+            "type": "TIME",
             "value": "Month",
           },
         ],
@@ -59,7 +59,7 @@ exports[`queries asset calibration forecast with month groupBy 1`] = `
       {
         "columnDescriptors": [
           {
-            "type": "Count",
+            "type": "COUNT",
             "value": "Assets",
           },
         ],
@@ -83,7 +83,7 @@ exports[`queries asset calibration forecast with week groupBy 1`] = `
       {
         "columnDescriptors": [
           {
-            "type": "Time",
+            "type": "TIME",
             "value": "Week",
           },
         ],
@@ -97,7 +97,7 @@ exports[`queries asset calibration forecast with week groupBy 1`] = `
       {
         "columnDescriptors": [
           {
-            "type": "Count",
+            "type": "COUNT",
             "value": "Assets",
           },
         ],
@@ -221,7 +221,7 @@ exports[`queries calibration forecast with month and location groupBy 1`] = `
       {
         "columnDescriptors": [
           {
-            "type": "Time",
+            "type": "TIME",
             "value": "Month",
           },
         ],
@@ -235,7 +235,7 @@ exports[`queries calibration forecast with month and location groupBy 1`] = `
       {
         "columnDescriptors": [
           {
-            "type": "StringValue",
+            "type": "STRING_VALUE",
             "value": "Location1",
           },
         ],
@@ -249,7 +249,7 @@ exports[`queries calibration forecast with month and location groupBy 1`] = `
       {
         "columnDescriptors": [
           {
-            "type": "StringValue",
+            "type": "STRING_VALUE",
             "value": "Location2",
           },
         ],
@@ -263,7 +263,7 @@ exports[`queries calibration forecast with month and location groupBy 1`] = `
       {
         "columnDescriptors": [
           {
-            "type": "StringValue",
+            "type": "STRING_VALUE",
             "value": "Location3",
           },
         ],
