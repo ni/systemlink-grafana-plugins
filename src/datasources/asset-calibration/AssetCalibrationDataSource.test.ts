@@ -21,7 +21,10 @@ let datastore: AssetCalibrationDataSource, backendServer: MockProxy<BackendSrv>
 
 beforeEach(() => {
   [datastore, backendServer] = setupDataSource(AssetCalibrationDataSource);
-  datastore.state.systems = new Map(fakeSystems.map(system => [system.id, system]))
+
+  backendServer.fetch
+    .calledWith(requestMatching({ url: '/nisysmgmt/v1/query-systems' }))
+    .mockReturnValue(createFetchResponse({ data: fakeSystems }));
 });
 
 const monthGroupCalibrationForecastResponseMock: CalibrationForecastResponse =

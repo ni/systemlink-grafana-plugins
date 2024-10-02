@@ -28,10 +28,6 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
-
-    this.querySystems().then(
-      systems => this.state.systems = new Map(systems.map(system => [system.id, system]))
-    ).catch( _ => { return; });
   }
 
   defaultQuery = {
@@ -45,6 +41,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
   }
 
   async runQuery(query: AssetCalibrationQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    await this.loadSystems();
     return await this.processCalibrationForecastQuery(query as AssetCalibrationQuery, options);
   }
 
@@ -164,6 +161,19 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
       })
 
       return response.data;
+    } catch (error) {
+      throw new Error(`An error occurred while querying systems: ${error}`);
+    }
+  }
+
+  private async loadSystems(): Promise<void> {
+    if (this.state.systems) {
+      return;
+    }
+
+    try {
+      const systems = await this.querySystems('', ['id', 'alias','connected.data.state', 'workspace']);
+      this.state.systems = new Map(systems.map(system => [system.id, system]))
     } catch (error) {
       throw new Error(`An error occurred while querying systems: ${error}`);
     }
