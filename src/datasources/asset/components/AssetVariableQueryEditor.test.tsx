@@ -1,12 +1,10 @@
-import { AssetDataSource } from "../AssetDataSource"
-import { setupRenderer } from "test/fixtures"
-import { AssetQuery } from "../types"
-import { screen, waitFor, waitForElementToBeRemoved } from "@testing-library/react"
-import { AssetQueryEditor } from "./AssetQueryEditor"
-import { select } from "react-select-event";
+import { setupRenderer } from "../../../test/fixtures";
+import { AssetDataSource } from "../AssetDataSource";
+import { screen, waitFor, waitForElementToBeRemoved } from "@testing-library/react";
+import { select } from 'react-select-event';
 import { SystemMetadata } from "../../system/types";
+import { AssetVariableQueryEditor } from "./AssetVariableQueryEditor";
 import { fakeSystems } from "../test/fakeSystems";
-
 
 class FakeAssetDataSource extends AssetDataSource {
   querySystems(filter?: string, projection?: string[]): Promise<SystemMetadata[]> {
@@ -14,19 +12,20 @@ class FakeAssetDataSource extends AssetDataSource {
   }
 }
 
-const render = setupRenderer(AssetQueryEditor, FakeAssetDataSource);
+const render = setupRenderer(AssetVariableQueryEditor, FakeAssetDataSource);
 const workspacesLoaded = () => waitForElementToBeRemoved(screen.getByTestId('Spinner'));
 
-it('renders with query defaults', async () => {
-  render({} as AssetQuery)
-  await workspacesLoaded()
+
+test('default render', async () => {
+  render({ minionIds: [], workspace: "" });
+  await workspacesLoaded();
 
   expect(screen.getAllByRole('combobox')[0]).toHaveAccessibleDescription('Any workspace');
-  expect(screen.getAllByRole('combobox')[1]).toHaveAccessibleDescription('Select systems');
+  expect(screen.getAllByRole('combobox')[1]).toHaveAccessibleDescription('Select system');
 })
 
-it('renders with initial query and updates when user makes changes', async () => {
-  const [onChange] = render({ minionIds: ['1'], workspace: '2' } as AssetQuery);
+test('renders with initial query and updates when user makes changes', async () => {
+  const [onChange] = render({ workspace: '2', minionIds: ['1'] });
   await workspacesLoaded();
 
   // Renders saved query
@@ -55,4 +54,4 @@ it('renders with initial query and updates when user makes changes', async () =>
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ minionIds: ['2', '$test_var'] }));
   });
-});
+})

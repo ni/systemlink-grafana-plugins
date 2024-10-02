@@ -9,7 +9,7 @@ import {
 } from "test/fixtures";
 import { AssetDataSource } from "./AssetDataSource";
 import {
-  AssetMetadataQuery,
+  AssetQuery,
   AssetPresenceWithSystemConnectionModel,
   AssetsResponse,
 } from "./types";
@@ -208,13 +208,13 @@ const assetsResponseMock: AssetsResponse =
 }
 
 
-const assetMetadataQueryMock: AssetMetadataQuery = {
+const assetQueryMock: AssetQuery = {
   workspace: '',
   refId: '',
   minionIds: ['123']
 }
 
-const buildMetadataQuery = getQueryBuilder<AssetMetadataQuery>()({
+const buildMetadataQuery = getQueryBuilder<AssetQuery>()({
   workspace: '',
   minionIds: [],
 });
@@ -245,7 +245,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
       .mockReturnValue(createFetchResponse(assetsResponseMock as AssetsResponse))
 
-    const result = await ds.query(buildMetadataQuery(assetMetadataQueryMock))
+    const result = await ds.query(buildMetadataQuery(assetQueryMock))
 
     expect(result.data).toMatchSnapshot()
   })
@@ -255,6 +255,6 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
       .mockReturnValue(createFetchError(418))
 
-    await expect(ds.query(buildMetadataQuery(assetMetadataQueryMock))).rejects.toThrow()
+    await expect(ds.query(buildMetadataQuery(assetQueryMock))).rejects.toThrow()
   })
 })

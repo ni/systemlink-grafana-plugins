@@ -1,7 +1,7 @@
 import { FieldDTO } from '@grafana/data'
 import { DataQuery } from '@grafana/schema'
 
-export interface AssetMetadataQuery extends DataQuery {
+export interface AssetQuery extends DataQuery {
   workspace: string,
   minionIds: string[]
 }
