@@ -76,7 +76,7 @@ export class DataSource extends DataSourceApi<NotebookQuery, NotebookDataSourceO
           throw new Error('The output for the notebook does not match the expected SystemLink format.');
         }
       } else {
-        throw new Error('The notebook failed to execute.');
+        throw new Error(`Notebook execution failed with status: ${execution.status} and error code: ${execution.errorCode}. Exception: ${execution.exception}.`);
       }
     }
 
