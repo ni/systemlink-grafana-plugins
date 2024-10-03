@@ -1,3 +1,10 @@
+## [3.16.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.15.0...v3.16.0) (2024-10-03)
+
+
+### Features
+
+* **asset:** resolve minion id ([#73](https://github.com/ni/systemlink-grafana-plugins/issues/73)) ([75972dd](https://github.com/ni/systemlink-grafana-plugins/commit/75972dda72cb6370032a130a1c3d59cf2bc53ecf))
+
 ## [3.15.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.14.1...v3.15.0) (2024-10-02)
 
 
