@@ -12,11 +12,16 @@ import {
   AssetCalibrationQuery,
   AssetCalibrationTimeBasedGroupByType,
   CalibrationForecastResponse,
+  ColumnDescriptorType,
   FieldDTOWithDescriptor,
 } from './types';
 import { transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { AssetComputedDataFields } from './constants';
 import { AssetModel, AssetsResponse } from 'datasources/asset-common/types';
+import TTLCache from '@isaacs/ttlcache';
+import { metadataCacheTTL } from 'datasources/data-frame/constants';
+import { SystemMetadata } from 'datasources/system/types';
+import { defaultOrderBy, defaultProjection } from 'datasources/system/constants';
 
 export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQuery> {
   public defaultQuery = {
@@ -34,7 +39,11 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
 
   baseUrl = this.instanceSettings.url + '/niapm/v1';
 
+  systemAliasCache: TTLCache<string, SystemMetadata> = new TTLCache<string, SystemMetadata>({ ttl: metadataCacheTTL });
+
   async runQuery(query: AssetCalibrationQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    await this.loadSystems();
+
     if (query.filter) {
       query.filter = this.templateSrv.replace(transformComputedFieldsQuery(query.filter, AssetComputedDataFields), options.scopedVars);
     }
@@ -100,7 +109,14 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
   }
 
   createColumnNameFromDescriptor(field: FieldDTOWithDescriptor): string {
-    return field.columnDescriptors.map(descriptor => descriptor.value).join(' - ');
+    return field.columnDescriptors.map(descriptor => {
+      if (descriptor.type === ColumnDescriptorType.MinionId && this.systemAliasCache) {
+        const system = this.systemAliasCache.get(descriptor.value);
+
+        return system?.alias || descriptor.value
+      }
+      return descriptor.value
+    }).join(' - ');
   }
 
   formatDateForDay(date: string): string {
@@ -140,6 +156,29 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     } catch (error) {
       throw new Error(`An error occurred while querying assets calibration forecast: ${error}`);
     }
+  }
+
+  async querySystems(filter = '', projection = defaultProjection): Promise<SystemMetadata[]> {
+    try {
+      let response = await this.getSystems({
+        filter: filter,
+        projection: `new(${projection.join()})`,
+        orderBy: defaultOrderBy,
+      })
+
+      return response.data;
+    } catch (error) {
+      throw new Error(`An error occurred while querying systems: ${error}`);
+    }
+  }
+
+  private async loadSystems(): Promise<void> {
+    if (this.systemAliasCache.size > 0) {
+      return;
+    }
+
+    const systems = await this.querySystems('', ['id', 'alias','connected.data.state', 'workspace']);
+    systems.forEach(system => this.systemAliasCache.set(system.id, system));
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

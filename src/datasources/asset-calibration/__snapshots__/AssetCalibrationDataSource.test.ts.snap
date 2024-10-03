@@ -140,6 +140,32 @@ exports[`queries calibration forecast with location groupBy 1`] = `
 ]
 `;
 
+exports[`queries calibration forecast with minion ID location groupBy 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "Group",
+        "values": [
+          "Minion1-alias",
+          "Minion2",
+          "Minion3",
+        ],
+      },
+      {
+        "name": "Assets",
+        "values": [
+          1,
+          2,
+          3,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
 exports[`queries calibration forecast with model and location groupBy 1`] = `
 [
   {
