@@ -20,6 +20,8 @@ import { AssetComputedDataFields } from './constants';
 import { AssetModel, AssetsResponse } from 'datasources/asset-common/types';
 import TTLCache from '@isaacs/ttlcache';
 import { metadataCacheTTL } from 'datasources/data-frame/constants';
+import { SystemMetadata } from 'datasources/system/types';
+import { defaultOrderBy, defaultProjection } from 'datasources/system/constants';
 
 export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQuery> {
   public defaultQuery = {
@@ -48,7 +50,6 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
 
     return await this.processCalibrationForecastQuery(query as AssetCalibrationQuery, options);
   }
-
 
   async processCalibrationForecastQuery(query: AssetCalibrationQuery, options: DataQueryRequest) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
@@ -154,6 +155,20 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
       return response;
     } catch (error) {
       throw new Error(`An error occurred while querying assets calibration forecast: ${error}`);
+    }
+  }
+
+  async querySystems(filter = '', projection = defaultProjection): Promise<SystemMetadata[]> {
+    try {
+      let response = await this.getSystems({
+        filter: filter,
+        projection: `new(${projection.join()})`,
+        orderBy: defaultOrderBy,
+      })
+
+      return response.data;
+    } catch (error) {
+      throw new Error(`An error occurred while querying systems: ${error}`);
     }
   }
 
