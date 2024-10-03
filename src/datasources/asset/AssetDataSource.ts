@@ -8,7 +8,7 @@ import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
   AssetFilterProperties,
-  AssetListAssetsQuery,
+  ListAssetsQuery,
   AssetQuery,
 } from './types';
 import { getWorkspaceName, replaceVariables } from "../../core/utils";
@@ -32,11 +32,11 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     minionIds: []
   };
 
-  async runQuery(query: AssetListAssetsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    return this.processMetadataQuery(query as AssetListAssetsQuery);
+  async runQuery(query: ListAssetsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    return this.processMetadataQuery(query as ListAssetsQuery);
   }
 
-  async processMetadataQuery(query: AssetListAssetsQuery) {
+  async processMetadataQuery(query: ListAssetsQuery) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
     const minionIds = replaceVariables(query.minionIds, this.templateSrv);
     let workspaceId = this.templateSrv.replace(query.workspace);
@@ -69,7 +69,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     return result;
   }
 
-  shouldRunQuery(_: AssetListAssetsQuery): boolean {
+  shouldRunQuery(_: ListAssetsQuery): boolean {
     return true;
   }
 

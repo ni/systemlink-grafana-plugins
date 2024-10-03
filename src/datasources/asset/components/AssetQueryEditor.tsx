@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 
 import _ from 'lodash';
-import { AssetListAssetsQuery, AssetQuery, AssetQueryType, AssetSummaryQuery } from '../types';
+import { ListAssetsQuery, AssetQuery, AssetQueryType, AssetSummaryQuery } from '../types';
 import { InlineField, Select } from '@grafana/ui';
 import { AssetDataSource } from '../AssetDataSource';
 import { ListAssetsEditor } from './editors/list-assets/ListAssetsEditor';
@@ -26,13 +26,13 @@ export function AssetQueryEditor ( { query, onChange, onRunQuery, datasource }: 
   const handleQueryTypeChange = ( item: SelectableValue<AssetQueryType> ): void => {
     const type = item.value! as AssetQueryType;
     if ( type === AssetQueryType.ListAssets ) {
-      onChange( {...query, workspace: '', minionIds: []} );
+      handleQueryChange( {...query, workspace: '', minionIds: []}, true );
     }
     if ( type === AssetQueryType.CalibrationForecast ) {
-      onChange( { ...query } );
+      handleQueryChange( { ...query } );
     }
     if ( type === AssetQueryType.AssetSummary ) {
-      onChange( { ...query } );
+      handleQueryChange( { ...query } );
     }
     setQueryType( type );
   };
@@ -48,7 +48,7 @@ export function AssetQueryEditor ( { query, onChange, onRunQuery, datasource }: 
       </InlineField>
       {
         queryType === AssetQueryType.ListAssets && (
-          <ListAssetsEditor query={query as AssetListAssetsQuery} handleQueryChange={handleQueryChange} datasource={datasource} />
+          <ListAssetsEditor query={query as ListAssetsQuery} handleQueryChange={handleQueryChange} datasource={datasource} />
         )
       }
       {

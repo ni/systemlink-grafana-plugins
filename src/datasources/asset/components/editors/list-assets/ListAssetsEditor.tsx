@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { SelectableValue, toOption } from '@grafana/data';
 
 import _ from 'lodash';
-import { AssetListAssetsQuery, AssetQuery, EntityType } from '../../../types';
+import { ListAssetsQuery, AssetQuery, EntityType } from '../../../types';
 import { InlineField, MultiSelect, Select } from '@grafana/ui';
 import { AssetDataSource } from '../../../AssetDataSource';
 import { useWorkspaceOptions } from '../../../../../core/utils';
@@ -12,13 +12,13 @@ import { SystemMetadata } from '../../../../system/types';
 import { useAsync } from 'react-use';
 
 type Props = {
-  query: AssetListAssetsQuery;
+  query: ListAssetsQuery;
   handleQueryChange: (value: AssetQuery, runQuery: boolean) => void;
   datasource: AssetDataSource;
 };
 
 export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props) {
-  query = datasource.prepareQuery(query) as AssetListAssetsQuery;
+  query = datasource.prepareQuery(query) as ListAssetsQuery;
 
   const workspaces = useWorkspaceOptions(datasource);
   const [errorMsg, setErrorMsg] = useState<string | undefined>('');

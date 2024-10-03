@@ -3,7 +3,7 @@ import { SystemMetadata } from "../../../../system/types";
 import { AssetDataSource } from "../../../AssetDataSource";
 import { AssetQueryEditor } from "../../AssetQueryEditor";
 import { setupRenderer } from "../../../../../test/fixtures";
-import { AssetListAssetsQuery } from '../../../types';
+import { ListAssetsQuery } from '../../../types';
 import { select } from 'react-select-event';
 
 const fakeSystems: SystemMetadata[] = [
@@ -29,7 +29,7 @@ const render = setupRenderer(AssetQueryEditor, FakeAssetDataSource);
 const workspacesLoaded = () => waitForElementToBeRemoved(screen.getByTestId('Spinner'));
 
 it('renders with metadata query defaults', async () => {
-  render({} as AssetListAssetsQuery);
+  render({} as ListAssetsQuery);
   await workspacesLoaded();
 
   expect(screen.getAllByRole('combobox')[1]).toHaveAccessibleDescription('Any workspace');
@@ -40,7 +40,7 @@ it('renders with initial query and updates when user makes changes', async () =>
   const [onChange] = render({
     minionIds: ['1'],
     workspace: '2',
-  } as AssetListAssetsQuery);
+  } as ListAssetsQuery);
   await workspacesLoaded();
 
   // Renders saved query
