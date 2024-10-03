@@ -8,7 +8,6 @@ import {
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
-  AssetCalibrationDataSourceState,
   AssetCalibrationForecastKey,
   AssetCalibrationQuery,
   AssetCalibrationTimeBasedGroupByType,
@@ -20,6 +19,8 @@ import {
 } from './types';
 import { SystemMetadata } from "../system/types";
 import { defaultOrderBy, defaultProjection } from "../system/constants";
+import TTLCache from '@isaacs/ttlcache';
+import { metadataCacheTTL } from 'datasources/data-frame/constants';
 
 export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQuery> {
   constructor(
@@ -36,9 +37,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
 
   baseUrl = this.instanceSettings.url + '/niapm/v1';
 
-  state: AssetCalibrationDataSourceState = {
-    systems: null
-  }
+  systemAliasCache: TTLCache<string, SystemMetadata> = new TTLCache<string, SystemMetadata>({ ttl: metadataCacheTTL });
 
   async runQuery(query: AssetCalibrationQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     await this.loadSystems();
@@ -104,8 +103,8 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
 
   createColumnNameFromDescriptor(field: FieldDTOWithDescriptor): string {
     return field.columnDescriptors.map(descriptor => {
-      if (descriptor.type === ColumnDescriptorType.MinionId && this.state.systems) {
-        const system = this.state.systems.get(descriptor.value);
+      if (descriptor.type === ColumnDescriptorType.MinionId && this.systemAliasCache) {
+        const system = this.systemAliasCache.get(descriptor.value);
 
         return system?.alias || descriptor.value
       }
@@ -167,16 +166,12 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
   }
 
   private async loadSystems(): Promise<void> {
-    if (this.state.systems) {
+    if (this.systemAliasCache.size > 0) {
       return;
     }
 
-    try {
-      const systems = await this.querySystems('', ['id', 'alias','connected.data.state', 'workspace']);
-      this.state.systems = new Map(systems.map(system => [system.id, system]))
-    } catch (error) {
-      throw new Error(`An error occurred while querying systems: ${error}`);
-    }
+    const systems = await this.querySystems('', ['id', 'alias','connected.data.state', 'workspace']);
+    systems.forEach(system => this.systemAliasCache.set(system.id, system));
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
