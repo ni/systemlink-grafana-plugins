@@ -8,7 +8,7 @@ import {
   setupDataSource,
 } from "test/fixtures";
 import { AssetDataSource } from "./AssetDataSource";
-import { AssetMetadataQuery } from "./types";
+import { AssetListAssetsQuery, AssetQueryType } from "./types";
 import { AssetPresenceWithSystemConnectionModel, AssetsResponse } from "datasources/asset-common/types";
 
 let ds: AssetDataSource, backendSrv: MockProxy<BackendSrv>
@@ -205,13 +205,14 @@ const assetsResponseMock: AssetsResponse =
 }
 
 
-const assetMetadataQueryMock: AssetMetadataQuery = {
+const assetMetadataQueryMock: AssetListAssetsQuery = {
+  queryType: AssetQueryType.ListAssets,
   workspace: '',
   refId: '',
   minionIds: ['123']
 }
 
-const buildMetadataQuery = getQueryBuilder<AssetMetadataQuery>()({
+const buildMetadataQuery = getQueryBuilder<AssetListAssetsQuery>()({
   workspace: '',
   minionIds: [],
 });

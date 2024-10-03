@@ -1,126 +1,91 @@
 import React, { useState } from 'react';
-import { QueryEditorProps, SelectableValue, toOption } from '@grafana/data';
+import { QueryEditorProps, SelectableValue } from '@grafana/data';
 
 import _ from 'lodash';
-import { AssetMetadataQuery, EntityType } from '../types';
-import { InlineField, MultiSelect, Select } from '@grafana/ui';
+import { AssetListAssetsQuery, AssetQuery, AssetQueryType, AssetSummaryQuery } from '../types';
+import { InlineField, Select } from '@grafana/ui';
 import { AssetDataSource } from '../AssetDataSource';
-import { useWorkspaceOptions } from '../../../core/utils';
-import { FloatingError, parseErrorMessage } from '../../../core/errors';
-import { isValidId } from '../../data-frame/utils';
-import { SystemMetadata } from '../../system/types';
-import { useAsync } from 'react-use';
+import { ListAssetsEditor } from './editors/list-assets/ListAssetsEditor';
+import { AssetCalibrationQuery } from '../../asset-calibration/types';
+import { CalibrationForecastEditor } from './editors/calibration-forecast/CalibrationForecastEditor';
+import { AssetSummaryEditor } from './editors/asset-summary/AssetSummaryEditor';
 
-type Props = QueryEditorProps<AssetDataSource, AssetMetadataQuery>;
+type Props = QueryEditorProps<AssetDataSource, AssetQuery>;
 
-export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
-  query = datasource.prepareQuery(query);
+export function AssetQueryEditor ( { query, onChange, onRunQuery, datasource }: Props ) {
+  query = datasource.prepareQuery( query );
+  const [ queryType, setQueryType ] = useState( AssetQueryType.ListAssets );
 
-  const handleQueryChange = (value: AssetMetadataQuery, runQuery: boolean): void => {
-    onChange(value);
-    if (runQuery) {
+  const handleQueryChange = ( value: AssetQuery, runQuery = false ): void => {
+    onChange( { ...query, ...value } );
+    if ( runQuery ) {
       onRunQuery();
     }
   };
-
-  const workspaces = useWorkspaceOptions(datasource);
-  const [errorMsg, setErrorMsg] = useState<string | undefined>('');
-  const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
-
-  const minionIds = useAsync(() => {
-    let filterString = '';
-    if (query.workspace) {
-      filterString += `workspace = "${query.workspace}"`;
-    }
-    return datasource.querySystems(filterString).catch(handleError);
-  }, [query.workspace]);
-
-  const onWorkspaceChange = (item?: SelectableValue<string>): void => {
-    if (item?.value && item.value !== query.workspace) {
-      // if workspace changed, reset Systems and Assets fields
-      handleQueryChange(
-        { ...query, workspace: item.value, minionIds: [] },
-        // do not run query if workspace not changed
-        true
-      );
-    } else {
-      handleQueryChange({ ...query, workspace: '' }, true);
-    }
-  };
-
-  const handleMinionIdChange = (items: Array<SelectableValue<string>>): void => {
-    if (items && !_.isEqual(query.minionIds, items)) {
-      handleQueryChange(
-        { ...query, minionIds: items.map(i => i.value!) },
-        // do not run query if minionIds not changed
-        true
-      );
-    } else {
-      handleQueryChange({ ...query, minionIds: [] }, true);
-    }
-  };
-
-  const getVariableOptions = (): Array<SelectableValue<string>> => {
-    return datasource.templateSrv.getVariables().map(v => toOption('$' + v.name));
-  };
-  const loadMinionIdOptions = (): Array<SelectableValue<string>> => {
-    let options: SelectableValue[] = (minionIds.value ?? []).map(
-      (system: SystemMetadata): SelectableValue<string> => ({
-        label: system.alias ?? system.id,
-        value: system.id,
-        description: system.state,
-      })
-    );
-    options.unshift(...getVariableOptions());
-
-    return options;
-  };
   
+  const handleQueryTypeChange = ( item: SelectableValue<AssetQueryType> ): void => {
+    const type = item.value! as AssetQueryType;
+    if ( type === AssetQueryType.ListAssets ) {
+      onChange( {...query, workspace: '', minionIds: []} );
+    }
+    if ( type === AssetQueryType.CalibrationForecast ) {
+      onChange( { ...query } );
+    }
+    if ( type === AssetQueryType.AssetSummary ) {
+      onChange( { ...query } );
+    }
+    setQueryType( type );
+  };
+
   return (
-    <div style={{ position: 'relative' }}>
-        <InlineField label="Workspace" tooltip={tooltips.workspace[EntityType.Asset]} labelWidth={22}>
+    <div style={ { position: 'relative' } }>
+        <InlineField label="Query type" labelWidth={22} tooltip={tooltips.queryType}>
           <Select
-            isClearable
-            isLoading={workspaces.loading}
-            onChange={onWorkspaceChange}
-            options={workspaces.value}
-            placeholder="Any workspace"
-            value={query.workspace}
-          />
-        </InlineField>
-        <InlineField label="Systems" tooltip={tooltips.system[EntityType.Asset]} labelWidth={22}>
-          <MultiSelect
-            isClearable
-            allowCreateWhileLoading
-            options={loadMinionIdOptions()}
-            isValidNewOption={isValidId}
-            onChange={handleMinionIdChange}
-            placeholder="Select systems"
-            width={85}
-            value={query.minionIds.map(toOption) || []} // Add default value
-          />
-        </InlineField>
-        <FloatingError message={errorMsg} />
+            options={queryTypeOptions}
+            onChange={handleQueryTypeChange}
+            value={queryType}
+            width={85} />
+      </InlineField>
+      {
+        queryType === AssetQueryType.ListAssets && (
+          <ListAssetsEditor query={query as AssetListAssetsQuery} handleQueryChange={handleQueryChange} datasource={datasource} />
+        )
+      }
+      {
+        queryType === AssetQueryType.CalibrationForecast && (
+          <CalibrationForecastEditor query={query as AssetCalibrationQuery} handleQueryChange={handleQueryChange} datasource={datasource} />
+        )
+      }
+      {
+        queryType === AssetQueryType.AssetSummary && (
+          <AssetSummaryEditor query={query as AssetSummaryQuery} handleQueryChange={handleQueryChange} datasource={datasource} />
+        )
+      }
     </div>
   );
 }
 
+const queryTypeOptions = [
+  {
+    label: AssetQueryType.ListAssets,
+    value: AssetQueryType.ListAssets,
+    description: 'List assets allows you to search for assets based on various filters.',
+  },
+  {
+    label: AssetQueryType.CalibrationForecast,
+    value: AssetQueryType.CalibrationForecast,
+    description:
+      'Calibration forecast allows you visualize the upcoming asset calibrations in the configured timeframe.',
+  },
+  {
+    label: AssetQueryType.AssetSummary,
+    value: AssetQueryType.AssetSummary,
+    description: 'Asset summary allows you to visualize the asset details in a tabular format.',
+  }
+];
+
+
 const tooltips = {
-  entityType: `Calculate utilization for one or more systems or assets.`,
-
-  workspace: {
-    [EntityType.Asset]: `The workspace where you want to search for the assets.`,
-    [EntityType.System]: `The workspace where you want to search for the systems.`,
-  },
-
-  system: {
-    [EntityType.Asset]: `Filter assets by system.`,
-    [EntityType.System]: `Search systems by name or enter an ID`,
-  },
-
-  vendor: {
-    [EntityType.Asset]: `Filter assets by vendor.`,
-    [EntityType.System]: `Filter systems by vendor.`,
-  },
+  queryType: `Select the type of query you want to run.`,
 };
 

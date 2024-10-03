@@ -1,9 +1,15 @@
 import { FieldDTO } from '@grafana/data'
 import { DataQuery } from '@grafana/schema'
 
-export interface AssetMetadataQuery extends DataQuery {
+export interface AssetListAssetsQuery extends DataQuery {
   workspace: string,
   minionIds: string[]
+}
+
+export interface AssetCalibrationForecastQuery extends DataQuery {
+}
+
+export interface AssetSummaryQuery extends DataQuery {
 }
 
 export enum AssetFilterProperties {
@@ -49,3 +55,11 @@ export enum EntityType {
   Asset = "Asset",
   System = "System"
 }
+
+export enum AssetQueryType {
+  ListAssets = "List Assets",
+  CalibrationForecast = "Calibration Forecast",
+  AssetSummary = "Asset Summary"
+}
+
+export type AssetQuery = AssetListAssetsQuery | AssetCalibrationForecastQuery | AssetSummaryQuery;

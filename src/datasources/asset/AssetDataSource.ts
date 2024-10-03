@@ -8,14 +8,15 @@ import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
   AssetFilterProperties,
-  AssetMetadataQuery,
+  AssetListAssetsQuery,
+  AssetQuery,
 } from './types';
 import { getWorkspaceName, replaceVariables } from "../../core/utils";
 import { SystemMetadata } from "../system/types";
 import { defaultOrderBy, defaultProjection } from "../system/constants";
 import { AssetModel, AssetsResponse } from 'datasources/asset-common/types';
 
-export class AssetDataSource extends DataSourceBase<AssetMetadataQuery> {
+export class AssetDataSource extends DataSourceBase<AssetQuery> {
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
@@ -28,15 +29,14 @@ export class AssetDataSource extends DataSourceBase<AssetMetadataQuery> {
 
   defaultQuery = {
     workspace: '',
-    minionIds: [],
-    groupBy: []
+    minionIds: []
   };
 
-  async runQuery(query: AssetMetadataQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    return this.processMetadataQuery(query as AssetMetadataQuery);
+  async runQuery(query: AssetListAssetsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    return this.processMetadataQuery(query as AssetListAssetsQuery);
   }
 
-  async processMetadataQuery(query: AssetMetadataQuery) {
+  async processMetadataQuery(query: AssetListAssetsQuery) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
     const minionIds = replaceVariables(query.minionIds, this.templateSrv);
     let workspaceId = this.templateSrv.replace(query.workspace);
@@ -69,7 +69,7 @@ export class AssetDataSource extends DataSourceBase<AssetMetadataQuery> {
     return result;
   }
 
-  shouldRunQuery(_: AssetMetadataQuery): boolean {
+  shouldRunQuery(_: AssetListAssetsQuery): boolean {
     return true;
   }
 
