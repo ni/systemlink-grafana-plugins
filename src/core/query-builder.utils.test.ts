@@ -1,17 +1,22 @@
-import { expressionBuilderCallback, expressionReaderCallback, transformComputedFieldsQuery } from "./query-builder.utils"
+import { expressionBuilderCallback, expressionReaderCallback, ExpressionTransformFunction, transformComputedFieldsQuery } from "./query-builder.utils"
+import TTLCache from "@isaacs/ttlcache";
 
 describe('QueryBuilderUtils', () => {
   describe('transformComputedFieldsQuery', () => {
-    const computedDataFields = {
-      Object1: '(object1.prop1 = {value} || object1.prop2 = {value})',
-      Object2: '(object2.prop1 = {value} || object2.extra.prop2 = {value} || object2.prop3 = {value} || object2.prop4 = {value})',
-      Object3: '(object3.prop1 = {value} || object3.prop2 = {value} || object3.prop3 = {value})'
+    const mockTransformation: ExpressionTransformFunction = (value, operation, _options) => {
+      return `obj.prop1 ${operation} ${value}`;
     };
+
+    const computedDataFields = new Map<string, ExpressionTransformFunction>([
+      ['Object1', mockTransformation],
+      ['Object2', mockTransformation],
+      ['Object3', mockTransformation],
+    ]);
 
     it('should transform a query with computed fields', () => {
       const query = 'Object1 = "value1" AND Object2 = "value2"';
       const result = transformComputedFieldsQuery(query, computedDataFields);
-      expect(result).toBe('(object1.prop1 = value1 || object1.prop2 = value1) AND (object2.prop1 = value2 || object2.extra.prop2 = value2 || object2.prop3 = value2 || object2.prop4 = value2)');
+      expect(result).toBe('obj.prop1 = value1 AND obj.prop1 = value2');
     });
 
     it('should return the original query if no computed fields are present', () => {
@@ -23,13 +28,36 @@ describe('QueryBuilderUtils', () => {
     it('should handle multiple computed fields correctly', () => {
       const query = 'Object1 = "value1" AND Object3 = "value3"';
       const result = transformComputedFieldsQuery(query, computedDataFields);
-      expect(result).toBe('(object1.prop1 = value1 || object1.prop2 = value1) AND (object3.prop1 = value3 || object3.prop2 = value3 || object3.prop3 = value3)');
+      expect(result).toBe('obj.prop1 = value1 AND obj.prop1 = value3');
     });
 
     it('should handle an empty query', () => {
       const query = '';
       const result = transformComputedFieldsQuery(query, computedDataFields);
       expect(result).toBe(query);
+    });
+
+    it('should handle unsupported operations correctly', () => {
+      const query = 'Object1 > "value1" AND Object2 < "value2"';
+      const result = transformComputedFieldsQuery(query, computedDataFields);
+      expect(result).toBe(query);
+    });
+
+    it('should handle supported operations correctly', () => {
+      const query = 'Object1 != "value1" AND Object2 = "value2"';
+      const result = transformComputedFieldsQuery(query, computedDataFields);
+      expect(result).toBe('obj.prop1 != value1 AND obj.prop1 = value2');
+    });
+
+    it('should handle options correctly', () => {
+      const options = new Map<string, TTLCache<string, unknown>>();
+      const cache = new TTLCache<string, unknown>();
+      cache.set('key', 'value', { ttl: 1 });
+      options.set('Object1', cache);
+
+      const query = 'Object1 = "value1"';
+      const result = transformComputedFieldsQuery(query, computedDataFields, options);
+      expect(result).toBe('obj.prop1 = value1');
     });
   });
 
