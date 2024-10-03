@@ -1,8 +1,10 @@
 import { FieldDTO } from '@grafana/data';
 import { DataQuery } from '@grafana/schema'
+import { QueryBuilderField } from 'smart-webcomponents-react';
 
 export interface AssetCalibrationQuery extends DataQuery {
   groupBy: string[];
+  filter?: string;
 }
 
 export enum AssetQueryLabel {
@@ -30,64 +32,6 @@ export enum AssetCalibrationForecastKey {
   Count = "Assets"
 }
 
-export enum EntityType {
-  Asset = "Asset",
-  System = "System"
-}
-
-export interface AssetsResponse {
-  assets: AssetModel[],
-  totalCount: number
-}
-
-export interface AssetModel {
-  modelName: string,
-  modelNumber: number,
-  serialNumber: string,
-  vendorName: string,
-  vendorNumber: number,
-  busType: 'BUILT_IN_SYSTEM' | 'PCI_PXI' | 'USB' | 'GPIB' | 'VXI' | 'SERIAL' | 'TCP_IP' | 'CRIO' | 'SCXI' | 'CDAQ' | 'SWITCH_BLOCK' | 'SCC' | 'FIRE_WIRE' | 'ACCESSORY' | 'CAN' | 'SWITCH_BLOCK_DEVICE' | 'SLSC' | string,
-  name: string,
-  assetType: 'GENERIC' | 'DEVICE_UNDER_TEST' | 'FIXTURE' | 'SYSTEM' | string,
-  firmwareVersion: string,
-  hardwareVersion: string,
-  visaResourceName: string,
-  temperatureSensors: any[],
-  supportsSelfCalibration: boolean,
-  supportsExternalCalibration: boolean,
-  customCalibrationInterval?: number,
-  selfCalibration?: any,
-  isNIAsset: boolean,
-  workspace: string,
-  fileIds: string[],
-  supportsSelfTest: boolean,
-  supportsReset: boolean,
-  id: string,
-  location: AssetLocationModel,
-  calibrationStatus: 'OK' | 'APPROACHING_RECOMMENDED_DUE_DATE' | 'PAST_RECOMMENDED_DUE_DATE' | string,
-  isSystemController: boolean,
-  externalCalibration?: ExternalCalibrationModel,
-  discoveryType: 'MANUAL' | 'AUTOMATIC' | string,
-  properties: Record<string, string>,
-  keywords: string[],
-  lastUpdatedTimestamp: string,
-}
-
-export interface AssetPresenceWithSystemConnectionModel {
-  assetPresence: "INITIALIZING" | "UNKNOWN" | "NOT_PRESENT" | "PRESENT" | string,
-  // to be compatible with both SLS and SLE
-  systemConnection?: "APPROVED" | "DISCONNECTED" | "CONNECTED_UPDATE_PENDING" | "CONNECTED_UPDATE_SUCCESSFUL" | "CONNECTED_UPDATE_FAILED" | "UNSUPPORTED" | "ACTIVATED" | "CONNECTED" | string
-}
-
-export interface AssetLocationModel {
-  minionId: string,
-  parent: string,
-  resourceUri: string,
-  slotNumber: number,
-  state: AssetPresenceWithSystemConnectionModel,
-  physicalLocation?: string
-}
-
 export interface ExternalCalibrationModel {
   temperatureSensors: any[],
   isLimited?: boolean,
@@ -109,37 +53,6 @@ export interface CalibrationForecastResponse {
   calibrationForecast: CalibrationForecastModel
 }
 
-export enum AssetFilterProperties {
-  AssetIdentifier = 'AssetIdentifier',
-  SerialNumber = 'SerialNumber',
-  ModelName = 'ModelName',
-  VendorName = 'VendorName',
-  VendorNumber = 'VendorNumber',
-  AssetName = 'AssetName',
-  FirmwareVersion = 'FirmwareVersion',
-  HardwareVersion = 'HardwareVersion',
-  BusType = 'BusType',
-  IsNIAsset = 'IsNIAsset',
-  Keywords = 'Keywords',
-  Properties = 'Properties',
-  LocationMinionId = 'Location.MinionId',
-  LocationSlotNumber = 'Location.SlotNumber',
-  LocationAssetStateSystemConnection = 'Location.AssetState.SystemConnection',
-  LocationAssetStateAssetPresence = 'Location.AssetState.AssetPresence',
-  SupportsSelfCalibration = 'SupportsSelfCalibration',
-  SelfCalibrationCalibrationDate = 'SelfCalibration.CalibrationDate',
-  SupportsExternalCalibration = 'SupportsExternalCalibration',
-  CustomCalibrationInterval = 'CustomCalibrationInterval',
-  CalibrationStatus = 'CalibrationStatus',
-  ExternalCalibrationCalibrationDate = 'ExternalCalibration.CalibrationDate',
-  ExternalCalibrationNextRecommendedDate = 'ExternalCalibration.NextRecommendedDate',
-  ExternalCalibrationRecommendedInterval = 'ExternalCalibration.RecommendedInterval',
-  ExternalCalibrationComments = 'ExternalCalibration.Comments',
-  ExternalCalibrationIsLimited = 'ExternalCalibration.IsLimited',
-  ExternalCalibrationOperatorDisplayName = 'ExternalCalibration.Operator.DisplayName',
-  IsSystemController = 'IsSystemController'
-}
-
 export interface CalibrationForecastModel {
   columns: FieldDTOWithDescriptor[],
 }
@@ -159,3 +72,68 @@ export enum ColumnDescriptorType {
   StringValue = "STRING_VALUE",
   MinionId = "MINION_ID",
 }
+
+export interface QBField extends QueryBuilderField {
+  lookup?: {
+    readonly?: boolean;
+    dataSource: Array<{
+      label: string,
+      value: string
+    }>;
+  },
+}
+
+export enum BusType {
+  BUILT_IN_SYSTEM = 'BUILT_IN_SYSTEM',
+  PCI_PXI = 'PCI_PXI',
+  USB = 'USB',
+  GPIB = 'GPIB',
+  VXI = 'VXI',
+  SERIAL = 'SERIAL',
+  TCP_IP = 'TCP_IP',
+  CRIO = 'CRIO',
+  SCXI = 'SCXI',
+  CDAQ = 'CDAQ',
+  SWITCH_BLOCK = 'SWITCH_BLOCK',
+  SCC = 'SCC',
+  FIRE_WIRE = 'FIRE_WIRE',
+  ACCESSORY = 'ACCESSORY',
+  CAN = 'CAN',
+  SWITCH_BLOCK_DEVICE = 'SWITCH_BLOCK_DEVICE',
+  SLSC = 'SLSC'
+}
+
+export const BusTypeOptions = [
+  { label: 'Built-in-system', value: BusType.BUILT_IN_SYSTEM },
+  { label: 'PCI/PXI', value: BusType.PCI_PXI },
+  { label: 'USB', value: BusType.USB },
+  { label: 'GPIB', value: BusType.GPIB },
+  { label: 'VXI', value: BusType.VXI },
+  { label: 'Serial', value: BusType.SERIAL },
+  { label: 'TCP/IP', value: BusType.TCP_IP },
+  { label: 'CompactRIO', value: BusType.CRIO },
+  { label: 'SCXI', value: BusType.SCXI },
+  { label: 'cDAQ', value: BusType.CDAQ },
+  { label: 'SwitchBlock', value: BusType.SWITCH_BLOCK },
+  { label: 'SCC', value: BusType.SCC },
+  { label: 'FireWire', value: BusType.FIRE_WIRE },
+  { label: 'ACCESSORY', value: BusType.ACCESSORY },
+  { label: 'CAN', value: BusType.CAN },
+  { label: 'SwitchBlock device', value: BusType.SWITCH_BLOCK_DEVICE },
+  { label: 'SLSC', value: BusType.SLSC },
+];
+
+export enum AssetType {
+  GENERIC = 'GENERIC',
+  DEVICE_UNDER_TEST = 'DEVICE_UNDER_TEST',
+  FIXTURE = 'FIXTURE',
+  SYSTEM = 'SYSTEM'
+};
+
+export const AssetTypeOptions = [
+  { label: 'Generic', value: AssetType.GENERIC },
+  { label: 'Device under test', value: AssetType.DEVICE_UNDER_TEST },
+  { label: 'Fixture', value: AssetType.FIXTURE },
+  { label: 'System', value: AssetType.SYSTEM },
+];
+
