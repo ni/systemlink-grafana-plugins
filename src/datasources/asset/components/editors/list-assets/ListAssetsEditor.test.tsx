@@ -1,10 +1,11 @@
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
-import { SystemMetadata } from "../../../../system/types";
-import { AssetDataSource } from "../../../AssetDataSource";
-import { AssetQueryEditor } from "../../AssetQueryEditor";
-import { setupRenderer } from "../../../../../test/fixtures";
+import { SystemMetadata } from '../../../../system/types';
+import { AssetCoordonatorDataSource } from '../../../AssetCoordonatorDataSource';
+import { AssetCoordonatorQueryEditor } from '../../AssetCoordonatorQueryEditor';
+import { setupRenderer } from '../../../../../test/fixtures';
 import { ListAssetsQuery } from '../../../types';
 import { select } from 'react-select-event';
+import { ListAssetsDataSource } from './ListAssetsDataSource';
 
 const fakeSystems: SystemMetadata[] = [
   {
@@ -19,13 +20,19 @@ const fakeSystems: SystemMetadata[] = [
   },
 ];
 
-class FakeAssetDataSource extends AssetDataSource {
+class FakeAssetsSource extends ListAssetsDataSource {
   querySystems(filter?: string, projection?: string[]): Promise<SystemMetadata[]> {
     return Promise.resolve(fakeSystems);
   }
 }
 
-const render = setupRenderer(AssetQueryEditor, FakeAssetDataSource);
+class FakeAssetDataSource extends AssetCoordonatorDataSource {
+  getListAssetsSource(): ListAssetsDataSource {
+    return new FakeAssetsSource(this.instanceSettings, this.backendSrv, this.templateSrv);
+  }
+}
+
+const render = setupRenderer(AssetCoordonatorQueryEditor, FakeAssetDataSource);
 const workspacesLoaded = () => waitForElementToBeRemoved(screen.getByTestId('Spinner'));
 
 it('renders with metadata query defaults', async () => {
@@ -69,4 +76,4 @@ it('renders with initial query and updates when user makes changes', async () =>
   await waitFor(() => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ minionIds: ['2', '$test_var'] }));
   });
-} );
+});

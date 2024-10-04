@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
 import { SelectableValue, toOption } from '@grafana/data';
+import React, { useState } from 'react';
 
-import _ from 'lodash';
-import { ListAssetsQuery, AssetQuery, EntityType } from '../../../types';
 import { InlineField, MultiSelect, Select } from '@grafana/ui';
-import { AssetDataSource } from '../../../AssetDataSource';
-import { useWorkspaceOptions } from '../../../../../core/utils';
+import _ from 'lodash';
+import { useAsync } from 'react-use';
 import { FloatingError, parseErrorMessage } from '../../../../../core/errors';
+import { useWorkspaceOptions } from '../../../../../core/utils';
 import { isValidId } from '../../../../data-frame/utils';
 import { SystemMetadata } from '../../../../system/types';
-import { useAsync } from 'react-use';
+import { AssetQuery, EntityType, ListAssetsQuery } from '../../../types';
+import { ListAssetsDataSource } from './ListAssetsDataSource';
 
 type Props = {
   query: ListAssetsQuery;
   handleQueryChange: (value: AssetQuery, runQuery: boolean) => void;
-  datasource: AssetDataSource;
+  datasource: ListAssetsDataSource;
 };
 
 export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props) {
@@ -72,51 +72,50 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
 
     return options;
   };
-  
+
   return (
     <div style={{ position: 'relative' }}>
-        <InlineField label="Workspace" tooltip={tooltips.workspace[EntityType.Asset]} labelWidth={22}>
-          <Select
-            isClearable
-            isLoading={workspaces.loading}
-            onChange={onWorkspaceChange}
-            options={workspaces.value}
-            placeholder="Any workspace"
-            value={query.workspace}
-          />
-        </InlineField>
-        <InlineField label="Systems" tooltip={tooltips.system[EntityType.Asset]} labelWidth={22}>
-          <MultiSelect
-            isClearable
-            allowCreateWhileLoading
-            options={loadMinionIdOptions()}
-            isValidNewOption={isValidId}
-            onChange={handleMinionIdChange}
-            placeholder="Select systems"
-            width={85}
-            value={query.minionIds.map(toOption) || []} // Add default value
-          />
-        </InlineField>
-        <FloatingError message={errorMsg} />
+      <InlineField label="Workspace" tooltip={tooltips.workspace[EntityType.Asset]} labelWidth={22}>
+        <Select
+          isClearable
+          isLoading={workspaces.loading}
+          onChange={onWorkspaceChange}
+          options={workspaces.value}
+          placeholder="Any workspace"
+          value={query.workspace}
+        />
+      </InlineField>
+      <InlineField label="Systems" tooltip={tooltips.system[EntityType.Asset]} labelWidth={22}>
+        <MultiSelect
+          isClearable
+          allowCreateWhileLoading
+          options={loadMinionIdOptions()}
+          isValidNewOption={isValidId}
+          onChange={handleMinionIdChange}
+          placeholder="Select systems"
+          width={85}
+          value={query.minionIds.map(toOption) || []} // Add default value
+        />
+      </InlineField>
+      <FloatingError message={errorMsg} />
     </div>
   );
 }
 const tooltips = {
-    entityType: `Calculate utilization for one or more systems or assets.`,
-  
-    workspace: {
-      [EntityType.Asset]: `The workspace where you want to search for the assets.`,
-      [EntityType.System]: `The workspace where you want to search for the systems.`,
-    },
-  
-    system: {
-      [EntityType.Asset]: `Filter assets by system.`,
-      [EntityType.System]: `Search systems by name or enter an ID`,
-    },
-  
-    vendor: {
-      [EntityType.Asset]: `Filter assets by vendor.`,
-      [EntityType.System]: `Filter systems by vendor.`,
-    },
-  };
+  entityType: `Calculate utilization for one or more systems or assets.`,
 
+  workspace: {
+    [EntityType.Asset]: `The workspace where you want to search for the assets.`,
+    [EntityType.System]: `The workspace where you want to search for the systems.`,
+  },
+
+  system: {
+    [EntityType.Asset]: `Filter assets by system.`,
+    [EntityType.System]: `Search systems by name or enter an ID`,
+  },
+
+  vendor: {
+    [EntityType.Asset]: `Filter assets by vendor.`,
+    [EntityType.System]: `Filter systems by vendor.`,
+  },
+};

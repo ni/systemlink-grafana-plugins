@@ -7,14 +7,14 @@ import {
   requestMatching,
   setupDataSource,
 } from "test/fixtures";
-import { AssetDataSource } from "./AssetDataSource";
+import { AssetCoordonatorDataSource } from "./AssetCoordonatorDataSource";
 import { ListAssetsQuery, AssetQueryType } from "./types";
 import { AssetPresenceWithSystemConnectionModel, AssetsResponse } from "datasources/asset-common/types";
 
-let ds: AssetDataSource, backendSrv: MockProxy<BackendSrv>
+let ds: AssetCoordonatorDataSource, backendSrv: MockProxy<BackendSrv>
 
 beforeEach(() => {
-  [ds, backendSrv] = setupDataSource(AssetDataSource);
+  [ds, backendSrv] = setupDataSource(AssetCoordonatorDataSource);
 });
 
 const assetsResponseMock: AssetsResponse =

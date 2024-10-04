@@ -1,23 +1,14 @@
-import {
-  DataFrameDTO,
-  DataQueryRequest,
-  DataSourceInstanceSettings,
-  TestDataSourceResponse,
-} from '@grafana/data';
+import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings } from '@grafana/data';
+import { AssetFilterProperties, AssetQuery, ListAssetsQuery } from '../../../types';
+import { AssetModel, AssetsResponse } from '../../../../asset-common/types';
+import { SystemMetadata } from '../../../../system/types';
+import { getWorkspaceName, replaceVariables } from '../../../../../core/utils';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
-import { DataSourceBase } from 'core/DataSourceBase';
-import {
-  AssetFilterProperties,
-  ListAssetsQuery,
-  AssetQuery,
-} from './types';
-import { getWorkspaceName, replaceVariables } from "../../core/utils";
-import { SystemMetadata } from "../system/types";
-import { defaultOrderBy, defaultProjection } from "../system/constants";
-import { AssetModel, AssetsResponse } from 'datasources/asset-common/types';
+import { defaultOrderBy, defaultProjection } from '../../../../system/constants';
+import { AssetDataSourceBase } from '../AssetDataSourceBase';
 
-export class AssetDataSource extends DataSourceBase<AssetQuery> {
-  constructor(
+export class ListAssetsDataSource extends AssetDataSourceBase {
+  constructor (
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
@@ -29,11 +20,14 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
 
   defaultQuery = {
     workspace: '',
-    minionIds: []
+    minionIds: [],
   };
 
-  async runQuery(query: ListAssetsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+  runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     return this.processMetadataQuery(query as ListAssetsQuery);
+  }
+  shouldRunQuery(query: AssetQuery): boolean {
+    return true;
   }
 
   async processMetadataQuery(query: ListAssetsQuery) {
@@ -42,7 +36,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     let workspaceId = this.templateSrv.replace(query.workspace);
     const conditions = [];
     if (minionIds.length) {
-      const systemsCondition = minionIds.map(id => `${AssetFilterProperties.LocationMinionId} = "${id}"`)
+      const systemsCondition = minionIds.map(id => `${AssetFilterProperties.LocationMinionId} = "${id}"`);
       conditions.push(`(${systemsCondition.join(' or ')})`);
     }
     if (workspaceId) {
@@ -69,10 +63,6 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
     return result;
   }
 
-  shouldRunQuery(_: ListAssetsQuery): boolean {
-    return true;
-  }
-
   async queryAssets(filter = '', take = -1): Promise<AssetModel[]> {
     let data = { filter, take };
     try {
@@ -89,16 +79,11 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
         filter: filter,
         projection: `new(${projection.join()})`,
         orderBy: defaultOrderBy,
-      })
+      });
 
       return response.data;
     } catch (error) {
       throw new Error(`An error occurred while querying systems: ${error}`);
     }
-  }
-
-  async testDatasource(): Promise<TestDataSourceResponse> {
-    await this.get(this.baseUrl + '/assets?take=1');
-    return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }

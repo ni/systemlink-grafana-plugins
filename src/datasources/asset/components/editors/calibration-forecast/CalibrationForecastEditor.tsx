@@ -1,23 +1,17 @@
 import React from 'react';
 
-import _ from 'lodash';
-import { AssetQuery } from '../../../types';
-import { AssetDataSource } from '../../../AssetDataSource';
 import { AssetCalibrationQuery } from '../../../../asset-calibration/types';
+import { AssetQuery } from '../../../types';
+import { CalibrationForecastDataSource } from './CalibrationForecastDataSource';
 
 type Props = {
   query: AssetCalibrationQuery;
   handleQueryChange: (value: AssetQuery, runQuery: boolean) => void;
-  datasource: AssetDataSource;
+  datasource: CalibrationForecastDataSource;
 };
 
 export function CalibrationForecastEditor({ query, handleQueryChange, datasource }: Props) {
-  query = datasource.prepareQuery( query ) as AssetCalibrationQuery;
-  
-  return (
-    <div style={{ position: 'relative' }}>
-        Calibration Forecast
-    </div>
-  );
-}
+  query = datasource.prepareQuery(query) as AssetCalibrationQuery;
 
+  return <div style={{ position: 'relative' }}>Calibration Forecast</div>;
+}
