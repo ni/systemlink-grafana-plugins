@@ -8,7 +8,7 @@ import { FloatingError, parseErrorMessage } from '../../../../../core/errors';
 import { useWorkspaceOptions } from '../../../../../core/utils';
 import { isValidId } from '../../../../data-frame/utils';
 import { SystemMetadata } from '../../../../system/types';
-import { AssetQuery, EntityType, ListAssetsQuery } from '../../../types';
+import { AssetQuery, ListAssetsQuery } from '../../../types';
 import { ListAssetsDataSource } from './ListAssetsDataSource';
 
 type Props = {
@@ -75,7 +75,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
 
   return (
     <div style={{ position: 'relative' }}>
-      <InlineField label="Workspace" tooltip={tooltips.workspace[EntityType.Asset]} labelWidth={22}>
+      <InlineField label="Workspace" tooltip={tooltips.workspace} labelWidth={22}>
         <Select
           isClearable
           isLoading={workspaces.loading}
@@ -85,7 +85,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
           value={query.workspace}
         />
       </InlineField>
-      <InlineField label="Systems" tooltip={tooltips.system[EntityType.Asset]} labelWidth={22}>
+      <InlineField label="Systems" tooltip={tooltips.system} labelWidth={22}>
         <MultiSelect
           isClearable
           allowCreateWhileLoading
@@ -102,20 +102,6 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
   );
 }
 const tooltips = {
-  entityType: `Calculate utilization for one or more systems or assets.`,
-
-  workspace: {
-    [EntityType.Asset]: `The workspace where you want to search for the assets.`,
-    [EntityType.System]: `The workspace where you want to search for the systems.`,
-  },
-
-  system: {
-    [EntityType.Asset]: `Filter assets by system.`,
-    [EntityType.System]: `Search systems by name or enter an ID`,
-  },
-
-  vendor: {
-    [EntityType.Asset]: `Filter assets by vendor.`,
-    [EntityType.System]: `Filter systems by vendor.`,
-  },
+  workspace: `The workspace where you want to search for the assets.`,
+  system: `Filter assets by system.`,
 };
