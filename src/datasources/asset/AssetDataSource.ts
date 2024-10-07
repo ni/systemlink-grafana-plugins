@@ -7,98 +7,78 @@ import {
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
-  AssetFilterProperties,
-  AssetMetadataQuery,
-} from './types';
-import { getWorkspaceName, replaceVariables } from "../../core/utils";
-import { SystemMetadata } from "../system/types";
-import { defaultOrderBy, defaultProjection } from "../system/constants";
-import { AssetModel, AssetsResponse } from 'datasources/asset-common/types';
+  AssetQuery,
+  AssetQueryType,
+} from './types/types';
+import { ListAssetsDataSource } from './components/editors/list-assets/ListAssetsDataSource';
+import { CalibrationForecastDataSource } from './components/editors/calibration-forecast/CalibrationForecastDataSource';
+import { AssetSummaryDataSource } from './components/editors/asset-summary/AssetSummaryDataSource';
+import { defaultAssetQuery, defaultAssetQueryType } from './defaults';
+import { AssetSummaryQuery } from './types/AssetSummaryQuery.types';
+import { CalibrationForecastQuery } from './types/CalibrationForecastQuery.types';
+import { ListAssetsQuery } from './types/ListAssets.types';
 
-export class AssetDataSource extends DataSourceBase<AssetMetadataQuery> {
+export class AssetDataSource extends DataSourceBase<AssetQuery> {
+  private assetSummaryDataSource: AssetSummaryDataSource;
+  private calibrationForecastDataSource: CalibrationForecastDataSource;
+  private listAssetsDataSource: ListAssetsDataSource;
+
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    this.assetSummaryDataSource = new AssetSummaryDataSource(instanceSettings, backendSrv, templateSrv);
+    this.calibrationForecastDataSource = new CalibrationForecastDataSource(instanceSettings, backendSrv, templateSrv);
+    this.listAssetsDataSource = new ListAssetsDataSource(instanceSettings, backendSrv, templateSrv);
   }
 
   baseUrl = this.instanceSettings.url + '/niapm/v1';
 
   defaultQuery = {
-    workspace: '',
-    minionIds: [],
-    groupBy: []
+    queryType: defaultAssetQueryType,
+    ...defaultAssetQuery
   };
 
-  async runQuery(query: AssetMetadataQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    return this.processMetadataQuery(query as AssetMetadataQuery);
-  }
-
-  async processMetadataQuery(query: AssetMetadataQuery) {
-    const result: DataFrameDTO = { refId: query.refId, fields: [] };
-    const minionIds = replaceVariables(query.minionIds, this.templateSrv);
-    let workspaceId = this.templateSrv.replace(query.workspace);
-    const conditions = [];
-    if (minionIds.length) {
-      const systemsCondition = minionIds.map(id => `${AssetFilterProperties.LocationMinionId} = "${id}"`)
-      conditions.push(`(${systemsCondition.join(' or ')})`);
+  async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    if (query.queryType === AssetQueryType.AssetSummary) {
+      return this.getAssetSummarySource().runQuery(query as AssetSummaryQuery, options);
     }
-    if (workspaceId) {
-      conditions.push(`workspace = "${workspaceId}"`);
+    else if (query.queryType === AssetQueryType.CalibrationForecast) {
+      return this.getCalibrationForecastSource().runQuery(query as CalibrationForecastQuery, options);
     }
-    const assetFilter = conditions.join(' and ');
-    const assets: AssetModel[] = await this.queryAssets(assetFilter, 1000);
-    const workspaces = await this.getWorkspaces();
-    result.fields = [
-      { name: 'id', values: assets.map(a => a.id) },
-      { name: 'name', values: assets.map(a => a.name) },
-      { name: 'model name', values: assets.map(a => a.modelName) },
-      { name: 'serial number', values: assets.map(a => a.serialNumber) },
-      { name: 'bus type', values: assets.map(a => a.busType) },
-      { name: 'asset type', values: assets.map(a => a.assetType) },
-      { name: 'is NI asset', values: assets.map(a => a.isNIAsset) },
-      { name: 'calibration status', values: assets.map(a => a.calibrationStatus) },
-      { name: 'is system controller', values: assets.map(a => a.isSystemController) },
-      { name: 'last updated timestamp', values: assets.map(a => a.lastUpdatedTimestamp) },
-      { name: 'minionId', values: assets.map(a => a.location.minionId) },
-      { name: 'parent name', values: assets.map(a => a.location.parent) },
-      { name: 'workspace', values: assets.map(a => getWorkspaceName(workspaces, a.workspace)) },
-    ];
-    return result;
-  }
-
-  shouldRunQuery(_: AssetMetadataQuery): boolean {
-    return true;
-  }
-
-  async queryAssets(filter = '', take = -1): Promise<AssetModel[]> {
-    let data = { filter, take };
-    try {
-      let response = await this.post<AssetsResponse>(this.baseUrl + '/query-assets', data);
-      return response.assets;
-    } catch (error) {
-      throw new Error(`An error occurred while querying assets: ${error}`);
+    else {
+      return this.getListAssetsSource().runQuery(query as ListAssetsQuery, options);
     }
   }
 
-  async querySystems(filter = '', projection = defaultProjection): Promise<SystemMetadata[]> {
-    try {
-      let response = await this.getSystems({
-        filter: filter,
-        projection: `new(${projection.join()})`,
-        orderBy: defaultOrderBy,
-      })
-
-      return response.data;
-    } catch (error) {
-      throw new Error(`An error occurred while querying systems: ${error}`);
+  shouldRunQuery(query: AssetQuery): boolean {
+    if (query.queryType === AssetQueryType.AssetSummary) {
+      return this.getAssetSummarySource().shouldRunQuery(query as AssetSummaryQuery);
+    }
+    else if (query.queryType === AssetQueryType.CalibrationForecast) {
+      return this.getCalibrationForecastSource().shouldRunQuery(query as CalibrationForecastQuery);
+    }
+    else {
+      return this.getListAssetsSource().shouldRunQuery(query as ListAssetsQuery);
     }
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
     await this.get(this.baseUrl + '/assets?take=1');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
+  }
+
+  getAssetSummarySource(): AssetSummaryDataSource {
+    return this.assetSummaryDataSource;
+  }
+
+  getCalibrationForecastSource(): CalibrationForecastDataSource {
+    return this.calibrationForecastDataSource;
+  }
+
+  getListAssetsSource(): ListAssetsDataSource {
+    return this.listAssetsDataSource;
   }
 }
