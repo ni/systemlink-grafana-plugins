@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { QueryBuilder, QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 import { useTheme2 } from '@grafana/ui';
 
@@ -13,27 +13,59 @@ import { Workspace, QueryBuilderOption } from 'core/types';
 import { QBField } from '../types';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
+import { SystemMetadata } from 'datasources/system/types';
 
 type AssetCalibrationQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     filter?: string;
-    workspaces: Workspace[]
+    workspaces: Workspace[],
+    systems: SystemMetadata[],
+    areDependenciesLoaded: boolean;
   };
 
-export const AssetCalibrationQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({ filter, onChange, workspaces }) => {
+export const AssetCalibrationQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({ filter, onChange, workspaces, systems, areDependenciesLoaded }) => {
   const theme = useTheme2();
   document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
 
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
 
-  useEffect(() => {
-    if (workspaces.length) {
-      const workspaceField = getWorkspaceField(workspaces);
+  const workspaceField = useMemo(() => {
+    const workspaceField = AssetCalibrationFields.WORKSPACE;
 
+    return {
+      ...workspaceField,
+      lookup: {
+        ...workspaceField.lookup,
+        dataSource: [
+          ...workspaceField.lookup?.dataSource || [],
+          ...workspaces.map(({ id, name }) => ({ label: name, value: id }))
+        ]
+      }
+    };
+  }, [workspaces]);
+
+  const locationField = useMemo(() => {
+    const locationField = AssetCalibrationFields.LOCATION;
+
+    return {
+      ...locationField,
+      lookup: {
+        ...locationField.lookup,
+        dataSource: [
+          ...locationField.lookup?.dataSource || [],
+          ...systems.map(({ id, alias }) => ({ label: alias || id, value: id }))
+        ]
+      }
+    };
+  }, [systems]);
+
+  useEffect(() => {
+    if (areDependenciesLoaded) {
       const fields = [
-        ...AssetCalibrationStaticFields,
         workspaceField,
+        locationField,
+        ...AssetCalibrationStaticFields,
       ];
 
       setFields(fields);
@@ -65,7 +97,7 @@ export const AssetCalibrationQueryBuilder: React.FC<AssetCalibrationQueryBuilder
         QueryBuilderOperations.DOES_NOT_CONTAIN
       ]);
     }
-  }, [workspaces]);
+  }, [workspaceField, locationField, areDependenciesLoaded]);
 
   return (
     <QueryBuilder
@@ -77,20 +109,3 @@ export const AssetCalibrationQueryBuilder: React.FC<AssetCalibrationQueryBuilder
     />
   );
 };
-
-function getWorkspaceField(workspaces: Workspace[]) {
-  const workspaceField = AssetCalibrationFields.WORKSPACE;
-
-  return {
-    ...workspaceField,
-    lookup: {
-      ...workspaceField.lookup,
-      dataSource: [
-        ...workspaceField.lookup?.dataSource || [],
-        ...workspaces.map(({ id, name }) => ({ label: name, value: id }))
-      ]
-    }
-  };
-}
-
-

@@ -136,4 +136,3 @@ export const AssetTypeOptions = [
   { label: 'Fixture', value: AssetType.FIXTURE },
   { label: 'System', value: AssetType.SYSTEM },
 ];
-

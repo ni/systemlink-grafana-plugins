@@ -1,17 +1,40 @@
 import { QueryBuilderCustomOperation } from "smart-webcomponents-react";
 import { QueryBuilderOption } from "./types";
+import TTLCache from "@isaacs/ttlcache";
+
+/**
+ * Should be used when looking to build a custom expression for a field
+ * @param value The value to be transformed
+ * @param operation The operation to be performed
+ * @param options The options to be used in the transformation
+ * @returns The transformed value
+ */
+export type ExpressionTransformFunction = (value: string, operation: string, options?: TTLCache<string, unknown>) => string;
+
+/**
+ * Supported operations for computed fields
+ */
+export const computedFieldsupportedOperations = ['=', '!='];
 
 /**
  * The function will replace the computed fields with their transformation
  * Example: object = "value" => object1.prop1 = "value" || object1.prop2 = "value"
  * @param query Query builder provided string
  * @param computedDataFields Object with computed fields and their transformations
+ * @param options Object with options for the computed fields
  * @returns Updated query with computed fields transformed
  */
-export function transformComputedFieldsQuery(query: string, computedDataFields: Record<string, string>) {
-  for (const [field, transformation] of Object.entries(computedDataFields)) {
-    const regex = new RegExp(`\\b${field}\\s*=\\s*"([^"]*)"`, 'g');
-    query = query.replace(regex, (_match, value) => transformation.replace(/{value}/g, value));
+export function transformComputedFieldsQuery(
+  query: string,
+  computedDataFields: Map<string, ExpressionTransformFunction>,
+  options?: Map<string, TTLCache<string, unknown>>
+) {
+  for (const [field, transformation] of computedDataFields.entries()) {
+    const regex = new RegExp(`\\b${field}\\s*(${computedFieldsupportedOperations.join('|')})\\s*"([^"]*)"`, 'g');
+
+    query = query.replace(regex, (_match, operation, value) => {
+      return transformation(value, operation, options?.get(field));
+    });
   }
 
   return query;

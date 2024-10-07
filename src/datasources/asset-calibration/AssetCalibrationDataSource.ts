@@ -15,19 +15,26 @@ import {
   ColumnDescriptorType,
   FieldDTOWithDescriptor,
 } from './types';
-import { transformComputedFieldsQuery } from 'core/query-builder.utils';
-import { AssetComputedDataFields } from './constants';
+import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { AssetCalibrationFieldNames } from './constants';
 import { AssetModel, AssetsResponse } from 'datasources/asset-common/types';
 import TTLCache from '@isaacs/ttlcache';
 import { metadataCacheTTL } from 'datasources/data-frame/constants';
 import { SystemMetadata } from 'datasources/system/types';
 import { defaultOrderBy, defaultProjection } from 'datasources/system/constants';
+import { QueryBuilderOperations } from 'core/query-builder.constants';
 
 export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQuery> {
   public defaultQuery = {
     groupBy: [],
     filter: ''
   };
+
+  public areSystemsLoaded = false;
+
+  public readonly systemAliasCache: TTLCache<string, SystemMetadata> = new TTLCache<string, SystemMetadata>({ ttl: metadataCacheTTL });
+
+  private readonly baseUrl = this.instanceSettings.url + '/niapm/v1';
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
@@ -37,15 +44,32 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     super(instanceSettings, backendSrv, templateSrv);
   }
 
-  baseUrl = this.instanceSettings.url + '/niapm/v1';
 
-  systemAliasCache: TTLCache<string, SystemMetadata> = new TTLCache<string, SystemMetadata>({ ttl: metadataCacheTTL });
+
+  private readonly assetComputedDataFields = new Map<AssetCalibrationFieldNames, ExpressionTransformFunction>([
+    [
+      AssetCalibrationFieldNames.LOCATION,
+      (value: string, operation: string, options?: TTLCache<string, unknown>) => {
+        if (options?.has(value)) {
+          return `Location.MinionId ${operation} "${value}"`
+        }
+
+        const logicalOperator = operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
+        return `(Location.MinionId ${operation} "${value}" ${logicalOperator} Location.PhysicalLocation ${operation} "${value}")`;
+      }
+    ],
+  ]);
+  
+  private readonly queryTransformationOptions = new Map<AssetCalibrationFieldNames, TTLCache<string, unknown>>([
+    [AssetCalibrationFieldNames.LOCATION, this.systemAliasCache]
+  ]);
 
   async runQuery(query: AssetCalibrationQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     await this.loadSystems();
 
     if (query.filter) {
-      query.filter = this.templateSrv.replace(transformComputedFieldsQuery(query.filter, AssetComputedDataFields), options.scopedVars);
+      const transformedQuery = transformComputedFieldsQuery(query.filter, this.assetComputedDataFields, this.queryTransformationOptions);
+      query.filter = this.templateSrv.replace(transformedQuery, options.scopedVars);
     }
 
     return await this.processCalibrationForecastQuery(query as AssetCalibrationQuery, options);
@@ -178,6 +202,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     }
 
     const systems = await this.querySystems('', ['id', 'alias','connected.data.state', 'workspace']);
+    this.areSystemsLoaded = true;
     systems.forEach(system => this.systemAliasCache.set(system.id, system));
   }
 
