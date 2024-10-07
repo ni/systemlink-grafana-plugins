@@ -8,8 +8,9 @@ import { FloatingError, parseErrorMessage } from '../../../../../core/errors';
 import { useWorkspaceOptions } from '../../../../../core/utils';
 import { isValidId } from '../../../../data-frame/utils';
 import { SystemMetadata } from '../../../../system/types';
-import { AssetQuery, ListAssetsQuery } from '../../../types';
+import { AssetQuery } from '../../../types/types';
 import { ListAssetsDataSource } from './ListAssetsDataSource';
+import { ListAssetsQuery } from '../../../types/ListAssets.types';
 
 type Props = {
   query: ListAssetsQuery;

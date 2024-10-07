@@ -1,10 +1,10 @@
 import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings } from '@grafana/data';
-import { AssetQuery } from '../../../types';
+import { AssetQuery } from '../../../types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
 
 export class CalibrationForecastDataSource extends AssetDataSourceBase {
-    constructor (
+    constructor(
         readonly instanceSettings: DataSourceInstanceSettings,
         readonly backendSrv: BackendSrv = getBackendSrv(),
         readonly templateSrv: TemplateSrv = getTemplateSrv()

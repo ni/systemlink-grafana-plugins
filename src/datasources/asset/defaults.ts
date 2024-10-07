@@ -1,4 +1,4 @@
-import { AssetQueryType } from "./types";
+import { AssetQueryType } from "./types/types";
 
 export const defaultAssetSummaryQuery = {
 }

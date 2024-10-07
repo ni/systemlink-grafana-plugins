@@ -1,5 +1,5 @@
 import { DataFrameDTO, DataQueryRequest, TestDataSourceResponse } from "@grafana/data";
-import { AssetQuery } from "../../types";
+import { AssetQuery } from "../../types/types";
 import { DataSourceBase } from "../../../../core/DataSourceBase";
 
 export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery> {

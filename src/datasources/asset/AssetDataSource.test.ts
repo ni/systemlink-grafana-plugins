@@ -8,8 +8,9 @@ import {
   setupDataSource,
 } from "test/fixtures";
 import { AssetDataSource } from "./AssetDataSource";
-import { ListAssetsQuery, AssetQueryType } from "./types";
+import { AssetQueryType } from "./types/types";
 import { AssetPresenceWithSystemConnectionModel, AssetsResponse } from "datasources/asset-common/types";
+import { ListAssetsQuery } from "./types/ListAssets.types";
 
 let ds: AssetDataSource, backendSrv: MockProxy<BackendSrv>
 

@@ -1,14 +1,15 @@
 import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings } from '@grafana/data';
-import { AssetFilterProperties, AssetQuery, ListAssetsQuery } from '../../../types';
+import { AssetQuery } from '../../../types/types';
 import { AssetModel, AssetsResponse } from '../../../../asset-common/types';
 import { SystemMetadata } from '../../../../system/types';
 import { getWorkspaceName, replaceVariables } from '../../../../../core/utils';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { defaultOrderBy, defaultProjection } from '../../../../system/constants';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
+import { AssetFilterProperties, ListAssetsQuery } from '../../../types/ListAssets.types';
 
 export class ListAssetsDataSource extends AssetDataSourceBase {
-  constructor (
+  constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()

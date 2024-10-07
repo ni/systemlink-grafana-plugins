@@ -1,11 +1,11 @@
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { SystemMetadata } from '../../../../system/types';
 import { AssetDataSource } from '../../../AssetDataSource';
-import { AssetCoordonatorQueryEditor } from '../../AssetCoordonatorQueryEditor';
+import { AssetQueryEditor } from '../../AssetQueryEditor';
 import { setupRenderer } from '../../../../../test/fixtures';
-import { ListAssetsQuery } from '../../../types';
 import { select } from 'react-select-event';
 import { ListAssetsDataSource } from './ListAssetsDataSource';
+import { ListAssetsQuery } from '../../../types/ListAssets.types';
 
 const fakeSystems: SystemMetadata[] = [
   {
@@ -32,7 +32,7 @@ class FakeAssetDataSource extends AssetDataSource {
   }
 }
 
-const render = setupRenderer(AssetCoordonatorQueryEditor, FakeAssetDataSource);
+const render = setupRenderer(AssetQueryEditor, FakeAssetDataSource);
 const workspacesLoaded = () => waitForElementToBeRemoved(screen.getByTestId('Spinner'));
 
 it('renders with metadata query defaults', async () => {

@@ -7,16 +7,16 @@ import {
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
-  ListAssetsQuery,
   AssetQuery,
   AssetQueryType,
-  AssetSummaryQuery,
-  CalibrationForecastQuery,
-} from './types';
+} from './types/types';
 import { ListAssetsDataSource } from './components/editors/list-assets/ListAssetsDataSource';
 import { CalibrationForecastDataSource } from './components/editors/calibration-forecast/CalibrationForecastDataSource';
 import { AssetSummaryDataSource } from './components/editors/asset-summary/AssetSummaryDataSource';
 import { defaultAssetQuery, defaultAssetQueryType } from './defaults';
+import { AssetSummaryQuery } from './types/AssetSummaryQuery.types';
+import { CalibrationForecastQuery } from './types/CalibrationForecastQuery.types';
+import { ListAssetsQuery } from './types/ListAssets.types';
 
 export class AssetDataSource extends DataSourceBase<AssetQuery> {
   private assetSummaryDataSource: AssetSummaryDataSource;

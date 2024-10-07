@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 
 import _ from 'lodash';
-import { ListAssetsQuery, AssetQuery, AssetQueryType, AssetSummaryQuery } from '../types';
+import { AssetQuery, AssetQueryType } from '../types/types';
 import { InlineField, Select } from '@grafana/ui';
 import { AssetDataSource } from '../AssetDataSource';
 import { AssetSummaryEditor } from './editors/asset-summary/AssetSummaryEditor';
@@ -10,10 +10,12 @@ import { CalibrationForecastEditor } from './editors/calibration-forecast/Calibr
 import { AssetCalibrationQuery } from '../../asset-calibration/types';
 import { ListAssetsEditor } from './editors/list-assets/ListAssetsEditor';
 import { defaultAssetSummaryQuery, defaultCalibrationForecastQuery, defaultListAssetsQuery } from '../defaults';
+import { ListAssetsQuery } from '../types/ListAssets.types';
+import { AssetSummaryQuery } from '../types/AssetSummaryQuery.types';
 
 type Props = QueryEditorProps<AssetDataSource, AssetQuery>;
 
-export function AssetCoordonatorQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
+export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   const queryRef = useRef(query);
   const onChangeRef = useRef(onChange);
   const onRunQueryRef = useRef(onRunQuery);
