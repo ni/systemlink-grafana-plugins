@@ -1,3 +1,9 @@
+## [3.18.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.17.0...v3.18.0) (2024-10-07)
+
+### Features
+
+* **asset-calibration:** added systems as dropdown values for location ([#76](https://github.com/ni/systemlink-grafana-plugins/issues/76)) ([5f74d39](https://github.com/ni/systemlink-grafana-plugins/commit/5f74d39b26c96c49350433627a2cd23ae503a53c))
+
 ## [3.17.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.16.0...v3.17.0) (2024-10-07)
 
 ### Features
