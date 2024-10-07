@@ -4,14 +4,14 @@ import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import _ from 'lodash';
 import { ListAssetsQuery, AssetQuery, AssetQueryType, AssetSummaryQuery } from '../types';
 import { InlineField, Select } from '@grafana/ui';
-import { AssetCoordonatorDataSource } from '../AssetCoordonatorDataSource';
+import { AssetDataSource } from '../AssetDataSource';
 import { AssetSummaryEditor } from './editors/asset-summary/AssetSummaryEditor';
 import { CalibrationForecastEditor } from './editors/calibration-forecast/CalibrationForecastEditor';
 import { AssetCalibrationQuery } from '../../asset-calibration/types';
 import { ListAssetsEditor } from './editors/list-assets/ListAssetsEditor';
 import { defaultAssetSummaryQuery, defaultCalibrationForecastQuery, defaultListAssetsQuery } from '../defaults';
 
-type Props = QueryEditorProps<AssetCoordonatorDataSource, AssetQuery>;
+type Props = QueryEditorProps<AssetDataSource, AssetQuery>;
 
 export function AssetCoordonatorQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   const queryRef = useRef(query);

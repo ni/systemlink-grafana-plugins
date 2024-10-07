@@ -18,12 +18,12 @@ import { CalibrationForecastDataSource } from './components/editors/calibration-
 import { AssetSummaryDataSource } from './components/editors/asset-summary/AssetSummaryDataSource';
 import { defaultAssetQuery, defaultAssetQueryType } from './defaults';
 
-export class AssetCoordonatorDataSource extends DataSourceBase<AssetQuery> {
+export class AssetDataSource extends DataSourceBase<AssetQuery> {
   private assetSummaryDataSource: AssetSummaryDataSource;
   private calibrationForecastDataSource: CalibrationForecastDataSource;
   private listAssetsDataSource: ListAssetsDataSource;
 
-  constructor (
+  constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()

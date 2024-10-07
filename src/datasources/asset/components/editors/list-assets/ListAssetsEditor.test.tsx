@@ -1,6 +1,6 @@
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { SystemMetadata } from '../../../../system/types';
-import { AssetCoordonatorDataSource } from '../../../AssetCoordonatorDataSource';
+import { AssetDataSource } from '../../../AssetDataSource';
 import { AssetCoordonatorQueryEditor } from '../../AssetCoordonatorQueryEditor';
 import { setupRenderer } from '../../../../../test/fixtures';
 import { ListAssetsQuery } from '../../../types';
@@ -26,7 +26,7 @@ class FakeAssetsSource extends ListAssetsDataSource {
   }
 }
 
-class FakeAssetDataSource extends AssetCoordonatorDataSource {
+class FakeAssetDataSource extends AssetDataSource {
   getListAssetsSource(): ListAssetsDataSource {
     return new FakeAssetsSource(this.instanceSettings, this.backendSrv, this.templateSrv);
   }

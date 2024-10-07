@@ -1,8 +1,8 @@
 import { DataSourcePlugin } from '@grafana/data';
-import { AssetCoordonatorDataSource } from './AssetCoordonatorDataSource';
+import { AssetDataSource } from './AssetDataSource';
 import { AssetCoordonatorQueryEditor } from './components/AssetCoordonatorQueryEditor';
 import { HttpConfigEditor } from 'core/components/HttpConfigEditor';
 
-export const plugin = new DataSourcePlugin(AssetCoordonatorDataSource)
+export const plugin = new DataSourcePlugin(AssetDataSource)
   .setConfigEditor(HttpConfigEditor)
   .setQueryEditor(AssetCoordonatorQueryEditor);

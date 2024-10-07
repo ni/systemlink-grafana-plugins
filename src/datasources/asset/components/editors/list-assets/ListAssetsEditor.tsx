@@ -35,11 +35,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
   const onWorkspaceChange = (item?: SelectableValue<string>): void => {
     if (item?.value && item.value !== query.workspace) {
       // if workspace changed, reset Systems and Assets fields
-      handleQueryChange(
-        { ...query, workspace: item.value, minionIds: [] },
-        // do not run query if workspace not changed
-        true
-      );
+      handleQueryChange({ ...query, workspace: item.value, minionIds: [] }, true);
     } else {
       handleQueryChange({ ...query, workspace: '' }, true);
     }
@@ -47,11 +43,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
 
   const handleMinionIdChange = (items: Array<SelectableValue<string>>): void => {
     if (items && !_.isEqual(query.minionIds, items)) {
-      handleQueryChange(
-        { ...query, minionIds: items.map(i => i.value!) },
-        // do not run query if minionIds not changed
-        true
-      );
+      handleQueryChange({ ...query, minionIds: items.map(i => i.value!) }, true);
     } else {
       handleQueryChange({ ...query, minionIds: [] }, true);
     }
@@ -94,7 +86,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
           onChange={handleMinionIdChange}
           placeholder="Select systems"
           width={85}
-          value={query.minionIds.map(toOption) || []} // Add default value
+          value={query.minionIds.map(toOption) || []}
         />
       </InlineField>
       <FloatingError message={errorMsg} />
