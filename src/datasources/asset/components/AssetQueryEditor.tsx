@@ -41,7 +41,7 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
   }, []);
 
   const handleQueryTypeChange = (item: SelectableValue<AssetQueryType>): void => {
-    setQueryType(item.value!);
+    setQueryType(item.value as AssetQueryType);
   };
 
   useEffect(() => {
@@ -56,7 +56,7 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
       });
     }
     if (queryType === AssetQueryType.AssetSummary) {
-      handleQueryChange({ ...queryRef.current, queryType: AssetQueryType.AssetSummary, ...defaultAssetSummaryQuery });
+      handleQueryChange({ ...queryRef.current, queryType: AssetQueryType.AssetSummary, ...defaultAssetSummaryQuery }, true);
     }
   }, [queryType, handleQueryChange]);
 
