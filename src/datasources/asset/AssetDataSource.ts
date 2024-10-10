@@ -2,6 +2,7 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
+  DataSourceJsonData,
   TestDataSourceResponse,
 } from '@grafana/data';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
@@ -18,7 +19,7 @@ import { AssetSummaryQuery } from './types/AssetSummaryQuery.types';
 import { CalibrationForecastQuery } from './types/CalibrationForecastQuery.types';
 import { ListAssetsQuery } from './types/ListAssets.types';
 
-export class AssetDataSource extends DataSourceBase<AssetQuery> {
+export class AssetDataSource extends DataSourceBase<AssetQuery, DataSourceJsonData> {
   private assetSummaryDataSource: AssetSummaryDataSource;
   private calibrationForecastDataSource: CalibrationForecastDataSource;
   private listAssetsDataSource: ListAssetsDataSource;
