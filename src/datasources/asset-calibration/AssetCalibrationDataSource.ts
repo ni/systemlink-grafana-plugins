@@ -23,6 +23,8 @@ import { metadataCacheTTL } from 'datasources/data-frame/constants';
 import { SystemMetadata } from 'datasources/system/types';
 import { defaultOrderBy, defaultProjection } from 'datasources/system/constants';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
+import { Workspace } from 'core/types';
+import { parseErrorMessage } from 'core/errors';
 
 export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQuery> {
   public defaultQuery = {
@@ -31,8 +33,12 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
   };
 
   public areSystemsLoaded = false;
+  public areWorkspacesLoaded = false;
+
+  public error = '';
 
   public readonly systemAliasCache: TTLCache<string, SystemMetadata> = new TTLCache<string, SystemMetadata>({ ttl: metadataCacheTTL });
+  public readonly workspacesCache: TTLCache<string, Workspace> = new TTLCache<string, Workspace>({ ttl: metadataCacheTTL });
 
   private readonly baseUrl = this.instanceSettings.url + '/niapm/v1';
 
@@ -43,8 +49,6 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
   ) {
     super(instanceSettings, backendSrv, templateSrv);
   }
-
-
 
   private readonly assetComputedDataFields = new Map<AssetCalibrationFieldNames, ExpressionTransformFunction>([
     [
@@ -59,13 +63,13 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
       }
     ],
   ]);
-  
+
   private readonly queryTransformationOptions = new Map<AssetCalibrationFieldNames, TTLCache<string, unknown>>([
     [AssetCalibrationFieldNames.LOCATION, this.systemAliasCache]
   ]);
 
   async runQuery(query: AssetCalibrationQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    await this.loadSystems();
+    await this.loadDependencies();
 
     if (query.filter) {
       const transformedQuery = transformComputedFieldsQuery(query.filter, this.assetComputedDataFields, this.queryTransformationOptions);
@@ -137,7 +141,13 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
       if (descriptor.type === ColumnDescriptorType.MinionId && this.systemAliasCache) {
         const system = this.systemAliasCache.get(descriptor.value);
 
-        return system?.alias || descriptor.value
+        return system?.alias || descriptor.value;
+      }
+
+      if (descriptor.type === ColumnDescriptorType.WorkspaceId && this.workspacesCache) {
+        const workspace = this.workspacesCache.get(descriptor.value);
+
+        return workspace?.name || descriptor.value
       }
       return descriptor.value
     }).join(' - ');
@@ -201,9 +211,34 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
       return;
     }
 
-    const systems = await this.querySystems('', ['id', 'alias','connected.data.state', 'workspace']);
+    const systems = await this.querySystems('', ['id', 'alias', 'connected.data.state', 'workspace'])
+      .catch(error => {
+        this.error = parseErrorMessage(error)!;
+      });
+
     this.areSystemsLoaded = true;
-    systems.forEach(system => this.systemAliasCache.set(system.id, system));
+    systems?.forEach(system => this.systemAliasCache.set(system.id, system));
+  }
+
+  private async loadWorkspaces(): Promise<void> {
+    if (this.workspacesCache.size > 0) {
+      return;
+    }
+
+    const workspaces = await this.getWorkspaces()
+      .catch(error => {
+        this.error = parseErrorMessage(error)!;
+      });
+
+    this.areWorkspacesLoaded = true;
+    workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
+  }
+
+  async loadDependencies(): Promise<void> {
+    this.error = '';
+
+    await this.loadSystems();
+    await this.loadWorkspaces();
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

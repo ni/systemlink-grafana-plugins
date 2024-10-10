@@ -190,6 +190,30 @@ exports[`queries calibration forecast with model and location groupBy 1`] = `
 ]
 `;
 
+exports[`queries calibration forecast with model and workspace groupBy 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "Group",
+        "values": [
+          "Model1 - Workspace1",
+          "Model2 - Workspace1",
+        ],
+      },
+      {
+        "name": "Assets",
+        "values": [
+          1,
+          2,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
 exports[`queries calibration forecast with model groupBy 1`] = `
 [
   {
@@ -280,10 +304,100 @@ exports[`queries calibration forecast with month and location groupBy 1`] = `
 ]
 `;
 
+exports[`queries calibration forecast with month and workspace groupBy 1`] = `
+[
+  {
+    "fields": [
+      {
+        "columnDescriptors": [
+          {
+            "type": "TIME",
+            "value": "Month",
+          },
+        ],
+        "name": "Month",
+        "values": [
+          "January 2022",
+          "February 2022",
+          "March 2022",
+        ],
+      },
+      {
+        "columnDescriptors": [
+          {
+            "type": "WORKSPACE_ID",
+            "value": "Workspace1",
+          },
+        ],
+        "name": "Workspace1",
+        "values": [
+          1,
+          2,
+          3,
+        ],
+      },
+      {
+        "columnDescriptors": [
+          {
+            "type": "WORKSPACE_ID",
+            "value": "Workspace2",
+          },
+        ],
+        "name": "Workspace2",
+        "values": [
+          2,
+          4,
+          1,
+        ],
+      },
+      {
+        "columnDescriptors": [
+          {
+            "type": "WORKSPACE_ID",
+            "value": "Workspace3",
+          },
+        ],
+        "name": "Workspace3",
+        "values": [
+          4,
+          3,
+          1,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
 exports[`queries calibration forecast with month groupBy returns empty results 1`] = `
 [
   {
     "fields": [],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries calibration forecast with workspace groupBy 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "Group",
+        "values": [
+          "Workspace1",
+          "Workspace1",
+        ],
+      },
+      {
+        "name": "Assets",
+        "values": [
+          1,
+          2,
+        ],
+      },
+    ],
     "refId": "A",
   },
 ]

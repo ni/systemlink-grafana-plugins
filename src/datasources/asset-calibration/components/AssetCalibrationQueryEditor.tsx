@@ -7,7 +7,7 @@ import { enumToOptions } from '../../../core/utils';
 import _ from 'lodash';
 import { AssetCalibrationQueryBuilder } from './AssetCalibrationQueryBuilder';
 import { Workspace } from 'core/types';
-import { FloatingError, parseErrorMessage } from 'core/errors';
+import { FloatingError } from 'core/errors';
 import { SystemMetadata } from 'datasources/system/types';
 import './AssetCalibrationQueryEditor.scss';
 
@@ -19,22 +19,18 @@ export const AssetCalibrationQueryEditor = ({ query, onChange, onRunQuery, datas
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [systems, setSystems] = useState<SystemMetadata[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
 
   useEffect(() => {
-    const getWorkspaces = async () => {
-      const workspaces = await datasource.getWorkspaces();
-      setWorkspaces(workspaces);
+    if (datasource.areWorkspacesLoaded) {
+      setWorkspaces(Array.from(datasource.workspacesCache.values()));
     }
 
     if (datasource.areSystemsLoaded) {
       setSystems(Array.from(datasource.systemAliasCache.values()));
     }
 
-    getWorkspaces().catch(error => setError(parseErrorMessage(error) || 'Failed to fetch workspaces'));
-
-    setAreDependenciesLoaded(datasource.areSystemsLoaded);
-  }, [datasource, datasource.areSystemsLoaded]);
+    setAreDependenciesLoaded(datasource.areSystemsLoaded && datasource.areWorkspacesLoaded);
+  }, [datasource, datasource.areSystemsLoaded, datasource.areWorkspacesLoaded]);
 
   const handleQueryChange = (value: AssetCalibrationQuery, runQuery: boolean): void => {
     onChange(value);
@@ -100,7 +96,7 @@ export const AssetCalibrationQueryEditor = ({ query, onChange, onRunQuery, datas
         </AssetCalibrationQueryBuilder>
       </div>
 
-      <FloatingError message={error} />
+      <FloatingError message={datasource.error} />
     </div>
   );
 }
