@@ -2,6 +2,7 @@ import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings } from '@gra
 import { AssetQuery } from '../../../types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
+import { AssetSummaryQuery } from 'datasources/asset-common/types';
 
 export class AssetSummaryDataSource extends AssetDataSourceBase {
     constructor(
@@ -17,10 +18,35 @@ export class AssetSummaryDataSource extends AssetDataSourceBase {
     defaultQuery = {
     };
 
-    runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-        throw new Error("Method not implemented.");
+    async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+        return this.processMetadataQuery(query as AssetQuery);
     }
-    shouldRunQuery(query: AssetQuery): boolean {
-        throw new Error("Method not implemented.");
+
+    shouldRunQuery(_: AssetQuery): boolean {
+        return true;
+    }
+
+    async processMetadataQuery(query: AssetQuery) {
+        const result: DataFrameDTO = { refId: query.refId, fields: [] };
+
+        const assets: AssetSummaryQuery = await this.getAssetSummary();
+
+        result.fields = [
+            { name: 'Active', values: [assets.active] },
+            { name: 'Not active', values: [assets.notActive] },
+            { name: 'Total', values: [assets.total] },
+            { name: 'Approaching due date', values: [assets.approachingRecommendedDueDate] },
+            { name: 'Past due date', values: [assets.pastRecommendedDueDate] }
+        ];
+        return result;
+    }
+
+    async getAssetSummary(): Promise<AssetSummaryQuery> {
+        try {
+            let response = await this.get<AssetSummaryQuery>(this.baseUrl + '/asset-summary');
+            return response;
+        } catch (error) {
+            throw new Error(`An error occurred while getting asset summary: ${error}`);
+        }
     }
 }

@@ -19,7 +19,7 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
   const queryRef = useRef(query);
   const onChangeRef = useRef(onChange);
   const onRunQueryRef = useRef(onRunQuery);
-  const [queryType, setQueryType] = useState(AssetQueryType.ListAssets);
+  const [queryType, setQueryType] = useState<string>(query.queryType || '');
 
   useEffect(() => {
     queryRef.current = query;
@@ -41,7 +41,7 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
   }, []);
 
   const handleQueryTypeChange = (item: SelectableValue<AssetQueryType>): void => {
-    setQueryType(item.value!);
+    setQueryType(item.value as AssetQueryType);
   };
 
   useEffect(() => {
@@ -56,14 +56,14 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
       });
     }
     if (queryType === AssetQueryType.AssetSummary) {
-      handleQueryChange({ ...queryRef.current, queryType: AssetQueryType.AssetSummary, ...defaultAssetSummaryQuery });
+      handleQueryChange({ ...queryRef.current, queryType: AssetQueryType.AssetSummary, ...defaultAssetSummaryQuery }, true);
     }
   }, [queryType, handleQueryChange]);
 
   return (
     <div style={{ position: 'relative' }}>
       <InlineField label="Query type" labelWidth={22} tooltip={tooltips.queryType}>
-        <Select options={queryTypeOptions} onChange={handleQueryTypeChange} value={queryType} width={85} />
+        <Select options={queryTypeOptions} onChange={handleQueryTypeChange} value={queryTypeOptions.find(option => option.value === queryType)} width={85} />
       </InlineField>
       {queryType === AssetQueryType.ListAssets && (
         <ListAssetsEditor
