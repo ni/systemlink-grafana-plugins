@@ -1,3 +1,9 @@
+## [3.19.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.18.0...v3.19.0) (2024-10-10)
+
+### Features
+
+* **asset-calibration:** workspace grouping ([#77](https://github.com/ni/systemlink-grafana-plugins/issues/77)) ([045b0ea](https://github.com/ni/systemlink-grafana-plugins/commit/045b0ea1aa4b4fa57ca287401f5d217782763403))
+
 ## [3.18.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.17.0...v3.18.0) (2024-10-07)
 
 ### Features
