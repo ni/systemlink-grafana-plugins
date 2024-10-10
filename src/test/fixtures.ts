@@ -26,7 +26,7 @@ const mockVariables: TypedVariableModel[] = [{
 }]
 
 export function setupDataSource<T>(
-  ctor: new (instanceSettings: DataSourceInstanceSettings, backendSrv: BackendSrv, templateSrv: TemplateSrv) => T
+  ctor: new (instanceSettings: DataSourceInstanceSettings<any>, backendSrv: BackendSrv, templateSrv: TemplateSrv) => T
 ) {
   const mockBackendSrv = mock<BackendSrv>(
     {},
@@ -44,9 +44,9 @@ export function setupDataSource<T>(
   return [ds, mockBackendSrv, mockTemplateSrv] as const;
 }
 
-export function setupRenderer<DSType extends DataSourceApi<TQuery>, TQuery extends DataQuery>(
+export function setupRenderer<DSType extends DataSourceApi<TQuery, any>, TQuery extends DataQuery>(
   component: (props: QueryEditorProps<DSType, TQuery>) => React.JSX.Element,
-  ds: new (instanceSettings: DataSourceInstanceSettings, backendSrv: BackendSrv) => DSType
+  ds: new (instanceSettings: DataSourceInstanceSettings<any>, backendSrv: BackendSrv) => DSType
 ) {
   return (initialQuery: Omit<TQuery, 'refId'>) => {
     const onChange = jest.fn<void, [TQuery]>(),

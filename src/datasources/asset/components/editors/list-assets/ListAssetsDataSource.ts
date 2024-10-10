@@ -1,5 +1,5 @@
 import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings } from '@grafana/data';
-import { AssetQuery } from '../../../types/types';
+import { AssetDataSourceOptions, AssetQuery } from '../../../types/types';
 import { AssetModel, AssetsResponse } from '../../../../asset-common/types';
 import { SystemMetadata } from '../../../../system/types';
 import { getWorkspaceName, replaceVariables } from '../../../../../core/utils';
@@ -10,7 +10,7 @@ import { AssetFilterProperties, ListAssetsQuery } from '../../../types/ListAsset
 
 export class ListAssetsDataSource extends AssetDataSourceBase {
   constructor(
-    readonly instanceSettings: DataSourceInstanceSettings,
+    readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {

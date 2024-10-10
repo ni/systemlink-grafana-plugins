@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 
 import _ from 'lodash';
-import { AssetQuery, AssetQueryType } from '../types/types';
+import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../types/types';
 import { InlineField, Select } from '@grafana/ui';
 import { AssetDataSource } from '../AssetDataSource';
 import { AssetSummaryEditor } from './editors/asset-summary/AssetSummaryEditor';
@@ -13,7 +13,7 @@ import { defaultAssetSummaryQuery, defaultCalibrationForecastQuery, defaultListA
 import { ListAssetsQuery } from '../types/ListAssets.types';
 import { AssetSummaryQuery } from '../types/AssetSummaryQuery.types';
 
-type Props = QueryEditorProps<AssetDataSource, AssetQuery>;
+type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOptions>;
 
 export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   const queryRef = useRef(query);
@@ -60,26 +60,34 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
     }
   }, [queryType, handleQueryChange]);
 
+  const filterOptions = useMemo(() => {
+    return queryTypeOptions.filter(option => {
+      return (option.label === AssetQueryType.ListAssets && (datasource.instanceSettings.jsonData.assetListEnabled ?? true)) ||
+             (option.label === AssetQueryType.CalibrationForecast && (datasource.instanceSettings.jsonData.calibrationForecastEnabled ?? false)) ||
+             (option.label === AssetQueryType.AssetSummary && (datasource.instanceSettings.jsonData.assetSummaryEnabled ?? false))
+    });
+  }, [datasource.instanceSettings.jsonData])
+
   return (
     <div style={{ position: 'relative' }}>
       <InlineField label="Query type" labelWidth={22} tooltip={tooltips.queryType}>
-        <Select options={queryTypeOptions} onChange={handleQueryTypeChange} value={queryType} width={85} />
+        <Select options={filterOptions} onChange={handleQueryTypeChange} value={queryType} width={85} />
       </InlineField>
-      {queryType === AssetQueryType.ListAssets && (
+      {datasource.instanceSettings.jsonData.assetListEnabled && queryType === AssetQueryType.ListAssets && (
         <ListAssetsEditor
           query={query as ListAssetsQuery}
           handleQueryChange={handleQueryChange}
           datasource={datasource.getListAssetsSource()}
         />
       )}
-      {queryType === AssetQueryType.CalibrationForecast && (
+      {datasource.instanceSettings.jsonData.calibrationForecastEnabled && queryType === AssetQueryType.CalibrationForecast && (
         <CalibrationForecastEditor
           query={query as AssetCalibrationQuery}
           handleQueryChange={handleQueryChange}
           datasource={datasource.getCalibrationForecastSource()}
         />
       )}
-      {queryType === AssetQueryType.AssetSummary && (
+      {datasource.instanceSettings.jsonData.assetSummaryEnabled && queryType === AssetQueryType.AssetSummary && (
         <AssetSummaryEditor
           query={query as AssetSummaryQuery}
           handleQueryChange={handleQueryChange}

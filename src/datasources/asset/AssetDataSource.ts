@@ -2,12 +2,12 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
-  DataSourceJsonData,
   TestDataSourceResponse,
 } from '@grafana/data';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
+  AssetDataSourceOptions,
   AssetQuery,
   AssetQueryType,
 } from './types/types';
@@ -19,13 +19,13 @@ import { AssetSummaryQuery } from './types/AssetSummaryQuery.types';
 import { CalibrationForecastQuery } from './types/CalibrationForecastQuery.types';
 import { ListAssetsQuery } from './types/ListAssets.types';
 
-export class AssetDataSource extends DataSourceBase<AssetQuery, DataSourceJsonData> {
+export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
   private assetSummaryDataSource: AssetSummaryDataSource;
   private calibrationForecastDataSource: CalibrationForecastDataSource;
   private listAssetsDataSource: ListAssetsDataSource;
 
   constructor(
-    readonly instanceSettings: DataSourceInstanceSettings,
+    readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
