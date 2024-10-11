@@ -10,6 +10,7 @@ import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
 import { SystemMetadata } from 'datasources/system/types';
 import './AssetCalibrationQueryEditor.scss';
+import { forkJoin } from 'rxjs';
 
 type Props = QueryEditorProps<AssetCalibrationDataSource, AssetCalibrationQuery>;
 
@@ -20,16 +21,13 @@ export const AssetCalibrationQueryEditor = ({ query, onChange, onRunQuery, datas
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
 
   useEffect(() => {
-    if (datasource.areWorkspacesLoaded) {
-      setWorkspaces(Array.from(datasource.workspacesCache.values()));
-    }
-
-    if (datasource.areSystemsLoaded) {
-      setSystems(Array.from(datasource.systemAliasCache.values()));
-    }
-
-    setAreDependenciesLoaded(datasource.areSystemsLoaded && datasource.areWorkspacesLoaded);
-  }, [datasource, datasource.areSystemsLoaded, datasource.areWorkspacesLoaded]);
+    forkJoin([datasource.areWorkspacesLoaded$, datasource.areSystemsLoaded$])
+      .subscribe(() => {
+        setWorkspaces(Array.from(datasource.workspacesCache.values()));
+        setSystems(Array.from(datasource.systemAliasCache.values()));
+        setAreDependenciesLoaded(true);
+      })
+  }, [datasource]);
 
   const handleQueryChange = (value: AssetCalibrationQuery, runQuery: boolean): void => {
     onChange(value);
