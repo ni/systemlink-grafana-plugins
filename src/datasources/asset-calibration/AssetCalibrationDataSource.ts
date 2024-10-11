@@ -50,35 +50,74 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     super(instanceSettings, backendSrv, templateSrv);
   }
 
-  private readonly assetComputedDataFields = new Map<AssetCalibrationFieldNames, ExpressionTransformFunction>([
-    [
-      AssetCalibrationFieldNames.LOCATION,
-      (value: string, operation: string, options?: TTLCache<string, unknown>) => {
-        if (options?.has(value)) {
-          return `Location.MinionId ${operation} "${value}"`
-        }
-
-        const logicalOperator = operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
-        return `(Location.MinionId ${operation} "${value}" ${logicalOperator} Location.PhysicalLocation ${operation} "${value}")`;
-      }
-    ],
-  ]);
-
-  private readonly queryTransformationOptions = new Map<AssetCalibrationFieldNames, TTLCache<string, unknown>>([
-    [AssetCalibrationFieldNames.LOCATION, this.systemAliasCache]
-  ]);
-
   async runQuery(query: AssetCalibrationQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     await this.loadDependencies();
     this.validateQueryRange(query, options);
 
     if (query.filter) {
-      const transformedQuery = transformComputedFieldsQuery(query.filter, this.assetComputedDataFields, this.queryTransformationOptions);
-      query.filter = this.templateSrv.replace(transformedQuery, options.scopedVars);
+      query.filter = transformComputedFieldsQuery(
+        this.templateSrv.replace(query.filter, options.scopedVars),
+        this.assetComputedDataFields,
+        this.queryTransformationOptions
+      );
     }
 
     return await this.processCalibrationForecastQuery(query as AssetCalibrationQuery, options);
   }
+
+  private readonly assetComputedDataFields = new Map<AssetCalibrationFieldNames, ExpressionTransformFunction>([
+    ...Object.values(AssetCalibrationFieldNames).map(field => [field, this.multipleValuesQuery(field)] as [AssetCalibrationFieldNames, ExpressionTransformFunction]),
+    [
+      AssetCalibrationFieldNames.LOCATION,
+      (value: string, operation: string, options?: TTLCache<string, unknown>) => {
+        let values = [value];
+
+        if (this.isMultiSelectValue(value)) {
+          values = this.getMultipleValuesArray(value);
+        }
+
+        if (values.length > 1) {
+          return `(${values.map(val => `Location.MinionId ${operation} "${val}"`).join(` ${this.getLocicalOperator(operation)} `)})`;
+        }
+
+        if (options?.has(value)) {
+          return `Location.MinionId ${operation} "${value}"`
+        }
+
+        return `(Location.MinionId ${operation} "${value}" ${this.getLocicalOperator(operation)} Location.PhysicalLocation ${operation} "${value}")`;
+      }
+    ]
+  ]);
+
+  private multipleValuesQuery(field: AssetCalibrationFieldNames): ExpressionTransformFunction {
+    return (value: string, operation: string, _options?: any) => {
+      if (this.isMultiSelectValue(value)) {
+        const query = this.getMultipleValuesArray(value)
+          .map(val => `${field} ${operation} "${val}"`)
+          .join(` ${this.getLocicalOperator(operation)} `);
+
+        return `(${query})`;
+      }
+
+      return `${field} ${operation} "${value}"`
+    }
+  }
+
+  private isMultiSelectValue(value: string): boolean {
+    return value.startsWith('{') && value.endsWith('}');
+  }
+
+  private getMultipleValuesArray(value: string): string[] {
+    return value.replace(/({|})/g, '').split(',');
+  }
+
+  private getLocicalOperator(operation: string): string {
+    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
+  }
+
+  private readonly queryTransformationOptions = new Map<AssetCalibrationFieldNames, TTLCache<string, unknown>>([
+    [AssetCalibrationFieldNames.LOCATION, this.systemAliasCache]
+  ]);
 
   async processCalibrationForecastQuery(query: AssetCalibrationQuery, options: DataQueryRequest) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
