@@ -12,39 +12,18 @@ interface Props extends DataSourcePluginOptionsEditorProps<AssetDataSourceOption
 interface State { }
 
 export class AssetConfigEditor extends PureComponent<Props, State> {
+  handleFeatureChange = (featureKey: string) => (event: ChangeEvent<HTMLInputElement>) => {
+    console.log(event.target.value);
+    const jsonData = {
+      ...this.props.options.jsonData,
+      [featureKey]: event.target.checked,
+    };
+    this.props.onOptionsChange({ ...this.props.options, jsonData });
+  };
+
+
   render() {
     const { options, onOptionsChange } = this.props;
-
-    const onCalibrationFeatureEnabledChange = (event: ChangeEvent<HTMLInputElement>) => {
-      console.log(event.target.value);
-      const jsonData: AssetDataSourceOptions = {
-        ...this.props.options.jsonData,
-        calibrationForecastEnabled: !this.props.options.jsonData.calibrationForecastEnabled,
-      };
-
-      onOptionsChange({ ...this.props.options, jsonData });
-    };
-
-    const onAssetSummaryFeatureEnabledChange = (event: ChangeEvent<HTMLInputElement>) => {
-      console.log(event.target.value);
-      const jsonData: AssetDataSourceOptions = {
-        ...this.props.options.jsonData,
-        assetSummaryEnabled: !this.props.options.jsonData.assetSummaryEnabled,
-      };
-
-      onOptionsChange({ ...this.props.options, jsonData });
-    };
-
-    const onAssetListEnabledChange = (event: ChangeEvent<HTMLInputElement>) => {
-      console.log(event.target.value);
-      const jsonData: AssetDataSourceOptions = {
-        ...this.props.options.jsonData,
-        assetListEnabled: !this.props.options.jsonData.assetListEnabled,
-      };
-
-      onOptionsChange({ ...this.props.options, jsonData });
-    };
-
     return (
       <>
         <DataSourceHttpSettings
@@ -60,13 +39,19 @@ export class AssetConfigEditor extends PureComponent<Props, State> {
             </Text>
           </div>
           <InlineField label="Asset list" labelWidth={25}>
-            <InlineSwitch disabled={false} value={this.props.options.jsonData.assetListEnabled ?? true} onChange={onAssetListEnabledChange} />
+            <InlineSwitch
+              value={this.props.options.jsonData.assetListEnabled ?? true}
+              onChange={this.handleFeatureChange('assetListEnabled')} />
           </InlineField>
           <InlineField label="Asset summary" labelWidth={25}>
-            <InlineSwitch disabled={false} value={this.props.options.jsonData.assetSummaryEnabled ?? false} onChange={onAssetSummaryFeatureEnabledChange} />
+            <InlineSwitch
+              value={this.props.options.jsonData.assetSummaryEnabled ?? false}
+              onChange={this.handleFeatureChange('assetSummaryEnabled')} />
           </InlineField>
           <InlineField label="Calibration forecast" labelWidth={25}>
-            <InlineSwitch disabled={false} value={this.props.options.jsonData.calibrationForecastEnabled ?? false} onChange={onCalibrationFeatureEnabledChange} />
+            <InlineSwitch
+              value={this.props.options.jsonData.calibrationForecastEnabled ?? false}
+              onChange={this.handleFeatureChange('calibrationForecastEnabled')} />
           </InlineField>
         </>
       </>

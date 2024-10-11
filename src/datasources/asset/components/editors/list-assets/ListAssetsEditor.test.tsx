@@ -20,6 +20,12 @@ const fakeSystems: SystemMetadata[] = [
   },
 ];
 
+let assetDatasourceOptions = {
+  assetListEnabled: true,
+  calibrationForecastEnabled: false,
+  assetSummaryEnabled: false,
+}
+
 class FakeAssetsSource extends ListAssetsDataSource {
   querySystems(filter?: string, projection?: string[]): Promise<SystemMetadata[]> {
     return Promise.resolve(fakeSystems);
@@ -32,13 +38,30 @@ class FakeAssetDataSource extends AssetDataSource {
   }
 }
 
-const render = setupRenderer(AssetQueryEditor, FakeAssetDataSource);
+const render = setupRenderer(AssetQueryEditor, FakeAssetDataSource, () => assetDatasourceOptions);
 const workspacesLoaded = () => waitForElementToBeRemoved(screen.getByTestId('Spinner'));
 
+beforeEach(() => {
+  assetDatasourceOptions = {
+    assetListEnabled: true,
+    calibrationForecastEnabled: false,
+    assetSummaryEnabled: false,
+  }
+})
+
+it('does not render when feature is not enabled', async () => {
+  assetDatasourceOptions.assetListEnabled = false;
+  render({} as ListAssetsQuery);
+  expect(screen.getAllByRole('combobox').length).toBe(1);
+});
+
+
 it('renders with metadata query defaults', async () => {
+  assetDatasourceOptions.assetListEnabled = true;
   render({} as ListAssetsQuery);
   await workspacesLoaded();
 
+  expect(screen.getAllByRole('combobox').length).toBe(3);
   expect(screen.getAllByRole('combobox')[1]).toHaveAccessibleDescription('Any workspace');
   expect(screen.getAllByRole('combobox')[2]).toHaveAccessibleDescription('Select systems');
 });
