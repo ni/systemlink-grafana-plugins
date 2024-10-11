@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
-
-import _ from 'lodash';
-import { AssetQuery, AssetQueryType } from '../types/types';
 import { InlineField, Select } from '@grafana/ui';
+import _ from 'lodash';
+
+import { AssetQuery, AssetQueryType } from '../types/types';
 import { AssetDataSource } from '../AssetDataSource';
 import { AssetSummaryEditor } from './editors/asset-summary/AssetSummaryEditor';
 import { CalibrationForecastEditor } from './editors/calibration-forecast/CalibrationForecastEditor';
@@ -19,7 +19,9 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
   const queryRef = useRef(query);
   const onChangeRef = useRef(onChange);
   const onRunQueryRef = useRef(onRunQuery);
-  const [queryType, setQueryType] = useState<string>(query.queryType || '');
+  const [queryType, setQueryType] = useState<string>(() => {
+    return query.queryType ? query.queryType : AssetQueryType.ListAssets;
+  });
 
   useEffect(() => {
     queryRef.current = query;
@@ -56,14 +58,22 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
       });
     }
     if (queryType === AssetQueryType.AssetSummary) {
-      handleQueryChange({ ...queryRef.current, queryType: AssetQueryType.AssetSummary, ...defaultAssetSummaryQuery }, true);
+      handleQueryChange(
+        { ...queryRef.current, queryType: AssetQueryType.AssetSummary, ...defaultAssetSummaryQuery },
+        true
+      );
     }
   }, [queryType, handleQueryChange]);
 
   return (
     <div style={{ position: 'relative' }}>
       <InlineField label="Query type" labelWidth={22} tooltip={tooltips.queryType}>
-        <Select options={queryTypeOptions} onChange={handleQueryTypeChange} value={queryTypeOptions.find(option => option.value === queryType)} width={85} />
+        <Select
+          options={queryTypeOptions}
+          onChange={handleQueryTypeChange}
+          value={queryTypeOptions.find(option => option.value === queryType)}
+          width={85}
+        />
       </InlineField>
       {queryType === AssetQueryType.ListAssets && (
         <ListAssetsEditor

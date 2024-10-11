@@ -1,8 +1,9 @@
 import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings } from '@grafana/data';
-import { AssetQuery } from '../../../types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
+
+import { AssetSummaryQuery } from 'datasources/asset/types/AssetSummaryQuery.types';
+import { AssetQuery } from '../../../types/types';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
-import { AssetSummaryQuery } from 'datasources/asset-common/types';
 
 export class AssetSummaryDataSource extends AssetDataSourceBase {
     constructor(
@@ -32,9 +33,9 @@ export class AssetSummaryDataSource extends AssetDataSourceBase {
         const assets: AssetSummaryQuery = await this.getAssetSummary();
 
         result.fields = [
+            { name: 'Total', values: [assets.total] },
             { name: 'Active', values: [assets.active] },
             { name: 'Not active', values: [assets.notActive] },
-            { name: 'Total', values: [assets.total] },
             { name: 'Approaching due date', values: [assets.approachingRecommendedDueDate] },
             { name: 'Past due date', values: [assets.pastRecommendedDueDate] }
         ];

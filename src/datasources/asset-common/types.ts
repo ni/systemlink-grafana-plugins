@@ -1,4 +1,3 @@
-
 export interface AssetsResponse {
     assets: AssetModel[],
     totalCount: number
@@ -67,16 +66,4 @@ export interface AssetsResponse {
   export interface ExternalCalibrationOperatorModel {
     displayName: string;
     userId: string
-  }
-
-  export interface AssetSummaryQuery {
-    total: number;
-    active: number;
-    notActive: number;
-    inUse: number;
-    notInUse: number;
-    withAlarms: number;
-    approachingRecommendedDueDate: number;
-    pastRecommendedDueDate: number;
-    totalCalibrated: number;
   }
