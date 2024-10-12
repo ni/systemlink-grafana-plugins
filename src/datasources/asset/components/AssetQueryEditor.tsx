@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 
 import _ from 'lodash';
-import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../types/types';
+import { AssetDataSourceOptions, AssetFeatureToggles, AssetFeatureTogglesDefaults, AssetQuery, AssetQueryType } from '../types/types';
 import { InlineField, Select } from '@grafana/ui';
 import { AssetDataSource } from '../AssetDataSource';
 import { AssetSummaryEditor } from './editors/asset-summary/AssetSummaryEditor';
@@ -16,20 +16,12 @@ import { AssetSummaryQuery } from '../types/AssetSummaryQuery.types';
 type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOptions>;
 
 export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
-  const [queryType, setQueryType] = useState(AssetQueryType.ListAssets);
-  const [assetFeatures, setAssetFeatures] = useState({
-    assetListEnabled: datasource.instanceSettings.jsonData?.assetListEnabled ?? true,
-    calibrationForecastEnabled: datasource.instanceSettings.jsonData?.calibrationForecastEnabled ?? false,
-    assetSummaryEnabled: datasource.instanceSettings.jsonData?.assetSummaryEnabled ?? false,
+  const [queryType, setQueryType] = useState(query.queryType as AssetQueryType);
+  const [assetFeatures] = useState<AssetFeatureToggles>({
+    assetList: datasource.instanceSettings.jsonData?.featureToggles?.assetList ?? AssetFeatureTogglesDefaults.assetList,
+    calibrationForecast: datasource.instanceSettings.jsonData?.featureToggles?.calibrationForecast ?? AssetFeatureTogglesDefaults.calibrationForecast,
+    assetSummary: datasource.instanceSettings.jsonData?.featureToggles?.assetSummary ?? AssetFeatureTogglesDefaults.assetSummary,
   });
-
-  useEffect(() => {
-    setAssetFeatures({
-      assetListEnabled: datasource.instanceSettings.jsonData?.assetListEnabled ?? true,
-      calibrationForecastEnabled: datasource.instanceSettings.jsonData?.calibrationForecastEnabled ?? false,
-      assetSummaryEnabled: datasource.instanceSettings.jsonData?.assetSummaryEnabled ?? false,
-    });
-  }, [datasource.instanceSettings.jsonData]);
 
   const handleQueryChange = useCallback((value: AssetQuery, runQuery = false): void => {
     onChange({ ...query, ...value });
@@ -43,53 +35,61 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
     handleQueryChange({ ...query, queryType: item.value! }, true);
   }, [query, handleQueryChange]);
 
+  const filterOptions = useMemo(() => {
+    return queryTypeOptions.filter(option => {
+      return (option.value === queryType) ||
+        (option.value === AssetQueryType.ListAssets && assetFeatures.assetList) ||
+        (option.value === AssetQueryType.CalibrationForecast && assetFeatures.calibrationForecast) ||
+        (option.value === AssetQueryType.AssetSummary && assetFeatures.assetSummary)
+    });
+  }, [queryType, assetFeatures.assetList, assetFeatures.calibrationForecast, assetFeatures.assetSummary]);
+
   useEffect(() => {
-    if(queryType === query.queryType) {
+    if (!queryType) {
+      const firstFilterOption = filterOptions.length > 0 ? filterOptions[0].value : undefined;
+      setQueryType(firstFilterOption as AssetQueryType);
+    }
+  }, [setQueryType, filterOptions, queryType]);
+
+  useEffect(() => {
+    if (queryType === query.queryType && query.queryType !== null && queryType !== null) {
       return;
     }
 
-    if (queryType === AssetQueryType.ListAssets && assetFeatures.assetListEnabled) {
+    if (queryType === AssetQueryType.ListAssets && assetFeatures.assetList) {
       handleQueryChange({ ...query, queryType: AssetQueryType.ListAssets, ...defaultListAssetsQuery }, true);
     }
-    if (queryType === AssetQueryType.CalibrationForecast && assetFeatures.calibrationForecastEnabled) {
+    if (queryType === AssetQueryType.CalibrationForecast && assetFeatures.calibrationForecast) {
       handleQueryChange({ ...query, queryType: AssetQueryType.CalibrationForecast, ...defaultCalibrationForecastQuery }, true);
     }
-    if (queryType === AssetQueryType.AssetSummary && assetFeatures.assetSummaryEnabled) {
+    if (queryType === AssetQueryType.AssetSummary && assetFeatures.assetSummary) {
       handleQueryChange({ ...query, queryType: AssetQueryType.AssetSummary, ...defaultAssetSummaryQuery }, true);
     }
   }, [
-    query, queryType, handleQueryChange, onRunQuery,
-    assetFeatures.assetListEnabled, assetFeatures.calibrationForecastEnabled, assetFeatures.assetSummaryEnabled
+    query, queryType, handleQueryChange,
+    assetFeatures.assetList, assetFeatures.calibrationForecast, assetFeatures.assetSummary
   ]);
-
-  const filterOptions = useMemo(() => {
-    return queryTypeOptions.filter(option => {
-      return (option.value === AssetQueryType.ListAssets && assetFeatures.assetListEnabled) ||
-        (option.value === AssetQueryType.CalibrationForecast && assetFeatures.calibrationForecastEnabled) ||
-        (option.value === AssetQueryType.AssetSummary && assetFeatures.assetSummaryEnabled)
-    });
-  }, [assetFeatures.assetListEnabled, assetFeatures.calibrationForecastEnabled, assetFeatures.assetSummaryEnabled]);
 
   return (
     <div style={{ position: 'relative' }}>
       <InlineField label="Query type" labelWidth={22} tooltip={tooltips.queryType}>
         <Select options={filterOptions} onChange={handleQueryTypeChange} value={queryType} width={85} />
       </InlineField>
-      {assetFeatures.assetListEnabled && queryType === AssetQueryType.ListAssets && (
+      {((assetFeatures.assetList && queryType === AssetQueryType.ListAssets) || (query.queryType === AssetQueryType.ListAssets)) && (
         <ListAssetsEditor
           query={query as ListAssetsQuery}
           handleQueryChange={handleQueryChange}
           datasource={datasource.getListAssetsSource()}
         />
       )}
-      {assetFeatures.calibrationForecastEnabled && queryType === AssetQueryType.CalibrationForecast && (
+      {((assetFeatures.calibrationForecast && queryType === AssetQueryType.CalibrationForecast) || (query.queryType === AssetQueryType.CalibrationForecast)) && (
         <CalibrationForecastEditor
           query={query as AssetCalibrationQuery}
           handleQueryChange={handleQueryChange}
           datasource={datasource.getCalibrationForecastSource()}
         />
       )}
-      {assetFeatures.assetSummaryEnabled && queryType === AssetQueryType.AssetSummary && (
+      {((assetFeatures.assetSummary && queryType === AssetQueryType.AssetSummary) || (query.queryType === AssetQueryType.AssetSummary)) && (
         <AssetSummaryEditor
           query={query as AssetSummaryQuery}
           handleQueryChange={handleQueryChange}

@@ -1,60 +1,53 @@
 /**
- * ConfigEditor is a React component that implements the UI for editing the asset
+ * AssetConfigEditor is a React component that implements the UI for editing the asset
  * datasource configuration options.
  */
-import React, { ChangeEvent, PureComponent } from 'react';
+import React, { ChangeEvent } from 'react';
 import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
 import { DataSourceHttpSettings, InlineField, InlineSwitch, Text } from '@grafana/ui';
-import { AssetDataSourceOptions } from './types/types';
+import { AssetDataSourceOptions, AssetFeatureTogglesDefaults } from './types/types';
 
 interface Props extends DataSourcePluginOptionsEditorProps<AssetDataSourceOptions> { }
 
-interface State { }
-
-export class AssetConfigEditor extends PureComponent<Props, State> {
-  handleFeatureChange = (featureKey: string) => (event: ChangeEvent<HTMLInputElement>) => {
-    console.log(event.target.value);
+export const AssetConfigEditor: React.FC<Props> = ({ options, onOptionsChange }) => {
+  const handleFeatureChange = (featureKey: string) => (event: ChangeEvent<HTMLInputElement>) => {
     const jsonData = {
-      ...this.props.options.jsonData,
-      [featureKey]: event.target.checked,
+      ...options.jsonData,
+      ...{ featureToggles: { ...options.jsonData.featureToggles, [featureKey]: event.target.checked } }
     };
-    this.props.onOptionsChange({ ...this.props.options, jsonData });
+    onOptionsChange({ ...options, jsonData });
   };
 
-
-  render() {
-    const { options, onOptionsChange } = this.props;
-    return (
+  return (
+    <>
+      <DataSourceHttpSettings
+        defaultUrl=""
+        dataSourceConfig={options}
+        showAccessOptions={false}
+        onChange={onOptionsChange}
+      />
       <>
-        <DataSourceHttpSettings
-          defaultUrl=""
-          dataSourceConfig={options}
-          showAccessOptions={false}
-          onChange={onOptionsChange}
-        />
-        <>
-          <div style={{ paddingBottom: "10px" }}>
-            <Text element="h6">
-              Features
-            </Text>
-          </div>
-          <InlineField label="Asset list" labelWidth={25}>
-            <InlineSwitch
-              value={this.props.options.jsonData.assetListEnabled ?? true}
-              onChange={this.handleFeatureChange('assetListEnabled')} />
-          </InlineField>
-          <InlineField label="Asset summary" labelWidth={25}>
-            <InlineSwitch
-              value={this.props.options.jsonData.assetSummaryEnabled ?? false}
-              onChange={this.handleFeatureChange('assetSummaryEnabled')} />
-          </InlineField>
-          <InlineField label="Calibration forecast" labelWidth={25}>
-            <InlineSwitch
-              value={this.props.options.jsonData.calibrationForecastEnabled ?? false}
-              onChange={this.handleFeatureChange('calibrationForecastEnabled')} />
-          </InlineField>
-        </>
+        <div style={{ paddingBottom: "10px" }}>
+          <Text element="h6">
+            Features
+          </Text>
+        </div>
+        <InlineField label="Asset list" labelWidth={25}>
+          <InlineSwitch
+            value={options.jsonData?.featureToggles?.assetList ?? AssetFeatureTogglesDefaults.assetList}
+            onChange={handleFeatureChange('assetList')} />
+        </InlineField>
+        <InlineField label="Calibration forecast" labelWidth={25}>
+          <InlineSwitch
+            value={options.jsonData?.featureToggles?.calibrationForecast ?? AssetFeatureTogglesDefaults.calibrationForecast}
+            onChange={handleFeatureChange('calibrationForecast')} />
+        </InlineField>
+        <InlineField label="Asset summary" labelWidth={25}>
+          <InlineSwitch
+            value={options.jsonData?.featureToggles?.assetSummary ?? AssetFeatureTogglesDefaults.assetSummary}
+            onChange={handleFeatureChange('assetSummary')} />
+        </InlineField>
       </>
-    );
-  }
+    </>
+  );
 }

@@ -6,6 +6,7 @@ import { setupRenderer } from '../../../../../test/fixtures';
 import { select } from 'react-select-event';
 import { ListAssetsDataSource } from './ListAssetsDataSource';
 import { ListAssetsQuery } from '../../../types/ListAssets.types';
+import { AssetFeatureTogglesDefaults } from 'datasources/asset/types/types';
 
 const fakeSystems: SystemMetadata[] = [
   {
@@ -21,9 +22,7 @@ const fakeSystems: SystemMetadata[] = [
 ];
 
 let assetDatasourceOptions = {
-  assetListEnabled: true,
-  calibrationForecastEnabled: false,
-  assetSummaryEnabled: false,
+  featureToggles: {...AssetFeatureTogglesDefaults}
 }
 
 class FakeAssetsSource extends ListAssetsDataSource {
@@ -43,21 +42,19 @@ const workspacesLoaded = () => waitForElementToBeRemoved(screen.getByTestId('Spi
 
 beforeEach(() => {
   assetDatasourceOptions = {
-    assetListEnabled: true,
-    calibrationForecastEnabled: false,
-    assetSummaryEnabled: false,
+    featureToggles: {...AssetFeatureTogglesDefaults}
   }
 })
 
 it('does not render when feature is not enabled', async () => {
-  assetDatasourceOptions.assetListEnabled = false;
+  assetDatasourceOptions.featureToggles.assetList = false;
   render({} as ListAssetsQuery);
   expect(screen.getAllByRole('combobox').length).toBe(1);
 });
 
 
 it('renders with metadata query defaults', async () => {
-  assetDatasourceOptions.assetListEnabled = true;
+  assetDatasourceOptions.featureToggles.assetList = true;
   render({} as ListAssetsQuery);
   await workspacesLoaded();
 

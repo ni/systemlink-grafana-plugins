@@ -12,7 +12,7 @@ import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
 import { sleep } from './utils';
 import { lastValueFrom } from 'rxjs';
 
-export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
+export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData = DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<TOptions>,
     readonly backendSrv: BackendSrv,

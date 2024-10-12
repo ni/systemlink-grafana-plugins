@@ -4,6 +4,7 @@ import { CalibrationForecastQuery } from "./CalibrationForecastQuery.types";
 import { ListAssetsQuery } from "./ListAssets.types";
 
 export enum AssetQueryType {
+  None = "",
   ListAssets = "List Assets",
   CalibrationForecast = "Calibration Forecast",
   AssetSummary = "Asset Summary"
@@ -11,8 +12,18 @@ export enum AssetQueryType {
 
 export type AssetQuery = ListAssetsQuery | CalibrationForecastQuery | AssetSummaryQuery;
 
+export interface AssetFeatureToggles {
+  calibrationForecast: boolean;
+  assetList: boolean;
+  assetSummary: boolean;
+}
+
 export interface AssetDataSourceOptions extends DataSourceJsonData {
-  calibrationForecastEnabled: boolean | null;
-  assetListEnabled: boolean | null;
-  assetSummaryEnabled: boolean | null;
+  featureToggles: AssetFeatureToggles;
+}
+
+export const AssetFeatureTogglesDefaults: AssetFeatureToggles = {
+  assetList: true,
+  calibrationForecast: false,
+  assetSummary: false
 }
