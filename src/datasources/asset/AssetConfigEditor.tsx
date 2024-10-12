@@ -4,7 +4,7 @@
  */
 import React, { ChangeEvent } from 'react';
 import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
-import { DataSourceHttpSettings, InlineField, InlineSwitch, Text } from '@grafana/ui';
+import { DataSourceHttpSettings, InlineField, InlineSegmentGroup, InlineSwitch, Tag, Text } from '@grafana/ui';
 import { AssetDataSourceOptions, AssetFeatureTogglesDefaults } from './types/types';
 
 interface Props extends DataSourcePluginOptionsEditorProps<AssetDataSourceOptions> { }
@@ -32,21 +32,30 @@ export const AssetConfigEditor: React.FC<Props> = ({ options, onOptionsChange })
             Features
           </Text>
         </div>
-        <InlineField label="Asset list" labelWidth={25}>
-          <InlineSwitch
-            value={options.jsonData?.featureToggles?.assetList ?? AssetFeatureTogglesDefaults.assetList}
-            onChange={handleFeatureChange('assetList')} />
-        </InlineField>
-        <InlineField label="Calibration forecast" labelWidth={25}>
-          <InlineSwitch
-            value={options.jsonData?.featureToggles?.calibrationForecast ?? AssetFeatureTogglesDefaults.calibrationForecast}
-            onChange={handleFeatureChange('calibrationForecast')} />
-        </InlineField>
-        <InlineField label="Asset summary" labelWidth={25}>
-          <InlineSwitch
-            value={options.jsonData?.featureToggles?.assetSummary ?? AssetFeatureTogglesDefaults.assetSummary}
-            onChange={handleFeatureChange('assetSummary')} />
-        </InlineField>
+        <InlineSegmentGroup>
+          <InlineField label="Asset list" labelWidth={25}>
+            <InlineSwitch
+              value={options.jsonData?.featureToggles?.assetList ?? AssetFeatureTogglesDefaults.assetList}
+              onChange={handleFeatureChange('assetList')} />
+          </InlineField>
+          <Tag name='Beta' colorIndex={5} />
+        </InlineSegmentGroup>
+        <InlineSegmentGroup>
+          <InlineField label="Calibration forecast" labelWidth={25}>
+            <InlineSwitch
+              value={options.jsonData?.featureToggles?.calibrationForecast ?? AssetFeatureTogglesDefaults.calibrationForecast}
+              onChange={handleFeatureChange('calibrationForecast')} />
+          </InlineField>
+          <Tag name='Beta' colorIndex={5} />
+        </InlineSegmentGroup>
+        <InlineSegmentGroup>
+          <InlineField label="Asset summary" labelWidth={25}>
+            <InlineSwitch
+              value={options.jsonData?.featureToggles?.assetSummary ?? AssetFeatureTogglesDefaults.assetSummary}
+              onChange={handleFeatureChange('assetSummary')} />
+          </InlineField>
+          <Tag name='Beta' colorIndex={5} />
+        </InlineSegmentGroup>
       </>
     </>
   );

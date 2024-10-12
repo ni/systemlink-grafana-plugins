@@ -26,7 +26,7 @@ const fakeSystems: SystemMetadata[] = [
 ];
 
 let assetDatasourceOptions = {
-    featureToggles: {...AssetFeatureTogglesDefaults}
+    featureToggles: { ...AssetFeatureTogglesDefaults }
 }
 
 class FakeAssetsSource extends ListAssetsDataSource {
@@ -52,11 +52,11 @@ const render = setupRenderer(AssetQueryEditor, FakeAssetDataSource, () => assetD
 
 beforeEach(() => {
     assetDatasourceOptions = {
-        featureToggles: {...AssetFeatureTogglesDefaults}
-    }
-})
+        featureToggles: { ...AssetFeatureTogglesDefaults }
+    };
+});
 
-it('renders Asset list when feature is ', async () => {
+it('renders Asset list when feature is enabled', async () => {
     assetDatasourceOptions.featureToggles.assetList = true;
     render({} as ListAssetsQuery);
     await workspacesLoaded();
