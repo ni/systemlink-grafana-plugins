@@ -24,6 +24,6 @@ export interface AssetDataSourceOptions extends DataSourceJsonData {
 
 export const AssetFeatureTogglesDefaults: AssetFeatureToggles = {
   assetList: true,
-  calibrationForecast: false,
-  assetSummary: false
+  calibrationForecast: true,
+  assetSummary: true
 }

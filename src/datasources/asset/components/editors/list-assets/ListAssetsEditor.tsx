@@ -8,7 +8,7 @@ import { FloatingError, parseErrorMessage } from '../../../../../core/errors';
 import { useWorkspaceOptions } from '../../../../../core/utils';
 import { isValidId } from '../../../../data-frame/utils';
 import { SystemMetadata } from '../../../../system/types';
-import { AssetQuery } from '../../../types/types';
+import { AssetFeatureTogglesDefaults, AssetQuery } from '../../../types/types';
 import { ListAssetsDataSource } from './ListAssetsDataSource';
 import { ListAssetsQuery } from '../../../types/ListAssets.types';
 
@@ -24,7 +24,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
   const workspaces = useWorkspaceOptions(datasource);
   const [errorMsg, setErrorMsg] = useState<string | undefined>('');
   const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
-  const [editorEnabled] = useState(datasource.instanceSettings.jsonData?.featureToggles?.assetList ?? true);
+  const [editorEnabled] = useState(datasource.instanceSettings.jsonData?.featureToggles?.assetList ?? AssetFeatureTogglesDefaults.assetList);
 
   const minionIds = useAsync(() => {
     let filterString = '';
