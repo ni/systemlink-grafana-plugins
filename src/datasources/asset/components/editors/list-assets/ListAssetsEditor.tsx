@@ -1,5 +1,5 @@
 import { SelectableValue, toOption } from '@grafana/data';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 import { InlineField, MultiSelect, Select } from '@grafana/ui';
 import _ from 'lodash';
@@ -8,7 +8,7 @@ import { FloatingError, parseErrorMessage } from '../../../../../core/errors';
 import { useWorkspaceOptions } from '../../../../../core/utils';
 import { isValidId } from '../../../../data-frame/utils';
 import { SystemMetadata } from '../../../../system/types';
-import { AssetQuery } from '../../../types/types';
+import { AssetFeatureTogglesDefaults, AssetQuery } from '../../../types/types';
 import { ListAssetsDataSource } from './ListAssetsDataSource';
 import { ListAssetsQuery } from '../../../types/ListAssets.types';
 
@@ -24,6 +24,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
   const workspaces = useWorkspaceOptions(datasource);
   const [errorMsg, setErrorMsg] = useState<string | undefined>('');
   const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
+  const editorEnabled = useRef(datasource.instanceSettings.jsonData?.featureToggles?.assetList ?? AssetFeatureTogglesDefaults.assetList);
 
   const minionIds = useAsync(() => {
     let filterString = '';
@@ -68,7 +69,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
 
   return (
     <div style={{ position: 'relative' }}>
-      <InlineField label="Workspace" tooltip={tooltips.workspace} labelWidth={22}>
+      <InlineField label="Workspace" tooltip={tooltips.workspace} labelWidth={22} disabled={!editorEnabled.current}>
         <Select
           isClearable
           isLoading={workspaces.loading}
@@ -78,7 +79,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
           value={query.workspace}
         />
       </InlineField>
-      <InlineField label="Systems" tooltip={tooltips.system} labelWidth={22}>
+      <InlineField label="Systems" tooltip={tooltips.system} labelWidth={22} disabled={!editorEnabled.current}>
         <MultiSelect
           isClearable
           allowCreateWhileLoading

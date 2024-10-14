@@ -13,9 +13,14 @@ import { AssetPresenceWithSystemConnectionModel, AssetsResponse } from "datasour
 import { ListAssetsQuery } from "./types/ListAssets.types";
 
 let ds: AssetDataSource, backendSrv: MockProxy<BackendSrv>
+let assetOptions = {
+  assetListEnabled: true,
+  calibrationForecastEnabled: true,
+  assetSummaryEnabled: true,
+}
 
 beforeEach(() => {
-  [ds, backendSrv] = setupDataSource(AssetDataSource);
+  [ds, backendSrv] = setupDataSource(AssetDataSource, () => assetOptions);
 });
 
 const assetsResponseMock: AssetsResponse =

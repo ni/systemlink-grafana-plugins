@@ -2,6 +2,7 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
+  DataSourceJsonData,
   FieldDTO,
   TestDataSourceResponse,
 } from '@grafana/data';
@@ -26,7 +27,7 @@ import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { Workspace } from 'core/types';
 import { parseErrorMessage } from 'core/errors';
 
-export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQuery> {
+export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQuery, DataSourceJsonData> {
   public defaultQuery = {
     groupBy: [],
     filter: ''

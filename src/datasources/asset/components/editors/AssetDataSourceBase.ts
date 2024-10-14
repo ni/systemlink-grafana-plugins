@@ -1,8 +1,8 @@
 import { DataFrameDTO, DataQueryRequest, TestDataSourceResponse } from "@grafana/data";
-import { AssetQuery } from "../../types/types";
+import { AssetDataSourceOptions, AssetQuery } from "../../types/types";
 import { DataSourceBase } from "../../../../core/DataSourceBase";
 
-export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery> {
+export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
 
   abstract runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 

@@ -15,7 +15,6 @@ type Props = QueryEditorProps<AssetCalibrationDataSource, AssetCalibrationQuery>
 
 export const AssetCalibrationQueryEditor = ({ query, onChange, onRunQuery, datasource }: Props) => {
   query = datasource.prepareQuery(query) as AssetCalibrationQuery;
-
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [systems, setSystems] = useState<SystemMetadata[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
