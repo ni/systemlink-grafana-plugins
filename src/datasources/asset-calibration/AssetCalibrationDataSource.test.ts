@@ -387,7 +387,7 @@ describe('queries', () => {
     }
     finally {
       expect(exception).toBeDefined();
-      expect(exception?.message).toBe('Query range exceeds range limit of Day grouping method: 3 months');
+      expect(exception?.message).toBe('Query range exceeds range limit of DAY grouping method: 3 months');
     }
   })
 
@@ -406,7 +406,7 @@ describe('queries', () => {
     }
     finally {
       expect(exception).toBeDefined();
-      expect(exception?.message).toBe('Query range exceeds range limit of Week grouping method: 2 years');
+      expect(exception?.message).toBe('Query range exceeds range limit of WEEK grouping method: 2 years');
     }
   })
 
@@ -425,7 +425,7 @@ describe('queries', () => {
     }
     finally {
       expect(exception).toBeDefined();
-      expect(exception?.message).toBe('Query range exceeds range limit of Month grouping method: 5 years');
+      expect(exception?.message).toBe('Query range exceeds range limit of MONTH grouping method: 5 years');
     }
   })
 })

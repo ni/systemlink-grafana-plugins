@@ -208,24 +208,25 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
   }
 
   private validateQueryRange(query: AssetCalibrationQuery, options: DataQueryRequest): void {
+    const MILLISECONDS_IN_A_DAY = 1000 * 60 * 60 * 24;
+    const DAYS_IN_A_MONTH = 31;
+    const DAYS_IN_A_YEAR = 366;
+
     const from = options.range!.from;
     const to = options.range!.to;
-    const numberOfDays = Math.abs(to.valueOf() - from.valueOf()) / (1000 * 60 * 60 * 24);
-    if (query.groupBy.includes(AssetCalibrationTimeBasedGroupByType.Day.valueOf())) {
-      if (numberOfDays > 31 * 3) {
-        throw new Error('Query range exceeds range limit of Day grouping method: 3 months');
+    const numberOfDays = Math.abs(to.valueOf() - from.valueOf()) / MILLISECONDS_IN_A_DAY;
+
+    const rangeLimits = [
+      { type: AssetCalibrationTimeBasedGroupByType.Day, limit: DAYS_IN_A_MONTH * 3, groupingMethod: '3 months' },
+      { type: AssetCalibrationTimeBasedGroupByType.Week, limit: DAYS_IN_A_YEAR * 2, groupingMethod: '2 years' },
+      { type: AssetCalibrationTimeBasedGroupByType.Month, limit: DAYS_IN_A_YEAR * 5, groupingMethod: '5 years' }
+    ];
+
+    rangeLimits.forEach(({ type, limit, groupingMethod }) => {
+      if (query.groupBy.includes(type.valueOf()) && numberOfDays > limit) {
+        throw new Error(`Query range exceeds range limit of ${type} grouping method: ${groupingMethod}`);
       }
-    }
-    if (query.groupBy.includes(AssetCalibrationTimeBasedGroupByType.Week.valueOf())) {
-      if (numberOfDays > 366 * 2) {
-        throw new Error('Query range exceeds range limit of Week grouping method: 2 years');
-      }
-    }
-    if (query.groupBy.includes(AssetCalibrationTimeBasedGroupByType.Month.valueOf())) {
-      if (numberOfDays > 366 * 5) {
-        throw new Error('Query range exceeds range limit of Month grouping method: 5 years');
-      }
-    }
+    });
   }
 
   private async loadSystems(): Promise<void> {
