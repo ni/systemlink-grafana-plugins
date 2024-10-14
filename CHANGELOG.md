@@ -1,3 +1,9 @@
+## [3.20.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.19.0...v3.20.0) (2024-10-14)
+
+### Features
+
+* **asset:** Validate calibration forecast interval ([#82](https://github.com/ni/systemlink-grafana-plugins/issues/82)) ([57b8ebd](https://github.com/ni/systemlink-grafana-plugins/commit/57b8ebd2c4918ac0a5d5d77fafc7b4e5f956661e))
+
 ## [3.19.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.18.0...v3.19.0) (2024-10-10)
 
 ### Features
