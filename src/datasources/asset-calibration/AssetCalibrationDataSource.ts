@@ -70,7 +70,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
 
   async runQuery(query: AssetCalibrationQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     await this.loadDependencies();
-    this.validateQuery(query, options);
+    this.validateQueryRange(query, options);
 
     if (query.filter) {
       const transformedQuery = transformComputedFieldsQuery(query.filter, this.assetComputedDataFields, this.queryTransformationOptions);
@@ -207,7 +207,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     }
   }
 
-  private validateQuery(query: AssetCalibrationQuery, options: DataQueryRequest): void {
+  private validateQueryRange(query: AssetCalibrationQuery, options: DataQueryRequest): void {
     const from = options.range!.from;
     const to = options.range!.to;
     const numberOfDays = Math.abs(to.valueOf() - from.valueOf()) / (1000 * 60 * 60 * 24);
