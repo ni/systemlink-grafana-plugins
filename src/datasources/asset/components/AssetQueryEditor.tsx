@@ -32,7 +32,17 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
 
   const handleQueryTypeChange = useCallback((item: SelectableValue<AssetQueryType>): void => {
     setQueryType(item.value!);
-    handleQueryChange({ ...query, queryType: item.value! }, true);
+
+    if (item.value === AssetQueryType.ListAssets && assetFeatures.current.assetList) {
+      handleQueryChange({ ...query, queryType: AssetQueryType.ListAssets, ...defaultListAssetsQuery }, true);
+    }
+    if (item.value === AssetQueryType.CalibrationForecast && assetFeatures.current.calibrationForecast) {
+      handleQueryChange({ ...query, queryType: AssetQueryType.CalibrationForecast, ...defaultCalibrationForecastQuery }, true);
+    }
+    if (item.value === AssetQueryType.AssetSummary && assetFeatures.current.assetSummary) {
+      handleQueryChange({ ...query, queryType: AssetQueryType.AssetSummary, ...defaultAssetSummaryQuery }, true);
+    }
+
   }, [query, handleQueryChange]);
 
   const filterOptions = useMemo(() => {
@@ -47,27 +57,11 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
   useEffect(() => {
     if (!queryType) {
       const firstFilterOption = filterOptions.length > 0 ? filterOptions[0].value : undefined;
-      setQueryType(firstFilterOption as AssetQueryType);
+      if(firstFilterOption){
+        handleQueryTypeChange({ value: firstFilterOption });
+      }
     }
-  }, [setQueryType, filterOptions, queryType]);
-
-  useEffect(() => {
-    if (queryType === query.queryType) {
-      return;
-    }
-
-    if (queryType === AssetQueryType.ListAssets && assetFeatures.current.assetList) {
-      handleQueryChange({ ...query, queryType: AssetQueryType.ListAssets, ...defaultListAssetsQuery }, true);
-    }
-    if (queryType === AssetQueryType.CalibrationForecast && assetFeatures.current.calibrationForecast) {
-      handleQueryChange({ ...query, queryType: AssetQueryType.CalibrationForecast, ...defaultCalibrationForecastQuery }, true);
-    }
-    if (queryType === AssetQueryType.AssetSummary && assetFeatures.current.assetSummary) {
-      handleQueryChange({ ...query, queryType: AssetQueryType.AssetSummary, ...defaultAssetSummaryQuery }, true);
-    }
-  }, [
-    query, queryType, handleQueryChange
-  ]);
+  }, [handleQueryTypeChange, filterOptions, queryType]);
 
   return (
     <div style={{ position: 'relative' }}>
