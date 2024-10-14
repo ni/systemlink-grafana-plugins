@@ -28,7 +28,6 @@ import { defaultOrderBy, defaultProjection } from 'datasources/system/constants'
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { Workspace } from 'core/types';
 import { parseErrorMessage } from 'core/errors';
-import { Subject } from 'rxjs';
 
 export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQuery, DataSourceJsonData> {
   public defaultQuery = {
@@ -36,8 +35,11 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     filter: ''
   };
 
-  public areSystemsLoaded$ = new Subject<void>();
-  public areWorkspacesLoaded$ = new Subject<void>();
+  private systemsLoaded!: () => void;
+  private workspacesLeaded!: () => void;
+
+  public areSystemsLoaded$ = new Promise<void>(resolve => this.systemsLoaded = resolve);
+  public areWorkspacesLoaded$ = new Promise<void>(resolve => this.workspacesLeaded = resolve);
 
   public error = '';
 
@@ -295,8 +297,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
 
     systems?.forEach(system => this.systemAliasCache.set(system.id, system));
 
-    this.areSystemsLoaded$.next();
-    this.areSystemsLoaded$.complete();
+    this.systemsLoaded();
   }
 
   private async loadWorkspaces(): Promise<void> {
@@ -311,8 +312,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
 
     workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
 
-    this.areWorkspacesLoaded$.next();
-    this.areWorkspacesLoaded$.complete();
+    this.workspacesLeaded();
   }
 
   async loadDependencies(): Promise<void> {
