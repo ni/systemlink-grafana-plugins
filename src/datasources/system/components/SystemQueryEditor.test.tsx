@@ -14,10 +14,10 @@ it('renders with query defaults', () => {
   expect(screen.queryByLabelText('System')).not.toBeInTheDocument();
 });
 
-it('renders with saved metadata query', async () => {
-  render({ queryKind: SystemQueryType.Metadata, systemName: 'my-system', workspace: '' });
+it('renders with saved properties query', async () => {
+  render({ queryKind: SystemQueryType.Properties, systemName: 'my-system', workspace: '' });
 
-  expect(screen.getByRole('radio', { name: 'Metadata' })).toBeChecked();
+  expect(screen.getByRole('radio', { name: 'Properties' })).toBeChecked();
   expect(screen.queryByLabelText('System')).toHaveValue('my-system');
 });
 
@@ -25,8 +25,8 @@ it('updates when user interacts with fields', async () => {
   const [onChange] = render({ queryKind: SystemQueryType.Summary, systemName: '', workspace: '' });
 
   // User changes query type
-  await userEvent.click(screen.getByRole('radio', { name: 'Metadata' }));
-  expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ queryKind: SystemQueryType.Metadata }));
+  await userEvent.click(screen.getByRole('radio', { name: 'Properties' }));
+  expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ queryKind: SystemQueryType.Properties }));
   expect(screen.getByPlaceholderText('All systems')).toBeInTheDocument();
 
   // User types system name

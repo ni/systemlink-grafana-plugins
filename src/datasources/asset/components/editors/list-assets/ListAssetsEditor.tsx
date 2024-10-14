@@ -7,7 +7,7 @@ import { useAsync } from 'react-use';
 import { FloatingError, parseErrorMessage } from '../../../../../core/errors';
 import { useWorkspaceOptions } from '../../../../../core/utils';
 import { isValidId } from '../../../../data-frame/utils';
-import { SystemMetadata } from '../../../../system/types';
+import { SystemProperties } from '../../../../system/types';
 import { AssetQuery } from '../../../types/types';
 import { ListAssetsDataSource } from './ListAssetsDataSource';
 import { ListAssetsQuery } from '../../../types/ListAssets.types';
@@ -55,7 +55,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
   };
   const loadMinionIdOptions = (): Array<SelectableValue<string>> => {
     let options: SelectableValue[] = (minionIds.value ?? []).map(
-      (system: SystemMetadata): SelectableValue<string> => ({
+      (system: SystemProperties): SelectableValue<string> => ({
         label: system.alias ?? system.id,
         value: system.id,
         description: system.state,

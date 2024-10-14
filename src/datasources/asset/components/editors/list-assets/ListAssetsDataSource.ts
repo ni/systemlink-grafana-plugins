@@ -1,7 +1,7 @@
 import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings } from '@grafana/data';
 import { AssetQuery } from '../../../types/types';
 import { AssetModel, AssetsResponse } from '../../../../asset-common/types';
-import { SystemMetadata } from '../../../../system/types';
+import { SystemProperties } from '../../../../system/types';
 import { getWorkspaceName, replaceVariables } from '../../../../../core/utils';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { defaultOrderBy, defaultProjection } from '../../../../system/constants';
@@ -74,7 +74,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
     }
   }
 
-  async querySystems(filter = '', projection = defaultProjection): Promise<SystemMetadata[]> {
+  async querySystems(filter = '', projection = defaultProjection): Promise<SystemProperties[]> {
     try {
       let response = await this.getSystems({
         filter: filter,

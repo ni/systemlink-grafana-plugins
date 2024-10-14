@@ -8,7 +8,7 @@ import _ from 'lodash';
 import { AssetCalibrationQueryBuilder } from './AssetCalibrationQueryBuilder';
 import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
-import { SystemMetadata } from 'datasources/system/types';
+import { SystemProperties } from 'datasources/system/types';
 import './AssetCalibrationQueryEditor.scss';
 
 type Props = QueryEditorProps<AssetCalibrationDataSource, AssetCalibrationQuery>;
@@ -17,7 +17,7 @@ export const AssetCalibrationQueryEditor = ({ query, onChange, onRunQuery, datas
   query = datasource.prepareQuery(query) as AssetCalibrationQuery;
 
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [systems, setSystems] = useState<SystemMetadata[]>([]);
+  const [systems, setSystems] = useState<SystemProperties[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
 
   useEffect(() => {

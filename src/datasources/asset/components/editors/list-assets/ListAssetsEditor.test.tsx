@@ -1,5 +1,5 @@
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
-import { SystemMetadata } from '../../../../system/types';
+import { SystemProperties } from '../../../../system/types';
 import { AssetDataSource } from '../../../AssetDataSource';
 import { AssetQueryEditor } from '../../AssetQueryEditor';
 import { setupRenderer } from '../../../../../test/fixtures';
@@ -7,7 +7,7 @@ import { select } from 'react-select-event';
 import { ListAssetsDataSource } from './ListAssetsDataSource';
 import { ListAssetsQuery } from '../../../types/ListAssets.types';
 
-const fakeSystems: SystemMetadata[] = [
+const fakeSystems: SystemProperties[] = [
   {
     id: '1',
     state: 'CONNECTED',
@@ -21,7 +21,7 @@ const fakeSystems: SystemMetadata[] = [
 ];
 
 class FakeAssetsSource extends ListAssetsDataSource {
-  querySystems(filter?: string, projection?: string[]): Promise<SystemMetadata[]> {
+  querySystems(filter?: string, projection?: string[]): Promise<SystemProperties[]> {
     return Promise.resolve(fakeSystems);
   }
 }

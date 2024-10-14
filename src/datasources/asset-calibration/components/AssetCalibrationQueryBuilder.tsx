@@ -13,13 +13,13 @@ import { Workspace, QueryBuilderOption } from 'core/types';
 import { QBField } from '../types';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
-import { SystemMetadata } from 'datasources/system/types';
+import { SystemProperties } from 'datasources/system/types';
 
 type AssetCalibrationQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     filter?: string;
     workspaces: Workspace[],
-    systems: SystemMetadata[],
+    systems: SystemProperties[],
     areDependenciesLoaded: boolean;
   };
 

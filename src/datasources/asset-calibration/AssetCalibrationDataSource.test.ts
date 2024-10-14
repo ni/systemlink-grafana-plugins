@@ -15,7 +15,7 @@ import {
   CalibrationForecastResponse,
   ColumnDescriptorType,
 } from "./types";
-import { SystemMetadata } from "datasources/system/types";
+import { SystemProperties } from "datasources/system/types";
 
 let datastore: AssetCalibrationDataSource, backendServer: MockProxy<BackendSrv>
 
@@ -207,7 +207,7 @@ const buildCalibrationForecastQuery = getQueryBuilder<AssetCalibrationQuery>()({
   groupBy: []
 });
 
-const fakeSystems: SystemMetadata[] = [
+const fakeSystems: SystemProperties[] = [
   {
     id: 'Minion1',
     alias: 'Minion1-alias',
@@ -363,7 +363,7 @@ describe('queries', () => {
     expect(result.data).toMatchSnapshot()
   })
 
-  test('handles metadata query error', async () => {
+  test('handles properties query error', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchError(418))

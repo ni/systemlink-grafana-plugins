@@ -2,7 +2,7 @@ import React, { ReactNode } from "react";
 import { AssetCalibrationQueryBuilder } from "./AssetCalibrationQueryBuilder";
 import { render } from "@testing-library/react";
 import { Workspace } from "core/types";
-import { SystemMetadata } from "datasources/system/types";
+import { SystemProperties } from "datasources/system/types";
 
 describe('AssetCalibrationQueryBuilder', () => {
   describe('useEffects', () => {
@@ -10,7 +10,7 @@ describe('AssetCalibrationQueryBuilder', () => {
 
     const containerClass = 'smart-filter-group-condition-container'
 
-    function renderElement(workspaces: Workspace[], systems: SystemMetadata[], filter?: string) {
+    function renderElement(workspaces: Workspace[], systems: SystemProperties[], filter?: string) {
       reactNode = React.createElement(AssetCalibrationQueryBuilder, { workspaces, systems, filter, onChange: jest.fn(), areDependenciesLoaded: true });
       const renderResult = render(reactNode);
       return {
@@ -27,7 +27,7 @@ describe('AssetCalibrationQueryBuilder', () => {
 
     it('should select workspace in query builder', () => {
       const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
-      const system = { id: '1', alias: 'Selected system' } as SystemMetadata;
+      const system = { id: '1', alias: 'Selected system' } as SystemProperties;
       const { conditionsContainer } = renderElement([workspace], [system], 'Workspace = "1" && ModelName = "SomeRandomModelName"');
 
       expect(conditionsContainer?.length).toBe(2);
@@ -37,7 +37,7 @@ describe('AssetCalibrationQueryBuilder', () => {
 
     it('should select system in query builder', () => {
       const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
-      const system = { id: '1', alias: 'Selected system' } as SystemMetadata;
+      const system = { id: '1', alias: 'Selected system' } as SystemProperties;
 
       const { conditionsContainer } = renderElement([workspace], [system], 'Location = "1"');
 

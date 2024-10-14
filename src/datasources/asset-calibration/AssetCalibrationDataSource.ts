@@ -19,8 +19,8 @@ import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/
 import { AssetCalibrationFieldNames } from './constants';
 import { AssetModel, AssetsResponse } from 'datasources/asset-common/types';
 import TTLCache from '@isaacs/ttlcache';
-import { metadataCacheTTL } from 'datasources/data-frame/constants';
-import { SystemMetadata } from 'datasources/system/types';
+import { propertiesCacheTTL } from 'datasources/data-frame/constants';
+import { SystemProperties } from 'datasources/system/types';
 import { defaultOrderBy, defaultProjection } from 'datasources/system/constants';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { Workspace } from 'core/types';
@@ -37,8 +37,8 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
 
   public error = '';
 
-  public readonly systemAliasCache: TTLCache<string, SystemMetadata> = new TTLCache<string, SystemMetadata>({ ttl: metadataCacheTTL });
-  public readonly workspacesCache: TTLCache<string, Workspace> = new TTLCache<string, Workspace>({ ttl: metadataCacheTTL });
+  public readonly systemAliasCache: TTLCache<string, SystemProperties> = new TTLCache<string, SystemProperties>({ ttl: propertiesCacheTTL });
+  public readonly workspacesCache: TTLCache<string, Workspace> = new TTLCache<string, Workspace>({ ttl: propertiesCacheTTL });
 
   private readonly baseUrl = this.instanceSettings.url + '/niapm/v1';
 
@@ -192,7 +192,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     }
   }
 
-  async querySystems(filter = '', projection = defaultProjection): Promise<SystemMetadata[]> {
+  async querySystems(filter = '', projection = defaultProjection): Promise<SystemProperties[]> {
     try {
       let response = await this.getSystems({
         filter: filter,
