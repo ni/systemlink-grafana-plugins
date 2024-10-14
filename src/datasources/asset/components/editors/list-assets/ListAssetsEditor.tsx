@@ -1,5 +1,5 @@
 import { SelectableValue, toOption } from '@grafana/data';
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 
 import { InlineField, MultiSelect, Select } from '@grafana/ui';
 import _ from 'lodash';
@@ -24,7 +24,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
   const workspaces = useWorkspaceOptions(datasource);
   const [errorMsg, setErrorMsg] = useState<string | undefined>('');
   const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
-  const [editorEnabled] = useState(datasource.instanceSettings.jsonData?.featureToggles?.assetList ?? AssetFeatureTogglesDefaults.assetList);
+  const editorEnabled = useRef(datasource.instanceSettings.jsonData?.featureToggles?.assetList ?? AssetFeatureTogglesDefaults.assetList);
 
   const minionIds = useAsync(() => {
     let filterString = '';
@@ -69,7 +69,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
 
   return (
     <div style={{ position: 'relative' }}>
-      <InlineField label="Workspace" tooltip={tooltips.workspace} labelWidth={22} disabled={!editorEnabled}>
+      <InlineField label="Workspace" tooltip={tooltips.workspace} labelWidth={22} disabled={!editorEnabled.current}>
         <Select
           isClearable
           isLoading={workspaces.loading}
@@ -79,7 +79,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
           value={query.workspace}
         />
       </InlineField>
-      <InlineField label="Systems" tooltip={tooltips.system} labelWidth={22} disabled={!editorEnabled}>
+      <InlineField label="Systems" tooltip={tooltips.system} labelWidth={22} disabled={!editorEnabled.current}>
         <MultiSelect
           isClearable
           allowCreateWhileLoading

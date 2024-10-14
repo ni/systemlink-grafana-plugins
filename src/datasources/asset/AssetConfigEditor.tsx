@@ -2,7 +2,7 @@
  * AssetConfigEditor is a React component that implements the UI for editing the asset
  * datasource configuration options.
  */
-import React, { ChangeEvent } from 'react';
+import React, { ChangeEvent, useCallback } from 'react';
 import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
 import { DataSourceHttpSettings, InlineField, InlineSegmentGroup, InlineSwitch, Tag, Text } from '@grafana/ui';
 import { AssetDataSourceOptions, AssetFeatureTogglesDefaults } from './types/types';
@@ -10,13 +10,13 @@ import { AssetDataSourceOptions, AssetFeatureTogglesDefaults } from './types/typ
 interface Props extends DataSourcePluginOptionsEditorProps<AssetDataSourceOptions> { }
 
 export const AssetConfigEditor: React.FC<Props> = ({ options, onOptionsChange }) => {
-  const handleFeatureChange = (featureKey: string) => (event: ChangeEvent<HTMLInputElement>) => {
+  const handleFeatureChange =  useCallback((featureKey: string) => (event: ChangeEvent<HTMLInputElement>) => {
     const jsonData = {
       ...options.jsonData,
       ...{ featureToggles: { ...options.jsonData.featureToggles, [featureKey]: event.target.checked } }
     };
     onOptionsChange({ ...options, jsonData });
-  };
+  }, [options, onOptionsChange]);
 
   return (
     <>

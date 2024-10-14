@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 
 import _ from 'lodash';
@@ -17,18 +17,18 @@ type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOption
 
 export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   const [queryType, setQueryType] = useState(query.queryType as AssetQueryType);
-  const [assetFeatures] = useState<AssetFeatureToggles>({
+  const assetFeatures = useRef<AssetFeatureToggles>({
     assetList: datasource.instanceSettings.jsonData?.featureToggles?.assetList ?? AssetFeatureTogglesDefaults.assetList,
     calibrationForecast: datasource.instanceSettings.jsonData?.featureToggles?.calibrationForecast ?? AssetFeatureTogglesDefaults.calibrationForecast,
     assetSummary: datasource.instanceSettings.jsonData?.featureToggles?.assetSummary ?? AssetFeatureTogglesDefaults.assetSummary,
   });
 
   const handleQueryChange = useCallback((value: AssetQuery, runQuery = false): void => {
-    onChange({ ...query, ...value });
+    onChange(value);
     if (runQuery) {
       onRunQuery();
     }
-  }, [query, onChange, onRunQuery]);
+  }, [onChange, onRunQuery]);
 
   const handleQueryTypeChange = useCallback((item: SelectableValue<AssetQueryType>): void => {
     setQueryType(item.value!);
@@ -38,11 +38,11 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
   const filterOptions = useMemo(() => {
     return queryTypeOptions.filter(option => {
       return (option.value === queryType) ||
-        (option.value === AssetQueryType.ListAssets && assetFeatures.assetList) ||
-        (option.value === AssetQueryType.CalibrationForecast && assetFeatures.calibrationForecast) ||
-        (option.value === AssetQueryType.AssetSummary && assetFeatures.assetSummary)
+        (option.value === AssetQueryType.ListAssets && assetFeatures.current.assetList) ||
+        (option.value === AssetQueryType.CalibrationForecast && assetFeatures.current.calibrationForecast) ||
+        (option.value === AssetQueryType.AssetSummary && assetFeatures.current.assetSummary)
     });
-  }, [queryType, assetFeatures.assetList, assetFeatures.calibrationForecast, assetFeatures.assetSummary]);
+  }, [queryType]);
 
   useEffect(() => {
     if (!queryType) {
@@ -52,22 +52,21 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
   }, [setQueryType, filterOptions, queryType]);
 
   useEffect(() => {
-    if (queryType === query.queryType && query.queryType !== null && queryType !== null) {
+    if (queryType === query.queryType) {
       return;
     }
 
-    if (queryType === AssetQueryType.ListAssets && assetFeatures.assetList) {
+    if (queryType === AssetQueryType.ListAssets && assetFeatures.current.assetList) {
       handleQueryChange({ ...query, queryType: AssetQueryType.ListAssets, ...defaultListAssetsQuery }, true);
     }
-    if (queryType === AssetQueryType.CalibrationForecast && assetFeatures.calibrationForecast) {
+    if (queryType === AssetQueryType.CalibrationForecast && assetFeatures.current.calibrationForecast) {
       handleQueryChange({ ...query, queryType: AssetQueryType.CalibrationForecast, ...defaultCalibrationForecastQuery }, true);
     }
-    if (queryType === AssetQueryType.AssetSummary && assetFeatures.assetSummary) {
+    if (queryType === AssetQueryType.AssetSummary && assetFeatures.current.assetSummary) {
       handleQueryChange({ ...query, queryType: AssetQueryType.AssetSummary, ...defaultAssetSummaryQuery }, true);
     }
   }, [
-    query, queryType, handleQueryChange,
-    assetFeatures.assetList, assetFeatures.calibrationForecast, assetFeatures.assetSummary
+    query, queryType, handleQueryChange
   ]);
 
   return (
@@ -75,21 +74,21 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
       <InlineField label="Query type" labelWidth={22} tooltip={tooltips.queryType}>
         <Select options={filterOptions} onChange={handleQueryTypeChange} value={queryType} width={85} />
       </InlineField>
-      {((assetFeatures.assetList && queryType === AssetQueryType.ListAssets) || (query.queryType === AssetQueryType.ListAssets)) && (
+      {((assetFeatures.current.assetList && queryType === AssetQueryType.ListAssets) || (query.queryType === AssetQueryType.ListAssets)) && (
         <ListAssetsEditor
           query={query as ListAssetsQuery}
           handleQueryChange={handleQueryChange}
           datasource={datasource.getListAssetsSource()}
         />
       )}
-      {((assetFeatures.calibrationForecast && queryType === AssetQueryType.CalibrationForecast) || (query.queryType === AssetQueryType.CalibrationForecast)) && (
+      {((assetFeatures.current.calibrationForecast && queryType === AssetQueryType.CalibrationForecast) || (query.queryType === AssetQueryType.CalibrationForecast)) && (
         <CalibrationForecastEditor
           query={query as AssetCalibrationQuery}
           handleQueryChange={handleQueryChange}
           datasource={datasource.getCalibrationForecastSource()}
         />
       )}
-      {((assetFeatures.assetSummary && queryType === AssetQueryType.AssetSummary) || (query.queryType === AssetQueryType.AssetSummary)) && (
+      {((assetFeatures.current.assetSummary && queryType === AssetQueryType.AssetSummary) || (query.queryType === AssetQueryType.AssetSummary)) && (
         <AssetSummaryEditor
           query={query as AssetSummaryQuery}
           handleQueryChange={handleQueryChange}
