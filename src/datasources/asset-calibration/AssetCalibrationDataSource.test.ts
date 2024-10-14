@@ -376,56 +376,23 @@ describe('queries', () => {
     const request = buildCalibrationForecastQuery(dayBasedCalibrationForecastQueryMock);
     const numberOfDays = 31 * 3 + 1;
     request.range = { from: dateTime().subtract(numberOfDays, 'day'), to: dateTime(), raw: { from: `now-${numberOfDays}d`, to: 'now' } };
-    let exception: Error | undefined = undefined;
 
-    try {
-      await datastore.query(request);
-      expect(true).toBeFalsy();
-    }
-    catch (ex) {
-      exception = ex as Error;
-    }
-    finally {
-      expect(exception).toBeDefined();
-      expect(exception?.message).toBe('Query range exceeds range limit of DAY grouping method: 3 months');
-    }
+    await expect(datastore.query(request)).rejects.toThrow('Query range exceeds range limit of DAY grouping method: 3 months');
   })
 
   test('validate WEEK grouping', async () => {
     const request = buildCalibrationForecastQuery(weekBasedCalibrationForecastQueryMock);
     const numberOfDays = 366 * 2 + 1;
     request.range = { from: dateTime().subtract(numberOfDays, 'day'), to: dateTime(), raw: { from: `now-${numberOfDays}d`, to: 'now' } };
-    let exception: Error | undefined = undefined;
 
-    try {
-      await datastore.query(request);
-      expect(true).toBeFalsy();
-    }
-    catch (ex) {
-      exception = ex as Error;
-    }
-    finally {
-      expect(exception).toBeDefined();
-      expect(exception?.message).toBe('Query range exceeds range limit of WEEK grouping method: 2 years');
-    }
+    await expect(datastore.query(request)).rejects.toThrow('Query range exceeds range limit of WEEK grouping method: 2 years');
   })
 
   test('validate MONTH grouping', async () => {
     const request = buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock);
     const numberOfDays = 366 * 5 + 1;
     request.range = { from: dateTime().subtract(numberOfDays, 'day'), to: dateTime(), raw: { from: `now-${numberOfDays}d`, to: 'now' } };
-    let exception: Error | undefined = undefined;
 
-    try {
-      await datastore.query(request);
-      expect(true).toBeFalsy();
-    }
-    catch (ex) {
-      exception = ex as Error;
-    }
-    finally {
-      expect(exception).toBeDefined();
-      expect(exception?.message).toBe('Query range exceeds range limit of MONTH grouping method: 5 years');
-    }
+    await expect(datastore.query(request)).rejects.toThrow('Query range exceeds range limit of MONTH grouping method: 5 years');
   })
 })
