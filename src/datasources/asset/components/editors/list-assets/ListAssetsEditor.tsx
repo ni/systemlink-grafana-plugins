@@ -1,5 +1,5 @@
 import { SelectableValue, toOption } from '@grafana/data';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 import { InlineField, MultiSelect, Select } from '@grafana/ui';
 import _ from 'lodash';
