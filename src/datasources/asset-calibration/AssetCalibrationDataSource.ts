@@ -70,6 +70,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
 
   async runQuery(query: AssetCalibrationQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     await this.loadDependencies();
+    this.validateQuery(query, options);
 
     if (query.filter) {
       const transformedQuery = transformComputedFieldsQuery(query.filter, this.assetComputedDataFields, this.queryTransformationOptions);
@@ -203,6 +204,27 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
       return response.data;
     } catch (error) {
       throw new Error(`An error occurred while querying systems: ${error}`);
+    }
+  }
+
+  private validateQuery(query: AssetCalibrationQuery, options: DataQueryRequest): void {
+    const from = options.range!.from;
+    const to = options.range!.to;
+    const numberOfDays = Math.abs(to.valueOf() - from.valueOf()) / (1000 * 60 * 60 * 24);
+    if (query.groupBy.includes(AssetCalibrationTimeBasedGroupByType.Day.valueOf())) {
+      if (numberOfDays > 31 * 3) {
+        throw new Error('Query range exceeds range limit of Day grouping method: 3 months');
+      }
+    }
+    if (query.groupBy.includes(AssetCalibrationTimeBasedGroupByType.Week.valueOf())) {
+      if (numberOfDays > 366 * 2) {
+        throw new Error('Query range exceeds range limit of Week grouping method: 2 years');
+      }
+    }
+    if (query.groupBy.includes(AssetCalibrationTimeBasedGroupByType.Month.valueOf())) {
+      if (numberOfDays > 366 * 5) {
+        throw new Error('Query range exceeds range limit of Month grouping method: 5 years');
+      }
     }
   }
 

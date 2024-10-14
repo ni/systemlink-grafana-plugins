@@ -16,6 +16,7 @@ import {
   ColumnDescriptorType,
 } from "./types";
 import { SystemMetadata } from "datasources/system/types";
+import { dateTime } from "@grafana/data";
 
 let datastore: AssetCalibrationDataSource, backendServer: MockProxy<BackendSrv>
 
@@ -369,5 +370,62 @@ describe('queries', () => {
       .mockReturnValue(createFetchError(418))
 
     await expect(datastore.query(buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock))).rejects.toThrow()
+  })
+
+  test('validate DAY grouping', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(dayGroupCalibrationForecastResponseMock))
+    const request = buildCalibrationForecastQuery(dayBasedCalibrationForecastQueryMock);
+    const numberOfDays = 31 * 3 + 1;
+    request.range = { from: dateTime().subtract(numberOfDays, 'day'), to: dateTime(), raw: { from: `now-${numberOfDays}d`, to: 'now' } };
+
+    try {
+      await datastore.query(request);
+      expect(true).toBe(false);
+    }
+    catch (ex) {
+      expect(ex).toBeInstanceOf(Error);
+      const exception = ex as Error;
+      expect(exception.message).toBe('Query range exceeds range limit of Day grouping method: 3 months');
+    }
+  })
+
+  test('validate WEEK grouping', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(weekGroupCalibrationForecastResponseMock))
+    const request = buildCalibrationForecastQuery(weekBasedCalibrationForecastQueryMock);
+    const numberOfDays = 366 * 2 + 1;
+    request.range = { from: dateTime().subtract(numberOfDays, 'day'), to: dateTime(), raw: { from: `now-${numberOfDays}d`, to: 'now' } };
+
+    try {
+      await datastore.query(request);
+      expect(true).toBe(false);
+    }
+    catch (ex) {
+      expect(ex).toBeInstanceOf(Error);
+      const exception = ex as Error;
+      expect(exception.message).toBe('Query range exceeds range limit of Week grouping method: 2 years');
+    }
+  })
+
+  test('validate MONTH grouping', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(monthGroupCalibrationForecastResponseMock))
+    const request = buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock);
+    const numberOfDays = 366 * 5 + 1;
+    request.range = { from: dateTime().subtract(numberOfDays, 'day'), to: dateTime(), raw: { from: `now-${numberOfDays}d`, to: 'now' } };
+
+    try {
+      await datastore.query(request);
+      expect(true).toBe(false);
+    }
+    catch (ex) {
+      expect(ex).toBeInstanceOf(Error);
+      const exception = ex as Error;
+      expect(exception.message).toBe('Query range exceeds range limit of Month grouping method: 5 years');
+    }
   })
 })
