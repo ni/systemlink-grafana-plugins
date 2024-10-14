@@ -373,9 +373,6 @@ describe('queries', () => {
   })
 
   test('validate DAY grouping', async () => {
-    backendServer.fetch
-      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(dayGroupCalibrationForecastResponseMock))
     const request = buildCalibrationForecastQuery(dayBasedCalibrationForecastQueryMock);
     const numberOfDays = 31 * 3 + 1;
     request.range = { from: dateTime().subtract(numberOfDays, 'day'), to: dateTime(), raw: { from: `now-${numberOfDays}d`, to: 'now' } };
@@ -392,9 +389,6 @@ describe('queries', () => {
   })
 
   test('validate WEEK grouping', async () => {
-    backendServer.fetch
-      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(weekGroupCalibrationForecastResponseMock))
     const request = buildCalibrationForecastQuery(weekBasedCalibrationForecastQueryMock);
     const numberOfDays = 366 * 2 + 1;
     request.range = { from: dateTime().subtract(numberOfDays, 'day'), to: dateTime(), raw: { from: `now-${numberOfDays}d`, to: 'now' } };
@@ -411,9 +405,6 @@ describe('queries', () => {
   })
 
   test('validate MONTH grouping', async () => {
-    backendServer.fetch
-      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(monthGroupCalibrationForecastResponseMock))
     const request = buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock);
     const numberOfDays = 366 * 5 + 1;
     request.range = { from: dateTime().subtract(numberOfDays, 'day'), to: dateTime(), raw: { from: `now-${numberOfDays}d`, to: 'now' } };
