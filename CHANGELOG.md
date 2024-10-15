@@ -1,3 +1,9 @@
+## [3.26.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.25.0...v3.26.0) (2024-10-15)
+
+### Features
+
+* **asset:** query builder for list assets ([#85](https://github.com/ni/systemlink-grafana-plugins/issues/85)) ([1a9e939](https://github.com/ni/systemlink-grafana-plugins/commit/1a9e9391cebb6442d9f50d05c3819a7483f84fcf))
+
 ## [3.25.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.24.0...v3.25.0) (2024-10-15)
 
 ### Features
