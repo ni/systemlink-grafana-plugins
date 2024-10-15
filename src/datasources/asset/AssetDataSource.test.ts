@@ -213,14 +213,12 @@ const assetsResponseMock: AssetsResponse =
 
 const assetMetadataQueryMock: ListAssetsQuery = {
   queryType: AssetQueryType.ListAssets,
-  workspace: '',
-  refId: '',
-  minionIds: ['123']
+  filter: 'Location.MinionId == "123"',
+  refId: ''
 }
 
 const buildMetadataQuery = getQueryBuilder<ListAssetsQuery>()({
-  workspace: '',
-  minionIds: [],
+  filter: ''
 });
 
 describe('testDatasource', () => {

@@ -1,16 +1,14 @@
-import { SelectableValue, toOption } from '@grafana/data';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-import { InlineField, MultiSelect, Select } from '@grafana/ui';
+import { Label } from '@grafana/ui';
 import _ from 'lodash';
-import { useAsync } from 'react-use';
-import { FloatingError, parseErrorMessage } from '../../../../../core/errors';
-import { useWorkspaceOptions } from '../../../../../core/utils';
-import { isValidId } from '../../../../data-frame/utils';
+import { FloatingError } from '../../../../../core/errors';
 import { SystemMetadata } from '../../../../system/types';
-import { AssetFeatureTogglesDefaults, AssetQuery } from '../../../types/types';
+import { AssetQuery } from '../../../types/types';
 import { ListAssetsDataSource } from './ListAssetsDataSource';
 import { ListAssetsQuery } from '../../../types/ListAssets.types';
+import { AssetQueryBuilder } from './query-builder/AssetQueryBuilder';
+import { Workspace } from '../../../../../core/types';
 
 type Props = {
   query: ListAssetsQuery;
@@ -19,83 +17,38 @@ type Props = {
 };
 
 export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props) {
-  query = datasource.prepareQuery(query) as ListAssetsQuery;
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [systems, setSystems] = useState<SystemMetadata[]>([]);
+  const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
 
-  const workspaces = useWorkspaceOptions(datasource);
-  const [errorMsg, setErrorMsg] = useState<string | undefined>('');
-  const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
-  const editorEnabled = useRef(datasource.instanceSettings.jsonData?.featureToggles?.assetList ?? AssetFeatureTogglesDefaults.assetList);
+  useEffect(() => {
+    Promise.all([datasource.areSystemsLoaded$, datasource.areWorkspacesLoaded$]).then(() => {
+      setWorkspaces(Array.from(datasource.workspacesCache.values()));
+      setSystems(Array.from(datasource.systemAliasCache.values()));
+      setAreDependenciesLoaded(true);
+    });
+  }, [datasource]);
 
-  const minionIds = useAsync(() => {
-    let filterString = '';
-    if (query.workspace) {
-      filterString += `workspace = "${query.workspace}"`;
+  function onParameterChange(ev: CustomEvent) {
+    if (query.filter !== ev.detail.linq) {
+      query.filter = ev.detail.linq;
+      handleQueryChange(query, true);
     }
-    return datasource.querySystems(filterString).catch(handleError);
-  }, [query.workspace]);
-
-  const onWorkspaceChange = (item?: SelectableValue<string>): void => {
-    if (item?.value && item.value !== query.workspace) {
-      // if workspace changed, reset Systems and Assets fields
-      handleQueryChange({ ...query, workspace: item.value, minionIds: [] }, true);
-    } else {
-      handleQueryChange({ ...query, workspace: '' }, true);
-    }
-  };
-
-  const handleMinionIdChange = (items: Array<SelectableValue<string>>): void => {
-    if (items && !_.isEqual(query.minionIds, items)) {
-      handleQueryChange({ ...query, minionIds: items.map(i => i.value!) }, true);
-    } else {
-      handleQueryChange({ ...query, minionIds: [] }, true);
-    }
-  };
-
-  const getVariableOptions = (): Array<SelectableValue<string>> => {
-    return datasource.templateSrv.getVariables().map(v => toOption('$' + v.name));
-  };
-  const loadMinionIdOptions = (): Array<SelectableValue<string>> => {
-    let options: SelectableValue[] = (minionIds.value ?? []).map(
-      (system: SystemMetadata): SelectableValue<string> => ({
-        label: system.alias ?? system.id,
-        value: system.id,
-        description: system.state,
-      })
-    );
-    options.unshift(...getVariableOptions());
-
-    return options;
-  };
+  }
 
   return (
     <div style={{ position: 'relative' }}>
-      <InlineField label="Workspace" tooltip={tooltips.workspace} labelWidth={22} disabled={!editorEnabled.current}>
-        <Select
-          isClearable
-          isLoading={workspaces.loading}
-          onChange={onWorkspaceChange}
-          options={workspaces.value}
-          placeholder="Any workspace"
-          value={query.workspace}
-        />
-      </InlineField>
-      <InlineField label="Systems" tooltip={tooltips.system} labelWidth={22} disabled={!editorEnabled.current}>
-        <MultiSelect
-          isClearable
-          allowCreateWhileLoading
-          options={loadMinionIdOptions()}
-          isValidNewOption={isValidId}
-          onChange={handleMinionIdChange}
-          placeholder="Select systems"
-          width={85}
-          value={query.minionIds.map(toOption) || []}
-        />
-      </InlineField>
-      <FloatingError message={errorMsg} />
+      <Label>Filter</Label>
+
+      <AssetQueryBuilder
+        filter={query.filter}
+        workspaces={workspaces}
+        systems={systems}
+        areDependenciesLoaded={areDependenciesLoaded}
+        onChange={(event: any) => onParameterChange(event)}
+      ></AssetQueryBuilder>
+
+      <FloatingError message={datasource.error} />
     </div>
   );
 }
-const tooltips = {
-  workspace: `The workspace where you want to search for the assets.`,
-  system: `Filter assets by system.`,
-};

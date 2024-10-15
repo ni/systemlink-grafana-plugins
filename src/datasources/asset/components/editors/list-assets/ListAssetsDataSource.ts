@@ -1,51 +1,43 @@
 import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings } from '@grafana/data';
 import { AssetDataSourceOptions, AssetQuery } from '../../../types/types';
 import { AssetModel, AssetsResponse } from '../../../../asset-common/types';
-import { SystemMetadata } from '../../../../system/types';
-import { getWorkspaceName, replaceVariables } from '../../../../../core/utils';
+import { getWorkspaceName } from '../../../../../core/utils';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
-import { defaultOrderBy, defaultProjection } from '../../../../system/constants';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
-import { AssetFilterProperties, ListAssetsQuery } from '../../../types/ListAssets.types';
+import { ListAssetsQuery } from '../../../types/ListAssets.types';
 
 export class ListAssetsDataSource extends AssetDataSourceBase {
+  private dependenciesLoadedPromise: Promise<void>;
+
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    this.dependenciesLoadedPromise = this.loadDependencies();
   }
 
   baseUrl = this.instanceSettings.url + '/niapm/v1';
 
   defaultQuery = {
-    workspace: '',
-    minionIds: [],
+    filter: ''
   };
 
-  runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    return this.processMetadataQuery(query as ListAssetsQuery);
+  async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    await this.dependenciesLoadedPromise;
+
+    return this.processListAssetsQuery(query as ListAssetsQuery);
   }
+
   shouldRunQuery(query: AssetQuery): boolean {
     return true;
   }
 
-  async processMetadataQuery(query: ListAssetsQuery) {
+  async processListAssetsQuery(query: ListAssetsQuery) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
-    const minionIds = replaceVariables(query.minionIds, this.templateSrv);
-    let workspaceId = this.templateSrv.replace(query.workspace);
-    const conditions = [];
-    if (minionIds.length) {
-      const systemsCondition = minionIds.map(id => `${AssetFilterProperties.LocationMinionId} = "${id}"`);
-      conditions.push(`(${systemsCondition.join(' or ')})`);
-    }
-    if (workspaceId) {
-      conditions.push(`workspace = "${workspaceId}"`);
-    }
-    const assetFilter = conditions.join(' and ');
-    const assets: AssetModel[] = await this.queryAssets(assetFilter, 1000);
-    const workspaces = await this.getWorkspaces();
+    const assets: AssetModel[] = await this.queryAssets(query.filter, 1000);
+    const workspaces = this.getCachedWorkspaces();
     result.fields = [
       { name: 'id', values: assets.map(a => a.id) },
       { name: 'name', values: assets.map(a => a.name) },
@@ -71,20 +63,6 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
       return response.assets;
     } catch (error) {
       throw new Error(`An error occurred while querying assets: ${error}`);
-    }
-  }
-
-  async querySystems(filter = '', projection = defaultProjection): Promise<SystemMetadata[]> {
-    try {
-      let response = await this.getSystems({
-        filter: filter,
-        projection: `new(${projection.join()})`,
-        orderBy: defaultOrderBy,
-      });
-
-      return response.data;
-    } catch (error) {
-      throw new Error(`An error occurred while querying systems: ${error}`);
     }
   }
 }
