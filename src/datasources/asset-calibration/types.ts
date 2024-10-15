@@ -15,6 +15,7 @@ export enum AssetQueryLabel {
 export enum AssetCalibrationPropertyGroupByType {
   Location = "LOCATION",
   Model = "MODEL",
+  Workspace = "WORKSPACE",
 }
 
 export enum AssetCalibrationTimeBasedGroupByType {
@@ -71,6 +72,7 @@ export enum ColumnDescriptorType {
   Count = "COUNT",
   StringValue = "STRING_VALUE",
   MinionId = "MINION_ID",
+  WorkspaceId = "WORKSPACE_ID",
 }
 
 export interface QBField extends QueryBuilderField {
@@ -136,4 +138,3 @@ export const AssetTypeOptions = [
   { label: 'Fixture', value: AssetType.FIXTURE },
   { label: 'System', value: AssetType.SYSTEM },
 ];
-

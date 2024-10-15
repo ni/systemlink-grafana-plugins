@@ -16,6 +16,7 @@ import {
   ColumnDescriptorType,
 } from "./types";
 import { SystemMetadata } from "datasources/system/types";
+import { dateTime } from "@grafana/data";
 
 let datastore: AssetCalibrationDataSource, backendServer: MockProxy<BackendSrv>
 
@@ -120,6 +121,38 @@ const monthLocationGroupCalibrationForecastResponseMock: CalibrationForecastResp
   }
 }
 
+const workspaceGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
+{
+  calibrationForecast: {
+    columns: [
+      { name: "", values: [1], columnDescriptors: [{ value: "Workspace1", type: ColumnDescriptorType.WorkspaceId }] },
+      { name: "", values: [2], columnDescriptors: [{ value: "Workspace1", type: ColumnDescriptorType.WorkspaceId }] }
+    ]
+  }
+}
+
+const modelWorkspaceGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
+{
+  calibrationForecast: {
+    columns: [
+      { name: "", values: [1], columnDescriptors: [{ value: "Model1", type: ColumnDescriptorType.StringValue }, { value: "Workspace1", type: ColumnDescriptorType.WorkspaceId }] },
+      { name: "", values: [2], columnDescriptors: [{ value: "Model2", type: ColumnDescriptorType.StringValue }, { value: "Workspace1", type: ColumnDescriptorType.WorkspaceId }] }
+    ]
+  }
+}
+
+const monthWorkspaceGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
+{
+  calibrationForecast: {
+    columns: [
+      { name: "", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"], columnDescriptors: [{ value: "Month", type: ColumnDescriptorType.Time }] },
+      { name: "", values: [1, 2, 3], columnDescriptors: [{ value: "Workspace1", type: ColumnDescriptorType.WorkspaceId }] },
+      { name: "", values: [2, 4, 1], columnDescriptors: [{ value: "Workspace2", type: ColumnDescriptorType.WorkspaceId }] },
+      { name: "", values: [4, 3, 1], columnDescriptors: [{ value: "Workspace3", type: ColumnDescriptorType.WorkspaceId }] }
+    ]
+  }
+}
+
 const monthBasedCalibrationForecastQueryMock: AssetCalibrationQuery = {
   refId: '',
   groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
@@ -145,6 +178,11 @@ const modelBasedCalibrationForecastQueryMock: AssetCalibrationQuery = {
   groupBy: [AssetCalibrationPropertyGroupByType.Model],
 }
 
+const workspaceBasedCalibrationForecastQueryMock: AssetCalibrationQuery = {
+  refId: '',
+  groupBy: [AssetCalibrationPropertyGroupByType.Workspace],
+}
+
 const modelLocationBasedCalibrationForecastQueryMock: AssetCalibrationQuery = {
   refId: '',
   groupBy: [AssetCalibrationPropertyGroupByType.Model, AssetCalibrationPropertyGroupByType.Location],
@@ -153,6 +191,16 @@ const modelLocationBasedCalibrationForecastQueryMock: AssetCalibrationQuery = {
 const monthLocationBasedCalibrationForecastQueryMock: AssetCalibrationQuery = {
   refId: '',
   groupBy: [AssetCalibrationTimeBasedGroupByType.Month, AssetCalibrationPropertyGroupByType.Location],
+}
+
+const modelWorkspaceBasedCalibrationForecastQueryMock: AssetCalibrationQuery = {
+  refId: '',
+  groupBy: [AssetCalibrationPropertyGroupByType.Model, AssetCalibrationPropertyGroupByType.Workspace],
+}
+
+const monthWorkspaceBasedCalibrationForecastQueryMock: AssetCalibrationQuery = {
+  refId: '',
+  groupBy: [AssetCalibrationTimeBasedGroupByType.Month, AssetCalibrationPropertyGroupByType.Workspace],
 }
 
 const buildCalibrationForecastQuery = getQueryBuilder<AssetCalibrationQuery>()({
@@ -253,7 +301,7 @@ describe('queries', () => {
 
     const result = await datastore.query(buildCalibrationForecastQuery(modelBasedCalibrationForecastQueryMock))
 
-    expect(result.data).toMatchSnapshot()
+    expect(result.data).toMatchSnapshot();
   })
 
   test('calibration forecast with model and location groupBy', async () => {
@@ -263,7 +311,7 @@ describe('queries', () => {
 
     const result = await datastore.query(buildCalibrationForecastQuery(modelLocationBasedCalibrationForecastQueryMock))
 
-    expect(result.data).toMatchSnapshot()
+    expect(result.data).toMatchSnapshot();
   })
 
   test('calibration forecast with month and location groupBy', async () => {
@@ -272,6 +320,36 @@ describe('queries', () => {
       .mockReturnValue(createFetchResponse(monthLocationGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery(monthLocationBasedCalibrationForecastQueryMock))
+
+    expect(result.data).toMatchSnapshot();
+  })
+
+  test('calibration forecast with workspace groupBy', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(workspaceGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+
+    const result = await datastore.query(buildCalibrationForecastQuery(workspaceBasedCalibrationForecastQueryMock))
+
+    expect(result.data).toMatchSnapshot();
+  })
+
+  test('calibration forecast with model and workspace groupBy', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(modelWorkspaceGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+
+    const result = await datastore.query(buildCalibrationForecastQuery(modelWorkspaceBasedCalibrationForecastQueryMock))
+
+    expect(result.data).toMatchSnapshot();
+  })
+
+  test('calibration forecast with month and workspace groupBy', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(monthWorkspaceGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+
+    const result = await datastore.query(buildCalibrationForecastQuery(monthWorkspaceBasedCalibrationForecastQueryMock))
 
     expect(result.data).toMatchSnapshot()
   })
@@ -292,5 +370,29 @@ describe('queries', () => {
       .mockReturnValue(createFetchError(418))
 
     await expect(datastore.query(buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock))).rejects.toThrow()
+  })
+
+  test('validate DAY grouping', async () => {
+    const request = buildCalibrationForecastQuery(dayBasedCalibrationForecastQueryMock);
+    const numberOfDays = 31 * 3 + 1;
+    request.range = { from: dateTime().subtract(numberOfDays, 'day'), to: dateTime(), raw: { from: `now-${numberOfDays}d`, to: 'now' } };
+
+    await expect(datastore.query(request)).rejects.toThrow('Query range exceeds range limit of DAY grouping method: 3 months');
+  })
+
+  test('validate WEEK grouping', async () => {
+    const request = buildCalibrationForecastQuery(weekBasedCalibrationForecastQueryMock);
+    const numberOfDays = 366 * 2 + 1;
+    request.range = { from: dateTime().subtract(numberOfDays, 'day'), to: dateTime(), raw: { from: `now-${numberOfDays}d`, to: 'now' } };
+
+    await expect(datastore.query(request)).rejects.toThrow('Query range exceeds range limit of WEEK grouping method: 2 years');
+  })
+
+  test('validate MONTH grouping', async () => {
+    const request = buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock);
+    const numberOfDays = 366 * 5 + 1;
+    request.range = { from: dateTime().subtract(numberOfDays, 'day'), to: dateTime(), raw: { from: `now-${numberOfDays}d`, to: 'now' } };
+
+    await expect(datastore.query(request)).rejects.toThrow('Query range exceeds range limit of MONTH grouping method: 5 years');
   })
 })

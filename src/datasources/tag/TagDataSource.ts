@@ -7,6 +7,7 @@ import {
   TestDataSourceResponse,
   FieldConfig,
   dateTime,
+  DataSourceJsonData,
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
@@ -21,7 +22,7 @@ import {
 } from './types';
 import { Throw, getWorkspaceName } from 'core/utils';
 
-export class TagDataSource extends DataSourceBase<TagQuery> {
+export class TagDataSource extends DataSourceBase<TagQuery, DataSourceJsonData> {
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),

@@ -1,3 +1,27 @@
+## [3.21.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.20.0...v3.21.0) (2024-10-14)
+
+### Features
+
+* **asset:** add feature flag support ([#79](https://github.com/ni/systemlink-grafana-plugins/issues/79)) ([de4ee90](https://github.com/ni/systemlink-grafana-plugins/commit/de4ee905a94cbc96beabf3a45e93f4b58db3e1e7))
+
+## [3.20.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.19.0...v3.20.0) (2024-10-14)
+
+### Features
+
+* **asset:** Validate calibration forecast interval ([#82](https://github.com/ni/systemlink-grafana-plugins/issues/82)) ([57b8ebd](https://github.com/ni/systemlink-grafana-plugins/commit/57b8ebd2c4918ac0a5d5d77fafc7b4e5f956661e))
+
+## [3.19.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.18.0...v3.19.0) (2024-10-10)
+
+### Features
+
+* **asset-calibration:** workspace grouping ([#77](https://github.com/ni/systemlink-grafana-plugins/issues/77)) ([045b0ea](https://github.com/ni/systemlink-grafana-plugins/commit/045b0ea1aa4b4fa57ca287401f5d217782763403))
+
+## [3.18.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.17.0...v3.18.0) (2024-10-07)
+
+### Features
+
+* **asset-calibration:** added systems as dropdown values for location ([#76](https://github.com/ni/systemlink-grafana-plugins/issues/76)) ([5f74d39](https://github.com/ni/systemlink-grafana-plugins/commit/5f74d39b26c96c49350433627a2cd23ae503a53c))
+
 ## [3.17.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.16.0...v3.17.0) (2024-10-07)
 
 ### Features

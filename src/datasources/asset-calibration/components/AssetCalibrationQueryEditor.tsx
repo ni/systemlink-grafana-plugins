@@ -1,30 +1,35 @@
 import { QueryEditorProps, SelectableValue, toOption } from '@grafana/data';
 import { AssetCalibrationDataSource } from '../AssetCalibrationDataSource';
 import { AssetCalibrationPropertyGroupByType, AssetCalibrationQuery, AssetCalibrationTimeBasedGroupByType } from '../types';
-import { InlineField, MultiSelect } from '@grafana/ui';
+import { InlineField, Label, MultiSelect } from '@grafana/ui';
 import React, { useEffect, useState } from 'react';
 import { enumToOptions } from '../../../core/utils';
 import _ from 'lodash';
 import { AssetCalibrationQueryBuilder } from './AssetCalibrationQueryBuilder';
 import { Workspace } from 'core/types';
-import { FloatingError, parseErrorMessage } from 'core/errors';
+import { FloatingError } from 'core/errors';
+import { SystemMetadata } from 'datasources/system/types';
+import './AssetCalibrationQueryEditor.scss';
 
 type Props = QueryEditorProps<AssetCalibrationDataSource, AssetCalibrationQuery>;
 
-export function AssetCalibrationQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
+export const AssetCalibrationQueryEditor = ({ query, onChange, onRunQuery, datasource }: Props) => {
   query = datasource.prepareQuery(query) as AssetCalibrationQuery;
-
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [error, setError] = useState<string>('');
+  const [systems, setSystems] = useState<SystemMetadata[]>([]);
+  const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
 
   useEffect(() => {
-    const getWorkspaces = async () => {
-      const workspaces = await datasource.getWorkspaces();
-      setWorkspaces(workspaces);
+    if (datasource.areWorkspacesLoaded) {
+      setWorkspaces(Array.from(datasource.workspacesCache.values()));
     }
 
-    getWorkspaces().catch(error => setError(parseErrorMessage(error) || 'Failed to fetch workspaces'));
-  }, [datasource]);
+    if (datasource.areSystemsLoaded) {
+      setSystems(Array.from(datasource.systemAliasCache.values()));
+    }
+
+    setAreDependenciesLoaded(datasource.areSystemsLoaded && datasource.areWorkspacesLoaded);
+  }, [datasource, datasource.areSystemsLoaded, datasource.areWorkspacesLoaded]);
 
   const handleQueryChange = (value: AssetCalibrationQuery, runQuery: boolean): void => {
     onChange(value);
@@ -69,23 +74,28 @@ export function AssetCalibrationQueryEditor({ query, onChange, onRunQuery, datas
   }
 
   return (
-    <div style={{ position: 'relative' }}>
-      <InlineField label="Group by" tooltip={tooltips.calibrationForecast.groupBy} labelWidth={22}>
+    <div className='asset-calibration-forecast'>
+      <InlineField shrink={true} style={{ maxWidth: '400px' }} label="Group by" tooltip={tooltips.calibrationForecast.groupBy} labelWidth={22}>
         <MultiSelect
           options={[...enumToOptions(AssetCalibrationTimeBasedGroupByType), ...enumToOptions(AssetCalibrationPropertyGroupByType)]}
           onChange={handleGroupByChange}
-          width={85}
           value={query.groupBy.map(toOption) || []}
         />
       </InlineField>
 
-      <AssetCalibrationQueryBuilder
-        filter={query.filter}
-        workspaces={workspaces}
-        onChange={(event: any) => onParameterChange(event)}>
-      </AssetCalibrationQueryBuilder>
+      <div>
+        <Label>Filter</Label>
 
-      <FloatingError message={error} />
+        <AssetCalibrationQueryBuilder
+          filter={query.filter}
+          workspaces={workspaces}
+          systems={systems}
+          areDependenciesLoaded={areDependenciesLoaded}
+          onChange={(event: any) => onParameterChange(event)}>
+        </AssetCalibrationQueryBuilder>
+      </div>
+
+      <FloatingError message={datasource.error} />
     </div>
   );
 }

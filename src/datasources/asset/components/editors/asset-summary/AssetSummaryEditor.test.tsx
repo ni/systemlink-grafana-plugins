@@ -4,12 +4,12 @@ import { mock } from 'jest-mock-extended';
 
 import { AssetSummaryDataSource } from './AssetSummaryDataSource';
 import { AssetSummaryQuery } from 'datasources/asset/types/AssetSummaryQuery.types';
-import { AssetQuery } from 'datasources/asset/types/types';
+import { AssetDataSourceOptions, AssetQuery } from 'datasources/asset/types/types';
 import { assetSummaryFields } from 'datasources/asset-calibration/constants';
 
 describe('AssetSummaryDataSource', () => {
   let dataSource: AssetSummaryDataSource;
-  const instanceSettings = mock<DataSourceInstanceSettings>();
+  const instanceSettings = mock<DataSourceInstanceSettings<AssetDataSourceOptions>>();
   const backendSrv = mock<BackendSrv>();
   const templateSrv = mock<TemplateSrv>();
   const assetSummary: AssetSummaryQuery = {

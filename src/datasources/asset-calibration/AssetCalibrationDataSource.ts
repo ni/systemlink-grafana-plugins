@@ -2,6 +2,7 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
+  DataSourceJsonData,
   FieldDTO,
   TestDataSourceResponse,
 } from '@grafana/data';
@@ -15,19 +16,32 @@ import {
   ColumnDescriptorType,
   FieldDTOWithDescriptor,
 } from './types';
-import { transformComputedFieldsQuery } from 'core/query-builder.utils';
-import { AssetComputedDataFields } from './constants';
+import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { AssetCalibrationFieldNames } from './constants';
 import { AssetModel, AssetsResponse } from 'datasources/asset-common/types';
 import TTLCache from '@isaacs/ttlcache';
 import { metadataCacheTTL } from 'datasources/data-frame/constants';
 import { SystemMetadata } from 'datasources/system/types';
 import { defaultOrderBy, defaultProjection } from 'datasources/system/constants';
+import { QueryBuilderOperations } from 'core/query-builder.constants';
+import { Workspace } from 'core/types';
+import { parseErrorMessage } from 'core/errors';
 
-export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQuery> {
+export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQuery, DataSourceJsonData> {
   public defaultQuery = {
     groupBy: [],
     filter: ''
   };
+
+  public areSystemsLoaded = false;
+  public areWorkspacesLoaded = false;
+
+  public error = '';
+
+  public readonly systemAliasCache: TTLCache<string, SystemMetadata> = new TTLCache<string, SystemMetadata>({ ttl: metadataCacheTTL });
+  public readonly workspacesCache: TTLCache<string, Workspace> = new TTLCache<string, Workspace>({ ttl: metadataCacheTTL });
+
+  private readonly baseUrl = this.instanceSettings.url + '/niapm/v1';
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
@@ -37,15 +51,31 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     super(instanceSettings, backendSrv, templateSrv);
   }
 
-  baseUrl = this.instanceSettings.url + '/niapm/v1';
+  private readonly assetComputedDataFields = new Map<AssetCalibrationFieldNames, ExpressionTransformFunction>([
+    [
+      AssetCalibrationFieldNames.LOCATION,
+      (value: string, operation: string, options?: TTLCache<string, unknown>) => {
+        if (options?.has(value)) {
+          return `Location.MinionId ${operation} "${value}"`
+        }
 
-  systemAliasCache: TTLCache<string, SystemMetadata> = new TTLCache<string, SystemMetadata>({ ttl: metadataCacheTTL });
+        const logicalOperator = operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
+        return `(Location.MinionId ${operation} "${value}" ${logicalOperator} Location.PhysicalLocation ${operation} "${value}")`;
+      }
+    ],
+  ]);
+
+  private readonly queryTransformationOptions = new Map<AssetCalibrationFieldNames, TTLCache<string, unknown>>([
+    [AssetCalibrationFieldNames.LOCATION, this.systemAliasCache]
+  ]);
 
   async runQuery(query: AssetCalibrationQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    await this.loadSystems();
+    await this.loadDependencies();
+    this.validateQueryRange(query, options);
 
     if (query.filter) {
-      query.filter = this.templateSrv.replace(transformComputedFieldsQuery(query.filter, AssetComputedDataFields), options.scopedVars);
+      const transformedQuery = transformComputedFieldsQuery(query.filter, this.assetComputedDataFields, this.queryTransformationOptions);
+      query.filter = this.templateSrv.replace(transformedQuery, options.scopedVars);
     }
 
     return await this.processCalibrationForecastQuery(query as AssetCalibrationQuery, options);
@@ -113,7 +143,13 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
       if (descriptor.type === ColumnDescriptorType.MinionId && this.systemAliasCache) {
         const system = this.systemAliasCache.get(descriptor.value);
 
-        return system?.alias || descriptor.value
+        return system?.alias || descriptor.value;
+      }
+
+      if (descriptor.type === ColumnDescriptorType.WorkspaceId && this.workspacesCache) {
+        const workspace = this.workspacesCache.get(descriptor.value);
+
+        return workspace?.name || descriptor.value
       }
       return descriptor.value
     }).join(' - ');
@@ -172,13 +208,61 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     }
   }
 
+  private validateQueryRange(query: AssetCalibrationQuery, options: DataQueryRequest): void {
+    const MILLISECONDS_IN_A_DAY = 1000 * 60 * 60 * 24;
+    const DAYS_IN_A_MONTH = 31;
+    const DAYS_IN_A_YEAR = 366;
+
+    const from = options.range!.from;
+    const to = options.range!.to;
+    const numberOfDays = Math.abs(to.valueOf() - from.valueOf()) / MILLISECONDS_IN_A_DAY;
+
+    const rangeLimits = [
+      { type: AssetCalibrationTimeBasedGroupByType.Day, limit: DAYS_IN_A_MONTH * 3, groupingMethod: '3 months' },
+      { type: AssetCalibrationTimeBasedGroupByType.Week, limit: DAYS_IN_A_YEAR * 2, groupingMethod: '2 years' },
+      { type: AssetCalibrationTimeBasedGroupByType.Month, limit: DAYS_IN_A_YEAR * 5, groupingMethod: '5 years' }
+    ];
+
+    rangeLimits.forEach(({ type, limit, groupingMethod }) => {
+      if (query.groupBy.includes(type.valueOf()) && numberOfDays > limit) {
+        throw new Error(`Query range exceeds range limit of ${type} grouping method: ${groupingMethod}`);
+      }
+    });
+  }
+
   private async loadSystems(): Promise<void> {
     if (this.systemAliasCache.size > 0) {
       return;
     }
 
-    const systems = await this.querySystems('', ['id', 'alias','connected.data.state', 'workspace']);
-    systems.forEach(system => this.systemAliasCache.set(system.id, system));
+    const systems = await this.querySystems('', ['id', 'alias', 'connected.data.state', 'workspace'])
+      .catch(error => {
+        this.error = parseErrorMessage(error)!;
+      });
+
+    this.areSystemsLoaded = true;
+    systems?.forEach(system => this.systemAliasCache.set(system.id, system));
+  }
+
+  private async loadWorkspaces(): Promise<void> {
+    if (this.workspacesCache.size > 0) {
+      return;
+    }
+
+    const workspaces = await this.getWorkspaces()
+      .catch(error => {
+        this.error = parseErrorMessage(error)!;
+      });
+
+    this.areWorkspacesLoaded = true;
+    workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
+  }
+
+  async loadDependencies(): Promise<void> {
+    this.error = '';
+
+    await this.loadSystems();
+    await this.loadWorkspaces();
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

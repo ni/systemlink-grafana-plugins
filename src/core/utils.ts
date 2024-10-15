@@ -35,7 +35,7 @@ export function throwIfNullish<T>(value: T, error: string | Error): NonNullable<
 }
 
 /** Gets available workspaces as an array of {@link SelectableValue}. */
-export function useWorkspaceOptions<DSType extends DataSourceBase<any>>(datasource: DSType) {
+export function useWorkspaceOptions<DSType extends DataSourceBase<any, any>>(datasource: DSType) {
   return useAsync(async () => {
     const workspaces = await datasource.getWorkspaces();
     const workspaceOptions = workspaces.map(w => ({ label: w.name, value: w.id }));
@@ -45,7 +45,7 @@ export function useWorkspaceOptions<DSType extends DataSourceBase<any>>(datasour
 }
 
 /** Gets Dashboard variables as an array of {@link SelectableValue}. */
-export function getVariableOptions<DSType extends DataSourceBase<any>>(datasource: DSType) {
+export function getVariableOptions<DSType extends DataSourceBase<any, any>>(datasource: DSType) {
   return datasource.templateSrv
     .getVariables()
     .filter((variable: any) => !variable.datasource || variable.datasource.uid !== datasource.uid)
