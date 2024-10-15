@@ -55,13 +55,13 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
   }, [queryType]);
 
   useEffect(() => {
-    if (!queryType) {
+    if (!query.queryType) {
       const firstFilterOption = filterOptions.length > 0 ? filterOptions[0].value : undefined;
-      if(firstFilterOption){
+      if (firstFilterOption) {
         handleQueryTypeChange({ value: firstFilterOption });
       }
     }
-  }, [handleQueryTypeChange, filterOptions, queryType]);
+  }, [query.queryType, handleQueryTypeChange, filterOptions]);
 
   return (
     <div style={{ position: 'relative' }}>
