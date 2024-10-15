@@ -17,6 +17,7 @@ import {
 } from "./types";
 import { SystemMetadata } from "datasources/system/types";
 import { dateTime } from "@grafana/data";
+import { AssetCalibrationFieldNames } from "./constants";
 
 let datastore: AssetCalibrationDataSource, backendServer: MockProxy<BackendSrv>
 
@@ -371,7 +372,7 @@ describe('queries', () => {
 
     await expect(datastore.query(buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock))).rejects.toThrow()
   })
-
+  
   test('validate DAY grouping', async () => {
     const request = buildCalibrationForecastQuery(dayBasedCalibrationForecastQueryMock);
     const numberOfDays = 31 * 3 + 1;
@@ -396,3 +397,70 @@ describe('queries', () => {
     await expect(datastore.query(request)).rejects.toThrow('Query range exceeds range limit of MONTH grouping method: 5 years');
   })
 })
+
+describe('Asset calibration location queries', () => {
+  let processCalibrationForecastQuerySpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    processCalibrationForecastQuerySpy = jest.spyOn(datastore, 'processCalibrationForecastQuery').mockImplementation();
+  });
+
+  test('should transform LOCATION field with single value', async () => {
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+      filter: `${AssetCalibrationFieldNames.LOCATION} = "Location1"`,
+    });
+
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        filter: "(Location.MinionId = \"Location1\" || Location.PhysicalLocation = \"Location1\")"
+      }),
+      expect.anything()
+    );
+  });
+
+  test('should transform LOCATION field with single value and cache hit', async () => {
+    datastore.systemAliasCache.set('Location1', { id: 'Location1', alias: 'Location1-alias', state: 'CONNECTED', workspace: '1' });
+
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+      filter: `${AssetCalibrationFieldNames.LOCATION} = "Location1"`,
+    });
+
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        filter: "Location.MinionId = \"Location1\""
+      }),
+      expect.anything()
+    );
+  });
+
+  test('should transform LOCATION field with multiple values and cache hit', async () => {
+    datastore.systemAliasCache.set('Location1', { id: 'Location1', alias: 'Location1-alias', state: 'CONNECTED', workspace: '1' });
+    datastore.systemAliasCache.set('Location2', { id: 'Location2', alias: 'Location2-alias', state: 'CONNECTED', workspace: '2' });
+
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+      filter: `${AssetCalibrationFieldNames.LOCATION} = "{Location1,Location2}"`,
+    });
+
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        filter: "(Location.MinionId = \"Location1\" || Location.MinionId = \"Location2\")"
+      }),
+      expect.anything()
+    );
+  });
+});
