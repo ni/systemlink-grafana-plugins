@@ -6,7 +6,7 @@ import {
   DataSourceInstanceSettings,
   DataSourceJsonData,
 } from '@grafana/data';
-import { BackendSrv, BackendSrvRequest, TemplateSrv, isFetchError } from '@grafana/runtime';
+import { BackendSrv, BackendSrvRequest, FetchError, TemplateSrv, isFetchError } from '@grafana/runtime';
 import { DataQuery } from '@grafana/schema';
 import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
 import { sleep } from './utils';
@@ -47,6 +47,13 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
       if (isFetchError(error) && error.status === 429 && retries < 3) {
         await sleep(Math.random() * 1000 * 2 ** retries);
         return this.fetch(options, retries + 1);
+      }
+      if (isFetchError(error)) {
+        const fetchError = error as FetchError;
+        const statusCode = fetchError.status;
+        const data = fetchError.data;
+        const errorMessage = data.error?.message || JSON.stringify(data);
+        throw new Error(`Request to url "${options.url}" failed with status code: ${statusCode}. Error message: ${errorMessage}`);
       }
       throw error;
     }

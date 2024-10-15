@@ -6,7 +6,7 @@ import {
   FieldDTO,
   TestDataSourceResponse,
 } from '@grafana/data';
-import { BackendSrv, FetchError, getBackendSrv, getTemplateSrv, isFetchError, TemplateSrv } from '@grafana/runtime';
+import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
   AssetCalibrationForecastKey,
@@ -239,18 +239,6 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
       let response = await this.post<CalibrationForecastResponse>(this.baseUrl + '/assets/calibration-forecast', data);
       return response;
     } catch (error) {
-      if (isFetchError(error))
-      {
-        const fetchError = error as FetchError;
-        const statusCode = fetchError.status;
-        const data = fetchError.data;
-        if (data.error && data.error.message) {
-          const errorMesage = data.error.message;
-          throw new Error(`Query calibration forecast failed with status code: ${statusCode}. Error message: ${errorMesage}`);
-        }
-        const dataStringified = JSON.stringify(data);
-        throw new Error(`Query calibration forecast failed with status code: ${statusCode}. Error message: ${dataStringified}`);
-      }
       throw new Error(`An error occurred while querying assets calibration forecast: ${error}`);
     }
   }
