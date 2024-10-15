@@ -1,3 +1,9 @@
+## [3.22.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.21.0...v3.22.0) (2024-10-15)
+
+### Features
+
+* **asset:** multiple values from global vals filter support ([#80](https://github.com/ni/systemlink-grafana-plugins/issues/80)) ([a710a2e](https://github.com/ni/systemlink-grafana-plugins/commit/a710a2ee408a403fc8422f2054c7f9de15438a5f))
+
 ## [3.21.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.20.0...v3.21.0) (2024-10-14)
 
 ### Features
