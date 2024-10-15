@@ -67,37 +67,39 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
   }, [systems]);
 
   useEffect(() => {
-    if (areDependenciesLoaded) {
-      const fields = [workspaceField, locationField];
-
-      setFields(fields);
-
-      const options = Object.values(fields).reduce((accumulator, fieldConfig) => {
-        if (fieldConfig.lookup) {
-          accumulator[fieldConfig.dataField!] = fieldConfig.lookup.dataSource;
-        }
-
-        return accumulator;
-      }, {} as Record<string, QueryBuilderOption[]>);
-
-      const callbacks = {
-        expressionBuilderCallback: expressionBuilderCallback(options),
-        expressionReaderCallback: expressionReaderCallback(options),
-      };
-
-      setOperations([
-        {
-          ...QueryBuilderOperations.EQUALS,
-          ...callbacks,
-        },
-        {
-          ...QueryBuilderOperations.DOES_NOT_EQUAL,
-          ...callbacks,
-        },
-        QueryBuilderOperations.CONTAINS,
-        QueryBuilderOperations.DOES_NOT_CONTAIN,
-      ]);
+    if (!areDependenciesLoaded) {
+      return;
     }
+    
+    const fields = [workspaceField, locationField];
+
+    setFields(fields);
+
+    const options = Object.values(fields).reduce((accumulator, fieldConfig) => {
+      if (fieldConfig.lookup) {
+        accumulator[fieldConfig.dataField!] = fieldConfig.lookup.dataSource;
+      }
+
+      return accumulator;
+    }, {} as Record<string, QueryBuilderOption[]>);
+
+    const callbacks = {
+      expressionBuilderCallback: expressionBuilderCallback(options),
+      expressionReaderCallback: expressionReaderCallback(options),
+    };
+
+    setOperations([
+      {
+        ...QueryBuilderOperations.EQUALS,
+        ...callbacks,
+      },
+      {
+        ...QueryBuilderOperations.DOES_NOT_EQUAL,
+        ...callbacks,
+      },
+      QueryBuilderOperations.CONTAINS,
+      QueryBuilderOperations.DOES_NOT_CONTAIN,
+    ]);
   }, [workspaceField, locationField, areDependenciesLoaded]);
 
   return (

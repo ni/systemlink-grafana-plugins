@@ -25,13 +25,6 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
     throw new Error("Method not implemented.");
   }
 
-  public async loadDependencies(): Promise<void> {
-    this.error = '';
-
-    await this.loadSystems();
-    await this.loadWorkspaces();
-  }
-
   public async querySystems(filter = '', projection = defaultProjection): Promise<SystemMetadata[]> {
     try {
       let response = await this.getSystems({
@@ -52,6 +45,13 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
   
   public getCachedWorkspaces(): Workspace[] {
     return Array.from(this.workspacesCache.values());
+  }
+
+  public async loadDependencies(): Promise<void> {
+    this.error = '';
+
+    await this.loadSystems();
+    await this.loadWorkspaces();
   }
 
   private async loadSystems(): Promise<void> {
