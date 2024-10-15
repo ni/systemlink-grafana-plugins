@@ -1,3 +1,9 @@
+## [3.25.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.24.0...v3.25.0) (2024-10-15)
+
+### Features
+
+* **asset:** fix [object Object] error message ([#86](https://github.com/ni/systemlink-grafana-plugins/issues/86)) ([ef9eaaf](https://github.com/ni/systemlink-grafana-plugins/commit/ef9eaafd60230781f8c6d4cdb11b5c61758d088d))
+
 ## [3.24.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.23.0...v3.24.0) (2024-10-15)
 
 ### Features
