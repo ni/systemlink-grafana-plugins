@@ -308,7 +308,7 @@ describe('testDatasource', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets?take=1' }))
       .mockReturnValue(createFetchError(400));
 
-    await expect(datastore.testDatasource()).rejects.toHaveProperty('status', 400);
+    await expect(datastore.testDatasource()).rejects.toThrow('Request to url "/niapm/v1/assets?take=1" failed with status code: 400. Error message: "Error"');
   });
 })
 

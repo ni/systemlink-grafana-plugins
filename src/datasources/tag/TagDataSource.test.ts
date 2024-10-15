@@ -39,7 +39,7 @@ describe('testDatasource', () => {
       .calledWith(requestMatching({ url: '/nitag/v2/tags-count' }))
       .mockReturnValue(createFetchError(400));
 
-    await expect(ds.testDatasource()).rejects.toHaveProperty('status', 400);
+    await expect(ds.testDatasource()).rejects.toThrow('Request to url "/nitag/v2/tags-count" failed with status code: 400. Error message: "Error"');
   });
 });
 
@@ -445,9 +445,8 @@ describe('queries', () => {
     backendSrv.fetch.mockReturnValueOnce(createQueryTagsResponse());
     backendSrv.fetch.mockReturnValue(createFetchError(429));
 
-    await expect(ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag' }))).rejects.toHaveProperty(
-      'status',
-      429
+    await expect(ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag' }))).rejects.toThrow(
+      'Request to url "/nitaghistorian/v2/tags/query-decimated-history" failed with status code: 429. Error message: "Error"'
     );
 
     expect(backendSrv.fetch).toHaveBeenCalledTimes(5);
