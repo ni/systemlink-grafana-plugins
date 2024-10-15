@@ -5,6 +5,7 @@ import { mock } from 'jest-mock-extended';
 import { AssetSummaryDataSource } from './AssetSummaryDataSource';
 import { AssetSummaryQuery } from 'datasources/asset/types/AssetSummaryQuery.types';
 import { AssetQuery } from 'datasources/asset/types/types';
+import { assetSummaryFields } from 'datasources/asset-calibration/constants';
 
 describe('AssetSummaryDataSource', () => {
   let dataSource: AssetSummaryDataSource;
@@ -33,11 +34,11 @@ describe('AssetSummaryDataSource', () => {
     expect(result).toEqual({
       refId: 'A',
       fields: [
-        { name: 'Total', values: [10] },
-        { name: 'Active', values: [5] },
-        { name: 'Not active', values: [3] },
-        { name: 'Approaching due date', values: [1] },
-        { name: 'Past due date', values: [1] },
+        { name: assetSummaryFields.TOTAL, values: [10] },
+        { name: assetSummaryFields.ACTIVE, values: [5] },
+        { name: assetSummaryFields.NOT_ACTIVE, values: [3] },
+        { name: assetSummaryFields.APPROACHING_DUE_DATE, values: [1] },
+        { name: assetSummaryFields.PAST_DUE_DATE, values: [1] },
       ],
     });
   });
@@ -53,8 +54,6 @@ describe('AssetSummaryDataSource', () => {
   it('should handle error in getAssetSummary', async () => {
     jest.spyOn(dataSource, 'get').mockRejectedValue(new Error('Network error'));
 
-    await expect(dataSource.getAssetSummary()).rejects.toThrow(
-      'An error occurred while getting asset summary: Error: Network error'
-    );
+    await expect(dataSource.getAssetSummary()).rejects.toThrow('Network error');
   });
 });

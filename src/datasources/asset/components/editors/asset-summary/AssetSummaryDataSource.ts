@@ -2,6 +2,7 @@ import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings } from '@gra
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 
 import { AssetSummaryQuery } from 'datasources/asset/types/AssetSummaryQuery.types';
+import { assetSummaryFields } from 'datasources/asset-calibration/constants';
 import { AssetQuery } from '../../../types/types';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
 
@@ -29,25 +30,19 @@ export class AssetSummaryDataSource extends AssetDataSourceBase {
 
     async processMetadataQuery(query: AssetQuery) {
         const result: DataFrameDTO = { refId: query.refId, fields: [] };
-
         const assets: AssetSummaryQuery = await this.getAssetSummary();
 
         result.fields = [
-            { name: 'Total', values: [assets.total] },
-            { name: 'Active', values: [assets.active] },
-            { name: 'Not active', values: [assets.notActive] },
-            { name: 'Approaching due date', values: [assets.approachingRecommendedDueDate] },
-            { name: 'Past due date', values: [assets.pastRecommendedDueDate] }
+            { name: assetSummaryFields.TOTAL, values: [assets.total] },
+            { name: assetSummaryFields.ACTIVE, values: [assets.active] },
+            { name: assetSummaryFields.NOT_ACTIVE, values: [assets.notActive] },
+            { name: assetSummaryFields.APPROACHING_DUE_DATE, values: [assets.approachingRecommendedDueDate] },
+            { name: assetSummaryFields.PAST_DUE_DATE, values: [assets.pastRecommendedDueDate] }
         ];
         return result;
     }
 
     async getAssetSummary(): Promise<AssetSummaryQuery> {
-        try {
-            let response = await this.get<AssetSummaryQuery>(this.baseUrl + '/asset-summary');
-            return response;
-        } catch (error) {
-            throw new Error(`An error occurred while getting asset summary: ${error}`);
-        }
+        return await this.get<AssetSummaryQuery>(this.baseUrl + '/asset-summary');
     }
 }
