@@ -1,11 +1,10 @@
 import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings } from '@grafana/data';
-import { AssetDataSourceOptions, AssetQuery } from '../../../types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 
 import { AssetSummaryQuery } from 'datasources/asset/types/AssetSummaryQuery.types';
 import { assetSummaryFields } from 'datasources/asset-calibration/constants';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
-
+import { AssetDataSourceOptions, AssetQuery } from '../../../types/types';
 export class AssetSummaryDataSource extends AssetDataSourceBase {
     constructor(
         readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,

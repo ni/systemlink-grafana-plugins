@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import _ from 'lodash';
-import { AssetDataSourceOptions, AssetFeatureToggles, AssetFeatureTogglesDefaults, AssetQuery, AssetQueryType } from '../types/types';
 import { InlineField, Select } from '@grafana/ui';
 
 import { AssetDataSource } from '../AssetDataSource';
@@ -12,12 +11,12 @@ import { ListAssetsEditor } from './editors/list-assets/ListAssetsEditor';
 import { defaultAssetSummaryQuery, defaultCalibrationForecastQuery, defaultListAssetsQuery } from '../defaults';
 import { ListAssetsQuery } from '../types/ListAssets.types';
 import { AssetSummaryQuery } from '../types/AssetSummaryQuery.types';
+import { AssetDataSourceOptions, AssetFeatureToggles, AssetFeatureTogglesDefaults, AssetQuery, AssetQueryType } from '../types/types';
 
 type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOptions>;
 
 export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   const [queryType, setQueryType] = useState(query.queryType as AssetQueryType);
-
   const assetFeatures = useRef<AssetFeatureToggles>({
     assetList: datasource.instanceSettings.jsonData?.featureToggles?.assetList ?? AssetFeatureTogglesDefaults.assetList,
     calibrationForecast: datasource.instanceSettings.jsonData?.featureToggles?.calibrationForecast ?? AssetFeatureTogglesDefaults.calibrationForecast,
