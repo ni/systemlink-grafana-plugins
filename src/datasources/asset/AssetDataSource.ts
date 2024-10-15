@@ -7,24 +7,24 @@ import {
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
+  AssetDataSourceOptions,
   AssetQuery,
   AssetQueryType,
 } from './types/types';
 import { ListAssetsDataSource } from './components/editors/list-assets/ListAssetsDataSource';
 import { CalibrationForecastDataSource } from './components/editors/calibration-forecast/CalibrationForecastDataSource';
 import { AssetSummaryDataSource } from './components/editors/asset-summary/AssetSummaryDataSource';
-import { defaultAssetQuery, defaultAssetQueryType } from './defaults';
 import { AssetSummaryQuery } from './types/AssetSummaryQuery.types';
 import { CalibrationForecastQuery } from './types/CalibrationForecastQuery.types';
 import { ListAssetsQuery } from './types/ListAssets.types';
 
-export class AssetDataSource extends DataSourceBase<AssetQuery> {
+export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
   private assetSummaryDataSource: AssetSummaryDataSource;
   private calibrationForecastDataSource: CalibrationForecastDataSource;
   private listAssetsDataSource: ListAssetsDataSource;
 
   constructor(
-    readonly instanceSettings: DataSourceInstanceSettings,
+    readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
@@ -37,32 +37,33 @@ export class AssetDataSource extends DataSourceBase<AssetQuery> {
   baseUrl = this.instanceSettings.url + '/niapm/v1';
 
   defaultQuery = {
-    queryType: defaultAssetQueryType,
-    ...defaultAssetQuery
+    queryType: AssetQueryType.None,
   };
 
   async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     if (query.queryType === AssetQueryType.AssetSummary) {
       return this.getAssetSummarySource().runQuery(query as AssetSummaryQuery, options);
     }
-    else if (query.queryType === AssetQueryType.CalibrationForecast) {
+    if (query.queryType === AssetQueryType.CalibrationForecast) {
       return this.getCalibrationForecastSource().runQuery(query as CalibrationForecastQuery, options);
     }
-    else {
+    if (query.queryType === AssetQueryType.ListAssets) {
       return this.getListAssetsSource().runQuery(query as ListAssetsQuery, options);
     }
+    throw new Error('Unknown query type');
   }
 
   shouldRunQuery(query: AssetQuery): boolean {
     if (query.queryType === AssetQueryType.AssetSummary) {
       return this.getAssetSummarySource().shouldRunQuery(query as AssetSummaryQuery);
     }
-    else if (query.queryType === AssetQueryType.CalibrationForecast) {
+    if (query.queryType === AssetQueryType.CalibrationForecast) {
       return this.getCalibrationForecastSource().shouldRunQuery(query as CalibrationForecastQuery);
     }
-    else {
+    if (query.queryType === AssetQueryType.ListAssets) {
       return this.getListAssetsSource().shouldRunQuery(query as ListAssetsQuery);
     }
+    return false;
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

@@ -2,6 +2,7 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
+  DataSourceJsonData,
   MetricFindValue,
   TestDataSourceResponse
 } from '@grafana/data';
@@ -12,7 +13,7 @@ import { NetworkUtils } from './network-utils';
 import { SystemQuery, SystemQueryType, SystemSummary, SystemVariableQuery } from './types';
 import { getWorkspaceName } from 'core/utils';
 
-export class SystemDataSource extends DataSourceBase<SystemQuery> {
+export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJsonData> {
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),

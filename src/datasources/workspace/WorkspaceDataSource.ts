@@ -1,10 +1,10 @@
-import { DataFrameDTO, DataSourceInstanceSettings, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
+import { DataFrameDTO, DataSourceInstanceSettings, DataSourceJsonData, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { Workspace } from 'core/types';
 import { WorkspaceQuery } from './types';
 
-export class WorkspaceDataSource extends DataSourceBase<WorkspaceQuery> {
+export class WorkspaceDataSource extends DataSourceBase<WorkspaceQuery, DataSourceJsonData> {
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),

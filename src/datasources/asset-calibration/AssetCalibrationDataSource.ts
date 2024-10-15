@@ -2,6 +2,7 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
+  DataSourceJsonData,
   FieldDTO,
   TestDataSourceResponse,
 } from '@grafana/data';
@@ -26,7 +27,7 @@ import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { Workspace } from 'core/types';
 import { parseErrorMessage } from 'core/errors';
 
-export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQuery> {
+export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQuery, DataSourceJsonData> {
   public defaultQuery = {
     groupBy: [],
     filter: ''
@@ -70,6 +71,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
 
   async runQuery(query: AssetCalibrationQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     await this.loadDependencies();
+    this.validateQueryRange(query, options);
 
     if (query.filter) {
       const transformedQuery = transformComputedFieldsQuery(query.filter, this.assetComputedDataFields, this.queryTransformationOptions);
@@ -204,6 +206,28 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     } catch (error) {
       throw new Error(`An error occurred while querying systems: ${error}`);
     }
+  }
+
+  private validateQueryRange(query: AssetCalibrationQuery, options: DataQueryRequest): void {
+    const MILLISECONDS_IN_A_DAY = 1000 * 60 * 60 * 24;
+    const DAYS_IN_A_MONTH = 31;
+    const DAYS_IN_A_YEAR = 366;
+
+    const from = options.range!.from;
+    const to = options.range!.to;
+    const numberOfDays = Math.abs(to.valueOf() - from.valueOf()) / MILLISECONDS_IN_A_DAY;
+
+    const rangeLimits = [
+      { type: AssetCalibrationTimeBasedGroupByType.Day, limit: DAYS_IN_A_MONTH * 3, groupingMethod: '3 months' },
+      { type: AssetCalibrationTimeBasedGroupByType.Week, limit: DAYS_IN_A_YEAR * 2, groupingMethod: '2 years' },
+      { type: AssetCalibrationTimeBasedGroupByType.Month, limit: DAYS_IN_A_YEAR * 5, groupingMethod: '5 years' }
+    ];
+
+    rangeLimits.forEach(({ type, limit, groupingMethod }) => {
+      if (query.groupBy.includes(type.valueOf()) && numberOfDays > limit) {
+        throw new Error(`Query range exceeds range limit of ${type} grouping method: ${groupingMethod}`);
+      }
+    });
   }
 
   private async loadSystems(): Promise<void> {

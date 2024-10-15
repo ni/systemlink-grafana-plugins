@@ -26,7 +26,8 @@ const mockVariables: TypedVariableModel[] = [{
 }]
 
 export function setupDataSource<T>(
-  ctor: new (instanceSettings: DataSourceInstanceSettings, backendSrv: BackendSrv, templateSrv: TemplateSrv) => T
+  ctor: new (instanceSettings: DataSourceInstanceSettings<any>, backendSrv: BackendSrv, templateSrv: TemplateSrv) => T,
+  getDatasourceOptions:  () => any = () => {}
 ) {
   const mockBackendSrv = mock<BackendSrv>(
     {},
@@ -40,19 +41,20 @@ export function setupDataSource<T>(
     replace: calledWithFn({ fallbackMockImplementation: target => target ?? '' }),
     getVariables: calledWithFn({ fallbackMockImplementation: () => mockVariables })
   });
-  const ds = new ctor({ url: '' } as DataSourceInstanceSettings, mockBackendSrv, mockTemplateSrv);
+  const ds = new ctor({ url: '', jsonData: getDatasourceOptions() } as DataSourceInstanceSettings<any>, mockBackendSrv, mockTemplateSrv);
   return [ds, mockBackendSrv, mockTemplateSrv] as const;
 }
 
-export function setupRenderer<DSType extends DataSourceApi<TQuery>, TQuery extends DataQuery>(
+export function setupRenderer<DSType extends DataSourceApi<TQuery, any>, TQuery extends DataQuery>(
   component: (props: QueryEditorProps<DSType, TQuery>) => React.JSX.Element,
-  ds: new (instanceSettings: DataSourceInstanceSettings, backendSrv: BackendSrv) => DSType
+  ds: new (instanceSettings: DataSourceInstanceSettings<any>, backendSrv: BackendSrv) => DSType,
+  getDatasourceOptions: () => any = () => {}
 ) {
   return (initialQuery: Omit<TQuery, 'refId'>) => {
     const onChange = jest.fn<void, [TQuery]>(),
       onRunQuery = jest.fn();
 
-    const [datasource] = setupDataSource(ds);
+    const [datasource] = setupDataSource(ds, getDatasourceOptions);
 
     const createElement = (query: TQuery) =>
       React.createElement(component, { datasource, query, onRunQuery, onChange });

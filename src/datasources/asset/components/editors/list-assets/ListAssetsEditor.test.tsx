@@ -6,6 +6,7 @@ import { setupRenderer } from '../../../../../test/fixtures';
 import { select } from 'react-select-event';
 import { ListAssetsDataSource } from './ListAssetsDataSource';
 import { ListAssetsQuery } from '../../../types/ListAssets.types';
+import { AssetFeatureTogglesDefaults } from 'datasources/asset/types/types';
 
 const fakeSystems: SystemProperties[] = [
   {
@@ -20,6 +21,10 @@ const fakeSystems: SystemProperties[] = [
   },
 ];
 
+let assetDatasourceOptions = {
+  featureToggles: {...AssetFeatureTogglesDefaults}
+}
+
 class FakeAssetsSource extends ListAssetsDataSource {
   querySystems(filter?: string, projection?: string[]): Promise<SystemProperties[]> {
     return Promise.resolve(fakeSystems);
@@ -32,13 +37,28 @@ class FakeAssetDataSource extends AssetDataSource {
   }
 }
 
-const render = setupRenderer(AssetQueryEditor, FakeAssetDataSource);
+const render = setupRenderer(AssetQueryEditor, FakeAssetDataSource, () => assetDatasourceOptions);
 const workspacesLoaded = () => waitForElementToBeRemoved(screen.getByTestId('Spinner'));
 
+beforeEach(() => {
+  assetDatasourceOptions = {
+    featureToggles: {...AssetFeatureTogglesDefaults}
+  }
+})
+
+it('does not render when feature is not enabled', async () => {
+  assetDatasourceOptions.featureToggles.assetList = false;
+  render({} as ListAssetsQuery);
+  expect(screen.getAllByRole('combobox').length).toBe(1);
+});
+
+
 it('renders with metadata query defaults', async () => {
+  assetDatasourceOptions.featureToggles.assetList = true;
   render({} as ListAssetsQuery);
   await workspacesLoaded();
 
+  expect(screen.getAllByRole('combobox').length).toBe(3);
   expect(screen.getAllByRole('combobox')[1]).toHaveAccessibleDescription('Any workspace');
   expect(screen.getAllByRole('combobox')[2]).toHaveAccessibleDescription('Select systems');
 });
