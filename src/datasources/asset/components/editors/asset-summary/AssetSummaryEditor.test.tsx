@@ -3,8 +3,8 @@ import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { mock } from 'jest-mock-extended';
 
 import { AssetSummaryDataSource } from './AssetSummaryDataSource';
-import { AssetSummaryQuery } from 'datasources/asset/types/AssetSummaryQuery.types';
-import { AssetDataSourceOptions, AssetQuery } from 'datasources/asset/types/types';
+import { AssetSummaryResponse } from 'datasources/asset/types/AssetSummaryQuery.types';
+import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from 'datasources/asset/types/types';
 import { assetSummaryFields } from 'datasources/asset-calibration/constants';
 
 describe('AssetSummaryDataSource', () => {
@@ -12,7 +12,7 @@ describe('AssetSummaryDataSource', () => {
   const instanceSettings = mock<DataSourceInstanceSettings<AssetDataSourceOptions>>();
   const backendSrv = mock<BackendSrv>();
   const templateSrv = mock<TemplateSrv>();
-  const assetSummary: AssetSummaryQuery = {
+  const assetSummary: AssetSummaryResponse = {
     total: 10,
     active: 5,
     notActive: 3,
@@ -26,10 +26,10 @@ describe('AssetSummaryDataSource', () => {
   });
 
   it('should process metadata query correctly', async () => {
-    const query: AssetQuery = { refId: 'A' };
+    const query: AssetQuery = { refId: 'A', queryType: AssetQueryType.AssetSummary, };
 
     jest.spyOn(dataSource, 'getAssetSummary').mockResolvedValue(assetSummary);
-    const result = await dataSource.processMetadataQuery(query);
+    const result = await dataSource.processSummaryQuery(query);
 
     expect(result).toEqual({
       refId: 'A',

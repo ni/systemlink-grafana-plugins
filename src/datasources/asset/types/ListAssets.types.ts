@@ -1,8 +1,10 @@
 import { DataQuery } from '@grafana/schema'
 import { QueryBuilderOperations } from '../../../core/query-builder.constants';
 import { QBField } from '../../asset-calibration/types';
+import { AssetQueryType } from './types';
 
 export interface ListAssetsQuery extends DataQuery {
+    queryType: AssetQueryType;
     filter: string;
 }
 

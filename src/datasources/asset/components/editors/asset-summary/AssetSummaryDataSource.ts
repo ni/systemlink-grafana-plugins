@@ -1,10 +1,10 @@
 import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 
-import { AssetSummaryQuery } from 'datasources/asset/types/AssetSummaryQuery.types';
+import { AssetSummaryResponse } from 'datasources/asset/types/AssetSummaryQuery.types';
 import { assetSummaryFields } from 'datasources/asset-calibration/constants';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
-import { AssetDataSourceOptions, AssetQuery } from '../../../types/types';
+import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../../types/types';
 export class AssetSummaryDataSource extends AssetDataSourceBase {
     constructor(
         readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,
@@ -17,31 +17,37 @@ export class AssetSummaryDataSource extends AssetDataSourceBase {
     baseUrl = this.instanceSettings.url + '/niapm/v1';
 
     defaultQuery = {
+        queryType: AssetQueryType.AssetSummary,
     };
 
     async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-        return this.processMetadataQuery(query as AssetQuery);
+        return this.processSummaryQuery(query as AssetQuery);
     }
 
     shouldRunQuery(_: AssetQuery): boolean {
         return true;
     }
 
-    async processMetadataQuery(query: AssetQuery) {
-        const result: DataFrameDTO = { refId: query.refId, fields: [] };
-        const assets: AssetSummaryQuery = await this.getAssetSummary();
+    async processSummaryQuery(query: AssetQuery) {
+        const assets: AssetSummaryResponse = await this.getAssetSummary();
 
-        result.fields = [
-            { name: assetSummaryFields.TOTAL, values: [assets.total] },
-            { name: assetSummaryFields.ACTIVE, values: [assets.active] },
-            { name: assetSummaryFields.NOT_ACTIVE, values: [assets.notActive] },
-            { name: assetSummaryFields.APPROACHING_DUE_DATE, values: [assets.approachingRecommendedDueDate] },
-            { name: assetSummaryFields.PAST_DUE_DATE, values: [assets.pastRecommendedDueDate] }
-        ];
-        return result;
+        return {
+            refId: query.refId,
+            fields: [
+                { name: assetSummaryFields.TOTAL, values: [assets.total] },
+                { name: assetSummaryFields.ACTIVE, values: [assets.active] },
+                { name: assetSummaryFields.NOT_ACTIVE, values: [assets.notActive] },
+                { name: assetSummaryFields.APPROACHING_DUE_DATE, values: [assets.approachingRecommendedDueDate] },
+                { name: assetSummaryFields.PAST_DUE_DATE, values: [assets.pastRecommendedDueDate] }
+            ]
+        };
     }
 
-    async getAssetSummary(): Promise<AssetSummaryQuery> {
-        return await this.get<AssetSummaryQuery>(this.baseUrl + '/asset-summary');
+    async getAssetSummary(): Promise<AssetSummaryResponse> {
+        try {
+            return await this.get<AssetSummaryResponse>(this.baseUrl + '/asset-summary');
+        } catch (error) {
+            throw new Error(`An error occurred while getting asset summary: ${error}`);
+        }
     }
 }
