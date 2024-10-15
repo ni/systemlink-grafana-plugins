@@ -248,8 +248,8 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
           const errorMesage = data.error.message;
           throw new Error(`Query calibration forecast failed with status code: ${statusCode}. Error message: ${errorMesage}`);
         }
-        const dataStrignified = JSON.stringify(data);
-        throw new Error(`Query calibration forecast failed with status code: ${statusCode}. Error message: ${dataStrignified}`);
+        const dataStringified = JSON.stringify(data);
+        throw new Error(`Query calibration forecast failed with status code: ${statusCode}. Error message: ${dataStringified}`);
       }
       throw new Error(`An error occurred while querying assets calibration forecast: ${error}`);
     }
