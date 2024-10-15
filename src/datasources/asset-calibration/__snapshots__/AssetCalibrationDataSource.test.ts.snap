@@ -114,6 +114,54 @@ exports[`queries asset calibration forecast with week groupBy 1`] = `
 ]
 `;
 
+exports[`queries calibration forecast with assetType groupBy 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "Group",
+        "values": [
+          "Generic",
+          "Device under test",
+        ],
+      },
+      {
+        "name": "Assets",
+        "values": [
+          1,
+          2,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries calibration forecast with busType groupBy 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "Group",
+        "values": [
+          "Built-in-system",
+          "FireWire",
+        ],
+      },
+      {
+        "name": "Assets",
+        "values": [
+          1,
+          2,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
 exports[`queries calibration forecast with location groupBy 1`] = `
 [
   {
@@ -238,6 +286,138 @@ exports[`queries calibration forecast with model groupBy 1`] = `
 ]
 `;
 
+exports[`queries calibration forecast with month and assetType groupBy 1`] = `
+[
+  {
+    "fields": [
+      {
+        "columnDescriptors": [
+          {
+            "type": "TIME",
+            "value": "Month",
+          },
+        ],
+        "name": "Month",
+        "values": [
+          "January 2022",
+          "February 2022",
+          "March 2022",
+        ],
+      },
+      {
+        "columnDescriptors": [
+          {
+            "type": "ASSET_TYPE",
+            "value": "DEVICE_UNDER_TEST",
+          },
+        ],
+        "name": "Device under test",
+        "values": [
+          1,
+          2,
+          3,
+        ],
+      },
+      {
+        "columnDescriptors": [
+          {
+            "type": "ASSET_TYPE",
+            "value": "FIXTURE",
+          },
+        ],
+        "name": "Fixture",
+        "values": [
+          2,
+          4,
+          1,
+        ],
+      },
+      {
+        "columnDescriptors": [
+          {
+            "type": "ASSET_TYPE",
+            "value": "GENERIC",
+          },
+        ],
+        "name": "Generic",
+        "values": [
+          4,
+          3,
+          1,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries calibration forecast with month and busType groupBy 1`] = `
+[
+  {
+    "fields": [
+      {
+        "columnDescriptors": [
+          {
+            "type": "TIME",
+            "value": "Month",
+          },
+        ],
+        "name": "Month",
+        "values": [
+          "January 2022",
+          "February 2022",
+          "March 2022",
+        ],
+      },
+      {
+        "columnDescriptors": [
+          {
+            "type": "BUS_TYPE",
+            "value": "BUILT_IN_SYSTEM",
+          },
+        ],
+        "name": "Built-in-system",
+        "values": [
+          1,
+          2,
+          3,
+        ],
+      },
+      {
+        "columnDescriptors": [
+          {
+            "type": "BUS_TYPE",
+            "value": "ACCESSORY",
+          },
+        ],
+        "name": "ACCESSORY",
+        "values": [
+          2,
+          4,
+          1,
+        ],
+      },
+      {
+        "columnDescriptors": [
+          {
+            "type": "BUS_TYPE",
+            "value": "SERIAL",
+          },
+        ],
+        "name": "Serial",
+        "values": [
+          4,
+          3,
+          1,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
 exports[`queries calibration forecast with month and location groupBy 1`] = `
 [
   {
@@ -292,6 +472,72 @@ exports[`queries calibration forecast with month and location groupBy 1`] = `
           },
         ],
         "name": "Location3",
+        "values": [
+          4,
+          3,
+          1,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries calibration forecast with month and vendor groupBy 1`] = `
+[
+  {
+    "fields": [
+      {
+        "columnDescriptors": [
+          {
+            "type": "TIME",
+            "value": "Month",
+          },
+        ],
+        "name": "Month",
+        "values": [
+          "January 2022",
+          "February 2022",
+          "March 2022",
+        ],
+      },
+      {
+        "columnDescriptors": [
+          {
+            "type": "STRING_VALUE",
+            "value": "Vendor1",
+          },
+        ],
+        "name": "Vendor1",
+        "values": [
+          1,
+          2,
+          3,
+        ],
+      },
+      {
+        "columnDescriptors": [
+          {
+            "type": "STRING_VALUE",
+            "value": "Vendor2",
+          },
+        ],
+        "name": "Vendor2",
+        "values": [
+          2,
+          4,
+          1,
+        ],
+      },
+      {
+        "columnDescriptors": [
+          {
+            "type": "STRING_VALUE",
+            "value": "Vendor3",
+          },
+        ],
+        "name": "Vendor3",
         "values": [
           4,
           3,
@@ -374,6 +620,30 @@ exports[`queries calibration forecast with month groupBy returns empty results 1
 [
   {
     "fields": [],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries calibration forecast with vendor groupBy 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "Group",
+        "values": [
+          "Vendor1",
+          "Vendor2",
+        ],
+      },
+      {
+        "name": "Assets",
+        "values": [
+          1,
+          2,
+        ],
+      },
+    ],
     "refId": "A",
   },
 ]

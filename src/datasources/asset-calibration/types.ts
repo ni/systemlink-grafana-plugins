@@ -16,6 +16,9 @@ export enum AssetCalibrationPropertyGroupByType {
   Location = "LOCATION",
   Model = "MODEL",
   Workspace = "WORKSPACE",
+  Vendor = "VENDOR_NAME",
+  AssetType = "ASSET_TYPE",
+  BusType = "BUS_TYPE",
 }
 
 export enum AssetCalibrationTimeBasedGroupByType {
@@ -73,6 +76,8 @@ export enum ColumnDescriptorType {
   StringValue = "STRING_VALUE",
   MinionId = "MINION_ID",
   WorkspaceId = "WORKSPACE_ID",
+  AssetType = "ASSET_TYPE",
+  BusType = "BUS_TYPE",
 }
 
 export interface QBField extends QueryBuilderField {

@@ -1,4 +1,4 @@
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { SystemMetadata } from '../../system/types';
 import { AssetDataSource } from '../AssetDataSource';
 import { setupRenderer } from '../../../test/fixtures';
@@ -47,7 +47,6 @@ class FakeAssetDataSource extends AssetDataSource {
     }
 }
 
-const workspacesLoaded = () => waitForElementToBeRemoved(screen.getByTestId('Spinner'));
 const render = setupRenderer(AssetQueryEditor, FakeAssetDataSource, () => assetDatasourceOptions);
 
 beforeEach(() => {
@@ -59,11 +58,9 @@ beforeEach(() => {
 it('renders Asset list when feature is enabled', async () => {
     assetDatasourceOptions.featureToggles.assetList = true;
     render({} as ListAssetsQuery);
-    await workspacesLoaded();
-
-    expect(screen.getAllByRole('combobox').length).toBe(3);
-    expect(screen.getAllByRole('combobox')[1]).toHaveAccessibleDescription('Any workspace');
-    expect(screen.getAllByRole('combobox')[2]).toHaveAccessibleDescription('Select systems');
+    const queryType = screen.getAllByRole('combobox')[0];
+    await select(queryType, "List Assets", { container: document.body });
+    expect(screen.getAllByText("List Assets").length).toBe(1)
 });
 
 it('does not render when Asset list feature is not enabled', async () => {

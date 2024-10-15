@@ -35,7 +35,7 @@ describe('testDatasource', () => {
       .calledWith(requestMatching({ url: '/niuser/v1/workspaces' }))
       .mockReturnValue(createFetchError(400));
 
-    await expect(ds.testDatasource()).rejects.toHaveProperty('status', 400);
+    await expect(ds.testDatasource()).rejects.toThrow('Request to url "/niuser/v1/workspaces" failed with status code: 400. Error message: "Error"');
   });
 });
 

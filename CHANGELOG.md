@@ -1,3 +1,33 @@
+## [3.26.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.25.0...v3.26.0) (2024-10-15)
+
+### Features
+
+* **asset:** query builder for list assets ([#85](https://github.com/ni/systemlink-grafana-plugins/issues/85)) ([1a9e939](https://github.com/ni/systemlink-grafana-plugins/commit/1a9e9391cebb6442d9f50d05c3819a7483f84fcf))
+
+## [3.25.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.24.0...v3.25.0) (2024-10-15)
+
+### Features
+
+* **asset:** fix [object Object] error message ([#86](https://github.com/ni/systemlink-grafana-plugins/issues/86)) ([ef9eaaf](https://github.com/ni/systemlink-grafana-plugins/commit/ef9eaafd60230781f8c6d4cdb11b5c61758d088d))
+
+## [3.24.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.23.0...v3.24.0) (2024-10-15)
+
+### Features
+
+* **assets:** fix explorer rendering for assets plugin ([#87](https://github.com/ni/systemlink-grafana-plugins/issues/87)) ([54d9ade](https://github.com/ni/systemlink-grafana-plugins/commit/54d9adec97c6e25a5d083f1a707d2b027273e80f))
+
+## [3.23.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.22.0...v3.23.0) (2024-10-15)
+
+### Features
+
+* **asset:** add group by vendor, assetType, busType ([#84](https://github.com/ni/systemlink-grafana-plugins/issues/84)) ([0e30e6a](https://github.com/ni/systemlink-grafana-plugins/commit/0e30e6afb43be0eb63185b6e67773574382dd0a2))
+
+## [3.22.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.21.0...v3.22.0) (2024-10-15)
+
+### Features
+
+* **asset:** multiple values from global vals filter support ([#80](https://github.com/ni/systemlink-grafana-plugins/issues/80)) ([a710a2e](https://github.com/ni/systemlink-grafana-plugins/commit/a710a2ee408a403fc8422f2054c7f9de15438a5f))
+
 ## [3.21.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.20.0...v3.21.0) (2024-10-14)
 
 ### Features

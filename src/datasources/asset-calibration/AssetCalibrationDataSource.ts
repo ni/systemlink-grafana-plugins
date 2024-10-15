@@ -12,6 +12,10 @@ import {
   AssetCalibrationForecastKey,
   AssetCalibrationQuery,
   AssetCalibrationTimeBasedGroupByType,
+  AssetType,
+  AssetTypeOptions,
+  BusType,
+  BusTypeOptions,
   CalibrationForecastResponse,
   ColumnDescriptorType,
   FieldDTOWithDescriptor,
@@ -40,6 +44,12 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
 
   public readonly systemAliasCache: TTLCache<string, SystemMetadata> = new TTLCache<string, SystemMetadata>({ ttl: metadataCacheTTL });
   public readonly workspacesCache: TTLCache<string, Workspace> = new TTLCache<string, Workspace>({ ttl: metadataCacheTTL });
+  public readonly busTypeCache = new Map<BusType, string>([
+    ...BusTypeOptions.map(busType => [busType.value, busType.label]) as Array<[BusType, string]>
+  ]);
+  public readonly assetTypeCache = new Map<AssetType, string>([
+    ...AssetTypeOptions.map(assetType => [assetType.value, assetType.label]) as Array<[AssetType, string]>
+  ]);
 
   private readonly baseUrl = this.instanceSettings.url + '/niapm/v1';
 
@@ -51,35 +61,74 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     super(instanceSettings, backendSrv, templateSrv);
   }
 
-  private readonly assetComputedDataFields = new Map<AssetCalibrationFieldNames, ExpressionTransformFunction>([
-    [
-      AssetCalibrationFieldNames.LOCATION,
-      (value: string, operation: string, options?: TTLCache<string, unknown>) => {
-        if (options?.has(value)) {
-          return `Location.MinionId ${operation} "${value}"`
-        }
-
-        const logicalOperator = operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
-        return `(Location.MinionId ${operation} "${value}" ${logicalOperator} Location.PhysicalLocation ${operation} "${value}")`;
-      }
-    ],
-  ]);
-
-  private readonly queryTransformationOptions = new Map<AssetCalibrationFieldNames, TTLCache<string, unknown>>([
-    [AssetCalibrationFieldNames.LOCATION, this.systemAliasCache]
-  ]);
-
   async runQuery(query: AssetCalibrationQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     await this.loadDependencies();
     this.validateQueryRange(query, options);
 
     if (query.filter) {
-      const transformedQuery = transformComputedFieldsQuery(query.filter, this.assetComputedDataFields, this.queryTransformationOptions);
-      query.filter = this.templateSrv.replace(transformedQuery, options.scopedVars);
+      query.filter = transformComputedFieldsQuery(
+        this.templateSrv.replace(query.filter, options.scopedVars),
+        this.assetComputedDataFields,
+        this.queryTransformationOptions
+      );
     }
 
     return await this.processCalibrationForecastQuery(query as AssetCalibrationQuery, options);
   }
+
+  private readonly assetComputedDataFields = new Map<AssetCalibrationFieldNames, ExpressionTransformFunction>([
+    ...Object.values(AssetCalibrationFieldNames).map(field => [field, this.multipleValuesQuery(field)] as [AssetCalibrationFieldNames, ExpressionTransformFunction]),
+    [
+      AssetCalibrationFieldNames.LOCATION,
+      (value: string, operation: string, options?: TTLCache<string, unknown>) => {
+        let values = [value];
+
+        if (this.isMultiSelectValue(value)) {
+          values = this.getMultipleValuesArray(value);
+        }
+
+        if (values.length > 1) {
+          return `(${values.map(val => `Location.MinionId ${operation} "${val}"`).join(` ${this.getLocicalOperator(operation)} `)})`;
+        }
+
+        if (options?.has(value)) {
+          return `Location.MinionId ${operation} "${value}"`
+        }
+
+        return `(Location.MinionId ${operation} "${value}" ${this.getLocicalOperator(operation)} Location.PhysicalLocation ${operation} "${value}")`;
+      }
+    ]
+  ]);
+
+  private multipleValuesQuery(field: AssetCalibrationFieldNames): ExpressionTransformFunction {
+    return (value: string, operation: string, _options?: any) => {
+      if (this.isMultiSelectValue(value)) {
+        const query = this.getMultipleValuesArray(value)
+          .map(val => `${field} ${operation} "${val}"`)
+          .join(` ${this.getLocicalOperator(operation)} `);
+
+        return `(${query})`;
+      }
+
+      return `${field} ${operation} "${value}"`
+    }
+  }
+
+  private isMultiSelectValue(value: string): boolean {
+    return value.startsWith('{') && value.endsWith('}');
+  }
+
+  private getMultipleValuesArray(value: string): string[] {
+    return value.replace(/({|})/g, '').split(',');
+  }
+
+  private getLocicalOperator(operation: string): string {
+    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
+  }
+
+  private readonly queryTransformationOptions = new Map<AssetCalibrationFieldNames, TTLCache<string, unknown>>([
+    [AssetCalibrationFieldNames.LOCATION, this.systemAliasCache]
+  ]);
 
   async processCalibrationForecastQuery(query: AssetCalibrationQuery, options: DataQueryRequest) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
@@ -140,18 +189,18 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
 
   createColumnNameFromDescriptor(field: FieldDTOWithDescriptor): string {
     return field.columnDescriptors.map(descriptor => {
-      if (descriptor.type === ColumnDescriptorType.MinionId && this.systemAliasCache) {
-        const system = this.systemAliasCache.get(descriptor.value);
-
-        return system?.alias || descriptor.value;
+      switch (descriptor.type) {
+        case ColumnDescriptorType.MinionId:
+          return this.systemAliasCache.get(descriptor.value)?.alias || descriptor.value;
+        case ColumnDescriptorType.WorkspaceId:
+          return this.workspacesCache.get(descriptor.value)?.name || descriptor.value
+        case ColumnDescriptorType.AssetType:
+          return this.assetTypeCache.get(descriptor.value as AssetType) || descriptor.value;
+        case ColumnDescriptorType.BusType:
+          return this.busTypeCache.get(descriptor.value as BusType) || descriptor.value;
+        default:
+          return descriptor.value;
       }
-
-      if (descriptor.type === ColumnDescriptorType.WorkspaceId && this.workspacesCache) {
-        const workspace = this.workspacesCache.get(descriptor.value);
-
-        return workspace?.name || descriptor.value
-      }
-      return descriptor.value
     }).join(' - ');
   }
 

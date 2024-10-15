@@ -213,14 +213,12 @@ const assetsResponseMock: AssetsResponse =
 
 const assetMetadataQueryMock: ListAssetsQuery = {
   queryType: AssetQueryType.ListAssets,
-  workspace: '',
-  refId: '',
-  minionIds: ['123']
+  filter: 'Location.MinionId == "123"',
+  refId: ''
 }
 
 const buildMetadataQuery = getQueryBuilder<ListAssetsQuery>()({
-  workspace: '',
-  minionIds: [],
+  filter: ''
 });
 
 describe('testDatasource', () => {
@@ -239,7 +237,7 @@ describe('testDatasource', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets?take=1' }))
       .mockReturnValue(createFetchError(400));
 
-    await expect(ds.testDatasource()).rejects.toHaveProperty('status', 400);
+    await expect(ds.testDatasource()).rejects.toThrow('Request to url "/niapm/v1/assets?take=1" failed with status code: 400. Error message: "Error"');
   });
 })
 

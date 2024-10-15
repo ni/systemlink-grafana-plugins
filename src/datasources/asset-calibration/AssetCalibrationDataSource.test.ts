@@ -12,11 +12,14 @@ import {
   AssetCalibrationPropertyGroupByType,
   AssetCalibrationQuery,
   AssetCalibrationTimeBasedGroupByType,
+  AssetType,
+  BusType,
   CalibrationForecastResponse,
   ColumnDescriptorType,
 } from "./types";
 import { SystemMetadata } from "datasources/system/types";
 import { dateTime } from "@grafana/data";
+import { AssetCalibrationFieldNames } from "./constants";
 
 let datastore: AssetCalibrationDataSource, backendServer: MockProxy<BackendSrv>
 
@@ -131,6 +134,36 @@ const workspaceGroupCalibrationForecastResponseMock: CalibrationForecastResponse
   }
 }
 
+const vendorGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
+{
+  calibrationForecast: {
+    columns: [
+      { name: "", values: [1], columnDescriptors: [{ value: "Vendor1", type: ColumnDescriptorType.StringValue }] },
+      { name: "", values: [2], columnDescriptors: [{ value: "Vendor2", type: ColumnDescriptorType.StringValue }] }
+    ]
+  }
+}
+
+const assetTypeGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
+{
+  calibrationForecast: {
+    columns: [
+      { name: "", values: [1], columnDescriptors: [{ value: AssetType.GENERIC, type: ColumnDescriptorType.AssetType }] },
+      { name: "", values: [2], columnDescriptors: [{ value: AssetType.DEVICE_UNDER_TEST, type: ColumnDescriptorType.AssetType }] }
+    ]
+  }
+}
+
+const busTypeGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
+{
+  calibrationForecast: {
+    columns: [
+      { name: "", values: [1], columnDescriptors: [{ value: BusType.BUILT_IN_SYSTEM, type: ColumnDescriptorType.BusType }] },
+      { name: "", values: [2], columnDescriptors: [{ value: BusType.FIRE_WIRE, type: ColumnDescriptorType.BusType }] }
+    ]
+  }
+}
+
 const modelWorkspaceGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
 {
   calibrationForecast: {
@@ -149,6 +182,42 @@ const monthWorkspaceGroupCalibrationForecastResponseMock: CalibrationForecastRes
       { name: "", values: [1, 2, 3], columnDescriptors: [{ value: "Workspace1", type: ColumnDescriptorType.WorkspaceId }] },
       { name: "", values: [2, 4, 1], columnDescriptors: [{ value: "Workspace2", type: ColumnDescriptorType.WorkspaceId }] },
       { name: "", values: [4, 3, 1], columnDescriptors: [{ value: "Workspace3", type: ColumnDescriptorType.WorkspaceId }] }
+    ]
+  }
+}
+
+const monthVendorGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
+{
+  calibrationForecast: {
+    columns: [
+      { name: "", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"], columnDescriptors: [{ value: "Month", type: ColumnDescriptorType.Time }] },
+      { name: "", values: [1, 2, 3], columnDescriptors: [{ value: "Vendor1", type: ColumnDescriptorType.StringValue }] },
+      { name: "", values: [2, 4, 1], columnDescriptors: [{ value: "Vendor2", type: ColumnDescriptorType.StringValue }] },
+      { name: "", values: [4, 3, 1], columnDescriptors: [{ value: "Vendor3", type: ColumnDescriptorType.StringValue }] }
+    ]
+  }
+}
+
+const monthAssetTypeGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
+{
+  calibrationForecast: {
+    columns: [
+      { name: "", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"], columnDescriptors: [{ value: "Month", type: ColumnDescriptorType.Time }] },
+      { name: "", values: [1, 2, 3], columnDescriptors: [{ value: AssetType.DEVICE_UNDER_TEST, type: ColumnDescriptorType.AssetType }] },
+      { name: "", values: [2, 4, 1], columnDescriptors: [{ value: AssetType.FIXTURE, type: ColumnDescriptorType.AssetType }] },
+      { name: "", values: [4, 3, 1], columnDescriptors: [{ value: AssetType.GENERIC, type: ColumnDescriptorType.AssetType }] }
+    ]
+  }
+}
+
+const monthBusTypeGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
+{
+  calibrationForecast: {
+    columns: [
+      { name: "", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"], columnDescriptors: [{ value: "Month", type: ColumnDescriptorType.Time }] },
+      { name: "", values: [1, 2, 3], columnDescriptors: [{ value: BusType.BUILT_IN_SYSTEM, type: ColumnDescriptorType.BusType }] },
+      { name: "", values: [2, 4, 1], columnDescriptors: [{ value: BusType.ACCESSORY, type: ColumnDescriptorType.BusType }] },
+      { name: "", values: [4, 3, 1], columnDescriptors: [{ value: BusType.SERIAL, type: ColumnDescriptorType.BusType }] }
     ]
   }
 }
@@ -239,7 +308,7 @@ describe('testDatasource', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets?take=1' }))
       .mockReturnValue(createFetchError(400));
 
-    await expect(datastore.testDatasource()).rejects.toHaveProperty('status', 400);
+    await expect(datastore.testDatasource()).rejects.toThrow('Request to url "/niapm/v1/assets?take=1" failed with status code: 400. Error message: "Error"');
   });
 })
 
@@ -354,6 +423,72 @@ describe('queries', () => {
     expect(result.data).toMatchSnapshot()
   })
 
+  test('calibration forecast with vendor groupBy', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(vendorGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+
+    const result = await datastore.query(buildCalibrationForecastQuery({ groupBy: [AssetCalibrationPropertyGroupByType.Vendor] }))
+
+    expect(result.data).toMatchSnapshot();
+  })
+
+  test('calibration forecast with month and vendor groupBy', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(monthVendorGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+
+    const result = await datastore.query(buildCalibrationForecastQuery({
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month, AssetCalibrationPropertyGroupByType.Vendor]
+    }));
+
+    expect(result.data).toMatchSnapshot();
+  })
+
+  test('calibration forecast with assetType groupBy', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(assetTypeGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+
+    const result = await datastore.query(buildCalibrationForecastQuery({ groupBy: [AssetCalibrationPropertyGroupByType.AssetType] }))
+
+    expect(result.data).toMatchSnapshot();
+  })
+
+  test('calibration forecast with month and assetType groupBy', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(monthAssetTypeGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+
+    const result = await datastore.query(buildCalibrationForecastQuery({
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month, AssetCalibrationPropertyGroupByType.AssetType]
+    }));
+
+    expect(result.data).toMatchSnapshot();
+  })
+
+  test('calibration forecast with busType groupBy', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(busTypeGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+
+    const result = await datastore.query(buildCalibrationForecastQuery({ groupBy: [AssetCalibrationPropertyGroupByType.BusType] }))
+
+    expect(result.data).toMatchSnapshot();
+  })
+
+  test('calibration forecast with month and busType groupBy', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(monthBusTypeGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+
+    const result = await datastore.query(buildCalibrationForecastQuery({
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month, AssetCalibrationPropertyGroupByType.BusType]
+    }));
+
+    expect(result.data).toMatchSnapshot();
+  })
+
   test('calibration forecast with month groupBy returns empty results', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
@@ -396,3 +531,70 @@ describe('queries', () => {
     await expect(datastore.query(request)).rejects.toThrow('Query range exceeds range limit of MONTH grouping method: 5 years');
   })
 })
+
+describe('Asset calibration location queries', () => {
+  let processCalibrationForecastQuerySpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    processCalibrationForecastQuerySpy = jest.spyOn(datastore, 'processCalibrationForecastQuery').mockImplementation();
+  });
+
+  test('should transform LOCATION field with single value', async () => {
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+      filter: `${AssetCalibrationFieldNames.LOCATION} = "Location1"`,
+    });
+
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        filter: "(Location.MinionId = \"Location1\" || Location.PhysicalLocation = \"Location1\")"
+      }),
+      expect.anything()
+    );
+  });
+
+  test('should transform LOCATION field with single value and cache hit', async () => {
+    datastore.systemAliasCache.set('Location1', { id: 'Location1', alias: 'Location1-alias', state: 'CONNECTED', workspace: '1' });
+
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+      filter: `${AssetCalibrationFieldNames.LOCATION} = "Location1"`,
+    });
+
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        filter: "Location.MinionId = \"Location1\""
+      }),
+      expect.anything()
+    );
+  });
+
+  test('should transform LOCATION field with multiple values and cache hit', async () => {
+    datastore.systemAliasCache.set('Location1', { id: 'Location1', alias: 'Location1-alias', state: 'CONNECTED', workspace: '1' });
+    datastore.systemAliasCache.set('Location2', { id: 'Location2', alias: 'Location2-alias', state: 'CONNECTED', workspace: '2' });
+
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+      filter: `${AssetCalibrationFieldNames.LOCATION} = "{Location1,Location2}"`,
+    });
+
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        filter: "(Location.MinionId = \"Location1\" || Location.MinionId = \"Location2\")"
+      }),
+      expect.anything()
+    );
+  });
+});
