@@ -12,6 +12,10 @@ import {
   AssetCalibrationForecastKey,
   AssetCalibrationQuery,
   AssetCalibrationTimeBasedGroupByType,
+  AssetType,
+  AssetTypeOptions,
+  BusType,
+  BusTypeOptions,
   CalibrationForecastResponse,
   ColumnDescriptorType,
   FieldDTOWithDescriptor,
@@ -40,6 +44,12 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
 
   public readonly systemAliasCache: TTLCache<string, SystemMetadata> = new TTLCache<string, SystemMetadata>({ ttl: metadataCacheTTL });
   public readonly workspacesCache: TTLCache<string, Workspace> = new TTLCache<string, Workspace>({ ttl: metadataCacheTTL });
+  public readonly busTypeCache = new Map<BusType, string>([
+    ...BusTypeOptions.map(busType => [busType.value, busType.label]) as Array<[BusType, string]>
+  ]);
+  public readonly assetTypeCache = new Map<AssetType, string>([
+    ...AssetTypeOptions.map(assetType => [assetType.value, assetType.label]) as Array<[AssetType, string]>
+  ]);
 
   private readonly baseUrl = this.instanceSettings.url + '/niapm/v1';
 
@@ -179,18 +189,18 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
 
   createColumnNameFromDescriptor(field: FieldDTOWithDescriptor): string {
     return field.columnDescriptors.map(descriptor => {
-      if (descriptor.type === ColumnDescriptorType.MinionId && this.systemAliasCache) {
-        const system = this.systemAliasCache.get(descriptor.value);
-
-        return system?.alias || descriptor.value;
+      switch (descriptor.type) {
+        case ColumnDescriptorType.MinionId:
+          return this.systemAliasCache.get(descriptor.value)?.alias || descriptor.value;
+        case ColumnDescriptorType.WorkspaceId:
+          return this.workspacesCache.get(descriptor.value)?.name || descriptor.value
+        case ColumnDescriptorType.AssetType:
+          return this.assetTypeCache.get(descriptor.value as AssetType) || descriptor.value;
+        case ColumnDescriptorType.BusType:
+          return this.busTypeCache.get(descriptor.value as BusType) || descriptor.value;
+        default:
+          return descriptor.value;
       }
-
-      if (descriptor.type === ColumnDescriptorType.WorkspaceId && this.workspacesCache) {
-        const workspace = this.workspacesCache.get(descriptor.value);
-
-        return workspace?.name || descriptor.value
-      }
-      return descriptor.value
     }).join(' - ');
   }
 
