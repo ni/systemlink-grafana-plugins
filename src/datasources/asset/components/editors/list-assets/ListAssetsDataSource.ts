@@ -7,12 +7,15 @@ import { AssetDataSourceBase } from '../AssetDataSourceBase';
 import { ListAssetsQuery } from '../../../types/ListAssets.types';
 
 export class ListAssetsDataSource extends AssetDataSourceBase {
+  private dependenciesLoadedPromise: Promise<void>;
+
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    this.dependenciesLoadedPromise = this.loadDependencies();
   }
 
   baseUrl = this.instanceSettings.url + '/niapm/v1';
@@ -22,7 +25,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
   };
 
   async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    await this.loadDependencies();
+    await this.dependenciesLoadedPromise;
 
     return this.processListAssetsQuery(query as ListAssetsQuery);
   }

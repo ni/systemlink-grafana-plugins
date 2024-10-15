@@ -4,18 +4,19 @@ import { DataSourceBase } from "../../../../core/DataSourceBase";
 import { defaultOrderBy, defaultProjection } from "../../../system/constants";
 import { SystemMetadata } from "../../../system/types";
 import { parseErrorMessage } from "../../../../core/errors";
-import TTLCache from "@isaacs/ttlcache";
 import { Workspace } from "../../../../core/types";
-import { metadataCacheTTL } from "../../../data-frame/constants";
 
 export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
-  public areSystemsLoaded = false;
-  public areWorkspacesLoaded = false;
+  private systemsLoaded!: () => void;
+  private workspacesLeaded!: () => void;
+
+  public areSystemsLoaded$ = new Promise<void>(resolve => this.systemsLoaded = resolve);
+  public areWorkspacesLoaded$ = new Promise<void>(resolve => this.workspacesLeaded = resolve);
 
   public error = '';
 
-  private readonly systemAliasCache: TTLCache<string, SystemMetadata> = new TTLCache<string, SystemMetadata>({ ttl: metadataCacheTTL });
-  private readonly workspacesCache: TTLCache<string, Workspace> = new TTLCache<string, Workspace>({ ttl: metadataCacheTTL });
+  public readonly systemAliasCache = new Map<string, SystemMetadata>([]);
+  public readonly workspacesCache = new Map<string, Workspace>([]);
 
   abstract runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
@@ -64,8 +65,9 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
         this.error = parseErrorMessage(error)!;
       });
 
-    this.areSystemsLoaded = true;
     systems?.forEach(system => this.systemAliasCache.set(system.id, system));
+
+    this.systemsLoaded();
   }
 
   private async loadWorkspaces(): Promise<void> {
@@ -78,7 +80,8 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
         this.error = parseErrorMessage(error)!;
       });
 
-    this.areWorkspacesLoaded = true;
     workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
+
+    this.workspacesLeaded();
   }
 }

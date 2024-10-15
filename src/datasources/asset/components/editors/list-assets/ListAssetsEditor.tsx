@@ -22,16 +22,12 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
 
   useEffect(() => {
-    if (datasource.areWorkspacesLoaded) {
-      setWorkspaces(datasource.getCachedWorkspaces());
-    }
-
-    if (datasource.areSystemsLoaded) {
-      setSystems(datasource.getCachedSystems());
-    }
-
-    setAreDependenciesLoaded(datasource.areSystemsLoaded && datasource.areWorkspacesLoaded);
-  }, [datasource, datasource.areSystemsLoaded, datasource.areWorkspacesLoaded]);
+    Promise.all([datasource.areSystemsLoaded$, datasource.areWorkspacesLoaded$]).then(() => {
+      setWorkspaces(Array.from(datasource.workspacesCache.values()));
+      setSystems(Array.from(datasource.systemAliasCache.values()));
+      setAreDependenciesLoaded(true);
+    });
+  }, [datasource]);
 
   function onParameterChange(ev: CustomEvent) {
     if (query.filter !== ev.detail.linq) {
