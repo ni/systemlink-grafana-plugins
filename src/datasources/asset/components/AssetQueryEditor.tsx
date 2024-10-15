@@ -31,9 +31,6 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
   }, [onChange, onRunQuery]);
 
   const handleQueryTypeChange = useCallback((item: SelectableValue<AssetQueryType>): void => {
-    if(query.queryType === item.value){
-      return;
-    }
     setQueryType(item.value!);
   
     if (item.value === AssetQueryType.ListAssets && assetFeatures.current.assetList) {
