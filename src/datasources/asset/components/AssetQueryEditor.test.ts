@@ -73,7 +73,7 @@ it('does not render when Asset list feature is not enabled', async () => {
     expect(screen.getAllByRole('combobox').length).toBe(1);
 });
 
-it('does not render when Asset calibration forecast feature is not enabled', async () => {
+it('renders Asset calibration forecast when feature is enabled', async () => {
     assetDatasourceOptions.featureToggles.calibrationForecast = true;
     render({} as CalibrationForecastQuery);
     const queryType = screen.getAllByRole('combobox')[0];
@@ -81,10 +81,10 @@ it('does not render when Asset calibration forecast feature is not enabled', asy
     expect(screen.getAllByText("Calibration Forecast").length).toBe(2)
 });
 
-it('does not render when Asset summary feature is not enabled', async () => {
+it('renders Asset summary when feature is enabled', async () => {
     assetDatasourceOptions.featureToggles.assetSummary = true;
     render({} as AssetSummaryQuery);
     const queryType = screen.getAllByRole('combobox')[0];
     await select(queryType, "Asset Summary", { container: document.body });
-    expect(screen.getAllByText("Asset Summary").length).toBe(2)
+    expect(screen.getAllByText("Asset Summary").length).toBe(1)
 });

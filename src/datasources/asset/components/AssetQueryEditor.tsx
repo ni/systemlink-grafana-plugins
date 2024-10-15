@@ -16,9 +16,7 @@ import { AssetSummaryQuery } from '../types/AssetSummaryQuery.types';
 type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOptions>;
 
 export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
-  const [queryType, setQueryType] = useState<string>(() => {
-    return query.queryType ? query.queryType : AssetQueryType.ListAssets;
-  });
+  const [queryType, setQueryType] = useState(query.queryType as AssetQueryType);
 
   const assetFeatures = useRef<AssetFeatureToggles>({
     assetList: datasource.instanceSettings.jsonData?.featureToggles?.assetList ?? AssetFeatureTogglesDefaults.assetList,
@@ -34,8 +32,11 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
   }, [onChange, onRunQuery]);
 
   const handleQueryTypeChange = useCallback((item: SelectableValue<AssetQueryType>): void => {
-    setQueryType(item.value as AssetQueryType);
-
+    if(query.queryType === item.value){
+      return;
+    }
+    setQueryType(item.value!);
+  
     if (item.value === AssetQueryType.ListAssets && assetFeatures.current.assetList) {
       handleQueryChange({ ...query, queryType: AssetQueryType.ListAssets, ...defaultListAssetsQuery }, true);
     }
@@ -72,7 +73,7 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
         <Select
           options={filterOptions}
           onChange={handleQueryTypeChange}
-          value={queryTypeOptions.find(option => option.value === queryType)}
+          value={queryType}
           width={85}
         />
       </InlineField>
