@@ -1,3 +1,9 @@
+## [3.23.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.22.0...v3.23.0) (2024-10-15)
+
+### Features
+
+* **asset:** add group by vendor, assetType, busType ([#84](https://github.com/ni/systemlink-grafana-plugins/issues/84)) ([0e30e6a](https://github.com/ni/systemlink-grafana-plugins/commit/0e30e6afb43be0eb63185b6e67773574382dd0a2))
+
 ## [3.22.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.21.0...v3.22.0) (2024-10-15)
 
 ### Features
