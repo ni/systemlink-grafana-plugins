@@ -1,3 +1,9 @@
+## [3.24.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.23.0...v3.24.0) (2024-10-15)
+
+### Features
+
+* **assets:** fix explorer rendering for assets plugin ([#87](https://github.com/ni/systemlink-grafana-plugins/issues/87)) ([54d9ade](https://github.com/ni/systemlink-grafana-plugins/commit/54d9adec97c6e25a5d083f1a707d2b027273e80f))
+
 ## [3.23.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.22.0...v3.23.0) (2024-10-15)
 
 ### Features
