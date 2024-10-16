@@ -21,7 +21,7 @@ import {
   TypeAndValues,
 } from './types';
 import { Throw, getWorkspaceName } from 'core/utils';
-import { expandMultipleValueVariableAfterReplace } from "./utils";
+import { expandMultipleValueVariable } from "./utils";
 
 export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions> {
   constructor(
@@ -34,6 +34,7 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
 
   tagUrl = this.instanceSettings.url + '/nitag/v2';
   tagHistoryUrl = this.instanceSettings.url + '/nitaghistorian/v2/tags';
+  parseMultiSelectEnabled = this.instanceSettings.jsonData?.featureToggles?.parseMultiSelectValues ?? false;
 
   defaultQuery: Omit<TagQuery, 'refId'> = {
     type: TagQueryType.Current,
@@ -44,22 +45,14 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
 
   async runQuery(query: TagQuery, { range, maxDataPoints, scopedVars }: DataQueryRequest): Promise<DataFrameDTO> {
     let tagsWithValues: TagWithValue[] = []
-    if (this.instanceSettings.jsonData?.featureToggles?.parseMultiSelectValues) {
-      let paths: string[] = [query.path];
-      if (this.templateSrv.containsTemplate(query.path)) {
-        const replacedPath = this.templateSrv.replace(
-          query.path,
-          undefined,
-          (v: string | string[]): string => `{{${v}}}`
-        );
-        paths = expandMultipleValueVariableAfterReplace(replacedPath);
-      }
-      tagsWithValues = await this.getMostRecentTagsV2(
+    if (this.parseMultiSelectEnabled) {
+      let paths: string[] = this.generatePathsFromTemplate(query);
+      tagsWithValues = await this.getMostRecentTagsByMultiplePaths(
         paths,
         this.templateSrv.replace(query.workspace, scopedVars)
       );
     } else {
-      tagsWithValues = await this.getMostRecentTags(
+      tagsWithValues = await this.getMostRecentTagsBySinglePath(
         this.templateSrv.replace(query.path, scopedVars),
         this.templateSrv.replace(query.workspace, scopedVars)
       );
@@ -164,7 +157,20 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
     }
   }
 
-  private async getMostRecentTags(path: string, workspace: string) {
+  private generatePathsFromTemplate(query: TagQuery) {
+    let paths: string[] = [query.path];
+    if (this.templateSrv.containsTemplate(query.path)) {
+      const replacedPath = this.templateSrv.replace(
+        query.path,
+        undefined,
+        (v: string | string[]): string => `{${v}}`
+      );
+      paths = expandMultipleValueVariable(replacedPath);
+    }
+    return paths;
+  }
+
+  private async getMostRecentTagsBySinglePath(path: string, workspace: string) {
     let filter = `path = "${path}"`;
     if (workspace) {
       filter += ` && workspace = "${workspace}"`;
@@ -180,13 +186,13 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
     return response.tagsWithValues.length ? response.tagsWithValues : Throw(`No tags matched the path '${path}'`)
   }
 
-  private async getMostRecentTagsV2(paths: string[], workspace: string) {
+  private async getMostRecentTagsByMultiplePaths(paths: string[], workspace: string) {
     let filter = '';
     const pathsFilter: string[] = [];
     paths.forEach((path: string) => {
       pathsFilter.push(`path = "${path}"`);
     })
-    filter += `(${pathsFilter.join(' OR ')})`;
+    filter += `(${pathsFilter.join(' or ')})`;
     if (workspace) {
       filter += ` && workspace = "${workspace}"`;
     }

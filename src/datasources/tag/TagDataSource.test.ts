@@ -12,12 +12,12 @@ import {
   setupDataSource,
 } from 'test/fixtures';
 import { TagDataSource } from './TagDataSource';
-import { TagQuery, TagQueryType, TagWithValue, TagDataType } from './types';
+import { TagQuery, TagQueryType, TagWithValue, TagDataType, TagDataSourceOptions } from './types';
 
 let ds: TagDataSource, backendSrv: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
-let tagOptions = {
+let tagOptions: TagDataSourceOptions = {
   featureToggles: {
-    parseMultiSelectValues: false
+    parseMultiSelectValues: false,
   }
 }
 
@@ -28,7 +28,12 @@ beforeEach(() => {
 const buildQuery = getQueryBuilder<TagQuery>()({ type: TagQueryType.Current, workspace: '', properties: false });
 mockTimers();
 
+
 describe('testDatasource', () => {
+  beforeEach(() => {
+    tagOptions.featureToggles.parseMultiSelectValues = false;
+  });
+
   test('returns success', async () => {
     backendSrv.fetch
       .calledWith(requestMatching({ url: '/nitag/v2/tags-count' }))
@@ -49,7 +54,6 @@ describe('testDatasource', () => {
 });
 
 describe('queries', () => {
-
   test('tag current value', async () => {
     backendSrv.fetch
       .calledWith(requestMatching({ url: '/nitag/v2/query-tags-with-values', data: { filter: 'path = "my.tag"' } }))
@@ -517,10 +521,14 @@ describe('queries', () => {
 });
 
 describe('parseMultiSelectValues', () => {
+
+  beforeEach(() => {
+    tagOptions.featureToggles.parseMultiSelectValues = true;
+  });
+
   test('tag current value', async () => {
-    ds.instanceSettings.jsonData.featureToggles.parseMultiSelectValues = true
     backendSrv.fetch
-      .calledWith(requestMatching({ url: '/nitag/v2/query-tags-with-values', data: { filter: '(path = "my.tag")' } }))
+      .calledWith(requestMatching({ url: '/nitag/v2/query-tags-with-values', data: { filter: 'path = "my.tag"' } }))
       .mockReturnValue(createQueryTagsResponse());
 
     const result = await ds.query(buildQuery({ path: 'my.tag' }));
@@ -783,11 +791,11 @@ describe('parseMultiSelectValues', () => {
         undefined,
         expect.any(Function)
       )
-      .mockReturnValue('localhost.Health.CPU.{{1,2}}.UsePercentage');
+      .mockReturnValue('localhost.Health.CPU.{1,2}.UsePercentage');
     backendSrv.fetch
       .calledWith(requestMatching({
         url: '/nitag/v2/query-tags-with-values', data: {
-          filter: '(path = "localhost.Health.CPU.1.UsePercentage" OR path = "localhost.Health.CPU.2.UsePercentage")'
+          filter: '(path = "localhost.Health.CPU.1.UsePercentage" or path = "localhost.Health.CPU.2.UsePercentage")'
         }
       }))
       .mockReturnValue(createQueryTagsResponse());
@@ -810,11 +818,11 @@ describe('parseMultiSelectValues', () => {
         undefined,
         expect.any(Function)
       )
-      .mockReturnValue('localhost.Health.{{Disk,Memory}}.{{Used,Total}}');
+      .mockReturnValue('localhost.Health.{Disk,Memory}.{Used,Total}');
     backendSrv.fetch
       .calledWith(requestMatching({
         url: '/nitag/v2/query-tags-with-values', data: {
-          filter: '(path = "localhost.Health.Disk.Used" OR path = "localhost.Health.Disk.Total" OR path = "localhost.Health.Memory.Used" OR path = "localhost.Health.Memory.Total")'
+          filter: '(path = "localhost.Health.Disk.Used" or path = "localhost.Health.Disk.Total" or path = "localhost.Health.Memory.Used" or path = "localhost.Health.Memory.Total")'
         }
       }))
       .mockReturnValue(createQueryTagsResponse());

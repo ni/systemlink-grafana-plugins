@@ -85,5 +85,5 @@ export interface TagDataSourceOptions extends DataSourceJsonData {
 }
 
 export const TagFeatureTogglesDefaults: TagFeatureToggles = {
-  parseMultiSelectValues: true
+  parseMultiSelectValues: false
 }
