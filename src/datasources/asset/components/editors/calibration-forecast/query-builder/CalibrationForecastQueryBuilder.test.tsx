@@ -1,8 +1,8 @@
-import React, { ReactNode } from 'react';
-import { CalibrationForecastQueryBuilder } from './CalibrationForecastQueryBuilder';
-import { render } from '@testing-library/react';
-import { Workspace } from 'core/types';
-import { SystemMetadata } from 'datasources/system/types';
+import React, { ReactNode } from "react";
+import { CalibrationForecastQueryBuilder } from "./CalibrationForecastQueryBuilder";
+import { render } from "@testing-library/react";
+import { Workspace } from "core/types";
+import { SystemMetadata } from "datasources/system/types";
 
 describe('CalibrationForecastQueryBuilder', () => {
   describe('useEffects', () => {
