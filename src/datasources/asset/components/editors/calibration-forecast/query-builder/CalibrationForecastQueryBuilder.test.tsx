@@ -23,7 +23,7 @@ describe('CalibrationForecastQueryBuilder', () => {
       const { renderResult, conditionsContainer } = renderElement([], [], '');
       expect(conditionsContainer.length).toBe(1);
       expect(renderResult.findByLabelText('Empty condition row')).toBeTruthy();
-    });
+    })
 
     it('should select workspace in query builder', () => {
       const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
@@ -37,7 +37,7 @@ describe('CalibrationForecastQueryBuilder', () => {
       expect(conditionsContainer?.length).toBe(2);
       expect(conditionsContainer.item(0)?.textContent).toContain(workspace.name);
       expect(conditionsContainer.item(1)?.textContent).toContain('SomeRandomModelName');
-    });
+    })
 
     it('should select system in query builder', () => {
       const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
