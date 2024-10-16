@@ -15,7 +15,7 @@ describe('CalibrationForecastQueryBuilder', () => {
       const renderResult = render(reactNode);
       return {
         renderResult,
-        conditionsContainer: renderResult.container.getElementsByClassName(`${containerClass}`),
+        conditionsContainer: renderResult.container.getElementsByClassName(`${containerClass}`)
       };
     }
 
@@ -32,7 +32,7 @@ describe('CalibrationForecastQueryBuilder', () => {
 
       expect(conditionsContainer?.length).toBe(2);
       expect(conditionsContainer.item(0)?.textContent).toContain(workspace.name);
-      expect(conditionsContainer.item(1)?.textContent).toContain('SomeRandomModelName');
+      expect(conditionsContainer.item(1)?.textContent).toContain("SomeRandomModelName");
     })
 
     it('should select system in query builder', () => {
