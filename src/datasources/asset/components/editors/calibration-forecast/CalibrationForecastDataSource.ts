@@ -1,5 +1,5 @@
 import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings } from '@grafana/data';
-import { AssetDataSourceOptions, AssetQuery } from '../../../types/types';
+import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../../types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
 
@@ -15,6 +15,7 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
     baseUrl = this.instanceSettings.url + '/niapm/v1';
 
     defaultQuery = {
+        queryType: AssetQueryType.CalibrationForecast,
     };
 
     runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {

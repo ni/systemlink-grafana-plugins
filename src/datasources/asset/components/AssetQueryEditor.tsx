@@ -1,17 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
-
 import _ from 'lodash';
-import { AssetDataSourceOptions, AssetFeatureToggles, AssetFeatureTogglesDefaults, AssetQuery, AssetQueryType } from '../types/types';
 import { InlineField, Select } from '@grafana/ui';
+
 import { AssetDataSource } from '../AssetDataSource';
 import { AssetSummaryEditor } from './editors/asset-summary/AssetSummaryEditor';
 import { CalibrationForecastEditor } from './editors/calibration-forecast/CalibrationForecastEditor';
-import { AssetCalibrationQuery } from '../../asset-calibration/types';
 import { ListAssetsEditor } from './editors/list-assets/ListAssetsEditor';
 import { defaultAssetSummaryQuery, defaultCalibrationForecastQuery, defaultListAssetsQuery } from '../defaults';
 import { ListAssetsQuery } from '../types/ListAssets.types';
 import { AssetSummaryQuery } from '../types/AssetSummaryQuery.types';
+import { AssetDataSourceOptions, AssetFeatureToggles, AssetFeatureTogglesDefaults, AssetQuery, AssetQueryType } from '../types/types';
+import { CalibrationForecastQuery } from '../types/CalibrationForecastQuery.types';
 
 type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOptions>;
 
@@ -32,7 +32,7 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
 
   const handleQueryTypeChange = useCallback((item: SelectableValue<AssetQueryType>): void => {
     setQueryType(item.value!);
-
+  
     if (item.value === AssetQueryType.ListAssets && assetFeatures.current.assetList) {
       handleQueryChange({ ...query, queryType: AssetQueryType.ListAssets, ...defaultListAssetsQuery }, true);
     }
@@ -66,7 +66,12 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
   return (
     <div style={{ position: 'relative' }}>
       <InlineField label="Query type" labelWidth={22} tooltip={tooltips.queryType}>
-        <Select options={filterOptions} onChange={handleQueryTypeChange} value={queryType} width={85} />
+        <Select
+          options={filterOptions}
+          onChange={handleQueryTypeChange}
+          value={queryType}
+          width={85}
+        />
       </InlineField>
       {((assetFeatures.current.assetList && queryType === AssetQueryType.ListAssets) || (query.queryType === AssetQueryType.ListAssets)) && (
         <ListAssetsEditor
@@ -77,7 +82,7 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
       )}
       {((assetFeatures.current.calibrationForecast && queryType === AssetQueryType.CalibrationForecast) || (query.queryType === AssetQueryType.CalibrationForecast)) && (
         <CalibrationForecastEditor
-          query={query as AssetCalibrationQuery}
+          query={query as CalibrationForecastQuery}
           handleQueryChange={handleQueryChange}
           datasource={datasource.getCalibrationForecastSource()}
         />

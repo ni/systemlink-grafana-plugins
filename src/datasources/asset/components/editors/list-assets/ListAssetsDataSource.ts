@@ -1,5 +1,5 @@
 import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings } from '@grafana/data';
-import { AssetDataSourceOptions, AssetQuery } from '../../../types/types';
+import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../../types/types';
 import { AssetModel, AssetsResponse } from '../../../../asset-common/types';
 import { getWorkspaceName } from '../../../../../core/utils';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
@@ -21,6 +21,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
   baseUrl = this.instanceSettings.url + '/niapm/v1';
 
   defaultQuery = {
+    queryType: AssetQueryType.ListAssets,
     filter: ''
   };
 
