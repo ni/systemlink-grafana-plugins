@@ -53,10 +53,10 @@ export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryB
       lookup: {
         ...locationField.lookup,
         dataSource: [
-          ...(locationField.lookup?.dataSource || []),
-          ...systems.map(({ id, alias }) => ({ label: alias || id, value: id })),
-        ],
-      },
+          ...locationField.lookup?.dataSource || [],
+          ...systems.map(({ id, alias }) => ({ label: alias || id, value: id }))
+        ]
+      }
     };
   }, [systems]);
 
