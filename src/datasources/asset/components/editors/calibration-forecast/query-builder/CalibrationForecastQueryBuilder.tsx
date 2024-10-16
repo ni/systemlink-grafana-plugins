@@ -38,10 +38,10 @@ export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryB
       lookup: {
         ...workspaceField.lookup,
         dataSource: [
-          ...(workspaceField.lookup?.dataSource || []),
-          ...workspaces.map(({ id, name }) => ({ label: name, value: id })),
-        ],
-      },
+          ...workspaceField.lookup?.dataSource || [],
+          ...workspaces.map(({ id, name }) => ({ label: name, value: id }))
+        ]
+      }
     };
   }, [workspaces]);
 
