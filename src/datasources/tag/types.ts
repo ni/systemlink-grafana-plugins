@@ -1,4 +1,5 @@
 import { DataQuery } from '@grafana/schema';
+import { DataSourceJsonData } from "@grafana/data";
 
 export enum TagQueryType {
   Current = 'Current',
@@ -73,4 +74,16 @@ export enum TagDataType {
 export interface TimeAndTagTypeValues {
   timestamps: string[],
   values: Record<string, { type: TagDataType, values: string[] }>
+}
+
+export interface TagFeatureToggles {
+  parseMultiSelectValues: boolean
+}
+
+export interface TagDataSourceOptions extends DataSourceJsonData {
+  featureToggles: TagFeatureToggles
+}
+
+export const TagFeatureTogglesDefaults: TagFeatureToggles = {
+  parseMultiSelectValues: true
 }

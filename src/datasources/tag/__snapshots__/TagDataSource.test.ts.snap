@@ -1,5 +1,432 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`parseMultiSelectValues add workspace prefix only when a tag with the same path exists in multiple workspaces 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "time",
+        "type": "time",
+        "values": [
+          1672531200000,
+          1672531260000,
+        ],
+      },
+      {
+        "config": {},
+        "name": "Default workspace.my.tag.1",
+        "values": [
+          1,
+          2,
+        ],
+      },
+      {
+        "config": {},
+        "name": "Default workspace.my.tag.2",
+        "values": [
+          2,
+          3,
+        ],
+      },
+      {
+        "config": {},
+        "name": "Other workspace.my.tag.1",
+        "values": [
+          1,
+          2,
+        ],
+      },
+      {
+        "config": {},
+        "name": "Other workspace.my.tag.2",
+        "values": [
+          2,
+          3,
+        ],
+      },
+      {
+        "config": {},
+        "name": "my.tag.3",
+        "values": [
+          3,
+          4,
+        ],
+      },
+      {
+        "config": {},
+        "name": "my.tag.4",
+        "values": [
+          4,
+          5,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`parseMultiSelectValues appends tag properties to query result 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "name",
+        "values": [
+          "my.tag",
+        ],
+      },
+      {
+        "name": "value",
+        "values": [
+          3.14,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+      {
+        "name": "foo",
+        "values": [
+          "bar",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`parseMultiSelectValues handles tag with no current value 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "name",
+        "values": [
+          "my.tag",
+        ],
+      },
+      {
+        "name": "value",
+        "values": [
+          undefined,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          undefined,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`parseMultiSelectValues multiple targets - skips invalid queries 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "name",
+        "values": [
+          "my.tag1",
+        ],
+      },
+      {
+        "name": "value",
+        "values": [
+          3.14,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+  {
+    "fields": [
+      {
+        "name": "name",
+        "values": [
+          "my.tag2",
+        ],
+      },
+      {
+        "name": "value",
+        "values": [
+          41.3,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "C",
+  },
+]
+`;
+
+exports[`parseMultiSelectValues numeric multiple tags history 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "time",
+        "type": "time",
+        "values": [
+          1672531200000,
+          1672531260000,
+          1672531320000,
+        ],
+      },
+      {
+        "config": {},
+        "name": "my.tag.1",
+        "values": [
+          1,
+          2,
+          null,
+        ],
+      },
+      {
+        "config": {},
+        "name": "my.tag.2",
+        "values": [
+          2,
+          3,
+          null,
+        ],
+      },
+      {
+        "config": {},
+        "name": "my.tag.3",
+        "values": [
+          3,
+          null,
+          4,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`parseMultiSelectValues numeric tag history 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "time",
+        "type": "time",
+        "values": [
+          1672531200000,
+          1672531260000,
+        ],
+      },
+      {
+        "config": {},
+        "name": "my.tag",
+        "values": [
+          1,
+          2,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`parseMultiSelectValues replaces tag path with multi select variable 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "name",
+        "values": [
+          "my.tag",
+        ],
+      },
+      {
+        "name": "value",
+        "values": [
+          3.14,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`parseMultiSelectValues replaces tag path with two multi select variable 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "name",
+        "values": [
+          "my.tag",
+        ],
+      },
+      {
+        "name": "value",
+        "values": [
+          3.14,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`parseMultiSelectValues replaces tag path with variable 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "name",
+        "values": [
+          "my.tag",
+        ],
+      },
+      {
+        "name": "value",
+        "values": [
+          3.14,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`parseMultiSelectValues supports legacy tag service property "datatype" 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "name",
+        "values": [
+          "my.tag",
+        ],
+      },
+      {
+        "name": "value",
+        "values": [
+          3.14,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`parseMultiSelectValues tag current value 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "name",
+        "values": [
+          "my.tag",
+        ],
+      },
+      {
+        "name": "value",
+        "values": [
+          3.14,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
 exports[`queries appends tag properties to query result 1`] = `
 [
   {

@@ -4,9 +4,9 @@ import { InlineField } from 'core/components/InlineField';
 import { enumToOptions, useWorkspaceOptions } from 'core/utils';
 import React, { FormEvent } from 'react';
 import { TagDataSource } from '../TagDataSource';
-import { TagQuery, TagQueryType } from '../types';
+import { TagDataSourceOptions, TagQuery, TagQueryType } from '../types';
 
-type Props = QueryEditorProps<TagDataSource, TagQuery>;
+type Props = QueryEditorProps<TagDataSource, TagQuery, TagDataSourceOptions>;
 
 export function TagQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
