@@ -1,19 +1,19 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { QueryBuilder, QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
-import { useTheme2 } from '@grafana/ui';
+import React, { useEffect, useMemo, useState } from "react";
+import { QueryBuilder, QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
+import { useTheme2 } from "@grafana/ui";
 
-import 'smart-webcomponents-react/source/styles/smart.dark-orange.css';
-import 'smart-webcomponents-react/source/styles/smart.orange.css';
-import 'smart-webcomponents-react/source/styles/components/smart.base.css';
-import 'smart-webcomponents-react/source/styles/components/smart.common.css';
-import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
+import "smart-webcomponents-react/source/styles/smart.dark-orange.css";
+import "smart-webcomponents-react/source/styles/smart.orange.css";
+import "smart-webcomponents-react/source/styles/components/smart.base.css";
+import "smart-webcomponents-react/source/styles/components/smart.common.css";
+import "smart-webcomponents-react/source/styles/components/smart.querybuilder.css";
 
-import { AssetCalibrationFields, AssetCalibrationStaticFields } from '../../../../constants';
-import { Workspace, QueryBuilderOption } from 'core/types';
-import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
-import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
-import { SystemMetadata } from 'datasources/system/types';
-import { QBField } from '../../../../types/CalibrationForecastQuery.types';
+import { AssetCalibrationFields, AssetCalibrationStaticFields } from "../../../../constants";
+import { Workspace, QueryBuilderOption } from "core/types";
+import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder.constants";
+import { expressionBuilderCallback, expressionReaderCallback } from "core/query-builder.utils";
+import { SystemMetadata } from "datasources/system/types";
+import { QBField } from "../../../../types/CalibrationForecastQuery.types";
 
 type CalibrationForecastQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
