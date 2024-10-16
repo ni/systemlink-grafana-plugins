@@ -2,6 +2,7 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
+  MetricFindValue,
   TestDataSourceResponse,
 } from '@grafana/data';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
@@ -17,6 +18,7 @@ import { AssetSummaryDataSource } from './components/editors/asset-summary/Asset
 import { AssetSummaryQuery } from './types/AssetSummaryQuery.types';
 import { CalibrationForecastQuery } from './types/CalibrationForecastQuery.types';
 import { ListAssetsQuery } from './types/ListAssets.types';
+import { AssetModel } from 'datasources/asset-common/types';
 
 export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
   private assetSummaryDataSource: AssetSummaryDataSource;
@@ -81,5 +83,12 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
 
   getListAssetsSource(): ListAssetsDataSource {
     return this.listAssetsDataSource;
+  }
+
+  async metricFindQuery(query: AssetQuery): Promise<MetricFindValue[]> {
+    console.log(query);
+    const assetFilter = query as ListAssetsQuery;
+    const assetsResponse: AssetModel[] = await this.getListAssetsSource().queryAssets(assetFilter?.filter ?? '', 1000);
+    return assetsResponse.map((asset: AssetModel) => ({ text: asset.name, value: asset.id }));
   }
 }
