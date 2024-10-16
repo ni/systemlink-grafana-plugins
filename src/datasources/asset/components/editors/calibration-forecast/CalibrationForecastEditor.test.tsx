@@ -39,7 +39,7 @@ describe('CalibrationForecastEditor', () => {
 
     // User selects group by day
     const groupBy = screen.getAllByRole('combobox')[1];
-    await select(groupBy, 'Day', { container: document.body });
+    await select(groupBy, "Day", { container: document.body });
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({ groupBy: [AssetCalibrationTimeBasedGroupByType.Day] })
@@ -47,7 +47,7 @@ describe('CalibrationForecastEditor', () => {
     });
 
     // User selects group by location and week, overrides time
-    await select(groupBy, 'Week', { container: document.body });
+    await select(groupBy, "Week", { container: document.body });
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -57,7 +57,7 @@ describe('CalibrationForecastEditor', () => {
     });
 
     // User selects group by month, overrides time
-    await select(groupBy, 'Month', { container: document.body });
+    await select(groupBy, "Month", { container: document.body });
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -76,7 +76,7 @@ describe('CalibrationForecastEditor', () => {
 
     // User selects group by location
     const groupBy = screen.getAllByRole('combobox')[1];
-    await select(groupBy, 'Location', { container: document.body });
+    await select(groupBy, "Location", { container: document.body });
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -86,7 +86,7 @@ describe('CalibrationForecastEditor', () => {
     });
 
     // User select group by model
-    await select(groupBy, 'Model', { container: document.body });
+    await select(groupBy, "Model", { container: document.body });
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -96,7 +96,7 @@ describe('CalibrationForecastEditor', () => {
     });
 
     // User select group by day
-    await select(groupBy, 'Day', { container: document.body });
+    await select(groupBy, "Day", { container: document.body });
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({
