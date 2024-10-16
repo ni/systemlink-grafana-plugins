@@ -23,13 +23,7 @@ type CalibrationForecastQueryBuilderProps = QueryBuilderProps &
     areDependenciesLoaded: boolean;
   };
 
-export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryBuilderProps> = ({
-  filter,
-  onChange,
-  workspaces,
-  systems,
-  areDependenciesLoaded,
-}) => {
+export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryBuilderProps> = ({ filter, onChange, workspaces, systems, areDependenciesLoaded }) => {
   const theme = useTheme2();
   document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
 
