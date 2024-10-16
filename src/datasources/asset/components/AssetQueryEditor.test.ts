@@ -75,7 +75,7 @@ it('renders Asset calibration forecast when feature is enabled', async () => {
     render({ queryType: AssetQueryType.CalibrationForecast } as CalibrationForecastQuery);
     const queryType = screen.getAllByRole('combobox')[0];
     await select(queryType, "Calibration Forecast", { container: document.body });
-    expect(screen.getAllByText("Calibration Forecast").length).toBe(2)
+    expect(screen.getAllByText("Calibration Forecast").length).toBe(1)
 });
 
 it('renders Asset summary when feature is enabled', async () => {

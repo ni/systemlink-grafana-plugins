@@ -1,33 +1,45 @@
 import { act, screen, waitFor } from '@testing-library/react';
-import { setupRenderer } from '../../../test/fixtures';
-import { AssetCalibrationQuery, AssetCalibrationTimeBasedGroupByType, AssetCalibrationPropertyGroupByType } from '../types';
+import { setupRenderer } from '../../../../../test/fixtures';
 import { select } from 'react-select-event';
-import { AssetCalibrationDataSource } from '../AssetCalibrationDataSource';
-import { AssetCalibrationQueryEditor } from './AssetCalibrationQueryEditor';
+import {
+  AssetCalibrationPropertyGroupByType,
+  AssetCalibrationTimeBasedGroupByType,
+  CalibrationForecastQuery,
+} from '../../../types/CalibrationForecastQuery.types';
+import { CalibrationForecastDataSource } from './CalibrationForecastDataSource';
+import { AssetQueryEditor } from '../../AssetQueryEditor';
+import { AssetDataSource } from '../../../AssetDataSource';
+import { AssetQueryType } from '../../../types/types';
 
-class FakeAssetCalibrationDataSource extends AssetCalibrationDataSource {
+class FakeAssetCalibrationDataSource extends CalibrationForecastDataSource {}
+
+class FakeAssetDataSource extends AssetDataSource {
+  getCalibrationForecastSource(): FakeAssetCalibrationDataSource {
+    return new FakeAssetCalibrationDataSource(this.instanceSettings, this.backendSrv, this.templateSrv);
+  }
 }
 
-describe('AssetCalibrationQueryEditor', () => {
-  const render = async (query: AssetCalibrationQuery) => {
-    return await act(async () => setupRenderer(AssetCalibrationQueryEditor, FakeAssetCalibrationDataSource)(query));
-  }
+describe('CalibrationForecastEditor', () => {
+  const render = async (query: CalibrationForecastQuery) => {
+    return await act(async () => setupRenderer(AssetQueryEditor, FakeAssetDataSource)(query));
+  };
 
   it('renders with query type calibration forecast', async () => {
-    await render({} as AssetCalibrationQuery);
+    await render({} as CalibrationForecastQuery);
 
-    const groupBy = screen.getAllByRole('combobox')[0];
+    const groupBy = screen.getAllByRole('combobox')[1];
     expect(groupBy).not.toBeNull();
   });
 
   it('renders with query type calibration forecast and updates group by time', async () => {
     const [onChange] = await render({
       groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
-    } as AssetCalibrationQuery);
+      queryType: AssetQueryType.CalibrationForecast,
+    } as CalibrationForecastQuery);
 
     // User selects group by day
-    const groupBy = screen.getAllByRole('combobox')[0];
-    await select(groupBy, "Day", { container: document.body });
+    const groupBy = screen.getAllByRole('combobox')[1];
+    await select(groupBy, 'Day', { container: document.body });
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({ groupBy: [AssetCalibrationTimeBasedGroupByType.Day] })
@@ -35,7 +47,7 @@ describe('AssetCalibrationQueryEditor', () => {
     });
 
     // User selects group by location and week, overrides time
-    await select(groupBy, "Week", { container: document.body });
+    await select(groupBy, 'Week', { container: document.body });
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -45,7 +57,7 @@ describe('AssetCalibrationQueryEditor', () => {
     });
 
     // User selects group by month, overrides time
-    await select(groupBy, "Month", { container: document.body });
+    await select(groupBy, 'Month', { container: document.body });
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -55,16 +67,16 @@ describe('AssetCalibrationQueryEditor', () => {
     });
   });
 
-
   it('renders with query type calibration forecast and updates group by properties', async () => {
     const [onChange] = await render({
       refId: '',
       groupBy: [],
-    } as AssetCalibrationQuery);
+      queryType: AssetQueryType.CalibrationForecast,
+    } as CalibrationForecastQuery);
 
     // User selects group by location
-    const groupBy = screen.getAllByRole('combobox')[0];
-    await select(groupBy, "Location", { container: document.body });
+    const groupBy = screen.getAllByRole('combobox')[1];
+    await select(groupBy, 'Location', { container: document.body });
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -74,7 +86,7 @@ describe('AssetCalibrationQueryEditor', () => {
     });
 
     // User select group by model
-    await select(groupBy, "Model", { container: document.body });
+    await select(groupBy, 'Model', { container: document.body });
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -84,7 +96,7 @@ describe('AssetCalibrationQueryEditor', () => {
     });
 
     // User select group by day
-    await select(groupBy, "Day", { container: document.body });
+    await select(groupBy, 'Day', { container: document.body });
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -93,4 +105,4 @@ describe('AssetCalibrationQueryEditor', () => {
       );
     });
   });
-})
+});

@@ -47,7 +47,7 @@ beforeEach(() => {
 it('does not render when feature is not enabled', async () => {
   assetDatasourceOptions.featureToggles.assetList = false;
   render({} as ListAssetsQuery);
-  expect(screen.getAllByRole('combobox').length).toBe(1);
+  expect(screen.getAllByRole('combobox').length).toBe(2);
 });
 
 it('renders the query builder', async () => {

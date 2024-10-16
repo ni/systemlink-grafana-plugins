@@ -5,7 +5,7 @@ import { mock } from 'jest-mock-extended';
 import { AssetSummaryDataSource } from './AssetSummaryDataSource';
 import { AssetSummaryResponse } from 'datasources/asset/types/AssetSummaryQuery.types';
 import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from 'datasources/asset/types/types';
-import { assetSummaryFields } from 'datasources/asset-calibration/constants';
+import { assetSummaryFields } from 'datasources/asset/constants';
 
 describe('AssetSummaryDataSource', () => {
   let dataSource: AssetSummaryDataSource;
