@@ -1,8 +1,10 @@
 import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings } from '@grafana/data';
-import { AssetDataSourceOptions, AssetQuery } from '../../../types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
-import { AssetDataSourceBase } from '../AssetDataSourceBase';
 
+import { AssetSummaryResponse } from 'datasources/asset/types/AssetSummaryQuery.types';
+import { assetSummaryFields } from 'datasources/asset-calibration/constants';
+import { AssetDataSourceBase } from '../AssetDataSourceBase';
+import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../../types/types';
 export class AssetSummaryDataSource extends AssetDataSourceBase {
     constructor(
         readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,
@@ -15,12 +17,37 @@ export class AssetSummaryDataSource extends AssetDataSourceBase {
     baseUrl = this.instanceSettings.url + '/niapm/v1';
 
     defaultQuery = {
+        queryType: AssetQueryType.AssetSummary,
     };
 
-    runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-        throw new Error("Method not implemented.");
+    async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+        return this.processSummaryQuery(query as AssetQuery);
     }
-    shouldRunQuery(query: AssetQuery): boolean {
-        throw new Error("Method not implemented.");
+
+    shouldRunQuery(_: AssetQuery): boolean {
+        return true;
+    }
+
+    async processSummaryQuery(query: AssetQuery) {
+        const assets: AssetSummaryResponse = await this.getAssetSummary();
+
+        return {
+            refId: query.refId,
+            fields: [
+                { name: assetSummaryFields.TOTAL, values: [assets.total] },
+                { name: assetSummaryFields.ACTIVE, values: [assets.active] },
+                { name: assetSummaryFields.NOT_ACTIVE, values: [assets.notActive] },
+                { name: assetSummaryFields.APPROACHING_DUE_DATE, values: [assets.approachingRecommendedDueDate] },
+                { name: assetSummaryFields.PAST_DUE_DATE, values: [assets.pastRecommendedDueDate] }
+            ]
+        };
+    }
+
+    async getAssetSummary(): Promise<AssetSummaryResponse> {
+        try {
+            return await this.get<AssetSummaryResponse>(this.baseUrl + '/asset-summary');
+        } catch (error) {
+            throw new Error(`An error occurred while getting asset summary: ${error}`);
+        }
     }
 }

@@ -1,4 +1,4 @@
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { SystemProperties } from '../../system/types';
 import { AssetDataSource } from '../AssetDataSource';
 import { setupRenderer } from '../../../test/fixtures';
@@ -10,7 +10,7 @@ import { ListAssetsQuery } from '../types/ListAssets.types';
 import { CalibrationForecastQuery } from '../types/CalibrationForecastQuery.types';
 import { select } from 'react-select-event';
 import { AssetSummaryQuery } from '../types/AssetSummaryQuery.types';
-import { AssetFeatureTogglesDefaults } from '../types/types';
+import { AssetFeatureTogglesDefaults, AssetQueryType } from '../types/types';
 
 const fakeSystems: SystemProperties[] = [
     {
@@ -47,7 +47,6 @@ class FakeAssetDataSource extends AssetDataSource {
     }
 }
 
-const workspacesLoaded = () => waitForElementToBeRemoved(screen.getByTestId('Spinner'));
 const render = setupRenderer(AssetQueryEditor, FakeAssetDataSource, () => assetDatasourceOptions);
 
 beforeEach(() => {
@@ -58,33 +57,31 @@ beforeEach(() => {
 
 it('renders Asset list when feature is enabled', async () => {
     assetDatasourceOptions.featureToggles.assetList = true;
-    render({} as ListAssetsQuery);
-    await workspacesLoaded();
-
-    expect(screen.getAllByRole('combobox').length).toBe(3);
-    expect(screen.getAllByRole('combobox')[1]).toHaveAccessibleDescription('Any workspace');
-    expect(screen.getAllByRole('combobox')[2]).toHaveAccessibleDescription('Select systems');
+    render({ queryType: AssetQueryType.ListAssets } as ListAssetsQuery);
+    const queryType = screen.getAllByRole('combobox')[0];
+    await select(queryType, "List Assets", { container: document.body });
+    expect(screen.getAllByText("List Assets").length).toBe(1)
 });
 
 it('does not render when Asset list feature is not enabled', async () => {
     assetDatasourceOptions.featureToggles.assetList = false;
-    render({} as ListAssetsQuery);
+    render({ queryType: AssetQueryType.ListAssets } as ListAssetsQuery);
 
     expect(screen.getAllByRole('combobox').length).toBe(1);
 });
 
-it('does not render when Asset calibration forecast feature is not enabled', async () => {
+it('renders Asset calibration forecast when feature is enabled', async () => {
     assetDatasourceOptions.featureToggles.calibrationForecast = true;
-    render({} as CalibrationForecastQuery);
+    render({ queryType: AssetQueryType.CalibrationForecast } as CalibrationForecastQuery);
     const queryType = screen.getAllByRole('combobox')[0];
     await select(queryType, "Calibration Forecast", { container: document.body });
     expect(screen.getAllByText("Calibration Forecast").length).toBe(2)
 });
 
-it('does not render when Asset summary feature is not enabled', async () => {
+it('renders Asset summary when feature is enabled', async () => {
     assetDatasourceOptions.featureToggles.assetSummary = true;
-    render({} as AssetSummaryQuery);
+    render({ queryType: AssetQueryType.AssetSummary } as AssetSummaryQuery);
     const queryType = screen.getAllByRole('combobox')[0];
     await select(queryType, "Asset Summary", { container: document.body });
-    expect(screen.getAllByText("Asset Summary").length).toBe(2)
+    expect(screen.getAllByText("Asset Summary").length).toBe(1)
 });

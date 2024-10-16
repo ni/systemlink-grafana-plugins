@@ -6,6 +6,5 @@ export const defaultCalibrationForecastQuery = {
 }
 
 export const defaultListAssetsQuery = {
-    workspace: "",
-    minionIds: []
+    filter: ""
 }
