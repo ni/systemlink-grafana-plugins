@@ -33,3 +33,11 @@ datasources:
     type: ni-slworkspace-datasource
     uid: workspace
     <<: *config
+  - name: SystemLink Assets Utilization
+    type: ni-slasset-datasource
+    uid: asset
+    <<: *config
+  - name: SystemLink Assets Calibration
+    type: ni-slassetcalibration-datasource
+    uid: assetcalibration
+    <<: *config

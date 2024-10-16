@@ -1,12 +1,19 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
+import {
+  DataFrameDTO,
+  DataQueryRequest,
+  DataSourceInstanceSettings,
+  DataSourceJsonData,
+  MetricFindValue,
+  TestDataSourceResponse
+} from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { defaultOrderBy, defaultProjection } from './constants';
 import { NetworkUtils } from './network-utils';
-import { SystemMetadata, SystemQuery, SystemQueryType, SystemSummary, SystemVariableQuery } from './types';
+import { SystemQuery, SystemQueryType, SystemSummary, SystemVariableQuery } from './types';
 import { getWorkspaceName } from 'core/utils';
 
-export class SystemDataSource extends DataSourceBase<SystemQuery> {
+export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJsonData> {
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
@@ -66,7 +73,7 @@ export class SystemDataSource extends DataSourceBase<SystemQuery> {
       systemFilter && `id = "${systemFilter}" || alias = "${systemFilter}"`,
       workspace && !systemFilter && `workspace = "${workspace}"`,
     ];
-    const response = await this.post<{ data: SystemMetadata[] }>(this.baseUrl + '/query-systems', {
+    const response = await this.getSystems({
       filter: filters.filter(Boolean).join(' '),
       projection: `new(${projection.join()})`,
       orderBy: defaultOrderBy,
@@ -76,7 +83,7 @@ export class SystemDataSource extends DataSourceBase<SystemQuery> {
 
   async metricFindQuery({ workspace }: SystemVariableQuery): Promise<MetricFindValue[]> {
     const metadata = await this.getSystemMetadata('', ['id', 'alias'], this.templateSrv.replace(workspace));
-    return metadata.map(frame => ({ text: frame.alias, value: frame.id }));
+    return metadata.map(frame => ({ text: frame.alias ?? frame.id, value: frame.id }));
   }
 
   shouldRunQuery(_: SystemQuery): boolean {

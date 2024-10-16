@@ -1,7 +1,7 @@
 import { SelectableValue } from '@grafana/data';
 import { useAsync } from 'react-use';
 import { DataSourceBase } from './DataSourceBase';
-import { Workspace } from './types';
+import { SystemLinkError, Workspace } from './types';
 import { TemplateSrv } from '@grafana/runtime';
 
 export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<SelectableValue<T>> {
@@ -35,7 +35,7 @@ export function throwIfNullish<T>(value: T, error: string | Error): NonNullable<
 }
 
 /** Gets available workspaces as an array of {@link SelectableValue}. */
-export function useWorkspaceOptions<DSType extends DataSourceBase<any>>(datasource: DSType) {
+export function useWorkspaceOptions<DSType extends DataSourceBase<any, any>>(datasource: DSType) {
   return useAsync(async () => {
     const workspaces = await datasource.getWorkspaces();
     const workspaceOptions = workspaces.map(w => ({ label: w.name, value: w.id }));
@@ -45,7 +45,7 @@ export function useWorkspaceOptions<DSType extends DataSourceBase<any>>(datasour
 }
 
 /** Gets Dashboard variables as an array of {@link SelectableValue}. */
-export function getVariableOptions<DSType extends DataSourceBase<any>>(datasource: DSType) {
+export function getVariableOptions<DSType extends DataSourceBase<any, any>>(datasource: DSType) {
   return datasource.templateSrv
     .getVariables()
     .filter((variable: any) => !variable.datasource || variable.datasource.uid !== datasource.uid)
@@ -81,4 +81,8 @@ export function replaceVariables(values: string[], templateSrv: TemplateSrv) {
   });
   // Dedupe and flatten
   return [...new Set(replaced.flat())];
+}
+
+export function isSystemLinkError(error: any): error is SystemLinkError {
+  return Boolean(error?.error?.code) && Boolean(error?.error?.name);
 }

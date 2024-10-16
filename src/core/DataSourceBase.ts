@@ -4,16 +4,17 @@ import {
   DataQueryResponse,
   DataSourceApi,
   DataSourceInstanceSettings,
+  DataSourceJsonData,
 } from '@grafana/data';
 import { BackendSrv, BackendSrvRequest, TemplateSrv, isFetchError } from '@grafana/runtime';
 import { DataQuery } from '@grafana/schema';
-import { Workspace } from './types';
+import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
 import { sleep } from './utils';
 import { lastValueFrom } from 'rxjs';
 
-export abstract class DataSourceBase<TQuery extends DataQuery> extends DataSourceApi<TQuery> {
+export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData = DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
   constructor(
-    readonly instanceSettings: DataSourceInstanceSettings,
+    readonly instanceSettings: DataSourceInstanceSettings<TOptions>,
     readonly backendSrv: BackendSrv,
     readonly templateSrv: TemplateSrv
   ) {
@@ -21,7 +22,9 @@ export abstract class DataSourceBase<TQuery extends DataQuery> extends DataSourc
   }
 
   abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;
+
   abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
+
   abstract shouldRunQuery(query: TQuery): boolean;
 
   query(request: DataQueryRequest<TQuery>): Promise<DataQueryResponse> {
@@ -69,5 +72,11 @@ export abstract class DataSourceBase<TQuery extends DataQuery> extends DataSourc
     );
 
     return (DataSourceBase.Workspaces = response.workspaces);
+  }
+
+  async getSystems(body: QuerySystemsRequest): Promise<QuerySystemsResponse> {
+    return await this.post<QuerySystemsResponse>(
+      this.instanceSettings.url + '/nisysmgmt/v1/query-systems', body
+    )
   }
 }
