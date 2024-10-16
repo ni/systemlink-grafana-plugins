@@ -28,11 +28,7 @@ describe('CalibrationForecastQueryBuilder', () => {
     it('should select workspace in query builder', () => {
       const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
       const system = { id: '1', alias: 'Selected system' } as SystemMetadata;
-      const { conditionsContainer } = renderElement(
-        [workspace],
-        [system],
-        'Workspace = "1" && ModelName = "SomeRandomModelName"'
-      );
+      const { conditionsContainer } = renderElement([workspace], [system], 'Workspace = "1" && ModelName = "SomeRandomModelName"');
 
       expect(conditionsContainer?.length).toBe(2);
       expect(conditionsContainer.item(0)?.textContent).toContain(workspace.name);
