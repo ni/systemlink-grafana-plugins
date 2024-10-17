@@ -1,6 +1,5 @@
 import { QueryBuilderOperations } from "../../../core/query-builder.constants";
 import { QBField } from "../types/CalibrationForecastQuery.types";
-import { AssetFilterProperties } from "../types/ListAssets.types";
 
 export enum ListAssetsFieldNames {
     LOCATION = 'Location',
@@ -21,7 +20,7 @@ export const ListAssetsFields: Record<string, QBField> = {
     },
     WORKSPACE: {
         label: 'Workspace',
-        dataField: AssetFilterProperties.Workspace,
+        dataField: ListAssetsFieldNames.WORKSPACE,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name
