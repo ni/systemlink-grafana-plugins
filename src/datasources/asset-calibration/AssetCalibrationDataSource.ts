@@ -23,8 +23,6 @@ import {
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { AssetCalibrationFieldNames } from './constants';
 import { AssetModel, AssetsResponse } from 'datasources/asset-common/types';
-import TTLCache from '@isaacs/ttlcache';
-import { metadataCacheTTL } from 'datasources/data-frame/constants';
 import { SystemMetadata } from 'datasources/system/types';
 import { defaultOrderBy, defaultProjection } from 'datasources/system/constants';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
@@ -37,13 +35,16 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     filter: ''
   };
 
-  public areSystemsLoaded = false;
-  public areWorkspacesLoaded = false;
+  private systemsLoaded!: () => void;
+  private workspacesLeaded!: () => void;
+
+  public areSystemsLoaded$ = new Promise<void>(resolve => this.systemsLoaded = resolve);
+  public areWorkspacesLoaded$ = new Promise<void>(resolve => this.workspacesLeaded = resolve);
 
   public error = '';
 
-  public readonly systemAliasCache: TTLCache<string, SystemMetadata> = new TTLCache<string, SystemMetadata>({ ttl: metadataCacheTTL });
-  public readonly workspacesCache: TTLCache<string, Workspace> = new TTLCache<string, Workspace>({ ttl: metadataCacheTTL });
+  public readonly systemAliasCache = new Map<string, SystemMetadata>([]);
+  public readonly workspacesCache = new Map<string, Workspace>([]);
   public readonly busTypeCache = new Map<BusType, string>([
     ...BusTypeOptions.map(busType => [busType.value, busType.label]) as Array<[BusType, string]>
   ]);
@@ -52,6 +53,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
   ]);
 
   private readonly baseUrl = this.instanceSettings.url + '/niapm/v1';
+  private dependenciesLoadedPromise: Promise<void>;
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
@@ -59,10 +61,14 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     readonly templateSrv: TemplateSrv = getTemplateSrv(),
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    this.dependenciesLoadedPromise = this.loadDependencies();
   }
 
   async runQuery(query: AssetCalibrationQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    await this.loadDependencies();
+    await this.dependenciesLoadedPromise;
+
+    this.error = '';
+
     this.validateQueryRange(query, options);
 
     if (query.filter) {
@@ -80,7 +86,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     ...Object.values(AssetCalibrationFieldNames).map(field => [field, this.multipleValuesQuery(field)] as [AssetCalibrationFieldNames, ExpressionTransformFunction]),
     [
       AssetCalibrationFieldNames.LOCATION,
-      (value: string, operation: string, options?: TTLCache<string, unknown>) => {
+      (value: string, operation: string, options?: Map<string, unknown>) => {
         let values = [value];
 
         if (this.isMultiSelectValue(value)) {
@@ -126,7 +132,7 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
     return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
   }
 
-  private readonly queryTransformationOptions = new Map<AssetCalibrationFieldNames, TTLCache<string, unknown>>([
+  private readonly queryTransformationOptions = new Map<AssetCalibrationFieldNames, Map<string, unknown>>([
     [AssetCalibrationFieldNames.LOCATION, this.systemAliasCache]
   ]);
 
@@ -289,8 +295,9 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
         this.error = parseErrorMessage(error)!;
       });
 
-    this.areSystemsLoaded = true;
     systems?.forEach(system => this.systemAliasCache.set(system.id, system));
+
+    this.systemsLoaded();
   }
 
   private async loadWorkspaces(): Promise<void> {
@@ -303,13 +310,12 @@ export class AssetCalibrationDataSource extends DataSourceBase<AssetCalibrationQ
         this.error = parseErrorMessage(error)!;
       });
 
-    this.areWorkspacesLoaded = true;
     workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
+
+    this.workspacesLeaded();
   }
 
   async loadDependencies(): Promise<void> {
-    this.error = '';
-
     await this.loadSystems();
     await this.loadWorkspaces();
   }

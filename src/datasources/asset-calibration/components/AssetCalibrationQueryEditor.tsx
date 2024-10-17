@@ -20,16 +20,12 @@ export const AssetCalibrationQueryEditor = ({ query, onChange, onRunQuery, datas
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
 
   useEffect(() => {
-    if (datasource.areWorkspacesLoaded) {
+    Promise.all([datasource.areSystemsLoaded$, datasource.areWorkspacesLoaded$]).then(() => {
       setWorkspaces(Array.from(datasource.workspacesCache.values()));
-    }
-
-    if (datasource.areSystemsLoaded) {
       setSystems(Array.from(datasource.systemAliasCache.values()));
-    }
-
-    setAreDependenciesLoaded(datasource.areSystemsLoaded && datasource.areWorkspacesLoaded);
-  }, [datasource, datasource.areSystemsLoaded, datasource.areWorkspacesLoaded]);
+      setAreDependenciesLoaded(true);
+    });
+  }, [datasource]);
 
   const handleQueryChange = (value: AssetCalibrationQuery, runQuery: boolean): void => {
     onChange(value);
