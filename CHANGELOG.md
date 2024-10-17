@@ -1,3 +1,9 @@
+## [3.32.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.31.0...v3.32.0) (2024-10-17)
+
+### Features
+
+* **asset:** add asset variable query with query builder ([#90](https://github.com/ni/systemlink-grafana-plugins/issues/90)) ([4de79ff](https://github.com/ni/systemlink-grafana-plugins/commit/4de79ff716ce20059502ae8dab946e756d0120f7))
+
 ## [3.31.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.30.0...v3.31.0) (2024-10-17)
 
 ### Features
