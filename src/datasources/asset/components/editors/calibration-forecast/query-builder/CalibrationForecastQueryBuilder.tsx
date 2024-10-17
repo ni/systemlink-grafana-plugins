@@ -8,22 +8,22 @@ import 'smart-webcomponents-react/source/styles/components/smart.base.css';
 import 'smart-webcomponents-react/source/styles/components/smart.common.css';
 import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
 
-import { AssetCalibrationFields, AssetCalibrationStaticFields } from '../constants';
+import { AssetCalibrationFields, AssetCalibrationStaticFields } from '../../../../constants';
 import { Workspace, QueryBuilderOption } from 'core/types';
-import { QBField } from '../types';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
 import { SystemMetadata } from 'datasources/system/types';
+import { QBField } from '../../../../types/CalibrationForecastQuery.types';
 
-type AssetCalibrationQueryBuilderProps = QueryBuilderProps &
+type CalibrationForecastQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     filter?: string;
-    workspaces: Workspace[],
-    systems: SystemMetadata[],
+    workspaces: Workspace[];
+    systems: SystemMetadata[];
     areDependenciesLoaded: boolean;
   };
 
-export const AssetCalibrationQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({ filter, onChange, workspaces, systems, areDependenciesLoaded }) => {
+export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryBuilderProps> = ({ filter, onChange, workspaces, systems, areDependenciesLoaded }) => {
   const theme = useTheme2();
   document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
 
@@ -62,26 +62,21 @@ export const AssetCalibrationQueryBuilder: React.FC<AssetCalibrationQueryBuilder
 
   useEffect(() => {
     if (areDependenciesLoaded) {
-      const fields = [
-        workspaceField,
-        locationField,
-        ...AssetCalibrationStaticFields,
-      ];
+      const fields = [workspaceField, locationField, ...AssetCalibrationStaticFields];
 
       setFields(fields);
 
-      const options = Object.values(fields)
-        .reduce((accumulator, fieldConfig) => {
-          if (fieldConfig.lookup) {
-            accumulator[fieldConfig.dataField!] = fieldConfig.lookup.dataSource;
-          }
+      const options = Object.values(fields).reduce((accumulator, fieldConfig) => {
+        if (fieldConfig.lookup) {
+          accumulator[fieldConfig.dataField!] = fieldConfig.lookup.dataSource;
+        }
 
-          return accumulator;
-        }, {} as Record<string, QueryBuilderOption[]>);
+        return accumulator;
+      }, {} as Record<string, QueryBuilderOption[]>);
 
       const callbacks = {
         expressionBuilderCallback: expressionBuilderCallback(options),
-        expressionReaderCallback: expressionReaderCallback(options)
+        expressionReaderCallback: expressionReaderCallback(options),
       };
 
       setOperations([
@@ -94,7 +89,7 @@ export const AssetCalibrationQueryBuilder: React.FC<AssetCalibrationQueryBuilder
           ...callbacks,
         },
         QueryBuilderOperations.CONTAINS,
-        QueryBuilderOperations.DOES_NOT_CONTAIN
+        QueryBuilderOperations.DOES_NOT_CONTAIN,
       ]);
     }
   }, [workspaceField, locationField, areDependenciesLoaded]);

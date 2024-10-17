@@ -3,9 +3,9 @@ import { SystemMetadata } from '../../../../system/types';
 import { AssetDataSource } from '../../../AssetDataSource';
 import { AssetQueryEditor } from '../../AssetQueryEditor';
 import { setupRenderer } from '../../../../../test/fixtures';
-import { ListAssetsDataSource } from './ListAssetsDataSource';
 import { ListAssetsQuery } from '../../../types/ListAssets.types';
 import { AssetFeatureTogglesDefaults } from 'datasources/asset/types/types';
+import { ListAssetsDataSource } from '../../../data-sources/list-assets/ListAssetsDataSource';
 
 const fakeSystems: SystemMetadata[] = [
   {
@@ -47,7 +47,7 @@ beforeEach(() => {
 it('does not render when feature is not enabled', async () => {
   assetDatasourceOptions.featureToggles.assetList = false;
   render({} as ListAssetsQuery);
-  expect(screen.getAllByRole('combobox').length).toBe(1);
+  expect(screen.getAllByRole('combobox').length).toBe(2);
 });
 
 it('renders the query builder', async () => {

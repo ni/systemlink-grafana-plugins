@@ -1,17 +1,17 @@
 import React, { ReactNode } from "react";
-import { AssetCalibrationQueryBuilder } from "./AssetCalibrationQueryBuilder";
+import { CalibrationForecastQueryBuilder } from "./CalibrationForecastQueryBuilder";
 import { render } from "@testing-library/react";
 import { Workspace } from "core/types";
 import { SystemMetadata } from "datasources/system/types";
 
-describe('AssetCalibrationQueryBuilder', () => {
+describe('CalibrationForecastQueryBuilder', () => {
   describe('useEffects', () => {
-    let reactNode: ReactNode;
+    let reactNode: ReactNode
 
     const containerClass = 'smart-filter-group-condition-container'
 
     function renderElement(workspaces: Workspace[], systems: SystemMetadata[], filter?: string) {
-      reactNode = React.createElement(AssetCalibrationQueryBuilder, { workspaces, systems, filter, onChange: jest.fn(), areDependenciesLoaded: true });
+      reactNode = React.createElement(CalibrationForecastQueryBuilder, { workspaces, systems, filter, onChange: jest.fn(), areDependenciesLoaded: true });
       const renderResult = render(reactNode);
       return {
         renderResult,
