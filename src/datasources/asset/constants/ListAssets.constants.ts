@@ -10,7 +10,7 @@ export enum ListAssetsFieldNames {
 export const ListAssetsFields: Record<string, QBField> = {
     LOCATION: {
         label: 'Location',
-        dataField: AssetFilterProperties.LocationMinionId,
+        dataField: ListAssetsFieldNames.LOCATION,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name
