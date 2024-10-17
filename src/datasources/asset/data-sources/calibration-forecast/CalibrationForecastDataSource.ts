@@ -21,7 +21,7 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
     baseUrl = this.instanceSettings.url + '/niapm/v1';
 
     defaultQuery = {
-        queryType: AssetQueryType.CalibrationForecast,
+        type: AssetQueryType.CalibrationForecast,
         groupBy: [],
         filter: ''
     };

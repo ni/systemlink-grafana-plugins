@@ -214,7 +214,7 @@ const assetsResponseMock: AssetsResponse =
 
 
 const assetMetadataQueryMock: ListAssetsQuery = {
-  queryType: AssetQueryType.ListAssets,
+  type: AssetQueryType.ListAssets,
   filter: 'Location.MinionId == "123"',
   refId: ''
 }

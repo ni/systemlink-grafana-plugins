@@ -27,7 +27,7 @@ describe('List assets location queries', () => {
     test('should transform LOCATION field with single value', async () => {
         const query = buildListAssetsQuery({
             refId: '',
-            queryType: AssetQueryType.ListAssets,
+            type: AssetQueryType.ListAssets,
             filter: `${ListAssetsFieldNames.LOCATION} = "Location1"`,
         });
 
@@ -45,7 +45,7 @@ describe('List assets location queries', () => {
 
         const query = buildListAssetsQuery({
             refId: '',
-            queryType: AssetQueryType.ListAssets,
+            type: AssetQueryType.ListAssets,
             filter: `${ListAssetsFieldNames.LOCATION} = "Location1"`,
         });
 
@@ -64,7 +64,7 @@ describe('List assets location queries', () => {
 
         const query = buildListAssetsQuery({
             refId: '',
-            queryType: AssetQueryType.ListAssets,
+            type: AssetQueryType.ListAssets,
             filter: `${ListAssetsFieldNames.LOCATION} = "{Location1,Location2}"`,
         });
 

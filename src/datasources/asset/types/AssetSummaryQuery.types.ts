@@ -1,11 +1,9 @@
-import { DataQuery } from '@grafana/schema'
-import { AssetQueryType } from './types';
+import { AssetQuery } from './types';
 
-export interface AssetSummaryQuery extends DataQuery {
-  queryType: AssetQueryType;
+export interface AssetSummaryQuery extends AssetQuery {
 }
 
-export interface AssetSummaryResponse extends DataQuery {
+export interface AssetSummaryResponse {
   total: number;
   active: number;
   notActive: number;

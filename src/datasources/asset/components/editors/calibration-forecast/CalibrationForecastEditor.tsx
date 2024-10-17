@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
 import { CalibrationForecastDataSource } from '../../../data-sources/calibration-forecast/CalibrationForecastDataSource';
-import { AssetQuery } from '../../../types/types';
 import {
   AssetCalibrationPropertyGroupByType,
   AssetCalibrationTimeBasedGroupByType,
@@ -19,7 +18,7 @@ import './CalibrationForecastEditor.scss';
 
 type Props = {
   query: CalibrationForecastQuery;
-  handleQueryChange: (value: AssetQuery, runQuery: boolean) => void;
+  handleQueryChange: (value: CalibrationForecastQuery, runQuery: boolean) => void;
   datasource: CalibrationForecastDataSource;
 };
 

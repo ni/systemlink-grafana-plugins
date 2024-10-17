@@ -22,7 +22,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
   baseUrl = this.instanceSettings.url + '/niapm/v1';
 
   defaultQuery = {
-    queryType: AssetQueryType.ListAssets,
+    type: AssetQueryType.ListAssets,
     filter: ''
   };
 

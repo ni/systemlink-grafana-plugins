@@ -16,7 +16,7 @@ import { CalibrationForecastQuery } from '../types/CalibrationForecastQuery.type
 type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOptions>;
 
 export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
-  const [queryType, setQueryType] = useState(query.queryType as AssetQueryType);
+  const [queryType, setQueryType] = useState(query.type as AssetQueryType);
   const assetFeatures = useRef<AssetFeatureToggles>({
     assetList: datasource.instanceSettings.jsonData?.featureToggles?.assetList ?? AssetFeatureTogglesDefaults.assetList,
     calibrationForecast: datasource.instanceSettings.jsonData?.featureToggles?.calibrationForecast ?? AssetFeatureTogglesDefaults.calibrationForecast,
@@ -55,13 +55,13 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
   }, [queryType]);
 
   useEffect(() => {
-    if (!query.queryType) {
+    if (!query.type) {
       const firstFilterOption = filterOptions.length > 0 ? filterOptions[0].value : undefined;
       if (firstFilterOption) {
         handleQueryTypeChange({ value: firstFilterOption });
       }
     }
-  }, [query.queryType, handleQueryTypeChange, filterOptions]);
+  }, [query.type, handleQueryTypeChange, filterOptions]);
 
   return (
     <div style={{ position: 'relative' }}>
@@ -73,21 +73,21 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
           width={85}
         />
       </InlineField>
-      {((assetFeatures.current.assetList && queryType === AssetQueryType.ListAssets) || (query.queryType === AssetQueryType.ListAssets)) && (
+      {((assetFeatures.current.assetList && queryType === AssetQueryType.ListAssets) || (query.type === AssetQueryType.ListAssets)) && (
         <ListAssetsEditor
           query={query as ListAssetsQuery}
           handleQueryChange={handleQueryChange}
           datasource={datasource.getListAssetsSource()}
         />
       )}
-      {((assetFeatures.current.calibrationForecast && queryType === AssetQueryType.CalibrationForecast) || (query.queryType === AssetQueryType.CalibrationForecast)) && (
+      {((assetFeatures.current.calibrationForecast && queryType === AssetQueryType.CalibrationForecast) || (query.type === AssetQueryType.CalibrationForecast)) && (
         <CalibrationForecastEditor
           query={query as CalibrationForecastQuery}
           handleQueryChange={handleQueryChange}
           datasource={datasource.getCalibrationForecastSource()}
         />
       )}
-      {((assetFeatures.current.assetSummary && queryType === AssetQueryType.AssetSummary) || (query.queryType === AssetQueryType.AssetSummary)) && (
+      {((assetFeatures.current.assetSummary && queryType === AssetQueryType.AssetSummary) || (query.type === AssetQueryType.AssetSummary)) && (
         <AssetSummaryEditor
           query={query as AssetSummaryQuery}
           handleQueryChange={handleQueryChange}
