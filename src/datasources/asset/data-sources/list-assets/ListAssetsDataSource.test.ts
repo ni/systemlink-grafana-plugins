@@ -1,5 +1,3 @@
-import { BackendSrv } from "@grafana/runtime";
-import { MockProxy } from "jest-mock-extended";
 import {
     getQueryBuilder,
     setupDataSource,
@@ -9,10 +7,10 @@ import { ListAssetsDataSource } from "./ListAssetsDataSource";
 import { ListAssetsQuery } from "../../types/ListAssets.types";
 import { ListAssetsFieldNames } from "../../constants/ListAssets.constants";
 
-let datastore: ListAssetsDataSource, backendServer: MockProxy<BackendSrv>
+let datastore: ListAssetsDataSource;
 
 beforeEach(() => {
-    [datastore, backendServer] = setupDataSource(ListAssetsDataSource);
+    [datastore] = setupDataSource(ListAssetsDataSource);
 });
 
 const buildListAssetsQuery = getQueryBuilder<ListAssetsQuery>()({
