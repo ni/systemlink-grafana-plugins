@@ -70,7 +70,7 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
           options={filterOptions}
           onChange={handleQueryTypeChange}
           value={queryType}
-          width={85}
+          width={65}
         />
       </InlineField>
       {((assetFeatures.current.assetList && queryType === AssetQueryType.ListAssets) || (query.type === AssetQueryType.ListAssets)) && (
