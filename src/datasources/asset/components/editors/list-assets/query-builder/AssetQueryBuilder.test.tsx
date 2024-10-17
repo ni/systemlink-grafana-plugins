@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 import { AssetQueryBuilder } from './AssetQueryBuilder';
 import { render } from '@testing-library/react';
 import { Workspace } from 'core/types';
-import { SystemMetadata } from 'datasources/system/types';
+import { SystemProperties } from 'datasources/system/types';
 
 describe('AssetQueryBuilder', () => {
   describe('useEffects', () => {
@@ -10,7 +10,7 @@ describe('AssetQueryBuilder', () => {
 
     const containerClass = 'smart-filter-group-condition-container';
 
-    function renderElement(workspaces: Workspace[], systems: SystemMetadata[], filter?: string) {
+    function renderElement(workspaces: Workspace[], systems: SystemProperties[], filter?: string) {
       reactNode = React.createElement(AssetQueryBuilder, {
         workspaces,
         systems,
@@ -33,7 +33,7 @@ describe('AssetQueryBuilder', () => {
 
     it('should select workspace in query builder', () => {
       const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
-      const system = { id: '1', alias: 'Selected system' } as SystemMetadata;
+      const system = { id: '1', alias: 'Selected system' } as SystemProperties;
       const { conditionsContainer } = renderElement([workspace], [system], 'Workspace = "1"');
 
       expect(conditionsContainer?.length).toBe(1);
@@ -42,7 +42,7 @@ describe('AssetQueryBuilder', () => {
 
     it('should select system in query builder', () => {
       const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
-      const system = { id: '1', alias: 'Selected system' } as SystemMetadata;
+      const system = { id: '1', alias: 'Selected system' } as SystemProperties;
 
       const { conditionsContainer } = renderElement([workspace], [system], 'Location.MinionId = "1"');
 

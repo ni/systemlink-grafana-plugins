@@ -1,4 +1,4 @@
-import { SystemMetadata } from "../datasources/system/types";
+import { SystemProperties } from "../datasources/system/types";
 
 export interface Workspace {
   id: string,
@@ -16,7 +16,7 @@ export interface QuerySystemsRequest {
 }
 
 export interface QuerySystemsResponse {
-  data: SystemMetadata[]
+  data: SystemProperties[]
   count: number
 }
 

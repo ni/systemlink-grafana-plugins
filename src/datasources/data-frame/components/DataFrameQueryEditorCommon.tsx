@@ -35,7 +35,7 @@ export class DataFrameQueryEditorCommon {
         ...this.query,
         tableId: item.value,
         columns: []
-      }, this.query.type === DataFrameQueryType.Metadata);
+      }, this.query.type === DataFrameQueryType.Properties);
     }
   };
 

@@ -2,7 +2,7 @@ import { DataFrameDTO, DataQueryRequest, TestDataSourceResponse } from "@grafana
 import { AssetDataSourceOptions, AssetQuery } from "../types/types";
 import { DataSourceBase } from "../../../core/DataSourceBase";
 import { defaultOrderBy, defaultProjection } from "../../system/constants";
-import { SystemMetadata } from "../../system/types";
+import { SystemProperties } from "../../system/types";
 import { parseErrorMessage } from "../../../core/errors";
 import { Workspace } from "../../../core/types";
 
@@ -15,7 +15,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
 
   public error = '';
 
-  public readonly systemAliasCache = new Map<string, SystemMetadata>([]);
+  public readonly systemAliasCache = new Map<string, SystemProperties>([]);
   public readonly workspacesCache = new Map<string, Workspace>([]);
 
   abstract runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
@@ -26,7 +26,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
     throw new Error("Method not implemented.");
   }
 
-  public async querySystems(filter = '', projection = defaultProjection): Promise<SystemMetadata[]> {
+  public async querySystems(filter = '', projection = defaultProjection): Promise<SystemProperties[]> {
     try {
       let response = await this.getSystems({
         filter: filter,
@@ -40,7 +40,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
     }
   }
 
-  public getCachedSystems(): SystemMetadata[] {
+  public getCachedSystems(): SystemProperties[] {
     return Array.from(this.systemAliasCache.values());
   }
   

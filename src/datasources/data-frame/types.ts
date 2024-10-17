@@ -3,7 +3,7 @@ import { SystemLinkError } from "../../core/types";
 
 export enum DataFrameQueryType {
   Data = 'Data',
-  Metadata = 'Metadata',
+  Properties = 'Properties',
 }
 
 export interface DataFrameQuery extends DataQuery {
@@ -49,7 +49,7 @@ export interface ColumnFilter {
   value: string | null;
 }
 
-export interface TableMetadata {
+export interface TableProperties {
   columns: Column[];
   id: string;
   name: string;
@@ -57,8 +57,8 @@ export interface TableMetadata {
   properties: Record<string, string>;
 }
 
-export interface TableMetadataList {
-  tables: TableMetadata[];
+export interface TablePropertiesList {
+  tables: TableProperties[];
   continuationToken: string;
 }
 
