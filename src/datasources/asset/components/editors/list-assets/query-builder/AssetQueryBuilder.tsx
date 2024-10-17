@@ -20,6 +20,7 @@ type AssetCalibrationQueryBuilderProps = QueryBuilderProps &
     filter?: string;
     workspaces: Workspace[];
     systems: SystemMetadata[];
+    globalVariableOptions: QueryBuilderOption[];
     areDependenciesLoaded: boolean;
   };
 
@@ -28,6 +29,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
   onChange,
   workspaces,
   systems,
+  globalVariableOptions,
   areDependenciesLoaded,
 }) => {
   const theme = useTheme2();
@@ -70,8 +72,15 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
     if (!areDependenciesLoaded) {
       return;
     }
-    
-    const fields = [workspaceField, locationField];
+
+    const fields = [workspaceField, locationField]
+      .map(field => {
+        if (field.lookup?.dataSource) {
+          field.lookup.dataSource = [...globalVariableOptions, ...field.lookup.dataSource];
+        }
+
+        return field;
+      });
 
     setFields(fields);
 
@@ -100,7 +109,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
       QueryBuilderOperations.CONTAINS,
       QueryBuilderOperations.DOES_NOT_CONTAIN,
     ]);
-  }, [workspaceField, locationField, areDependenciesLoaded]);
+  }, [workspaceField, locationField, areDependenciesLoaded, globalVariableOptions]);
 
   return (
     <QueryBuilder

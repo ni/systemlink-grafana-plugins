@@ -20,10 +20,11 @@ type CalibrationForecastQueryBuilderProps = QueryBuilderProps &
     filter?: string;
     workspaces: Workspace[];
     systems: SystemMetadata[];
+    globalVariableOptions: QueryBuilderOption[];
     areDependenciesLoaded: boolean;
   };
 
-export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryBuilderProps> = ({ filter, onChange, workspaces, systems, areDependenciesLoaded }) => {
+export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryBuilderProps> = ({ filter, onChange, workspaces, systems, globalVariableOptions, areDependenciesLoaded }) => {
   const theme = useTheme2();
   document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
 
@@ -62,7 +63,14 @@ export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryB
 
   useEffect(() => {
     if (areDependenciesLoaded) {
-      const fields = [workspaceField, locationField, ...AssetCalibrationStaticFields];
+      const fields = [workspaceField, locationField, ...AssetCalibrationStaticFields]
+        .map(field => {
+          if (field.lookup?.dataSource) {
+            field.lookup.dataSource = [...globalVariableOptions, ...field.lookup.dataSource];
+          }
+
+          return field;
+        });
 
       setFields(fields);
 
@@ -92,7 +100,7 @@ export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryB
         QueryBuilderOperations.DOES_NOT_CONTAIN,
       ]);
     }
-  }, [workspaceField, locationField, areDependenciesLoaded]);
+  }, [workspaceField, locationField, areDependenciesLoaded, globalVariableOptions]);
 
   return (
     <QueryBuilder

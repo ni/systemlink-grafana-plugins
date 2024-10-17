@@ -44,6 +44,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
         filter={query.filter}
         workspaces={workspaces}
         systems={systems}
+        globalVariableOptions={datasource.globalVariableOptions}
         areDependenciesLoaded={areDependenciesLoaded}
         onChange={(event: any) => onParameterChange(event)}
       ></AssetQueryBuilder>
