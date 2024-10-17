@@ -12,18 +12,28 @@ import {
   setupDataSource,
 } from 'test/fixtures';
 import { TagDataSource } from './TagDataSource';
-import { TagQuery, TagQueryType, TagWithValue, TagDataType } from './types';
+import { TagQuery, TagQueryType, TagWithValue, TagDataType, TagDataSourceOptions } from './types';
 
 let ds: TagDataSource, backendSrv: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
+let tagOptions: TagDataSourceOptions = {
+  featureToggles: {
+    parseMultiSelectValues: false,
+  }
+}
 
 beforeEach(() => {
-  [ds, backendSrv, templateSrv] = setupDataSource(TagDataSource);
+  [ds, backendSrv, templateSrv] = setupDataSource(TagDataSource, () => tagOptions);
 });
 
 const buildQuery = getQueryBuilder<TagQuery>()({ type: TagQueryType.Current, workspace: '', properties: false });
 mockTimers();
 
+
 describe('testDatasource', () => {
+  beforeEach(() => {
+    tagOptions.featureToggles.parseMultiSelectValues = false;
+  });
+
   test('returns success', async () => {
     backendSrv.fetch
       .calledWith(requestMatching({ url: '/nitag/v2/tags-count' }))
@@ -490,6 +500,380 @@ describe('queries', () => {
     await ds.query(buildQuery({ path: 'my.tag', type: TagQueryType.History }));
 
     expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('workspace', '1');
+  });
+
+  test('supports legacy tag service property "datatype"', async () => {
+    backendSrv.fetch.mockReturnValueOnce(
+      createFetchResponse({
+        tagsWithValues: [
+          {
+            current: { value: { value: '3.14' }, timestamp: '2023-10-04T00:00:00.000000Z' },
+            tag: { datatype: 'DOUBLE', path: 'my.tag', workspace_id: '1' },
+          },
+        ],
+      })
+    );
+
+    const result = await ds.query(buildQuery({ path: 'my.tag' }));
+
+    expect(result.data).toMatchSnapshot();
+  });
+});
+
+describe('parseMultiSelectValues', () => {
+
+  beforeEach(() => {
+    tagOptions.featureToggles.parseMultiSelectValues = true;
+  });
+
+  test('tag current value', async () => {
+    backendSrv.fetch
+      .calledWith(requestMatching({ url: '/nitag/v2/query-tags-with-values', data: { filter: 'path = "my.tag"' } }))
+      .mockReturnValue(createQueryTagsResponse());
+
+    const result = await ds.query(buildQuery({ path: 'my.tag' }));
+
+    expect(result.data).toMatchSnapshot();
+  });
+
+  test('handles tag with no current value', async () => {
+    backendSrv.fetch.mockReturnValue(createQueryTagsResponse([{ tag: {}, current: null }]));
+
+    const result = await ds.query(buildQuery({ path: 'my.tag' }));
+
+    expect(result.data).toMatchSnapshot();
+  });
+
+  test('multiple targets - skips invalid queries', async () => {
+    backendSrv.fetch
+      .calledWith(requestMatching({ data: { filter: '(path = "my.tag1")' } }))
+      .mockReturnValue(createQueryTagsResponse([{ tag: { path: 'my.tag1' } }]));
+    backendSrv.fetch
+      .calledWith(requestMatching({ data: { filter: '(path = "my.tag2")' } }))
+      .mockReturnValue(createQueryTagsResponse([{ tag: { path: 'my.tag2' }, current: { value: { value: '41.3' } } }]));
+
+    const result = await ds.query(buildQuery({ path: 'my.tag1' }, { path: '' }, { path: 'my.tag2' }));
+
+    expect(result.data).toMatchSnapshot();
+  });
+
+  test('throw when no tags matched', async () => {
+    backendSrv.fetch.mockReturnValue(createQueryTagsResponse([]));
+
+    await expect(ds.query(buildQuery({ path: 'my.tag' }))).rejects.toThrow("No tags matched the path 'my.tag'");
+  });
+
+  test('numeric tag history', async () => {
+    const queryRequest = buildQuery({ type: TagQueryType.History, path: 'my.tag' });
+
+    backendSrv.fetch
+      .calledWith(requestMatching({ url: '/nitag/v2/query-tags-with-values', data: { filter: '(path = "my.tag")' } }))
+      .mockReturnValue(createQueryTagsResponse());
+
+    backendSrv.fetch
+      .calledWith(
+        requestMatching({
+          url: '/nitaghistorian/v2/tags/query-decimated-history',
+          data: {
+            paths: ['my.tag'],
+            workspace: '1',
+            startTime: queryRequest.range.from.toISOString(),
+            endTime: queryRequest.range.to.toISOString(),
+            decimation: 300,
+          },
+        })
+      )
+      .mockReturnValue(
+        createTagHistoryResponse([
+          {
+            path: 'my.tag',
+            type: TagDataType.DOUBLE,
+            values: [
+              { timestamp: '2023-01-01T00:00:00Z', value: '1' },
+              { timestamp: '2023-01-01T00:01:00Z', value: '2' },
+            ]
+          }
+        ])
+      );
+
+    const result = await ds.query(queryRequest);
+
+    expect(result.data).toMatchSnapshot();
+  });
+
+  test('numeric multiple tags history', async () => {
+    const queryRequest = buildQuery({ type: TagQueryType.History, path: 'my.tag.*' });
+
+    backendSrv.fetch
+      .calledWith(requestMatching({ url: '/nitag/v2/query-tags-with-values', data: { filter: '(path = "my.tag.*")' } }))
+      .mockReturnValue(createQueryTagsResponse([
+        { tag: { path: 'my.tag.1' } },
+        { tag: { path: 'my.tag.2' } },
+        { tag: { path: 'my.tag.3' } }
+      ]));
+
+    backendSrv.fetch
+      .calledWith(
+        requestMatching({
+          url: '/nitaghistorian/v2/tags/query-decimated-history',
+          data: {
+            paths: ['my.tag.1', 'my.tag.2', 'my.tag.3'],
+            workspace: '1',
+            startTime: queryRequest.range.from.toISOString(),
+            endTime: queryRequest.range.to.toISOString(),
+            decimation: 300,
+          },
+        })
+      )
+      .mockReturnValue(
+        createTagHistoryResponse([
+          {
+            path: 'my.tag.1',
+            type: TagDataType.DOUBLE,
+            values: [
+              { timestamp: '2023-01-01T00:00:00Z', value: '1' },
+              { timestamp: '2023-01-01T00:01:00Z', value: '2' },
+            ]
+          },
+          {
+            path: 'my.tag.2',
+            type: TagDataType.DOUBLE,
+            values: [
+              { timestamp: '2023-01-01T00:00:00Z', value: '2' },
+              { timestamp: '2023-01-01T00:01:00Z', value: '3' },
+            ]
+          },
+          {
+            path: 'my.tag.3',
+            type: TagDataType.DOUBLE,
+            values: [
+              { timestamp: '2023-01-01T00:00:00Z', value: '3' },
+              { timestamp: '2023-01-01T00:02:00Z', value: '4' },
+            ]
+          }
+        ])
+      );
+
+    const result = await ds.query(queryRequest);
+
+    expect(result.data).toMatchSnapshot();
+  });
+
+  test('add workspace prefix only when a tag with the same path exists in multiple workspaces', async () => {
+    const queryRequest = buildQuery({ type: TagQueryType.History, path: 'my.tag.*' });
+
+    backendSrv.fetch
+      .calledWith(requestMatching({ url: '/nitag/v2/query-tags-with-values', data: { filter: '(path = "my.tag.*")' } }))
+      .mockReturnValue(createQueryTagsResponse([
+        { tag: { path: 'my.tag.1', workspace: '1' } },
+        { tag: { path: 'my.tag.2', workspace: '1' } },
+        { tag: { path: 'my.tag.1', workspace: '2' } },
+        { tag: { path: 'my.tag.2', workspace: '2' } },
+        { tag: { path: 'my.tag.3', workspace: '2' } },
+        { tag: { path: 'my.tag.4', workspace: '2' } }
+      ]));
+
+    backendSrv.fetch
+      .calledWith(
+        requestMatching({
+          url: '/nitaghistorian/v2/tags/query-decimated-history',
+          data: {
+            paths: ['my.tag.1', 'my.tag.2'],
+            workspace: '1',
+            startTime: queryRequest.range.from.toISOString(),
+            endTime: queryRequest.range.to.toISOString(),
+            decimation: 300,
+          },
+        })
+      )
+      .mockReturnValue(
+        createTagHistoryResponse([
+          {
+            path: 'my.tag.1',
+            type: TagDataType.DOUBLE,
+            values: [
+              { timestamp: '2023-01-01T00:00:00Z', value: '1' },
+              { timestamp: '2023-01-01T00:01:00Z', value: '2' },
+            ],
+          },
+          {
+            path: 'my.tag.2',
+            type: TagDataType.DOUBLE,
+            values: [
+              { timestamp: '2023-01-01T00:00:00Z', value: '2' },
+              { timestamp: '2023-01-01T00:01:00Z', value: '3' },
+            ]
+          }
+        ])
+      )
+
+    backendSrv.fetch.calledWith(
+      requestMatching({
+        url: '/nitaghistorian/v2/tags/query-decimated-history',
+        data: {
+          paths: ['my.tag.1', 'my.tag.2', 'my.tag.3', 'my.tag.4'],
+          workspace: '2',
+          startTime: queryRequest.range.from.toISOString(),
+          endTime: queryRequest.range.to.toISOString(),
+          decimation: 300,
+        },
+      })
+    )
+      .mockReturnValue(
+        createTagHistoryResponse([
+          {
+            path: 'my.tag.1',
+            type: TagDataType.DOUBLE,
+            values: [
+              { timestamp: '2023-01-01T00:00:00Z', value: '1' },
+              { timestamp: '2023-01-01T00:01:00Z', value: '2' },
+            ],
+          },
+          {
+            path: 'my.tag.2',
+            type: TagDataType.DOUBLE,
+            values: [
+              { timestamp: '2023-01-01T00:00:00Z', value: '2' },
+              { timestamp: '2023-01-01T00:01:00Z', value: '3' },
+            ]
+          },
+          {
+            path: 'my.tag.3',
+            type: TagDataType.DOUBLE,
+            values: [
+              { timestamp: '2023-01-01T00:00:00Z', value: '3' },
+              { timestamp: '2023-01-01T00:01:00Z', value: '4' },
+            ],
+          },
+          {
+            path: 'my.tag.4',
+            type: TagDataType.DOUBLE,
+            values: [
+              { timestamp: '2023-01-01T00:00:00Z', value: '4' },
+              { timestamp: '2023-01-01T00:01:00Z', value: '5' },
+            ]
+          }
+        ])
+      )
+
+    const result = await ds.query(queryRequest);
+
+    expect(result.data).toMatchSnapshot();
+  });
+
+  test('replaces tag path with variable', async () => {
+    templateSrv.containsTemplate
+      .calledWith('$my_variable')
+      .mockReturnValue(true)
+    templateSrv.replace
+      .calledWith(
+        '$my_variable',
+        undefined,
+        expect.any(Function)
+      )
+      .mockReturnValue('my.tag');
+    backendSrv.fetch
+      .calledWith(requestMatching({ url: '/nitag/v2/query-tags-with-values', data: { filter: '(path = "my.tag")' } }))
+      .mockReturnValue(createQueryTagsResponse());
+
+    const result = await ds.query(buildQuery({ type: TagQueryType.Current, path: '$my_variable' }));
+
+    expect(result.data).toMatchSnapshot();
+  });
+
+  test('replaces tag path with multi select variable', async () => {
+    templateSrv.containsTemplate
+      .calledWith('localhost.Health.CPU.$cpu.UsePercentage')
+      .mockReturnValue(true)
+    templateSrv.replace
+      .calledWith(
+        'localhost.Health.CPU.$cpu.UsePercentage',
+        undefined,
+        expect.any(Function)
+      )
+      .mockReturnValue('localhost.Health.CPU.{1,2}.UsePercentage');
+    backendSrv.fetch
+      .calledWith(requestMatching({
+        url: '/nitag/v2/query-tags-with-values', data: {
+          filter: '(path = "localhost.Health.CPU.1.UsePercentage" or path = "localhost.Health.CPU.2.UsePercentage")'
+        }
+      }))
+      .mockReturnValue(createQueryTagsResponse());
+
+    const result = await ds.query(buildQuery({
+      type: TagQueryType.Current,
+      path: 'localhost.Health.CPU.$cpu.UsePercentage'
+    }));
+
+    expect(result.data).toMatchSnapshot();
+  });
+
+  test('replaces tag path with two multi select variable', async () => {
+    templateSrv.containsTemplate
+      .calledWith('localhost.Health.$var1.$var2')
+      .mockReturnValue(true)
+    templateSrv.replace
+      .calledWith(
+        'localhost.Health.$var1.$var2',
+        undefined,
+        expect.any(Function)
+      )
+      .mockReturnValue('localhost.Health.{Disk,Memory}.{Used,Total}');
+    backendSrv.fetch
+      .calledWith(requestMatching({
+        url: '/nitag/v2/query-tags-with-values', data: {
+          filter: '(path = "localhost.Health.Disk.Used" or path = "localhost.Health.Disk.Total" or path = "localhost.Health.Memory.Used" or path = "localhost.Health.Memory.Total")'
+        }
+      }))
+      .mockReturnValue(createQueryTagsResponse());
+
+    const result = await ds.query(buildQuery({
+      type: TagQueryType.Current,
+      path: 'localhost.Health.$var1.$var2'
+    }));
+
+    expect(result.data).toMatchSnapshot();
+  });
+
+  test('filters by workspace if provided', async () => {
+    backendSrv.fetch.mockReturnValueOnce(createQueryTagsResponse([{ tag: { workspace: '2' } }]));
+    backendSrv.fetch.mockReturnValueOnce(createTagHistoryResponse([{
+      path: 'my.tag',
+      type: TagDataType.DOUBLE,
+      values: []
+    }
+    ]));
+
+    await ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag', workspace: '2' }));
+
+    expect(backendSrv.fetch.mock.calls[0][0].data).toHaveProperty('filter', '(path = "my.tag") && workspace = "2"');
+    expect(backendSrv.fetch.mock.calls[1][0].data).toHaveProperty('workspace', '2');
+  });
+
+  test('appends tag properties to query result', async () => {
+    backendSrv.fetch.mockReturnValue(createQueryTagsResponse([{
+      tag: {
+        properties: {
+          nitagHistoryTTLDays: '7',
+          foo: 'bar'
+        }
+      }
+    }]));
+
+    const result = await ds.query(buildQuery({ path: 'my.tag', properties: true }));
+
+    expect(result.data).toMatchSnapshot();
+  });
+
+  test('attempts to replace variables in history query', async () => {
+    const workspaceVariable = '$workspace';
+    backendSrv.fetch.mockReturnValueOnce(createQueryTagsResponse());
+    templateSrv.replace.calledWith(workspaceVariable).mockReturnValue('1');
+
+    await ds.query(buildQuery({ path: 'my.tag', workspace: workspaceVariable }));
+
+    expect(templateSrv.replace).toHaveBeenCalledTimes(1);
+    expect(templateSrv.replace.mock.calls[0][0]).toBe(workspaceVariable);
   });
 
   test('supports legacy tag service property "datatype"', async () => {
