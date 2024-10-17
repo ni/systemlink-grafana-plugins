@@ -5,8 +5,8 @@ import { AssetDataSourceBase } from '../AssetDataSourceBase';
 import { AssetCalibrationForecastKey, AssetCalibrationTimeBasedGroupByType, AssetType, AssetTypeOptions, BusType, BusTypeOptions, CalibrationForecastQuery, CalibrationForecastResponse, ColumnDescriptorType, FieldDTOWithDescriptor } from '../../types/CalibrationForecastQuery.types';
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
 import { AssetModel, AssetsResponse } from '../../../asset-common/types';
-import { AssetCalibrationFieldNames } from '../../constants';
 import { QueryBuilderOperations } from '../../../../core/query-builder.constants';
+import { AssetCalibrationFieldNames } from '../../constants/CalibrationForecastQuery.constants';
 
 export class CalibrationForecastDataSource extends AssetDataSourceBase {
     private dependenciesLoadedPromise: Promise<void>;
