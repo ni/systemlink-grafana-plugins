@@ -1,7 +1,5 @@
 import { DataQuery } from '@grafana/schema'
-import { QueryBuilderOperations } from '../../../core/query-builder.constants';
 import { AssetQueryType } from './types';
-import { QBField } from './CalibrationForecastQuery.types';
 
 export interface ListAssetsQuery extends DataQuery {
     queryType: AssetQueryType;
@@ -39,31 +37,6 @@ export enum AssetFilterProperties {
     IsSystemController = 'IsSystemController',
     Workspace = 'Workspace'
 }
-
-export const ListAssetsFields: Record<string, QBField> = {
-    LOCATION: {
-        label: 'Location',
-        dataField: AssetFilterProperties.LocationMinionId,
-        filterOperations: [
-            QueryBuilderOperations.EQUALS.name,
-            QueryBuilderOperations.DOES_NOT_EQUAL.name
-        ],
-        lookup: {
-            dataSource: []
-        }
-    },
-    WORKSPACE: {
-        label: 'Workspace',
-        dataField: AssetFilterProperties.Workspace,
-        filterOperations: [
-            QueryBuilderOperations.EQUALS.name,
-            QueryBuilderOperations.DOES_NOT_EQUAL.name
-        ],
-        lookup: {
-            dataSource: []
-        }
-    }
-};
 
 export enum EntityType {
     Asset = "Asset",

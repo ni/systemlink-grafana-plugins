@@ -44,7 +44,7 @@ describe('AssetQueryBuilder', () => {
       const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
       const system = { id: '1', alias: 'Selected system' } as SystemMetadata;
 
-      const { conditionsContainer } = renderElement([workspace], [system], 'Location.MinionId = "1"');
+      const { conditionsContainer } = renderElement([workspace], [system], 'Location = "1"');
 
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain(system.alias);

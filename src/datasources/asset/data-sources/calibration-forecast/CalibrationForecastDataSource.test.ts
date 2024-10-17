@@ -12,7 +12,7 @@ import { dateTime } from "@grafana/data";
 import { AssetCalibrationPropertyGroupByType, AssetCalibrationTimeBasedGroupByType, AssetType, BusType, CalibrationForecastQuery, CalibrationForecastResponse, ColumnDescriptorType } from "../../types/CalibrationForecastQuery.types";
 import { CalibrationForecastDataSource } from "./CalibrationForecastDataSource";
 import { AssetQueryType } from "../../types/types";
-import { AssetCalibrationFieldNames } from "../../constants";
+import { AssetCalibrationFieldNames } from "../../constants/CalibrationForecastQuery.constants";
 
 let datastore: CalibrationForecastDataSource, backendServer: MockProxy<BackendSrv>
 

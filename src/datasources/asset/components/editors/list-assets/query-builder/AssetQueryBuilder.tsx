@@ -12,8 +12,8 @@ import { Workspace, QueryBuilderOption } from 'core/types';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
 import { SystemMetadata } from 'datasources/system/types';
-import { ListAssetsFields } from '../../../../types/ListAssets.types';
 import { QBField } from '../../../../types/CalibrationForecastQuery.types';
+import { ListAssetsFields } from '../../../../constants/ListAssets.constants';
 
 type AssetCalibrationQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
