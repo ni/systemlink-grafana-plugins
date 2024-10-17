@@ -87,3 +87,5 @@ export const assetSummaryFields = {
     APPROACHING_DUE_DATE: 'Approaching due date',
     PAST_DUE_DATE: 'Past due date'
 };
+
+export const QUERY_LIMIT = 1000;

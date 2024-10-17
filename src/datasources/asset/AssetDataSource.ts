@@ -19,6 +19,7 @@ import { ListAssetsQuery } from './types/ListAssets.types';
 import { ListAssetsDataSource } from './data-sources/list-assets/ListAssetsDataSource';
 import { AssetSummaryDataSource } from './data-sources/asset-summary/AssetSummaryDataSource';
 import { AssetModel } from 'datasources/asset-common/types';
+import { QUERY_LIMIT } from './constants';
 
 export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
   private assetSummaryDataSource: AssetSummaryDataSource;
@@ -86,9 +87,8 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
   }
 
   async metricFindQuery(query: AssetQuery): Promise<MetricFindValue[]> {
-    console.log(query);
-    const assetFilter = query as ListAssetsQuery;
-    const assetsResponse: AssetModel[] = await this.getListAssetsSource().queryAssets(assetFilter?.filter ?? '', 1000);
+    const assetFilter = (query as ListAssetsQuery)?.filter ?? '';
+    const assetsResponse: AssetModel[] = await this.listAssetsDataSource.queryAssets(assetFilter, QUERY_LIMIT);
     return assetsResponse.map((asset: AssetModel) => ({ text: asset.name, value: `Asset.${asset.vendorName}.${asset.modelName}.${asset.serialNumber}` }));
   }
 }
