@@ -11,7 +11,6 @@ import { ListAssetsQuery } from 'datasources/asset/types/ListAssets.types';
 type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOptions>;
 
 export function AssetVariableQueryEditor({ datasource, query, onChange }: Props) {
-  const [errorMsg] = useState<string | undefined>('');
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [systems, setSystems] = useState<SystemMetadata[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
@@ -41,7 +40,7 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
         areDependenciesLoaded={areDependenciesLoaded}
         onChange={(event: any) => onParameterChange(event)}
       ></AssetQueryBuilder>
-      <FloatingError message={errorMsg} />
+      <FloatingError message={assetListDatasource.current.error} />
     </div>
   );
 }
