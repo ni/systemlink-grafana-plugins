@@ -1,3 +1,9 @@
+## [3.29.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.28.0...v3.29.0) (2024-10-17)
+
+### Features
+
+* **asset:** add support for grafana variables for list assets ([#91](https://github.com/ni/systemlink-grafana-plugins/issues/91)) ([0cdc52e](https://github.com/ni/systemlink-grafana-plugins/commit/0cdc52eacae0960ccabf691738211777ef1aaa9a))
+
 ## [3.28.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.27.0...v3.28.0) (2024-10-17)
 
 ### Features
