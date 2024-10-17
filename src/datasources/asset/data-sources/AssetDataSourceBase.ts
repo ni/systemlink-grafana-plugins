@@ -5,6 +5,9 @@ import { defaultOrderBy, defaultProjection } from "../../system/constants";
 import { SystemMetadata } from "../../system/types";
 import { parseErrorMessage } from "../../../core/errors";
 import { Workspace } from "../../../core/types";
+import { ExpressionTransformFunction } from "../../../core/query-builder.utils";
+import { QueryBuilderOperations } from "../../../core/query-builder.constants";
+import { AllFieldNames } from "../constants/constants";
 
 export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
   private systemsLoaded!: () => void;
@@ -83,5 +86,56 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
     workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
 
     this.workspacesLeaded();
+  }
+
+  protected readonly queryTransformationOptions = new Map<string, Map<string, unknown>>([
+    [AllFieldNames.LOCATION, this.systemAliasCache]
+  ]);
+
+  protected readonly assetComputedDataFields = new Map<string, ExpressionTransformFunction>([
+    ...Object.values(AllFieldNames).map(field => [field, this.multipleValuesQuery(field)] as [string, ExpressionTransformFunction]),
+    [
+      AllFieldNames.LOCATION,
+      (value: string, operation: string, options?: Map<string, unknown>) => {
+        let values = [value];
+
+        if (this.isMultiSelectValue(value)) {
+          values = this.getMultipleValuesArray(value);
+        }
+
+        if (values.length > 1) {
+          return `(${values.map(val => `Location.MinionId ${operation} "${val}"`).join(` ${this.getLocicalOperator(operation)} `)})`;
+        }
+
+        if (options?.has(value)) {
+          return `Location.MinionId ${operation} "${value}"`
+        }
+
+        return `(Location.MinionId ${operation} "${value}" ${this.getLocicalOperator(operation)} Location.PhysicalLocation ${operation} "${value}")`;
+  }]]);
+
+  protected multipleValuesQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string, _options?: any) => {
+      if (this.isMultiSelectValue(value)) {
+        const query = this.getMultipleValuesArray(value)
+          .map(val => `${field} ${operation} "${val}"`)
+          .join(` ${this.getLocicalOperator(operation)} `);
+        return `(${query})`;
+      }
+
+      return `${field} ${operation} "${value}"`
+    }
+  }
+
+  private isMultiSelectValue(value: string): boolean {
+    return value.startsWith('{') && value.endsWith('}');
+  }
+
+  private getMultipleValuesArray(value: string): string[] {
+    return value.replace(/({|})/g, '').split(',');
+  }
+
+  private getLocicalOperator(operation: string): string {
+    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
   }
 }

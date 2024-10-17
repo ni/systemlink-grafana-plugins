@@ -5,9 +5,7 @@ import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../types/
 import { ListAssetsQuery } from '../../types/ListAssets.types';
 import { AssetModel, AssetsResponse } from '../../../asset-common/types';
 import { getWorkspaceName } from '../../../../core/utils';
-import { ExpressionTransformFunction, transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
-import { ListAssetsFieldNames } from '../../constants/ListAssets.constants';
-import { QueryBuilderOperations } from '../../../../core/query-builder.constants';
+import { transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
 
 export class ListAssetsDataSource extends AssetDataSourceBase {
   private dependenciesLoadedPromise: Promise<void>;
@@ -77,58 +75,5 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
     } catch (error) {
       throw new Error(`An error occurred while querying assets: ${error}`);
     }
-  }
-
-  private readonly queryTransformationOptions = new Map<ListAssetsFieldNames, Map<string, unknown>>([
-    [ListAssetsFieldNames.LOCATION, this.systemAliasCache]
-  ]);
-
-    protected readonly assetComputedDataFields = new Map<ListAssetsFieldNames, ExpressionTransformFunction>([
-        ...Object.values(ListAssetsFieldNames).map(field => [field, this.multipleValuesQuery(field)] as [ListAssetsFieldNames, ExpressionTransformFunction]),
-        [
-            ListAssetsFieldNames.LOCATION,
-            (value: string, operation: string, options?: Map<string, unknown>) => {
-                let values = [value];
-
-                if (this.isMultiSelectValue(value)) {
-                    values = this.getMultipleValuesArray(value);
-                }
-
-                if (values.length > 1) {
-                    return `(${values.map(val => `Location.MinionId ${operation} "${val}"`).join(` ${this.getLocicalOperator(operation)} `)})`;
-                }
-
-                if (options?.has(value)) {
-                    return `Location.MinionId ${operation} "${value}"`
-                }
-
-                return `(Location.MinionId ${operation} "${value}" ${this.getLocicalOperator(operation)} Location.PhysicalLocation ${operation} "${value}")`;
-            }
-        ]
-    ]);
-
-  protected multipleValuesQuery(field: ListAssetsFieldNames): ExpressionTransformFunction {
-    return (value: string, operation: string, _options?: any) => {
-      if (this.isMultiSelectValue(value)) {
-        const query = this.getMultipleValuesArray(value)
-          .map(val => `${field} ${operation} "${val}"`)
-          .join(` ${this.getLocicalOperator(operation)} `);
-        return `(${query})`;
-      }
-
-      return `${field} ${operation} "${value}"`
-    }
-  }
-
-  private isMultiSelectValue(value: string): boolean {
-    return value.startsWith('{') && value.endsWith('}');
-  }
-
-  private getMultipleValuesArray(value: string): string[] {
-    return value.replace(/({|})/g, '').split(',');
-  }
-
-  private getLocicalOperator(operation: string): string {
-    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
   }
 }
