@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { setupRenderer } from "test/fixtures";
 import { SystemDataSource } from "../SystemDataSource";
 import { SystemQueryEditor } from "./SystemQueryEditor";
@@ -7,18 +7,18 @@ import userEvent from '@testing-library/user-event';
 
 const render = setupRenderer(SystemQueryEditor, SystemDataSource);
 
-it('renders with query defaults', () => {
+it('renders with query defaults', async () => {
   render({} as SystemQuery);
 
-  expect(screen.getByRole('radio', { name: 'Summary' })).toBeChecked();
-  expect(screen.queryByLabelText('System')).not.toBeInTheDocument();
+  await waitFor(() => expect(screen.getByRole('radio', { name: 'Summary' })).toBeChecked());
+  await waitFor(() => expect(screen.queryByLabelText('System')).not.toBeInTheDocument());
 });
 
 it('renders with saved metadata query', async () => {
   render({ queryKind: SystemQueryType.Metadata, systemName: 'my-system', workspace: '' });
 
-  expect(screen.getByRole('radio', { name: 'Metadata' })).toBeChecked();
-  expect(screen.queryByLabelText('System')).toHaveValue('my-system');
+  await waitFor(() => expect(screen.getByRole('radio', { name: 'Metadata' })).toBeChecked());
+  await waitFor(() => expect(screen.queryByLabelText('System')).toHaveValue('my-system'));
 });
 
 it('updates when user interacts with fields', async () => {
@@ -26,10 +26,10 @@ it('updates when user interacts with fields', async () => {
 
   // User changes query type
   await userEvent.click(screen.getByRole('radio', { name: 'Metadata' }));
-  expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ queryKind: SystemQueryType.Metadata }));
-  expect(screen.getByPlaceholderText('All systems')).toBeInTheDocument();
+  await waitFor(() => expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ queryKind: SystemQueryType.Metadata })));
+  await waitFor(() => expect(screen.getByPlaceholderText('All systems')).toBeInTheDocument());
 
   // User types system name
   await userEvent.type(screen.getByLabelText('System'), 'my-system{enter}');
-  expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ systemName: 'my-system' }));
+  await waitFor(() => expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ systemName: 'my-system' })));
 });

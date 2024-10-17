@@ -1,6 +1,7 @@
 import { DataSourceJsonData } from "@grafana/data";
 import { DataQuery } from "@grafana/schema";
 
+
 export enum AssetQueryType {
   None = "",
   ListAssets = "List Assets",
