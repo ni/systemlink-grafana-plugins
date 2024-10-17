@@ -1,6 +1,5 @@
 import { QueryBuilderCustomOperation } from "smart-webcomponents-react";
 import { QueryBuilderOption } from "./types";
-import TTLCache from "@isaacs/ttlcache";
 
 /**
  * Should be used when looking to build a custom expression for a field
@@ -9,7 +8,7 @@ import TTLCache from "@isaacs/ttlcache";
  * @param options The options to be used in the transformation
  * @returns The transformed value
  */
-export type ExpressionTransformFunction = (value: string, operation: string, options?: TTLCache<string, unknown>) => string;
+export type ExpressionTransformFunction = (value: string, operation: string, options?: Map<string, unknown>) => string;
 
 /**
  * Supported operations for computed fields
@@ -27,7 +26,7 @@ export const computedFieldsupportedOperations = ['=', '!='];
 export function transformComputedFieldsQuery(
   query: string,
   computedDataFields: Map<string, ExpressionTransformFunction>,
-  options?: Map<string, TTLCache<string, unknown>>
+  options?: Map<string, Map<string, unknown>>
 ) {
   for (const [field, transformation] of computedDataFields.entries()) {
     const regex = new RegExp(`\\b${field}\\s*(${computedFieldsupportedOperations.join('|')})\\s*"([^"]*)"`, 'g');

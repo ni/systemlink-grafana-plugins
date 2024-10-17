@@ -1,12 +1,11 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { AssetQuery } from '../../types/types';
 import { SystemMetadata } from '../../../system/types'
-import { ListAssetsDataSource } from '../editors/list-assets/ListAssetsDataSource';
-import { AssetDataSource } from 'datasources/asset/AssetDataSource';
 import { AssetVariableQueryEditor } from './AssetVariableQueryEditor';
 import { Workspace } from 'core/types';
-import React from 'react';
-import { setupDataSource } from 'test/fixtures';
+import { setupRenderer } from 'test/fixtures';
+import { ListAssetsDataSource } from '../../data-sources/list-assets/ListAssetsDataSource';
+import { AssetDataSource } from 'datasources/asset/AssetDataSource';
 
 const fakeSystems: SystemMetadata[] = [
     {
@@ -51,20 +50,10 @@ class FakeAssetDataSource extends AssetDataSource {
     }
 }
 
-const renderComponent = (dataSource: AssetDataSource, onChange: () => void, onRunQuery: () => void) => {
-    return (query: AssetQuery) => {
-        act(() => {
-            render(<AssetVariableQueryEditor datasource={dataSource} onChange={onChange} onRunQuery={onRunQuery} query={query} />);
-        });
-    };
-};
-
-const [ds, ,] = setupDataSource(FakeAssetDataSource);
-
-const renderQueryChange = renderComponent(ds, () => { }, () => { });
+const render = setupRenderer(AssetVariableQueryEditor, FakeAssetDataSource, () => {});
 
 it('renders the variable query builder', async () => {
-    renderQueryChange({ filter: "" } as AssetQuery);
+    render({ filter: "" } as AssetQuery);
 
     await waitFor(() => expect(screen.getAllByText('Property').length).toBe(1));
     await waitFor(() => expect(screen.getAllByText('Operator').length).toBe(1));

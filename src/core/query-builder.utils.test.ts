@@ -1,5 +1,4 @@
 import { expressionBuilderCallback, expressionReaderCallback, ExpressionTransformFunction, transformComputedFieldsQuery } from "./query-builder.utils"
-import TTLCache from "@isaacs/ttlcache";
 
 describe('QueryBuilderUtils', () => {
   describe('transformComputedFieldsQuery', () => {
@@ -50,9 +49,9 @@ describe('QueryBuilderUtils', () => {
     });
 
     it('should handle options correctly', () => {
-      const options = new Map<string, TTLCache<string, unknown>>();
-      const cache = new TTLCache<string, unknown>();
-      cache.set('key', 'value', { ttl: 1 });
+      const options = new Map<string, Map<string, unknown>>();
+      const cache = new Map<string, unknown>();
+      cache.set('key', 'value');
       options.set('Object1', cache);
 
       const query = 'Object1 = "value1"';

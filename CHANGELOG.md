@@ -1,3 +1,15 @@
+## [3.28.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.27.0...v3.28.0) (2024-10-17)
+
+### Features
+
+* **asset:** merge asset & asset-calibration plugins ([#88](https://github.com/ni/systemlink-grafana-plugins/issues/88)) ([b327c8c](https://github.com/ni/systemlink-grafana-plugins/commit/b327c8c418e213516998bc17b500b1bc61739267))
+
+## [3.27.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.26.0...v3.27.0) (2024-10-17)
+
+### Features
+
+* **asset:** load dependencies only once, change ttlcache to map ([#81](https://github.com/ni/systemlink-grafana-plugins/issues/81)) ([d17bfa1](https://github.com/ni/systemlink-grafana-plugins/commit/d17bfa1789c7f0cb571bef423cda81bf54cac1d7))
+
 ## [3.26.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.25.0...v3.26.0) (2024-10-15)
 
 ### Features
