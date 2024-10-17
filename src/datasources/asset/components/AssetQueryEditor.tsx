@@ -34,13 +34,13 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
     setQueryType(item.value!);
   
     if (item.value === AssetQueryType.ListAssets && assetFeatures.current.assetList) {
-      handleQueryChange({ ...query, queryType: AssetQueryType.ListAssets, ...defaultListAssetsQuery }, true);
+      handleQueryChange({ ...query, type: AssetQueryType.ListAssets, ...defaultListAssetsQuery }, true);
     }
     if (item.value === AssetQueryType.CalibrationForecast && assetFeatures.current.calibrationForecast) {
-      handleQueryChange({ ...query, queryType: AssetQueryType.CalibrationForecast, ...defaultCalibrationForecastQuery }, true);
+      handleQueryChange({ ...query, type: AssetQueryType.CalibrationForecast, ...defaultCalibrationForecastQuery }, true);
     }
     if (item.value === AssetQueryType.AssetSummary && assetFeatures.current.assetSummary) {
-      handleQueryChange({ ...query, queryType: AssetQueryType.AssetSummary, ...defaultAssetSummaryQuery }, true);
+      handleQueryChange({ ...query, type: AssetQueryType.AssetSummary, ...defaultAssetSummaryQuery }, true);
     }
 
   }, [query, handleQueryChange]);

@@ -28,7 +28,7 @@ describe('CalibrationForecastEditor', () => {
     await render({} as CalibrationForecastQuery);
 
     const groupBy = screen.getAllByRole('combobox')[1];
-    expect(groupBy).not.toBeNull();
+    await waitFor(() => expect(groupBy).not.toBeNull());
   });
 
   it('renders with query type calibration forecast and updates group by time', async () => {
