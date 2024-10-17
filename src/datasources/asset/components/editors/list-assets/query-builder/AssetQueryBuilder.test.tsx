@@ -15,6 +15,7 @@ describe('AssetQueryBuilder', () => {
         workspaces,
         systems,
         filter,
+        globalVariableOptions: [],
         onChange: jest.fn(),
         areDependenciesLoaded: true,
       });

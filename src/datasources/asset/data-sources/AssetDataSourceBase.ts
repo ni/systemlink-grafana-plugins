@@ -4,7 +4,7 @@ import { DataSourceBase } from "../../../core/DataSourceBase";
 import { defaultOrderBy, defaultProjection } from "../../system/constants";
 import { SystemMetadata } from "../../system/types";
 import { parseErrorMessage } from "../../../core/errors";
-import { Workspace } from "../../../core/types";
+import { QueryBuilderOption, Workspace } from "../../../core/types";
 import { ExpressionTransformFunction } from "../../../core/query-builder.utils";
 import { QueryBuilderOperations } from "../../../core/query-builder.constants";
 import { AllFieldNames } from "../constants/constants";
@@ -20,6 +20,8 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
 
   public readonly systemAliasCache = new Map<string, SystemMetadata>([]);
   public readonly workspacesCache = new Map<string, Workspace>([]);
+
+  public readonly globalVariableOptions: QueryBuilderOption[] = this.templateSrv.getVariables()?.map(({ name }) => ({ label: `$${name}`, value: `$${name}` })) || [];
 
   abstract runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
@@ -46,7 +48,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
   public getCachedSystems(): SystemMetadata[] {
     return Array.from(this.systemAliasCache.values());
   }
-  
+
   public getCachedWorkspaces(): Workspace[] {
     return Array.from(this.workspacesCache.values());
   }
