@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { AssetSummaryDataSource } from './AssetSummaryDataSource';
 import { AssetSummaryQuery } from '../../../types/AssetSummaryQuery.types';
+import { AssetSummaryDataSource } from '../../../data-sources/asset-summary/AssetSummaryDataSource';
 
 type Props = {
   query: AssetSummaryQuery;

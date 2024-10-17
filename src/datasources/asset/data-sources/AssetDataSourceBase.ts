@@ -1,10 +1,10 @@
 import { DataFrameDTO, DataQueryRequest, TestDataSourceResponse } from "@grafana/data";
-import { AssetDataSourceOptions, AssetQuery } from "../../types/types";
-import { DataSourceBase } from "../../../../core/DataSourceBase";
-import { defaultOrderBy, defaultProjection } from "../../../system/constants";
-import { SystemProperties } from "../../../system/types";
-import { parseErrorMessage } from "../../../../core/errors";
-import { Workspace } from "../../../../core/types";
+import { AssetDataSourceOptions, AssetQuery } from "../types/types";
+import { DataSourceBase } from "../../../core/DataSourceBase";
+import { defaultOrderBy, defaultProjection } from "../../system/constants";
+import { SystemProperties } from "../../system/types";
+import { parseErrorMessage } from "../../../core/errors";
+import { Workspace } from "../../../core/types";
 
 export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
   private systemsLoaded!: () => void;

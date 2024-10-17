@@ -5,10 +5,10 @@ import _ from 'lodash';
 import { FloatingError } from '../../../../../core/errors';
 import { SystemProperties } from '../../../../system/types';
 import { AssetQuery } from '../../../types/types';
-import { ListAssetsDataSource } from './ListAssetsDataSource';
 import { ListAssetsQuery } from '../../../types/ListAssets.types';
 import { AssetQueryBuilder } from './query-builder/AssetQueryBuilder';
 import { Workspace } from '../../../../../core/types';
+import { ListAssetsDataSource } from '../../../data-sources/list-assets/ListAssetsDataSource';
 
 type Props = {
   query: ListAssetsQuery;

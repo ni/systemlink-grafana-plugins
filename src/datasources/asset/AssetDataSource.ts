@@ -11,12 +11,12 @@ import {
   AssetQuery,
   AssetQueryType,
 } from './types/types';
-import { ListAssetsDataSource } from './components/editors/list-assets/ListAssetsDataSource';
-import { CalibrationForecastDataSource } from './components/editors/calibration-forecast/CalibrationForecastDataSource';
-import { AssetSummaryDataSource } from './components/editors/asset-summary/AssetSummaryDataSource';
+import { CalibrationForecastDataSource } from './data-sources/calibration-forecast/CalibrationForecastDataSource';
 import { AssetSummaryQuery } from './types/AssetSummaryQuery.types';
 import { CalibrationForecastQuery } from './types/CalibrationForecastQuery.types';
 import { ListAssetsQuery } from './types/ListAssets.types';
+import { ListAssetsDataSource } from './data-sources/list-assets/ListAssetsDataSource';
+import { AssetSummaryDataSource } from './data-sources/asset-summary/AssetSummaryDataSource';
 
 export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
   private assetSummaryDataSource: AssetSummaryDataSource;
