@@ -2,6 +2,8 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
+  LegacyMetricFindQueryOptions,
+  MetricFindValue,
   TestDataSourceResponse,
 } from '@grafana/data';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
@@ -17,6 +19,10 @@ import { CalibrationForecastQuery } from './types/CalibrationForecastQuery.types
 import { ListAssetsQuery } from './types/ListAssets.types';
 import { ListAssetsDataSource } from './data-sources/list-assets/ListAssetsDataSource';
 import { AssetSummaryDataSource } from './data-sources/asset-summary/AssetSummaryDataSource';
+import { AssetModel } from 'datasources/asset-common/types';
+import { QUERY_LIMIT } from './constants/constants';
+import { transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { AssetVariableQuery } from './types/AssetVariableQuery.types';
 
 export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
   private assetSummaryDataSource: AssetSummaryDataSource;
@@ -81,5 +87,16 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
 
   getListAssetsSource(): ListAssetsDataSource {
     return this.listAssetsDataSource;
+  }
+
+  async metricFindQuery(query: AssetVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    let assetFilter = query?.filter ?? '';
+    assetFilter = transformComputedFieldsQuery(
+      this.templateSrv.replace(assetFilter, options.scopedVars),
+      this.listAssetsDataSource.assetComputedDataFields,
+      this.listAssetsDataSource.queryTransformationOptions
+    );
+    const assetsResponse: AssetModel[] = await this.listAssetsDataSource.queryAssets(assetFilter, QUERY_LIMIT);
+    return assetsResponse.map((asset: AssetModel) => ({ text: asset.name, value: `Asset.${asset.vendorName}.${asset.modelName}.${asset.serialNumber}` }));
   }
 }

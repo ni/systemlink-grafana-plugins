@@ -90,11 +90,11 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
     this.workspacesLeaded();
   }
 
-  protected readonly queryTransformationOptions = new Map<string, Map<string, unknown>>([
+  public readonly queryTransformationOptions = new Map<string, Map<string, unknown>>([
     [AllFieldNames.LOCATION, this.systemAliasCache]
   ]);
 
-  protected readonly assetComputedDataFields = new Map<string, ExpressionTransformFunction>([
+  public readonly assetComputedDataFields = new Map<string, ExpressionTransformFunction>([
     ...Object.values(AllFieldNames).map(field => [field, this.multipleValuesQuery(field)] as [string, ExpressionTransformFunction]),
     [
       AllFieldNames.LOCATION,

@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { SystemMetadata } from '../../system/types';
 import { AssetDataSource } from '../AssetDataSource';
 import { setupRenderer } from '../../../test/fixtures';
@@ -60,14 +60,14 @@ it('renders Asset list when feature is enabled', async () => {
     render({ queryType: AssetQueryType.ListAssets } as ListAssetsQuery);
     const queryType = screen.getAllByRole('combobox')[0];
     await select(queryType, "List Assets", { container: document.body });
-    expect(screen.getAllByText("List Assets").length).toBe(1)
+    await waitFor(() => expect(screen.getAllByText("List Assets").length).toBe(1));
 });
 
 it('does not render when Asset list feature is not enabled', async () => {
     assetDatasourceOptions.featureToggles.assetList = false;
     render({ queryType: AssetQueryType.ListAssets } as ListAssetsQuery);
 
-    expect(screen.getAllByRole('combobox').length).toBe(1);
+    await waitFor(() => expect(screen.getAllByRole('combobox').length).toBe(1));
 });
 
 it('renders Asset calibration forecast when feature is enabled', async () => {
@@ -75,7 +75,7 @@ it('renders Asset calibration forecast when feature is enabled', async () => {
     render({ queryType: AssetQueryType.CalibrationForecast } as CalibrationForecastQuery);
     const queryType = screen.getAllByRole('combobox')[0];
     await select(queryType, "Calibration Forecast", { container: document.body });
-    expect(screen.getAllByText("Calibration Forecast").length).toBe(1)
+    await waitFor(() => expect(screen.getAllByText("Calibration Forecast").length).toBe(1))
 });
 
 it('renders Asset summary when feature is enabled', async () => {
@@ -83,5 +83,5 @@ it('renders Asset summary when feature is enabled', async () => {
     render({ queryType: AssetQueryType.AssetSummary } as AssetSummaryQuery);
     const queryType = screen.getAllByRole('combobox')[0];
     await select(queryType, "Asset Summary", { container: document.body });
-    expect(screen.getAllByText("Asset Summary").length).toBe(1)
+    await waitFor(() => expect(screen.getAllByText("Asset Summary").length).toBe(1));
 });
