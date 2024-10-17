@@ -27,12 +27,12 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
 
   function onParameterChange(ev: CustomEvent) {
     if (listAssetQuery?.filter !== ev.detail.linq) {
-      onChange({...query, filter: ev.detail.linq});
+      onChange({ ...query, filter: ev.detail.linq });
     }
   }
 
   return (
-    <div style={{ width: "525px"}}>
+    <div style={{ width: "525px" }}>
       <AssetQueryBuilder
         filter={listAssetQuery.filter}
         workspaces={workspaces}
