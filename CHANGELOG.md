@@ -1,3 +1,9 @@
+## [3.27.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.26.0...v3.27.0) (2024-10-17)
+
+### Features
+
+* **asset:** load dependencies only once, change ttlcache to map ([#81](https://github.com/ni/systemlink-grafana-plugins/issues/81)) ([d17bfa1](https://github.com/ni/systemlink-grafana-plugins/commit/d17bfa1789c7f0cb571bef423cda81bf54cac1d7))
+
 ## [3.26.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.25.0...v3.26.0) (2024-10-15)
 
 ### Features
