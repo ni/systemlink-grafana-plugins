@@ -1,3 +1,9 @@
+## [3.30.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.29.0...v3.30.0) (2024-10-17)
+
+### Features
+
+* **asset:**  add global variables as options ([#92](https://github.com/ni/systemlink-grafana-plugins/issues/92)) ([70f8c7a](https://github.com/ni/systemlink-grafana-plugins/commit/70f8c7a30cb53d57f782fbe36575000059d53079))
+
 ## [3.29.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.28.0...v3.29.0) (2024-10-17)
 
 ### Features
