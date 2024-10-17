@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { QueryEditorProps } from "@grafana/data";
 import { AssetDataSourceOptions, AssetQuery } from 'datasources/asset/types/types';
 import { AssetDataSource } from 'datasources/asset/AssetDataSource';
@@ -16,12 +16,12 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
   const [systems, setSystems] = useState<SystemMetadata[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
   const listAssetQuery: ListAssetsQuery = query as ListAssetsQuery;
-  const assetListDatasource = datasource.getListAssetsSource();
+  const assetListDatasource = useRef(datasource.getListAssetsSource());
 
   useEffect(() => {
-    Promise.all([assetListDatasource.areSystemsLoaded$, assetListDatasource.areWorkspacesLoaded$]).then(() => {
-      setWorkspaces(Array.from(assetListDatasource.workspacesCache.values()));
-      setSystems(Array.from(assetListDatasource.systemAliasCache.values()));
+    Promise.all([assetListDatasource.current.areSystemsLoaded$, assetListDatasource.current.areWorkspacesLoaded$]).then(() => {
+      setWorkspaces(Array.from(assetListDatasource.current.workspacesCache.values()));
+      setSystems(Array.from(assetListDatasource.current.systemAliasCache.values()));
       setAreDependenciesLoaded(true);
     });
   }, [datasource]);
