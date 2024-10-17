@@ -6,7 +6,7 @@ import { FloatingError } from '../../../../core/errors';
 import { AssetQueryBuilder } from '../editors/list-assets/query-builder/AssetQueryBuilder';
 import { Workspace } from '../../../../core/types';
 import { SystemMetadata } from '../../../system/types';
-import { ListAssetsQuery } from '../../../asset/types/ListAssets.types';
+import { AssetVariableQuery } from '../../../asset/types/AssetVariableQuery.types';
 
 type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOptions>;
 
@@ -14,7 +14,7 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [systems, setSystems] = useState<SystemMetadata[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
-  const listAssetQuery: ListAssetsQuery = query as ListAssetsQuery;
+  const assetVariableQuery = query as AssetVariableQuery;
   const assetListDatasource = useRef(datasource.getListAssetsSource());
 
   useEffect(() => {
@@ -26,15 +26,15 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
   }, [datasource]);
 
   function onParameterChange(ev: CustomEvent) {
-    if (listAssetQuery?.filter !== ev.detail.linq) {
-      onChange({ ...query, filter: ev.detail.linq });
+    if (assetVariableQuery?.filter !== ev.detail.linq) {
+      onChange({ ...assetVariableQuery, filter: ev.detail.linq });
     }
   }
 
   return (
     <div style={{ width: "525px" }}>
       <AssetQueryBuilder
-        filter={listAssetQuery.filter}
+        filter={assetVariableQuery.filter}
         workspaces={workspaces}
         systems={systems}
         globalVariableOptions={assetListDatasource.current.globalVariableOptions}

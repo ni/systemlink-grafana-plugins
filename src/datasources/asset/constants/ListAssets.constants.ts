@@ -30,5 +30,3 @@ export const ListAssetsFields: Record<string, QBField> = {
         }
     }
 };
-
-export const QUERY_LIMIT = 1000;

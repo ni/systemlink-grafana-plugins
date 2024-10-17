@@ -6,3 +6,5 @@ export enum AllFieldNames {
     BUS_TYPE = 'BusType',
     ASSET_TYPE = 'AssetType',
 }
+
+export const QUERY_LIMIT = 1000;
