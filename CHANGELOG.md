@@ -1,3 +1,9 @@
+## [3.31.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.30.0...v3.31.0) (2024-10-17)
+
+### Features
+
+* **tag:** add multi value variable support  ([#89](https://github.com/ni/systemlink-grafana-plugins/issues/89)) ([ee422d8](https://github.com/ni/systemlink-grafana-plugins/commit/ee422d863727607318e55253c6eeb9fc037e531a))
+
 ## [3.30.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.29.0...v3.30.0) (2024-10-17)
 
 ### Features
