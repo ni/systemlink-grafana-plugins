@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { QueryEditorProps } from "@grafana/data";
-import _ from "lodash";
 import { AssetDataSourceOptions, AssetQuery } from 'datasources/asset/types/types';
 import { AssetDataSource } from 'datasources/asset/AssetDataSource';
 import { FloatingError } from 'core/errors';
@@ -17,11 +16,12 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
   const [systems, setSystems] = useState<SystemMetadata[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
   const listAssetQuery: ListAssetsQuery = query as ListAssetsQuery;
+  const assetListDatasource = datasource.getListAssetsSource();
 
   useEffect(() => {
-    Promise.all([datasource.getListAssetsSource().areSystemsLoaded$, datasource.getListAssetsSource().areWorkspacesLoaded$]).then(() => {
-      setWorkspaces(Array.from(datasource.getListAssetsSource().workspacesCache.values()));
-      setSystems(Array.from(datasource.getListAssetsSource().systemAliasCache.values()));
+    Promise.all([assetListDatasource.areSystemsLoaded$, assetListDatasource.areWorkspacesLoaded$]).then(() => {
+      setWorkspaces(Array.from(assetListDatasource.workspacesCache.values()));
+      setSystems(Array.from(assetListDatasource.systemAliasCache.values()));
       setAreDependenciesLoaded(true);
     });
   }, [datasource]);
@@ -33,7 +33,7 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
   }
 
   return (
-    <div>
+    <div style={{ width: "525px"}}>
       <AssetQueryBuilder
         filter={listAssetQuery.filter}
         workspaces={workspaces}

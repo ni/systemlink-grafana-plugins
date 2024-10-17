@@ -89,6 +89,6 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
     console.log(query);
     const assetFilter = query as ListAssetsQuery;
     const assetsResponse: AssetModel[] = await this.getListAssetsSource().queryAssets(assetFilter?.filter ?? '', 1000);
-    return assetsResponse.map((asset: AssetModel) => ({ text: asset.name, value: asset.id }));
+    return assetsResponse.map((asset: AssetModel) => ({ text: asset.name, value: `Asset.${asset.vendorName}.${asset.modelName}.${asset.serialNumber}` }));
   }
 }
