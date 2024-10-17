@@ -8,22 +8,23 @@ import 'smart-webcomponents-react/source/styles/components/smart.base.css';
 import 'smart-webcomponents-react/source/styles/components/smart.common.css';
 import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
 
-import { AssetCalibrationFields, AssetCalibrationStaticFields } from '../../../../constants';
 import { Workspace, QueryBuilderOption } from 'core/types';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
 import { SystemMetadata } from 'datasources/system/types';
 import { QBField } from '../../../../types/CalibrationForecastQuery.types';
+import { AssetCalibrationFields, AssetCalibrationStaticFields } from '../../../../constants/CalibrationForecastQuery.constants';
 
 type CalibrationForecastQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     filter?: string;
     workspaces: Workspace[];
     systems: SystemMetadata[];
+    globalVariableOptions: QueryBuilderOption[];
     areDependenciesLoaded: boolean;
   };
 
-export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryBuilderProps> = ({ filter, onChange, workspaces, systems, areDependenciesLoaded }) => {
+export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryBuilderProps> = ({ filter, onChange, workspaces, systems, globalVariableOptions, areDependenciesLoaded }) => {
   const theme = useTheme2();
   document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
 
@@ -62,7 +63,14 @@ export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryB
 
   useEffect(() => {
     if (areDependenciesLoaded) {
-      const fields = [workspaceField, locationField, ...AssetCalibrationStaticFields];
+      const fields = [workspaceField, locationField, ...AssetCalibrationStaticFields]
+        .map(field => {
+          if (field.lookup?.dataSource) {
+            field.lookup.dataSource = [...globalVariableOptions, ...field.lookup.dataSource];
+          }
+
+          return field;
+        });
 
       setFields(fields);
 
@@ -92,7 +100,7 @@ export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryB
         QueryBuilderOperations.DOES_NOT_CONTAIN,
       ]);
     }
-  }, [workspaceField, locationField, areDependenciesLoaded]);
+  }, [workspaceField, locationField, areDependenciesLoaded, globalVariableOptions]);
 
   return (
     <QueryBuilder

@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { QueryEditorProps } from "@grafana/data";
-import { AssetDataSourceOptions, AssetQuery } from 'datasources/asset/types/types';
-import { AssetDataSource } from 'datasources/asset/AssetDataSource';
-import { FloatingError } from 'core/errors';
+import { AssetDataSourceOptions, AssetQuery } from '../../../asset/types/types';
+import { AssetDataSource } from '../../AssetDataSource'
+import { FloatingError } from '../../../../core/errors';
 import { AssetQueryBuilder } from '../editors/list-assets/query-builder/AssetQueryBuilder';
-import { Workspace } from 'core/types';
-import { SystemMetadata } from 'datasources/system/types';
-import { ListAssetsQuery } from 'datasources/asset/types/ListAssets.types';
+import { Workspace } from '../../../../core/types';
+import { SystemMetadata } from '../../../system/types';
+import { ListAssetsQuery } from '../../../asset/types/ListAssets.types';
 
 type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOptions>;
 
@@ -37,6 +37,7 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
         filter={listAssetQuery.filter}
         workspaces={workspaces}
         systems={systems}
+        globalVariableOptions={assetListDatasource.current.globalVariableOptions}
         areDependenciesLoaded={areDependenciesLoaded}
         onChange={(event: any) => onParameterChange(event)}
       ></AssetQueryBuilder>

@@ -1,5 +1,5 @@
-import { QueryBuilderOperations } from "core/query-builder.constants";
-import { AssetTypeOptions, BusTypeOptions, QBField } from "./types/CalibrationForecastQuery.types";
+import { QueryBuilderOperations } from "../../../core/query-builder.constants";
+import { AssetTypeOptions, BusTypeOptions, QBField } from "../types/CalibrationForecastQuery.types";
 
 export enum AssetCalibrationFieldNames {
     LOCATION = 'Location',
@@ -79,13 +79,3 @@ export const AssetCalibrationStaticFields = [
     AssetCalibrationFields.ASSET_TYPE,
     AssetCalibrationFields.BUS_TYPE
 ];
-
-export const assetSummaryFields = {
-    TOTAL: 'Total',
-    ACTIVE: 'Active',
-    NOT_ACTIVE: 'Not active',
-    APPROACHING_DUE_DATE: 'Approaching due date',
-    PAST_DUE_DATE: 'Past due date'
-};
-
-export const QUERY_LIMIT = 1000;

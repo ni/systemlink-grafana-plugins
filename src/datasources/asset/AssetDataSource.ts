@@ -19,7 +19,7 @@ import { ListAssetsQuery } from './types/ListAssets.types';
 import { ListAssetsDataSource } from './data-sources/list-assets/ListAssetsDataSource';
 import { AssetSummaryDataSource } from './data-sources/asset-summary/AssetSummaryDataSource';
 import { AssetModel } from 'datasources/asset-common/types';
-import { QUERY_LIMIT } from './constants';
+import { QUERY_LIMIT } from './constants/ListAssets.constants';
 
 export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
   private assetSummaryDataSource: AssetSummaryDataSource;

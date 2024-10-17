@@ -3,10 +3,8 @@ import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../types/
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
 import { AssetCalibrationForecastKey, AssetCalibrationTimeBasedGroupByType, AssetType, AssetTypeOptions, BusType, BusTypeOptions, CalibrationForecastQuery, CalibrationForecastResponse, ColumnDescriptorType, FieldDTOWithDescriptor } from '../../types/CalibrationForecastQuery.types';
-import { ExpressionTransformFunction, transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
+import { transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
 import { AssetModel, AssetsResponse } from '../../../asset-common/types';
-import { AssetCalibrationFieldNames } from '../../constants';
-import { QueryBuilderOperations } from '../../../../core/query-builder.constants';
 
 export class CalibrationForecastDataSource extends AssetDataSourceBase {
     private dependenciesLoadedPromise: Promise<void>;
@@ -59,60 +57,6 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
         await this.get(this.baseUrl + '/assets?take=1');
         return { status: 'success', message: 'Data source connected and authentication successful!' };
     }
-
-    private readonly assetComputedDataFields = new Map<AssetCalibrationFieldNames, ExpressionTransformFunction>([
-        ...Object.values(AssetCalibrationFieldNames).map(field => [field, this.multipleValuesQuery(field)] as [AssetCalibrationFieldNames, ExpressionTransformFunction]),
-        [
-            AssetCalibrationFieldNames.LOCATION,
-            (value: string, operation: string, options?: Map<string, unknown>) => {
-                let values = [value];
-
-                if (this.isMultiSelectValue(value)) {
-                    values = this.getMultipleValuesArray(value);
-                }
-
-                if (values.length > 1) {
-                    return `(${values.map(val => `Location.MinionId ${operation} "${val}"`).join(` ${this.getLocicalOperator(operation)} `)})`;
-                }
-
-                if (options?.has(value)) {
-                    return `Location.MinionId ${operation} "${value}"`
-                }
-
-                return `(Location.MinionId ${operation} "${value}" ${this.getLocicalOperator(operation)} Location.PhysicalLocation ${operation} "${value}")`;
-            }
-        ]
-    ]);
-
-    private multipleValuesQuery(field: AssetCalibrationFieldNames): ExpressionTransformFunction {
-        return (value: string, operation: string, _options?: any) => {
-            if (this.isMultiSelectValue(value)) {
-                const query = this.getMultipleValuesArray(value)
-                    .map(val => `${field} ${operation} "${val}"`)
-                    .join(` ${this.getLocicalOperator(operation)} `);
-
-                return `(${query})`;
-            }
-
-            return `${field} ${operation} "${value}"`
-        }
-    }
-
-    private isMultiSelectValue(value: string): boolean {
-        return value.startsWith('{') && value.endsWith('}');
-    }
-
-    private getMultipleValuesArray(value: string): string[] {
-        return value.replace(/({|})/g, '').split(',');
-    }
-
-    private getLocicalOperator(operation: string): string {
-        return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
-    }
-
-    private readonly queryTransformationOptions = new Map<AssetCalibrationFieldNames, Map<string, unknown>>([
-        [AssetCalibrationFieldNames.LOCATION, this.systemAliasCache]
-    ]);
 
     async processCalibrationForecastQuery(query: CalibrationForecastQuery, options: DataQueryRequest) {
         const result: DataFrameDTO = { refId: query.refId, fields: [] };

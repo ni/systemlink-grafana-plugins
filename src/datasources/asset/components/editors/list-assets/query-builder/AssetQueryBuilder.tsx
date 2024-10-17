@@ -12,14 +12,15 @@ import { Workspace, QueryBuilderOption } from 'core/types';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
 import { SystemMetadata } from 'datasources/system/types';
-import { ListAssetsFields } from '../../../../types/ListAssets.types';
 import { QBField } from '../../../../types/CalibrationForecastQuery.types';
+import { ListAssetsFields } from '../../../../constants/ListAssets.constants';
 
 type AssetCalibrationQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     filter?: string;
     workspaces: Workspace[];
     systems: SystemMetadata[];
+    globalVariableOptions: QueryBuilderOption[];
     areDependenciesLoaded: boolean;
   };
 
@@ -28,6 +29,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
   onChange,
   workspaces,
   systems,
+  globalVariableOptions,
   areDependenciesLoaded,
 }) => {
   const theme = useTheme2();
@@ -70,8 +72,15 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
     if (!areDependenciesLoaded) {
       return;
     }
-    
-    const fields = [workspaceField, locationField];
+
+    const fields = [workspaceField, locationField]
+      .map(field => {
+        if (field.lookup?.dataSource) {
+          field.lookup.dataSource = [...globalVariableOptions, ...field.lookup.dataSource];
+        }
+
+        return field;
+      });
 
     setFields(fields);
 
@@ -100,7 +109,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
       QueryBuilderOperations.CONTAINS,
       QueryBuilderOperations.DOES_NOT_CONTAIN,
     ]);
-  }, [workspaceField, locationField, areDependenciesLoaded]);
+  }, [workspaceField, locationField, areDependenciesLoaded, globalVariableOptions]);
 
   return (
     <QueryBuilder

@@ -11,7 +11,7 @@ describe('CalibrationForecastQueryBuilder', () => {
     const containerClass = 'smart-filter-group-condition-container'
 
     function renderElement(workspaces: Workspace[], systems: SystemMetadata[], filter?: string) {
-      reactNode = React.createElement(CalibrationForecastQueryBuilder, { workspaces, systems, filter, onChange: jest.fn(), areDependenciesLoaded: true });
+      reactNode = React.createElement(CalibrationForecastQueryBuilder, { workspaces, systems, filter, globalVariableOptions: [], onChange: jest.fn(), areDependenciesLoaded: true });
       const renderResult = render(reactNode);
       return {
         renderResult,
