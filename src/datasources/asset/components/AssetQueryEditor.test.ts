@@ -2,15 +2,15 @@ import { screen } from '@testing-library/react';
 import { SystemMetadata } from '../../system/types';
 import { AssetDataSource } from '../AssetDataSource';
 import { setupRenderer } from '../../../test/fixtures';
-import { ListAssetsDataSource } from './editors/list-assets/ListAssetsDataSource';
-import { AssetSummaryDataSource } from './editors/asset-summary/AssetSummaryDataSource';
-import { CalibrationForecastDataSource } from './editors/calibration-forecast/CalibrationForecastDataSource';
+import { CalibrationForecastDataSource } from '../data-sources/calibration-forecast/CalibrationForecastDataSource';
 import { AssetQueryEditor } from './AssetQueryEditor';
 import { ListAssetsQuery } from '../types/ListAssets.types';
 import { CalibrationForecastQuery } from '../types/CalibrationForecastQuery.types';
 import { select } from 'react-select-event';
 import { AssetSummaryQuery } from '../types/AssetSummaryQuery.types';
 import { AssetFeatureTogglesDefaults, AssetQueryType } from '../types/types';
+import { ListAssetsDataSource } from '../data-sources/list-assets/ListAssetsDataSource';
+import { AssetSummaryDataSource } from '../data-sources/asset-summary/AssetSummaryDataSource';
 
 const fakeSystems: SystemMetadata[] = [
     {

@@ -3,9 +3,9 @@ import { SystemMetadata } from '../../../../system/types';
 import { AssetDataSource } from '../../../AssetDataSource';
 import { AssetQueryEditor } from '../../AssetQueryEditor';
 import { setupRenderer } from '../../../../../test/fixtures';
-import { ListAssetsDataSource } from './ListAssetsDataSource';
 import { ListAssetsQuery } from '../../../types/ListAssets.types';
 import { AssetFeatureTogglesDefaults } from 'datasources/asset/types/types';
+import { ListAssetsDataSource } from '../../../data-sources/list-assets/ListAssetsDataSource';
 
 const fakeSystems: SystemMetadata[] = [
   {

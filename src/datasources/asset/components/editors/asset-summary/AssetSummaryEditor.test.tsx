@@ -2,10 +2,10 @@ import { DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { mock } from 'jest-mock-extended';
 
-import { AssetSummaryDataSource } from './AssetSummaryDataSource';
 import { AssetSummaryResponse } from 'datasources/asset/types/AssetSummaryQuery.types';
 import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from 'datasources/asset/types/types';
 import { assetSummaryFields } from 'datasources/asset/constants';
+import { AssetSummaryDataSource } from '../../../data-sources/asset-summary/AssetSummaryDataSource';
 
 describe('AssetSummaryDataSource', () => {
   let dataSource: AssetSummaryDataSource;

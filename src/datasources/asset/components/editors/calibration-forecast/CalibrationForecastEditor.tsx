@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { CalibrationForecastDataSource } from './CalibrationForecastDataSource';
+import { CalibrationForecastDataSource } from '../../../data-sources/calibration-forecast/CalibrationForecastDataSource';
 import { AssetQuery } from '../../../types/types';
 import {
   AssetCalibrationPropertyGroupByType,

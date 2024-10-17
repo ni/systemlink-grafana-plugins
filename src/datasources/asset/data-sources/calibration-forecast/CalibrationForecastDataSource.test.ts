@@ -9,10 +9,10 @@ import {
 } from "test/fixtures";
 import { SystemMetadata } from "datasources/system/types";
 import { dateTime } from "@grafana/data";
-import { AssetCalibrationPropertyGroupByType, AssetCalibrationTimeBasedGroupByType, AssetType, BusType, CalibrationForecastQuery, CalibrationForecastResponse, ColumnDescriptorType } from "../../../types/CalibrationForecastQuery.types";
+import { AssetCalibrationPropertyGroupByType, AssetCalibrationTimeBasedGroupByType, AssetType, BusType, CalibrationForecastQuery, CalibrationForecastResponse, ColumnDescriptorType } from "../../types/CalibrationForecastQuery.types";
 import { CalibrationForecastDataSource } from "./CalibrationForecastDataSource";
-import { AssetQueryType } from "../../../types/types";
-import { AssetCalibrationFieldNames } from "../../../constants";
+import { AssetQueryType } from "../../types/types";
+import { AssetCalibrationFieldNames } from "../../constants";
 
 let datastore: CalibrationForecastDataSource, backendServer: MockProxy<BackendSrv>
 

@@ -4,7 +4,7 @@ import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana
 import { AssetSummaryResponse } from 'datasources/asset/types/AssetSummaryQuery.types';
 import { assetSummaryFields } from 'datasources/asset/constants';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
-import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../../types/types';
+import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../types/types';
 export class AssetSummaryDataSource extends AssetDataSourceBase {
     constructor(
         readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,

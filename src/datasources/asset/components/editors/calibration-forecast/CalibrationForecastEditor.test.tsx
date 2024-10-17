@@ -6,7 +6,7 @@ import {
   AssetCalibrationTimeBasedGroupByType,
   CalibrationForecastQuery,
 } from '../../../types/CalibrationForecastQuery.types';
-import { CalibrationForecastDataSource } from './CalibrationForecastDataSource';
+import { CalibrationForecastDataSource } from '../../../data-sources/calibration-forecast/CalibrationForecastDataSource';
 import { AssetQueryEditor } from '../../AssetQueryEditor';
 import { AssetDataSource } from '../../../AssetDataSource';
 import { AssetQueryType } from '../../../types/types';

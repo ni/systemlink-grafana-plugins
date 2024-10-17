@@ -1,12 +1,12 @@
 import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings, FieldDTO, TestDataSourceResponse } from '@grafana/data';
-import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../../types/types';
+import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
-import { AssetCalibrationForecastKey, AssetCalibrationTimeBasedGroupByType, AssetType, AssetTypeOptions, BusType, BusTypeOptions, CalibrationForecastQuery, CalibrationForecastResponse, ColumnDescriptorType, FieldDTOWithDescriptor } from '../../../types/CalibrationForecastQuery.types';
-import { ExpressionTransformFunction, transformComputedFieldsQuery } from '../../../../../core/query-builder.utils';
-import { AssetModel, AssetsResponse } from '../../../../asset-common/types';
-import { AssetCalibrationFieldNames } from '../../../constants';
-import { QueryBuilderOperations } from '../../../../../core/query-builder.constants';
+import { AssetCalibrationForecastKey, AssetCalibrationTimeBasedGroupByType, AssetType, AssetTypeOptions, BusType, BusTypeOptions, CalibrationForecastQuery, CalibrationForecastResponse, ColumnDescriptorType, FieldDTOWithDescriptor } from '../../types/CalibrationForecastQuery.types';
+import { ExpressionTransformFunction, transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
+import { AssetModel, AssetsResponse } from '../../../asset-common/types';
+import { AssetCalibrationFieldNames } from '../../constants';
+import { QueryBuilderOperations } from '../../../../core/query-builder.constants';
 
 export class CalibrationForecastDataSource extends AssetDataSourceBase {
     private dependenciesLoadedPromise: Promise<void>;
