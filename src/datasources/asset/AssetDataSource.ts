@@ -43,30 +43,30 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
   baseUrl = this.instanceSettings.url + '/niapm/v1';
 
   defaultQuery = {
-    queryType: AssetQueryType.None,
+    type: AssetQueryType.None,
   };
 
   async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    if (query.queryType === AssetQueryType.AssetSummary) {
+    if (query.type === AssetQueryType.AssetSummary) {
       return this.getAssetSummarySource().runQuery(query as AssetSummaryQuery, options);
     }
-    if (query.queryType === AssetQueryType.CalibrationForecast) {
+    if (query.type === AssetQueryType.CalibrationForecast) {
       return this.getCalibrationForecastSource().runQuery(query as CalibrationForecastQuery, options);
     }
-    if (query.queryType === AssetQueryType.ListAssets) {
+    if (query.type === AssetQueryType.ListAssets) {
       return this.getListAssetsSource().runQuery(query as ListAssetsQuery, options);
     }
     throw new Error('Unknown query type');
   }
 
   shouldRunQuery(query: AssetQuery): boolean {
-    if (query.queryType === AssetQueryType.AssetSummary) {
+    if (query.type === AssetQueryType.AssetSummary) {
       return this.getAssetSummarySource().shouldRunQuery(query as AssetSummaryQuery);
     }
-    if (query.queryType === AssetQueryType.CalibrationForecast) {
+    if (query.type === AssetQueryType.CalibrationForecast) {
       return this.getCalibrationForecastSource().shouldRunQuery(query as CalibrationForecastQuery);
     }
-    if (query.queryType === AssetQueryType.ListAssets) {
+    if (query.type === AssetQueryType.ListAssets) {
       return this.getListAssetsSource().shouldRunQuery(query as ListAssetsQuery);
     }
     return false;
@@ -97,6 +97,6 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
       this.listAssetsDataSource.queryTransformationOptions
     );
     const assetsResponse: AssetModel[] = await this.listAssetsDataSource.queryAssets(assetFilter, QUERY_LIMIT);
-    return assetsResponse.map((asset: AssetModel) => ({ text: asset.name, value: `Asset.${asset.vendorName}.${asset.modelName}.${asset.serialNumber}` }));
+    return assetsResponse.map((asset: AssetModel) => ({ text: asset.name, value: `Assets.${asset.vendorName}.${asset.modelName}.${asset.serialNumber}` }));
   }
 }

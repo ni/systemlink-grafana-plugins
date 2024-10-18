@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Label } from '@grafana/ui';
+import { InlineField } from '@grafana/ui';
 import _ from 'lodash';
 import { FloatingError } from '../../../../../core/errors';
 import { SystemMetadata } from '../../../../system/types';
@@ -37,19 +37,29 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
   }
 
   return (
-    <div style={{ position: 'relative' }}>
-      <Label>Filter</Label>
+    <>
+      <InlineField
+        label="Filter"
+        labelWidth={22}
+        tooltip={tooltips.listAssets.filter}
+      >
+        <AssetQueryBuilder
+          filter={query.filter}
+          workspaces={workspaces}
+          systems={systems}
+          globalVariableOptions={datasource.globalVariableOptions}
+          areDependenciesLoaded={areDependenciesLoaded}
+          onChange={(event: any) => onParameterChange(event)}
+        ></AssetQueryBuilder>
 
-      <AssetQueryBuilder
-        filter={query.filter}
-        workspaces={workspaces}
-        systems={systems}
-        globalVariableOptions={datasource.globalVariableOptions}
-        areDependenciesLoaded={areDependenciesLoaded}
-        onChange={(event: any) => onParameterChange(event)}
-      ></AssetQueryBuilder>
-
+      </InlineField>
       <FloatingError message={datasource.error} />
-    </div>
+    </>
   );
 }
+
+const tooltips = {
+  listAssets: {
+    filter: `Filter the assets by various properties. This is an optional field.`,
+  },
+};

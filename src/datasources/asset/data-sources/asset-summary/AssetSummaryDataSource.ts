@@ -17,7 +17,7 @@ export class AssetSummaryDataSource extends AssetDataSourceBase {
     baseUrl = this.instanceSettings.url + '/niapm/v1';
 
     defaultQuery = {
-        queryType: AssetQueryType.AssetSummary,
+        type: AssetQueryType.AssetSummary,
     };
 
     async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {

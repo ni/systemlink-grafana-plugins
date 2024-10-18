@@ -1,8 +1,6 @@
 import { DataSourceJsonData } from "@grafana/data";
-import { AssetSummaryQuery } from "./AssetSummaryQuery.types";
-import { CalibrationForecastQuery } from "./CalibrationForecastQuery.types";
-import { ListAssetsQuery } from "./ListAssets.types";
-import { AssetVariableQuery } from "./AssetVariableQuery.types";
+import { DataQuery } from "@grafana/schema";
+
 
 export enum AssetQueryType {
   None = "",
@@ -11,7 +9,9 @@ export enum AssetQueryType {
   AssetSummary = "Asset Summary"
 }
 
-export type AssetQuery = ListAssetsQuery | CalibrationForecastQuery | AssetSummaryQuery | AssetVariableQuery;
+export interface AssetQuery extends DataQuery {
+  type: AssetQueryType
+}
 
 export interface AssetFeatureToggles {
   calibrationForecast: boolean;

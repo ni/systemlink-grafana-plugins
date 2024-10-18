@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
 import { CalibrationForecastDataSource } from '../../../data-sources/calibration-forecast/CalibrationForecastDataSource';
-import { AssetQuery } from '../../../types/types';
 import {
   AssetCalibrationPropertyGroupByType,
   AssetCalibrationTimeBasedGroupByType,
@@ -11,7 +10,7 @@ import _ from 'lodash';
 import { SelectableValue, toOption } from '@grafana/data';
 import { Workspace } from '../../../../../core/types';
 import { SystemMetadata } from '../../../../system/types';
-import { InlineField, Label, MultiSelect } from '@grafana/ui';
+import { InlineField, MultiSelect } from '@grafana/ui';
 import { FloatingError } from '../../../../../core/errors';
 import { enumToOptions } from '../../../../../core/utils';
 import { CalibrationForecastQueryBuilder } from './query-builder/CalibrationForecastQueryBuilder';
@@ -19,7 +18,7 @@ import './CalibrationForecastEditor.scss';
 
 type Props = {
   query: CalibrationForecastQuery;
-  handleQueryChange: (value: AssetQuery, runQuery: boolean) => void;
+  handleQueryChange: (value: CalibrationForecastQuery, runQuery: boolean) => void;
   datasource: CalibrationForecastDataSource;
 };
 
@@ -77,7 +76,7 @@ export function CalibrationForecastEditor({ query, handleQueryChange, datasource
   }
 
   return (
-    <div className="asset-calibration-forecast">
+    <>
       <InlineField
         shrink={true}
         style={{ maxWidth: '400px' }}
@@ -86,6 +85,7 @@ export function CalibrationForecastEditor({ query, handleQueryChange, datasource
         labelWidth={22}
       >
         <MultiSelect
+          width={65}
           options={[
             ...enumToOptions(AssetCalibrationTimeBasedGroupByType),
             ...enumToOptions(AssetCalibrationPropertyGroupByType),
@@ -95,9 +95,11 @@ export function CalibrationForecastEditor({ query, handleQueryChange, datasource
         />
       </InlineField>
 
-      <div>
-        <Label>Filter</Label>
-
+      <InlineField
+        label="Filter"
+        labelWidth={22}
+        tooltip={tooltips.calibrationForecast.filter}
+        >
         <CalibrationForecastQueryBuilder
           filter={query.filter}
           workspaces={workspaces}
@@ -106,15 +108,16 @@ export function CalibrationForecastEditor({ query, handleQueryChange, datasource
           areDependenciesLoaded={areDependenciesLoaded}
           onChange={(event: any) => onParameterChange(event)}
         ></CalibrationForecastQueryBuilder>
-      </div>
+      </InlineField>
 
       <FloatingError message={datasource.error} />
-    </div>
+    </>
   );
 }
 
 const tooltips = {
   calibrationForecast: {
     groupBy: `Group the calibration forecast by time and properties. Only one time-based selection is allowed. There can be at most two selections. This is a required field.`,
+    filter: `Filter the calibration forecast assets by various properties. This is an optional field.`,
   },
 };

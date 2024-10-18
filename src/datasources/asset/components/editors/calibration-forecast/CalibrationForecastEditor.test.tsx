@@ -28,13 +28,13 @@ describe('CalibrationForecastEditor', () => {
     await render({} as CalibrationForecastQuery);
 
     const groupBy = screen.getAllByRole('combobox')[1];
-    expect(groupBy).not.toBeNull();
+    await waitFor(() => expect(groupBy).not.toBeNull());
   });
 
   it('renders with query type calibration forecast and updates group by time', async () => {
     const [onChange] = await render({
       groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
-      queryType: AssetQueryType.CalibrationForecast,
+      type: AssetQueryType.CalibrationForecast,
     } as CalibrationForecastQuery);
 
     // User selects group by day
@@ -71,7 +71,7 @@ describe('CalibrationForecastEditor', () => {
     const [onChange] = await render({
       refId: '',
       groupBy: [],
-      queryType: AssetQueryType.CalibrationForecast,
+      type: AssetQueryType.CalibrationForecast,
     } as CalibrationForecastQuery);
 
     // User selects group by location

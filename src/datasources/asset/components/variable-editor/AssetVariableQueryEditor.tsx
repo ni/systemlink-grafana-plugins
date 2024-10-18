@@ -27,7 +27,7 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
 
   function onParameterChange(ev: CustomEvent) {
     if (assetVariableQuery?.filter !== ev.detail.linq) {
-      onChange({ ...assetVariableQuery, filter: ev.detail.linq });
+      onChange({ ...assetVariableQuery, filter: ev.detail.linq } as AssetVariableQuery);
     }
   }
 

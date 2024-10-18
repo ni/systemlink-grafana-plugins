@@ -17,8 +17,7 @@ describe('AssetSummaryDataSource', () => {
     active: 5,
     notActive: 3,
     approachingRecommendedDueDate: 1,
-    pastRecommendedDueDate: 1,
-    refId: '',
+    pastRecommendedDueDate: 1
   };
 
   beforeEach(() => {
@@ -26,7 +25,7 @@ describe('AssetSummaryDataSource', () => {
   });
 
   it('should process metadata query correctly', async () => {
-    const query: AssetQuery = { refId: 'A', queryType: AssetQueryType.AssetSummary, };
+    const query: AssetQuery = { refId: 'A', type: AssetQueryType.AssetSummary, };
 
     jest.spyOn(dataSource, 'getAssetSummary').mockResolvedValue(assetSummary);
     const result = await dataSource.processSummaryQuery(query);

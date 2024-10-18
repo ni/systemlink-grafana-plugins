@@ -1,5 +1,5 @@
 import { screen, waitFor } from '@testing-library/react';
-import { AssetQuery } from '../../types/types';
+import { AssetQuery, AssetQueryType } from '../../types/types';
 import { SystemMetadata } from '../../../system/types'
 import { AssetVariableQueryEditor } from './AssetVariableQueryEditor';
 import { Workspace } from 'core/types';
@@ -53,7 +53,7 @@ class FakeAssetDataSource extends AssetDataSource {
 const render = setupRenderer(AssetVariableQueryEditor, FakeAssetDataSource, () => {});
 
 it('renders the variable query builder', async () => {
-    render({ filter: "" } as AssetQuery);
+    render({  refId: '', type: AssetQueryType.ListAssets, filter: "" } as AssetQuery);
 
     await waitFor(() => expect(screen.getAllByText('Property').length).toBe(1));
     await waitFor(() => expect(screen.getAllByText('Operator').length).toBe(1));

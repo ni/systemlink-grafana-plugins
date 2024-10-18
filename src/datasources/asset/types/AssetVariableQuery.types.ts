@@ -1,5 +1,5 @@
-import { DataQuery } from '@grafana/schema'
+import { AssetQuery } from './types';
 
-export interface AssetVariableQuery extends DataQuery {
+export interface AssetVariableQuery extends AssetQuery {
   filter: string;
 }
