@@ -9,7 +9,7 @@ import {
 } from "test/fixtures";
 import { SystemMetadata } from "datasources/system/types";
 import { dateTime } from "@grafana/data";
-import { AssetCalibrationPropertyGroupByType, AssetCalibrationTimeBasedGroupByType, AssetType, BusType, CalibrationForecastQuery, CalibrationForecastResponse, ColumnDescriptorType } from "../../types/CalibrationForecastQuery.types";
+import { AssetCalibrationForecastKey, AssetCalibrationPropertyGroupByType, AssetCalibrationTimeBasedGroupByType, AssetType, BusType, CalibrationForecastQuery, CalibrationForecastResponse, ColumnDescriptorType } from "../../types/CalibrationForecastQuery.types";
 import { CalibrationForecastDataSource } from "./CalibrationForecastDataSource";
 import { AssetQueryType } from "../../types/types";
 import { AssetCalibrationFieldNames } from "../../constants/CalibrationForecastQuery.constants";
@@ -45,6 +45,16 @@ const dayGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
 }
 
 const weekGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
+{
+  calibrationForecast: {
+    columns: [
+      { name: "", values: ["2022-01-03T00:00:00.0000000Z", "2022-01-10T00:00:00.0000000Z", "2022-01-17T00:00:00.0000000Z"], columnDescriptors: [{ value: "Week", type: ColumnDescriptorType.Time }] },
+      { name: "", values: [1, 2, 2], columnDescriptors: [{ value: "Assets", type: ColumnDescriptorType.Count }] }
+    ]
+  }
+}
+
+const weekGroupCalibrationForecastDataLinkResponseMock: CalibrationForecastResponse =
 {
   calibrationForecast: {
     columns: [
@@ -605,5 +615,78 @@ describe('Asset calibration location queries', () => {
       }),
       expect.anything()
     );
+  });
+});
+
+describe('Time based data links', () => {
+  test('creates data links for Day grouping', async () => {
+    const query = buildCalibrationForecastQuery(dayBasedCalibrationForecastQueryMock);
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(dayGroupCalibrationForecastResponseMock as CalibrationForecastResponse));
+
+    const result = await datastore.query(query);
+    const [_day, assets] = result.data[0].fields;
+    const [dataLink] = assets.config.links;
+
+    const dayDate = new Date('2022-01-01T00:00:00.0000000Z');
+
+    expect(dataLink.title).toBe(`View ${AssetCalibrationForecastKey.Day}`);
+    expect(dataLink.targetBlank).toBe(true);
+    expect(dataLink.url).toContain('/d/${__dashboard.uid}/${__dashboard}?orgId=${__org.id}');
+
+    const builtUrl = dataLink.onBuildUrl({
+      replaceVariables: (value: string) => value.replace('${__data.fields.Day}', dayDate.toISOString())
+    });
+
+    expect(builtUrl).toContain(`&from=${dayDate.valueOf()}&to=${dayDate.valueOf()}`);
+  });
+
+  test('creates data links for Week grouping', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(weekGroupCalibrationForecastDataLinkResponseMock as CalibrationForecastResponse));
+
+    const result = await datastore.query(buildCalibrationForecastQuery(weekBasedCalibrationForecastQueryMock));
+    const [_week, assets] = result.data[0].fields;
+    const [dataLink] = assets.config.links;
+
+    const weekStartDate = new Date('2022-01-03T00:00:00.0000000Z');
+    const weekEndDate = new Date('2022-01-09T23:59:59.999Z');
+
+    expect(dataLink.title).toBe(`View ${AssetCalibrationForecastKey.Week}`);
+    expect(dataLink.targetBlank).toBe(true);
+    expect(dataLink.url).toContain('/d/${__dashboard.uid}/${__dashboard}?orgId=${__org.id}');
+
+    const builtUrl = dataLink.onBuildUrl({
+      replaceVariables: (value: string) => value.replace('${__data.fields.Week}', `${weekStartDate.toISOString()} : ${weekEndDate.toISOString()}`)
+    });
+
+    expect(builtUrl).toContain(`&from=${weekStartDate.valueOf()}&to=${weekEndDate.valueOf()}`);
+  });
+
+  test('creates data links for Month grouping', async () => {
+    const query = buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock);
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
+      .mockReturnValue(createFetchResponse(monthGroupCalibrationForecastResponseMock as CalibrationForecastResponse));
+
+    const result = await datastore.query(query);
+    const [_month, assets] = result.data[0].fields;
+    const [dataLink] = assets.config.links;
+
+    const monthDate = new Date('2022-01-01T00:00:00.0000000Z');
+
+    expect(dataLink.title).toBe(`View ${AssetCalibrationForecastKey.Month}`);
+    expect(dataLink.targetBlank).toBe(true);
+    expect(dataLink.url).toContain('/d/${__dashboard.uid}/${__dashboard}?orgId=${__org.id}');
+
+    const builtUrl = dataLink.onBuildUrl({
+      replaceVariables: (value: string) => value.replace('${__data.fields.Month}', monthDate.toISOString())
+    });
+
+    monthDate.setHours(12);
+
+    expect(builtUrl).toContain(`&from=${monthDate.valueOf()}&to=${monthDate.valueOf()}`);
   });
 });
