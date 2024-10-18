@@ -1,3 +1,9 @@
+## [3.33.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.32.0...v3.33.0) (2024-10-18)
+
+### Features
+
+* **asset:** change query types for assets ([#94](https://github.com/ni/systemlink-grafana-plugins/issues/94)) ([184ebeb](https://github.com/ni/systemlink-grafana-plugins/commit/184ebeb93ba4f94234a5c543ebced70d74061422))
+
 ## [3.32.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.31.0...v3.32.0) (2024-10-17)
 
 ### Features
