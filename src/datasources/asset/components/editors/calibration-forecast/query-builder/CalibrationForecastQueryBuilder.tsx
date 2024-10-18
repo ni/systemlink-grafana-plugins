@@ -66,7 +66,12 @@ export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryB
       const fields = [workspaceField, locationField, ...AssetCalibrationStaticFields]
         .map(field => {
           if (field.lookup?.dataSource) {
-            field.lookup.dataSource = [...globalVariableOptions, ...field.lookup.dataSource];
+            return {
+              ...field,
+              lookup: {
+                dataSource: [...globalVariableOptions, ...field.lookup.dataSource]
+              }
+            }
           }
 
           return field;
