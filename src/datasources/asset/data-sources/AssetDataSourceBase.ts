@@ -8,6 +8,7 @@ import { QueryBuilderOption, Workspace } from "../../../core/types";
 import { ExpressionTransformFunction } from "../../../core/query-builder.utils";
 import { QueryBuilderOperations } from "../../../core/query-builder.constants";
 import { AllFieldNames } from "../constants/constants";
+import { getVariableOptions } from "core/utils";
 
 export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
   private systemsLoaded!: () => void;
@@ -21,11 +22,6 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
   public readonly systemAliasCache = new Map<string, SystemMetadata>([]);
   public readonly workspacesCache = new Map<string, Workspace>([]);
 
-  public readonly globalVariableOptions = (): QueryBuilderOption[] => {
-    return this.templateSrv.getVariables()
-      .filter(({ state }) => state === 'Done')
-      .map(({ name }) => ({ label: `$${name}`, value: `$${name}` })) || []
-  };
 
   abstract runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
@@ -56,6 +52,8 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
   public getCachedWorkspaces(): Workspace[] {
     return Array.from(this.workspacesCache.values());
   }
+
+  public readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
   public async loadDependencies(): Promise<void> {
     this.error = '';
