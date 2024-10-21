@@ -93,28 +93,25 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
     processResultsGroupedByTime(result: DataFrameDTO, timeGrouping: AssetCalibrationForecastKey) {
         result.fields.forEach(field => {
             field.name = this.createColumnNameFromDescriptor(field as FieldDTOWithDescriptor);
-            if (field.name === timeGrouping) {
-                switch (field.name) {
-                    case AssetCalibrationForecastKey.Day:
-                        field.values = field.values!.map(this.formatDateForDay)
-                        break;
-                    case AssetCalibrationForecastKey.Week:
-                        field.values = field.values!.map(this.formatDateForWeek)
-                        break;
-                    case AssetCalibrationForecastKey.Month:
-                        field.values = field.values!.map(this.formatDateForMonth)
-                        break;
-                    default:
-                        break;
-                }
-            } else {
-                field.config = { links: this.createDataLinks(timeGrouping) };
+            switch (field.name) {
+                case AssetCalibrationForecastKey.Day:
+                    field.values = field.values!.map(this.formatDateForDay)
+                    break;
+                case AssetCalibrationForecastKey.Week:
+                    field.values = field.values!.map(this.formatDateForWeek)
+                    break;
+                case AssetCalibrationForecastKey.Month:
+                    field.values = field.values!.map(this.formatDateForMonth)
+                    break;
+                default:
+                    field.config = { links: this.createDataLinks(timeGrouping) };
+                    break;
             }
         });
     }
 
     private createDataLinks(timeGrouping: AssetCalibrationForecastKey): DataLink[] {
-        const url = '/d/${__dashboard.uid}/${__dashboard}?orgId=${__org.id}';
+        const url = '/d/${__dashboard.uid}/${__dashboard}?orgId=${__org.id}&${__all_variables}';
 
         return [
             {
