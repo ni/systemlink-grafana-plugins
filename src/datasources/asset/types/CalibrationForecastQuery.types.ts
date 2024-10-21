@@ -5,6 +5,7 @@ import { AssetQuery } from './types';
 export interface CalibrationForecastQuery extends AssetQuery {
     groupBy: string[];
     filter?: string;
+    IncludeOnlyDataInTimeRange?: boolean;
 }
 
 export interface CalibrationForecastResponse {
