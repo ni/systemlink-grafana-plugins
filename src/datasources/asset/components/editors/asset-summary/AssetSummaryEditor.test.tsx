@@ -4,8 +4,8 @@ import { mock } from 'jest-mock-extended';
 
 import { AssetSummaryResponse } from 'datasources/asset/types/AssetSummaryQuery.types';
 import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from 'datasources/asset/types/types';
-import { assetSummaryFields } from 'datasources/asset/constants';
 import { AssetSummaryDataSource } from '../../../data-sources/asset-summary/AssetSummaryDataSource';
+import { assetSummaryFields } from '../../../constants/AssetSummaryQuery.constants';
 
 describe('AssetSummaryDataSource', () => {
   let dataSource: AssetSummaryDataSource;
@@ -17,8 +17,7 @@ describe('AssetSummaryDataSource', () => {
     active: 5,
     notActive: 3,
     approachingRecommendedDueDate: 1,
-    pastRecommendedDueDate: 1,
-    refId: '',
+    pastRecommendedDueDate: 1
   };
 
   beforeEach(() => {
@@ -26,7 +25,7 @@ describe('AssetSummaryDataSource', () => {
   });
 
   it('should process metadata query correctly', async () => {
-    const query: AssetQuery = { refId: 'A', queryType: AssetQueryType.AssetSummary, };
+    const query: AssetQuery = { refId: 'A', type: AssetQueryType.AssetSummary, };
 
     jest.spyOn(dataSource, 'getAssetSummary').mockResolvedValue(assetSummary);
     const result = await dataSource.processSummaryQuery(query);

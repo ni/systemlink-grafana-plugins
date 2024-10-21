@@ -1,10 +1,8 @@
 import { FieldDTO } from '@grafana/data';
-import { DataQuery } from '@grafana/schema'
 import { QueryBuilderField } from 'smart-webcomponents-react';
-import { AssetQueryType } from './types';
+import { AssetQuery } from './types';
 
-export interface CalibrationForecastQuery extends DataQuery {
-    queryType: AssetQueryType;
+export interface CalibrationForecastQuery extends AssetQuery {
     groupBy: string[];
     filter?: string;
 }

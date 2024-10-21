@@ -1,3 +1,33 @@
+## [3.33.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.32.0...v3.33.0) (2024-10-18)
+
+### Features
+
+* **asset:** change query types for assets ([#94](https://github.com/ni/systemlink-grafana-plugins/issues/94)) ([184ebeb](https://github.com/ni/systemlink-grafana-plugins/commit/184ebeb93ba4f94234a5c543ebced70d74061422))
+
+## [3.32.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.31.0...v3.32.0) (2024-10-17)
+
+### Features
+
+* **asset:** add asset variable query with query builder ([#90](https://github.com/ni/systemlink-grafana-plugins/issues/90)) ([4de79ff](https://github.com/ni/systemlink-grafana-plugins/commit/4de79ff716ce20059502ae8dab946e756d0120f7))
+
+## [3.31.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.30.0...v3.31.0) (2024-10-17)
+
+### Features
+
+* **tag:** add multi value variable support  ([#89](https://github.com/ni/systemlink-grafana-plugins/issues/89)) ([ee422d8](https://github.com/ni/systemlink-grafana-plugins/commit/ee422d863727607318e55253c6eeb9fc037e531a))
+
+## [3.30.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.29.0...v3.30.0) (2024-10-17)
+
+### Features
+
+* **asset:**  add global variables as options ([#92](https://github.com/ni/systemlink-grafana-plugins/issues/92)) ([70f8c7a](https://github.com/ni/systemlink-grafana-plugins/commit/70f8c7a30cb53d57f782fbe36575000059d53079))
+
+## [3.29.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.28.0...v3.29.0) (2024-10-17)
+
+### Features
+
+* **asset:** add support for grafana variables for list assets ([#91](https://github.com/ni/systemlink-grafana-plugins/issues/91)) ([0cdc52e](https://github.com/ni/systemlink-grafana-plugins/commit/0cdc52eacae0960ccabf691738211777ef1aaa9a))
+
 ## [3.28.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.27.0...v3.28.0) (2024-10-17)
 
 ### Features

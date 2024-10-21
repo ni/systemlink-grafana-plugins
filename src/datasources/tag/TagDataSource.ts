@@ -7,11 +7,11 @@ import {
   TestDataSourceResponse,
   FieldConfig,
   dateTime,
-  DataSourceJsonData,
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
+  TagDataSourceOptions,
   TagHistoryResponse,
   TagQuery,
   TagQueryType,
@@ -21,10 +21,11 @@ import {
   TypeAndValues,
 } from './types';
 import { Throw, getWorkspaceName } from 'core/utils';
+import { expandMultipleValueVariable } from "./utils";
 
-export class TagDataSource extends DataSourceBase<TagQuery, DataSourceJsonData> {
+export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions> {
   constructor(
-    readonly instanceSettings: DataSourceInstanceSettings,
+    readonly instanceSettings: DataSourceInstanceSettings<TagDataSourceOptions>,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
@@ -33,6 +34,7 @@ export class TagDataSource extends DataSourceBase<TagQuery, DataSourceJsonData> 
 
   tagUrl = this.instanceSettings.url + '/nitag/v2';
   tagHistoryUrl = this.instanceSettings.url + '/nitaghistorian/v2/tags';
+  parseMultiSelectEnabled = this.instanceSettings.jsonData?.featureToggles?.parseMultiSelectValues ?? false;
 
   defaultQuery: Omit<TagQuery, 'refId'> = {
     type: TagQueryType.Current,
@@ -42,10 +44,20 @@ export class TagDataSource extends DataSourceBase<TagQuery, DataSourceJsonData> 
   };
 
   async runQuery(query: TagQuery, { range, maxDataPoints, scopedVars }: DataQueryRequest): Promise<DataFrameDTO> {
-    const tagsWithValues = await this.getMostRecentTags(
-      this.templateSrv.replace(query.path, scopedVars),
-      this.templateSrv.replace(query.workspace, scopedVars)
-    );
+    let tagsWithValues: TagWithValue[] = []
+    if (this.parseMultiSelectEnabled) {
+      let paths: string[] = this.generatePathsFromTemplate(query);
+      tagsWithValues = await this.getMostRecentTagsByMultiplePaths(
+        paths,
+        this.templateSrv.replace(query.workspace, scopedVars)
+      );
+    } else {
+      tagsWithValues = await this.getMostRecentTagsBySinglePath(
+        this.templateSrv.replace(query.path, scopedVars),
+        this.templateSrv.replace(query.workspace, scopedVars)
+      );
+    }
+
     const workspaces = await this.getWorkspaces();
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
 
@@ -145,7 +157,20 @@ export class TagDataSource extends DataSourceBase<TagQuery, DataSourceJsonData> 
     }
   }
 
-  private async getMostRecentTags(path: string, workspace: string) {
+  private generatePathsFromTemplate(query: TagQuery) {
+    let paths: string[] = [query.path];
+    if (this.templateSrv.containsTemplate(query.path)) {
+      const replacedPath = this.templateSrv.replace(
+        query.path,
+        undefined,
+        (v: string | string[]): string => `{${v}}`
+      );
+      paths = expandMultipleValueVariable(replacedPath);
+    }
+    return paths;
+  }
+
+  private async getMostRecentTagsBySinglePath(path: string, workspace: string) {
     let filter = `path = "${path}"`;
     if (workspace) {
       filter += ` && workspace = "${workspace}"`;
@@ -159,6 +184,26 @@ export class TagDataSource extends DataSourceBase<TagQuery, DataSourceJsonData> 
     });
 
     return response.tagsWithValues.length ? response.tagsWithValues : Throw(`No tags matched the path '${path}'`)
+  }
+
+  private async getMostRecentTagsByMultiplePaths(paths: string[], workspace: string) {
+    let filter = '';
+    const pathsFilter: string[] = [];
+    paths.forEach((path: string) => {
+      pathsFilter.push(`path = "${path}"`);
+    })
+    filter += `(${pathsFilter.join(' or ')})`;
+    if (workspace) {
+      filter += ` && workspace = "${workspace}"`;
+    }
+    const response = await this.post<TagsWithValues>(this.tagUrl + '/query-tags-with-values', {
+      filter,
+      take: 100,
+      orderBy: 'TIMESTAMP',
+      descending: true,
+    });
+
+    return response.tagsWithValues.length ? response.tagsWithValues : Throw(`No tags matched the path '${paths}'`)
   }
 
   private async getTagHistoryWithChunks(paths: TagWithValue[], workspace: string, range: TimeRange, intervals?: number): Promise<TagHistoryResponse> {

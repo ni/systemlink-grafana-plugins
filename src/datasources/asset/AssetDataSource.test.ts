@@ -14,9 +14,11 @@ import { ListAssetsQuery } from "./types/ListAssets.types";
 
 let ds: AssetDataSource, backendSrv: MockProxy<BackendSrv>
 let assetOptions = {
-  assetListEnabled: true,
-  calibrationForecastEnabled: true,
-  assetSummaryEnabled: true,
+  featureToggles: {
+    assetListEnabled: true,
+    calibrationForecastEnabled: true,
+    assetSummaryEnabled: true,
+  }
 }
 
 beforeEach(() => {
@@ -212,7 +214,7 @@ const assetsResponseMock: AssetsResponse =
 
 
 const assetMetadataQueryMock: ListAssetsQuery = {
-  queryType: AssetQueryType.ListAssets,
+  type: AssetQueryType.ListAssets,
   filter: 'Location.MinionId == "123"',
   refId: ''
 }
@@ -223,6 +225,7 @@ const buildMetadataQuery = getQueryBuilder<ListAssetsQuery>()({
 
 describe('testDatasource', () => {
   test('returns success', async () => {
+
     backendSrv.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets?take=1' }))
       .mockReturnValue(createFetchResponse(25));

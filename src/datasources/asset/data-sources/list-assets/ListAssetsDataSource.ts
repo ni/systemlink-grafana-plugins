@@ -5,6 +5,7 @@ import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../types/
 import { ListAssetsQuery } from '../../types/ListAssets.types';
 import { AssetModel, AssetsResponse } from '../../../asset-common/types';
 import { getWorkspaceName } from '../../../../core/utils';
+import { transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
 
 export class ListAssetsDataSource extends AssetDataSourceBase {
   private dependenciesLoadedPromise: Promise<void>;
@@ -21,14 +22,23 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
   baseUrl = this.instanceSettings.url + '/niapm/v1';
 
   defaultQuery = {
-    queryType: AssetQueryType.ListAssets,
+    type: AssetQueryType.ListAssets,
     filter: ''
   };
 
   async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    const listAssetsQuery = query as ListAssetsQuery;
     await this.dependenciesLoadedPromise;
+  
+    if (listAssetsQuery.filter) {
+      listAssetsQuery.filter = transformComputedFieldsQuery(
+        this.templateSrv.replace(listAssetsQuery.filter, options.scopedVars),
+        this.assetComputedDataFields,
+        this.queryTransformationOptions
+      );
+    }
 
-    return this.processListAssetsQuery(query as ListAssetsQuery);
+    return this.processListAssetsQuery(listAssetsQuery);
   }
 
   shouldRunQuery(query: AssetQuery): boolean {

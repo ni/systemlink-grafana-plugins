@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { SystemProperties } from '../../../../system/types';
 import { AssetDataSource } from '../../../AssetDataSource';
 import { AssetQueryEditor } from '../../AssetQueryEditor';
@@ -21,7 +21,7 @@ const fakeSystems: SystemProperties[] = [
 ];
 
 let assetDatasourceOptions = {
-  featureToggles: {...AssetFeatureTogglesDefaults}
+  featureToggles: { ...AssetFeatureTogglesDefaults }
 }
 
 class FakeAssetsSource extends ListAssetsDataSource {
@@ -40,21 +40,21 @@ const render = setupRenderer(AssetQueryEditor, FakeAssetDataSource, () => assetD
 
 beforeEach(() => {
   assetDatasourceOptions = {
-    featureToggles: {...AssetFeatureTogglesDefaults}
+    featureToggles: { ...AssetFeatureTogglesDefaults }
   }
 })
 
 it('does not render when feature is not enabled', async () => {
   assetDatasourceOptions.featureToggles.assetList = false;
   render({} as ListAssetsQuery);
-  expect(screen.getAllByRole('combobox').length).toBe(2);
+  await waitFor(() => expect(screen.getAllByRole('combobox').length).toBe(2));
 });
 
 it('renders the query builder', async () => {
   assetDatasourceOptions.featureToggles.assetList = true;
   render({} as ListAssetsQuery);
 
-  expect(screen.getAllByText('Property').length).toBe(1);
-  expect(screen.getAllByText('Operator').length).toBe(1);
-  expect(screen.getAllByText('Value').length).toBe(1);
+  await waitFor(() => expect(screen.getAllByText('Property').length).toBe(1));
+  await waitFor(() => expect(screen.getAllByText('Operator').length).toBe(1));
+  await waitFor(() => expect(screen.getAllByText('Value').length).toBe(1));
 });
