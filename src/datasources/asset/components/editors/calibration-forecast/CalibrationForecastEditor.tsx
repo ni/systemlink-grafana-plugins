@@ -68,9 +68,10 @@ export function CalibrationForecastEditor({ query, handleQueryChange, datasource
     }
   };
 
-  function onParameterChange(ev: CustomEvent) {
-    if (query.filter !== ev.detail.linq) {
-      query.filter = ev.detail.linq;
+  function onParameterChange({ detail: { linq } }: CustomEvent) {
+    const containsEmptyString = /"\s*"/.test(linq);
+    if (query.filter !== linq && !containsEmptyString) {
+      query.filter = linq;
       handleQueryChange(query, true);
     }
   }
@@ -99,7 +100,7 @@ export function CalibrationForecastEditor({ query, handleQueryChange, datasource
         label="Filter"
         labelWidth={22}
         tooltip={tooltips.calibrationForecast.filter}
-        >
+      >
         <CalibrationForecastQueryBuilder
           filter={query.filter}
           workspaces={workspaces}
