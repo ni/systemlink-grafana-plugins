@@ -1,3 +1,9 @@
+## [3.34.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.33.0...v3.34.0) (2024-10-21)
+
+### Features
+
+* **asset:** avoid side effects on field constants ([#95](https://github.com/ni/systemlink-grafana-plugins/issues/95)) ([ab60877](https://github.com/ni/systemlink-grafana-plugins/commit/ab6087735e2f623296a83134c0403aab85407644))
+
 ## [3.33.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.32.0...v3.33.0) (2024-10-18)
 
 ### Features
