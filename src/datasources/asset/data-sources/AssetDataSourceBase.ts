@@ -21,7 +21,11 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
   public readonly systemAliasCache = new Map<string, SystemMetadata>([]);
   public readonly workspacesCache = new Map<string, Workspace>([]);
 
-  public readonly globalVariableOptions: QueryBuilderOption[] = this.templateSrv.getVariables()?.map(({ name }) => ({ label: `$${name}`, value: `$${name}` })) || [];
+  public readonly globalVariableOptions = (): QueryBuilderOption[] => {
+    return this.templateSrv.getVariables()
+      .filter(({ state }) => state === 'Done')
+      .map(({ name }) => ({ label: `$${name}`, value: `$${name}` })) || []
+  };
 
   abstract runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
@@ -114,7 +118,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
         }
 
         return `(Location.MinionId ${operation} "${value}" ${this.getLocicalOperator(operation)} Location.PhysicalLocation ${operation} "${value}")`;
-  }]]);
+      }]]);
 
   protected multipleValuesQuery(field: string): ExpressionTransformFunction {
     return (value: string, operation: string, _options?: any) => {

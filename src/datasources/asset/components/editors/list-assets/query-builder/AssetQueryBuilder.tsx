@@ -76,7 +76,12 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
     const fields = [workspaceField, locationField]
       .map(field => {
         if (field.lookup?.dataSource) {
-          field.lookup.dataSource = [...globalVariableOptions, ...field.lookup.dataSource];
+          return {
+            ...field,
+            lookup: {
+              dataSource: [...globalVariableOptions, ...field.lookup.dataSource]
+            }
+          }
         }
 
         return field;

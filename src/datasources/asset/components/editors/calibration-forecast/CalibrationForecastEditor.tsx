@@ -104,7 +104,7 @@ export function CalibrationForecastEditor({ query, handleQueryChange, datasource
           filter={query.filter}
           workspaces={workspaces}
           systems={systems}
-          globalVariableOptions={datasource.globalVariableOptions}
+          globalVariableOptions={datasource.globalVariableOptions()}
           areDependenciesLoaded={areDependenciesLoaded}
           onChange={(event: any) => onParameterChange(event)}
         ></CalibrationForecastQueryBuilder>
