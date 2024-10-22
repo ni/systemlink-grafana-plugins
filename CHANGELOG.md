@@ -1,3 +1,9 @@
+## [3.35.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.34.1...v3.35.0) (2024-10-22)
+
+### Features
+
+* **asset:** time based data links ([#93](https://github.com/ni/systemlink-grafana-plugins/issues/93)) ([fc95303](https://github.com/ni/systemlink-grafana-plugins/commit/fc95303aba264c2025dac604e41330a7e4a9ba71))
+
 ## [3.34.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.34.0...v3.34.1) (2024-10-22)
 
 ### Bug Fixes
