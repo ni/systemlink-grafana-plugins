@@ -1,4 +1,4 @@
-import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings, FieldDTO, TestDataSourceResponse } from '@grafana/data';
+import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings, FieldDTO, TestDataSourceResponse, DataLink } from '@grafana/data';
 import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
@@ -66,8 +66,10 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
         const calibrationForecastResponse: CalibrationForecastResponse = await this.queryCalibrationForecast(query.groupBy, from, to, query.filter);
 
         result.fields = calibrationForecastResponse.calibrationForecast.columns || [];
-        if (this.isGroupByTime(query)) {
-            this.processResultsGroupedByTime(result)
+
+        const timeGrouping = this.getTimeGroup(query);
+        if (timeGrouping) {
+            this.processResultsGroupedByTime(result, timeGrouping)
         } else {
             this.processResultsGroupedByProperties(result)
         }
@@ -75,13 +77,20 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
         return result;
     }
 
-    isGroupByTime(query: CalibrationForecastQuery) {
-        return query.groupBy.includes(AssetCalibrationTimeBasedGroupByType.Day) ||
-            query.groupBy.includes(AssetCalibrationTimeBasedGroupByType.Week) ||
-            query.groupBy.includes(AssetCalibrationTimeBasedGroupByType.Month);
+    getTimeGroup(query: CalibrationForecastQuery) {
+        if (query.groupBy.includes(AssetCalibrationTimeBasedGroupByType.Day)) {
+            return AssetCalibrationForecastKey.Day;
+        }
+        if (query.groupBy.includes(AssetCalibrationTimeBasedGroupByType.Week)) {
+            return AssetCalibrationForecastKey.Week;
+        }
+        if (query.groupBy.includes(AssetCalibrationTimeBasedGroupByType.Month)) {
+            return AssetCalibrationForecastKey.Month;
+        }
+        return null;
     }
 
-    processResultsGroupedByTime(result: DataFrameDTO) {
+    processResultsGroupedByTime(result: DataFrameDTO, timeGrouping: AssetCalibrationForecastKey) {
         result.fields.forEach(field => {
             field.name = this.createColumnNameFromDescriptor(field as FieldDTOWithDescriptor);
             switch (field.name) {
@@ -95,9 +104,36 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
                     field.values = field.values!.map(this.formatDateForMonth)
                     break;
                 default:
+                    field.config = { links: this.createDataLinks(timeGrouping) };
                     break;
             }
         });
+    }
+
+    private createDataLinks(timeGrouping: AssetCalibrationForecastKey): DataLink[] {
+        const url = '/d/${__dashboard.uid}/${__dashboard}?orgId=${__org.id}&${__all_variables}';
+
+        return [
+            {
+                title: `View ${timeGrouping}`, targetBlank: true, url: `${url}`,
+                onBuildUrl: function (options) {
+                    if (options.replaceVariables) {
+                        const value = options.replaceVariables(`\${__data.fields.${timeGrouping}}`);
+                        if (timeGrouping === AssetCalibrationForecastKey.Week) {
+                            const [from, to] = value.split(' : ').map(rangeItem => new Date(rangeItem).valueOf());
+                            return `${url}&from=${from}&to=${to}`;
+                        }
+
+                        const date = new Date(value);
+                        if (timeGrouping === AssetCalibrationForecastKey.Month) {
+                            date.setHours(12);
+                        }
+                        return `${url}&from=${date.valueOf()}&to=${date.valueOf()}`;
+                    }
+                    return url;
+                }
+            }
+        ];
     }
 
     processResultsGroupedByProperties(result: DataFrameDTO) {
