@@ -1,3 +1,9 @@
+## [3.34.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.34.0...v3.34.1) (2024-10-22)
+
+### Bug Fixes
+
+* **asset:** fix empty string error on Linq filter for assets ([#98](https://github.com/ni/systemlink-grafana-plugins/issues/98)) ([35a1ad7](https://github.com/ni/systemlink-grafana-plugins/commit/35a1ad7be37449178280b4ad94a2c540d6406c01))
+
 ## [3.34.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.33.0...v3.34.0) (2024-10-21)
 
 ### Features
