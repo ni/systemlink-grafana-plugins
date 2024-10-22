@@ -37,7 +37,7 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
         filter={assetVariableQuery.filter}
         workspaces={workspaces}
         systems={systems}
-        globalVariableOptions={assetListDatasource.current.globalVariableOptions}
+        globalVariableOptions={assetListDatasource.current.globalVariableOptions()}
         areDependenciesLoaded={areDependenciesLoaded}
         onChange={(event: any) => onParameterChange(event)}
       ></AssetQueryBuilder>

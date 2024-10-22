@@ -8,6 +8,7 @@ import { QueryBuilderOption, Workspace } from "../../../core/types";
 import { ExpressionTransformFunction } from "../../../core/query-builder.utils";
 import { QueryBuilderOperations } from "../../../core/query-builder.constants";
 import { AllFieldNames } from "../constants/constants";
+import { getVariableOptions } from "core/utils";
 
 export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
   private systemsLoaded!: () => void;
@@ -21,7 +22,6 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
   public readonly systemAliasCache = new Map<string, SystemProperties>([]);
   public readonly workspacesCache = new Map<string, Workspace>([]);
 
-  public readonly globalVariableOptions: QueryBuilderOption[] = this.templateSrv.getVariables()?.map(({ name }) => ({ label: `$${name}`, value: `$${name}` })) || [];
 
   abstract runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
@@ -52,6 +52,8 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
   public getCachedWorkspaces(): Workspace[] {
     return Array.from(this.workspacesCache.values());
   }
+
+  public readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
   public async loadDependencies(): Promise<void> {
     this.error = '';
@@ -114,7 +116,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
         }
 
         return `(Location.MinionId ${operation} "${value}" ${this.getLocicalOperator(operation)} Location.PhysicalLocation ${operation} "${value}")`;
-  }]]);
+      }]]);
 
   protected multipleValuesQuery(field: string): ExpressionTransformFunction {
     return (value: string, operation: string, _options?: any) => {
