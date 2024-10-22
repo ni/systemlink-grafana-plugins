@@ -558,7 +558,7 @@ describe('Asset calibration location queries', () => {
     expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
       expect.objectContaining({
         groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
-        filter: "(Location.MinionId = \"Location1\" || Location.PhysicalLocation = \"Location1\")"
+        filter: "Locations.Any(l => l.MinionId = \"Location1\" || l.PhysicalLocation = \"Location1\")"
       }),
       expect.anything()
     );
