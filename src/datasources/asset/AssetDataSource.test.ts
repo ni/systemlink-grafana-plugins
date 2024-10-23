@@ -206,7 +206,18 @@ const assetsResponseMock: AssetsResponse =
       "lastUpdatedTimestamp": "2024-02-21T12:54:20.078Z",
       "fileIds": [],
       "supportsSelfTest": false,
-      "supportsReset": false
+      "supportsReset": false,
+      "externalCalibration": {
+        "temperatureSensors": [],
+        "isLimited": false,
+        "date": "2024-02-21T12:54:20.078Z",
+        "recommendedInterval": 12,
+        "nextRecommendedDate": "2025-02-21T12:54:20.078Z",
+        "nextCustomDueDate": "2025-02-21T12:54:20.078Z",
+        "resolvedDueDate": "2025-02-21T12:54:20.078Z",
+        "entryType": "AUTOMATIC",
+        "updatedBy": "user-id"
+      }
     }
   ],
   "totalCount": 4
@@ -250,7 +261,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
       .mockReturnValue(createFetchResponse(assetsResponseMock as AssetsResponse))
 
-    const result = await ds.query(buildMetadataQuery(assetMetadataQueryMock))
+    const result = await ds.query( buildMetadataQuery( assetMetadataQueryMock ) )
 
     expect(result.data).toMatchSnapshot()
   })
