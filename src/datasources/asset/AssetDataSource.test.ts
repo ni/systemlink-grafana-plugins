@@ -206,7 +206,18 @@ const assetsResponseMock: AssetsResponse =
       "lastUpdatedTimestamp": "2024-02-21T12:54:20.078Z",
       "fileIds": [],
       "supportsSelfTest": false,
-      "supportsReset": false
+      "supportsReset": false,
+      "externalCalibration": {
+        "temperatureSensors": [],
+        "isLimited": false,
+        "date": "2024-02-21T12:54:20.078Z",
+        "recommendedInterval": 12,
+        "nextRecommendedDate": "2025-02-21T12:54:20.078Z",
+        "nextCustomDueDate": "2025-02-21T12:54:20.078Z",
+        "resolvedDueDate": "2025-02-21T12:54:20.078Z",
+        "entryType": "AUTOMATIC",
+        "updatedBy": "user-id"
+      }
     }
   ],
   "totalCount": 4

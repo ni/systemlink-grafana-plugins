@@ -58,12 +58,8 @@ export interface ExternalCalibrationModel {
   recommendedInterval: number,
   nextRecommendedDate: string,
   nextCustomDueDate?: string,
-  comments: string,
+  resolvedDueDate?: string,
+  comments?: string,
   entryType: "AUTOMATIC" | "MANUAL" | string,
-  operator: ExternalCalibrationOperatorModel
-}
-
-export interface ExternalCalibrationOperatorModel {
-  displayName: string;
-  userId: string
+  updatedBy: string
 }
