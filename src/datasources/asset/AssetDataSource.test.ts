@@ -190,6 +190,7 @@ const assetsResponseMock: AssetsResponse =
       "id": "456e8812-1da4-4818-afab-f0cd34f74567",
       "location": {
         "minionId": "NI_sbRIO-9629--SN-01FE20D1--MAC-00-80-2F-33-30-18",
+        "physicalLocation": "Cabinet 1",
         "parent": "sbRIO1",
         "resourceUri": "7/4243/31305/01FE20D1/5",
         "slotNumber": 5,

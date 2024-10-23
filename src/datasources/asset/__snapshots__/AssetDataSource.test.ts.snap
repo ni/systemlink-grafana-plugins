@@ -95,6 +95,15 @@ exports[`queries run metadata query 1`] = `
         ],
       },
       {
+        "name": "location",
+        "values": [
+          "",
+          "",
+          "",
+          "Cabinet 1",
+        ],
+      },
+      {
         "name": "minionId",
         "values": [
           "NI_sbRIO-9629--SN-01FE20D1--MAC-00-80-2F-33-30-18",
