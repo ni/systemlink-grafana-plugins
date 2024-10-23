@@ -1,6 +1,6 @@
 import { QueryBuilderOperations } from "../../../core/query-builder.constants";
 import { QBField } from "../types/CalibrationForecastQuery.types";
-import { AssetTypeOptions, BusTypeOptions } from "../types/types";
+import { AssetTypeOptions, BusTypeOptions, ResolvedDueDateOptions } from "../types/types";
 
 export enum ListAssetsFieldNames {
     LOCATION = 'Location',
@@ -9,6 +9,7 @@ export enum ListAssetsFieldNames {
     VENDOR_NAME = 'VendorName',
     BUS_TYPE = 'BusType',
     ASSET_TYPE = 'AssetType',
+    CALIBRATION_DUE_DATE = 'ExternalCalibration.NextRecommendedDate'
 }
 
 export const ListAssetsFields: Record<string, QBField> = {
@@ -72,11 +73,25 @@ export const ListAssetsFields: Record<string, QBField> = {
             dataSource: AssetTypeOptions,
         },
     },
+    CALIBRATION_DUE_DATE: {
+        label: 'Calibration Due Date',
+        dataField: ListAssetsFieldNames.CALIBRATION_DUE_DATE,
+        filterOperations: [
+            QueryBuilderOperations.LESS_THAN.name,
+            QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
+            QueryBuilderOperations.GREATER_THAN.name,
+            QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name
+        ],
+        lookup: {
+            dataSource: ResolvedDueDateOptions
+        }
+    }
 };
 
 export const ListAssetsStaticFields = [
     ListAssetsFields.MODEL_NAME,
     ListAssetsFields.VENDOR_NAME,
     ListAssetsFields.ASSET_TYPE,
-    ListAssetsFields.BUS_TYPE
+    ListAssetsFields.BUS_TYPE,
+    ListAssetsFields.CALIBRATION_DUE_DATE
 ];

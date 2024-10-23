@@ -82,3 +82,8 @@ export const AssetTypeOptions = [
   { label: 'Fixture', value: AssetType.FIXTURE },
   { label: 'System', value: AssetType.SYSTEM },
 ];
+
+export const ResolvedDueDateOptions = [
+  { label: '${__from:date}', value: '${__from:date}' },
+  { label: '${__to:date}', value: '${__to:date}' }
+];
