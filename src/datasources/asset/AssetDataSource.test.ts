@@ -261,7 +261,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
       .mockReturnValue(createFetchResponse(assetsResponseMock as AssetsResponse))
 
-    const result = await ds.query( buildMetadataQuery( assetMetadataQueryMock ) )
+    const result = await ds.query(buildMetadataQuery(assetMetadataQueryMock))
 
     expect(result.data).toMatchSnapshot()
   })
