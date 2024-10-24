@@ -114,7 +114,7 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
             if (formatter) {
                 field.values = field.values!.map(formatter);
             }
-            
+
             if (!formatter && !Boolean(this.getQueryParam('IncludeOnlyDataInTimeRange'))) {
                 field.config = { links: this.createDataLinks(timeGrouping, startDate) };
             }
@@ -122,7 +122,7 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
     }
 
     private createDataLinks(timeGrouping: AssetCalibrationForecastKey, startDate: string): DataLink[] {
-        const url = '/d/${__dashboard.uid}/${__dashboard}?orgId=${__org.id}&${__all_variables}';
+        const url = window.location.href.split('/d/')[0] + '/d/${__dashboard.uid}/${__dashboard}?orgId=${__org.id}&${__all_variables}';
 
         return [
             {
@@ -205,11 +205,9 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
     }
 
     formatDateForWeek(date: string): string {
-        console.log(date);
         const startDate = new Date(date);
         const endDate = new Date(startDate);
         endDate.setDate(startDate.getDate() + 6);
-        console.log(startDate)
         return `${startDate.toISOString().split('T')[0]} : ${endDate.toISOString().split('T')[0]}`;
     }
 
