@@ -113,6 +113,10 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
       },
       QueryBuilderOperations.CONTAINS,
       QueryBuilderOperations.DOES_NOT_CONTAIN,
+      QueryBuilderOperations.LESS_THAN,
+      QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO,
+      QueryBuilderOperations.GREATER_THAN,
+      QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO
     ]);
   }, [workspaceField, locationField, areDependenciesLoaded, globalVariableOptions]);
 
