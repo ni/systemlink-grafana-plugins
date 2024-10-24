@@ -1,7 +1,7 @@
 import { DataQuery } from '@grafana/schema'
 
 export interface ProductsQuery extends DataQuery {
-  metaData?: MetaData[];
+  properties?: Properties[];
   queryBy: string;
   partNumber?: string;
   tags?: string[];
@@ -28,7 +28,7 @@ export enum ProductQueryOutput {
   TestPlansCountByState = 'Test Plans Count By State',
 }
 
-export enum MetaData {
+export enum Properties {
   id = 'ID',
   partNumber = 'PART_NUMBER',
   name = 'NAME',
@@ -40,7 +40,7 @@ export enum MetaData {
   fileIds = 'FILE_IDS',
 }
 
-export const MetaDataOptions = {
+export const PropertiesOptions = {
   ID: 'id',
   PART_NUMBER: 'partNumber',
   NAME: 'name',
@@ -53,7 +53,7 @@ export const MetaDataOptions = {
 };
 
 
-export const MetaDataType = [
+export const PropertiesType = [
   {
     value: 'ID',
     label: 'ID',
@@ -135,12 +135,12 @@ export const OrderBy = [
 ]
 
 export interface QueryProductResponse {
-  products: ProductsMetaData[],
+  products: ProductsProperties[],
   continuationToken: string,
   totalCount: number
 }
 
-export interface ProductsMetaData {
+export interface ProductsProperties {
   id: string;
   partNumber: string;
   name: string;

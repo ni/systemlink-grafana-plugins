@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { ProductsQuery, QueryProductResponse, MetaData, ProductsVariableQuery, MetaDataOptions } from './types';
+import { ProductsQuery, QueryProductResponse, Properties, ProductsVariableQuery, PropertiesOptions } from './types';
 
 export class productsDataSource extends DataSourceBase<ProductsQuery> {
   constructor(
@@ -21,7 +21,7 @@ export class productsDataSource extends DataSourceBase<ProductsQuery> {
     queryBy: '',
     recordCount: 1000,
     orderBy: '',
-    metaData: [MetaDataOptions.ID, MetaDataOptions.PART_NUMBER,MetaDataOptions.NAME, MetaDataOptions.FAMILY, MetaDataOptions.UPDATEDAT, MetaDataOptions.WORKSPACE] as MetaData[]
+    properties: [PropertiesOptions.ID, PropertiesOptions.PART_NUMBER,PropertiesOptions.NAME, PropertiesOptions.FAMILY, PropertiesOptions.UPDATEDAT, PropertiesOptions.WORKSPACE] as Properties[]
   };
 
   async getWorkspaceNames(): Promise<{label:string, value:string}[]> {
@@ -32,7 +32,7 @@ export class productsDataSource extends DataSourceBase<ProductsQuery> {
     return workspaceOptions;
   }
 
-  async queryProducts(filter: string, orderBy?: string, projection?: MetaData[], recordCount = 1000, descending = false ,returnCount= false ): Promise<QueryProductResponse> {
+  async queryProducts(filter: string, orderBy?: string, projection?: Properties[], recordCount = 1000, descending = false ,returnCount= false ): Promise<QueryProductResponse> {
     const response = await this.post<QueryProductResponse>(this.baseUrl + '/nitestmonitor/v2/query-products', {
       filter: filter,
       orderBy: orderBy,
@@ -62,14 +62,14 @@ export class productsDataSource extends DataSourceBase<ProductsQuery> {
   async runQuery(query: ProductsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     if (!query.queryBy) {
       const variableReplacedFilter = getTemplateSrv().replace(query.queryBy, options.scopedVars)
-      const responseData = (await this.queryProducts(variableReplacedFilter, query.orderBy, query.metaData, query.recordCount, query.descending, false)).products;
+      const responseData = (await this.queryProducts(variableReplacedFilter, query.orderBy, query.properties, query.recordCount, query.descending, false)).products;
       
-      const filteredFields = query.metaData?.filter((field: MetaData) => Object.keys(responseData[0]).includes(field)) || [];
+      const filteredFields = query.properties?.filter((field: Properties) => Object.keys(responseData[0]).includes(field)) || [];
 
       const fields = filteredFields.map((field) => {
-        const fieldType = field === MetaData.updatedAt ? FieldType.time : FieldType.string;
+        const fieldType = field === Properties.updatedAt ? FieldType.time : FieldType.string;
         const values = responseData.map(m => m[field]);
-        if (field === MetaDataOptions.PROPERTIES) {
+        if (field === PropertiesOptions.PROPERTIES) {
           return { name: field, values: values.map(v => v.StatusName), type: FieldType.string };
         }
         return { name: field, values, type: fieldType };
@@ -80,11 +80,11 @@ export class productsDataSource extends DataSourceBase<ProductsQuery> {
         fields: fields,
       };
     } else {
-        const responseData = (await this.queryProducts( query.queryBy, query.orderBy, query.metaData!, query.recordCount, query.descending, false)).products;
+        const responseData = (await this.queryProducts( query.queryBy, query.orderBy, query.properties!, query.recordCount, query.descending, false)).products;
        
-        const filteredFields = query.metaData?.filter((field: MetaData) => Object.keys(responseData[0]).includes(field)) || [];
+        const filteredFields = query.properties?.filter((field: Properties) => Object.keys(responseData[0]).includes(field)) || [];
         const fields = filteredFields.map((field) => {{
-          const fieldType = field === MetaData.updatedAt ? FieldType.time : FieldType.string;
+          const fieldType = field === Properties.updatedAt ? FieldType.time : FieldType.string;
           const values = responseData.map(m => m[field]);
           return { name: field, values, type: fieldType };
         }});

@@ -1,7 +1,7 @@
 import { InlineField, RadioButtonGroup } from "@grafana/ui";
 import { enumToOptions } from "core/utils";
 import React from "react";
-import { ResultsQueryType, ResultsVariableQuery } from "../types";
+import { ResultsVariableQuery, ResultsVariableQueryType } from "../types";
 import { TestResultsDataSource } from "../ResultsDataSource";
 import { TestResultsQueryBuilder } from "../ResultsQueryBuilder";
 import { TestStepsQueryBuilder } from "../StepsQueryBuilder";
@@ -14,7 +14,7 @@ interface Props {
 
 
 export function ResultsVariableQueryEditor({ onChange, query, datasource }: Props) {
-  const onQueryTypeChange = (value: ResultsQueryType) => {
+  const onQueryTypeChange = (value: ResultsVariableQueryType) => {
     onChange({ ...query, type: value });
   };
 
@@ -34,12 +34,12 @@ export function ResultsVariableQueryEditor({ onChange, query, datasource }: Prop
     <>
       <InlineField label="Query type" labelWidth={20} tooltip={tooltip.queryType}>
         <RadioButtonGroup
-          options={enumToOptions(ResultsQueryType)}
+          options={enumToOptions(ResultsVariableQueryType)}
           value={query.type}
           onChange={onQueryTypeChange}
         />
       </InlineField>
-      {(query.type === ResultsQueryType.MetaData || query.type === ResultsQueryType.DataTables) && (
+      {(query.type === ResultsVariableQueryType.Results || query.type === ResultsVariableQueryType.DataTables) && (
         <>
           <InlineField label="Query by" tooltip={tooltip.queryBy} labelWidth={20}>
 
@@ -51,16 +51,16 @@ export function ResultsVariableQueryEditor({ onChange, query, datasource }: Prop
           </InlineField>
         </>
       )}
-      {query.type === ResultsQueryType.StepData && (
+      {query.type === ResultsVariableQueryType.Steps && (
         <>
-          <InlineField label="Query by result metadata" labelWidth={'auto'}>
+          <InlineField label="Query by result properties" labelWidth={'auto'}>
             <TestResultsQueryBuilder
               autoComplete={datasource.queryTestResultValues.bind(datasource)}
               onChange={(event: any) => onResultsParameterChange(event.detail.linq)}
               defaultValue={query.resultFilter}
             />
           </InlineField>
-          <InlineField label="Query by step metadata" labelWidth={'auto'}>
+          <InlineField label="Query by step properties" labelWidth={'auto'}>
             <TestStepsQueryBuilder
               autoComplete={datasource.queryStepsValues.bind(datasource)}
               onChange={(event: any) => onStepsParameterChange(event.detail.linq)}

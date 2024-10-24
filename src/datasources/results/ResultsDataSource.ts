@@ -1,8 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { OutputType, QueryResultsHttpResponse, QueryStepsHttpResponse, ResultsQuery as TestResultsQuery, ResultsQueryType, ResultsVariableQuery, ResultsMetaData, QueryDataTablesHttpResponse, DataTablesMetaData } from './types';
-import { MetaData } from 'datasources/products/types';
+import { OutputType, QueryResultsHttpResponse, QueryStepsHttpResponse, ResultsQuery as TestResultsQuery, ResultsQueryType, ResultsVariableQuery, ResultsProperties, QueryDataTablesHttpResponse, DataTablesProperties, ResultsVariableQueryType } from './types';
 
 export class TestResultsDataSource extends DataSourceBase<TestResultsQuery> {
   constructor(
@@ -27,7 +26,7 @@ export class TestResultsDataSource extends DataSourceBase<TestResultsQuery> {
   private toDateString = '${__to:date}';
 
   defaultQuery = {
-    type: ResultsQueryType.MetaData,
+    type: ResultsQueryType.Results,
     recordCount: 1000,
     outputType: OutputType.Data,
     useTimeRange: false,
@@ -41,7 +40,7 @@ export class TestResultsDataSource extends DataSourceBase<TestResultsQuery> {
     return workspaceOptions;
   }
 
-  async queryResults(filter: string, projection?: ResultsMetaData[], orderBy?: string, recordCount = 1000, descending = false, returnCount = false): Promise<QueryResultsHttpResponse> {
+  async queryResults(filter: string, projection?: ResultsProperties[], orderBy?: string, recordCount = 1000, descending = false, returnCount = false): Promise<QueryResultsHttpResponse> {
     return await this.post<QueryResultsHttpResponse>(`${this.queryResultsUrl}`, {
       filter: filter,
       projection: projection ? projection : undefined,
@@ -87,26 +86,26 @@ export class TestResultsDataSource extends DataSourceBase<TestResultsQuery> {
   }
 
   async runQuery(query: TestResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    if (query.type === ResultsQueryType.MetaData || query.type === ResultsQueryType.DataTables) {
+    if (query.type === ResultsQueryType.Results) {
       let queryByFilter = query.queryBy ? query.queryBy : '';
       if (query.useTimeRange && query.useTimeRangeFor) {
         const timeFilter = `(${this.timeRange[query.useTimeRangeFor]} >= \"${this.fromDateString}\" && ${this.timeRange[query.useTimeRangeFor]} <= \"${this.toDateString}\")`
         queryByFilter = queryByFilter ? `${queryByFilter} && ${timeFilter}` : timeFilter
       }
       const variableReplacedFilter = getTemplateSrv().replace(queryByFilter, options.scopedVars)
-      if (query.type === ResultsQueryType.MetaData) {
-        const responseData = (await this.queryResults(variableReplacedFilter, query.metadata?.length ? query.metadata : undefined, query.orderBy, query.recordCount, query.descending, true));
+      if (query.type === ResultsQueryType.Results) {
+        const responseData = (await this.queryResults(variableReplacedFilter, query.properties?.length ? query.properties : undefined, query.orderBy, query.recordCount, query.descending, true));
         if (query.outputType === OutputType.Data) {
           const response = responseData.results;
 
-          const filteredFields = query.metadata?.filter((field: ResultsMetaData) => Object.keys(response[0]).includes(field)) || [];
+          const filteredFields = query.properties?.filter((field: ResultsProperties) => Object.keys(response[0]).includes(field)) || [];
 
           const status = response.map(result => result['status']?.statusType);
 
           const fields = filteredFields.map((field) => {
-            const fieldType = field === ResultsMetaData.updated ? FieldType.time : FieldType.string;
+            const fieldType = field === ResultsProperties.updated ? FieldType.time : FieldType.string;
             const values = response.map(m => m[field]);
-            if (field === ResultsMetaData.status.toLowerCase()) {
+            if (field === ResultsProperties.status.toLowerCase()) {
               return { name: field, values: status.flat(), type: FieldType.string };
             }
             return { name: field, values, type: fieldType };
@@ -128,9 +127,9 @@ export class TestResultsDataSource extends DataSourceBase<TestResultsQuery> {
         }
       }
       else {
-        const responseData = (await this.queryResults(variableReplacedFilter, [ResultsMetaData.dataTablesIds], query.orderBy, query.recordCount, query.descending, true));
+        const responseData = (await this.queryResults(variableReplacedFilter, [ResultsProperties.dataTablesIds], query.orderBy, query.recordCount, query.descending, true));
         const dataTableIds = responseData.results.map(r => r.dataTableIds).flat();
-        const dataTables = await this.queryDataTables(dataTableIds.join(','), query.orderBy, query.workspace ? [query.workspace] : undefined, query.recordCount, query.descending); console.log(query.metadata)
+        const dataTables = await this.queryDataTables(dataTableIds.join(','), query.orderBy, query.workspace ? [query.workspace] : undefined, query.recordCount, query.descending); console.log(query.properties)
         if (query.outputType === OutputType.Data) {
           if (dataTables.dataTables.length === 0) {
             return {
@@ -140,7 +139,7 @@ export class TestResultsDataSource extends DataSourceBase<TestResultsQuery> {
               ]
             };
           } else {
-            const fields = (query.metadata as unknown as DataTablesMetaData[])?.map((field) => {
+            const fields = (query.properties as unknown as DataTablesProperties[])?.map((field) => {
               const values = dataTables!.dataTables.map(m => m[field]);
               return { name: field, values };
             })
@@ -170,7 +169,7 @@ export class TestResultsDataSource extends DataSourceBase<TestResultsQuery> {
       const variableReplacedStepFilter = getTemplateSrv().replace(queryByStepFilter, options.scopedVars);
       const response = await this.post<QueryStepsHttpResponse>(this.queryStepsUrl, {
         resultFilter: variableReplacedResultFilter,
-        projection: query.metadata ? query.metadata : undefined,
+        projection: query.properties ? query.properties : undefined,
         orderBy: query.orderBy,
         descending: query.descending,
         take: query.recordCount,
@@ -237,14 +236,14 @@ export class TestResultsDataSource extends DataSourceBase<TestResultsQuery> {
 
   async metricFindQuery({ type, queryBy, workspace, resultFilter, stepFilter }: ResultsVariableQuery, options: DataQueryRequest): Promise<MetricFindValue[]> {
     const workspaceFilter = `workspace = (\"${workspace}\")`;
-    if (type === ResultsQueryType.MetaData || type === ResultsQueryType.DataTables) {
+    if (type === ResultsVariableQueryType.Results) {
       let queryByFilter = workspace && queryBy ? `${workspaceFilter} && ${queryBy}` : `${workspaceFilter}` || queryBy;
       const variableReplacedFilter = getTemplateSrv().replace(queryByFilter, options.scopedVars);
-      if (type === ResultsQueryType.MetaData) {
-        const responseData = (await this.queryResults(variableReplacedFilter, [ResultsMetaData.programName], undefined, 1000, false, false)).results;
+      if (type === ResultsVariableQueryType.Results) {
+        const responseData = (await this.queryResults(variableReplacedFilter, [ResultsProperties.programName], undefined, 1000, false, false)).results;
         return responseData.map(frame => ({ text: frame.programName, value: frame.programName, }));
       } else {
-        const responseData = (await this.queryResults(variableReplacedFilter, [ResultsMetaData.dataTablesIds], undefined, 1000, false, false)).results;
+        const responseData = (await this.queryResults(variableReplacedFilter, [ResultsProperties.dataTablesIds], undefined, 1000, false, false)).results;
         const dataTableIds = responseData.map(frame => frame.dataTableIds).flat();
         return dataTableIds.map(dataTableId => ({ text: dataTableId, value: dataTableId }));
       }

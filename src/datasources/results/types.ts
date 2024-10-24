@@ -2,7 +2,7 @@ import { DataQuery } from '@grafana/schema'
 
 export interface ResultsQuery extends DataQuery {
   type: ResultsQueryType;
-  metadata?: ResultsMetaData[];
+  properties?: ResultsProperties[];
   partNumber?: string;
   testProgram?: string;
   workspace?: string;
@@ -19,13 +19,18 @@ export interface ResultsQuery extends DataQuery {
 }
 
 export enum ResultsQueryType {
-  MetaData = 'MetaData',
-  StepData = 'StepData',
-  DataTables = 'DataTables',
+  Results = 'Results',
+  Steps = 'Steps'
+}
+
+export enum ResultsVariableQueryType {
+  Results = 'Results',
+  Steps = 'Steps',
+  DataTables = 'DataTables'
 }
 
 export interface ResultsVariableQuery{
-  type: ResultsQueryType;
+  type: ResultsVariableQueryType;
   queryBy: string;
   workspace: string;
   useTimeRange: boolean;
@@ -105,7 +110,7 @@ export interface ErrorBody {
   innerErrors?: ErrorBody[];
 }
 
-export enum ResultsMetaData {
+export enum ResultsProperties {
     id = 'ID',
     programName = 'PROGRAM_NAME',
     serialNumber = 'SERIAL_NUMBER',
@@ -125,7 +130,7 @@ export enum ResultsMetaData {
     workspace = 'WORKSPACE',
 }
 
-export enum StepsMetaData{
+export enum StepsProperties{
   stepType = 'STEP_TYPE',
   name = 'NAME',
   stepId = 'STEP_ID',
@@ -147,7 +152,7 @@ export enum StepsMetaData{
   properties = 'PROPERTIES',
 }
 
-export enum DataTablesMetaData{
+export enum DataTablesProperties{
   columns = 'COLUMNS',
   id = 'ID',
   name = 'NAME',

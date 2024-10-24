@@ -3,7 +3,7 @@ import { AutoSizeInput, VerticalGroup, InlineFormLabel, InlineSwitch, MultiSelec
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { InlineField } from 'core/components/InlineField';
 import { productsDataSource } from '../productsDataSource';
-import { ProductsQuery, OrderBy, MetaData } from '../types';
+import { ProductsQuery, OrderBy, Properties } from '../types';
 import _ from 'lodash';
 import './productsQueryEditor.scss'
 import { TestMonitorQueryBuilder } from 'shared/queryBuilder';
@@ -15,9 +15,9 @@ export function productsQueryEditor({ query, onChange, onRunQuery, datasource }:
   query = datasource.prepareQuery(query);
   const workspaces = datasource.getWorkspaceNames()
 
-  const onMetaDataChange = (items: Array<SelectableValue<string>>) => {
+  const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
     if (items !== undefined) {
-      onChange({ ...query, metaData: items.map(i => i.value as MetaData) });
+      onChange({ ...query, properties: items.map(i => i.value as Properties) });
       onRunQuery();
     }
   };
@@ -104,13 +104,13 @@ export function productsQueryEditor({ query, onChange, onRunQuery, datasource }:
     <>
       <HorizontalGroup spacing='lg' align='flex-start'>
         <VerticalGroup spacing='md'>
-          <InlineField label="Metadata" labelWidth={20} tooltip={tooltip.metaData}>
+          <InlineField label="Properties" labelWidth={20} tooltip={tooltip.properties}>
             <MultiSelect
-              placeholder='Select Metadata'
-              options={Object.keys(MetaData).map(value => ({ label: value, value })) as SelectableValue[]}
-              onChange={onMetaDataChange}
-              value={query.metaData}
-              defaultValue={query.metaData!}
+              placeholder='Select properties to fetch'
+              options={Object.keys(Properties).map(value => ({ label: value, value })) as SelectableValue[]}
+              onChange={onPropertiesChange}
+              value={query.properties}
+              defaultValue={query.properties!}
               width={40}
               allowCustomValue={false}
               closeMenuOnSelect={false}
@@ -161,7 +161,7 @@ const tooltip = {
   partNumber: 'Enter the part number to query',
   family: 'Enter the family name to query',
   workspace: 'Select the workspace to query',
-  metaData: 'Select the metadata fields to query',
+  properties: 'Select the properties fields to query',
   queryBy: 'Enter the query to filter the results',
   recordCount: 'Enter the number of records to query',
   orderBy: 'Select the field to order the results by',

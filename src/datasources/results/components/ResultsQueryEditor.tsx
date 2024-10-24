@@ -3,7 +3,7 @@ import { AutoSizeInput, HorizontalGroup, InlineFormLabel, InlineSwitch, MultiSel
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { InlineField } from 'core/components/InlineField';
 import { TestResultsDataSource } from '../ResultsDataSource';
-import { ResultsMetaData, OutputType, ResultsQuery, ResultsQueryType, useTimeRange, StepsMetaData, DataTablesMetaData } from '../types';
+import { ResultsProperties, OutputType, ResultsQuery, ResultsQueryType, useTimeRange, StepsProperties, DataTablesProperties } from '../types';
 import { enumToOptions } from 'core/utils';
 import { TestResultsQueryBuilder } from '../ResultsQueryBuilder';
 import { TestStepsQueryBuilder } from '../StepsQueryBuilder';
@@ -27,9 +27,9 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
     onRunQuery();
   }
 
-  const onMetaDataChange = (items: Array<SelectableValue<string>>) => {
+  const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
     if (items !== undefined) {
-      onChange({ ...query, metadata: items.map(i => i.value as ResultsMetaData) });
+      onChange({ ...query, properties: items.map(i => i.value as ResultsProperties) });
       onRunQuery();
     }
   };
@@ -79,11 +79,11 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
     onRunQuery();
   }
 
-  const metaData = query.type === ResultsQueryType.MetaData
-    ? ResultsMetaData 
-    : query.type === ResultsQueryType.StepData 
-    ? StepsMetaData 
-    : DataTablesMetaData;
+  const metaData = query.type === ResultsQueryType.Results
+    ? ResultsProperties 
+    : query.type === ResultsQueryType.Steps 
+    ? StepsProperties 
+    : DataTablesProperties;
 
   return (
     <>
@@ -97,7 +97,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
                 onChange={onQueryTypeChange}
               />
             </InlineField>
-            {(query.type === ResultsQueryType.MetaData || query.type === ResultsQueryType.DataTables) && (
+            {(query.type === ResultsQueryType.Results) && (
               <>
                 <InlineField label="Output" labelWidth={20} tooltip={tooltip.output}>
                   <RadioButtonGroup
@@ -110,15 +110,15 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
             )}
           </div>
           <div>
-            {(query.type === ResultsQueryType.StepData || query.outputType === OutputType.Data) && (
+            {(query.type === ResultsQueryType.Steps || query.outputType === OutputType.Data) && (
               <>
-                <InlineField label="Metadata" labelWidth={20} tooltip={tooltip.metaData}>
+                <InlineField label="Properties" labelWidth={20} tooltip={tooltip.metaData}>
                   <MultiSelect
-                    placeholder='Select Metadata'
+                    placeholder='Select Properties'
                     options={Object.keys(metaData).map(value => ({ label: value, value })) as SelectableValue[]}
-                    onChange={onMetaDataChange}
-                    value={query.metadata}
-                    defaultValue={query.metadata!}
+                    onChange={onPropertiesChange}
+                    value={query.properties}
+                    defaultValue={query.properties!}
                     width={40}
                     allowCustomValue={true}
                     closeMenuOnSelect={false}
@@ -126,7 +126,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
                 </InlineField>
               </>
             )}
-            {query.type === ResultsQueryType.StepData && (
+            {query.type === ResultsQueryType.Steps && (
               <>
                 <InlineField
                   label="Show measurements"
@@ -139,7 +139,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
                 </InlineField>
               </>
             )}
-            {(query.type === ResultsQueryType.StepData || query.outputType === OutputType.Data) && (
+            {(query.type === ResultsQueryType.Steps || query.outputType === OutputType.Data) && (
               <>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -193,7 +193,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
         </VerticalGroup>
         <VerticalGroup>
           <div>
-            {(query.type === ResultsQueryType.MetaData || query.type === ResultsQueryType.DataTables) && (
+            {(query.type === ResultsQueryType.Results) && (
               <>
                 <InlineFormLabel tooltip={tooltip.queryBy}> Query by </InlineFormLabel>
                 <TestResultsQueryBuilder
@@ -204,15 +204,16 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
                 />
               </>
             )}
-            {query.type === ResultsQueryType.StepData && (
+            {query.type === ResultsQueryType.Steps && (
               <>
-                <InlineFormLabel width={'auto'}> Query by result metadata </InlineFormLabel>
+                <InlineFormLabel width={'auto'}> Query by result properties </InlineFormLabel>
                 <TestResultsQueryBuilder
                   autoComplete={datasource.queryTestResultValues.bind(datasource)}
                   onChange={(event: any) => onResultsParameterChange(event.detail.linq)}
                   defaultValue={query.resultFilter}
                   workspaceList={workspaces}
                 />
+                <InlineFormLabel width={'auto'}> Query by step properties </InlineFormLabel>
                 <TestStepsQueryBuilder
                   autoComplete={datasource.queryStepsValues.bind(datasource)}
                   onChange={(event: any) => onStepsParameterChange(event.detail.linq)}
@@ -228,7 +229,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
 }
 
 const tooltip = {
-  metaData: 'Select the metadata fields to query',
+  metaData: 'Select the properties fields to query',
   queryType: 'Select the type of query to run',
   partNumber: 'Enter the part number to query',
   testProgram: 'Enter the test program name to query',
