@@ -1,5 +1,6 @@
 import { QueryBuilderOperations } from "../../../core/query-builder.constants";
-import { AssetTypeOptions, BusTypeOptions, QBField } from "../types/CalibrationForecastQuery.types";
+import { QBField } from "../types/CalibrationForecastQuery.types";
+import { AssetTypeOptions, BusTypeOptions } from "../types/types";
 
 export enum AssetCalibrationFieldNames {
     LOCATION = 'Location',
