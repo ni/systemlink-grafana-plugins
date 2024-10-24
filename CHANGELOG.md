@@ -1,3 +1,9 @@
+## [3.37.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.36.0...v3.37.0) (2024-10-24)
+
+### Features
+
+* **asset:** added support for IncludeOnlyDataInTimeRange ([#96](https://github.com/ni/systemlink-grafana-plugins/issues/96)) ([2f49843](https://github.com/ni/systemlink-grafana-plugins/commit/2f498437433a78703f6a55382c3c87d4339b7593))
+
 ## [3.36.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.35.0...v3.36.0) (2024-10-23)
 
 ### Features
