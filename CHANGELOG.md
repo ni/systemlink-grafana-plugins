@@ -1,3 +1,15 @@
+## [3.37.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.36.0...v3.37.0) (2024-10-24)
+
+### Features
+
+* **asset:** added support for IncludeOnlyDataInTimeRange ([#96](https://github.com/ni/systemlink-grafana-plugins/issues/96)) ([2f49843](https://github.com/ni/systemlink-grafana-plugins/commit/2f498437433a78703f6a55382c3c87d4339b7593))
+
+## [3.36.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.35.0...v3.36.0) (2024-10-23)
+
+### Features
+
+* **asset:** add calibration due date column ([#100](https://github.com/ni/systemlink-grafana-plugins/issues/100)) ([c35ef78](https://github.com/ni/systemlink-grafana-plugins/commit/c35ef7879d9bec80b1eec7fa7d70271db416bd62))
+
 ## [3.35.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.34.1...v3.35.0) (2024-10-22)
 
 ### Features

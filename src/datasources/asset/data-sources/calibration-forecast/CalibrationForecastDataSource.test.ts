@@ -38,7 +38,7 @@ const dayGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
 {
   calibrationForecast: {
     columns: [
-      { name: "", values: ["2022-01-01T00:00:00.0000000Z", "2022-01-02T00:00:00.0000000Z", "2022-01-03T00:00:00.0000000Z"], columnDescriptors: [{ value: "Day", type: ColumnDescriptorType.Time }] },
+      { name: AssetCalibrationForecastKey.Day, values: ["2022-01-01T00:00:00.0000000Z", "2022-01-02T00:00:00.0000000Z", "2022-01-03T00:00:00.0000000Z"], columnDescriptors: [{ value: AssetCalibrationForecastKey.Day, type: ColumnDescriptorType.Time }] },
       { name: "", values: [1, 2, 2], columnDescriptors: [{ value: "Assets", type: ColumnDescriptorType.Count }] }
     ]
   }
@@ -48,7 +48,7 @@ const weekGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
 {
   calibrationForecast: {
     columns: [
-      { name: "", values: ["2022-01-03T00:00:00.0000000Z", "2022-01-10T00:00:00.0000000Z", "2022-01-17T00:00:00.0000000Z"], columnDescriptors: [{ value: "Week", type: ColumnDescriptorType.Time }] },
+      { name: AssetCalibrationForecastKey.Week, values: ["2022-01-03T00:00:00.0000000Z", "2022-01-10T00:00:00.0000000Z", "2022-01-17T00:00:00.0000000Z"], columnDescriptors: [{ value: AssetCalibrationForecastKey.Week, type: ColumnDescriptorType.Time }] },
       { name: "", values: [1, 2, 2], columnDescriptors: [{ value: "Assets", type: ColumnDescriptorType.Count }] }
     ]
   }
@@ -58,8 +58,8 @@ const weekGroupCalibrationForecastDataLinkResponseMock: CalibrationForecastRespo
 {
   calibrationForecast: {
     columns: [
-      { name: "", values: ["2022-01-03T00:00:00.0000000Z", "2022-01-10T00:00:00.0000000Z", "2022-01-17T00:00:00.0000000Z"], columnDescriptors: [{ value: "Week", type: ColumnDescriptorType.Time }] },
-      { name: "", values: [1, 2, 2], columnDescriptors: [{ value: "Assets", type: ColumnDescriptorType.Count }] }
+      { name: AssetCalibrationForecastKey.Week, values: ["2022-01-01T00:00:00.0000000Z", "2022-01-08T00:00:00.0000000Z", "2022-01-15T00:00:00.0000000Z"], columnDescriptors: [{ value: AssetCalibrationForecastKey.Week, type: ColumnDescriptorType.Time }] },
+      { name: "", values: [3, 2, 2], columnDescriptors: [{ value: "Assets", type: ColumnDescriptorType.Count }] }
     ]
   }
 }
@@ -629,17 +629,17 @@ describe('Time based data links', () => {
     const [_day, assets] = result.data[0].fields;
     const [dataLink] = assets.config.links;
 
-    const dayDate = new Date('2022-01-01T00:00:00.0000000Z');
+    const from = new Date('2022-01-01T00:00:00.0000000Z');
 
     expect(dataLink.title).toBe(`View ${AssetCalibrationForecastKey.Day}`);
     expect(dataLink.targetBlank).toBe(true);
     expect(dataLink.url).toContain('/d/${__dashboard.uid}/${__dashboard}?orgId=${__org.id}');
 
     const builtUrl = dataLink.onBuildUrl({
-      replaceVariables: (value: string) => value.replace('${__data.fields.Day}', dayDate.toISOString())
+      replaceVariables: (value: string) => value.replace('${__data.fields.Day}', from.toISOString())
     });
 
-    expect(builtUrl).toContain(`&from=${dayDate.valueOf()}&to=${dayDate.valueOf()}`);
+    expect(builtUrl).toMatchSnapshot();
   });
 
   test('creates data links for Week grouping', async () => {
@@ -662,7 +662,7 @@ describe('Time based data links', () => {
       replaceVariables: (value: string) => value.replace('${__data.fields.Week}', `${weekStartDate.toISOString()} : ${weekEndDate.toISOString()}`)
     });
 
-    expect(builtUrl).toContain(`&from=${weekStartDate.valueOf()}&to=${weekEndDate.valueOf()}`);
+    expect(builtUrl).toMatchSnapshot();
   });
 
   test('creates data links for Month grouping', async () => {
@@ -685,8 +685,90 @@ describe('Time based data links', () => {
       replaceVariables: (value: string) => value.replace('${__data.fields.Month}', monthDate.toISOString())
     });
 
-    monthDate.setHours(12);
+    expect(builtUrl).toMatchSnapshot();
+  });
+});
 
-    expect(builtUrl).toContain(`&from=${monthDate.valueOf()}&to=${monthDate.valueOf()}`);
+describe('Run query with IncludeOnlyDataInTimeRange flag', () => {
+  let processCalibrationForecastQuerySpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    processCalibrationForecastQuerySpy = jest.spyOn(datastore, 'processCalibrationForecastQuery').mockImplementation();
+  });
+
+  test('should set IncludeOnlyDataInTimeRange to true', async () => {
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      type: AssetQueryType.CalibrationForecast,
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+    });
+
+    jest.spyOn(datastore, 'getQueryParam').mockReturnValue('true');
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        IncludeOnlyDataInTimeRange: true
+      }),
+      expect.anything()
+    );
+  });
+
+  test('should set IncludeOnlyDataInTimeRange to true case insensitive', async () => {
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      type: AssetQueryType.CalibrationForecast,
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+    });
+
+    jest.spyOn(datastore, 'getQueryParam').mockReturnValue('tRUe');
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        IncludeOnlyDataInTimeRange: true
+      }),
+      expect.anything()
+    );
+  });
+
+  test('should set IncludeOnlyDataInTimeRange to false', async () => {
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      type: AssetQueryType.CalibrationForecast,
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+    });
+
+    jest.spyOn(datastore, 'getQueryParam').mockReturnValue('false');
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        IncludeOnlyDataInTimeRange: false
+      }),
+      expect.anything()
+    );
+  });
+
+  test('should set IncludeOnlyDataInTimeRange to false if missing', async () => {
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      type: AssetQueryType.CalibrationForecast,
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+    });
+
+    jest.spyOn(datastore, 'getQueryParam').mockReturnValue(null);
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        IncludeOnlyDataInTimeRange: false
+      }),
+      expect.anything()
+    );
   });
 });

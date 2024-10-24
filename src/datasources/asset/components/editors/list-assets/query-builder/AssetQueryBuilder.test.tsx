@@ -51,11 +51,11 @@ describe('AssetQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain(system.alias);
     });
 
-    it( 'should select global variable option', () =>
-    {
+    it( 'should select global variable option', () => {
       const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
       const system = { id: '1', alias: 'Selected system' } as SystemMetadata;
       const globalVariableOption = { label: 'Global variable', value: 'global_variable' };
+
       const { conditionsContainer } = renderElement([workspace], [system], 'AssetType = \"global_variable\"', [globalVariableOption]);
 
       expect(conditionsContainer?.length).toBe(1);
