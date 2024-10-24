@@ -1,3 +1,9 @@
+## [3.40.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.39.0...v3.40.0) (2024-10-24)
+
+### Features
+
+* **asset:** add resolved due date filter for list assets ([#102](https://github.com/ni/systemlink-grafana-plugins/issues/102)) ([d4ad953](https://github.com/ni/systemlink-grafana-plugins/commit/d4ad953970721f1a32c0c944fa1f6c96dae39914))
+
 ## [3.39.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.38.0...v3.39.0) (2024-10-24)
 
 ### Features
