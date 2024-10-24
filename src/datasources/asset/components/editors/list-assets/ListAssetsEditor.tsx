@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { InlineField } from '@grafana/ui';
 import _ from 'lodash';
 import { FloatingError } from '../../../../../core/errors';
-import { SystemMetadata } from '../../../../system/types';
+import { SystemProperties } from '../../../../system/types';
 import { AssetQuery } from '../../../types/types';
 import { ListAssetsQuery } from '../../../types/ListAssets.types';
 import { AssetQueryBuilder } from './query-builder/AssetQueryBuilder';
@@ -18,7 +18,7 @@ type Props = {
 
 export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [systems, setSystems] = useState<SystemMetadata[]>([]);
+  const [systems, setSystems] = useState<SystemProperties[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
 
   useEffect(() => {

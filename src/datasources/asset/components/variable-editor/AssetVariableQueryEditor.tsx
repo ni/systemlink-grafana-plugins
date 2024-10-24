@@ -5,14 +5,14 @@ import { AssetDataSource } from '../../AssetDataSource'
 import { FloatingError } from '../../../../core/errors';
 import { AssetQueryBuilder } from '../editors/list-assets/query-builder/AssetQueryBuilder';
 import { Workspace } from '../../../../core/types';
-import { SystemMetadata } from '../../../system/types';
+import { SystemProperties } from '../../../system/types';
 import { AssetVariableQuery } from '../../../asset/types/AssetVariableQuery.types';
 
 type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOptions>;
 
 export function AssetVariableQueryEditor({ datasource, query, onChange }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [systems, setSystems] = useState<SystemMetadata[]>([]);
+  const [systems, setSystems] = useState<SystemProperties[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
   const assetVariableQuery = query as AssetVariableQuery;
   const assetListDatasource = useRef(datasource.getListAssetsSource());

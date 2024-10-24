@@ -9,7 +9,7 @@ import {
 import _ from 'lodash';
 import { SelectableValue, toOption } from '@grafana/data';
 import { Workspace } from '../../../../../core/types';
-import { SystemMetadata } from '../../../../system/types';
+import { SystemProperties } from '../../../../system/types';
 import { InlineField, MultiSelect } from '@grafana/ui';
 import { FloatingError } from '../../../../../core/errors';
 import { enumToOptions } from '../../../../../core/utils';
@@ -25,7 +25,7 @@ type Props = {
 export function CalibrationForecastEditor({ query, handleQueryChange, datasource }: Props) {
   query = datasource.prepareQuery(query) as CalibrationForecastQuery;
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [systems, setSystems] = useState<SystemMetadata[]>([]);
+  const [systems, setSystems] = useState<SystemProperties[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
 
   useEffect(() => {

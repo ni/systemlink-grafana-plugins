@@ -15,14 +15,14 @@ export const DataFrameQueryEditor = (props: Props) => {
   const [errorMsg, setErrorMsg] = useState<string | undefined>('');
   const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
   const common = new DataFrameQueryEditorCommon(props, handleError);
-  const tableMetadata = useAsync(() => common.datasource.getTableMetadata(common.query.tableId).catch(handleError), [common.query.tableId]);
+  const tableProperties = useAsync(() => common.datasource.getTableProperties(common.query.tableId).catch(handleError), [common.query.tableId]);
 
   const handleColumnChange = (items: Array<SelectableValue<string>>) => {
     common.handleQueryChange({ ...common.query, columns: items.map(i => i.value!) }, false);
   };
 
   const loadColumnOptions = () => {
-    const columnOptions = (tableMetadata.value?.columns ?? []).map(c => toOption(c.name));
+    const columnOptions = (tableProperties.value?.columns ?? []).map(c => toOption(c.name));
     columnOptions.unshift(...getVariableOptions());
     return columnOptions;
   }
@@ -54,7 +54,7 @@ export const DataFrameQueryEditor = (props: Props) => {
         <>
           <InlineField label="Columns" shrink={true} tooltip={tooltips.columns}>
             <MultiSelect
-              isLoading={tableMetadata.loading}
+              isLoading={tableProperties.loading}
               options={loadColumnOptions()}
               onChange={handleColumnChange}
               onBlur={common.onRunQuery}

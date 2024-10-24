@@ -2,7 +2,7 @@ import React, { ReactNode } from "react";
 import { CalibrationForecastQueryBuilder } from "./CalibrationForecastQueryBuilder";
 import { render } from "@testing-library/react";
 import { QueryBuilderOption, Workspace } from "core/types";
-import { SystemMetadata } from "datasources/system/types";
+import { SystemProperties } from "datasources/system/types";
 
 describe('CalibrationForecastQueryBuilder', () => {
   describe('useEffects', () => {
@@ -10,9 +10,9 @@ describe('CalibrationForecastQueryBuilder', () => {
 
     const containerClass = 'smart-filter-group-condition-container';
     const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
-    const system = { id: '1', alias: 'Selected system' } as SystemMetadata;
+    const system = { id: '1', alias: 'Selected system' } as SystemProperties;
 
-    function renderElement(workspaces: Workspace[], systems: SystemMetadata[], filter?: string, globalVariableOptions: QueryBuilderOption[] = []) {
+    function renderElement(workspaces: Workspace[], systems: SystemProperties[], filter?: string, globalVariableOptions: QueryBuilderOption[] = []) {
       reactNode = React.createElement(CalibrationForecastQueryBuilder, { workspaces, systems, filter, globalVariableOptions, onChange: jest.fn(), areDependenciesLoaded: true });
       const renderResult = render(reactNode);
       return {
