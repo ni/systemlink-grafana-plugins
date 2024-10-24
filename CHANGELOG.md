@@ -1,3 +1,9 @@
+## [3.39.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.38.0...v3.39.0) (2024-10-24)
+
+### Features
+
+* **asset:** add location column to list assets ([#101](https://github.com/ni/systemlink-grafana-plugins/issues/101)) ([de0a6b4](https://github.com/ni/systemlink-grafana-plugins/commit/de0a6b4b4e37578e1833e8fe0785a5c9dc16f591))
+
 ## [3.38.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.37.0...v3.38.0) (2024-10-24)
 
 ### Features
