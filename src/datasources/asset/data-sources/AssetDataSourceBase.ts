@@ -45,6 +45,14 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
     }
   }
 
+  getQueryParams(): URLSearchParams {
+    return new URLSearchParams(window.location.search);
+  }
+
+  getQueryParam(param: string): string | null {
+    return this.getQueryParams().get(param);
+  }
+
   public getCachedSystems(): SystemMetadata[] {
     return Array.from(this.systemAliasCache.values());
   }
