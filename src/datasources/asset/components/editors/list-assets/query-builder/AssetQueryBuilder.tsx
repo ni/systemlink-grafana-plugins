@@ -69,12 +69,29 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
     };
   }, [systems]);
 
+  const calibrationDueDateField = useMemo(() =>
+  {
+    const calibrationField = ListAssetsFields.CALIBRATION_DUE_DATE;
+    return {
+      ...calibrationField,
+      lookup: {
+        ...calibrationField.lookup,
+        dataSource: [
+          ...(calibrationField.lookup?.dataSource || []),
+          { label: 'From', value: '${__from:date}' },
+          { label: 'To', value: '${__to:date}' },
+          { label: 'Now', value: new Date().toISOString() },
+        ],
+      },
+    };
+  }, []);
+
   useEffect(() => {
     if (!areDependenciesLoaded) {
       return;
     }
 
-    const fields = [workspaceField, locationField, ...ListAssetsStaticFields]
+    const fields = [workspaceField, locationField, calibrationDueDateField, ...ListAssetsStaticFields]
       .map(field => {
         if (field.lookup?.dataSource) {
           return {
@@ -114,8 +131,24 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
       },
       QueryBuilderOperations.CONTAINS,
       QueryBuilderOperations.DOES_NOT_CONTAIN,
+      {
+        ...QueryBuilderOperations.LESS_THAN,
+        ...callbacks,
+      },
+      {
+        ...QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO,
+        ...callbacks,
+      },
+      {
+        ...QueryBuilderOperations.GREATER_THAN,
+        ...callbacks,
+      },
+      {
+        ...QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO,
+        ...callbacks,
+      }
     ]);
-  }, [workspaceField, locationField, areDependenciesLoaded, globalVariableOptions]);
+  }, [workspaceField, locationField, calibrationDueDateField, areDependenciesLoaded, globalVariableOptions]);
 
   return (
     <QueryBuilder

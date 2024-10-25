@@ -70,5 +70,15 @@ describe('AssetQueryBuilder', () => {
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.innerHTML).toContain('&lt;script&gt;alert(\'Workspace\')&lt;/script&gt;');
     })
+
+    it('should select user friendly value for calibration due date', () => {
+      const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
+      const system = { id: '1', alias: 'Selected system' } as SystemMetadata;
+
+      const { conditionsContainer } = renderElement([workspace], [system], 'ExternalCalibration.NextRecommendedDate > \"${__from:date}\"');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("From");
+    });
   });
 });
