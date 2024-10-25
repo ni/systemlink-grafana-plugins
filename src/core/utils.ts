@@ -99,6 +99,17 @@ export function filterXSSField({ label, value }: { label: string; value: string 
 /**
  * Used for filtering XSS strings
  */
-export function filterXSSValue(value: string | null | undefined): string {
-  return filterXSS(value ?? '');
+export function filterXSSLINQExpression(value: string | null | undefined): string {
+  const target = value ?? '';
+  const patterns = [
+    /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, // Detect <script> tags
+    /javascript:/gi, // Detect javascript: URLs
+    /on\w+="[^"]*"/gi, // Detect inline event handlers like onclick, onmouseover, etc.
+  ];
+
+  if(patterns.some(pattern => pattern.test(target))) {
+    return filterXSS(target);
+  }
+
+  return target;
 }

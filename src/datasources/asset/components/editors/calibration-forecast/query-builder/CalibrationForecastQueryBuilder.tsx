@@ -14,7 +14,7 @@ import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-
 import { SystemMetadata } from 'datasources/system/types';
 import { QBField } from '../../../../types/CalibrationForecastQuery.types';
 import { AssetCalibrationFields, AssetCalibrationStaticFields } from '../../../../constants/CalibrationForecastQuery.constants';
-import { filterXSSField, filterXSSValue } from 'core/utils';
+import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
 
 type CalibrationForecastQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
@@ -114,7 +114,7 @@ export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryB
       fields={fields}
       messages={queryBuilderMessages}
       onChange={onChange}
-      value={filterXSSValue(filter)}
+      value={filterXSSLINQExpression(filter)}
       />
   );
 };
