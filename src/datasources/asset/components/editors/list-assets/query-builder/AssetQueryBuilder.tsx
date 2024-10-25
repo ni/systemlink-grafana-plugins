@@ -14,6 +14,7 @@ import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-
 import { SystemMetadata } from 'datasources/system/types';
 import { QBField } from '../../../../types/CalibrationForecastQuery.types';
 import { ListAssetsFields, ListAssetsStaticFields } from '../../../../constants/ListAssets.constants';
+import { filterXSSField, filterXSSValue } from 'core/utils';
 
 type AssetCalibrationQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
@@ -47,7 +48,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
         ...workspaceField.lookup,
         dataSource: [
           ...(workspaceField.lookup?.dataSource || []),
-          ...workspaces.map(({ id, name }) => ({ label: name, value: id })),
+          ...workspaces.map(({ id, name }) => (filterXSSField({ label: name, value: id }))),
         ],
       },
     };
@@ -62,7 +63,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
         ...locationField.lookup,
         dataSource: [
           ...(locationField.lookup?.dataSource || []),
-          ...systems.map(({ id, alias }) => ({ label: alias || id, value: id })),
+          ...systems.map(({ id, alias }) => (filterXSSField({ label: alias || id, value: id }))),
         ],
       },
     };
@@ -79,7 +80,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
           return {
             ...field,
             lookup: {
-              dataSource: [...globalVariableOptions, ...field.lookup.dataSource]
+              dataSource: [...globalVariableOptions.map(filterXSSField), ...field.lookup.dataSource.map(filterXSSField)]
             }
           }
         }
@@ -122,7 +123,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
       fields={fields}
       messages={queryBuilderMessages}
       onChange={onChange}
-      value={filter}
+      value={filterXSSValue(filter)}
     />
   );
 };

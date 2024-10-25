@@ -1,4 +1,4 @@
-import { enumToOptions } from "./utils";
+import { enumToOptions, filterXSSField, filterXSSValue } from "./utils";
 
 test('enumToOptions', () => {
     enum fakeStringEnum {
@@ -13,3 +13,16 @@ test('enumToOptions', () => {
         { label: 'Label2', value: 'Value2' }
     ]);
 });
+
+
+test('filterXSS', () => {
+    const result = filterXSSValue('<script>alert("XSS")</script>');
+
+    expect(result).toEqual('&lt;script&gt;alert("XSS")&lt;/script&gt;');
+})
+
+test('filterXSSField', () => {
+    const result = filterXSSField({ value: '<script>alert("XSS value")</script>', label: '<script>alert("XSS label")</script>'});
+
+    expect(result).toEqual({ value: '&lt;script&gt;alert("XSS value")&lt;/script&gt;', label: '&lt;script&gt;alert("XSS label")&lt;/script&gt;'});
+})

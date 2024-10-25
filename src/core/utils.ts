@@ -3,6 +3,7 @@ import { useAsync } from 'react-use';
 import { DataSourceBase } from './DataSourceBase';
 import { SystemLinkError, Workspace } from './types';
 import { TemplateSrv } from '@grafana/runtime';
+import { filterXSS } from "xss";
 
 export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<SelectableValue<T>> {
   const RESULT = [];
@@ -85,4 +86,19 @@ export function replaceVariables(values: string[], templateSrv: TemplateSrv) {
 
 export function isSystemLinkError(error: any): error is SystemLinkError {
   return Boolean(error?.error?.code) && Boolean(error?.error?.name);
+}
+
+
+/**
+ * Used for filtering XSS in query builder fields
+ */
+export function filterXSSField({ label, value }: { label: string; value: string }) {
+  return { label: filterXSS(label), value: filterXSS(value) };
+}
+
+/**
+ * Used for filtering XSS strings
+ */
+export function filterXSSValue(value: string | null | undefined): string {
+  return filterXSS(value ?? '');
 }

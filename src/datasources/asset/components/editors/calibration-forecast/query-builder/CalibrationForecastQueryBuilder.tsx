@@ -14,6 +14,7 @@ import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-
 import { SystemMetadata } from 'datasources/system/types';
 import { QBField } from '../../../../types/CalibrationForecastQuery.types';
 import { AssetCalibrationFields, AssetCalibrationStaticFields } from '../../../../constants/CalibrationForecastQuery.constants';
+import { filterXSSField, filterXSSValue } from 'core/utils';
 
 type CalibrationForecastQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
@@ -40,7 +41,7 @@ export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryB
         ...workspaceField.lookup,
         dataSource: [
           ...workspaceField.lookup?.dataSource || [],
-          ...workspaces.map(({ id, name }) => ({ label: name, value: id }))
+          ...workspaces.map(({ id, name }) => (filterXSSField({ label: name, value: id })))
         ]
       }
     };
@@ -55,7 +56,7 @@ export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryB
         ...locationField.lookup,
         dataSource: [
           ...locationField.lookup?.dataSource || [],
-          ...systems.map(({ id, alias }) => ({ label: alias || id, value: id }))
+          ...systems.map(({ id, alias }) => (filterXSSField({ label: alias || id, value: id })))
         ]
       }
     };
@@ -69,7 +70,7 @@ export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryB
             return {
               ...field,
               lookup: {
-                dataSource: [...globalVariableOptions, ...field.lookup.dataSource]
+                dataSource: [...globalVariableOptions.map(filterXSSField), ...field.lookup.dataSource.map(filterXSSField)]
               }
             }
           }
@@ -113,7 +114,7 @@ export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryB
       fields={fields}
       messages={queryBuilderMessages}
       onChange={onChange}
-      value={filter}
-    />
+      value={filterXSSValue(filter)}
+      />
   );
 };

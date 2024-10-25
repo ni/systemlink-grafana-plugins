@@ -61,5 +61,14 @@ describe('AssetQueryBuilder', () => {
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain(globalVariableOption.label);
     });
+
+    it('should select a sanitized Workspace in query builder', () => {
+      const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
+      const system = { id: '1', alias: 'Selected system' } as SystemMetadata;
+      const { conditionsContainer } = renderElement([workspace], [system], 'Workspace = "<script>alert(\'Workspace\')</script>"');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.innerHTML).toContain('&lt;script&gt;alert(\'Workspace\')&lt;/script&gt;');
+    })
   });
 });

@@ -205,11 +205,9 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
     }
 
     formatDateForWeek(date: string): string {
-        console.log(date);
         const startDate = new Date(date);
         const endDate = new Date(startDate);
         endDate.setDate(startDate.getDate() + 6);
-        console.log(startDate)
         return `${startDate.toISOString().split('T')[0]} : ${endDate.toISOString().split('T')[0]}`;
     }
 
