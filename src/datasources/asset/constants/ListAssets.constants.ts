@@ -1,6 +1,6 @@
 import { QueryBuilderOperations } from "../../../core/query-builder.constants";
 import { QBField } from "../types/CalibrationForecastQuery.types";
-import { AssetTypeOptions, BusTypeOptions, ResolvedDueDateOptions } from "../types/types";
+import { AssetTypeOptions, BusTypeOptions } from "../types/types";
 
 export enum ListAssetsFieldNames {
     LOCATION = 'Location',
@@ -83,7 +83,7 @@ export const ListAssetsFields: Record<string, QBField> = {
             QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name
         ],
         lookup: {
-            dataSource: ResolvedDueDateOptions
+            dataSource: []
         }
     }
 };
@@ -92,6 +92,5 @@ export const ListAssetsStaticFields = [
     ListAssetsFields.MODEL_NAME,
     ListAssetsFields.VENDOR_NAME,
     ListAssetsFields.ASSET_TYPE,
-    ListAssetsFields.BUS_TYPE,
-    ListAssetsFields.CALIBRATION_DUE_DATE
+    ListAssetsFields.BUS_TYPE
 ];
