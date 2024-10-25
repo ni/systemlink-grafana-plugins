@@ -1,3 +1,9 @@
+## [3.42.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.41.0...v3.42.0) (2024-10-25)
+
+### Features
+
+* **asset:** more friendly options for calibration due date and add new option ([#106](https://github.com/ni/systemlink-grafana-plugins/issues/106)) ([48fa51c](https://github.com/ni/systemlink-grafana-plugins/commit/48fa51cf332600cdbf718aa3e73d757852a20e5c))
+
 ## [3.41.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.40.1...v3.41.0) (2024-10-25)
 
 ### Features
