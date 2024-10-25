@@ -190,6 +190,7 @@ const assetsResponseMock: AssetsResponse =
       "id": "456e8812-1da4-4818-afab-f0cd34f74567",
       "location": {
         "minionId": "NI_sbRIO-9629--SN-01FE20D1--MAC-00-80-2F-33-30-18",
+        "physicalLocation": "Cabinet 1",
         "parent": "sbRIO1",
         "resourceUri": "7/4243/31305/01FE20D1/5",
         "slotNumber": 5,
@@ -206,7 +207,18 @@ const assetsResponseMock: AssetsResponse =
       "lastUpdatedTimestamp": "2024-02-21T12:54:20.078Z",
       "fileIds": [],
       "supportsSelfTest": false,
-      "supportsReset": false
+      "supportsReset": false,
+      "externalCalibration": {
+        "temperatureSensors": [],
+        "isLimited": false,
+        "date": "2024-02-21T12:54:20.078Z",
+        "recommendedInterval": 12,
+        "nextRecommendedDate": "2025-02-21T12:54:20.078Z",
+        "nextCustomDueDate": "2025-02-21T12:54:20.078Z",
+        "resolvedDueDate": "2025-02-21T12:54:20.078Z",
+        "entryType": "AUTOMATIC",
+        "updatedBy": "user-id"
+      }
     }
   ],
   "totalCount": 4

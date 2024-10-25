@@ -1,5 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Time based data links creates data links for Day grouping 1`] = `"/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}&from=1640995200000&to=1641081600000&IncludeOnlyDataInTimeRange=true"`;
+
+exports[`Time based data links creates data links for Month grouping 1`] = `"/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}&from=1641081600000&to=1643760000000&IncludeOnlyDataInTimeRange=true"`;
+
+exports[`Time based data links creates data links for Week grouping 1`] = `"/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}&from=1641168000000&to=1641689999999&IncludeOnlyDataInTimeRange=true"`;
+
 exports[`queries asset calibration forecast with day groupBy 1`] = `
 [
   {
@@ -25,6 +31,16 @@ exports[`queries asset calibration forecast with day groupBy 1`] = `
             "value": "Assets",
           },
         ],
+        "config": {
+          "links": [
+            {
+              "onBuildUrl": [Function],
+              "targetBlank": true,
+              "title": "View Day",
+              "url": "/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}",
+            },
+          ],
+        },
         "name": "Assets",
         "values": [
           1,
@@ -63,6 +79,16 @@ exports[`queries asset calibration forecast with month groupBy 1`] = `
             "value": "Assets",
           },
         ],
+        "config": {
+          "links": [
+            {
+              "onBuildUrl": [Function],
+              "targetBlank": true,
+              "title": "View Month",
+              "url": "/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}",
+            },
+          ],
+        },
         "name": "Assets",
         "values": [
           1,
@@ -101,6 +127,16 @@ exports[`queries asset calibration forecast with week groupBy 1`] = `
             "value": "Assets",
           },
         ],
+        "config": {
+          "links": [
+            {
+              "onBuildUrl": [Function],
+              "targetBlank": true,
+              "title": "View Week",
+              "url": "/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}",
+            },
+          ],
+        },
         "name": "Assets",
         "values": [
           1,
@@ -311,6 +347,16 @@ exports[`queries calibration forecast with month and assetType groupBy 1`] = `
             "value": "DEVICE_UNDER_TEST",
           },
         ],
+        "config": {
+          "links": [
+            {
+              "onBuildUrl": [Function],
+              "targetBlank": true,
+              "title": "View Month",
+              "url": "/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}",
+            },
+          ],
+        },
         "name": "Device under test",
         "values": [
           1,
@@ -325,6 +371,16 @@ exports[`queries calibration forecast with month and assetType groupBy 1`] = `
             "value": "FIXTURE",
           },
         ],
+        "config": {
+          "links": [
+            {
+              "onBuildUrl": [Function],
+              "targetBlank": true,
+              "title": "View Month",
+              "url": "/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}",
+            },
+          ],
+        },
         "name": "Fixture",
         "values": [
           2,
@@ -339,6 +395,16 @@ exports[`queries calibration forecast with month and assetType groupBy 1`] = `
             "value": "GENERIC",
           },
         ],
+        "config": {
+          "links": [
+            {
+              "onBuildUrl": [Function],
+              "targetBlank": true,
+              "title": "View Month",
+              "url": "/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}",
+            },
+          ],
+        },
         "name": "Generic",
         "values": [
           4,
@@ -377,6 +443,16 @@ exports[`queries calibration forecast with month and busType groupBy 1`] = `
             "value": "BUILT_IN_SYSTEM",
           },
         ],
+        "config": {
+          "links": [
+            {
+              "onBuildUrl": [Function],
+              "targetBlank": true,
+              "title": "View Month",
+              "url": "/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}",
+            },
+          ],
+        },
         "name": "Built-in-system",
         "values": [
           1,
@@ -391,6 +467,16 @@ exports[`queries calibration forecast with month and busType groupBy 1`] = `
             "value": "ACCESSORY",
           },
         ],
+        "config": {
+          "links": [
+            {
+              "onBuildUrl": [Function],
+              "targetBlank": true,
+              "title": "View Month",
+              "url": "/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}",
+            },
+          ],
+        },
         "name": "ACCESSORY",
         "values": [
           2,
@@ -405,6 +491,16 @@ exports[`queries calibration forecast with month and busType groupBy 1`] = `
             "value": "SERIAL",
           },
         ],
+        "config": {
+          "links": [
+            {
+              "onBuildUrl": [Function],
+              "targetBlank": true,
+              "title": "View Month",
+              "url": "/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}",
+            },
+          ],
+        },
         "name": "Serial",
         "values": [
           4,
@@ -443,6 +539,16 @@ exports[`queries calibration forecast with month and location groupBy 1`] = `
             "value": "Location1",
           },
         ],
+        "config": {
+          "links": [
+            {
+              "onBuildUrl": [Function],
+              "targetBlank": true,
+              "title": "View Month",
+              "url": "/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}",
+            },
+          ],
+        },
         "name": "Location1",
         "values": [
           1,
@@ -457,6 +563,16 @@ exports[`queries calibration forecast with month and location groupBy 1`] = `
             "value": "Location2",
           },
         ],
+        "config": {
+          "links": [
+            {
+              "onBuildUrl": [Function],
+              "targetBlank": true,
+              "title": "View Month",
+              "url": "/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}",
+            },
+          ],
+        },
         "name": "Location2",
         "values": [
           2,
@@ -471,6 +587,16 @@ exports[`queries calibration forecast with month and location groupBy 1`] = `
             "value": "Location3",
           },
         ],
+        "config": {
+          "links": [
+            {
+              "onBuildUrl": [Function],
+              "targetBlank": true,
+              "title": "View Month",
+              "url": "/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}",
+            },
+          ],
+        },
         "name": "Location3",
         "values": [
           4,
@@ -509,6 +635,16 @@ exports[`queries calibration forecast with month and vendor groupBy 1`] = `
             "value": "Vendor1",
           },
         ],
+        "config": {
+          "links": [
+            {
+              "onBuildUrl": [Function],
+              "targetBlank": true,
+              "title": "View Month",
+              "url": "/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}",
+            },
+          ],
+        },
         "name": "Vendor1",
         "values": [
           1,
@@ -523,6 +659,16 @@ exports[`queries calibration forecast with month and vendor groupBy 1`] = `
             "value": "Vendor2",
           },
         ],
+        "config": {
+          "links": [
+            {
+              "onBuildUrl": [Function],
+              "targetBlank": true,
+              "title": "View Month",
+              "url": "/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}",
+            },
+          ],
+        },
         "name": "Vendor2",
         "values": [
           2,
@@ -537,6 +683,16 @@ exports[`queries calibration forecast with month and vendor groupBy 1`] = `
             "value": "Vendor3",
           },
         ],
+        "config": {
+          "links": [
+            {
+              "onBuildUrl": [Function],
+              "targetBlank": true,
+              "title": "View Month",
+              "url": "/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}",
+            },
+          ],
+        },
         "name": "Vendor3",
         "values": [
           4,
@@ -575,6 +731,16 @@ exports[`queries calibration forecast with month and workspace groupBy 1`] = `
             "value": "Workspace1",
           },
         ],
+        "config": {
+          "links": [
+            {
+              "onBuildUrl": [Function],
+              "targetBlank": true,
+              "title": "View Month",
+              "url": "/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}",
+            },
+          ],
+        },
         "name": "Workspace1",
         "values": [
           1,
@@ -589,6 +755,16 @@ exports[`queries calibration forecast with month and workspace groupBy 1`] = `
             "value": "Workspace2",
           },
         ],
+        "config": {
+          "links": [
+            {
+              "onBuildUrl": [Function],
+              "targetBlank": true,
+              "title": "View Month",
+              "url": "/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}",
+            },
+          ],
+        },
         "name": "Workspace2",
         "values": [
           2,
@@ -603,6 +779,16 @@ exports[`queries calibration forecast with month and workspace groupBy 1`] = `
             "value": "Workspace3",
           },
         ],
+        "config": {
+          "links": [
+            {
+              "onBuildUrl": [Function],
+              "targetBlank": true,
+              "title": "View Month",
+              "url": "/d/\${__dashboard.uid}/\${__dashboard}?orgId=\${__org.id}&\${__all_variables}",
+            },
+          ],
+        },
         "name": "Workspace3",
         "values": [
           4,

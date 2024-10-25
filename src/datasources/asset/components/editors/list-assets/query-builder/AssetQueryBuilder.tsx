@@ -13,7 +13,7 @@ import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder
 import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
 import { SystemProperties } from 'datasources/system/types';
 import { QBField } from '../../../../types/CalibrationForecastQuery.types';
-import { ListAssetsFields } from '../../../../constants/ListAssets.constants';
+import { ListAssetsFields, ListAssetsStaticFields } from '../../../../constants/ListAssets.constants';
 
 type AssetCalibrationQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
@@ -73,7 +73,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
       return;
     }
 
-    const fields = [workspaceField, locationField]
+    const fields = [workspaceField, locationField, ...ListAssetsStaticFields]
       .map(field => {
         if (field.lookup?.dataSource) {
           return {
@@ -113,6 +113,10 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
       },
       QueryBuilderOperations.CONTAINS,
       QueryBuilderOperations.DOES_NOT_CONTAIN,
+      QueryBuilderOperations.LESS_THAN,
+      QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO,
+      QueryBuilderOperations.GREATER_THAN,
+      QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO
     ]);
   }, [workspaceField, locationField, areDependenciesLoaded, globalVariableOptions]);
 

@@ -1,9 +1,15 @@
 import { QueryBuilderOperations } from "../../../core/query-builder.constants";
 import { QBField } from "../types/CalibrationForecastQuery.types";
+import { AssetTypeOptions, BusTypeOptions, ResolvedDueDateOptions } from "../types/types";
 
 export enum ListAssetsFieldNames {
     LOCATION = 'Location',
-    WORKSPACE = 'Workspace'
+    WORKSPACE = 'Workspace',
+    MODEL_NAME = 'ModelName',
+    VENDOR_NAME = 'VendorName',
+    BUS_TYPE = 'BusType',
+    ASSET_TYPE = 'AssetType',
+    CALIBRATION_DUE_DATE = 'ExternalCalibration.NextRecommendedDate'
 }
 
 export const ListAssetsFields: Record<string, QBField> = {
@@ -28,5 +34,64 @@ export const ListAssetsFields: Record<string, QBField> = {
         lookup: {
             dataSource: []
         }
+    },
+    MODEL_NAME: {
+        label: 'Model Name',
+        dataField: ListAssetsFieldNames.MODEL_NAME,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name
+        ],
+    },
+    VENDOR_NAME: {
+        label: 'Vendor Name',
+        dataField: ListAssetsFieldNames.VENDOR_NAME,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name
+        ],
+    },
+    BUS_TYPE: {
+        label: 'Bus Type',
+        dataField: ListAssetsFieldNames.BUS_TYPE,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name
+        ],
+        lookup: {
+            dataSource: BusTypeOptions,
+        }
+    },
+    ASSET_TYPE: {
+        label: 'Asset Type',
+        dataField: ListAssetsFieldNames.ASSET_TYPE,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name
+        ],
+        lookup: {
+            dataSource: AssetTypeOptions,
+        },
+    },
+    CALIBRATION_DUE_DATE: {
+        label: 'Calibration Due Date',
+        dataField: ListAssetsFieldNames.CALIBRATION_DUE_DATE,
+        filterOperations: [
+            QueryBuilderOperations.LESS_THAN.name,
+            QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
+            QueryBuilderOperations.GREATER_THAN.name,
+            QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name
+        ],
+        lookup: {
+            dataSource: ResolvedDueDateOptions
+        }
     }
 };
+
+export const ListAssetsStaticFields = [
+    ListAssetsFields.MODEL_NAME,
+    ListAssetsFields.VENDOR_NAME,
+    ListAssetsFields.ASSET_TYPE,
+    ListAssetsFields.BUS_TYPE,
+    ListAssetsFields.CALIBRATION_DUE_DATE
+];

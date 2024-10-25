@@ -60,9 +60,11 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
       { name: 'calibration status', values: assets.map(a => a.calibrationStatus) },
       { name: 'is system controller', values: assets.map(a => a.isSystemController) },
       { name: 'last updated timestamp', values: assets.map(a => a.lastUpdatedTimestamp) },
+      { name: 'location', values: assets.map(a => this.getLocationFromAsset(a))},
       { name: 'minionId', values: assets.map(a => a.location.minionId) },
       { name: 'parent name', values: assets.map(a => a.location.parent) },
-      { name: 'workspace', values: assets.map(a => getWorkspaceName(workspaces, a.workspace)) },
+      { name: 'workspace', values: assets.map( a => getWorkspaceName( workspaces, a.workspace ) ) },
+      { name: 'calibration due date', values: assets.map(a => a.externalCalibration?.resolvedDueDate) },
     ];
     return result;
   }
@@ -75,5 +77,14 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
     } catch (error) {
       throw new Error(`An error occurred while querying assets: ${error}`);
     }
+  }
+
+  private getLocationFromAsset(asset: AssetModel): string
+  {
+    if (asset.location.physicalLocation)
+    {
+      return asset.location.physicalLocation;
+    }
+    return this.systemAliasCache.get(asset.location.minionId)?.alias || '';
   }
 }

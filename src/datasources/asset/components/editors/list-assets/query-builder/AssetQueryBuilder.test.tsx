@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { AssetQueryBuilder } from './AssetQueryBuilder';
 import { render } from '@testing-library/react';
-import { Workspace } from 'core/types';
+import { QueryBuilderOption, Workspace } from 'core/types';
 import { SystemProperties } from 'datasources/system/types';
 
 describe('AssetQueryBuilder', () => {
@@ -10,12 +10,12 @@ describe('AssetQueryBuilder', () => {
 
     const containerClass = 'smart-filter-group-condition-container';
 
-    function renderElement(workspaces: Workspace[], systems: SystemProperties[], filter?: string) {
+    function renderElement(workspaces: Workspace[], systems: SystemProperties[], filter?: string, globalVariableOptions: QueryBuilderOption[] = []) {
       reactNode = React.createElement(AssetQueryBuilder, {
         workspaces,
         systems,
         filter,
-        globalVariableOptions: [],
+        globalVariableOptions,
         onChange: jest.fn(),
         areDependenciesLoaded: true,
       });
@@ -49,6 +49,17 @@ describe('AssetQueryBuilder', () => {
 
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain(system.alias);
+    });
+
+    it( 'should select global variable option', () => {
+      const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
+      const system = { id: '1', alias: 'Selected system' } as SystemProperties;
+      const globalVariableOption = { label: 'Global variable', value: 'global_variable' };
+
+      const { conditionsContainer } = renderElement([workspace], [system], 'AssetType = \"global_variable\"', [globalVariableOption]);
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain(globalVariableOption.label);
     });
   });
 });

@@ -1,3 +1,45 @@
+## [3.40.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.39.0...v3.40.0) (2024-10-24)
+
+### Features
+
+* **asset:** add resolved due date filter for list assets ([#102](https://github.com/ni/systemlink-grafana-plugins/issues/102)) ([d4ad953](https://github.com/ni/systemlink-grafana-plugins/commit/d4ad953970721f1a32c0c944fa1f6c96dae39914))
+
+## [3.39.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.38.0...v3.39.0) (2024-10-24)
+
+### Features
+
+* **asset:** add location column to list assets ([#101](https://github.com/ni/systemlink-grafana-plugins/issues/101)) ([de0a6b4](https://github.com/ni/systemlink-grafana-plugins/commit/de0a6b4b4e37578e1833e8fe0785a5c9dc16f591))
+
+## [3.38.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.37.0...v3.38.0) (2024-10-24)
+
+### Features
+
+* **asset:** add more options to list assets query builder ([#99](https://github.com/ni/systemlink-grafana-plugins/issues/99)) ([f5705a1](https://github.com/ni/systemlink-grafana-plugins/commit/f5705a176cb22493a33f6d142681aa644ccb722c))
+
+## [3.37.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.36.0...v3.37.0) (2024-10-24)
+
+### Features
+
+* **asset:** added support for IncludeOnlyDataInTimeRange ([#96](https://github.com/ni/systemlink-grafana-plugins/issues/96)) ([2f49843](https://github.com/ni/systemlink-grafana-plugins/commit/2f498437433a78703f6a55382c3c87d4339b7593))
+
+## [3.36.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.35.0...v3.36.0) (2024-10-23)
+
+### Features
+
+* **asset:** add calibration due date column ([#100](https://github.com/ni/systemlink-grafana-plugins/issues/100)) ([c35ef78](https://github.com/ni/systemlink-grafana-plugins/commit/c35ef7879d9bec80b1eec7fa7d70271db416bd62))
+
+## [3.35.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.34.1...v3.35.0) (2024-10-22)
+
+### Features
+
+* **asset:** time based data links ([#93](https://github.com/ni/systemlink-grafana-plugins/issues/93)) ([fc95303](https://github.com/ni/systemlink-grafana-plugins/commit/fc95303aba264c2025dac604e41330a7e4a9ba71))
+
+## [3.34.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.34.0...v3.34.1) (2024-10-22)
+
+### Bug Fixes
+
+* **asset:** fix empty string error on Linq filter for assets ([#98](https://github.com/ni/systemlink-grafana-plugins/issues/98)) ([35a1ad7](https://github.com/ni/systemlink-grafana-plugins/commit/35a1ad7be37449178280b4ad94a2c540d6406c01))
+
 ## [3.34.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.33.0...v3.34.0) (2024-10-21)
 
 ### Features

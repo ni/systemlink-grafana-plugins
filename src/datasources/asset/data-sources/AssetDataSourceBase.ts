@@ -45,6 +45,14 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
     }
   }
 
+  getQueryParams(): URLSearchParams {
+    return new URLSearchParams(window.location.search);
+  }
+
+  getQueryParam(param: string): string | null {
+    return this.getQueryParams().get(param);
+  }
+
   public getCachedSystems(): SystemProperties[] {
     return Array.from(this.systemAliasCache.values());
   }
@@ -115,7 +123,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
           return `Location.MinionId ${operation} "${value}"`
         }
 
-        return `(Location.MinionId ${operation} "${value}" ${this.getLocicalOperator(operation)} Location.PhysicalLocation ${operation} "${value}")`;
+        return `Locations.Any(l => l.MinionId ${operation} "${value}" ${this.getLocicalOperator(operation)} l.PhysicalLocation ${operation} "${value}")`;
       }]]);
 
   protected multipleValuesQuery(field: string): ExpressionTransformFunction {
