@@ -1,3 +1,9 @@
+## [3.41.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.40.1...v3.41.0) (2024-10-25)
+
+### Features
+
+* **asset:** remove includeOnlyDataInTimeRange query param, default true ([#104](https://github.com/ni/systemlink-grafana-plugins/issues/104)) ([29e9eea](https://github.com/ni/systemlink-grafana-plugins/commit/29e9eea9946303e387fd08f06ecb26deb5c79f57))
+
 ## [3.40.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.40.0...v3.40.1) (2024-10-25)
 
 ### Bug Fixes
