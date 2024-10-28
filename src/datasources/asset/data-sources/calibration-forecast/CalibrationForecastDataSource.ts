@@ -52,7 +52,6 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
             );
         }
 
-        calibrationForecastQuery.IncludeOnlyDataInTimeRange = this.getQueryParam('IncludeOnlyDataInTimeRange')?.toLowerCase() === 'true';
         return await this.processCalibrationForecastQuery(calibrationForecastQuery, options);
     }
 
@@ -74,8 +73,7 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
             query.groupBy,
             from,
             to,
-            query.filter,
-            query.IncludeOnlyDataInTimeRange
+            query.filter
         );
 
         result.fields = calibrationForecastResponse.calibrationForecast.columns || [];
@@ -114,15 +112,15 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
             if (formatter) {
                 field.values = field.values!.map(formatter);
             }
-            
-            if (!formatter && !Boolean(this.getQueryParam('IncludeOnlyDataInTimeRange'))) {
+
+            if (!formatter) {
                 field.config = { links: this.createDataLinks(timeGrouping, startDate) };
             }
         });
     }
 
     private createDataLinks(timeGrouping: AssetCalibrationForecastKey, startDate: string): DataLink[] {
-        const url = '/d/${__dashboard.uid}/${__dashboard}?orgId=${__org.id}&${__all_variables}';
+        const url = window.location.href.split('/d/')[0] + '/d/${__dashboard.uid}/${__dashboard}?orgId=${__org.id}&${__all_variables}';
 
         return [
             {
@@ -133,8 +131,6 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
                     }
 
                     const value = options.replaceVariables(`\${__data.fields.${timeGrouping}}`);
-                    const IncludeOnlyDataInTimeRange = value !== startDate;
-
                     let from, to;
 
                     const parseDate = (dateStr: string) => {
@@ -162,7 +158,7 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
                             break;
                     }
 
-                    return `${url}&from=${from}&to=${to}&IncludeOnlyDataInTimeRange=${IncludeOnlyDataInTimeRange}`;
+                    return `${url}&from=${from}&to=${to}`;
                 }
             }
         ];
@@ -205,11 +201,9 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
     }
 
     formatDateForWeek(date: string): string {
-        console.log(date);
         const startDate = new Date(date);
         const endDate = new Date(startDate);
         endDate.setDate(startDate.getDate() + 6);
-        console.log(startDate)
         return `${startDate.toISOString().split('T')[0]} : ${endDate.toISOString().split('T')[0]}`;
     }
 
@@ -227,8 +221,8 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
         }
     }
 
-    async queryCalibrationForecast(groupBy: string[], startTime: string, endTime: string, filter = '', IncludeOnlyDataInTimeRange = false): Promise<CalibrationForecastResponse> {
-        let data = { groupBy, startTime, endTime, filter, IncludeOnlyDataInTimeRange };
+    async queryCalibrationForecast(groupBy: string[], startTime: string, endTime: string, filter = '', includeOnlyDataInTimeRange = true): Promise<CalibrationForecastResponse> {
+        let data = { groupBy, startTime, endTime, filter, includeOnlyDataInTimeRange };
         try {
             let response = await this.post<CalibrationForecastResponse>(this.baseUrl + '/assets/calibration-forecast', data);
             return response;
