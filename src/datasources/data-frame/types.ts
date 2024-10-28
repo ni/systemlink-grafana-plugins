@@ -13,6 +13,8 @@ export interface DataFrameQuery extends DataQuery {
   decimationMethod?: string;
   filterNulls?: boolean;
   applyTimeFilters?: boolean;
+  queryBy?: string;
+  properties?: string[];
 }
 
 export const defaultQuery: Omit<ValidDataFrameQuery, 'refId'> = {
@@ -21,7 +23,9 @@ export const defaultQuery: Omit<ValidDataFrameQuery, 'refId'> = {
   columns: [],
   decimationMethod: 'LOSSY',
   filterNulls: false,
-  applyTimeFilters: false
+  applyTimeFilters: false,
+  queryBy: '',
+  properties: [],
 };
 
 export type ValidDataFrameQuery = DataFrameQuery & Required<Omit<DataFrameQuery, keyof DataQuery>>;
