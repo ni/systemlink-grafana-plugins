@@ -1,13 +1,13 @@
 import { screen, waitFor } from '@testing-library/react';
 import { AssetQuery, AssetQueryType } from '../../types/types';
-import { SystemMetadata } from '../../../system/types'
+import { SystemProperties } from '../../../system/types'
 import { AssetVariableQueryEditor } from './AssetVariableQueryEditor';
 import { Workspace } from 'core/types';
 import { setupRenderer } from 'test/fixtures';
 import { ListAssetsDataSource } from '../../data-sources/list-assets/ListAssetsDataSource';
 import { AssetDataSource } from 'datasources/asset/AssetDataSource';
 
-const fakeSystems: SystemMetadata[] = [
+const fakeSystems: SystemProperties[] = [
     {
         id: '1',
         state: 'CONNECTED',
@@ -39,7 +39,7 @@ class FakeAssetsSource extends ListAssetsDataSource {
     getWorkspaces(): Promise<Workspace[]> {
         return Promise.resolve(fakeWorkspaces);
     }
-    querySystems(filter?: string, projection?: string[]): Promise<SystemMetadata[]> {
+    querySystems(filter?: string, projection?: string[]): Promise<SystemProperties[]> {
         return Promise.resolve(fakeSystems);
     }
 }

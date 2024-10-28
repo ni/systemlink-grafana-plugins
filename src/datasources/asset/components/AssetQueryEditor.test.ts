@@ -1,5 +1,5 @@
 import { screen, waitFor } from '@testing-library/react';
-import { SystemMetadata } from '../../system/types';
+import { SystemProperties } from '../../system/types';
 import { AssetDataSource } from '../AssetDataSource';
 import { setupRenderer } from '../../../test/fixtures';
 import { CalibrationForecastDataSource } from '../data-sources/calibration-forecast/CalibrationForecastDataSource';
@@ -12,7 +12,7 @@ import { AssetFeatureTogglesDefaults, AssetQueryType } from '../types/types';
 import { ListAssetsDataSource } from '../data-sources/list-assets/ListAssetsDataSource';
 import { AssetSummaryDataSource } from '../data-sources/asset-summary/AssetSummaryDataSource';
 
-const fakeSystems: SystemMetadata[] = [
+const fakeSystems: SystemProperties[] = [
     {
         id: '1',
         state: 'CONNECTED',
@@ -30,7 +30,7 @@ let assetDatasourceOptions = {
 }
 
 class FakeAssetsSource extends ListAssetsDataSource {
-    querySystems(filter?: string, projection?: string[]): Promise<SystemMetadata[]> {
+    querySystems(filter?: string, projection?: string[]): Promise<SystemProperties[]> {
         return Promise.resolve(fakeSystems);
     }
 }

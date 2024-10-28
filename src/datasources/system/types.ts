@@ -1,7 +1,7 @@
 import { DataQuery } from '@grafana/schema'
 
 export enum SystemQueryType {
-  Metadata = "Metadata",
+  Properties = "Properties",
   Summary = "Summary"
 }
 
@@ -20,7 +20,7 @@ export interface SystemSummary {
   disconnectedCount: number;
 }
 
-export interface SystemMetadata {
+export interface SystemProperties {
   id: string;
   alias?: string;
   state: string;
