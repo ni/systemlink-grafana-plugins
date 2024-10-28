@@ -1,6 +1,6 @@
 import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings, FieldDTO, TestDataSourceResponse, DataLink } from '@grafana/data';
 import { AssetDataSourceOptions, AssetQuery, AssetQueryType, AssetType, AssetTypeOptions, BusType, BusTypeOptions } from '../../types/types';
-import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
+import { BackendSrv, config, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
 import { AssetCalibrationForecastKey, AssetCalibrationTimeBasedGroupByType, CalibrationForecastQuery, CalibrationForecastResponse, ColumnDescriptorType, FieldDTOWithDescriptor } from '../../types/CalibrationForecastQuery.types';
 import { transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
@@ -102,9 +102,6 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
     }
 
     processResultsGroupedByTime(result: DataFrameDTO, timeGrouping: AssetCalibrationForecastKey) {
-        const timeFieldFirstValue = result.fields.find(field => field.name === timeGrouping)?.values?.at(0);
-        const startDate = this.forecastDateFormatterMap.get(timeGrouping)!(timeFieldFirstValue);
-
         result.fields.forEach(field => {
             field.name = this.createColumnNameFromDescriptor(field as FieldDTOWithDescriptor);
             const formatter = this.forecastDateFormatterMap.get(field.name as AssetCalibrationForecastKey);
@@ -114,17 +111,17 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
             }
 
             if (!formatter) {
-                field.config = { links: this.createDataLinks(timeGrouping, startDate) };
+                field.config = { links: this.createDataLinks(timeGrouping) };
             }
         });
     }
 
-    private createDataLinks(timeGrouping: AssetCalibrationForecastKey, startDate: string): DataLink[] {
-        const url = window.location.href.split('/d/')[0] + '/d/${__dashboard.uid}/${__dashboard}?orgId=${__org.id}&${__all_variables}';
+    private createDataLinks(timeGrouping: AssetCalibrationForecastKey): DataLink[] {
+        const url = config.appUrl + 'd/${__dashboard.uid}/${__dashboard}?orgId=${__org.id}&${__all_variables}';
 
         return [
             {
-                title: `View ${timeGrouping}`, targetBlank: true, url: `${url}`,
+                title: `View ${timeGrouping}`, targetBlank: false, url: `${url}`,
                 onBuildUrl: function (options) {
                     if (!options.replaceVariables) {
                         return url;

@@ -632,8 +632,7 @@ describe('Time based data links', () => {
     const from = new Date('2022-01-01T00:00:00.0000000Z');
 
     expect(dataLink.title).toBe(`View ${AssetCalibrationForecastKey.Day}`);
-    expect(dataLink.targetBlank).toBe(true);
-    expect(dataLink.url).toContain('/d/${__dashboard.uid}/${__dashboard}?orgId=${__org.id}');
+    expect(dataLink.targetBlank).toBe(false);
 
     const builtUrl = dataLink.onBuildUrl({
       replaceVariables: (value: string) => value.replace('${__data.fields.Day}', from.toISOString())
@@ -655,8 +654,7 @@ describe('Time based data links', () => {
     const weekEndDate = new Date('2022-01-09T23:59:59.999Z');
 
     expect(dataLink.title).toBe(`View ${AssetCalibrationForecastKey.Week}`);
-    expect(dataLink.targetBlank).toBe(true);
-    expect(dataLink.url).toContain('/d/${__dashboard.uid}/${__dashboard}?orgId=${__org.id}');
+    expect(dataLink.targetBlank).toBe(false);
 
     const builtUrl = dataLink.onBuildUrl({
       replaceVariables: (value: string) => value.replace('${__data.fields.Week}', `${weekStartDate.toISOString()} : ${weekEndDate.toISOString()}`)
@@ -678,8 +676,7 @@ describe('Time based data links', () => {
     const monthDate = new Date('2022-01-01T00:00:00.0000000Z');
 
     expect(dataLink.title).toBe(`View ${AssetCalibrationForecastKey.Month}`);
-    expect(dataLink.targetBlank).toBe(true);
-    expect(dataLink.url).toContain('/d/${__dashboard.uid}/${__dashboard}?orgId=${__org.id}');
+    expect(dataLink.targetBlank).toBe(false);
 
     const builtUrl = dataLink.onBuildUrl({
       replaceVariables: (value: string) => value.replace('${__data.fields.Month}', monthDate.toISOString())
