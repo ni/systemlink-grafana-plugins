@@ -93,7 +93,8 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
   }
 
   public readonly queryTransformationOptions = new Map<string, Map<string, unknown>>([
-    [AllFieldNames.LOCATION, this.systemAliasCache]
+    [AllFieldNames.LOCATION, this.systemAliasCache],
+    [AllFieldNames.CALIBRATION_DUE_DATE, new Map<string, unknown>()]
   ]);
 
   public readonly assetComputedDataFields = new Map<string, ExpressionTransformFunction>([
@@ -116,6 +117,17 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
         }
 
         return `Locations.Any(l => l.MinionId ${operation} "${value}" ${this.getLocicalOperator(operation)} l.PhysicalLocation ${operation} "${value}")`;
+    }],
+    [
+      AllFieldNames.CALIBRATION_DUE_DATE,
+      (value: string, operation: string, options?: Map<string, unknown>) =>
+      {
+        if (value === '${__now:date}' )
+        {
+          return `${AllFieldNames.CALIBRATION_DUE_DATE} ${operation} "${new Date().toISOString()}"`;
+        }
+
+        return `${AllFieldNames.CALIBRATION_DUE_DATE} ${operation} "${value}"`;
       }]]);
 
   protected multipleValuesQuery(field: string): ExpressionTransformFunction {

@@ -62,14 +62,18 @@ describe('AssetQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain(globalVariableOption.label);
     });
 
-    it('should select user friendly value for calibration due date', () => {
-      const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
-      const system = { id: '1', alias: 'Selected system' } as SystemMetadata;
+    [['${__from:date}', 'From'], ['${__to:date}', 'To' ], ['${__now:date}', 'Now' ]].forEach(([value, label]) =>
+    {
+      it( `should select user friendly value for calibration due date`, () =>
+      {
+        const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
+        const system = { id: '1', alias: 'Selected system' } as SystemMetadata;
 
-      const { conditionsContainer } = renderElement([workspace], [system], 'ExternalCalibration.NextRecommendedDate > \"${__from:date}\"');
+        const { conditionsContainer } = renderElement([workspace], [system], `ExternalCalibration.NextRecommendedDate > \"${value}\"` );
 
-      expect(conditionsContainer?.length).toBe(1);
-      expect(conditionsContainer.item(0)?.textContent).toContain("From");
+        expect(conditionsContainer?.length).toBe(1);
+        expect(conditionsContainer.item(0)?.textContent).toContain(label);
+      });
     });
   });
 });
