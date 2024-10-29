@@ -83,7 +83,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
           ...(calibrationField.lookup?.dataSource || []),
           { label: 'From', value: '${__from:date}' },
           { label: 'To', value: '${__to:date}' },
-          { label: 'Now', value: new Date().toISOString() },
+          { label: 'Now', value: '${__now:date}' },
         ],
       },
     };

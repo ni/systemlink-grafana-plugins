@@ -1,3 +1,9 @@
+## [3.43.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.42.0...v3.43.0) (2024-10-29)
+
+### Features
+
+* **asset:** compute "Now" in a way that can be saved ([#107](https://github.com/ni/systemlink-grafana-plugins/issues/107)) ([728d47f](https://github.com/ni/systemlink-grafana-plugins/commit/728d47f7a7f3e957ab0de1e8572dd4ad3afd0f42))
+
 ## [3.42.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.41.0...v3.42.0) (2024-10-25)
 
 ### Features
