@@ -100,7 +100,7 @@ export function filterXSSField({ label, value }: { label: string; value: string 
  */
 export function filterXSSLINQExpression(value: string | null | undefined): string {
   const unsanitizedTarget = value ?? '';
-  const sanitizedTarget = textUtil.sanitize(unsanitizedTarget).toString();
+  const sanitizedTarget = textUtil.sanitize(unsanitizedTarget);
 
   return sanitizedTarget
     .replace(/ &lt; /g, " < ")

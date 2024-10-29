@@ -32,6 +32,10 @@ export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryB
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
 
+  const sanitizedFilter = useMemo(() => {
+    return filterXSSLINQExpression(filter);
+  }, [filter])
+
   const workspaceField = useMemo(() => {
     const workspaceField = AssetCalibrationFields.WORKSPACE;
 
@@ -114,7 +118,7 @@ export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryB
       fields={fields}
       messages={queryBuilderMessages}
       onChange={onChange}
-      value={filterXSSLINQExpression(filter)}
+      value={sanitizedFilter}
       />
   );
 };

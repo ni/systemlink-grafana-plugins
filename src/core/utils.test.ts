@@ -14,7 +14,6 @@ test('enumToOptions', () => {
     ]);
 });
 
-
 describe("filterXSSLINQExpression", () => {
     test('simple XSS handling', () => {
         const result = filterXSSLINQExpression('test<script>alert("XSS")</script>');
@@ -34,7 +33,6 @@ describe("filterXSSLINQExpression", () => {
         expect(result).toEqual('ExternalCalibration.NextRecommendedDate < \"2024-10-29T02:53:47.647Z\" && ExternalCalibration.NextRecommendedDate > \"2025-10-29T08:53:47.647Z\" && Location.MinionId = \"e2etest-1730102822793-365e021a-d0c5-496c-87f8-8e4e5fa5090f\" && ExternalCalibration.NextRecommendedDate > \"2024-10-29T08:53:43.995Z\" && ExternalCalibration.NextRecommendedDate < \"\\<a>xxs link\\\"</a>');
     });
 });
-
 
 describe("filterXSSField", () => {
     test('simple field sanitization', () => {
