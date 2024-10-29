@@ -53,6 +53,16 @@ export interface ColumnFilter {
   value: string | null;
 }
 
+export enum DataTablesProperties{
+  columns = 'COLUMNS',
+  id = 'ID',
+  name = 'NAME',
+  properties = 'PROPERTIES',
+  rowCount = 'ROW_COUNT',
+  workspace = 'WORKSPACE',
+  createdAt = 'CREATED_AT',
+}
+
 export interface TableMetadata {
   columns: Column[];
   id: string;

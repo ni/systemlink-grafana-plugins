@@ -9,7 +9,7 @@ import { isValidId } from '../utils';
 import { FloatingError, parseErrorMessage } from '../../../core/errors';
 import { DataFrameQueryEditorCommon, Props } from './DataFrameQueryEditorCommon';
 import { enumToOptions } from 'core/utils';
-import { DataFrameQueryType } from '../types';
+import { DataFrameQueryType, DataTablesProperties } from '../types';
 import { TestMonitorQueryBuilder } from 'shared/queryBuilder';
 import { Properties } from 'datasources/products/types';
 
@@ -41,6 +41,20 @@ export const DataFrameQueryEditor = (props: Props) => {
 
   const fields = [
     {
+      label: 'Created',
+      dataField: 'updatedAt',
+      dataType: 'string',
+      filterOperations: ['>', '>=', '<', '<='],
+      lookup: {
+        dataSource: [
+          { label: 'From', value: '${__from:date}' },
+          { label: 'To', value: '${__to:date}' },
+          { label: 'From (YYYY-MM-DD)', value: '${__from:date:YYYY-MM-DD}' },
+          { label: 'To (YYYY-MM-DD)', value: '${__to:date:YYYY-MM-DD}' },
+        ],
+      },
+    },
+    {
       label: 'ID',
       dataField: 'id',
       dataType: 'string',
@@ -53,6 +67,34 @@ export const DataFrameQueryEditor = (props: Props) => {
       filterOperations: ['=', '<>', 'contains', 'notcontains',],
     },
     {
+      label: 'Metadata modified',
+      dataField: 'metadataModified',
+      dataType: 'string',
+      filterOperations: ['>', '>=', '<', 'isequal'],
+      lookup: {
+        dataSource: [
+          { label: 'From', value: '${__from:date}' },
+          { label: 'To', value: '${__to:date}' },
+          { label: 'From (YYYY-MM-DD)', value: '${__from:date:YYYY-MM-DD}' },
+          { label: 'To (YYYY-MM-DD)', value: '${__to:date:YYYY-MM-DD}' },
+        ],
+      },
+    },
+    {
+      label: 'Rows modified',
+      dataField: 'rowsModified',
+      dataType: 'string',
+      filterOperations: ['>', '>=', '<', '<='],
+      lookup: {
+        dataSource: [
+          { label: 'From', value: '${__from:date}' },
+          { label: 'To', value: '${__to:date}' },
+          { label: 'From (YYYY-MM-DD)', value: '${__from:date:YYYY-MM-DD}' },
+          { label: 'To (YYYY-MM-DD)', value: '${__to:date:YYYY-MM-DD}' },
+        ],
+      },
+    },
+    {
       label: 'Rows',
       dataField: 'rows',
       dataType: 'string',
@@ -63,6 +105,12 @@ export const DataFrameQueryEditor = (props: Props) => {
       dataField: 'properties',
       dataType: 'Object',
       filterOperations: ['key_value_matches'],
+    },
+    {
+      label: 'Supports append',
+      dataField: 'supportsAppend',
+      dataType: 'boolean',
+      filterOperations: ['=', '<>',],
     },
     {
       label: 'Updated at',
@@ -142,7 +190,7 @@ export const DataFrameQueryEditor = (props: Props) => {
               <InlineField label="Properties">
                 <MultiSelect
                   placeholder='Select properties to fetch'
-                  options={Object.keys(Properties).map(value => ({ label: value, value })) as SelectableValue[]}
+                  options={Object.keys(DataTablesProperties).map(value => ({ label: value, value })) as SelectableValue[]}
                   onChange={onPropertiesChange}
                   // value={query.properties}
                   defaultValue={common.query.properties!}

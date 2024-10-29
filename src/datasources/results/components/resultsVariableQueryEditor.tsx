@@ -48,7 +48,7 @@ export function ResultsVariableQueryEditor({ onChange, query, datasource }: Prop
               onChange={(event: any) => onQueryByChange(event.detail.linq)}
               defaultValue={query.queryBy}
             />
-          </InlineField>
+          </InlineField> 
         </>
       )}
       {query.type === ResultsVariableQueryType.Steps && (
