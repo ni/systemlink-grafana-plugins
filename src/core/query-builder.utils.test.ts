@@ -37,7 +37,7 @@ describe('QueryBuilderUtils', () => {
     });
 
     it('should handle unsupported operations correctly', () => {
-      const query = 'Object1 > "value1" AND Object2 < "value2"';
+      const query = 'Object1 % "value1" AND Object2 % "value2"';
       const result = transformComputedFieldsQuery(query, computedDataFields);
       expect(result).toBe(query);
     });
