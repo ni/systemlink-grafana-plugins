@@ -1,3 +1,9 @@
+## [3.43.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.0...v3.43.1) (2024-10-29)
+
+### Bug Fixes
+
+* **asset:** data link creation on deployed envs ([#108](https://github.com/ni/systemlink-grafana-plugins/issues/108)) ([11125b3](https://github.com/ni/systemlink-grafana-plugins/commit/11125b363aa5dc47b54f4b41c14ff879988f714e))
+
 ## [3.43.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.42.0...v3.43.0) (2024-10-29)
 
 ### Features
