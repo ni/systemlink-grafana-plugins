@@ -39,6 +39,10 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
 
+  const sanitizedFilter = useMemo(() => {
+    return filterXSSLINQExpression(filter);
+  }, [filter])
+
   const workspaceField = useMemo(() => {
     const workspaceField = ListAssetsFields.WORKSPACE;
 
@@ -69,8 +73,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
     };
   }, [systems]);
 
-  const calibrationDueDateField = useMemo(() =>
-  {
+  const calibrationDueDateField = useMemo(() => {
     const calibrationField = ListAssetsFields.CALIBRATION_DUE_DATE;
     return {
       ...calibrationField,
@@ -156,7 +159,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
       fields={fields}
       messages={queryBuilderMessages}
       onChange={onChange}
-      value={filterXSSLINQExpression(filter)}
+      value={sanitizedFilter}
     />
   );
 };

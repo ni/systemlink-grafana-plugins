@@ -12,7 +12,7 @@ import { Workspace } from '../../../../../core/types';
 import { SystemMetadata } from '../../../../system/types';
 import { InlineField, MultiSelect } from '@grafana/ui';
 import { FloatingError } from '../../../../../core/errors';
-import { enumToOptions } from '../../../../../core/utils';
+import { enumToOptions, filterXSSLINQExpression } from '../../../../../core/utils';
 import { CalibrationForecastQueryBuilder } from './query-builder/CalibrationForecastQueryBuilder';
 import './CalibrationForecastEditor.scss';
 
@@ -70,7 +70,7 @@ export function CalibrationForecastEditor({ query, handleQueryChange, datasource
 
   function onParameterChange(ev: CustomEvent) {
     if (query.filter !== ev.detail.linq) {
-      query.filter = ev.detail.linq;
+      query.filter = filterXSSLINQExpression(ev.detail.linq);
       handleQueryChange(query, true);
     }
   }

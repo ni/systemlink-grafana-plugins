@@ -55,7 +55,7 @@ describe('CalibrationForecastQueryBuilder', () => {
       const { conditionsContainer } = renderElement([workspace], [system], 'ModelName = "<script>alert(\'ModelName\')</script>"');
 
       expect(conditionsContainer?.length).toBe(1);
-      expect(conditionsContainer.item(0)?.innerHTML).toContain('&lt;script&gt;alert(\'ModelName\')&lt;/script&gt;');
+      expect(conditionsContainer.item(0)?.innerHTML).not.toContain('alert(\'ModelName\')');
     })
   });
 });

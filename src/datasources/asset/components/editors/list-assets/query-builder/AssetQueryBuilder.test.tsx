@@ -68,7 +68,7 @@ describe('AssetQueryBuilder', () => {
       const { conditionsContainer } = renderElement([workspace], [system], 'Workspace = "<script>alert(\'Workspace\')</script>"');
 
       expect(conditionsContainer?.length).toBe(1);
-      expect(conditionsContainer.item(0)?.innerHTML).toContain('&lt;script&gt;alert(\'Workspace\')&lt;/script&gt;');
+      expect(conditionsContainer.item(0)?.innerHTML).not.toContain('alert(\'Workspace\')');
     })
 
     it('should select user friendly value for calibration due date', () => {

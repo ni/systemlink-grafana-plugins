@@ -1,9 +1,8 @@
-import { SelectableValue } from '@grafana/data';
+import { SelectableValue, textUtil } from '@grafana/data';
 import { useAsync } from 'react-use';
 import { DataSourceBase } from './DataSourceBase';
 import { SystemLinkError, Workspace } from './types';
 import { TemplateSrv } from '@grafana/runtime';
-import { filterXSS } from "xss";
 
 export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<SelectableValue<T>> {
   const RESULT = [];
@@ -93,23 +92,20 @@ export function isSystemLinkError(error: any): error is SystemLinkError {
  * Used for filtering XSS in query builder fields
  */
 export function filterXSSField({ label, value }: { label: string; value: string }) {
-  return { label: filterXSS(label), value: filterXSS(value) };
+  return { label: textUtil.sanitize(label), value: textUtil.sanitize(value) };
 }
 
 /**
- * Used for filtering XSS strings
+ * Used for filtering XSS strings in LINQ expression
  */
 export function filterXSSLINQExpression(value: string | null | undefined): string {
-  const target = value ?? '';
-  const patterns = [
-    /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, // Detect <script> tags
-    /javascript:/gi, // Detect javascript: URLs
-    /on\w+="[^"]*"/gi, // Detect inline event handlers like onclick, onmouseover, etc.
-  ];
+  const unsanitizedTarget = value ?? '';
+  const sanitizedTarget = textUtil.sanitize(unsanitizedTarget).toString();
 
-  if(patterns.some(pattern => pattern.test(target))) {
-    return filterXSS(target);
-  }
-
-  return target;
+  return sanitizedTarget
+    .replace(/ &lt; /g, " < ")
+    .replace(/ &lt;= /g, " <= ")
+    .replace(/ &gt; /g, " > ")
+    .replace(/ &gt;= /g, " >= ")
+    .replace(/ &amp;&amp; /g, " && ");
 }
