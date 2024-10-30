@@ -1,3 +1,9 @@
+## [3.43.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.2...v3.43.3) (2024-10-30)
+
+### Bug Fixes
+
+* **asset:** fix data link construction ([#109](https://github.com/ni/systemlink-grafana-plugins/issues/109)) ([55cca79](https://github.com/ni/systemlink-grafana-plugins/commit/55cca7983d3a702c40a2409aa3419b55f769c6ad))
+
 ## [3.43.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.1...v3.43.2) (2024-10-30)
 
 ### Bug Fixes
