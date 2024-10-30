@@ -1,3 +1,9 @@
+## [3.43.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.1...v3.43.2) (2024-10-30)
+
+### Bug Fixes
+
+* **asset:** fix assets input sanitization for query builders ([#105](https://github.com/ni/systemlink-grafana-plugins/issues/105)) ([05cf5c0](https://github.com/ni/systemlink-grafana-plugins/commit/05cf5c0e3d0796887de66693d0f4362e3cfd1784))
+
 ## [3.43.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.0...v3.43.1) (2024-10-29)
 
 ### Bug Fixes
