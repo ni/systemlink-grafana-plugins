@@ -1,6 +1,6 @@
 import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings, FieldDTO, TestDataSourceResponse, DataLink } from '@grafana/data';
 import { AssetDataSourceOptions, AssetQuery, AssetQueryType, AssetType, AssetTypeOptions, BusType, BusTypeOptions } from '../../types/types';
-import { BackendSrv, config, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
+import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv, locationService } from '@grafana/runtime';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
 import { AssetCalibrationForecastKey, AssetCalibrationTimeBasedGroupByType, CalibrationForecastQuery, CalibrationForecastResponse, ColumnDescriptorType, FieldDTOWithDescriptor } from '../../types/CalibrationForecastQuery.types';
 import { transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
@@ -116,9 +116,13 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
         });
     }
 
-    private createDataLinks(timeGrouping: AssetCalibrationForecastKey): DataLink[] {
-        const url = config.appUrl + 'd/${__dashboard.uid}/${__dashboard}?orgId=${__org.id}&${__all_variables}';
+    private constructDataLinkBaseUrl(){
+        const pathname = locationService.getLocation().pathname;
+        return  pathname + '?orgId=${__org.id}&${__all_variables}';
+    }
 
+    private createDataLinks(timeGrouping: AssetCalibrationForecastKey): DataLink[] {
+        const url = this.constructDataLinkBaseUrl();
         return [
             {
                 title: `View ${timeGrouping}`, targetBlank: false, url: `${url}`,
