@@ -16,7 +16,7 @@ import { CalibrationForecastQuery } from '../types/CalibrationForecastQuery.type
 type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOptions>;
 
 export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
-  const [queryType, setQueryType] = useState(query.type as AssetQueryType);
+  const [queryType, setQueryType] = useState(query.type);
   const assetFeatures = useRef<AssetFeatureToggles>({
     assetList: datasource.instanceSettings.jsonData?.featureToggles?.assetList ?? AssetFeatureTogglesDefaults.assetList,
     calibrationForecast: datasource.instanceSettings.jsonData?.featureToggles?.calibrationForecast ?? AssetFeatureTogglesDefaults.calibrationForecast,

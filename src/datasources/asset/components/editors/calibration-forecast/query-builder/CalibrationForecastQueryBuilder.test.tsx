@@ -50,5 +50,13 @@ describe('CalibrationForecastQueryBuilder', () => {
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain(globalVariableOption.label);
     });
+
+    it('should select a sanitized ModelName in query builder', () => {
+      const { conditionsContainer } = renderElement([workspace], [system], 'ModelName = "<script>alert(\'ModelName\')</script>"');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.innerHTML).not.toContain('alert(\'ModelName\')');
+      expect(conditionsContainer.item(0)?.innerHTML).not.toContain('<script>');
+    })
   });
 });
