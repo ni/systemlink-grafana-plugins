@@ -9,7 +9,6 @@ import { ListAssetsQuery } from '../../../types/ListAssets.types';
 import { AssetQueryBuilder } from './query-builder/AssetQueryBuilder';
 import { Workspace } from '../../../../../core/types';
 import { ListAssetsDataSource } from '../../../data-sources/list-assets/ListAssetsDataSource';
-import { filterXSSLINQExpression } from 'core/utils';
 
 type Props = {
   query: ListAssetsQuery;
@@ -32,7 +31,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
 
   function onParameterChange(ev: CustomEvent) {
     if (query.filter !== ev.detail.linq) {
-      query.filter = filterXSSLINQExpression(ev.detail.linq);
+      query.filter = ev.detail.linq;
       handleQueryChange(query, true);
     }
   }
