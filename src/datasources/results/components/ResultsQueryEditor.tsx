@@ -80,10 +80,10 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
   }
 
   const metaData = query.type === ResultsQueryType.Results
-    ? ResultsProperties 
-    : query.type === ResultsQueryType.Steps 
-    ? StepsProperties 
-    : DataTablesProperties;
+    ? ResultsProperties
+    : query.type === ResultsQueryType.Steps
+      ? StepsProperties
+      : DataTablesProperties;
 
   return (
     <>
@@ -97,20 +97,16 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
                 onChange={onQueryTypeChange}
               />
             </InlineField>
-            {(query.type === ResultsQueryType.Results) && (
-              <>
-                <InlineField label="Output" labelWidth={20} tooltip={tooltip.output}>
-                  <RadioButtonGroup
-                    options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
-                    value={query.outputType}
-                    onChange={onOutputChange}
-                  />
-                </InlineField>
-              </>
-            )}
+            <InlineField label="Output" labelWidth={20} tooltip={tooltip.output}>
+              <RadioButtonGroup
+                options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
+                value={query.outputType}
+                onChange={onOutputChange}
+              />
+            </InlineField>
           </div>
           <div>
-            {(query.type === ResultsQueryType.Steps || query.outputType === OutputType.Data) && (
+            {(query.outputType === OutputType.Data) && (
               <>
                 <InlineField label="Properties" labelWidth={20} tooltip={tooltip.metaData}>
                   <MultiSelect
@@ -126,7 +122,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
                 </InlineField>
               </>
             )}
-            {query.type === ResultsQueryType.Steps && (
+            {(query.type === ResultsQueryType.Steps && query.outputType === OutputType.Data)&& (
               <>
                 <InlineField
                   label="Show measurements"
@@ -139,7 +135,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
                 </InlineField>
               </>
             )}
-            {(query.type === ResultsQueryType.Steps || query.outputType === OutputType.Data) && (
+            {(query.outputType === OutputType.Data) && (
               <>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
