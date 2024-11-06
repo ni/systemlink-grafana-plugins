@@ -107,5 +107,6 @@ export function filterXSSLINQExpression(value: string | null | undefined): strin
     .replace(/ &lt;= /g, " <= ")
     .replace(/ &gt; /g, " > ")
     .replace(/ &gt;= /g, " >= ")
-    .replace(/ &amp;&amp; /g, " && ");
+    .replace(/ &amp;&amp; /g, " && ")
+    .replace(/ &lt;&gt; /g, " <> ");
 }
