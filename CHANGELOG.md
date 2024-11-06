@@ -1,3 +1,9 @@
+## [3.43.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.3...v3.43.4) (2024-11-06)
+
+### Bug Fixes
+
+* **notebook:** fix input sanitization for notebook query builder ([#110](https://github.com/ni/systemlink-grafana-plugins/issues/110)) ([b0406c3](https://github.com/ni/systemlink-grafana-plugins/commit/b0406c36a68bae1cdfdfcbb538ac1278b6c505f0))
+
 ## [3.43.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.2...v3.43.3) (2024-10-30)
 
 ### Bug Fixes
