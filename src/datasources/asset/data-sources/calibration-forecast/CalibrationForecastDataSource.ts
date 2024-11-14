@@ -80,7 +80,7 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
 
         const timeGrouping = this.getTimeGroup(query);
         if (timeGrouping) {
-            this.processResultsGroupedByTime(result, timeGrouping)
+            this.processResultsGroupedByTime(result, timeGrouping, options)
         } else {
             this.processResultsGroupedByProperties(result)
         }
@@ -101,16 +101,47 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
         return null;
     }
 
-    processResultsGroupedByTime(result: DataFrameDTO, timeGrouping: AssetCalibrationForecastKey) {
-        const originalValuesMap = new Map<string, string>();
+    processResultsGroupedByTime(result: DataFrameDTO, timeGrouping: AssetCalibrationForecastKey, options: DataQueryRequest) {
+        const originalValuesMap = new Map<string, { from: any, to: any }>();
         if (result.fields.length > 0) {
             const field = result.fields[0];
             const originalValues = field.values as string[] ?? [];
             const formatter = this.forecastDateFormatterMap.get(field.name as AssetCalibrationForecastKey);
             if (formatter) {
+                let value = {
+                    from: undefined as any,
+                    to: undefined as any
+                }
+
                 const formattedValues: string[] = field.values!.map(formatter);
-                for (let i = 0; i < originalValues!.length; i++) {
-                    originalValuesMap.set(formattedValues![i], originalValues![i]);
+                if (originalValues.length === 0) {
+                    return;
+                }
+                else if (originalValues.length === 1) {
+                    value.from = options.range.from.utc().toDate().valueOf();
+                    value.to = options.range.to.utc().toDate().valueOf();
+
+                    originalValuesMap.set(formattedValues![0], value);
+                } else {
+                    for (let i = 0; i < originalValues!.length; i++) {
+                        value = {
+                            from: undefined as any,
+                            to: undefined as any
+                        }
+                        if (i === 0) {
+                            value.from = options.range.from.utc().toDate().valueOf();
+                            value.to = new Date(originalValues[i + 1]).valueOf();
+                        }
+                        else if (i === originalValues!.length - 1) {
+                            value.from = new Date(originalValues[i]).valueOf();
+                            value.to = options.range.to.utc().toDate().valueOf();
+                        }
+                        else {
+                            value.from = new Date(originalValues[i]).valueOf();
+                            value.to = new Date(originalValues[i + 1]).valueOf();
+                        }
+                        originalValuesMap.set(formattedValues![i], value);
+                    }
                 }
             }
         }
@@ -134,7 +165,7 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
         return pathname + '?orgId=${__org.id}&${__all_variables}';
     }
 
-    private createDataLinks(timeGrouping: AssetCalibrationForecastKey, originalValuesMap: Map<string, string>): DataLink[] {
+    private createDataLinks(timeGrouping: AssetCalibrationForecastKey, originalValuesMap: Map<string, { from: any, to: any }>): DataLink[] {
         const url = this.constructDataLinkBaseUrl();
         return [
             {
@@ -144,25 +175,11 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
                         return url;
                     }
                     const value = options.replaceVariables(`\${__data.fields.${timeGrouping}}`);
-                    const valueAsDate = new Date(originalValuesMap.get(value)!);
-
-                    let from, to;
-                    switch (timeGrouping) {
-                        case AssetCalibrationForecastKey.Day:
-                            from = valueAsDate.valueOf();
-                            to = valueAsDate.setUTCDate(valueAsDate.getUTCDate() + 1).valueOf();
-                            break;
-                        case AssetCalibrationForecastKey.Week:
-                            from = valueAsDate.valueOf();
-                            to = valueAsDate.setUTCDate(valueAsDate.getUTCDate() + 6).valueOf();
-                            break;
-                        case AssetCalibrationForecastKey.Month:
-                            from = valueAsDate.valueOf();
-                            to = valueAsDate.setUTCMonth(valueAsDate.getUTCMonth() + 1).valueOf();
-                            break;
+                    if (!value) {
+                        return url;
                     }
-
-                    return `${url}&from=${from}&to=${to}`;
+                    const valueAsDate = originalValuesMap.get(value)!;
+                    return `${url}&from=${valueAsDate.from}&to=${valueAsDate.to}`;
                 }
             }
         ];
