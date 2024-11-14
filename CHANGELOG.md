@@ -1,3 +1,9 @@
+## [3.43.5](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.4...v3.43.5) (2024-11-14)
+
+### Bug Fixes
+
+* **asset:** calibration forecast timezone issues on datalinks ([#111](https://github.com/ni/systemlink-grafana-plugins/issues/111)) ([f5209e8](https://github.com/ni/systemlink-grafana-plugins/commit/f5209e80fcc8a1335589c6f9d5dec0f742dd17ab))
+
 ## [3.43.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.3...v3.43.4) (2024-11-06)
 
 ### Bug Fixes
