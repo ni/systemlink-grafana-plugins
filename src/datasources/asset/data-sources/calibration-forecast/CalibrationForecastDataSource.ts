@@ -102,20 +102,32 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
     }
 
     processResultsGroupedByTime(result: DataFrameDTO, timeGrouping: AssetCalibrationForecastKey, options: DataQueryRequest) {
-        const originalValuesMap = new Map<string, { from: any, to: any }>();
+        const originalValuesMap = this.constructDataLinkValuesMap(result, options);
+        result.fields.forEach(field => {
+            field.name = this.createColumnNameFromDescriptor(field as FieldDTOWithDescriptor);
+            const formatter = this.forecastDateFormatterMap.get(field.name as AssetCalibrationForecastKey);
+
+            if (formatter) {
+                field.values = field.values!.map(formatter);
+            }
+
+            if (!formatter) {
+                field.config = { links: this.createDataLinks(timeGrouping, originalValuesMap) };
+            }
+        });
+    }
+
+    private constructDataLinkValuesMap(result: DataFrameDTO, options: DataQueryRequest): Map<string, { from: number, to: number }> {
+        const originalValuesMap = new Map<string, { from: number, to: number }>();
         if (result.fields.length > 0) {
             const field = result.fields[0];
             const originalValues = field.values as string[] ?? [];
             const formatter = this.forecastDateFormatterMap.get(field.name as AssetCalibrationForecastKey);
             if (formatter) {
-                let value = {
-                    from: undefined as any,
-                    to: undefined as any
-                }
-
+                let value = { from: 0, to: 0 }
                 const formattedValues: string[] = field.values!.map(formatter);
                 if (originalValues.length === 0) {
-                    return;
+                    return originalValuesMap;
                 }
                 else if (originalValues.length === 1) {
                     value.from = options.range.from.utc().toDate().valueOf();
@@ -124,10 +136,7 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
                     originalValuesMap.set(formattedValues![0], value);
                 } else {
                     for (let i = 0; i < originalValues!.length; i++) {
-                        value = {
-                            from: undefined as any,
-                            to: undefined as any
-                        }
+                        value = { from: 0, to: 0 }
                         if (i === 0) {
                             value.from = options.range.from.utc().toDate().valueOf();
                             value.to = new Date(originalValues[i + 1]).valueOf();
@@ -146,18 +155,7 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
             }
         }
 
-        result.fields.forEach(field => {
-            field.name = this.createColumnNameFromDescriptor(field as FieldDTOWithDescriptor);
-            const formatter = this.forecastDateFormatterMap.get(field.name as AssetCalibrationForecastKey);
-
-            if (formatter) {
-                field.values = field.values!.map(formatter);
-            }
-
-            if (!formatter) {
-                field.config = { links: this.createDataLinks(timeGrouping, originalValuesMap) };
-            }
-        });
+        return originalValuesMap;
     }
 
     private constructDataLinkBaseUrl() {
@@ -179,7 +177,7 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
                         return url;
                     }
                     const valueAsDate = originalValuesMap.get(value)!;
-                    return `${url}&from=${valueAsDate.from}&to=${valueAsDate.to}`;
+                    return `${url}&from=${valueAsDate?.from}&to=${valueAsDate?.to}`;
                 }
             }
         ];

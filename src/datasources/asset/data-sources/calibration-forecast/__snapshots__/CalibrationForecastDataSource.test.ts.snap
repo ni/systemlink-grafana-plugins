@@ -2,9 +2,9 @@
 
 exports[`Time based data links creates data links for Day grouping 1`] = `"/?orgId=\${__org.id}&\${__all_variables}&from=1640995200000&to=1641081600000"`;
 
-exports[`Time based data links creates data links for Month grouping 1`] = `"/?orgId=\${__org.id}&\${__all_variables}&from=1641081600000&to=1643760000000"`;
+exports[`Time based data links creates data links for Month grouping 1`] = `"/?orgId=\${__org.id}&\${__all_variables}&from=1640995200000&to=1643673600000"`;
 
-exports[`Time based data links creates data links for Week grouping 1`] = `"/?orgId=\${__org.id}&\${__all_variables}&from=1641168000000&to=1641689999999"`;
+exports[`Time based data links creates data links for Week grouping 1`] = `"/?orgId=\${__org.id}&\${__all_variables}&from=1640995200000&to=1641600000000"`;
 
 exports[`queries asset calibration forecast with day groupBy 1`] = `
 [

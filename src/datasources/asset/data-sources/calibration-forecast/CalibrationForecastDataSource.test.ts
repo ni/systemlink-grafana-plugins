@@ -24,204 +24,225 @@ beforeEach(() => {
     .mockReturnValue(createFetchResponse({ data: fakeSystems }));
 });
 
-const monthGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
-{
-  calibrationForecast: {
-    columns: [
-      { name: "", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"], columnDescriptors: [{ value: "Month", type: ColumnDescriptorType.Time }] },
-      { name: "", values: [1, 0, 3], columnDescriptors: [{ value: "Assets", type: ColumnDescriptorType.Count }] }
-    ]
-  }
-}
-
-const dayGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
-{
-  calibrationForecast: {
-    columns: [
-      { name: AssetCalibrationForecastKey.Day, values: ["2022-01-01T00:00:00.0000000Z", "2022-01-02T00:00:00.0000000Z", "2022-01-03T00:00:00.0000000Z"], columnDescriptors: [{ value: AssetCalibrationForecastKey.Day, type: ColumnDescriptorType.Time }] },
-      { name: "", values: [1, 2, 2], columnDescriptors: [{ value: "Assets", type: ColumnDescriptorType.Count }] }
-    ]
-  }
-}
-
-const weekGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
-{
-  calibrationForecast: {
-    columns: [
-      { name: AssetCalibrationForecastKey.Week, values: ["2022-01-03T00:00:00.0000000Z", "2022-01-10T00:00:00.0000000Z", "2022-01-17T00:00:00.0000000Z"], columnDescriptors: [{ value: AssetCalibrationForecastKey.Week, type: ColumnDescriptorType.Time }] },
-      { name: "", values: [1, 2, 2], columnDescriptors: [{ value: "Assets", type: ColumnDescriptorType.Count }] }
-    ]
-  }
-}
-
-const weekGroupCalibrationForecastDataLinkResponseMock: CalibrationForecastResponse =
-{
-  calibrationForecast: {
-    columns: [
-      { name: AssetCalibrationForecastKey.Week, values: ["2022-01-01T00:00:00.0000000Z", "2022-01-08T00:00:00.0000000Z", "2022-01-15T00:00:00.0000000Z"], columnDescriptors: [{ value: AssetCalibrationForecastKey.Week, type: ColumnDescriptorType.Time }] },
-      { name: "", values: [3, 2, 2], columnDescriptors: [{ value: "Assets", type: ColumnDescriptorType.Count }] }
-    ]
-  }
-}
-
-const locationGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
-{
-  calibrationForecast: {
-    columns: [
-      { name: "", values: [1], columnDescriptors: [{ value: "Location1", type: ColumnDescriptorType.StringValue }] },
-      { name: "", values: [2], columnDescriptors: [{ value: "Location2", type: ColumnDescriptorType.StringValue }] },
-      { name: "", values: [3], columnDescriptors: [{ value: "Location3", type: ColumnDescriptorType.StringValue }] }
-    ]
-  }
-}
-
-const minionIdLocationGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
-{
-  calibrationForecast: {
-    columns: [
-      { name: "", values: [1], columnDescriptors: [{ value: "Minion1", type: ColumnDescriptorType.MinionId }] },
-      { name: "", values: [2], columnDescriptors: [{ value: "Minion2", type: ColumnDescriptorType.MinionId }] },
-      { name: "", values: [3], columnDescriptors: [{ value: "Minion3", type: ColumnDescriptorType.MinionId }] }
-    ]
+const monthGroupCalibrationForecastResponseMock = (): CalibrationForecastResponse => {
+  return {
+    calibrationForecast: {
+      columns: [
+        { name: AssetCalibrationForecastKey.Month, values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"], columnDescriptors: [{ value: "Month", type: ColumnDescriptorType.Time }] },
+        { name: "", values: [1, 0, 3], columnDescriptors: [{ value: "Assets", type: ColumnDescriptorType.Count }] }
+      ]
+    }
   }
 }
 
 
-const modelGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
-{
-  calibrationForecast: {
-    columns: [
-      { name: "", values: [1], columnDescriptors: [{ value: "Model1", type: ColumnDescriptorType.StringValue }] },
-      { name: "", values: [2], columnDescriptors: [{ value: "Model2", type: ColumnDescriptorType.StringValue }] }
-    ]
+const dayGroupCalibrationForecastResponseMock = (): CalibrationForecastResponse => {
+  return {
+    calibrationForecast: {
+      columns: [
+        { name: AssetCalibrationForecastKey.Day, values: ["2022-01-01T00:00:00.0000000Z", "2022-01-02T00:00:00.0000000Z", "2022-01-03T00:00:00.0000000Z"], columnDescriptors: [{ value: AssetCalibrationForecastKey.Day, type: ColumnDescriptorType.Time }] },
+        { name: "", values: [1, 2, 2], columnDescriptors: [{ value: "Assets", type: ColumnDescriptorType.Count }] }
+      ]
+    }
   }
 }
 
-const emptyGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
-{
-  calibrationForecast: {
-    columns: [
-    ]
+const weekGroupCalibrationForecastResponseMock = (): CalibrationForecastResponse => {
+  return {
+    calibrationForecast: {
+      columns: [
+        { name: AssetCalibrationForecastKey.Week, values: ["2022-01-03T00:00:00.0000000Z", "2022-01-10T00:00:00.0000000Z", "2022-01-17T00:00:00.0000000Z"], columnDescriptors: [{ value: AssetCalibrationForecastKey.Week, type: ColumnDescriptorType.Time }] },
+        { name: "", values: [1, 2, 2], columnDescriptors: [{ value: "Assets", type: ColumnDescriptorType.Count }] }
+      ]
+    }
   }
 }
 
-const modelLocationGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
-{
-  calibrationForecast: {
-    columns: [
-      { name: "", values: [1], columnDescriptors: [{ value: "Model1", type: ColumnDescriptorType.StringValue }, { value: "Location1", type: ColumnDescriptorType.StringValue }] },
-      { name: "", values: [2], columnDescriptors: [{ value: "Model2", type: ColumnDescriptorType.StringValue }, { value: "Location1", type: ColumnDescriptorType.StringValue }] }
-    ]
+const weekGroupCalibrationForecastDataLinkResponseMock = (): CalibrationForecastResponse => {
+  return {
+    calibrationForecast: {
+      columns: [
+        { name: AssetCalibrationForecastKey.Week, values: ["2022-01-01T00:00:00.0000000Z", "2022-01-08T00:00:00.0000000Z", "2022-01-15T00:00:00.0000000Z"], columnDescriptors: [{ value: AssetCalibrationForecastKey.Week, type: ColumnDescriptorType.Time }] },
+        { name: "", values: [3, 2, 2], columnDescriptors: [{ value: "Assets", type: ColumnDescriptorType.Count }] }
+      ]
+    }
   }
 }
 
-const monthLocationGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
-{
-  calibrationForecast: {
-    columns: [
-      { name: "", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"], columnDescriptors: [{ value: "Month", type: ColumnDescriptorType.Time }] },
-      { name: "", values: [1, 2, 3], columnDescriptors: [{ value: "Location1", type: ColumnDescriptorType.StringValue }] },
-      { name: "", values: [2, 4, 1], columnDescriptors: [{ value: "Location2", type: ColumnDescriptorType.StringValue }] },
-      { name: "", values: [4, 3, 1], columnDescriptors: [{ value: "Location3", type: ColumnDescriptorType.StringValue }] }
-    ]
+
+const locationGroupCalibrationForecastResponseMock = (): CalibrationForecastResponse => {
+  return {
+    calibrationForecast: {
+      columns: [
+        { name: "", values: [1], columnDescriptors: [{ value: "Location1", type: ColumnDescriptorType.StringValue }] },
+        { name: "", values: [2], columnDescriptors: [{ value: "Location2", type: ColumnDescriptorType.StringValue }] },
+        { name: "", values: [3], columnDescriptors: [{ value: "Location3", type: ColumnDescriptorType.StringValue }] }
+      ]
+    }
   }
 }
 
-const workspaceGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
-{
-  calibrationForecast: {
-    columns: [
-      { name: "", values: [1], columnDescriptors: [{ value: "Workspace1", type: ColumnDescriptorType.WorkspaceId }] },
-      { name: "", values: [2], columnDescriptors: [{ value: "Workspace1", type: ColumnDescriptorType.WorkspaceId }] }
-    ]
+const minionIdLocationGroupCalibrationForecastResponseMock = (): CalibrationForecastResponse => {
+  return {
+    calibrationForecast: {
+      columns: [
+        { name: "", values: [1], columnDescriptors: [{ value: "Minion1", type: ColumnDescriptorType.MinionId }] },
+        { name: "", values: [2], columnDescriptors: [{ value: "Minion2", type: ColumnDescriptorType.MinionId }] },
+        { name: "", values: [3], columnDescriptors: [{ value: "Minion3", type: ColumnDescriptorType.MinionId }] }
+      ]
+    }
   }
 }
 
-const vendorGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
-{
-  calibrationForecast: {
-    columns: [
-      { name: "", values: [1], columnDescriptors: [{ value: "Vendor1", type: ColumnDescriptorType.StringValue }] },
-      { name: "", values: [2], columnDescriptors: [{ value: "Vendor2", type: ColumnDescriptorType.StringValue }] }
-    ]
+
+const modelGroupCalibrationForecastResponseMock = (): CalibrationForecastResponse => {
+  return {
+    calibrationForecast: {
+      columns: [
+        { name: "", values: [1], columnDescriptors: [{ value: "Model1", type: ColumnDescriptorType.StringValue }] },
+        { name: "", values: [2], columnDescriptors: [{ value: "Model2", type: ColumnDescriptorType.StringValue }] }
+      ]
+    }
   }
 }
 
-const assetTypeGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
-{
-  calibrationForecast: {
-    columns: [
-      { name: "", values: [1], columnDescriptors: [{ value: AssetType.GENERIC, type: ColumnDescriptorType.AssetType }] },
-      { name: "", values: [2], columnDescriptors: [{ value: AssetType.DEVICE_UNDER_TEST, type: ColumnDescriptorType.AssetType }] }
-    ]
+const emptyGroupCalibrationForecastResponseMock = (): CalibrationForecastResponse => {
+  return {
+    calibrationForecast: {
+      columns: [
+      ]
+    }
   }
 }
 
-const busTypeGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
-{
-  calibrationForecast: {
-    columns: [
-      { name: "", values: [1], columnDescriptors: [{ value: BusType.BUILT_IN_SYSTEM, type: ColumnDescriptorType.BusType }] },
-      { name: "", values: [2], columnDescriptors: [{ value: BusType.FIRE_WIRE, type: ColumnDescriptorType.BusType }] }
-    ]
+const modelLocationGroupCalibrationForecastResponseMock = (): CalibrationForecastResponse => {
+  return {
+    calibrationForecast: {
+      columns: [
+        { name: "", values: [1], columnDescriptors: [{ value: "Model1", type: ColumnDescriptorType.StringValue }, { value: "Location1", type: ColumnDescriptorType.StringValue }] },
+        { name: "", values: [2], columnDescriptors: [{ value: "Model2", type: ColumnDescriptorType.StringValue }, { value: "Location1", type: ColumnDescriptorType.StringValue }] }
+      ]
+    }
   }
 }
 
-const modelWorkspaceGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
-{
-  calibrationForecast: {
-    columns: [
-      { name: "", values: [1], columnDescriptors: [{ value: "Model1", type: ColumnDescriptorType.StringValue }, { value: "Workspace1", type: ColumnDescriptorType.WorkspaceId }] },
-      { name: "", values: [2], columnDescriptors: [{ value: "Model2", type: ColumnDescriptorType.StringValue }, { value: "Workspace1", type: ColumnDescriptorType.WorkspaceId }] }
-    ]
+const monthLocationGroupCalibrationForecastResponseMock = (): CalibrationForecastResponse => {
+  return {
+    calibrationForecast: {
+      columns: [
+        { name: "", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"], columnDescriptors: [{ value: "Month", type: ColumnDescriptorType.Time }] },
+        { name: "", values: [1, 2, 3], columnDescriptors: [{ value: "Location1", type: ColumnDescriptorType.StringValue }] },
+        { name: "", values: [2, 4, 1], columnDescriptors: [{ value: "Location2", type: ColumnDescriptorType.StringValue }] },
+        { name: "", values: [4, 3, 1], columnDescriptors: [{ value: "Location3", type: ColumnDescriptorType.StringValue }] }
+      ]
+    }
   }
 }
 
-const monthWorkspaceGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
-{
-  calibrationForecast: {
-    columns: [
-      { name: "", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"], columnDescriptors: [{ value: "Month", type: ColumnDescriptorType.Time }] },
-      { name: "", values: [1, 2, 3], columnDescriptors: [{ value: "Workspace1", type: ColumnDescriptorType.WorkspaceId }] },
-      { name: "", values: [2, 4, 1], columnDescriptors: [{ value: "Workspace2", type: ColumnDescriptorType.WorkspaceId }] },
-      { name: "", values: [4, 3, 1], columnDescriptors: [{ value: "Workspace3", type: ColumnDescriptorType.WorkspaceId }] }
-    ]
+const workspaceGroupCalibrationForecastResponseMock = (): CalibrationForecastResponse => {
+  return {
+    calibrationForecast: {
+      columns: [
+        { name: "", values: [1], columnDescriptors: [{ value: "Workspace1", type: ColumnDescriptorType.WorkspaceId }] },
+        { name: "", values: [2], columnDescriptors: [{ value: "Workspace1", type: ColumnDescriptorType.WorkspaceId }] }
+      ]
+    }
   }
 }
 
-const monthVendorGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
-{
-  calibrationForecast: {
-    columns: [
-      { name: "", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"], columnDescriptors: [{ value: "Month", type: ColumnDescriptorType.Time }] },
-      { name: "", values: [1, 2, 3], columnDescriptors: [{ value: "Vendor1", type: ColumnDescriptorType.StringValue }] },
-      { name: "", values: [2, 4, 1], columnDescriptors: [{ value: "Vendor2", type: ColumnDescriptorType.StringValue }] },
-      { name: "", values: [4, 3, 1], columnDescriptors: [{ value: "Vendor3", type: ColumnDescriptorType.StringValue }] }
-    ]
+const vendorGroupCalibrationForecastResponseMock = (): CalibrationForecastResponse => {
+  return {
+    calibrationForecast: {
+      columns: [
+        { name: "", values: [1], columnDescriptors: [{ value: "Vendor1", type: ColumnDescriptorType.StringValue }] },
+        { name: "", values: [2], columnDescriptors: [{ value: "Vendor2", type: ColumnDescriptorType.StringValue }] }
+      ]
+    }
   }
 }
 
-const monthAssetTypeGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
-{
-  calibrationForecast: {
-    columns: [
-      { name: "", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"], columnDescriptors: [{ value: "Month", type: ColumnDescriptorType.Time }] },
-      { name: "", values: [1, 2, 3], columnDescriptors: [{ value: AssetType.DEVICE_UNDER_TEST, type: ColumnDescriptorType.AssetType }] },
-      { name: "", values: [2, 4, 1], columnDescriptors: [{ value: AssetType.FIXTURE, type: ColumnDescriptorType.AssetType }] },
-      { name: "", values: [4, 3, 1], columnDescriptors: [{ value: AssetType.GENERIC, type: ColumnDescriptorType.AssetType }] }
-    ]
+const assetTypeGroupCalibrationForecastResponseMock = (): CalibrationForecastResponse => {
+  return {
+    calibrationForecast: {
+      columns: [
+        { name: "", values: [1], columnDescriptors: [{ value: AssetType.GENERIC, type: ColumnDescriptorType.AssetType }] },
+        { name: "", values: [2], columnDescriptors: [{ value: AssetType.DEVICE_UNDER_TEST, type: ColumnDescriptorType.AssetType }] }
+      ]
+    }
   }
 }
 
-const monthBusTypeGroupCalibrationForecastResponseMock: CalibrationForecastResponse =
-{
-  calibrationForecast: {
-    columns: [
-      { name: "", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"], columnDescriptors: [{ value: "Month", type: ColumnDescriptorType.Time }] },
-      { name: "", values: [1, 2, 3], columnDescriptors: [{ value: BusType.BUILT_IN_SYSTEM, type: ColumnDescriptorType.BusType }] },
-      { name: "", values: [2, 4, 1], columnDescriptors: [{ value: BusType.ACCESSORY, type: ColumnDescriptorType.BusType }] },
-      { name: "", values: [4, 3, 1], columnDescriptors: [{ value: BusType.SERIAL, type: ColumnDescriptorType.BusType }] }
-    ]
+const busTypeGroupCalibrationForecastResponseMock = (): CalibrationForecastResponse => {
+  return {
+    calibrationForecast: {
+      columns: [
+        { name: "", values: [1], columnDescriptors: [{ value: BusType.BUILT_IN_SYSTEM, type: ColumnDescriptorType.BusType }] },
+        { name: "", values: [2], columnDescriptors: [{ value: BusType.FIRE_WIRE, type: ColumnDescriptorType.BusType }] }
+      ]
+    }
+  }
+}
+
+const modelWorkspaceGroupCalibrationForecastResponseMock = (): CalibrationForecastResponse => {
+  return {
+    calibrationForecast: {
+      columns: [
+        { name: "", values: [1], columnDescriptors: [{ value: "Model1", type: ColumnDescriptorType.StringValue }, { value: "Workspace1", type: ColumnDescriptorType.WorkspaceId }] },
+        { name: "", values: [2], columnDescriptors: [{ value: "Model2", type: ColumnDescriptorType.StringValue }, { value: "Workspace1", type: ColumnDescriptorType.WorkspaceId }] }
+      ]
+    }
+  }
+}
+
+const monthWorkspaceGroupCalibrationForecastResponseMock = (): CalibrationForecastResponse => {
+  return {
+    calibrationForecast: {
+      columns: [
+        { name: "", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"], columnDescriptors: [{ value: "Month", type: ColumnDescriptorType.Time }] },
+        { name: "", values: [1, 2, 3], columnDescriptors: [{ value: "Workspace1", type: ColumnDescriptorType.WorkspaceId }] },
+        { name: "", values: [2, 4, 1], columnDescriptors: [{ value: "Workspace2", type: ColumnDescriptorType.WorkspaceId }] },
+        { name: "", values: [4, 3, 1], columnDescriptors: [{ value: "Workspace3", type: ColumnDescriptorType.WorkspaceId }] }
+      ]
+    }
+  }
+}
+
+const monthVendorGroupCalibrationForecastResponseMock = (): CalibrationForecastResponse => {
+  return {
+    calibrationForecast: {
+      columns: [
+        { name: "", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"], columnDescriptors: [{ value: "Month", type: ColumnDescriptorType.Time }] },
+        { name: "", values: [1, 2, 3], columnDescriptors: [{ value: "Vendor1", type: ColumnDescriptorType.StringValue }] },
+        { name: "", values: [2, 4, 1], columnDescriptors: [{ value: "Vendor2", type: ColumnDescriptorType.StringValue }] },
+        { name: "", values: [4, 3, 1], columnDescriptors: [{ value: "Vendor3", type: ColumnDescriptorType.StringValue }] }
+      ]
+    }
+  }
+}
+
+const monthAssetTypeGroupCalibrationForecastResponseMock = (): CalibrationForecastResponse => {
+  return {
+    calibrationForecast: {
+      columns: [
+        { name: "", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"], columnDescriptors: [{ value: "Month", type: ColumnDescriptorType.Time }] },
+        { name: "", values: [1, 2, 3], columnDescriptors: [{ value: AssetType.DEVICE_UNDER_TEST, type: ColumnDescriptorType.AssetType }] },
+        { name: "", values: [2, 4, 1], columnDescriptors: [{ value: AssetType.FIXTURE, type: ColumnDescriptorType.AssetType }] },
+        { name: "", values: [4, 3, 1], columnDescriptors: [{ value: AssetType.GENERIC, type: ColumnDescriptorType.AssetType }] }
+      ]
+    }
+  }
+}
+
+const monthBusTypeGroupCalibrationForecastResponseMock = (): CalibrationForecastResponse => {
+  return {
+    calibrationForecast: {
+      columns: [
+        { name: "", values: ["2022-01-01T00:00:00.0000000Z", "2022-02-01T00:00:00.0000000Z", "2022-03-01T00:00:00.0000000Z"], columnDescriptors: [{ value: "Month", type: ColumnDescriptorType.Time }] },
+        { name: "", values: [1, 2, 3], columnDescriptors: [{ value: BusType.BUILT_IN_SYSTEM, type: ColumnDescriptorType.BusType }] },
+        { name: "", values: [2, 4, 1], columnDescriptors: [{ value: BusType.ACCESSORY, type: ColumnDescriptorType.BusType }] },
+        { name: "", values: [4, 3, 1], columnDescriptors: [{ value: BusType.SERIAL, type: ColumnDescriptorType.BusType }] }
+      ]
+    }
   }
 }
 
@@ -329,7 +350,7 @@ describe('queries', () => {
   test('asset calibration forecast with month groupBy', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(monthGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+      .mockReturnValue(createFetchResponse(monthGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock))
 
@@ -339,7 +360,7 @@ describe('queries', () => {
   test('asset calibration forecast with week groupBy', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(weekGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+      .mockReturnValue(createFetchResponse(weekGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery(weekBasedCalibrationForecastQueryMock))
 
@@ -349,7 +370,7 @@ describe('queries', () => {
   test('asset calibration forecast with day groupBy', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(dayGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+      .mockReturnValue(createFetchResponse(dayGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery(dayBasedCalibrationForecastQueryMock))
 
@@ -359,7 +380,7 @@ describe('queries', () => {
   test('calibration forecast with location groupBy', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(locationGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+      .mockReturnValue(createFetchResponse(locationGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery(locationBasedCalibrationForecastQueryMock))
 
@@ -369,7 +390,7 @@ describe('queries', () => {
   test('calibration forecast with minion ID location groupBy', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(minionIdLocationGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+      .mockReturnValue(createFetchResponse(minionIdLocationGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery(locationBasedCalibrationForecastQueryMock))
 
@@ -379,7 +400,7 @@ describe('queries', () => {
   test('calibration forecast with model groupBy', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(modelGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+      .mockReturnValue(createFetchResponse(modelGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery(modelBasedCalibrationForecastQueryMock))
 
@@ -389,7 +410,7 @@ describe('queries', () => {
   test('calibration forecast with model and location groupBy', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(modelLocationGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+      .mockReturnValue(createFetchResponse(modelLocationGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery(modelLocationBasedCalibrationForecastQueryMock))
 
@@ -399,7 +420,7 @@ describe('queries', () => {
   test('calibration forecast with month and location groupBy', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(monthLocationGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+      .mockReturnValue(createFetchResponse(monthLocationGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery(monthLocationBasedCalibrationForecastQueryMock))
 
@@ -409,7 +430,7 @@ describe('queries', () => {
   test('calibration forecast with workspace groupBy', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(workspaceGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+      .mockReturnValue(createFetchResponse(workspaceGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery(workspaceBasedCalibrationForecastQueryMock))
 
@@ -419,7 +440,7 @@ describe('queries', () => {
   test('calibration forecast with model and workspace groupBy', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(modelWorkspaceGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+      .mockReturnValue(createFetchResponse(modelWorkspaceGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery(modelWorkspaceBasedCalibrationForecastQueryMock))
 
@@ -429,7 +450,7 @@ describe('queries', () => {
   test('calibration forecast with month and workspace groupBy', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(monthWorkspaceGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+      .mockReturnValue(createFetchResponse(monthWorkspaceGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery(monthWorkspaceBasedCalibrationForecastQueryMock))
 
@@ -439,7 +460,7 @@ describe('queries', () => {
   test('calibration forecast with vendor groupBy', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(vendorGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+      .mockReturnValue(createFetchResponse(vendorGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery({ type: AssetQueryType.CalibrationForecast, groupBy: [AssetCalibrationPropertyGroupByType.Vendor] }))
 
@@ -449,7 +470,7 @@ describe('queries', () => {
   test('calibration forecast with month and vendor groupBy', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(monthVendorGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+      .mockReturnValue(createFetchResponse(monthVendorGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery({
       type: AssetQueryType.CalibrationForecast,
@@ -462,7 +483,7 @@ describe('queries', () => {
   test('calibration forecast with assetType groupBy', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(assetTypeGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+      .mockReturnValue(createFetchResponse(assetTypeGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery({ type: AssetQueryType.CalibrationForecast, groupBy: [AssetCalibrationPropertyGroupByType.AssetType] }))
 
@@ -472,7 +493,7 @@ describe('queries', () => {
   test('calibration forecast with month and assetType groupBy', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(monthAssetTypeGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+      .mockReturnValue(createFetchResponse(monthAssetTypeGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery({
       type: AssetQueryType.CalibrationForecast,
@@ -485,7 +506,7 @@ describe('queries', () => {
   test('calibration forecast with busType groupBy', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(busTypeGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+      .mockReturnValue(createFetchResponse(busTypeGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery({ type: AssetQueryType.CalibrationForecast, groupBy: [AssetCalibrationPropertyGroupByType.BusType] }))
 
@@ -495,7 +516,7 @@ describe('queries', () => {
   test('calibration forecast with month and busType groupBy', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(monthBusTypeGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+      .mockReturnValue(createFetchResponse(monthBusTypeGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery({
       type: AssetQueryType.CalibrationForecast,
@@ -508,7 +529,7 @@ describe('queries', () => {
   test('calibration forecast with month groupBy returns empty results', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(emptyGroupCalibrationForecastResponseMock as CalibrationForecastResponse))
+      .mockReturnValue(createFetchResponse(emptyGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
     const result = await datastore.query(buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock))
 
@@ -621,9 +642,12 @@ describe('Asset calibration location queries', () => {
 describe('Time based data links', () => {
   test('creates data links for Day grouping', async () => {
     const query = buildCalibrationForecastQuery(dayBasedCalibrationForecastQueryMock);
+    query.range = { from: dateTime("2022-01-01T00:00:00.0000000Z"), to: dateTime("2022-03-01T00:00:00.0000000Z"), raw: { from: 'now', to: 'now+3M' } };
+    query.timezone = 'UTC';
+
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(dayGroupCalibrationForecastResponseMock as CalibrationForecastResponse));
+      .mockReturnValue(createFetchResponse(dayGroupCalibrationForecastResponseMock() as CalibrationForecastResponse));
 
     const result = await datastore.query(query);
     const [_day, assets] = result.data[0].fields;
@@ -635,7 +659,7 @@ describe('Time based data links', () => {
     expect(dataLink.targetBlank).toBe(false);
 
     const builtUrl = dataLink.onBuildUrl({
-      replaceVariables: (value: string) => value.replace('${__data.fields.Day}', from.toISOString())
+      replaceVariables: (value: string) => value.replace('${__data.fields.Day}', from.toISOString().split('T')[0])
     });
 
     expect(builtUrl).toMatchSnapshot();
@@ -644,42 +668,46 @@ describe('Time based data links', () => {
   test('creates data links for Week grouping', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(weekGroupCalibrationForecastDataLinkResponseMock as CalibrationForecastResponse));
+      .mockReturnValue(createFetchResponse(weekGroupCalibrationForecastDataLinkResponseMock() as CalibrationForecastResponse));
 
-    const result = await datastore.query(buildCalibrationForecastQuery(weekBasedCalibrationForecastQueryMock));
+    const query = buildCalibrationForecastQuery(weekBasedCalibrationForecastQueryMock);
+    query.range = { from: dateTime("2022-01-01T00:00:00.0000000Z"), to: dateTime("2022-03-01T00:00:00.0000000Z"), raw: { from: 'now', to: 'now+3M' } };
+    query.timezone = 'UTC';
+
+    const result = await datastore.query(query);
     const [_week, assets] = result.data[0].fields;
     const [dataLink] = assets.config.links;
 
-    const weekStartDate = new Date('2022-01-03T00:00:00.0000000Z');
-    const weekEndDate = new Date('2022-01-09T23:59:59.999Z');
+    const weekStartDate = new Date('2022-01-01T00:00:00.0000000Z');
+    const weekEndDate = new Date('2022-01-07T23:59:59.999Z');
 
     expect(dataLink.title).toBe(`View ${AssetCalibrationForecastKey.Week}`);
     expect(dataLink.targetBlank).toBe(false);
 
     const builtUrl = dataLink.onBuildUrl({
-      replaceVariables: (value: string) => value.replace('${__data.fields.Week}', `${weekStartDate.toISOString()} : ${weekEndDate.toISOString()}`)
+      replaceVariables: (value: string) => value.replace('${__data.fields.Week}', `${weekStartDate.toISOString().split('T')[0]} : ${weekEndDate.toISOString().split('T')[0]}`)
     });
 
     expect(builtUrl).toMatchSnapshot();
   });
 
   test('creates data links for Month grouping', async () => {
-    const query = buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock);
+    const query = buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock)
+    query.range = { from: dateTime("2022-01-01T00:00:00.0000000Z"), to: dateTime("2022-03-01T00:00:00.0000000Z"), raw: { from: 'now', to: 'now+3M' } };
+    query.timezone = 'UTC';
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
-      .mockReturnValue(createFetchResponse(monthGroupCalibrationForecastResponseMock as CalibrationForecastResponse));
+      .mockReturnValue(createFetchResponse(monthGroupCalibrationForecastResponseMock() as CalibrationForecastResponse));
 
     const result = await datastore.query(query);
     const [_month, assets] = result.data[0].fields;
     const [dataLink] = assets.config.links;
 
-    const monthDate = new Date('2022-01-01T00:00:00.0000000Z');
-
     expect(dataLink.title).toBe(`View ${AssetCalibrationForecastKey.Month}`);
     expect(dataLink.targetBlank).toBe(false);
 
     const builtUrl = dataLink.onBuildUrl({
-      replaceVariables: (value: string) => value.replace('${__data.fields.Month}', monthDate.toISOString())
+      replaceVariables: (value: string) => value.replace('${__data.fields.Month}', "January 2022")
     });
 
     expect(builtUrl).toMatchSnapshot();
