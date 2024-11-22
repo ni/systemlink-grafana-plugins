@@ -3,6 +3,7 @@ import { AssetQueryBuilder } from './AssetQueryBuilder';
 import { render } from '@testing-library/react';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { SystemMetadata } from 'datasources/system/types';
+import { QueryBuilderType } from 'datasources/asset/constants/constants';
 
 describe('AssetQueryBuilder', () => {
   describe('useEffects', () => {
@@ -18,6 +19,8 @@ describe('AssetQueryBuilder', () => {
         globalVariableOptions,
         onChange: jest.fn(),
         areDependenciesLoaded: true,
+        query: {queryBuilderType: QueryBuilderType.Builder} as any,
+        handleQueryChange: jest.fn(),
       });
       const renderResult = render(reactNode);
       return {

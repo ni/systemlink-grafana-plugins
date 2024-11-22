@@ -11,6 +11,7 @@ import { AssetDataSource } from "./AssetDataSource";
 import { AssetQueryType } from "./types/types";
 import { AssetPresenceWithSystemConnectionModel, AssetsResponse } from "datasources/asset-common/types";
 import { ListAssetsQuery } from "./types/ListAssets.types";
+import { QueryBuilderType } from "./constants/constants";
 
 let ds: AssetDataSource, backendSrv: MockProxy<BackendSrv>
 let assetOptions = {
@@ -228,6 +229,7 @@ const assetsResponseMock: AssetsResponse =
 const assetMetadataQueryMock: ListAssetsQuery = {
   type: AssetQueryType.ListAssets,
   filter: 'Location.MinionId == "123"',
+  queryBuilderType: QueryBuilderType.Builder,
   refId: ''
 }
 

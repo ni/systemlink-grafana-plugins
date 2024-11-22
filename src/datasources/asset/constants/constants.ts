@@ -9,3 +9,8 @@ export enum AllFieldNames {
 }
 
 export const QUERY_LIMIT = 1000;
+
+export enum QueryBuilderType {
+    Builder = "Builder",
+    Code = "Code",
+}

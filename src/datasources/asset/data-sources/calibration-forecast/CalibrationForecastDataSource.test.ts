@@ -13,6 +13,7 @@ import { AssetCalibrationForecastKey, AssetCalibrationPropertyGroupByType, Asset
 import { CalibrationForecastDataSource } from "./CalibrationForecastDataSource";
 import { AssetQueryType, AssetType, BusType } from "../../types/types";
 import { AssetCalibrationFieldNames } from "../../constants/CalibrationForecastQuery.constants";
+import { QueryBuilderType } from "datasources/asset/constants/constants";
 
 let datastore: CalibrationForecastDataSource, backendServer: MockProxy<BackendSrv>
 
@@ -249,61 +250,71 @@ const monthBusTypeGroupCalibrationForecastResponseMock = (): CalibrationForecast
 const monthBasedCalibrationForecastQueryMock: CalibrationForecastQuery = {
   refId: '',
   groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
-  type: AssetQueryType.CalibrationForecast
+  type: AssetQueryType.CalibrationForecast,
+  queryBuilderType: QueryBuilderType.Builder
 }
 
 const weekBasedCalibrationForecastQueryMock: CalibrationForecastQuery = {
   refId: '',
   groupBy: [AssetCalibrationTimeBasedGroupByType.Week],
-  type: AssetQueryType.CalibrationForecast
+  type: AssetQueryType.CalibrationForecast,
+  queryBuilderType: QueryBuilderType.Builder
 }
 
 const dayBasedCalibrationForecastQueryMock: CalibrationForecastQuery = {
   refId: '',
   groupBy: [AssetCalibrationTimeBasedGroupByType.Day],
-  type: AssetQueryType.CalibrationForecast
+  type: AssetQueryType.CalibrationForecast,
+  queryBuilderType: QueryBuilderType.Builder
 }
 
 const locationBasedCalibrationForecastQueryMock: CalibrationForecastQuery = {
   refId: '',
   groupBy: [AssetCalibrationPropertyGroupByType.Location],
-  type: AssetQueryType.CalibrationForecast
+  type: AssetQueryType.CalibrationForecast,
+  queryBuilderType: QueryBuilderType.Builder
 }
 
 const modelBasedCalibrationForecastQueryMock: CalibrationForecastQuery = {
   refId: '',
   groupBy: [AssetCalibrationPropertyGroupByType.Model],
-  type: AssetQueryType.CalibrationForecast
+  type: AssetQueryType.CalibrationForecast,
+  queryBuilderType: QueryBuilderType.Builder
 }
 
 const workspaceBasedCalibrationForecastQueryMock: CalibrationForecastQuery = {
   refId: '',
   groupBy: [AssetCalibrationPropertyGroupByType.Workspace],
-  type: AssetQueryType.CalibrationForecast
+  type: AssetQueryType.CalibrationForecast,
+  queryBuilderType: QueryBuilderType.Builder
 }
 
 const modelLocationBasedCalibrationForecastQueryMock: CalibrationForecastQuery = {
   refId: '',
   groupBy: [AssetCalibrationPropertyGroupByType.Model, AssetCalibrationPropertyGroupByType.Location],
-  type: AssetQueryType.CalibrationForecast
+  type: AssetQueryType.CalibrationForecast,
+  queryBuilderType: QueryBuilderType.Builder
 }
 
 const monthLocationBasedCalibrationForecastQueryMock: CalibrationForecastQuery = {
   refId: '',
   groupBy: [AssetCalibrationTimeBasedGroupByType.Month, AssetCalibrationPropertyGroupByType.Location],
-  type: AssetQueryType.CalibrationForecast
+  type: AssetQueryType.CalibrationForecast,
+  queryBuilderType: QueryBuilderType.Builder
 }
 
 const modelWorkspaceBasedCalibrationForecastQueryMock: CalibrationForecastQuery = {
   refId: '',
   groupBy: [AssetCalibrationPropertyGroupByType.Model, AssetCalibrationPropertyGroupByType.Workspace],
-  type: AssetQueryType.CalibrationForecast
+  type: AssetQueryType.CalibrationForecast,
+  queryBuilderType: QueryBuilderType.Builder
 }
 
 const monthWorkspaceBasedCalibrationForecastQueryMock: CalibrationForecastQuery = {
   refId: '',
   groupBy: [AssetCalibrationTimeBasedGroupByType.Month, AssetCalibrationPropertyGroupByType.Workspace],
-  type: AssetQueryType.CalibrationForecast
+  type: AssetQueryType.CalibrationForecast,
+  queryBuilderType: QueryBuilderType.Builder
 }
 
 const buildCalibrationForecastQuery = getQueryBuilder<CalibrationForecastQuery>()({
@@ -462,7 +473,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(vendorGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery({ type: AssetQueryType.CalibrationForecast, groupBy: [AssetCalibrationPropertyGroupByType.Vendor] }))
+    const result = await datastore.query(buildCalibrationForecastQuery({ type: AssetQueryType.CalibrationForecast, groupBy: [AssetCalibrationPropertyGroupByType.Vendor], queryBuilderType: QueryBuilderType.Builder }))
 
     expect(result.data).toMatchSnapshot();
   })
@@ -474,7 +485,8 @@ describe('queries', () => {
 
     const result = await datastore.query(buildCalibrationForecastQuery({
       type: AssetQueryType.CalibrationForecast,
-      groupBy: [AssetCalibrationTimeBasedGroupByType.Month, AssetCalibrationPropertyGroupByType.Vendor]
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month, AssetCalibrationPropertyGroupByType.Vendor],
+      queryBuilderType: QueryBuilderType.Builder,
     }));
 
     expect(result.data).toMatchSnapshot();
@@ -485,7 +497,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(assetTypeGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery({ type: AssetQueryType.CalibrationForecast, groupBy: [AssetCalibrationPropertyGroupByType.AssetType] }))
+    const result = await datastore.query(buildCalibrationForecastQuery({ type: AssetQueryType.CalibrationForecast, groupBy: [AssetCalibrationPropertyGroupByType.AssetType], queryBuilderType: QueryBuilderType.Builder, }))
 
     expect(result.data).toMatchSnapshot();
   })
@@ -497,7 +509,8 @@ describe('queries', () => {
 
     const result = await datastore.query(buildCalibrationForecastQuery({
       type: AssetQueryType.CalibrationForecast,
-      groupBy: [AssetCalibrationTimeBasedGroupByType.Month, AssetCalibrationPropertyGroupByType.AssetType]
+      groupBy: [ AssetCalibrationTimeBasedGroupByType.Month, AssetCalibrationPropertyGroupByType.AssetType ],
+      queryBuilderType: QueryBuilderType.Builder,
     }));
 
     expect(result.data).toMatchSnapshot();
@@ -508,7 +521,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(busTypeGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery({ type: AssetQueryType.CalibrationForecast, groupBy: [AssetCalibrationPropertyGroupByType.BusType] }))
+    const result = await datastore.query(buildCalibrationForecastQuery({ type: AssetQueryType.CalibrationForecast, groupBy: [AssetCalibrationPropertyGroupByType.BusType], queryBuilderType: QueryBuilderType.Builder, }))
 
     expect(result.data).toMatchSnapshot();
   })
@@ -520,7 +533,8 @@ describe('queries', () => {
 
     const result = await datastore.query(buildCalibrationForecastQuery({
       type: AssetQueryType.CalibrationForecast,
-      groupBy: [AssetCalibrationTimeBasedGroupByType.Month, AssetCalibrationPropertyGroupByType.BusType]
+      groupBy: [ AssetCalibrationTimeBasedGroupByType.Month, AssetCalibrationPropertyGroupByType.BusType ],
+      queryBuilderType: QueryBuilderType.Builder,
     }));
 
     expect(result.data).toMatchSnapshot();
@@ -581,7 +595,8 @@ describe('Asset calibration location queries', () => {
       refId: '',
       type: AssetQueryType.CalibrationForecast,
       groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
-      filter: `${AssetCalibrationFieldNames.LOCATION} = "Location1"`,
+      filter: `${ AssetCalibrationFieldNames.LOCATION } = "Location1"`,
+      queryBuilderType: QueryBuilderType.Builder,
     });
 
     await datastore.query(query);
@@ -602,7 +617,8 @@ describe('Asset calibration location queries', () => {
       refId: '',
       type: AssetQueryType.CalibrationForecast,
       groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
-      filter: `${AssetCalibrationFieldNames.LOCATION} = "Location1"`,
+      filter: `${ AssetCalibrationFieldNames.LOCATION } = "Location1"`,
+      queryBuilderType: QueryBuilderType.Builder,
     });
 
     await datastore.query(query);
@@ -624,7 +640,8 @@ describe('Asset calibration location queries', () => {
       refId: '',
       type: AssetQueryType.CalibrationForecast,
       groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
-      filter: `${AssetCalibrationFieldNames.LOCATION} = "{Location1,Location2}"`,
+      filter: `${ AssetCalibrationFieldNames.LOCATION } = "{Location1,Location2}"`,
+      queryBuilderType: QueryBuilderType.Builder,
     });
 
     await datastore.query(query);

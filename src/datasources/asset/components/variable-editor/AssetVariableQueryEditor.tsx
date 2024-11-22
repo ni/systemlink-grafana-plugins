@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { QueryEditorProps } from "@grafana/data";
 import { AssetDataSourceOptions, AssetQuery } from '../../../asset/types/types';
 import { AssetDataSource } from '../../AssetDataSource'
@@ -10,7 +10,7 @@ import { AssetVariableQuery } from '../../../asset/types/AssetVariableQuery.type
 
 type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOptions>;
 
-export function AssetVariableQueryEditor({ datasource, query, onChange }: Props) {
+export function AssetVariableQueryEditor({ datasource, query, onRunQuery, onChange }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [systems, setSystems] = useState<SystemMetadata[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
@@ -31,8 +31,15 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
     }
   }
 
+  const handleQueryChange = useCallback((value: AssetQuery, runQuery = false): void => {
+    onChange(value);
+    if (runQuery) {
+      onRunQuery();
+    }
+  }, [onChange, onRunQuery]);
+
   return (
-    <div style={{ width: "525px" }}>
+    <div style={{ width: "520px" }}>
       <AssetQueryBuilder
         filter={assetVariableQuery.filter}
         workspaces={workspaces}
@@ -40,6 +47,8 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
         globalVariableOptions={assetListDatasource.current.globalVariableOptions()}
         areDependenciesLoaded={areDependenciesLoaded}
         onChange={(event: any) => onParameterChange(event)}
+        query={assetVariableQuery}
+        handleQueryChange={handleQueryChange}
       ></AssetQueryBuilder>
       <FloatingError message={assetListDatasource.current.error} />
     </div>

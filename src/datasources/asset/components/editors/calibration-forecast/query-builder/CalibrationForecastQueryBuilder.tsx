@@ -119,6 +119,7 @@ export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryB
       messages={queryBuilderMessages}
       onChange={onChange}
       value={sanitizedFilter}
+      style={{width: '520px'}}
       />
   );
 };

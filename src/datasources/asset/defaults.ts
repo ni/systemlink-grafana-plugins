@@ -1,3 +1,4 @@
+import { QueryBuilderType } from "./constants/constants"
 
 export const defaultAssetSummaryQuery = {
 }
@@ -8,5 +9,6 @@ export const defaultCalibrationForecastQuery = {
 }
 
 export const defaultListAssetsQuery = {
-    filter: ""
+    filter: "",
+    queryBuilderType: QueryBuilderType.Builder
 }

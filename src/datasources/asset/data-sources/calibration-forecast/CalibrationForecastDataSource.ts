@@ -5,6 +5,7 @@ import { AssetDataSourceBase } from '../AssetDataSourceBase';
 import { AssetCalibrationForecastKey, AssetCalibrationTimeBasedGroupByType, CalibrationForecastQuery, CalibrationForecastResponse, ColumnDescriptorType, FieldDTOWithDescriptor } from '../../types/CalibrationForecastQuery.types';
 import { transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
 import { AssetModel, AssetsResponse } from '../../../asset-common/types';
+import { QueryBuilderType } from 'datasources/asset/constants/constants';
 
 export class CalibrationForecastDataSource extends AssetDataSourceBase {
     private dependenciesLoadedPromise: Promise<void>;
@@ -29,7 +30,8 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
     defaultQuery = {
         type: AssetQueryType.CalibrationForecast,
         groupBy: [],
-        filter: ''
+        filter: '',
+        queryBuilderType: QueryBuilderType.Builder,
     };
 
     public readonly busTypeCache = new Map<BusType, string>([

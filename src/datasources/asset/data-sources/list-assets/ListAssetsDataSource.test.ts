@@ -6,6 +6,7 @@ import { AssetQueryType } from "../../types/types";
 import { ListAssetsDataSource } from "./ListAssetsDataSource";
 import { ListAssetsQuery } from "../../types/ListAssets.types";
 import { ListAssetsFieldNames } from "../../constants/ListAssets.constants";
+import { QueryBuilderType } from "datasources/asset/constants/constants";
 
 let datastore: ListAssetsDataSource;
 
@@ -28,7 +29,8 @@ describe('List assets location queries', () => {
         const query = buildListAssetsQuery({
             refId: '',
             type: AssetQueryType.ListAssets,
-            filter: `${ListAssetsFieldNames.LOCATION} = "Location1"`,
+            filter: `${ ListAssetsFieldNames.LOCATION } = "Location1"`,
+            queryBuilderType: QueryBuilderType.Builder,
         });
 
         await datastore.query(query);
@@ -46,7 +48,8 @@ describe('List assets location queries', () => {
         const query = buildListAssetsQuery({
             refId: '',
             type: AssetQueryType.ListAssets,
-            filter: `${ListAssetsFieldNames.LOCATION} = "Location1"`,
+            filter: `${ ListAssetsFieldNames.LOCATION } = "Location1"`,
+            queryBuilderType: QueryBuilderType.Builder,
         });
 
         await datastore.query(query);
@@ -66,7 +69,8 @@ describe('List assets location queries', () => {
             refId: '',
             type: AssetQueryType.ListAssets,
             filter: `${ListAssetsFieldNames.LOCATION} = "{Location1,Location2}"`,
-        });
+            queryBuilderType: QueryBuilderType.Builder,
+        } );
 
         await datastore.query(query);
 

@@ -1,5 +1,6 @@
 import { DataSourceJsonData } from "@grafana/data";
 import { DataQuery } from "@grafana/schema";
+import { QueryBuilderType } from "../constants/constants";
 
 
 export enum AssetQueryType {
@@ -11,6 +12,7 @@ export enum AssetQueryType {
 
 export interface AssetQuery extends DataQuery {
   type: AssetQueryType
+  queryBuilderType: QueryBuilderType;
 }
 
 export interface AssetFeatureToggles {

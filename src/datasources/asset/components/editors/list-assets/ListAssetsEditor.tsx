@@ -50,6 +50,8 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
           globalVariableOptions={datasource.globalVariableOptions()}
           areDependenciesLoaded={areDependenciesLoaded}
           onChange={(event: any) => onParameterChange(event)}
+          query={query}
+          handleQueryChange={handleQueryChange}
         ></AssetQueryBuilder>
 
       </InlineField>

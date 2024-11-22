@@ -5,6 +5,7 @@ import { AssetSummaryResponse } from 'datasources/asset/types/AssetSummaryQuery.
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
 import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../types/types';
 import { assetSummaryFields } from '../../constants/AssetSummaryQuery.constants';
+import { QueryBuilderType } from 'datasources/asset/constants/constants';
 export class AssetSummaryDataSource extends AssetDataSourceBase {
     constructor(
         readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,
@@ -18,6 +19,7 @@ export class AssetSummaryDataSource extends AssetDataSourceBase {
 
     defaultQuery = {
         type: AssetQueryType.AssetSummary,
+        queryBuilderType: QueryBuilderType.Builder,
     };
 
     async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {

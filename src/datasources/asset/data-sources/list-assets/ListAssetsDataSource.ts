@@ -6,6 +6,7 @@ import { ListAssetsQuery } from '../../types/ListAssets.types';
 import { AssetModel, AssetsResponse } from '../../../asset-common/types';
 import { getWorkspaceName } from '../../../../core/utils';
 import { transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
+import { QueryBuilderType } from 'datasources/asset/constants/constants';
 
 export class ListAssetsDataSource extends AssetDataSourceBase {
   private dependenciesLoadedPromise: Promise<void>;
@@ -23,7 +24,8 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
 
   defaultQuery = {
     type: AssetQueryType.ListAssets,
-    filter: ''
+    filter: '',
+    queryBuilderType: QueryBuilderType.Builder,
   };
 
   async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {

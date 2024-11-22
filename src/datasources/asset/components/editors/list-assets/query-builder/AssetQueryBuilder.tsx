@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { QueryBuilder, QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
-import { useTheme2 } from '@grafana/ui';
+import { RadioButtonGroup, TextArea, useTheme2 } from '@grafana/ui';
 
 import 'smart-webcomponents-react/source/styles/smart.dark-orange.css';
 import 'smart-webcomponents-react/source/styles/smart.orange.css';
@@ -14,7 +14,9 @@ import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-
 import { SystemMetadata } from 'datasources/system/types';
 import { QBField } from '../../../../types/CalibrationForecastQuery.types';
 import { ListAssetsFields, ListAssetsStaticFields } from '../../../../constants/ListAssets.constants';
-import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
+import { enumToOptions, filterXSSField, filterXSSLINQExpression } from 'core/utils';
+import { QueryBuilderType } from 'datasources/asset/constants/constants';
+import { ListAssetsQuery } from 'datasources/asset/types/ListAssets.types';
 
 type AssetCalibrationQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
@@ -23,6 +25,8 @@ type AssetCalibrationQueryBuilderProps = QueryBuilderProps &
     systems: SystemMetadata[];
     globalVariableOptions: QueryBuilderOption[];
     areDependenciesLoaded: boolean;
+    query: ListAssetsQuery;
+    handleQueryChange: (value: ListAssetsQuery, runQuery: boolean) => void;
   };
 
 export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
@@ -32,6 +36,8 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
   systems,
   globalVariableOptions,
   areDependenciesLoaded,
+  query,
+  handleQueryChange
 }) => {
   const theme = useTheme2();
   document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
@@ -42,6 +48,16 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
   const sanitizedFilter = useMemo(() => {
     return filterXSSLINQExpression(filter);
   }, [filter])
+
+  const onFilterChange = useCallback((event: ChangeEvent<HTMLTextAreaElement>) =>
+  {
+    handleQueryChange({...query, filter: event.target.value}, false);
+  }, [query, handleQueryChange])
+
+  const handleQueryBuilderTypeChange = useCallback((newQueryBuilderType: QueryBuilderType) =>
+  {
+    handleQueryChange({...query, queryBuilderType: newQueryBuilderType}, false);
+  }, [query, handleQueryChange])
 
   const workspaceField = useMemo(() => {
     const workspaceField = ListAssetsFields.WORKSPACE;
@@ -154,12 +170,27 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
   }, [workspaceField, locationField, calibrationDueDateField, areDependenciesLoaded, globalVariableOptions]);
 
   return (
-    <QueryBuilder
-      customOperations={operations}
-      fields={fields}
-      messages={queryBuilderMessages}
-      onChange={onChange}
-      value={sanitizedFilter}
-    />
+    <>
+      <div style={{alignSelf: 'flex-end', textAlign: 'right', marginBottom: '4px'}}>
+        <RadioButtonGroup
+          options={enumToOptions(QueryBuilderType)}
+          onChange={handleQueryBuilderTypeChange}
+          value={query.queryBuilderType}
+          />
+      </div>
+      { query.queryBuilderType === QueryBuilderType.Builder &&
+        <QueryBuilder
+          customOperations={operations}
+          fields={fields}
+          messages={queryBuilderMessages}
+          onChange={onChange}
+          value={sanitizedFilter}
+          style={{width: '520px'}}
+          />
+      }
+      { query.queryBuilderType === QueryBuilderType.Code &&
+        <TextArea style={{width: "520px"}} value={sanitizedFilter} onChange={onFilterChange} />
+      }
+    </>
   );
 };
