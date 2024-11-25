@@ -1,3 +1,9 @@
+## [3.43.6](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.5...v3.43.6) (2024-11-25)
+
+### Bug Fixes
+
+* **assets:** updating visualization for the asset display name in global variable ([#113](https://github.com/ni/systemlink-grafana-plugins/issues/113)) ([24f3ec9](https://github.com/ni/systemlink-grafana-plugins/commit/24f3ec91d29bae4277474f759d277ba7819d5628))
+
 ## [3.43.5](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.4...v3.43.5) (2024-11-14)
 
 ### Bug Fixes
