@@ -44,7 +44,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
 
   defaultQuery = {
     type: AssetQueryType.None,
-    queryBuilderType: QueryBuilderType.Builder,
+    queryBuilderType: QueryBuilderType.Simple,
   };
 
   async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {

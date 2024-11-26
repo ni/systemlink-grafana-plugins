@@ -14,9 +14,10 @@ type Props = {
   query: ListAssetsQuery;
   handleQueryChange: (value: AssetQuery, runQuery: boolean) => void;
   datasource: ListAssetsDataSource;
+  complexFilterEnabled: boolean;
 };
 
-export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props) {
+export function ListAssetsEditor({ query, handleQueryChange, datasource, complexFilterEnabled }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [systems, setSystems] = useState<SystemMetadata[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
@@ -52,6 +53,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
           onChange={(event: any) => onParameterChange(event)}
           query={query}
           handleQueryChange={handleQueryChange}
+          complexFilterEnabled={complexFilterEnabled}
         ></AssetQueryBuilder>
 
       </InlineField>

@@ -3,35 +3,42 @@ import { DataQuery } from "@grafana/schema";
 import { QueryBuilderType } from "../constants/constants";
 
 
-export enum AssetQueryType {
+export enum AssetQueryType
+{
   None = "",
   ListAssets = "List Assets",
   CalibrationForecast = "Calibration Forecast",
   AssetSummary = "Asset Summary"
 }
 
-export interface AssetQuery extends DataQuery {
+export interface AssetQuery extends DataQuery
+{
   type: AssetQueryType
   queryBuilderType: QueryBuilderType;
 }
 
-export interface AssetFeatureToggles {
+export interface AssetFeatureToggles
+{
   calibrationForecast: boolean;
   assetList: boolean;
   assetSummary: boolean;
+  advancedFilter: boolean;
 }
 
-export interface AssetDataSourceOptions extends DataSourceJsonData {
+export interface AssetDataSourceOptions extends DataSourceJsonData
+{
   featureToggles: AssetFeatureToggles;
 }
 
 export const AssetFeatureTogglesDefaults: AssetFeatureToggles = {
   assetList: true,
   calibrationForecast: true,
-  assetSummary: true
+  assetSummary: true,
+  advancedFilter: true
 }
 
-export enum BusType {
+export enum BusType
+{
   BUILT_IN_SYSTEM = 'BUILT_IN_SYSTEM',
   PCI_PXI = 'PCI_PXI',
   USB = 'USB',
@@ -71,7 +78,8 @@ export const BusTypeOptions = [
   { label: 'SLSC', value: BusType.SLSC },
 ];
 
-export enum AssetType {
+export enum AssetType
+{
   GENERIC = 'GENERIC',
   DEVICE_UNDER_TEST = 'DEVICE_UNDER_TEST',
   FIXTURE = 'FIXTURE',

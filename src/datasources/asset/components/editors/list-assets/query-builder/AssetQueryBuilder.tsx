@@ -26,7 +26,8 @@ type AssetCalibrationQueryBuilderProps = QueryBuilderProps &
     globalVariableOptions: QueryBuilderOption[];
     areDependenciesLoaded: boolean;
     query: ListAssetsQuery;
-    handleQueryChange: (value: ListAssetsQuery, runQuery: boolean) => void;
+    handleQueryChange: ( value: ListAssetsQuery, runQuery: boolean ) => void;
+    complexFilterEnabled: boolean;
   };
 
 export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
@@ -37,7 +38,8 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
   globalVariableOptions,
   areDependenciesLoaded,
   query,
-  handleQueryChange
+  handleQueryChange,
+  complexFilterEnabled
 }) => {
   const theme = useTheme2();
   document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
@@ -171,14 +173,16 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
 
   return (
     <>
-      <div style={{alignSelf: 'flex-end', textAlign: 'right', marginBottom: '4px'}}>
-        <RadioButtonGroup
-          options={enumToOptions(QueryBuilderType)}
-          onChange={handleQueryBuilderTypeChange}
-          value={query.queryBuilderType}
-          />
-      </div>
-      { query.queryBuilderType === QueryBuilderType.Builder &&
+      { complexFilterEnabled &&
+        <div style={{alignSelf: 'flex-end', textAlign: 'right', marginBottom: '4px'}}>
+          <RadioButtonGroup
+            options={enumToOptions(QueryBuilderType)}
+            onChange={handleQueryBuilderTypeChange}
+            value={query.queryBuilderType}
+            />
+        </div>
+      }
+      { (!complexFilterEnabled || query.queryBuilderType === QueryBuilderType.Simple) &&
         <QueryBuilder
           customOperations={operations}
           fields={fields}
@@ -188,7 +192,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
           style={{width: '520px'}}
           />
       }
-      { query.queryBuilderType === QueryBuilderType.Code &&
+      { complexFilterEnabled && query.queryBuilderType === QueryBuilderType.Advanced &&
         <TextArea style={{width: "520px"}} value={sanitizedFilter} onChange={onFilterChange} />
       }
     </>

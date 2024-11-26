@@ -21,6 +21,7 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
     assetList: datasource.instanceSettings.jsonData?.featureToggles?.assetList ?? AssetFeatureTogglesDefaults.assetList,
     calibrationForecast: datasource.instanceSettings.jsonData?.featureToggles?.calibrationForecast ?? AssetFeatureTogglesDefaults.calibrationForecast,
     assetSummary: datasource.instanceSettings.jsonData?.featureToggles?.assetSummary ?? AssetFeatureTogglesDefaults.assetSummary,
+    advancedFilter: datasource.instanceSettings.jsonData?.featureToggles?.advancedFilter ?? AssetFeatureTogglesDefaults.advancedFilter,
   });
 
   const handleQueryChange = useCallback((value: AssetQuery, runQuery = false): void => {
@@ -78,6 +79,7 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
           query={query as ListAssetsQuery}
           handleQueryChange={handleQueryChange}
           datasource={datasource.getListAssetsSource()}
+          complexFilterEnabled={assetFeatures.current.advancedFilter}
         />
       )}
       {((assetFeatures.current.calibrationForecast && queryType === AssetQueryType.CalibrationForecast) || (query.type === AssetQueryType.CalibrationForecast)) && (

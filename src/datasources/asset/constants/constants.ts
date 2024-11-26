@@ -1,4 +1,5 @@
-export enum AllFieldNames {
+export enum AllFieldNames
+{
     LOCATION = 'Location',
     WORKSPACE = 'Workspace',
     MODEL_NAME = 'ModelName',
@@ -10,7 +11,8 @@ export enum AllFieldNames {
 
 export const QUERY_LIMIT = 1000;
 
-export enum QueryBuilderType {
-    Builder = "Builder",
-    Code = "Code",
+export enum QueryBuilderType
+{
+    Simple = "Simple",
+    Advanced = "Advanced",
 }

@@ -54,7 +54,7 @@ class FakeAssetDataSource extends AssetDataSource {
 const render = setupRenderer(AssetVariableQueryEditor, FakeAssetDataSource, () => {});
 
 it('renders the variable query builder', async () => {
-    render({  refId: '', type: AssetQueryType.ListAssets, filter: "", queryBuilderType: QueryBuilderType.Builder, } as AssetQuery);
+    render({  refId: '', type: AssetQueryType.ListAssets, filter: "", queryBuilderType: QueryBuilderType.Simple, } as AssetQuery);
 
     await waitFor(() => expect(screen.getAllByText('Property').length).toBe(1));
     await waitFor(() => expect(screen.getAllByText('Operator').length).toBe(1));

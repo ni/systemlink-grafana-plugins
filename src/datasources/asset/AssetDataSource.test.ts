@@ -313,7 +313,7 @@ const assetsWithoutNameResponseMock: AssetsResponse =
 const assetMetadataQueryMock: ListAssetsQuery = {
   type: AssetQueryType.ListAssets,
   filter: 'Location.MinionId == "123"',
-  queryBuilderType: QueryBuilderType.Builder,
+  queryBuilderType: QueryBuilderType.Simple,
   refId: ''
 }
 
@@ -374,6 +374,7 @@ describe( 'queries', () =>
       const query: AssetVariableQuery = {
         filter: '',
         type: AssetQueryType.None,
+        queryBuilderType: QueryBuilderType.Simple,
         refId: ""
       }
 
@@ -395,6 +396,7 @@ describe( 'queries', () =>
       const query: AssetVariableQuery = {
         filter: '',
         type: AssetQueryType.None,
+        queryBuilderType: QueryBuilderType.Simple,
         refId: ""
       }
 

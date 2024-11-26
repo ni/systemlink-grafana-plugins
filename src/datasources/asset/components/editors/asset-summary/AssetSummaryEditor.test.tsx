@@ -26,7 +26,7 @@ describe('AssetSummaryDataSource', () => {
   });
 
   it('should process metadata query correctly', async () => {
-    const query: AssetQuery = { refId: 'A', type: AssetQueryType.AssetSummary, queryBuilderType: QueryBuilderType.Builder, };
+    const query: AssetQuery = { refId: 'A', type: AssetQueryType.AssetSummary, queryBuilderType: QueryBuilderType.Simple, };
 
     jest.spyOn(dataSource, 'getAssetSummary').mockResolvedValue(assetSummary);
     const result = await dataSource.processSummaryQuery(query);

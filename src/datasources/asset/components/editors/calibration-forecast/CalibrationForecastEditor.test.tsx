@@ -73,7 +73,7 @@ describe('CalibrationForecastEditor', () => {
       refId: '',
       groupBy: [],
       type: AssetQueryType.CalibrationForecast,
-      queryBuilderType: QueryBuilderType.Builder,
+      queryBuilderType: QueryBuilderType.Simple,
     } as CalibrationForecastQuery);
 
     // User selects group by location

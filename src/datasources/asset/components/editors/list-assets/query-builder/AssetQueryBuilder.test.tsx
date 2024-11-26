@@ -19,8 +19,9 @@ describe('AssetQueryBuilder', () => {
         globalVariableOptions,
         onChange: jest.fn(),
         areDependenciesLoaded: true,
-        query: {queryBuilderType: QueryBuilderType.Builder} as any,
+        query: {queryBuilderType: QueryBuilderType.Simple} as any,
         handleQueryChange: jest.fn(),
+        complexFilterEnabled: true,
       });
       const renderResult = render(reactNode);
       return {

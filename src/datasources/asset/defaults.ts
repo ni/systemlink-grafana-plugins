@@ -10,5 +10,5 @@ export const defaultCalibrationForecastQuery = {
 
 export const defaultListAssetsQuery = {
     filter: "",
-    queryBuilderType: QueryBuilderType.Builder
+    queryBuilderType: QueryBuilderType.Simple
 }
