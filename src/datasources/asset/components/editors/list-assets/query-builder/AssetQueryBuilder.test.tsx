@@ -11,7 +11,7 @@ describe('AssetQueryBuilder', () => {
 
     const containerClass = 'smart-filter-group-condition-container';
 
-    function renderElement(workspaces: Workspace[], systems: SystemMetadata[], filter?: string, globalVariableOptions: QueryBuilderOption[] = [], complexFilterEnabled = true) {
+    function renderElement(workspaces: Workspace[], systems: SystemMetadata[], filter?: string, globalVariableOptions: QueryBuilderOption[] = [], complexFilterEnabled = true, queryBuilderType = QueryBuilderType.Simple) {
       reactNode = React.createElement(AssetQueryBuilder, {
         workspaces,
         systems,
@@ -19,7 +19,7 @@ describe('AssetQueryBuilder', () => {
         globalVariableOptions,
         onChange: jest.fn(),
         areDependenciesLoaded: true,
-        query: {queryBuilderType: QueryBuilderType.Simple} as any,
+        query: {queryBuilderType: queryBuilderType} as any,
         handleQueryChange: jest.fn(),
         complexFilterEnabled: complexFilterEnabled,
       });
@@ -93,6 +93,15 @@ describe('AssetQueryBuilder', () => {
 
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.innerHTML).not.toContain('alert(\'Workspace\')');
+    })
+
+    it('should render the filter when advanced option is selected', () => {
+      const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
+      const system = { id: '1', alias: 'Selected system' } as SystemMetadata;
+
+      const { renderResult } = renderElement([workspace], [system], 'Location = "1"', [], true, QueryBuilderType.Advanced);
+
+      expect(renderResult.queryByText('Location = "1"')).not.toBeNull();
     })
   });
 });
