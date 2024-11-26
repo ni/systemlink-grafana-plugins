@@ -11,7 +11,7 @@ describe('AssetQueryBuilder', () => {
 
     const containerClass = 'smart-filter-group-condition-container';
 
-    function renderElement(workspaces: Workspace[], systems: SystemMetadata[], filter?: string, globalVariableOptions: QueryBuilderOption[] = []) {
+    function renderElement(workspaces: Workspace[], systems: SystemMetadata[], filter?: string, globalVariableOptions: QueryBuilderOption[] = [], complexFilterEnabled = true) {
       reactNode = React.createElement(AssetQueryBuilder, {
         workspaces,
         systems,
@@ -21,7 +21,7 @@ describe('AssetQueryBuilder', () => {
         areDependenciesLoaded: true,
         query: {queryBuilderType: QueryBuilderType.Simple} as any,
         handleQueryChange: jest.fn(),
-        complexFilterEnabled: true,
+        complexFilterEnabled: complexFilterEnabled,
       });
       const renderResult = render(reactNode);
       return {
@@ -34,6 +34,14 @@ describe('AssetQueryBuilder', () => {
       const { renderResult, conditionsContainer } = renderElement([], [], '');
       expect(conditionsContainer.length).toBe(1);
       expect(renderResult.findByLabelText('Empty condition row')).toBeTruthy();
+      expect(renderResult.queryByText('Advanced')).not.toBeNull();
+    });
+
+    it('should not render complex option if complexFilterEnabled is disabled', () => {
+      const { renderResult, conditionsContainer } = renderElement([], [], '', [], false);
+      expect(conditionsContainer.length).toBe(1);
+      expect(renderResult.findByLabelText('Empty condition row')).toBeTruthy();
+      expect(renderResult.queryByText('Advanced')).toBeNull();
     });
 
     it('should select workspace in query builder', () => {
