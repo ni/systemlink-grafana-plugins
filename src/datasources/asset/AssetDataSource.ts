@@ -98,6 +98,22 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
       this.listAssetsDataSource.queryTransformationOptions
     );
     const assetsResponse: AssetModel[] = await this.listAssetsDataSource.queryAssets(assetFilter, QUERY_LIMIT);
-    return assetsResponse.map((asset: AssetModel) => ({ text: asset.name, value: `Assets.${asset.vendorName}.${asset.modelName}.${asset.serialNumber}` }));
+    return assetsResponse.map(this.getAssetNameForMetricQuery);
+  }
+
+  private getAssetNameForMetricQuery(asset: AssetModel): MetricFindValue {
+    let assetName = asset.name;
+    const vendor = asset.vendorName ? asset.vendorName : asset.vendorNumber;
+    const model = asset.modelName ? asset.modelName : asset.modelNumber;
+    const serial = asset.serialNumber;
+
+    if(!assetName) {
+      assetName = `Vendor: ${vendor} - Model: ${model} - Serial: ${serial}`;
+    }
+
+    return {
+      text: assetName,
+      value: `Assets.${vendor}.${model}.${asset.serialNumber}`,
+    };
   }
 }

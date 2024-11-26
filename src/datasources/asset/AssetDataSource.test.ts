@@ -1,16 +1,18 @@
 import { BackendSrv } from "@grafana/runtime";
 import { MockProxy } from "jest-mock-extended";
-import {
-  createFetchError,
-  createFetchResponse,
-  getQueryBuilder,
-  requestMatching,
-  setupDataSource,
-} from "test/fixtures";
+import
+  {
+    createFetchError,
+    createFetchResponse,
+    getQueryBuilder,
+    requestMatching,
+    setupDataSource,
+  } from "test/fixtures";
 import { AssetDataSource } from "./AssetDataSource";
 import { AssetQueryType } from "./types/types";
 import { AssetPresenceWithSystemConnectionModel, AssetsResponse } from "datasources/asset-common/types";
 import { ListAssetsQuery } from "./types/ListAssets.types";
+import { AssetVariableQuery } from "./types/AssetVariableQuery.types";
 import { QueryBuilderType } from "./constants/constants";
 
 let ds: AssetDataSource, backendSrv: MockProxy<BackendSrv>
@@ -22,9 +24,10 @@ let assetOptions = {
   }
 }
 
-beforeEach(() => {
-  [ds, backendSrv] = setupDataSource(AssetDataSource, () => assetOptions);
-});
+beforeEach( () =>
+{
+  [ ds, backendSrv ] = setupDataSource( AssetDataSource, () => assetOptions );
+} );
 
 const assetsResponseMock: AssetsResponse =
 {
@@ -225,6 +228,87 @@ const assetsResponseMock: AssetsResponse =
   "totalCount": 4
 }
 
+const assetsWithoutNameResponseMock: AssetsResponse =
+{
+  "assets": [
+    {
+      "modelName": "sbRIO-9629",
+      "modelNumber": 0,
+      "serialNumber": "01FE20D1",
+      "vendorName": "National Instruments",
+      "vendorNumber": 0,
+      "busType": "BUILT_IN_SYSTEM",
+      "name": "",
+      "assetType": "SYSTEM",
+      "discoveryType": "AUTOMATIC",
+      "firmwareVersion": "8.8.0f0",
+      "hardwareVersion": "",
+      "visaResourceName": "",
+      "temperatureSensors": [],
+      "supportsSelfCalibration": false,
+      "supportsExternalCalibration": false,
+      "isNIAsset": true,
+      "id": "7f6d0d74-bc75-4d78-9edd-00c253b3a0de",
+      "location": {
+        "minionId": "NI_sbRIO-9629--SN-01FE20D1--MAC-00-80-2F-33-30-18",
+        "parent": "",
+        "resourceUri": "system",
+        "slotNumber": -1,
+        "state": {
+          "assetPresence": "PRESENT"
+        }
+      },
+      "calibrationStatus": "OK",
+      "isSystemController": true,
+      "workspace": "e73fcd94-649b-4d0a-b164-bf647a5d0946",
+      "properties": {},
+      "keywords": [],
+      "lastUpdatedTimestamp": "2024-02-21T12:54:20.069Z",
+      "fileIds": [],
+      "supportsSelfTest": false,
+      "supportsReset": false
+    },
+    {
+      "modelName": "",
+      "modelNumber": 1111,
+      "serialNumber": "2222",
+      "vendorName": "",
+      "vendorNumber": 3333,
+      "busType": "BUILT_IN_SYSTEM",
+      "name": "",
+      "assetType": "SYSTEM",
+      "discoveryType": "AUTOMATIC",
+      "firmwareVersion": "8.8.0f0",
+      "hardwareVersion": "",
+      "visaResourceName": "",
+      "temperatureSensors": [],
+      "supportsSelfCalibration": false,
+      "supportsExternalCalibration": false,
+      "isNIAsset": true,
+      "id": "7f6d0d74-bc75-4d78-9edd-00c253b3a0de",
+      "location": {
+        "minionId": "NI_sbRIO-9629--SN-01FE20D1--MAC-00-80-2F-33-30-18",
+        "parent": "",
+        "resourceUri": "system",
+        "slotNumber": -1,
+        "state": {
+          "assetPresence": "PRESENT"
+        }
+      },
+      "calibrationStatus": "OK",
+      "isSystemController": true,
+      "workspace": "e73fcd94-649b-4d0a-b164-bf647a5d0946",
+      "properties": {},
+      "keywords": [],
+      "lastUpdatedTimestamp": "2024-02-21T12:54:20.069Z",
+      "fileIds": [],
+      "supportsSelfTest": false,
+      "supportsReset": false
+    }
+  ],
+  "totalCount": 2
+}
+
 
 const assetMetadataQueryMock: ListAssetsQuery = {
   type: AssetQueryType.ListAssets,
@@ -233,47 +317,98 @@ const assetMetadataQueryMock: ListAssetsQuery = {
   refId: ''
 }
 
-const buildMetadataQuery = getQueryBuilder<ListAssetsQuery>()({
+const buildMetadataQuery = getQueryBuilder<ListAssetsQuery>()( {
   filter: ''
-});
+} );
 
-describe('testDatasource', () => {
-  test('returns success', async () => {
+describe( 'testDatasource', () =>
+{
+  test( 'returns success', async () =>
+  {
 
     backendSrv.fetch
-      .calledWith(requestMatching({ url: '/niapm/v1/assets?take=1' }))
-      .mockReturnValue(createFetchResponse(25));
+      .calledWith( requestMatching( { url: '/niapm/v1/assets?take=1' } ) )
+      .mockReturnValue( createFetchResponse( 25 ) );
 
     const result = await ds.testDatasource();
 
-    expect(result.status).toEqual('success');
-  });
+    expect( result.status ).toEqual( 'success' );
+  } );
 
-  test('bubbles up exception', async () => {
+  test( 'bubbles up exception', async () =>
+  {
     backendSrv.fetch
-      .calledWith(requestMatching({ url: '/niapm/v1/assets?take=1' }))
-      .mockReturnValue(createFetchError(400));
+      .calledWith( requestMatching( { url: '/niapm/v1/assets?take=1' } ) )
+      .mockReturnValue( createFetchError( 400 ) );
 
-    await expect(ds.testDatasource()).rejects.toThrow('Request to url "/niapm/v1/assets?take=1" failed with status code: 400. Error message: "Error"');
-  });
-})
+    await expect( ds.testDatasource() ).rejects.toThrow( 'Request to url "/niapm/v1/assets?take=1" failed with status code: 400. Error message: "Error"' );
+  } );
+} )
 
-describe('queries', () => {
-  test('run metadata query', async () => {
+describe( 'queries', () =>
+{
+  test( 'run metadata query', async () =>
+  {
     backendSrv.fetch
-      .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
-      .mockReturnValue(createFetchResponse(assetsResponseMock as AssetsResponse))
+      .calledWith( requestMatching( { url: '/niapm/v1/query-assets' } ) )
+      .mockReturnValue( createFetchResponse( assetsResponseMock as AssetsResponse ) )
 
-    const result = await ds.query(buildMetadataQuery(assetMetadataQueryMock))
+    const result = await ds.query( buildMetadataQuery( assetMetadataQueryMock ) )
 
-    expect(result.data).toMatchSnapshot()
-  })
+    expect( result.data ).toMatchSnapshot()
+  } )
 
-  test('handles metadata query error', async () => {
+  test( 'handles metadata query error', async () =>
+  {
     backendSrv.fetch
-      .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
-      .mockReturnValue(createFetchError(418))
+      .calledWith( requestMatching( { url: '/niapm/v1/query-assets' } ) )
+      .mockReturnValue( createFetchError( 418 ) )
 
-    await expect(ds.query(buildMetadataQuery(assetMetadataQueryMock))).rejects.toThrow()
-  })
-})
+    await expect( ds.query( buildMetadataQuery( assetMetadataQueryMock ) ) ).rejects.toThrow()
+  } )
+
+  describe( 'metricFindQuery', () =>
+  {
+    it( 'returns name/alias when asset name field is present', async () =>
+    {
+      const query: AssetVariableQuery = {
+        filter: '',
+        type: AssetQueryType.None,
+        refId: ""
+      }
+
+      backendSrv.fetch
+        .calledWith( requestMatching( { url: '/niapm/v1/query-assets' } ) )
+        .mockReturnValue( createFetchResponse( assetsResponseMock as AssetsResponse ) )
+
+      const options = {
+        scopedVars: {}
+      }
+
+      const result = await ds.metricFindQuery( query, options )
+
+      expect( result ).toMatchSnapshot();
+    } )
+
+    it( 'returns default identifiers when asset name is not present', async () =>
+    {
+      const query: AssetVariableQuery = {
+        filter: '',
+        type: AssetQueryType.None,
+        refId: ""
+      }
+
+      backendSrv.fetch
+        .calledWith( requestMatching( { url: '/niapm/v1/query-assets' } ) )
+        .mockReturnValue( createFetchResponse( assetsWithoutNameResponseMock as AssetsResponse ) )
+
+      const options = {
+        scopedVars: {}
+      }
+
+      const result = await ds.metricFindQuery( query, options )
+
+      expect( result ).toMatchSnapshot();
+    } )
+  } )
+} )

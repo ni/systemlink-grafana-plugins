@@ -66,7 +66,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
       { name: 'minionId', values: assets.map(a => a.location.minionId) },
       { name: 'parent name', values: assets.map(a => a.location.parent) },
       { name: 'workspace', values: assets.map( a => getWorkspaceName( workspaces, a.workspace ) ) },
-      { name: 'calibration due date', values: assets.map(a => a.externalCalibration?.resolvedDueDate) },
+      { name: 'calibration due date', values: assets.map(a => a.externalCalibration?.resolvedDueDate) }
     ];
     return result;
   }
