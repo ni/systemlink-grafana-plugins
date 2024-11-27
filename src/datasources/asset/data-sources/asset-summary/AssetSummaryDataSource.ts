@@ -14,7 +14,7 @@ export class AssetSummaryDataSource extends AssetDataSourceBase
         readonly templateSrv: TemplateSrv = getTemplateSrv()
     )
     {
-        super( instanceSettings, backendSrv, templateSrv );
+        super(instanceSettings, backendSrv, templateSrv);
     }
 
     baseUrl = this.instanceSettings.url + '/niapm/v1';
@@ -24,17 +24,17 @@ export class AssetSummaryDataSource extends AssetDataSourceBase
         queryBuilderType: QueryBuilderType.Simple,
     };
 
-    async runQuery ( query: AssetQuery, options: DataQueryRequest ): Promise<DataFrameDTO>
+    async runQuery (query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO>
     {
-        return this.processSummaryQuery( query as AssetQuery );
+        return this.processSummaryQuery(query as AssetQuery);
     }
 
-    shouldRunQuery ( _: AssetQuery ): boolean
+    shouldRunQuery (_: AssetQuery): boolean
     {
         return true;
     }
 
-    async processSummaryQuery ( query: AssetQuery )
+    async processSummaryQuery (query: AssetQuery)
     {
         const assets: AssetSummaryResponse = await this.getAssetSummary();
 
@@ -54,10 +54,10 @@ export class AssetSummaryDataSource extends AssetDataSourceBase
     {
         try
         {
-            return await this.get<AssetSummaryResponse>( this.baseUrl + '/asset-summary' );
-        } catch ( error )
+            return await this.get<AssetSummaryResponse>(this.baseUrl + '/asset-summary');
+        } catch (error)
         {
-            throw new Error( `An error occurred while getting asset summary: ${ error }` );
+            throw new Error(`An error occurred while getting asset summary: ${ error }`);
         }
     }
 }
