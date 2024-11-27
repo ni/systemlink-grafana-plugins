@@ -36,21 +36,19 @@ export class AssetSummaryDataSource extends AssetDataSourceBase {
         return {
             refId: query.refId,
             fields: [
-                { name: assetSummaryFields.TOTAL, values: [ assets.total ] },
-                { name: assetSummaryFields.ACTIVE, values: [ assets.active ] },
-                { name: assetSummaryFields.NOT_ACTIVE, values: [ assets.notActive ] },
-                { name: assetSummaryFields.APPROACHING_DUE_DATE, values: [ assets.approachingRecommendedDueDate ] },
-                { name: assetSummaryFields.PAST_DUE_DATE, values: [ assets.pastRecommendedDueDate ] }
+                { name: assetSummaryFields.TOTAL, values: [assets.total] },
+                { name: assetSummaryFields.ACTIVE, values: [assets.active] },
+                { name: assetSummaryFields.NOT_ACTIVE, values: [assets.notActive] },
+                { name: assetSummaryFields.APPROACHING_DUE_DATE, values: [assets.approachingRecommendedDueDate] },
+                { name: assetSummaryFields.PAST_DUE_DATE, values: [assets.pastRecommendedDueDate] }
             ]
         };
     }
 
     async getAssetSummary(): Promise<AssetSummaryResponse> {
-        try
-        {
+        try {
             return await this.get<AssetSummaryResponse>(this.baseUrl + '/asset-summary');
-        } catch (error)
-        {
+        } catch (error) {
             throw new Error(`An error occurred while getting asset summary: ${ error }`);
         }
     }
