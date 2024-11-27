@@ -6,14 +6,12 @@ import { AssetDataSourceBase } from '../AssetDataSourceBase';
 import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../types/types';
 import { assetSummaryFields } from '../../constants/AssetSummaryQuery.constants';
 import { QueryBuilderType } from 'datasources/asset/constants/constants';
-export class AssetSummaryDataSource extends AssetDataSourceBase
-{
-    constructor (
+export class AssetSummaryDataSource extends AssetDataSourceBase {
+    constructor(
         readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,
         readonly backendSrv: BackendSrv = getBackendSrv(),
         readonly templateSrv: TemplateSrv = getTemplateSrv()
-    )
-    {
+    ) {
         super(instanceSettings, backendSrv, templateSrv);
     }
 
