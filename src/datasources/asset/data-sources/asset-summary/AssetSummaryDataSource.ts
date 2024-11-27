@@ -22,15 +22,15 @@ export class AssetSummaryDataSource extends AssetDataSourceBase {
         queryBuilderType: QueryBuilderType.Simple,
     };
 
-    async runQuery (query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
         return this.processSummaryQuery(query as AssetQuery);
     }
 
-    shouldRunQuery (_: AssetQuery): boolean {
+    shouldRunQuery(_: AssetQuery): boolean {
         return true;
     }
 
-    async processSummaryQuery (query: AssetQuery) {
+    async processSummaryQuery(query: AssetQuery) {
         const assets: AssetSummaryResponse = await this.getAssetSummary();
 
         return {
@@ -45,7 +45,7 @@ export class AssetSummaryDataSource extends AssetDataSourceBase {
         };
     }
 
-    async getAssetSummary (): Promise<AssetSummaryResponse> {
+    async getAssetSummary(): Promise<AssetSummaryResponse> {
         try
         {
             return await this.get<AssetSummaryResponse>(this.baseUrl + '/asset-summary');
