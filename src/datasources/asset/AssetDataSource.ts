@@ -101,18 +101,15 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
   }
 
   private getAssetNameForMetricQuery(asset: AssetModel): MetricFindValue {
-    let assetName = asset.name;
+
     const vendor = asset.vendorName ? asset.vendorName : asset.vendorNumber;
     const model = asset.modelName ? asset.modelName : asset.modelNumber;
     const serial = asset.serialNumber;
+    const assetIdentifier = `Vendor: ${vendor} - Model: ${model} - Serial: ${serial}`;
 
-    if(!assetName) {
-      assetName = `Vendor: ${vendor} - Model: ${model} - Serial: ${serial}`;
-    }
+    const assetName = !asset.name ? assetIdentifier : `${asset.name} (${assetIdentifier})`;
+    const assetValue = `Assets.${vendor}.${model}.${asset.serialNumber}`
 
-    return {
-      text: assetName,
-      value: `Assets.${vendor}.${model}.${asset.serialNumber}`,
-    };
+    return { text: assetName, value: assetValue };
   }
 }

@@ -16,19 +16,19 @@ exports[`queries metricFindQuery returns default identifiers when asset name is 
 exports[`queries metricFindQuery returns name/alias when asset name field is present 1`] = `
 [
   {
-    "text": "NI-sbRIO-9629-01FE20D1",
+    "text": "NI-sbRIO-9629-01FE20D1 (Vendor: National Instruments - Model: sbRIO-9629 - Serial: 01FE20D1)",
     "value": "Assets.National Instruments.sbRIO-9629.01FE20D1",
   },
   {
-    "text": "Conn0_AI",
+    "text": "Conn0_AI (Vendor: National Instruments - Model: AI 0-15 - Serial: 01FE20D1)",
     "value": "Assets.National Instruments.AI 0-15.01FE20D1",
   },
   {
-    "text": "Conn0_AO",
+    "text": "Conn0_AO (Vendor: National Instruments - Model: AO 0-3 - Serial: 01FE20D1)",
     "value": "Assets.National Instruments.AO 0-3.01FE20D1",
   },
   {
-    "text": "Conn0_DIO0-3",
+    "text": "Conn0_DIO0-3 (Vendor: National Instruments - Model: DIO 0-3 - Serial: 01FE20D1)",
     "value": "Assets.National Instruments.DIO 0-3.01FE20D1",
   },
 ]
