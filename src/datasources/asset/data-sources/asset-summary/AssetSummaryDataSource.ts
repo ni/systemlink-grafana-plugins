@@ -49,7 +49,7 @@ export class AssetSummaryDataSource extends AssetDataSourceBase {
         try {
             return await this.get<AssetSummaryResponse>(this.baseUrl + '/asset-summary');
         } catch (error) {
-            throw new Error(`An error occurred while getting asset summary: ${ error }`);
+            throw new Error(`An error occurred while getting asset summary: ${error}`);
         }
     }
 }
