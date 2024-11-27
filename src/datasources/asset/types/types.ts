@@ -3,30 +3,26 @@ import { DataQuery } from "@grafana/schema";
 import { QueryBuilderType } from "../constants/constants";
 
 
-export enum AssetQueryType
-{
+export enum AssetQueryType {
   None = "",
   ListAssets = "List Assets",
   CalibrationForecast = "Calibration Forecast",
   AssetSummary = "Asset Summary"
 }
 
-export interface AssetQuery extends DataQuery
-{
+export interface AssetQuery extends DataQuery {
   type: AssetQueryType
-  queryBuilderType: QueryBuilderType;
+  queryBuilderType: QueryBuilderType
 }
 
-export interface AssetFeatureToggles
-{
+export interface AssetFeatureToggles {
   calibrationForecast: boolean;
   assetList: boolean;
   assetSummary: boolean;
   advancedFilter: boolean;
 }
 
-export interface AssetDataSourceOptions extends DataSourceJsonData
-{
+export interface AssetDataSourceOptions extends DataSourceJsonData {
   featureToggles: AssetFeatureToggles;
 }
 
@@ -37,8 +33,7 @@ export const AssetFeatureTogglesDefaults: AssetFeatureToggles = {
   advancedFilter: true
 }
 
-export enum BusType
-{
+export enum BusType {
   BUILT_IN_SYSTEM = 'BUILT_IN_SYSTEM',
   PCI_PXI = 'PCI_PXI',
   USB = 'USB',
@@ -57,7 +52,6 @@ export enum BusType
   SWITCH_BLOCK_DEVICE = 'SWITCH_BLOCK_DEVICE',
   SLSC = 'SLSC'
 }
-
 export const BusTypeOptions = [
   { label: 'Built-in-system', value: BusType.BUILT_IN_SYSTEM },
   { label: 'PCI/PXI', value: BusType.PCI_PXI },
@@ -78,14 +72,12 @@ export const BusTypeOptions = [
   { label: 'SLSC', value: BusType.SLSC },
 ];
 
-export enum AssetType
-{
+export enum AssetType {
   GENERIC = 'GENERIC',
   DEVICE_UNDER_TEST = 'DEVICE_UNDER_TEST',
   FIXTURE = 'FIXTURE',
   SYSTEM = 'SYSTEM'
 };
-
 export const AssetTypeOptions = [
   { label: 'Generic', value: AssetType.GENERIC },
   { label: 'Device under test', value: AssetType.DEVICE_UNDER_TEST },
