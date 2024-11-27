@@ -1,13 +1,12 @@
 import { BackendSrv } from "@grafana/runtime";
 import { MockProxy } from "jest-mock-extended";
-import
-  {
-    createFetchError,
-    createFetchResponse,
-    getQueryBuilder,
-    requestMatching,
-    setupDataSource,
-  } from "test/fixtures";
+import {
+  createFetchError,
+  createFetchResponse,
+  getQueryBuilder,
+  requestMatching,
+  setupDataSource,
+} from "test/fixtures";
 import { AssetDataSource } from "./AssetDataSource";
 import { AssetQueryType } from "./types/types";
 import { AssetPresenceWithSystemConnectionModel, AssetsResponse } from "datasources/asset-common/types";
@@ -24,10 +23,9 @@ let assetOptions = {
   }
 }
 
-beforeEach( () =>
-{
-  [ ds, backendSrv ] = setupDataSource( AssetDataSource, () => assetOptions );
-} );
+beforeEach(() => {
+  [ds, backendSrv] = setupDataSource(AssetDataSource, () => assetOptions);
+});
 
 const assetsResponseMock: AssetsResponse =
 {
@@ -309,7 +307,6 @@ const assetsWithoutNameResponseMock: AssetsResponse =
   "totalCount": 2
 }
 
-
 const assetMetadataQueryMock: ListAssetsQuery = {
   type: AssetQueryType.ListAssets,
   filter: 'Location.MinionId == "123"',
@@ -317,60 +314,52 @@ const assetMetadataQueryMock: ListAssetsQuery = {
   refId: ''
 }
 
-const buildMetadataQuery = getQueryBuilder<ListAssetsQuery>()( {
+const buildMetadataQuery = getQueryBuilder<ListAssetsQuery>()({
   filter: ''
-} );
+});
 
-describe( 'testDatasource', () =>
-{
-  test( 'returns success', async () =>
-  {
+describe('testDatasource', () => {
+  test('returns success', async () => {
 
     backendSrv.fetch
-      .calledWith( requestMatching( { url: '/niapm/v1/assets?take=1' } ) )
-      .mockReturnValue( createFetchResponse( 25 ) );
+      .calledWith(requestMatching({ url: '/niapm/v1/assets?take=1' }))
+      .mockReturnValue(createFetchResponse(25));
 
     const result = await ds.testDatasource();
 
-    expect( result.status ).toEqual( 'success' );
-  } );
+    expect(result.status).toEqual('success');
+  });
 
-  test( 'bubbles up exception', async () =>
-  {
+  test('bubbles up exception', async () => {
     backendSrv.fetch
-      .calledWith( requestMatching( { url: '/niapm/v1/assets?take=1' } ) )
-      .mockReturnValue( createFetchError( 400 ) );
+      .calledWith(requestMatching({ url: '/niapm/v1/assets?take=1' }))
+      .mockReturnValue(createFetchError(400));
 
-    await expect( ds.testDatasource() ).rejects.toThrow( 'Request to url "/niapm/v1/assets?take=1" failed with status code: 400. Error message: "Error"' );
-  } );
-} )
+    await expect(ds.testDatasource()).rejects.toThrow('Request to url "/niapm/v1/assets?take=1" failed with status code: 400. Error message: "Error"');
+  });
+})
 
-describe( 'queries', () =>
-{
-  test( 'run metadata query', async () =>
-  {
+describe('queries', () => {
+  test('run metadata query', async () => {
     backendSrv.fetch
-      .calledWith( requestMatching( { url: '/niapm/v1/query-assets' } ) )
-      .mockReturnValue( createFetchResponse( assetsResponseMock as AssetsResponse ) )
+      .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
+      .mockReturnValue(createFetchResponse(assetsResponseMock as AssetsResponse))
 
-    const result = await ds.query( buildMetadataQuery( assetMetadataQueryMock ) )
+    const result = await ds.query(buildMetadataQuery(assetMetadataQueryMock))
 
-    expect( result.data ).toMatchSnapshot()
-  } )
+    expect(result.data).toMatchSnapshot()
+  })
 
-  test( 'handles metadata query error', async () =>
-  {
+  test('handles metadata query error', async () => {
     backendSrv.fetch
-      .calledWith( requestMatching( { url: '/niapm/v1/query-assets' } ) )
-      .mockReturnValue( createFetchError( 418 ) )
+      .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
+      .mockReturnValue(createFetchError(418))
 
-    await expect( ds.query( buildMetadataQuery( assetMetadataQueryMock ) ) ).rejects.toThrow()
-  } )
+    await expect(ds.query(buildMetadataQuery(assetMetadataQueryMock))).rejects.toThrow()
+  })
 
-  describe( 'metricFindQuery', () =>
-  {
-    it( 'returns name/alias when asset name field is present', async () =>
-    {
+  describe('metricFindQuery', () => {
+    it('returns name/alias when asset name field is present', async () => {
       const query: AssetVariableQuery = {
         filter: '',
         type: AssetQueryType.None,
@@ -379,20 +368,19 @@ describe( 'queries', () =>
       }
 
       backendSrv.fetch
-        .calledWith( requestMatching( { url: '/niapm/v1/query-assets' } ) )
-        .mockReturnValue( createFetchResponse( assetsResponseMock as AssetsResponse ) )
+        .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
+        .mockReturnValue(createFetchResponse(assetsResponseMock as AssetsResponse))
 
       const options = {
         scopedVars: {}
       }
 
-      const result = await ds.metricFindQuery( query, options )
+      const result = await ds.metricFindQuery(query, options)
 
-      expect( result ).toMatchSnapshot();
-    } )
+      expect(result).toMatchSnapshot();
+    })
 
-    it( 'returns default identifiers when asset name is not present', async () =>
-    {
+    it('returns default identifiers when asset name is not present', async () => {
       const query: AssetVariableQuery = {
         filter: '',
         type: AssetQueryType.None,
@@ -401,16 +389,16 @@ describe( 'queries', () =>
       }
 
       backendSrv.fetch
-        .calledWith( requestMatching( { url: '/niapm/v1/query-assets' } ) )
-        .mockReturnValue( createFetchResponse( assetsWithoutNameResponseMock as AssetsResponse ) )
+        .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
+        .mockReturnValue(createFetchResponse(assetsWithoutNameResponseMock as AssetsResponse))
 
       const options = {
         scopedVars: {}
       }
 
-      const result = await ds.metricFindQuery( query, options )
+      const result = await ds.metricFindQuery(query, options)
 
-      expect( result ).toMatchSnapshot();
-    } )
-  } )
-} )
+      expect(result).toMatchSnapshot();
+    })
+  })
+})
