@@ -52,6 +52,7 @@ export enum BusType {
   SWITCH_BLOCK_DEVICE = 'SWITCH_BLOCK_DEVICE',
   SLSC = 'SLSC'
 }
+
 export const BusTypeOptions = [
   { label: 'Built-in-system', value: BusType.BUILT_IN_SYSTEM },
   { label: 'PCI/PXI', value: BusType.PCI_PXI },
@@ -78,6 +79,7 @@ export enum AssetType {
   FIXTURE = 'FIXTURE',
   SYSTEM = 'SYSTEM'
 };
+
 export const AssetTypeOptions = [
   { label: 'Generic', value: AssetType.GENERIC },
   { label: 'Device under test', value: AssetType.DEVICE_UNDER_TEST },
