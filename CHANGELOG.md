@@ -1,3 +1,9 @@
+## [3.43.7](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.6...v3.43.7) (2024-12-03)
+
+### Bug Fixes
+
+* **assets:** addressing feedback for naming the assets ([#114](https://github.com/ni/systemlink-grafana-plugins/issues/114)) ([5b0bd98](https://github.com/ni/systemlink-grafana-plugins/commit/5b0bd987dffadbe6fe2ef7349d3a9fc9fa72d87b))
+
 ## [3.43.6](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.5...v3.43.6) (2024-11-25)
 
 ### Bug Fixes
