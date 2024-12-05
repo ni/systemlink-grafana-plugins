@@ -56,6 +56,14 @@ export const AssetConfigEditor: React.FC<Props> = ({ options, onOptionsChange })
           </InlineField>
           <Tag name='Beta' colorIndex={5} />
         </InlineSegmentGroup>
+        <InlineSegmentGroup>
+          <InlineField label="Advanced Filter" labelWidth={25}>
+            <InlineSwitch
+              value={options.jsonData?.featureToggles?.advancedFilter ?? AssetFeatureTogglesDefaults.advancedFilter}
+              onChange={handleFeatureChange('advancedFilter')} />
+          </InlineField>
+          <Tag name='Beta' colorIndex={5} />
+        </InlineSegmentGroup>
       </>
     </>
   );

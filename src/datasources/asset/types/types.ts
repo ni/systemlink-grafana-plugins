@@ -1,5 +1,6 @@
 import { DataSourceJsonData } from "@grafana/data";
 import { DataQuery } from "@grafana/schema";
+import { QueryBuilderType } from "../constants/constants";
 
 
 export enum AssetQueryType {
@@ -11,12 +12,14 @@ export enum AssetQueryType {
 
 export interface AssetQuery extends DataQuery {
   type: AssetQueryType
+  queryBuilderType: QueryBuilderType
 }
 
 export interface AssetFeatureToggles {
   calibrationForecast: boolean;
   assetList: boolean;
   assetSummary: boolean;
+  advancedFilter: boolean;
 }
 
 export interface AssetDataSourceOptions extends DataSourceJsonData {
@@ -26,7 +29,8 @@ export interface AssetDataSourceOptions extends DataSourceJsonData {
 export const AssetFeatureTogglesDefaults: AssetFeatureToggles = {
   assetList: true,
   calibrationForecast: true,
-  assetSummary: true
+  assetSummary: true,
+  advancedFilter: true
 }
 
 export enum BusType {

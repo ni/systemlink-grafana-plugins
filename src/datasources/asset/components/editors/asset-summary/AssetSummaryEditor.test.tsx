@@ -6,6 +6,7 @@ import { AssetSummaryResponse } from 'datasources/asset/types/AssetSummaryQuery.
 import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from 'datasources/asset/types/types';
 import { AssetSummaryDataSource } from '../../../data-sources/asset-summary/AssetSummaryDataSource';
 import { assetSummaryFields } from '../../../constants/AssetSummaryQuery.constants';
+import { QueryBuilderType } from 'datasources/asset/constants/constants';
 
 describe('AssetSummaryDataSource', () => {
   let dataSource: AssetSummaryDataSource;
@@ -25,7 +26,7 @@ describe('AssetSummaryDataSource', () => {
   });
 
   it('should process metadata query correctly', async () => {
-    const query: AssetQuery = { refId: 'A', type: AssetQueryType.AssetSummary, };
+    const query: AssetQuery = { refId: 'A', type: AssetQueryType.AssetSummary, queryBuilderType: QueryBuilderType.Simple, };
 
     jest.spyOn(dataSource, 'getAssetSummary').mockResolvedValue(assetSummary);
     const result = await dataSource.processSummaryQuery(query);

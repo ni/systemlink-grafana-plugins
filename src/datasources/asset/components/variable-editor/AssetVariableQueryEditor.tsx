@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { QueryEditorProps } from "@grafana/data";
-import { AssetDataSourceOptions, AssetQuery } from '../../../asset/types/types';
+import { AssetDataSourceOptions, AssetFeatureToggles, AssetFeatureTogglesDefaults, AssetQuery } from '../../../asset/types/types';
 import { AssetDataSource } from '../../AssetDataSource'
 import { FloatingError } from '../../../../core/errors';
 import { AssetQueryBuilder } from '../editors/list-assets/query-builder/AssetQueryBuilder';
@@ -10,7 +10,14 @@ import { AssetVariableQuery } from '../../../asset/types/AssetVariableQuery.type
 
 type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOptions>;
 
-export function AssetVariableQueryEditor({ datasource, query, onChange }: Props) {
+export function AssetVariableQueryEditor ( { datasource, query, onRunQuery, onChange }: Props )
+{
+  const assetFeatures = useRef<AssetFeatureToggles>({
+    assetList: datasource.instanceSettings.jsonData?.featureToggles?.assetList ?? AssetFeatureTogglesDefaults.assetList,
+    calibrationForecast: datasource.instanceSettings.jsonData?.featureToggles?.calibrationForecast ?? AssetFeatureTogglesDefaults.calibrationForecast,
+    assetSummary: datasource.instanceSettings.jsonData?.featureToggles?.assetSummary ?? AssetFeatureTogglesDefaults.assetSummary,
+    advancedFilter: datasource.instanceSettings.jsonData?.featureToggles?.advancedFilter ?? AssetFeatureTogglesDefaults.advancedFilter,
+  });
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [systems, setSystems] = useState<SystemMetadata[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
@@ -31,8 +38,15 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
     }
   }
 
+  const handleQueryChange = useCallback((value: AssetQuery, runQuery = false): void => {
+    onChange(value);
+    if (runQuery) {
+      onRunQuery();
+    }
+  }, [onChange, onRunQuery]);
+
   return (
-    <div style={{ width: "525px" }}>
+    <div style={{ width: "520px" }}>
       <AssetQueryBuilder
         filter={assetVariableQuery.filter}
         workspaces={workspaces}
@@ -40,6 +54,9 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
         globalVariableOptions={assetListDatasource.current.globalVariableOptions()}
         areDependenciesLoaded={areDependenciesLoaded}
         onChange={(event: any) => onParameterChange(event)}
+        query={assetVariableQuery}
+        handleQueryChange={ handleQueryChange }
+        complexFilterEnabled={assetFeatures.current.advancedFilter}
       ></AssetQueryBuilder>
       <FloatingError message={assetListDatasource.current.error} />
     </div>

@@ -6,6 +6,7 @@ import { Workspace } from 'core/types';
 import { setupRenderer } from 'test/fixtures';
 import { ListAssetsDataSource } from '../../data-sources/list-assets/ListAssetsDataSource';
 import { AssetDataSource } from 'datasources/asset/AssetDataSource';
+import { QueryBuilderType } from 'datasources/asset/constants/constants';
 
 const fakeSystems: SystemMetadata[] = [
     {
@@ -53,7 +54,7 @@ class FakeAssetDataSource extends AssetDataSource {
 const render = setupRenderer(AssetVariableQueryEditor, FakeAssetDataSource, () => {});
 
 it('renders the variable query builder', async () => {
-    render({  refId: '', type: AssetQueryType.ListAssets, filter: "" } as AssetQuery);
+    render({  refId: '', type: AssetQueryType.ListAssets, filter: "", queryBuilderType: QueryBuilderType.Simple, } as AssetQuery);
 
     await waitFor(() => expect(screen.getAllByText('Property').length).toBe(1));
     await waitFor(() => expect(screen.getAllByText('Operator').length).toBe(1));

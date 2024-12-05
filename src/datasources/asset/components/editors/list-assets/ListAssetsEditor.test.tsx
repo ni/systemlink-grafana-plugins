@@ -6,6 +6,7 @@ import { setupRenderer } from '../../../../../test/fixtures';
 import { ListAssetsQuery } from '../../../types/ListAssets.types';
 import { AssetFeatureTogglesDefaults } from 'datasources/asset/types/types';
 import { ListAssetsDataSource } from '../../../data-sources/list-assets/ListAssetsDataSource';
+import { QueryBuilderType } from 'datasources/asset/constants/constants';
 
 const fakeSystems: SystemMetadata[] = [
   {
@@ -52,7 +53,7 @@ it('does not render when feature is not enabled', async () => {
 
 it('renders the query builder', async () => {
   assetDatasourceOptions.featureToggles.assetList = true;
-  render({} as ListAssetsQuery);
+  render({queryBuilderType: QueryBuilderType.Simple} as ListAssetsQuery);
 
   await waitFor(() => expect(screen.getAllByText('Property').length).toBe(1));
   await waitFor(() => expect(screen.getAllByText('Operator').length).toBe(1));

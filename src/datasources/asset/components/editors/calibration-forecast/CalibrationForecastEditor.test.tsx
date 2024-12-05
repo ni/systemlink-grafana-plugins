@@ -10,6 +10,7 @@ import { CalibrationForecastDataSource } from '../../../data-sources/calibration
 import { AssetQueryEditor } from '../../AssetQueryEditor';
 import { AssetDataSource } from '../../../AssetDataSource';
 import { AssetQueryType } from '../../../types/types';
+import { QueryBuilderType } from 'datasources/asset/constants/constants';
 
 class FakeAssetCalibrationDataSource extends CalibrationForecastDataSource {}
 
@@ -72,6 +73,7 @@ describe('CalibrationForecastEditor', () => {
       refId: '',
       groupBy: [],
       type: AssetQueryType.CalibrationForecast,
+      queryBuilderType: QueryBuilderType.Simple,
     } as CalibrationForecastQuery);
 
     // User selects group by location

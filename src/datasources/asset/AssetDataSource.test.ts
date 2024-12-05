@@ -12,6 +12,7 @@ import { AssetQueryType } from "./types/types";
 import { AssetPresenceWithSystemConnectionModel, AssetsResponse } from "datasources/asset-common/types";
 import { ListAssetsQuery } from "./types/ListAssets.types";
 import { AssetVariableQuery } from "./types/AssetVariableQuery.types";
+import { QueryBuilderType } from "./constants/constants";
 
 let ds: AssetDataSource, backendSrv: MockProxy<BackendSrv>
 let assetOptions = {
@@ -306,10 +307,10 @@ const assetsWithoutNameResponseMock: AssetsResponse =
   "totalCount": 2
 }
 
-
 const assetMetadataQueryMock: ListAssetsQuery = {
   type: AssetQueryType.ListAssets,
   filter: 'Location.MinionId == "123"',
+  queryBuilderType: QueryBuilderType.Simple,
   refId: ''
 }
 
@@ -362,6 +363,7 @@ describe('queries', () => {
       const query: AssetVariableQuery = {
         filter: '',
         type: AssetQueryType.None,
+        queryBuilderType: QueryBuilderType.Simple,
         refId: ""
       }
 
@@ -382,6 +384,7 @@ describe('queries', () => {
       const query: AssetVariableQuery = {
         filter: '',
         type: AssetQueryType.None,
+        queryBuilderType: QueryBuilderType.Simple,
         refId: ""
       }
 
