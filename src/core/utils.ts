@@ -1,4 +1,4 @@
-import { SelectableValue } from '@grafana/data';
+import { SelectableValue, textUtil } from '@grafana/data';
 import { useAsync } from 'react-use';
 import { DataSourceBase } from './DataSourceBase';
 import { SystemLinkError, Workspace } from './types';
@@ -85,4 +85,28 @@ export function replaceVariables(values: string[], templateSrv: TemplateSrv) {
 
 export function isSystemLinkError(error: any): error is SystemLinkError {
   return Boolean(error?.error?.code) && Boolean(error?.error?.name);
+}
+
+
+/**
+ * Used for filtering XSS in query builder fields
+ */
+export function filterXSSField({ label, value }: { label: string; value: string }) {
+  return { label: textUtil.sanitize(label), value: textUtil.sanitize(value) };
+}
+
+/**
+ * Used for filtering XSS strings in LINQ expression
+ */
+export function filterXSSLINQExpression(value: string | null | undefined): string {
+  const unsanitizedTarget = value ?? '';
+  const sanitizedTarget = textUtil.sanitize(unsanitizedTarget);
+
+  return sanitizedTarget
+    .replace(/ &lt; /g, " < ")
+    .replace(/ &lt;= /g, " <= ")
+    .replace(/ &gt; /g, " > ")
+    .replace(/ &gt;= /g, " >= ")
+    .replace(/ &amp;&amp; /g, " && ")
+    .replace(/ &lt;&gt; /g, " <> ");
 }

@@ -1,3 +1,51 @@
+## [3.43.7](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.6...v3.43.7) (2024-12-03)
+
+### Bug Fixes
+
+* **assets:** addressing feedback for naming the assets ([#114](https://github.com/ni/systemlink-grafana-plugins/issues/114)) ([5b0bd98](https://github.com/ni/systemlink-grafana-plugins/commit/5b0bd987dffadbe6fe2ef7349d3a9fc9fa72d87b))
+
+## [3.43.6](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.5...v3.43.6) (2024-11-25)
+
+### Bug Fixes
+
+* **assets:** updating visualization for the asset display name in global variable ([#113](https://github.com/ni/systemlink-grafana-plugins/issues/113)) ([24f3ec9](https://github.com/ni/systemlink-grafana-plugins/commit/24f3ec91d29bae4277474f759d277ba7819d5628))
+
+## [3.43.5](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.4...v3.43.5) (2024-11-14)
+
+### Bug Fixes
+
+* **asset:** calibration forecast timezone issues on datalinks ([#111](https://github.com/ni/systemlink-grafana-plugins/issues/111)) ([f5209e8](https://github.com/ni/systemlink-grafana-plugins/commit/f5209e80fcc8a1335589c6f9d5dec0f742dd17ab))
+
+## [3.43.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.3...v3.43.4) (2024-11-06)
+
+### Bug Fixes
+
+* **notebook:** fix input sanitization for notebook query builder ([#110](https://github.com/ni/systemlink-grafana-plugins/issues/110)) ([b0406c3](https://github.com/ni/systemlink-grafana-plugins/commit/b0406c36a68bae1cdfdfcbb538ac1278b6c505f0))
+
+## [3.43.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.2...v3.43.3) (2024-10-30)
+
+### Bug Fixes
+
+* **asset:** fix data link construction ([#109](https://github.com/ni/systemlink-grafana-plugins/issues/109)) ([55cca79](https://github.com/ni/systemlink-grafana-plugins/commit/55cca7983d3a702c40a2409aa3419b55f769c6ad))
+
+## [3.43.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.1...v3.43.2) (2024-10-30)
+
+### Bug Fixes
+
+* **asset:** fix assets input sanitization for query builders ([#105](https://github.com/ni/systemlink-grafana-plugins/issues/105)) ([05cf5c0](https://github.com/ni/systemlink-grafana-plugins/commit/05cf5c0e3d0796887de66693d0f4362e3cfd1784))
+
+## [3.43.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.0...v3.43.1) (2024-10-29)
+
+### Bug Fixes
+
+* **asset:** data link creation on deployed envs ([#108](https://github.com/ni/systemlink-grafana-plugins/issues/108)) ([11125b3](https://github.com/ni/systemlink-grafana-plugins/commit/11125b363aa5dc47b54f4b41c14ff879988f714e))
+
+## [3.43.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.42.0...v3.43.0) (2024-10-29)
+
+### Features
+
+* **asset:** compute "Now" in a way that can be saved ([#107](https://github.com/ni/systemlink-grafana-plugins/issues/107)) ([728d47f](https://github.com/ni/systemlink-grafana-plugins/commit/728d47f7a7f3e957ab0de1e8572dd4ad3afd0f42))
+
 ## [3.42.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.41.0...v3.42.0) (2024-10-25)
 
 ### Features

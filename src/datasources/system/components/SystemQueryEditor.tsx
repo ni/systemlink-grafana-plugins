@@ -10,6 +10,12 @@ type Props = QueryEditorProps<SystemDataSource, SystemQuery>;
 
 export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
+  const LEGACY_METADATA_TYPE = 'MetaData';
+
+  //Handle existing dashboards with MetaData queries
+  if ((query.queryKind as any) === LEGACY_METADATA_TYPE) {
+    query.queryKind = SystemQueryType.Properties;
+  }
 
   useEffect(() => {
     if (query.queryKind === SystemQueryType.Summary) {

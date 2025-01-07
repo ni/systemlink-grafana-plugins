@@ -51,7 +51,7 @@ describe('AssetQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain(system.alias);
     });
 
-    it( 'should select global variable option', () => {
+    it('should select global variable option', () => {
       const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
       const system = { id: '1', alias: 'Selected system' } as SystemProperties;
       const globalVariableOption = { label: 'Global variable', value: 'global_variable' };
@@ -62,14 +62,25 @@ describe('AssetQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain(globalVariableOption.label);
     });
 
-    it('should select user friendly value for calibration due date', () => {
+    [['${__from:date}', 'From'], ['${__to:date}', 'To'], ['${__now:date}', 'Now']].forEach(([value, label]) => {
+      it(`should select user friendly value for calibration due date`, () => {
+        const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
+        const system = { id: '1', alias: 'Selected system' } as SystemProperties;
+
+        const { conditionsContainer } = renderElement([workspace], [system], `ExternalCalibration.NextRecommendedDate > \"${value}\"`);
+
+        expect(conditionsContainer?.length).toBe(1);
+        expect(conditionsContainer.item(0)?.textContent).toContain(label);
+      });
+    });
+
+    it('should select a sanitized Workspace in query builder', () => {
       const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
       const system = { id: '1', alias: 'Selected system' } as SystemProperties;
-
-      const { conditionsContainer } = renderElement([workspace], [system], 'ExternalCalibration.NextRecommendedDate > \"${__from:date}\"');
+      const { conditionsContainer } = renderElement([workspace], [system], 'Workspace = "<script>alert(\'Workspace\')</script>"');
 
       expect(conditionsContainer?.length).toBe(1);
-      expect(conditionsContainer.item(0)?.textContent).toContain("From");
-    });
+      expect(conditionsContainer.item(0)?.innerHTML).not.toContain('alert(\'Workspace\')');
+    })
   });
 });

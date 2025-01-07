@@ -1,5 +1,39 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`queries metricFindQuery returns default identifiers when asset name is not present 1`] = `
+[
+  {
+    "text": "Vendor: National Instruments - Model: sbRIO-9629 - Serial: 01FE20D1",
+    "value": "Assets.National Instruments.sbRIO-9629.01FE20D1",
+  },
+  {
+    "text": "Vendor: 3333 - Model: 1111 - Serial: 2222",
+    "value": "Assets.3333.1111.2222",
+  },
+]
+`;
+
+exports[`queries metricFindQuery returns name/alias when asset name field is present 1`] = `
+[
+  {
+    "text": "NI-sbRIO-9629-01FE20D1 (Vendor: National Instruments - Model: sbRIO-9629 - Serial: 01FE20D1)",
+    "value": "Assets.National Instruments.sbRIO-9629.01FE20D1",
+  },
+  {
+    "text": "Conn0_AI (Vendor: National Instruments - Model: AI 0-15 - Serial: 01FE20D1)",
+    "value": "Assets.National Instruments.AI 0-15.01FE20D1",
+  },
+  {
+    "text": "Conn0_AO (Vendor: National Instruments - Model: AO 0-3 - Serial: 01FE20D1)",
+    "value": "Assets.National Instruments.AO 0-3.01FE20D1",
+  },
+  {
+    "text": "Conn0_DIO0-3 (Vendor: National Instruments - Model: DIO 0-3 - Serial: 01FE20D1)",
+    "value": "Assets.National Instruments.DIO 0-3.01FE20D1",
+  },
+]
+`;
+
 exports[`queries run metadata query 1`] = `
 [
   {

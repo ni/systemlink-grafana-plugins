@@ -14,6 +14,7 @@ import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-
 import { SystemProperties } from 'datasources/system/types';
 import { QBField } from '../../../../types/CalibrationForecastQuery.types';
 import { ListAssetsFields, ListAssetsStaticFields } from '../../../../constants/ListAssets.constants';
+import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
 
 type AssetCalibrationQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
@@ -38,6 +39,10 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
 
+  const sanitizedFilter = useMemo(() => {
+    return filterXSSLINQExpression(filter);
+  }, [filter])
+
   const workspaceField = useMemo(() => {
     const workspaceField = ListAssetsFields.WORKSPACE;
 
@@ -47,7 +52,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
         ...workspaceField.lookup,
         dataSource: [
           ...(workspaceField.lookup?.dataSource || []),
-          ...workspaces.map(({ id, name }) => ({ label: name, value: id })),
+          ...workspaces.map(({ id, name }) => (filterXSSField({ label: name, value: id }))),
         ],
       },
     };
@@ -62,14 +67,13 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
         ...locationField.lookup,
         dataSource: [
           ...(locationField.lookup?.dataSource || []),
-          ...systems.map(({ id, alias }) => ({ label: alias || id, value: id })),
+          ...systems.map(({ id, alias }) => (filterXSSField({ label: alias || id, value: id }))),
         ],
       },
     };
   }, [systems]);
 
-  const calibrationDueDateField = useMemo(() =>
-  {
+  const calibrationDueDateField = useMemo(() => {
     const calibrationField = ListAssetsFields.CALIBRATION_DUE_DATE;
     return {
       ...calibrationField,
@@ -79,7 +83,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
           ...(calibrationField.lookup?.dataSource || []),
           { label: 'From', value: '${__from:date}' },
           { label: 'To', value: '${__to:date}' },
-          { label: 'Now', value: new Date().toISOString() },
+          { label: 'Now', value: '${__now:date}' },
         ],
       },
     };
@@ -96,7 +100,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
           return {
             ...field,
             lookup: {
-              dataSource: [...globalVariableOptions, ...field.lookup.dataSource]
+              dataSource: [...globalVariableOptions.map(filterXSSField), ...field.lookup.dataSource.map(filterXSSField)]
             }
           }
         }
@@ -155,7 +159,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
       fields={fields}
       messages={queryBuilderMessages}
       onChange={onChange}
-      value={filter}
+      value={sanitizedFilter}
     />
   );
 };

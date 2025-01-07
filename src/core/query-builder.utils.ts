@@ -13,7 +13,7 @@ export type ExpressionTransformFunction = (value: string, operation: string, opt
 /**
  * Supported operations for computed fields
  */
-export const computedFieldsupportedOperations = ['=', '!='];
+export const computedFieldsupportedOperations = ['=', '!=', '>', '>=', '<', '<='];
 
 /**
  * The function will replace the computed fields with their transformation

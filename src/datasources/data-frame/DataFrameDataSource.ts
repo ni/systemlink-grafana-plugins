@@ -108,6 +108,12 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
 
   processQuery(query: DataFrameQuery): ValidDataFrameQuery {
     const migratedQuery = { ...defaultQuery, ...query };
+    const LEGACY_METADATA_TYPE = "MetaData";
+
+    // Handle existing dashboards with 'MetaData' type
+      if ((migratedQuery.type as any) === LEGACY_METADATA_TYPE) {
+        migratedQuery.type = DataFrameQueryType.Properties;
+      }
 
     // Migration for 1.6.0: DataFrameQuery.columns changed to string[]
     if (_.isObject(migratedQuery.columns[0])) {

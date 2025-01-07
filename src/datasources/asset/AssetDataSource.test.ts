@@ -11,6 +11,7 @@ import { AssetDataSource } from "./AssetDataSource";
 import { AssetQueryType } from "./types/types";
 import { AssetPresenceWithSystemConnectionModel, AssetsResponse } from "datasources/asset-common/types";
 import { ListAssetsQuery } from "./types/ListAssets.types";
+import { AssetVariableQuery } from "./types/AssetVariableQuery.types";
 
 let ds: AssetDataSource, backendSrv: MockProxy<BackendSrv>
 let assetOptions = {
@@ -224,6 +225,87 @@ const assetsResponseMock: AssetsResponse =
   "totalCount": 4
 }
 
+const assetsWithoutNameResponseMock: AssetsResponse =
+{
+  "assets": [
+    {
+      "modelName": "sbRIO-9629",
+      "modelNumber": 0,
+      "serialNumber": "01FE20D1",
+      "vendorName": "National Instruments",
+      "vendorNumber": 0,
+      "busType": "BUILT_IN_SYSTEM",
+      "name": "",
+      "assetType": "SYSTEM",
+      "discoveryType": "AUTOMATIC",
+      "firmwareVersion": "8.8.0f0",
+      "hardwareVersion": "",
+      "visaResourceName": "",
+      "temperatureSensors": [],
+      "supportsSelfCalibration": false,
+      "supportsExternalCalibration": false,
+      "isNIAsset": true,
+      "id": "7f6d0d74-bc75-4d78-9edd-00c253b3a0de",
+      "location": {
+        "minionId": "NI_sbRIO-9629--SN-01FE20D1--MAC-00-80-2F-33-30-18",
+        "parent": "",
+        "resourceUri": "system",
+        "slotNumber": -1,
+        "state": {
+          "assetPresence": "PRESENT"
+        }
+      },
+      "calibrationStatus": "OK",
+      "isSystemController": true,
+      "workspace": "e73fcd94-649b-4d0a-b164-bf647a5d0946",
+      "properties": {},
+      "keywords": [],
+      "lastUpdatedTimestamp": "2024-02-21T12:54:20.069Z",
+      "fileIds": [],
+      "supportsSelfTest": false,
+      "supportsReset": false
+    },
+    {
+      "modelName": "",
+      "modelNumber": 1111,
+      "serialNumber": "2222",
+      "vendorName": "",
+      "vendorNumber": 3333,
+      "busType": "BUILT_IN_SYSTEM",
+      "name": "",
+      "assetType": "SYSTEM",
+      "discoveryType": "AUTOMATIC",
+      "firmwareVersion": "8.8.0f0",
+      "hardwareVersion": "",
+      "visaResourceName": "",
+      "temperatureSensors": [],
+      "supportsSelfCalibration": false,
+      "supportsExternalCalibration": false,
+      "isNIAsset": true,
+      "id": "7f6d0d74-bc75-4d78-9edd-00c253b3a0de",
+      "location": {
+        "minionId": "NI_sbRIO-9629--SN-01FE20D1--MAC-00-80-2F-33-30-18",
+        "parent": "",
+        "resourceUri": "system",
+        "slotNumber": -1,
+        "state": {
+          "assetPresence": "PRESENT"
+        }
+      },
+      "calibrationStatus": "OK",
+      "isSystemController": true,
+      "workspace": "e73fcd94-649b-4d0a-b164-bf647a5d0946",
+      "properties": {},
+      "keywords": [],
+      "lastUpdatedTimestamp": "2024-02-21T12:54:20.069Z",
+      "fileIds": [],
+      "supportsSelfTest": false,
+      "supportsReset": false
+    }
+  ],
+  "totalCount": 2
+}
+
 
 const assetMetadataQueryMock: ListAssetsQuery = {
   type: AssetQueryType.ListAssets,
@@ -273,5 +355,47 @@ describe('queries', () => {
       .mockReturnValue(createFetchError(418))
 
     await expect(ds.query(buildMetadataQuery(assetMetadataQueryMock))).rejects.toThrow()
+  })
+
+  describe('metricFindQuery', () => {
+    it('returns name/alias when asset name field is present', async () => {
+      const query: AssetVariableQuery = {
+        filter: '',
+        type: AssetQueryType.None,
+        refId: ""
+      }
+
+      backendSrv.fetch
+        .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
+        .mockReturnValue(createFetchResponse(assetsResponseMock as AssetsResponse))
+
+      const options = {
+        scopedVars: {}
+      }
+
+      const result = await ds.metricFindQuery(query, options)
+
+      expect(result).toMatchSnapshot();
+    })
+
+    it('returns default identifiers when asset name is not present', async () => {
+      const query: AssetVariableQuery = {
+        filter: '',
+        type: AssetQueryType.None,
+        refId: ""
+      }
+
+      backendSrv.fetch
+        .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
+        .mockReturnValue(createFetchResponse(assetsWithoutNameResponseMock as AssetsResponse))
+
+      const options = {
+        scopedVars: {}
+      }
+
+      const result = await ds.metricFindQuery(query, options)
+
+      expect(result).toMatchSnapshot();
+    })
   })
 })

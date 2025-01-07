@@ -8,6 +8,7 @@ import 'smart-webcomponents-react/source/styles/smart.orange.css';
 import 'smart-webcomponents-react/source/styles/components/smart.base.css';
 import 'smart-webcomponents-react/source/styles/components/smart.common.css';
 import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
+import { filterXSSLINQExpression } from 'core/utils';
 
 type TestResultsQueryBuilderProps = Omit<QueryBuilderProps, 'customOperations' | 'fields' | 'messages' | 'showIcons'> &
   React.HTMLAttributes<Element> & {
@@ -162,8 +163,9 @@ export const TestResultsQueryBuilder: React.FC<TestResultsQueryBuilderProps> = (
       messages={queryBuilderMessages}
       showIcons
       // Only set value on first render
-      {...(initialize.current && { value: props.defaultValue })}
+      {...(initialize.current && { value: filterXSSLINQExpression(props.defaultValue) })}
       {...props}
+      value={filterXSSLINQExpression(props.defaultValue)}
     />
   );
 };
