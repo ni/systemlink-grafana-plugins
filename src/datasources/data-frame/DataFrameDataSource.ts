@@ -40,7 +40,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
     processedQuery.columns = replaceVariables(processedQuery.columns, this.templateSrv);
     const metadata = await this.getTableMetadata(processedQuery.tableId);
 
-    if (processedQuery.type === DataFrameQueryType.Metadata) {
+    if (processedQuery.type === DataFrameQueryType.Properties) {
       return {
         refId: processedQuery.refId,
         name: metadata.name,
@@ -58,7 +58,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
   }
 
   shouldRunQuery(query: ValidDataFrameQuery): boolean {
-    return Boolean(query.tableId) && (query.type === DataFrameQueryType.Metadata || Boolean(query.columns.length));
+    return Boolean(query.tableId) && (query.type === DataFrameQueryType.Properties || Boolean(query.columns.length));
   }
 
   async getTableMetadata(id?: string): Promise<TableMetadata> {

@@ -237,7 +237,7 @@ it('metricFindQuery returns table columns', async () => {
 });
 
 it('returns table properties for metadata query', async () => {
-  const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Metadata, tableId: '1' }]);
+  const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Properties, tableId: '1' }]);
 
   const response = await ds.query(query);
 
@@ -249,7 +249,7 @@ it('returns table properties for metadata query', async () => {
 });
 
 it('handles metadata query when table has no properties', async () => {
-  const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Metadata, tableId: '2' }]);
+  const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Properties, tableId: '2' }]);
 
   const response = await ds.query(query);
 

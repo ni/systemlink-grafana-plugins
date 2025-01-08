@@ -3,7 +3,7 @@ import { SystemLinkError } from "../../core/types";
 
 export enum DataFrameQueryType {
   Data = 'Data',
-  Metadata = 'Metadata',
+  Properties = 'Properties',
 }
 
 export interface DataFrameQuery extends DataQuery {

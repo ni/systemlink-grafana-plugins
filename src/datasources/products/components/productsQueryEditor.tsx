@@ -62,7 +62,7 @@ export function productsQueryEditor({ query, onChange, onRunQuery, datasource }:
       dataField: 'family',
       dataType: 'string',
       filterOperations: ['=', '<>', 'contains', 'notcontains', 'isblank', 'isnotblank'],
-      lookup: { dataSource: getDataSource('FAMILY'), minLength: 1},
+      lookup: { dataSource: getDataSource('FAMILY'), minLength: 1 },
     },
     {
       label: 'Name',
@@ -96,7 +96,7 @@ export function productsQueryEditor({ query, onChange, onRunQuery, datasource }:
       dataField: 'workspace',
       dataType: 'string',
       filterOperations: ['=', '<>'],
-      lookup: { dataSource: workspaces},
+      lookup: { dataSource: workspaces },
     },
   ];
 
@@ -144,13 +144,16 @@ export function productsQueryEditor({ query, onChange, onRunQuery, datasource }:
             </InlineField>
           </div>
         </VerticalGroup>
-        <VerticalGroup spacing='none'>
-          <InlineFormLabel>Query By</InlineFormLabel>
-          <TestMonitorQueryBuilder
-            onChange={(event: any) => onQueryByChange(event.detail.linq)}
-            defaultValue={query.queryBy}
-            fields={fields}
-          />
+        <VerticalGroup>
+          <div>
+            <InlineField label='Query By' tooltip={tooltip.queryBy}>
+              <TestMonitorQueryBuilder
+                onChange={(event: any) => onQueryByChange(event.detail.linq)}
+                defaultValue={query.queryBy}
+                fields={fields}
+              />
+            </InlineField>
+          </div>
         </VerticalGroup>
       </HorizontalGroup>
     </>
