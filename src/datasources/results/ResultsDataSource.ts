@@ -234,7 +234,7 @@ export class TestResultsDataSource extends DataSourceBase<TestResultsQuery> {
     }
   }
 
-  async metricFindQuery({ type, queryBy, workspace, resultFilter, stepFilter }: ResultsVariableQuery, options: DataQueryRequest): Promise<MetricFindValue[]> {
+  async metricFindQuery({ type, queryBy, workspace, resultFilter, stepFilter, properties }: ResultsVariableQuery, options: DataQueryRequest): Promise<MetricFindValue[]> {
     const workspaceFilter = `workspace = (\"${workspace}\")`;
     if (type === ResultsVariableQueryType.Results) {
       let queryByFilter = workspace && queryBy ? `${workspaceFilter} && ${queryBy}` : `${workspaceFilter}` || queryBy;

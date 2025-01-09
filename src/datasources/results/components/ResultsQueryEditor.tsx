@@ -191,6 +191,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
           <div>
             {(query.type === ResultsQueryType.Results) && (
               <>
+              <div style={{ padding: '15% 0 0 0' }}>
                 <InlineFormLabel tooltip={tooltip.queryBy}> Query by </InlineFormLabel>
                 <TestResultsQueryBuilder
                   autoComplete={datasource.queryTestResultValues.bind(datasource)}
@@ -198,6 +199,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
                   defaultValue={query.queryBy}
                   workspaceList={workspaces}
                 />
+              </div>
               </>
             )}
             {query.type === ResultsQueryType.Steps && (

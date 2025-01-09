@@ -9,7 +9,7 @@ import { isValidId } from '../utils';
 import { FloatingError, parseErrorMessage } from '../../../core/errors';
 import { DataFrameQueryEditorCommon, Props } from './DataFrameQueryEditorCommon';
 import { enumToOptions } from 'core/utils';
-import { DataFrameQueryType } from '../types';
+import { DataFrameQueryType, DataTablesProperties, OrderBy } from '../types';
 import { TestMonitorQueryBuilder } from 'shared/queryBuilder';
 
 export const DataFrameQueryEditor = (props: Props) => {
@@ -130,7 +130,7 @@ export const DataFrameQueryEditor = (props: Props) => {
                 <InlineField label="Properties" labelWidth={20} tooltip={tooltips.columns}>
                   <MultiSelect
                     placeholder='Select properties to fetch'
-                    // options={Object.keys(Properties).map(value => ({ label: value, value })) as SelectableValue[]}
+                    options={Object.keys(DataTablesProperties).map(value => ({ label: value, value })) as SelectableValue[]}
                     onChange={() => { }}
                     // value={query.properties}
                     // defaultValue={query.properties!}
@@ -142,7 +142,7 @@ export const DataFrameQueryEditor = (props: Props) => {
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <InlineField label="OrderBy" labelWidth={20} tooltip={tooltips.queryType}>
                       <Select
-                        // options={OrderBy as SelectableValue[]}
+                        options={OrderBy as SelectableValue[]}
                         onChange={() => { }}
                         // value={query.orderBy}
                         // defaultValue={OrderBy[0]}
@@ -169,7 +169,7 @@ export const DataFrameQueryEditor = (props: Props) => {
         )}
         {common.query.type === DataFrameQueryType.Data && (
           <VerticalGroup>
-              <>
+            <>
               <div style={{ padding: '15% 0 0 0' }}>
                 <InlineField label="Columns" shrink={true} tooltip={tooltips.columns} labelWidth={18}>
                   <MultiSelect
@@ -207,9 +207,9 @@ export const DataFrameQueryEditor = (props: Props) => {
                     onCommitChange={() => { }}
                   />
                 </InlineField>
-          </div>
-              </>
-            </VerticalGroup>
+              </div>
+            </>
+          </VerticalGroup>
         )}
       </HorizontalGroup>
 

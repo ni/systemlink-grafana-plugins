@@ -24,13 +24,12 @@ export enum ResultsQueryType {
 }
 
 export enum ResultsVariableQueryType {
-  Results = 'Results',
-  Steps = 'Steps',
-  DataTables = 'DataTables'
+  Data = 'Data'
 }
 
 export interface ResultsVariableQuery{
   type: ResultsVariableQueryType;
+  properties: ResultsVariableProperties;
   queryBy: string;
   workspace: string;
   useTimeRange: boolean;
@@ -128,6 +127,12 @@ export enum ResultsProperties {
     properties = 'PROPERTIES',
     statusSummary = 'STATUS_SUMMARY',
     workspace = 'WORKSPACE',
+}
+
+export enum ResultsVariableProperties {
+  TestProgramName = 'PROGRAM_NAME',
+  DataTablesIds = 'DATA_TABLE_IDS',
+  StepName = 'STEP_NAME',
 }
 
 export enum StepsProperties{

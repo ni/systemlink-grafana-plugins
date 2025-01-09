@@ -1,10 +1,11 @@
-import { InlineField, RadioButtonGroup } from "@grafana/ui";
+import { ActionMeta, InlineField, MultiSelect, RadioButtonGroup, Select } from "@grafana/ui";
 import { enumToOptions } from "core/utils";
 import React from "react";
-import { ResultsVariableQuery, ResultsVariableQueryType } from "../types";
+import { ResultsVariableProperties, ResultsVariableQuery, ResultsVariableQueryType } from "../types";
 import { TestResultsDataSource } from "../ResultsDataSource";
 import { TestResultsQueryBuilder } from "../ResultsQueryBuilder";
 import { TestStepsQueryBuilder } from "../StepsQueryBuilder";
+import { SelectableValue } from "@grafana/data";
 
 interface Props {
   query: ResultsVariableQuery;
@@ -30,16 +31,31 @@ export function ResultsVariableQueryEditor({ onChange, query, datasource }: Prop
     onChange({ ...query, stepFilter: value });
   }
 
+  const onPropertiesChange = (item: SelectableValue<ResultsVariableProperties>) => {
+    onChange({ ...query, properties: item.value! })
+  }
+
   return (
     <>
-      <InlineField label="Query type" labelWidth={20} tooltip={tooltip.queryType}>
+      {/* <InlineField label="Query type" labelWidth={20} tooltip={tooltip.queryType}>
         <RadioButtonGroup
           options={enumToOptions(ResultsVariableQueryType)}
           value={query.type}
           onChange={onQueryTypeChange}
         />
+      </InlineField> */}
+      <InlineField label="Properties" labelWidth={20} tooltip={'Select properties'}>
+        <Select
+          options={enumToOptions(ResultsVariableProperties)}
+          onChange={(option?: SelectableValue<string>) => onChange({ ...query, properties: option?.value as ResultsVariableProperties })}
+          value={query.properties!}
+          defaultValue={query.properties!}
+          width={40}
+          allowCustomValue={false}
+        closeMenuOnSelect={false}            
+        />
       </InlineField>
-      {(query.type === ResultsVariableQueryType.Results || query.type === ResultsVariableQueryType.DataTables) && (
+      {(query.properties! === ResultsVariableProperties.TestProgramName || query.properties === ResultsVariableProperties.DataTablesIds) && (
         <>
           <InlineField label="Query by" tooltip={tooltip.queryBy} labelWidth={20}>
 
@@ -51,7 +67,7 @@ export function ResultsVariableQueryEditor({ onChange, query, datasource }: Prop
           </InlineField>
         </>
       )}
-      {query.type === ResultsVariableQueryType.Steps && (
+      {query.properties! === ResultsVariableProperties.StepName && (
         <>
           <InlineField label="Query by result properties" labelWidth={'auto'}>
             <TestResultsQueryBuilder

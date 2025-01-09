@@ -49,6 +49,29 @@ export interface ColumnFilter {
   value: string | null;
 }
 
+export enum DataTablesProperties{
+  columns = 'COLUMNS',
+  id = 'ID',
+  name = 'NAME',
+  properties = 'PROPERTIES',
+  rowCount = 'ROW_COUNT',
+  workspace = 'WORKSPACE',
+  createdAt = 'CREATED_AT',
+}
+
+export const OrderBy = [
+  {
+    value: 'COLUMNS',
+    label: 'columns',
+    description: 'Column of the dataframe'
+  },
+  {
+    value: 'ID',
+    label: 'id',
+    description: 'Id of the dataframe'
+  }
+]
+
 export interface TableMetadata {
   columns: Column[];
   id: string;

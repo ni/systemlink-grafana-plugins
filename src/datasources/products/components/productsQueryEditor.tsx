@@ -145,7 +145,7 @@ export function productsQueryEditor({ query, onChange, onRunQuery, datasource }:
           </div>
         </VerticalGroup>
         <VerticalGroup>
-          <div>
+          <div style={{ padding: '10% 0 0 0' }}>
             <InlineField label='Query By' tooltip={tooltip.queryBy}>
               <TestMonitorQueryBuilder
                 onChange={(event: any) => onQueryByChange(event.detail.linq)}
