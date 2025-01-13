@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { AutoSizeInput, HorizontalGroup, InlineSwitch, MultiSelect, Select, VerticalGroup } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { InlineField } from 'core/components/InlineField';
@@ -10,27 +10,31 @@ type Props = QueryEditorProps<ProductDataSource, ProductQuery>;
 export function ProductQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
 
+  const handleQueryChange = useCallback((query: ProductQuery, runQuery = true): void => {
+      onChange(query);
+      if (runQuery) {
+        onRunQuery();
+      }
+    }, [onChange, onRunQuery]);
+
   const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
     if (items !== undefined) {
-      onChange({ ...query, properties: items.map(i => i.value as Properties) });
-      onRunQuery();
+      handleQueryChange({ ...query, properties: items.map(i => i.value as Properties) });
     }
   };
 
   const onOrderByChange = (item: SelectableValue<string>) => {
-    onChange({ ...query, orderBy: item.value });
-    onRunQuery();
+    handleQueryChange({ ...query, orderBy: item.value });
   }
 
   const onDescendingChange = (isDescendingChecked: boolean) => {
-    onChange({ ...query, descending: isDescendingChecked });
-    onRunQuery();
+    handleQueryChange({ ...query, descending: isDescendingChecked });
+    
   }
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    onChange({ ...query, recordCount: value });
-    onRunQuery();
+    handleQueryChange({ ...query, recordCount: value });
   }
 
   return (
@@ -56,7 +60,7 @@ export function ProductQueryEditor({ query, onChange, onRunQuery, datasource }: 
                   options={OrderBy as SelectableValue[]}
                   onChange={onOrderByChange}
                   value={query.orderBy}
-                  defaultValue={OrderBy[0]}
+                  defaultValue={query.orderBy}
                   width={25}
                 />
               </InlineField>
@@ -78,17 +82,12 @@ export function ProductQueryEditor({ query, onChange, onRunQuery, datasource }: 
           </div>
         </VerticalGroup> 
       </HorizontalGroup>
-
     </>
   );
 }
 
 const tooltips = {
-  partNumber: 'Enter the part number to query',
-  family: 'Enter the family name to query',
-  workspace: 'Select the workspace to query',
   properties: 'Select the properties fields to query',
-  queryBy: 'Enter the query to filter the results',
   recordCount: 'Enter the number of records to query',
   orderBy: 'Select the field to order the results by',
   descending: 'Select to order the results in descending order'

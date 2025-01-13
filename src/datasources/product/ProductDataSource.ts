@@ -16,11 +16,9 @@ export class ProductDataSource extends DataSourceBase<ProductQuery> {
 
   defaultQuery = {
     properties: [
-      PropertiesOptions.ID,
       PropertiesOptions.PART_NUMBER,
       PropertiesOptions.NAME,
       PropertiesOptions.FAMILY,
-      PropertiesOptions.UPDATEDAT,
       PropertiesOptions.WORKSPACE
     ] as Properties[],
     orderBy: '',
