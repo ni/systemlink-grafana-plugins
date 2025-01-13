@@ -4,6 +4,7 @@ import { BackendSrvRequest, FetchResponse } from '@grafana/runtime';
 
 import { DataFrameQuery, DataFrameQueryType, TableDataRows, TableProperties } from './types';
 import { DataFrameDataSource } from './DataFrameDataSource';
+import { LEGACY_METADATA_TYPE } from 'core/types';
 
 jest.mock('@grafana/runtime', () => ({
   ...jest.requireActual('@grafana/runtime'),
@@ -246,6 +247,13 @@ it('returns table properties for properties query', async () => {
     { name: 'hello', values: ['world'] },
     { name: 'foo', values: ['bar'] },
   ])
+});
+
+it('should migrate legacy metadata type to properties type', () => {
+  const query: DataFrameQuery = { refId: 'A', type: LEGACY_METADATA_TYPE as any, tableId: '1', columns: [] };
+
+  const result = ds.processQuery(query);
+  expect(result.type).toBe(DataFrameQueryType.Properties);
 });
 
 it('handles properties query when table has no properties', async () => {

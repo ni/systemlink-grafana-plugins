@@ -1,5 +1,7 @@
 import { SystemProperties } from "../datasources/system/types";
 
+export const LEGACY_METADATA_TYPE = 'Metadata';
+
 export interface Workspace {
   id: string,
   name: string,

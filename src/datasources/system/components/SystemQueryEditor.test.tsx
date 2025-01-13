@@ -4,6 +4,7 @@ import { SystemDataSource } from "../SystemDataSource";
 import { SystemQueryEditor } from "./SystemQueryEditor";
 import { SystemQuery, SystemQueryType } from "../types";
 import userEvent from '@testing-library/user-event';
+import { LEGACY_METADATA_TYPE } from 'core/types';
 
 const render = setupRenderer(SystemQueryEditor, SystemDataSource);
 
@@ -12,6 +13,13 @@ it('renders with query defaults', async () => {
 
   await waitFor(() => expect(screen.getByRole('radio', { name: 'Summary' })).toBeChecked());
   await waitFor(() => expect(screen.queryByLabelText('System')).not.toBeInTheDocument());
+});
+
+it('renders properties query when given a legacy metadata query', async () => {
+  render({ queryKind: LEGACY_METADATA_TYPE as any, systemName: 'my-system', workspace: '' });
+
+  await waitFor(() => expect(screen.getByRole('radio', { name: 'Properties' })).toBeChecked());
+  await waitFor(() => expect(screen.queryByLabelText('System')).toHaveValue('my-system'));
 });
 
 it('renders with saved properties query', async () => {
