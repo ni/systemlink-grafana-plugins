@@ -22,7 +22,7 @@ describe('ProductQueryEditor', () => {
         recordCount = screen.getByRole('textbox');
     });
 
-    it('renders with query default ', async () => {
+    it('renders with query default', async () => {
         expect(properties).toBeInTheDocument();
         expect(properties).not.toBeNull();
 
