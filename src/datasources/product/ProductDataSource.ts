@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { ProductQuery, ProductsProperties, Properties, PropertiesOptions, QueryProductResponse } from './types';
+import { ProductQuery, ProductResponseProperties, Properties, PropertiesOptions, QueryProductResponse } from './types';
 
 export class ProductDataSource extends DataSourceBase<ProductQuery> {
   constructor(
@@ -12,7 +12,8 @@ export class ProductDataSource extends DataSourceBase<ProductQuery> {
     super(instanceSettings, backendSrv, templateSrv);
   }
 
-  baseUrl = this.instanceSettings.url;
+  baseUrl = this.instanceSettings.url + '/nitestmonitor';
+  queryProductsUrl = this.baseUrl + '/v2/query-products';
 
   defaultQuery = {
     properties: [
@@ -21,17 +22,16 @@ export class ProductDataSource extends DataSourceBase<ProductQuery> {
       PropertiesOptions.FAMILY,
       PropertiesOptions.WORKSPACE
     ] as Properties[],
-    orderBy: '',
+    orderBy: undefined,
     descending: false,
     recordCount: 1000
   };
 
-  async queryProducts(filter?: string, orderBy?: string, projection?: Properties[], recordCount = 1000, descending = false, returnCount = false): Promise<QueryProductResponse> {
-    const response = await this.post<QueryProductResponse>(this.baseUrl + '/nitestmonitor/v2/query-products', {
-      filter: filter,
+  async queryProducts(orderBy: string, projection: Properties[], recordCount = 1000, descending = false, returnCount = false): Promise<QueryProductResponse> {
+    const response = await this.post<QueryProductResponse>(this.queryProductsUrl, {
       orderBy: orderBy,
       descending: descending,
-      projection: projection ? projection : undefined,
+      projection: projection,
       take: recordCount,
       returnCount: returnCount
     });
@@ -39,11 +39,11 @@ export class ProductDataSource extends DataSourceBase<ProductQuery> {
   }
 
   async runQuery(query: ProductQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    const responseData = (await this.queryProducts(undefined, query.orderBy, query.properties!, query.recordCount, query.descending)).products;
+    const responseData = (await this.queryProducts(query.orderBy!, query.properties!, query.recordCount, query.descending)).products;
     const filteredFields = query.properties?.filter((field: Properties) => Object.keys(responseData[0]).includes(field)) || [];
     const fields = filteredFields.map((field) => {
       const fieldType = field === Properties.updatedAt ? FieldType.time : FieldType.string;
-      const values = responseData.map(data => data[field as unknown as keyof ProductsProperties]);
+      const values = responseData.map(data => data[field as unknown as keyof ProductResponseProperties]);
 
       if (field === PropertiesOptions.PROPERTIES) {
         return { name: field, values: values.map(value => JSON.stringify(value)), type: fieldType };
@@ -63,7 +63,7 @@ export class ProductDataSource extends DataSourceBase<ProductQuery> {
 
   async testDatasource(): Promise<TestDataSourceResponse> {
     // TODO: Implement a health and authentication check
-    await this.backendSrv.get(this.baseUrl + '/bar');
+    await this.backendSrv.get(this.baseUrl + '/');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }

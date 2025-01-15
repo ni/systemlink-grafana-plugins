@@ -65,20 +65,20 @@ export const OrderBy = [
 ];
 
 export interface QueryProductResponse {
-  products: ProductsProperties[],
+  products: ProductResponseProperties[],
   continuationToken: string,
   totalCount: number
 }
 
-export interface ProductsProperties {
+export interface ProductResponseProperties {
   id: string;
   partNumber: string;
-  name: string;
-  family: string;
-  updatedAt: string;
-  workspace: string;
-  keywords: any;
-  properties: Object;
-  fileIds: string[];
-  returnCount: number;
+  name?: string;
+  family?: string;
+  updatedAt?: string;
+  workspace?: string;
+  keywords?: any;
+  properties?: Object;
+  fileIds?: string[];
+  returnCount?: number;
 }
