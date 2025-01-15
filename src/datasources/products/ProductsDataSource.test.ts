@@ -1,5 +1,5 @@
 import { BackendSrvRequest, FetchResponse } from '@grafana/runtime';
-import { ProductDataSource } from './ProductDataSource';
+import { ProductsDataSource } from './ProductsDataSource';
 import { ProductQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
 import { Observable, of } from 'rxjs';
 import { DataQueryRequest, DataSourceInstanceSettings, dateTime, Field } from '@grafana/data';
@@ -19,7 +19,7 @@ const mockQueryProductResponse: QueryProductResponse = {
     totalCount: 2
 };
 
-let ds: ProductDataSource;
+let ds: ProductsDataSource;
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -27,11 +27,11 @@ beforeEach(() => {
         url: '_',
         name: 'SystemLink Product',
     };
-    ds = new ProductDataSource(instanceSettings as DataSourceInstanceSettings);
+    ds = new ProductsDataSource(instanceSettings as DataSourceInstanceSettings);
     setupFetchMock();
 });
 
-describe('ProductDataSource', () => {
+describe('ProductsDataSource', () => {
     describe('queryProducts', () => {
         it('should call api with correct parameters', async () => {
             const orderBy = 'name';

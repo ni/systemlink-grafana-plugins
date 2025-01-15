@@ -2,12 +2,12 @@ import React, { useCallback } from 'react';
 import { AutoSizeInput, HorizontalGroup, InlineSwitch, MultiSelect, Select, VerticalGroup } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { InlineField } from 'core/components/InlineField';
-import { ProductDataSource } from '../ProductDataSource';
+import { ProductsDataSource } from '../ProductsDataSource';
 import { OrderBy, ProductQuery, Properties } from '../types';
 
-type Props = QueryEditorProps<ProductDataSource, ProductQuery>;
+type Props = QueryEditorProps<ProductsDataSource, ProductQuery>;
 
-export function ProductQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
+export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
 
   const handleQueryChange = useCallback((query: ProductQuery, runQuery = true): void => {

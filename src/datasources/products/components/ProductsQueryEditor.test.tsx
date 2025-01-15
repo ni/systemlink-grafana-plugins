@@ -1,19 +1,19 @@
 import { setupRenderer } from "test/fixtures";
-import { ProductDataSource } from "../ProductDataSource";
-import { ProductQueryEditor } from "./ProductQueryEditor";
+import { ProductsDataSource } from "../ProductsDataSource";
+import { ProductsQueryEditor } from "./ProductsQueryEditor";
 import { screen, waitFor } from "@testing-library/react";
 import { ProductQuery } from "../types";
 import { select } from "react-select-event";
 import userEvent from "@testing-library/user-event";
 
-const render = setupRenderer(ProductQueryEditor, ProductDataSource);
+const render = setupRenderer(ProductsQueryEditor, ProductsDataSource);
 let onChange: jest.Mock<any, any>
 let properties: HTMLElement
 let orderBy: HTMLElement
 let descending: HTMLElement
 let recordCount: HTMLElement
 
-describe('ProductQueryEditor', () => {
+describe('ProductsQueryEditor', () => {
     beforeEach(async() => {
         [onChange] = render({ refId: '', properties: [], orderBy: undefined} as ProductQuery);
         await waitFor(() => properties = screen.getAllByRole('combobox')[0]);
@@ -22,9 +22,9 @@ describe('ProductQueryEditor', () => {
         recordCount = screen.getByRole('textbox');
     });
 
-    it('renders with query default', async () => {
+    it('renders with default query', async () => {
         expect(properties).toBeInTheDocument();
-        expect(properties).not.toBeNull();
+        expect(properties).toHaveDisplayValue('');
 
         expect(orderBy).toBeInTheDocument();
         expect(orderBy).toHaveAccessibleDescription('Select field to order by');
@@ -37,7 +37,7 @@ describe('ProductQueryEditor', () => {
     });
 
     it('updates when user makes changes', async () => {    
-        //User changes properties       
+        //User adds a properties       
         await select(properties, "id", { container: document.body });
         await waitFor(() => {
             expect(onChange).toHaveBeenCalledWith(

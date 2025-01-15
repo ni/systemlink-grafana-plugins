@@ -3,7 +3,7 @@ import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana
 import { DataSourceBase } from 'core/DataSourceBase';
 import { ProductQuery, ProductResponseProperties, Properties, PropertiesOptions, QueryProductResponse } from './types';
 
-export class ProductDataSource extends DataSourceBase<ProductQuery> {
+export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
@@ -40,8 +40,9 @@ export class ProductDataSource extends DataSourceBase<ProductQuery> {
 
   async runQuery(query: ProductQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     const responseData = (await this.queryProducts(query.orderBy!, query.properties!, query.recordCount, query.descending)).products;
-    const filteredFields = query.properties?.filter((field: Properties) => Object.keys(responseData[0]).includes(field)) || [];
-    const fields = filteredFields.map((field) => {
+  
+    const selectedFields = query.properties?.filter((field: Properties) => Object.keys(responseData[0]).includes(field)) || [];
+    const fields = selectedFields.map((field) => {
       const fieldType = field === Properties.updatedAt ? FieldType.time : FieldType.string;
       const values = responseData.map(data => data[field as unknown as keyof ProductResponseProperties]);
 
