@@ -58,10 +58,10 @@ export function ProductQueryEditor({ query, onChange, onRunQuery, datasource }: 
               <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
                 <Select
                   options={OrderBy as SelectableValue[]}
+                  placeholder='Select field to order by'
                   onChange={onOrderByChange}
                   value={query.orderBy}
                   defaultValue={query.orderBy}
-                  width={25}
                 />
               </InlineField>
               <InlineField label="Descending" tooltip={tooltips.descending}>
@@ -77,6 +77,7 @@ export function ProductQueryEditor({ query, onChange, onRunQuery, datasource }: 
                 maxWidth={40}
                 defaultValue={query.recordCount}
                 onCommitChange={recordCountChange}
+                placeholder='Enter record count'
               />
             </InlineField>
           </div>
