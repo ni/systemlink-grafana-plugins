@@ -1,6 +1,5 @@
 # Systemlink Product data source
 
-<!--
-    TODO: Write a short description of your plugin and document any extra
-    configuration that is required for development.
--->
+This is a plugin for the Products from the testmonitor service. It allows you to:
+
+- Visualize product metadata on a dashboard 
