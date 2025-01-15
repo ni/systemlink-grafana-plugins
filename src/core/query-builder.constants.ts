@@ -167,7 +167,74 @@ export const QueryBuilderOperations = {
     expressionTemplate: '!string.IsNullOrEmpty(properties["{0}"])',
     hideValue: true,
   },
+  KEY_VALUE_MATCHES: {
+    label: 'matches',
+    name: 'key_value_matches',
+    expressionTemplate: '{0}["{1}"] = "{2}"',
+    hideValue: true,
+  }
 }
+
+// function labeledEditorTemplate(keyPlaceholder: string, valuePlaceholder: string, value: any): HTMLElement {
+//   const template = `
+//   <div id="sl-query-builder-key-value-editor">
+//       <ul style="list-style: none; padding-left: 0; padding-right: 10px;">
+//           <li>
+//               <smart-input class="key-input" style="width: auto; padding-left: 5px;"
+//                   placeholder="${keyPlaceholder}"
+//                   value="${value?.key ?? ''}">
+//               </smart-input>
+//           </li>
+//           <li>
+//               <smart-input class="value-input" style="width: auto; margin-top: 10px; padding-left: 5px;"
+//                   placeholder="${valuePlaceholder}"
+//                   value="${value?.value ?? ''}">
+//               </smart-input>
+//           </li>
+//       </ul>
+//   </div>`;
+
+//   const templateBody = new DOMParser().parseFromString(template, 'text/html').body;
+//   return templateBody.querySelector('#sl-query-builder-key-value-editor')!;
+// }
+
+// function valueTemplate(editor: HTMLElement | null | undefined, value: { key: string; value: string | number;}): string {
+//   if (value) {
+//     const keyValuePair = value as { key: string; value: string | number;};
+//     return `${keyValuePair.key} : ${keyValuePair.value}`;
+//   }
+//   if (editor) {
+//     const keyInput = editor.querySelector<HTMLInputElement>('.key-input');
+//     const valueInput = editor.querySelector<HTMLInputElement>('.value-input');
+//     if (keyInput && valueInput) {
+//       return `${keyInput.value} : ${valueInput.value}`;
+//     }
+//   }
+//   return '';
+// }
+
+// function retrieveKeyValueInputs(editor: HTMLElement | null | undefined): { key: string, value: string } {
+//   let pair = { key: '', value: '' };
+//   if (editor) {
+//       const keyInput = editor.querySelector<HTMLInputElement>('.key-input');
+//       const valueInput = editor.querySelector<HTMLInputElement>('.value-input');
+//       if (keyInput && valueInput) {
+//           pair = {
+//               key: keyInput.value,
+//               value: valueInput.value
+//           };
+//       }
+//   }
+//   return pair;
+// }
+
+// function handleStringValue(editor: HTMLElement | null | undefined): any {
+//   const inputs = retrieveKeyValueInputs(editor);
+//   return {
+//     label: inputs,
+//     value: inputs
+// };
+// }
 
 export const customOperations: QueryBuilderCustomOperation[] = [
   QueryBuilderOperations.EQUALS,

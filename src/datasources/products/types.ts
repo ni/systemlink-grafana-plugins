@@ -1,10 +1,12 @@
 import { DataQuery } from '@grafana/schema'
+import { QueryBuilderField } from 'smart-webcomponents-react';
 
 export interface ProductQuery extends DataQuery {
   properties?: Properties[];
   orderBy?: string;
   descending?: boolean;
   recordCount?: number;
+  queryBy?: string;
 }
 
 export enum Properties {
@@ -81,4 +83,14 @@ export interface ProductResponseProperties {
   properties?: Object;
   fileIds?: string[];
   returnCount?: number;
+}
+
+export interface QBField extends QueryBuilderField {
+    lookup?: {
+        readonly?: boolean;
+        dataSource: Array<{
+            label: string,
+            value: string
+        }>;
+    },
 }

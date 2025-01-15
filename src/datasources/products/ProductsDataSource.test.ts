@@ -40,7 +40,7 @@ describe('ProductsDataSource', () => {
             const descending = true;
             const returnCount = true;
 
-            const response = await ds.queryProducts(orderBy, projection, recordCount, descending, returnCount);
+            const response = await ds.queryProducts(orderBy, projection, '', recordCount, descending, returnCount);
 
             expect(response).toEqual(mockQueryProductResponse);
         });
