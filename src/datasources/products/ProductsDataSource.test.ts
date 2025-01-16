@@ -12,8 +12,24 @@ jest.mock('@grafana/runtime', () => ({
 const fetchMock = jest.fn<Observable<FetchResponse>, [BackendSrvRequest]>();
 const mockQueryProductResponse: QueryProductResponse = {
     products: [
-        { id: '1', name: 'Product 1', partNumber: '123', family: 'Family 1', workspace: 'Workspace 1' },
-        { id: '2', name: 'Product 2', partNumber: '456', family: 'Family 2', workspace: 'Workspace 2' },
+        {
+            id: '1',
+            name: 'Product 1',
+            partNumber: '123',
+            family: 'Family 1',
+            workspace: 'Workspace 1',
+            updatedAt: '2021-08-01T00:00:00Z',
+            properties: { prop1: 'value1' }
+        },
+        {
+            id: '2',
+            name: 'Product 2',
+            partNumber: '456',
+            family: 'Family 2',
+            workspace: 'Workspace 2',
+            updatedAt: '2021-08-02T00:00:00Z',
+            properties: { prop2: 'value2' }
+        },
     ],
     continuationToken: '',
     totalCount: 2
@@ -52,30 +68,39 @@ describe('ProductsDataSource', () => {
             { refId: 'A', properties: [PropertiesOptions.PART_NUMBER, PropertiesOptions.FAMILY, PropertiesOptions.NAME, PropertiesOptions.WORKSPACE] as Properties[], orderBy: undefined }, // initial state when creating a panel
             { refId: 'B', properties: [PropertiesOptions.PART_NUMBER, PropertiesOptions.FAMILY, PropertiesOptions.NAME, PropertiesOptions.WORKSPACE] as Properties[], orderBy: PropertiesOptions.ID }, // state after orderby is selected
         ]);
-    
+
         const response = await ds.query(query);
-    
+
         expect(response.data).toHaveLength(2);
         expect(fetchMock).toHaveBeenCalledTimes(2);
         expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/nitestmonitor/v2/query-products' }));
     });
-    
+
     it('should convert properties to Grafana fields', async () => {
         const query = buildQuery([
             {
                 refId: 'A',
-                properties: [PropertiesOptions.PART_NUMBER, PropertiesOptions.FAMILY, PropertiesOptions.NAME, PropertiesOptions.WORKSPACE] as Properties[], orderBy: undefined
+                properties: [
+                    PropertiesOptions.PART_NUMBER,
+                    PropertiesOptions.FAMILY,
+                    PropertiesOptions.NAME,
+                    PropertiesOptions.WORKSPACE,
+                    PropertiesOptions.UPDATEDAT,
+                    PropertiesOptions.PROPERTIES
+                ] as Properties[], orderBy: undefined
             },
         ]);
-    
+
         const response = await ds.query(query);
-    
+
         const fields = response.data[0].fields as Field[];
         expect(fields).toEqual([
             { name: 'partNumber', values: ['123', '456'], type: 'string' },
             { name: 'family', values: ['Family 1', 'Family 2'], type: 'string' },
             { name: 'name', values: ['Product 1', 'Product 2'], type: 'string' },
             { name: 'workspace', values: ['Workspace 1', 'Workspace 2'], type: 'string' },
+            { name: 'updatedAt', values: ['2021-08-01T00:00:00Z', '2021-08-02T00:00:00Z'], type: 'time' },
+            { name: 'properties', values: ['{"prop1":"value1"}', '{"prop2":"value2"}'], type: 'string' },
         ]);
     });
 });
