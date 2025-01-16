@@ -14,10 +14,14 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
   query = datasource.prepareQuery(query);
 
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  
- useEffect(() => {
+  const [partNumbers, setPartNumbers] = useState<string[]>([]);
+
+  useEffect(() => {
     Promise.all([datasource.areWorkspacesLoaded$]).then(() => {
       setWorkspaces(Array.from(datasource.workspacesCache.values()));
+    });
+    Promise.all([datasource.arePartNumberLoaded$]).then(() => {
+      setPartNumbers(Array.from(datasource.partNumbersCache.values()));
     });
   }, [datasource]);
 
@@ -40,7 +44,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
 
   const onDescendingChange = (isDescendingChecked: boolean) => {
     handleQueryChange({ ...query, descending: isDescendingChecked });
-    
+
   }
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -48,12 +52,8 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
     handleQueryChange({ ...query, recordCount: value });
   }
 
-  const onParameterChange = (event: CustomEvent) => {
-    if (query.queryBy !== event.detail.linq) {
-      query.queryBy = event.detail.linq;
-      onChange({...query});
-      onRunQuery();
-    }
+  const onParameterChange = (value: string) => {
+      handleQueryChange({ ...query, queryBy:value});
   }
 
   return (
@@ -100,14 +100,15 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
               />
             </InlineField>
           </div>
-        </VerticalGroup> 
+        </VerticalGroup>
         <VerticalGroup>
           <InlineField label="Query By" labelWidth={18} tooltip={tooltips.queryBy}>
             <ProductsQueryBuilder
               filter={query.queryBy}
               workspaces={workspaces}
+              partNumbers={partNumbers}
               globalVariableOptions={datasource.globalVariableOptions()}
-              onChange={(event: any) => onParameterChange(event)}
+              onChange={(event: any) => onParameterChange(event.detail.linq)}
             ></ProductsQueryBuilder>
           </InlineField>
         </VerticalGroup>

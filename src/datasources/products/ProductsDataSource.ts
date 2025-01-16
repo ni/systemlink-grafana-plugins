@@ -14,17 +14,25 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   ) {
     super(instanceSettings, backendSrv, templateSrv);
     this.workspaceLoadedPromise = this.loadWorkspaces();
+    this.partNumberLoadedPromise = this.getProductPartNumbers();
   }
 
   private workspaceLoadedPromise: Promise<void>;
+  private partNumberLoadedPromise: Promise<void>;
+
   private workspacesLoaded!: () => void;
+  private partNumberLoaded!: () => void;
 
   readonly workspacesCache = new Map<string, Workspace>([]);
+  readonly partNumbersCache = new Map<string, string>([]);
+
   areWorkspacesLoaded$ = new Promise<void>(resolve => this.workspacesLoaded = resolve);
+  arePartNumberLoaded$ = new Promise<void>(resolve => this.partNumberLoaded = resolve);
   error = '';
 
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
   queryProductsUrl = this.baseUrl + '/v2/query-products';
+  queryProductValuesUrl = this.baseUrl + '/v2/query-product-values';
 
   defaultQuery = {
     properties: [
@@ -51,8 +59,17 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     return response;
   }
 
+  async queryProductValues(fieldName: string): Promise<string[]> {
+    const response = await this.post<string[]>(this.queryProductValuesUrl, {
+      field: fieldName
+    });
+    return response;
+  }
+
   async runQuery(query: ProductQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     await this.workspaceLoadedPromise;
+    await this.partNumberLoadedPromise;
+
     if (query.queryBy) {
       query.queryBy = this.templateSrv.replace(query.queryBy, options.scopedVars);
     }
@@ -63,7 +80,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     const fields = selectedFields.map((field) => {
       const fieldType = field === Properties.updatedAt ? FieldType.time : FieldType.string;
       const values = responseData.map(data => data[field as unknown as keyof ProductResponseProperties]);
-      
+
       if (field === PropertiesOptions.PROPERTIES) {
         return { name: field, values: values.map(value => JSON.stringify(value)), type: fieldType };
       }
@@ -102,5 +119,19 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
 
     this.workspacesLoaded();
+  }
+
+  private async getProductPartNumbers(): Promise<void> {
+    if (this.partNumbersCache.size > 0) {
+      return;
+    }
+    const partNumbers = await this.queryProductValues(PropertiesOptions.PART_NUMBER)
+      .catch(error => {
+        this.error = parseErrorMessage(error)!;
+      });
+
+    partNumbers?.forEach(partNumber => this.partNumbersCache.set(partNumber, partNumber));
+  
+    this.partNumberLoaded();
   }
 }

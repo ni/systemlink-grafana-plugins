@@ -17,10 +17,6 @@ export const ProductsQueryBuilderFields: Record<string, QBField> = {
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name,
-            QueryBuilderOperations.STARTS_WITH.name,
-            QueryBuilderOperations.ENDS_WITH.name,
-            QueryBuilderOperations.CONTAINS.name,
-            QueryBuilderOperations.DOES_NOT_CONTAIN.name,
             QueryBuilderOperations.IS_BLANK.name,
             QueryBuilderOperations.IS_NOT_BLANK.name
         ],
@@ -38,10 +34,7 @@ export const ProductsQueryBuilderFields: Record<string, QBField> = {
             QueryBuilderOperations.DOES_NOT_CONTAIN.name,
             QueryBuilderOperations.IS_BLANK.name,
             QueryBuilderOperations.IS_NOT_BLANK.name
-        ],
-        lookup: {
-            dataSource: []
-        }
+        ]
     },
     NAME: {
         label: 'Name',
@@ -53,21 +46,24 @@ export const ProductsQueryBuilderFields: Record<string, QBField> = {
             QueryBuilderOperations.DOES_NOT_CONTAIN.name,
             QueryBuilderOperations.IS_BLANK.name,
             QueryBuilderOperations.IS_NOT_BLANK.name
-        ],
-        lookup: {
-            dataSource: []
-        }
+        ]
     },
     PROPERTIES: {
         label: 'Properties',
         dataField: ProductsQueryBuilderFieldNames.PROPERTIES,
         dataType: 'object',
         filterOperations: [
-            QueryBuilderOperations.EQUALS.name,
-        ],
-        lookup: {
-            dataSource: []
-        }
+            QueryBuilderOperations.KEY_VALUE_MATCH.name,
+            QueryBuilderOperations.KEY_VALUE_DOES_NOT_MATCH.name,
+            QueryBuilderOperations.KEY_VALUE_CONTAINS.name,
+            QueryBuilderOperations.KEY_VALUE_DOES_NOT_CONTAINS.name,
+            QueryBuilderOperations.KEY_VALUE_IS_GREATER_THAN.name,
+            QueryBuilderOperations.KEY_VALUE_IS_GREATER_THAN_OR_EQUAL.name,
+            QueryBuilderOperations.KEY_VALUE_IS_LESS_THAN.name,
+            QueryBuilderOperations.KEY_VALUE_IS_LESS_THAN_OR_EQUAL.name,
+            QueryBuilderOperations.KEY_VALUE_IS_NUMERICAL_EQUAL.name,
+            QueryBuilderOperations.KEY_VALUE_IS_NUMERICAL_NOT_EQUAL.name
+        ]
     },
     UPDATEDAT: {
         label: 'Updated At',
@@ -98,7 +94,6 @@ export const ProductsQueryBuilderFields: Record<string, QBField> = {
 }
 
 export const ProductsQueryBuilderStaticFields = [
-    ProductsQueryBuilderFields.PARTNUMBER,
     ProductsQueryBuilderFields.FAMILY,
     ProductsQueryBuilderFields.NAME,
     ProductsQueryBuilderFields.PROPERTIES,

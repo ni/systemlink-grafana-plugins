@@ -1,3 +1,4 @@
+import { KeyValueOperationTemplate } from "datasources/products/components/query-builder/keyValueOperation";
 import { QueryBuilderCustomOperation } from "smart-webcomponents-react";
 
 export const queryBuilderMessages = {
@@ -39,6 +40,32 @@ export const queryBuilderMessages = {
     queryLabel: '',
   },
 };
+
+export enum FilterOperations {
+  KeyValueMatch = 'key_value_matches',
+  KeyValueDoesNotMatch = 'key_value_not_matches',
+  KeyValueContains = 'key_value_contains',
+  KeyValueDoesNotContains = 'key_value_not_contains',
+  KeyValueIsGreaterThan = 'key_value_>',
+  KeyValueIsGreaterThanOrEqual = 'key_value_>=',
+  KeyValueIsLessThan = 'key_value_<',
+  KeyValueIsLessThanOrEqual = 'key_value_<=',
+  KeyValueIsNumericallyEqual = 'key_value_===',
+  KeyValueIsNumericallyNotEqual = 'key_value_!==',
+}
+
+export enum FilterExpressions {
+  KeyValueMatches = '{0}["{1}"] = "{2}"',
+  KeyValueNotMatches = '{0}["{1}"] != "{2}"',
+  KeyValueContains = '{0}["{1}"].Contains("{2}")',
+  KeyValueNotContains = '!{0}["{1}"].Contains("{2}")',
+  KeyValueIsGreaterThan = 'SafeConvert.ToDecimal({0}["{1}"]) > {2}',
+  KeyValueIsGreaterThanOrEqual = 'SafeConvert.ToDecimal({0}["{1}"]) >= {2}',
+  KeyValueIsLessThan = 'SafeConvert.ToDecimal({0}["{1}"]) < {2}',
+  KeyValueIsLessThanOrEqual = 'SafeConvert.ToDecimal({0}["{1}"]) <= {2}',
+  KeyValueIsNumericallyEqual = 'SafeConvert.ToDecimal({0}["{1}"]) = {2}',
+  KeyValueIsNumericallyNotEqual = 'SafeConvert.ToDecimal({0}["{1}"]) != {2}',
+}
 
 export const QueryBuilderOperations = {
   EQUALS: {
@@ -167,98 +194,145 @@ export const QueryBuilderOperations = {
     expressionTemplate: '!string.IsNullOrEmpty(properties["{0}"])',
     hideValue: true,
   },
-  KEY_VALUE_MATCHES: {
-    label: 'matches',
-    name: 'key_value_matches',
-    expressionTemplate: '{0}["{1}"] = "{2}"',
-    hideValue: true,
+  KEY_VALUE_MATCH: {
+    label: `matches`,
+    name: FilterOperations.KeyValueMatch,
+    expressionTemplate: FilterExpressions.KeyValueMatches,
+    editorTemplate: KeyValueOperationTemplate.editorTemplate,
+    valueTemplate: KeyValueOperationTemplate.valueTemplate,
+    handleValue: KeyValueOperationTemplate.handleStringValue,
+    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
+    expressionReaderCallback: KeyValueOperationTemplate.stringKeyValueExpressionReaderCallback,
+    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValuePair
+  },
+  KEY_VALUE_DOES_NOT_MATCH: {
+    label: `does not match`,
+    name: FilterOperations.KeyValueDoesNotMatch,
+    expressionTemplate: FilterExpressions.KeyValueNotMatches,
+    editorTemplate: KeyValueOperationTemplate.editorTemplate,
+    valueTemplate: KeyValueOperationTemplate.valueTemplate,
+    handleValue: KeyValueOperationTemplate.handleStringValue,
+    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
+    expressionReaderCallback: KeyValueOperationTemplate.stringKeyValueExpressionReaderCallback,
+    validateValue: KeyValueOperationTemplate.validateNotEmptyKey
+  },
+  KEY_VALUE_DOES_NOT_CONTAINS: {
+    label: `does not contain`,
+    name: FilterOperations.KeyValueDoesNotContains,
+    expressionTemplate: FilterExpressions.KeyValueNotContains,
+    editorTemplate: KeyValueOperationTemplate.editorTemplate,
+    valueTemplate: KeyValueOperationTemplate.valueTemplate,
+    handleValue: KeyValueOperationTemplate.handleStringValue,
+    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
+    expressionReaderCallback: KeyValueOperationTemplate.stringKeyValueExpressionReaderCallback,
+    validateValue: KeyValueOperationTemplate.validateNotEmptyKey
+  },
+  KEY_VALUE_CONTAINS: {
+    label: `contains`,
+    name: FilterOperations.KeyValueContains,
+    expressionTemplate: FilterExpressions.KeyValueContains,
+    editorTemplate: KeyValueOperationTemplate.editorTemplate,
+    valueTemplate: KeyValueOperationTemplate.valueTemplate,
+    handleValue: KeyValueOperationTemplate.handleStringValue,
+    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
+    expressionReaderCallback: KeyValueOperationTemplate.stringKeyValueExpressionReaderCallback,
+    validateValue: KeyValueOperationTemplate.validateNotEmptyKey
+  },
+  KEY_VALUE_IS_GREATER_THAN: {
+    label: `> (numeric)`,
+    name: FilterOperations.KeyValueIsGreaterThan,
+    expressionTemplate: FilterExpressions.KeyValueIsGreaterThan,
+    editorTemplate: KeyValueOperationTemplate.editorTemplate.bind(this),
+    valueTemplate: KeyValueOperationTemplate.valueTemplate.bind(this),
+    handleValue: KeyValueOperationTemplate.handleNumberValue.bind(this),
+    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback.bind(this),
+    expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback.bind(this),
+    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber.bind(this)
+  },
+  KEY_VALUE_IS_GREATER_THAN_OR_EQUAL: {
+    label: `≥ (numeric)`,
+    name: FilterOperations.KeyValueIsGreaterThanOrEqual,
+    expressionTemplate: FilterExpressions.KeyValueIsGreaterThanOrEqual,
+    editorTemplate: KeyValueOperationTemplate.editorTemplate.bind(this),
+    valueTemplate: KeyValueOperationTemplate.valueTemplate.bind(this),
+    handleValue: KeyValueOperationTemplate.handleNumberValue.bind(this),
+    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback.bind(this),
+    expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback.bind(this),
+    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber.bind(this)
+  },
+  KEY_VALUE_IS_LESS_THAN: {
+    label: `< (numeric)`,
+    name: FilterOperations.KeyValueIsLessThan,
+    expressionTemplate: FilterExpressions.KeyValueIsLessThan,
+    editorTemplate: KeyValueOperationTemplate.editorTemplate.bind(this),
+    valueTemplate: KeyValueOperationTemplate.valueTemplate.bind(this),
+    handleValue: KeyValueOperationTemplate.handleNumberValue.bind(this),
+    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback.bind(this),
+    expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback.bind(this),
+    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber.bind(this)
+  },
+  KEY_VALUE_IS_LESS_THAN_OR_EQUAL: {
+    label: `≤ (numeric)`,
+    name: FilterOperations.KeyValueIsLessThanOrEqual,
+    expressionTemplate: FilterExpressions.KeyValueIsLessThanOrEqual,
+    editorTemplate: KeyValueOperationTemplate.editorTemplate.bind(this),
+    valueTemplate: KeyValueOperationTemplate.valueTemplate.bind(this),
+    handleValue: KeyValueOperationTemplate.handleNumberValue.bind(this),
+    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback.bind(this),
+    expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback.bind(this),
+    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber.bind(this)
+  },
+  KEY_VALUE_IS_NUMERICAL_EQUAL: {
+    label: `= (numeric)`,
+    name: FilterOperations.KeyValueIsNumericallyEqual,
+    expressionTemplate: FilterExpressions.KeyValueIsNumericallyEqual,
+    editorTemplate: KeyValueOperationTemplate.editorTemplate.bind(this),
+    valueTemplate: KeyValueOperationTemplate.valueTemplate.bind(this),
+    handleValue: KeyValueOperationTemplate.handleNumberValue.bind(this),
+    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback.bind(this),
+    expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback.bind(this),
+    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber.bind(this)
+  },
+  KEY_VALUE_IS_NUMERICAL_NOT_EQUAL: {
+    label: `≠ (numeric)`,
+    name: FilterOperations.KeyValueIsNumericallyNotEqual,
+    expressionTemplate: FilterExpressions.KeyValueIsNumericallyNotEqual,
+    editorTemplate: KeyValueOperationTemplate.editorTemplate.bind(this),
+    valueTemplate: KeyValueOperationTemplate.valueTemplate.bind(this),
+    handleValue: KeyValueOperationTemplate.handleNumberValue.bind(this),
+    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback.bind(this),
+    expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback.bind(this),
+    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber.bind(this)
   }
-}
-
-// function labeledEditorTemplate(keyPlaceholder: string, valuePlaceholder: string, value: any): HTMLElement {
-//   const template = `
-//   <div id="sl-query-builder-key-value-editor">
-//       <ul style="list-style: none; padding-left: 0; padding-right: 10px;">
-//           <li>
-//               <smart-input class="key-input" style="width: auto; padding-left: 5px;"
-//                   placeholder="${keyPlaceholder}"
-//                   value="${value?.key ?? ''}">
-//               </smart-input>
-//           </li>
-//           <li>
-//               <smart-input class="value-input" style="width: auto; margin-top: 10px; padding-left: 5px;"
-//                   placeholder="${valuePlaceholder}"
-//                   value="${value?.value ?? ''}">
-//               </smart-input>
-//           </li>
-//       </ul>
-//   </div>`;
-
-//   const templateBody = new DOMParser().parseFromString(template, 'text/html').body;
-//   return templateBody.querySelector('#sl-query-builder-key-value-editor')!;
-// }
-
-// function valueTemplate(editor: HTMLElement | null | undefined, value: { key: string; value: string | number;}): string {
-//   if (value) {
-//     const keyValuePair = value as { key: string; value: string | number;};
-//     return `${keyValuePair.key} : ${keyValuePair.value}`;
-//   }
-//   if (editor) {
-//     const keyInput = editor.querySelector<HTMLInputElement>('.key-input');
-//     const valueInput = editor.querySelector<HTMLInputElement>('.value-input');
-//     if (keyInput && valueInput) {
-//       return `${keyInput.value} : ${valueInput.value}`;
-//     }
-//   }
-//   return '';
-// }
-
-// function retrieveKeyValueInputs(editor: HTMLElement | null | undefined): { key: string, value: string } {
-//   let pair = { key: '', value: '' };
-//   if (editor) {
-//       const keyInput = editor.querySelector<HTMLInputElement>('.key-input');
-//       const valueInput = editor.querySelector<HTMLInputElement>('.value-input');
-//       if (keyInput && valueInput) {
-//           pair = {
-//               key: keyInput.value,
-//               value: valueInput.value
-//           };
-//       }
-//   }
-//   return pair;
-// }
-
-// function handleStringValue(editor: HTMLElement | null | undefined): any {
-//   const inputs = retrieveKeyValueInputs(editor);
-//   return {
-//     label: inputs,
-//     value: inputs
-// };
-// }
+};
 
 export const customOperations: QueryBuilderCustomOperation[] = [
-  QueryBuilderOperations.EQUALS,
-  QueryBuilderOperations.DOES_NOT_EQUAL,
-  QueryBuilderOperations.STARTS_WITH,
-  QueryBuilderOperations.ENDS_WITH,
-  QueryBuilderOperations.CONTAINS,
-  QueryBuilderOperations.DOES_NOT_CONTAIN,
-  QueryBuilderOperations.IS_BLANK,
-  QueryBuilderOperations.IS_NOT_BLANK,
-  QueryBuilderOperations.GREATER_THAN,
-  QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO,
-  QueryBuilderOperations.LESS_THAN,
-  QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO,
-  QueryBuilderOperations.LIST_EQUALS,
-  QueryBuilderOperations.LIST_DOES_NOT_EQUAL,
-  QueryBuilderOperations.LIST_CONTAINS,
-  QueryBuilderOperations.LIST_DOES_NOT_CONTAIN,
-  QueryBuilderOperations.PROPERTY_EQUALS,
-  QueryBuilderOperations.PROPERTY_DOES_NOT_EQUAL,
-  QueryBuilderOperations.PROPERTY_STARTS_WITH,
-  QueryBuilderOperations.PROPERTY_ENDS_WITH,
-  QueryBuilderOperations.PROPERTY_CONTAINS,
-  QueryBuilderOperations.PROPERTY_DOES_NOT_CONTAIN,
-  QueryBuilderOperations.PROPERTY_IS_BLANK,
-  QueryBuilderOperations.PROPERTY_IS_NOT_BLANK,
-];
+    QueryBuilderOperations.EQUALS,
+    QueryBuilderOperations.DOES_NOT_EQUAL,
+    QueryBuilderOperations.STARTS_WITH,
+    QueryBuilderOperations.ENDS_WITH,
+    QueryBuilderOperations.CONTAINS,
+    QueryBuilderOperations.DOES_NOT_CONTAIN,
+    QueryBuilderOperations.IS_BLANK,
+    QueryBuilderOperations.IS_NOT_BLANK,
+    QueryBuilderOperations.GREATER_THAN,
+    QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO,
+    QueryBuilderOperations.LESS_THAN,
+    QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO,
+    QueryBuilderOperations.LIST_EQUALS,
+    QueryBuilderOperations.LIST_DOES_NOT_EQUAL,
+    QueryBuilderOperations.LIST_CONTAINS,
+    QueryBuilderOperations.LIST_DOES_NOT_CONTAIN,
+    QueryBuilderOperations.PROPERTY_EQUALS,
+    QueryBuilderOperations.PROPERTY_DOES_NOT_EQUAL,
+    QueryBuilderOperations.PROPERTY_STARTS_WITH,
+    QueryBuilderOperations.PROPERTY_ENDS_WITH,
+    QueryBuilderOperations.PROPERTY_CONTAINS,
+    QueryBuilderOperations.PROPERTY_DOES_NOT_CONTAIN,
+    QueryBuilderOperations.PROPERTY_IS_BLANK,
+    QueryBuilderOperations.PROPERTY_IS_NOT_BLANK,
+    QueryBuilderOperations.KEY_VALUE_MATCH,
+    QueryBuilderOperations.KEY_VALUE_DOES_NOT_MATCH,
+    QueryBuilderOperations.KEY_VALUE_CONTAINS,
+    QueryBuilderOperations.KEY_VALUE_DOES_NOT_CONTAINS
+  ];

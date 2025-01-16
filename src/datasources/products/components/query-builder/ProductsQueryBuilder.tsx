@@ -11,6 +11,7 @@ import QueryBuilder, { QueryBuilderCustomOperation, QueryBuilderProps } from "sm
 type ProductsQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
   filter?: string;
   workspaces: Workspace[];
+  partNumbers: string[];
   globalVariableOptions: QueryBuilderOption[];
 };
 
@@ -18,6 +19,7 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
   filter,
   onChange,
   workspaces,
+  partNumbers,
   globalVariableOptions
 }) => {
   const theme = useTheme2();
@@ -61,14 +63,30 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
     }
   }, []);
 
+  const partNumberField = useMemo(() => {
+    const partNumberField = ProductsQueryBuilderFields.PARTNUMBER;
+
+    return {
+      ...partNumberField,
+      lookup: {
+        ...partNumberField.lookup,
+        dataSource: [
+          ...(partNumberField.lookup?.dataSource || []),
+          ...partNumbers.map((partNumber) => ({ label: partNumber, value: partNumber }))
+        ]
+      }
+    }
+  }, [partNumbers]);
+
+
   useEffect(() => {
-    const fields = [...ProductsQueryBuilderStaticFields, updatedAtField, workspaceField]
+    const fields = [partNumberField, ...ProductsQueryBuilderStaticFields, updatedAtField, workspaceField]
       .map((field) => {
         if (field.lookup?.dataSource) {
           return {
             ...field,
             lookup: {
-              dataSource: [...globalVariableOptions.map(filterXSSField), ...field.lookup.dataSource.map(filterXSSField)],
+              dataSource: [...globalVariableOptions.map(filterXSSField), ...field.lookup!.dataSource.map(filterXSSField)],
             },
           }
         }
@@ -117,10 +135,28 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
       {
         ...QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO,
         ...callbacks,
-      }
+      },
+      {
+        ...QueryBuilderOperations.IS_BLANK,
+        ...callbacks,
+      },
+      {
+        ...QueryBuilderOperations.IS_NOT_BLANK,
+        ...callbacks,
+      },
+      QueryBuilderOperations.KEY_VALUE_MATCH,
+      QueryBuilderOperations.KEY_VALUE_DOES_NOT_MATCH,
+      QueryBuilderOperations.KEY_VALUE_CONTAINS,
+      QueryBuilderOperations.KEY_VALUE_DOES_NOT_CONTAINS,
+      QueryBuilderOperations.KEY_VALUE_IS_GREATER_THAN,
+      QueryBuilderOperations.KEY_VALUE_IS_GREATER_THAN_OR_EQUAL,
+      QueryBuilderOperations.KEY_VALUE_IS_LESS_THAN,
+      QueryBuilderOperations.KEY_VALUE_IS_LESS_THAN_OR_EQUAL,
+      QueryBuilderOperations.KEY_VALUE_IS_NUMERICAL_EQUAL,
+      QueryBuilderOperations.KEY_VALUE_IS_NUMERICAL_NOT_EQUAL
     ]);
 
-  }, [workspaceField, updatedAtField, globalVariableOptions]);
+  }, [workspaceField, updatedAtField, partNumberField, globalVariableOptions]);
 
   return (
     <QueryBuilder
