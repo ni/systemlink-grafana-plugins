@@ -7,7 +7,7 @@ import {
   requestMatching,
   setupDataSource,
 } from "test/fixtures";
-import { SystemMetadata } from "datasources/system/types";
+import { SystemProperties } from "datasources/system/types";
 import { dateTime } from "@grafana/data";
 import { AssetCalibrationForecastKey, AssetCalibrationPropertyGroupByType, AssetCalibrationTimeBasedGroupByType, CalibrationForecastQuery, CalibrationForecastResponse, ColumnDescriptorType } from "../../types/CalibrationForecastQuery.types";
 import { CalibrationForecastDataSource } from "./CalibrationForecastDataSource";
@@ -311,7 +311,7 @@ const buildCalibrationForecastQuery = getQueryBuilder<CalibrationForecastQuery>(
   groupBy: []
 });
 
-const fakeSystems: SystemMetadata[] = [
+const fakeSystems: SystemProperties[] = [
   {
     id: 'Minion1',
     alias: 'Minion1-alias',

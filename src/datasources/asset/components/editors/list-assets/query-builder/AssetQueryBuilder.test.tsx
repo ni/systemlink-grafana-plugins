@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 import { AssetQueryBuilder } from './AssetQueryBuilder';
 import { render } from '@testing-library/react';
 import { QueryBuilderOption, Workspace } from 'core/types';
-import { SystemMetadata } from 'datasources/system/types';
+import { SystemProperties } from 'datasources/system/types';
 
 describe('AssetQueryBuilder', () => {
   describe('useEffects', () => {
@@ -10,7 +10,7 @@ describe('AssetQueryBuilder', () => {
 
     const containerClass = 'smart-filter-group-condition-container';
 
-    function renderElement(workspaces: Workspace[], systems: SystemMetadata[], filter?: string, globalVariableOptions: QueryBuilderOption[] = []) {
+    function renderElement(workspaces: Workspace[], systems: SystemProperties[], filter?: string, globalVariableOptions: QueryBuilderOption[] = []) {
       reactNode = React.createElement(AssetQueryBuilder, {
         workspaces,
         systems,
@@ -34,7 +34,7 @@ describe('AssetQueryBuilder', () => {
 
     it('should select workspace in query builder', () => {
       const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
-      const system = { id: '1', alias: 'Selected system' } as SystemMetadata;
+      const system = { id: '1', alias: 'Selected system' } as SystemProperties;
       const { conditionsContainer } = renderElement([workspace], [system], 'Workspace = "1"');
 
       expect(conditionsContainer?.length).toBe(1);
@@ -43,7 +43,7 @@ describe('AssetQueryBuilder', () => {
 
     it('should select system in query builder', () => {
       const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
-      const system = { id: '1', alias: 'Selected system' } as SystemMetadata;
+      const system = { id: '1', alias: 'Selected system' } as SystemProperties;
 
       const { conditionsContainer } = renderElement([workspace], [system], 'Location = "1"');
 
@@ -53,7 +53,7 @@ describe('AssetQueryBuilder', () => {
 
     it('should select global variable option', () => {
       const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
-      const system = { id: '1', alias: 'Selected system' } as SystemMetadata;
+      const system = { id: '1', alias: 'Selected system' } as SystemProperties;
       const globalVariableOption = { label: 'Global variable', value: 'global_variable' };
 
       const { conditionsContainer } = renderElement([workspace], [system], 'AssetType = \"global_variable\"', [globalVariableOption]);
@@ -65,7 +65,7 @@ describe('AssetQueryBuilder', () => {
     [['${__from:date}', 'From'], ['${__to:date}', 'To'], ['${__now:date}', 'Now']].forEach(([value, label]) => {
       it(`should select user friendly value for calibration due date`, () => {
         const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
-        const system = { id: '1', alias: 'Selected system' } as SystemMetadata;
+        const system = { id: '1', alias: 'Selected system' } as SystemProperties;
 
         const { conditionsContainer } = renderElement([workspace], [system], `ExternalCalibration.NextRecommendedDate > \"${value}\"`);
 
@@ -76,7 +76,7 @@ describe('AssetQueryBuilder', () => {
 
     it('should select a sanitized Workspace in query builder', () => {
       const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
-      const system = { id: '1', alias: 'Selected system' } as SystemMetadata;
+      const system = { id: '1', alias: 'Selected system' } as SystemProperties;
       const { conditionsContainer } = renderElement([workspace], [system], 'Workspace = "<script>alert(\'Workspace\')</script>"');
 
       expect(conditionsContainer?.length).toBe(1);

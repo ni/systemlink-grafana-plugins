@@ -1,4 +1,6 @@
-import { SystemMetadata } from "../datasources/system/types";
+import { SystemProperties } from "../datasources/system/types";
+
+export const LEGACY_METADATA_TYPE = 'Metadata';
 
 export interface Workspace {
   id: string,
@@ -16,7 +18,7 @@ export interface QuerySystemsRequest {
 }
 
 export interface QuerySystemsResponse {
-  data: SystemMetadata[]
+  data: SystemProperties[]
   count: number
 }
 
