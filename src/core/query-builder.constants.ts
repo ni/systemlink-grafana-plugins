@@ -203,7 +203,6 @@ export const QueryBuilderOperations = {
     handleValue: KeyValueOperationTemplate.handleStringValue,
     expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
     expressionReaderCallback: KeyValueOperationTemplate.stringKeyValueExpressionReaderCallback,
-    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValuePair
   },
   KEY_VALUE_DOES_NOT_MATCH: {
     label: `does not match`,
@@ -214,7 +213,6 @@ export const QueryBuilderOperations = {
     handleValue: KeyValueOperationTemplate.handleStringValue,
     expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
     expressionReaderCallback: KeyValueOperationTemplate.stringKeyValueExpressionReaderCallback,
-    validateValue: KeyValueOperationTemplate.validateNotEmptyKey
   },
   KEY_VALUE_DOES_NOT_CONTAINS: {
     label: `does not contain`,
@@ -225,7 +223,6 @@ export const QueryBuilderOperations = {
     handleValue: KeyValueOperationTemplate.handleStringValue,
     expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
     expressionReaderCallback: KeyValueOperationTemplate.stringKeyValueExpressionReaderCallback,
-    validateValue: KeyValueOperationTemplate.validateNotEmptyKey
   },
   KEY_VALUE_CONTAINS: {
     label: `contains`,
@@ -236,7 +233,6 @@ export const QueryBuilderOperations = {
     handleValue: KeyValueOperationTemplate.handleStringValue,
     expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
     expressionReaderCallback: KeyValueOperationTemplate.stringKeyValueExpressionReaderCallback,
-    validateValue: KeyValueOperationTemplate.validateNotEmptyKey
   },
   KEY_VALUE_IS_GREATER_THAN: {
     label: `> (numeric)`,
@@ -247,7 +243,6 @@ export const QueryBuilderOperations = {
     handleValue: KeyValueOperationTemplate.handleNumberValue,
     expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
     expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback,
-    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber
   },
   KEY_VALUE_IS_GREATER_THAN_OR_EQUAL: {
     label: `≥ (numeric)`,
@@ -258,7 +253,6 @@ export const QueryBuilderOperations = {
     handleValue: KeyValueOperationTemplate.handleNumberValue,
     expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
     expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback,
-    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber
   },
   KEY_VALUE_IS_LESS_THAN: {
     label: `< (numeric)`,
@@ -269,7 +263,6 @@ export const QueryBuilderOperations = {
     handleValue: KeyValueOperationTemplate.handleNumberValue,
     expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
     expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback,
-    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber
   },
   KEY_VALUE_IS_LESS_THAN_OR_EQUAL: {
     label: `≤ (numeric)`,
@@ -280,7 +273,6 @@ export const QueryBuilderOperations = {
     handleValue: KeyValueOperationTemplate.handleNumberValue,
     expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
     expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback,
-    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber
   },
   KEY_VALUE_IS_NUMERICAL_EQUAL: {
     label: `= (numeric)`,
@@ -291,7 +283,6 @@ export const QueryBuilderOperations = {
     handleValue: KeyValueOperationTemplate.handleNumberValue,
     expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
     expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback,
-    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber
   },
   KEY_VALUE_IS_NUMERICAL_NOT_EQUAL: {
     label: `≠ (numeric)`,
@@ -302,7 +293,6 @@ export const QueryBuilderOperations = {
     handleValue: KeyValueOperationTemplate.handleNumberValue,
     expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
     expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback,
-    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber
   }
 };
 

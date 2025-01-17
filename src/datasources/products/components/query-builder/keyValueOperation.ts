@@ -1,13 +1,14 @@
 import { FilterExpressions, FilterOperations } from "core/query-builder.constants";
+import { propertyFieldKeyValuePair } from "datasources/products/types";
 
 export class KeyValueOperationTemplate {
-    public static editorTemplate(_: string, value: any): HTMLElement {
-        const localizedKey = `Key`;
-        const localizedValue = `Value`;
-        return KeyValueOperationTemplate.labeledEditorTemplate(localizedKey, localizedValue, _, value);
+    public static editorTemplate(_: string, value: propertyFieldKeyValuePair): HTMLElement {
+        const keyPlaceHolder = `Key`;
+        const valuePlaceHolder = `Value`;
+        return KeyValueOperationTemplate.labeledEditorTemplate(keyPlaceHolder, valuePlaceHolder, value);
     }
 
-    public static labeledEditorTemplate(keyPlaceholder: string, valuePlaceholder: string, _: string, value: any): HTMLElement {
+    public static labeledEditorTemplate(keyPlaceholder: string, valuePlaceholder: string, value: propertyFieldKeyValuePair): HTMLElement {
         const template = `
         <div id="sl-query-builder-key-value-editor">
             <ul style="list-style: none; padding-left: 0; padding-right: 10px;">
@@ -30,7 +31,7 @@ export class KeyValueOperationTemplate {
         return templateBody.querySelector('#sl-query-builder-key-value-editor')!;
     }
 
-    public static valueTemplate(editor: HTMLElement | null | undefined, value: any): string {
+    public static valueTemplate(editor: HTMLElement | null | undefined, value: propertyFieldKeyValuePair): string {
         if (value) {
             const keyValuePair = value as { key: string; value: string | number; };
             return `${keyValuePair.key} : ${keyValuePair.value}`;
@@ -45,7 +46,7 @@ export class KeyValueOperationTemplate {
         return '';
     }
 
-    public static handleStringValue(editor: HTMLElement | null | undefined): any {
+    public static handleStringValue(editor: HTMLElement | null | undefined): { label: propertyFieldKeyValuePair; value: propertyFieldKeyValuePair; } {
         const inputs = KeyValueOperationTemplate.retrieveKeyValueInputs(editor);
         return {
             label: inputs,
@@ -53,16 +54,16 @@ export class KeyValueOperationTemplate {
         };
     }
 
-    public static handleNumberValue(editor: HTMLElement | null | undefined): any {
+    public static handleNumberValue(editor: HTMLElement | null | undefined): { label: propertyFieldKeyValuePair; value: propertyFieldKeyValuePair; } {
         const inputs = KeyValueOperationTemplate.retrieveKeyValueInputs(editor);
-        const normalizedInputs = { key: inputs.key, value: KeyValueOperationTemplate.normalizeNumericValue(inputs.value) };
+        const normalizedInputs = { key: inputs.key, value: inputs.value };
         return {
             label: normalizedInputs,
             value: normalizedInputs
         };
     }
 
-    public static keyValueExpressionBuilderCallback(dataField: string, operation: string, keyValuePair: any): string {
+    public static keyValueExpressionBuilderCallback(dataField: string, operation: string, keyValuePair: propertyFieldKeyValuePair): string {
         let expressionTemplate = '';
         switch (operation) {
             case FilterOperations.KeyValueMatch:
@@ -98,12 +99,12 @@ export class KeyValueOperationTemplate {
             default:
                 return '';
         }
-        return expressionTemplate.replace('{0}', dataField).replace('{1}', keyValuePair.key).replace('{2}', keyValuePair.value);
+        return expressionTemplate.replace('{0}', dataField).replace('{1}', keyValuePair.key).replace('{2}', String(keyValuePair.value));
     }
 
-    public static stringKeyValueExpressionReaderCallback(expression: string, bindings: string[]): any {
+    public static stringKeyValueExpressionReaderCallback(expression: string, bindings: string[]): { fieldName: string; value: propertyFieldKeyValuePair; } {
 
-        // Handle the case where the value is a string with spaces
+        // Handle the case where the value is equal to the key
         const matches = expression.match(/"([^"]*)"/g)?.map(m => m.slice(1, -1)) ?? [];
         if (matches.length < 2) {
             return { fieldName: bindings[0], value: { key: '', value: '' } };
@@ -111,26 +112,11 @@ export class KeyValueOperationTemplate {
         return { fieldName: bindings[0], value: { key: matches[0], value: matches[1] } };
     }
 
-    public static numericKeyValueExpressionReaderCallback(_expression: string, bindings: string[]): any {
-        const normalizedNumberValue = KeyValueOperationTemplate.normalizeNumericValue(bindings[2]);
-        return { fieldName: bindings[0], value: { key: bindings[1], value: normalizedNumberValue } };
+    public static numericKeyValueExpressionReaderCallback(_expression: string, bindings: string[]): { fieldName: string; value: propertyFieldKeyValuePair; } {
+        return { fieldName: bindings[0], value: { key: bindings[1], value: bindings[2] } };
     }
 
-    public static validateNotEmptyKeyValuePair(keyValuePair: any): boolean {
-        return keyValuePair?.key?.length > 0
-            && keyValuePair?.value?.length > 0;
-    }
-
-    public static validateNotEmptyKey(keyValuePair: any): boolean {
-        return keyValuePair?.key?.length > 0;
-    }
-
-    public static validateNotEmptyKeyValueAndValueIsNumber(keyValuePair: any): boolean {
-        return keyValuePair?.key?.length > 0
-            && !isNaN(Number(keyValuePair?.value));
-    }
-
-    private static retrieveKeyValueInputs(editor: HTMLElement | null | undefined): { key: string, value: string } {
+    private static retrieveKeyValueInputs(editor: HTMLElement | null | undefined): propertyFieldKeyValuePair{
         let pair = { key: '', value: '' };
         if (editor) {
             const keyInput = editor.querySelector<HTMLInputElement>('.key-input');
@@ -143,12 +129,5 @@ export class KeyValueOperationTemplate {
             }
         }
         return pair;
-    }
-
-    private static normalizeNumericValue(value: string): number | string {
-        const convertedNumberValue = Number(value);
-        return isNaN(convertedNumberValue)
-            ? value
-            : convertedNumberValue;
     }
 }

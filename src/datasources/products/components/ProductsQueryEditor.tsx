@@ -6,6 +6,7 @@ import { ProductsDataSource } from '../ProductsDataSource';
 import { OrderBy, ProductQuery, Properties } from '../types';
 import { Workspace } from 'core/types';
 import { ProductsQueryBuilder } from 'datasources/products/components/query-builder/ProductsQueryBuilder';
+import { FloatingError } from 'core/errors';
 
 
 type Props = QueryEditorProps<ProductsDataSource, ProductQuery>;
@@ -60,7 +61,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
 
   return (
     <>
-      <HorizontalGroup>
+      <HorizontalGroup align='flex-start'>
         <VerticalGroup>
           <InlineField label="Properties" labelWidth={18} tooltip={tooltips.properties}>
             <MultiSelect
@@ -115,6 +116,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
           </InlineField>
         </VerticalGroup>
       </HorizontalGroup>
+      <FloatingError message={datasource.error} />
     </>
   );
 }

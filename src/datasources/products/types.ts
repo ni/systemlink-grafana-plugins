@@ -86,11 +86,16 @@ export interface ProductResponseProperties {
 }
 
 export interface QBField extends QueryBuilderField {
-    lookup?: {
-        readonly?: boolean;
-        dataSource: Array<{
-            label: string,
-            value: string
-        }>;
-    },
+  lookup?: {
+    readonly?: boolean;
+    dataSource: Array<{
+      label: string,
+      value: string
+    }>;
+  },
 }
+
+export interface propertyFieldKeyValuePair {
+  key: string;
+  value: string | number;
+};

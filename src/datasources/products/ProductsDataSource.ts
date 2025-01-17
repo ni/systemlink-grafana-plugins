@@ -5,6 +5,9 @@ import { ProductQuery, ProductResponseProperties, Properties, PropertiesOptions,
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { parseErrorMessage } from 'core/errors';
 import { getVariableOptions } from 'core/utils';
+import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { QueryBuilderOperations } from 'core/query-builder.constants';
+import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
 
 export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   constructor(
@@ -48,15 +51,20 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   };
 
   async queryProducts(orderBy: string, projection: Properties[], filter?: string, recordCount = 1000, descending = false, returnCount = false): Promise<QueryProductResponse> {
-    const response = await this.post<QueryProductResponse>(this.queryProductsUrl, {
-      filter: filter,
-      orderBy: orderBy,
-      descending: descending,
-      projection: projection,
-      take: recordCount,
-      returnCount: returnCount
-    });
-    return response;
+    try {
+      const response = await this.post<QueryProductResponse>(this.queryProductsUrl, {
+        filter: filter,
+        orderBy: orderBy,
+        descending: descending,
+        projection: projection,
+        take: recordCount,
+        returnCount: returnCount
+      });
+      return response;
+    } catch (error) {
+      this.error = parseErrorMessage(error as Error)!;
+      throw new Error(`An error occurred while querying products: ${this.error}`);
+    }
   }
 
   async queryProductValues(fieldName: string): Promise<string[]> {
@@ -71,30 +79,77 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     await this.partNumberLoadedPromise;
 
     if (query.queryBy) {
+      query.queryBy = transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.productsComputedDataFields,
+      );
       query.queryBy = this.templateSrv.replace(query.queryBy, options.scopedVars);
     }
 
     const responseData = (await this.queryProducts(query.orderBy!, query.properties!, query.queryBy, query.recordCount, query.descending)).products;
 
-    const selectedFields = query.properties?.filter((field: Properties) => Object.keys(responseData[0]).includes(field)) || [];
-    const fields = selectedFields.map((field) => {
-      const fieldType = field === Properties.updatedAt ? FieldType.time : FieldType.string;
-      const values = responseData.map(data => data[field as unknown as keyof ProductResponseProperties]);
+    if (responseData.length > 0) {
+      const selectedFields = query.properties?.filter((field: Properties) => Object.keys(responseData[0]).includes(field)) || [];
+      const fields = selectedFields.map((field) => {
+        const fieldType = field === Properties.updatedAt ? FieldType.time : FieldType.string;
+        const values = responseData.map(data => data[field as unknown as keyof ProductResponseProperties]);
 
-      if (field === PropertiesOptions.PROPERTIES) {
-        return { name: field, values: values.map(value => JSON.stringify(value)), type: fieldType };
-      }
-      return { name: field, values, type: fieldType };
-    });
-
+        if (field === PropertiesOptions.PROPERTIES) {
+          return { name: field, values: values.map(value => JSON.stringify(value)), type: fieldType };
+        }
+        return { name: field, values, type: fieldType };
+      });
+      return {
+        refId: query.refId,
+        fields: fields
+      };
+    }
     return {
       refId: query.refId,
-      fields: fields
-    };
+      fields: []
+    }
+
   }
 
   public readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
+
+  public readonly productsComputedDataFields = new Map<string, ExpressionTransformFunction>([
+    ...Object.values(ProductsQueryBuilderFieldNames).map(field => [field, this.multipleValuesQuery(field)] as [string, ExpressionTransformFunction]),
+    [
+      ProductsQueryBuilderFieldNames.UPDATED_AT,
+      (value: string, operation: string, options?: Map<string, unknown>) => {
+        if (value === '${__now:date}') {
+          return `${ProductsQueryBuilderFieldNames.UPDATED_AT} ${operation} "${new Date().toISOString()}"`;
+        }
+
+        return `${ProductsQueryBuilderFieldNames.UPDATED_AT} ${operation} "${value}"`;
+      }]]);
+
+  protected multipleValuesQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string, _options?: any) => {
+      if (this.isMultiSelectValue(value)) {
+        const query = this.getMultipleValuesArray(value)
+          .map(val => `${field} ${operation} "${val}"`)
+          .join(` ${this.getLocicalOperator(operation)} `);
+        return `(${query})`;
+      }
+
+      return `${field} ${operation} "${value}"`
+    }
+  }
+
+  private isMultiSelectValue(value: string): boolean {
+    return value.startsWith('{') && value.endsWith('}');
+  }
+
+  private getMultipleValuesArray(value: string): string[] {
+    return value.replace(/({|})/g, '').split(',');
+  }
+
+  private getLocicalOperator(operation: string): string {
+    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
+  }
 
   shouldRunQuery(query: ProductQuery): boolean {
     return true;
@@ -113,7 +168,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
     const workspaces = await this.getWorkspaces()
       .catch(error => {
-        this.error = parseErrorMessage(error)!;
+        this.error = parseErrorMessage(error.message)!;
       });
 
     workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
@@ -131,7 +186,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       });
 
     partNumbers?.forEach(partNumber => this.partNumbersCache.set(partNumber, partNumber));
-  
+
     this.partNumberLoaded();
   }
 }

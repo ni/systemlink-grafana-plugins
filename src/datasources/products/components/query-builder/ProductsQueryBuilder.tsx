@@ -90,7 +90,6 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
             },
           }
         }
-
         return field;
       });
 
