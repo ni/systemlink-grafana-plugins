@@ -242,67 +242,67 @@ export const QueryBuilderOperations = {
     label: `> (numeric)`,
     name: FilterOperations.KeyValueIsGreaterThan,
     expressionTemplate: FilterExpressions.KeyValueIsGreaterThan,
-    editorTemplate: KeyValueOperationTemplate.editorTemplate.bind(this),
-    valueTemplate: KeyValueOperationTemplate.valueTemplate.bind(this),
-    handleValue: KeyValueOperationTemplate.handleNumberValue.bind(this),
-    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback.bind(this),
-    expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback.bind(this),
-    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber.bind(this)
+    editorTemplate: KeyValueOperationTemplate.editorTemplate,
+    valueTemplate: KeyValueOperationTemplate.valueTemplate,
+    handleValue: KeyValueOperationTemplate.handleNumberValue,
+    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
+    expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback,
+    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber
   },
   KEY_VALUE_IS_GREATER_THAN_OR_EQUAL: {
     label: `≥ (numeric)`,
     name: FilterOperations.KeyValueIsGreaterThanOrEqual,
     expressionTemplate: FilterExpressions.KeyValueIsGreaterThanOrEqual,
-    editorTemplate: KeyValueOperationTemplate.editorTemplate.bind(this),
-    valueTemplate: KeyValueOperationTemplate.valueTemplate.bind(this),
-    handleValue: KeyValueOperationTemplate.handleNumberValue.bind(this),
-    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback.bind(this),
-    expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback.bind(this),
-    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber.bind(this)
+    editorTemplate: KeyValueOperationTemplate.editorTemplate,
+    valueTemplate: KeyValueOperationTemplate.valueTemplate,
+    handleValue: KeyValueOperationTemplate.handleNumberValue,
+    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
+    expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback,
+    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber
   },
   KEY_VALUE_IS_LESS_THAN: {
     label: `< (numeric)`,
     name: FilterOperations.KeyValueIsLessThan,
     expressionTemplate: FilterExpressions.KeyValueIsLessThan,
-    editorTemplate: KeyValueOperationTemplate.editorTemplate.bind(this),
-    valueTemplate: KeyValueOperationTemplate.valueTemplate.bind(this),
-    handleValue: KeyValueOperationTemplate.handleNumberValue.bind(this),
-    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback.bind(this),
-    expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback.bind(this),
-    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber.bind(this)
+    editorTemplate: KeyValueOperationTemplate.editorTemplate,
+    valueTemplate: KeyValueOperationTemplate.valueTemplate,
+    handleValue: KeyValueOperationTemplate.handleNumberValue,
+    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
+    expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback,
+    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber
   },
   KEY_VALUE_IS_LESS_THAN_OR_EQUAL: {
     label: `≤ (numeric)`,
     name: FilterOperations.KeyValueIsLessThanOrEqual,
     expressionTemplate: FilterExpressions.KeyValueIsLessThanOrEqual,
-    editorTemplate: KeyValueOperationTemplate.editorTemplate.bind(this),
-    valueTemplate: KeyValueOperationTemplate.valueTemplate.bind(this),
-    handleValue: KeyValueOperationTemplate.handleNumberValue.bind(this),
-    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback.bind(this),
-    expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback.bind(this),
-    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber.bind(this)
+    editorTemplate: KeyValueOperationTemplate.editorTemplate,
+    valueTemplate: KeyValueOperationTemplate.valueTemplate,
+    handleValue: KeyValueOperationTemplate.handleNumberValue,
+    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
+    expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback,
+    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber
   },
   KEY_VALUE_IS_NUMERICAL_EQUAL: {
     label: `= (numeric)`,
     name: FilterOperations.KeyValueIsNumericallyEqual,
     expressionTemplate: FilterExpressions.KeyValueIsNumericallyEqual,
-    editorTemplate: KeyValueOperationTemplate.editorTemplate.bind(this),
-    valueTemplate: KeyValueOperationTemplate.valueTemplate.bind(this),
-    handleValue: KeyValueOperationTemplate.handleNumberValue.bind(this),
-    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback.bind(this),
-    expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback.bind(this),
-    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber.bind(this)
+    editorTemplate: KeyValueOperationTemplate.editorTemplate,
+    valueTemplate: KeyValueOperationTemplate.valueTemplate,
+    handleValue: KeyValueOperationTemplate.handleNumberValue,
+    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
+    expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback,
+    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber
   },
   KEY_VALUE_IS_NUMERICAL_NOT_EQUAL: {
     label: `≠ (numeric)`,
     name: FilterOperations.KeyValueIsNumericallyNotEqual,
     expressionTemplate: FilterExpressions.KeyValueIsNumericallyNotEqual,
-    editorTemplate: KeyValueOperationTemplate.editorTemplate.bind(this),
-    valueTemplate: KeyValueOperationTemplate.valueTemplate.bind(this),
-    handleValue: KeyValueOperationTemplate.handleNumberValue.bind(this),
-    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback.bind(this),
-    expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback.bind(this),
-    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber.bind(this)
+    editorTemplate: KeyValueOperationTemplate.editorTemplate,
+    valueTemplate: KeyValueOperationTemplate.valueTemplate,
+    handleValue: KeyValueOperationTemplate.handleNumberValue,
+    expressionBuilderCallback: KeyValueOperationTemplate.keyValueExpressionBuilderCallback,
+    expressionReaderCallback: KeyValueOperationTemplate.numericKeyValueExpressionReaderCallback,
+    validateValue: KeyValueOperationTemplate.validateNotEmptyKeyValueAndValueIsNumber
   }
 };
 

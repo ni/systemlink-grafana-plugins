@@ -53,7 +53,9 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
   }
 
   const onParameterChange = (value: string) => {
-      handleQueryChange({ ...query, queryBy:value});
+    if (query.queryBy !== value) {
+      handleQueryChange({ ...query, queryBy: value });
+    }
   }
 
   return (
