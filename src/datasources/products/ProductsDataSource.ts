@@ -1,4 +1,4 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, TestDataSourceResponse } from '@grafana/data';
+import { DataFrameDTO, DataSourceInstanceSettings, FieldType, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { ProductQuery, ProductResponseProperties, Properties, PropertiesOptions, QueryProductResponse } from './types';
@@ -27,35 +27,44 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     recordCount: 1000
   };
 
-  async queryProducts(orderBy: string, projection: Properties[], recordCount = 1000, descending = false, returnCount = false): Promise<QueryProductResponse> {
-    const response = await this.post<QueryProductResponse>(this.queryProductsUrl, {
-      orderBy: orderBy,
-      descending: descending,
-      projection: projection,
-      take: recordCount,
-      returnCount: returnCount
-    });
-    return response;
+  async queryProducts(orderBy: string, projection: Properties[], recordCount?: number, descending?: boolean, returnCount = false): Promise<QueryProductResponse> {
+    try {
+      const response = await this.post<QueryProductResponse>(this.queryProductsUrl, {
+        orderBy: orderBy,
+        descending: descending,
+        projection: projection,
+        take: recordCount,
+        returnCount: returnCount
+      });
+      return response;
+    } catch (error) {
+      throw new Error(`An error occurred while querying products: ${error}`);
+    }
   }
 
-  async runQuery(query: ProductQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    const responseData = (await this.queryProducts(query.orderBy!, query.properties!, query.recordCount, query.descending)).products;
+  async runQuery(query: ProductQuery): Promise<DataFrameDTO> {
+    const responseData = (await this.queryProducts(query.orderBy!, query.properties!, query.recordCount!, query.descending!)).products;
 
-    const selectedFields = query.properties?.filter((field: Properties) => Object.keys(responseData[0]).includes(field)) || [];
-    const fields = selectedFields.map((field) => {
-      const fieldType = field === PropertiesOptions.UPDATEDAT ? FieldType.time : FieldType.string;
-      const values = responseData.map(data => data[field as unknown as keyof ProductResponseProperties]);
+    if (responseData.length > 0) {
+      const selectedFields = query.properties?.filter((field: Properties) => Object.keys(responseData[0]).includes(field)) || [];
+      const fields = selectedFields.map((field) => {
+        const fieldType = field === PropertiesOptions.UPDATEDAT ? FieldType.time : FieldType.string;
+        const values = responseData.map(data => data[field as unknown as keyof ProductResponseProperties]);
 
-      if (field === PropertiesOptions.PROPERTIES) {
-        return { name: field, values: values.map(value => JSON.stringify(value)), type: fieldType };
-      }
-      return { name: field, values, type: fieldType };
-    });
-
+        if (field === PropertiesOptions.PROPERTIES) {
+          return { name: field, values: values.map(value => JSON.stringify(value)), type: fieldType };
+        }
+        return { name: field, values, type: fieldType };
+      });
+      return {
+        refId: query.refId,
+        fields: fields
+      };
+    }
     return {
       refId: query.refId,
-      fields: fields
-    };
+      fields: []
+    }
   }
 
   shouldRunQuery(query: ProductQuery): boolean {
