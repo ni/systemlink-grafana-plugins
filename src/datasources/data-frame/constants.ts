@@ -23,4 +23,4 @@ export const errorCodes: { [key: number]: string } = {
   [-255130]: 'Table does not exist',
 };
 
-export const metadataCacheTTL = 1000 * 60 * 5; // 5 minutes
+export const propertiesCacheTTL = 1000 * 60 * 5; // 5 minutes

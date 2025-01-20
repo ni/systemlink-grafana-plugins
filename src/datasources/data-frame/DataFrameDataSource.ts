@@ -5,8 +5,8 @@ import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana
 import {
   ColumnDataType,
   DataFrameQuery,
-  TableMetadata,
-  TableMetadataList,
+  TableProperties,
+  TablePropertiesList,
   TableDataRows,
   ColumnFilter,
   Column,
@@ -14,13 +14,14 @@ import {
   ValidDataFrameQuery,
   DataFrameQueryType,
 } from './types';
-import { metadataCacheTTL } from './constants';
+import { propertiesCacheTTL } from './constants';
 import _ from 'lodash';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { replaceVariables } from 'core/utils';
+import { LEGACY_METADATA_TYPE } from 'core/types';
 
 export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSourceJsonData> {
-  private readonly metadataCache: TTLCache<string, TableMetadata> = new TTLCache({ ttl: metadataCacheTTL });
+  private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
@@ -38,39 +39,39 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
     const processedQuery = this.processQuery(query);
     processedQuery.tableId = this.templateSrv.replace(processedQuery.tableId, scopedVars);
     processedQuery.columns = replaceVariables(processedQuery.columns, this.templateSrv);
-    const metadata = await this.getTableMetadata(processedQuery.tableId);
+    const properties = await this.getTableProperties(processedQuery.tableId);
 
-    if (processedQuery.type === DataFrameQueryType.Metadata) {
+    if (processedQuery.type === DataFrameQueryType.Properties) {
       return {
         refId: processedQuery.refId,
-        name: metadata.name,
-        fields: Object.entries(metadata.properties).map(([name, value]) => ({ name, values: [value] })),
+        name: properties.name,
+        fields: Object.entries(properties.properties).map(([name, value]) => ({ name, values: [value] })),
       };
     } else {
-      const columns = this.getColumnTypes(processedQuery.columns, metadata?.columns ?? []);
+      const columns = this.getColumnTypes(processedQuery.columns, properties?.columns ?? []);
       const tableData = await this.getDecimatedTableData(processedQuery, columns, range, maxDataPoints);
       return {
         refId: processedQuery.refId,
-        name: metadata.name,
+        name: properties.name,
         fields: this.dataFrameToFields(tableData.frame.data, columns),
       };
     }
   }
 
   shouldRunQuery(query: ValidDataFrameQuery): boolean {
-    return Boolean(query.tableId) && (query.type === DataFrameQueryType.Metadata || Boolean(query.columns.length));
+    return Boolean(query.tableId) && (query.type === DataFrameQueryType.Properties || Boolean(query.columns.length));
   }
 
-  async getTableMetadata(id?: string): Promise<TableMetadata> {
+  async getTableProperties(id?: string): Promise<TableProperties> {
     const resolvedId = this.templateSrv.replace(id);
-    let metadata = this.metadataCache.get(resolvedId);
+    let properties = this.propertiesCache.get(resolvedId);
 
-    if (!metadata) {
-      metadata = await this.get<TableMetadata>(`${this.baseUrl}/tables/${resolvedId}`);
-      this.metadataCache.set(resolvedId, metadata);
+    if (!properties) {
+      properties = await this.get<TableProperties>(`${this.baseUrl}/tables/${resolvedId}`);
+      this.propertiesCache.set(resolvedId, properties);
     }
 
-    return metadata;
+    return properties;
   }
 
   async getDecimatedTableData(query: DataFrameQuery, columns: Column[], timeRange: TimeRange, intervals = 1000): Promise<TableDataRows> {
@@ -95,10 +96,10 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
     });
   }
 
-  async queryTables(query: string): Promise<TableMetadata[]> {
+  async queryTables(query: string): Promise<TableProperties[]> {
     const filter = `name.Contains("${query}")`;
 
-    return (await this.post<TableMetadataList>(`${this.baseUrl}/query-tables`, { filter, take: 5 })).tables;
+    return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take: 5 })).tables;
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
@@ -108,6 +109,11 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
 
   processQuery(query: DataFrameQuery): ValidDataFrameQuery {
     const migratedQuery = { ...defaultQuery, ...query };
+
+    // Handle existing dashboards with 'MetaData' type
+    if ((migratedQuery.type as any) === LEGACY_METADATA_TYPE) {
+      migratedQuery.type = DataFrameQueryType.Properties;
+    }
 
     // Migration for 1.6.0: DataFrameQuery.columns changed to string[]
     if (_.isObject(migratedQuery.columns[0])) {
@@ -119,13 +125,13 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
   }
 
   async metricFindQuery(tableQuery: DataFrameQuery): Promise<MetricFindValue[]> {
-    const tableMetadata = await this.getTableMetadata(tableQuery.tableId);
-    return tableMetadata.columns.map(col => ({ text: col.name, value: col.name }));
+    const tableProperties = await this.getTableProperties(tableQuery.tableId);
+    return tableProperties.columns.map(col => ({ text: col.name, value: col.name }));
   }
 
-  private getColumnTypes(columnNames: string[], tableMetadata: Column[]): Column[] {
+  private getColumnTypes(columnNames: string[], tableProperties: Column[]): Column[] {
     return columnNames.map(c => {
-      const column = tableMetadata.find(({ name }) => name === c);
+      const column = tableProperties.find(({ name }) => name === c);
 
       if (!column) {
         throw `The table does not contain the column '${c}'`;

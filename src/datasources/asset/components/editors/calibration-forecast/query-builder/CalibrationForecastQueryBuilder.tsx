@@ -11,7 +11,7 @@ import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.cs
 import { Workspace, QueryBuilderOption } from 'core/types';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
-import { SystemMetadata } from 'datasources/system/types';
+import { SystemProperties } from 'datasources/system/types';
 import { QBField } from '../../../../types/CalibrationForecastQuery.types';
 import { AssetCalibrationFields, AssetCalibrationStaticFields } from '../../../../constants/CalibrationForecastQuery.constants';
 import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
@@ -20,7 +20,7 @@ type CalibrationForecastQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     filter?: string;
     workspaces: Workspace[];
-    systems: SystemMetadata[];
+    systems: SystemProperties[];
     globalVariableOptions: QueryBuilderOption[];
     areDependenciesLoaded: boolean;
   };

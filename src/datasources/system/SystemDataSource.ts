@@ -41,7 +41,7 @@ export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJson
         ],
       };
     } else {
-      const metadata = await this.getSystemMetadata(
+      const properties = await this.getSystemProperties(
         this.templateSrv.replace(query.systemName, options.scopedVars),
         defaultProjection,
         this.templateSrv.replace(query.workspace, options.scopedVars)
@@ -50,25 +50,25 @@ export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJson
       return {
         refId: query.refId,
         fields: [
-          { name: 'id', values: metadata.map(m => m.id) },
-          { name: 'alias', values: metadata.map(m => m.alias) },
-          { name: 'connection status', values: metadata.map(m => m.state) },
-          { name: 'locked status', values: metadata.map(m => m.locked) },
-          { name: 'system start time', values: metadata.map(m => m.systemStartTime) },
-          { name: 'model', values: metadata.map(m => m.model) },
-          { name: 'vendor', values: metadata.map(m => m.vendor) },
-          { name: 'operating system', values: metadata.map(m => m.osFullName) },
+          { name: 'id', values: properties.map(m => m.id) },
+          { name: 'alias', values: properties.map(m => m.alias) },
+          { name: 'connection status', values: properties.map(m => m.state) },
+          { name: 'locked status', values: properties.map(m => m.locked) },
+          { name: 'system start time', values: properties.map(m => m.systemStartTime) },
+          { name: 'model', values: properties.map(m => m.model) },
+          { name: 'vendor', values: properties.map(m => m.vendor) },
+          { name: 'operating system', values: properties.map(m => m.osFullName) },
           {
             name: 'ip address',
-            values: metadata.map(m => NetworkUtils.getIpAddressFromInterfaces(m.ip4Interfaces, m.ip6Interfaces)),
+            values: properties.map(m => NetworkUtils.getIpAddressFromInterfaces(m.ip4Interfaces, m.ip6Interfaces)),
           },
-          { name: 'workspace', values: metadata.map(m => getWorkspaceName(workspaces, m.workspace)) },
+          { name: 'workspace', values: properties.map(m => getWorkspaceName(workspaces, m.workspace)) },
         ],
       };
     }
   }
 
-  async getSystemMetadata(systemFilter: string, projection = defaultProjection, workspace?: string) {
+  async getSystemProperties(systemFilter: string, projection = defaultProjection, workspace?: string) {
     const filters = [
       systemFilter && `id = "${systemFilter}" || alias = "${systemFilter}"`,
       workspace && !systemFilter && `workspace = "${workspace}"`,
@@ -82,8 +82,8 @@ export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJson
   }
 
   async metricFindQuery({ workspace }: SystemVariableQuery): Promise<MetricFindValue[]> {
-    const metadata = await this.getSystemMetadata('', ['id', 'alias'], this.templateSrv.replace(workspace));
-    return metadata.map(frame => ({ text: frame.alias ?? frame.id, value: frame.id }));
+    const properties = await this.getSystemProperties('', ['id', 'alias'], this.templateSrv.replace(workspace));
+    return properties.map(frame => ({ text: frame.alias ?? frame.id, value: frame.id }));
   }
 
   shouldRunQuery(_: SystemQuery): boolean {
