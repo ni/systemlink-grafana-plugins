@@ -41,3 +41,7 @@ datasources:
     type: ni-slassetcalibration-datasource
     uid: assetcalibration
     <<: *config
+  - name: SystemLink Test Results
+    type: ni-sltestresults-datasource
+    uid: testresults
+    <<: *config
