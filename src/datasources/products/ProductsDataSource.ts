@@ -83,7 +83,6 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
         this.templateSrv.replace(query.queryBy, options.scopedVars),
         this.productsComputedDataFields,
       );
-      query.queryBy = this.templateSrv.replace(query.queryBy, options.scopedVars);
     }
 
     const responseData = (await this.queryProducts(query.orderBy!, query.properties!, query.queryBy, query.recordCount, query.descending)).products;
