@@ -91,7 +91,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     if (responseData.length > 0) {
       const selectedFields = query.properties?.filter((field: Properties) => Object.keys(responseData[0]).includes(field)) || [];
       const fields = selectedFields.map((field) => {
-        const fieldType = field === Properties.updatedAt ? FieldType.time : FieldType.string;
+        const fieldType = field === PropertiesOptions.UPDATEDAT ? FieldType.time : FieldType.string;
         const values = responseData.map(data => data[field as unknown as keyof ProductResponseProperties]);
 
         if (field === PropertiesOptions.PROPERTIES) {

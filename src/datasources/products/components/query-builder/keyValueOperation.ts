@@ -1,14 +1,14 @@
 import { FilterExpressions, FilterOperations } from "core/query-builder.constants";
-import { propertyFieldKeyValuePair } from "datasources/products/types";
+import { PropertyFieldKeyValuePair } from "datasources/products/types";
 
 export class KeyValueOperationTemplate {
-    public static editorTemplate(_: string, value: propertyFieldKeyValuePair): HTMLElement {
+    public static editorTemplate(_: string, value: PropertyFieldKeyValuePair): HTMLElement {
         const keyPlaceHolder = `Key`;
         const valuePlaceHolder = `Value`;
         return KeyValueOperationTemplate.labeledEditorTemplate(keyPlaceHolder, valuePlaceHolder, value);
     }
 
-    public static labeledEditorTemplate(keyPlaceholder: string, valuePlaceholder: string, value: propertyFieldKeyValuePair): HTMLElement {
+    public static labeledEditorTemplate(keyPlaceholder: string, valuePlaceholder: string, value: PropertyFieldKeyValuePair): HTMLElement {
         const template = `
         <div id="sl-query-builder-key-value-editor">
             <ul style="list-style: none; padding-left: 0; padding-right: 10px;">
@@ -31,7 +31,7 @@ export class KeyValueOperationTemplate {
         return templateBody.querySelector('#sl-query-builder-key-value-editor')!;
     }
 
-    public static valueTemplate(editor: HTMLElement | null | undefined, value: propertyFieldKeyValuePair): string {
+    public static valueTemplate(editor: HTMLElement | null | undefined, value: PropertyFieldKeyValuePair): string {
         if (value) {
             const keyValuePair = value as { key: string; value: string | number; };
             return `${keyValuePair.key} : ${keyValuePair.value}`;
@@ -46,7 +46,7 @@ export class KeyValueOperationTemplate {
         return '';
     }
 
-    public static handleStringValue(editor: HTMLElement | null | undefined): { label: propertyFieldKeyValuePair; value: propertyFieldKeyValuePair; } {
+    public static handleStringValue(editor: HTMLElement | null | undefined): { label: PropertyFieldKeyValuePair; value: PropertyFieldKeyValuePair; } {
         const inputs = KeyValueOperationTemplate.retrieveKeyValueInputs(editor);
         return {
             label: inputs,
@@ -54,7 +54,7 @@ export class KeyValueOperationTemplate {
         };
     }
 
-    public static handleNumberValue(editor: HTMLElement | null | undefined): { label: propertyFieldKeyValuePair; value: propertyFieldKeyValuePair; } {
+    public static handleNumberValue(editor: HTMLElement | null | undefined): { label: PropertyFieldKeyValuePair; value: PropertyFieldKeyValuePair; } {
         const inputs = KeyValueOperationTemplate.retrieveKeyValueInputs(editor);
         const normalizedInputs = { key: inputs.key, value: inputs.value };
         return {
@@ -63,7 +63,7 @@ export class KeyValueOperationTemplate {
         };
     }
 
-    public static keyValueExpressionBuilderCallback(dataField: string, operation: string, keyValuePair: propertyFieldKeyValuePair): string {
+    public static keyValueExpressionBuilderCallback(dataField: string, operation: string, keyValuePair: PropertyFieldKeyValuePair): string {
         let expressionTemplate = '';
         switch (operation) {
             case FilterOperations.KeyValueMatch:
@@ -102,7 +102,7 @@ export class KeyValueOperationTemplate {
         return expressionTemplate.replace('{0}', dataField).replace('{1}', keyValuePair.key).replace('{2}', String(keyValuePair.value));
     }
 
-    public static stringKeyValueExpressionReaderCallback(expression: string, bindings: string[]): { fieldName: string; value: propertyFieldKeyValuePair; } {
+    public static stringKeyValueExpressionReaderCallback(expression: string, bindings: string[]): { fieldName: string; value: PropertyFieldKeyValuePair; } {
 
         // Handle the case where the value is equal to the key
         const matches = expression.match(/"([^"]*)"/g)?.map(m => m.slice(1, -1)) ?? [];
@@ -112,11 +112,11 @@ export class KeyValueOperationTemplate {
         return { fieldName: bindings[0], value: { key: matches[0], value: matches[1] } };
     }
 
-    public static numericKeyValueExpressionReaderCallback(_expression: string, bindings: string[]): { fieldName: string; value: propertyFieldKeyValuePair; } {
+    public static numericKeyValueExpressionReaderCallback(_expression: string, bindings: string[]): { fieldName: string; value: PropertyFieldKeyValuePair; } {
         return { fieldName: bindings[0], value: { key: bindings[1], value: bindings[2] } };
     }
 
-    private static retrieveKeyValueInputs(editor: HTMLElement | null | undefined): propertyFieldKeyValuePair{
+    private static retrieveKeyValueInputs(editor: HTMLElement | null | undefined): PropertyFieldKeyValuePair{
         let pair = { key: '', value: '' };
         if (editor) {
             const keyInput = editor.querySelector<HTMLInputElement>('.key-input');

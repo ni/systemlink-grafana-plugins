@@ -51,12 +51,13 @@ describe('ProductsDataSource', () => {
     describe('queryProducts', () => {
         it('should call api with correct parameters', async () => {
             const orderBy = 'name';
+            const filter = '';
             const projection = [PropertiesOptions.ID, PropertiesOptions.NAME] as Properties[];
             const recordCount = 500;
             const descending = true;
             const returnCount = true;
 
-            const response = await ds.queryProducts(orderBy, projection, '', recordCount, descending, returnCount);
+            const response = await ds.queryProducts(orderBy, projection, filter, recordCount, descending, returnCount);
 
             expect(response).toEqual(mockQueryProductResponse);
         });
@@ -72,7 +73,7 @@ describe('ProductsDataSource', () => {
         const response = await ds.query(query);
 
         expect(response.data).toHaveLength(2);
-        expect(fetchMock).toHaveBeenCalledTimes(2);
+        expect(fetchMock).toHaveBeenCalledTimes(3);
         expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/nitestmonitor/v2/query-products' }));
     });
 

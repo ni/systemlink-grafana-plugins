@@ -95,7 +95,7 @@ export interface QBField extends QueryBuilderField {
   },
 }
 
-export interface propertyFieldKeyValuePair {
+export interface PropertyFieldKeyValuePair {
   key: string;
   value: string | number;
 };
