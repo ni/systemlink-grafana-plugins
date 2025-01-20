@@ -36,7 +36,7 @@ describe('ProductsQueryEditor', () => {
         expect(recordCount).toHaveValue('1000');
     });
 
-    it('updates when user makes changes', async () => {    
+    it('updates when user makes changes', async () => {
         //User adds a properties       
         await select(properties, "id", { container: document.body });
         await waitFor(() => {
@@ -44,7 +44,7 @@ describe('ProductsQueryEditor', () => {
                 expect.objectContaining({ properties: ["id"] })
             )
         });
-        
+
         //User changes order by
         await select(orderBy, "ID", { container: document.body });
         await waitFor(() => {
@@ -52,7 +52,7 @@ describe('ProductsQueryEditor', () => {
                 expect.objectContaining({ orderBy: "ID" })
             )
         });
-    
+
         //User changes descending checkbox
         await userEvent.click(descending);
         await waitFor(() => {
@@ -60,7 +60,7 @@ describe('ProductsQueryEditor', () => {
                 expect.objectContaining({ descending: true })
             )
         });
-        
+
         //User changes record count
         await userEvent.clear(recordCount);
         await userEvent.type(recordCount, '500{Enter}');

@@ -42,7 +42,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
       <VerticalGroup>
         <InlineField label="Properties" labelWidth={18} tooltip={tooltips.properties}>
           <MultiSelect
-            placeholder='Select properties to fetch'
+            placeholder="Select properties to fetch"
             options={Object.keys(Properties).map(value => ({ label: value, value })) as SelectableValue[]}
             onChange={onPropertiesChange}
             value={query.properties}
@@ -57,7 +57,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
             <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
               <Select
                 options={OrderBy as SelectableValue[]}
-                placeholder='Select field to order by'
+                placeholder="Select field to order by"
                 onChange={onOrderByChange}
                 value={query.orderBy}
                 defaultValue={query.orderBy}
@@ -76,7 +76,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
               maxWidth={40}
               defaultValue={query.recordCount}
               onCommitChange={recordCountChange}
-              placeholder='Enter record count'
+              placeholder="Enter record count"
             />
           </InlineField>
         </div>
@@ -86,8 +86,8 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
 }
 
 const tooltips = {
-  properties: 'Select the properties fields to query',
-  recordCount: 'Enter the number of records to query',
-  orderBy: 'Select the field to order the results by',
-  descending: 'Select to order the results in descending order'
+  properties: "Select the properties fields to query",
+  recordCount: "Enter the number of records to query",
+  orderBy: "Select the field to order the results by",
+  descending: "Select to order the results in descending order"
 }

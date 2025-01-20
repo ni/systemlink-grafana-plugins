@@ -27,14 +27,20 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     recordCount: 1000
   };
 
-  async queryProducts(orderBy: string, projection: Properties[], recordCount?: number, descending?: boolean, returnCount = false): Promise<QueryProductResponse> {
+  async queryProducts(
+    orderBy?: string,
+    projection?: Properties[],
+    take?: number,
+    descending?: boolean,
+    returnCount = false
+  ): Promise<QueryProductResponse> {
     try {
       const response = await this.post<QueryProductResponse>(this.queryProductsUrl, {
-        orderBy: orderBy,
-        descending: descending,
-        projection: projection,
-        take: recordCount,
-        returnCount: returnCount
+        orderBy,
+        descending,
+        projection,
+        take,
+        returnCount
       });
       return response;
     } catch (error) {
@@ -43,18 +49,29 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   }
 
   async runQuery(query: ProductQuery): Promise<DataFrameDTO> {
-    const responseData = (await this.queryProducts(query.orderBy!, query.properties!, query.recordCount!, query.descending!)).products;
+    const products = (
+      await this.queryProducts(
+        query.orderBy,
+        query.properties,
+        query.recordCount,
+        query.descending
+      )).products;
 
-    if (responseData.length > 0) {
-      const selectedFields = query.properties?.filter((field: Properties) => Object.keys(responseData[0]).includes(field)) || [];
+    if (products.length > 0) {
+      const selectedFields = query.properties?.filter(
+        (field: Properties) => Object.keys(products[0]).includes(field)) || [];
       const fields = selectedFields.map((field) => {
-        const fieldType = field === PropertiesOptions.UPDATEDAT ? FieldType.time : FieldType.string;
-        const values = responseData.map(data => data[field as unknown as keyof ProductResponseProperties]);
+        const isTimeField = field === PropertiesOptions.UPDATEDAT;
+        const fieldType = isTimeField
+        ? FieldType.time 
+        : FieldType.string;
+        const values = products.map(data => data[field as unknown as keyof ProductResponseProperties]);
 
-        if (field === PropertiesOptions.PROPERTIES) {
-          return { name: field, values: values.map(value => JSON.stringify(value)), type: fieldType };
-        }
-        return { name: field, values, type: fieldType };
+        return { name: field, values: field === PropertiesOptions.PROPERTIES 
+          ? values.map(value => {
+            return value != null ? JSON.stringify(value) : '';
+          }) 
+          : values , type: fieldType };
       });
       return {
         refId: query.refId,
