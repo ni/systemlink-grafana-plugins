@@ -1,19 +1,19 @@
 import {
-    DataFrameDTO,
-    DataQueryRequest,
-    DataSourceInstanceSettings,
-    FieldType,
-    TestDataSourceResponse,
+  DataFrameDTO,
+  DataQueryRequest,
+  DataSourceInstanceSettings,
+  FieldType,
+  TestDataSourceResponse,
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
-    OutputType,
-    QueryResultsResponse,
-    ResultsProperties,
-    ResultsPropertiesOptions,
-    ResultsQuery,
-    ResultsResponseProperties,
+  OutputType,
+  QueryResultsResponse,
+  ResultsProperties,
+  ResultsPropertiesOptions,
+  ResultsQuery,
+  ResultsResponseProperties,
 } from './types';
 
 export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
@@ -29,7 +29,18 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   queryResultsUrl = this.baseUrl + '/v2/query-results';
 
   defaultQuery = {
+    properties: [
+      ResultsPropertiesOptions.PROGRAM_NAME,
+      ResultsPropertiesOptions.PART_NUMBER,
+      ResultsPropertiesOptions.SERIAL_NUMBER,
+      ResultsPropertiesOptions.STATUS,
+      ResultsPropertiesOptions.HOST_NAME,
+      ResultsPropertiesOptions.STARTED_AT,
+      ResultsPropertiesOptions.UPDATED_AT,
+      ResultsPropertiesOptions.WORKSPACE
+    ] as ResultsProperties[],
     outputType: OutputType.Data,
+    recordCount: 1000,
     useTimeRange: false,
   };
 
@@ -50,22 +61,47 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   }
 
   async runQuery(query: ResultsQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
-    const responseData = (await this.queryResults(query.orderBy!, query.properties!, query.recordCount, query.descending)).results;
-    const selectedFields = query.properties?.filter((field: ResultsProperties) => Object.keys(responseData[0]).includes(field)) || [];
-    const fields = selectedFields.map(field => {
-      const fieldType = (field === ResultsPropertiesOptions.UPDATED_AT || field === ResultsPropertiesOptions.STARTED_AT) ? FieldType.time : FieldType.string;
-      const values = responseData.map(data => data[field as unknown as keyof ResultsResponseProperties]);
+    const responseData = await this.queryResults(
+      query.orderBy!,
+      query.properties!,
+      query.recordCount,
+      query.descending,
+      true
+    );
 
-      if (field === ResultsPropertiesOptions.PROPERTIES || field === ResultsPropertiesOptions.STATUS || field === ResultsPropertiesOptions.STATUS_SUMMARY) {
-        return { name: field, values: values.map(value => JSON.stringify(value)), type: fieldType };
-      }
-      return { name: field, values, type: fieldType };
-    });
+    if (query.outputType === OutputType.Data) {
+      const testResultsResponse = responseData.results;
+      const selectedFields =
+        query.properties?.filter((field: ResultsProperties) => Object.keys(testResultsResponse[0]).includes(field)) ||
+        [];
+      const fields = selectedFields.map(field => {
+        const fieldType =
+          field === ResultsPropertiesOptions.UPDATED_AT || field === ResultsPropertiesOptions.STARTED_AT
+            ? FieldType.time
+            : FieldType.string;
+        const values = testResultsResponse.map(data => data[field as unknown as keyof ResultsResponseProperties]);
 
-    return {
-      refId: query.refId,
-      fields: fields,
-    };
+        if (
+          field === ResultsPropertiesOptions.PROPERTIES ||
+          field === ResultsPropertiesOptions.STATUS ||
+          field === ResultsPropertiesOptions.STATUS_SUMMARY
+        ) {
+          return { name: field, values: values.map(value => JSON.stringify(value)), type: fieldType };
+        }
+        return { name: field, values, type: fieldType };
+      });
+
+      return {
+        refId: query.refId,
+        fields: fields,
+      };
+    } else {
+      console.log(responseData.totalCount);
+      return {
+        refId: query.refId,
+        fields: [{ name: 'Total count', values: [responseData.totalCount] }],
+      };
+    }
   }
 
   shouldRunQuery(query: ResultsQuery): boolean {
