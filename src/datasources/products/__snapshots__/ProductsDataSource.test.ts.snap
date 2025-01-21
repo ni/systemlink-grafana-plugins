@@ -38,14 +38,7 @@ exports[`query returns data when there are valid queries 1`] = `
 ]
 `;
 
-exports[`query returns no data when Query Products returns no data 1`] = `
-[
-  {
-    "fields": [],
-    "refId": "A",
-  },
-]
-`;
+exports[`query returns no data when Query Products returns no data 1`] = `[]`;
 
 exports[`queryProducts returns data when there are valid queries 1`] = `
 {
