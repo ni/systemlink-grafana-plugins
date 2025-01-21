@@ -117,6 +117,8 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
         ...QueryBuilderOperations.DOES_NOT_EQUAL,
         ...callbacks,
       },
+      QueryBuilderOperations.STARTS_WITH,
+      QueryBuilderOperations.ENDS_WITH,
       QueryBuilderOperations.CONTAINS,
       QueryBuilderOperations.DOES_NOT_CONTAIN,
       {
@@ -164,6 +166,7 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
       messages={queryBuilderMessages}
       onChange={onChange}
       value={sanitizedFilter}
+      showIcons
     />
   );
 }

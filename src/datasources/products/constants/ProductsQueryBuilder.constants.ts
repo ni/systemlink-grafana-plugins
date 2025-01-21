@@ -17,6 +17,10 @@ export const ProductsQueryBuilderFields: Record<string, QBField> = {
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name,
+            QueryBuilderOperations.STARTS_WITH.name,
+            QueryBuilderOperations.ENDS_WITH.name,
+            QueryBuilderOperations.CONTAINS.name,
+            QueryBuilderOperations.DOES_NOT_CONTAIN.name,
             QueryBuilderOperations.IS_BLANK.name,
             QueryBuilderOperations.IS_NOT_BLANK.name
         ],
