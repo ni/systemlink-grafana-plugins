@@ -65,13 +65,19 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
         const fieldType = isTimeField
         ? FieldType.time 
         : FieldType.string;
-        const values = products.map(data => data[field as unknown as keyof ProductResponseProperties]);
 
-        return { name: field, values: field === PropertiesOptions.PROPERTIES 
-          ? values.map(value => {
-            return value != null ? JSON.stringify(value) : '';
-          }) 
-          : values , type: fieldType };
+        const values = products
+          .map(data => data[field as unknown as keyof ProductResponseProperties]);
+
+        return { 
+          name: field, 
+          values: values.map(value => value != null 
+            ? (field === PropertiesOptions.PROPERTIES 
+              ? JSON.stringify(value) 
+              : value) 
+            : ''), 
+          type: fieldType 
+        };
       });
       return {
         refId: query.refId,
@@ -89,8 +95,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
-    // TODO: Implement a health and authentication check
-    await this.backendSrv.get(this.baseUrl + '/');
+    await this.get(this.baseUrl + '/v2/products?take=1');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }

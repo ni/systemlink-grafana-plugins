@@ -43,17 +43,19 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
         <InlineField label="Properties" labelWidth={18} tooltip={tooltips.properties}>
           <MultiSelect
             placeholder="Select properties to fetch"
-            options={Object.keys(Properties).map(value => ({ label: value, value })) as SelectableValue[]}
+            options={Object.keys(Properties)
+              .map(value => ({ label: value, value })) as SelectableValue[]}
             onChange={onPropertiesChange}
             value={query.properties}
             defaultValue={query.properties!}
             maxVisibleValues={5}
+            width={60}
             allowCustomValue={false}
             closeMenuOnSelect={false}
           />
         </InlineField>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{ display: "flex", alignItems: "center" }}>
             <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
               <Select
                 options={OrderBy as SelectableValue[]}
