@@ -1,8 +1,8 @@
 import { BackendSrv } from '@grafana/runtime';
 import { ProductsDataSource } from './ProductsDataSource';
 import { ProductQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
-import { DataQueryRequest, dateTime, Field } from '@grafana/data';
-import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
+import { Field } from '@grafana/data';
+import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
 import { MockProxy } from 'jest-mock-extended';
 
 const mockQueryProductResponse: QueryProductResponse = {
@@ -29,7 +29,7 @@ beforeEach(() => {
   backendServer.fetch
     .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
     .mockReturnValue(
-        createFetchResponse<QueryProductResponse>(mockQueryProductResponse)
+      createFetchResponse<QueryProductResponse>(mockQueryProductResponse)
     );
 });
 
@@ -47,7 +47,7 @@ describe('testDatasource', () => {
   test('bubbles up exception', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/products?take=1' }))
-      .mockReturnValue(createFetchError(400));  
+      .mockReturnValue(createFetchError(400));
 
     await expect(datastore.testDatasource())
       .rejects
@@ -75,20 +75,20 @@ describe('queryProducts', () => {
 
 describe('query', () => {
   test('returns data when there are valid queries', async () => {
-    const query = buildQuery([
-      { 
-        refId: 'A', 
+    const query = buildQuery(
+      {
+        refId: 'A',
         properties: [
-            PropertiesOptions.PART_NUMBER, 
-            PropertiesOptions.FAMILY, 
-            PropertiesOptions.NAME, 
-            PropertiesOptions.WORKSPACE
-        ] as Properties[], 
-        orderBy: PropertiesOptions.ID , 
-        descending: false, 
+          PropertiesOptions.PART_NUMBER,
+          PropertiesOptions.FAMILY,
+          PropertiesOptions.NAME,
+          PropertiesOptions.WORKSPACE
+        ] as Properties[],
+        orderBy: PropertiesOptions.ID,
+        descending: false,
         recordCount: 1
-      }, 
-    ]);
+      },
+    );
 
     const response = await datastore.query(query);
 
@@ -101,23 +101,13 @@ describe('query', () => {
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
       .mockReturnValue(
         createFetchResponse(
-            { 
-              products: [], 
-              continuationToken: null, 
-              totalCount: 0
-            } as unknown as QueryProductResponse));
+          {
+            products: [],
+            continuationToken: null,
+            totalCount: 0
+          } as unknown as QueryProductResponse));
 
-    const query = buildQuery([
-      { 
-        refId: 'A',
-        properties: [
-            PropertiesOptions.PART_NUMBER, 
-            PropertiesOptions.FAMILY, 
-            PropertiesOptions.NAME, 
-            PropertiesOptions.WORKSPACE
-        ] as Properties[], orderBy: undefined 
-      },
-    ]);
+    const query = buildQuery();
 
     const response = await datastore.query(query);
 
@@ -129,17 +119,17 @@ describe('query', () => {
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
       .mockReturnValue(createFetchError(400));
 
-    const query = buildQuery([
+    const query = buildQuery(
       {
         refId: 'A',
         properties: [
-            PropertiesOptions.PART_NUMBER,
-            PropertiesOptions.FAMILY,
-            PropertiesOptions.NAME,
-            PropertiesOptions.WORKSPACE
+          PropertiesOptions.PART_NUMBER,
+          PropertiesOptions.FAMILY,
+          PropertiesOptions.NAME,
+          PropertiesOptions.WORKSPACE
         ] as Properties[], orderBy: undefined
       },
-    ]);
+    );
 
     await expect(datastore.query(query))
       .rejects
@@ -147,19 +137,19 @@ describe('query', () => {
   });
 
   it('should convert properties to Grafana fields', async () => {
-    const query = buildQuery([
+    const query = buildQuery(
       {
         refId: 'A',
         properties: [
-            PropertiesOptions.PART_NUMBER,
-            PropertiesOptions.FAMILY,
-            PropertiesOptions.NAME,
-            PropertiesOptions.WORKSPACE,
-            PropertiesOptions.UPDATEDAT,
-            PropertiesOptions.PROPERTIES
+          PropertiesOptions.PART_NUMBER,
+          PropertiesOptions.FAMILY,
+          PropertiesOptions.NAME,
+          PropertiesOptions.WORKSPACE,
+          PropertiesOptions.UPDATEDAT,
+          PropertiesOptions.PROPERTIES
         ] as Properties[], orderBy: undefined
       },
-    ]);
+    );
 
     const response = await datastore.query(query);
 
@@ -179,22 +169,22 @@ describe('query', () => {
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
       .mockReturnValue(createFetchResponse({
         products: [
-            {
-                id: '1',
-                name: 'Product 1',
-                properties: null
-            }
+          {
+            id: '1',
+            name: 'Product 1',
+            properties: null
+          }
         ], continuationToken: null, totalCount: 0
-    } as unknown as QueryProductResponse));
+      } as unknown as QueryProductResponse));
 
-    const query = buildQuery([
+    const query = buildQuery(
       {
         refId: 'A',
         properties: [
-            PropertiesOptions.PROPERTIES
+          PropertiesOptions.PROPERTIES
         ] as Properties[], orderBy: undefined
       },
-    ]);
+    );
 
     const response = await datastore.query(query);
     const fields = response.data[0].fields as Field[];
@@ -204,27 +194,13 @@ describe('query', () => {
   });
 });
 
-const buildQuery = (targets: ProductQuery[]): DataQueryRequest<ProductQuery> => {
-  return {
-    ...defaultQuery,
-    targets,
-  };
-};
-
-const defaultQuery: DataQueryRequest<ProductQuery> = {
-  requestId: '1',
-  dashboardUID: '1',
-  interval: '0',
-  intervalMs: 10,
-  panelId: 0,
-  scopedVars: {},
-  range: {
-    from: dateTime().subtract(1, 'h'),
-    to: dateTime(),
-    raw: { from: '1h', to: 'now' },
-  },
-  timezone: 'browser',
-  app: 'explore',
-  startTime: 0,
-  targets: [],
-};
+const buildQuery = getQueryBuilder<ProductQuery>()({
+  refId: 'A',
+  properties: [
+    PropertiesOptions.PART_NUMBER,
+    PropertiesOptions.FAMILY,
+    PropertiesOptions.NAME,
+    PropertiesOptions.WORKSPACE
+  ] as Properties[],
+  orderBy: undefined
+});
