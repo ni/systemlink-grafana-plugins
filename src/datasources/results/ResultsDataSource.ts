@@ -1,20 +1,7 @@
-import {
-  DataFrameDTO,
-  DataQueryRequest,
-  DataSourceInstanceSettings,
-  FieldType,
-  TestDataSourceResponse,
-} from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import {
-  OutputType,
-  QueryResultsResponse,
-  ResultsProperties,
-  ResultsPropertiesOptions,
-  ResultsQuery,
-  ResultsResponseProperties,
-} from './types';
+import { OutputType, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsQuery, ResultsResponseProperties} from './types';
 
 export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   constructor(
@@ -27,6 +14,13 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
 
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
   queryResultsUrl = this.baseUrl + '/v2/query-results';
+
+  private timeRange: { [key: string]: string } = {
+    Started: 'startedAt',
+    Updated: 'updatedAt',
+  }
+  private fromDateString = '${__from:date}';
+  private toDateString = '${__to:date}';
 
   defaultQuery = {
     properties: [
@@ -44,30 +38,27 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
     useTimeRange: false,
   };
 
-  async queryResults(
-    orderBy: string,
-    projection: ResultsProperties[],
-    recordCount = 1000,
-    descending = false,
-    returnCount = false
-  ): Promise<QueryResultsResponse> {
+  async queryResults( filter: string, orderBy: string, projection: ResultsProperties[], recordCount = 1000, descending = false, returnCount = false): Promise<QueryResultsResponse> {
     return await this.post<QueryResultsResponse>(`${this.queryResultsUrl}`, {
-      orderBy: orderBy,
-      descending: descending,
-      projection: projection,
+      filter,
+      orderBy,
+      descending,
+      projection,
       take: recordCount,
-      returnCount: returnCount,
+      returnCount,
     }).then(response => response);
   }
 
-  async runQuery(query: ResultsQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
-    const responseData = await this.queryResults(
-      query.orderBy!,
-      query.properties!,
-      query.recordCount,
-      query.descending,
-      true
-    );
+  async runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    let queryByFilter = '';
+
+    if (query.useTimeRange && query.useTimeRangeFor) {
+        const timeFilter = `(${this.timeRange[query.useTimeRangeFor]} > \"${this.fromDateString}\" && ${this.timeRange[query.useTimeRangeFor]} < \"${this.toDateString}\")`
+        queryByFilter = queryByFilter ? `${queryByFilter} && ${timeFilter}` : timeFilter
+    }
+    const variableReplacedFilter = getTemplateSrv().replace(queryByFilter, options.scopedVars);
+
+    const responseData = await this.queryResults( variableReplacedFilter, query.orderBy!, query.properties!, query.recordCount, query.descending, true );
 
     if (query.outputType === OutputType.Data) {
       const testResultsResponse = responseData.results;
@@ -81,12 +72,10 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
             : FieldType.string;
         const values = testResultsResponse.map(data => data[field as unknown as keyof ResultsResponseProperties]);
 
-        if (
-          field === ResultsPropertiesOptions.PROPERTIES ||
-          field === ResultsPropertiesOptions.STATUS ||
-          field === ResultsPropertiesOptions.STATUS_SUMMARY
-        ) {
+        if ( field === ResultsPropertiesOptions.PROPERTIES || field === ResultsPropertiesOptions.STATUS_SUMMARY) {
           return { name: field, values: values.map(value => JSON.stringify(value)), type: fieldType };
+        } else if (field === ResultsPropertiesOptions.STATUS) {
+          return { name: field, values: values.map((value: any) => value?.statusType), type: fieldType };
         }
         return { name: field, values, type: fieldType };
       });
@@ -96,7 +85,6 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
         fields: fields,
       };
     } else {
-      console.log(responseData.totalCount);
       return {
         refId: query.refId,
         fields: [{ name: 'Total count', values: [responseData.totalCount] }],
