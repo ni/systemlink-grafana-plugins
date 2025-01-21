@@ -50,15 +50,22 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     queryBy: ''
   };
 
-  async queryProducts(orderBy: string, projection: Properties[], filter?: string, recordCount = 1000, descending = false, returnCount = false): Promise<QueryProductResponse> {
+  async queryProducts(
+    orderBy?: string,
+    projection?: Properties[], 
+    filter?: string,
+    take?: number,
+    descending = false,
+    returnCount = false
+  ): Promise<QueryProductResponse> {
     try {
       const response = await this.post<QueryProductResponse>(this.queryProductsUrl, {
-        filter: filter,
-        orderBy: orderBy,
-        descending: descending,
-        projection: projection,
-        take: recordCount,
-        returnCount: returnCount
+        filter,
+        orderBy,
+        descending,
+        projection,
+        take,
+        returnCount
       });
       return response;
     } catch (error) {
@@ -85,18 +92,36 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       );
     }
 
-    const responseData = (await this.queryProducts(query.orderBy!, query.properties!, query.queryBy, query.recordCount, query.descending)).products;
+    const products = (
+      await this.queryProducts(
+        query.orderBy,
+        query.properties,
+        query.queryBy,
+        query.recordCount,
+        query.descending
+      )).products;
 
-    if (responseData.length > 0) {
-      const selectedFields = query.properties?.filter((field: Properties) => Object.keys(responseData[0]).includes(field)) || [];
+    if (products.length > 0) {
+      const selectedFields = query.properties?.filter(
+        (field: Properties) => Object.keys(products[0]).includes(field)) || [];
       const fields = selectedFields.map((field) => {
-        const fieldType = field === PropertiesOptions.UPDATEDAT ? FieldType.time : FieldType.string;
-        const values = responseData.map(data => data[field as unknown as keyof ProductResponseProperties]);
+        const isTimeField = field === PropertiesOptions.UPDATEDAT;
+        const fieldType = isTimeField
+        ? FieldType.time 
+        : FieldType.string;
 
-        if (field === PropertiesOptions.PROPERTIES) {
-          return { name: field, values: values.map(value => JSON.stringify(value)), type: fieldType };
-        }
-        return { name: field, values, type: fieldType };
+        const values = products
+          .map(data => data[field as unknown as keyof ProductResponseProperties]);
+
+        return { 
+          name: field, 
+          values: values.map(value => value != null 
+            ? (field === PropertiesOptions.PROPERTIES 
+              ? JSON.stringify(value) 
+              : value) 
+            : ''), 
+          type: fieldType 
+        };
       });
       return {
         refId: query.refId,
@@ -155,8 +180,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
-    // TODO: Implement a health and authentication check
-    await this.backendSrv.get(this.baseUrl + '/');
+    await this.get(this.baseUrl + '/v2/products?take=1');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 

@@ -2,7 +2,7 @@ import { MockProxy } from 'jest-mock-extended';
 import { SystemDataSource } from './SystemDataSource';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
-import { SystemMetadata, SystemQuery, SystemQueryType } from './types';
+import { SystemProperties, SystemQuery, SystemQueryType } from './types';
 
 let ds: SystemDataSource, backendSrv: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
 
@@ -30,12 +30,12 @@ test('query for summary counts', async () => {
   ]);
 });
 
-test('query metadata for all systems', async () => {
+test('query properties for all systems', async () => {
   backendSrv.fetch
     .calledWith(requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { filter: '' } }))
     .mockReturnValue(createFetchResponse({ data: fakeSystems }));
 
-  const result = await ds.query(buildQuery({ queryKind: SystemQueryType.Metadata }));
+  const result = await ds.query(buildQuery({ queryKind: SystemQueryType.Properties }));
 
   expect(result.data).toEqual([
     {
@@ -56,14 +56,14 @@ test('query metadata for all systems', async () => {
   ]);
 });
 
-test('query metadata for one system', async () => {
+test('query properties for one system', async () => {
   backendSrv.fetch
     .calledWith(
       requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { filter: 'id = "system-1" || alias = "system-1"' } })
     )
     .mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
 
-  const result = await ds.query(buildQuery({ queryKind: SystemQueryType.Metadata, systemName: 'system-1' }));
+  const result = await ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: 'system-1' }));
 
   expect(result.data).toEqual([
     {
@@ -84,11 +84,11 @@ test('query metadata for one system', async () => {
   ]);
 });
 
-test('query metadata with templated system name', async () => {
+test('query properties with templated system name', async () => {
   templateSrv.replace.calledWith('$system_id').mockReturnValue('system-1');
   backendSrv.fetch.mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
 
-  await ds.query(buildQuery({ queryKind: SystemQueryType.Metadata, systemName: '$system_id' }));
+  await ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: '$system_id' }));
 
   expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('filter', 'id = "system-1" || alias = "system-1"');
 });
@@ -114,12 +114,12 @@ test('queries for system variable values - single workspace', async () => {
   expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('filter', 'workspace = "1"');
 });
 
-test('attempts to replace variables in metadata query', async () => {
+test('attempts to replace variables in properties query', async () => {
   const workspaceVariable = '$workspace';
   backendSrv.fetch.mockReturnValue(createFetchResponse({ data: fakeSystems }));
   templateSrv.replace.calledWith(workspaceVariable).mockReturnValue('1');
 
-  await ds.query(buildQuery({ queryKind: SystemQueryType.Metadata, systemName: 'system', workspace: workspaceVariable }));
+  await ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: 'system', workspace: workspaceVariable }));
 
   expect(templateSrv.replace).toHaveBeenCalledTimes(2);
   expect(templateSrv.replace.mock.calls[1][0]).toBe(workspaceVariable);
@@ -136,7 +136,7 @@ test('attempts to replace variables in metricFindQuery', async () => {
   expect(templateSrv.replace.mock.calls[0][0]).toBe(workspaceVariable);
 });
 
-const fakeSystems: SystemMetadata[] = [
+const fakeSystems: SystemProperties[] = [
   {
     id: 'system-1',
     alias: 'my system',

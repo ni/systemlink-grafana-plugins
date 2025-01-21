@@ -2,8 +2,9 @@ import { of, Observable } from 'rxjs';
 import { DataQueryRequest, DataSourceInstanceSettings, dateTime, Field, FieldType } from '@grafana/data';
 import { BackendSrvRequest, FetchResponse } from '@grafana/runtime';
 
-import { DataFrameQuery, DataFrameQueryType, TableDataRows, TableMetadata } from './types';
+import { DataFrameQuery, DataFrameQueryType, TableDataRows, TableProperties } from './types';
 import { DataFrameDataSource } from './DataFrameDataSource';
+import { LEGACY_METADATA_TYPE } from 'core/types';
 
 jest.mock('@grafana/runtime', () => ({
   ...jest.requireActual('@grafana/runtime'),
@@ -171,7 +172,7 @@ it('should provide decimation parameters correctly', async () => {
   );
 });
 
-it('should cache table metadata for subsequent requests', async () => {
+it('should cache table properties for subsequent requests', async () => {
   const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Data, tableId: '1', columns: ['int'] }]);
 
   await ds.query(query);
@@ -184,7 +185,7 @@ it('should cache table metadata for subsequent requests', async () => {
   expect(fetchMock).toHaveBeenCalledTimes(3);
 });
 
-it('should return error if query columns do not match table metadata', async () => {
+it('should return error if query columns do not match table properties', async () => {
   const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Data, tableId: '1', columns: ['nonexistent'] }]);
 
   await expect(ds.query(query)).rejects.toEqual(expect.anything());
@@ -204,11 +205,11 @@ it('should migrate queries using columns of arrays of objects', async () => {
   expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ columns: ['float'] }) }));
 });
 
-it('attempts to replace variables in metadata query', async () => {
+it('attempts to replace variables in properties query', async () => {
   const tableId = '$tableId';
   replaceMock.mockReturnValueOnce('1');
 
-  await ds.getTableMetadata(tableId);
+  await ds.getTableProperties(tableId);
 
   expect(replaceMock).toHaveBeenCalledTimes(1);
   expect(replaceMock).toHaveBeenCalledWith(tableId);
@@ -228,7 +229,7 @@ it('attempts to replace variables in data query', async () => {
 
 it('metricFindQuery returns table columns', async () => {
   const tableId = '1';
-  const expectedColumns = fakeMetadataResponse.columns.map(col => ({ text: col.name, value: col.name }));
+  const expectedColumns = fakePropertiesResponse.columns.map(col => ({ text: col.name, value: col.name }));
 
   const columns = await ds.metricFindQuery({ tableId } as DataFrameQuery);
 
@@ -236,8 +237,8 @@ it('metricFindQuery returns table columns', async () => {
   expect(columns).toEqual(expect.arrayContaining(expectedColumns));
 });
 
-it('returns table properties for metadata query', async () => {
-  const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Metadata, tableId: '1' }]);
+it('returns table properties for properties query', async () => {
+  const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Properties, tableId: '1' }]);
 
   const response = await ds.query(query);
 
@@ -248,8 +249,15 @@ it('returns table properties for metadata query', async () => {
   ])
 });
 
-it('handles metadata query when table has no properties', async () => {
-  const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Metadata, tableId: '2' }]);
+it('should migrate legacy metadata type to properties type', () => {
+  const query: DataFrameQuery = { refId: 'A', type: LEGACY_METADATA_TYPE as any, tableId: '1', columns: [] };
+
+  const result = ds.processQuery(query);
+  expect(result.type).toBe(DataFrameQueryType.Properties);
+});
+
+it('handles properties query when table has no properties', async () => {
+  const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Properties, tableId: '2' }]);
 
   const response = await ds.query(query);
 
@@ -267,11 +275,11 @@ const buildQuery = (targets: DataFrameQuery[]): DataQueryRequest<DataFrameQuery>
 const setupFetchMock = () => {
   fetchMock.mockImplementation((options: BackendSrvRequest) => {
     if (/\/tables\/1$/.test(options.url)) {
-      return of(createFetchResponse(fakeMetadataResponse));
+      return of(createFetchResponse(fakePropertiesResponse));
     }
 
     if (/\/tables\/2$/.test(options.url)) {
-      return of(createFetchResponse(fakeMetadataResponseNoProperties));
+      return of(createFetchResponse(fakePropertiesResponseNoProperties));
     }
 
     if (/\/tables\/\w+\/query-decimated-data$/.test(options.url)) {
@@ -296,7 +304,7 @@ const createFetchResponse = <T>(data: T): FetchResponse<T> => {
   };
 };
 
-const fakeMetadataResponse: TableMetadata = {
+const fakePropertiesResponse: TableProperties = {
   columns: [
     { name: 'time', dataType: 'TIMESTAMP', columnType: 'INDEX', properties: {} },
     { name: 'int', dataType: 'INT32', columnType: 'NORMAL', properties: {} },
@@ -311,7 +319,7 @@ const fakeMetadataResponse: TableMetadata = {
   workspace: '_',
 };
 
-const fakeMetadataResponseNoProperties: TableMetadata = {
+const fakePropertiesResponseNoProperties: TableProperties = {
   columns: [{ name: 'time', dataType: 'TIMESTAMP', columnType: 'INDEX', properties: {} }],
   id: '_',
   properties: {},

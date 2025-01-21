@@ -42,7 +42,7 @@ export const OrderBy = [
   {
     value: 'PART_NUMBER',
     label: 'Part Number',
-    description: `PartNumber of the product`,
+    description: `Part number of the product`,
   },
   {
     value: 'NAME',
@@ -62,7 +62,7 @@ export const OrderBy = [
   {
     value: 'UPDATED_AT',
     label: 'Updated At',
-    description: `Updated At of the product`,
+    description: `Latest update at time of the product`,
   }
 ];
 

@@ -1,0 +1,68 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`query returns data when there are valid queries 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "partNumber",
+        "type": "string",
+        "values": [
+          "123",
+        ],
+      },
+      {
+        "name": "family",
+        "type": "string",
+        "values": [
+          "Family 1",
+        ],
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "values": [
+          "Product 1",
+        ],
+      },
+      {
+        "name": "workspace",
+        "type": "string",
+        "values": [
+          "Workspace 1",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`query returns no data when Query Products returns no data 1`] = `
+[
+  {
+    "fields": [],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queryProducts returns data when there are valid queries 1`] = `
+{
+  "continuationToken": "",
+  "products": [
+    {
+      "family": "Family 1",
+      "id": "1",
+      "name": "Product 1",
+      "partNumber": "123",
+      "properties": {
+        "prop1": "value1",
+      },
+      "updatedAt": "2021-08-01T00:00:00Z",
+      "workspace": "Workspace 1",
+    },
+  ],
+  "totalCount": 2,
+}
+`;
