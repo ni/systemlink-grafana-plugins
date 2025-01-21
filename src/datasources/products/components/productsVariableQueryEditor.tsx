@@ -7,6 +7,7 @@ import { productsDataSource } from "../productsDataSource";
 import { getTemplateSrv } from "@grafana/runtime";
 import _ from "lodash";
 import { useWorkspaceOptions } from "core/utils";
+import { TestMonitorQueryBuilder } from "shared/queryBuilder";
 
 
 interface Props {
@@ -15,30 +16,30 @@ interface Props {
   datasource: productsDataSource;
 }
 
-export function ProductsVariableQueryEditor({ onChange, query, datasource}: Props) {
+export function ProductsVariableQueryEditor({ onChange, query, datasource }: Props) {
   const workspaces = useWorkspaceOptions(datasource);
 
-  const loadPartNumberOptions = _.debounce((field: string, query: string, cb?: LoadOptionsCallback<string>) => {
-    Promise.all([datasource.queryProductValues(field, query )])
-      .then(([partNumbers]) =>
-      cb?.(
-        partNumbers.map(partNumber => ({
-          label: partNumber,
-          value: partNumber,
-          title: partNumber,
-        }))
-      )
-    )
-  }, 300);
+  // const loadPartNumberOptions = _.debounce((field: string, query: string, cb?: LoadOptionsCallback<string>) => {
+  //   Promise.all([datasource.queryProductValues(field, query )])
+  //     .then(([partNumbers]) =>
+  //     cb?.(
+  //       partNumbers.map(partNumber => ({
+  //         label: partNumber,
+  //         value: partNumber,
+  //         title: partNumber,
+  //       }))
+  //     )
+  //   )
+  // }, 300);
 
-  const handleLoadFamilyOptions = (query: string, cb?: LoadOptionsCallback<string>) => {
-    if (!query || query.startsWith('$')) {
-      return cb?.(getVariableOptions());
-    }
+  // const handleLoadFamilyOptions = (query: string, cb?: LoadOptionsCallback<string>) => {
+  //   if (!query || query.startsWith('$')) {
+  //     return cb?.(getVariableOptions());
+  //   }
 
-    loadPartNumberOptions('FAMILY', query, cb);
+  //   loadPartNumberOptions('FAMILY', query, cb);
 
-  };
+  // };
 
   const getVariableOptions = () => {
     return getTemplateSrv()
@@ -46,43 +47,89 @@ export function ProductsVariableQueryEditor({ onChange, query, datasource}: Prop
       .map(v => toOption('$' + v.name));
   };
 
-  const handleFamilyChange = (item: SelectableValue<string>) => {
-    if(!item){
-      onChange({ ...query, family: item});
-    }
-    else if (query.family !== item.value) {
-      onChange({ ...query, family: item.value!});
-    }
+  // const handleFamilyChange = (item: SelectableValue<string>) => {
+  //   if(!item){
+  //     onChange({ ...query, family: item});
+  //   }
+  //   else if (query.family !== item.value) {
+  //     onChange({ ...query, family: item.value!});
+  //   }
+  // };
+
+  const getDataSource = (field: string) => {
+    return async (query: string, callback: Function) => {
+      callback(await datasource.queryProductValues(field, query));
+    };
   };
-  
+
+  const onQueryByChange = (value: string) => {
+    onChange({ ...query, queryBy: value });
+  };
+
+  const fields = [
+    {
+      label: 'Part Number',
+      dataField: 'partNumber',
+      dataType: 'string',
+      filterOperations: ['=', '<>', 'startswith', 'endswith', 'contains', 'notcontains', 'isblank', 'isnotblank',],
+      lookup: { dataSource: getDataSource('PART_NUMBER'), minLength: 1 },
+    },
+    {
+      label: 'Family',
+      dataField: 'family',
+      dataType: 'string',
+      filterOperations: ['=', '<>', 'contains', 'notcontains', 'isblank', 'isnotblank'],
+      lookup: { dataSource: getDataSource('FAMILY'), minLength: 1 },
+    },
+    {
+      label: 'Name',
+      dataField: 'name',
+      dataType: 'string',
+      filterOperations: ['=', '<>', 'contains', 'notcontains', 'isblank', 'isnotblank'],
+      lookup: { dataSource: getDataSource('NAME'), minLength: 1 },
+    },
+    {
+      label: 'Properties',
+      dataField: 'properties',
+      dataType: 'Object',
+      filterOperations: ['key_value_matches'],
+    },
+    {
+      label: 'Updated at',
+      dataField: 'updatedAt',
+      dataType: 'string',
+      filterOperations: ['>', '>=', '<', '<='],
+      lookup: {
+        dataSource: [
+          { label: 'From', value: '${__from:date}' },
+          { label: 'To', value: '${__to:date}' },
+          { label: 'From (YYYY-MM-DD)', value: '${__from:date:YYYY-MM-DD}' },
+          { label: 'To (YYYY-MM-DD)', value: '${__to:date:YYYY-MM-DD}' },
+        ],
+      },
+    },
+    {
+      label: 'Workspace',
+      dataField: 'workspace',
+      dataType: 'string',
+      filterOperations: ['=', '<>'],
+      lookup: { dataSource: workspaces },
+    },
+  ];
+
   return (
     <>
-      <InlineField label="Family" labelWidth={20} tooltip={tooltip.family}>
-        <Select
-          isClearable={true}
-          cacheOptions={false}
-          defaultOptions
-          isValidNewOption={isValidId}
-          loadOptions={handleLoadFamilyOptions}
-          onChange={handleFamilyChange}
-          placeholder="Family"
-          width={30}
-          value={query.family ? toOption(query.family) : null} />
-      </InlineField>
-      <InlineField label="Workspace" labelWidth={20} tooltip={tooltip.workspace}>
-          <Select
-            isClearable
-            isLoading={workspaces.loading}
-            onChange={(option?: SelectableValue<string>) => onChange({ ...query, workspace: option?.value ?? '' })}
-            options={workspaces.value}
-            placeholder="Any workspace"
-            value={query.workspace} />
+      <InlineField label='Query By' labelWidth={20} tooltip={tooltip.queryBy}>
+        <TestMonitorQueryBuilder
+          onChange={(event: any) => onQueryByChange(event.detail.linq)}
+          defaultValue={query.queryBy}
+          fields={fields}
+        />
       </InlineField>
     </>
   );
 };
 
 const tooltip = {
-  family: 'Enter the family name to query',
-  workspace: 'Select the workspace to query',
+  queryBy: 'Enter the query to filter the results',
 }

@@ -100,12 +100,9 @@ export class productsDataSource extends DataSourceBase<ProductsQuery> {
     return true;
   }
 
-  async metricFindQuery({ workspace, family }: ProductsVariableQuery): Promise<MetricFindValue[]> {
-    const filter = [
-      family ? `family = (\"${family}\")` : '',
-      workspace ? `workspace = (\"${workspace}\")` : '',
-    ].filter(Boolean).join(' && ');
-
+  async metricFindQuery({ queryBy }: ProductsVariableQuery): Promise<MetricFindValue[]> {
+    const filter = queryBy || '';
+    this.templateSrv.replace(filter);
     const metadata = (await this.queryProducts(filter)).products;
     return metadata.map(frame => ({ text: `${frame.partNumber}(${frame.family})`, value: frame.partNumber, }));
   }

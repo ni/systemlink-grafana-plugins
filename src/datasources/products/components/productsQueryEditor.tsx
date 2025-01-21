@@ -111,12 +111,25 @@ export function productsQueryEditor({ query, onChange, onRunQuery, datasource }:
               onChange={onPropertiesChange}
               value={query.properties}
               defaultValue={query.properties!}
-              width={40}
+              width={65}
+              maxVisibleValues={5}             
               allowCustomValue={false}
+              noMultiValueWrap={true}
               closeMenuOnSelect={false}
             />
           </InlineField>
           <div>
+            <InlineField label='Query By' labelWidth={20} tooltip={tooltip.queryBy}>
+              <TestMonitorQueryBuilder
+                onChange={(event: any) => onQueryByChange(event.detail.linq)}
+                defaultValue={query.queryBy}
+                fields={fields}
+              />
+            </InlineField>
+          </div>
+        </VerticalGroup>
+        <VerticalGroup>
+          <div style={{ padding: '10% 0 0 0' }}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <InlineField label="OrderBy" labelWidth={20} tooltip={tooltip.orderBy}>
                 <Select
@@ -144,18 +157,7 @@ export function productsQueryEditor({ query, onChange, onRunQuery, datasource }:
             </InlineField>
           </div>
         </VerticalGroup>
-        <VerticalGroup>
-          <div style={{ padding: '10% 0 0 0' }}>
-            <InlineField label='Query By' tooltip={tooltip.queryBy}>
-              <TestMonitorQueryBuilder
-                onChange={(event: any) => onQueryByChange(event.detail.linq)}
-                defaultValue={query.queryBy}
-                fields={fields}
-              />
-            </InlineField>
-          </div>
-        </VerticalGroup>
-      </HorizontalGroup>
+      </HorizontalGroup >
     </>
   );
 }

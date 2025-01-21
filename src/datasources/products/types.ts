@@ -18,8 +18,7 @@ export enum ProductsQueryType {
 }
 
 export interface ProductsVariableQuery {
-  workspace: string;
-  family: string;
+  queryBy: string;
 }
 
 export enum ProductQueryOutput {
