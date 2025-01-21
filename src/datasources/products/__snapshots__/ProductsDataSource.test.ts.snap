@@ -40,6 +40,12 @@ exports[`query returns data when there are valid queries 1`] = `
 
 exports[`query returns no data when Query Products returns no data 1`] = `[]`;
 
+exports[`queryProductValues returns data when there are valid queries 1`] = `
+[
+  "value1",
+]
+`;
+
 exports[`queryProducts returns data when there are valid queries 1`] = `
 {
   "continuationToken": "",

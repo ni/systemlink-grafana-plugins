@@ -52,7 +52,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
   async queryProducts(
     orderBy?: string,
-    projection?: Properties[], 
+    projection?: Properties[],
     filter?: string,
     take?: number,
     descending = false,
@@ -75,10 +75,14 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   }
 
   async queryProductValues(fieldName: string): Promise<string[]> {
-    const response = await this.post<string[]>(this.queryProductValuesUrl, {
-      field: fieldName
-    });
-    return response;
+    try {
+      return await this.post<string[]>(this.queryProductValuesUrl, {
+        field: fieldName
+      });
+    } catch (error) {
+      this.error = parseErrorMessage(error as Error)!;
+      throw new Error(`An error occurred while querying product values: ${this.error}`);
+    }
   }
 
   async runQuery(query: ProductQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
@@ -107,20 +111,20 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       const fields = selectedFields.map((field) => {
         const isTimeField = field === PropertiesOptions.UPDATEDAT;
         const fieldType = isTimeField
-        ? FieldType.time 
-        : FieldType.string;
+          ? FieldType.time
+          : FieldType.string;
 
         const values = products
           .map(data => data[field as unknown as keyof ProductResponseProperties]);
 
-        return { 
-          name: field, 
-          values: values.map(value => value != null 
-            ? (field === PropertiesOptions.PROPERTIES 
-              ? JSON.stringify(value) 
-              : value) 
-            : ''), 
-          type: fieldType 
+        return {
+          name: field,
+          values: values.map(value => value != null
+            ? (field === PropertiesOptions.PROPERTIES
+              ? JSON.stringify(value)
+              : value)
+            : ''),
+          type: fieldType
         };
       });
       return {
