@@ -7,6 +7,7 @@ import { OrderBy, ProductQuery, Properties } from '../types';
 import { Workspace } from 'core/types';
 import { ProductsQueryBuilder } from 'datasources/products/components/query-builder/ProductsQueryBuilder';
 import { FloatingError } from 'core/errors';
+import './ProductsQueryEditor.scss';
 
 
 type Props = QueryEditorProps<ProductsDataSource, ProductQuery>;
@@ -67,18 +68,29 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
             <MultiSelect
               placeholder="Select properties to fetch"
               options={Object.keys(Properties)
-              .map(value => ({ label: value, value })) as SelectableValue[]}
+                .map(value => ({ label: value, value })) as SelectableValue[]}
               onChange={onPropertiesChange}
               value={query.properties}
               defaultValue={query.properties!}
               maxVisibleValues={5}
-              width={60}
-            allowCustomValue={false}
+              width={65}
+              allowCustomValue={false}
               closeMenuOnSelect={false}
             />
           </InlineField>
-          <div>
-            <div style={{ display: "flex", alignItems: "center" }}>
+          <InlineField label="Query By" labelWidth={18} tooltip={tooltips.queryBy}>
+            <ProductsQueryBuilder
+              filter={query.queryBy}
+              workspaces={workspaces}
+              partNumbers={partNumbers}
+              globalVariableOptions={datasource.globalVariableOptions()}
+              onChange={(event: any) => onParameterChange(event.detail.linq)}
+            ></ProductsQueryBuilder>
+          </InlineField>
+        </VerticalGroup>
+        <VerticalGroup>
+          <div className='right-query-controls'>
+            <div className='horizontal-control-group'>
               <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
                 <Select
                   options={OrderBy as SelectableValue[]}
@@ -105,17 +117,6 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
               />
             </InlineField>
           </div>
-        </VerticalGroup>
-        <VerticalGroup>
-          <InlineField label="Query By" labelWidth={18} tooltip={tooltips.queryBy}>
-            <ProductsQueryBuilder
-              filter={query.queryBy}
-              workspaces={workspaces}
-              partNumbers={partNumbers}
-              globalVariableOptions={datasource.globalVariableOptions()}
-              onChange={(event: any) => onParameterChange(event.detail.linq)}
-            ></ProductsQueryBuilder>
-          </InlineField>
         </VerticalGroup>
       </HorizontalGroup>
       <FloatingError message={datasource.error} />
