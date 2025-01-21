@@ -56,7 +56,7 @@ export class KeyValueOperationTemplate {
 
     public static handleNumberValue(editor: HTMLElement | null | undefined): { label: PropertyFieldKeyValuePair; value: PropertyFieldKeyValuePair; } {
         const inputs = KeyValueOperationTemplate.retrieveKeyValueInputs(editor);
-        const normalizedInputs = { key: inputs.key, value: inputs.value };
+        const normalizedInputs = { key: inputs.key, value: KeyValueOperationTemplate.normalizeNumericValue(inputs.value) };
         return {
             label: normalizedInputs,
             value: normalizedInputs
@@ -113,10 +113,11 @@ export class KeyValueOperationTemplate {
     }
 
     public static numericKeyValueExpressionReaderCallback(_expression: string, bindings: string[]): { fieldName: string; value: PropertyFieldKeyValuePair; } {
-        return { fieldName: bindings[0], value: { key: bindings[1], value: bindings[2] } };
+        const normalizedNumberValue = KeyValueOperationTemplate.normalizeNumericValue(bindings[2]);
+        return { fieldName: bindings[0], value: { key: bindings[1], value: normalizedNumberValue } };
     }
 
-    private static retrieveKeyValueInputs(editor: HTMLElement | null | undefined): PropertyFieldKeyValuePair{
+    private static retrieveKeyValueInputs(editor: HTMLElement | null | undefined): { key: string, value: string }{
         let pair = { key: '', value: '' };
         if (editor) {
             const keyInput = editor.querySelector<HTMLInputElement>('.key-input');
@@ -129,5 +130,12 @@ export class KeyValueOperationTemplate {
             }
         }
         return pair;
+    }
+
+    private static normalizeNumericValue(value: string): number | string {
+        const convertedNumberValue = Number(value);
+        return isNaN(convertedNumberValue)
+            ? value
+            : convertedNumberValue;
     }
 }

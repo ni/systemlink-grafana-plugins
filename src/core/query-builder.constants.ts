@@ -1,4 +1,4 @@
-import { KeyValueOperationTemplate } from "datasources/products/components/query-builder/keyValueOperation";
+import { KeyValueOperationTemplate } from "datasources/products/components/query-builder/keyValueOperationTemplate";
 import { QueryBuilderCustomOperation } from "smart-webcomponents-react";
 
 export const queryBuilderMessages = {
