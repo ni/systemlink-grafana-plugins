@@ -49,6 +49,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
             value={query.properties}
             defaultValue={query.properties!}
             maxVisibleValues={5}
+            noMultiValueWrap={true}
             width={60}
             allowCustomValue={false}
             closeMenuOnSelect={false}
