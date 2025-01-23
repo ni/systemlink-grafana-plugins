@@ -30,7 +30,7 @@ export function editorTemplate(_: string, value: PropertyFieldKeyValuePair): HTM
 
 export function valueTemplate(editor: HTMLElement | null | undefined, value: PropertyFieldKeyValuePair): string {
     if (value) {
-        const keyValuePair = value as { key: string; value: string | number; };
+        const keyValuePair = value;
         return `${keyValuePair.key} : ${keyValuePair.value}`;
     }
     if (editor) {
@@ -48,7 +48,7 @@ export function handleStringValue(editor: HTMLElement | null | undefined): { lab
     return {
         label: inputs,
         value: inputs
-    };
+    };   
 }
 
 export function handleNumberValue(editor: HTMLElement | null | undefined): { label: PropertyFieldKeyValuePair; value: PropertyFieldKeyValuePair; } {
