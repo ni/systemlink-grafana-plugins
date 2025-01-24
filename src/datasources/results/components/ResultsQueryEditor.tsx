@@ -116,6 +116,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
             </InlineField>
             <InlineField label="to filter by" disabled={!query.useTimeRange}>
               <Select
+                placeholder="Choose"
                 options={Object.keys(UseTimeRange).map(value => ({ label: value, value })) as SelectableValue[]}
                 onChange={onUseTimeRangeChanged}
                 value={query.useTimeRangeFor}

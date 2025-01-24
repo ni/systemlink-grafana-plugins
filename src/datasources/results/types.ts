@@ -36,10 +36,9 @@ export enum ResultsProperties {
     operator = 'OPERATOR',
     keywords = 'KEYWORDS',
     properties = 'PROPERTIES',
-    statusSummary = 'STATUS_SUMMARY',
+    statusTypeSummary = 'STATUS_TYPE_SUMMARY',
     workspace = 'WORKSPACE',
 }
-
 
 export const OrderBy = [
   {
@@ -115,7 +114,7 @@ export const ResultsPropertiesOptions = {
     OPERATOR: 'operator',
     KEYWORDS: 'keywords',
     PROPERTIES: 'properties',
-    STATUS_SUMMARY: 'statusSummary',
+    STATUS_TYPE_SUMMARY: 'statusTypeSummary',
     WORKSPACE: 'workspace',
 }
 

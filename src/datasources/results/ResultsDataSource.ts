@@ -38,7 +38,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
     useTimeRange: false,
   };
 
-  async queryResults( filter: string, orderBy: string, projection: ResultsProperties[], recordCount = 1000, descending = false, returnCount = false): Promise<QueryResultsResponse> {
+  async queryResults( filter?: string, orderBy?: string, projection?: ResultsProperties[], recordCount = 1000, descending = false, returnCount = false): Promise<QueryResultsResponse> {
     return await this.post<QueryResultsResponse>(`${this.queryResultsUrl}`, {
       filter,
       orderBy,
@@ -58,13 +58,18 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
     }
     const variableReplacedFilter = getTemplateSrv().replace(queryByFilter, options.scopedVars);
 
-    const responseData = await this.queryResults( variableReplacedFilter, query.orderBy!, query.properties!, query.recordCount, query.descending, true );
+    const responseData = await this.queryResults(variableReplacedFilter, query.orderBy!, query.properties!, query.recordCount, query.descending, true);
+
+    if(responseData.results.length === 0) {
+      return {
+        refId: query.refId,
+        fields: [],
+      };
+    }
 
     if (query.outputType === OutputType.Data) {
       const testResultsResponse = responseData.results;
-      const selectedFields =
-        query.properties?.filter((field: ResultsProperties) => Object.keys(testResultsResponse[0]).includes(field)) ||
-        [];
+      const selectedFields = query.properties?.filter((field: ResultsProperties) => Object.keys(testResultsResponse[0]).includes(field)) || [];
       const fields = selectedFields.map(field => {
         const fieldType =
           field === ResultsPropertiesOptions.UPDATED_AT || field === ResultsPropertiesOptions.STARTED_AT
@@ -72,8 +77,8 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
             : FieldType.string;
         const values = testResultsResponse.map(data => data[field as unknown as keyof ResultsResponseProperties]);
 
-        if ( field === ResultsPropertiesOptions.PROPERTIES || field === ResultsPropertiesOptions.STATUS_SUMMARY) {
-          return { name: field, values: values.map(value => JSON.stringify(value)), type: fieldType };
+        if (field === ResultsPropertiesOptions.PROPERTIES || field === ResultsPropertiesOptions.STATUS_TYPE_SUMMARY) {
+          return { name: field, values: values.map(value => value !== null ? JSON.stringify(value): ''), type: fieldType };
         } else if (field === ResultsPropertiesOptions.STATUS) {
           return { name: field, values: values.map((value: any) => value?.statusType), type: fieldType };
         }
@@ -97,8 +102,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
-    // TODO: Implement a health and authentication check
-    await this.backendSrv.get(this.baseUrl + '/');
+    await this.get(this.baseUrl + '/v2/query-results-fake-call');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }
