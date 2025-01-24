@@ -131,7 +131,6 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
 }
 
 const tooltips = {
-  queryType: 'Select the type of query to run',
   output: 'Select the output type for the query',
   properties: 'Select the properties fields to query',
   recordCount: 'Enter the number of records to query',
