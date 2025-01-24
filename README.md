@@ -20,7 +20,7 @@ Tools](https://grafana.github.io/plugin-tools/).
 - [Systems](src/datasources/system/)
 - [Tags](src/datasources/tag/)
 - [Assets](src/datasources/asset/)
-- [Results](src/datasources//results/)
+- [Results](src/datasources/results/)
 
 ### Panels
 
