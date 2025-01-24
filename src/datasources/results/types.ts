@@ -49,12 +49,12 @@ export const OrderBy = [
   {
     value: 'STARTED_AT',
     label: 'Started At',
-    description: `Started At of the result`,
+    description: `Timestamp when the result started`,
   },
   {
     value: 'UPDATED_AT',
     label: 'Updated At',
-    description: `Updated At of the result`,
+    description: `Timestamp when the result was last updated`,
   },
   {
     value: 'PROGRAM_NAME',

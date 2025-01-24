@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { OutputType, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsQuery, ResultsResponseProperties} from './types';
+import { OutputType, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsQuery, ResultsResponseProperties } from './types';
 
 export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   constructor(
@@ -38,15 +38,26 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
     useTimeRange: false,
   };
 
-  async queryResults( filter?: string, orderBy?: string, projection?: ResultsProperties[], recordCount = 1000, descending = false, returnCount = false): Promise<QueryResultsResponse> {
-    return await this.post<QueryResultsResponse>(`${this.queryResultsUrl}`, {
-      filter,
-      orderBy,
-      descending,
-      projection,
-      take: recordCount,
-      returnCount,
-    }).then(response => response);
+  async queryResults(
+    filter?: string,
+    orderBy?: string,
+    projection?: ResultsProperties[],
+    take?: number,
+    descending?: boolean,
+    returnCount = false
+  ): Promise<QueryResultsResponse> {
+    try {
+      return await this.post<QueryResultsResponse>(`${this.queryResultsUrl}`, {
+        filter,
+        orderBy,
+        descending,
+        projection,
+        take,
+        returnCount,
+      });
+    } catch (error) {
+      throw new Error(`An error occurred while querying results: ${error}`);
+    }
   }
 
   async runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
@@ -58,7 +69,14 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
     }
     const variableReplacedFilter = getTemplateSrv().replace(queryByFilter, options.scopedVars);
 
-    const responseData = await this.queryResults(variableReplacedFilter, query.orderBy!, query.properties!, query.recordCount, query.descending, true);
+    const responseData = await this.queryResults(
+      variableReplacedFilter,
+      query.orderBy,
+      query.properties,
+      query.recordCount,
+      query.descending,
+      true
+    );
 
     if(responseData.results.length === 0) {
       return {
@@ -71,19 +89,17 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
       const testResultsResponse = responseData.results;
       const selectedFields = query.properties?.filter((field: ResultsProperties) => Object.keys(testResultsResponse[0]).includes(field)) || [];
       const fields = selectedFields.map(field => {
-        const fieldType =
-          field === ResultsPropertiesOptions.UPDATED_AT || field === ResultsPropertiesOptions.STARTED_AT
-            ? FieldType.time
-            : FieldType.string;
-        const values = testResultsResponse.map(data => data[field as unknown as keyof ResultsResponseProperties]);
+          const isTimeField = field === ResultsPropertiesOptions.UPDATED_AT || field === ResultsPropertiesOptions.STARTED_AT;
+          const fieldType = isTimeField ? FieldType.time : FieldType.string;
+          const values = testResultsResponse.map(data => data[field as unknown as keyof ResultsResponseProperties]);
 
-        if (field === ResultsPropertiesOptions.PROPERTIES || field === ResultsPropertiesOptions.STATUS_TYPE_SUMMARY) {
-          return { name: field, values: values.map(value => value !== null ? JSON.stringify(value): ''), type: fieldType };
-        } else if (field === ResultsPropertiesOptions.STATUS) {
-          return { name: field, values: values.map((value: any) => value?.statusType), type: fieldType };
-        }
-        return { name: field, values, type: fieldType };
-      });
+          if (field === ResultsPropertiesOptions.PROPERTIES || field === ResultsPropertiesOptions.STATUS_TYPE_SUMMARY) {
+            return { name: field, values: values.map(value => value !== null ? JSON.stringify(value): ''), type: fieldType };
+          } else if (field === ResultsPropertiesOptions.STATUS) {
+            return { name: field, values: values.map((value: any) => value?.statusType), type: fieldType };
+          }
+          return { name: field, values, type: fieldType };
+        });
 
       return {
         refId: query.refId,
@@ -102,7 +118,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
-    await this.get(this.baseUrl + '/v2/query-results-fake-call');
+    await this.get(this.baseUrl + '/v2/query-results-test-api');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }

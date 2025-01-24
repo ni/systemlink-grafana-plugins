@@ -32,7 +32,7 @@ describe('ResultsQueryEditor', () => {
     recordCount = screen.getByRole('textbox');
   });
 
-  it('renders with default query', async () => {
+  test('renders with default query', async () => {
     expect(properties).toBeInTheDocument();
     expect(properties).toHaveDisplayValue('');
     expect(DataOutput).toBeInTheDocument();
@@ -49,7 +49,7 @@ describe('ResultsQueryEditor', () => {
     expect(useTimeRangeFor).toHaveAccessibleDescription('Choose');
   });
 
-  it('updates when user makes changes', async () => {
+  test('updates when user makes changes', async () => {
     //User adds a properties
     await select(properties, "properties", { container: document.body });
     await waitFor(() => {
@@ -103,9 +103,9 @@ describe('ResultsQueryEditor', () => {
     //User changes output type to Total Count
     await userEvent.click(totalCountOutput);
     await waitFor(() => {
-        expect(onChange).toHaveBeenCalledWith(
-            expect.objectContaining({ outputType: "Total Count" })
-        )
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining({ outputType: "Total Count" })
+      )
     });
   });
 });

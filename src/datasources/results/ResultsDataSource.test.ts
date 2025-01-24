@@ -61,7 +61,7 @@ let datastore: ResultsDataSource, backendServer: MockProxy<BackendSrv>
 describe('ResultsDataSource', () => {
   beforeEach(() => {
     (getTemplateSrv as jest.Mock).mockReturnValue({
-        replace: jest.fn((value) => value.replace('${__from:date}', '${__from:replaceDate}'))
+        replace: jest.fn((value) => value.replace('${__from:date}', 'replacedDate'))
       });
     [datastore, backendServer] = setupDataSource(ResultsDataSource);
 
@@ -75,7 +75,7 @@ describe('ResultsDataSource', () => {
   describe('testDataSource', () => {
     test('returns success', async () => {
       backendServer.fetch
-      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results-fake-call', method: 'GET' }))
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results-test-api', method: 'GET' }))
       .mockReturnValue(createFetchResponse('testData'));
 
       const response = await datastore.testDatasource();
@@ -85,12 +85,12 @@ describe('ResultsDataSource', () => {
 
     test('bubbles up exception', async () => {
       backendServer.fetch
-      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results-fake-call', method: 'GET' }))
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results-test-api', method: 'GET' }))
       .mockReturnValue(createFetchError(400));
 
       await expect(datastore.testDatasource())
       .rejects
-      .toThrow('Request to url "/nitestmonitor/v2/query-results-fake-call" failed with status code: 400. Error message: "Error"');
+      .toThrow('Request to url "/nitestmonitor/v2/query-results-test-api" failed with status code: 400. Error message: "Error"');
     });
   });
 
