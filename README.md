@@ -1,4 +1,5 @@
 # SystemLink Grafana Plugins
+
 [![Push to
 main](https://github.com/ni/systemlink-grafana-plugins/actions/workflows/push.yml/badge.svg)](https://github.com/ni/systemlink-grafana-plugins/actions/workflows/push.yml)
 
@@ -19,6 +20,7 @@ Tools](https://grafana.github.io/plugin-tools/).
 - [Systems](src/datasources/system/)
 - [Tags](src/datasources/tag/)
 - [Assets](src/datasources/asset/)
+- [Results](src/datasources//results/)
 
 ### Panels
 
@@ -166,4 +168,4 @@ follow the instructions.
 ### Helpful links
 
 - [Grafana plugin developer's
-guide](https://grafana.com/docs/grafana/latest/developers/plugins/)
+  guide](https://grafana.com/docs/grafana/latest/developers/plugins/)
