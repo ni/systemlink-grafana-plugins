@@ -29,7 +29,6 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
 
   const onDescendingChange = (isDescendingChecked: boolean) => {
     handleQueryChange({ ...query, descending: isDescendingChecked });
-
   }
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
