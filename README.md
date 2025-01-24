@@ -1,5 +1,4 @@
 # SystemLink Grafana Plugins
-
 [![Push to
 main](https://github.com/ni/systemlink-grafana-plugins/actions/workflows/push.yml/badge.svg)](https://github.com/ni/systemlink-grafana-plugins/actions/workflows/push.yml)
 
@@ -168,4 +167,4 @@ follow the instructions.
 ### Helpful links
 
 - [Grafana plugin developer's
-  guide](https://grafana.com/docs/grafana/latest/developers/plugins/)
+guide](https://grafana.com/docs/grafana/latest/developers/plugins/)
