@@ -1,3 +1,9 @@
+## [3.44.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.7...v3.44.0) (2025-01-24)
+
+### Features
+
+* **products:** Add Products datatsource ([#115](https://github.com/ni/systemlink-grafana-plugins/issues/115)) ([fae0b39](https://github.com/ni/systemlink-grafana-plugins/commit/fae0b3966fdd8fdf6aa1bc96357d6d0ec73bef7d))
+
 ## [3.43.7](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.6...v3.43.7) (2024-12-03)
 
 ### Bug Fixes
