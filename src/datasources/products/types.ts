@@ -9,10 +9,6 @@ export interface ProductQuery extends DataQuery {
   queryBy?: string;
 }
 
-export interface ProductVariableQuery extends DataQuery {
-  queryBy?: string;
-}
-
 export enum Properties {
   id = 'ID',
   partNumber = 'PART_NUMBER',

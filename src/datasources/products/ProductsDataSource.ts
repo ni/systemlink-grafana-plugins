@@ -1,7 +1,7 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { ProductQuery, ProductResponseProperties, ProductVariableQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
+import { ProductQuery, ProductResponseProperties, Properties, PropertiesOptions, QueryProductResponse } from './types';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { parseErrorMessage } from 'core/errors';
 import { getVariableOptions } from 'core/utils';
@@ -153,19 +153,6 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
         return `${ProductsQueryBuilderFieldNames.UPDATED_AT} ${operation} "${value}"`;
       }]]);
-
-  async metricFindQuery(query: ProductVariableQuery, options: DataQueryRequest): Promise<MetricFindValue[]> {
-    if (query.queryBy) {
-      const filter = this.templateSrv.replace(query.queryBy, options.scopedVars)
-      const metadata = (await this.queryProducts(
-        PropertiesOptions.PART_NUMBER,
-        [Properties.partNumber, Properties.family],
-        filter
-      )).products;
-      return metadata.map(frame => ({ text: `${frame.partNumber}(${frame.family})`, value: frame.partNumber }));
-    }
-    return [];
-  }
 
   protected multipleValuesQuery(field: string): ExpressionTransformFunction {
     return (value: string, operation: string, _options?: any) => {

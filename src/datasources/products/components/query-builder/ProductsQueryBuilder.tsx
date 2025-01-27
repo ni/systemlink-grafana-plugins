@@ -3,7 +3,7 @@ import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder
 import { expressionBuilderCallback, expressionReaderCallback } from "core/query-builder.utils";
 import { Workspace, QueryBuilderOption } from "core/types";
 import { filterXSSField, filterXSSLINQExpression } from "core/utils";
-import { ProductsQueryBuilderFields } from "datasources/products/constants/ProductsQueryBuilder.constants";
+import { ProductsQueryBuilderStaticFields, ProductsQueryBuilderFields } from "datasources/products/constants/ProductsQueryBuilder.constants";
 import { QBField } from "datasources/products/types";
 import React, { useState, useEffect, useMemo } from "react";
 import QueryBuilder, { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
@@ -13,7 +13,6 @@ type ProductsQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Elemen
   workspaces: Workspace[];
   partNumbers: string[];
   globalVariableOptions: QueryBuilderOption[];
-  staticFields?: QBField[];
 };
 
 export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
@@ -21,8 +20,7 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
   onChange,
   workspaces,
   partNumbers,
-  globalVariableOptions,
-  staticFields
+  globalVariableOptions
 }) => {
   const theme = useTheme2();
   document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
@@ -82,7 +80,7 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
 
 
   useEffect(() => {
-    const fields = [partNumberField, ...staticFields!, updatedAtField, workspaceField]
+    const fields = [partNumberField, ...ProductsQueryBuilderStaticFields, updatedAtField, workspaceField]
       .map((field) => {
         if (field.lookup?.dataSource) {
           return {
@@ -159,7 +157,7 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
       QueryBuilderOperations.KEY_VALUE_IS_NUMERICAL_NOT_EQUAL
     ]);
 
-  }, [workspaceField, updatedAtField, partNumberField, staticFields, globalVariableOptions]);
+  }, [workspaceField, updatedAtField, partNumberField, globalVariableOptions]);
 
   return (
     <QueryBuilder
