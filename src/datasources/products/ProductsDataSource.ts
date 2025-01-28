@@ -28,6 +28,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
   readonly workspacesCache = new Map<string, Workspace>([]);
   readonly partNumbersCache = new Map<string, string>([]);
+  readonly familyNamesCache = new Map<string, string>([]);
 
   areWorkspacesLoaded$ = new Promise<void>(resolve => this.workspacesLoaded = resolve);
   arePartNumberLoaded$ = new Promise<void>(resolve => this.partNumberLoaded = resolve);
@@ -199,6 +200,19 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   async testDatasource(): Promise<TestDataSourceResponse> {
     await this.get(this.baseUrl + '/v2/products?take=1');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
+  }
+
+  async getFamilyNames(): Promise<void> {
+    if (this.familyNamesCache.size > 0) {
+      return;
+    }
+
+    const familyNames = await this.queryProductValues(PropertiesOptions.FAMILY)
+      .catch(error => {
+        this.error = parseErrorMessage(error)!;
+      });
+
+    familyNames?.forEach(familyName => this.familyNamesCache.set(familyName, familyName));
   }
 
   private async loadWorkspaces(): Promise<void> {

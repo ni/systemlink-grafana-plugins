@@ -96,6 +96,31 @@ describe('queryProductValues', () => {
   });
 });
 
+describe('getFamilyNames', () => {
+  test('returns family names', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-product-values' }))
+      .mockReturnValue(createFetchResponse(['Family 1', 'Family 2']));
+
+    await datastore.getFamilyNames();
+
+    expect(datastore.familyNamesCache.get('Family 1')).toBe('Family 1');
+    expect(datastore.familyNamesCache.get('Family 2')).toBe('Family 2');
+  });
+
+  test('should not query family values if cache exists', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-product-values' }))
+      .mockReturnValue(createFetchResponse(['value1']));
+    datastore.familyNamesCache.set('family', 'value1');
+    backendServer.fetch.mockClear();
+
+    await datastore.getFamilyNames()
+
+    expect(backendServer.fetch).not.toHaveBeenCalled();
+  });
+});
+
 describe('query', () => {
   test('returns data when there are valid queries', async () => {
     const query = buildQuery(
