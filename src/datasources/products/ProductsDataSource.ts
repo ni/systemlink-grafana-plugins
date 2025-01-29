@@ -20,16 +20,6 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     this.partNumberLoadedPromise = this.getProductPartNumbers();
   }
 
-  private workspaceLoadedPromise: Promise<void>;
-  private partNumberLoadedPromise: Promise<void>;
-
-  private workspacesLoaded!: () => void;
-  private partNumberLoaded!: () => void;
-
-  readonly workspacesCache = new Map<string, Workspace>([]);
-  readonly partNumbersCache = new Map<string, string>([]);
-  readonly familyNamesCache = new Map<string, string>([]);
-
   areWorkspacesLoaded$ = new Promise<void>(resolve => this.workspacesLoaded = resolve);
   arePartNumberLoaded$ = new Promise<void>(resolve => this.partNumberLoaded = resolve);
   error = '';
@@ -50,6 +40,18 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     recordCount: 1000,
     queryBy: ''
   };
+
+  readonly workspacesCache = new Map<string, Workspace>([]);
+  readonly partNumbersCache = new Map<string, string>([]);
+  readonly familyNamesCache = new Map<string, string>([]);
+
+  readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
+
+  private workspaceLoadedPromise: Promise<void>;
+  private partNumberLoadedPromise: Promise<void>;
+
+  private workspacesLoaded!: () => void;
+  private partNumberLoaded!: () => void;
 
   async queryProducts(
     orderBy?: string,
@@ -140,20 +142,27 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
   }
 
-  public readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
+  shouldRunQuery(query: ProductQuery): boolean {
+    return true;
+  }
 
+  async testDatasource(): Promise<TestDataSourceResponse> {
+    await this.get(this.baseUrl + '/v2/products?take=1');
+    return { status: 'success', message: 'Data source connected and authentication successful!' };
+  }
 
-  public readonly productsComputedDataFields = new Map<string, ExpressionTransformFunction>([
-    ...Object.values(ProductsQueryBuilderFieldNames).map(field => [field, this.multipleValuesQuery(field)] as [string, ExpressionTransformFunction]),
-    [
-      ProductsQueryBuilderFieldNames.UPDATED_AT,
-      (value: string, operation: string, options?: Map<string, unknown>) => {
-        if (value === '${__now:date}') {
-          return `${ProductsQueryBuilderFieldNames.UPDATED_AT} ${operation} "${new Date().toISOString()}"`;
-        }
+  async getFamilyNames(): Promise<void> {
+    if (this.familyNamesCache.size > 0) {
+      return;
+    }
 
-        return `${ProductsQueryBuilderFieldNames.UPDATED_AT} ${operation} "${value}"`;
-      }]]);
+    const familyNames = await this.queryProductValues(PropertiesOptions.FAMILY)
+      .catch(error => {
+        this.error = parseErrorMessage(error)!;
+      });
+
+    familyNames?.forEach(familyName => this.familyNamesCache.set(familyName, familyName));
+  }
 
   async metricFindQuery(query: ProductVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     let metadata: ProductResponseProperties[];
@@ -170,8 +179,20 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
         [Properties.partNumber, Properties.family]
       )).products;
     }
-    return metadata? metadata.map(frame => ({ text: `${frame.partNumber}(${frame.family})`, value: frame.partNumber })) : [];
+    return metadata ? metadata.map(frame => ({ text: `${frame.partNumber}(${frame.family})`, value: frame.partNumber })) : [];
   }
+
+  readonly productsComputedDataFields = new Map<string, ExpressionTransformFunction>([
+    ...Object.values(ProductsQueryBuilderFieldNames).map(field => [field, this.multipleValuesQuery(field)] as [string, ExpressionTransformFunction]),
+    [
+      ProductsQueryBuilderFieldNames.UPDATED_AT,
+      (value: string, operation: string, options?: Map<string, unknown>) => {
+        if (value === '${__now:date}') {
+          return `${ProductsQueryBuilderFieldNames.UPDATED_AT} ${operation} "${new Date().toISOString()}"`;
+        }
+
+        return `${ProductsQueryBuilderFieldNames.UPDATED_AT} ${operation} "${value}"`;
+      }]]);
 
   protected multipleValuesQuery(field: string): ExpressionTransformFunction {
     return (value: string, operation: string, _options?: any) => {
@@ -196,28 +217,6 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
   private getLocicalOperator(operation: string): string {
     return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
-  }
-
-  shouldRunQuery(query: ProductQuery): boolean {
-    return true;
-  }
-
-  async testDatasource(): Promise<TestDataSourceResponse> {
-    await this.get(this.baseUrl + '/v2/products?take=1');
-    return { status: 'success', message: 'Data source connected and authentication successful!' };
-  }
-
-  async getFamilyNames(): Promise<void> {
-    if (this.familyNamesCache.size > 0) {
-      return;
-    }
-
-    const familyNames = await this.queryProductValues(PropertiesOptions.FAMILY)
-      .catch(error => {
-        this.error = parseErrorMessage(error)!;
-      });
-
-    familyNames?.forEach(familyName => this.familyNamesCache.set(familyName, familyName));
   }
 
   private async loadWorkspaces(): Promise<void> {
