@@ -2,6 +2,7 @@ import { QueryBuilderOption, Workspace } from "core/types";
 import React, { ReactNode } from "react";
 import { ProductsQueryBuilder } from "./ProductsQueryBuilder";
 import { render } from "@testing-library/react";
+import { ProductsQueryBuilderStaticFields } from "datasources/products/constants/ProductsQueryBuilder.constants";
 
 describe('ProductsQueryBuilder', () => {
     describe('useEffects', () => {
@@ -10,9 +11,10 @@ describe('ProductsQueryBuilder', () => {
         const containerClass = 'smart-filter-group-condition-container';
         const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
         const partNumber = ['partNumber1', 'partNumber2'];
+        const staticFields = ProductsQueryBuilderStaticFields;
 
         function renderElement(workspaces: Workspace[], partNumbers: string[], filter?: string, globalVariableOptions: QueryBuilderOption[] = []) {
-            reactNode = React.createElement(ProductsQueryBuilder, { filter, workspaces, partNumbers, globalVariableOptions, onChange: jest.fn(), });
+            reactNode = React.createElement(ProductsQueryBuilder, { filter, workspaces, partNumbers, globalVariableOptions, staticFields, onChange: jest.fn(), });
             const renderResult = render(reactNode);
             return {
                 renderResult,

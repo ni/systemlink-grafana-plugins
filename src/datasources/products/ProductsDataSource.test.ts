@@ -1,7 +1,7 @@
 import { BackendSrv } from '@grafana/runtime';
 import { ProductsDataSource } from './ProductsDataSource';
-import { ProductQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
-import { Field } from '@grafana/data';
+import { ProductQuery, ProductVariableQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
+import { Field, LegacyMetricFindQueryOptions } from '@grafana/data';
 import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
 import { MockProxy } from 'jest-mock-extended';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
@@ -20,6 +20,23 @@ const mockQueryProductResponse: QueryProductResponse = {
   ],
   continuationToken: '',
   totalCount: 2
+};
+
+const mockVariableQueryProductResponse: QueryProductResponse = {
+  products: [
+    {
+      id: '1',
+      partNumber: '123',
+      family: 'Family 1',
+    },
+    {
+      id: '2',
+      partNumber: '456',
+      family: 'Family 2',
+    }
+  ],
+  continuationToken: '',
+  totalCount: 0
 };
 
 let datastore: ProductsDataSource, backendServer: MockProxy<BackendSrv>
@@ -79,9 +96,9 @@ describe('queryProductValues', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-product-values' }))
       .mockReturnValue(createFetchResponse(['value1']));
-    
+
     const response = await datastore.queryProductValues(ProductsQueryBuilderFieldNames.PART_NUMBER);
-    
+
     expect(response).toMatchSnapshot();
   });
 
@@ -258,9 +275,9 @@ describe('query', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niauth/v1/user' }))
       .mockReturnValue(createFetchResponse(['workspace1']));
-    datastore.workspacesCache.set('workspace', {id: 'workspace1', name: 'workspace1', default: false, enabled: true});
+    datastore.workspacesCache.set('workspace', { id: 'workspace1', name: 'workspace1', default: false, enabled: true });
     backendServer.fetch.mockClear();
-  
+
     await datastore.query(buildQuery())
 
     expect(backendServer.fetch).not.toHaveBeenCalled();
@@ -284,10 +301,10 @@ describe('query', () => {
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: {
-            descending: false, 
-            filter: "partNumber = '123'", 
-            orderBy: undefined, 
-            projection: ["partNumber"], 
+            descending: false,
+            filter: "partNumber = '123'",
+            orderBy: undefined,
+            projection: ["partNumber"],
             returnCount: false, take: 1000
           }
         })
@@ -311,16 +328,75 @@ describe('query', () => {
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: {
-            descending: false, 
-            filter: "(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\")", 
-            orderBy: undefined, 
-            projection: ["partNumber"], 
+            descending: false,
+            filter: "(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\")",
+            orderBy: undefined,
+            projection: ["partNumber"],
             returnCount: false, take: 1000
           }
         })
       );
     });
 
+  });
+
+  describe('metricFindQuery', () => {
+    let options: LegacyMetricFindQueryOptions;
+    let expectedResponse = [{ "text": "123(Family 1)", "value": "123" }, { "text": "456(Family 2)", "value": "456" }];
+    beforeEach(() => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
+        .mockReturnValue(
+          createFetchResponse<QueryProductResponse>(mockVariableQueryProductResponse));
+      options = {
+        scopedVars: {}
+      }
+    });
+
+    it('should return partNumber with family Name when queryBy is not provided', async () => {
+      const query: ProductVariableQuery = {
+        refId: '',
+        queryBy: '',
+      };
+
+      const response = await datastore.metricFindQuery(query, options);
+
+      expect(response).toEqual(expectedResponse);
+    });
+
+    it('should return partNumber when queryBy is provided', async () => {
+      const query: ProductVariableQuery = {
+        refId: '',
+        queryBy: 'partNumber = "123"',
+      };
+
+      const response = await datastore.metricFindQuery(query, options);
+
+      expect(response).toEqual(expectedResponse);
+    });
+
+    it('should return empty array when queryBy is invalid', async () => {
+      const query: ProductVariableQuery = {
+        refId: '',
+        queryBy: 'invalidQuery',
+      };
+
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
+        .mockReturnValue(
+          createFetchResponse({
+            products: [],
+            continuationToken: null,
+            totalCount: 0
+          } as unknown as QueryProductResponse));
+      options = {
+        scopedVars: {}
+      }
+
+      const response = await datastore.metricFindQuery(query, options);
+
+      expect(response).toEqual([]);
+    })
   });
 });
 
