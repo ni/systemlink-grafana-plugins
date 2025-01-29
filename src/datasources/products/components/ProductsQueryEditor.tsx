@@ -19,10 +19,8 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
 
   useEffect(() => {
-    Promise.all([datasource.areWorkspacesLoaded$]).then(() => {
+    Promise.all([datasource.areWorkspacesLoaded$, datasource.arePartNumberLoaded$]).then(() => {
       setWorkspaces(Array.from(datasource.workspacesCache.values()));
-    });
-    Promise.all([datasource.arePartNumberLoaded$]).then(() => {
       setPartNumbers(Array.from(datasource.partNumbersCache.values()));
     });
   }, [datasource]);

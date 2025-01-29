@@ -20,15 +20,6 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     this.partNumberLoadedPromise = this.getProductPartNumbers();
   }
 
-  private workspaceLoadedPromise: Promise<void>;
-  private partNumberLoadedPromise: Promise<void>;
-
-  private workspacesLoaded!: () => void;
-  private partNumberLoaded!: () => void;
-
-  readonly workspacesCache = new Map<string, Workspace>([]);
-  readonly partNumbersCache = new Map<string, string>([]);
-
   areWorkspacesLoaded$ = new Promise<void>(resolve => this.workspacesLoaded = resolve);
   arePartNumberLoaded$ = new Promise<void>(resolve => this.partNumberLoaded = resolve);
   error = '';
@@ -49,6 +40,17 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     recordCount: 1000,
     queryBy: ''
   };
+
+  readonly workspacesCache = new Map<string, Workspace>([]);
+  readonly partNumbersCache = new Map<string, string>([]);
+
+  readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
+
+  private workspaceLoadedPromise: Promise<void>;
+  private partNumberLoadedPromise: Promise<void>;
+
+  private workspacesLoaded!: () => void;
+  private partNumberLoaded!: () => void;
 
   async queryProducts(
     orderBy?: string,
@@ -139,10 +141,16 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
   }
 
-  public readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
+  shouldRunQuery(query: ProductQuery): boolean {
+    return true;
+  }
 
+  async testDatasource(): Promise<TestDataSourceResponse> {
+    await this.get(this.baseUrl + '/v2/products?take=1');
+    return { status: 'success', message: 'Data source connected and authentication successful!' };
+  }
 
-  public readonly productsComputedDataFields = new Map<string, ExpressionTransformFunction>([
+  readonly productsComputedDataFields = new Map<string, ExpressionTransformFunction>([
     ...Object.values(ProductsQueryBuilderFieldNames).map(field => [field, this.multipleValuesQuery(field)] as [string, ExpressionTransformFunction]),
     [
       ProductsQueryBuilderFieldNames.UPDATED_AT,
@@ -177,15 +185,6 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
   private getLocicalOperator(operation: string): string {
     return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
-  }
-
-  shouldRunQuery(query: ProductQuery): boolean {
-    return true;
-  }
-
-  async testDatasource(): Promise<TestDataSourceResponse> {
-    await this.get(this.baseUrl + '/v2/products?take=1');
-    return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 
   private async loadWorkspaces(): Promise<void> {

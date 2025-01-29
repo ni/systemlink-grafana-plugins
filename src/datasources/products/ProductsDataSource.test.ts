@@ -79,9 +79,9 @@ describe('queryProductValues', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-product-values' }))
       .mockReturnValue(createFetchResponse(['value1']));
-    
+
     const response = await datastore.queryProductValues(ProductsQueryBuilderFieldNames.PART_NUMBER);
-    
+
     expect(response).toMatchSnapshot();
   });
 
@@ -233,9 +233,9 @@ describe('query', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niauth/v1/user' }))
       .mockReturnValue(createFetchResponse(['workspace1']));
-    datastore.workspacesCache.set('workspace', {id: 'workspace1', name: 'workspace1', default: false, enabled: true});
+    datastore.workspacesCache.set('workspace', { id: 'workspace1', name: 'workspace1', default: false, enabled: true });
     backendServer.fetch.mockClear();
-  
+
     await datastore.query(buildQuery())
 
     expect(backendServer.fetch).not.toHaveBeenCalled();
@@ -259,10 +259,10 @@ describe('query', () => {
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: {
-            descending: false, 
-            filter: "partNumber = '123'", 
-            orderBy: undefined, 
-            projection: ["partNumber"], 
+            descending: false,
+            filter: "partNumber = '123'",
+            orderBy: undefined,
+            projection: ["partNumber"],
             returnCount: false, take: 1000
           }
         })
@@ -286,10 +286,10 @@ describe('query', () => {
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: {
-            descending: false, 
-            filter: "(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\")", 
-            orderBy: undefined, 
-            projection: ["partNumber"], 
+            descending: false,
+            filter: "(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\")",
+            orderBy: undefined,
+            projection: ["partNumber"],
             returnCount: false, take: 1000
           }
         })
