@@ -1,6 +1,6 @@
 {
   "type": "datasource",
-  "name": "SystemLink Results",
+  "name": "SystemLink Test Results",
   "id": "ni-sltestresults-datasource",
   "metrics": true,
   "info": {

@@ -44,57 +44,57 @@ export const OrderBy = [
   {
     value: 'ID',
     label: 'ID',
-    description: `ID of the result`,
+    description: 'ID of the result',
   },
   {
     value: 'STARTED_AT',
     label: 'Started At',
-    description: `Timestamp when the result started`,
+    description: 'Timestamp when the result started',
   },
   {
     value: 'UPDATED_AT',
     label: 'Updated At',
-    description: `Timestamp when the result was last updated`,
+    description: 'Timestamp when the result was last updated',
   },
   {
     value: 'PROGRAM_NAME',
     label: 'Program Name',
-    description: `Program Name of the result`,
+    description: 'Program Name of the product associated with the result',
   },
   {
     value: 'SYSTEM_ID',
     label: 'System ID',
-    description: `System ID of the result`,
+    description: 'System ID of the result',
   },
   {
     value: 'HOST_NAME',
     label: 'Host Name',
-    description: `Host Name of the result`,
+    description: 'Host Name of the result',
   },
   {
     value: 'OPERATOR',
     label: 'Operator',
-    description: `Operator of the result`,
+    description: 'Operator of the result',
   },
   {
     value: 'SERIAL_NUMBER',
     label: 'Serial Number',
-    description: `Serial Number of the result`,
+    description: 'Serial Number of the result',
   },
    {
     value: 'PART_NUMBER',
     label: 'Part Number',
-    description: `Part Number of the result`,
+    description: 'Part Number of the product associated with result',
   },
   {
     value: 'PROPERTIES',
     label: 'Properties',
-    description: `Properties of the result`,
+    description: 'Properties of the result',
   },
   {
     value: 'TOTAL_TIME_IN_SECONDS ',
     label: 'Total Time In Seconds',
-    description: `Total Time In Seconds of the result`,
+    description: 'Total time taken to run the result in seconds',
   }
 ];
 

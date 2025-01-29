@@ -13,7 +13,7 @@ let properties: HTMLElement;
 let orderBy: HTMLElement;
 let descending: HTMLElement;
 let recordCount: HTMLElement;
-let DataOutput: HTMLElement;
+let dataOutput: HTMLElement;
 let totalCountOutput: HTMLElement;
 let useTimeRange: HTMLElement;
 let useTimeRangeFor: HTMLElement;
@@ -33,11 +33,9 @@ describe('QueryResultsEditor', () => {
     await waitFor(() => (properties = screen.getAllByRole('combobox')[0]));
     orderBy = screen.getAllByRole('combobox')[1];
     useTimeRangeFor = screen.getAllByRole('combobox')[2];
-
     descending = screen.getAllByRole('checkbox')[0];
     useTimeRange = screen.getAllByRole('checkbox')[1];
-
-    DataOutput = screen.getByRole('radio', { name: 'Data' });
+    dataOutput = screen.getByRole('radio', { name: 'Data' });
     totalCountOutput = screen.getByRole('radio', { name: 'Total Count' });
     recordCount = screen.getByRole('textbox');
   });
@@ -45,8 +43,8 @@ describe('QueryResultsEditor', () => {
   test('renders with default query', async () => {
     expect(properties).toBeInTheDocument();
     expect(properties).toHaveDisplayValue('');
-    expect(DataOutput).toBeInTheDocument();
-    expect(DataOutput).toBeChecked();
+    expect(dataOutput).toBeInTheDocument();
+    expect(dataOutput).toBeChecked();
     expect(orderBy).toBeInTheDocument();
     expect(orderBy).toHaveAccessibleDescription('Select field to order by');
     expect(descending).toBeInTheDocument();

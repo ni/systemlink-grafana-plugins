@@ -13,38 +13,39 @@ import React from 'react';
 
 type Props = {
   query: ResultsQuery;
-  handleQueryChange: (query: ResultsQuery, runQuery: boolean) => void;
+  handleQueryChange: (query: ResultsQuery, runQuery?: boolean) => void;
 };
+
 export function QueryResultsEditor({ query, handleQueryChange }: Props) {
   const onOutputChange = (value: OutputType) => {
-    handleQueryChange({ ...query, outputType: value }, true);
+    handleQueryChange({ ...query, outputType: value });
   };
 
   const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
     if (items !== undefined) {
-      handleQueryChange({ ...query, properties: items.map(i => i.value as ResultsProperties) }, true);
+      handleQueryChange({ ...query, properties: items.map(i => i.value as ResultsProperties) });
     }
   };
 
   const onOrderByChange = (item: SelectableValue<string>) => {
-    handleQueryChange({ ...query, orderBy: item.value }, true);
+    handleQueryChange({ ...query, orderBy: item.value });
   };
 
   const onUseTimeRangeChecked = (value: boolean) => {
-    handleQueryChange({ ...query, useTimeRange: value }, true);
+    handleQueryChange({ ...query, useTimeRange: value }, false);
   };
 
   const onUseTimeRangeChanged = (value: SelectableValue<string>) => {
-    handleQueryChange({ ...query, useTimeRangeFor: value.value! }, true);
+    handleQueryChange({ ...query, useTimeRangeFor: value.value! });
   };
 
   const onDescendingChange = (isDescendingChecked: boolean) => {
-    handleQueryChange({ ...query, descending: isDescendingChecked }, true);
+    handleQueryChange({ ...query, descending: isDescendingChecked });
   };
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    handleQueryChange({ ...query, recordCount: value }, true);
+    handleQueryChange({ ...query, recordCount: value });
   };
 
   return (
@@ -66,7 +67,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
               value={query.properties}
               defaultValue={query.properties!}
               maxVisibleValues={5}
-              width={40}
+              width={60}
               allowCustomValue={false}
               closeMenuOnSelect={false}
             />

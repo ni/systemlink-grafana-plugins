@@ -15,13 +15,13 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
       if (runQuery) {
         onRunQuery();
       }
-    },
-    [onChange, onRunQuery]
+    },[onChange, onRunQuery]
   );
 
   return (
-    <>
-      <QueryResultsEditor query={query} handleQueryChange={handleQueryChange}></QueryResultsEditor>
-    </>
+    <QueryResultsEditor 
+      query={query} 
+      handleQueryChange={handleQueryChange}>
+    </QueryResultsEditor>
   );
 }

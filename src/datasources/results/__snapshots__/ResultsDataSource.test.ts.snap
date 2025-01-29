@@ -45,7 +45,54 @@ exports[`ResultsDataSource query returns data for valid data output type queries
 ]
 `;
 
+exports[`ResultsDataSource query returns data for valid data-output-type query 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "values": [
+          "000007fb-aa87-4ab9-9757-6568e7893c33",
+        ],
+      },
+      {
+        "name": "programName",
+        "type": "string",
+        "values": [
+          "My Program Name",
+        ],
+      },
+      {
+        "name": "serialNumber",
+        "type": "string",
+        "values": [
+          "123-456",
+        ],
+      },
+      {
+        "name": "systemId",
+        "type": "string",
+        "values": [
+          "20FRS0MQ67--SN-R90N9L4N--MAC-54-AA-75-CE-B7-FE",
+        ],
+      },
+      {
+        "name": "statusTypeSummary",
+        "type": "string",
+        "values": [
+          "{"LOOPING":0,"SKIPPED":0,"CUSTOM":0,"DONE":0,"PASSED":1,"FAILED":0,"RUNNING":0,"WAITING":0,"TERMINATED":0,"ERRORED":0,"TIMED_OUT":0}",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
 exports[`ResultsDataSource query returns no data when Query Products returns no data 1`] = `[]`;
+
+exports[`ResultsDataSource query returns no data when QueryResults API returns empty array 1`] = `[]`;
 
 exports[`ResultsDataSource query returns total count for valid total count output type queries 1`] = `
 [

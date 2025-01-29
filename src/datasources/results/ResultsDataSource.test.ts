@@ -113,7 +113,7 @@ describe('ResultsDataSource', () => {
   });
 
   describe('query', () => {
-    test('returns data for valid data output type queries', async () => {
+    test('returns data for valid data-output-type query', async () => {
       const query = buildQuery({
         refId: 'A',
         outputType: OutputType.Data,
@@ -151,7 +151,7 @@ describe('ResultsDataSource', () => {
       expect(response.data).toMatchSnapshot();
     });
 
-    test('returns no data when Query Products returns no data', async () => {
+    test('returns no data when QueryResults API returns empty array', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
         .mockReturnValue(
