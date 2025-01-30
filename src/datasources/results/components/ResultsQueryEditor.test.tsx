@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { ResultsQueryEditor } from './ResultsQueryEditor';
 import { QueryEditorProps } from '@grafana/data';
 import { ResultsDataSource } from '../ResultsDataSource';
@@ -12,22 +12,21 @@ const mockDatasource = {
 const defaultProps: QueryEditorProps<ResultsDataSource, ResultsQuery> = {
   query: {
     refId: 'A',
-    outputType: OutputType.Data,
-    properties: [],
-    orderBy: undefined,
-    descending: false,
-    recordCount: 1000,
-    useTimeRange: true,
-    useTimeRangeFor: undefined,
+    outputType: OutputType.Data
   },
   onChange: jest.fn(),
   onRunQuery: jest.fn(),
   datasource: mockDatasource,
 };
+let dataOutput: HTMLElement;
 
 describe('ResultsQueryEditor', () => {
-  it('should render without crashing', () => {
-    const { container } = render(<ResultsQueryEditor {...defaultProps} />);
-    expect(container).toBeInTheDocument();
+  beforeEach(async () => {
+    render(<ResultsQueryEditor {...defaultProps} />);
+    dataOutput = screen.getByRole('radio', { name: 'Data' });
+  });
+
+  it('should render the controls with the default query values', () => {
+    expect(dataOutput).toBeChecked();
   });
 });

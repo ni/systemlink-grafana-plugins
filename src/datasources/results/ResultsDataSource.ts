@@ -14,14 +14,6 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
 
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
   queryResultsUrl = this.baseUrl + '/v2/query-results';
-
-  private timeRange: { [key: string]: string } = {
-    Started: 'startedAt',
-    Updated: 'updatedAt',
-  }
-  private fromDateString = '${__from:date}';
-  private toDateString = '${__to:date}';
-
   defaultQuery = {
     properties: [
       ResultsPropertiesOptions.PROGRAM_NAME,
@@ -37,6 +29,13 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
     recordCount: 1000,
     useTimeRange: false,
   };
+
+  private timeRange: { [key: string]: string } = {
+    Started: 'startedAt',
+    Updated: 'updatedAt',
+  }
+  private fromDateString = '${__from:date}';
+  private toDateString = '${__to:date}';
 
   async queryResults(
     filter?: string,
@@ -77,6 +76,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
       query.descending,
       true
     );
+    console.log('responseData', responseData);
 
     if(responseData.results.length === 0) {
       return {
@@ -93,12 +93,15 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
           const fieldType = isTimeField ? FieldType.time : FieldType.string;
           const values = testResultsResponse.map(data => data[field as unknown as keyof ResultsResponseProperties]);
 
-          if (field === ResultsPropertiesOptions.PROPERTIES || field === ResultsPropertiesOptions.STATUS_TYPE_SUMMARY) {
-            return { name: field, values: values.map(value => value !== null ? JSON.stringify(value): ''), type: fieldType };
-          } else if (field === ResultsPropertiesOptions.STATUS) {
-            return { name: field, values: values.map((value: any) => value?.statusType), type: fieldType };
+          switch (field) {
+            case ResultsPropertiesOptions.PROPERTIES:
+            case ResultsPropertiesOptions.STATUS_TYPE_SUMMARY:
+              return { name: field, values: values.map(value => value !== null ? JSON.stringify(value) : ''), type: fieldType };
+            case ResultsPropertiesOptions.STATUS:
+              return { name: field, values: values.map((value: any) => value?.statusType), type: fieldType };
+            default:
+              return { name: field, values, type: fieldType };
           }
-          return { name: field, values, type: fieldType };
         });
 
       return {
@@ -118,7 +121,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
-    await this.get(this.baseUrl + '/v2/query-results-test-api');
+    await this.get(this.baseUrl + '/v2/results?take=1');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }

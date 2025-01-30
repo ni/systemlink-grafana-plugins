@@ -30,7 +30,7 @@ describe('QueryResultsEditor', () => {
       useTimeRange: true,
       useTimeRangeFor: undefined,
     } as ResultsQuery);
-    await waitFor(() => (properties = screen.getAllByRole('combobox')[0]));
+    properties = screen.getAllByRole('combobox')[0];
     orderBy = screen.getAllByRole('combobox')[1];
     useTimeRangeFor = screen.getAllByRole('combobox')[2];
     descending = screen.getAllByRole('checkbox')[0];

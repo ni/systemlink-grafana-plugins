@@ -131,24 +131,24 @@ export interface ResultsResponseProperties {
   status?: StatusHttp;
   startedAt?: string;
   updatedAt?: string;
-  programName: string;
+  programName?: string;
   id: string;
-  systemId: string;
-  hostName: string;
-  operator: string;
-  partNumber: string;
-  serialNumber: string;
-  totalTimeInSeconds: number;
-  keywords: string[];
-  properties: { [key: string]: string };
-  fileIds: string[];
+  systemId?: string;
+  hostName?: string;
+  operator?: string;
+  partNumber?: string;
+  serialNumber?: string;
+  totalTimeInSeconds?: number;
+  keywords?: string[];
+  properties?: { [key: string]: string };
+  fileIds?: string[];
   statusTypeSummary?: StatusTypeSummaryHttp;
-  workspace: string;
-  dataTableIds: string[];
+  workspace?: string;
+  dataTableIds?: string[];
 }
 
 export interface QueryResultsResponse {
   results: ResultsResponseProperties[];
-  continuationToken: string;
-  totalCount: number;
+  continuationToken?: string;
+  totalCount?: number;
 }

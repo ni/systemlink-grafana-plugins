@@ -10,6 +10,8 @@ import {
 } from '@grafana/ui';
 import { OrderBy, OutputType, ResultsProperties, ResultsQuery, UseTimeRange } from 'datasources/results/types';
 import React from 'react';
+import './QueryResultsEditor.scss'
+import { enumToOptions } from 'core/utils';
 
 type Props = {
   query: ResultsQuery;
@@ -53,7 +55,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
       <VerticalGroup>
         <InlineField label="Output" labelWidth={18} tooltip={tooltips.output}>
           <RadioButtonGroup
-            options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
+            options={enumToOptions(OutputType)}
             value={query.outputType}
             onChange={onOutputChange}
           />
@@ -62,7 +64,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
           <InlineField label="Properties" labelWidth={18} tooltip={tooltips.properties}>
             <MultiSelect
               placeholder="Select properties to fetch"
-              options={Object.keys(ResultsProperties).map(value => ({ label: value, value })) as SelectableValue[]}
+              options={enumToOptions(ResultsProperties)}
               onChange={onPropertiesChange}
               value={query.properties}
               defaultValue={query.properties!}
@@ -75,7 +77,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
         )}
         <div>
           {query.outputType === OutputType.Data && (
-            <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div className='horizontal-control-group'>
               <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
                 <Select
                   options={OrderBy as SelectableValue[]}
@@ -104,7 +106,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
               />
             </InlineField>
           )}
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div className='horizontal-control-group'>
             <InlineField label="Use time range" tooltip={tooltips.useTimeRange} labelWidth={18}>
               <InlineSwitch
                 onChange={event => onUseTimeRangeChecked(event.currentTarget.checked)}
@@ -114,7 +116,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
             <InlineField label="to filter by" disabled={!query.useTimeRange}>
               <Select
                 placeholder="Choose"
-                options={Object.keys(UseTimeRange).map(value => ({ label: value, value })) as SelectableValue[]}
+                options={enumToOptions(UseTimeRange)}
                 onChange={onUseTimeRangeChanged}
                 value={query.useTimeRangeFor}
                 width={25}
