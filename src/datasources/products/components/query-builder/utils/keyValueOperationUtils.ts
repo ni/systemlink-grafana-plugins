@@ -1,7 +1,6 @@
 import { FilterExpressions, FilterOperations } from "core/query-builder.constants";
 import { PropertyFieldKeyValuePair } from "datasources/products/types";
 
-
 export function editorTemplate(_: string, value: PropertyFieldKeyValuePair): HTMLElement {
     const keyPlaceholder = `Key`;
     const valuePlaceholder = `Value`;
@@ -48,7 +47,7 @@ export function handleStringValue(editor: HTMLElement | null | undefined): { lab
     return {
         label: inputs,
         value: inputs
-    };   
+    };
 }
 
 export function handleNumberValue(editor: HTMLElement | null | undefined): { label: PropertyFieldKeyValuePair; value: PropertyFieldKeyValuePair; } {
@@ -61,40 +60,22 @@ export function handleNumberValue(editor: HTMLElement | null | undefined): { lab
 }
 
 export function keyValueExpressionBuilderCallback(dataField: string, operation: string, keyValuePair: PropertyFieldKeyValuePair): string {
-    let expressionTemplate = '';
-    switch (operation) {
-        case FilterOperations.KeyValueMatch:
-            expressionTemplate = FilterExpressions.KeyValueMatches;
-            break;
-        case FilterOperations.KeyValueDoesNotMatch:
-            expressionTemplate = FilterExpressions.KeyValueNotMatches;
-            break;
-        case FilterOperations.KeyValueContains:
-            expressionTemplate = FilterExpressions.KeyValueContains;
-            break;
-        case FilterOperations.KeyValueDoesNotContains:
-            expressionTemplate = FilterExpressions.KeyValueNotContains;
-            break;
-        case FilterOperations.KeyValueIsGreaterThan:
-            expressionTemplate = FilterExpressions.KeyValueIsGreaterThan;
-            break;
-        case FilterOperations.KeyValueIsGreaterThanOrEqual:
-            expressionTemplate = FilterExpressions.KeyValueIsGreaterThanOrEqual;
-            break;
-        case FilterOperations.KeyValueIsLessThan:
-            expressionTemplate = FilterExpressions.KeyValueIsLessThan;
-            break;
-        case FilterOperations.KeyValueIsLessThanOrEqual:
-            expressionTemplate = FilterExpressions.KeyValueIsLessThanOrEqual;
-            break;
-        case FilterOperations.KeyValueIsNumericallyEqual:
-            expressionTemplate = FilterExpressions.KeyValueIsNumericallyEqual;
-            break;
-        case FilterOperations.KeyValueIsNumericallyNotEqual:
-            expressionTemplate = FilterExpressions.KeyValueIsNumericallyNotEqual;
-            break;
-        default:
-            return '';
+    const operationExpressionMap: { [key: string]: string } = {
+        [FilterOperations.KeyValueMatch]: FilterExpressions.KeyValueMatches,
+        [FilterOperations.KeyValueDoesNotMatch]: FilterExpressions.KeyValueNotMatches,
+        [FilterOperations.KeyValueContains]: FilterExpressions.KeyValueContains,
+        [FilterOperations.KeyValueDoesNotContains]: FilterExpressions.KeyValueNotContains,
+        [FilterOperations.KeyValueIsGreaterThan]: FilterExpressions.KeyValueIsGreaterThan,
+        [FilterOperations.KeyValueIsGreaterThanOrEqual]: FilterExpressions.KeyValueIsGreaterThanOrEqual,
+        [FilterOperations.KeyValueIsLessThan]: FilterExpressions.KeyValueIsLessThan,
+        [FilterOperations.KeyValueIsLessThanOrEqual]: FilterExpressions.KeyValueIsLessThanOrEqual,
+        [FilterOperations.KeyValueIsNumericallyEqual]: FilterExpressions.KeyValueIsNumericallyEqual,
+        [FilterOperations.KeyValueIsNumericallyNotEqual]: FilterExpressions.KeyValueIsNumericallyNotEqual
+    };
+
+    const expressionTemplate = operationExpressionMap[operation];
+    if (!expressionTemplate) {
+        return '';
     }
     return expressionTemplate.replace('{0}', dataField).replace('{1}', keyValuePair.key).replace('{2}', String(keyValuePair.value));
 }
@@ -113,18 +94,17 @@ export function numericKeyValueExpressionReaderCallback(_expression: string, bin
 }
 
 function retrieveKeyValueInputs(editor: HTMLElement | null | undefined): { key: string, value: string } {
-    let pair = { key: '', value: '' };
-    if (editor) {
-        const keyInput = editor.querySelector<HTMLInputElement>('.key-input');
-        const valueInput = editor.querySelector<HTMLInputElement>('.value-input');
-        if (keyInput && valueInput) {
-            pair = {
-                key: keyInput.value,
-                value: valueInput.value
-            };
-        }
+    if (!editor) {
+        return { key: '', value: '' };
     }
-    return pair;
+
+    const keyInput = editor.querySelector<HTMLInputElement>('.key-input');
+    const valueInput = editor.querySelector<HTMLInputElement>('.value-input');
+
+    return {
+        key: keyInput?.value ?? '',
+        value: valueInput?.value ?? ''
+    };
 }
 
 function normalizeNumericValue(value: string): number | string {
