@@ -1,5 +1,44 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`query metricFindQuery should replace variables with values 1`] = `
+[
+  {
+    "text": "123(Family 1)",
+    "value": "123",
+  },
+  {
+    "text": "456(Family 2)",
+    "value": "456",
+  },
+]
+`;
+
+exports[`query metricFindQuery should return partNumber when queryBy is provided 1`] = `
+[
+  {
+    "text": "123(Family 1)",
+    "value": "123",
+  },
+  {
+    "text": "456(Family 2)",
+    "value": "456",
+  },
+]
+`;
+
+exports[`query metricFindQuery should return partNumber with family Name when queryBy is not provided 1`] = `
+[
+  {
+    "text": "123(Family 1)",
+    "value": "123",
+  },
+  {
+    "text": "456(Family 2)",
+    "value": "456",
+  },
+]
+`;
+
 exports[`query returns data when there are valid queries 1`] = `
 [
   {

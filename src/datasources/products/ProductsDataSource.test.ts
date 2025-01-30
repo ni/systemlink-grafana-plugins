@@ -342,7 +342,6 @@ describe('query', () => {
 
   describe('metricFindQuery', () => {
     let options: LegacyMetricFindQueryOptions;
-    let expectedResponse = [{ "text": "123(Family 1)", "value": "123" }, { "text": "456(Family 2)", "value": "456" }];
     beforeEach(() => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
@@ -359,9 +358,19 @@ describe('query', () => {
         queryBy: '',
       };
 
-      const response = await datastore.metricFindQuery(query, options);
+      const results = await datastore.metricFindQuery(query, options);
 
-      expect(response).toEqual(expectedResponse);
+      expect(results).toMatchSnapshot();
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            descending: false,
+            orderBy: "partNumber",
+            projection: ["PART_NUMBER", "FAMILY"],
+            returnCount: false,
+          }
+        })
+      );
     });
 
     it('should return partNumber when queryBy is provided', async () => {
@@ -370,17 +379,40 @@ describe('query', () => {
         queryBy: 'partNumber = "123"',
       };
 
-      const response = await datastore.metricFindQuery(query, options);
+      const results = await datastore.metricFindQuery(query, options);
 
-      expect(response).toEqual(expectedResponse);
+      expect(results).toMatchSnapshot();
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            descending: false,
+            filter: "partNumber = \"123\"",
+            orderBy: "partNumber",
+            projection: ["PART_NUMBER", "FAMILY"],
+            returnCount: false,
+          }
+        })
+      );
     });
+
+    it('should replace variables with values', async () => {
+      datastore.templateSrv.replace = jest.fn().mockImplementation((value) => {"partNumber = \"123\""});
+      const query: ProductVariableQuery = {
+        refId: '',
+        queryBy: 'partNumber = "$partNumber"',
+      }
+
+      const results = await datastore.metricFindQuery(query, options);
+
+      expect(results).toMatchSnapshot();
+      
+    }); 
 
     it('should return empty array when queryBy is invalid', async () => {
       const query: ProductVariableQuery = {
         refId: '',
         queryBy: 'invalidQuery',
       };
-
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
         .mockReturnValue(
@@ -393,9 +425,9 @@ describe('query', () => {
         scopedVars: {}
       }
 
-      const response = await datastore.metricFindQuery(query, options);
+      const results = await datastore.metricFindQuery(query, options);
 
-      expect(response).toEqual([]);
+      expect(results).toEqual([]);
     })
   });
 });
