@@ -20,10 +20,17 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
 
   useEffect(() => {
-    Promise.all([datasource.areWorkspacesLoaded$, datasource.arePartNumberLoaded$]).then(() => {
+    const loadWorkspaces = async () => {
+      await datasource.areWorkspacesLoaded$;
       setWorkspaces(Array.from(datasource.workspacesCache.values()));
+    };
+    const loadPartNumbers = async () => {
+      await datasource.arePartNumberLoaded$;
       setPartNumbers(Array.from(datasource.partNumbersCache.values()));
-    });
+    };
+
+    loadWorkspaces();
+    loadPartNumbers();
   }, [datasource]);
 
   const handleQueryChange = useCallback((query: ProductQuery, runQuery = true): void => {
@@ -60,7 +67,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
 
   return (
     <>
-      <HorizontalGroup align='flex-start'>
+      <HorizontalGroup align="flex-start">
         <VerticalGroup>
           <InlineField label="Properties" labelWidth={18} tooltip={tooltips.properties}>
             <MultiSelect
@@ -89,8 +96,8 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
           </InlineField>
         </VerticalGroup>
         <VerticalGroup>
-          <div className='right-query-controls'>
-            <div className='horizontal-control-group'>
+          <div className="right-query-controls">
+            <div className="horizontal-control-group">
               <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
                 <Select
                   options={OrderBy as SelectableValue[]}

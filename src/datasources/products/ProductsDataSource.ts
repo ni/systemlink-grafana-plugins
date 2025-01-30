@@ -4,7 +4,6 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import { ProductQuery, ProductResponseProperties, ProductVariableQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { parseErrorMessage } from 'core/errors';
-import { getVariableOptions } from 'core/utils';
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
@@ -45,7 +44,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   readonly partNumbersCache = new Map<string, string>([]);
   readonly familyNamesCache = new Map<string, string>([]);
 
-  readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
+  readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   private workspaceLoadedPromise: Promise<void>;
   private partNumberLoadedPromise: Promise<void>;
@@ -139,7 +138,6 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       refId: query.refId,
       fields: []
     }
-
   }
 
   shouldRunQuery(query: ProductQuery): boolean {
@@ -182,29 +180,36 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     return metadata ? metadata.map(frame => ({ text: `${frame.partNumber}(${frame.family})`, value: frame.partNumber })) : [];
   }
 
-  readonly productsComputedDataFields = new Map<string, ExpressionTransformFunction>([
-    ...Object.values(ProductsQueryBuilderFieldNames).map(field => [field, this.multipleValuesQuery(field)] as [string, ExpressionTransformFunction]),
-    [
-      ProductsQueryBuilderFieldNames.UPDATED_AT,
-      (value: string, operation: string, options?: Map<string, unknown>) => {
-        if (value === '${__now:date}') {
-          return `${ProductsQueryBuilderFieldNames.UPDATED_AT} ${operation} "${new Date().toISOString()}"`;
-        }
-
-        return `${ProductsQueryBuilderFieldNames.UPDATED_AT} ${operation} "${value}"`;
-      }]]);
+  readonly productsComputedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(ProductsQueryBuilderFieldNames).map(field => [
+      field,
+      field === ProductsQueryBuilderFieldNames.UPDATED_AT
+        ? this.updatedAtQuery
+        : this.multipleValuesQuery(field)
+    ])
+  );
 
   protected multipleValuesQuery(field: string): ExpressionTransformFunction {
     return (value: string, operation: string, _options?: any) => {
-      if (this.isMultiSelectValue(value)) {
-        const query = this.getMultipleValuesArray(value)
-          .map(val => `${field} ${operation} "${val}"`)
-          .join(` ${this.getLocicalOperator(operation)} `);
-        return `(${query})`;
-      }
+      const isMultiSelect = this.isMultiSelectValue(value);
+      const valuesArray = this.getMultipleValuesArray(value);
+      const logicalOperator = this.getLogicalOperator(operation);
 
-      return `${field} ${operation} "${value}"`
+      return isMultiSelect ? valuesArray
+        .map(val => `${field} ${operation} "${val}"`)
+        .join(` ${logicalOperator} `) : `${field} ${operation} "${value}"`;
     }
+  }
+
+  private getVariableOptions() {
+    return this.templateSrv
+      .getVariables()
+      .map(variable => ({ label: '$' + variable.name, value: '$' + variable.name }));
+  }
+
+  private updatedAtQuery(value: string, operation: string): string {
+    const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
+    return `${ProductsQueryBuilderFieldNames.UPDATED_AT} ${operation} "${formattedValue}"`;
   }
 
   private isMultiSelectValue(value: string): boolean {
@@ -215,7 +220,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     return value.replace(/({|})/g, '').split(',');
   }
 
-  private getLocicalOperator(operation: string): string {
+  private getLogicalOperator(operation: string): string {
     return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
   }
 

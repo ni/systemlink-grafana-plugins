@@ -25,7 +25,7 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
   staticFields
 }) => {
   const theme = useTheme2();
-  document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
+  document.body.setAttribute("theme", theme.isDark ? "dark-orange" : "orange");
 
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
@@ -57,9 +57,9 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
         ...updatedField.lookup,
         dataSource: [
           ...(updatedField.lookup?.dataSource || []),
-          { label: 'From', value: '${__from:date}' },
-          { label: 'To', value: '${__to:date}' },
-          { label: 'Now', value: '${__now:date}' },
+          { label: "From", value: "${__from:date}" },
+          { label: "To", value: "${__to:date}" },
+          { label: "Now", value: "${__now:date}" },
         ]
       }
     }
@@ -82,22 +82,22 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
 
 
   useEffect(() => {
-    const fields = [partNumberField, ...staticFields!, updatedAtField, workspaceField]
+    const updatedFields = [partNumberField, ...staticFields!, updatedAtField, workspaceField]
       .map((field) => {
         if (field.lookup?.dataSource) {
           return {
             ...field,
             lookup: {
-              dataSource: [...globalVariableOptions.map(filterXSSField), ...field.lookup!.dataSource.map(filterXSSField)],
+              dataSource: [...globalVariableOptions, ...field.lookup!.dataSource].map(filterXSSField),
             },
           }
         }
         return field;
       });
 
-    setFields(fields);
+    setFields(updatedFields);
 
-    const options = Object.values(fields).reduce((accumulator, fieldConfig) => {
+    const options = Object.values(updatedFields).reduce((accumulator, fieldConfig) => {
       if (fieldConfig.lookup) {
         accumulator[fieldConfig.dataField!] = fieldConfig.lookup.dataSource;
       }
@@ -110,43 +110,27 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
       expressionReaderCallback: expressionReaderCallback(options),
     };
 
-    setOperations([
-      {
-        ...QueryBuilderOperations.EQUALS,
-        ...callbacks,
-      },
-      {
-        ...QueryBuilderOperations.DOES_NOT_EQUAL,
-        ...callbacks,
-      },
+    const customOperations = [
+      QueryBuilderOperations.EQUALS,
+      QueryBuilderOperations.DOES_NOT_EQUAL,
       QueryBuilderOperations.STARTS_WITH,
       QueryBuilderOperations.ENDS_WITH,
       QueryBuilderOperations.CONTAINS,
       QueryBuilderOperations.DOES_NOT_CONTAIN,
-      {
-        ...QueryBuilderOperations.LESS_THAN,
+      QueryBuilderOperations.LESS_THAN,
+      QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO,
+      QueryBuilderOperations.GREATER_THAN,
+      QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO,
+      QueryBuilderOperations.IS_BLANK,
+      QueryBuilderOperations.IS_NOT_BLANK,
+    ].map((operation) => {
+      return {
+        ...operation,
         ...callbacks,
-      },
-      {
-        ...QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO,
-        ...callbacks,
-      },
-      {
-        ...QueryBuilderOperations.GREATER_THAN,
-        ...callbacks,
-      },
-      {
-        ...QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO,
-        ...callbacks,
-      },
-      {
-        ...QueryBuilderOperations.IS_BLANK,
-        ...callbacks,
-      },
-      {
-        ...QueryBuilderOperations.IS_NOT_BLANK,
-        ...callbacks,
-      },
+      };
+    });
+
+    const keyValueOperations = [
       QueryBuilderOperations.KEY_VALUE_MATCH,
       QueryBuilderOperations.KEY_VALUE_DOES_NOT_MATCH,
       QueryBuilderOperations.KEY_VALUE_CONTAINS,
@@ -157,7 +141,9 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
       QueryBuilderOperations.KEY_VALUE_IS_LESS_THAN_OR_EQUAL,
       QueryBuilderOperations.KEY_VALUE_IS_NUMERICAL_EQUAL,
       QueryBuilderOperations.KEY_VALUE_IS_NUMERICAL_NOT_EQUAL
-    ]);
+    ]
+
+    setOperations([...customOperations, ...keyValueOperations]);
 
   }, [workspaceField, updatedAtField, partNumberField, staticFields, globalVariableOptions]);
 

@@ -321,14 +321,4 @@ export const customOperations: QueryBuilderCustomOperation[] = [
     QueryBuilderOperations.PROPERTY_DOES_NOT_CONTAIN,
     QueryBuilderOperations.PROPERTY_IS_BLANK,
     QueryBuilderOperations.PROPERTY_IS_NOT_BLANK,
-    QueryBuilderOperations.KEY_VALUE_MATCH,
-    QueryBuilderOperations.KEY_VALUE_DOES_NOT_MATCH,
-    QueryBuilderOperations.KEY_VALUE_CONTAINS,
-    QueryBuilderOperations.KEY_VALUE_DOES_NOT_CONTAINS,
-    QueryBuilderOperations.KEY_VALUE_IS_GREATER_THAN,
-    QueryBuilderOperations.KEY_VALUE_IS_GREATER_THAN_OR_EQUAL,
-    QueryBuilderOperations.KEY_VALUE_IS_LESS_THAN,
-    QueryBuilderOperations.KEY_VALUE_IS_LESS_THAN_OR_EQUAL,
-    QueryBuilderOperations.KEY_VALUE_IS_NUMERICAL_EQUAL,
-    QueryBuilderOperations.KEY_VALUE_IS_NUMERICAL_NOT_EQUAL
   ];

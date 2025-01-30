@@ -17,11 +17,22 @@ export function ProductsVariableQueryEditor({ query, onChange, datasource }: Pro
     const [familyNames, setFamilyNames] = useState<string[]>([]);
 
     useEffect(() => {
-        Promise.all([datasource.areWorkspacesLoaded$, datasource.arePartNumberLoaded$, datasource.getFamilyNames()]).then(() => {
+        const loadWorkspaces = async () => {
+            await datasource.areWorkspacesLoaded$;
             setWorkspaces(Array.from(datasource.workspacesCache.values()));
+        };
+        const loadPartNumbers = async () => {
+            await datasource.arePartNumberLoaded$;
             setPartNumbers(Array.from(datasource.partNumbersCache.values()));
+        };
+        const loadFamilyNames = async () => {
+            await datasource.getFamilyNames();
             setFamilyNames(Array.from(datasource.familyNamesCache.values()));
-        });
+        };
+
+        loadWorkspaces();
+        loadPartNumbers();
+        loadFamilyNames();
     }, [datasource]);
 
     const onQueryByChange = (value: string) => {
