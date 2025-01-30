@@ -20,26 +20,6 @@ export enum UseTimeRange {
   Updated = 'Updated',
 }
 
-export enum ResultsProperties {
-    id = 'ID',
-    programName = 'PROGRAM_NAME',
-    serialNumber = 'SERIAL_NUMBER',
-    systemId = 'SYSTEM_ID',
-    status = 'STATUS',
-    totalTimeInSeconds = 'TOTAL_TIME_IN_SECONDS',
-    startedAt= 'STARTED_AT',
-    updatedAt = 'UPDATED_AT',
-    partNumber = 'PART_NUMBER',
-    dataTableIds= 'DATA_TABLE_IDS',
-    fileIds = 'FILE_IDS',
-    hostName = 'HOST_NAME',
-    operator = 'OPERATOR',
-    keywords = 'KEYWORDS',
-    properties = 'PROPERTIES',
-    statusTypeSummary = 'STATUS_TYPE_SUMMARY',
-    workspace = 'WORKSPACE',
-}
-
 export const OrderBy = [
   {
     value: 'ID',
@@ -99,23 +79,44 @@ export const OrderBy = [
 ];
 
 export const ResultsPropertiesOptions = {
-    ID: 'id',
-    PROGRAM_NAME: 'programName',
-    SERIAL_NUMBER: 'serialNumber',
-    SYSTEM_ID: 'systemId',
-    STATUS: 'status',
-    TOTAL_TIME_IN_SECONDS: 'totalTimeInSeconds',
-    STARTED_AT: 'startedAt',
-    UPDATED_AT: 'updatedAt',
-    PART_NUMBER: 'partNumber',
-    DATA_TABLE_IDS: 'dataTableIds',
-    FILE_IDS: 'fileIds',
-    HOST_NAME: 'hostName',
-    OPERATOR: 'operator',
-    KEYWORDS: 'keywords',
-    PROPERTIES: 'properties',
-    STATUS_TYPE_SUMMARY: 'statusTypeSummary',
-    WORKSPACE: 'workspace',
+  ID: 'id',
+  PROGRAM_NAME: 'programName',
+  SERIAL_NUMBER: 'serialNumber',
+  SYSTEM_ID: 'systemId',
+  STATUS: 'status',
+  TOTAL_TIME_IN_SECONDS: 'totalTimeInSeconds',
+  STARTED_AT: 'startedAt',
+  UPDATED_AT: 'updatedAt',
+  PART_NUMBER: 'partNumber',
+  DATA_TABLE_IDS: 'dataTableIds',
+  FILE_IDS: 'fileIds',
+  HOST_NAME: 'hostName',
+  OPERATOR: 'operator',
+  KEYWORDS: 'keywords',
+  PROPERTIES: 'properties',
+  STATUS_TYPE_SUMMARY: 'statusTypeSummary',
+  WORKSPACE: 'workspace',
+}
+
+
+export enum ResultsProperties {
+  id = 'ID',
+  programName = 'PROGRAM_NAME',
+  serialNumber = 'SERIAL_NUMBER',
+  systemId = 'SYSTEM_ID',
+  status = 'STATUS',
+  totalTimeInSeconds = 'TOTAL_TIME_IN_SECONDS',
+  startedAt= 'STARTED_AT',
+  updatedAt = 'UPDATED_AT',
+  partNumber = 'PART_NUMBER',
+  dataTableIds= 'DATA_TABLE_IDS',
+  fileIds = 'FILE_IDS',
+  hostName = 'HOST_NAME',
+  operator = 'OPERATOR',
+  keywords = 'KEYWORDS',
+  properties = 'PROPERTIES',
+  statusTypeSummary = 'STATUS_TYPE_SUMMARY',
+  workspace = 'WORKSPACE',
 }
 
 export interface StatusHttp {

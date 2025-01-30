@@ -76,7 +76,6 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
       query.descending,
       true
     );
-    console.log('responseData', responseData);
 
     if(responseData.results.length === 0) {
       return {
@@ -88,6 +87,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
     if (query.outputType === OutputType.Data) {
       const testResultsResponse = responseData.results;
       const selectedFields = query.properties?.filter((field: ResultsProperties) => Object.keys(testResultsResponse[0]).includes(field)) || [];
+      console.log(selectedFields)
       const fields = selectedFields.map(field => {
           const isTimeField = field === ResultsPropertiesOptions.UPDATED_AT || field === ResultsPropertiesOptions.STARTED_AT;
           const fieldType = isTimeField ? FieldType.time : FieldType.string;
