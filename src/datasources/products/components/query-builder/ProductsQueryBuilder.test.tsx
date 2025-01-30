@@ -65,5 +65,5 @@ describe('ProductsQueryBuilder', () => {
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.innerHTML).not.toContain('alert(\'Family\')');
     })
-    });
+  });
 });
