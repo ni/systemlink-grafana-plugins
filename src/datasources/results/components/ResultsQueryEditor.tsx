@@ -10,12 +10,9 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
   query = datasource.prepareQuery(query);
 
   const handleQueryChange = useCallback(
-    (query: ResultsQuery, runQuery?: boolean): void => {
+    (query: ResultsQuery, runQuery = true): void => {
       onChange(query);
-      runQuery = runQuery !== undefined ? runQuery : true;
-      console.log('runQuery', runQuery);
       if (runQuery) {
-        console.log('called onRunQuery');
         onRunQuery();
       }
     },[onChange, onRunQuery]

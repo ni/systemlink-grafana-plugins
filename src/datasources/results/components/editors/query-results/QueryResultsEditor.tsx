@@ -33,8 +33,8 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
 
   const onUseTimeRangeChecked = (value: boolean) => {
     if(query.useTimeRangeFor === undefined) {
-      console.log('should not called');
       handleQueryChange({ ...query, useTimeRange: value }, false);
+      return;
     }
     handleQueryChange({ ...query, useTimeRange: value });
   };
