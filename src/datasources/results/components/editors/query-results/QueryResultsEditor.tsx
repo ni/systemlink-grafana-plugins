@@ -8,7 +8,8 @@ import {
   Select,
   VerticalGroup,
 } from '@grafana/ui';
-import { OrderBy, OutputType, ResultsProperties, ResultsQuery, UseTimeRange } from 'datasources/results/types';
+import { enumToOptions } from 'core/utils';
+import { OrderBy, OutputType, ResultsProperties, ResultsQuery, UseTimeRangeFor } from 'datasources/results/types';
 import React from 'react';
 
 type Props = {
@@ -57,7 +58,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
       <VerticalGroup>
         <InlineField label="Output" labelWidth={18} tooltip={tooltips.output}>
           <RadioButtonGroup
-            options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
+            options={enumToOptions(OutputType)}
             value={query.outputType}
             onChange={onOutputChange}
           />
@@ -67,7 +68,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
           <InlineField label="Properties" labelWidth={18} tooltip={tooltips.properties}>
             <MultiSelect
               placeholder="Select properties to fetch"
-              options={Object.keys(ResultsProperties).map(value => ({ label: value, value })) as SelectableValue[]}
+              options={enumToOptions(ResultsProperties)}
               onChange={onPropertiesChange}
               value={query.properties}
               defaultValue={query.properties!}
@@ -115,7 +116,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
             <InlineField label="to filter by" disabled={!query.useTimeRange}>
               <Select
                 placeholder="Choose"
-                options={Object.keys(UseTimeRange).map(value => ({ label: value, value })) as SelectableValue[]}
+                options={enumToOptions(UseTimeRangeFor)}
                 onChange={onUseTimeRangeChanged}
                 value={query.useTimeRangeFor}
                 width={25}

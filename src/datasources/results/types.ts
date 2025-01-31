@@ -15,7 +15,7 @@ export enum OutputType {
   TotalCount = 'Total Count',
 }
 
-export enum UseTimeRange {
+export enum UseTimeRangeFor {
   Started = 'Started',
   Updated = 'Updated',
 }
@@ -100,23 +100,23 @@ export const ResultsPropertiesOptions = {
 
 
 export enum ResultsProperties {
-  id = 'ID',
-  programName = 'PROGRAM_NAME',
-  serialNumber = 'SERIAL_NUMBER',
-  systemId = 'SYSTEM_ID',
-  status = 'STATUS',
-  totalTimeInSeconds = 'TOTAL_TIME_IN_SECONDS',
-  startedAt= 'STARTED_AT',
-  updatedAt = 'UPDATED_AT',
-  partNumber = 'PART_NUMBER',
-  dataTableIds= 'DATA_TABLE_IDS',
-  fileIds = 'FILE_IDS',
-  hostName = 'HOST_NAME',
-  operator = 'OPERATOR',
-  keywords = 'KEYWORDS',
-  properties = 'PROPERTIES',
-  statusTypeSummary = 'STATUS_TYPE_SUMMARY',
-  workspace = 'WORKSPACE',
+  id = 'id',
+  programName = 'programName',
+  serialNumber = 'serialNumber',
+  systemId = 'systemId',
+  status = 'status',
+  totalTimeInSeconds = 'totalTimeInSeconds',
+  startedAt = 'startedAt',
+  updatedAt = 'updatedAt',
+  partNumber = 'partNumber',
+  dataTableIds = 'dataTableIds',
+  fileIds = 'fileIds',
+  hostName = 'hostName',
+  operator = 'operator',
+  keywords = 'keywords',
+  properties = 'properties',
+  statusTypeSummary = 'statusTypeSummary',
+  workspace = 'workspace',
 }
 
 export interface StatusHttp {
