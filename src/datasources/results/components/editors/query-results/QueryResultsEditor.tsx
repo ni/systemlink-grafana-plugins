@@ -63,6 +63,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
           />
         </InlineField>
         {query.outputType === OutputType.Data && (
+        <VerticalGroup>
           <InlineField label="Properties" labelWidth={18} tooltip={tooltips.properties}>
             <MultiSelect
               placeholder="Select properties to fetch"
@@ -76,28 +77,23 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
               closeMenuOnSelect={false}
             />
           </InlineField>
-        )}
-        <div>
-          {query.outputType === OutputType.Data && (
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
-                <Select
-                  options={OrderBy as SelectableValue[]}
-                  placeholder="Select field to order by"
-                  onChange={onOrderByChange}
-                  value={query.orderBy}
-                  defaultValue={query.orderBy}
-                />
-              </InlineField>
-              <InlineField label="Descending" tooltip={tooltips.descending}>
-                <InlineSwitch
-                  onChange={event => onDescendingChange(event.currentTarget.checked)}
-                  value={query.descending}
-                />
-              </InlineField>
-            </div>
-          )}
-          {query.outputType === OutputType.Data && (
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
+              <Select
+                options={OrderBy as SelectableValue[]}
+                placeholder="Select field to order by"
+                onChange={onOrderByChange}
+                value={query.orderBy}
+                defaultValue={query.orderBy}
+              />
+            </InlineField>
+            <InlineField label="Descending" tooltip={tooltips.descending}>
+              <InlineSwitch
+                onChange={event => onDescendingChange(event.currentTarget.checked)}
+                value={query.descending}
+              />
+            </InlineField>
+          </div>
             <InlineField label="Take" labelWidth={18} tooltip={tooltips.recordCount}>
               <AutoSizeInput
                 minWidth={20}
@@ -107,7 +103,8 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
                 placeholder="Enter record count"
               />
             </InlineField>
-          )}
+        </VerticalGroup>
+        )}
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <InlineField label="Use time range" tooltip={tooltips.useTimeRange} labelWidth={18}>
               <InlineSwitch
@@ -125,7 +122,6 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
               />
             </InlineField>
           </div>
-        </div>
       </VerticalGroup>
     </>
   );

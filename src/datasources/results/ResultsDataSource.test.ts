@@ -136,6 +136,9 @@ describe('ResultsDataSource', () => {
         await expect(datastore.query(query))
         .rejects
         .toThrow('Request to url "/nitestmonitor/v2/query-results" failed with status code: 400. Error message: "Error"');
+        const response = await datastore.query();
+
+        expect(response.data).toBeUndefined();
     });
 
     test('should convert properties to Grafana fields', async () => {
