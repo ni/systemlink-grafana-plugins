@@ -58,7 +58,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
       <VerticalGroup>
         <InlineField label="Output" labelWidth={18} tooltip={tooltips.output}>
           <RadioButtonGroup
-            options={enumToOptions(OutputType)}
+            options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
             value={query.outputType}
             onChange={onOutputChange}
           />

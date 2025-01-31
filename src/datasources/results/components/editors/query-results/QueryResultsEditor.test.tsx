@@ -36,7 +36,7 @@ describe('QueryResultsEditor', () => {
     descending = screen.getAllByRole('checkbox')[0];
     useTimeRange = screen.getAllByRole('checkbox')[1];
     dataOutput = screen.getByRole('radio', { name: 'Data' });
-    totalCountOutput = screen.getByRole('radio', { name: 'TotalCount' });
+    totalCountOutput = screen.getByRole('radio', { name: 'Total Count' });
     recordCount = screen.getByRole('textbox');
   });
 
