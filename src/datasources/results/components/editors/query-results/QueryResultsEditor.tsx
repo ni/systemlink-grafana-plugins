@@ -32,7 +32,11 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
   };
 
   const onUseTimeRangeChecked = (value: boolean) => {
-    handleQueryChange({ ...query, useTimeRange: value }, false);
+    if(query.useTimeRangeFor === undefined) {
+      console.log('should not called');
+      handleQueryChange({ ...query, useTimeRange: value }, false);
+    }
+    handleQueryChange({ ...query, useTimeRange: value });
   };
 
   const onUseTimeRangeChanged = (value: SelectableValue<string>) => {

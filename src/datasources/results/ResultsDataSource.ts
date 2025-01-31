@@ -27,7 +27,6 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
     ] as ResultsProperties[],
     outputType: OutputType.Data,
     recordCount: 1000,
-    useTimeRange: false,
   };
 
   private timeRange: { [key: string]: string } = {
@@ -59,17 +58,24 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
     }
   }
 
-  async runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    let queryByFilter = '';
+  private getVariableReplacedFilter(query: ResultsQuery, options: DataQueryRequest): string | undefined {
+    let queryByFilter = undefined;
 
-    if (query.useTimeRange && query.useTimeRangeFor) {
-        const timeFilter = `(${this.timeRange[query.useTimeRangeFor]} > \"${this.fromDateString}\" && ${this.timeRange[query.useTimeRangeFor]} < \"${this.toDateString}\")`
-        queryByFilter = queryByFilter ? `${queryByFilter} && ${timeFilter}` : timeFilter
+    if (query.useTimeRange === false) {
+      queryByFilter = undefined;
     }
-    const variableReplacedFilter = getTemplateSrv().replace(queryByFilter, options.scopedVars);
 
+    if (query.useTimeRange === true && query.useTimeRangeFor !== undefined) {
+      const timeFilter = `(${this.timeRange[query.useTimeRangeFor]} > \"${this.fromDateString}\" && ${this.timeRange[query.useTimeRangeFor]} < \"${this.toDateString}\")`;
+      queryByFilter = queryByFilter ? `${queryByFilter} && ${timeFilter}` : timeFilter;
+    }
+
+    return queryByFilter !== undefined ? this.templateSrv.replace(queryByFilter, options.scopedVars) : undefined;
+  }
+
+  async runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     const responseData = await this.queryResults(
-      variableReplacedFilter,
+      this.getVariableReplacedFilter(query, options),
       query.orderBy,
       query.properties,
       query.recordCount,
@@ -87,23 +93,21 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
     if (query.outputType === OutputType.Data) {
       const testResultsResponse = responseData.results;
       const selectedFields = query.properties?.filter((field: ResultsProperties) => Object.keys(testResultsResponse[0]).includes(field)) || [];
-      console.log(selectedFields)
       const fields = selectedFields.map(field => {
-          const isTimeField = field === ResultsPropertiesOptions.UPDATED_AT || field === ResultsPropertiesOptions.STARTED_AT;
-          const fieldType = isTimeField ? FieldType.time : FieldType.string;
-          const values = testResultsResponse.map(data => data[field as unknown as keyof ResultsResponseProperties]);
+        const isTimeField = field === ResultsPropertiesOptions.UPDATED_AT || field === ResultsPropertiesOptions.STARTED_AT;
+        const fieldType = isTimeField ? FieldType.time : FieldType.string;
+        const values = testResultsResponse.map(data => data[field as unknown as keyof ResultsResponseProperties]);
 
-          switch (field) {
-            case ResultsPropertiesOptions.PROPERTIES:
-            case ResultsPropertiesOptions.STATUS_TYPE_SUMMARY:
-              return { name: field, values: values.map(value => value !== null ? JSON.stringify(value) : ''), type: fieldType };
-            case ResultsPropertiesOptions.STATUS:
-              return { name: field, values: values.map((value: any) => value?.statusType), type: fieldType };
-            default:
-              return { name: field, values, type: fieldType };
-          }
-        });
-
+        switch (field) {
+          case ResultsPropertiesOptions.PROPERTIES:
+          case ResultsPropertiesOptions.STATUS_TYPE_SUMMARY:
+            return { name: field, values: values.map(value => value !== null ? JSON.stringify(value) : ''), type: fieldType };
+          case ResultsPropertiesOptions.STATUS:
+            return { name: field, values: values.map((value: any) => value?.statusType), type: fieldType };
+          default:
+            return { name: field, values, type: fieldType };
+        }
+      });
       return {
         refId: query.refId,
         fields: fields,
