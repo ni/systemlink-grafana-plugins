@@ -112,7 +112,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
                 />
               </InlineField>
             </div>
-            <InlineField label="Records to Query" labelWidth={18} tooltip={tooltips.recordCount}>
+            <InlineField label="Take" labelWidth={18} tooltip={tooltips.recordCount}>
               <AutoSizeInput
                 minWidth={20}
                 maxWidth={40}
