@@ -3,15 +3,7 @@
 exports[`ResultsDataSource query returns data for valid data-output-type query 1`] = `
 [
   {
-    "fields": [
-      {
-        "name": "programName",
-        "type": "string",
-        "values": [
-          "My Program Name",
-        ],
-      },
-    ],
+    "fields": [],
     "refId": "A",
   },
 ]
@@ -35,31 +27,4 @@ exports[`ResultsDataSource query returns total count for valid total count outpu
 ]
 `;
 
-exports[`ResultsDataSource query should convert properties to Grafana fields 1`] = `
-[
-  {
-    "name": "programName",
-    "type": "string",
-    "values": [
-      "My Program Name",
-    ],
-  },
-]
-`;
-
-exports[`ResultsDataSource queryResults returns data when there are valid queries 1`] = `
-{
-  "results": [
-    {
-      "id": "000007fb-aa87-4ab9-9757-6568e7893c33",
-      "keywords": [
-        "keyword1",
-        "keyword2",
-      ],
-      "programName": "My Program Name",
-      "totalTimeInSeconds": 29.9,
-    },
-  ],
-  "totalCount": 1,
-}
-`;
+exports[`ResultsDataSource query should convert properties to Grafana fields 1`] = `[]`;

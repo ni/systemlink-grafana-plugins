@@ -12,7 +12,7 @@ export interface ResultsQuery extends DataQuery {
 
 export enum OutputType {
   Data = 'Data',
-  TotalCount = 'Total Count',
+  TotalCount = 'Total Count'
 }
 
 export enum UseTimeRangeFor {

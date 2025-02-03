@@ -22,7 +22,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
     <QueryResultsEditor
       query={query}
       handleQueryChange={handleQueryChange}
-      datasource={datasource}
+      datasource={datasource.getQueryResultsDataSource()}
     />
   );
 }

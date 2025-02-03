@@ -7,6 +7,7 @@ import { OutputType, ResultsQuery } from '../types';
 
 const mockDatasource = {
   prepareQuery: jest.fn((query: ResultsQuery) => query),
+  getQueryResultsDataSource: jest.fn(),
 } as unknown as ResultsDataSource;
 
 const defaultProps: QueryEditorProps<ResultsDataSource, ResultsQuery> = {

@@ -13,12 +13,12 @@ import { OrderBy, OutputType, ResultsProperties, ResultsQuery, UseTimeRangeFor }
 import React from 'react';
 import './QueryResultsEditor.scss';
 import { FloatingError } from 'core/errors';
-import { ResultsDataSource } from 'datasources/results/ResultsDataSource';
+import { QueryResultsDataSource } from 'datasources/results/datasources/query-results/QueryResultsDataSource';
 
 type Props = {
   query: ResultsQuery;
   handleQueryChange: (query: ResultsQuery, runQuery?: boolean) => void;
-  datasource?: ResultsDataSource;
+  datasource?: QueryResultsDataSource;
 };
 
 export function QueryResultsEditor({ query, datasource, handleQueryChange }: Props) {

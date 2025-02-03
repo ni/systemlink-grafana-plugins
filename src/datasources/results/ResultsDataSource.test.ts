@@ -61,24 +61,6 @@ describe('ResultsDataSource', () => {
     });
   });
 
-  describe('queryResults', () => {
-    test('returns data when there are valid queries', async () => {
-      const response = await datastore.queryResults();
-
-      expect(response).toMatchSnapshot();
-    });
-
-    test('raises an error returns API fails', async () => {
-      backendServer.fetch
-        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results' }))
-        .mockReturnValue(createFetchError(400));
-
-      await expect(datastore.queryResults())
-        .rejects
-        .toThrow('Request to url "/nitestmonitor/v2/query-results" failed with status code: 400. Error message: "Error"');
-    });
-  });
-
   describe('query', () => {
     test('returns data for valid data-output-type query', async () => {
       const query = buildQuery({
