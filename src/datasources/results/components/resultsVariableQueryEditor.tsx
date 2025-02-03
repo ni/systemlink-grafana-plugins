@@ -1,6 +1,6 @@
-import { ActionMeta, InlineField, MultiSelect, RadioButtonGroup, Select } from "@grafana/ui";
+import { InlineField, RadioButtonGroup, Select } from "@grafana/ui";
 import { enumToOptions } from "core/utils";
-import React from "react";
+import React, { useEffect } from "react";
 import { ResultsVariableProperties, ResultsVariableQuery, ResultsVariableQueryType } from "../types";
 import { TestResultsDataSource } from "../ResultsDataSource";
 import { TestResultsQueryBuilder } from "../ResultsQueryBuilder";
@@ -15,6 +15,13 @@ interface Props {
 
 
 export function ResultsVariableQueryEditor({ onChange, query, datasource }: Props) {
+
+  useEffect(() => {
+    onChange({ ...query, type: ResultsVariableQueryType.Results });
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
+
   const onQueryTypeChange = (value: ResultsVariableQueryType) => {
     onChange({ ...query, type: value });
   };
@@ -31,33 +38,35 @@ export function ResultsVariableQueryEditor({ onChange, query, datasource }: Prop
     onChange({ ...query, stepFilter: value });
   }
 
-  const onPropertiesChange = (item: SelectableValue<ResultsVariableProperties>) => {
+  const onPropertiesChange = (item: SelectableValue) => {
     onChange({ ...query, properties: item.value! })
   }
 
   return (
     <>
-      {/* <InlineField label="Query type" labelWidth={20} tooltip={tooltip.queryType}>
+      <InlineField label="Query type" labelWidth={25} tooltip={tooltip.queryType}>
         <RadioButtonGroup
           options={enumToOptions(ResultsVariableQueryType)}
           value={query.type}
           onChange={onQueryTypeChange}
         />
-      </InlineField> */}
-      <InlineField label="Properties" labelWidth={20} tooltip={'Select properties'}>
-        <Select
-          options={enumToOptions(ResultsVariableProperties)}
-          onChange={(option?: SelectableValue<string>) => onChange({ ...query, properties: option?.value as ResultsVariableProperties })}
-          value={query.properties!}
-          defaultValue={query.properties!}
-          width={40}
-          allowCustomValue={false}
-        closeMenuOnSelect={false}            
-        />
       </InlineField>
-      {(query.properties! === ResultsVariableProperties.TestProgramName || query.properties === ResultsVariableProperties.DataTablesIds) && (
+      {query.type === ResultsVariableQueryType.Results && (
+        <InlineField label="Properties" labelWidth={25} tooltip={'Select properties'}>
+          <Select
+            options={ResultsVariableProperties as SelectableValue[]}
+            onChange={(option?: SelectableValue<string>) => onChange({ ...query, properties: option?.value!})}
+            value={query.properties!}
+            defaultValue={query.properties!}
+            width={40}
+            allowCustomValue={false}
+            closeMenuOnSelect={false}
+          />
+        </InlineField>
+      )}
+      {query.type === ResultsVariableQueryType.Results && (query.properties! === ResultsVariableProperties[0].value || query.properties === ResultsVariableProperties[1].value) && (
         <>
-          <InlineField label="Query by" tooltip={tooltip.queryBy} labelWidth={20}>
+          <InlineField label="Query by result properties" tooltip={tooltip.queryBy} labelWidth={25}>
 
             <TestResultsQueryBuilder
               autoComplete={datasource.queryTestResultValues.bind(datasource)}
@@ -67,16 +76,16 @@ export function ResultsVariableQueryEditor({ onChange, query, datasource }: Prop
           </InlineField>
         </>
       )}
-      {query.properties! === ResultsVariableProperties.StepName && (
+      {query.type === ResultsVariableQueryType.Steps && (
         <>
-          <InlineField label="Query by result properties" labelWidth={'auto'}>
+          <InlineField label="Query by result properties" labelWidth={25}>
             <TestResultsQueryBuilder
               autoComplete={datasource.queryTestResultValues.bind(datasource)}
               onChange={(event: any) => onResultsParameterChange(event.detail.linq)}
               defaultValue={query.resultFilter}
             />
           </InlineField>
-          <InlineField label="Query by step properties" labelWidth={'auto'}>
+          <InlineField label="Query by step properties" labelWidth={25}>
             <TestStepsQueryBuilder
               autoComplete={datasource.queryStepsValues.bind(datasource)}
               onChange={(event: any) => onStepsParameterChange(event.detail.linq)}
@@ -85,7 +94,6 @@ export function ResultsVariableQueryEditor({ onChange, query, datasource }: Prop
           </InlineField>
         </>
       )}
-
     </>
   )
 }
