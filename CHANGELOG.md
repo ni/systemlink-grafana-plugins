@@ -1,3 +1,9 @@
+## [3.44.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.44.0...v3.44.1) (2025-02-03)
+
+### Bug Fixes
+
+* **products:** Add query help and update label name in the products datasource ([#120](https://github.com/ni/systemlink-grafana-plugins/issues/120)) ([7c1be3a](https://github.com/ni/systemlink-grafana-plugins/commit/7c1be3a9a88f3ac2d9e17fadfbec81b15074b54b))
+
 ## [3.44.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.43.7...v3.44.0) (2025-01-24)
 
 ### Features
