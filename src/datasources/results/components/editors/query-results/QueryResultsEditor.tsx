@@ -73,38 +73,41 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
                 onChange={onPropertiesChange}
                 value={query.properties}
                 defaultValue={query.properties!}
+                noMultiValueWrap={true}
                 maxVisibleValues={5}
                 width={60}
                 allowCustomValue={false}
                 closeMenuOnSelect={false}
               />
             </InlineField>
-            <div className="horizontal-control-group">
-              <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
-                <Select
-                  options={OrderBy as SelectableValue[]}
-                  placeholder="Select field to order by"
-                  onChange={onOrderByChange}
-                  value={query.orderBy}
-                  defaultValue={query.orderBy}
-                />
-              </InlineField>
-              <InlineField label="Descending" tooltip={tooltips.descending}>
-                <InlineSwitch
-                  onChange={event => onDescendingChange(event.currentTarget.checked)}
-                  value={query.descending}
+            <div>
+              <div className="horizontal-control-group">
+                <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
+                  <Select
+                    options={OrderBy as SelectableValue[]}
+                    placeholder="Select field to order by"
+                    onChange={onOrderByChange}
+                    value={query.orderBy}
+                    defaultValue={query.orderBy}
+                  />
+                </InlineField>
+                <InlineField label="Descending" tooltip={tooltips.descending}>
+                  <InlineSwitch
+                    onChange={event => onDescendingChange(event.currentTarget.checked)}
+                    value={query.descending}
+                  />
+                </InlineField>
+              </div>
+              <InlineField label="Take" labelWidth={18} tooltip={tooltips.recordCount}>
+                <AutoSizeInput
+                  minWidth={20}
+                  maxWidth={40}
+                  defaultValue={query.recordCount}
+                  onCommitChange={recordCountChange}
+                  placeholder="Enter record count"
                 />
               </InlineField>
             </div>
-            <InlineField label="Take" labelWidth={18} tooltip={tooltips.recordCount}>
-              <AutoSizeInput
-                minWidth={20}
-                maxWidth={40}
-                defaultValue={query.recordCount}
-                onCommitChange={recordCountChange}
-                placeholder="Enter record count"
-              />
-            </InlineField>
           </VerticalGroup>
         )}
         <div className="horizontal-control-group">

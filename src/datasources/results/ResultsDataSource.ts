@@ -58,24 +58,20 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
     }
   }
 
-  private getVariableReplacedFilter(query: ResultsQuery, options: DataQueryRequest): string | undefined {
-    let queryByFilter = undefined;
-
-    if (query.useTimeRange === false) {
-      queryByFilter = undefined;
+  private getTimeRangeFilter(query: ResultsQuery, options: DataQueryRequest): string | undefined {
+    if (!query.useTimeRange || query.useTimeRangeFor === undefined) {
+      return undefined;
     }
-
-    if (query.useTimeRange === true && query.useTimeRangeFor !== undefined) {
-      const timeFilter = `(${this.timeRange[query.useTimeRangeFor]} > \"${this.fromDateString}\" && ${this.timeRange[query.useTimeRangeFor]} < \"${this.toDateString}\")`;
-      queryByFilter = queryByFilter ? `${queryByFilter} && ${timeFilter}` : timeFilter;
-    }
-
-    return queryByFilter !== undefined ? this.templateSrv.replace(queryByFilter, options.scopedVars) : undefined;
+  
+    const timeRangeField = this.timeRange[query.useTimeRangeFor];
+    const timeRangeFilter = `(${timeRangeField} > "${this.fromDateString}" && ${timeRangeField} < "${this.toDateString}")`;
+  
+    return this.templateSrv.replace(timeRangeFilter, options.scopedVars);
   }
 
   async runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     const responseData = await this.queryResults(
-      this.getVariableReplacedFilter(query, options),
+      this.getTimeRangeFilter(query, options),
       query.orderBy,
       query.properties,
       query.recordCount,
