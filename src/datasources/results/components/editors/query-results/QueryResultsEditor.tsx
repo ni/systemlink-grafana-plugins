@@ -50,7 +50,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    handleQueryChange({ ...query, recordCount: value });
+    handleQueryChange({ ...query, recordCount: isNaN(value) ? undefined : value });
   };
 
   return (
