@@ -11,6 +11,7 @@ import {
 import { enumToOptions } from 'core/utils';
 import { OrderBy, OutputType, ResultsProperties, ResultsQuery, UseTimeRangeFor } from 'datasources/results/types';
 import React from 'react';
+import './QueryResultsEditor.scss';
 
 type Props = {
   query: ResultsQuery;
@@ -64,37 +65,37 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
           />
         </InlineField>
         {query.outputType === OutputType.Data && (
-        <VerticalGroup>
-          <InlineField label="Properties" labelWidth={18} tooltip={tooltips.properties}>
-            <MultiSelect
-              placeholder="Select properties to fetch"
-              options={enumToOptions(ResultsProperties)}
-              onChange={onPropertiesChange}
-              value={query.properties}
-              defaultValue={query.properties!}
-              maxVisibleValues={5}
-              width={60}
-              allowCustomValue={false}
-              closeMenuOnSelect={false}
-            />
-          </InlineField>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
-              <Select
-                options={OrderBy as SelectableValue[]}
-                placeholder="Select field to order by"
-                onChange={onOrderByChange}
-                value={query.orderBy}
-                defaultValue={query.orderBy}
+          <VerticalGroup>
+            <InlineField label="Properties" labelWidth={18} tooltip={tooltips.properties}>
+              <MultiSelect
+                placeholder="Select properties to fetch"
+                options={enumToOptions(ResultsProperties)}
+                onChange={onPropertiesChange}
+                value={query.properties}
+                defaultValue={query.properties!}
+                maxVisibleValues={5}
+                width={60}
+                allowCustomValue={false}
+                closeMenuOnSelect={false}
               />
             </InlineField>
-            <InlineField label="Descending" tooltip={tooltips.descending}>
-              <InlineSwitch
-                onChange={event => onDescendingChange(event.currentTarget.checked)}
-                value={query.descending}
-              />
-            </InlineField>
-          </div>
+            <div className="horizontal-control-group">
+              <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
+                <Select
+                  options={OrderBy as SelectableValue[]}
+                  placeholder="Select field to order by"
+                  onChange={onOrderByChange}
+                  value={query.orderBy}
+                  defaultValue={query.orderBy}
+                />
+              </InlineField>
+              <InlineField label="Descending" tooltip={tooltips.descending}>
+                <InlineSwitch
+                  onChange={event => onDescendingChange(event.currentTarget.checked)}
+                  value={query.descending}
+                />
+              </InlineField>
+            </div>
             <InlineField label="Take" labelWidth={18} tooltip={tooltips.recordCount}>
               <AutoSizeInput
                 minWidth={20}
@@ -104,25 +105,25 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
                 placeholder="Enter record count"
               />
             </InlineField>
-        </VerticalGroup>
+          </VerticalGroup>
         )}
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <InlineField label="Use time range" tooltip={tooltips.useTimeRange} labelWidth={18}>
-              <InlineSwitch
-                onChange={event => onUseTimeRangeChecked(event.currentTarget.checked)}
-                value={query.useTimeRange}
-              />
-            </InlineField>
-            <InlineField label="to filter by" disabled={!query.useTimeRange}>
-              <Select
-                placeholder="Choose"
-                options={enumToOptions(UseTimeRangeFor)}
-                onChange={onUseTimeRangeChanged}
-                value={query.useTimeRangeFor}
-                width={25}
-              />
-            </InlineField>
-          </div>
+        <div className="horizontal-control-group">
+          <InlineField label="Use time range" tooltip={tooltips.useTimeRange} labelWidth={18}>
+            <InlineSwitch
+              onChange={event => onUseTimeRangeChecked(event.currentTarget.checked)}
+              value={query.useTimeRange}
+            />
+          </InlineField>
+          <InlineField label="to filter by" disabled={!query.useTimeRange}>
+            <Select
+              placeholder="Choose"
+              options={enumToOptions(UseTimeRangeFor)}
+              onChange={onUseTimeRangeChanged}
+              value={query.useTimeRangeFor}
+              width={25}
+            />
+          </InlineField>
+        </div>
       </VerticalGroup>
     </>
   );
