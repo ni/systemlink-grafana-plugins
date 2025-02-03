@@ -138,5 +138,5 @@ const tooltips = {
   recordCount: 'Enter the number of records to query',
   orderBy: 'Select the field to order the results by',
   descending: 'Select to order the results in descending order',
-  useTimeRange: 'Use the time range instead for the selected field',
+  useTimeRange: 'Select to query using the dashboard time range for the selected field',
 };
