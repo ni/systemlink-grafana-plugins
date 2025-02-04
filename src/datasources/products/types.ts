@@ -9,6 +9,10 @@ export interface ProductQuery extends DataQuery {
   queryBy?: string;
 }
 
+export interface ProductVariableQuery extends DataQuery {
+  queryBy?: string;
+}
+
 export enum Properties {
   id = 'ID',
   partNumber = 'PART_NUMBER',
@@ -53,11 +57,6 @@ export const OrderBy = [
     value: 'FAMILY',
     label: 'Family',
     description: `Family of the product`,
-  },
-  {
-    value: 'WORKSPACE',
-    label: 'Workspace',
-    description: `Workspace of the product`,
   },
   {
     value: 'UPDATED_AT',

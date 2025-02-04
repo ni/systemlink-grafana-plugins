@@ -1,7 +1,7 @@
 import { BackendSrv } from '@grafana/runtime';
 import { ProductsDataSource } from './ProductsDataSource';
-import { ProductQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
-import { Field } from '@grafana/data';
+import { ProductQuery, ProductVariableQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
+import { Field, LegacyMetricFindQueryOptions } from '@grafana/data';
 import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
 import { MockProxy } from 'jest-mock-extended';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
@@ -20,6 +20,23 @@ const mockQueryProductResponse: QueryProductResponse = {
   ],
   continuationToken: '',
   totalCount: 2
+};
+
+const mockVariableQueryProductResponse: QueryProductResponse = {
+  products: [
+    {
+      id: '1',
+      partNumber: '123',
+      family: 'Family 1',
+    },
+    {
+      id: '2',
+      partNumber: '456',
+      family: 'Family 2',
+    }
+  ],
+  continuationToken: '',
+  totalCount: 0
 };
 
 let datastore: ProductsDataSource, backendServer: MockProxy<BackendSrv>
@@ -93,6 +110,31 @@ describe('queryProductValues', () => {
     await expect(datastore.queryProductValues(ProductsQueryBuilderFieldNames.PART_NUMBER))
       .rejects
       .toThrow('Request to url "/nitestmonitor/v2/query-product-values" failed with status code: 400. Error message: "Error"');
+  });
+});
+
+describe('getFamilyNames', () => {
+  test('returns family names', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-product-values' }))
+      .mockReturnValue(createFetchResponse(['Family 1', 'Family 2']));
+
+    await datastore.getFamilyNames();
+
+    expect(datastore.familyNamesCache.get('Family 1')).toBe('Family 1');
+    expect(datastore.familyNamesCache.get('Family 2')).toBe('Family 2');
+  });
+
+  test('should not query family values if cache exists', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-product-values' }))
+      .mockReturnValue(createFetchResponse(['value1']));
+    datastore.familyNamesCache.set('family', 'value1');
+    backendServer.fetch.mockClear();
+
+    await datastore.getFamilyNames()
+
+    expect(backendServer.fetch).not.toHaveBeenCalled();
   });
 });
 
@@ -296,6 +338,97 @@ describe('query', () => {
       );
     });
 
+  });
+
+  describe('metricFindQuery', () => {
+    let options: LegacyMetricFindQueryOptions;
+    beforeEach(() => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
+        .mockReturnValue(
+          createFetchResponse<QueryProductResponse>(mockVariableQueryProductResponse));
+      options = {
+        scopedVars: {}
+      }
+    });
+
+    it('should return partNumber with family Name when queryBy is not provided', async () => {
+      const query: ProductVariableQuery = {
+        refId: '',
+        queryBy: '',
+      };
+
+      const results = await datastore.metricFindQuery(query, options);
+
+      expect(results).toMatchSnapshot();
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            descending: false,
+            orderBy: "partNumber",
+            projection: ["PART_NUMBER", "FAMILY"],
+            returnCount: false,
+          }
+        })
+      );
+    });
+
+    it('should return partNumber when queryBy is provided', async () => {
+      const query: ProductVariableQuery = {
+        refId: '',
+        queryBy: 'partNumber = "123"',
+      };
+
+      const results = await datastore.metricFindQuery(query, options);
+
+      expect(results).toMatchSnapshot();
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            descending: false,
+            filter: "partNumber = \"123\"",
+            orderBy: "partNumber",
+            projection: ["PART_NUMBER", "FAMILY"],
+            returnCount: false,
+          }
+        })
+      );
+    });
+
+    it('should replace variables with values', async () => {
+      datastore.templateSrv.replace = jest.fn().mockImplementation((value) => {"partNumber = \"123\""});
+      const query: ProductVariableQuery = {
+        refId: '',
+        queryBy: 'partNumber = "$partNumber"',
+      }
+
+      const results = await datastore.metricFindQuery(query, options);
+
+      expect(results).toMatchSnapshot();
+      
+    }); 
+
+    it('should return empty array when queryBy is invalid', async () => {
+      const query: ProductVariableQuery = {
+        refId: '',
+        queryBy: 'invalidQuery',
+      };
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
+        .mockReturnValue(
+          createFetchResponse({
+            products: [],
+            continuationToken: null,
+            totalCount: 0
+          } as unknown as QueryProductResponse));
+      options = {
+        scopedVars: {}
+      }
+
+      const results = await datastore.metricFindQuery(query, options);
+
+      expect(results).toEqual([]);
+    })
   });
 });
 

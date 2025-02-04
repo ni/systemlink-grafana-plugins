@@ -8,6 +8,7 @@ import { Workspace } from 'core/types';
 import { ProductsQueryBuilder } from 'datasources/products/components/query-builder/ProductsQueryBuilder';
 import { FloatingError } from 'core/errors';
 import './ProductsQueryEditor.scss';
+import { ProductsQueryBuilderStaticFields } from '../constants/ProductsQueryBuilder.constants';
 
 
 type Props = QueryEditorProps<ProductsDataSource, ProductQuery>;
@@ -90,6 +91,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
               partNumbers={partNumbers}
               globalVariableOptions={datasource.globalVariableOptions()}
               onChange={(event: any) => onParameterChange(event.detail.linq)}
+              staticFields={ProductsQueryBuilderStaticFields}
             ></ProductsQueryBuilder>
           </InlineField>
         </VerticalGroup>

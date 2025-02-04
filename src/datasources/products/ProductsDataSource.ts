@@ -1,10 +1,9 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, TestDataSourceResponse } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { ProductQuery, ProductResponseProperties, Properties, PropertiesOptions, QueryProductResponse } from './types';
+import { ProductQuery, ProductResponseProperties, ProductVariableQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { parseErrorMessage } from 'core/errors';
-import { getVariableOptions } from 'core/utils';
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
@@ -43,8 +42,9 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
   readonly workspacesCache = new Map<string, Workspace>([]);
   readonly partNumbersCache = new Map<string, string>([]);
+  readonly familyNamesCache = new Map<string, string>([]);
 
-  readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
+  readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   private workspaceLoadedPromise: Promise<void>;
   private partNumberLoadedPromise: Promise<void>;
@@ -149,6 +149,37 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 
+  async getFamilyNames(): Promise<void> {
+    if (this.familyNamesCache.size > 0) {
+      return;
+    }
+
+    const familyNames = await this.queryProductValues(PropertiesOptions.FAMILY)
+      .catch(error => {
+        this.error = parseErrorMessage(error)!;
+      });
+
+    familyNames?.forEach(familyName => this.familyNamesCache.set(familyName, familyName));
+  }
+
+  async metricFindQuery(query: ProductVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    let metadata: ProductResponseProperties[];
+    if (query.queryBy) {
+      const filter = this.templateSrv.replace(query.queryBy, options.scopedVars)
+      metadata = (await this.queryProducts(
+        PropertiesOptions.PART_NUMBER,
+        [Properties.partNumber, Properties.family],
+        filter
+      )).products;
+    } else {
+      metadata = (await this.queryProducts(
+        PropertiesOptions.PART_NUMBER,
+        [Properties.partNumber, Properties.family]
+      )).products;
+    }
+    return metadata ? metadata.map(frame => ({ text: `${frame.partNumber}(${frame.family})`, value: frame.partNumber })) : [];
+  }
+
   readonly productsComputedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(ProductsQueryBuilderFieldNames).map(field => [
       field,
@@ -168,6 +199,12 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
         .map(val => `${field} ${operation} "${val}"`)
         .join(` ${logicalOperator} `) : `${field} ${operation} "${value}"`;
     }
+  }
+
+  private getVariableOptions() {
+    return this.templateSrv
+      .getVariables()
+      .map(variable => ({ label: '$' + variable.name, value: '$' + variable.name }));
   }
 
   private updatedAtQuery(value: string, operation: string): string {
