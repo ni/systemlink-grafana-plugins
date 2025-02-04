@@ -59,11 +59,6 @@ export const OrderBy = [
     description: `Family of the product`,
   },
   {
-    value: 'WORKSPACE',
-    label: 'Workspace',
-    description: `Workspace of the product`,
-  },
-  {
     value: 'UPDATED_AT',
     label: 'Updated At',
     description: `Latest update at time of the product`,
