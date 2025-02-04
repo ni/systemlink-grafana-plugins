@@ -33,18 +33,6 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
     handleQueryChange({ ...query, orderBy: item.value });
   };
 
-  const onUseTimeRangeChecked = (value: boolean) => {
-    if(query.useTimeRangeFor === undefined) {
-      handleQueryChange({ ...query, useTimeRange: value }, false);
-      return;
-    }
-    handleQueryChange({ ...query, useTimeRange: value });
-  };
-
-  const onUseTimeRangeChanged = (value: SelectableValue<string>) => {
-    handleQueryChange({ ...query, useTimeRangeFor: value.value! });
-  };
-
   const onDescendingChange = (isDescendingChecked: boolean) => {
     handleQueryChange({ ...query, descending: isDescendingChecked });
   };
@@ -107,28 +95,55 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
                   placeholder="Enter record count"
                 />
               </InlineField>
+              <UseTimeRangeControls
+                query={query}
+                handleQueryChange={handleQueryChange}
+              />
             </div>
           </VerticalGroup>
         )}
-        <div className="horizontal-control-group">
-          <InlineField label="Use time range" tooltip={tooltips.useTimeRange} labelWidth={18}>
-            <InlineSwitch
-              onChange={event => onUseTimeRangeChecked(event.currentTarget.checked)}
-              value={query.useTimeRange}
-            />
-          </InlineField>
-          <InlineField label="to filter by" disabled={!query.useTimeRange}>
-            <Select
-              placeholder="Choose"
-              options={enumToOptions(UseTimeRangeFor)}
-              onChange={onUseTimeRangeChanged}
-              value={query.useTimeRangeFor}
-              width={25}
-            />
-          </InlineField>
-        </div>
+        {query.outputType === OutputType.TotalCount && (
+          <UseTimeRangeControls
+            query={query}
+            handleQueryChange={handleQueryChange}
+          />
+        )}
       </VerticalGroup>
     </>
+  );
+}
+
+export function UseTimeRangeControls({ query, handleQueryChange }: Props) {
+  const onUseTimeRangeChecked = (value: boolean) => {
+    if(query.useTimeRangeFor === undefined) {
+      handleQueryChange({ ...query, useTimeRange: value }, false);
+      return;
+    }
+    handleQueryChange({ ...query, useTimeRange: value });
+  };
+
+  const onUseTimeRangeChanged = (value: SelectableValue<string>) => {
+    handleQueryChange({ ...query, useTimeRangeFor: value.value! });
+  };
+
+  return (
+    <div className="horizontal-control-group">
+      <InlineField label="Use time range" tooltip={tooltips.useTimeRange} labelWidth={18}>
+        <InlineSwitch 
+          onChange={event => onUseTimeRangeChecked(event.currentTarget.checked)} 
+          value={query.useTimeRange}
+        />
+      </InlineField>
+      <InlineField label="to filter by" disabled={!query.useTimeRange} tooltip={tooltips.useTimeRangeFor}>
+        <Select
+          placeholder="Choose"
+          options={enumToOptions(UseTimeRangeFor)}
+          onChange={onUseTimeRangeChanged}
+          value={query.useTimeRangeFor}
+          width={25}
+        />
+      </InlineField>
+    </div>
   );
 }
 
@@ -139,4 +154,5 @@ const tooltips = {
   orderBy: 'Select the field to order the results by',
   descending: 'Select to order the results in descending order',
   useTimeRange: 'Select to query using the dashboard time range for the selected field',
+  useTimeRangeFor: 'Select the field to apply the dashboard time range',
 };
