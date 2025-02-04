@@ -1,3 +1,9 @@
+## [3.45.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.44.1...v3.45.0) (2025-02-04)
+
+### Features
+
+* **products:** Add Variable query editor to products datasource ([#119](https://github.com/ni/systemlink-grafana-plugins/issues/119)) ([64d64f0](https://github.com/ni/systemlink-grafana-plugins/commit/64d64f03c4e53501620bd0ddfb6e7d158f15c0b6))
+
 ## [3.44.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.44.0...v3.44.1) (2025-02-03)
 
 ### Bug Fixes
