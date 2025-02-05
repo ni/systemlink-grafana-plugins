@@ -67,11 +67,6 @@ export const OrderBy = [
     description: 'Part Number of the product associated with result',
   },
   {
-    value: 'PROPERTIES',
-    label: 'Properties',
-    description: 'Properties of the result',
-  },
-  {
     value: 'TOTAL_TIME_IN_SECONDS ',
     label: 'Total Time In Seconds',
     description: 'Total time taken to run the result in seconds',
