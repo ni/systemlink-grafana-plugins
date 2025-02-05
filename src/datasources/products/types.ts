@@ -1,10 +1,16 @@
 import { DataQuery } from '@grafana/schema'
+import { QueryBuilderField } from 'smart-webcomponents-react';
 
 export interface ProductQuery extends DataQuery {
   properties?: Properties[];
   orderBy?: string;
   descending?: boolean;
   recordCount?: number;
+  queryBy?: string;
+}
+
+export interface ProductVariableQuery extends DataQuery {
+  queryBy?: string;
 }
 
 export enum Properties {
@@ -53,11 +59,6 @@ export const OrderBy = [
     description: `Family of the product`,
   },
   {
-    value: 'WORKSPACE',
-    label: 'Workspace',
-    description: `Workspace of the product`,
-  },
-  {
     value: 'UPDATED_AT',
     label: 'Updated At',
     description: `Latest update at time of the product`,
@@ -82,3 +83,18 @@ export interface ProductResponseProperties {
   fileIds?: string[];
   returnCount?: number;
 }
+
+export interface QBField extends QueryBuilderField {
+  lookup?: {
+    readonly?: boolean;
+    dataSource: Array<{
+      label: string,
+      value: string
+    }>;
+  },
+}
+
+export interface PropertyFieldKeyValuePair {
+  key: string;
+  value: string | number;
+};

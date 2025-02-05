@@ -33,6 +33,12 @@ describe('ProductsQueryEditor', () => {
     expect(recordCount).toHaveValue('1000');
   });
 
+  it('renders the query builder', async () => {
+    await waitFor(() => expect(screen.getAllByText('Property').length).toBe(1));
+    await waitFor(() => expect(screen.getAllByText('Operator').length).toBe(1));
+    await waitFor(() => expect(screen.getAllByText('Value').length).toBe(1));
+  });
+
   it('updates when user makes changes', async () => {
     //User adds a properties       
     await select(properties, "id", { container: document.body });
