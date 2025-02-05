@@ -2,6 +2,7 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, 
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { OutputType, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsQuery, ResultsResponseProperties } from './types';
+import { parseErrorMessage } from 'core/errors';
 
 export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   constructor(
@@ -14,6 +15,9 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
 
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
   queryResultsUrl = this.baseUrl + '/v2/query-results';
+
+  error = '';
+
   defaultQuery = {
     properties: [
       ResultsPropertiesOptions.PROGRAM_NAME,
@@ -54,7 +58,8 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
         returnCount,
       });
     } catch (error) {
-      throw new Error(`An error occurred while querying results: ${error}`);
+      this.error = parseErrorMessage(error as Error)!;
+      throw new Error(`An error occurred while querying results ${this.error}`);
     }
   }
 

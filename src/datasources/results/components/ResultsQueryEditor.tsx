@@ -20,8 +20,9 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
 
   return (
     <QueryResultsEditor
-      query={query} 
+      query={query}
       handleQueryChange={handleQueryChange}
+      datasource={datasource}
     />
   );
 }
