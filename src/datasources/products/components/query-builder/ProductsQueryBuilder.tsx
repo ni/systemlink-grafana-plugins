@@ -8,6 +8,12 @@ import { QBField } from "datasources/products/types";
 import React, { useState, useEffect, useMemo } from "react";
 import QueryBuilder, { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
 
+import 'smart-webcomponents-react/source/styles/smart.dark-orange.css';
+import 'smart-webcomponents-react/source/styles/smart.orange.css';
+import 'smart-webcomponents-react/source/styles/components/smart.base.css';
+import 'smart-webcomponents-react/source/styles/components/smart.common.css';
+import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
+
 type ProductsQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
   filter?: string;
   workspaces: Workspace[];
