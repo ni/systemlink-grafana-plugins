@@ -1,3 +1,9 @@
+## [3.46.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.46.0...v3.46.1) (2025-02-06)
+
+### Bug Fixes
+
+* **products:** Fix query builder css rendering and minor UI improvements ([#122](https://github.com/ni/systemlink-grafana-plugins/issues/122)) ([7e4441b](https://github.com/ni/systemlink-grafana-plugins/commit/7e4441b990d7bf9e21f3ec55c3569e01f2c27485))
+
 ## [3.46.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.45.0...v3.46.0) (2025-02-06)
 
 ### Features
