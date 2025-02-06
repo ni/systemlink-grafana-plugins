@@ -14,23 +14,23 @@ let descending: HTMLElement
 let recordCount: HTMLElement
 
 describe('ProductsQueryEditor', () => {
-  beforeEach(async() => {
-    [onChange] = render({ refId: '', properties: [], orderBy: undefined} as ProductQuery);
+  beforeEach(async () => {
+    [onChange] = render({ refId: '', properties: [] } as ProductQuery);
     await waitFor(() => properties = screen.getAllByRole('combobox')[0]);
     orderBy = screen.getAllByRole('combobox')[1];
     descending = screen.getByRole('checkbox');
-    recordCount = screen.getByRole('textbox');
+    recordCount = screen.getByDisplayValue('1000');
   });
 
   it('renders with default query', async () => {
     expect(properties).toBeInTheDocument();
-    expect(properties).toHaveDisplayValue('');  
+    expect(properties).toHaveDisplayValue('');
     expect(orderBy).toBeInTheDocument();
-    expect(orderBy).toHaveAccessibleDescription('Select field to order by');  
+    expect(orderBy).toHaveAccessibleDescription('Select field to order by');
     expect(descending).toBeInTheDocument();
-    expect(descending).not.toBeChecked();  
+    expect(descending).not.toBeChecked();
     expect(recordCount).toBeInTheDocument();
-    expect(recordCount).toHaveValue('1000');
+    expect(recordCount).toHaveValue(1000);
   });
 
   it('renders the query builder', async () => {
@@ -46,24 +46,24 @@ describe('ProductsQueryEditor', () => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({ properties: ["id"] })
       )
-    });  
+    });
     //User changes order by
     await select(orderBy, "ID", { container: document.body });
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({ orderBy: "ID" })
       )
-    });  
+    });
     //User changes descending checkbox
     await userEvent.click(descending);
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({ descending: true })
       )
-    });  
+    });
     //User changes record count
     await userEvent.clear(recordCount);
-    await userEvent.type(recordCount, '500{Enter}');
+    await userEvent.type(recordCount, '500A{Enter}'); //Should not enter 'A'
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({ recordCount: 500 })
