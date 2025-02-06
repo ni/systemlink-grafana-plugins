@@ -1,3 +1,9 @@
+## [3.46.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.45.0...v3.46.0) (2025-02-06)
+
+### Features
+
+* **results:** Add Test Results datasource and its query editor ([#117](https://github.com/ni/systemlink-grafana-plugins/issues/117)) ([4c4a072](https://github.com/ni/systemlink-grafana-plugins/commit/4c4a072faff923b6cbf40395645eecdbcb7c1a4e))
+
 ## [3.45.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.44.1...v3.45.0) (2025-02-04)
 
 ### Features
