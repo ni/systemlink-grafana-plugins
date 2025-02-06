@@ -105,6 +105,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
                   onChange={onOrderByChange}
                   value={query.orderBy}
                   defaultValue={query.orderBy}
+                  width={26}
                 />
               </InlineField>
               <InlineField label="Descending" tooltip={tooltips.descending}>
@@ -116,8 +117,9 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
             </div>
             <InlineField label="Take" labelWidth={18} tooltip={tooltips.recordCount}>
               <AutoSizeInput
-                minWidth={20}
-                maxWidth={40}
+                minWidth={26}
+                maxWidth={26}
+                type='number'
                 defaultValue={query.recordCount}
                 onCommitChange={recordCountChange}
                 placeholder="Enter record count"
