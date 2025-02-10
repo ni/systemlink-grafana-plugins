@@ -3,11 +3,11 @@
 exports[`queries metricFindQuery returns default identifiers when asset name is not present 1`] = `
 [
   {
-    "text": "sbRIO-9629",
+    "text": "01FE20D1",
     "value": "Assets.National Instruments.sbRIO-9629.01FE20D1",
   },
   {
-    "text": "1111",
+    "text": "2222",
     "value": "Assets.3333.1111.2222",
   },
 ]
@@ -16,19 +16,19 @@ exports[`queries metricFindQuery returns default identifiers when asset name is 
 exports[`queries metricFindQuery returns name/alias when asset name field is present 1`] = `
 [
   {
-    "text": "NI-sbRIO-9629-01FE20D1 (sbRIO-9629)",
+    "text": "NI-sbRIO-9629-01FE20D1 (01FE20D1)",
     "value": "Assets.National Instruments.sbRIO-9629.01FE20D1",
   },
   {
-    "text": "Conn0_AI (AI 0-15)",
+    "text": "Conn0_AI (01FE20D1)",
     "value": "Assets.National Instruments.AI 0-15.01FE20D1",
   },
   {
-    "text": "Conn0_AO (AO 0-3)",
+    "text": "Conn0_AO (01FE20D1)",
     "value": "Assets.National Instruments.AO 0-3.01FE20D1",
   },
   {
-    "text": "Conn0_DIO0-3 (DIO 0-3)",
+    "text": "Conn0_DIO0-3 (01FE20D1)",
     "value": "Assets.National Instruments.DIO 0-3.01FE20D1",
   },
 ]

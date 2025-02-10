@@ -105,7 +105,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
     const model = asset.modelName ? asset.modelName : asset.modelNumber;
     const serial = asset.serialNumber;
 
-    const assetName = !asset.name ? `${model}` : `${asset.name} (${model})`;
+    const assetName = !asset.name ? `${serial}` : `${asset.name} (${serial})`;
     const assetValue = `Assets.${vendor}.${model}.${serial}`
 
     return { text: assetName, value: assetValue };
