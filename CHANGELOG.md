@@ -1,3 +1,9 @@
+## [3.46.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.46.2...v3.46.3) (2025-02-12)
+
+### Bug Fixes
+
+* **products:** Set defaults for OrderBy and Decending ([#124](https://github.com/ni/systemlink-grafana-plugins/issues/124)) ([1373424](https://github.com/ni/systemlink-grafana-plugins/commit/137342460e36a087cd5efa6a7fb0f03f0c80798b))
+
 ## [3.46.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.46.1...v3.46.2) (2025-02-10)
 
 ### Bug Fixes
