@@ -122,7 +122,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
             </>
           )}
           <div>
-            {query.outputType === OutputType.TotalCount && (
+            {/* {(query.outputType === OutputType.TotalCount &&) && (
               <>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                   <InlineField
@@ -144,7 +144,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
                   </InlineField>
                 </div>
               </>
-            )}
+            )} */}
             {(query.type === ResultsQueryType.Steps && query.outputType === OutputType.Data) && (
               <>
                 <InlineField
@@ -160,6 +160,25 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
             )}
             {(query.type === ResultsQueryType.Results) && (
               <>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <InlineField
+                    label="Use time range"
+                    tooltip={tooltip.useTimeRange}
+                    labelWidth={25}
+                  >
+                    <InlineSwitch
+                      onChange={event => onUseTimeRangeChecked(event.currentTarget.checked)}
+                      value={query.useTimeRange} />
+                  </InlineField>
+                  <InlineField label="to filter by" disabled={!query.useTimeRange}>
+                    <Select
+                      options={enumToOptions(useTimeRange)}
+                      onChange={onUseTimeRangeChanged}
+                      value={query.useTimeRangeFor}
+                      width={25}
+                    />
+                  </InlineField>
+                </div>
                 <div>
                   <InlineField label="QueryBy" labelWidth={25} tooltip={tooltip.queryBy}>
                     <TestResultsQueryBuilder
@@ -174,6 +193,25 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
             )}
             {query.type === ResultsQueryType.Steps && (
               <>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <InlineField
+                    label="Use time range"
+                    tooltip={tooltip.useTimeRange}
+                    labelWidth={25}
+                  >
+                    <InlineSwitch
+                      onChange={event => onUseTimeRangeChecked(event.currentTarget.checked)}
+                      value={query.useTimeRange} />
+                  </InlineField>
+                  <InlineField label="to filter by" disabled={!query.useTimeRange}>
+                    <Select
+                      options={enumToOptions(useTimeRange)}
+                      onChange={onUseTimeRangeChanged}
+                      value={query.useTimeRangeFor}
+                      width={25}
+                    />
+                  </InlineField>
+                </div>
                 <InlineField label="Query by result properties" labelWidth={25} tooltip={tooltip.queryBy}>
                   <TestResultsQueryBuilder
                     autoComplete={datasource.queryTestResultValues.bind(datasource)}
@@ -194,58 +232,39 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
           </div>
         </VerticalGroup>
         <VerticalGroup>
-          <div style={{ paddingTop: '140px' }}>
+            <div style={{ paddingTop: query.type === ResultsQueryType.Results ? '160px' : '195px' }}>
             {(query.outputType === OutputType.Data) && (
               <>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <InlineField label="OrderBy" labelWidth={25} tooltip={tooltip.orderBy}>
-                      <Select
-                        options={OrderBy as SelectableValue[]}
-                        onChange={onOrderByChange}
-                        value={query.orderBy}
-                        defaultValue={OrderBy[0]}
-                        width={25}
-                      />
-                    </InlineField>
-                    <InlineField label="Descending" labelWidth={'auto'} tooltip={tooltip.descending}>
-                      <InlineSwitch
-                        onChange={event => onDescendingChange(event.currentTarget.checked)}
-                        value={query.descending}
-                      />
-                    </InlineField>
-                  </div>
-                  <InlineField label="Records to Query" labelWidth={25} tooltip={tooltip.recordCount}>
-                    <AutoSizeInput
-                      minWidth={25}
-                      maxWidth={40}
-                      defaultValue={query.recordCount}
-                      onCommitChange={recordCountChange}
-                    />
-                  </InlineField>
-                </div>
+              <div>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <InlineField
-                    label="Use time range"
-                    tooltip={tooltip.useTimeRange}
-                    labelWidth={25}
-                  >
-                    <InlineSwitch
-                      onChange={event => onUseTimeRangeChecked(event.currentTarget.checked)}
-                      value={query.useTimeRange} />
-                  </InlineField>
-                  <InlineField label="to filter by" disabled={!query.useTimeRange}>
-                    <Select
-                      options={enumToOptions(useTimeRange)}
-                      onChange={onUseTimeRangeChanged}
-                      value={query.useTimeRangeFor}
-                      width={25}
-                    />
-                  </InlineField>
+                <InlineField label="OrderBy" labelWidth={25} tooltip={tooltip.orderBy}>
+                  <Select
+                  options={OrderBy as SelectableValue[]}
+                  onChange={onOrderByChange}
+                  value={query.orderBy}
+                  defaultValue={OrderBy[0]}
+                  width={25}
+                  />
+                </InlineField>
+                <InlineField label="Descending" labelWidth={'auto'} tooltip={tooltip.descending}>
+                  <InlineSwitch
+                  onChange={event => onDescendingChange(event.currentTarget.checked)}
+                  value={query.descending}
+                  />
+                </InlineField>
                 </div>
+                <InlineField label="Records to Query" labelWidth={25} tooltip={tooltip.recordCount}>
+                <AutoSizeInput
+                  minWidth={25}
+                  maxWidth={40}
+                  defaultValue={query.recordCount}
+                  onCommitChange={recordCountChange}
+                />
+                </InlineField>
+              </div>
               </>
             )}
-          </div>
+            </div>
 
         </VerticalGroup>
       </HorizontalGroup>
