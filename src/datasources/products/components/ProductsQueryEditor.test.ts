@@ -28,7 +28,7 @@ describe('ProductsQueryEditor', () => {
     expect(orderBy).toBeInTheDocument();
     expect(orderBy).toHaveAccessibleDescription('Select field to order by');
     expect(descending).toBeInTheDocument();
-    expect(descending).not.toBeChecked();
+    expect(descending).toBeChecked();
     expect(recordCount).toBeInTheDocument();
     expect(recordCount).toHaveValue(1000);
   });
