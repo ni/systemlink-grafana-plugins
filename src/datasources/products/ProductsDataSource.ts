@@ -34,8 +34,8 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       PropertiesOptions.FAMILY,
       PropertiesOptions.WORKSPACE
     ] as Properties[],
-    orderBy: undefined,
-    descending: false,
+    orderBy: Properties.updatedAt,
+    descending: true,
     recordCount: 1000,
     queryBy: ''
   };

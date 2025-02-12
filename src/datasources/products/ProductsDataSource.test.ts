@@ -291,8 +291,8 @@ describe('query', () => {
           properties: [
             PropertiesOptions.PART_NUMBER
           ] as Properties[],
-          orderBy: undefined,
-          queryBy: `${PropertiesOptions.PART_NUMBER} = '123'`
+          queryBy: `${PropertiesOptions.PART_NUMBER} = '123'`,
+          descending: false
         },
       );
 
@@ -318,8 +318,8 @@ describe('query', () => {
           properties: [
             PropertiesOptions.PART_NUMBER
           ] as Properties[],
-          orderBy: undefined,
-          queryBy: `${ProductsQueryBuilderFieldNames.PART_NUMBER} = "{partNumber1,partNumber2}"`
+          queryBy: `${ProductsQueryBuilderFieldNames.PART_NUMBER} = "{partNumber1,partNumber2}"`,
+          descending: false
         },
       );
 
