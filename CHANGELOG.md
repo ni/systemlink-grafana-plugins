@@ -1,3 +1,9 @@
+## [3.47.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.47.0...v3.47.1) (2025-02-17)
+
+### Bug Fixes
+
+* **products:** Change the variable query output format ([#126](https://github.com/ni/systemlink-grafana-plugins/issues/126)) ([331b6e5](https://github.com/ni/systemlink-grafana-plugins/commit/331b6e529b428022c6986c09e27be0075e2314c2))
+
 ## [3.47.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.46.3...v3.47.0) (2025-02-17)
 
 ### Features
