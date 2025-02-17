@@ -1,3 +1,9 @@
+## [3.47.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.46.3...v3.47.0) (2025-02-17)
+
+### Features
+
+* **products:** Add Family name lookup into the query builder  ([#125](https://github.com/ni/systemlink-grafana-plugins/issues/125)) ([ba1768c](https://github.com/ni/systemlink-grafana-plugins/commit/ba1768cf3fc5d2235daa365fec0a4a3b68ce444f))
+
 ## [3.46.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.46.2...v3.46.3) (2025-02-12)
 
 ### Bug Fixes
