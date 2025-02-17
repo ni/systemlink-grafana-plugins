@@ -170,7 +170,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       [Properties.partNumber, Properties.name],
       filter
     )).products;
-    return metadata ? metadata.map(frame => ({ text: `${frame.name}(${frame.partNumber})`, value: frame.partNumber })) : [];
+    return metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.partNumber})`, value: frame.partNumber })) : [];
   }
 
   readonly productsComputedDataFields = new Map<string, ExpressionTransformFunction>(
