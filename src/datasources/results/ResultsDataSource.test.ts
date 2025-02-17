@@ -5,7 +5,7 @@ import { BackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
 import { Field } from '@grafana/data';
 
-const mockQueryResulltsResponse: QueryResultsResponse = {
+const mockQueryResultsResponse: QueryResultsResponse = {
   results: [
     {
       id: '000007fb-aa87-4ab9-9757-6568e7893c33',
@@ -18,7 +18,8 @@ const mockQueryResulltsResponse: QueryResultsResponse = {
 };
 
 jest.mock('@grafana/runtime', () => ({
-  getTemplateSrv: jest.fn()
+  getTemplateSrv: jest.fn(),
+  isFetchError: jest.fn()
 }));
 
 let datastore: ResultsDataSource, backendServer: MockProxy<BackendSrv>
@@ -27,13 +28,14 @@ describe('ResultsDataSource', () => {
   beforeEach(() => {
     (getTemplateSrv as jest.Mock).mockReturnValue({
         replace: jest.fn((value) => value.replace('${__from:date}', 'replacedDate'))
-      });
+    });
+
     [datastore, backendServer] = setupDataSource(ResultsDataSource);
 
     backendServer.fetch
     .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
     .mockReturnValue(
-      createFetchResponse<QueryResultsResponse>(mockQueryResulltsResponse)
+      createFetchResponse<QueryResultsResponse>(mockQueryResultsResponse)
     );
   })
 
