@@ -27,12 +27,12 @@ const mockVariableQueryProductResponse: QueryProductResponse = {
     {
       id: '1',
       partNumber: '123',
-      family: 'Family 1',
+      name: 'product 1',
     },
     {
       id: '2',
       partNumber: '456',
-      family: 'Family 2',
+      name: 'product 2',
     }
   ],
   continuationToken: '',
@@ -366,7 +366,7 @@ describe('query', () => {
           data: {
             descending: false,
             orderBy: "partNumber",
-            projection: ["PART_NUMBER", "FAMILY"],
+            projection: ["PART_NUMBER", "NAME"],
             returnCount: false,
           }
         })
@@ -388,7 +388,7 @@ describe('query', () => {
             descending: false,
             filter: "partNumber = \"123\"",
             orderBy: "partNumber",
-            projection: ["PART_NUMBER", "FAMILY"],
+            projection: ["PART_NUMBER", "NAME"],
             returnCount: false,
           }
         })

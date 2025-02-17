@@ -164,20 +164,13 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
   async metricFindQuery(query: ProductVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     let metadata: ProductResponseProperties[];
-    if (query.queryBy) {
-      const filter = this.templateSrv.replace(query.queryBy, options.scopedVars)
-      metadata = (await this.queryProducts(
-        PropertiesOptions.PART_NUMBER,
-        [Properties.partNumber, Properties.family],
-        filter
-      )).products;
-    } else {
-      metadata = (await this.queryProducts(
-        PropertiesOptions.PART_NUMBER,
-        [Properties.partNumber, Properties.family]
-      )).products;
-    }
-    return metadata ? metadata.map(frame => ({ text: `${frame.partNumber}(${frame.family})`, value: frame.partNumber })) : [];
+    const filter = query.queryBy ? this.templateSrv.replace(query.queryBy, options.scopedVars) : undefined;
+    metadata = (await this.queryProducts(
+      PropertiesOptions.PART_NUMBER,
+      [Properties.partNumber, Properties.name],
+      filter
+    )).products;
+    return metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.partNumber})`, value: frame.partNumber })) : [];
   }
 
   readonly productsComputedDataFields = new Map<string, ExpressionTransformFunction>(
