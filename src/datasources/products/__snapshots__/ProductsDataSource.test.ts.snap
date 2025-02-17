@@ -3,11 +3,11 @@
 exports[`query metricFindQuery should replace variables with values 1`] = `
 [
   {
-    "text": "product 1(123)",
+    "text": "product 1 (123)",
     "value": "123",
   },
   {
-    "text": "product 2(456)",
+    "text": "product 2 (456)",
     "value": "456",
   },
 ]
@@ -16,11 +16,11 @@ exports[`query metricFindQuery should replace variables with values 1`] = `
 exports[`query metricFindQuery should return partNumber when queryBy is provided 1`] = `
 [
   {
-    "text": "product 1(123)",
+    "text": "product 1 (123)",
     "value": "123",
   },
   {
-    "text": "product 2(456)",
+    "text": "product 2 (456)",
     "value": "456",
   },
 ]
@@ -29,11 +29,11 @@ exports[`query metricFindQuery should return partNumber when queryBy is provided
 exports[`query metricFindQuery should return partNumber with family Name when queryBy is not provided 1`] = `
 [
   {
-    "text": "product 1(123)",
+    "text": "product 1 (123)",
     "value": "123",
   },
   {
-    "text": "product 2(456)",
+    "text": "product 2 (456)",
     "value": "456",
   },
 ]
