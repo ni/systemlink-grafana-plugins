@@ -18,7 +18,6 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const [familyNames, setFamilyNames] = useState<string[]>([]);
   
-
   useEffect(() => {
     const loadWorkspaces = async () => {
       await datasource.areWorkspacesLoaded$;
@@ -31,7 +30,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
     const loadFamilyNames = async () => {
       await datasource.getFamilyNames();
       setFamilyNames(Array.from(datasource.familyNamesCache.values()));
-  };
+    };
 
     loadWorkspaces();
     loadPartNumbers();
