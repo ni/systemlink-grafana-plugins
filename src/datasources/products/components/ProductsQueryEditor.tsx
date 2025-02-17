@@ -8,8 +8,6 @@ import { Workspace } from 'core/types';
 import { ProductsQueryBuilder } from 'datasources/products/components/query-builder/ProductsQueryBuilder';
 import { FloatingError } from 'core/errors';
 import './ProductsQueryEditor.scss';
-import { ProductsQueryBuilderStaticFields } from '../constants/ProductsQueryBuilder.constants';
-
 
 type Props = QueryEditorProps<ProductsDataSource, ProductQuery>;
 
@@ -18,7 +16,8 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
 
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
-
+  const [familyNames, setFamilyNames] = useState<string[]>([]);
+  
   useEffect(() => {
     const loadWorkspaces = async () => {
       await datasource.areWorkspacesLoaded$;
@@ -28,9 +27,14 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
       await datasource.arePartNumberLoaded$;
       setPartNumbers(Array.from(datasource.partNumbersCache.values()));
     };
+    const loadFamilyNames = async () => {
+      await datasource.getFamilyNames();
+      setFamilyNames(Array.from(datasource.familyNamesCache.values()));
+    };
 
     loadWorkspaces();
     loadPartNumbers();
+    loadFamilyNames();
   }, [datasource]);
 
   const handleQueryChange = useCallback((query: ProductQuery, runQuery = true): void => {
@@ -89,9 +93,9 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
               filter={query.queryBy}
               workspaces={workspaces}
               partNumbers={partNumbers}
+              familyNames={familyNames}
               globalVariableOptions={datasource.globalVariableOptions()}
               onChange={(event: any) => onParameterChange(event.detail.linq)}
-              staticFields={ProductsQueryBuilderStaticFields}
             ></ProductsQueryBuilder>
           </InlineField>
         </VerticalGroup>

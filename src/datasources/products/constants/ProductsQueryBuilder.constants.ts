@@ -98,7 +98,6 @@ export const ProductsQueryBuilderFields: Record<string, QBField> = {
 }
 
 export const ProductsQueryBuilderStaticFields = [
-    ProductsQueryBuilderFields.FAMILY,
     ProductsQueryBuilderFields.NAME,
     ProductsQueryBuilderFields.PROPERTIES,
 ];

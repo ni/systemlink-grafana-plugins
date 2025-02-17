@@ -3,7 +3,7 @@ import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder
 import { expressionBuilderCallback, expressionReaderCallback } from "core/query-builder.utils";
 import { Workspace, QueryBuilderOption } from "core/types";
 import { filterXSSField, filterXSSLINQExpression } from "core/utils";
-import { ProductsQueryBuilderFields } from "datasources/products/constants/ProductsQueryBuilder.constants";
+import { ProductsQueryBuilderFields, ProductsQueryBuilderStaticFields } from "datasources/products/constants/ProductsQueryBuilder.constants";
 import { QBField } from "datasources/products/types";
 import React, { useState, useEffect, useMemo } from "react";
 import QueryBuilder, { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
@@ -18,8 +18,8 @@ type ProductsQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Elemen
   filter?: string;
   workspaces: Workspace[];
   partNumbers: string[];
+  familyNames: string[];
   globalVariableOptions: QueryBuilderOption[];
-  staticFields?: QBField[];
 };
 
 export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
@@ -27,8 +27,8 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
   onChange,
   workspaces,
   partNumbers,
+  familyNames,
   globalVariableOptions,
-  staticFields
 }) => {
   const theme = useTheme2();
   document.body.setAttribute("theme", theme.isDark ? "dark-orange" : "orange");
@@ -86,9 +86,23 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
     }
   }, [partNumbers]);
 
+  const familyField = useMemo(() => {
+          const familyField = ProductsQueryBuilderFields.FAMILY;
+          return {
+              ...familyField,
+              lookup: {
+                  ...familyField.lookup,
+                  dataSource: [
+                      ...familyNames.map(family => ({ label: family, value: family }))
+                  ],
+                  minLength: 1
+              }
+          }
+      }, [familyNames]);
+
 
   useEffect(() => {
-    const updatedFields = [partNumberField, ...staticFields!, updatedAtField, workspaceField]
+    const updatedFields = [partNumberField, familyField, ...ProductsQueryBuilderStaticFields!, updatedAtField, workspaceField]
       .map((field) => {
         if (field.lookup?.dataSource) {
           return {
@@ -151,7 +165,7 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
 
     setOperations([...customOperations, ...keyValueOperations]);
 
-  }, [workspaceField, updatedAtField, partNumberField, staticFields, globalVariableOptions]);
+  }, [workspaceField, updatedAtField, partNumberField, familyField, globalVariableOptions]);
 
   return (
     <QueryBuilder
