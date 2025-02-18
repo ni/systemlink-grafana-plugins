@@ -7,6 +7,7 @@ import { parseErrorMessage } from 'core/errors';
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
+import { getWorkspaceName } from 'core/utils';
 
 export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   constructor(
@@ -119,13 +120,21 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
         const values = products
           .map(data => data[field as unknown as keyof ProductResponseProperties]);
 
+        const fieldValues = values.map(value => {
+          switch (field) {
+            case PropertiesOptions.PROPERTIES:
+              return value == null ? '' : JSON.stringify(value);
+            case PropertiesOptions.WORKSPACE:
+              const workspace = this.workspacesCache.get(value);
+              return workspace ? getWorkspaceName([workspace], value) : value;
+            default:
+              return value == null ? '' : value;
+          }
+        });
+
         return {
           name: field,
-          values: values.map(value => value != null
-            ? (field === PropertiesOptions.PROPERTIES
-              ? JSON.stringify(value)
-              : value)
-            : ''),
+          values: fieldValues,
           type: fieldType
         };
       });
