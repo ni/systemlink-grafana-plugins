@@ -348,7 +348,7 @@ describe('query', () => {
         .mockReturnValue(
           createFetchResponse<QueryProductResponse>(mockVariableQueryProductResponse));
       options = {
-        scopedVars: {}
+        scopedVars: { partNumber: { value : '123' } }
       }
     });
 
@@ -396,7 +396,6 @@ describe('query', () => {
     });
 
     it('should replace variables with values', async () => {
-      datastore.templateSrv.replace = jest.fn().mockImplementation((value) => {"partNumber = \"123\""});
       const query: ProductVariableQuery = {
         refId: '',
         queryBy: 'partNumber = "$partNumber"',
