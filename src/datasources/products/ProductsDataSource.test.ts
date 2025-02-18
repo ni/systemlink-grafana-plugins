@@ -5,6 +5,7 @@ import { Field, LegacyMetricFindQueryOptions } from '@grafana/data';
 import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
 import { MockProxy } from 'jest-mock-extended';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
+import { Workspace } from 'core/types';
 
 const mockQueryProductResponse: QueryProductResponse = {
   products: [
@@ -227,6 +228,26 @@ describe('query', () => {
       { name: 'workspace', values: ['Workspace 1'], type: 'string' },
       { name: 'updatedAt', values: ['2021-08-01T00:00:00Z'], type: 'time' },
       { name: 'properties', values: ['{"prop1":"value1"}'], type: 'string' },
+    ]);
+  });
+
+  it('should convert workspaceIds to workspace names for workspace field', async () => {
+    datastore.workspacesCache.set('Workspace 1', { id: 'Workspace 1', name: 'WorkspaceName'} as Workspace);
+
+    const query = buildQuery(
+      {
+        refId: 'A',
+        properties: [
+          PropertiesOptions.WORKSPACE
+        ] as Properties[], orderBy: undefined
+      },
+    );
+
+    const response = await datastore.query(query);
+
+    const fields = response.data[0].fields as Field[];
+    expect(fields).toEqual([
+      { name: 'workspace', values: ['WorkspaceName'], type: 'string' },
     ]);
   });
 
