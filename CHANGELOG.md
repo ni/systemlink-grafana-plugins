@@ -1,3 +1,9 @@
+## [3.47.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.47.1...v3.47.2) (2025-02-18)
+
+### Bug Fixes
+
+* **products:** Add workspace id to name conversion in query response ([#127](https://github.com/ni/systemlink-grafana-plugins/issues/127)) ([73af0cb](https://github.com/ni/systemlink-grafana-plugins/commit/73af0cbe894bb467d46092cc00002fd539ca21f1))
+
 ## [3.47.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.47.0...v3.47.1) (2025-02-17)
 
 ### Bug Fixes
