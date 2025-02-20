@@ -69,6 +69,11 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
     }
   }
 
+  function checkIfNumber(event: React.KeyboardEvent<HTMLInputElement>) {
+    const regex = new RegExp(/(^-?\d*$)|(Backspace|Tab|Delete|ArrowLeft|ArrowRight)/);
+    return !event.key.match(regex) && event.preventDefault();
+ }
+
   return (
     <>
       <HorizontalGroup align="flex-start">
@@ -127,6 +132,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
                 defaultValue={query.recordCount}
                 onCommitChange={recordCountChange}
                 placeholder="Enter record count"
+                onKeyDown={(event) => {checkIfNumber(event)}}
               />
             </InlineField>
           </div>
