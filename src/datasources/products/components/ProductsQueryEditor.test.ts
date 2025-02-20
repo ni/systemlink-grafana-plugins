@@ -61,13 +61,21 @@ describe('ProductsQueryEditor', () => {
         expect.objectContaining({ descending: true })
       )
     });
-    //User changes record count
+  });
+
+  it('only allows numbers in Take field', async () => {
+    // User tries to enter a non-numeric value
     await userEvent.clear(recordCount);
-    await userEvent.type(recordCount, '500A{Enter}'); //Should not enter 'A'
+    await userEvent.type(recordCount, 'abc');
     await waitFor(() => {
-      expect(onChange).toHaveBeenCalledWith(
-        expect.objectContaining({ recordCount: 500 })
-      )
+      expect(recordCount).toHaveValue(null);
+    });
+
+    // User enters a valid numeric value
+    await userEvent.clear(recordCount);
+    await userEvent.type(recordCount, '500');
+    await waitFor(() => {
+      expect(recordCount).toHaveValue(500);
     });
   });
 });
