@@ -172,9 +172,14 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   }
 
   async metricFindQuery(query: ProductVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    let metadata: ProductResponseProperties[];
-    const filter = query.queryBy ? this.templateSrv.replace(query.queryBy, options.scopedVars) : undefined;
-    metadata = (await this.queryProducts(
+    const filter = query.queryBy
+      ? transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.productsComputedDataFields
+      )
+      : undefined;
+
+    const metadata = (await this.queryProducts(
       PropertiesOptions.PART_NUMBER,
       [Properties.partNumber, Properties.name],
       filter

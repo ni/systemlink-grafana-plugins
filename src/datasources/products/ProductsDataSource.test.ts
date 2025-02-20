@@ -369,7 +369,7 @@ describe('query', () => {
         .mockReturnValue(
           createFetchResponse<QueryProductResponse>(mockVariableQueryProductResponse));
       options = {
-        scopedVars: {}
+        scopedVars: { partNumber: { value : '123' } }
       }
     });
 
@@ -417,7 +417,6 @@ describe('query', () => {
     });
 
     it('should replace variables with values', async () => {
-      datastore.templateSrv.replace = jest.fn().mockImplementation((value) => {"partNumber = \"123\""});
       const query: ProductVariableQuery = {
         refId: '',
         queryBy: 'partNumber = "$partNumber"',
@@ -450,6 +449,27 @@ describe('query', () => {
 
       expect(results).toEqual([]);
     })
+
+    it('should handle multiple values in queryBy', async () => {
+      const query: ProductVariableQuery = {
+        refId: '',
+        queryBy: `${ProductsQueryBuilderFieldNames.PART_NUMBER} = "{partNumber1,partNumber2}"`,
+      };
+
+      await datastore.metricFindQuery(query, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            descending: false,
+            filter:"PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\"",
+            orderBy: "partNumber",
+            projection: ["PART_NUMBER", "NAME"],
+            returnCount: false,
+          }
+        })
+      );
+    });
   });
 });
 
