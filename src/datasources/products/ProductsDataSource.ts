@@ -16,6 +16,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    this.error = '';
     this.workspaceLoadedPromise = this.loadWorkspaces();
     this.partNumberLoadedPromise = this.getProductPartNumbers();
   }
@@ -72,8 +73,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       });
       return response;
     } catch (error) {
-      this.error = parseErrorMessage(error as Error)!;
-      throw new Error(`An error occurred while querying products: ${this.error}`);
+      throw new Error(`An error occurred while querying products: ${error}`);
     }
   }
 
@@ -83,8 +83,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
         field: fieldName
       });
     } catch (error) {
-      this.error = parseErrorMessage(error as Error)!;
-      throw new Error(`An error occurred while querying product values: ${this.error}`);
+      throw new Error(`An error occurred while querying product values: ${error}`);
     }
   }
 
