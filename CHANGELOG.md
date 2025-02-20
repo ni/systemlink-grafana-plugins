@@ -1,3 +1,11 @@
+## [3.47.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.47.2...v3.47.3) (2025-02-20)
+
+### Bug Fixes
+
+* **products:** Enhance metricFindQuery to support multiple values ([0d74870](https://github.com/ni/systemlink-grafana-plugins/commit/0d74870762453b466e62b1d1613d50be4da6c559))
+* **products:** Improve error handling in product queries ([#129](https://github.com/ni/systemlink-grafana-plugins/issues/129)) ([492273f](https://github.com/ni/systemlink-grafana-plugins/commit/492273fe1656f376d38b59d0402c844c49044898))
+* **products:** Prevent non-numeric input in record count field ([#130](https://github.com/ni/systemlink-grafana-plugins/issues/130)) ([9521952](https://github.com/ni/systemlink-grafana-plugins/commit/9521952a7e23208f90f5325ea7de8effb2009d29))
+
 ## [3.47.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.47.1...v3.47.2) (2025-02-18)
 
 ### Bug Fixes
