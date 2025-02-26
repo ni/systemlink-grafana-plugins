@@ -132,7 +132,6 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
 
   protected multipleValuesQuery(field: string): ExpressionTransformFunction {
     return (value: string, operation: string, _options?: any) => {
-      console.log("Field ", field, " Is multiselect => ", this.isMultiSelectValue(value));
       if (this.isMultiSelectValue(value)) {
         const query = this.getMultipleValuesArray(value)
           .map(val => `${field} ${operation} "${val}"`)
