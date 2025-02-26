@@ -6,6 +6,7 @@ import { ListAssetsQuery } from '../../types/ListAssets.types';
 import { AssetModel, AssetsResponse } from '../../../asset-common/types';
 import { getWorkspaceName } from '../../../../core/utils';
 import { transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
+import { QUERY_LIMIT } from 'datasources/asset/constants/constants';
 
 export class ListAssetsDataSource extends AssetDataSourceBase {
   private dependenciesLoadedPromise: Promise<void>;
@@ -47,7 +48,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
 
   async processListAssetsQuery(query: ListAssetsQuery) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
-    const assets: AssetModel[] = await this.queryAssets(query.filter, 1000);
+    const assets: AssetModel[] = await this.queryAssets(query.filter, QUERY_LIMIT);
     const workspaces = this.getCachedWorkspaces();
     result.fields = [
       { name: 'id', values: assets.map(a => a.id) },
@@ -57,6 +58,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
       { name: 'bus type', values: assets.map(a => a.busType) },
       { name: 'asset type', values: assets.map(a => a.assetType) },
       { name: 'is NI asset', values: assets.map(a => a.isNIAsset) },
+      { name: 'part number', values: assets.map(a => a.partNumber) },
       { name: 'calibration status', values: assets.map(a => a.calibrationStatus) },
       { name: 'is system controller', values: assets.map(a => a.isSystemController) },
       { name: 'last updated timestamp', values: assets.map(a => a.lastUpdatedTimestamp) },

@@ -36,6 +36,7 @@ export interface AssetModel {
   customCalibrationInterval?: number,
   selfCalibration?: any,
   isNIAsset: boolean,
+  partNumber: string,
   workspace: string,
   fileIds: string[],
   supportsSelfTest: boolean,

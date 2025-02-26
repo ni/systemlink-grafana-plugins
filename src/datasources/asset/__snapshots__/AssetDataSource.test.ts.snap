@@ -102,6 +102,15 @@ exports[`queries run metadata query 1`] = `
         ],
       },
       {
+        "name": "part number",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "",
+        ],
+      },
+      {
         "name": "calibration status",
         "values": [
           "OK",

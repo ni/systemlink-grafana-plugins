@@ -36,6 +36,13 @@ describe('CalibrationForecastQueryBuilder', () => {
       expect(conditionsContainer.item(1)?.textContent).toContain("SomeRandomModelName");
     })
 
+    it('should select partnumber in query builder', () => {
+      const { conditionsContainer } = renderElement([workspace], [system], 'PartNumber = "PartNumber_123"');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("PartNumber_123");
+    })
+
     it('should select system in query builder', () => {
       const { conditionsContainer } = renderElement([workspace], [system], 'Location = "1"');
 
