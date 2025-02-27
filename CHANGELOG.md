@@ -1,3 +1,13 @@
+## [3.48.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.47.3...v3.48.0) (2025-02-27)
+
+### Features
+
+* **assets:** add part number filtering ([#132](https://github.com/ni/systemlink-grafana-plugins/issues/132)) ([e0c034c](https://github.com/ni/systemlink-grafana-plugins/commit/e0c034cf256bcc85bd79f4fcb2471bc3ec538588))
+
+### Bug Fixes
+
+* **products:** Enclose filter conditions in parentheses for grouping ([#133](https://github.com/ni/systemlink-grafana-plugins/issues/133)) ([62d63c0](https://github.com/ni/systemlink-grafana-plugins/commit/62d63c0e030b3b0aaeeef209814691403ef279d6))
+
 ## [3.47.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.47.2...v3.47.3) (2025-02-20)
 
 ### Bug Fixes
