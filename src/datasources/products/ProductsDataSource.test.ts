@@ -350,7 +350,7 @@ describe('query', () => {
         expect.objectContaining({
           data: {
             descending: false,
-            filter: "PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\"",
+            filter: "(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\")",
             orderBy: undefined,
             projection: ["partNumber"],
             returnCount: false, take: 1000
@@ -462,7 +462,7 @@ describe('query', () => {
         expect.objectContaining({
           data: {
             descending: false,
-            filter:"PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\"",
+            filter:"(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\")",
             orderBy: "partNumber",
             projection: ["PART_NUMBER", "NAME"],
             returnCount: false,

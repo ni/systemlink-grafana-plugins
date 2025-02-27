@@ -201,9 +201,9 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       const valuesArray = this.getMultipleValuesArray(value);
       const logicalOperator = this.getLogicalOperator(operation);
 
-      return isMultiSelect ? valuesArray
+      return isMultiSelect ? `(${valuesArray
         .map(val => `${field} ${operation} "${val}"`)
-        .join(` ${logicalOperator} `) : `${field} ${operation} "${value}"`;
+        .join(` ${logicalOperator} `)})` : `${field} ${operation} "${value}"`;
     }
   }
 
