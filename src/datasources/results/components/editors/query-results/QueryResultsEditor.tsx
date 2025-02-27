@@ -12,13 +12,16 @@ import { enumToOptions } from 'core/utils';
 import { OrderBy, OutputType, ResultsProperties, ResultsQuery, UseTimeRangeFor } from 'datasources/results/types';
 import React from 'react';
 import './QueryResultsEditor.scss';
+import { FloatingError } from 'core/errors';
+import { ResultsDataSource } from 'datasources/results/ResultsDataSource';
 
 type Props = {
   query: ResultsQuery;
   handleQueryChange: (query: ResultsQuery, runQuery?: boolean) => void;
+  datasource?: ResultsDataSource;
 };
 
-export function QueryResultsEditor({ query, handleQueryChange }: Props) {
+export function QueryResultsEditor({ query, datasource, handleQueryChange }: Props) {
   const onOutputChange = (value: OutputType) => {
     handleQueryChange({ ...query, outputType: value });
   };
@@ -109,6 +112,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
           />
         )}
       </VerticalGroup>
+      <FloatingError message={datasource?.error} />
     </>
   );
 }
