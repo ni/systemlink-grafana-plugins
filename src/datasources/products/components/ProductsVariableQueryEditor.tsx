@@ -40,7 +40,7 @@ export function ProductsVariableQueryEditor({ query, onChange, datasource }: Pro
 
     return (
         <>
-            <InlineField label="Query By" labelWidth={10}>
+            <InlineField label="Query By" labelWidth={12} tooltip={"Specifies the query to filter products."}>
                 <ProductsQueryBuilder
                     filter={query.queryBy}
                     onChange={(event: any) => onQueryByChange(event.detail.linq)}
