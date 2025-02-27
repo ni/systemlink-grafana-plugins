@@ -6,6 +6,7 @@ export enum ListAssetsFieldNames {
     LOCATION = 'Location',
     WORKSPACE = 'Workspace',
     MODEL_NAME = 'ModelName',
+    PART_NUMBER = 'PartNumber',
     VENDOR_NAME = 'VendorName',
     BUS_TYPE = 'BusType',
     ASSET_TYPE = 'AssetType',
@@ -38,6 +39,14 @@ export const ListAssetsFields: Record<string, QBField> = {
     MODEL_NAME: {
         label: 'Model Name',
         dataField: ListAssetsFieldNames.MODEL_NAME,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name
+        ],
+    },
+    PART_NUMBER: {
+        label: 'Part Number',
+        dataField: ListAssetsFieldNames.PART_NUMBER,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name
@@ -92,5 +101,6 @@ export const ListAssetsStaticFields = [
     ListAssetsFields.MODEL_NAME,
     ListAssetsFields.VENDOR_NAME,
     ListAssetsFields.ASSET_TYPE,
-    ListAssetsFields.BUS_TYPE
+    ListAssetsFields.BUS_TYPE,
+    ListAssetsFields.PART_NUMBER
 ];

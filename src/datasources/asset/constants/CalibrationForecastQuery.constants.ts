@@ -6,6 +6,7 @@ export enum AssetCalibrationFieldNames {
     LOCATION = 'Location',
     WORKSPACE = 'Workspace',
     MODEL_NAME = 'ModelName',
+    PART_NUMBER = 'PartNumber',
     VENDOR_NAME = 'VendorName',
     BUS_TYPE = 'BusType',
     ASSET_TYPE = 'AssetType',
@@ -37,6 +38,14 @@ export const AssetCalibrationFields: Record<string, QBField> = {
     MODEL_NAME: {
         label: 'Model Name',
         dataField: AssetCalibrationFieldNames.MODEL_NAME,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name
+        ],
+    },
+    PART_NUMBER: {
+        label: 'Part Number',
+        dataField: AssetCalibrationFieldNames.PART_NUMBER,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name
@@ -78,5 +87,6 @@ export const AssetCalibrationStaticFields = [
     AssetCalibrationFields.MODEL_NAME,
     AssetCalibrationFields.VENDOR_NAME,
     AssetCalibrationFields.ASSET_TYPE,
-    AssetCalibrationFields.BUS_TYPE
+    AssetCalibrationFields.BUS_TYPE,
+    AssetCalibrationFields.PART_NUMBER
 ];
