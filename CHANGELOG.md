@@ -1,3 +1,9 @@
+## [3.48.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.48.0...v3.48.1) (2025-02-28)
+
+### Bug Fixes
+
+* **products:** Enhance tooltips and documentation ([#134](https://github.com/ni/systemlink-grafana-plugins/issues/134)) ([427aae6](https://github.com/ni/systemlink-grafana-plugins/commit/427aae6010ae51076366a50be479d7266b65db34))
+
 ## [3.48.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.47.3...v3.48.0) (2025-02-27)
 
 ### Features
