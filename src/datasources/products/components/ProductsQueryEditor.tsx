@@ -144,9 +144,9 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
 }
 
 const tooltips = {
-  properties: "Specifies the fields to be queried from a product.",
+  properties: "Specifies the properties to be queried.",
   recordCount: "Specifies the maximum number of products to return.",
   orderBy: "Specifies the field to order the queried products by.",
   descending: "Specifies whether to return the products in descending order.",
-  queryBy: 'Specifies the query to filter products. This is an optional field.',
+  queryBy: 'Specifies the filter to be applied on the queried products. This is an optional field.',
 }

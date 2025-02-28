@@ -40,7 +40,7 @@ export function ProductsVariableQueryEditor({ query, onChange, datasource }: Pro
 
     return (
         <>
-            <InlineField label="Query By" labelWidth={12} tooltip={"Specifies the query to filter products."}>
+            <InlineField label="Query By" labelWidth={12} tooltip={tooltips.queryBy}>
                 <ProductsQueryBuilder
                     filter={query.queryBy}
                     onChange={(event: any) => onQueryByChange(event.detail.linq)}
@@ -54,3 +54,7 @@ export function ProductsVariableQueryEditor({ query, onChange, datasource }: Pro
         </>
     );
 };
+
+const tooltips = {
+    queryBy: "Specifies the filter to be applied on the queried products."
+}
