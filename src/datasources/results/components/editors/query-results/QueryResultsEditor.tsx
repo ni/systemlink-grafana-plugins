@@ -42,6 +42,11 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
     handleQueryChange({ ...query, recordCount: isNaN(value) ? undefined : value });
   };
 
+  function checkIfNumber(event: React.KeyboardEvent<HTMLInputElement>) {
+    const regex = new RegExp(/(^-?\d*$)|(Backspace|Tab|Delete|ArrowLeft|ArrowRight)/);
+    return !event.key.match(regex) && event.preventDefault()
+ }
+
   return (
     <>
       <VerticalGroup>
@@ -90,9 +95,11 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
                 <AutoSizeInput
                   minWidth={20}
                   maxWidth={40}
+                  type="number"
                   defaultValue={query.recordCount}
                   onCommitChange={recordCountChange}
                   placeholder="Enter record count"
+                  onKeyDown={(event) => {checkIfNumber(event)}}
                 />
               </InlineField>
               <UseTimeRangeControls
@@ -148,11 +155,11 @@ export function UseTimeRangeControls({ query, handleQueryChange }: Props) {
 }
 
 const tooltips = {
-  output: 'Select the output type for the query',
-  properties: 'Select the properties fields to query',
-  recordCount: 'Enter the number of records to query',
-  orderBy: 'Select the field to order the results by',
-  descending: 'Select to order the results in descending order',
-  useTimeRange: 'Select to query using the dashboard time range for the selected field',
-  useTimeRangeFor: 'Select the field to apply the dashboard time range',
+  output: 'Specifies the output type to be queried.',
+  properties: 'Specifies the results to be queried.',
+  recordCount: 'Specifies the maximum number of results to return.',
+  orderBy: 'Specifies the field to order the queried results by.',
+  descending: 'Specifies whether to return the products in descending order.',
+  useTimeRange: 'Specifies whether to query using the dashboard time range for the selected property.',
+  useTimeRangeFor: 'Specifies the property to apply the dashboard time range.',
 };
