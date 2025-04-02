@@ -1,6 +1,6 @@
 import { MockProxy } from 'jest-mock-extended';
 import { OutputType, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsQuery } from '../../types';
-import { BackendSrv, getTemplateSrv } from '@grafana/runtime';
+import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
 import { Field } from '@grafana/data';
 import { QueryResultsDataSource } from './QueryResultsDataSource';
@@ -17,19 +17,12 @@ const mockQueryResulltsResponse: QueryResultsResponse = {
   totalCount: 1
 };
 
-jest.mock('@grafana/runtime', () => ({
-  getTemplateSrv: jest.fn(),
-  isFetchError: jest.fn(),
-}));
-
-let datastore: QueryResultsDataSource, backendServer: MockProxy<BackendSrv>
+let datastore: QueryResultsDataSource, backendServer: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
 
 describe('ResultsDataSource', () => {
   beforeEach(() => {
-    (getTemplateSrv as jest.Mock).mockReturnValue({
-        replace: jest.fn((value) => value.replace('${__from:date}', 'replacedDate'))
-      });
-    [datastore, backendServer] = setupDataSource(QueryResultsDataSource);
+    [datastore, backendServer, templateSrv] = setupDataSource(QueryResultsDataSource);
+
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
       .mockReturnValue(createFetchResponse(mockQueryResulltsResponse));
@@ -126,6 +119,35 @@ describe('ResultsDataSource', () => {
 
         const fields = response.data[0].fields as Field[];
         expect(fields).toMatchSnapshot();
+    });
+
+    test('includes templateSrv replaced values in the filter', async () => {
+      const timeRange = {
+        Started: 'startedAt',
+        Updated: 'updatedAt',
+      }
+      const selectedUseTimeRangeFor = 'Started';
+      const filter = `(${timeRange[selectedUseTimeRangeFor]} > "\${__from:date}" && ${timeRange[selectedUseTimeRangeFor]} < "\${__to:date}")`;
+      const replacedFilter = `(${timeRange[selectedUseTimeRangeFor]} > "2025-04-01" && ${timeRange[selectedUseTimeRangeFor]} < "2025-04-02")`;
+      templateSrv.replace.calledWith().mockReturnValue(replacedFilter);
+    
+        const query = buildQuery(
+          {
+            refId: 'A',
+            outputType: OutputType.Data,
+            useTimeRange: true,
+            useTimeRangeFor: selectedUseTimeRangeFor
+          },
+        );
+
+      await datastore.query(query);
+
+      expect(templateSrv.replace).toHaveBeenCalledWith(filter, expect.anything());
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ filter: replacedFilter }),
+        })
+      );
     });
 
     test('should handle null and undefined properties', async () => {
