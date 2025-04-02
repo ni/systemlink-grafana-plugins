@@ -1,7 +1,7 @@
 import { DataQuery } from '@grafana/schema';
 
 export interface ResultsQuery extends DataQuery {
-  outputType: OutputType;
+  outputType?: OutputType;
   properties?: ResultsProperties[];
   orderBy?: string;
   descending?: boolean;

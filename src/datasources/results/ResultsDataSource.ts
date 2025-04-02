@@ -1,11 +1,12 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { OutputType, ResultsQuery } from './types';
+import { ResultsQuery } from './types';
 import { QueryResultsDataSource } from './data-sources/query-results/QueryResultsDataSource';
 
 export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   private queryResultsDataSource: QueryResultsDataSource;
+  defaultQuery: Partial<ResultsQuery> & Omit<ResultsQuery, 'refId'>;
   
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
@@ -14,14 +15,11 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   ) {
     super(instanceSettings, backendSrv, templateSrv);
     this.queryResultsDataSource = new QueryResultsDataSource(instanceSettings, backendSrv, templateSrv);
+    this.defaultQuery = this.queryResultsDataSource.defaultQuery;
   }
 
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
   queryResultsUrl = this.baseUrl + '/v2/query-results';
-
-  defaultQuery = {
-    outputType: OutputType.Data
-  };
 
   async runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     return this.queryResultsDataSource.runQuery(query as ResultsQuery, options);
