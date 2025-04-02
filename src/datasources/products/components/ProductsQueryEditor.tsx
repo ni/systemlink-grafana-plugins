@@ -6,8 +6,9 @@ import { ProductsDataSource } from '../ProductsDataSource';
 import { OrderBy, ProductQuery, Properties } from '../types';
 import { Workspace } from 'core/types';
 import { ProductsQueryBuilder } from 'datasources/products/components/query-builder/ProductsQueryBuilder';
-import { FloatingError } from 'core/errors';
 import './ProductsQueryEditor.scss';
+import NotificationPanel from 'core/notificationPanel';
+import { NotificationType } from 'core/notificationOptions';
 
 type Props = QueryEditorProps<ProductsDataSource, ProductQuery>;
 
@@ -17,7 +18,17 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const [familyNames, setFamilyNames] = useState<string[]>([]);
-  
+  const [showError, setShowError] = useState<boolean>(false);
+  const [errorOpened, setErrorOpened] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+
+  const handleClose = () => {
+    if (showError === true && error !== '') { 
+      setShowError(false);
+      setError('');
+    }
+  };
+
   useEffect(() => {
     const loadWorkspaces = async () => {
       await datasource.areWorkspacesLoaded$;
@@ -31,18 +42,26 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
       await datasource.getFamilyNames();
       setFamilyNames(Array.from(datasource.familyNamesCache.values()));
     };
+    if (showError === false && errorOpened !== true) {
+      setShowError(true);
+      setErrorOpened(true);
+      setError(datasource.error);
+    }
 
     loadWorkspaces();
     loadPartNumbers();
     loadFamilyNames();
-  }, [datasource]);
+  }, [datasource, errorOpened, showError]);
 
-  const handleQueryChange = useCallback((query: ProductQuery, runQuery = true): void => {
-    onChange(query);
-    if (runQuery) {
-      onRunQuery();
-    }
-  }, [onChange, onRunQuery]);
+  const handleQueryChange = useCallback(
+    (query: ProductQuery, runQuery = true): void => {
+      onChange(query);
+      if (runQuery) {
+        onRunQuery();
+      }
+    },
+    [onChange, onRunQuery]
+  );
 
   const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
     if (items !== undefined) {
@@ -52,27 +71,27 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
 
   const onOrderByChange = (item: SelectableValue<string>) => {
     handleQueryChange({ ...query, orderBy: item.value });
-  }
+  };
 
   const onDescendingChange = (isDescendingChecked: boolean) => {
     handleQueryChange({ ...query, descending: isDescendingChecked });
-  }
+  };
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
     handleQueryChange({ ...query, recordCount: value });
-  }
+  };
 
   const onParameterChange = (value: string) => {
     if (query.queryBy !== value) {
       handleQueryChange({ ...query, queryBy: value });
     }
-  }
+  };
 
   function checkIfNumber(event: React.KeyboardEvent<HTMLInputElement>) {
     const regex = new RegExp(/(^-?\d*$)|(Backspace|Tab|Delete|ArrowLeft|ArrowRight)/);
     return !event.key.match(regex) && event.preventDefault();
- }
+  }
 
   return (
     <>
@@ -81,8 +100,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
           <InlineField label="Properties" labelWidth={18} tooltip={tooltips.properties}>
             <MultiSelect
               placeholder="Select properties to fetch"
-              options={Object.keys(Properties)
-                .map(value => ({ label: value, value })) as SelectableValue[]}
+              options={Object.keys(Properties).map(value => ({ label: value, value })) as SelectableValue[]}
               onChange={onPropertiesChange}
               value={query.properties}
               defaultValue={query.properties!}
@@ -128,25 +146,39 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
               <AutoSizeInput
                 minWidth={26}
                 maxWidth={26}
-                type='number'
+                type="number"
                 defaultValue={query.recordCount}
                 onCommitChange={recordCountChange}
                 placeholder="Enter record count"
-                onKeyDown={(event) => {checkIfNumber(event)}}
+                onKeyDown={event => {
+                  checkIfNumber(event);
+                }}
               />
             </InlineField>
           </div>
         </VerticalGroup>
       </HorizontalGroup>
-      <FloatingError message={datasource.error} />
+      {/* <FloatingError message={datasource.error} /> */}
+      { showError &&
+        <NotificationPanel
+          data={{
+            type: NotificationType.error,
+            content: datasource.error,
+            dismissible: true,
+            details: 'asdf',
+          }}
+          onDismiss={handleClose}
+        />
+      }
+      {/* <NotificationPanel data={{}} onDismiss={handleClose}></NotificationPanel> */}
     </>
   );
 }
 
 const tooltips = {
-  properties: "Specifies the properties to be queried.",
-  recordCount: "Specifies the maximum number of products to return.",
-  orderBy: "Specifies the field to order the queried products by.",
-  descending: "Specifies whether to return the products in descending order.",
+  properties: 'Specifies the properties to be queried.',
+  recordCount: 'Specifies the maximum number of products to return.',
+  orderBy: 'Specifies the field to order the queried products by.',
+  descending: 'Specifies whether to return the products in descending order.',
   queryBy: 'Specifies the filter to be applied on the queried products. This is an optional field.',
-}
+};

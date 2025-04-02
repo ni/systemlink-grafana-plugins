@@ -1,0 +1,65 @@
+@import '@ni/nimble-tokens/dist/styledictionary/scss/variables';
+
+.notification {
+    background-color: #FFFFFF;
+
+    // Account for 48px of margin in the snack bar container.
+    @media (min-width: 448px) {
+        width: 448px;
+    }
+
+    @media (max-width: 447px) {
+        width: 100%;
+    }
+}
+
+.body {
+    padding: 16px;
+    color: $ni-nimble-base-black-91;
+}
+
+.content {
+    margin-top: 0px;
+}
+
+details{
+    color: #8B939B;
+    cursor: pointer;
+}
+
+details>div {
+    margin-top: 8px;
+    color:rgba(0, 0, 0 )
+}
+
+.header {
+    align-items: center;
+    background-color: $ni-nimble-base-ni-scarlet-dark-1;
+    color: #ffffff;
+    display: flex;
+    font-weight: bold;
+    height: 40px;
+    padding: 0 12px;
+    border-radius: 2px 2px 0 0;
+
+}
+
+.severity-icon {
+    margin-right: 8px;
+    color: #ffffff
+}
+
+.close-icon {
+    cursor: pointer;
+    margin-left: auto;
+    opacity: 0.8;
+}
+
+.close-icon:hover {
+    opacity:1;
+}
+
+.body {
+    max-height: 300px;
+    overflow-y: auto;
+}
