@@ -19,7 +19,7 @@ const mockQueryResulltsResponse: QueryResultsResponse = {
 
 let datastore: QueryResultsDataSource, backendServer: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
 
-describe('ResultsDataSource', () => {
+describe('QueryResultsDataSource', () => {
   beforeEach(() => {
     [datastore, backendServer, templateSrv] = setupDataSource(QueryResultsDataSource);
 
