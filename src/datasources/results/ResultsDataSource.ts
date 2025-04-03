@@ -5,8 +5,9 @@ import { ResultsQuery } from './types';
 import { QueryResultsDataSource } from './data-sources/query-results/QueryResultsDataSource';
 
 export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
+  public defaultQuery: Partial<ResultsQuery> & Omit<ResultsQuery, 'refId'>;
+
   private queryResultsDataSource: QueryResultsDataSource;
-  defaultQuery: Partial<ResultsQuery> & Omit<ResultsQuery, 'refId'>;
   
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
@@ -17,7 +18,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
     this.queryResultsDataSource = new QueryResultsDataSource(instanceSettings, backendSrv, templateSrv);
     this.defaultQuery = this.queryResultsDataSource.defaultQuery;
   }
-
+  
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
   queryResultsUrl = this.baseUrl + '/v2/query-results';
 

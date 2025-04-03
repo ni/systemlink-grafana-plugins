@@ -7,7 +7,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
   abstract runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
-  shouldRunQuery(query: ResultsQuery): boolean {
+  shouldRunQuery(_: ResultsQuery): boolean {
     return true;
   }
 

@@ -1,12 +1,9 @@
 import { OutputType, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsQuery, ResultsResponseProperties } from "datasources/results/types";
 import { ResultsDataSourceBase } from "../ResultsDataSourceBase";
 import { DataQueryRequest, DataFrameDTO, FieldType } from "@grafana/data";
-import { parseErrorMessage } from "core/errors";
 
 export class QueryResultsDataSource extends ResultsDataSourceBase {
   queryResultsUrl = this.baseUrl + '/v2/query-results';
-
-  error = '';
 
   defaultQuery = {
     properties: [
@@ -48,8 +45,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
         returnCount,
       });
     } catch (error) {
-      this.error = parseErrorMessage(error as Error)!;
-      throw new Error(`An error occurred while querying results: ${this.error}`);
+      throw new Error(`An error occurred while querying results: ${error}`);
     }
   }
 

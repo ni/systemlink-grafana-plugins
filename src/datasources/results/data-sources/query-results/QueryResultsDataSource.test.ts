@@ -5,7 +5,7 @@ import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching
 import { Field } from '@grafana/data';
 import { QueryResultsDataSource } from './QueryResultsDataSource';
 
-const mockQueryResulltsResponse: QueryResultsResponse = {
+const mockQueryResultsResponse: QueryResultsResponse = {
   results: [
     {
       id: '000007fb-aa87-4ab9-9757-6568e7893c33',
@@ -25,7 +25,7 @@ describe('QueryResultsDataSource', () => {
 
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
-      .mockReturnValue(createFetchResponse(mockQueryResulltsResponse));
+      .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
   })
 
   describe('queryResults', () => {
