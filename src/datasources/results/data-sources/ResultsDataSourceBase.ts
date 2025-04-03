@@ -7,12 +7,11 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
   abstract runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
+  testDatasource(): Promise<TestDataSourceResponse> {
+    throw new Error("Method not implemented.");
+  }
+  
   shouldRunQuery(_: ResultsQuery): boolean {
     return true;
-  }
-
-  async testDatasource(): Promise<TestDataSourceResponse> {
-    await this.get(this.baseUrl + '/v2/results?take=1');
-    return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }
