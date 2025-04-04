@@ -20,7 +20,6 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   }
   
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
-  queryResultsUrl = this.baseUrl + '/v2/query-results';
 
   async runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     return this.queryResultsDataSource.runQuery(query as ResultsQuery, options);
