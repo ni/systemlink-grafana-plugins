@@ -5,6 +5,7 @@ import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse } from "@grafana
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
 
+  abstract defaultQuery: Partial<ResultsQuery> & Omit<ResultsQuery, "refId">;
   abstract runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
   testDatasource(): Promise<TestDataSourceResponse> {
