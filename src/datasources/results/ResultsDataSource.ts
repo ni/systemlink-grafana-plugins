@@ -62,10 +62,10 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
     if (!query.useTimeRange || query.useTimeRangeFor === undefined) {
       return undefined;
     }
-  
+
     const timeRangeField = this.timeRange[query.useTimeRangeFor];
     const timeRangeFilter = `(${timeRangeField} > "${this.fromDateString}" && ${timeRangeField} < "${this.toDateString}")`;
-  
+
     return this.templateSrv.replace(timeRangeFilter, options.scopedVars);
   }
 
@@ -79,7 +79,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
       true
     );
 
-    if(responseData.results.length === 0) {
+    if (responseData.results.length === 0) {
       return {
         refId: query.refId,
         fields: [],
