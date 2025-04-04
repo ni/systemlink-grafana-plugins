@@ -1,7 +1,7 @@
 import { setupRenderer } from 'test/fixtures';
 import { ResultsDataSource } from '../../../ResultsDataSource';
 import { screen, waitFor } from '@testing-library/react';
-import { ResultsQuery } from '../../../types';
+import { QueryType, ResultsQuery } from '../../../types/types';
 import { select } from 'react-select-event';
 import userEvent from '@testing-library/user-event';
 import { ResultsQueryEditor } from '../../ResultsQueryEditor';
@@ -20,6 +20,7 @@ describe('QueryResultsEditor', () => {
   beforeEach(() => {
     [onChange] = render({
       refId: '',
+      queryType: QueryType.Results,
       outputType: 'Data',
       properties: [],
       orderBy: undefined,

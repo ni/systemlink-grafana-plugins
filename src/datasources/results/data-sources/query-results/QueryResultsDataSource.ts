@@ -1,11 +1,13 @@
-import { OutputType, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsQuery, ResultsResponseProperties } from "datasources/results/types";
+import { OutputType, QueryType } from "datasources/results/types/types";
 import { ResultsDataSourceBase } from "../ResultsDataSourceBase";
 import { DataQueryRequest, DataFrameDTO, FieldType } from "@grafana/data";
+import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties } from "datasources/results/types/QueryResults.types";
 
 export class QueryResultsDataSource extends ResultsDataSourceBase {
   queryResultsUrl = this.baseUrl + '/v2/query-results';
 
   defaultQuery = {
+    queryType: QueryType.Results,
     properties: [
       ResultsPropertiesOptions.PROGRAM_NAME,
       ResultsPropertiesOptions.PART_NUMBER,
@@ -49,7 +51,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  private getTimeRangeFilter(query: ResultsQuery, options: DataQueryRequest): string | undefined {
+  private getTimeRangeFilter(query: QueryResults, options: DataQueryRequest): string | undefined {
     if (!query.useTimeRange || query.useTimeRangeFor === undefined) {
       return undefined;
     }
@@ -60,7 +62,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     return this.templateSrv.replace(timeRangeFilter, options.scopedVars);
   }
 
-  async runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+  async runQuery(query: QueryResults, options: DataQueryRequest): Promise<DataFrameDTO> {
     const responseData = await this.queryResults(
       this.getTimeRangeFilter(query, options),
       query.orderBy,

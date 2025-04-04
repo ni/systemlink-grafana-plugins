@@ -1,9 +1,10 @@
 import { MockProxy } from 'jest-mock-extended';
-import { OutputType, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsQuery } from '../../types';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
 import { Field } from '@grafana/data';
 import { QueryResultsDataSource } from './QueryResultsDataSource';
+import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions } from 'datasources/results/types/QueryResults.types';
+import { OutputType, QueryType } from 'datasources/results/types/types';
 
 const mockQueryResultsResponse: QueryResultsResponse = {
   results: [
@@ -50,6 +51,7 @@ describe('QueryResultsDataSource', () => {
     test('returns data for valid data-output-type query', async () => {
       const query = buildQuery({
         refId: 'A',
+        queryType: QueryType.Results,
         outputType: OutputType.Data
       });
 
@@ -62,6 +64,7 @@ describe('QueryResultsDataSource', () => {
     test('returns total count for valid total count output type queries', async () => {
       const query = buildQuery({
         refId: 'A',
+        queryType: QueryType.Results,
         outputType: OutputType.TotalCount
       });
 
@@ -98,6 +101,7 @@ describe('QueryResultsDataSource', () => {
         const query = buildQuery(
           {
             refId: 'A',
+            queryType: QueryType.Results,
             outputType: OutputType.Data
           },
         );
@@ -111,6 +115,7 @@ describe('QueryResultsDataSource', () => {
         const query = buildQuery(
           {
             refId: 'A',
+            queryType: QueryType.Results,
             outputType: OutputType.Data
           },
         );
@@ -134,6 +139,7 @@ describe('QueryResultsDataSource', () => {
         const query = buildQuery(
           {
             refId: 'A',
+            queryType: QueryType.Results,
             outputType: OutputType.Data,
             useTimeRange: true,
             useTimeRangeFor: selectedUseTimeRangeFor
@@ -165,6 +171,7 @@ describe('QueryResultsDataSource', () => {
         const query = buildQuery(
           {
             refId: 'A',
+            queryType: QueryType.Results,
             outputType: OutputType.Data,
             properties: [
               ResultsPropertiesOptions.PROPERTIES
@@ -181,7 +188,7 @@ describe('QueryResultsDataSource', () => {
     });
   });
 
-  const buildQuery = getQueryBuilder<ResultsQuery>()({
+  const buildQuery = getQueryBuilder<QueryResults>()({
     refId: 'A',
     outputType: OutputType.Data
   });
