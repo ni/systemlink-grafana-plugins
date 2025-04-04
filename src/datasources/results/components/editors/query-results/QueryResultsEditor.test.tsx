@@ -81,7 +81,7 @@ describe('QueryResultsEditor', () => {
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ descending: true }));
       });
 
-      //User enters numeric value for record count
+      //User enters numeric value into record count
       await userEvent.clear(recordCount);
       await userEvent.type(recordCount, '500');
       await waitFor(() => {
