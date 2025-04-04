@@ -88,7 +88,7 @@ describe('QueryResultsEditor', () => {
         expect(recordCount).toHaveValue(500);
       });
 
-      //User enters non-numeric value for record count
+      //User enters non-numeric value into record count
       await userEvent.clear(recordCount);
       await userEvent.type(recordCount, 'Test');
       await waitFor(() => {
