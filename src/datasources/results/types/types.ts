@@ -10,11 +10,11 @@ export enum QueryType {
 }
 
 export enum OutputType {
-	Data = 'Data',
-	TotalCount = 'Total Count'
+  Data = 'Data',
+  TotalCount = 'Total Count'
 }
 
 export enum UseTimeRangeFor {
-	Started = 'Started',
-	Updated = 'Updated'
+  Started = 'Started',
+  Updated = 'Updated'
 }
