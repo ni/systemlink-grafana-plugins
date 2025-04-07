@@ -1,4 +1,4 @@
-import { OutputType, ResultsQuery } from "./types";
+import { OutputType, ResultsQuery } from './types';
 
 export interface QueryResults extends ResultsQuery {
   outputType: OutputType;
@@ -13,54 +13,54 @@ export interface QueryResults extends ResultsQuery {
 export const OrderBy = [
   {
     value: 'ID',
-	label: 'ID',
-	description: 'ID of the result',
+    label: 'ID',
+    description: 'ID of the result',
   },
   {
-	value: 'STARTED_AT',
-	label: 'Started At',
-	description: 'Timestamp when the result started',
+    value: 'STARTED_AT',
+    label: 'Started At',
+    description: 'Timestamp when the result started',
   },
   {
-	value: 'UPDATED_AT',
-	label: 'Updated At',
-	description: 'Timestamp when the result was last updated',
+    value: 'UPDATED_AT',
+    label: 'Updated At',
+    description: 'Timestamp when the result was last updated',
   },
   {
-	value: 'PROGRAM_NAME',
-	label: 'Program Name',
-	description: 'Program Name of the product associated with the result',
+    value: 'PROGRAM_NAME',
+    label: 'Program Name',
+    description: 'Program Name of the product associated with the result',
   },
   {
-	value: 'SYSTEM_ID',
-	label: 'System ID',
-	description: 'System ID of the result',
+    value: 'SYSTEM_ID',
+    label: 'System ID',
+    description: 'System ID of the result',
   },
   {
-	value: 'HOST_NAME',
-	label: 'Host Name',
-	description: 'Host Name of the result',
+    value: 'HOST_NAME',
+    label: 'Host Name',
+    description: 'Host Name of the result',
   },
   {
-	value: 'OPERATOR',
-	label: 'Operator',
-	description: 'Operator of the result',
-   },
-  {
-	value: 'SERIAL_NUMBER',
-	label: 'Serial Number',
-	description: 'Serial Number of the result',
+    value: 'OPERATOR',
+    label: 'Operator',
+    description: 'Operator of the result',
   },
   {
-	value: 'PART_NUMBER',
-	label: 'Part Number',
-	description: 'Part Number of the product associated with result',
+    value: 'SERIAL_NUMBER',
+    label: 'Serial Number',
+    description: 'Serial Number of the result',
   },
   {
-	value: 'TOTAL_TIME_IN_SECONDS ',
-	label: 'Total Time In Seconds',
-	description: 'Total time taken to run the result in seconds',
-  }
+    value: 'PART_NUMBER',
+    label: 'Part Number',
+    description: 'Part Number of the product associated with result',
+  },
+  {
+    value: 'TOTAL_TIME_IN_SECONDS ',
+    label: 'Total Time In Seconds',
+    description: 'Total time taken to run the result in seconds',
+  },
 ];
 
 export const ResultsPropertiesOptions = {
@@ -80,9 +80,8 @@ export const ResultsPropertiesOptions = {
   KEYWORDS: 'keywords',
   PROPERTIES: 'properties',
   STATUS_TYPE_SUMMARY: 'statusTypeSummary',
-  WORKSPACE: 'workspace'
-}
-
+  WORKSPACE: 'workspace',
+};
 
 export enum ResultsProperties {
   id = 'id',
@@ -101,7 +100,7 @@ export enum ResultsProperties {
   keywords = 'keywords',
   properties = 'properties',
   statusTypeSummary = 'statusTypeSummary',
-  workspace = 'workspace'
+  workspace = 'workspace',
 }
 
 export interface StatusHttp {
@@ -132,7 +131,7 @@ export interface ResultsResponseProperties {
   workspace?: string;
   dataTableIds?: string[];
 }
-  
+
 export interface QueryResultsResponse {
   results: ResultsResponseProperties[];
   continuationToken?: string;
