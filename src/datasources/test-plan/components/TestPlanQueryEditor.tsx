@@ -63,7 +63,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
         <VerticalGroup>
           <InlineField label="Properties" labelWidth={18} tooltip={tooltips.properties}>
             <MultiSelect
-              placeholder="Select properties to fetch"
+              placeholder="Select properties to query"
               onChange={() => void 0}
               maxVisibleValues={5}
               noMultiValueWrap={true}

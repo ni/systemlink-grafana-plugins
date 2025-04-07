@@ -5,7 +5,7 @@ import { TestPlansDataSource } from '../TestPlansDataSource';
 import { TestPlansQuery } from '../types';
 import { Workspace } from 'core/types';
 import { TestPlansQueryBuilder } from './query-builder/TestPlansQueryBuilder';
-import { VerticalGroup, HorizontalGroup } from '@grafana/ui';
+import { VerticalGroup, HorizontalGroup, Select, AutoSizeInput } from '@grafana/ui';
 import './TestPlanQueryEditor.scss';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansQuery>;
@@ -48,17 +48,33 @@ export function TestPlanVariableQueryEditor({ query, onChange, onRunQuery, datas
         <>
             <HorizontalGroup spacing='lg' align='flex-start'>
                 <VerticalGroup>
-                    <>
-                        <InlineField label="Query By" labelWidth={18} tooltip={tooltips.queryBy}>
-                            <TestPlansQueryBuilder
-                                filter={query.queryBy}
-                                workspaces={workspaces}
-                                partNumbers={partNumbers}
-                                globalVariableOptions={datasource.globalVariableOptions()}
-                                onChange={(event: any) => onParameterChange(event.detail.linq)}
-                            ></TestPlansQueryBuilder>
-                        </InlineField>
-                    </>
+                    <InlineField label="Query By" labelWidth={18} tooltip={tooltips.queryBy}>
+                        <TestPlansQueryBuilder
+                            filter={query.queryBy}
+                            workspaces={workspaces}
+                            partNumbers={partNumbers}
+                            globalVariableOptions={datasource.globalVariableOptions()}
+                            onChange={(event: any) => onParameterChange(event.detail.linq)}
+                        ></TestPlansQueryBuilder>
+                    </InlineField>
+                    <InlineField label="Order By" labelWidth={18} tooltip={tooltips.orderBy}>
+                        <Select
+                            options={[]}
+                            placeholder="Select field to order by"
+                            onChange={() => void 0}
+                            value={query.orderBy}
+                            defaultValue={query.orderBy}
+                        />
+                    </InlineField>
+                    <InlineField label="Take" labelWidth={18} tooltip={tooltips.recordCount}>
+                        <AutoSizeInput
+                            minWidth={20}
+                            maxWidth={40}
+                            defaultValue={query.recordCount}
+                            onCommitChange={() => void 0}
+                            placeholder="Enter record count"
+                        />
+                    </InlineField>
                 </VerticalGroup>
             </HorizontalGroup>
         </>
