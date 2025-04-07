@@ -3,11 +3,8 @@ import { QueryBuilderField } from 'smart-webcomponents-react';
 
 export interface WorkOrdersQuery extends DataQuery {
   outputType: OutputType;
-  properties?: WorkOrdersProperties[];
   orderBy?: string;
   descending?: boolean;
-  useTimeRange?: boolean;
-  useTimeRangeFor?: string;
   recordCount?: number;
   queryBy?: string;
 }
@@ -40,43 +37,39 @@ export const OrderBy = [
 ];
 
 export const WorkOrdersPropertiesOptions = {
+  ASSIGNED_TO: 'assignedTo',
+  CREATED_AT: 'createdAt',
+  CREATED_BY: 'createdBy',
+  DESCRIPTION: 'description',
+  DUE_DATE: 'dueDate',
+  EARLIEST_START_DATE: 'earliestStartDate',
   ID: 'id',
-  PROGRAM_NAME: 'programName',
-  SERIAL_NUMBER: 'serialNumber',
-  SYSTEM_ID: 'systemId',
-  STATUS: 'status',
-  TOTAL_TIME_IN_SECONDS: 'totalTimeInSeconds',
-  STARTED_AT: 'startedAt',
-  UPDATED_AT: 'updatedAt',
-  PART_NUMBER: 'partNumber',
-  DATA_TABLE_IDS: 'dataTableIds',
-  FILE_IDS: 'fileIds',
-  HOST_NAME: 'hostName',
-  OPERATOR: 'operator',
-  KEYWORDS: 'keywords',
+  NAME: 'name',
   PROPERTIES: 'properties',
-  STATUS_TYPE_SUMMARY: 'statusTypeSummary',
+  REQUESTED_BY: 'requestedBy',
+  STATE: 'state',
+  TYPE: 'type',
+  UPDATED_AT: 'updatedAt',
+  UPDATED_BY: 'updatedBy',
   WORKSPACE: 'workspace',
 }
 
 
 export enum WorkOrdersProperties {
+  assignedTo = 'assignedTo',
+  createdAt = 'createdAt',
+  createdBy = 'createdBy',
+  description = 'description',
+  dueDate = 'dueDate',
+  earliestStartDate = 'earliestStartDate',
   id = 'id',
-  programName = 'programName',
-  serialNumber = 'serialNumber',
-  systemId = 'systemId',
-  status = 'status',
-  totalTimeInSeconds = 'totalTimeInSeconds',
-  startedAt = 'startedAt',
-  updatedAt = 'updatedAt',
-  partNumber = 'partNumber',
-  dataTableIds = 'dataTableIds',
-  fileIds = 'fileIds',
-  hostName = 'hostName',
-  operator = 'operator',
-  keywords = 'keywords',
+  name = 'name',
   properties = 'properties',
-  statusTypeSummary = 'statusTypeSummary',
+  requestedBy = 'requestedBy',
+  state = 'state',
+  type = 'type',
+  updatedAt = 'updatedAt',
+  updatedBy = 'updatedBy',
   workspace = 'workspace',
 }
 
@@ -90,27 +83,25 @@ export interface StatusTypeSummaryHttp {
 }
 
 export interface WorkOrdersResponseProperties {
-  status?: StatusHttp;
-  startedAt?: string;
-  updatedAt?: string;
-  programName?: string;
+  assignedTo: string;
+  createdAt: string;
+  createdBy: string;
+  description: string;
+  dueDate: string;
+  earliestStartDate: string;
   id: string;
-  systemId?: string;
-  hostName?: string;
-  operator?: string;
-  partNumber?: string;
-  serialNumber?: string;
-  totalTimeInSeconds?: number;
-  keywords?: string[];
-  properties?: { [key: string]: string };
-  fileIds?: string[];
-  statusTypeSummary?: StatusTypeSummaryHttp;
-  workspace?: string;
-  dataTableIds?: string[];
+  name: string;
+  properties: { [key: string]: string };
+  requestedBy: string;
+  state: string;
+  type: string;
+  updatedAt: string;
+  updatedBy: string;
+  workspace: string;
 }
 
 export interface QueryWorkOrdersResponse {
-  results: WorkOrdersResponseProperties[];
+  workOrders: WorkOrdersResponseProperties[];
   continuationToken?: string;
   totalCount?: number;
 }

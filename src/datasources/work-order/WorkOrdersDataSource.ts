@@ -1,10 +1,10 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, DataSourceJsonData, FieldType, TestDataSourceResponse } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, DataSourceJsonData, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { OutputType, QueryWorkOrdersResponse, WorkOrdersProperties, WorkOrdersPropertiesOptions, WorkOrdersQuery } from './types';
+import { OutputType, QueryWorkOrdersResponse, WorkOrdersResponseProperties, WorkOrdersQuery, WorkOrdersProperties, WorkOrdersPropertiesOptions, WorkOrdersVariableQuery } from './types';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { parseErrorMessage } from 'core/errors';
-import { ExpressionTransformFunction } from 'core/query-builder.utils';
+import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { WorkOrderQueryBuilderFieldNames } from './constants/WorkOrderQueryBuilder.constants';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 
@@ -24,25 +24,18 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery, DataSo
   arePartNumberLoaded$ = new Promise<void>(resolve => this.partNumberLoaded = resolve);
   error = '';
 
-  // TODO: set base path of the service
-  baseUrl = this.instanceSettings.url;
-  queryProductValuesUrl = this.baseUrl + '/nitestmonitor/v2/query-product-values';
-  queryWorkOrdersUrl = this.baseUrl + '/niworkorder/v1/query-workorders';
-
   defaultQuery = {
     properties: [
-      WorkOrdersPropertiesOptions.PROGRAM_NAME,
-      WorkOrdersPropertiesOptions.PART_NUMBER,
-      WorkOrdersPropertiesOptions.SERIAL_NUMBER,
-      WorkOrdersPropertiesOptions.STATUS,
-      WorkOrdersPropertiesOptions.HOST_NAME,
-      WorkOrdersPropertiesOptions.STARTED_AT,
       WorkOrdersPropertiesOptions.UPDATED_AT,
       WorkOrdersPropertiesOptions.WORKSPACE
     ] as WorkOrdersProperties[],
     outputType: OutputType.Data,
     recordCount: 1000,
   };
+  // TODO: set base path of the service
+  baseUrl = this.instanceSettings.url;
+  queryProductValuesUrl = this.baseUrl + '/nitestmonitor/v2/query-product-values';
+  queryWorkOrdersUrl = this.baseUrl + '/niworkorder/v1/query-workorders';
 
   readonly workspacesCache = new Map<string, Workspace>([]);
   readonly partNumbersCache = new Map<string, string>([]);
@@ -85,13 +78,36 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery, DataSo
     await this.workspaceLoadedPromise;
     await this.partNumberLoadedPromise;
 
-    return {
-      refId: query.refId,
-      fields: [
-        { name: 'Time', values: [range.from.valueOf(), range.to.valueOf()], type: FieldType.time },
-        { name: 'Value', values: [], type: FieldType.number },
-      ],
-    };
+
+    return await this.queryWorkOrders(
+      query.orderBy,
+      query.queryBy,
+      query.recordCount,
+      query.descending,
+      true
+    ).then(response => {
+      const selectedFields = Object.keys(WorkOrdersProperties);
+      const fields = selectedFields.map(field => {
+        const isTimeField = field === WorkOrdersPropertiesOptions.UPDATED_AT || field === WorkOrdersPropertiesOptions.CREATED_AT;
+        const fieldType = isTimeField ? FieldType.time : FieldType.string;
+        const values = response.workOrders.map((data: WorkOrdersResponseProperties) => data[field as unknown as keyof WorkOrdersResponseProperties]);
+        return { name: field, values, type: fieldType };
+      });
+
+      const dataFrame: DataFrameDTO = {
+        refId: query.refId,
+        fields,
+      };
+
+      return dataFrame;
+    }
+    ).catch(error => {
+      this.error = parseErrorMessage(error.message)!;
+      return {
+        refId: query.refId,
+        fields: [],
+      };
+    });
   }
 
   async queryWorkOrders(
@@ -118,10 +134,30 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery, DataSo
   shouldRunQuery(query: WorkOrdersQuery): boolean {
     return true;
   }
+  async metricFindQuery(query: WorkOrdersVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    console.log('metricFindQuery', query, options);
+    let workOrderFilter = query?.queryBy ?? '';
+    workOrderFilter = this.templateSrv.replace(workOrderFilter, options.scopedVars);
+    workOrderFilter = transformComputedFieldsQuery(
+      workOrderFilter,
+      this.productsComputedDataFields
+    );
+
+    return await this.queryWorkOrders(
+      workOrderFilter
+    ).then(response => {
+      const workOrders = response.workOrders;
+      const workOrderValues = workOrders.map(workOrder => {
+        return `${workOrder.name} (${workOrder.id})`;
+      });
+      return workOrderValues.map(value => ({ text: value, value }));
+    });
+  }
+
 
   async testDatasource(): Promise<TestDataSourceResponse> {
     // TODO: Implement a health and authentication check
-    await this.backendSrv.post(`${this.baseUrl}\/niworkorder/v1/query-workorders`, { take: 1 });
+    await this.backendSrv.post(`${this.queryWorkOrdersUrl}`, { take: 1 });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
   private updatedAtQuery(value: string, operation: string): string {

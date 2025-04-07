@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { InlineField } from 'core/components/InlineField';
 import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
-import { OrderBy, OutputType, WorkOrdersQuery } from '../types';
+import { OrderBy, WorkOrdersQuery } from '../types';
 import { Workspace } from 'core/types';
 import { WorkOrdersQueryBuilder } from './query-builder/WorkOrdersQueryBuilder';
 import { VerticalGroup, Select, InlineSwitch, AutoSizeInput, HorizontalGroup } from '@grafana/ui';
@@ -42,7 +42,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
       handleQueryChange({ ...query, queryBy: value });
     }
   }
-  const [queryType, setQueryType] = useState(query.outputType);
+
   const onOrderByChange = (item: SelectableValue<string>) => {
     handleQueryChange({ ...query, orderBy: item.value });
   };
@@ -56,98 +56,11 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
     handleQueryChange({ ...query, recordCount: isNaN(value) ? undefined : value });
   };
 
-
-  const handleQueryTypeChange = useCallback((item: SelectableValue<OutputType>): void => {
-    setQueryType(item.value!);
-
-    if (item.value === OutputType.Data) {
-      handleQueryChange({ ...query }, true);
-    }
-    if (item.value === OutputType.Summary) {
-      handleQueryChange({ ...query }, true);
-    }
-
-  }, [query, handleQueryChange]);
-
-  const filterOptions = useMemo(() => {
-    const queryTypeOptions = [
-      {
-        label: OutputType.Data,
-        value: OutputType.Data,
-        description: 'List work orders allows you to search for work orders based on various filters.',
-      },
-      {
-        label: OutputType.Summary,
-        value: OutputType.Summary,
-        description: 'Work order summary allows you to view information about all the work orders.',
-      },
-    ];
-
-    return queryTypeOptions.filter(option => {
-      return (option.value === queryType) ||
-        (option.value === OutputType.Data) ||
-        (option.value === OutputType.Summary)
-    });
-  }, [queryType]);
-
   return (
     <>
       <HorizontalGroup spacing='lg' align='flex-start'>
         <VerticalGroup>
-          <div>
-            <InlineField label="Query type" labelWidth={18} tooltip={tooltips.output}>
-              <Select
-                options={filterOptions}
-                onChange={handleQueryTypeChange}
-                value={queryType}
-                width={65}
-              />
-            </InlineField>
-          </div>
-          {queryType === OutputType.Data && (
-            <>
-              <InlineField label="Query By" labelWidth={18} tooltip={tooltips.queryBy}>
-                <WorkOrdersQueryBuilder
-                  filter={query.queryBy}
-                  workspaces={workspaces}
-                  partNumbers={partNumbers}
-                  globalVariableOptions={datasource.globalVariableOptions()}
-                  onChange={(event: any) => onParameterChange(event.detail.linq)}
-                ></WorkOrdersQueryBuilder>
-              </InlineField>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <InlineField label="Order By" labelWidth={18} tooltip={tooltips.orderBy}>
-                    <Select
-                      options={OrderBy as SelectableValue[]}
-                      placeholder="Select field to order by"
-                      onChange={onOrderByChange}
-                      value={query.orderBy}
-                      defaultValue={query.orderBy}
-                    />
-                  </InlineField>
-                  <InlineField label="Descending" tooltip={tooltips.descending}>
-                    <InlineSwitch
-                      onChange={event => onDescendingChange(event.currentTarget.checked)}
-                      value={query.descending}
-                    />
-                  </InlineField>
-                </div>
-
-                <InlineField label="Take" labelWidth={18} tooltip={tooltips.recordCount}>
-                  <AutoSizeInput
-                    minWidth={20}
-                    maxWidth={40}
-                    defaultValue={query.recordCount}
-                    onCommitChange={recordCountChange}
-                    placeholder="Enter record count"
-                  />
-                </InlineField>
-
-              </div>
-            </>
-          )}
-          {queryType === OutputType.Summary && (
+          <>
             <InlineField label="Query By" labelWidth={18} tooltip={tooltips.queryBy}>
               <WorkOrdersQueryBuilder
                 filter={query.queryBy}
@@ -157,8 +70,37 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
                 onChange={(event: any) => onParameterChange(event.detail.linq)}
               ></WorkOrdersQueryBuilder>
             </InlineField>
-          )}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <InlineField label="Order By" labelWidth={18} tooltip={tooltips.orderBy}>
+                  <Select
+                    options={OrderBy as SelectableValue[]}
+                    placeholder="Select field to order by"
+                    onChange={onOrderByChange}
+                    value={query.orderBy}
+                    defaultValue={query.orderBy}
+                  />
+                </InlineField>
+                <InlineField label="Descending" tooltip={tooltips.descending}>
+                  <InlineSwitch
+                    onChange={event => onDescendingChange(event.currentTarget.checked)}
+                    value={query.descending}
+                  />
+                </InlineField>
+              </div>
 
+              <InlineField label="Take" labelWidth={18} tooltip={tooltips.recordCount}>
+                <AutoSizeInput
+                  minWidth={20}
+                  maxWidth={40}
+                  defaultValue={query.recordCount}
+                  onCommitChange={recordCountChange}
+                  placeholder="Enter record count"
+                />
+              </InlineField>
+
+            </div>
+          </>
         </VerticalGroup>
       </HorizontalGroup>
     </>
