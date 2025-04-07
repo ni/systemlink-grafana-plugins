@@ -17,7 +17,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   ) {
     super(instanceSettings, backendSrv, templateSrv);
     this.queryResultsDataSource = new QueryResultsDataSource(instanceSettings, backendSrv, templateSrv);
-    this.defaultQuery = this.queryResultsDataSource.defaultQuery as QueryResults;
+    this.defaultQuery = this.queryResultsDataSource.defaultQuery;
   }
   
   baseUrl = this.instanceSettings.url + '/nitestmonitor';

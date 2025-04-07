@@ -3,8 +3,8 @@ import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { ResultsDataSource } from '../ResultsDataSource';
 import { QueryType, ResultsQuery } from '../types/types';
 import { QueryResultsEditor } from './editors/query-results/QueryResultsEditor';
-import { QueryResults } from '../types/QueryResults.types';
 import { InlineField, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
+import { QueryResults } from '../types/QueryResults.types';
 
 type Props = QueryEditorProps<ResultsDataSource, ResultsQuery>;
 
