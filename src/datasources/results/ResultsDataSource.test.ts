@@ -35,7 +35,7 @@ describe('ResultsDataSource', () => {
   });
 
   describe('runQuery', () => {
-    test('delegates to QueryResultsDataSource.runQuery', async () => {
+    test('calls QueryResultsDataSource runQuery', async () => {
       const mockQuery: ResultsQuery = { refId: 'A', queryType: 'Results' } as ResultsQuery;
       const mockOptions: DataQueryRequest = {} as DataQueryRequest;
       const mockResponse: DataFrameDTO = { fields: [] };
@@ -50,7 +50,7 @@ describe('ResultsDataSource', () => {
     });
 
     describe('shouldRunQuery', () => {
-      test('delegates to QueryResultsDataSource.shouldRunQuery', () => {
+      test('calls QueryResultsDataSource shouldRunQuery', () => {
         const mockQuery: ResultsQuery = { refId: 'A', queryType: 'Results' } as ResultsQuery;
   
         const queryResultsDataSource = (datastore as any).queryResultsDataSource;
