@@ -43,9 +43,10 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
   };
 
   function checkIfNumber(event: React.KeyboardEvent<HTMLInputElement>) {
-    const regex = new RegExp(/(^-?\d*$)|(Backspace|Tab|Delete|ArrowLeft|ArrowRight)/);
-    return !event.key.match(regex) && event.preventDefault()
- }
+  if (isNaN(Number(event.key)) && !['Backspace', 'Tab', 'Delete', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+    event.preventDefault();
+  }
+}
 
   return (
     <>
