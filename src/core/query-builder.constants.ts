@@ -1,4 +1,4 @@
-import { editorTemplate, handleNumberValue, handleStringValue, keyValueExpressionBuilderCallback, numericKeyValueExpressionReaderCallback, stringKeyValueExpressionReaderCallback, valueTemplate } from "datasources/products/components/query-builder/utils/keyValueOperationUtils";
+import { editorTemplate, handleNumberValue, handleStringValue, keyValueExpressionBuilderCallback, numericKeyValueExpressionReaderCallback, stringKeyValueExpressionReaderCallback, valueTemplate } from "core/customOperationsUtils/keyValueOperations";
 import { QueryBuilderCustomOperation } from "smart-webcomponents-react";
 
 export const queryBuilderMessages = {
