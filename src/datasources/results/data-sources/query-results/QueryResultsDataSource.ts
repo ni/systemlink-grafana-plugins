@@ -106,4 +106,8 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       };
     }
   }
+
+  shouldRunQuery(_: ResultsQuery): boolean {
+    return true;
+  }
 }

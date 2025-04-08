@@ -2,6 +2,8 @@ import { MockProxy } from 'jest-mock-extended';
 import { ResultsDataSource } from './ResultsDataSource';
 import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
+import { ResultsQuery } from './types';
+import { DataFrameDTO, DataQueryRequest } from '@grafana/data';
 
 let datastore: ResultsDataSource, backendServer: MockProxy<BackendSrv>
 
@@ -29,6 +31,36 @@ describe('ResultsDataSource', () => {
       await expect(datastore.testDatasource())
       .rejects
       .toThrow('Request to url "/nitestmonitor/v2/results?take=1" failed with status code: 400. Error message: "Error"');
+    });
+  });
+
+  describe('runQuery', () => {
+    test('delegates to QueryResultsDataSource.runQuery', async () => {
+      const mockQuery: ResultsQuery = { refId: 'A', queryType: 'Results' } as ResultsQuery;
+      const mockOptions: DataQueryRequest = {} as DataQueryRequest;
+      const mockResponse: DataFrameDTO = { fields: [] };
+
+      const queryResultsDataSource = (datastore as any).queryResultsDataSource;
+      queryResultsDataSource.runQuery = jest.fn().mockResolvedValue(mockResponse);
+
+      const result = await datastore.runQuery(mockQuery, mockOptions);
+
+      expect(queryResultsDataSource.runQuery).toHaveBeenCalledWith(mockQuery, mockOptions);
+      expect(result).toBe(mockResponse);
+    });
+
+    describe('shouldRunQuery', () => {
+      test('delegates to QueryResultsDataSource.shouldRunQuery', () => {
+        const mockQuery: ResultsQuery = { refId: 'A', queryType: 'Results' } as ResultsQuery;
+  
+        const queryResultsDataSource = (datastore as any).queryResultsDataSource;
+        queryResultsDataSource.shouldRunQuery = jest.fn().mockReturnValue(true);
+  
+        const result = datastore.shouldRunQuery(mockQuery);
+  
+        expect(queryResultsDataSource.shouldRunQuery).toHaveBeenCalledWith(mockQuery);
+        expect(result).toBe(true);
+      });
     });
   });
 });
