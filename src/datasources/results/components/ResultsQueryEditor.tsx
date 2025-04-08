@@ -22,7 +22,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
 
   return (
     <VerticalGroup>
-      <InlineField label="Query Type" labelWidth={18}>
+      <InlineField label="Query Type" labelWidth={18} tooltip={tooltips.queryType}>
         <RadioButtonGroup
           options={Object.values(QueryType).map(value => ({ label: value, value })) as SelectableValue[]}
           value={query.queryType}
@@ -37,3 +37,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
     </VerticalGroup>
   );
 }
+
+const tooltips = {
+  queryType: 'Specifies the query type to fetch results or steps-related data'
+};

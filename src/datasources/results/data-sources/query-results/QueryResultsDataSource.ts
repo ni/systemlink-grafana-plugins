@@ -109,7 +109,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  shouldRunQuery(_: ResultsQuery): boolean {
+  shouldRunQuery(_: QueryResults): boolean {
     return true;
   }
 }

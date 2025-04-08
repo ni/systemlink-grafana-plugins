@@ -2,8 +2,8 @@ import { MockProxy } from 'jest-mock-extended';
 import { ResultsDataSource } from './ResultsDataSource';
 import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
-import { ResultsQuery } from './types';
 import { DataFrameDTO, DataQueryRequest } from '@grafana/data';
+import { ResultsQuery } from './types/types';
 
 let datastore: ResultsDataSource, backendServer: MockProxy<BackendSrv>
 

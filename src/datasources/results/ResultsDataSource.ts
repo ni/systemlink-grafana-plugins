@@ -27,7 +27,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   }
 
   shouldRunQuery(query: ResultsQuery): boolean {
-    return this.queryResultsDataSource.shouldRunQuery(query as ResultsQuery);
+    return this.queryResultsDataSource.shouldRunQuery(query as QueryResults);
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
