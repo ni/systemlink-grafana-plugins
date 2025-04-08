@@ -16,6 +16,7 @@ let descending: HTMLElement;
 let recordCount: HTMLElement;
 let dataOutput: HTMLElement;
 let totalCountOutput: HTMLElement;
+let resultsQueryType: HTMLElement;
 
 describe('QueryResultsEditor', () => {
   beforeEach(() => {
@@ -33,6 +34,7 @@ describe('QueryResultsEditor', () => {
     properties = screen.getAllByRole('combobox')[0];
     orderBy = screen.getAllByRole('combobox')[1];
     descending = screen.getAllByRole('checkbox')[0];
+    resultsQueryType = screen.getByRole('radio', { name: 'Results' });
     dataOutput = screen.getByRole('radio', { name: 'Data' });
     totalCountOutput = screen.getByRole('radio', { name: 'Total Count' });
     recordCount = screen.getByRole('textbox');
@@ -48,6 +50,8 @@ describe('QueryResultsEditor', () => {
     });
 
     test('renders with default query', async () => {
+      expect(resultsQueryType).toBeInTheDocument();
+      expect(resultsQueryType).toBeChecked();
       expect(properties).toBeInTheDocument();
       expect(properties).toHaveDisplayValue('');
       expect(dataOutput).toBeInTheDocument();

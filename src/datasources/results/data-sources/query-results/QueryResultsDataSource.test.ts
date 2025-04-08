@@ -51,7 +51,6 @@ describe('QueryResultsDataSource', () => {
     test('returns data for valid data-output-type query', async () => {
       const query = buildQuery({
         refId: 'A',
-        queryType: QueryType.Results,
         outputType: OutputType.Data
       });
 
@@ -64,7 +63,6 @@ describe('QueryResultsDataSource', () => {
     test('returns total count for valid total count output type queries', async () => {
       const query = buildQuery({
         refId: 'A',
-        queryType: QueryType.Results,
         outputType: OutputType.TotalCount
       });
 
@@ -101,7 +99,6 @@ describe('QueryResultsDataSource', () => {
         const query = buildQuery(
           {
             refId: 'A',
-            queryType: QueryType.Results,
             outputType: OutputType.Data
           },
         );
@@ -115,7 +112,6 @@ describe('QueryResultsDataSource', () => {
         const query = buildQuery(
           {
             refId: 'A',
-            queryType: QueryType.Results,
             outputType: OutputType.Data
           },
         );
@@ -139,7 +135,6 @@ describe('QueryResultsDataSource', () => {
         const query = buildQuery(
           {
             refId: 'A',
-            queryType: QueryType.Results,
             outputType: OutputType.Data,
             useTimeRange: true,
             useTimeRangeFor: selectedUseTimeRangeFor
@@ -171,7 +166,6 @@ describe('QueryResultsDataSource', () => {
         const query = buildQuery(
           {
             refId: 'A',
-            queryType: QueryType.Results,
             outputType: OutputType.Data,
             properties: [
               ResultsPropertiesOptions.PROPERTIES
@@ -190,6 +184,7 @@ describe('QueryResultsDataSource', () => {
 
   const buildQuery = getQueryBuilder<QueryResults>()({
     refId: 'A',
+    queryType: QueryType.Results,
     outputType: OutputType.Data
   });
 });
