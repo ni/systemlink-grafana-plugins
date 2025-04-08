@@ -18,7 +18,6 @@ const defaultProps: QueryEditorProps<ResultsDataSource, ResultsQuery> = {
   onRunQuery: jest.fn(),
   datasource: mockDatasource,
 };
-
 let dataOutput: HTMLElement;
 
 describe('ResultsQueryEditor', () => {
@@ -28,7 +27,6 @@ describe('ResultsQueryEditor', () => {
   });
 
   it('should render the controls with the default query values', () => {
-    expect(dataOutput).toBeInTheDocument();
     expect(dataOutput).toBeChecked();
   });
 });
