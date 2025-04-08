@@ -5,7 +5,7 @@ import { QueryType, ResultsQuery } from './types/types';
 import { QueryResultsDataSource } from './data-sources/query-results/QueryResultsDataSource';
 import { QueryResults } from './types/QueryResults.types';
 import { QuerySteps } from './types/QuerySteps.types';
-import { QueryStepsDataSource } from './data-sources/query-steps/QueryStepsDatasource';
+import { QueryStepsDataSource } from './data-sources/query-steps/QueryStepsDataSource';
 
 export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   public defaultQuery: Partial<ResultsQuery> & Omit<ResultsQuery, 'refId'>;

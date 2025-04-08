@@ -11,8 +11,7 @@ import {
 import { enumToOptions } from 'core/utils';
 import React from 'react';
 import { OutputType, UseTimeRangeFor } from 'datasources/results/types/types';
-import { OrderBy } from 'datasources/products/types';
-import { QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
+import { OrderBy, QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
 
 type Props = {
   query: QuerySteps;
@@ -20,6 +19,8 @@ type Props = {
 };
 
 export function QueryStepsEditor({ query, handleQueryChange }: Props) {
+  console.log('QueryStepsEditor', query);
+
   const onOutputChange = (value: OutputType) => {
     handleQueryChange({ ...query, outputType: value });
   };

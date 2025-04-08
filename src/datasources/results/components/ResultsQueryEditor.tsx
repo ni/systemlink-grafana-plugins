@@ -1,12 +1,13 @@
 import React, { useCallback } from 'react';
-import { QueryEditorProps } from '@grafana/data';
+import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { ResultsDataSource } from '../ResultsDataSource';
-import { ResultsQuery } from '../types/types';
+import { QueryType, ResultsQuery } from '../types/types';
 import { QueryResultsEditor } from './editors/query-results/QueryResultsEditor';
 import { QueryResults } from '../types/QueryResults.types';
 import { defaultResultsEditorValue, defaultStepsEditorValue } from '../defaults';
 import { QueryStepsEditor } from './editors/query-steps/QueryStepsEditor';
 import { QuerySteps } from '../types/QuerySteps.types';
+import { InlineField, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
 
 type Props = QueryEditorProps<ResultsDataSource, ResultsQuery>;
 
@@ -55,3 +56,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
     </VerticalGroup>
   );
 }
+
+const tooltips = {
+  queryType: 'Specifies the query type to fetch results or steps-related data'
+};
