@@ -8,15 +8,14 @@ export interface WorkOrdersQuery extends DataQuery {
   recordCount?: number;
   queryBy?: string;
 }
-
+export enum OutputType {
+  Data = 'Properties',
+  TotalCount = 'Total Count',
+}
 export interface WorkOrdersVariableQuery extends DataQuery {
   queryBy?: string;
 }
 
-export enum OutputType {
-  Summary = 'Work Orders Summary',
-  Data = 'List Work Orders',
-}
 
 export enum UseTimeRangeFor {
   Started = 'Started',

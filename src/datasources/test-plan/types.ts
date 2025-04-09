@@ -14,8 +14,8 @@ export interface TestPlansVariableQuery extends DataQuery {
 }
 
 export enum OutputType {
-  Summary = 'Work Orders Summary',
-  Data = 'List Work Orders',
+  Data = 'Properties',
+  TotalCount = 'Total Count',
 }
 
 export enum UseTimeRangeFor {
