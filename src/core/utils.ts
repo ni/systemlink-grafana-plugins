@@ -111,7 +111,7 @@ export function filterXSSLINQExpression(value: string | null | undefined): strin
     .replace(/ &lt;&gt; /g, " <> ");
 }
 
-export function checkIfNumber(event: React.KeyboardEvent<HTMLInputElement>) {
+export function validateNumericInput(event: React.KeyboardEvent<HTMLInputElement>) {
   if (isNaN(Number(event.key)) && !['Backspace', 'Tab', 'Delete', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
     event.preventDefault();
   }

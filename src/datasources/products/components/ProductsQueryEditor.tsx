@@ -8,7 +8,7 @@ import { Workspace } from 'core/types';
 import { ProductsQueryBuilder } from 'datasources/products/components/query-builder/ProductsQueryBuilder';
 import { FloatingError } from 'core/errors';
 import './ProductsQueryEditor.scss';
-import { checkIfNumber } from 'core/utils';
+import { validateNumericInput } from 'core/utils';
 
 type Props = QueryEditorProps<ProductsDataSource, ProductQuery>;
 
@@ -128,7 +128,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
                 defaultValue={query.recordCount}
                 onCommitChange={recordCountChange}
                 placeholder="Enter record count"
-                onKeyDown={(event) => {checkIfNumber(event)}}
+                onKeyDown={(event) => {validateNumericInput(event)}}
               />
             </InlineField>
           </div>

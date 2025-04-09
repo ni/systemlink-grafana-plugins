@@ -8,7 +8,7 @@ import {
   Select,
   VerticalGroup,
 } from '@grafana/ui';
-import { checkIfNumber, enumToOptions } from 'core/utils';
+import { enumToOptions } from 'core/utils';
 import { OrderBy, OutputType, ResultsProperties, ResultsQuery, UseTimeRangeFor } from 'datasources/results/types';
 import React from 'react';
 import './QueryResultsEditor.scss';
@@ -41,6 +41,12 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
     handleQueryChange({ ...query, recordCount: isNaN(value) ? undefined : value });
   };
+
+  function checkIfNumber(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (isNaN(Number(event.key)) && !['Backspace', 'Tab', 'Delete', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+      event.preventDefault();
+    }
+  }
 
   return (
     <>
