@@ -31,7 +31,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     projection?: StepsProperties[],
     take?: number,
     descending?: boolean,
-    showMeasurements?: boolean,
     returnCount = false
   ): Promise<QueryStepsResponse> {
     try {
@@ -41,7 +40,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         descending,
         projection,
         take,
-        showMeasurements,
         returnCount,
       });
     } catch (error) {
@@ -61,10 +59,14 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
+    const projection = query.showMeasurements
+    ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
+    : query.properties;
+
     const responseData = await this.querySteps(
       this.getTimeRangeFilter(query, options),
       query.orderBy,
-      query.properties,
+      projection as StepsProperties[],
       query.recordCount,
       query.descending,
       true
@@ -97,6 +99,36 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
             return { name: field, values, type: fieldType };
         }
       });
+
+      let measurementData = [];
+      if (query.showMeasurements) {
+        const measurementFields = ['Measurement Name', 'Measurement Value', 'Status', 'Unit', 'Low Limit', 'High Limit'];
+        measurementData = measurementFields.map(field => {
+          const values = stepsResponse.flatMap(data =>
+            data.data?.parameters?.map((param: any) => {
+              switch (field) {
+                case 'Measurement Name':
+                  return param.name || '';
+                case 'Measurement Value':
+                  return param.measurement || '';
+                case 'Status':
+                  return param.status || '';
+                case 'Unit':
+                  return param.units || '';
+                case 'Low Limit':
+                  return param.lowLimit || '';
+                case 'High Limit':
+                  return param.highLimit || '';
+                default:
+                  return '';
+              }
+            }) || []
+          );
+          return { name: field, values, type: FieldType.string };
+        });
+        fields.push(...measurementData.map(data => ({ ...data, name: data.name as StepsProperties })));
+      }
+
       return {
         refId: query.refId,
         fields: fields,
