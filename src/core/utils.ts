@@ -110,3 +110,9 @@ export function filterXSSLINQExpression(value: string | null | undefined): strin
     .replace(/ &amp;&amp; /g, " && ")
     .replace(/ &lt;&gt; /g, " <> ");
 }
+
+export function checkIfNumber(event: React.KeyboardEvent<HTMLInputElement>) {
+  if (isNaN(Number(event.key)) && !['Backspace', 'Tab', 'Delete', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+    event.preventDefault();
+  }
+}

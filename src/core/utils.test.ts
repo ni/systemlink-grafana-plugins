@@ -1,4 +1,4 @@
-import { enumToOptions, filterXSSField, filterXSSLINQExpression } from "./utils";
+import { checkIfNumber, enumToOptions, filterXSSField, filterXSSLINQExpression } from "./utils";
 
 test('enumToOptions', () => {
     enum fakeStringEnum {
@@ -45,5 +45,45 @@ describe("filterXSSField", () => {
         const result = filterXSSField({ value: 'test<script>alert("XSS value")</script>', label: 'test<script>alert("XSS label")</script>' });
 
         expect(result).toEqual({ value: 'test', label: 'test' });
+    });
+});
+
+describe('checkIfNumber', () => {
+    let mockPreventDefault: jest.Mock;
+  
+    beforeEach(() => {
+        mockPreventDefault = jest.fn();
+    });
+  
+    test('allows numeric keys', () => {
+      const event = { key: '5', preventDefault: mockPreventDefault } as unknown as React.KeyboardEvent<HTMLInputElement>;
+      
+      checkIfNumber(event);
+
+      expect(mockPreventDefault).not.toHaveBeenCalled();
+    });
+  
+    test('allows navigation keys', () => {
+        const event = { key: 'Tab', preventDefault: mockPreventDefault } as unknown as React.KeyboardEvent<HTMLInputElement>;
+        
+        checkIfNumber(event);
+
+        expect(mockPreventDefault).not.toHaveBeenCalled();
+    });
+  
+    test('prevents non-numeric keys', () => {
+        const event = { key: 'a', preventDefault: mockPreventDefault } as unknown as React.KeyboardEvent<HTMLInputElement>;
+        
+        checkIfNumber(event);
+
+        expect(mockPreventDefault).toHaveBeenCalled();
+    });
+  
+    test('prevents special characters except allowed ones', () => {
+        const event = { key: '@', preventDefault: mockPreventDefault } as unknown as React.KeyboardEvent<HTMLInputElement>;
+        
+        checkIfNumber(event);
+        
+        expect(mockPreventDefault).toHaveBeenCalled();
     });
 });

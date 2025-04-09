@@ -8,6 +8,7 @@ import { Workspace } from 'core/types';
 import { ProductsQueryBuilder } from 'datasources/products/components/query-builder/ProductsQueryBuilder';
 import { FloatingError } from 'core/errors';
 import './ProductsQueryEditor.scss';
+import { checkIfNumber } from 'core/utils';
 
 type Props = QueryEditorProps<ProductsDataSource, ProductQuery>;
 
@@ -68,11 +69,6 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
       handleQueryChange({ ...query, queryBy: value });
     }
   }
-
-  function checkIfNumber(event: React.KeyboardEvent<HTMLInputElement>) {
-    const regex = new RegExp(/(^-?\d*$)|(Backspace|Tab|Delete|ArrowLeft|ArrowRight)/);
-    return !event.key.match(regex) && event.preventDefault();
- }
 
   return (
     <>
