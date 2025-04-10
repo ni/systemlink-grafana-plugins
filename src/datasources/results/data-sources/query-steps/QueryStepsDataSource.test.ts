@@ -2,9 +2,8 @@ import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
 import { Field } from '@grafana/data';
-import { QuerySteps, QueryStepsResponse, ResultsProperties, ResultsPropertiesOptions, StepsProperties, StepsPropertiesOptions } from 'datasources/results/types/QuerySteps.types';
+import { QuerySteps, QueryStepsResponse, StepsProperties, StepsPropertiesOptions } from 'datasources/results/types/QuerySteps.types';
 import { OutputType, QueryType } from 'datasources/results/types/types';
-import { QueryStepsResponse } from 'datasources/results/types/QuerySteps.types';
 import { QueryStepsDataSource } from './QueryStepsDataSource';
 
 const mockQueryStepsResponse: QueryStepsResponse = {
@@ -157,9 +156,9 @@ describe('QueryStepsDataSource', () => {
 
     test('should handle null and undefined properties', async () => {
         backendServer.fetch
-          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results' }))
+          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps' }))
           .mockReturnValue(createFetchResponse({
-            results: [
+            steps: [
               {
                 id: '1',
                 properties: null
@@ -172,8 +171,8 @@ describe('QueryStepsDataSource', () => {
             refId: 'A',
             outputType: OutputType.Data,
             properties: [
-              ResultsPropertiesOptions.PROPERTIES
-            ] as ResultsProperties[],
+              StepsPropertiesOptions.PROPERTIES
+            ] as StepsProperties[],
             orderBy: undefined
           },
         );
