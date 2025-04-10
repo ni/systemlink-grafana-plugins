@@ -2,7 +2,13 @@ import { DataQuery } from '@grafana/schema';
 
 export interface TestPlansQuery extends DataQuery {
   queryBy?: string;
+  outputType: OutputType;
 
+}
+
+export enum OutputType {
+  Data = 'Data',
+  TotalCount = 'Total Count',
 }
 
 export interface QueryTestPlansResponse {

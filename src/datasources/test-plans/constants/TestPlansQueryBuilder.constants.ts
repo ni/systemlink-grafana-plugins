@@ -33,8 +33,8 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
                 { label: 'Defined', value: 'DEFINED' },
                 { label: 'Reviewed', value: 'REVIEWED' },
                 { label: 'Scheduled', value: 'SCHEDULED' },
-                { label: 'In Progress', value: 'IN_PROGRESS' },
-                { label: 'Pending Approval', value: 'PENDING_APPROVAL' },
+                { label: 'In Progress', value: 'InProgress' },
+                { label: 'Pending Approval', value: 'PendingApproval' },
                 { label: 'Closed', value: 'CLOSED' },
                 { label: 'Canceled', value: 'CANCELED' },
 
