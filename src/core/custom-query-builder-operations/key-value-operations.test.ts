@@ -1,5 +1,5 @@
 import { FilterOperations } from "core/query-builder.constants";
-import { editorTemplate, valueTemplate, handleStringValue, handleNumberValue, keyValueExpressionBuilderCallback, stringKeyValueExpressionReaderCallback, numericKeyValueExpressionReaderCallback } from "./keyValueOperations";
+import { editorTemplate, valueTemplate, handleStringValue, handleNumberValue, keyValueExpressionBuilderCallback, stringKeyValueExpressionReaderCallback, numericKeyValueExpressionReaderCallback } from "./key-value-operations";
 
 describe('keyValueOperations', () => {
     describe('editorTemplate', () => {
