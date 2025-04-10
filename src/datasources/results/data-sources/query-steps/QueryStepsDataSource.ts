@@ -4,7 +4,7 @@ import { ResultsDataSourceBase } from '../ResultsDataSourceBase';
 import { QuerySteps, QueryStepsResponse, StepsProperties, StepsPropertiesOptions, StepsResponseProperties } from 'datasources/results/types/QuerySteps.types';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
-  queryResultsUrl = this.baseUrl + '/v2/query-steps';
+  queryStepsUrl = this.baseUrl + '/v2/query-steps';
 
   defaultQuery = {
     queryType: QueryType.Steps,
@@ -12,13 +12,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     outputType: OutputType.Data,
     recordCount: 10000,
   };
-
-  private timeRange: { [key: string]: string } = {
-    Started: 'startedAt',
-    Updated: 'updatedAt',
-  };
-  private fromDateString = '${__from:date}';
-  private toDateString = '${__to:date}';
 
   async querySteps(
     filter?: string,
@@ -29,7 +22,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     returnCount = false
   ): Promise<QueryStepsResponse> {
     try {
-      return await this.post<QueryStepsResponse>(`${this.queryResultsUrl}`, {
+      return await this.post<QueryStepsResponse>(`${this.queryStepsUrl}`, {
         filter,
         orderBy,
         descending,
@@ -42,24 +35,13 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  private getTimeRangeFilter(query: QuerySteps, options: DataQueryRequest): string | undefined {
-    if (!query.useTimeRange || query.useTimeRangeFor === undefined) {
-      return undefined;
-    }
-
-    const timeRangeField = this.timeRange[query.useTimeRangeFor];
-    const timeRangeFilter = `(${timeRangeField} > "${this.fromDateString}" && ${timeRangeField} < "${this.toDateString}")`;
-
-    return this.templateSrv.replace(timeRangeFilter, options.scopedVars);
-  }
-
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
     const projection = query.showMeasurements
       ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
       : query.properties;
 
     const responseData = await this.querySteps(
-      this.getTimeRangeFilter(query, options),
+      this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
       query.orderBy,
       projection as StepsProperties[],
       query.recordCount,

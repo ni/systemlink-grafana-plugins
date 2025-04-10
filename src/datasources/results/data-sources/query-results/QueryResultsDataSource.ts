@@ -22,13 +22,6 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     recordCount: 1000,
   };
 
-  private timeRange: { [key: string]: string } = {
-    Started: 'startedAt',
-    Updated: 'updatedAt',
-  }
-  private fromDateString = '${__from:date}';
-  private toDateString = '${__to:date}';
-
   async queryResults(
     filter?: string,
     orderBy?: string,
@@ -51,20 +44,9 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  private getTimeRangeFilter(query: QueryResults, options: DataQueryRequest): string | undefined {
-    if (!query.useTimeRange || query.useTimeRangeFor === undefined) {
-      return undefined;
-    }
-
-    const timeRangeField = this.timeRange[query.useTimeRangeFor];
-    const timeRangeFilter = `(${timeRangeField} > "${this.fromDateString}" && ${timeRangeField} < "${this.toDateString}")`;
-
-    return this.templateSrv.replace(timeRangeFilter, options.scopedVars);
-  }
-
   async runQuery(query: QueryResults, options: DataQueryRequest): Promise<DataFrameDTO> {
     const responseData = await this.queryResults(
-      this.getTimeRangeFilter(query, options),
+      this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
       query.orderBy,
       query.properties,
       query.recordCount,

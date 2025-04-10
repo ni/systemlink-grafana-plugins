@@ -46,7 +46,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
   return (
     <>
       <VerticalGroup>
-        <InlineField label="Output" labelWidth={18} tooltip={tooltips.output}>
+        <InlineField label="Output" labelWidth={25} tooltip={tooltips.output}>
           <RadioButtonGroup
             options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
             value={query.outputType}
@@ -55,7 +55,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
         </InlineField>
         {query.outputType === OutputType.Data && (
           <VerticalGroup>
-            <InlineField label="Properties" labelWidth={18} tooltip={tooltips.properties}>
+            <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
               <MultiSelect
                 placeholder="Select properties to fetch"
                 options={enumToOptions(ResultsProperties)}
@@ -71,7 +71,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
             </InlineField>
             <div>
               <div className="horizontal-control-group">
-                <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
+                <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
                   <Select
                     options={OrderBy as SelectableValue[]}
                     placeholder="Select field to order by"
@@ -87,7 +87,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
                   />
                 </InlineField>
               </div>
-              <InlineField label="Take" labelWidth={18} tooltip={tooltips.recordCount}>
+              <InlineField label="Take" labelWidth={25} tooltip={tooltips.recordCount}>
                 <AutoSizeInput
                   minWidth={20}
                   maxWidth={40}
@@ -129,7 +129,7 @@ export function UseTimeRangeControls({ query, handleQueryChange }: Props) {
 
   return (
     <div className="horizontal-control-group">
-      <InlineField label="Use time range" tooltip={tooltips.useTimeRange} labelWidth={18}>
+      <InlineField label="Use time range" tooltip={tooltips.useTimeRange} labelWidth={25}>
         <InlineSwitch 
           onChange={event => onUseTimeRangeChecked(event.currentTarget.checked)} 
           value={query.useTimeRange}

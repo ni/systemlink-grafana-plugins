@@ -38,7 +38,7 @@ describe('ResultsQueryEditor', () => {
     expect(stepsQueryType).not.toBeChecked();
   });
 
-  test('calls handleQueryTypeChange when query type is changed', async () => {
+  test('calls onChange and runQuery when user make changes', async () => {
     userEvent.click(stepsQueryType);
 
     await waitFor(() => {

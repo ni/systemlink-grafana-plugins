@@ -1,10 +1,10 @@
 import { setupRenderer } from 'test/fixtures';
 import { ResultsDataSource } from '../../../ResultsDataSource';
 import { screen, waitFor } from '@testing-library/react';
+import { QueryType } from '../../../types/types';
 import { select } from 'react-select-event';
 import userEvent from '@testing-library/user-event';
 import { ResultsQueryEditor } from '../../ResultsQueryEditor';
-import { QueryType } from 'datasources/results/types/types';
 import { QueryResults } from 'datasources/results/types/QueryResults.types';
 
 const render = setupRenderer(ResultsQueryEditor, ResultsDataSource);
