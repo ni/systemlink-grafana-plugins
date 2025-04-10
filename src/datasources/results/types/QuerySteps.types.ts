@@ -12,21 +12,21 @@ export interface QuerySteps extends ResultsQuery {
 };
 
 export const OrderBy = [
-	{
-		value: 'NAME',
-		label: 'Step Name',
-		description: 'Name of the step',
-	},
-	{
-		value: 'STEP_TYPE',
-		label: 'Step Type',
-		description: 'Type of the step',
-	},
-	{
-		value: 'STEP_ID',
-		label: 'Step ID',
-		description: 'ID of the step',
-	},
+  {
+    value: 'NAME',
+    label: 'Step Name',
+    description: 'Name of the step',
+  },
+  {
+    value: 'STEP_TYPE',
+    label: 'Step Type',
+    description: 'Type of the step',
+  },
+  {
+    value: 'STEP_ID',
+    label: 'Step ID',
+    description: 'ID of the step',
+  },
   {
     value: 'PARENT_ID',
     label: 'Parent ID',
@@ -60,7 +60,7 @@ export const OrderBy = [
 ];
 
 export const StepsPropertiesOptions = {
-	STEP_ID: 'stepId',
+  STEP_ID: 'stepId',
   NAME: 'name',
   STEP_TYPE: 'stepType',
   PARENT_ID: 'parentId',
@@ -113,7 +113,7 @@ export interface StepData {
 };
 
 export interface StepsResponseProperties {
-	name?: string;
+  name?: string;
   stepType?: string;
   stepId?: string;
   parentId?: string;
@@ -132,8 +132,8 @@ export interface StepsResponseProperties {
 };
   
 export interface QueryStepsResponse {
-	steps: StepsResponseProperties[];
-	continuationToken?: string;
-	totalCount?: number;
+  steps: StepsResponseProperties[];
+  continuationToken?: string;
+  totalCount?: number;
 };
 
