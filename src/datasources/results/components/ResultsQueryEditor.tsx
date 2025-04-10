@@ -4,7 +4,7 @@ import { ResultsDataSource } from '../ResultsDataSource';
 import { QueryType, ResultsQuery } from '../types/types';
 import { QueryResultsEditor } from './editors/query-results/QueryResultsEditor';
 import { QueryResults } from '../types/QueryResults.types';
-import { defaultResultsEditorValue, defaultStepsEditorValue } from '../defaults';
+import { defaultResultsQuery, defaultStepsQuery } from '../defaults';
 import { QueryStepsEditor } from './editors/query-steps/QueryStepsEditor';
 import { QuerySteps } from '../types/QuerySteps.types';
 import { InlineField, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
@@ -26,10 +26,10 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
   const handleQueryTypeChange = useCallback((value: QueryType): void => {
     console.log('handleQueryTypeChange called with:', value);
     if (value === QueryType.Results) {
-      handleQueryChange({ ...query, queryType: QueryType.Results, ...defaultResultsEditorValue}, true);
+      handleQueryChange({ ...query, queryType: QueryType.Results, ...defaultResultsQuery}, true);
     }
     if (value === QueryType.Steps) {
-      handleQueryChange({ ...query, queryType: QueryType.Steps, ...defaultStepsEditorValue }, true);
+      handleQueryChange({ ...query, queryType: QueryType.Steps, ...defaultStepsQuery }, true);
     }
   }, [query, handleQueryChange]);
 

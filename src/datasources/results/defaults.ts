@@ -2,7 +2,7 @@ import { ResultsProperties, ResultsPropertiesOptions } from "./types/QueryResult
 import { StepsProperties } from "./types/QuerySteps.types";
 import { OutputType } from "./types/types";
 
-export const defaultResultsEditorValue = {
+export const defaultResultsQuery = {
   outputType: OutputType.Data,
   properties: [
     ResultsPropertiesOptions.PROGRAM_NAME,
@@ -21,7 +21,7 @@ export const defaultResultsEditorValue = {
   useTimeRangeFor: undefined
 };
 
-export const defaultStepsEditorValue = {
+export const defaultStepsQuery = {
   outputType: OutputType.Data,
   properties: [
     StepsProperties.name,
