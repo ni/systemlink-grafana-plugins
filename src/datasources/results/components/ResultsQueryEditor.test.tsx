@@ -1,10 +1,13 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { ResultsQueryEditor } from './ResultsQueryEditor';
 import { QueryEditorProps } from '@grafana/data';
 import { ResultsDataSource } from '../ResultsDataSource';
-import { OutputType, ResultsQuery } from '../types/types';
+import { QueryType, ResultsQuery } from '../types/types';
+import userEvent from '@testing-library/user-event';
 
+const mockOnChange = jest.fn();
+const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: ResultsQuery) => query),
 } as unknown as ResultsDataSource;
@@ -12,21 +15,35 @@ const mockDatasource = {
 const defaultProps: QueryEditorProps<ResultsDataSource, ResultsQuery> = {
   query: {
     refId: 'A',
-    outputType: OutputType.Data
+    queryType: QueryType.Results,
   },
-  onChange: jest.fn(),
-  onRunQuery: jest.fn(),
+  onChange: mockOnChange,
+  onRunQuery: mockOnRunQuery,
   datasource: mockDatasource,
 };
-let dataOutput: HTMLElement;
+let resultsQueryType: HTMLElement;
+let stepsQueryType: HTMLElement;
 
 describe('ResultsQueryEditor', () => {
   beforeEach(async () => {
     render(<ResultsQueryEditor {...defaultProps} />);
-    dataOutput = screen.getByRole('radio', { name: 'Data' });
+    resultsQueryType = screen.getByRole('radio', { name: QueryType.Results });
+    stepsQueryType = screen.getByRole('radio', { name: QueryType.Steps });
   });
 
-  it('should render the controls with the default query values', () => {
-    expect(dataOutput).toBeChecked();
+  test('renders query type radio buttons', () => {
+    expect(resultsQueryType).toBeInTheDocument();
+    expect(stepsQueryType).toBeInTheDocument();
+    expect(resultsQueryType).toBeChecked();
+    expect(stepsQueryType).not.toBeChecked();
+  });
+
+  test('calls handleQueryTypeChange when query type is changed', async () => {
+    userEvent.click(stepsQueryType);
+
+    await waitFor(() => {
+      expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ queryType: QueryType.Steps }));
+      expect(mockOnRunQuery).toHaveBeenCalled();
+    });
   });
 });

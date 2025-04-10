@@ -8,22 +8,17 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
   defaultQuery = {
     queryType: QueryType.Steps,
-    properties: [
-      StepsProperties.name,
-      StepsProperties.status,
-      StepsProperties.totalTimeInSeconds
-    ] as StepsProperties[],
+    properties: [StepsProperties.name, StepsProperties.status, StepsProperties.totalTimeInSeconds] as StepsProperties[],
     outputType: OutputType.Data,
-    recordCount: 1000
+    recordCount: 1000,
   };
 
   private timeRange: { [key: string]: string } = {
     Started: 'startedAt',
     Updated: 'updatedAt',
-  }
+  };
   private fromDateString = '${__from:date}';
   private toDateString = '${__to:date}';
-
 
   async querySteps(
     filter?: string,
@@ -60,8 +55,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
     const projection = query.showMeasurements
-    ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
-    : query.properties;
+      ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
+      : query.properties;
 
     const responseData = await this.querySteps(
       this.getTimeRangeFilter(query, options),
@@ -72,7 +67,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       true
     );
 
-    if(responseData.steps.length === 0) {
+    if (responseData.steps.length === 0) {
       return {
         refId: query.refId,
         fields: [],
@@ -81,54 +76,16 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
     if (query.outputType === OutputType.Data) {
       const stepsResponse = responseData.steps;
-      const selectedFields = query.properties?.filter((field: StepsProperties) => Object.keys(stepsResponse[0]).includes(field)) || [];
-      const fields = selectedFields.map(field => {
-        const isTimeField = field === StepsPropertiesOptions.UPDATED_AT || field === StepsPropertiesOptions.STARTED_AT;
-        const fieldType = isTimeField ? FieldType.time : FieldType.string;
-        const values = stepsResponse.map(data => data[field as unknown as keyof StepsResponseProperties]);
 
-        switch (field) {
-          case StepsPropertiesOptions.PROPERTIES:
-          case StepsPropertiesOptions.INPUTS:
-          case StepsPropertiesOptions.OUTPUTS:
-          case StepsPropertiesOptions.DATA:
-            return { name: field, values: values.map(value => value !== null ? JSON.stringify(value) : ''), type: fieldType };
-          case StepsPropertiesOptions.STATUS:
-            return { name: field, values: values.map((value: any) => value?.statusType), type: fieldType };
-          default:
-            return { name: field, values, type: fieldType };
-        }
-      });
+      const selectedFields = (query.properties || []).filter(field => Object.keys(stepsResponse[0]).includes(field));
 
-      let measurementData = [];
+      const fields = this.processFields(selectedFields, stepsResponse);
+
       if (query.showMeasurements) {
-        const measurementFields = ['Measurement Name', 'Measurement Value', 'Status', 'Unit', 'Low Limit', 'High Limit'];
-        measurementData = measurementFields.map(field => {
-          const values = stepsResponse.flatMap(data =>
-            data.data?.parameters?.map((param: any) => {
-              switch (field) {
-                case 'Measurement Name':
-                  return param.name || '';
-                case 'Measurement Value':
-                  return param.measurement || '';
-                case 'Status':
-                  return param.status || '';
-                case 'Unit':
-                  return param.units || '';
-                case 'Low Limit':
-                  return param.lowLimit || '';
-                case 'High Limit':
-                  return param.highLimit || '';
-                default:
-                  return '';
-              }
-            }) || []
-          );
-          return { name: field, values, type: FieldType.string };
-        });
-        fields.push(...measurementData.map(data => ({ ...data, name: data.name as StepsProperties })));
+        const measurementFields = this.processMeasurementData(stepsResponse);
+        fields.push(...measurementFields);
       }
-
+      
       return {
         refId: query.refId,
         fields: fields,
@@ -139,6 +96,55 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         fields: [{ name: 'Total count', values: [responseData.totalCount] }],
       };
     }
+  }
+
+  private processFields(selectedFields: StepsProperties[], stepsResponse: StepsResponseProperties[]): any[] {
+    return selectedFields.map(field => {
+      const isTimeField = field === StepsPropertiesOptions.UPDATED_AT || field === StepsPropertiesOptions.STARTED_AT;
+
+      const fieldType = isTimeField ? FieldType.time : FieldType.string;
+      const values = stepsResponse.map(data => data[field as keyof StepsResponseProperties]);
+
+      switch (field) {
+        case StepsPropertiesOptions.PROPERTIES:
+        case StepsPropertiesOptions.INPUTS:
+        case StepsPropertiesOptions.OUTPUTS:
+        case StepsPropertiesOptions.DATA:
+          return { name: field, values: values.map(value => (value !== null ? JSON.stringify(value) : '')), type: fieldType};
+        case StepsPropertiesOptions.STATUS:
+          return { name: field, values: values.map((value: any) => value?.statusType), type: fieldType };
+        default:
+          return { name: field, values, type: fieldType };
+      }
+    });
+  }
+
+  private processMeasurementData(stepsResponse: StepsResponseProperties[]): any[] {
+    const measurementFields = ['Measurement Name', 'Measurement Value', 'Status', 'Unit', 'Low Limit', 'High Limit'];
+    
+    const fieldToParameterProperty = {
+      'Measurement Name': 'name',
+      'Measurement Value': 'measurement',
+      'Status': 'status',
+      'Unit': 'units',
+      'Low Limit': 'lowLimit',
+      'High Limit': 'highLimit',
+    };
+    
+    return measurementFields.map(field => {
+      const values = stepsResponse.map(step => {
+        if (!step?.data?.parameters) {
+          return [];
+        }
+        return step.data.parameters.map(param => param[fieldToParameterProperty[field as keyof typeof fieldToParameterProperty]]);
+      });
+      
+      return {
+        name: field,
+        values: values,
+        type: FieldType.string
+      };
+    });
   }
 
   shouldRunQuery(_: QuerySteps): boolean {

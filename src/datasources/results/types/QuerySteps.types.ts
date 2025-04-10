@@ -125,7 +125,7 @@ export interface StepsResponseProperties {
   inputs?: InputOutputValues[];
   outputs?: InputOutputValues[];
   dataModel?: string;
-  data: StepData;
+  data?: StepData;
   workspace?: string;
   keywords?: string[];
   properties?: { [key: string]: string };

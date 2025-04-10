@@ -1,11 +1,11 @@
 import { setupRenderer } from 'test/fixtures';
 import { ResultsDataSource } from '../../../ResultsDataSource';
 import { screen, waitFor } from '@testing-library/react';
+import { QueryType } from '../../../types/types';
 import { select } from 'react-select-event';
 import userEvent from '@testing-library/user-event';
 import { ResultsQueryEditor } from '../../ResultsQueryEditor';
-import { QueryType, ResultsQuery } from 'datasources/results/types/types';
-import { QueryResults } from 'datasources/results/types/QueryResults.types';
+import { QuerySteps } from 'datasources/results/types/QuerySteps.types';
 
 const render = setupRenderer(ResultsQueryEditor, ResultsDataSource);
 
@@ -16,23 +16,26 @@ let descending: HTMLElement;
 let recordCount: HTMLElement;
 let dataOutput: HTMLElement;
 let totalCountOutput: HTMLElement;
+let showMeasurements: HTMLElement;
 
-describe('QueryResultsEditor', () => {
+describe('QueryStepsEditor', () => {
   beforeEach(() => {
     [onChange] = render({
       refId: '',
-      queryType: QueryType.Results,
+      queryType: QueryType.Steps,
       outputType: 'Data',
       properties: [],
       orderBy: undefined,
       descending: false,
       recordCount: 1000,
+      showMeasurements: false,
       useTimeRange: true,
       useTimeRangeFor: undefined,
-    } as QueryResults);
+    } as QuerySteps);
     properties = screen.getAllByRole('combobox')[0];
     orderBy = screen.getAllByRole('combobox')[1];
     descending = screen.getAllByRole('checkbox')[0];
+    showMeasurements = screen.getAllByRole('checkbox')[1];
     dataOutput = screen.getByRole('radio', { name: 'Data' });
     totalCountOutput = screen.getByRole('radio', { name: 'Total Count' });
     recordCount = screen.getByRole('textbox');
@@ -43,7 +46,7 @@ describe('QueryResultsEditor', () => {
     let useTimeRangeFor: HTMLElement;
 
     beforeEach(() => {
-      useTimeRange = screen.getAllByRole('checkbox')[1];
+      useTimeRange = screen.getAllByRole('checkbox')[2];
       useTimeRangeFor = screen.getAllByRole('combobox')[2];
     });
 
@@ -58,6 +61,8 @@ describe('QueryResultsEditor', () => {
       expect(descending).not.toBeChecked();
       expect(recordCount).toBeInTheDocument();
       expect(recordCount).toHaveValue('1000');
+      expect(showMeasurements).toBeInTheDocument();
+      expect(showMeasurements).not.toBeChecked();
       expect(useTimeRange).toBeInTheDocument();
       expect(useTimeRange).toBeChecked();
       expect(useTimeRangeFor).toBeInTheDocument();
@@ -88,6 +93,12 @@ describe('QueryResultsEditor', () => {
       await userEvent.type(recordCount, '500{Enter}');
       await waitFor(() => {
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: 500 }));
+      });
+
+      //User changes showMeasurements checkbox
+      await userEvent.click(showMeasurements);
+      await waitFor(() => {
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ showMeasurements: true }));
       });
 
       //User changes useTimeRange checkbox
@@ -122,6 +133,7 @@ describe('QueryResultsEditor', () => {
       expect(orderBy).not.toBeInTheDocument();
       expect(descending).not.toBeInTheDocument();
       expect(recordCount).not.toBeInTheDocument();
+      expect(showMeasurements).not.toBeInTheDocument();
       expect(screen.getAllByRole('checkbox')[0]).toBeInTheDocument(); //useTimeRange
       expect(screen.getAllByRole('combobox')[0]).toBeInTheDocument(); //useTimeRangeFor
     });
