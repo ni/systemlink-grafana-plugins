@@ -1,5 +1,5 @@
 import { FilterExpressions, FilterOperations } from "core/query-builder.constants";
-import { PropertyFieldKeyValuePair } from "datasources/products/types";
+import { PropertyFieldKeyValuePair } from "core/types";
 
 export function editorTemplate(_: string, value: PropertyFieldKeyValuePair): HTMLElement {
     const keyPlaceholder = `Key`;
