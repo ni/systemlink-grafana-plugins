@@ -125,6 +125,41 @@ describe('QueryStepsDataSource', () => {
         expect(fields).toMatchSnapshot();
     });
 
+    test('should convert measurements to Grafana fields', async () => {
+      const mockQueryStepsMeasurementResponse: QueryStepsResponse = {
+        steps: [
+          {
+            stepId: '1',
+            data: {
+              text: 'Step 1',
+              parameters: [
+                { name: 'Voltage', measurement: '3.7', status: 'Passed', units: 'V', lowLimit: '3.5', highLimit: '4.0', value: '' },
+                { name: 'Current', measurement: '1.2', status: 'Failed', units: 'A', lowLimit: '1.0', highLimit: '1.5', miscellaneous: 'Misc' },
+              ]
+            }
+          },
+        ],
+        totalCount: 1
+      };
+
+      backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
+      .mockReturnValue(createFetchResponse(mockQueryStepsMeasurementResponse));
+
+      const query = buildQuery(
+        {
+          refId: 'A',
+          outputType: OutputType.Data,
+          showMeasurements: true
+        },
+      );
+
+      const response = await datastore.query(query);
+
+      const fields = response.data[0].fields as Field[];
+      expect(fields).toMatchSnapshot();
+    });
+
     test('includes templateSrv replaced values in the filter', async () => {
       const timeRange = {
         Started: 'startedAt',

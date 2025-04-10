@@ -31,7 +31,7 @@ export const defaultStepsEditorValue = {
   orderBy: undefined,
   descending: false,
   showMeasurements: false,
-  recordCount: 1000,
+  recordCount: 10000,
   useTimeRange: false,
   useTimeRangeFor: undefined
 };

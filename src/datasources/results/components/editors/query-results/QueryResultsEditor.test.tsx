@@ -4,7 +4,7 @@ import { screen, waitFor } from '@testing-library/react';
 import { select } from 'react-select-event';
 import userEvent from '@testing-library/user-event';
 import { ResultsQueryEditor } from '../../ResultsQueryEditor';
-import { QueryType, ResultsQuery } from 'datasources/results/types/types';
+import { QueryType } from 'datasources/results/types/types';
 import { QueryResults } from 'datasources/results/types/QueryResults.types';
 
 const render = setupRenderer(ResultsQueryEditor, ResultsDataSource);

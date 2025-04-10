@@ -10,7 +10,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     queryType: QueryType.Steps,
     properties: [StepsProperties.name, StepsProperties.status, StepsProperties.totalTimeInSeconds] as StepsProperties[],
     outputType: OutputType.Data,
-    recordCount: 1000,
+    recordCount: 10000,
   };
 
   private timeRange: { [key: string]: string } = {

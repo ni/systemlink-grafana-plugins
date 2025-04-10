@@ -89,13 +89,13 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
                     value={query.descending}
                   />
                 </InlineField>
-                <InlineField label="Show Measurements" tooltip={tooltips.descending}>
-                  <InlineSwitch
-                    onChange={event => onShowMeasurementChange(event.currentTarget.checked)}
-                    value={query.showMeasurements}
-                  />
-                </InlineField>
               </div>
+              <InlineField label="Show Measurements" labelWidth={22} tooltip={tooltips.descending}>
+                <InlineSwitch
+                  onChange={event => onShowMeasurementChange(event.currentTarget.checked)}
+                  value={query.showMeasurements}
+                />
+              </InlineField>
               <InlineField label="Take" labelWidth={18} tooltip={tooltips.recordCount}>
                 <AutoSizeInput
                   minWidth={20}
