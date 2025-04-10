@@ -8,7 +8,7 @@ import {
   Select,
   VerticalGroup,
 } from '@grafana/ui';
-import { enumToOptions } from 'core/utils';
+import { enumToOptions, validateNumericInput } from 'core/utils';
 import { OrderBy, OutputType, ResultsProperties, ResultsQuery, UseTimeRangeFor } from 'datasources/results/types';
 import React from 'react';
 import './QueryResultsEditor.scss';
@@ -90,9 +90,11 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
                 <AutoSizeInput
                   minWidth={20}
                   maxWidth={40}
+                  type="number"
                   defaultValue={query.recordCount}
                   onCommitChange={recordCountChange}
                   placeholder="Enter record count"
+                  onKeyDown={(event) => {validateNumericInput(event)}}
                 />
               </InlineField>
               <UseTimeRangeControls
