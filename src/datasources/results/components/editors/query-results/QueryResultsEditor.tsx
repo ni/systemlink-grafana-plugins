@@ -42,12 +42,6 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
     handleQueryChange({ ...query, recordCount: isNaN(value) ? undefined : value });
   };
 
-  function checkIfNumber(event: React.KeyboardEvent<HTMLInputElement>) {
-  if (isNaN(Number(event.key)) && !['Backspace', 'Tab', 'Delete', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
-    event.preventDefault();
-  }
-}
-
   return (
     <>
       <VerticalGroup>
@@ -96,11 +90,9 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
                 <AutoSizeInput
                   minWidth={20}
                   maxWidth={40}
-                  type="number"
                   defaultValue={query.recordCount}
                   onCommitChange={recordCountChange}
                   placeholder="Enter record count"
-                  onKeyDown={(event) => {checkIfNumber(event)}}
                 />
               </InlineField>
               <UseTimeRangeControls
