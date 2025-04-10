@@ -79,7 +79,7 @@ describe('validateNumericInput', () => {
         expect(mockPreventDefault).toHaveBeenCalled();
     });
   
-    test('prevents special characters except allowed ones', () => {
+    test('prevents invalid special characters', () => {
         const event = { key: '@', preventDefault: mockPreventDefault } as unknown as React.KeyboardEvent<HTMLInputElement>;
         
         validateNumericInput(event);
