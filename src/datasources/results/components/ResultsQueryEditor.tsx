@@ -1,8 +1,9 @@
 import React, { useCallback } from 'react';
 import { QueryEditorProps } from '@grafana/data';
 import { ResultsDataSource } from '../ResultsDataSource';
-import { ResultsQuery } from '../types';
+import { ResultsQuery } from '../types/types';
 import { QueryResultsEditor } from './editors/query-results/QueryResultsEditor';
+import { QueryResults } from '../types/QueryResults.types';
 
 type Props = QueryEditorProps<ResultsDataSource, ResultsQuery>;
 
@@ -20,7 +21,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
 
   return (
     <QueryResultsEditor
-      query={query} 
+      query={query as QueryResults} 
       handleQueryChange={handleQueryChange}
     />
   );

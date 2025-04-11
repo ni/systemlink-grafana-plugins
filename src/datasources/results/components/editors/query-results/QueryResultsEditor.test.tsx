@@ -1,10 +1,11 @@
 import { setupRenderer } from 'test/fixtures';
 import { ResultsDataSource } from '../../../ResultsDataSource';
 import { screen, waitFor } from '@testing-library/react';
-import { ResultsQuery } from '../../../types';
+import { QueryType } from '../../../types/types';
 import { select } from 'react-select-event';
 import userEvent from '@testing-library/user-event';
 import { ResultsQueryEditor } from '../../ResultsQueryEditor';
+import { QueryResults } from 'datasources/results/types/QueryResults.types';
 
 const render = setupRenderer(ResultsQueryEditor, ResultsDataSource);
 
@@ -20,6 +21,7 @@ describe('QueryResultsEditor', () => {
   beforeEach(() => {
     [onChange] = render({
       refId: '',
+      queryType: QueryType.Results,
       outputType: 'Data',
       properties: [],
       orderBy: undefined,
@@ -27,7 +29,7 @@ describe('QueryResultsEditor', () => {
       recordCount: 1000,
       useTimeRange: true,
       useTimeRangeFor: undefined,
-    } as ResultsQuery);
+    } as QueryResults);
     properties = screen.getAllByRole('combobox')[0];
     orderBy = screen.getAllByRole('combobox')[1];
     descending = screen.getAllByRole('checkbox')[0];

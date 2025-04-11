@@ -9,13 +9,14 @@ import {
   VerticalGroup,
 } from '@grafana/ui';
 import { enumToOptions } from 'core/utils';
-import { OrderBy, OutputType, ResultsProperties, ResultsQuery, UseTimeRangeFor } from 'datasources/results/types';
 import React from 'react';
 import './QueryResultsEditor.scss';
+import { OrderBy, QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
+import { OutputType, UseTimeRangeFor } from 'datasources/results/types/types';
 
 type Props = {
-  query: ResultsQuery;
-  handleQueryChange: (query: ResultsQuery, runQuery?: boolean) => void;
+  query: QueryResults;
+  handleQueryChange: (query: QueryResults, runQuery?: boolean) => void;
 };
 
 export function QueryResultsEditor({ query, handleQueryChange }: Props) {
