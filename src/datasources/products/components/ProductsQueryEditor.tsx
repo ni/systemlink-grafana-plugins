@@ -8,6 +8,7 @@ import { Workspace } from 'core/types';
 import { ProductsQueryBuilder } from 'datasources/products/components/query-builder/ProductsQueryBuilder';
 import { FloatingError } from 'core/errors';
 import './ProductsQueryEditor.scss';
+import { validateNumericInput } from 'core/utils';
 
 type Props = QueryEditorProps<ProductsDataSource, ProductQuery>;
 
@@ -69,11 +70,6 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
     }
   }
 
-  function checkIfNumber(event: React.KeyboardEvent<HTMLInputElement>) {
-    const regex = new RegExp(/(^-?\d*$)|(Backspace|Tab|Delete|ArrowLeft|ArrowRight)/);
-    return !event.key.match(regex) && event.preventDefault();
- }
-
   return (
     <>
       <HorizontalGroup align="flex-start">
@@ -132,7 +128,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
                 defaultValue={query.recordCount}
                 onCommitChange={recordCountChange}
                 placeholder="Enter record count"
-                onKeyDown={(event) => {checkIfNumber(event)}}
+                onKeyDown={(event) => {validateNumericInput(event)}}
               />
             </InlineField>
           </div>

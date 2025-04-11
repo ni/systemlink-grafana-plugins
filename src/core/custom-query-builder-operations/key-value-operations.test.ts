@@ -1,7 +1,7 @@
 import { FilterOperations } from "core/query-builder.constants";
-import { editorTemplate, valueTemplate, handleStringValue, handleNumberValue, keyValueExpressionBuilderCallback, stringKeyValueExpressionReaderCallback, numericKeyValueExpressionReaderCallback } from "./keyValueOperationUtils";
+import { editorTemplate, valueTemplate, handleStringValue, handleNumberValue, keyValueExpressionBuilderCallback, stringKeyValueExpressionReaderCallback, numericKeyValueExpressionReaderCallback } from "./key-value-operations";
 
-describe('keyValueOperationTemplate', () => {
+describe('keyValueOperations', () => {
     describe('editorTemplate', () => {
         it('should create an editor template with given key and value', () => {
             const value = { key: 'testKey', value: 'testValue' };
