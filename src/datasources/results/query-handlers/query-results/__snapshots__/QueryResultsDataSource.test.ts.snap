@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ResultsDataSource query returns data for valid data-output-type query 1`] = `
+exports[`QueryResultsDataSource query returns data for valid data-output-type query 1`] = `
 [
   {
     "fields": [
@@ -17,9 +17,9 @@ exports[`ResultsDataSource query returns data for valid data-output-type query 1
 ]
 `;
 
-exports[`ResultsDataSource query returns no data when QueryResults API returns empty array 1`] = `[]`;
+exports[`QueryResultsDataSource query returns no data when QueryResults API returns empty array 1`] = `[]`;
 
-exports[`ResultsDataSource query returns total count for valid total count output type queries 1`] = `
+exports[`QueryResultsDataSource query returns total count for valid total count output type queries 1`] = `
 [
   {
     "fields": [
@@ -35,7 +35,7 @@ exports[`ResultsDataSource query returns total count for valid total count outpu
 ]
 `;
 
-exports[`ResultsDataSource query should convert properties to Grafana fields 1`] = `
+exports[`QueryResultsDataSource query should convert properties to Grafana fields 1`] = `
 [
   {
     "name": "programName",
@@ -47,7 +47,7 @@ exports[`ResultsDataSource query should convert properties to Grafana fields 1`]
 ]
 `;
 
-exports[`ResultsDataSource queryResults returns data when there are valid queries 1`] = `
+exports[`QueryResultsDataSource queryResults returns data when there are valid queries 1`] = `
 {
   "results": [
     {
