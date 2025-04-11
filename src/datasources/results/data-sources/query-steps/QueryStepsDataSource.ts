@@ -1,7 +1,7 @@
 import { DataQueryRequest, DataFrameDTO, FieldType } from '@grafana/data';
 import { OutputType, QueryType } from 'datasources/results/types/types';
-import { ResultsDataSourceBase } from '../ResultsDataSourceBase';
 import { QuerySteps, QueryStepsResponse, StepsProperties, StepsPropertiesOptions, StepsResponseProperties } from 'datasources/results/types/QuerySteps.types';
+import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';

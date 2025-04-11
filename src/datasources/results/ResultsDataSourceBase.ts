@@ -1,6 +1,6 @@
 import { DataSourceBase } from "core/DataSourceBase";
-import { ResultsQuery } from "../types/types";
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse } from "@grafana/data";
+import { ResultsQuery } from "./types/types";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
   baseUrl = this.instanceSettings.url + '/nitestmonitor';

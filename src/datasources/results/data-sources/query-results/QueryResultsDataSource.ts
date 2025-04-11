@@ -1,7 +1,7 @@
-import { OutputType, QueryType } from "datasources/results/types/types";
-import { ResultsDataSourceBase } from "../ResultsDataSourceBase";
-import { DataQueryRequest, DataFrameDTO, FieldType } from "@grafana/data";
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties } from "datasources/results/types/QueryResults.types";
+import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase";
+import { DataQueryRequest, DataFrameDTO, FieldType } from "@grafana/data";
+import { OutputType, QueryType } from "datasources/results/types/types";
 
 export class QueryResultsDataSource extends ResultsDataSourceBase {
   queryResultsUrl = this.baseUrl + '/v2/query-results';
