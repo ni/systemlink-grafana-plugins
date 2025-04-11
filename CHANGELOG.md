@@ -1,3 +1,9 @@
+## [3.49.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.48.1...v3.49.0) (2025-04-11)
+
+### Features
+
+* **results:** Create base datasource for results ([#136](https://github.com/ni/systemlink-grafana-plugins/issues/136)) ([578d378](https://github.com/ni/systemlink-grafana-plugins/commit/578d378f92802e1f0b6dfdbab47eb5d5c5b99951))
+
 ## [3.48.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.48.0...v3.48.1) (2025-02-28)
 
 ### Bug Fixes
