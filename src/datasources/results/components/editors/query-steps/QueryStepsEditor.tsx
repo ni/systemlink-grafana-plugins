@@ -8,7 +8,7 @@ import {
   Select,
   VerticalGroup,
 } from '@grafana/ui';
-import { enumToOptions } from 'core/utils';
+import { enumToOptions, validateNumericInput } from 'core/utils';
 import React from 'react';
 import { OutputType, UseTimeRangeFor } from 'datasources/results/types/types';
 import { OrderBy, QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
@@ -100,9 +100,11 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
                 <AutoSizeInput
                   minWidth={20}
                   maxWidth={40}
+                  type="number"
                   defaultValue={query.recordCount}
                   onCommitChange={recordCountChange}
                   placeholder="Enter record count"
+                  onKeyDown={(event) => {validateNumericInput(event)}}
                 />
               </InlineField>
               <UseTimeRangeControls
@@ -161,8 +163,8 @@ const tooltips = {
   output: 'Select the output type for the query',
   properties: 'Select the properties fields to query',
   recordCount: 'Enter the number of records to query',
-  orderBy: 'Select the field to order the results by',
-  descending: 'Select to order the results in descending order',
+  orderBy: 'Select the field to order the steps by',
+  descending: 'Select to order the steps in descending order',
   useTimeRange: 'Select to query using the dashboard time range for the selected field',
   useTimeRangeFor: 'Select the field to apply the dashboard time range',
 };
