@@ -29,7 +29,7 @@ export const defaultStepsQuery = {
     StepsProperties.totalTimeInSeconds
   ] as StepsProperties[],
   orderBy: undefined,
-  descending: false,
+  descending: undefined,
   showMeasurements: false,
   recordCount: 10000,
   useTimeRange: false,

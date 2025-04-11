@@ -108,8 +108,8 @@ export interface InputOutputValues {
 };
 
 export interface StepData {
-  text: string;
-  parameters: Array<{ [key: string]: string }>;
+  text?: string;
+  parameters?: Array<{ [key: string]: string }>;
 };
 
 export interface StepsResponseProperties {
