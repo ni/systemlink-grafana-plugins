@@ -9,11 +9,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   public defaultQuery: Partial<ResultsQuery> & Omit<ResultsQuery, 'refId'>;
 
   private queryResultsDataSource: QueryResultsDataSource;
-  
-  public defaultQuery: Partial<ResultsQuery> & Omit<ResultsQuery, 'refId'>;
 
-  private queryResultsDataSource: QueryResultsDataSource;
-  
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
@@ -27,11 +23,11 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
 
   async runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    return this.queryResultsDataSource.runQuery(query as ResultsQuery, options);
+    return this.queryResultsDataSource.runQuery(query as QueryResults, options);
   }
 
   shouldRunQuery(query: ResultsQuery): boolean {
-    return this.queryResultsDataSource.shouldRunQuery(query as ResultsQuery);
+    return this.queryResultsDataSource.shouldRunQuery(query as QueryResults);
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

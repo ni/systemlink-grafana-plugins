@@ -1,9 +1,10 @@
 import { MockProxy } from 'jest-mock-extended';
-import { OutputType, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsQuery } from '../../types';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
 import { Field } from '@grafana/data';
 import { QueryResultsDataSource } from './QueryResultsDataSource';
+import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions } from 'datasources/results/types/QueryResults.types';
+import { OutputType, QueryType } from 'datasources/results/types/types';
 
 const mockQueryResultsResponse: QueryResultsResponse = {
   results: [
@@ -130,7 +131,6 @@ describe('QueryResultsDataSource', () => {
       const filter = `(${timeRange[selectedUseTimeRangeFor]} > "\${__from:date}" && ${timeRange[selectedUseTimeRangeFor]} < "\${__to:date}")`;
       const replacedFilter = `(${timeRange[selectedUseTimeRangeFor]} > "2025-04-01" && ${timeRange[selectedUseTimeRangeFor]} < "2025-04-02")`;
       templateSrv.replace.calledWith().mockReturnValue(replacedFilter);
-    
         const query = buildQuery(
           {
             refId: 'A',
@@ -181,8 +181,9 @@ describe('QueryResultsDataSource', () => {
     });
   });
 
-  const buildQuery = getQueryBuilder<ResultsQuery>()({
+  const buildQuery = getQueryBuilder<QueryResults>()({
     refId: 'A',
+    queryType: QueryType.Results,
     outputType: OutputType.Data
   });
 });
