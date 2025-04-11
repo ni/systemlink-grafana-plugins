@@ -39,3 +39,8 @@ export interface QueryBuilderOption {
   label: string;
   value: string;
 }
+
+export interface PropertyFieldKeyValuePair {
+  key: string;
+  value: string | number;
+};

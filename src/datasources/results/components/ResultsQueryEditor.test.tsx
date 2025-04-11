@@ -3,7 +3,8 @@ import { render, screen } from '@testing-library/react';
 import { ResultsQueryEditor } from './ResultsQueryEditor';
 import { QueryEditorProps } from '@grafana/data';
 import { ResultsDataSource } from '../ResultsDataSource';
-import { OutputType, ResultsQuery } from '../types';
+import { OutputType, ResultsQuery } from '../types/types';
+import { QueryResults } from '../types/QueryResults.types';
 
 const mockDatasource = {
   prepareQuery: jest.fn((query: ResultsQuery) => query),
@@ -13,7 +14,7 @@ const defaultProps: QueryEditorProps<ResultsDataSource, ResultsQuery> = {
   query: {
     refId: 'A',
     outputType: OutputType.Data
-  },
+  } as QueryResults,
   onChange: jest.fn(),
   onRunQuery: jest.fn(),
   datasource: mockDatasource,

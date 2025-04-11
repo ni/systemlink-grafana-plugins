@@ -1,6 +1,6 @@
-import { DataQuery } from '@grafana/schema';
+import { OutputType, ResultsQuery } from './types';
 
-export interface ResultsQuery extends DataQuery {
+export interface QueryResults extends ResultsQuery {
   outputType: OutputType;
   properties?: ResultsProperties[];
   orderBy?: string;
@@ -8,16 +8,6 @@ export interface ResultsQuery extends DataQuery {
   useTimeRange?: boolean;
   useTimeRangeFor?: string;
   recordCount?: number;
-}
-
-export enum OutputType {
-  Data = 'Data',
-  TotalCount = 'Total Count',
-}
-
-export enum UseTimeRangeFor {
-  Started = 'Started',
-  Updated = 'Updated',
 }
 
 export const OrderBy = [
@@ -61,7 +51,7 @@ export const OrderBy = [
     label: 'Serial Number',
     description: 'Serial Number of the result',
   },
-   {
+  {
     value: 'PART_NUMBER',
     label: 'Part Number',
     description: 'Part Number of the product associated with result',
@@ -70,7 +60,7 @@ export const OrderBy = [
     value: 'TOTAL_TIME_IN_SECONDS ',
     label: 'Total Time In Seconds',
     description: 'Total time taken to run the result in seconds',
-  }
+  },
 ];
 
 export const ResultsPropertiesOptions = {
@@ -91,8 +81,7 @@ export const ResultsPropertiesOptions = {
   PROPERTIES: 'properties',
   STATUS_TYPE_SUMMARY: 'statusTypeSummary',
   WORKSPACE: 'workspace',
-}
-
+};
 
 export enum ResultsProperties {
   id = 'id',
