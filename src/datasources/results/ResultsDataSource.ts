@@ -29,8 +29,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   async runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     if(query.queryType === QueryType.Results) {
       return this.queryResultsDataSource.runQuery(query as QueryResults, options);
-    }
-    if(query.queryType === QueryType.Steps) {
+    } else if(query.queryType === QueryType.Steps) {
       return this.queryStepsDataSource.runQuery(query as QuerySteps, options);
     }
     throw new Error('Invalid query type');
@@ -39,8 +38,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   shouldRunQuery(query: ResultsQuery): boolean {
     if(query.queryType === QueryType.Results) {
       return this.queryResultsDataSource.shouldRunQuery(query as QueryResults);
-    }
-    if(query.queryType === QueryType.Steps) {
+    } else if(query.queryType === QueryType.Steps) {
       return this.queryStepsDataSource.shouldRunQuery(query as QuerySteps);
     }
     return false;

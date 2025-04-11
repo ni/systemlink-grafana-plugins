@@ -9,7 +9,11 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   defaultQuery = {
     queryType: QueryType.Steps,
     outputType: OutputType.Data,
-    properties: [StepsProperties.name, StepsProperties.status, StepsProperties.totalTimeInSeconds] as StepsProperties[],
+    properties: [
+      StepsProperties.name, 
+      StepsProperties.status, 
+      StepsProperties.totalTimeInSeconds
+    ] as StepsProperties[],
     recordCount: 10000,
   };
 
