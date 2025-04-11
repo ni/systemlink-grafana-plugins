@@ -35,7 +35,7 @@ describe('QueryResultsEditor', () => {
     descending = screen.getAllByRole('checkbox')[0];
     dataOutput = screen.getByRole('radio', { name: 'Data' });
     totalCountOutput = screen.getByRole('radio', { name: 'Total Count' });
-    recordCount = screen.getByRole('textbox');
+    recordCount = screen.getByDisplayValue(1000);
   });
 
   describe('Data outputType', () => {
@@ -57,7 +57,7 @@ describe('QueryResultsEditor', () => {
       expect(descending).toBeInTheDocument();
       expect(descending).not.toBeChecked();
       expect(recordCount).toBeInTheDocument();
-      expect(recordCount).toHaveValue('1000');
+      expect(recordCount).toHaveValue(1000);
       expect(useTimeRange).toBeInTheDocument();
       expect(useTimeRange).toBeChecked();
       expect(useTimeRangeFor).toBeInTheDocument();
@@ -83,11 +83,18 @@ describe('QueryResultsEditor', () => {
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ descending: true }));
       });
 
-      //User changes record count
+      //User enters numeric value for record count
       await userEvent.clear(recordCount);
-      await userEvent.type(recordCount, '500{Enter}');
+      await userEvent.type(recordCount, '500');
       await waitFor(() => {
-        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: 500 }));
+        expect(recordCount).toHaveValue(500);
+      });
+
+      //User enters non-numeric value for record count
+      await userEvent.clear(recordCount);
+      await userEvent.type(recordCount, 'Test');
+      await waitFor(() => {
+        expect(recordCount).toHaveValue(null);
       });
 
       //User changes useTimeRange checkbox
