@@ -1,5 +1,5 @@
 import { OutputType, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsQuery, ResultsResponseProperties } from "datasources/results/types";
-import { ResultsDataSourceBase } from "../ResultsDataSourceBase";
+import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase";
 import { DataQueryRequest, DataFrameDTO, FieldType } from "@grafana/data";
 
 export class QueryResultsDataSource extends ResultsDataSourceBase {

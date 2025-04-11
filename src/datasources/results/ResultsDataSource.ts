@@ -2,7 +2,7 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TestDataSou
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { ResultsQuery } from './types';
-import { QueryResultsDataSource } from './data-sources/query-results/QueryResultsDataSource';
+import { QueryResultsDataSource } from './query-handlers/query-results/QueryResultsDataSource';
 
 export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   public defaultQuery: Partial<ResultsQuery> & Omit<ResultsQuery, 'refId'>;

@@ -1,5 +1,5 @@
 import { DataSourceBase } from "core/DataSourceBase";
-import { ResultsQuery } from "../types";
+import { ResultsQuery } from "./types";
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse } from "@grafana/data";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
