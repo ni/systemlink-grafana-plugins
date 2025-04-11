@@ -8,25 +8,24 @@ import {
   Select,
   VerticalGroup,
 } from '@grafana/ui';
-import { enumToOptions } from 'core/utils';
+import { enumToOptions, validateNumericInput } from 'core/utils';
 import React from 'react';
-import './QueryResultsEditor.scss';
-import { OrderBy, QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
 import { OutputType, UseTimeRangeFor } from 'datasources/results/types/types';
+import { OrderBy, QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
 
 type Props = {
-  query: QueryResults;
-  handleQueryChange: (query: QueryResults, runQuery?: boolean) => void;
+  query: QuerySteps;
+  handleQueryChange: (query: QuerySteps, runQuery?: boolean) => void;
 };
 
-export function QueryResultsEditor({ query, handleQueryChange }: Props) {
+export function QueryStepsEditor({ query, handleQueryChange }: Props) {
   const onOutputChange = (value: OutputType) => {
     handleQueryChange({ ...query, outputType: value });
   };
 
   const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
     if (items !== undefined) {
-      handleQueryChange({ ...query, properties: items.map(i => i.value as ResultsProperties) });
+      handleQueryChange({ ...query, properties: items.map(i => i.value as StepsProperties) });
     }
   };
 
@@ -38,9 +37,13 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
     handleQueryChange({ ...query, descending: isDescendingChecked });
   };
 
+  const onShowMeasurementChange = (isShowMeasurementChecked: boolean) => {
+    handleQueryChange({ ...query, showMeasurements: isShowMeasurementChecked });
+  };
+
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    handleQueryChange({ ...query, recordCount: isNaN(value) ? undefined : value });
+    handleQueryChange({ ...query, recordCount: value });
   };
 
   return (
@@ -58,7 +61,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
             <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
               <MultiSelect
                 placeholder="Select properties to fetch"
-                options={enumToOptions(ResultsProperties)}
+                options={enumToOptions(StepsProperties)}
                 onChange={onPropertiesChange}
                 value={query.properties}
                 defaultValue={query.properties!}
@@ -87,13 +90,21 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
                   />
                 </InlineField>
               </div>
+              <InlineField label="Show Measurements" labelWidth={25} tooltip={tooltips.descending}>
+                <InlineSwitch
+                  onChange={event => onShowMeasurementChange(event.currentTarget.checked)}
+                  value={query.showMeasurements}
+                />
+              </InlineField>
               <InlineField label="Take" labelWidth={25} tooltip={tooltips.recordCount}>
                 <AutoSizeInput
                   minWidth={20}
                   maxWidth={40}
+                  type="number"
                   defaultValue={query.recordCount}
                   onCommitChange={recordCountChange}
                   placeholder="Enter record count"
+                  onKeyDown={(event) => {validateNumericInput(event)}}
                 />
               </InlineField>
               <UseTimeRangeControls
@@ -152,8 +163,8 @@ const tooltips = {
   output: 'Select the output type for the query',
   properties: 'Select the properties fields to query',
   recordCount: 'Enter the number of records to query',
-  orderBy: 'Select the field to order the results by',
-  descending: 'Select to order the results in descending order',
+  orderBy: 'Select the field to order the steps by',
+  descending: 'Select to order the steps in descending order',
   useTimeRange: 'Select to query using the dashboard time range for the selected field',
   useTimeRangeFor: 'Select the field to apply the dashboard time range',
 };
