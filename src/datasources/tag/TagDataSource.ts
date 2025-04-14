@@ -24,6 +24,16 @@ import { Throw, getWorkspaceName } from 'core/utils';
 import { expandMultipleValueVariable } from "./utils";
 
 export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions> {
+  public defaultQuery: Omit<TagQuery, 'refId'> = {
+    type: TagQueryType.Current,
+    path: '',
+    workspace: '',
+    properties: false,
+  };
+
+  private readonly tagUrl = this.instanceSettings.url + '/nitag/v2';
+  private readonly tagHistoryUrl = this.instanceSettings.url + '/nitaghistorian/v2/tags';
+
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<TagDataSourceOptions>,
     readonly backendSrv: BackendSrv = getBackendSrv(),
@@ -32,131 +42,131 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
     super(instanceSettings, backendSrv, templateSrv);
   }
 
-  tagUrl = this.instanceSettings.url + '/nitag/v2';
-  tagHistoryUrl = this.instanceSettings.url + '/nitaghistorian/v2/tags';
-  parseMultiSelectEnabled = this.instanceSettings.jsonData?.featureToggles?.parseMultiSelectValues ?? false;
-
-  defaultQuery: Omit<TagQuery, 'refId'> = {
-    type: TagQueryType.Current,
-    path: '',
-    workspace: '',
-    properties: false,
-  };
-
   async runQuery(query: TagQuery, { range, maxDataPoints, scopedVars }: DataQueryRequest): Promise<DataFrameDTO> {
-    let tagsWithValues: TagWithValue[] = []
-    if (this.parseMultiSelectEnabled) {
-      let paths: string[] = this.generatePathsFromTemplate(query);
-      tagsWithValues = await this.getMostRecentTagsByMultiplePaths(
-        paths,
-        this.templateSrv.replace(query.workspace, scopedVars)
-      );
-    } else {
-      tagsWithValues = await this.getMostRecentTagsBySinglePath(
-        this.templateSrv.replace(query.path, scopedVars),
-        this.templateSrv.replace(query.workspace, scopedVars)
-      );
-    }
+    const tagsWithValues = await this.getMostRecentTagsByMultiplePaths(
+      this.generatePathsFromTemplate(query),
+      this.templateSrv.replace(query.workspace, scopedVars)
+    );
 
     const workspaces = await this.getWorkspaces();
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
 
     if (query.type === TagQueryType.Current) {
-      const allPossibleProps = this.getAllProperties(tagsWithValues);
-      result.fields = [
-        {
-          name: 'name',
-          values: tagsWithValues.map((tag: TagWithValue) => tag.tag.properties?.displayName || tag.tag.path)
-        },
-        {
-          name: 'value',
-          values: tagsWithValues.map((tag: TagWithValue) => this.convertTagValue(tag.tag.type ?? tag.tag.datatype, tag.current?.value.value)),
-        },
-        {
-          name: 'updated',
-          values: tagsWithValues.map((tag: TagWithValue) => tag.current?.timestamp),
-          type: FieldType.time,
-          config: { unit: 'dateTimeFromNow' }
-        }
-      ]
-      if (query.properties) {
-        allPossibleProps.forEach((prop) => {
-          result.fields.push(
-            {
-              name: prop,
-              values: tagsWithValues.map((tag: TagWithValue) => tag.tag.properties && tag.tag.properties[prop] ? tag.tag.properties[prop] : '')
-            }
-          );
-        });
-      }
-
-      return result
+      return this.handleCurrentQuery(query.properties, tagsWithValues, result);
     } else {
-      const workspaceTagMap: Record<string, TagWithValue[]> = {};
-      const tagPropertiesMap: Record<string, Record<string, string> | null> = {};
-
-      // Identify tags that exist in more than one workspace
-      const tagPathCount: Record<string, number> = {};
-      for (const tagWithValue of tagsWithValues) {
-        tagPathCount[tagWithValue.tag.path] = (tagPathCount[tagWithValue.tag.path] || 0) + 1;
-      }
-
-      for (const tagWithValue of tagsWithValues) {
-        const workspace = tagWithValue.tag.workspace ?? tagWithValue.tag.workspace_id;
-        if (!workspaceTagMap[workspace]) {
-          workspaceTagMap[workspace] = [];
-        }
-        workspaceTagMap[workspace].push(tagWithValue);
-        const prefixedPath = tagPathCount[tagWithValue.tag.path] > 1
-          ? `${getWorkspaceName(workspaces, workspace)}.${tagWithValue.tag.path}`
-          : tagWithValue.tag.path;
-        tagPropertiesMap[prefixedPath] = tagWithValue.tag.properties;
-      }
-
-      let tagsDecimatedHistory: { [key: string]: TypeAndValues } = {};
-      for (const workspace in workspaceTagMap) {
-        const tagHistoryResponse = await this.getTagHistoryWithChunks(
-          workspaceTagMap[workspace],
-          workspace,
-          range,
-          maxDataPoints
-        )
-        for (const path in tagHistoryResponse.results) {
-          const prefixedPath = tagPathCount[path] > 1
-            ? `${getWorkspaceName(workspaces, workspace)}.${path}`
-            : path;
-          tagsDecimatedHistory[prefixedPath] = tagHistoryResponse.results[path];
-        }
-      }
-
-      const mergedTagValuesWithType = this.mergeTagsHistoryValues(tagsDecimatedHistory);
-      result.fields.push({
-        name: 'time', values: mergedTagValuesWithType.timestamps.map(v => dateTime(v).valueOf()), type: FieldType.time
-      });
-
-      for (const path in mergedTagValuesWithType.values) {
-        const config: FieldConfig = {};
-        const tagProps = tagPropertiesMap[path]
-        if (tagProps?.units) {
-          config.unit = tagProps.units
-        }
-        if (tagProps?.displayName) {
-          config.displayName = tagProps.displayName
-          config.displayNameFromDS = tagProps.displayName
-        }
-        result.fields.push({
-          name: path,
-          values: mergedTagValuesWithType.values[path].values.map((value) => {
-            return this.convertTagValue(mergedTagValuesWithType.values[path].type, value)
-          }),
-          config
-        });
-      }
-
-      return result
+      return this.handleHistoricalQuery(tagsWithValues, workspaces, range, maxDataPoints, result);
     }
   }
 
+  private handleCurrentQuery(queryProperties: boolean, tagsWithValues: TagWithValue[], result: DataFrameDTO): DataFrameDTO {
+    const allPossibleProps = this.getAllProperties(tagsWithValues);
+    result.fields = [
+      {
+        name: 'name',
+        values: tagsWithValues.map(({ tag }: TagWithValue) => tag.properties?.displayName || tag.path)
+      },
+      {
+        name: 'value',
+        values: tagsWithValues.map(({ tag, current }: TagWithValue) => this.convertTagValue(tag.type ?? tag.datatype, current?.value.value)),
+      },
+      {
+        name: 'updated',
+        values: tagsWithValues.map(({ current }: TagWithValue) => current?.timestamp),
+        type: FieldType.time,
+        config: { unit: 'dateTimeFromNow' }
+      }
+    ];
+
+    if (queryProperties) {
+      allPossibleProps.forEach((prop) => {
+        result.fields.push(
+          {
+            name: prop,
+            values: tagsWithValues.map(({ tag }: TagWithValue) => tag.properties && tag.properties[prop] ? tag.properties[prop] : '')
+          }
+        );
+      });
+    }
+
+    return result;
+  }
+
+  private async handleHistoricalQuery(
+    tagsWithValues: TagWithValue[],
+    workspaces: any,
+    range: TimeRange,
+    maxDataPoints: number | undefined,
+    result: DataFrameDTO
+  ): Promise<DataFrameDTO> {
+    const workspaceTagMap: Record<string, TagWithValue[]> = {};
+    const tagPropertiesMap: Record<string, Record<string, string> | null> = {};
+
+    // Identify tags that exist in more than one workspace
+    const tagPathCount: Record<string, number> = {};
+    for (const tagWithValue of tagsWithValues) {
+      tagPathCount[tagWithValue.tag.path] = (tagPathCount[tagWithValue.tag.path] || 0) + 1;
+    }
+
+    for (const tagWithValue of tagsWithValues) {
+      const workspace = tagWithValue.tag.workspace ?? tagWithValue.tag.workspace_id;
+      if (!workspaceTagMap[workspace]) {
+        workspaceTagMap[workspace] = [];
+      }
+      workspaceTagMap[workspace].push(tagWithValue);
+      const prefixedPath = tagPathCount[tagWithValue.tag.path] > 1
+        ? `${getWorkspaceName(workspaces, workspace)}.${tagWithValue.tag.path}`
+        : tagWithValue.tag.path;
+      tagPropertiesMap[prefixedPath] = tagWithValue.tag.properties;
+    }
+
+    let tagsDecimatedHistory: { [key: string]: TypeAndValues } = {};
+    for (const workspace in workspaceTagMap) {
+      const tagHistoryResponse = await this.getTagHistoryWithChunks(
+        workspaceTagMap[workspace],
+        workspace,
+        range,
+        maxDataPoints
+      )
+      for (const path in tagHistoryResponse.results) {
+        const prefixedPath = tagPathCount[path] > 1
+          ? `${getWorkspaceName(workspaces, workspace)}.${path}`
+          : path;
+        tagsDecimatedHistory[prefixedPath] = tagHistoryResponse.results[path];
+      }
+    }
+
+    const mergedTagValuesWithType = this.mergeTagsHistoryValues(tagsDecimatedHistory);
+    result.fields.push({
+      name: 'time', values: mergedTagValuesWithType.timestamps.map(v => dateTime(v).valueOf()), type: FieldType.time
+    });
+
+    for (const path in mergedTagValuesWithType.values) {
+      const config: FieldConfig = {};
+      const tagProps = tagPropertiesMap[path]
+      if (tagProps?.units) {
+        config.unit = tagProps.units
+      }
+      if (tagProps?.displayName) {
+        config.displayName = tagProps.displayName
+        config.displayNameFromDS = tagProps.displayName
+      }
+      result.fields.push({
+        name: path,
+        values: mergedTagValuesWithType.values[path].values.map((value) => {
+          return this.convertTagValue(mergedTagValuesWithType.values[path].type, value)
+        }),
+        config
+      });
+    }
+
+    return result;
+  }
+
+  /**
+   * Generates paths from the template string. If the path contains a template variable, it expands it into multiple paths.
+   * @param query - The query object containing the path to be expanded, multiple values are separated by commas. (ex: 0,1,2)
+   * @returns An array of paths generated from the template string.
+   **/
   private generatePathsFromTemplate(query: TagQuery) {
     let paths: string[] = [query.path];
     if (this.templateSrv.containsTemplate(query.path)) {
@@ -170,29 +180,8 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
     return paths;
   }
 
-  private async getMostRecentTagsBySinglePath(path: string, workspace: string) {
-    let filter = `path = "${path}"`;
-    if (workspace) {
-      filter += ` && workspace = "${workspace}"`;
-    }
-
-    const response = await this.post<TagsWithValues>(this.tagUrl + '/query-tags-with-values', {
-      filter,
-      take: 32,
-      orderBy: 'TIMESTAMP',
-      descending: true,
-    });
-
-    return response.tagsWithValues.length ? response.tagsWithValues : Throw(`No tags matched the path '${path}'`)
-  }
-
   private async getMostRecentTagsByMultiplePaths(paths: string[], workspace: string) {
-    let filter = '';
-    const pathsFilter: string[] = [];
-    paths.forEach((path: string) => {
-      pathsFilter.push(`path = "${path}"`);
-    })
-    filter += `(${pathsFilter.join(' or ')})`;
+    let filter = `(${paths.map(path => `path = "${path}"`).join(' or ')})`;
     if (workspace) {
       filter += ` && workspace = "${workspace}"`;
     }
@@ -207,20 +196,26 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
   }
 
   private async getTagHistoryWithChunks(paths: TagWithValue[], workspace: string, range: TimeRange, intervals?: number): Promise<TagHistoryResponse> {
+    const chunkSize = 10;
     const pathChunks: TagWithValue[][] = [];
-    for (let i = 0; i < paths.length; i += 10) {
-      pathChunks.push(paths.slice(i, i + 10));
+    for (let i = 0; i < paths.length; i += chunkSize) {
+      pathChunks.push(paths.slice(i, i + chunkSize));
     }
-    // Fetch and aggregate the data from each chunk
+
     const aggregatedResults: TagHistoryResponse = { results: {} };
-    for (const chunk of pathChunks) {
-      const chunkResult = await this.getTagHistoryValues(chunk.map(tag => tag.tag.path), workspace, range, intervals);
-      // Merge the results from the current chunk with the aggregated results
+
+    // Fetch and aggregate the data from each chunk in parallel
+    const chunkResults = await Promise.all(
+      pathChunks.map((chunk) => this.getTagHistoryValues(chunk.map(({ tag }) => tag.path), workspace, range, intervals))
+    );
+
+    // Merge the results from all chunks
+    for (const chunkResult of chunkResults) {
       for (const [path, data] of Object.entries(chunkResult.results)) {
         if (!aggregatedResults.results[path]) {
           aggregatedResults.results[path] = data;
         } else {
-          aggregatedResults.results[path].values = aggregatedResults.results[path].values.concat(data.values);
+          aggregatedResults.results[path].values.push(...data.values);
         }
       }
     }
