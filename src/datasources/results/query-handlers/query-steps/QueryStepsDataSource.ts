@@ -22,6 +22,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     orderBy?: string,
     projection?: StepsProperties[],
     take?: number,
+    continuationToken?: string,
     descending?: boolean,
     returnCount = false
   ): Promise<QueryStepsResponse> {
@@ -31,6 +32,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         orderBy,
         descending,
         projection,
+        continuationToken,
         take,
         returnCount,
       });
@@ -39,12 +41,65 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
   }
 
+  private async fetchStepsBatch(filter?: string, orderBy?: string, projection?: StepsProperties[], take?: number, descending?: boolean, returnCount = false): Promise<QueryStepsResponse> {
+    const maximumTakePerRequest = 1000;
+    let stepsResponse: StepsResponseProperties[] = [];
+    let continuationToken: string | undefined = undefined;
+
+    try{
+      if (take === undefined || take <= maximumTakePerRequest) {
+        return await this.querySteps(
+          filter,
+          orderBy,
+          projection,
+          take,
+          continuationToken,
+          descending,
+          returnCount
+        );
+      }
+      while (stepsResponse.length < take) {
+        const currentTake = Math.min(maximumTakePerRequest, take - stepsResponse.length);
+        const response = await this.querySteps(
+          filter,
+          orderBy,
+          projection,
+          currentTake,
+          continuationToken,
+          descending,
+          stepsResponse.length === 0 ? returnCount : false
+        );
+  
+        stepsResponse = [...stepsResponse, ...response.steps];
+        continuationToken = response.continuationToken;
+  
+        if (!continuationToken) {
+          break;
+        }
+  
+        if (stepsResponse.length >= take) {
+          break;
+        }
+      }
+
+      return {
+        steps: stepsResponse,
+        totalCount: stepsResponse.length,
+      };
+      
+    }
+    catch (error) {
+      throw new Error(`An error occurred while querying steps: ${error}`);
+    }
+  }
+
+
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
     const projection = query.showMeasurements
       ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
       : query.properties;
 
-    const responseData = await this.querySteps(
+    const responseData = await this.fetchStepsBatch(
       this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
       query.orderBy,
       projection as StepsProperties[],
