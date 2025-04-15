@@ -8,7 +8,7 @@ import {
   Select,
   VerticalGroup,
 } from '@grafana/ui';
-import { enumToOptions } from 'core/utils';
+import { enumToOptions, validateNumericInput } from 'core/utils';
 import React from 'react';
 import './QueryResultsEditor.scss';
 import { OrderBy, QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
@@ -40,7 +40,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    handleQueryChange({ ...query, recordCount: isNaN(value) ? undefined : value });
+    handleQueryChange({ ...query, recordCount: value });
   };
 
   return (
@@ -91,9 +91,11 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
                 <AutoSizeInput
                   minWidth={20}
                   maxWidth={40}
+                  type="number"
                   defaultValue={query.recordCount}
                   onCommitChange={recordCountChange}
                   placeholder="Enter record count"
+                  onKeyDown={(event) => {validateNumericInput(event)}}
                 />
               </InlineField>
               <UseTimeRangeControls
