@@ -62,16 +62,16 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
     if (query.outputType === OutputType.Data) {
       const stepsResponse = responseData.steps;
-
-      const selectedFields = (query.properties || []).filter(field => Object.keys(stepsResponse[0]).includes(field));
-
+      const selectedFields = (query.properties || [])
+        .filter(field => 
+          Object.keys(stepsResponse[0]).includes(field)
+        );
       const fields = this.processFields(selectedFields, stepsResponse);
 
       if (query.showMeasurements) {
         const measurementFields = this.processMeasurementData(stepsResponse);
         fields.push(...measurementFields);
       }
-      
       return {
         refId: query.refId,
         fields: fields,
@@ -107,7 +107,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
   private processMeasurementData(stepsResponse: StepsResponseProperties[]): any[] {
     const measurementFields = ['Measurement Name', 'Measurement Value', 'Status', 'Unit', 'Low Limit', 'High Limit'];
-    
     const fieldToParameterProperty = {
       'Measurement Name': 'name',
       'Measurement Value': 'measurement',

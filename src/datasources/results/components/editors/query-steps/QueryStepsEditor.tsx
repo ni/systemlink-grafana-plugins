@@ -90,7 +90,7 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
                   />
                 </InlineField>
               </div>
-              <InlineField label="Show Measurements" labelWidth={25} tooltip={tooltips.descending}>
+              <InlineField label="Show Measurements" labelWidth={25} tooltip={tooltips.showMeasurements}>
                 <InlineSwitch
                   onChange={event => onShowMeasurementChange(event.currentTarget.checked)}
                   value={query.showMeasurements}
@@ -165,6 +165,7 @@ const tooltips = {
   recordCount: 'Enter the number of records to query',
   orderBy: 'Select the field to order the steps by',
   descending: 'Select to order the steps in descending order',
+  showMeasurements: 'Select to display step measurement data',
   useTimeRange: 'Select to query using the dashboard time range for the selected field',
   useTimeRangeFor: 'Select the field to apply the dashboard time range',
 };
