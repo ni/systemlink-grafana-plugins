@@ -62,6 +62,14 @@ describe('validateNumericInput', () => {
 
       expect(mockPreventDefault).not.toHaveBeenCalled();
     });
+
+    test('allows negative sign', () => {
+        const event = { key: '-', preventDefault: mockPreventDefault } as unknown as React.KeyboardEvent<HTMLInputElement>;
+        
+        validateNumericInput(event);
+  
+        expect(mockPreventDefault).not.toHaveBeenCalled();
+    });
   
     test('allows navigation keys', () => {
         const event = { key: 'Tab', preventDefault: mockPreventDefault } as unknown as React.KeyboardEvent<HTMLInputElement>;
