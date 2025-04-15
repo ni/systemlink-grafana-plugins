@@ -1,3 +1,9 @@
+## [3.49.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.49.0...v3.49.1) (2025-04-15)
+
+### Bug Fixes
+
+* **results:** Prevent non-numeric input in record count(Take) field ([#141](https://github.com/ni/systemlink-grafana-plugins/issues/141)) ([5ec731e](https://github.com/ni/systemlink-grafana-plugins/commit/5ec731e1114579fb3f5ce898286463fa83dc14de))
+
 ## [3.49.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.48.1...v3.49.0) (2025-04-11)
 
 ### Features
