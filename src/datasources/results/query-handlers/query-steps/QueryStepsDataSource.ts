@@ -42,12 +42,15 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   private async fetchStepsBatch(filter?: string, orderBy?: string, projection?: StepsProperties[], take?: number, descending?: boolean, returnCount = false): Promise<QueryStepsResponse> {
-    const maximumTakePerRequest = 1000;
     let stepsResponse: StepsResponseProperties[] = [];
     let continuationToken: string | undefined = undefined;
+    const MAX_REQUEST_PER_SECOND = 9;
+    const MAX_TAKE_PER_REQUEST = 1000;
+    let REQUEST_COUNT = Math.ceil((take || 0) / MAX_TAKE_PER_REQUEST);
+    const BATCH_COUNT = Math.ceil(REQUEST_COUNT / MAX_REQUEST_PER_SECOND);
 
     try{
-      if (take === undefined || take <= maximumTakePerRequest) {
+      if (take === undefined || take <= MAX_TAKE_PER_REQUEST) {
         return await this.querySteps(
           filter,
           orderBy,
@@ -58,8 +61,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
           returnCount
         );
       }
-      while (stepsResponse.length < take) {
-        const currentTake = Math.min(maximumTakePerRequest, take - stepsResponse.length);
+      while (REQUEST_COUNT > 0) {
+        const currentTake = Math.min(MAX_TAKE_PER_REQUEST, take - stepsResponse.length);
         const response = await this.querySteps(
           filter,
           orderBy,
@@ -72,6 +75,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   
         stepsResponse = [...stepsResponse, ...response.steps];
         continuationToken = response.continuationToken;
+        REQUEST_COUNT--;
   
         if (!continuationToken) {
           break;
