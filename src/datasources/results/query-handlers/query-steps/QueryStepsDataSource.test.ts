@@ -17,6 +17,7 @@ const mockQueryStepsResponse: QueryStepsResponse = {
       },
     },
   ],
+  continuationToken: undefined,
   totalCount: 1
 };
 
@@ -217,6 +218,127 @@ describe('QueryStepsDataSource', () => {
         expect(fields).toEqual([
           { name: 'properties', values: [""], type: 'string' },
         ]);
+    });
+  });
+
+  describe('fetch Steps with rate limiting', () => {
+    it('should make a single request when take is less than MAX_TAKE_PER_REQUEST', async () => {
+      const mockResponses = [
+        createFetchResponse({
+          steps: Array(100).fill({ stepId: '1', name: 'Step 1' }),
+          continuationToken: null,
+          totalCount: 100,
+      })]
+
+      backendServer.fetch
+        .mockImplementationOnce(() => mockResponses[0])
+
+      
+        const responsePromise = datastore.fetchStepsBatch(
+          undefined,
+          undefined,
+          undefined,
+          1000,
+          undefined,
+          true
+        );
+    
+        const response = await responsePromise;
+      
+      expect(response.steps).toHaveLength(100);
+      expect(backendServer.fetch).toHaveBeenCalledTimes(1);
+      expect(backendServer.fetch).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          data: expect.objectContaining({ take: 1000, continuationToken: undefined }),
+        })
+      );
+    });
+
+    test('should batch requests with a maximum of 9 requests per second', async () => {
+      const mockResponses = [
+        createFetchResponse({
+          steps: Array(1000).fill({ stepId: '1', name: 'Step 1' }),
+          continuationToken: 'token1',
+          totalCount: 3000,
+        }),
+        createFetchResponse({
+          steps: Array(1000).fill({ stepId: '2', name: 'Step 2' }),
+          continuationToken: 'token2',
+          totalCount: 3000,
+        }),
+        createFetchResponse({
+          steps: Array(1000).fill({ stepId: '3', name: 'Step 3' }),
+          continuationToken: null,
+          totalCount: 3000,
+        }),
+      ];
+  
+      backendServer.fetch
+        .mockImplementationOnce(() => mockResponses[0])
+        .mockImplementationOnce(() => mockResponses[1])
+        .mockImplementationOnce(() => mockResponses[2]);
+  
+      const responsePromise = datastore.fetchStepsBatch(
+        undefined,
+        undefined,
+        undefined,
+        3000,
+        undefined,
+        true
+      );
+  
+      const response = await responsePromise;
+  
+      expect(response.steps).toHaveLength(3000);
+      expect(backendServer.fetch).toHaveBeenCalledTimes(3);
+      expect(backendServer.fetch).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          data: expect.objectContaining({ take: 1000, continuationToken: undefined }),
+        })
+      );
+      expect(backendServer.fetch).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          data: expect.objectContaining({ take: 1000, continuationToken: 'token1' }),
+        })
+      );
+      expect(backendServer.fetch).toHaveBeenNthCalledWith(
+        3,
+        expect.objectContaining({
+          data: expect.objectContaining({ take: 1000, continuationToken: 'token2' }),
+        })
+      );
+    });
+  
+    test('should stop fetching when continuationToken is null', async () => {
+      const mockResponses = [
+        createFetchResponse({
+          steps: Array(1000).fill({ stepId: '1', name: 'Step 1' }),
+          continuationToken: null,
+          totalCount: 1000,
+        }),
+      ];
+  
+      backendServer.fetch.mockImplementationOnce(() => mockResponses[0]);
+  
+      const response = await datastore.fetchStepsBatch(
+        undefined,
+        undefined,
+        undefined,
+        3000, // Total take value
+        undefined,
+        true
+      );
+  
+      expect(response.steps).toHaveLength(1000);
+      expect(backendServer.fetch).toHaveBeenCalledTimes(1);
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ take: 1000, continuationToken: undefined }),
+        })
+      );
     });
   });
 

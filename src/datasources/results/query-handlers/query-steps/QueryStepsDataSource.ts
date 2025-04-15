@@ -1,6 +1,12 @@
 import { DataQueryRequest, DataFrameDTO, FieldType } from '@grafana/data';
 import { OutputType, QueryType } from 'datasources/results/types/types';
-import { QuerySteps, QueryStepsResponse, StepsProperties, StepsPropertiesOptions, StepsResponseProperties } from 'datasources/results/types/QuerySteps.types';
+import {
+  QuerySteps,
+  QueryStepsResponse,
+  StepsProperties,
+  StepsPropertiesOptions,
+  StepsResponseProperties,
+} from 'datasources/results/types/QuerySteps.types';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
@@ -9,11 +15,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   defaultQuery = {
     queryType: QueryType.Steps,
     outputType: OutputType.Data,
-    properties: [
-      StepsProperties.name, 
-      StepsProperties.status, 
-      StepsProperties.totalTimeInSeconds
-    ] as StepsProperties[],
+    properties: [StepsProperties.name, StepsProperties.status, StepsProperties.totalTimeInSeconds] as StepsProperties[],
     recordCount: 10000,
   };
 
@@ -41,27 +43,32 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  private async fetchStepsBatch(filter?: string, orderBy?: string, projection?: StepsProperties[], take?: number, descending?: boolean, returnCount = false): Promise<QueryStepsResponse> {
+  async fetchStepsBatch(
+    filter?: string,
+    orderBy?: string,
+    projection?: StepsProperties[],
+    take?: number,
+    descending?: boolean,
+    returnCount = false
+  ): Promise<QueryStepsResponse> {
     let stepsResponse: StepsResponseProperties[] = [];
     let continuationToken: string | undefined = undefined;
     const MAX_REQUEST_PER_SECOND = 9;
     const MAX_TAKE_PER_REQUEST = 1000;
-    let REQUEST_COUNT = Math.ceil((take || 0) / MAX_TAKE_PER_REQUEST);
+
+    if (take === undefined || take <= MAX_TAKE_PER_REQUEST) {
+      return await this.querySteps(filter, orderBy, projection, take, continuationToken, descending, returnCount);
+    }
+
+    let REQUEST_COUNT = Math.ceil(take / MAX_TAKE_PER_REQUEST);
     const BATCH_COUNT = Math.ceil(REQUEST_COUNT / MAX_REQUEST_PER_SECOND);
 
-    try{
-      if (take === undefined || take <= MAX_TAKE_PER_REQUEST) {
-        return await this.querySteps(
-          filter,
-          orderBy,
-          projection,
-          take,
-          continuationToken,
-          descending,
-          returnCount
-        );
-      }
-      while (REQUEST_COUNT > 0) {
+    for (let batch = 0; batch < BATCH_COUNT; batch++) {
+      for (let request = MAX_REQUEST_PER_SECOND; MAX_REQUEST_PER_SECOND > 0; request--) {
+        if (stepsResponse.length >= take) {
+          break;
+        }
+
         const currentTake = Math.min(MAX_TAKE_PER_REQUEST, take - stepsResponse.length);
         const response = await this.querySteps(
           filter,
@@ -70,33 +77,30 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
           currentTake,
           continuationToken,
           descending,
-          stepsResponse.length === 0 ? returnCount : false
+          returnCount
         );
-  
         stepsResponse = [...stepsResponse, ...response.steps];
         continuationToken = response.continuationToken;
-        REQUEST_COUNT--;
-  
         if (!continuationToken) {
-          break;
-        }
-  
-        if (stepsResponse.length >= take) {
-          break;
+          return {
+            steps: stepsResponse,
+            totalCount: response.totalCount,
+          };
         }
       }
-
-      return {
-        steps: stepsResponse,
-        totalCount: stepsResponse.length,
-      };
-      
+      if (batch < BATCH_COUNT - 1) {
+        await this.delay(1000);
+      }
     }
-    catch (error) {
-      throw new Error(`An error occurred while querying steps: ${error}`);
-    }
+    return {
+      steps: stepsResponse,
+      totalCount: stepsResponse.length,
+    };
   }
 
+  private async delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
     const projection = query.showMeasurements
@@ -121,10 +125,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
     if (query.outputType === OutputType.Data) {
       const stepsResponse = responseData.steps;
-      const selectedFields = (query.properties || [])
-        .filter(field => 
-          Object.keys(stepsResponse[0]).includes(field)
-        );
+      const selectedFields = (query.properties || []).filter(field => Object.keys(stepsResponse[0]).includes(field));
       const fields = this.processFields(selectedFields, stepsResponse);
 
       if (query.showMeasurements) {
@@ -155,7 +156,11 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         case StepsPropertiesOptions.INPUTS:
         case StepsPropertiesOptions.OUTPUTS:
         case StepsPropertiesOptions.DATA:
-          return { name: field, values: values.map(value => (value !== null ? JSON.stringify(value) : '')), type: fieldType};
+          return {
+            name: field,
+            values: values.map(value => (value !== null ? JSON.stringify(value) : '')),
+            type: fieldType,
+          };
         case StepsPropertiesOptions.STATUS:
           return { name: field, values: values.map((value: any) => value?.statusType), type: fieldType };
         default:
@@ -169,24 +174,26 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     const fieldToParameterProperty = {
       'Measurement Name': 'name',
       'Measurement Value': 'measurement',
-      'Status': 'status',
-      'Unit': 'units',
+      Status: 'status',
+      Unit: 'units',
       'Low Limit': 'lowLimit',
       'High Limit': 'highLimit',
     };
-    
+
     return measurementFields.map(field => {
       const values = stepsResponse.map(step => {
         if (!step?.data?.parameters) {
           return [];
         }
-        return step.data.parameters.map(param => param[fieldToParameterProperty[field as keyof typeof fieldToParameterProperty]]);
+        return step.data.parameters.map(
+          param => param[fieldToParameterProperty[field as keyof typeof fieldToParameterProperty]]
+        );
       });
-      
+
       return {
         name: field,
         values: values,
-        type: FieldType.string
+        type: FieldType.string,
       };
     });
   }
@@ -194,4 +201,4 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   shouldRunQuery(_: QuerySteps): boolean {
     return true;
   }
-};
+}

@@ -114,6 +114,7 @@ exports[`QueryStepsDataSource query should convert properties to Grafana fields 
 
 exports[`QueryStepsDataSource querySteps returns data when there are valid queries 1`] = `
 {
+  "continuationToken": undefined,
   "steps": [
     {
       "name": "Step 1",
