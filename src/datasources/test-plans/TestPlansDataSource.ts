@@ -1,7 +1,7 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TestDataSourceResponse } from '@grafana/data';
-import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
+import { DataFrameDTO, DataQueryRequest, DataSourceGetTagKeysOptions, DataSourceGetTagValuesOptions, DataSourceInstanceSettings, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
+import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv, } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { QueryTestPlansResponse, TestPlansQuery, ITestPlan, OutputType } from './types';
+import { QueryTestPlansResponse, TestPlansQuery, TestPlan, OutputType } from './types';
 import { QueryBuilderOption } from 'core/types';
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { TestPlansQueryBuilderFieldNames } from './constants/TestPlansQueryBuilder.constants';
@@ -44,14 +44,37 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     }
   }
 
+  
+
 
   async runQuery (query: TestPlansQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    const filter = query.queryBy
+    // if (this.getTagKeys) {
+      // this.getTagKeys();
+    // }
+console.log(options.filters);
+    const formatter = (value: string | string[]): string|undefined => {  
+      if (typeof value === 'string') {  
+        return value ? value : undefined; // Only return the value if it exists
+      }
+      
+      if (value.length > 0) {
+        // Only process the array if it has values
+        return value.join(', ');
+      }
+      
+      return undefined; // Return empty string if no values
+    }; 
+
+    let filter = query.queryBy
           ? transformComputedFieldsQuery(
-            this.templateSrv.replace(query.queryBy, options.scopedVars),
+            this.templateSrv.replace(query.queryBy, options.scopedVars, formatter),
             this.testPlansComputedDataFields
 )
           : undefined;
+    const adhoc = options.filters ?? [];
+    adhoc.forEach((a) => {
+    filter = addLabelToQuery(filter ?? '', a.key, a.operator, a.value);
+    });
     const responseData = (
       await this.queryTestPlans(
         filter,
@@ -63,25 +86,56 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       const mappedFields = fields.map((field) => {
         return {
           name: field,
-          values: testPlansResponse.map((testPlan: ITestPlan) => testPlan[field]),
+          values: testPlansResponse.map((testPlan: TestPlan) => testPlan[field]),
         };
       });
 
       return {
         refId: query.refId,
+        name: query.refId,
         fields: mappedFields,
       };
       } else {
         return {
           refId: query.refId,
+          name: query.refId,
           fields: [{ name: 'Total count', values: [responseData.totalCount] }],
         };
       }
   }
 
+  getTagKeys (options?: DataSourceGetTagKeysOptions): Promise<MetricFindValue[]> {
+    console.log('getTagKeys', options);
+    return Promise.resolve(['id', 'name', 'state', 'workspace'].map(key => ({ text: key }))); // Map strings to MetricFindValue objects
+  }
+
+  getTagValues (options: DataSourceGetTagValuesOptions): Promise<MetricFindValue[]> {
+    console.log('getTagValues', options);
+    return Promise.resolve([]); // Return an empty array as a default implementation
+  }
+
   shouldRunQuery (query: TestPlansQuery): boolean {
     return true;
   }
+
+  // modifyQuery(query: TestPlansQuery, action: QueryFixAction): TestPlansQuery {  
+  //   let queryText = query.queryBy ?? '';  
+  //   switch (action.type) {  
+  //     case 'ADD_FILTER':  
+  //       if (action.options?.key && action.options?.value) {  
+  //         queryText = addLabelToQuery(queryText, action.options.key, '=', action.options.value);  
+  //       }  
+  //       break;  
+  //     case 'ADD_FILTER_OUT':  
+  //       {  
+  //         if (action.options?.key && action.options?.value) {  
+  //           queryText = addLabelToQuery(queryText, action.options.key, '!=', action.options.value);  
+  //         }  
+  //       }  
+  //       break;  
+  //   }  
+  //   return { ...query, queryBy: queryText };  
+  // }  
 
   async testDatasource (): Promise<TestDataSourceResponse> {
     // TODO: Implement a health and authentication check
@@ -127,3 +181,11 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       }
   
 }
+function addLabelToQuery(queryText: string, key: string, operator: string, value: string): string {
+  const newFilter = `${key} ${operator} "${value}"`;
+  if (!queryText.trim()) {
+    return newFilter;
+  }
+  return `${queryText} AND ${newFilter}`;
+}
+

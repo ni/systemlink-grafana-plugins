@@ -12,12 +12,12 @@ export enum OutputType {
 }
 
 export interface QueryTestPlansResponse {
-  testPlans: ITestPlan[];
+  testPlans: TestPlan[];
   continuationToken?: string | null;
   totalCount?: number;
 }
 
-export interface ITestPlan {
+export interface TestPlan {
   id: string;
   templateId: string | null;
   name: string;
