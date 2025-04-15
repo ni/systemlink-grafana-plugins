@@ -19,6 +19,7 @@ type Props = {
 };
 
 export function QueryStepsEditor({ query, handleQueryChange }: Props) {
+  console.log(query);
   const onOutputChange = (value: OutputType) => {
     handleQueryChange({ ...query, outputType: value });
   };

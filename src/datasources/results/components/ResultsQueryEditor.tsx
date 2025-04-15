@@ -25,10 +25,20 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
 
   const handleQueryTypeChange = useCallback((queryType: QueryType): void => {
     if (queryType === QueryType.Results) {
-      handleQueryChange({ ...query, queryType: QueryType.Results, ...defaultResultsQuery}, true);
+      handleQueryChange({
+          ...query,
+          ...defaultResultsQuery
+        },
+        true
+      );
     }
     if (queryType === QueryType.Steps) {
-      handleQueryChange({ ...query, queryType: QueryType.Steps, ...defaultStepsQuery }, true);
+      handleQueryChange({
+        ...query,
+        ...defaultStepsQuery
+      },
+      true
+    );
     }
   }, [query, handleQueryChange]);
 

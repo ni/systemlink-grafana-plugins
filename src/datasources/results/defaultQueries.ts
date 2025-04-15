@@ -1,8 +1,9 @@
 import { ResultsProperties, ResultsPropertiesOptions } from "./types/QueryResults.types";
 import { StepsProperties } from "./types/QuerySteps.types";
-import { OutputType } from "./types/types";
+import { OutputType, QueryType } from "./types/types";
 
 export const defaultResultsQuery = {
+  queryType: QueryType.Results,
   outputType: OutputType.Data,
   properties: [
     ResultsPropertiesOptions.PROGRAM_NAME,
@@ -14,7 +15,7 @@ export const defaultResultsQuery = {
     ResultsPropertiesOptions.UPDATED_AT,
     ResultsPropertiesOptions.WORKSPACE
   ] as ResultsProperties[],
-  orderBy: undefined,
+  orderBy: "UPDATED_AT",
   descending: false,
   recordCount: 1000,
   useTimeRange: false,
@@ -22,13 +23,14 @@ export const defaultResultsQuery = {
 };
 
 export const defaultStepsQuery = {
+  queryType: QueryType.Steps,
   outputType: OutputType.Data,
   properties: [
     StepsProperties.name,
     StepsProperties.status,
     StepsProperties.totalTimeInSeconds
   ] as StepsProperties[],
-  orderBy: undefined,
+  orderBy: "UPDATED_AT",
   descending: undefined,
   showMeasurements: false,
   recordCount: 10000,

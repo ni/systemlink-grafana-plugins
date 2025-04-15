@@ -8,16 +8,12 @@ import {
   StepsResponseProperties,
 } from 'datasources/results/types/QuerySteps.types';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
+import { defaultStepsQuery } from 'datasources/results/defaultQueries';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
 
-  defaultQuery = {
-    queryType: QueryType.Steps,
-    outputType: OutputType.Data,
-    properties: [StepsProperties.name, StepsProperties.status, StepsProperties.totalTimeInSeconds] as StepsProperties[],
-    recordCount: 10000,
-  };
+  defaultQuery = defaultStepsQuery;
 
   async querySteps(
     filter?: string,
@@ -125,7 +121,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
     if (query.outputType === OutputType.Data) {
       const stepsResponse = responseData.steps;
-      const selectedFields = (query.properties || []).filter(field => Object.keys(stepsResponse[0]).includes(field));
+      const stepResponseKeys = new Set(Object.keys(stepsResponse[0]));
+      const selectedFields = (query.properties || []).filter(field => stepResponseKeys.has(field));
       const fields = this.processFields(selectedFields, stepsResponse);
 
       if (query.showMeasurements) {
