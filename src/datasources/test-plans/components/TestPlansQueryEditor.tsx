@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { HorizontalGroup, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
+import { AutoSizeInput, HorizontalGroup, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { InlineField } from 'core/components/InlineField';
 import { TestPlansDataSource } from '../TestPlansDataSource';
@@ -26,6 +26,11 @@ export function TestPlansQueryEditor ({ query, onChange, onRunQuery, datasource 
     handleQueryChange({ ...query, outputType: value });
   };
 
+  const takeChange = (event: React.FormEvent<HTMLInputElement>) => {
+      const value = (event.target as HTMLInputElement).value;
+      handleQueryChange({ ...query, take: value });
+    };
+
   return (
     <>
       <HorizontalGroup align="flex-start">
@@ -45,6 +50,15 @@ export function TestPlansQueryEditor ({ query, onChange, onRunQuery, datasource 
             ></ProductsQueryBuilder>
           </InlineField>
         </VerticalGroup>
+        <InlineField label="Take" labelWidth={18}>
+            <AutoSizeInput
+              minWidth={20}
+              maxWidth={40}
+              defaultValue={query.take}
+              onCommitChange={takeChange}
+              placeholder="Enter record count"
+            />
+        </InlineField>
       </HorizontalGroup>
     </>
   );

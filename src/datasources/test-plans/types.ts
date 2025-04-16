@@ -3,6 +3,7 @@ import { DataQuery } from '@grafana/schema';
 export interface TestPlansQuery extends DataQuery {
   queryBy?: string;
   outputType: OutputType;
+  take?: string | number;
 
 }
 

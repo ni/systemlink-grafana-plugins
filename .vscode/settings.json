@@ -1,0 +1,86 @@
+{
+    "notebook.diff.overviewRuler": true,
+    "editor.rulers": [
+        100,
+        120
+    ],
+    "[html]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[css]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "editor.formatOnPaste": false,
+    "css.format.spaceAroundSelectorSeparator": true,
+    "css.lint.boxModel": "warning",
+    "css.lint.compatibleVendorPrefixes": "warning",
+    "css.lint.duplicateProperties": "warning",
+    "css.lint.ieHack": "warning",
+    "css.lint.universalSelector": "warning",
+    "css.lint.unknownVendorSpecificProperties": "warning",
+    "scss.format.spaceAroundSelectorSeparator": true,
+    "[jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "editor.defaultFormatter": "vscode.typescript-language-features",
+    "html.format.indentHandlebars": true,
+    "html.format.indentInnerHtml": true,
+    "git.autoStash": true,
+    "git.alwaysSignOff": true,
+    "javascript.format.insertSpaceAfterConstructor": true,
+    "javascript.format.insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces": true,
+    "javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets": true,
+    "javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis": true,
+    "javascript.format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces": true,
+    "javascript.format.insertSpaceBeforeFunctionParenthesis": true,
+    "javascript.format.placeOpenBraceOnNewLineForControlBlocks": true,
+    "javascript.format.placeOpenBraceOnNewLineForFunctions": true,
+    "javascript.format.semicolons": "insert",
+    "eslint.format.enable": true,
+    "editor.codeActionsOnSave": {  
+        "source.fixAll.eslint": "explicit",
+        "source.addMissingImports": "explicit",
+        "source.removeUnusedImports": "explicit"
+    },
+    "eslint.validate": [
+        "javascript",
+        "typescript"
+    ],
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+    "typescript.format.insertSpaceAfterConstructor": true,
+    "typescript.format.insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces": true,
+    "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets": true,
+    "typescript.format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces": true,
+    "typescript.format.insertSpaceAfterTypeAssertion": true,
+    "typescript.format.insertSpaceBeforeFunctionParenthesis": true,
+    "typescript.format.semicolons": "insert",
+    "typescript.implementationsCodeLens.enabled": true,
+    "typescript.inlayHints.enumMemberValues.enabled": true,
+    "typescript.referencesCodeLens.enabled": true,
+    "[typescript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "files.autoSave": "onFocusChange",
+    "[python]": {
+        "editor.formatOnType": true
+    },
+    "workbench.iconTheme": "material-icon-theme",
+    "prettier.jsxSingleQuote": true,
+    "prettier.singleQuote": true,
+    "diffEditor.ignoreTrimWhitespace": false,
+    "eslint.lintTask.enable": true,
+    "eslint.problems.shortenToSingleLine": true,
+    "eslint.enable": true,
+    "eslint.codeActionsOnSave.rules": null,
+    "eslint.useESLintClass": false,
+    "editor.suggest.preview": true,
+    "[json]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "json.format.keepLines": true,
+    "prettier.useTabs": true,
+    "diffEditor.maxComputationTime": 0,
+    "[markdown]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+}

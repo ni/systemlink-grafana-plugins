@@ -48,36 +48,25 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
 
   async runQuery (query: TestPlansQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    // if (this.getTagKeys) {
-      // this.getTagKeys();
-    // }
-console.log(options.filters);
-    const formatter = (value: string | string[]): string|undefined => {  
-      if (typeof value === 'string') {  
-        return value ? value : undefined; // Only return the value if it exists
-      }
-      
-      if (value.length > 0) {
-        // Only process the array if it has values
-        return value.join(', ');
-      }
-      
-      return undefined; // Return empty string if no values
-    }; 
+    let take;
+    if(typeof query.take === 'string') {
+    take = parseInt(this.templateSrv.replace(query.take, options.scopedVars),10)
+    }
+    else{
+      take = query.take;
+    }
 
     let filter = query.queryBy
           ? transformComputedFieldsQuery(
-            this.templateSrv.replace(query.queryBy, options.scopedVars, formatter),
+            this.templateSrv.replace(query.queryBy, options.scopedVars),
             this.testPlansComputedDataFields
 )
           : undefined;
-    const adhoc = options.filters ?? [];
-    adhoc.forEach((a) => {
-    filter = addLabelToQuery(filter ?? '', a.key, a.operator, a.value);
-    });
+    
     const responseData = (
       await this.queryTestPlans(
         filter,
+        take === undefined || isNaN(take) ? undefined : take,
       ))
 
       if (query.outputType === OutputType.Data) {
@@ -179,13 +168,4 @@ console.log(options.filters);
     private getLogicalOperator(operation: string): string {
         return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
       }
-  
 }
-function addLabelToQuery(queryText: string, key: string, operator: string, value: string): string {
-  const newFilter = `${key} ${operator} "${value}"`;
-  if (!queryText.trim()) {
-    return newFilter;
-  }
-  return `${queryText} AND ${newFilter}`;
-}
-
