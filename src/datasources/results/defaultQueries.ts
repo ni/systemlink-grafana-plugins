@@ -16,7 +16,7 @@ export const defaultResultsQuery = {
     ResultsPropertiesOptions.WORKSPACE
   ] as ResultsProperties[],
   orderBy: "UPDATED_AT",
-  descending: false,
+  descending: true,
   recordCount: 1000,
   useTimeRange: false,
   useTimeRangeFor: undefined
@@ -31,7 +31,7 @@ export const defaultStepsQuery = {
     StepsProperties.totalTimeInSeconds
   ] as StepsProperties[],
   orderBy: "UPDATED_AT",
-  descending: undefined,
+  descending: true,
   showMeasurements: false,
   recordCount: 10000,
   useTimeRange: false,

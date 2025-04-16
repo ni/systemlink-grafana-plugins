@@ -68,5 +68,5 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
 }
 
 const tooltips = {
-  queryType: 'Specifies the query type to fetch results or steps-related data'
+  queryType: 'This field spcifies the query type to fetch results or steps-related data'
 };

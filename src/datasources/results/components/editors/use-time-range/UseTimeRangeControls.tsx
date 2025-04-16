@@ -44,6 +44,6 @@ export function UseTimeRangeControls({query, handleQueryChange}: Props) {
 }
 
 const tooltips = {
-  useTimeRange: 'Select to query using the dashboard time range for the selected field',
-  useTimeRangeFor: 'Select the field to apply the dashboard time range',
+  useTimeRange: 'This toggle enables querying within the dashboard time range.',
+  useTimeRangeFor: 'This field specifies the property to query within the dashboard time range.',
 };
