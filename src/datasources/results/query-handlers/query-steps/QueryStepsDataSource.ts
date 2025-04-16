@@ -9,7 +9,6 @@ import {
 } from 'datasources/results/types/QuerySteps.types';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { defaultStepsQuery } from 'datasources/results/defaultQueries';
-import { QUERY_STEPS_REQUEST_PER_SECOND, MAX_TAKE_PER_REQUEST } from 'datasources/results/constants/QuerySteps.constants';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
@@ -48,53 +47,15 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     descending?: boolean,
     returnCount = false
   ): Promise<QueryStepsResponse> {
-    let stepsResponse: StepsResponseProperties[] = [];
-    let continuationToken: string | undefined = undefined;
-
-    if (take === undefined || take <= MAX_TAKE_PER_REQUEST) {
-      return await this.querySteps(filter, orderBy, projection, take, continuationToken, descending, returnCount);
-    }
-
-    let REQUEST_COUNT = Math.ceil(take / MAX_TAKE_PER_REQUEST);
-    const BATCH_COUNT = Math.ceil(REQUEST_COUNT / QUERY_STEPS_REQUEST_PER_SECOND);
-
-    for (let batch = 0; batch < BATCH_COUNT; batch++) {
-      for (let request = QUERY_STEPS_REQUEST_PER_SECOND; QUERY_STEPS_REQUEST_PER_SECOND > 0; request--) {
-        if (stepsResponse.length >= take) {
-          break;
-        }
-
-        const currentTake = Math.min(MAX_TAKE_PER_REQUEST, take - stepsResponse.length);
-        const response: QueryStepsResponse = await this.querySteps(
-          filter,
-          orderBy,
-          projection,
-          currentTake,
-          continuationToken,
-          descending,
-          returnCount
-        );
-        stepsResponse = [...stepsResponse, ...response.steps];
-        continuationToken = response.continuationToken;
-        if (!continuationToken) {
-          return {
-            steps: stepsResponse,
-            totalCount: stepsResponse.length,
-          };
-        }
-      }
-      if (batch < BATCH_COUNT - 1) {
-        await this.delay(1000);
-      }
-    }
-    return {
-      steps: stepsResponse,
-      totalCount: stepsResponse.length,
-    };
-  }
-
-  private async delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return this.fetchInBatch<StepsResponseProperties>(
+      this.querySteps.bind(this),
+      filter,
+      orderBy,
+      projection,
+      take,
+      descending,
+      returnCount
+    );
   }
 
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
