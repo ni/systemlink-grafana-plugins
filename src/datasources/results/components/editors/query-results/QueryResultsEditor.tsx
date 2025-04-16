@@ -99,7 +99,9 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
               </InlineField>
               <UseTimeRangeControls
                 query={query}
-                handleQueryChange={handleQueryChange}
+                handleQueryChange={(updatedQuery, runQuery) => {
+                  handleQueryChange(updatedQuery as QueryResults, runQuery);
+                }}
               />
             </div>
           </VerticalGroup>
@@ -107,7 +109,9 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
         {query.outputType === OutputType.TotalCount && (
           <UseTimeRangeControls
             query={query}
-            handleQueryChange={handleQueryChange}
+            handleQueryChange={(updatedQuery, runQuery) => {
+              handleQueryChange(updatedQuery as QueryResults, runQuery);
+            }}
           />
         )}
       </VerticalGroup>

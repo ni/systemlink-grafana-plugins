@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { UseTimeRangeControls } from './UseTimeRangeControls';
 import userEvent from '@testing-library/user-event';
 import { select } from 'react-select-event';
+import { OutputType, QueryType } from 'datasources/results/types/types';
 
 describe('UseTimeRangeControls', () => {
   const mockHandleQueryChange = jest.fn();
@@ -11,6 +12,9 @@ describe('UseTimeRangeControls', () => {
     query: {
       useTimeRange: true,
       useTimeRangeFor: undefined,
+      outputType: OutputType.Data,
+      queryType: QueryType.Results,
+      refId: 'A',
     },
     handleQueryChange: mockHandleQueryChange,
   };
@@ -32,7 +36,13 @@ describe('UseTimeRangeControls', () => {
   it('calls handleQueryChange when the Use time range switch is toggled', async () => {
     await userEvent.click(useTimeRange);
 
-    expect(mockHandleQueryChange).toHaveBeenCalledWith({ useTimeRange: false, useTimeRangeFor: undefined }, false);
+    expect(mockHandleQueryChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        useTimeRange: false,
+        useTimeRangeFor: undefined,
+      }),
+      false
+    );
   });
 
   it('calls handleQueryChange when a value is selected in the useTimeRangeFor dropdown', async () => {
