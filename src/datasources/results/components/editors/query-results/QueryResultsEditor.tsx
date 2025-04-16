@@ -148,11 +148,11 @@ export function UseTimeRangeControls({ query, handleQueryChange }: Props) {
 }
 
 const tooltips = {
-  output: 'Specifies the type of output for the queried result.',
-  properties: 'Specifies the properties to be queried.',
-  recordCount: 'Specifies the maximum number of results to return.',
-  orderBy: 'Specifies the field to order the queried results by.',
-  descending: 'Specifies whether to return the queried results in descending order.',
-  useTimeRange: 'Specifies whether to query only for data within the dashboard time range for the selected property.',
-  useTimeRangeFor: 'Specifies the property to query within the dashboard time range.',
+  output: 'This field specifies the output type for the query result.',
+  properties: 'This field specifies the properties to use in the query.',
+  recordCount: 'This field sets the maximum number of results.',
+  orderBy: 'This field orders the query results by field.',
+  descending: 'This field returns the query results in descending order.',
+  useTimeRange: 'This toggle enables querying within the dashboard time range.',
+  useTimeRangeFor: 'This field specifies the property to query within the dashboard time range.',
 };
