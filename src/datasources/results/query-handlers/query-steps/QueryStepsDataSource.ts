@@ -1,6 +1,7 @@
 import { DataQueryRequest, DataFrameDTO, FieldType } from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
+  BatchQueryResponse,
   QuerySteps,
   QueryStepsResponse,
   StepsProperties,
@@ -9,6 +10,7 @@ import {
 } from 'datasources/results/types/QuerySteps.types';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { defaultStepsQuery } from 'datasources/results/defaultQueries';
+import { MAX_TAKE_PER_REQUEST, QUERY_STEPS_REQUEST_PER_SECOND } from 'datasources/results/constants/QuerySteps.constants';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
@@ -47,15 +49,36 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     descending?: boolean,
     returnCount = false
   ): Promise<QueryStepsResponse> {
-    return this.fetchInBatch<StepsResponseProperties>(
-      this.querySteps.bind(this),
-      filter,
-      orderBy,
-      projection,
-      take,
-      descending,
-      returnCount
-    );
+    const fetchRecord = async (currentTake: number, token?: string): Promise<BatchQueryResponse<StepsResponseProperties>> => {
+      const response = await this.querySteps(
+        filter,
+        orderBy,
+        projection,
+        currentTake,
+        token,
+        descending,
+        returnCount
+      );
+      
+      return {
+        items: response.steps,
+        continuationToken: response.continuationToken,
+        totalCount: response.totalCount
+      };
+    };
+
+    const config = {
+      maxTakePerRequest: MAX_TAKE_PER_REQUEST,
+      requestsPerSecond: QUERY_STEPS_REQUEST_PER_SECOND
+    };
+
+    const result = await this.fetchInBatches(fetchRecord, config, take);
+    
+    return {
+      steps: result.items,
+      continuationToken: result.continuationToken,
+      totalCount: result.totalCount
+    };
   }
 
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {

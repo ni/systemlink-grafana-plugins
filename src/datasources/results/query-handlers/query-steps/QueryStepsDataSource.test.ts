@@ -238,7 +238,7 @@ describe('QueryStepsDataSource', () => {
           undefined,
           undefined,
           undefined,
-          1000,
+          100,
           undefined,
           true
         );
@@ -250,27 +250,27 @@ describe('QueryStepsDataSource', () => {
       expect(backendServer.fetch).toHaveBeenNthCalledWith(
         1,
         expect.objectContaining({
-          data: expect.objectContaining({ take: 1000, continuationToken: undefined }),
+          data: expect.objectContaining({ take: 100, continuationToken: undefined }),
         })
       );
     });
 
-    test('should batch requests with a maximum of 9 requests per second', async () => {
+    test('should batch requests with a maximum of 6 requests per second', async () => {
       const mockResponses = [
         createFetchResponse({
-          steps: Array(1000).fill({ stepId: '1', name: 'Step 1' }),
+          steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),
           continuationToken: 'token1',
-          totalCount: 3000,
+          totalCount: 1500,
         }),
         createFetchResponse({
-          steps: Array(1000).fill({ stepId: '2', name: 'Step 2' }),
+          steps: Array(500).fill({ stepId: '2', name: 'Step 2' }),
           continuationToken: 'token2',
-          totalCount: 3000,
+          totalCount: 1500,
         }),
         createFetchResponse({
-          steps: Array(1000).fill({ stepId: '3', name: 'Step 3' }),
+          steps: Array(500).fill({ stepId: '3', name: 'Step 3' }),
           continuationToken: null,
-          totalCount: 3000,
+          totalCount: 1500,
         }),
       ];
   
@@ -283,31 +283,31 @@ describe('QueryStepsDataSource', () => {
         undefined,
         undefined,
         undefined,
-        3000,
+        1500,
         undefined,
         true
       );
   
       const response = await responsePromise;
   
-      expect(response.steps).toHaveLength(3000);
+      expect(response.steps).toHaveLength(1500);
       expect(backendServer.fetch).toHaveBeenCalledTimes(3);
       expect(backendServer.fetch).toHaveBeenNthCalledWith(
         1,
         expect.objectContaining({
-          data: expect.objectContaining({ take: 1000, continuationToken: undefined }),
+          data: expect.objectContaining({ take: 500, continuationToken: undefined }),
         })
       );
       expect(backendServer.fetch).toHaveBeenNthCalledWith(
         2,
         expect.objectContaining({
-          data: expect.objectContaining({ take: 1000, continuationToken: 'token1' }),
+          data: expect.objectContaining({ take: 500, continuationToken: 'token1' }),
         })
       );
       expect(backendServer.fetch).toHaveBeenNthCalledWith(
         3,
         expect.objectContaining({
-          data: expect.objectContaining({ take: 1000, continuationToken: 'token2' }),
+          data: expect.objectContaining({ take: 500, continuationToken: 'token2' }),
         })
       );
     });
@@ -315,9 +315,9 @@ describe('QueryStepsDataSource', () => {
     test('should stop fetching when continuationToken is null', async () => {
       const mockResponses = [
         createFetchResponse({
-          steps: Array(1000).fill({ stepId: '1', name: 'Step 1' }),
+          steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),
           continuationToken: null,
-          totalCount: 1000,
+          totalCount: 500,
         }),
       ];
   
@@ -332,11 +332,11 @@ describe('QueryStepsDataSource', () => {
         true
       );
   
-      expect(response.steps).toHaveLength(1000);
+      expect(response.steps).toHaveLength(500);
       expect(backendServer.fetch).toHaveBeenCalledTimes(1);
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({ take: 1000, continuationToken: undefined }),
+          data: expect.objectContaining({ take: 500, continuationToken: undefined }),
         })
       );
     });
