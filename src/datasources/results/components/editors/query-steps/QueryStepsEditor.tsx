@@ -10,6 +10,7 @@ import {
 } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
 import React from 'react';
+import '../../ResultsQueryEditor.scss';
 import { OutputType } from 'datasources/results/types/types';
 import { OrderBy, QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
 import { UseTimeRangeControls } from '../use-time-range/UseTimeRangeControls';
