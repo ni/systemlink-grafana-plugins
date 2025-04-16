@@ -12,7 +12,8 @@ import { enumToOptions } from 'core/utils';
 import React from 'react';
 import './QueryResultsEditor.scss';
 import { OrderBy, QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
-import { OutputType, UseTimeRangeFor } from 'datasources/results/types/types';
+import { OutputType } from 'datasources/results/types/types';
+import { UseTimeRangeControls } from '../use-time-range/UseTimeRangeControls';
 
 type Props = {
   query: QueryResults;
@@ -114,46 +115,10 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
   );
 }
 
-export function UseTimeRangeControls({ query, handleQueryChange }: Props) {
-  const onUseTimeRangeChecked = (value: boolean) => {
-    if(query.useTimeRangeFor === undefined) {
-      handleQueryChange({ ...query, useTimeRange: value }, false);
-      return;
-    }
-    handleQueryChange({ ...query, useTimeRange: value });
-  };
-
-  const onUseTimeRangeChanged = (value: SelectableValue<string>) => {
-    handleQueryChange({ ...query, useTimeRangeFor: value.value! });
-  };
-
-  return (
-    <div className="horizontal-control-group">
-      <InlineField label="Use time range" tooltip={tooltips.useTimeRange} labelWidth={25}>
-        <InlineSwitch 
-          onChange={event => onUseTimeRangeChecked(event.currentTarget.checked)} 
-          value={query.useTimeRange}
-        />
-      </InlineField>
-      <InlineField label="to filter by" disabled={!query.useTimeRange} tooltip={tooltips.useTimeRangeFor}>
-        <Select
-          placeholder="Choose"
-          options={enumToOptions(UseTimeRangeFor)}
-          onChange={onUseTimeRangeChanged}
-          value={query.useTimeRangeFor}
-          width={25}
-        />
-      </InlineField>
-    </div>
-  );
-}
-
 const tooltips = {
   output: 'Select the output type for the query',
   properties: 'Select the properties fields to query',
   recordCount: 'Enter the number of records to query',
   orderBy: 'Select the field to order the results by',
   descending: 'Select to order the results in descending order',
-  useTimeRange: 'Select to query using the dashboard time range for the selected field',
-  useTimeRangeFor: 'Select the field to apply the dashboard time range',
 };
