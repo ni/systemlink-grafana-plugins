@@ -8,7 +8,7 @@ import {
   Select,
   VerticalGroup,
 } from '@grafana/ui';
-import { enumToOptions } from 'core/utils';
+import { enumToOptions, validateNumericInput } from 'core/utils';
 import React from 'react';
 import '../../ResultsQueryEditor.scss'
 import { OrderBy, QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
@@ -41,7 +41,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    handleQueryChange({ ...query, recordCount: isNaN(value) ? undefined : value });
+    handleQueryChange({ ...query, recordCount: value });
   };
 
   return (
@@ -92,9 +92,11 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
                 <AutoSizeInput
                   minWidth={20}
                   maxWidth={40}
+                  type="number"
                   defaultValue={query.recordCount}
                   onCommitChange={recordCountChange}
                   placeholder="Enter record count"
+                  onKeyDown={(event) => {validateNumericInput(event)}}
                 />
               </InlineField>
               <UseTimeRangeControls
@@ -120,9 +122,11 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
 }
 
 const tooltips = {
-  output: 'Select the output type for the query',
-  properties: 'Select the properties fields to query',
-  recordCount: 'Enter the number of records to query',
-  orderBy: 'Select the field to order the results by',
-  descending: 'Select to order the results in descending order',
+  output: 'This field specifies the output type for the query result.',
+  properties: 'This field specifies the properties to use in the query.',
+  recordCount: 'This field sets the maximum number of results.',
+  orderBy: 'This field orders the query results by field.',
+  descending: 'This field returns the query results in descending order.',
+  useTimeRange: 'This toggle enables querying within the dashboard time range.',
+  useTimeRangeFor: 'This field specifies the property to query within the dashboard time range.',
 };
