@@ -122,7 +122,9 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     if (query.outputType === OutputType.Data) {
       const stepsResponse = responseData.steps;
       const stepResponseKeys = new Set(Object.keys(stepsResponse[0]));
-      const selectedFields = (query.properties || []).filter(field => stepResponseKeys.has(field));
+      const selectedFields = (query.properties || []).filter(field => 
+        stepResponseKeys.has(field)
+      );
       const fields = this.processFields(selectedFields, stepsResponse);
 
       if (query.showMeasurements) {
