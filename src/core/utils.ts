@@ -112,7 +112,7 @@ export function filterXSSLINQExpression(value: string | null | undefined): strin
 }
 
 export function validateNumericInput(event: React.KeyboardEvent<HTMLInputElement>) {
-  if (isNaN(Number(event.key)) && !['Backspace', 'Tab', 'Delete', 'ArrowLeft', 'ArrowRight', '-'].includes(event.key)) {
+  if (isNaN(Number(event.key)) && !['Backspace', 'Tab', 'Delete', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
     event.preventDefault();
   }
 }
