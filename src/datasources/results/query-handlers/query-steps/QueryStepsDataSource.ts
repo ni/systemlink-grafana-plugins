@@ -9,6 +9,7 @@ import {
 } from 'datasources/results/types/QuerySteps.types';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { defaultStepsQuery } from 'datasources/results/defaultQueries';
+import { QUERY_STEPS_REQUEST_PER_SECOND, MAX_TAKE_PER_REQUEST } from 'datasources/results/constants/QuerySteps.constants';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
@@ -39,7 +40,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  async fetchStepsBatch(
+  async fetchStepsInBatch(
     filter?: string,
     orderBy?: string,
     projection?: StepsProperties[],
@@ -49,18 +50,16 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   ): Promise<QueryStepsResponse> {
     let stepsResponse: StepsResponseProperties[] = [];
     let continuationToken: string | undefined = undefined;
-    const MAX_REQUEST_PER_SECOND = 9;
-    const MAX_TAKE_PER_REQUEST = 1000;
 
     if (take === undefined || take <= MAX_TAKE_PER_REQUEST) {
       return await this.querySteps(filter, orderBy, projection, take, continuationToken, descending, returnCount);
     }
 
     let REQUEST_COUNT = Math.ceil(take / MAX_TAKE_PER_REQUEST);
-    const BATCH_COUNT = Math.ceil(REQUEST_COUNT / MAX_REQUEST_PER_SECOND);
+    const BATCH_COUNT = Math.ceil(REQUEST_COUNT / QUERY_STEPS_REQUEST_PER_SECOND);
 
     for (let batch = 0; batch < BATCH_COUNT; batch++) {
-      for (let request = MAX_REQUEST_PER_SECOND; MAX_REQUEST_PER_SECOND > 0; request--) {
+      for (let request = QUERY_STEPS_REQUEST_PER_SECOND; QUERY_STEPS_REQUEST_PER_SECOND > 0; request--) {
         if (stepsResponse.length >= take) {
           break;
         }
@@ -103,7 +102,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
       : query.properties;
 
-    const responseData = await this.fetchStepsBatch(
+    const responseData = await this.fetchStepsInBatch(
       this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
       query.orderBy,
       projection as StepsProperties[],

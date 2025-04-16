@@ -234,7 +234,7 @@ describe('QueryStepsDataSource', () => {
         .mockImplementationOnce(() => mockResponses[0])
 
       
-        const responsePromise = datastore.fetchStepsBatch(
+        const responsePromise = datastore.fetchStepsInBatch(
           undefined,
           undefined,
           undefined,
@@ -279,7 +279,7 @@ describe('QueryStepsDataSource', () => {
         .mockImplementationOnce(() => mockResponses[1])
         .mockImplementationOnce(() => mockResponses[2]);
   
-      const responsePromise = datastore.fetchStepsBatch(
+      const responsePromise = datastore.fetchStepsInBatch(
         undefined,
         undefined,
         undefined,
@@ -323,7 +323,7 @@ describe('QueryStepsDataSource', () => {
   
       backendServer.fetch.mockImplementationOnce(() => mockResponses[0]);
   
-      const response = await datastore.fetchStepsBatch(
+      const response = await datastore.fetchStepsInBatch(
         undefined,
         undefined,
         undefined,
