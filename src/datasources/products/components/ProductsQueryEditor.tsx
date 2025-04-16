@@ -165,7 +165,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
             type: NotificationType.error,
             content: datasource.error,
             dismissible: true,
-            details: 'asdf',
+            details: 'URL: /nitestmonitor/v2/query-products',
           }}
           onDismiss={handleClose}
         />
