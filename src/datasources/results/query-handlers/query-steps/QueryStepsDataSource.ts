@@ -1,5 +1,5 @@
 import { DataQueryRequest, DataFrameDTO, FieldType } from '@grafana/data';
-import { OutputType, QueryType } from 'datasources/results/types/types';
+import { OutputType } from 'datasources/results/types/types';
 import {
   QuerySteps,
   QueryStepsResponse,
@@ -66,7 +66,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         }
 
         const currentTake = Math.min(MAX_TAKE_PER_REQUEST, take - stepsResponse.length);
-        const response = await this.querySteps(
+        const response: QueryStepsResponse = await this.querySteps(
           filter,
           orderBy,
           projection,
@@ -80,7 +80,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         if (!continuationToken) {
           return {
             steps: stepsResponse,
-            totalCount: response.totalCount,
+            totalCount: stepsResponse.length,
           };
         }
       }

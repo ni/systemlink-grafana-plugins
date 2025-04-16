@@ -327,7 +327,7 @@ describe('QueryStepsDataSource', () => {
         undefined,
         undefined,
         undefined,
-        3000, // Total take value
+        3000,
         undefined,
         true
       );
