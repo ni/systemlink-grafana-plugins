@@ -127,6 +127,4 @@ const tooltips = {
   recordCount: 'This field sets the maximum number of results.',
   orderBy: 'This field orders the query results by field.',
   descending: 'This field returns the query results in descending order.',
-  useTimeRange: 'This toggle enables querying within the dashboard time range.',
-  useTimeRangeFor: 'This field specifies the property to query within the dashboard time range.',
 };
