@@ -5,6 +5,7 @@ import { QueryEditorProps } from '@grafana/data';
 import { ResultsDataSource } from '../ResultsDataSource';
 import { QueryType, ResultsQuery } from '../types/types';
 import userEvent from '@testing-library/user-event';
+import { defaultStepsQuery } from '../defaultQueries';
 
 const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
@@ -42,7 +43,7 @@ describe('ResultsQueryEditor', () => {
     userEvent.click(stepsQueryType);
 
     await waitFor(() => {
-      expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ queryType: QueryType.Steps }));
+      expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining(defaultStepsQuery));
       expect(mockOnRunQuery).toHaveBeenCalled();
     });
   });
