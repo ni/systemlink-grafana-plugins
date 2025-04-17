@@ -136,3 +136,14 @@ export interface QueryStepsResponse {
   continuationToken?: string;
   totalCount?: number;
 };
+
+export interface BatchQueryResponse<T> {
+  results: T[];
+  continuationToken?: string;
+  totalCount?: number;
+};
+
+export interface BatchQueryConfig {
+  maxTakePerRequest: number;
+  requestsPerSecond: number;
+};
