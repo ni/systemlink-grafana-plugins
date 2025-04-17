@@ -12,9 +12,9 @@ export const defaultResultsQuery = {
     ResultsPropertiesOptions.HOST_NAME,
     ResultsPropertiesOptions.STARTED_AT,
     ResultsPropertiesOptions.UPDATED_AT,
-    ResultsPropertiesOptions.WORKSPACE,
+    ResultsPropertiesOptions.WORKSPACE
   ] as ResultsProperties[],
-  orderBy: 'UPDATED_AT',
+  orderBy: "UPDATED_AT",
   descending: true,
   recordCount: 1000,
   useTimeRange: false,
