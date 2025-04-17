@@ -9,6 +9,10 @@ export function expandMultipleValueVariable(input: string): string[] {
   return results;
 }
 
+export function convertTagValue(type: string, value?: string) {
+  return value && ['DOUBLE', 'INT', 'U_INT64'].includes(type) ? Number(value) : value;
+}
+
 function generateValues(input: string): string[] {
   const regex = /\{([^{}]*)\}/g;
   let match = regex.exec(input);

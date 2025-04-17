@@ -1,5 +1,6 @@
 import { DataQuery } from '@grafana/schema';
-import { DataSourceJsonData } from "@grafana/data";
+import { DataFrameDTO, DataSourceJsonData, TimeRange } from "@grafana/data";
+import { Workspace } from 'core/types';
 
 export enum TagQueryType {
   Current = 'Current',
@@ -86,4 +87,10 @@ export interface TagDataSourceOptions extends DataSourceJsonData {
 
 export const TagFeatureTogglesDefaults: TagFeatureToggles = {
   parseMultiSelectValues: false
+}
+
+export type PostFn = <T>(url: string, body: Record<string, any>) => Promise<T>;
+
+export abstract class QueryHandler {
+  abstract handleQuery(tagsWithValues: TagWithValue[], result: DataFrameDTO, workspaces: Workspace[], range: TimeRange, maxDataPoints: number | undefined, queryProperties: boolean): Promise<DataFrameDTO>;
 }
