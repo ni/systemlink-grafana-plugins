@@ -5,6 +5,12 @@
       "files": ["**/*.test.ts", "**/*.test.tsx"],
       "plugins": ["jest"],
       "extends": ["plugin:jest/recommended"]
+    },
+    {
+      "files": ["**/**.ts", "**/*.tsx"],
+      "rules": {
+        "no-console": ["error", { "allow": ["warn", "error"] }]
+      }
     }
   ]
 }
