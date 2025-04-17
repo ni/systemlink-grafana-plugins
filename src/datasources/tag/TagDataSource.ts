@@ -25,7 +25,7 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
   };
 
   private readonly tagUrl = this.instanceSettings.url + '/nitag/v2';
-  private readonly queryHandlerFactory = new QueryHandlerFactory(this.post, this.tagUrl);
+  private readonly queryHandlerFactory = new QueryHandlerFactory(this.post.bind(this), this.instanceSettings.url);
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<TagDataSourceOptions>,
