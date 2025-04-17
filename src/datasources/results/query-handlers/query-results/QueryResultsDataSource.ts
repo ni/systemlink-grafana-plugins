@@ -1,33 +1,13 @@
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties } from "datasources/results/types/QueryResults.types";
 import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase";
 import { DataQueryRequest, DataFrameDTO, FieldType } from "@grafana/data";
-import { OutputType, QueryType } from "datasources/results/types/types";
+import { OutputType } from "datasources/results/types/types";
+import { defaultResultsQuery } from "datasources/results/defaultQueries";
 
 export class QueryResultsDataSource extends ResultsDataSourceBase {
   queryResultsUrl = this.baseUrl + '/v2/query-results';
 
-  defaultQuery = {
-    queryType: QueryType.Results,
-    properties: [
-      ResultsPropertiesOptions.PROGRAM_NAME,
-      ResultsPropertiesOptions.PART_NUMBER,
-      ResultsPropertiesOptions.SERIAL_NUMBER,
-      ResultsPropertiesOptions.STATUS,
-      ResultsPropertiesOptions.HOST_NAME,
-      ResultsPropertiesOptions.STARTED_AT,
-      ResultsPropertiesOptions.UPDATED_AT,
-      ResultsPropertiesOptions.WORKSPACE
-    ] as ResultsProperties[],
-    outputType: OutputType.Data,
-    recordCount: 1000,
-  };
-
-  private timeRange: { [key: string]: string } = {
-    Started: 'startedAt',
-    Updated: 'updatedAt',
-  }
-  private fromDateString = '${__from:date}';
-  private toDateString = '${__to:date}';
+  defaultQuery = defaultResultsQuery;
 
   async queryResults(
     filter?: string,
@@ -51,20 +31,9 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  private getTimeRangeFilter(query: QueryResults, options: DataQueryRequest): string | undefined {
-    if (!query.useTimeRange || query.useTimeRangeFor === undefined) {
-      return undefined;
-    }
-
-    const timeRangeField = this.timeRange[query.useTimeRangeFor];
-    const timeRangeFilter = `(${timeRangeField} > "${this.fromDateString}" && ${timeRangeField} < "${this.toDateString}")`;
-
-    return this.templateSrv.replace(timeRangeFilter, options.scopedVars);
-  }
-
   async runQuery(query: QueryResults, options: DataQueryRequest): Promise<DataFrameDTO> {
     const responseData = await this.queryResults(
-      this.getTimeRangeFilter(query, options),
+      this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
       query.orderBy,
       query.properties,
       query.recordCount,
