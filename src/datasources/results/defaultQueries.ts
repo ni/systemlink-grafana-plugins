@@ -19,7 +19,7 @@ export const defaultResultsQuery = {
   descending: true,
   recordCount: 1000,
   useTimeRange: false,
-  useTimeRangeFor: undefined
+  useTimeRangeFor: undefined,
 };
 
 export const defaultStepsQuery = {
@@ -35,5 +35,5 @@ export const defaultStepsQuery = {
   showMeasurements: false,
   recordCount: 10000,
   useTimeRange: false,
-  useTimeRangeFor: undefined
+  useTimeRangeFor: undefined,
 };
