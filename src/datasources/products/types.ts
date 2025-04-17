@@ -7,6 +7,7 @@ export interface ProductQuery extends DataQuery {
   descending?: boolean;
   recordCount?: number;
   queryBy?: string;
+  queryBy2?: string;
 }
 
 export interface ProductVariableQuery extends DataQuery {

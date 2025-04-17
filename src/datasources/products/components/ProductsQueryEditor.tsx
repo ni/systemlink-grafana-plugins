@@ -9,6 +9,7 @@ import { ProductsQueryBuilder } from 'datasources/products/components/query-buil
 import { FloatingError } from 'core/errors';
 import './ProductsQueryEditor.scss';
 import { validateNumericInput } from 'core/utils';
+import { ProductsQueryBuilder2 } from './query-builder/ProductsQueryBuilder2';
 
 type Props = QueryEditorProps<ProductsDataSource, ProductQuery>;
 
@@ -18,7 +19,9 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const [familyNames, setFamilyNames] = useState<string[]>([]);
-  
+  const [productNames, setProductNames] = useState<string[]>([]);
+  const [isQueryBuilderDisabled, setQueryBuilderState] = useState<boolean>(true);
+
   useEffect(() => {
     const loadWorkspaces = async () => {
       await datasource.areWorkspacesLoaded$;
@@ -32,18 +35,31 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
       await datasource.getFamilyNames();
       setFamilyNames(Array.from(datasource.familyNamesCache.values()));
     };
+    const loadProductNames = () => {
+      const datasourceProductNames = datasource.getProductNames();
+      setProductNames(datasourceProductNames);
+    };
+    const updateQueryBuilderState = () => {
+      const isDisabled = datasource.queryBuilderDisabled;
+      setQueryBuilderState(isDisabled);
+    }
 
     loadWorkspaces();
     loadPartNumbers();
     loadFamilyNames();
-  }, [datasource]);
+    loadProductNames();
+    updateQueryBuilderState();
+  }, [datasource, datasource.productNames, datasource.queryBuilderDisabled]);
 
-  const handleQueryChange = useCallback((query: ProductQuery, runQuery = true): void => {
-    onChange(query);
-    if (runQuery) {
-      onRunQuery();
-    }
-  }, [onChange, onRunQuery]);
+  const handleQueryChange = useCallback(
+    (query: ProductQuery, runQuery = true): void => {
+      onChange(query);
+      if (runQuery) {
+        onRunQuery();
+      }
+    },
+    [onChange, onRunQuery]
+  );
 
   const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
     if (items !== undefined) {
@@ -53,20 +69,26 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
 
   const onOrderByChange = (item: SelectableValue<string>) => {
     handleQueryChange({ ...query, orderBy: item.value });
-  }
+  };
 
   const onDescendingChange = (isDescendingChecked: boolean) => {
     handleQueryChange({ ...query, descending: isDescendingChecked });
-  }
+  };
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
     handleQueryChange({ ...query, recordCount: value });
-  }
+  };
 
   const onParameterChange = (value: string) => {
     if (query.queryBy !== value) {
       handleQueryChange({ ...query, queryBy: value });
+    }
+  };
+
+  const onQueryByChange = (value: string) => {
+    if (query.queryBy2 !== value) {
+      handleQueryChange({ ...query, queryBy2: value });
     }
   }
 
@@ -77,8 +99,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
           <InlineField label="Properties" labelWidth={18} tooltip={tooltips.properties}>
             <MultiSelect
               placeholder="Select properties to fetch"
-              options={Object.keys(Properties)
-                .map(value => ({ label: value, value })) as SelectableValue[]}
+              options={Object.keys(Properties).map(value => ({ label: value, value })) as SelectableValue[]}
               onChange={onPropertiesChange}
               value={query.properties}
               defaultValue={query.properties!}
@@ -98,6 +119,15 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
               globalVariableOptions={datasource.globalVariableOptions()}
               onChange={(event: any) => onParameterChange(event.detail.linq)}
             ></ProductsQueryBuilder>
+          </InlineField>
+          <InlineField label="Query Builder2" labelWidth={18} tooltip={tooltips.queryBy}>
+            <ProductsQueryBuilder2
+              filter={query.queryBy}
+              productNames={productNames}
+              queryBuilderDisabled={isQueryBuilderDisabled}
+              globalVariableOptions={datasource.globalVariableOptions()}
+              onChange={(event: any) => onQueryByChange(event.detail.linq)}
+            ></ProductsQueryBuilder2>
           </InlineField>
         </VerticalGroup>
         <VerticalGroup>
@@ -124,11 +154,13 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
               <AutoSizeInput
                 minWidth={26}
                 maxWidth={26}
-                type='number'
+                type="number"
                 defaultValue={query.recordCount}
                 onCommitChange={recordCountChange}
                 placeholder="Enter record count"
-                onKeyDown={(event) => {validateNumericInput(event)}}
+                onKeyDown={event => {
+                  validateNumericInput(event);
+                }}
               />
             </InlineField>
           </div>
@@ -140,9 +172,9 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
 }
 
 const tooltips = {
-  properties: "Specifies the properties to be queried.",
-  recordCount: "Specifies the maximum number of products to return.",
-  orderBy: "Specifies the field to order the queried products by.",
-  descending: "Specifies whether to return the products in descending order.",
+  properties: 'Specifies the properties to be queried.',
+  recordCount: 'Specifies the maximum number of products to return.',
+  orderBy: 'Specifies the field to order the queried products by.',
+  descending: 'Specifies whether to return the products in descending order.',
   queryBy: 'Specifies the filter to be applied on the queried products. This is an optional field.',
-}
+};

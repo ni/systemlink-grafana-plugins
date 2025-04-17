@@ -17,6 +17,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   ) {
     super(instanceSettings, backendSrv, templateSrv);
     this.error = '';
+    this.queryBuilderDisabled = true;
     this.workspaceLoadedPromise = this.loadWorkspaces();
     this.partNumberLoadedPromise = this.getProductPartNumbers();
   }
@@ -24,6 +25,8 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   areWorkspacesLoaded$ = new Promise<void>(resolve => this.workspacesLoaded = resolve);
   arePartNumberLoaded$ = new Promise<void>(resolve => this.partNumberLoaded = resolve);
   error = '';
+  queryBuilderDisabled = true;
+  productNames: Array<string | undefined> = [];
 
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
   queryProductsUrl = this.baseUrl + '/v2/query-products';
@@ -90,12 +93,16 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   async runQuery(query: ProductQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     await this.workspaceLoadedPromise;
     await this.partNumberLoadedPromise;
+    console.log(query.queryBy2, query.queryBy)
 
     if (query.queryBy) {
+      this.queryBuilderDisabled = false;
       query.queryBy = transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
         this.productsComputedDataFields,
       );
+    } else {
+      this.queryBuilderDisabled = true;
     }
 
     const products = (
@@ -108,6 +115,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       )).products;
 
     if (products.length > 0) {
+      this.productNames = products.map(product => product.name);
       const selectedFields = query.properties?.filter(
         (field: Properties) => Object.keys(products[0]).includes(field)) || [];
       const fields = selectedFields.map((field) => {
@@ -168,6 +176,13 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       });
 
     familyNames?.forEach(familyName => this.familyNamesCache.set(familyName, familyName));
+  }
+
+  getProductNames(): string[] {
+    if (this.productNames?.length > 0) {
+      return this.productNames.filter((name): name is string => name !== undefined);
+    }
+    return [];
   }
 
   async metricFindQuery(query: ProductVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
