@@ -10,7 +10,7 @@ type Props = {
   handleQueryChange: (query: QueryResults, runQuery?: boolean) => void;
 };
 
-export function UseTimeRangeControls({query, handleQueryChange}: Props) {
+export function TimeRangeControls({query, handleQueryChange}: Props) {
   const onUseTimeRangeChecked = (value: boolean) => {
     if (query.useTimeRangeFor === undefined) {
       handleQueryChange({ ...query, useTimeRange: value }, false);

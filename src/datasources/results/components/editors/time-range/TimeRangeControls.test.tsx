@@ -1,11 +1,11 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { UseTimeRangeControls } from './UseTimeRangeControls';
+import { TimeRangeControls } from './TimeRangeControls';
 import userEvent from '@testing-library/user-event';
 import { select } from 'react-select-event';
 import { OutputType, QueryType } from 'datasources/results/types/types';
 
-describe('UseTimeRangeControls', () => {
+describe('TimeRangeControls', () => {
   const mockHandleQueryChange = jest.fn();
 
   const defaultProps = {
@@ -23,7 +23,7 @@ describe('UseTimeRangeControls', () => {
   let useTimeRangeFor: HTMLElement;
 
   beforeEach(() => {
-    render(<UseTimeRangeControls {...defaultProps} />);
+    render(<TimeRangeControls {...defaultProps} />);
     useTimeRange = screen.getAllByRole('checkbox')[0];
     useTimeRangeFor = screen.getAllByRole('combobox')[0];
   });
