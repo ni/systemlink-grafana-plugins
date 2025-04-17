@@ -13,7 +13,7 @@ import React from 'react';
 import '../../ResultsQueryEditor.scss';
 import { OutputType } from 'datasources/results/types/types';
 import { OrderBy, QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
-import { UseTimeRangeControls } from '../use-time-range/UseTimeRangeControls';
+import { TimeRangeControls } from '../time-range/TimeRangeControls';
 
 type Props = {
   query: QuerySteps;
@@ -109,7 +109,7 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
                   onKeyDown={(event) => {validateNumericInput(event)}}
                 />
               </InlineField>
-              <UseTimeRangeControls
+              <TimeRangeControls
                 query={query}
                 handleQueryChange={(updatedQuery, runQuery) => {
                   handleQueryChange(updatedQuery as QuerySteps, runQuery);
@@ -119,7 +119,7 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
           </VerticalGroup>
         )}
         {query.outputType === OutputType.TotalCount && (
-          <UseTimeRangeControls
+          <TimeRangeControls
             query={query}
             handleQueryChange={(updatedQuery, runQuery) => {
               handleQueryChange(updatedQuery as QuerySteps, runQuery);
