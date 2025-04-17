@@ -11,7 +11,6 @@ import {
 import { enumToOptions, validateNumericInput } from 'core/utils';
 import React from 'react';
 import '../../ResultsQueryEditor.scss';
-import '../../ResultsQueryEditor.scss';
 import { OrderBy, QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
 import { OutputType } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
