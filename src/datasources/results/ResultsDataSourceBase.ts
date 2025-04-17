@@ -1,7 +1,7 @@
 import { DataSourceBase } from "core/DataSourceBase";
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse } from "@grafana/data";
 import { ResultsQuery } from "./types/types";
-import { BatchFetchConfig, BatchQueryResponse } from "./types/QuerySteps.types";
+import { BatchQueryConfig, BatchQueryResponse } from "./types/QuerySteps.types";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
@@ -29,16 +29,16 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     return this.templateSrv.replace(timeRangeFilter, options.scopedVars);
   }
 
-  async fetchInBatches<T>(
-    fetchRecord: (take: number, continuationToken?: string) => Promise<BatchQueryResponse<T>>,
-    config: BatchFetchConfig,
+  async queryInBatches<T>(
+    queryRecord: (take: number, continuationToken?: string) => Promise<BatchQueryResponse<T>>,
+    config: BatchQueryConfig,
     take?: number,
   ): Promise<BatchQueryResponse<T>> {
-    let responseItems: T[] = [];
+    let response: T[] = [];
     let continuationToken: string | undefined = undefined;
 
     if (take === undefined || take <= config.maxTakePerRequest) {
-      return await fetchRecord(take || config.maxTakePerRequest, continuationToken);
+      return await queryRecord(take || config.maxTakePerRequest, continuationToken);
     }
 
     const requestCount = Math.ceil(take / config.maxTakePerRequest);
@@ -47,25 +47,23 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     for (let batch = 0; batch < batchCount; batch++) {
       const requestsThisBatch = Math.min(
         config.requestsPerSecond, 
-        Math.ceil((take - responseItems.length) / config.maxTakePerRequest)
+        Math.ceil((take - response.length) / config.maxTakePerRequest)
       );
-
       for (let request = 0; request < requestsThisBatch; request++) {
-        if (responseItems.length >= take) {
+        if (response.length >= take) {
           break;
         }
+        const currentTake = Math.min(config.maxTakePerRequest, take - response.length);
 
-        const currentTake = Math.min(config.maxTakePerRequest, take - responseItems.length);
+        const queryResponse: BatchQueryResponse<T> = await queryRecord(currentTake, continuationToken);
 
-        const response: BatchQueryResponse<T> = await fetchRecord(currentTake, continuationToken);
-
-        responseItems = [...responseItems, ...response.items];
-        continuationToken = response.continuationToken;
+        response = [...response, ...queryResponse.results];
+        continuationToken = queryResponse.continuationToken;
 
         if (!continuationToken) {
           return {
-            items: responseItems,
-            totalCount: responseItems.length,
+            results: response,
+            totalCount: response.length,
           };
         }
       }
@@ -76,13 +74,13 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     }
 
     return {
-      items: responseItems,
-      totalCount: responseItems.length,
+      results: response,
+      totalCount: response.length, 
     };
   }
 
-  private async delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+  private async delay(timeout: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, timeout));
   }
 
   testDatasource(): Promise<TestDataSourceResponse> {

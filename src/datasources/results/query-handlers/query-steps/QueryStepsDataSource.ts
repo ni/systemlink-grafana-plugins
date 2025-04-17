@@ -41,7 +41,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  async fetchStepsInBatch(
+  async queryStepsInBatch(
     filter?: string,
     orderBy?: string,
     projection?: StepsProperties[],
@@ -49,7 +49,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     descending?: boolean,
     returnCount = false
   ): Promise<QueryStepsResponse> {
-    const fetchRecord = async (currentTake: number, token?: string): Promise<BatchQueryResponse<StepsResponseProperties>> => {
+    const queryRecord = async (currentTake: number, token?: string): Promise<BatchQueryResponse<StepsResponseProperties>> => {
       const response = await this.querySteps(
         filter,
         orderBy,
@@ -61,7 +61,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       );
 
       return {
-        items: response.steps,
+        results: response.steps,
         continuationToken: response.continuationToken,
         totalCount: response.totalCount
       };
@@ -72,12 +72,12 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       requestsPerSecond: QUERY_STEPS_REQUEST_PER_SECOND
     };
 
-    const result = await this.fetchInBatches(fetchRecord, config, take);
+    const response = await this.queryInBatches(queryRecord, config, take);
 
     return {
-      steps: result.items,
-      continuationToken: result.continuationToken,
-      totalCount: result.totalCount
+      steps: response.results,
+      continuationToken: response.continuationToken,
+      totalCount: response.totalCount
     };
   }
 
@@ -86,7 +86,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
       : query.properties;
 
-    const responseData = await this.fetchStepsInBatch(
+    const responseData = await this.queryStepsInBatch(
       this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
       query.orderBy,
       projection as StepsProperties[],

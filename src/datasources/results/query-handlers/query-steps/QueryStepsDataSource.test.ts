@@ -229,21 +229,18 @@ describe('QueryStepsDataSource', () => {
           continuationToken: null,
           totalCount: 100,
       })]
-
       backendServer.fetch
         .mockImplementationOnce(() => mockResponses[0])
 
-
-        const responsePromise = datastore.fetchStepsInBatch(
-          undefined,
-          undefined,
-          undefined,
-          100,
-          undefined,
-          true
-        );
-
-        const response = await responsePromise;
+      const responsePromise = datastore.queryStepsInBatch(
+        undefined,
+        undefined,
+        undefined,
+        100,
+        undefined,
+        true
+      );
+      const response = await responsePromise;
 
       expect(response.steps).toHaveLength(100);
       expect(backendServer.fetch).toHaveBeenCalledTimes(1);
@@ -278,8 +275,7 @@ describe('QueryStepsDataSource', () => {
         .mockImplementationOnce(() => mockResponses[0])
         .mockImplementationOnce(() => mockResponses[1])
         .mockImplementationOnce(() => mockResponses[2]);
-
-      const responsePromise = datastore.fetchStepsInBatch(
+      const responsePromise = datastore.queryStepsInBatch(
         undefined,
         undefined,
         undefined,
@@ -287,7 +283,6 @@ describe('QueryStepsDataSource', () => {
         undefined,
         true
       );
-
       const response = await responsePromise;
 
       expect(response.steps).toHaveLength(1500);
@@ -322,8 +317,7 @@ describe('QueryStepsDataSource', () => {
       ];
 
       backendServer.fetch.mockImplementationOnce(() => mockResponses[0]);
-
-      const response = await datastore.fetchStepsInBatch(
+      const response = await datastore.queryStepsInBatch(
         undefined,
         undefined,
         undefined,
