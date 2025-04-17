@@ -137,5 +137,5 @@ const tooltips = {
   recordCount: 'This field sets the maximum number of steps.',
   orderBy: 'This field orders the query steps by field.',
   descending: 'This field returns the query steps in descending order.',
-  showMeasurements: 'This toggle enables the display step measurement data',
+  showMeasurements: 'This toggle enables the display of measurement data from steps.',
 };
