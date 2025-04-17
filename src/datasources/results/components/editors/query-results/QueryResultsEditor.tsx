@@ -12,7 +12,8 @@ import { enumToOptions, validateNumericInput } from 'core/utils';
 import React from 'react';
 import '../../ResultsQueryEditor.scss';
 import { OrderBy, QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
-import { OutputType, UseTimeRangeFor } from 'datasources/results/types/types';
+import { OutputType } from 'datasources/results/types/types';
+import { UseTimeRangeControls } from '../use-time-range/UseTimeRangeControls';
 
 type Props = {
   query: QueryResults;
@@ -116,46 +117,10 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
   );
 }
 
-export function UseTimeRangeControls({ query, handleQueryChange }: Props) {
-  const onUseTimeRangeChecked = (value: boolean) => {
-    if(query.useTimeRangeFor === undefined) {
-      handleQueryChange({ ...query, useTimeRange: value }, false);
-      return;
-    }
-    handleQueryChange({ ...query, useTimeRange: value });
-  };
-
-  const onUseTimeRangeChanged = (value: SelectableValue<string>) => {
-    handleQueryChange({ ...query, useTimeRangeFor: value.value! });
-  };
-
-  return (
-    <div className="horizontal-control-group">
-      <InlineField label="Use time range" tooltip={tooltips.useTimeRange} labelWidth={25}>
-        <InlineSwitch 
-          onChange={event => onUseTimeRangeChecked(event.currentTarget.checked)} 
-          value={query.useTimeRange}
-        />
-      </InlineField>
-      <InlineField label="to filter by" disabled={!query.useTimeRange} tooltip={tooltips.useTimeRangeFor}>
-        <Select
-          placeholder="Choose"
-          options={enumToOptions(UseTimeRangeFor)}
-          onChange={onUseTimeRangeChanged}
-          value={query.useTimeRangeFor}
-          width={25}
-        />
-      </InlineField>
-    </div>
-  );
-}
-
 const tooltips = {
   output: 'This field specifies the output type for the query result.',
   properties: 'This field specifies the properties to use in the query.',
   recordCount: 'This field sets the maximum number of results.',
   orderBy: 'This field orders the query results by field.',
   descending: 'This field returns the query results in descending order.',
-  useTimeRange: 'This toggle enables querying within the dashboard time range.',
-  useTimeRangeFor: 'This field specifies the property to query within the dashboard time range.',
 };
