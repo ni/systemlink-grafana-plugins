@@ -1,26 +1,13 @@
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties } from "datasources/results/types/QueryResults.types";
 import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase";
 import { DataQueryRequest, DataFrameDTO, FieldType } from "@grafana/data";
-import { OutputType, QueryType } from "datasources/results/types/types";
+import { OutputType } from "datasources/results/types/types";
+import { defaultResultsQuery } from "datasources/results/defaultQueries";
 
 export class QueryResultsDataSource extends ResultsDataSourceBase {
   queryResultsUrl = this.baseUrl + '/v2/query-results';
 
-  defaultQuery = {
-    queryType: QueryType.Results,
-    properties: [
-      ResultsPropertiesOptions.PROGRAM_NAME,
-      ResultsPropertiesOptions.PART_NUMBER,
-      ResultsPropertiesOptions.SERIAL_NUMBER,
-      ResultsPropertiesOptions.STATUS,
-      ResultsPropertiesOptions.HOST_NAME,
-      ResultsPropertiesOptions.STARTED_AT,
-      ResultsPropertiesOptions.UPDATED_AT,
-      ResultsPropertiesOptions.WORKSPACE
-    ] as ResultsProperties[],
-    outputType: OutputType.Data,
-    recordCount: 1000,
-  };
+  defaultQuery = defaultResultsQuery;
 
   async queryResults(
     filter?: string,
