@@ -11,9 +11,10 @@ import {
 import { enumToOptions, validateNumericInput } from 'core/utils';
 import React from 'react';
 import '../../ResultsQueryEditor.scss';
+import '../../ResultsQueryEditor.scss';
 import { OrderBy, QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
 import { OutputType } from 'datasources/results/types/types';
-import { UseTimeRangeControls } from '../use-time-range/UseTimeRangeControls';
+import { TimeRangeControls } from '../time-range/TimeRangeControls';
 
 type Props = {
   query: QueryResults;
@@ -99,7 +100,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
                   onKeyDown={(event) => {validateNumericInput(event)}}
                 />
               </InlineField>
-              <UseTimeRangeControls
+              <TimeRangeControls
                 query={query}
                 handleQueryChange={(updatedQuery, runQuery) => {
                   handleQueryChange(updatedQuery as QueryResults, runQuery);
@@ -109,7 +110,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
           </VerticalGroup>
         )}
         {query.outputType === OutputType.TotalCount && (
-          <UseTimeRangeControls
+          <TimeRangeControls
             query={query}
             handleQueryChange={(updatedQuery, runQuery) => {
               handleQueryChange(updatedQuery as QueryResults, runQuery);
