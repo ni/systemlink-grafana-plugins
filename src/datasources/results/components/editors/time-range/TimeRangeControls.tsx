@@ -2,12 +2,13 @@ import { SelectableValue } from '@grafana/data';
 import { InlineField, InlineSwitch, Select } from '@grafana/ui';
 import { enumToOptions } from 'core/utils';
 import { QueryResults } from 'datasources/results/types/QueryResults.types';
+import { QuerySteps } from 'datasources/results/types/QuerySteps.types';
 import { UseTimeRangeFor } from 'datasources/results/types/types';
 import React from 'react';
 
 type Props = {
-  query: QueryResults;
-  handleQueryChange: (query: QueryResults, runQuery?: boolean) => void;
+  query: QueryResults | QuerySteps;
+  handleQueryChange: (query: QueryResults | QuerySteps, runQuery?: boolean) => void;
 };
 
 export function TimeRangeControls({query, handleQueryChange}: Props) {
