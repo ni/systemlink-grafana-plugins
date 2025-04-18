@@ -11,6 +11,7 @@ import { DataQuery } from '@grafana/schema';
 import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
 import { sleep } from './utils';
 import { lastValueFrom } from 'rxjs';
+import cache from './cache';
 
 export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData = DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
   constructor(
@@ -70,15 +71,16 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
   static Workspaces: Workspace[];
 
   async getWorkspaces(): Promise<Workspace[]> {
-    if (DataSourceBase.Workspaces) {
-      return DataSourceBase.Workspaces;
+    const work = cache.get('workspaces');
+    if (work) {
+      return work;
     }
 
     const response = await this.backendSrv.get<{ workspaces: Workspace[] }>(
       this.instanceSettings.url + '/niauth/v1/user'
     );
-
-    return (DataSourceBase.Workspaces = response.workspaces);
+    cache.set('workspaces', response.workspaces);
+    return response.workspaces;
   }
 
   async getSystems(body: QuerySystemsRequest): Promise<QuerySystemsResponse> {
