@@ -91,6 +91,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     await this.workspaceLoadedPromise;
     await this.partNumberLoadedPromise;
 
+    console.log(this.workspacesCache, 'product');
     if (query.queryBy) {
       query.queryBy = transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
@@ -112,9 +113,9 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     ).map((product) => product.workspace??'');
 
     if (products.length > 0) {
-      // const selectedFields = query.properties?.filter(
-      //   (field: Properties) => Object.keys(products[0]).includes(field)) || [];
-      const fields = ['Workspace', 'Workspaces2'].map((field) => {
+      const selectedFields = query.properties?.filter(
+        (field: Properties) => Object.keys(products[0]).includes(field)) || [];
+      const fields = selectedFields.map((field) => {
         const isTimeField = field === PropertiesOptions.UPDATEDAT;
         const fieldType = isTimeField
           ? FieldType.time
@@ -130,8 +131,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
               const workspace = this.workspacesCache.get(value);
               return workspace ? getWorkspaceName([workspace], value) : value;
             default:
-              const workspace2 = this.workspacesCache.get(value);
-              return workspace2 ? getWorkspaceName([workspace2], value) : value
+              return value;
           }
         });
 

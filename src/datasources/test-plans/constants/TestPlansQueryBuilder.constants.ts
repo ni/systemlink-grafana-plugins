@@ -14,8 +14,8 @@ export enum TestPlansQueryBuilderFieldNames {
     UPDATED_BY = "updatedBy",
     CREATED_AT = "createdAt",
     UPDATED_AT = "updatedAt",
-    EARLIEST_START_DATE = "earliestStartDate",
-    DUE_DATE = "dueDate",
+    EARLIEST_START_DATE = "plannedStartDateTime",
+    DUE_DATE = "estimatedEndDateTime",
     PROPERTIES = "properties"
 }
 
@@ -262,7 +262,5 @@ export const TestPlansQueryBuilderStaticFields = [
     TestPlansQueryBuilderFields.UPDATEDBY,
     TestPlansQueryBuilderFields.CREATEDAT,
     TestPlansQueryBuilderFields.UPDATEDAT,
-    TestPlansQueryBuilderFields.EARLIESTSTARTDATE,
-    TestPlansQueryBuilderFields.DUEDATE,
     TestPlansQueryBuilderFields.PROPERTIES
 ];

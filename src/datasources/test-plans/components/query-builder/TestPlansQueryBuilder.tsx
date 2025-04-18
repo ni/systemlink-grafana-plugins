@@ -2,7 +2,6 @@ import { useTheme2 } from "@grafana/ui";
 import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder.constants";
 import { expressionBuilderCallback, expressionReaderCallback } from "core/query-builder.utils";
 import { QueryBuilderOption } from "core/types";
-import { filterXSSField, filterXSSLINQExpression } from "core/utils";
 import { QBField } from "datasources/products/types";
 import React, { useState, useEffect, useMemo } from "react";
 import QueryBuilder, { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
@@ -12,7 +11,8 @@ import 'smart-webcomponents-react/source/styles/smart.orange.css';
 import 'smart-webcomponents-react/source/styles/components/smart.base.css';
 import 'smart-webcomponents-react/source/styles/components/smart.common.css';
 import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
-import { TestPlansQueryBuilderStaticFields } from "datasources/test-plans/constants/TestPlansQueryBuilder.constants";
+import { TestPlansQueryBuilderStaticFields, TestPlansQueryBuilderFields } from "datasources/test-plans/constants/TestPlansQueryBuilder.constants";
+import { filterXSSLINQExpression, filterXSSField } from "core/utils";
 
 type ProductsQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
   filter?: string;
@@ -34,10 +34,40 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
     return filterXSSLINQExpression(filter);
   }, [filter])
 
+  const dueDateField = useMemo(() => {
+    const dueDate = TestPlansQueryBuilderFields.DUEDATE;
+    return {
+      ...dueDate,
+      lookup: {
+        ...dueDate.lookup,
+        dataSource: [
+          ...(dueDate.lookup?.dataSource || []),
+          { label: "From", value: "${__from:date}" },
+          { label: "To", value: "${__to:date}" },
+          { label: "Now", value: "${__now:date}" },
+        ]
+      }
+    }
+  }, []);
 
+  const earlieastStartDateField = useMemo(() => {
+    const startDate = TestPlansQueryBuilderFields.EARLIESTSTARTDATE;
+    return {
+      ...startDate,
+      lookup: {
+        ...startDate.lookup,
+        dataSource: [
+          ...(startDate.lookup?.dataSource || []),
+          { label: "From", value: "${__from:date}" },
+          { label: "To", value: "${__to:date}" },
+          { label: "Now", value: "${__now:date}" },
+        ]
+      }
+    }
+  }, []);
 
   useEffect(() => {
-    const updatedFields = [...TestPlansQueryBuilderStaticFields!]
+    const updatedFields = [...TestPlansQueryBuilderStaticFields!, dueDateField, earlieastStartDateField ]
       .map((field) => {
         if (field.lookup?.dataSource) {
           return {

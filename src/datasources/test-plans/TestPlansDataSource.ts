@@ -14,6 +14,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    this.getWorkspaces();
   }
 
   // TODO: set base path of the service
@@ -49,6 +50,8 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
   async runQuery (query: TestPlansQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     let take;
+    // this.getWorkspaces();
+
     if(typeof query.take === 'string') {
     take = parseInt(this.templateSrv.replace(query.take, options.scopedVars),10)
     }
