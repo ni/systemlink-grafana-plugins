@@ -35,7 +35,7 @@ describe('ResultsDataSource', () => {
   });
 
   describe('runQuery', () => {
-    test('calls QueryResultsDataSource runQuery', async () => {
+    test('calls QueryResultsDataSource runQuery when query type is results', async () => {
       const mockQuery: ResultsQuery = { refId: 'A', queryType: 'Results' } as ResultsQuery;
       const mockOptions: DataQueryRequest = {} as DataQueryRequest;
       const mockResponse: DataFrameDTO = { fields: [] };
@@ -49,18 +49,44 @@ describe('ResultsDataSource', () => {
       expect(result).toBe(mockResponse);
     });
 
-    describe('shouldRunQuery', () => {
-      test('calls QueryResultsDataSource shouldRunQuery', () => {
-        const mockQuery: ResultsQuery = { refId: 'A', queryType: 'Results' } as ResultsQuery;
-  
-        const queryResultsDataSource = (datastore as any).queryResultsDataSource;
-        queryResultsDataSource.shouldRunQuery = jest.fn().mockReturnValue(true);
-  
-        const result = datastore.shouldRunQuery(mockQuery);
-  
-        expect(queryResultsDataSource.shouldRunQuery).toHaveBeenCalledWith(mockQuery);
-        expect(result).toBe(true);
-      });
+    test('calls QueryStepsDataSource runQuery when queryType is Steps', async () => {
+      const mockQuery: ResultsQuery = { refId: 'A', queryType: 'Steps' } as ResultsQuery;
+      const mockOptions: DataQueryRequest = {} as DataQueryRequest;
+      const mockResponse: DataFrameDTO = { fields: [] };
+
+      const queryStepsDataSource = (datastore as any).queryStepsDataSource;
+      queryStepsDataSource.runQuery = jest.fn().mockResolvedValue(mockResponse);
+
+      const result = await datastore.runQuery(mockQuery, mockOptions);
+
+      expect(queryStepsDataSource.runQuery).toHaveBeenCalledWith(mockQuery, mockOptions);
+      expect(result).toBe(mockResponse);
+    });
+  });
+
+  describe('shouldRunQuery', () => {
+    test('calls QueryResultsDataSource shouldRunQuery', () => {
+      const mockQuery: ResultsQuery = { refId: 'A', queryType: 'Results' } as ResultsQuery;
+
+      const queryResultsDataSource = (datastore as any).queryResultsDataSource;
+      queryResultsDataSource.shouldRunQuery = jest.fn().mockReturnValue(true);
+
+      const result = datastore.shouldRunQuery(mockQuery);
+
+      expect(queryResultsDataSource.shouldRunQuery).toHaveBeenCalledWith(mockQuery);
+      expect(result).toBe(true);
+    });
+
+    test('calls QueryStepsDataSource shouldRunQuery when querytype is Steps', () => {
+      const mockQuery: ResultsQuery = { refId: 'A', queryType: 'Steps' } as ResultsQuery;
+
+      const queryStepsDataSource = (datastore as any).queryStepsDataSource;
+      queryStepsDataSource.shouldRunQuery = jest.fn().mockReturnValue(true);
+
+      const result = datastore.shouldRunQuery(mockQuery);
+
+      expect(queryStepsDataSource.shouldRunQuery).toHaveBeenCalledWith(mockQuery);
+      expect(result).toBe(true);
     });
   });
 });
