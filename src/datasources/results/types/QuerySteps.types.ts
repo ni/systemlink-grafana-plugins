@@ -1,0 +1,97 @@
+import { OutputType, ResultsQuery } from "./types";
+
+export interface QuerySteps extends ResultsQuery {
+  outputType: OutputType;
+  properties?: StepsProperties[];
+  orderBy?: string;
+  descending?: boolean;
+  useTimeRange?: boolean;
+  useTimeRangeFor?: string;
+  recordCount?: number;
+};
+
+export const OrderBy = [
+  {
+    value: 'NAME',
+    label: 'Step Name',
+    description: 'Name of the step',
+  },
+  {
+    value: 'STEP_TYPE',
+    label: 'Step Type',
+    description: 'Type of the step',
+  },
+  {
+    value: 'STEP_ID',
+    label: 'Step ID',
+    description: 'ID of the step',
+  },
+  {
+    value: 'PARENT_ID',
+    label: 'Parent ID',
+    description: 'ID of the parent step',
+  },
+  {
+    value: 'RESULT_ID',
+    label: 'Result ID',
+    description: 'ID of the associated result',
+  },
+  {
+    value: 'TOTAL_TIME_IN_SECONDS',
+    label: 'Total Time in seconds',
+    description: 'Total time taken to run the step in seconds',
+  },
+  {
+    value: 'STARTED_AT',
+    label: 'Started At',
+    description: 'Timestamp when the step started',
+  },
+  {
+    value: 'UPDATED_AT',
+    label: 'Updated At',
+    description: 'Timestamp when the step was last updated',
+  },
+  {
+    value: 'DATA_MODEL',
+    label: 'Data Model',
+    description: 'Data model of the step',
+  }
+];
+
+export const StepsPropertiesOptions = {
+  STEP_ID: 'stepId',
+  NAME: 'name',
+  STEP_TYPE: 'stepType',
+  PARENT_ID: 'parentId',
+  RESULT_ID: 'resultId',
+  STATUS: 'status',
+  TOTAL_TIME_IN_SECONDS: 'totalTimeInSeconds',
+  STARTED_AT: 'startedAt',
+  UPDATED_AT: 'updatedAt',
+  INPUTS: 'inputs',
+  OUTPUTS: 'outputs',
+  DATA_MODEL: 'dataModel',
+  DATA: 'data',
+  WORKSPACE: 'workspace',
+  KEYWORDS: 'keywords',
+  PROPERTIES: 'properties',
+};
+
+export enum StepsProperties {
+  name = 'name',
+  stepType = 'stepType',
+  stepId = 'stepId',
+  parentId = 'parentId',
+  resultId = 'resultId',
+  status = 'status',
+  totalTimeInSeconds = 'totalTimeInSeconds',
+  startedAt = 'startedAt',
+  updatedAt = 'updatedAt',
+  inputs = 'inputs',
+  outputs = 'outputs',
+  dataModel = 'dataModel',
+  data = 'data',
+  workspace = 'workspace',
+  keywords = 'keywords',
+  properties = 'properties',
+};

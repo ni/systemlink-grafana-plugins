@@ -4,6 +4,8 @@ import { ResultsDataSource } from '../ResultsDataSource';
 import { ResultsQuery } from '../types/types';
 import { QueryResultsEditor } from './editors/query-results/QueryResultsEditor';
 import { QueryResults } from '../types/QueryResults.types';
+import { QueryStepsEditor } from './editors/query-steps/QueryStepsEditor';
+import { QuerySteps } from '../types/QuerySteps.types';
 
 type Props = QueryEditorProps<ResultsDataSource, ResultsQuery>;
 
@@ -20,9 +22,15 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
   );
 
   return (
+    <>
     <QueryResultsEditor
       query={query as QueryResults} 
       handleQueryChange={handleQueryChange}
     />
+    <QueryStepsEditor
+      query={query as QuerySteps} 
+      handleQueryChange={handleQueryChange}
+    />
+    </>
   );
 }
