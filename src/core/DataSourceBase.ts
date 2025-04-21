@@ -69,19 +69,29 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
   }
 
   static Workspaces: Workspace[];
+  private static workspacePromise: Promise<Workspace[]> | null = null;
 
   async getWorkspaces(): Promise<Workspace[]> {
-    const workspaces = sharedCache.get('workspaces')
-    if (workspaces) {
-      return workspaces;
+    const cachedWorkspaces = sharedCache.get<Workspace[]>('workspaces');
+    if (cachedWorkspaces) {
+      return cachedWorkspaces;
     }
 
-    const response = await this.backendSrv.get<{ workspaces: Workspace[] }>(
-      this.instanceSettings.url + '/niauth/v1/user'
-    );
-    sharedCache.set('workspaces', response.workspaces);
+    if (!DataSourceBase.workspacePromise) {
+      DataSourceBase.workspacePromise = this.get<{ workspaces: Workspace[] }>(
+        `${this.instanceSettings.url}/niauth/v1/user`
+      )
+        .then((response) => {
+          const workspaces = response.workspaces || [];
+          sharedCache.set('workspaces', workspaces);
+          return workspaces;
+        })
+        .finally(() => {
+          DataSourceBase.workspacePromise = null; // Clear the promise cache
+        });
+    }
 
-    return response.workspaces;
+    return DataSourceBase.workspacePromise;
   }
 
   async getSystems(body: QuerySystemsRequest): Promise<QuerySystemsResponse> {
