@@ -72,7 +72,10 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  private processFields(selectedFields: StepsProperties[], stepsResponse: StepsResponseProperties[]): any[] {
+  private processFields(
+    selectedFields: StepsProperties[], 
+    stepsResponse: StepsResponseProperties[]
+  ): Array<{name: StepsProperties; values: string[]; type: FieldType}> {
     return selectedFields.map(field => {
       const isTimeField = field === StepsPropertiesOptions.UPDATED_AT || field === StepsPropertiesOptions.STARTED_AT;
 
