@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
+import { QuerySteps } from 'datasources/results/types/QuerySteps.types';
 import { QueryStepsEditor } from './QueryStepsEditor';
 import React from 'react';
 import { OutputType, QueryType } from 'datasources/results/types/types';
