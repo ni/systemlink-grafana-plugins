@@ -1,4 +1,4 @@
-import { OutputType, ResultsQuery } from "./types";
+import { OutputType, ResultsQuery } from './types';
 
 export interface QuerySteps extends ResultsQuery {
   outputType: OutputType;
@@ -8,7 +8,7 @@ export interface QuerySteps extends ResultsQuery {
   useTimeRange?: boolean;
   useTimeRangeFor?: string;
   recordCount?: number;
-};
+}
 
 export const OrderBy = [
   {
@@ -55,7 +55,7 @@ export const OrderBy = [
     value: 'DATA_MODEL',
     label: 'Data Model',
     description: 'Data model of the step',
-  }
+  },
 ];
 
 export const StepsPropertiesOptions = {
@@ -94,4 +94,4 @@ export enum StepsProperties {
   workspace = 'workspace',
   keywords = 'keywords',
   properties = 'properties',
-};
+}

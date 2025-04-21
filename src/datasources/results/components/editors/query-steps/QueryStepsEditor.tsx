@@ -96,7 +96,9 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
                   defaultValue={query.recordCount}
                   onCommitChange={recordCountChange}
                   placeholder="Enter record count"
-                  onKeyDown={(event) => {validateNumericInput(event)}}
+                  onKeyDown={event => {
+                    validateNumericInput(event);
+                  }}
                 />
               </InlineField>
               <TimeRangeControls
