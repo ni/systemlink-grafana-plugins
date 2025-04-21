@@ -27,7 +27,6 @@ describe('QueryStepsEditor', () => {
       orderBy: undefined,
       descending: false,
       recordCount: 1000,
-      showMeasurements: false,
       useTimeRange: true,
       useTimeRangeFor: undefined,
     } as QuerySteps);
