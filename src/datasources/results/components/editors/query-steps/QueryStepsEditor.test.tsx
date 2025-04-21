@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { QuerySteps } from 'datasources/results/types/QuerySteps.types';
+import { QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
 import { QueryStepsEditor } from './QueryStepsEditor';
 import React from 'react';
 import { OutputType, QueryType } from 'datasources/results/types/types';
@@ -11,11 +11,11 @@ describe('QueryStepsEditor', () => {
     refId: 'A',
     queryType: QueryType.Steps,
     outputType: OutputType.Data,
-    properties: [],
-    orderBy: undefined,
-    descending: false,
+    properties: [StepsProperties.data],
+    orderBy: "STARTED_AT",
+    descending: true,
     useTimeRange: true,
-    useTimeRangeFor: undefined,
+    useTimeRangeFor: "Updated",
     recordCount: 1000,
   };
 
@@ -49,26 +49,26 @@ describe('QueryStepsEditor', () => {
 
     test('renders with default query', async () => {
       expect(properties).toBeInTheDocument();
-      expect(properties).toHaveDisplayValue('');
+      expect(screen.getAllByText("data").length).toBe(1);
       expect(dataOutput).toBeInTheDocument();
       expect(dataOutput).toBeChecked();
       expect(orderBy).toBeInTheDocument();
-      expect(orderBy).toHaveAccessibleDescription('Select field to order by');
+      expect(screen.getAllByText("Started At").length).toBe(1);
       expect(descending).toBeInTheDocument();
-      expect(descending).not.toBeChecked();
+      expect(descending).toBeChecked();
       expect(recordCount).toBeInTheDocument();
       expect(recordCount).toHaveValue(1000);
       expect(useTimeRange).toBeInTheDocument();
       expect(useTimeRange).toBeChecked();
       expect(useTimeRangeFor).toBeInTheDocument();
-      expect(useTimeRangeFor).toHaveAccessibleDescription('Choose');
+      expect(screen.getAllByText("Updated").length).toBe(1);
     });
 
     test('updates when user makes changes', async () => {
       //User adds a properties
       await select(properties, 'properties', { container: document.body });
       await waitFor(() => {
-        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['properties'] }));
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['data','properties'] }));
       });
 
       //User changes order by
@@ -80,7 +80,7 @@ describe('QueryStepsEditor', () => {
       //User changes descending checkbox
       await userEvent.click(descending);
       await waitFor(() => {
-        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ descending: true }));
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ descending: false }));
       });
 
       //User enters numeric value for record count
