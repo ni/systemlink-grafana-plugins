@@ -35,7 +35,7 @@ describe('ResultsDataSource', () => {
   });
 
   describe('runQuery', () => {
-    test('calls QueryResultsDataSource runQuery when query type is results', async () => {
+    test('should call QueryResultsDataSource runQuery when query type is results', async () => {
       const mockQuery: ResultsQuery = { refId: 'A', queryType: 'Results' } as ResultsQuery;
       const mockOptions: DataQueryRequest = {} as DataQueryRequest;
       const mockResponse: DataFrameDTO = { fields: [] };
@@ -49,7 +49,7 @@ describe('ResultsDataSource', () => {
       expect(result).toBe(mockResponse);
     });
 
-    test('calls QueryStepsDataSource runQuery when query type is steps', async () => {
+    test('should call QueryStepsDataSource runQuery when query type is steps', async () => {
       const mockQuery: ResultsQuery = { refId: 'A', queryType: 'Steps' } as ResultsQuery;
       const mockOptions: DataQueryRequest = {} as DataQueryRequest;
       const mockResponse: DataFrameDTO = { fields: [] };
@@ -61,6 +61,13 @@ describe('ResultsDataSource', () => {
 
       expect(queryStepsDataSource.runQuery).toHaveBeenCalledWith(mockQuery, mockOptions);
       expect(result).toBe(mockResponse);
+    });
+
+    test('should throw error for invalid query type', async () => {
+      const mockQuery: ResultsQuery = { refId: 'A', queryType: 'InvalidType' } as unknown as ResultsQuery;
+      const mockOptions: DataQueryRequest = {} as DataQueryRequest;
+
+      await expect(datastore.runQuery(mockQuery, mockOptions)).rejects.toThrow('Invalid query type');
     });
   });
 
@@ -88,5 +95,14 @@ describe('ResultsDataSource', () => {
       expect(queryStepsDataSource.shouldRunQuery).toHaveBeenCalledWith(mockQuery);
       expect(result).toBe(true);
     });
+
+    test('returns false for invalid query type', () => {
+      const mockQuery: ResultsQuery = { refId: 'A', queryType: 'InvalidType' } as unknown as ResultsQuery;
+
+      const result = datastore.shouldRunQuery(mockQuery);
+
+      expect(result).toBe(false);
+    });
+
   });
 });
