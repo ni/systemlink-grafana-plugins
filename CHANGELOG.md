@@ -1,3 +1,9 @@
+## [3.52.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.51.0...v3.52.0) (2025-04-22)
+
+### Features
+
+* **results:** Show measurements control in query steps editor ([#151](https://github.com/ni/systemlink-grafana-plugins/issues/151)) ([4194fa0](https://github.com/ni/systemlink-grafana-plugins/commit/4194fa0c2c985fbbd4815d2d3d1ea783b12683c6))
+
 ## [3.51.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.50.0...v3.51.0) (2025-04-22)
 
 ### Features
