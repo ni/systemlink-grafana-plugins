@@ -13,12 +13,12 @@ export interface QuerySteps extends ResultsQuery {
 export const OrderBy = [
   {
     value: 'NAME',
-    label: 'Step Name',
+    label: 'Step name',
     description: 'Name of the step',
   },
   {
     value: 'STEP_TYPE',
-    label: 'Step Type',
+    label: 'Step type',
     description: 'Type of the step',
   },
   {
@@ -38,22 +38,22 @@ export const OrderBy = [
   },
   {
     value: 'TOTAL_TIME_IN_SECONDS',
-    label: 'Total Time in seconds',
+    label: 'Total time in seconds',
     description: 'Total time taken to run the step in seconds',
   },
   {
     value: 'STARTED_AT',
-    label: 'Started At',
+    label: 'Started at',
     description: 'Timestamp when the step started',
   },
   {
     value: 'UPDATED_AT',
-    label: 'Updated At',
+    label: 'Updated at',
     description: 'Timestamp when the step was last updated',
   },
   {
     value: 'DATA_MODEL',
-    label: 'Data Model',
+    label: 'Data model',
     description: 'Data model of the step',
   },
 ];
