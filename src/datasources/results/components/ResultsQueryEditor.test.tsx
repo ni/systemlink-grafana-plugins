@@ -1,11 +1,12 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { ResultsQueryEditor } from './ResultsQueryEditor';
 import { QueryEditorProps } from '@grafana/data';
 import { ResultsDataSource } from '../ResultsDataSource';
 import { QueryType, ResultsQuery } from '../types/types';
 import userEvent from '@testing-library/user-event';
-import { defaultStepsQuery } from '../defaultQueries';
+import { defaultResultsQuery, defaultStepsQuery } from '../defaultQueries';
+import { QuerySteps } from '../types/QuerySteps.types';
 
 const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
@@ -44,6 +45,47 @@ describe('ResultsQueryEditor', () => {
 
     await waitFor(() => {
       expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining(defaultStepsQuery));
+      expect(mockOnRunQuery).toHaveBeenCalled();
+    });
+  });
+
+  test('calls onChange and runQuery when user make', async () => {
+    userEvent.click(stepsQueryType);
+
+    await waitFor(() => {
+      expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining(defaultStepsQuery));
+      expect(mockOnRunQuery).toHaveBeenCalled();
+    });
+  });
+
+  test('changes from Steps to Results query type correctly', async () => {
+    // Clear previous renders
+    cleanup();
+    
+    // Render with Steps query type
+    render(
+      <ResultsQueryEditor 
+        query={{
+          refId: 'A',
+          queryType: QueryType.Steps,
+        } as QuerySteps}
+        onChange={mockOnChange}
+        onRunQuery={mockOnRunQuery}
+        datasource={mockDatasource}
+      />
+    );
+    
+    // Explicitly get the radio button after rendering
+    const resultsRadioButton = screen.getByRole('radio', { name: QueryType.Results });
+    
+    // Use fireEvent instead of userEvent for more direct event triggering
+    fireEvent.click(resultsRadioButton);
+  
+    // Wait for the change to be processed
+    await waitFor(() => {
+      expect(mockOnChange).toHaveBeenCalledWith(
+        expect.objectContaining(defaultResultsQuery)
+      );
       expect(mockOnRunQuery).toHaveBeenCalled();
     });
   });

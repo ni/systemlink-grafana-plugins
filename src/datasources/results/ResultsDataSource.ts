@@ -4,8 +4,8 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import { QueryType, ResultsQuery } from './types/types';
 import { QueryResultsDataSource } from './query-handlers/query-results/QueryResultsDataSource';
 import { QueryResults } from './types/QueryResults.types';
-import { QueryStepsDataSource } from './query-handlers/query-steps/QueryStepsDataSource';
 import { QuerySteps } from './types/QuerySteps.types';
+import { QueryStepsDataSource } from './query-handlers/query-steps/QueryStepsDataSource';
 
 export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   public defaultQuery: Partial<ResultsQuery> & Omit<ResultsQuery, 'refId'>;
@@ -23,7 +23,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
     this.queryStepsDataSource = new QueryStepsDataSource(instanceSettings, backendSrv, templateSrv);
     this.defaultQuery = this.queryResultsDataSource.defaultQuery;
   }
-  
+
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
 
   async runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
