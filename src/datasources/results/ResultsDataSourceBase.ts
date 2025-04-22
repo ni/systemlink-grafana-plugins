@@ -35,7 +35,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     take?: number,
   ): Promise<BatchQueryResponse<T>> {
     let response: T[] = [];
-    let continuationToken: string | undefined = undefined;
+    let continuationToken: string | undefined;
 
     if (take === undefined || take <= config.maxTakePerRequest) {
       return await queryRecord(take || config.maxTakePerRequest, continuationToken);
@@ -57,12 +57,12 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
         const queryResponse: BatchQueryResponse<T> = await queryRecord(currentTake, continuationToken);
 
-        response = [...response, ...queryResponse.results];
+        response = [...response, ...queryResponse.data];
         continuationToken = queryResponse.continuationToken;
 
         if (!continuationToken) {
           return {
-            results: response,
+            data: response,
             totalCount: response.length,
           };
         }
@@ -74,7 +74,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     }
 
     return {
-      results: response,
+      data: response,
       totalCount: response.length, 
     };
   }

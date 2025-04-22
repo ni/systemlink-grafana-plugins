@@ -64,7 +64,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       );
 
       return {
-        results: response.steps,
+        data: response.steps,
         continuationToken: response.continuationToken,
         totalCount: response.totalCount
       };
@@ -78,7 +78,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     const response = await this.queryInBatches(queryRecord, config, take);
 
     return {
-      steps: response.results,
+      steps: response.data,
       continuationToken: response.continuationToken,
       totalCount: response.totalCount
     };

@@ -147,7 +147,7 @@ export interface ErrorBody {
 }
 
 export interface BatchQueryResponse<T> {
-  results: T[];
+  data: T[];
   continuationToken?: string;
   totalCount?: number;
 };
