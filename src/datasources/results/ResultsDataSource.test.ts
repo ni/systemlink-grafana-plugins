@@ -72,7 +72,7 @@ describe('ResultsDataSource', () => {
   });
 
   describe('shouldRunQuery', () => {
-    test('calls QueryResultsDataSource shouldRunQuery when query type is results', () => {
+    test('should call QueryResultsDataSource shouldRunQuery when query type is results', () => {
       const mockQuery: ResultsQuery = { refId: 'A', queryType: 'Results' } as ResultsQuery;
 
       const queryResultsDataSource = (datastore as any).queryResultsDataSource;
@@ -84,7 +84,7 @@ describe('ResultsDataSource', () => {
       expect(result).toBe(true);
     });
 
-    test('calls QueryStepsDataSource shouldRunQuery when querytype is Steps', () => {
+    test('should call QueryStepsDataSource shouldRunQuery when querytype is Steps', () => {
       const mockQuery: ResultsQuery = { refId: 'A', queryType: 'Steps' } as ResultsQuery;
 
       const queryStepsDataSource = (datastore as any).queryStepsDataSource;
@@ -96,7 +96,7 @@ describe('ResultsDataSource', () => {
       expect(result).toBe(true);
     });
 
-    test('returns false for invalid query type', () => {
+    test('should return false for invalid query type', () => {
       const mockQuery: ResultsQuery = { refId: 'A', queryType: 'InvalidType' } as unknown as ResultsQuery;
 
       const result = datastore.shouldRunQuery(mockQuery);
