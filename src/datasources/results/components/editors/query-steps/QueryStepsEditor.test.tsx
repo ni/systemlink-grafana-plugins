@@ -12,10 +12,10 @@ describe('QueryStepsEditor', () => {
     queryType: QueryType.Steps,
     outputType: OutputType.Data,
     properties: [StepsProperties.data],
-    orderBy: "STARTED_AT",
+    orderBy: 'STARTED_AT',
     descending: true,
     useTimeRange: true,
-    useTimeRangeFor: "Updated",
+    useTimeRangeFor: 'Updated',
     recordCount: 1000,
     showMeasurements: false
   };
@@ -29,7 +29,7 @@ describe('QueryStepsEditor', () => {
   let dataOutput: HTMLElement;
   let totalCountOutput: HTMLElement;
   let showMeasurements: HTMLElement;
-  
+
   beforeEach(() => {
     render(<QueryStepsEditor query={defaultQuery} handleQueryChange={mockHandleQueryChange} />);
     properties = screen.getAllByRole('combobox')[0];
@@ -50,13 +50,13 @@ describe('QueryStepsEditor', () => {
       useTimeRangeFor = screen.getAllByRole('combobox')[2];
     });
 
-    test('renders with default query', async () => {
+    test('should render with default query when default values are provided', async () => {
       expect(properties).toBeInTheDocument();
-      expect(screen.getAllByText("data").length).toBe(1);
+      expect(screen.getAllByText('data').length).toBe(1);
       expect(dataOutput).toBeInTheDocument();
       expect(dataOutput).toBeChecked();
       expect(orderBy).toBeInTheDocument();
-      expect(screen.getAllByText("Started At").length).toBe(1);
+      expect(screen.getAllByText('Started at').length).toBe(1);
       expect(descending).toBeInTheDocument();
       expect(descending).toBeChecked();
       expect(recordCount).toBeInTheDocument();
@@ -64,54 +64,74 @@ describe('QueryStepsEditor', () => {
       expect(useTimeRange).toBeInTheDocument();
       expect(useTimeRange).toBeChecked();
       expect(useTimeRangeFor).toBeInTheDocument();
-      expect(screen.getAllByText("Updated").length).toBe(1);
+      expect(screen.getAllByText('Updated').length).toBe(1);
       expect(showMeasurements).toBeInTheDocument();
       expect(showMeasurements).not.toBeChecked();
     });
 
-    test('updates when user makes changes', async () => {
-      //User adds a properties
+    test('should display placeholders for properties and orderBy when default values are not provided', async () => {
+      render(
+      <QueryStepsEditor
+        query={{outputType: OutputType.Data } as QuerySteps}
+        handleQueryChange={mockHandleQueryChange}
+      />
+      );
+
+      expect(screen.getByText('Select properties to fetch')).toBeInTheDocument();
+      expect(screen.getByText('Select field to order by')).toBeInTheDocument();
+    });
+
+    test('should update properties when user adds a property', async () => {
       await select(properties, 'properties', { container: document.body });
       await waitFor(() => {
-        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['data','properties'] }));
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(
+          expect.objectContaining({ properties: ['data', 'properties'] })
+        );
       });
+    });
 
-      //User changes order by
-      await select(orderBy, 'Started At', { container: document.body });
+    test('should update orderBy when user changes the orderBy', async () => {
+      await select(orderBy, 'Started at', { container: document.body });
       await waitFor(() => {
         expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ orderBy: 'STARTED_AT' }));
       });
-
-      //User changes descending checkbox
+    });
+    test('should update descending when user clicks on the descending checkbox', async () => {
       await userEvent.click(descending);
       await waitFor(() => {
         expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ descending: false }));
       });
+    });
 
-      //User enters numeric value for record count
-      await userEvent.clear(recordCount);
-      await userEvent.type(recordCount, '500');
-      await waitFor(() => {
-        expect(recordCount).toHaveValue(500);
+    describe('recordCount', () => {
+      test('should update record count when user enters numeric values in the take', async () => {
+        await userEvent.clear(recordCount);
+        await userEvent.type(recordCount, '500');
+        await waitFor(() => {
+          expect(recordCount).toHaveValue(500);
+        });
       });
 
-      //User enters non-numeric value for record count
-      await userEvent.clear(recordCount);
-      await userEvent.type(recordCount, 'Test');
-      await waitFor(() => {
-        expect(recordCount).toHaveValue(null);
+      test('should not update record count when user enters non-numeric values in the take', async () => {
+        await userEvent.clear(recordCount);
+        await userEvent.type(recordCount, 'Test');
+        await waitFor(() => {
+          expect(recordCount).toHaveValue(null);
+        });
       });
+    });
 
-      //User changes output type to Total Count
-      await userEvent.click(totalCountOutput);
-      await waitFor(() => {
-        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ outputType: 'Total Count' }));
-      });
-
-      //User changes showMeasurements checkbox
+    test('should update showMeasurements when user clicks on the show measurements checkbox', async () => {
       await userEvent.click(showMeasurements);
       await waitFor(() => {
         expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ showMeasurements: true }));
+      });
+    })
+
+    test('should call handle query change with total count outputType when user changes the output type to Total Count', async () => {
+      await userEvent.click(totalCountOutput);
+      await waitFor(() => {
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ outputType: 'Total Count' }));
       });
     });
   });
