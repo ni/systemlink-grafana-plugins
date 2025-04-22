@@ -16,7 +16,6 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
 
   const handleQueryChange = useCallback(
     (query: ResultsQuery, runQuery = true): void => {
-      console.log('query from editor', query)
       onChange(query);
       if (runQuery) {
         onRunQuery();
