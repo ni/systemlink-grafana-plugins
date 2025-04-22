@@ -23,18 +23,21 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     descending?: boolean,
     returnCount = false
   ): Promise<QueryStepsResponse> {
-    try {
-      return await this.post<QueryStepsResponse>(`${this.queryStepsUrl}`, {
-        filter,
-        orderBy,
-        descending,
-        projection,
-        take,
-        returnCount,
-      });
-    } catch (error) {
-      throw new Error(`An error occurred while querying steps: ${error}`);
+
+    const response = await this.post<QueryStepsResponse>(`${this.queryStepsUrl}`, {
+      filter,
+      orderBy,
+      descending,
+      projection,
+      take,
+      returnCount,
+    });
+
+    if (response.error) {
+      throw new Error(`An error occurred while querying steps: ${response.error}`);
     }
+
+    return response;
   }
 
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
@@ -81,9 +84,9 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   private processFields(
-    selectedFields: StepsProperties[], 
+    selectedFields: StepsProperties[],
     stepsResponse: StepsResponseProperties[]
-  ): Array<{name: StepsProperties; values: string[]; type: FieldType}> {
+  ): Array<{ name: StepsProperties; values: string[]; type: FieldType }> {
     return selectedFields.map(field => {
       const isTimeField = field === StepsPropertiesOptions.UPDATED_AT || field === StepsPropertiesOptions.STARTED_AT;
 
@@ -109,29 +112,29 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   private processMeasurementData(stepsResponse: StepsResponseProperties[]): any[] {
-    const measurementFields = ['Measurement Name', 'Measurement Value', 'Status', 'Unit', 'Low Limit', 'High Limit'];
     const fieldToParameterProperty = {
       'Measurement Name': 'name',
       'Measurement Value': 'measurement',
-      Status: 'status',
-      Unit: 'units',
+      'Status': 'status',
+      'Unit': 'units',
       'Low Limit': 'lowLimit',
       'High Limit': 'highLimit',
     };
+    const measurementFields = Object.keys(fieldToParameterProperty) as Array<keyof typeof fieldToParameterProperty>;
 
-    return measurementFields.map(field => {
+    return measurementFields.map(measurementField => {
       const values = stepsResponse.map(step => {
         if (!step.data?.parameters) {
           return [];
         }
         return step.data.parameters.map(
-          param => param[fieldToParameterProperty[field as keyof typeof fieldToParameterProperty]]
+          param => param[fieldToParameterProperty[measurementField]]
         );
       });
 
       return {
-        name: field,
-        values: values,
+        name: measurementField,
+        values,
         type: FieldType.string,
       };
     });

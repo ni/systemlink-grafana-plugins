@@ -1,6 +1,89 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`QueryStepsDataSource query returns data for valid data-output-type query 1`] = `
+exports[`QueryStepsDataSource query should convert properties to Grafana fields 1`] = `
+[
+  {
+    "name": "properties",
+    "type": "string",
+    "values": [
+      "{"key1":"value1","key2":"value2"}",
+    ],
+  },
+]
+`;
+
+exports[`QueryStepsDataSource query should convert step measurements to Grafana fields when show measurments is enabled 1`] = `
+[
+  {
+    "name": "Measurement Name",
+    "type": "string",
+    "values": [
+      [
+        "Voltage",
+        "Voltage",
+        "Current",
+      ],
+    ],
+  },
+  {
+    "name": "Measurement Value",
+    "type": "string",
+    "values": [
+      [
+        "3.7",
+        "3.7",
+        "1.2",
+      ],
+    ],
+  },
+  {
+    "name": "Status",
+    "type": "string",
+    "values": [
+      [
+        "Passed",
+        "Passed",
+        "Failed",
+      ],
+    ],
+  },
+  {
+    "name": "Unit",
+    "type": "string",
+    "values": [
+      [
+        "V",
+        "V",
+        "A",
+      ],
+    ],
+  },
+  {
+    "name": "Low Limit",
+    "type": "string",
+    "values": [
+      [
+        "3.5",
+        "3.5",
+        "1.0",
+      ],
+    ],
+  },
+  {
+    "name": "High Limit",
+    "type": "string",
+    "values": [
+      [
+        "4.0",
+        "4.0",
+        "1.5",
+      ],
+    ],
+  },
+]
+`;
+
+exports[`QueryStepsDataSource query should return data for valid data-output-type query 1`] = `
 [
   {
     "fields": [
@@ -17,9 +100,9 @@ exports[`QueryStepsDataSource query returns data for valid data-output-type quer
 ]
 `;
 
-exports[`QueryStepsDataSource query returns no data when QuerySteps API returns empty array 1`] = `[]`;
+exports[`QueryStepsDataSource query should return no data when QuerySteps API returns empty array 1`] = `[]`;
 
-exports[`QueryStepsDataSource query returns total count for valid total count output type queries 1`] = `
+exports[`QueryStepsDataSource query should return total count for valid total count output type queries 1`] = `
 [
   {
     "fields": [
@@ -35,84 +118,7 @@ exports[`QueryStepsDataSource query returns total count for valid total count ou
 ]
 `;
 
-exports[`QueryStepsDataSource query should convert properties to Grafana fields 1`] = `
-[
-  {
-    "name": "properties",
-    "type": "string",
-    "values": [
-      "{"key1":"value1","key2":"value2"}",
-    ],
-  },
-]
-`;
-
-exports[`QueryStepsDataSource query should convert step measurements to Grafana fields 1`] = `
-[
-  {
-    "name": "Measurement Name",
-    "type": "string",
-    "values": [
-      [
-        "Voltage",
-        "Current",
-      ],
-    ],
-  },
-  {
-    "name": "Measurement Value",
-    "type": "string",
-    "values": [
-      [
-        "3.7",
-        "1.2",
-      ],
-    ],
-  },
-  {
-    "name": "Status",
-    "type": "string",
-    "values": [
-      [
-        "Passed",
-        "Failed",
-      ],
-    ],
-  },
-  {
-    "name": "Unit",
-    "type": "string",
-    "values": [
-      [
-        "V",
-        "A",
-      ],
-    ],
-  },
-  {
-    "name": "Low Limit",
-    "type": "string",
-    "values": [
-      [
-        "3.5",
-        "1.0",
-      ],
-    ],
-  },
-  {
-    "name": "High Limit",
-    "type": "string",
-    "values": [
-      [
-        "4.0",
-        "1.5",
-      ],
-    ],
-  },
-]
-`;
-
-exports[`QueryStepsDataSource querySteps returns data when there are valid queries 1`] = `
+exports[`QueryStepsDataSource querySteps should return data when there are valid queries 1`] = `
 {
   "continuationToken": undefined,
   "steps": [
