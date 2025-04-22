@@ -95,3 +95,52 @@ export enum StepsProperties {
   keywords = 'keywords',
   properties = 'properties',
 }
+
+export interface StatusHttp {
+  statusType: string;
+  statusName?: string;
+};
+
+export interface InputOutputValues {
+  name: string;
+  value?: string;
+};
+
+export interface StepData {
+  text?: string;
+  parameters?: Array<{ [key: string]: string }>;
+};
+
+export interface StepsResponseProperties {
+  name?: string;
+  stepType?: string;
+  stepId?: string;
+  parentId?: string;
+  resultId?: string;
+  status?: StatusHttp;
+  totalTimeInSeconds?: number;
+  startedAt?: string;
+  updatedAt?: string;
+  inputs?: InputOutputValues[];
+  outputs?: InputOutputValues[];
+  dataModel?: string;
+  data?: StepData;
+  workspace?: string;
+  keywords?: string[];
+  properties?: { [key: string]: string };
+};
+
+export interface QueryStepsResponse {
+  steps: StepsResponseProperties[];
+  continuationToken?: string;
+  totalCount?: number;
+  error?: ErrorBody
+};
+
+export interface ErrorBody {
+  name?: string;
+  code?: number;
+  message?: string;
+  args?: string[];
+  innerErrors?: ErrorBody[];
+}
