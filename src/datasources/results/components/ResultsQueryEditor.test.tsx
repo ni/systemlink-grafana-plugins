@@ -36,67 +36,67 @@ describe('ResultsQueryEditor', () => {
     jest.clearAllMocks();
   });
 
-  function renderElement(query: ResultsQuery = { refId: 'A', queryType: QueryType.Results }){
-    const reactNode = React.createElement(ResultsQueryEditor, {...defaultProps, query});
+  function renderElement(query: ResultsQuery = { refId: 'A', queryType: QueryType.Results }) {
+    const reactNode = React.createElement(ResultsQueryEditor, { ...defaultProps, query });
     return render(reactNode);
   }
 
-  test('renders query type radio buttons', () => {
+  test('should render `queryType` radio buttons', () => {
     const renderResult = renderElement();
 
     expect(renderResult.getByRole('radio', { name: QueryType.Results })).toBeInTheDocument();
-    expect(renderResult.getByRole('radio', { name: QueryType.Steps })).toBeInTheDocument();
     expect(renderResult.getByRole('radio', { name: QueryType.Results })).toBeChecked();
+    expect(renderResult.getByRole('radio', { name: QueryType.Steps })).toBeInTheDocument();
     expect(renderResult.getByRole('radio', { name: QueryType.Steps })).not.toBeChecked();
   });
 
-  describe('Event handling', () => {
-    test('should call onChange with Steps query defaults when switching from Results to Steps', async () => {
+  describe('onChange', () => {
+    test('should call onChange with steps query defaults when switching from results to steps', async () => {
       const renderResult = renderElement();
-      
+
       userEvent.click(renderResult.getByRole('radio', { name: QueryType.Steps }));
-      
+
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining(defaultStepsQuery));
         expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
-    
-    test('should call onChange with Results query defaults when switching from Steps to Results', async () => {
+
+    test('should call onChange with results query defaults when switching from steps to results', async () => {
       const query = {
         refId: 'A',
         queryType: QueryType.Steps,
       };
-      
+
       const renderResult = renderElement(query);
       const resultsRadioButton = renderResult.getByRole('radio', { name: QueryType.Results });
       userEvent.click(resultsRadioButton);
-      
+
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining(defaultResultsQuery));
         expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
-  })
+  });
 
-  describe('Component', ()=> {
-    test('should render QueryResultsEditor when queryType is Results', () => {
+  describe('Editor', () => {
+    test('should render QueryResultsEditor when query type is results', () => {
       const renderResult = renderElement();
-      
-      expect(renderResult.queryByTestId("query-results-editor")).toBeInTheDocument();
-      expect(renderResult.queryByTestId("query-steps-editor")).not.toBeInTheDocument();
+
+      expect(renderResult.queryByTestId('query-results-editor')).toBeInTheDocument();
+      expect(renderResult.queryByTestId('query-steps-editor')).not.toBeInTheDocument();
     });
-  
-    test('render QueryResultsEditor when queryType is Steps', () => {
+
+    test('should render QueryResultsEditor when query type is steps', () => {
       const query = {
         refId: 'A',
         queryType: QueryType.Steps,
       };
-  
+
       const renderResult = renderElement(query);
-      
-      expect(renderResult.queryByTestId("query-steps-editor")).toBeInTheDocument();
-      expect(renderResult.queryByTestId("query-results-editor")).not.toBeInTheDocument();
+
+      expect(renderResult.queryByTestId('query-steps-editor')).toBeInTheDocument();
+      expect(renderResult.queryByTestId('query-results-editor')).not.toBeInTheDocument();
     });
-  })
+  });
 });
