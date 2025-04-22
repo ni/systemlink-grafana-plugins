@@ -21,18 +21,18 @@ type Props = {
 };
 
 export function QueryStepsEditor({ query, handleQueryChange }: Props) {
-  const onOutputChange = (value: OutputType) => {
-    handleQueryChange({ ...query, outputType: value });
+  const onOutputChange = (outputType: OutputType) => {
+    handleQueryChange({ ...query, outputType: outputType });
   };
 
-  const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
-    if (items !== undefined) {
-      handleQueryChange({ ...query, properties: items.map(i => i.value as StepsProperties) });
+  const onPropertiesChange = (properties: Array<SelectableValue<string>>) => {
+    if (properties !== undefined) {
+      handleQueryChange({ ...query, properties: properties.map(property => property.value as StepsProperties) });
     }
   };
 
-  const onOrderByChange = (item: SelectableValue<string>) => {
-    handleQueryChange({ ...query, orderBy: item.value });
+  const onOrderByChange = (orderBy: SelectableValue<string>) => {
+    handleQueryChange({ ...query, orderBy: orderBy.value });
   };
 
   const onDescendingChange = (isDescendingChecked: boolean) => {
