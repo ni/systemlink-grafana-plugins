@@ -32,7 +32,7 @@ export const defaultStepsQuery = {
   ] as StepsProperties[],
   orderBy: "UPDATED_AT",
   descending: true,
-  recordCount: 10000,
+  recordCount: 10_000,
   useTimeRange: false,
   useTimeRangeFor: undefined,
 };

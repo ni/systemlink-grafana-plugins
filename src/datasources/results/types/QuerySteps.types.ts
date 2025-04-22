@@ -134,4 +134,13 @@ export interface QueryStepsResponse {
   steps: StepsResponseProperties[];
   continuationToken?: string;
   totalCount?: number;
+  error?: ErrorBody
 };
+
+export interface ErrorBody {
+  name?: string;
+  code?: number;
+  message?: string;
+  args?: string[];
+  innerErrors?: ErrorBody[];
+}
