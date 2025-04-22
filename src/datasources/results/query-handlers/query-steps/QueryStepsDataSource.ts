@@ -1,6 +1,7 @@
 import { DataQueryRequest, DataFrameDTO, FieldType } from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
+  BatchQueryResponse,
   QuerySteps,
   QueryStepsResponse,
   StepsProperties,
@@ -9,6 +10,7 @@ import {
 } from 'datasources/results/types/QuerySteps.types';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { defaultStepsQuery } from 'datasources/results/defaultQueries';
+import { MAX_TAKE_PER_REQUEST, QUERY_STEPS_REQUEST_PER_SECOND } from 'datasources/results/constants/QuerySteps.constants';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
@@ -21,6 +23,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     projection?: StepsProperties[],
     take?: number,
     descending?: boolean,
+    continuationToken?: string,
     returnCount = false
   ): Promise<QueryStepsResponse> {
 
@@ -30,6 +33,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       descending,
       projection,
       take,
+      continuationToken,
       returnCount,
     });
 
@@ -40,12 +44,52 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     return response;
   }
 
+  async queryStepsInBatch(
+    filter?: string,
+    orderBy?: string,
+    projection?: StepsProperties[],
+    take?: number,
+    descending?: boolean,
+    returnCount = false
+  ): Promise<QueryStepsResponse> {
+    const queryRecord = async (currentTake: number, token?: string): Promise<BatchQueryResponse<StepsResponseProperties>> => {
+      const response = await this.querySteps(
+        filter,
+        orderBy,
+        projection,
+        currentTake,
+        descending,
+        token,
+        returnCount
+      );
+
+      return {
+        results: response.steps,
+        continuationToken: response.continuationToken,
+        totalCount: response.totalCount
+      };
+    };
+
+    const config = {
+      maxTakePerRequest: MAX_TAKE_PER_REQUEST,
+      requestsPerSecond: QUERY_STEPS_REQUEST_PER_SECOND
+    };
+
+    const response = await this.queryInBatches(queryRecord, config, take);
+
+    return {
+      steps: response.results,
+      continuationToken: response.continuationToken,
+      totalCount: response.totalCount
+    };
+  }
+  
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
     const projection = query.showMeasurements
       ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
       : query.properties;
 
-    const responseData = await this.querySteps(
+    const responseData = await this.queryStepsInBatch(
       this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
       query.orderBy,
       projection as StepsProperties[],
