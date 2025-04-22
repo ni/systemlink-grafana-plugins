@@ -49,7 +49,7 @@ describe('ResultsDataSource', () => {
       expect(result).toBe(mockResponse);
     });
 
-    test('calls QueryStepsDataSource runQuery when queryType is Steps', async () => {
+    test('calls QueryStepsDataSource runQuery when query type is steps', async () => {
       const mockQuery: ResultsQuery = { refId: 'A', queryType: 'Steps' } as ResultsQuery;
       const mockOptions: DataQueryRequest = {} as DataQueryRequest;
       const mockResponse: DataFrameDTO = { fields: [] };
@@ -65,7 +65,7 @@ describe('ResultsDataSource', () => {
   });
 
   describe('shouldRunQuery', () => {
-    test('calls QueryResultsDataSource shouldRunQuery', () => {
+    test('calls QueryResultsDataSource shouldRunQuery when query type is results', () => {
       const mockQuery: ResultsQuery = { refId: 'A', queryType: 'Results' } as ResultsQuery;
 
       const queryResultsDataSource = (datastore as any).queryResultsDataSource;

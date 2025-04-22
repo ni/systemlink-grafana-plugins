@@ -45,13 +45,13 @@ describe('ResultsQueryEditor', () => {
     const renderResult = renderElement();
 
     expect(renderResult.getByRole('radio', { name: QueryType.Results })).toBeInTheDocument();
-    expect(renderResult.getByRole('radio', { name: QueryType.Steps })).toBeInTheDocument();
     expect(renderResult.getByRole('radio', { name: QueryType.Results })).toBeChecked();
+    expect(renderResult.getByRole('radio', { name: QueryType.Steps })).toBeInTheDocument();
     expect(renderResult.getByRole('radio', { name: QueryType.Steps })).not.toBeChecked();
   });
 
-  describe('Event handling', () => {
-    test('should call onChange with Steps query defaults when switching from Results to Steps', async () => {
+  describe('onChange', () => {
+    test('should call onChange with steps query defaults when switching from results to steps', async () => {
       const renderResult = renderElement();
       
       userEvent.click(renderResult.getByRole('radio', { name: QueryType.Steps }));
@@ -62,7 +62,7 @@ describe('ResultsQueryEditor', () => {
       });
     });
     
-    test('should call onChange with Results query defaults when switching from Steps to Results', async () => {
+    test('should call onChange with results query defaults when switching from steps to results', async () => {
       const query = {
         refId: 'A',
         queryType: QueryType.Steps,
@@ -79,15 +79,15 @@ describe('ResultsQueryEditor', () => {
     });
   })
 
-  describe('Component', ()=> {
-    test('should render QueryResultsEditor when queryType is Results', () => {
+  describe('Editor', ()=> {
+    test('should render QueryResultsEditor when query type is results', () => {
       const renderResult = renderElement();
       
       expect(renderResult.queryByTestId("query-results-editor")).toBeInTheDocument();
       expect(renderResult.queryByTestId("query-steps-editor")).not.toBeInTheDocument();
     });
   
-    test('render QueryResultsEditor when queryType is Steps', () => {
+    test('should render QueryResultsEditor when query type is steps', () => {
       const query = {
         refId: 'A',
         queryType: QueryType.Steps,
