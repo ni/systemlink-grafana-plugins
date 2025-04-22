@@ -46,7 +46,7 @@ describe('QueryStepsEditor', () => {
     let useTimeRangeFor: HTMLElement;
 
     beforeEach(() => {
-      useTimeRange = screen.getAllByRole('checkbox')[1];
+      useTimeRange = screen.getAllByRole('checkbox')[2];
       useTimeRangeFor = screen.getAllByRole('combobox')[2];
     });
 
