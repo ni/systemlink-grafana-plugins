@@ -51,7 +51,7 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
   return (
     <>
       <VerticalGroup>
-        <InlineField label="Output" labelWidth={25}>
+        <InlineField label="Output" labelWidth={25} tooltip={tooltips.output}>
           <RadioButtonGroup
             options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
             value={query.outputType}
@@ -60,7 +60,7 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
         </InlineField>
         {query.outputType === OutputType.Data && (
           <VerticalGroup>
-            <InlineField label="Properties" labelWidth={25}>
+            <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
               <MultiSelect
                 placeholder="Select properties to fetch"
                 options={enumToOptions(StepsProperties)}
@@ -76,7 +76,7 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
             </InlineField>
             <div>
               <div className="horizontal-control-group">
-                <InlineField label="OrderBy" labelWidth={25}>
+                <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
                   <Select
                     options={OrderBy as SelectableValue[]}
                     placeholder="Select field to order by"
@@ -85,20 +85,20 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
                     defaultValue={query.orderBy}
                   />
                 </InlineField>
-                <InlineField label="Descending">
+                <InlineField label="Descending" tooltip={tooltips.descending}>
                   <InlineSwitch
                     onChange={event => onDescendingChange(event.currentTarget.checked)}
                     value={query.descending}
                   />
                 </InlineField>
               </div>
-              <InlineField label="Show Measurements" labelWidth={25}>
+              <InlineField label="Show Measurements" labelWidth={25} tooltip={tooltips.showMeasurements}>
                 <InlineSwitch
                   onChange={event => onShowMeasurementChange(event.currentTarget.checked)}
                   value={query.showMeasurements}
                 />
               </InlineField>
-              <InlineField label="Take" labelWidth={25}>
+              <InlineField label="Take" labelWidth={25} tooltip={tooltips.recordCount}>
                 <AutoSizeInput
                   minWidth={20}
                   maxWidth={40}
@@ -132,3 +132,12 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
     </>
   );
 }
+
+const tooltips = {
+  output: 'This field specifies the output type for the query steps.',
+  properties: 'This field specifies the properties to use in the query.',
+  recordCount: 'This field sets the maximum number of steps.',
+  orderBy: 'This field orders the query steps by field.',
+  descending: 'This field returns the query steps in descending order.',
+  showMeasurements: 'This toggle enables the display of measurement data from steps.',
+};
