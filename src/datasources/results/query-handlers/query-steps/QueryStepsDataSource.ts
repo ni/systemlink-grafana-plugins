@@ -112,29 +112,29 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   private processMeasurementData(stepsResponse: StepsResponseProperties[]): any[] {
-    const measurementFields = ['Measurement Name', 'Measurement Value', 'Status', 'Unit', 'Low Limit', 'High Limit'];
     const fieldToParameterProperty = {
       'Measurement Name': 'name',
       'Measurement Value': 'measurement',
-      Status: 'status',
-      Unit: 'units',
+      'Status': 'status',
+      'Unit': 'units',
       'Low Limit': 'lowLimit',
       'High Limit': 'highLimit',
     };
+    const measurementFields = Object.keys(fieldToParameterProperty) as Array<keyof typeof fieldToParameterProperty>;
 
-    return measurementFields.map(field => {
+    return measurementFields.map(measurementField => {
       const values = stepsResponse.map(step => {
         if (!step.data?.parameters) {
           return [];
         }
         return step.data.parameters.map(
-          param => param[fieldToParameterProperty[field as keyof typeof fieldToParameterProperty]]
+          param => param[fieldToParameterProperty[measurementField]]
         );
       });
 
       return {
-        name: field,
-        values: values,
+        name: measurementField,
+        values,
         type: FieldType.string,
       };
     });

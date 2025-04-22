@@ -95,38 +95,38 @@ describe('QueryStepsDataSource', () => {
     });
 
     test('should return no data when Query Steps returns error', async () => {
-        backendServer.fetch
-          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps' }))
-          .mockReturnValue(createFetchError(400));
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps' }))
+        .mockReturnValue(createFetchError(400));
 
-        const query = buildQuery(
-          {
-            refId: 'A',
-            outputType: OutputType.Data
-          },
-        );
+      const query = buildQuery(
+        {
+          refId: 'A',
+          outputType: OutputType.Data
+        },
+      );
 
-        await expect(datastore.query(query))
+      await expect(datastore.query(query))
         .rejects
         .toThrow('Request to url "/nitestmonitor/v2/query-steps" failed with status code: 400. Error message: "Error"');
     });
 
     test('should convert properties to Grafana fields', async () => {
-        const query = buildQuery(
-          {
-            refId: 'A',
-            outputType: OutputType.Data,
-            properties: [ StepsPropertiesOptions.PROPERTIES as StepsProperties ]
-          },
-        );
+      const query = buildQuery(
+        {
+          refId: 'A',
+          outputType: OutputType.Data,
+          properties: [StepsPropertiesOptions.PROPERTIES as StepsProperties]
+        },
+      );
 
-        const response = await datastore.query(query);
+      const response = await datastore.query(query);
 
-        const fields = response.data[0].fields as Field[];
-        expect(fields).toMatchSnapshot();
+      const fields = response.data[0].fields as Field[];
+      expect(fields).toMatchSnapshot();
     });
 
-    test('should convert step measurements to Grafana fields', async () => {
+    test('should convert step measurements to Grafana fields when show measurments is enabled', async () => {
       const mockQueryStepsMeasurementResponse: QueryStepsResponse = {
         steps: [
           {
@@ -134,8 +134,33 @@ describe('QueryStepsDataSource', () => {
             data: {
               text: 'Step 1',
               parameters: [
-                { name: 'Voltage', measurement: '3.7', status: 'Passed', units: 'V', lowLimit: '3.5', highLimit: '4.0', value: '' },
-                { name: 'Current', measurement: '1.2', status: 'Failed', units: 'A', lowLimit: '1.0', highLimit: '1.5', miscellaneous: 'Misc' },
+                {
+                  name: 'Voltage',
+                  measurement: '3.7',
+                  status: 'Passed',
+                  units: 'V',
+                  lowLimit: '3.5',
+                  highLimit: '4.0',
+                  value: ''
+                },
+                {
+                  name: 'Voltage',
+                  measurement: '3.7',
+                  status: 'Passed',
+                  units: 'V',
+                  lowLimit: '3.5',
+                  highLimit: '4.0',
+                  value: ''
+                },//duplicate measurement
+                {
+                  name: 'Current',
+                  measurement: '1.2',
+                  status: 'Failed',
+                  units: 'A',
+                  lowLimit: '1.0',
+                  highLimit: '1.5',
+                  miscellaneous: 'Misc'
+                },
               ]
             }
           },
@@ -144,8 +169,8 @@ describe('QueryStepsDataSource', () => {
       };
 
       backendServer.fetch
-      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
-      .mockReturnValue(createFetchResponse(mockQueryStepsMeasurementResponse));
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
+        .mockReturnValue(createFetchResponse(mockQueryStepsMeasurementResponse));
 
       const query = buildQuery(
         {
@@ -171,14 +196,14 @@ describe('QueryStepsDataSource', () => {
       const replacedFilter = `(${timeRange[selectedUseTimeRangeFor]} > "2025-04-01" && ${timeRange[selectedUseTimeRangeFor]} < "2025-04-02")`;
       templateSrv.replace.calledWith().mockReturnValue(replacedFilter);
 
-        const query = buildQuery(
-          {
-            refId: 'A',
-            outputType: OutputType.Data,
-            useTimeRange: true,
-            useTimeRangeFor: selectedUseTimeRangeFor
-          },
-        );
+      const query = buildQuery(
+        {
+          refId: 'A',
+          outputType: OutputType.Data,
+          useTimeRange: true,
+          useTimeRangeFor: selectedUseTimeRangeFor
+        },
+      );
 
       await datastore.query(query);
 
@@ -191,33 +216,33 @@ describe('QueryStepsDataSource', () => {
     });
 
     test('should handle null and undefined properties', async () => {
-        backendServer.fetch
-          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps' }))
-          .mockReturnValue(createFetchResponse({
-            steps: [
-              {
-                id: '1',
-                properties: null
-              }
-            ], continuationToken: null, totalCount: 1
-          } as unknown as QueryStepsResponse));
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps' }))
+        .mockReturnValue(createFetchResponse({
+          steps: [
+            {
+              id: '1',
+              properties: null
+            }
+          ], continuationToken: null, totalCount: 1
+        } as unknown as QueryStepsResponse));
 
-        const query = buildQuery(
-          {
-            refId: 'A',
-            outputType: OutputType.Data,
-            properties: [
-              StepsPropertiesOptions.PROPERTIES
-            ] as StepsProperties[],
-            orderBy: undefined
-          },
-        );
+      const query = buildQuery(
+        {
+          refId: 'A',
+          outputType: OutputType.Data,
+          properties: [
+            StepsPropertiesOptions.PROPERTIES
+          ] as StepsProperties[],
+          orderBy: undefined
+        },
+      );
 
-        const response = await datastore.query(query);
-        const fields = response.data[0].fields as Field[];
-        expect(fields).toEqual([
-          { name: 'properties', values: [""], type: 'string' },
-        ]);
+      const response = await datastore.query(query);
+      const fields = response.data[0].fields as Field[];
+      expect(fields).toEqual([
+        { name: 'properties', values: [""], type: 'string' },
+      ]);
     });
   });
 
