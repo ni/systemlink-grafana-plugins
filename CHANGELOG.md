@@ -1,3 +1,33 @@
+## [3.53.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.53.0...v3.53.1) (2025-04-22)
+
+### Bug Fixes
+
+* **results:** Align label widths for consistency in result query editor ([#147](https://github.com/ni/systemlink-grafana-plugins/issues/147)) ([aff3d45](https://github.com/ni/systemlink-grafana-plugins/commit/aff3d459699587e305c0b935358d63b78dacd917))
+
+## [3.53.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.52.0...v3.53.0) (2025-04-22)
+
+### Features
+
+* **results:** Conditional render of QueryStepsEditor in Results query editor based on queryType ([#152](https://github.com/ni/systemlink-grafana-plugins/issues/152)) ([843dded](https://github.com/ni/systemlink-grafana-plugins/commit/843dded2518b901a777c412d03cc596ca5022e2c))
+
+## [3.52.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.51.0...v3.52.0) (2025-04-22)
+
+### Features
+
+* **results:** Show measurements control in query steps editor ([#151](https://github.com/ni/systemlink-grafana-plugins/issues/151)) ([4194fa0](https://github.com/ni/systemlink-grafana-plugins/commit/4194fa0c2c985fbbd4815d2d3d1ea783b12683c6))
+
+## [3.51.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.50.0...v3.51.0) (2025-04-22)
+
+### Features
+
+* **results:** Add steps query datasource ([#150](https://github.com/ni/systemlink-grafana-plugins/issues/150)) ([8b70786](https://github.com/ni/systemlink-grafana-plugins/commit/8b7078635b9a60d5eeaf58b40b314a8bfd125cf3))
+
+## [3.50.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.49.1...v3.50.0) (2025-04-22)
+
+### Features
+
+* **results:** Add steps query editor component ([#149](https://github.com/ni/systemlink-grafana-plugins/issues/149)) ([1936dcc](https://github.com/ni/systemlink-grafana-plugins/commit/1936dcc37d95ecf6b724cb73569f236db59c3b0c))
+
 ## [3.49.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.49.0...v3.49.1) (2025-04-15)
 
 ### Bug Fixes

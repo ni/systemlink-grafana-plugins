@@ -1,7 +1,6 @@
 import { DataQueryRequest, DataFrameDTO, FieldType } from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
-  BatchQueryResponse,
   QuerySteps,
   QueryStepsResponse,
   StepsProperties,
@@ -10,7 +9,6 @@ import {
 } from 'datasources/results/types/QuerySteps.types';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { defaultStepsQuery } from 'datasources/results/defaultQueries';
-import { MAX_TAKE_PER_REQUEST, QUERY_STEPS_REQUEST_PER_SECOND } from 'datasources/results/constants/QuerySteps.constants';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
@@ -23,62 +21,23 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     projection?: StepsProperties[],
     take?: number,
     descending?: boolean,
-    continuationToken?: string,
     returnCount = false
   ): Promise<QueryStepsResponse> {
-    try {
-      return await this.post<QueryStepsResponse>(`${this.queryStepsUrl}`, {
-        filter,
-        orderBy,
-        descending,
-        projection,
-        take,
-        continuationToken,
-        returnCount,
-      });
-    } catch (error) {
-      throw new Error(`An error occurred while querying steps: ${error}`);
+
+    const response = await this.post<QueryStepsResponse>(`${this.queryStepsUrl}`, {
+      filter,
+      orderBy,
+      descending,
+      projection,
+      take,
+      returnCount,
+    });
+
+    if (response.error) {
+      throw new Error(`An error occurred while querying steps: ${response.error}`);
     }
-  }
 
-  async queryStepsInBatch(
-    filter?: string,
-    orderBy?: string,
-    projection?: StepsProperties[],
-    take?: number,
-    descending?: boolean,
-    returnCount = false
-  ): Promise<QueryStepsResponse> {
-    const queryRecord = async (currentTake: number, token?: string): Promise<BatchQueryResponse<StepsResponseProperties>> => {
-      const response = await this.querySteps(
-        filter,
-        orderBy,
-        projection,
-        currentTake,
-        descending,
-        token,
-        returnCount
-      );
-
-      return {
-        results: response.steps,
-        continuationToken: response.continuationToken,
-        totalCount: response.totalCount
-      };
-    };
-
-    const config = {
-      maxTakePerRequest: MAX_TAKE_PER_REQUEST,
-      requestsPerSecond: QUERY_STEPS_REQUEST_PER_SECOND
-    };
-
-    const response = await this.queryInBatches(queryRecord, config, take);
-
-    return {
-      steps: response.results,
-      continuationToken: response.continuationToken,
-      totalCount: response.totalCount
-    };
+    return response;
   }
 
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
@@ -86,7 +45,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
       : query.properties;
 
-    const responseData = await this.queryStepsInBatch(
+    const responseData = await this.querySteps(
       this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
       query.orderBy,
       projection as StepsProperties[],
@@ -125,9 +84,9 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   private processFields(
-    selectedFields: StepsProperties[], 
+    selectedFields: StepsProperties[],
     stepsResponse: StepsResponseProperties[]
-  ): Array<{name: StepsProperties; values: string[]; type: FieldType}> {
+  ): Array<{ name: StepsProperties; values: string[]; type: FieldType }> {
     return selectedFields.map(field => {
       const isTimeField = field === StepsPropertiesOptions.UPDATED_AT || field === StepsPropertiesOptions.STARTED_AT;
 
@@ -153,29 +112,29 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   private processMeasurementData(stepsResponse: StepsResponseProperties[]): any[] {
-    const measurementFields = ['Measurement Name', 'Measurement Value', 'Status', 'Unit', 'Low Limit', 'High Limit'];
     const fieldToParameterProperty = {
       'Measurement Name': 'name',
       'Measurement Value': 'measurement',
-      Status: 'status',
-      Unit: 'units',
+      'Status': 'status',
+      'Unit': 'units',
       'Low Limit': 'lowLimit',
       'High Limit': 'highLimit',
     };
+    const measurementFields = Object.keys(fieldToParameterProperty) as Array<keyof typeof fieldToParameterProperty>;
 
-    return measurementFields.map(field => {
+    return measurementFields.map(measurementField => {
       const values = stepsResponse.map(step => {
         if (!step.data?.parameters) {
           return [];
         }
         return step.data.parameters.map(
-          param => param[fieldToParameterProperty[field as keyof typeof fieldToParameterProperty]]
+          param => param[fieldToParameterProperty[measurementField]]
         );
       });
 
       return {
-        name: field,
-        values: values,
+        name: measurementField,
+        values,
         type: FieldType.string,
       };
     });
