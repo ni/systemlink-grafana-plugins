@@ -33,13 +33,13 @@ describe('QueryStepsDataSource', () => {
   })
 
   describe('querySteps', () => {
-    test('returns data when there are valid queries', async () => {
+    test('should return data when there are valid queries', async () => {
       const response = await datastore.querySteps();
 
       expect(response).toMatchSnapshot();
     });
 
-    test('raises an error returns API fails', async () => {
+    test('should raise an error when API fails', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps' }))
         .mockReturnValue(createFetchError(400));
@@ -51,7 +51,7 @@ describe('QueryStepsDataSource', () => {
   });
 
   describe('query', () => {
-    test('returns data for valid data-output-type query', async () => {
+    test('should return data for valid data-output-type query', async () => {
       const query = buildQuery({
         refId: 'A',
         outputType: OutputType.Data
@@ -63,7 +63,7 @@ describe('QueryStepsDataSource', () => {
       expect(response.data).toMatchSnapshot();
     });
 
-    test('returns total count for valid total count output type queries', async () => {
+    test('should return total count for valid total count output type queries', async () => {
       const query = buildQuery({
         refId: 'A',
         outputType: OutputType.TotalCount,
@@ -75,7 +75,7 @@ describe('QueryStepsDataSource', () => {
       expect(response.data).toMatchSnapshot();
     });
 
-    test('returns no data when QuerySteps API returns empty array', async () => {
+    test('should return no data when QuerySteps API returns empty array', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
         .mockReturnValue(
@@ -94,7 +94,7 @@ describe('QueryStepsDataSource', () => {
       expect(response.data).toMatchSnapshot();
     });
 
-    test('returns no data when Query Steps returns error', async () => {
+    test('should return no data when Query Steps returns error', async () => {
         backendServer.fetch
           .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps' }))
           .mockReturnValue(createFetchError(400));
@@ -126,7 +126,7 @@ describe('QueryStepsDataSource', () => {
         expect(fields).toMatchSnapshot();
     });
 
-    test('includes templateSrv replaced values in the filter', async () => {
+    test('should include templateSrv replaced values in the filter', async () => {
       const timeRange = {
         Started: 'startedAt',
         Updated: 'updatedAt',
