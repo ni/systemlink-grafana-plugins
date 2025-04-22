@@ -44,6 +44,10 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
     handleQueryChange({ ...query, recordCount: value });
   };
 
+  const onShowMeasurementChange = (isShowMeasurementChecked: boolean) => {
+    handleQueryChange({ ...query, showMeasurements: isShowMeasurementChecked });
+  };
+
   return (
     <>
       <VerticalGroup>
@@ -88,6 +92,12 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
                   />
                 </InlineField>
               </div>
+              <InlineField label="Show Measurements" labelWidth={25}>
+                <InlineSwitch
+                  onChange={event => onShowMeasurementChange(event.currentTarget.checked)}
+                  value={query.showMeasurements}
+                />
+              </InlineField>
               <InlineField label="Take" labelWidth={25}>
                 <AutoSizeInput
                   minWidth={20}

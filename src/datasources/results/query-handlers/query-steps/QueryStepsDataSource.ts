@@ -41,10 +41,14 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
+    const projection = query.showMeasurements
+      ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
+      : query.properties;
+
     const responseData = await this.querySteps(
       this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
       query.orderBy,
-      query.properties,
+      projection as StepsProperties[],
       query.recordCount,
       query.descending,
       true
@@ -63,6 +67,10 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       const selectedFields = (query.properties || []).filter(field => stepResponseKeys.has(field));
       const fields = this.processFields(selectedFields, stepsResponse);
 
+      if (query.showMeasurements) {
+        const measurementFields = this.processMeasurementData(stepsResponse);
+        fields.push(...measurementFields);
+      }
       return {
         refId: query.refId,
         fields: fields,
@@ -100,6 +108,35 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         default:
           return { name: field, values, type: fieldType };
       }
+    });
+  }
+
+  private processMeasurementData(stepsResponse: StepsResponseProperties[]): any[] {
+    const fieldToParameterProperty = {
+      'Measurement Name': 'name',
+      'Measurement Value': 'measurement',
+      'Status': 'status',
+      'Unit': 'units',
+      'Low Limit': 'lowLimit',
+      'High Limit': 'highLimit',
+    };
+    const measurementFields = Object.keys(fieldToParameterProperty) as Array<keyof typeof fieldToParameterProperty>;
+
+    return measurementFields.map(measurementField => {
+      const values = stepsResponse.map(step => {
+        if (!step.data?.parameters) {
+          return [];
+        }
+        return step.data.parameters.map(
+          param => param[fieldToParameterProperty[measurementField]]
+        );
+      });
+
+      return {
+        name: measurementField,
+        values,
+        type: FieldType.string,
+      };
     });
   }
 

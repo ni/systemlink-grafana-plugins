@@ -8,6 +8,7 @@ export interface QuerySteps extends ResultsQuery {
   useTimeRange?: boolean;
   useTimeRangeFor?: string;
   recordCount?: number;
+  showMeasurements?: boolean;
 }
 
 export const OrderBy = [

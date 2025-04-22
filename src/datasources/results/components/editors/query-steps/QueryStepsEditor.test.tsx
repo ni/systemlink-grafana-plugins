@@ -17,6 +17,7 @@ describe('QueryStepsEditor', () => {
     useTimeRange: true,
     useTimeRangeFor: 'Updated',
     recordCount: 1000,
+    showMeasurements: false
   };
 
   const mockHandleQueryChange = jest.fn();
@@ -27,6 +28,7 @@ describe('QueryStepsEditor', () => {
   let recordCount: HTMLElement;
   let dataOutput: HTMLElement;
   let totalCountOutput: HTMLElement;
+  let showMeasurements: HTMLElement;
 
   beforeEach(() => {
     render(<QueryStepsEditor query={defaultQuery} handleQueryChange={mockHandleQueryChange} />);
@@ -36,6 +38,7 @@ describe('QueryStepsEditor', () => {
     dataOutput = screen.getByRole('radio', { name: 'Data' });
     totalCountOutput = screen.getByRole('radio', { name: 'Total Count' });
     recordCount = screen.getByDisplayValue(1000);
+    showMeasurements = screen.getAllByRole('checkbox')[1];
   });
 
   describe('Data outputType', () => {
@@ -43,7 +46,7 @@ describe('QueryStepsEditor', () => {
     let useTimeRangeFor: HTMLElement;
 
     beforeEach(() => {
-      useTimeRange = screen.getAllByRole('checkbox')[1];
+      useTimeRange = screen.getAllByRole('checkbox')[2];
       useTimeRangeFor = screen.getAllByRole('combobox')[2];
     });
 
@@ -62,6 +65,8 @@ describe('QueryStepsEditor', () => {
       expect(useTimeRange).toBeChecked();
       expect(useTimeRangeFor).toBeInTheDocument();
       expect(screen.getAllByText('Updated').length).toBe(1);
+      expect(showMeasurements).toBeInTheDocument();
+      expect(showMeasurements).not.toBeChecked();
     });
 
     test('should display placeholders for properties and orderBy when default values are not provided', async () => {
@@ -115,6 +120,13 @@ describe('QueryStepsEditor', () => {
         });
       });
     });
+
+    test('should update showMeasurements when user clicks on the show measurements checkbox', async () => {
+      await userEvent.click(showMeasurements);
+      await waitFor(() => {
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ showMeasurements: true }));
+      });
+    })
 
     test('should call handle query change with total count outputType when user changes the output type to Total Count', async () => {
       await userEvent.click(totalCountOutput);
