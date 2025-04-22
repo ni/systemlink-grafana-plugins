@@ -1,3 +1,9 @@
+## [3.53.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.52.0...v3.53.0) (2025-04-22)
+
+### Features
+
+* **results:** Conditional render of QueryStepsEditor in Results query editor based on queryType ([#152](https://github.com/ni/systemlink-grafana-plugins/issues/152)) ([843dded](https://github.com/ni/systemlink-grafana-plugins/commit/843dded2518b901a777c412d03cc596ca5022e2c))
+
 ## [3.52.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.51.0...v3.52.0) (2025-04-22)
 
 ### Features
