@@ -1,3 +1,9 @@
+## [3.53.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.53.0...v3.53.1) (2025-04-22)
+
+### Bug Fixes
+
+* **results:** Align label widths for consistency in result query editor ([#147](https://github.com/ni/systemlink-grafana-plugins/issues/147)) ([aff3d45](https://github.com/ni/systemlink-grafana-plugins/commit/aff3d459699587e305c0b935358d63b78dacd917))
+
 ## [3.53.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.52.0...v3.53.0) (2025-04-22)
 
 ### Features
