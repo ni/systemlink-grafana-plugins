@@ -1,3 +1,9 @@
+## [3.50.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.49.1...v3.50.0) (2025-04-22)
+
+### Features
+
+* **results:** Add steps query editor component ([#149](https://github.com/ni/systemlink-grafana-plugins/issues/149)) ([1936dcc](https://github.com/ni/systemlink-grafana-plugins/commit/1936dcc37d95ecf6b724cb73569f236db59c3b0c))
+
 ## [3.49.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.49.0...v3.49.1) (2025-04-15)
 
 ### Bug Fixes
