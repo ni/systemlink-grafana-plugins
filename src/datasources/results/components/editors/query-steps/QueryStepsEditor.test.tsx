@@ -47,7 +47,7 @@ describe('QueryStepsEditor', () => {
       useTimeRangeFor = screen.getAllByRole('combobox')[2];
     });
 
-    test('should render with default query', async () => {
+    test('should render with default query when default values are provided', async () => {
       expect(properties).toBeInTheDocument();
       expect(screen.getAllByText('data').length).toBe(1);
       expect(dataOutput).toBeInTheDocument();
@@ -64,7 +64,7 @@ describe('QueryStepsEditor', () => {
       expect(screen.getAllByText('Updated').length).toBe(1);
     });
 
-    test('should display placeholders for properties and orderBy when values are not provided', async () => {
+    test('should display placeholders for properties and orderBy when default values are not provided', async () => {
       render(
       <QueryStepsEditor
         query={{outputType: OutputType.Data } as QuerySteps}
