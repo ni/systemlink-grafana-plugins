@@ -1,14 +1,17 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { ResultsQuery } from './types/types';
+import { QueryType, ResultsQuery } from './types/types';
 import { QueryResultsDataSource } from './query-handlers/query-results/QueryResultsDataSource';
 import { QueryResults } from './types/QueryResults.types';
+import { QuerySteps } from './types/QuerySteps.types';
+import { QueryStepsDataSource } from './query-handlers/query-steps/QueryStepsDataSource';
 
 export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   public defaultQuery: Partial<ResultsQuery> & Omit<ResultsQuery, 'refId'>;
 
   private queryResultsDataSource: QueryResultsDataSource;
+  private queryStepsDataSource: QueryStepsDataSource;
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
@@ -17,17 +20,28 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   ) {
     super(instanceSettings, backendSrv, templateSrv);
     this.queryResultsDataSource = new QueryResultsDataSource(instanceSettings, backendSrv, templateSrv);
+    this.queryStepsDataSource = new QueryStepsDataSource(instanceSettings, backendSrv, templateSrv);
     this.defaultQuery = this.queryResultsDataSource.defaultQuery;
   }
-  
+
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
 
   async runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    return this.queryResultsDataSource.runQuery(query as QueryResults, options);
+    if (query.queryType === QueryType.Results) {
+      return this.queryResultsDataSource.runQuery(query as QueryResults, options);
+    } else if (query.queryType === QueryType.Steps) {
+      return this.queryStepsDataSource.runQuery(query as QuerySteps, options);
+    }
+    throw new Error('Invalid query type');
   }
 
   shouldRunQuery(query: ResultsQuery): boolean {
-    return this.queryResultsDataSource.shouldRunQuery(query as QueryResults);
+    if (query.queryType === QueryType.Results) {
+      return this.queryResultsDataSource.shouldRunQuery(query as QueryResults);
+    } else if (query.queryType === QueryType.Steps) {
+      return this.queryStepsDataSource.shouldRunQuery(query as QuerySteps);
+    }
+    return false;
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
