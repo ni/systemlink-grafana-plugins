@@ -358,6 +358,35 @@ describe('QueryStepsDataSource', () => {
           })
         );
       });
+
+      test('should stop subsequent API calls after error occurs', async () => {
+        backendServer.fetch
+          .mockImplementationOnce(() => createFetchResponse({
+            steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),
+            continuationToken: 'token1',
+            totalCount: 1500,
+          }))
+          .mockImplementationOnce(() => createFetchError(400)) //Error
+          .mockImplementationOnce(() => createFetchResponse({
+            steps: Array(500).fill({ stepId: '2', name: 'Step 2' }),
+            continuationToken: 'token2',
+            totalCount: 1500,
+          }));
+        
+        const batchPromise = datastore.queryStepsInBatch(
+          'filter',
+          'orderBy',
+          undefined,
+          1500,
+          false,
+          true
+        );
+        
+        await expect(batchPromise)
+          .rejects
+          .toThrow('Request to url "/nitestmonitor/v2/query-steps" failed with status code: 400. Error message: "Error"');
+        expect(backendServer.fetch).toHaveBeenCalledTimes(2);
+      });
     });
 
   const buildQuery = getQueryBuilder<QuerySteps>()({

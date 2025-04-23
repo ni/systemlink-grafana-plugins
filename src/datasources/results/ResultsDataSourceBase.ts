@@ -51,19 +51,10 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       
       results.push(...queryResponse.data);
       continuationToken = queryResponse.continuationToken; 
-      console.log('con', continuationToken);
     };
   
     const executeRequestBatch = async (requestsInBatch: number): Promise<void> => {
-      // const batchPromises = Array.from(
-      //   { length: requestsInBatch }, 
-      //   async () => await processBatch()
-      // );
-
-      // console.log('batchPromises', batchPromises);
-      
-      // await Promise.all(batchPromises);
-      for( let i = 0; i<requestsInBatch; i++){
+      for( let request = 0; request < requestsInBatch; request++){
         await processBatch();
       }
     };
@@ -75,8 +66,8 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       const startTime = Date.now();
       await executeRequestBatch(requestsInBatch);
       const elapsedTime = Date.now() - startTime;
-      
-      if (results.length < take && continuationToken && elapsedTime < 1000) {
+
+      if (results.length <= take && continuationToken && elapsedTime < 1000) {
         await this.delay(1000 - elapsedTime);
       }
     }
