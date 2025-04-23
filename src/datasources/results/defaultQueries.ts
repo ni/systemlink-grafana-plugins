@@ -30,8 +30,8 @@ export const defaultStepsQuery = {
     StepsProperties.status,
     StepsProperties.totalTimeInSeconds
   ] as StepsProperties[],
-  orderBy: undefined,
-  descending: undefined,
+  orderBy: "UPDATED_AT",
+  descending: true,
   recordCount: 10_000,
   useTimeRange: false,
   useTimeRangeFor: undefined,
