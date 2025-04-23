@@ -1,3 +1,9 @@
+## [3.54.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.53.1...v3.54.0) (2025-04-23)
+
+### Features
+
+* **results:** Add tooltip for QueryStepsEditor and QueryType controls ([#153](https://github.com/ni/systemlink-grafana-plugins/issues/153)) ([e14ff15](https://github.com/ni/systemlink-grafana-plugins/commit/e14ff15fa7fffd29fef31ee294e1fa15f10b1152))
+
 ## [3.53.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.53.0...v3.53.1) (2025-04-22)
 
 ### Bug Fixes
