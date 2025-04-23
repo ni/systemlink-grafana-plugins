@@ -50,7 +50,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     projection?: StepsProperties[],
     take?: number,
     descending?: boolean,
-    returnCount = false
+    returnCount = false,
+    isTotalCountTypeEnabled = false,
   ): Promise<QueryStepsResponse> {
     const queryRecord = async (currentTake: number, token?: string): Promise<BatchQueryResponse<StepsResponseProperties>> => {
       const response = await this.querySteps(
@@ -75,7 +76,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       requestsPerSecond: QUERY_STEPS_REQUEST_PER_SECOND
     };
 
-    const response = await this.queryInBatches(queryRecord, config, take);
+    const response = await this.queryInBatches(queryRecord, config, take, isTotalCountTypeEnabled);
 
     return {
       steps: response.data,
@@ -89,22 +90,23 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
       : query.properties;
 
-    const responseData = await this.queryStepsInBatch(
-      this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
-      query.orderBy,
-      projection as StepsProperties[],
-      query.recordCount,
-      query.descending,
-      true
-    );
-
-    if (responseData.steps.length === 0) {
-      return {
-        refId: query.refId,
-        fields: [],
-      };
-    }
-
+      const responseData = await this.queryStepsInBatch(
+        this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
+        query.orderBy,
+        projection as StepsProperties[],
+        query.recordCount,
+        query.descending,
+        true,
+        query.outputType === OutputType.TotalCount
+      );
+  
+      if (responseData.steps.length === 0) {
+        return {
+          refId: query.refId,
+          fields: [],
+        };
+      }
+      
     if (query.outputType === OutputType.Data) {
       const stepsResponse = responseData.steps;
       const stepResponseKeys = new Set(Object.keys(stepsResponse[0]));
