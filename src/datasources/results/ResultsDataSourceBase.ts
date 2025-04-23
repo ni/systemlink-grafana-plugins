@@ -34,48 +34,56 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     config: BatchQueryConfig,
     take?: number,
   ): Promise<BatchQueryResponse<T>> {
-    let response: T[] = [];
+    if (take === undefined || take <= config.maxTakePerRequest) {
+      return await queryRecord(take || config.maxTakePerRequest);
+    }
+  
+    let results: T[] = [];
     let continuationToken: string | undefined;
 
-    if (take === undefined || take <= config.maxTakePerRequest) {
-      return await queryRecord(take || config.maxTakePerRequest, continuationToken);
-    }
+    let initialResponse = await queryRecord(Math.min(config.maxTakePerRequest, take));
+    results.push(...initialResponse.data);
+    continuationToken = initialResponse.continuationToken;
+  
+    const processBatch = async (): Promise<void> => {
+      const currentTake = Math.min(config.maxTakePerRequest, take - results.length);
+      const queryResponse = await queryRecord(currentTake, continuationToken);
+      
+      results.push(...queryResponse.data);
+      continuationToken = queryResponse.continuationToken; 
+      console.log('con', continuationToken);
+    };
+  
+    const executeRequestBatch = async (requestsInBatch: number): Promise<void> => {
+      // const batchPromises = Array.from(
+      //   { length: requestsInBatch }, 
+      //   async () => await processBatch()
+      // );
 
-    const requestCount = Math.ceil(take / config.maxTakePerRequest);
-    const batchCount = Math.ceil(requestCount / config.requestsPerSecond);
-
-    for (let batch = 0; batch < batchCount; batch++) {
-      const requestsThisBatch = Math.min(
-        config.requestsPerSecond, 
-        Math.ceil((take - response.length) / config.maxTakePerRequest)
-      );
-      for (let request = 0; request < requestsThisBatch; request++) {
-        if (response.length >= take) {
-          break;
-        }
-        const currentTake = Math.min(config.maxTakePerRequest, take - response.length);
-
-        const queryResponse: BatchQueryResponse<T> = await queryRecord(currentTake, continuationToken);
-
-        response = [...response, ...queryResponse.data];
-        continuationToken = queryResponse.continuationToken;
-
-        if (!continuationToken) {
-          return {
-            data: response,
-            totalCount: response.length,
-          };
-        }
+      // console.log('batchPromises', batchPromises);
+      
+      // await Promise.all(batchPromises);
+      for( let i = 0; i<requestsInBatch; i++){
+        await processBatch();
       }
-
-      if (batch < batchCount - 1) {
-        await this.delay(1000);
+    };
+  
+    while (results.length < take && continuationToken) {
+      const remainingRequests = Math.ceil((take - results.length) / config.maxTakePerRequest);
+      const requestsInBatch = Math.min(config.requestsPerSecond, remainingRequests);
+      
+      const startTime = Date.now();
+      await executeRequestBatch(requestsInBatch);
+      const elapsedTime = Date.now() - startTime;
+      
+      if (results.length < take && continuationToken && elapsedTime < 1000) {
+        await this.delay(1000 - elapsedTime);
       }
     }
-
+  
     return {
-      data: response,
-      totalCount: response.length, 
+      data: results,
+      totalCount: results.length,
     };
   }
 
