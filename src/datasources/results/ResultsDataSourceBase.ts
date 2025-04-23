@@ -38,19 +38,19 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       return await queryRecord(take || config.maxTakePerRequest);
     }
   
-    let results: T[] = [];
+    let response: T[] = [];
     let continuationToken: string | undefined;
     let totalCount: number | undefined;
 
-    let initialQueryStepsResponse = await queryRecord(Math.min(config.maxTakePerRequest, take));
-    results.push(...initialQueryStepsResponse.data);
-    totalCount = initialQueryStepsResponse.totalCount;
-    continuationToken = initialQueryStepsResponse.continuationToken;
+    let initialQueryResponse = await queryRecord(Math.min(config.maxTakePerRequest, take));
+    response.push(...initialQueryResponse.data);
+    totalCount = initialQueryResponse.totalCount;
+    continuationToken = initialQueryResponse.continuationToken;
 
-    const queryStepsInBatch = async (): Promise<void> => {
+    const executeRecordInBatch = async (): Promise<void> => {
       const remainingTake = totalCount !== undefined ? 
-      Math.min(take - results.length, totalCount - results.length) : 
-      take - results.length;
+      Math.min(take - response.length, totalCount - response.length) : 
+      take - response.length;
     
       if (remainingTake <= 0) {
         return;
@@ -59,31 +59,31 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       const currentTake = Math.min(config.maxTakePerRequest, remainingTake);
       const queryResponse = await queryRecord(currentTake, continuationToken);
       
-      results.push(...queryResponse.data);
+      response.push(...queryResponse.data);
       continuationToken = queryResponse.continuationToken; 
     };
   
-    const executeRequestBatch = async (requestsInBatch: number): Promise<void> => {
+    const executeBatch = async (requestsInBatch: number): Promise<void> => {
       for( let request = 0; request < requestsInBatch; request++ ){
-        await queryStepsInBatch();
+        await executeRecordInBatch();
       }
     };
   
-    while (results.length < take && continuationToken && (totalCount === undefined || results.length < totalCount)) {
-      const remainingTotalRequests = Math.ceil((take - results.length) / config.maxTakePerRequest);
-      const requestsInBatch = Math.min(config.requestsPerSecond, remainingTotalRequests);
+    while (response.length < take && continuationToken && (totalCount === undefined || response.length < totalCount)) {
+      const remainingRequestCount = Math.ceil((take - response.length) / config.maxTakePerRequest);
+      const requestsInBatch = Math.min(config.requestsPerSecond, remainingRequestCount);
       
       const startTime = Date.now();
-      await executeRequestBatch(requestsInBatch);
+      await executeBatch(requestsInBatch);
       const elapsedTime = Date.now() - startTime;
 
-      if (results.length <= take && continuationToken && elapsedTime < 1000) {
+      if (response.length <= take && continuationToken && elapsedTime < 1000) {
         await this.delay(1000 - elapsedTime);
       }
     }
   
     return {
-      data: results,
+      data: response,
       totalCount,
     };
   }
