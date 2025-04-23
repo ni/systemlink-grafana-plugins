@@ -42,21 +42,21 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     let continuationToken: string | undefined;
     let totalCount: number | undefined;
 
-    let initialResponse = await queryRecord(Math.min(config.maxTakePerRequest, take));
-    results.push(...initialResponse.data);
-    totalCount = initialResponse.totalCount;
-    continuationToken = initialResponse.continuationToken;
+    let initialQueryStepsResponse = await queryRecord(Math.min(config.maxTakePerRequest, take));
+    results.push(...initialQueryStepsResponse.data);
+    totalCount = initialQueryStepsResponse.totalCount;
+    continuationToken = initialQueryStepsResponse.continuationToken;
 
-    const processBatch = async (): Promise<void> => {
-      const remainingToFetch = totalCount !== undefined ? 
+    const queryStepsInBatch = async (): Promise<void> => {
+      const remainingTake = totalCount !== undefined ? 
       Math.min(take - results.length, totalCount - results.length) : 
       take - results.length;
     
-      if (remainingToFetch <= 0) {
+      if (remainingTake <= 0) {
         return;
       }
 
-      const currentTake = Math.min(config.maxTakePerRequest, remainingToFetch);
+      const currentTake = Math.min(config.maxTakePerRequest, remainingTake);
       const queryResponse = await queryRecord(currentTake, continuationToken);
       
       results.push(...queryResponse.data);
@@ -64,14 +64,14 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     };
   
     const executeRequestBatch = async (requestsInBatch: number): Promise<void> => {
-      for( let request = 0; request < requestsInBatch; request++){
-        await processBatch();
+      for( let request = 0; request < requestsInBatch; request++ ){
+        await queryStepsInBatch();
       }
     };
   
     while (results.length < take && continuationToken && (totalCount === undefined || results.length < totalCount)) {
-      const remainingRequests = Math.ceil((take - results.length) / config.maxTakePerRequest);
-      const requestsInBatch = Math.min(config.requestsPerSecond, remainingRequests);
+      const remainingTotalRequests = Math.ceil((take - results.length) / config.maxTakePerRequest);
+      const requestsInBatch = Math.min(config.requestsPerSecond, remainingTotalRequests);
       
       const startTime = Date.now();
       await executeRequestBatch(requestsInBatch);
