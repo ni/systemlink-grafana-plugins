@@ -275,6 +275,48 @@ describe('QueryStepsDataSource', () => {
           })
         );
       });
+
+      test('should batch requests when totalCount matching the filter is less than requested take', async () => {
+        const mockResponses = [
+          createFetchResponse({
+            steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),
+            continuationToken: 'token1',
+            totalCount: 900,
+          }),
+          createFetchResponse({
+            steps: Array(400).fill({ stepId: '1', name: 'Step 1' }),
+            continuationToken: 'token2',
+            totalCount: 900,
+          })
+        ]
+        backendServer.fetch
+          .mockImplementationOnce(() => mockResponses[0])
+          .mockImplementationOnce(() => mockResponses[1])
+          const responsePromise = datastore.queryStepsInBatch(
+            'name = \"test\"',
+            undefined,
+            undefined,
+            10000,
+            undefined,
+            true
+          );
+          const response = await responsePromise;
+    
+          expect(response.steps).toHaveLength(900);
+          expect(backendServer.fetch).toHaveBeenCalledTimes(2);
+          expect(backendServer.fetch).toHaveBeenNthCalledWith(
+            1,
+            expect.objectContaining({
+              data: expect.objectContaining({ take: 500, continuationToken: undefined }),
+            })
+          );
+          expect(backendServer.fetch).toHaveBeenNthCalledWith(
+            2,
+            expect.objectContaining({
+              data: expect.objectContaining({ take: 400, continuationToken: 'token1' }),
+            })
+          );
+      })
   
       test('should batch requests with a maximum of 6 requests per second', async () => {
         const mockResponses = [
