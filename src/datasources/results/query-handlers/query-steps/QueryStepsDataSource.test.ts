@@ -314,7 +314,7 @@ describe('QueryStepsDataSource', () => {
         );
       });
 
-      test('should batch requests when totalCount matching the filter is less than requested take', async () => {
+      test('should batch requests when total number od steps matching the filter is less than requested take', async () => {
         const mockResponses = [
           createFetchResponse({
             steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),
@@ -356,7 +356,7 @@ describe('QueryStepsDataSource', () => {
           );
       })
   
-      test('should batch requests with a maximum of 6 requests per second', async () => {
+      test('should batch requests with RequestPerSecond', async () => {
         const mockResponses = [
           createFetchResponse({
             steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),

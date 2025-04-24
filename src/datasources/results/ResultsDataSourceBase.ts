@@ -1,7 +1,7 @@
 import { DataSourceBase } from "core/DataSourceBase";
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse } from "@grafana/data";
 import { ResultsQuery } from "./types/types";
-import { BatchQueryConfig, BatchQueryResponse } from "./types/QuerySteps.types";
+import { BatchQueryConfig, QueryResponse } from "./types/QuerySteps.types";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
@@ -30,10 +30,10 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   }
 
   async queryInBatches<T>(
-    queryRecord: (take: number, continuationToken?: string) => Promise<BatchQueryResponse<T>>,
+    queryRecord: (take: number, continuationToken?: string) => Promise<QueryResponse<T>>,
     queryConfig: BatchQueryConfig,
     take?: number,
-  ): Promise<BatchQueryResponse<T>> {
+  ): Promise<QueryResponse<T>> {
     if (take === undefined || take <= queryConfig.maxTakePerRequest) {
       return await queryRecord(take || queryConfig.maxTakePerRequest);
     }
@@ -42,40 +42,40 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     let continuationToken: string | undefined;
     let totalCount: number | undefined;
 
-    const fetchRecord = async (currentTake: number): Promise<void> => { 
-      const response = await queryRecord(currentTake, continuationToken); 
+    const getRecords = async (currentRecordCount: number): Promise<void> => { 
+      const response = await queryRecord(currentRecordCount, continuationToken); 
       queryResponse.push(...response.data); 
       continuationToken = response.continuationToken; 
       totalCount = response.totalCount ?? totalCount; 
     };
 
-    const executeRecordInBatch = async (): Promise<void> => {
-      const remainingTake = totalCount !== undefined ? 
+    const queryRecordsInCurrentBatch = async (): Promise<void> => {
+      const remainingRecordsToGet = totalCount !== undefined ? 
       Math.min(take - queryResponse.length, totalCount - queryResponse.length) : 
       take - queryResponse.length;
     
-      if (remainingTake <= 0) {
+      if (remainingRecordsToGet <= 0) {
         return;
       }
 
-      const currentTake = Math.min(queryConfig.maxTakePerRequest, remainingTake);
-      await fetchRecord(currentTake);
+      const currentRecordCount = Math.min(queryConfig.maxTakePerRequest, remainingRecordsToGet);
+      await getRecords(currentRecordCount);
     };
   
-    const executeBatch = async (requestsInBatch: number): Promise<void> => {
-      for( let request = 0; request < requestsInBatch; request++ ){
-        await executeRecordInBatch();
+    const queryCurrentBatch = async (requestsInCurrentBatch: number): Promise<void> => {
+      for( let request = 0; request < requestsInCurrentBatch; request++ ){
+        await queryRecordsInCurrentBatch();
       }
     };
 
-    await fetchRecord(Math.min(queryConfig.maxTakePerRequest, take));
+    await getRecords(Math.min(queryConfig.maxTakePerRequest, take));
   
     while (queryResponse.length < take && continuationToken && (totalCount === undefined || queryResponse.length < totalCount)) {
       const remainingRequestCount = Math.ceil((take - queryResponse.length) / queryConfig.maxTakePerRequest);
-      const requestsInBatch = Math.min(queryConfig.requestsPerSecond, remainingRequestCount);
+      const requestsInCurrentBatch = Math.min(queryConfig.requestsPerSecond, remainingRequestCount);
       
       const startTime = Date.now();
-      await executeBatch(requestsInBatch);
+      await queryCurrentBatch(requestsInCurrentBatch);
       const elapsedTime = Date.now() - startTime;
 
       if (queryResponse.length <= take && continuationToken && elapsedTime < 1000) {

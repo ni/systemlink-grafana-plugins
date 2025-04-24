@@ -1,7 +1,7 @@
 import { DataQueryRequest, DataFrameDTO, FieldType } from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
-  BatchQueryResponse,
+  QueryResponse,
   QuerySteps,
   QueryStepsResponse,
   StepsProperties,
@@ -52,7 +52,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     descending?: boolean,
     returnCount = false,
   ): Promise<QueryStepsResponse> {
-    const queryRecord = async (currentTake: number, token?: string): Promise<BatchQueryResponse<StepsResponseProperties>> => {
+    const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<StepsResponseProperties>> => {
       const response = await this.querySteps(
         filter,
         orderBy,
@@ -70,12 +70,12 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       };
     };
 
-    const config = {
+    const batchQueryConfig = {
       maxTakePerRequest: MAX_TAKE_PER_REQUEST,
       requestsPerSecond: QUERY_STEPS_REQUEST_PER_SECOND
     };
 
-    const response = await this.queryInBatches(queryRecord, config, take);
+    const response = await this.queryInBatches(queryRecord, batchQueryConfig, take);
 
     return {
       steps: response.data,

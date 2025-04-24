@@ -146,7 +146,7 @@ export interface ErrorBody {
   innerErrors?: ErrorBody[];
 }
 
-export interface BatchQueryResponse<T> {
+export interface QueryResponse<T> {
   data: T[];
   continuationToken?: string;
   totalCount?: number;
