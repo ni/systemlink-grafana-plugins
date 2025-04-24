@@ -244,6 +244,44 @@ describe('QueryStepsDataSource', () => {
         { name: 'properties', values: [""], type: 'string' },
       ]);
     });
+
+    test('should call query steps API once when output type is total count', async () => {
+      const mockResponses = [
+        createFetchResponse({
+          steps: Array(100).fill({ stepId: '1', name: 'Step 1' }),
+          continuationToken: null,
+          totalCount: 5000,
+        }),
+        createFetchResponse({
+          steps: Array(100).fill({ stepId: '2', name: 'Step 2' }),
+          continuationToken: null,
+          totalCount: 5000,
+        })
+      ]
+      backendServer.fetch
+        .mockImplementationOnce(() => mockResponses[0])
+        .mockImplementationOnce(() => mockResponses[1])
+      const query = buildQuery(
+        {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          properties: [
+            StepsPropertiesOptions.PROPERTIES
+          ] as StepsProperties[],
+          orderBy: undefined,
+          useTimeRange: true,
+          useTimeRangeFor: 'Updated'
+        },
+      );
+
+      const response = await datastore.query(query);
+
+      const fields = response.data[0].fields as Field[];
+      expect(fields).toEqual([
+        { name: 'Total count', values: [5000] },
+      ]);
+      expect(backendServer.fetch).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('fetch Steps with rate limiting', () => {

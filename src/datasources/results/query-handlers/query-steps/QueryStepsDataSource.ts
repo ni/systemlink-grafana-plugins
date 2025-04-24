@@ -89,6 +89,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
       : query.properties;
 
+    if (query.outputType === OutputType.Data) {
       const responseData = await this.queryStepsInBatch(
         this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
         query.orderBy,
@@ -104,8 +105,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
           fields: [],
         };
       }
-      
-    if (query.outputType === OutputType.Data) {
       const stepsResponse = responseData.steps;
       const stepResponseKeys = new Set(Object.keys(stepsResponse[0]));
       const selectedFields = (query.properties || []).filter(field => stepResponseKeys.has(field));
@@ -120,6 +119,16 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         fields: fields,
       };
     } else {
+      const responseData = await this.querySteps(
+        this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        true
+      );
+
       return {
         refId: query.refId,
         fields: [{ name: 'Total count', values: [responseData.totalCount] }],
