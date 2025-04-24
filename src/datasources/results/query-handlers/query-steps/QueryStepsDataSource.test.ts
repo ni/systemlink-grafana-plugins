@@ -5,7 +5,6 @@ import { Field } from '@grafana/data';
 import { QuerySteps, QueryStepsResponse, StepsProperties, StepsPropertiesOptions } from 'datasources/results/types/QuerySteps.types';
 import { OutputType, QueryType } from 'datasources/results/types/types';
 import { QueryStepsDataSource } from './QueryStepsDataSource';
-import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 
 const mockQueryStepsResponse: QueryStepsResponse = {
   steps: [
