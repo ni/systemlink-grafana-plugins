@@ -25,7 +25,7 @@ let datastore: QueryStepsDataSource, backendServer: MockProxy<BackendSrv>, templ
 
 jest.mock('datasources/results/constants/QuerySteps.constants', () => ({
   ...jest.requireActual('datasources/results/constants/QuerySteps.constants'),
-  QUERY_STEPS_REQUEST_PER_SECOND: 2, // Mock the constant value
+  QUERY_STEPS_REQUEST_PER_SECOND: 2,
 }));
 
 describe('QueryStepsDataSource', () => {
