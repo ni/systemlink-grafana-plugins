@@ -31,37 +31,37 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
   async queryInBatches<T>(
     queryRecord: (take: number, continuationToken?: string) => Promise<BatchQueryResponse<T>>,
-    config: BatchQueryConfig,
+    queryConfig: BatchQueryConfig,
     take?: number,
     isTotalCountTypeEnabled?: boolean,
   ): Promise<BatchQueryResponse<T>> {
-    if (take === undefined || take <= config.maxTakePerRequest || isTotalCountTypeEnabled) {
-      return await queryRecord(take || config.maxTakePerRequest);
+    if (take === undefined || take <= queryConfig.maxTakePerRequest || isTotalCountTypeEnabled) {
+      return await queryRecord(take || queryConfig.maxTakePerRequest);
     }
   
-    let response: T[] = [];
+    let queryResponse: T[] = [];
     let continuationToken: string | undefined;
     let totalCount: number | undefined;
 
-    let initialQueryResponse = await queryRecord(Math.min(config.maxTakePerRequest, take));
-    response.push(...initialQueryResponse.data);
+    let initialQueryResponse = await queryRecord(Math.min(queryConfig.maxTakePerRequest, take));
+    queryResponse.push(...initialQueryResponse.data);
     totalCount = initialQueryResponse.totalCount;
     continuationToken = initialQueryResponse.continuationToken;
 
     const executeRecordInBatch = async (): Promise<void> => {
       const remainingTake = totalCount !== undefined ? 
-      Math.min(take - response.length, totalCount - response.length) : 
-      take - response.length;
+      Math.min(take - queryResponse.length, totalCount - queryResponse.length) : 
+      take - queryResponse.length;
     
       if (remainingTake <= 0) {
         return;
       }
 
-      const currentTake = Math.min(config.maxTakePerRequest, remainingTake);
-      const queryResponse = await queryRecord(currentTake, continuationToken);
+      const currentTake = Math.min(queryConfig.maxTakePerRequest, remainingTake);
+      const currentBatchQueryResponse= await queryRecord(currentTake, continuationToken);
       
-      response.push(...queryResponse.data);
-      continuationToken = queryResponse.continuationToken; 
+      queryResponse.push(...currentBatchQueryResponse.data);
+      continuationToken = currentBatchQueryResponse.continuationToken; 
     };
   
     const executeBatch = async (requestsInBatch: number): Promise<void> => {
@@ -70,21 +70,21 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       }
     };
   
-    while (response.length < take && continuationToken && (totalCount === undefined || response.length < totalCount)) {
-      const remainingRequestCount = Math.ceil((take - response.length) / config.maxTakePerRequest);
-      const requestsInBatch = Math.min(config.requestsPerSecond, remainingRequestCount);
+    while (queryResponse.length < take && continuationToken && (totalCount === undefined || queryResponse.length < totalCount)) {
+      const remainingRequestCount = Math.ceil((take - queryResponse.length) / queryConfig.maxTakePerRequest);
+      const requestsInBatch = Math.min(queryConfig.requestsPerSecond, remainingRequestCount);
       
       const startTime = Date.now();
       await executeBatch(requestsInBatch);
       const elapsedTime = Date.now() - startTime;
 
-      if (response.length <= take && continuationToken && elapsedTime < 1000) {
+      if (queryResponse.length <= take && continuationToken && elapsedTime < 1000) {
         await this.delay(1000 - elapsedTime);
       }
     }
   
     return {
-      data: response,
+      data: queryResponse,
       totalCount,
     };
   }
