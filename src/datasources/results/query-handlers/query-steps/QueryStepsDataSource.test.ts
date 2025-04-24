@@ -37,6 +37,10 @@ describe('QueryStepsDataSource', () => {
       .mockReturnValue(createFetchResponse(mockQueryStepsResponse));
   })
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   describe('querySteps', () => {
     test('should return data when there are valid queries', async () => {
       const response = await datastore.querySteps();
@@ -360,6 +364,75 @@ describe('QueryStepsDataSource', () => {
             })
           );
       })
+
+      test('should execute maximum 2 requests per second as per the mocked rate limit', async () => {
+        // Create a mock timer that we can control precisely
+        jest.useFakeTimers({ doNotFake: ['nextTick'] });
+        
+        // Spy on fetch calls to track when they happen
+        const fetchSpy = jest.spyOn(backendServer, 'fetch');
+        
+        // Mock responses for 5 requests
+        const mockResponses = [
+          createFetchResponse({
+            steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),
+            continuationToken: 'token1',
+            totalCount: 2000,
+          }),
+          createFetchResponse({
+            steps: Array(500).fill({ stepId: '2', name: 'Step 2' }),
+            continuationToken: 'token2', 
+            totalCount: 2000,
+          }),
+          createFetchResponse({
+            steps: Array(500).fill({ stepId: '3', name: 'Step 3' }),
+            continuationToken: 'token3',
+            totalCount: 2000,
+          }),
+          createFetchResponse({
+            steps: Array(500).fill({ stepId: '4', name: 'Step 4' }),
+            continuationToken: 'token4',
+            totalCount: 2000,
+          })
+        ];
+      
+        // Set up our mock responses
+        backendServer.fetch
+          .mockImplementationOnce(() => mockResponses[0])
+          .mockImplementationOnce(() => mockResponses[1])
+          .mockImplementationOnce(() => mockResponses[2])
+          .mockImplementationOnce(() => mockResponses[3])
+          
+        // Start the query process (don't await it yet)
+        const responsePromise = datastore.queryStepsInBatches(
+          undefined,
+          undefined,
+          undefined,
+          2000,
+          undefined,
+          true
+        );
+      
+        // Let the first batch of requests execute
+        await jest.advanceTimersByTimeAsync(0);
+        
+        // Check that exactly 2 requests were made initially
+        expect(fetchSpy).toHaveBeenCalledTimes(2);
+        
+        // Advance time by 1 second to allow the next batch
+        await jest.advanceTimersByTimeAsync(1000);
+        
+        // Check that 2 more requests were made (total 4)
+        expect(fetchSpy).toHaveBeenCalledTimes(4);
+        
+        // Complete the promise
+        const response = await responsePromise;
+
+        // Verify we got all the expected data
+        expect(response.steps).toHaveLength(2000);
+
+        jest.useRealTimers();
+      });
   
       test('should batch requests with RequestPerSecond', async () => {
         const mockResponses = [
@@ -375,7 +448,7 @@ describe('QueryStepsDataSource', () => {
           }),
           createFetchResponse({
             steps: Array(500).fill({ stepId: '3', name: 'Step 3' }),
-            continuationToken: null,
+            continuationToken: 'token3',
             totalCount: 1500,
           }),
         ];
@@ -393,7 +466,7 @@ describe('QueryStepsDataSource', () => {
           true
         );
         const response = await responsePromise;
-  
+
         expect(response.steps).toHaveLength(1500);
         expect(backendServer.fetch).toHaveBeenCalledTimes(3);
         expect(backendServer.fetch).toHaveBeenNthCalledWith(

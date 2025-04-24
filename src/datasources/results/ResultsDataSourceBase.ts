@@ -67,10 +67,8 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
         await queryRecordsInCurrentBatch();
       }
     };
-
-    await getRecords(Math.min(queryConfig.maxTakePerRequest, take)); // initial request to get continuation token
   
-    while (queryResponse.length < take && continuationToken && (totalCount === undefined || queryResponse.length < totalCount)) {
+    while (queryResponse.length < take && (totalCount === undefined || queryResponse.length < totalCount)) {
       const remainingRequestCount = Math.ceil((take - queryResponse.length) / queryConfig.maxTakePerRequest);
       const requestsInCurrentBatch = Math.min(queryConfig.requestsPerSecond, remainingRequestCount);
       
