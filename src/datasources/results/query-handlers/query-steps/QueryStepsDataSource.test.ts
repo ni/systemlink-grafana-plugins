@@ -5,6 +5,7 @@ import { Field } from '@grafana/data';
 import { QuerySteps, QueryStepsResponse, StepsProperties, StepsPropertiesOptions } from 'datasources/results/types/QuerySteps.types';
 import { OutputType, QueryType } from 'datasources/results/types/types';
 import { QueryStepsDataSource } from './QueryStepsDataSource';
+import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 
 const mockQueryStepsResponse: QueryStepsResponse = {
   steps: [
@@ -22,6 +23,11 @@ const mockQueryStepsResponse: QueryStepsResponse = {
 };
 
 let datastore: QueryStepsDataSource, backendServer: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
+
+jest.mock('datasources/results/constants/QuerySteps.constants', () => ({
+  ...jest.requireActual('datasources/results/constants/QuerySteps.constants'),
+  QUERY_STEPS_REQUEST_PER_SECOND: 2, // Mock the constant value
+}));
 
 describe('QueryStepsDataSource', () => {
   beforeEach(() => {
@@ -466,6 +472,60 @@ describe('QueryStepsDataSource', () => {
           .rejects
           .toThrow('Request to url "/nitestmonitor/v2/query-steps" failed with status code: 400. Error message: "Error"');
         expect(backendServer.fetch).toHaveBeenCalledTimes(2);
+      });
+
+      test('should delay between consecutive batch API calls', async () => {
+        const mockTimeValues = [1000, 1200];
+        let timeCallCount = 0;
+        
+        Date.now = jest.fn().mockImplementation(() => {
+          return mockTimeValues[timeCallCount++] || mockTimeValues[mockTimeValues.length - 1];
+        });
+        
+        const spyDelay = jest.spyOn(datastore as any, 'delay');
+
+        const mockResponses = [
+          createFetchResponse({
+            steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),
+            continuationToken: 'token1',
+            totalCount: 2000,
+          }),
+          createFetchResponse({
+            steps: Array(500).fill({ stepId: '2', name: 'Step 2' }),
+            continuationToken: 'token2',
+            totalCount: 2000,
+          }),
+          createFetchResponse({
+            steps: Array(500).fill({ stepId: '3', name: 'Step 3' }),
+            continuationToken: 'token3',
+            totalCount: 2000,
+          }),
+          createFetchResponse({
+            steps: Array(500).fill({ stepId: '4', name: 'Step 3' }),
+            continuationToken: null,
+            totalCount: 2000,
+          }),
+        ];
+        backendServer.fetch
+          .mockImplementationOnce(() => mockResponses[0])
+          .mockImplementationOnce(() => mockResponses[1])
+          .mockImplementationOnce(() => mockResponses[2])
+          .mockImplementationOnce(() => mockResponses[3])
+        const responsePromise = datastore.queryStepsInBatch(
+          undefined,
+          undefined,
+          undefined,
+          2000,
+          undefined,
+          true
+        );
+
+        const response = await responsePromise;
+  
+        expect(response.steps).toHaveLength(2000);
+        expect(backendServer.fetch).toHaveBeenCalledTimes(4);
+        expect(spyDelay).toHaveBeenCalledTimes(1);
+        expect(spyDelay).toHaveBeenCalledWith(800); // delay for 1000 - 200 = 800ms
       });
     });
 
