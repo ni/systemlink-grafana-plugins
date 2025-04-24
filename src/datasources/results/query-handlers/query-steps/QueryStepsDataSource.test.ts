@@ -300,7 +300,7 @@ describe('QueryStepsDataSource', () => {
       })]
       backendServer.fetch
         .mockImplementationOnce(() => mockResponses[0])
-        const responsePromise = datastore.queryStepsInBatch(
+        const responsePromise = datastore.queryStepsInBatches(
           undefined,
           undefined,
           undefined,
@@ -336,7 +336,7 @@ describe('QueryStepsDataSource', () => {
         backendServer.fetch
           .mockImplementationOnce(() => mockResponses[0])
           .mockImplementationOnce(() => mockResponses[1])
-          const responsePromise = datastore.queryStepsInBatch(
+          const responsePromise = datastore.queryStepsInBatches(
             'name = \"test\"',
             undefined,
             undefined,
@@ -385,7 +385,7 @@ describe('QueryStepsDataSource', () => {
           .mockImplementationOnce(() => mockResponses[0])
           .mockImplementationOnce(() => mockResponses[1])
           .mockImplementationOnce(() => mockResponses[2]);
-        const responsePromise = datastore.queryStepsInBatch(
+        const responsePromise = datastore.queryStepsInBatches(
           undefined,
           undefined,
           undefined,
@@ -427,7 +427,7 @@ describe('QueryStepsDataSource', () => {
         ];
   
         backendServer.fetch.mockImplementationOnce(() => mockResponses[0]);
-        const response = await datastore.queryStepsInBatch(
+        const response = await datastore.queryStepsInBatches(
           undefined,
           undefined,
           undefined,
@@ -459,7 +459,7 @@ describe('QueryStepsDataSource', () => {
             totalCount: 1500,
           }));
         
-        const batchPromise = datastore.queryStepsInBatch(
+        const batchPromise = datastore.queryStepsInBatches(
           'filter',
           'orderBy',
           undefined,
@@ -511,7 +511,7 @@ describe('QueryStepsDataSource', () => {
           .mockImplementationOnce(() => mockResponses[1])
           .mockImplementationOnce(() => mockResponses[2])
           .mockImplementationOnce(() => mockResponses[3])
-        const responsePromise = datastore.queryStepsInBatch(
+        const responsePromise = datastore.queryStepsInBatches(
           undefined,
           undefined,
           undefined,

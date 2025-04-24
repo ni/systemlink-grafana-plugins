@@ -44,7 +44,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     return response;
   }
 
-  async queryStepsInBatch(
+  async queryStepsInBatches(
     filter?: string,
     orderBy?: string,
     projection?: StepsProperties[],
@@ -90,7 +90,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       : query.properties;
 
     if (query.outputType === OutputType.Data) {
-      const responseData = await this.queryStepsInBatch(
+      const responseData = await this.queryStepsInBatches(
         this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
         query.orderBy,
         projection as StepsProperties[],
