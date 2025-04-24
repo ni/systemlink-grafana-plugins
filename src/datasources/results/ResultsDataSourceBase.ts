@@ -33,9 +33,8 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     queryRecord: (take: number, continuationToken?: string) => Promise<BatchQueryResponse<T>>,
     queryConfig: BatchQueryConfig,
     take?: number,
-    isTotalCountTypeEnabled?: boolean,
   ): Promise<BatchQueryResponse<T>> {
-    if (take === undefined || take <= queryConfig.maxTakePerRequest || isTotalCountTypeEnabled) {
+    if (take === undefined || take <= queryConfig.maxTakePerRequest) {
       return await queryRecord(take || queryConfig.maxTakePerRequest);
     }
   

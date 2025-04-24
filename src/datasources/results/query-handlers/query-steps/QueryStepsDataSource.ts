@@ -51,7 +51,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     take?: number,
     descending?: boolean,
     returnCount = false,
-    isTotalCountTypeEnabled = false,
   ): Promise<QueryStepsResponse> {
     const queryRecord = async (currentTake: number, token?: string): Promise<BatchQueryResponse<StepsResponseProperties>> => {
       const response = await this.querySteps(
@@ -76,7 +75,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       requestsPerSecond: QUERY_STEPS_REQUEST_PER_SECOND
     };
 
-    const response = await this.queryInBatches(queryRecord, config, take, isTotalCountTypeEnabled);
+    const response = await this.queryInBatches(queryRecord, config, take);
 
     return {
       steps: response.data,
@@ -96,8 +95,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         projection as StepsProperties[],
         query.recordCount,
         query.descending,
-        true,
-        query.outputType === OutputType.TotalCount
+        true
       );
   
       if (responseData.steps.length === 0) {
