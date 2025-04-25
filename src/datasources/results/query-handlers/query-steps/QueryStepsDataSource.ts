@@ -1,6 +1,7 @@
 import { DataQueryRequest, DataFrameDTO, FieldType } from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
+  QueryResponse,
   QuerySteps,
   QueryStepsResponse,
   StepsProperties,
@@ -9,6 +10,7 @@ import {
 } from 'datasources/results/types/QuerySteps.types';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { defaultStepsQuery } from 'datasources/results/defaultQueries';
+import { MAX_TAKE_PER_REQUEST, QUERY_STEPS_REQUEST_PER_SECOND } from 'datasources/results/constants/QuerySteps.constants';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
@@ -21,6 +23,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     projection?: StepsProperties[],
     take?: number,
     descending?: boolean,
+    continuationToken?: string,
     returnCount = false
   ): Promise<QueryStepsResponse> {
 
@@ -30,6 +33,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       descending,
       projection,
       take,
+      continuationToken,
       returnCount,
     });
 
@@ -40,28 +44,67 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     return response;
   }
 
+  async queryStepsInBatches(
+    filter?: string,
+    orderBy?: string,
+    projection?: StepsProperties[],
+    take?: number,
+    descending?: boolean,
+    returnCount = false,
+  ): Promise<QueryStepsResponse> {
+    const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<StepsResponseProperties>> => {
+      const response = await this.querySteps(
+        filter,
+        orderBy,
+        projection,
+        currentTake,
+        descending,
+        token,
+        returnCount
+      );
+
+      return {
+        data: response.steps,
+        continuationToken: response.continuationToken,
+        totalCount: response.totalCount
+      };
+    };
+
+    const batchQueryConfig = {
+      maxTakePerRequest: MAX_TAKE_PER_REQUEST,
+      requestsPerSecond: QUERY_STEPS_REQUEST_PER_SECOND
+    };
+
+    const response = await this.queryInBatches(queryRecord, batchQueryConfig, take);
+
+    return {
+      steps: response.data,
+      continuationToken: response.continuationToken,
+      totalCount: response.totalCount
+    };
+  }
+  
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
     const projection = query.showMeasurements
       ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
       : query.properties;
 
-    const responseData = await this.querySteps(
-      this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
-      query.orderBy,
-      projection as StepsProperties[],
-      query.recordCount,
-      query.descending,
-      true
-    );
-
-    if (responseData.steps.length === 0) {
-      return {
-        refId: query.refId,
-        fields: [],
-      };
-    }
-
     if (query.outputType === OutputType.Data) {
+      const responseData = await this.queryStepsInBatches(
+        this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
+        query.orderBy,
+        projection as StepsProperties[],
+        query.recordCount,
+        query.descending,
+        true
+      );
+  
+      if (responseData.steps.length === 0) {
+        return {
+          refId: query.refId,
+          fields: [],
+        };
+      }
       const stepsResponse = responseData.steps;
       const stepResponseKeys = new Set(Object.keys(stepsResponse[0]));
       const selectedFields = (query.properties || []).filter(field => stepResponseKeys.has(field));
@@ -76,6 +119,16 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         fields: fields,
       };
     } else {
+      const responseData = await this.querySteps(
+        this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        true
+      );
+
       return {
         refId: query.refId,
         fields: [{ name: 'Total count', values: [responseData.totalCount] }],
