@@ -1,3 +1,9 @@
+## [3.55.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.54.0...v3.55.0) (2025-04-25)
+
+### Features
+
+* **results:** Add batching functionality for query steps ([#146](https://github.com/ni/systemlink-grafana-plugins/issues/146)) ([2ee3f61](https://github.com/ni/systemlink-grafana-plugins/commit/2ee3f619951e4c4c7f09d1518f789675f708b9a2))
+
 ## [3.54.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.53.1...v3.54.0) (2025-04-23)
 
 ### Features
