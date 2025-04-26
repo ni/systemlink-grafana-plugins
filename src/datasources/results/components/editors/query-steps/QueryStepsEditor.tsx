@@ -11,28 +11,28 @@ import {
 import { enumToOptions, validateNumericInput } from 'core/utils';
 import React from 'react';
 import '../../ResultsQueryEditor.scss';
-import { OrderBy, QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
 import { OutputType } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
+import { OrderBy, QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
 
 type Props = {
-  query: QueryResults;
-  handleQueryChange: (query: QueryResults, runQuery?: boolean) => void;
+  query: QuerySteps;
+  handleQueryChange: (query: QuerySteps, runQuery?: boolean) => void;
 };
 
-export function QueryResultsEditor({ query, handleQueryChange }: Props) {
-  const onOutputChange = (value: OutputType) => {
-    handleQueryChange({ ...query, outputType: value });
+export function QueryStepsEditor({ query, handleQueryChange }: Props) {
+  const onOutputChange = (outputType: OutputType) => {
+    handleQueryChange({ ...query, outputType: outputType });
   };
 
-  const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
-    if (items !== undefined) {
-      handleQueryChange({ ...query, properties: items.map(i => i.value as ResultsProperties) });
+  const onPropertiesChange = (properties: Array<SelectableValue<string>>) => {
+    if (properties !== undefined) {
+      handleQueryChange({ ...query, properties: properties.map(property => property.value as StepsProperties) });
     }
   };
 
-  const onOrderByChange = (item: SelectableValue<string>) => {
-    handleQueryChange({ ...query, orderBy: item.value });
+  const onOrderByChange = (orderBy: SelectableValue<string>) => {
+    handleQueryChange({ ...query, orderBy: orderBy.value });
   };
 
   const onDescendingChange = (isDescendingChecked: boolean) => {
@@ -42,6 +42,10 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
     handleQueryChange({ ...query, recordCount: value });
+  };
+
+  const onShowMeasurementChange = (isShowMeasurementChecked: boolean) => {
+    handleQueryChange({ ...query, showMeasurements: isShowMeasurementChecked });
   };
 
   return (
@@ -59,7 +63,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
             <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
               <MultiSelect
                 placeholder="Select properties to fetch"
-                options={enumToOptions(ResultsProperties)}
+                options={enumToOptions(StepsProperties)}
                 onChange={onPropertiesChange}
                 value={query.properties}
                 defaultValue={query.properties!}
@@ -88,6 +92,12 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
                   />
                 </InlineField>
               </div>
+              <InlineField label="Show Measurements" labelWidth={25} tooltip={tooltips.showMeasurements}>
+                <InlineSwitch
+                  onChange={event => onShowMeasurementChange(event.currentTarget.checked)}
+                  value={query.showMeasurements}
+                />
+              </InlineField>
               <InlineField label="Take" labelWidth={25} tooltip={tooltips.recordCount}>
                 <AutoSizeInput
                   minWidth={20}
@@ -96,13 +106,15 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
                   defaultValue={query.recordCount}
                   onCommitChange={recordCountChange}
                   placeholder="Enter record count"
-                  onKeyDown={(event) => {validateNumericInput(event)}}
+                  onKeyDown={event => {
+                    validateNumericInput(event);
+                  }}
                 />
               </InlineField>
               <TimeRangeControls
                 query={query}
                 handleQueryChange={(updatedQuery, runQuery) => {
-                  handleQueryChange(updatedQuery as QueryResults, runQuery);
+                  handleQueryChange(updatedQuery as QuerySteps, runQuery);
                 }}
               />
             </div>
@@ -112,7 +124,7 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
           <TimeRangeControls
             query={query}
             handleQueryChange={(updatedQuery, runQuery) => {
-              handleQueryChange(updatedQuery as QueryResults, runQuery);
+              handleQueryChange(updatedQuery as QuerySteps, runQuery);
             }}
           />
         )}
@@ -122,9 +134,10 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
 }
 
 const tooltips = {
-  output: 'This field specifies the output type for the query result.',
+  output: 'This field specifies the output type for the query steps.',
   properties: 'This field specifies the properties to use in the query.',
-  recordCount: 'This field sets the maximum number of results.',
-  orderBy: 'This field orders the query results by field.',
-  descending: 'This field returns the query results in descending order.',
+  recordCount: 'This field sets the maximum number of steps.',
+  orderBy: 'This field orders the query steps by field.',
+  descending: 'This field returns the query steps in descending order.',
+  showMeasurements: 'This toggle enables the display of step measurement data.',
 };
