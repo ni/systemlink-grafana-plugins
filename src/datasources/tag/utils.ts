@@ -9,8 +9,10 @@ export function expandMultipleValueVariable(input: string): string[] {
   return results;
 }
 
+const validTagTypes = ['DOUBLE', 'INT', 'U_INT64'];
+
 export function convertTagValue(type: string, value?: string) {
-  return value && ['DOUBLE', 'INT', 'U_INT64'].includes(type) ? Number(value) : value;
+  return value && validTagTypes.includes(type) ? Number(value) : value;
 }
 
 function generateValues(input: string): string[] {

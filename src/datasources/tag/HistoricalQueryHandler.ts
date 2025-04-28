@@ -115,12 +115,10 @@ export class HistoricalQueryHandler extends QueryHandler {
 
         const aggregatedResults: TagHistoryResponse = { results: {} };
 
-        // Fetch and aggregate the data from each chunk in parallel
         const chunkResults = await Promise.all(
             pathChunks.map((chunk) => this.getTagHistoryValues(chunk.map(({ tag }) => tag.path), workspace, range, intervals))
         );
 
-        // Merge the results from all chunks
         for (const chunkResult of chunkResults) {
             for (const [path, data] of Object.entries(chunkResult.results)) {
                 if (!aggregatedResults.results[path]) {
