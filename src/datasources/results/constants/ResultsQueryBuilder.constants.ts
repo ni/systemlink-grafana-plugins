@@ -154,6 +154,9 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
     ],
+    lookup: {
+      dataSource: [],
+    },
   },
   HOSTNAME: {
     label: 'Host Name',
@@ -169,6 +172,12 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
   },
 };
 
-// export const ResultsQueryBuilderStaticFields = [
-//   ResultsQueryBuilderFields.PROPERTIES,
-// ];
+export const ResultsQueryBuilderStaticFields = [
+  ResultsQueryBuilderFields.PROGRAMNAME,
+  ResultsQueryBuilderFields.PROPERTIES,
+  ResultsQueryBuilderFields.SYSTEMID,
+  ResultsQueryBuilderFields.KEYWORDS,
+  ResultsQueryBuilderFields.OPERATOR,
+  ResultsQueryBuilderFields.SERIALNUMBER,
+  ResultsQueryBuilderFields.HOSTNAME,
+];
