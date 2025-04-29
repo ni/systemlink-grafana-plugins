@@ -18,7 +18,7 @@ export enum ResultsQueryBuilderFieldNames {
 
 export const ResultsQueryBuilderFields: Record<string, QBField> = {
   PARTNUMBER: {
-    label: 'Part Number',
+    label: 'Part number',
     dataField: ResultsQueryBuilderFieldNames.PART_NUMBER,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
@@ -35,7 +35,7 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
     },
   },
   PROGRAMNAME: {
-    label: 'Program Name',
+    label: 'Test Program',
     dataField: ResultsQueryBuilderFieldNames.PROGRAM_NAME,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
@@ -47,7 +47,7 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
     ],
   },
   SERIALNUMBER: {
-    label: 'Serial Number',
+    label: 'Serial number',
     dataField: ResultsQueryBuilderFieldNames.SERIAL_NUMBER,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
@@ -59,7 +59,7 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
     ],
   },
   KEYWORDS: {
-    label: 'Keywords',
+    label: 'Keyword',
     dataField: ResultsQueryBuilderFieldNames.KEYWORDS,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
@@ -98,7 +98,7 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
     ],
   },
   STARTEDAT: {
-    label: 'Started At',
+    label: 'Started',
     dataField: ResultsQueryBuilderFieldNames.STARTED_AT,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
@@ -113,7 +113,7 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
     },
   },
   UPDATEDAT: {
-    label: 'Updated At',
+    label: 'Updated',
     dataField: ResultsQueryBuilderFieldNames.UPDATED_AT,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
@@ -159,7 +159,7 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
     },
   },
   HOSTNAME: {
-    label: 'Host Name',
+    label: 'Host name',
     dataField: ResultsQueryBuilderFieldNames.HOSTNAME,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
