@@ -70,14 +70,13 @@ export function sleep(timeout: number) {
  */
 export function replaceVariables(values: string[], templateSrv: TemplateSrv) {
   const replaced: string[] = [];
-  values.forEach((col: string, index) => {
-    let value = col;
-    if (templateSrv.containsTemplate(col)) {
-      const variables = templateSrv.getVariables() as any[];
-      const variable = variables.find(v => v.name === col.split('$')[1]);
-      value = variable.current.value;
+  values.forEach(value => {
+    if (templateSrv.containsTemplate(value)) {
+      const variableReplacedValues = templateSrv.replace(value).replace(/[{}]/g, '').split(',');
+      replaced.push(...variableReplacedValues.filter(v => v.trim() !== ''));
+    } else {
+      replaced.push(value);
     }
-    replaced.push(value);
   });
   // Dedupe and flatten
   return [...new Set(replaced.flat())];
