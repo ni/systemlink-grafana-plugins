@@ -18,3 +18,17 @@ export enum UseTimeRangeFor {
   Started = 'Started',
   Updated = 'Updated'
 }
+
+export enum TestMeasurementStatus {
+  Done = 'DONE',
+  Errored = 'ERRORED',
+  Failed = 'FAILED',
+  Passed = 'PASSED',
+  Skipped = 'SKIPPED',
+  Terminated = 'TERMINATED',
+  TimedOut = 'TIMED_OUT',
+  Custom = 'CUSTOM',
+  Looping = 'LOOPING',
+  Running = 'RUNNING',
+  Waiting = 'WAITING',
+}
