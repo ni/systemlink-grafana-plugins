@@ -72,7 +72,9 @@ export function replaceVariables(values: string[], templateSrv: TemplateSrv) {
   const replaced: string[] = [];
   values.forEach(value => {
     if (templateSrv.containsTemplate(value)) {
-      const variableReplacedValues = templateSrv.replace(value).replace(/[{}]/g, '').split(',');
+      const variableReplacedValues = templateSrv.replace(value) // Replace variable with their values
+        .replace(/[{}]/g, '') // return values without curly braces for multi-value variables which are returned as {value1,value2}
+        .split(',');
       replaced.push(...variableReplacedValues.filter(v => v.trim() !== ''));
     } else {
       replaced.push(value);
