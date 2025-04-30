@@ -2,53 +2,24 @@ import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { QBField } from '../types/QueryResults.types';
 
 export enum ResultsQueryBuilderFieldNames {
-  PART_NUMBER = 'PartNumber',
-  PROGRAM_NAME = 'ProgramName',
-  SERIAL_NUMBER = 'SerialNumber',
-  KEYWORDS = 'Keywords',
-  PROPERTIES = 'Properties',
-  OPERATOR = 'Operator',
-  STARTED_AT = 'StartedAt',
-  UPDATED_AT = 'UpdatedAt',
-  SYSTEM_ID = 'SystemId',
-  WORKSPACE = 'Workspace',
-  STATUS = 'Status',
   HOSTNAME = 'HostName',
+  KEYWORDS = 'Keywords',
+  OPERATOR = 'Operator',
+  PART_NUMBER = 'PartNumber',
+  PROPERTIES = 'Properties',
+  SERIAL_NUMBER = 'SerialNumber',
+  STARTED_AT = 'StartedAt',
+  STATUS = 'Status',
+  SYSTEM_ID = 'SystemId',
+  PROGRAM_NAME = 'ProgramName',
+  UPDATED_AT = 'UpdatedAt',
+  WORKSPACE = 'Workspace',
 }
 
 export const ResultsQueryBuilderFields: Record<string, QBField> = {
-  PARTNUMBER: {
-    label: 'Part number',
-    dataField: ResultsQueryBuilderFieldNames.PART_NUMBER,
-    filterOperations: [
-      QueryBuilderOperations.EQUALS.name,
-      QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.STARTS_WITH.name,
-      QueryBuilderOperations.ENDS_WITH.name,
-      QueryBuilderOperations.CONTAINS.name,
-      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
-      QueryBuilderOperations.IS_BLANK.name,
-      QueryBuilderOperations.IS_NOT_BLANK.name,
-    ],
-    lookup: {
-      dataSource: [],
-    },
-  },
-  PROGRAMNAME: {
-    label: 'Test Program',
-    dataField: ResultsQueryBuilderFieldNames.PROGRAM_NAME,
-    filterOperations: [
-      QueryBuilderOperations.EQUALS.name,
-      QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.CONTAINS.name,
-      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
-      QueryBuilderOperations.IS_BLANK.name,
-      QueryBuilderOperations.IS_NOT_BLANK.name,
-    ],
-  },
-  SERIALNUMBER: {
-    label: 'Serial number',
-    dataField: ResultsQueryBuilderFieldNames.SERIAL_NUMBER,
+  HOSTNAME: {
+    label: 'Host name',
+    dataField: ResultsQueryBuilderFieldNames.HOSTNAME,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -68,6 +39,35 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
       QueryBuilderOperations.DOES_NOT_CONTAIN.name,
     ],
   },
+  OPERATOR: {
+    label: 'Operator',
+    dataField: ResultsQueryBuilderFieldNames.OPERATOR,
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.CONTAINS.name,
+      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
+      QueryBuilderOperations.IS_BLANK.name,
+      QueryBuilderOperations.IS_NOT_BLANK.name,
+    ],
+  },
+  PARTNUMBER: {
+    label: 'Part number',
+    dataField: ResultsQueryBuilderFieldNames.PART_NUMBER,
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.STARTS_WITH.name,
+      QueryBuilderOperations.ENDS_WITH.name,
+      QueryBuilderOperations.CONTAINS.name,
+      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
+      QueryBuilderOperations.IS_BLANK.name,
+      QueryBuilderOperations.IS_NOT_BLANK.name,
+    ],
+    lookup: {
+      dataSource: [],
+    },
+  },
   PROPERTIES: {
     label: 'Properties',
     dataField: ResultsQueryBuilderFieldNames.PROPERTIES,
@@ -85,9 +85,9 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
       QueryBuilderOperations.KEY_VALUE_IS_NUMERICAL_NOT_EQUAL.name,
     ],
   },
-  OPERATOR: {
-    label: 'Operator',
-    dataField: ResultsQueryBuilderFieldNames.OPERATOR,
+  SERIALNUMBER: {
+    label: 'Serial number',
+    dataField: ResultsQueryBuilderFieldNames.SERIAL_NUMBER,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -112,16 +112,12 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
       dataSource: [],
     },
   },
-  UPDATEDAT: {
-    label: 'Updated',
-    dataField: ResultsQueryBuilderFieldNames.UPDATED_AT,
+  STATUS: {
+    label: 'Status',
+    dataField: ResultsQueryBuilderFieldNames.STATUS,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.GREATER_THAN.name,
-      QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name,
-      QueryBuilderOperations.LESS_THAN.name,
-      QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
     ],
     lookup: {
       dataSource: [],
@@ -139,28 +135,9 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
       QueryBuilderOperations.IS_NOT_BLANK.name,
     ],
   },
-  WORKSPACE: {
-    label: 'Workspace',
-    dataField: ResultsQueryBuilderFieldNames.WORKSPACE,
-    filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
-    lookup: {
-      dataSource: [],
-    },
-  },
-  STATUS: {
-    label: 'Status',
-    dataField: ResultsQueryBuilderFieldNames.STATUS,
-    filterOperations: [
-      QueryBuilderOperations.EQUALS.name,
-      QueryBuilderOperations.DOES_NOT_EQUAL.name,
-    ],
-    lookup: {
-      dataSource: [],
-    },
-  },
-  HOSTNAME: {
-    label: 'Host name',
-    dataField: ResultsQueryBuilderFieldNames.HOSTNAME,
+  PROGRAMNAME: {
+    label: 'Test program',
+    dataField: ResultsQueryBuilderFieldNames.PROGRAM_NAME,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -169,6 +146,29 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
       QueryBuilderOperations.IS_BLANK.name,
       QueryBuilderOperations.IS_NOT_BLANK.name,
     ],
+  },
+  UPDATEDAT: {
+    label: 'Updated',
+    dataField: ResultsQueryBuilderFieldNames.UPDATED_AT,
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.GREATER_THAN.name,
+      QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name,
+      QueryBuilderOperations.LESS_THAN.name,
+      QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
+    ],
+    lookup: {
+      dataSource: [],
+    },
+  },
+  WORKSPACE: {
+    label: 'Workspace',
+    dataField: ResultsQueryBuilderFieldNames.WORKSPACE,
+    filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
+    lookup: {
+      dataSource: [],
+    },
   },
 };
 
