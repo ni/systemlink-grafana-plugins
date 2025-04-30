@@ -1,3 +1,9 @@
+## [3.56.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.55.0...v3.56.0) (2025-04-30)
+
+### Features
+
+* **results:** Add Constants for Results Query Builder ([#154](https://github.com/ni/systemlink-grafana-plugins/issues/154)) ([cef3f2c](https://github.com/ni/systemlink-grafana-plugins/commit/cef3f2ca7a1845ad792dd0a3a03836572fa8dfda))
+
 ## [3.55.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.54.0...v3.55.0) (2025-04-25)
 
 ### Features
