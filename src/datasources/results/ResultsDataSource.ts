@@ -44,6 +44,10 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
     return false;
   }
 
+  getQueryResultsDataSource(): QueryResultsDataSource {
+    return this.queryResultsDataSource;
+  }
+
   async testDatasource(): Promise<TestDataSourceResponse> {
     await this.get(this.baseUrl + '/v2/results?take=1');
     return { status: 'success', message: 'Data source connected and authentication successful!' };

@@ -9,18 +9,40 @@ import {
   VerticalGroup,
 } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import '../../ResultsQueryEditor.scss';
 import { OrderBy, QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
-import { OutputType } from 'datasources/results/types/types';
+import { OutputType, TestMeasurementStatus } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
+import { ResultsQueryBuilder } from '../../query-builders/query-results/ResultsQueryBuilder';
+import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
+import { Workspace } from 'core/types';
 
 type Props = {
   query: QueryResults;
   handleQueryChange: (query: QueryResults, runQuery?: boolean) => void;
+  datasource: QueryResultsDataSource
 };
 
-export function QueryResultsEditor({ query, handleQueryChange }: Props) {
+export function QueryResultsEditor({ query, handleQueryChange,datasource }: Props) {
+
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [partNumbers, setPartNumbers] = useState<string[]>([]);
+  
+  useEffect(() => {
+    const loadWorkspaces = async () => {
+      await datasource.loadWorkspaces();
+      setWorkspaces(Array.from(datasource.workspacesCache.values()));
+    };
+    const loadPartNumbers = async () => {
+      await datasource.getResultsPartNumbers();
+      setPartNumbers(Array.from(datasource.partNumbersCache.values()));
+    };
+
+    loadWorkspaces();
+    loadPartNumbers();
+  }, [datasource]);
+
   const onOutputChange = (value: OutputType) => {
     handleQueryChange({ ...query, outputType: value });
   };
@@ -43,6 +65,10 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
     handleQueryChange({ ...query, recordCount: value });
   };
+
+  const onParameterChange = (value: string) => {
+    console.log(value)
+  }
 
   return (
     <>
@@ -116,6 +142,14 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
             }}
           />
         )}
+        <ResultsQueryBuilder
+          filter={query.queryBy}
+          workspaces={workspaces}
+          partNumbers={partNumbers}
+          status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
+          globalVariableOptions={datasource.globalVariableOptions()}
+          onChange={(event: any) => onParameterChange(event.detail.linq)}>
+        </ResultsQueryBuilder>
       </VerticalGroup>
     </>
   );

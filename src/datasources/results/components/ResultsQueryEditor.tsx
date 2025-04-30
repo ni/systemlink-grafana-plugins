@@ -53,6 +53,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
         <QueryResultsEditor
           query={query as QueryResults} 
           handleQueryChange={handleQueryChange}
+          datasource={datasource.getQueryResultsDataSource()}
         />
       )}
       {query.queryType === QueryType.Steps && (
