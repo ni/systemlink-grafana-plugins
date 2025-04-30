@@ -1,12 +1,23 @@
 /*
   * This file contains utility functions for the tag data source that expands variables.
   */
+
+export function convertTagValue(type: string, value?: string) {
+  return value && isNumericType(type) ? Number(value) : value;
+}
+
 export function expandMultipleValueVariable(input: string): string[] {
   ensureNoNestedBrackets(input);
 
   const results = generateValues(input);
 
   return results;
+}
+
+const numericTagTypes = ['DOUBLE', 'INT', 'U_INT64'];
+
+function isNumericType(type: string): boolean {
+    return numericTagTypes.includes(type);
 }
 
 function generateValues(input: string): string[] {
