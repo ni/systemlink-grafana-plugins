@@ -1,6 +1,11 @@
 /*
   * This file contains utility functions for the tag data source that expands variables.
   */
+
+export function convertTagValue(type: string, value?: string) {
+  return value && isNumericType(type) ? Number(value) : value;
+}
+
 export function expandMultipleValueVariable(input: string): string[] {
   ensureNoNestedBrackets(input);
 
@@ -9,10 +14,10 @@ export function expandMultipleValueVariable(input: string): string[] {
   return results;
 }
 
-const validTagTypes = ['DOUBLE', 'INT', 'U_INT64'];
+const numericTagTypes = ['DOUBLE', 'INT', 'U_INT64'];
 
-export function convertTagValue(type: string, value?: string) {
-  return value && validTagTypes.includes(type) ? Number(value) : value;
+function isNumericType(type: string): boolean {
+    return numericTagTypes.includes(type);
 }
 
 function generateValues(input: string): string[] {

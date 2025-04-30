@@ -9,7 +9,16 @@ export class CurrentQueryHandler extends QueryHandler {
     }
 
     private handleCurrentQuery(queryProperties: boolean, tagsWithValues: TagWithValue[], result: DataFrameDTO): DataFrameDTO {
-        const allPossibleProps = this.getAllProperties(tagsWithValues);
+        this.addDefaultFieldsToResult(result, tagsWithValues);
+
+        if (queryProperties) {
+            this.addPropertiesFieldsToResult(result, tagsWithValues);
+        }
+
+        return result;
+    }
+
+    private addDefaultFieldsToResult(result: DataFrameDTO, tagsWithValues: TagWithValue[]): void {
         result.fields = [
             {
                 name: 'name',
@@ -26,22 +35,21 @@ export class CurrentQueryHandler extends QueryHandler {
                 config: { unit: 'dateTimeFromNow' }
             }
         ];
-    
-        if (queryProperties) {
-            allPossibleProps.forEach((prop) => {
-                result.fields.push(
-                    {
-                        name: prop,
-                        values: tagsWithValues.map(({ tag }: TagWithValue) => tag.properties && tag.properties[prop] ? tag.properties[prop] : '')
-                    }
-                );
-            });
-        }
-    
-        return result;
     }
-    
-    private getAllProperties(data: TagWithValue[]) {
+
+    private addPropertiesFieldsToResult(result: DataFrameDTO, tagsWithValues: TagWithValue[]): void {
+        const allPossibleProps = this.getAllProperties(tagsWithValues);
+        allPossibleProps.forEach((prop) => {
+            result.fields.push(
+                {
+                    name: prop,
+                    values: tagsWithValues.map(({ tag }: TagWithValue) => tag.properties && tag.properties[prop] ? tag.properties[prop] : '')
+                }
+            );
+        });
+    }
+
+    private getAllProperties(data: TagWithValue[]): Set<string> {
         const props: Set<string> = new Set();
         data.forEach((tag) => {
             if (tag.tag.properties) {
@@ -52,7 +60,7 @@ export class CurrentQueryHandler extends QueryHandler {
                     })
             }
         });
-    
+
         return props;
     }
 }
