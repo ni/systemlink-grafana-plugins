@@ -29,25 +29,30 @@ describe('ResultsQueryBuilder', () => {
     })
 
     it('should select workspace in query builder', () => {
-      const { conditionsContainer } = renderElement([workspace], partNumber, status, 'Workspace = "1" && PartNumber = "partNumber1"');
+      const { conditionsContainer } = renderElement([workspace], partNumber, status, 'Workspace = "1"');
 
-      expect(conditionsContainer?.length).toBe(2);
-      expect(conditionsContainer.item(0)?.textContent).toContain(workspace.name);
-      expect(conditionsContainer.item(1)?.textContent).toContain("partNumber1");
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("Workspace"); //label
+      expect(conditionsContainer.item(0)?.textContent).toContain("Equals"); //operator
+      expect(conditionsContainer.item(0)?.textContent).toContain(workspace.name); //value
     })
 
     it('should select part number in query builder', () => {
       const { conditionsContainer } = renderElement([workspace], partNumber, status,  'PartNumber = "partNumber1"');
 
       expect(conditionsContainer?.length).toBe(1);
-      expect(conditionsContainer.item(0)?.textContent).toContain("partNumber1");
+      expect(conditionsContainer.item(0)?.textContent).toContain("Part number"); //label
+      expect(conditionsContainer.item(0)?.textContent).toContain("Equals"); //operator
+      expect(conditionsContainer.item(0)?.textContent).toContain("partNumber1"); //value
     });
 
     it('should select status in query builder', () => {
       const { conditionsContainer } = renderElement([workspace], partNumber, status, 'Status = "PASSED"');
 
       expect(conditionsContainer?.length).toBe(1);
-      expect(conditionsContainer.item(0)?.textContent).toContain("PASSED");
+      expect(conditionsContainer.item(0)?.textContent).toContain("Status"); //label
+      expect(conditionsContainer.item(0)?.textContent).toContain("Equals"); //operator
+      expect(conditionsContainer.item(0)?.textContent).toContain("PASSED"); //value
     });
 
     it('should select global variable option', () => {
@@ -55,7 +60,27 @@ describe('ResultsQueryBuilder', () => {
       const { conditionsContainer } = renderElement([workspace], partNumber, status, 'PartNumber = \"global_variable\"', [globalVariableOption]);
 
       expect(conditionsContainer?.length).toBe(1);
-      expect(conditionsContainer.item(0)?.textContent).toContain(globalVariableOption.label);
+      expect(conditionsContainer.item(0)?.textContent).toContain("Part number"); //label
+      expect(conditionsContainer.item(0)?.textContent).toContain("Equals"); //operator
+      expect(conditionsContainer.item(0)?.textContent).toContain(globalVariableOption.label); //value
+    });
+
+    it('should render multiple conditions in query builder', () => {
+      const filter = '(PartNumber = "partNumber1" && ProgramName = "programName1") || Status = "FAILED"';
+      const { renderResult, conditionsContainer } = renderElement([workspace], partNumber, status, filter);
+      const filterConditions = renderResult.container.getElementsByClassName('smart-filter-group-condition');
+      const logicalOperators = renderResult.container.getElementsByClassName('smart-filter-group-operator');
+;    
+      expect(conditionsContainer?.length).toBe(2);
+      expect(filterConditions?.length).toBe(3);
+      expect(logicalOperators?.length).toBe(2);
+
+      expect(logicalOperators?.item(0)?.textContent).toContain("And");
+      expect(logicalOperators?.item(1)?.textContent).toContain("Or");
+
+      expect(filterConditions.item(0)?.textContent).toContain('partNumber1');
+      expect(filterConditions.item(1)?.textContent).toContain('programName1');
+      expect(filterConditions.item(2)?.textContent).toContain('FAILED');
     });
 
     [['${__from:date}', 'From'], ['${__to:date}', 'To'], ['${__now:date}', 'Now']].forEach(([value, label]) => {
@@ -63,7 +88,9 @@ describe('ResultsQueryBuilder', () => {
         const { conditionsContainer } = renderElement([workspace], partNumber, status, `UpdatedAt > \"${value}\"`);
 
         expect(conditionsContainer?.length).toBe(1);
-        expect(conditionsContainer.item(0)?.textContent).toContain(label);
+        expect(conditionsContainer.item(0)?.textContent).toContain("Updated"); //label
+        expect(conditionsContainer.item(0)?.textContent).toContain("Greater than"); //operator
+        expect(conditionsContainer.item(0)?.textContent).toContain(label); //value
       });
     });
 
@@ -73,5 +100,28 @@ describe('ResultsQueryBuilder', () => {
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.innerHTML).not.toContain('alert(\'Family\')');
     })
+
+    describe('theme', () => {  
+      const mockUseTheme = jest.spyOn(require('@grafana/ui'), 'useTheme2');
+
+      beforeEach(() => {
+        jest.spyOn(document.body, 'setAttribute')
+      });
+      
+      it('should set light theme when isDark is false', () => {
+        mockUseTheme.mockReturnValue({ isDark: false });
+        
+        renderElement([], [], [], '');
+       
+        expect(document.body.setAttribute).toHaveBeenCalledWith('theme', 'orange');
+      });
+      it('should set dark theme when isDark is true', () => {
+        mockUseTheme.mockReturnValue({ isDark: true });
+
+        renderElement([], [], [], '');
+  
+        expect(document.body.setAttribute).toHaveBeenCalledWith('theme', 'dark-orange');
+      });
+    });
   });
 });

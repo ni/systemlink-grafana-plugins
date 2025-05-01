@@ -47,7 +47,6 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
 
   const workspaceField = useMemo(() => {
     const workspaceField = ResultsQueryBuilderFields.WORKSPACE;
-
     return {
       ...workspaceField,
       lookup: {
@@ -62,7 +61,6 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
 
   const statusField = useMemo(() => {
     const statusField = ResultsQueryBuilderFields.STATUS;
-
     return {
       ...statusField,
       lookup: {
@@ -109,7 +107,6 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
 
   const partNumberField = useMemo(() => {
     const partNumberField = ResultsQueryBuilderFields.PARTNUMBER;
-
     return {
       ...partNumberField,
       lookup: {
@@ -123,7 +120,14 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
   }, [partNumbers]);
 
   useEffect(() => {
-    const updatedFields = [partNumberField, ...ResultsQueryBuilderStaticFields!, updatedAtField, workspaceField, startedAtField, statusField].map(
+    const updatedFields = [
+      partNumberField,
+      ...ResultsQueryBuilderStaticFields!,
+      updatedAtField,
+      workspaceField,
+      startedAtField,
+      statusField
+    ].map(
       field => {
         if (field.lookup?.dataSource) {
           return {
@@ -195,7 +199,9 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
       messages={queryBuilderMessages}
       onChange={onChange}
       value={sanitizedFilter}
-      showIcons
+      autoPrompt={true}
+      applyMode="immediately"
+      fieldsMode="static"
     />
   );
 };
