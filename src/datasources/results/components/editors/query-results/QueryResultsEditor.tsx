@@ -10,6 +10,7 @@ import {
 } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
 import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import '../../ResultsQueryEditor.scss';
 import { OrderBy, QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
 import { OutputType, TestMeasurementStatus } from 'datasources/results/types/types';
@@ -161,4 +162,5 @@ const tooltips = {
   recordCount: 'This field sets the maximum number of results.',
   orderBy: 'This field orders the query results by field.',
   descending: 'This field returns the query results in descending order.',
+  queryBy: 'Specifies the filter to be applied on the queried results. This is an optional field.',
 };
