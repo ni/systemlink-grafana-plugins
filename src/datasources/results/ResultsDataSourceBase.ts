@@ -2,20 +2,21 @@ import { DataSourceBase } from "core/DataSourceBase";
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse } from "@grafana/data";
 import { ResultsQuery } from "./types/types";
 import { BatchQueryConfig, QueryResponse } from "./types/QuerySteps.types";
-import { Workspace } from "core/types";
+import { QueryBuilderOption, Workspace } from "core/types";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
-
+  
   private timeRange: { [key: string]: string } = {
     Started: 'startedAt',
     Updated: 'updatedAt',
   };
-
+  
   private fromDateString = '${__from:date}';
   private toDateString = '${__to:date}';
-
+  
   readonly workspacesCache = new Map<string, Workspace>([]);
+  readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   abstract runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
@@ -101,6 +102,12 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       });
 
     workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
+  }
+
+  private getVariableOptions() {
+    return this.templateSrv
+      .getVariables()
+      .map(variable => ({ label: '$' + variable.name, value: '$' + variable.name }));
   }
 
   private async delay(timeout: number): Promise<void> {
