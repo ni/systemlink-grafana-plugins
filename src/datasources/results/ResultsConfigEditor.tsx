@@ -6,7 +6,7 @@ import { ResultsDataSourceOptions, ResultsFeatureTogglesDefaults } from './types
 interface Props extends DataSourcePluginOptionsEditorProps<ResultsDataSourceOptions> {}
 
 export const ResultsConfigEditor: React.FC<Props> = ({ options, onOptionsChange }) => {
-  const handleFeatureChange = useCallback(
+    const handleFeatureChange = useCallback(
     (featureKey: string) => (event: ChangeEvent<HTMLInputElement>) => {
       const jsonData = {
         ...options.jsonData,
