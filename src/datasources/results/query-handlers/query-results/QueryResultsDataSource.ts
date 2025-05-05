@@ -35,7 +35,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   }
 
   async runQuery(query: QueryResults, options: DataQueryRequest): Promise<DataFrameDTO> {
-    await this.getResultsPartNumbers();
+    await this.getPartNumbers();
     await this.loadWorkspaces();
 
     const responseData = await this.queryResults(
@@ -84,7 +84,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  async getResultsPartNumbers(): Promise<void> {
+  async getPartNumbers(): Promise<void> {
     if (this.partNumbersCache.size > 0) {
       return;
     }

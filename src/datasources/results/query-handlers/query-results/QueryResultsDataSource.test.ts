@@ -186,7 +186,7 @@ describe('QueryResultsDataSource', () => {
     });
 
     test('returns part numbers', async () => {  
-      await datastore.getResultsPartNumbers();
+      await datastore.getPartNumbers();
   
       expect(datastore.partNumbersCache.get('partNumber1')).toBe('partNumber1');
       expect(datastore.partNumbersCache.get('partNumber2')).toBe('partNumber2');
