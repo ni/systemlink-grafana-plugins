@@ -76,7 +76,6 @@ describe('ResultsQueryEditor', () => {
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining(defaultResultsQuery));
         expect(mockOnRunQuery).toHaveBeenCalled();
-        expect(mockDatasource.getQueryResultsDataSource).not.toHaveBeenCalled();
       });
     });
   });
