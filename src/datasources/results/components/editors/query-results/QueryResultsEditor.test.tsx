@@ -1,13 +1,40 @@
 import { setupRenderer } from 'test/fixtures';
-import { ResultsDataSource } from '../../../ResultsDataSource';
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import { QueryType } from '../../../types/types';
 import { select } from 'react-select-event';
 import userEvent from '@testing-library/user-event';
 import { ResultsQueryEditor } from '../../ResultsQueryEditor';
 import { QueryResults } from 'datasources/results/types/QueryResults.types';
+import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
+import { ResultsDataSource } from '../../../ResultsDataSource';
 
-const render = setupRenderer(ResultsQueryEditor, ResultsDataSource);
+class MockQueryResultsDataSource extends QueryResultsDataSource {
+  constructor() {
+    super({} as any, {} as any, {} as any);
+  }
+
+  // Override the methods that make HTTP requests
+  async loadWorkspaces() {
+    return Promise.resolve();
+  }
+
+  async getResultsPartNumbers() {
+    return Promise.resolve();
+  }
+
+  globalVariableOptions = () => {
+    return [];
+  };
+}
+
+class MockResultsDataSource extends ResultsDataSource {
+  getQueryResultsDataSource() {
+    return new MockQueryResultsDataSource();
+  }
+}
+
+// Set up our renderer function that uses the mock data source
+const render = setupRenderer(ResultsQueryEditor, MockResultsDataSource);
 
 let onChange: jest.Mock<any, any>;
 let properties: HTMLElement;
@@ -18,8 +45,12 @@ let dataOutput: HTMLElement;
 let totalCountOutput: HTMLElement;
 
 describe('QueryResultsEditor', () => {
-  beforeEach(() => {
-    [onChange] = render({
+  beforeEach(async () => {
+    // Clear all mocks before each test
+    jest.clearAllMocks();
+    
+    // Render the component
+    [onChange] = await act(async () => render({
       refId: '',
       queryType: QueryType.Results,
       outputType: 'Data',
@@ -29,7 +60,9 @@ describe('QueryResultsEditor', () => {
       recordCount: 1000,
       useTimeRange: true,
       useTimeRangeFor: undefined,
-    } as QueryResults);
+    } as QueryResults));
+    
+    // Get the elements from the screen
     properties = screen.getAllByRole('combobox')[0];
     orderBy = screen.getAllByRole('combobox')[1];
     descending = screen.getAllByRole('checkbox')[0];
@@ -65,52 +98,52 @@ describe('QueryResultsEditor', () => {
     });
 
     test('updates when user makes changes', async () => {
-      //User adds a properties
+      // User adds a properties
       await select(properties, 'properties', { container: document.body });
       await waitFor(() => {
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['properties'] }));
       });
 
-      //User changes order by
+      // User changes order by
       await select(orderBy, 'Started At', { container: document.body });
       await waitFor(() => {
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ orderBy: 'STARTED_AT' }));
       });
 
-      //User changes descending checkbox
+      // User changes descending checkbox
       await userEvent.click(descending);
       await waitFor(() => {
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ descending: true }));
       });
 
-      //User enters numeric value for record count
+      // User enters numeric value for record count
       await userEvent.clear(recordCount);
       await userEvent.type(recordCount, '500');
       await waitFor(() => {
         expect(recordCount).toHaveValue(500);
       });
 
-      //User enters non-numeric value for record count
+      // User enters non-numeric value for record count
       await userEvent.clear(recordCount);
       await userEvent.type(recordCount, 'Test');
       await waitFor(() => {
         expect(recordCount).toHaveValue(null);
       });
 
-      //User changes useTimeRange checkbox
+      // User changes useTimeRange checkbox
       await userEvent.click(useTimeRange);
       await waitFor(() => {
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ useTimeRange: false }));
       });
 
-      //User changes useTimeRangeFor
-      await userEvent.click(useTimeRange); //To enable useTimeRangeFor
+      // User changes useTimeRangeFor
+      await userEvent.click(useTimeRange); // To enable useTimeRangeFor
       await select(useTimeRangeFor, 'Updated', { container: document.body });
       await waitFor(() => {
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ useTimeRangeFor: 'Updated' }));
       });
 
-      //User changes output type to Total Count
+      // User changes output type to Total Count
       await userEvent.click(totalCountOutput);
       await waitFor(() => {
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ outputType: 'Total Count' }));
@@ -129,8 +162,8 @@ describe('QueryResultsEditor', () => {
       expect(orderBy).not.toBeInTheDocument();
       expect(descending).not.toBeInTheDocument();
       expect(recordCount).not.toBeInTheDocument();
-      expect(screen.getAllByRole('checkbox')[0]).toBeInTheDocument(); //useTimeRange
-      expect(screen.getAllByRole('combobox')[0]).toBeInTheDocument(); //useTimeRangeFor
+      expect(screen.getAllByRole('checkbox')[0]).toBeInTheDocument(); // useTimeRange
+      expect(screen.getAllByRole('combobox')[0]).toBeInTheDocument(); // useTimeRangeFor
     });
   });
 });

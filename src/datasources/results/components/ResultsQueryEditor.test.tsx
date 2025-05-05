@@ -11,6 +11,7 @@ const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: ResultsQuery) => query),
+  getQueryResultsDataSource: jest.fn(() => ({}))
 } as unknown as ResultsDataSource;
 
 const defaultProps: QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSourceOptions> = {
@@ -75,6 +76,7 @@ describe('ResultsQueryEditor', () => {
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining(defaultResultsQuery));
         expect(mockOnRunQuery).toHaveBeenCalled();
+        expect(mockDatasource.getQueryResultsDataSource).not.toHaveBeenCalled();
       });
     });
   });
@@ -97,6 +99,25 @@ describe('ResultsQueryEditor', () => {
 
       expect(renderResult.queryByTestId('query-steps-editor')).toBeInTheDocument();
       expect(renderResult.queryByTestId('query-results-editor')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Datasource', () => {
+    test('should call getQueryResultsDataSource when query type is results', () => {
+      renderElement();
+
+      expect(mockDatasource.getQueryResultsDataSource).toHaveBeenCalled();
+    });
+
+    test('should not call getQueryResultsDataSource when query type is steps', () => {
+      const query = {
+        refId: 'A',
+        queryType: QueryType.Steps,
+      };
+
+      renderElement(query);
+
+      expect(mockDatasource.getQueryResultsDataSource).not.toHaveBeenCalled();
     });
   });
 });
