@@ -33,16 +33,16 @@ describe('ResultsConfigEditor', () => {
     stepsQueryBuilder = screen.getAllByRole('checkbox')[1];
     jest.clearAllMocks();
   });
-  test('renders DataSourceHttpSettings component', () => {
+  test('should renders DataSourceHttpSettings component when ResultsConfigEditor is loaded', () => {
     expect(screen.getByText('Mock DataSourceHttpSettings')).toBeInTheDocument();
   });
 
-  test('renders the component with feature toggles', () => {
+  test('should render the component with feature toggles when loaded', () => {
     expect(resultsQueryBuilder).toBeInTheDocument();
     expect(stepsQueryBuilder).toBeInTheDocument();
   });
 
-  test('toggles Results Query Builder feature', async () => {
+  test('Should update the queryByResults feature toggle when it is toggled', async () => {
     expect(resultsQueryBuilder).not.toBeChecked();
 
     await userEvent.click(resultsQueryBuilder);
@@ -53,7 +53,7 @@ describe('ResultsConfigEditor', () => {
     });
   });
 
-  test('toggles Steps Query Builder feature', () => {
+  test('Should update the queryBySteps feature toggle when it is toggled', () => {
     expect(stepsQueryBuilder).not.toBeChecked();
 
     fireEvent.click(stepsQueryBuilder);

@@ -36,7 +36,6 @@ export const ResultsConfigEditor: React.FC<Props> = ({ options, onOptionsChange 
               onChange={handleFeatureChange('queryByResults')}
             />
           </InlineField>
-          <Tag name="Beta" colorIndex={5} />
         </InlineSegmentGroup>
         <InlineSegmentGroup>
           <InlineField label="Steps Query Builder" labelWidth={25}>
@@ -45,7 +44,6 @@ export const ResultsConfigEditor: React.FC<Props> = ({ options, onOptionsChange 
               onChange={handleFeatureChange('queryBySteps')}
             />
           </InlineField>
-          <Tag name="Beta" colorIndex={5} />
         </InlineSegmentGroup>
       </>
     </>
