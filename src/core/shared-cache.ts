@@ -12,7 +12,7 @@ class SharedCache {
    * 
    * @returns {SharedCache} The singleton instance of the SharedCache.
    */
-  public static getInstance (): SharedCache {
+  public static getInstance(): SharedCache {
     if (!SharedCache.instance) {
       SharedCache.instance = new SharedCache();
     }
@@ -25,7 +25,7 @@ class SharedCache {
    * @param {string} key - The key of the cached value.
    * @returns {any} The cached value, or undefined if the key does not exist.
    */
-  get (key: string): any {
+  get(key: string): any {
     return this.store.get(key);
   }
 
@@ -35,12 +35,22 @@ class SharedCache {
    * @param {string} key - The key to associate with the cached value.
    * @param {any} data - The value to store in the cache.
    */
-  set (key: string, data: any): void {
+  set(key: string, data: any): void {
     this.store.set(key, data);
+  }
+
+  /**
+   * Clears all key-value pairs from the cache.
+   */
+  clear(): void {
+    this.store.clear();
   }
 }
 
-// Persist the singleton instance across HMR
+/**
+ * Ensures the singleton instance of SharedCache is persisted across Hot Module Replacement (HMR).
+ * This is useful during development to maintain consistent cache state when modules are reloaded.
+ */
 const globalForSharedCache = global as any;
 globalForSharedCache.sharedCache = globalForSharedCache.sharedCache || SharedCache.getInstance();
 export default globalForSharedCache.sharedCache; 
