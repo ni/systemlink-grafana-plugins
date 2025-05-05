@@ -4,7 +4,7 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import { WorkOrdersQuery } from './types';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
-  constructor(
+  constructor (
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
@@ -16,18 +16,18 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
 
   defaultQuery = {};
 
-  async runQuery(query: WorkOrdersQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+  async runQuery (query: WorkOrdersQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     return {
       refId: query.refId,
       fields: [],
     };
   }
 
-  shouldRunQuery(query: WorkOrdersQuery): boolean {
+  shouldRunQuery (query: WorkOrdersQuery): boolean {
     return true;
   }
 
-  async testDatasource(): Promise<TestDataSourceResponse> {
+  async testDatasource (): Promise<TestDataSourceResponse> {
     await this.backendSrv.get(this.baseUrl);
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
