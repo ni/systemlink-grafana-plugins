@@ -37,4 +37,19 @@ describe('SharedCache', () => {
     const globalCache = (global as any).sharedCache;
     expect(globalCache).toBe(cache);
   });
+
+  it('should clear all key-value pairs from the cache', () => {
+    const key1 = 'key1';
+    const value1 = 'value1';
+    const key2 = 'key2';
+    const value2 = 'value2';
+
+    cache.set(key1, value1);
+    cache.set(key2, value2);
+
+    cache.clear();
+
+    expect(cache.get(key1)).toBeUndefined();
+    expect(cache.get(key2)).toBeUndefined();
+  });
 });
