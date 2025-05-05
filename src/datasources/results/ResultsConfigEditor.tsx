@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useCallback } from 'react';
 import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
-import { DataSourceHttpSettings, InlineField, InlineSegmentGroup, InlineSwitch, Tag, Text } from '@grafana/ui';
+import { DataSourceHttpSettings, InlineField, InlineSegmentGroup, InlineSwitch, Text } from '@grafana/ui';
 import { ResultsDataSourceOptions, ResultsFeatureTogglesDefaults } from './types/types';
 
 interface Props extends DataSourcePluginOptionsEditorProps<ResultsDataSourceOptions> {}

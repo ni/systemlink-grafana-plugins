@@ -22,30 +22,29 @@ const defaultProps: DataSourcePluginOptionsEditorProps<any> = {
   } as DataSourceSettings<any>,
   onOptionsChange: mockOnOptionsChange,
 };
-let resultsQueryBuilder: HTMLElement;
-let stepsQueryBuilder: HTMLElement;
+let resultsQueryBuilderToggle: HTMLElement;
+let stepsQueryBuilderToggle: HTMLElement;
 
 describe('ResultsConfigEditor', () => {
   beforeEach(() => {
     render(<ResultsConfigEditor {...defaultProps} />);
 
-    resultsQueryBuilder = screen.getAllByRole('checkbox')[0];
-    stepsQueryBuilder = screen.getAllByRole('checkbox')[1];
-    jest.clearAllMocks();
+    resultsQueryBuilderToggle = screen.getAllByRole('checkbox')[0];
+    stepsQueryBuilderToggle = screen.getAllByRole('checkbox')[1];
   });
-  test('should renders DataSourceHttpSettings component when ResultsConfigEditor is loaded', () => {
+  test('should render DataSourceHttpSettings component when ResultsConfigEditor is loaded', () => {
     expect(screen.getByText('Mock DataSourceHttpSettings')).toBeInTheDocument();
   });
 
   test('should render the component with feature toggles when loaded', () => {
-    expect(resultsQueryBuilder).toBeInTheDocument();
-    expect(stepsQueryBuilder).toBeInTheDocument();
+    expect(resultsQueryBuilderToggle).toBeInTheDocument();
+    expect(stepsQueryBuilderToggle).toBeInTheDocument();
   });
 
-  test('Should update the queryByResults feature toggle when it is toggled', async () => {
-    expect(resultsQueryBuilder).not.toBeChecked();
+  test('should update the queryByResults feature toggles option when it is toggled', async () => {
+    expect(resultsQueryBuilderToggle).not.toBeChecked();
 
-    await userEvent.click(resultsQueryBuilder);
+    await userEvent.click(resultsQueryBuilderToggle);
     await waitFor(() => {
       expect(mockOnOptionsChange).toHaveBeenCalledWith(
         expect.objectContaining({ "jsonData": {"featureToggles": {"queryByResults": true, "queryBySteps": false}}})
@@ -53,10 +52,10 @@ describe('ResultsConfigEditor', () => {
     });
   });
 
-  test('Should update the queryBySteps feature toggle when it is toggled', () => {
-    expect(stepsQueryBuilder).not.toBeChecked();
+  test('should update the queryBySteps feature toggles option when it is toggled', () => {
+    expect(stepsQueryBuilderToggle).not.toBeChecked();
 
-    fireEvent.click(stepsQueryBuilder);
+    fireEvent.click(stepsQueryBuilderToggle);
 
     expect(mockOnOptionsChange).toHaveBeenCalledWith(
       expect.objectContaining({ "jsonData": {"featureToggles": {"queryByResults": false, "queryBySteps": true}}})
