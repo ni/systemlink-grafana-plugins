@@ -3,6 +3,9 @@ import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase
 import { DataQueryRequest, DataFrameDTO, FieldType } from "@grafana/data";
 import { OutputType } from "datasources/results/types/types";
 import { defaultResultsQuery } from "datasources/results/defaultQueries";
+import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
+import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
+import { QueryBuilderOperations } from "core/query-builder.constants";
 
 export class QueryResultsDataSource extends ResultsDataSourceBase {
   queryResultsUrl = this.baseUrl + '/v2/query-results';
@@ -38,8 +41,17 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     await this.getPartNumbers();
     await this.loadWorkspaces();
 
+    if (query.queryBy) {
+      query.queryBy = transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.resultsComputedDataFields,
+      );
+    }
+
+    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
+
     const responseData = await this.queryResults(
-      this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
+      [query.queryBy, useTimeRangeFilter].filter(Boolean).join(' && '),
       query.orderBy,
       query.properties,
       query.recordCount,
@@ -98,6 +110,15 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     partNumbers?.forEach(partNumber => this.partNumbersCache.push(partNumber));
   }
 
+  readonly resultsComputedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(ResultsQueryBuilderFieldNames).map(field => [
+      field,
+      field === (ResultsQueryBuilderFieldNames.UPDATED_AT) || field === (ResultsQueryBuilderFieldNames.STARTED_AT)
+        ? this.timeFieldsQuery(field)
+        : this.multipleValuesQuery(field),
+    ])
+  );
+  
   shouldRunQuery(_: QueryResults): boolean {
     return true;
   }
