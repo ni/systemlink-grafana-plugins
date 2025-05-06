@@ -9,6 +9,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery }: Props) {
 
   return (
     <>
+    <span>Placeholder for querybuilder</span>
     </>
   );
 }
