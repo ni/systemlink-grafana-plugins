@@ -5,7 +5,6 @@ import { OutputType } from "datasources/results/types/types";
 import { defaultResultsQuery } from "datasources/results/defaultQueries";
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
-import { QueryBuilderOperations } from "core/query-builder.constants";
 
 export class QueryResultsDataSource extends ResultsDataSourceBase {
   queryResultsUrl = this.baseUrl + '/v2/query-results';
