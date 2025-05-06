@@ -5,6 +5,7 @@ import { Field } from '@grafana/data';
 import { QueryResultsDataSource } from './QueryResultsDataSource';
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions } from 'datasources/results/types/QueryResults.types';
 import { OutputType, QueryType } from 'datasources/results/types/types';
+import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 
 const mockQueryResultsResponse: QueryResultsResponse = {
   results: [
@@ -232,6 +233,104 @@ describe('QueryResultsDataSource', () => {
           url: '/niauth/v1/user',
         })
       );
+    });
+
+    describe('query builder queries', () => {
+      test('should transform field when queryBy contains a single value', async () => {
+        const query = buildQuery(
+          {
+            refId: 'A',
+            properties: [
+              ResultsPropertiesOptions.PART_NUMBER
+            ] as ResultsProperties[],
+            orderBy: undefined,
+            queryBy: `${ResultsPropertiesOptions.PART_NUMBER} = '123'`
+          },
+        );
+  
+        await datastore.query(query);
+  
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: "partNumber = '123'"
+            }),
+          })
+        );
+      });
+  
+      test('should transform fields when queryBy contains a multiple values', async () => {
+        const query = buildQuery(
+          {
+            refId: 'A',
+            properties: [
+              ResultsPropertiesOptions.PART_NUMBER
+            ] as ResultsProperties[],
+            orderBy: undefined,
+            queryBy: `${ResultsQueryBuilderFieldNames.PART_NUMBER} = "{partNumber1,partNumber2}"`
+          },
+        );
+  
+        await datastore.query(query);
+  
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: "(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\")"
+            }),
+          })
+        );
+      });
+
+      test('should transform fields when queryBy contains a date', async () => {   
+        jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));     
+
+        const query = buildQuery(
+          {
+            refId: 'A',
+            properties: [
+              ResultsPropertiesOptions.UPDATED_AT
+            ] as ResultsProperties[],
+            orderBy: undefined,
+            queryBy: 'UpdatedAt = "${__now:date}"'
+          },
+        );
+      
+        await datastore.query(query);
+      
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: 'UpdatedAt = "2025-01-01T00:00:00.000Z"'
+            }),
+          })
+        );
+
+        jest.useRealTimers();
+      });
+
+      test('should transform query when queryBy contains nested expressions', async () => {
+        const query = buildQuery(
+          {
+            refId: 'A',
+            queryBy: `(${ResultsQueryBuilderFieldNames.PART_NUMBER} = "123" || ${ResultsQueryBuilderFieldNames.KEYWORDS} != "456") && ${ResultsQueryBuilderFieldNames.HOSTNAME} contains "Test"`,
+          },
+        );
+      
+        await datastore.query(query);
+      
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: '(PartNumber = "123" || Keywords != "456") && HostName contains "Test"'
+            }),
+          })
+        );
+      });
     });
   });
 

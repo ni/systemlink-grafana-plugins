@@ -3,6 +3,8 @@ import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse } from "@grafana
 import { ResultsQuery } from "./types/types";
 import { BatchQueryConfig, QueryResponse } from "./types/QuerySteps.types";
 import { QueryBuilderOption, Workspace } from "core/types";
+import { ExpressionTransformFunction } from "core/query-builder.utils";
+import { QueryBuilderOperations } from "core/query-builder.constants";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
@@ -108,6 +110,37 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     return this.templateSrv
       .getVariables()
       .map(variable => ({ label: '$' + variable.name, value: '$' + variable.name }));
+  }
+
+  protected multipleValuesQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string, _options?: any) => {
+      const isMultiSelect = this.isMultiSelectValue(value);
+      const valuesArray = this.getMultipleValuesArray(value);
+      const logicalOperator = this.getLogicalOperator(operation);
+      
+      return isMultiSelect ? `(${valuesArray
+        .map(val => `${field} ${operation} "${val}"`)
+        .join(` ${logicalOperator} `)})` : `${field} ${operation} "${value}"`;
+      }
+    }
+
+  protected timeFieldsQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string): string => {
+      const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
+      return `${field} ${operation} "${formattedValue}"`;
+    };
+  }
+
+  private isMultiSelectValue(value: string): boolean {
+    return value.startsWith('{') && value.endsWith('}');
+  }
+
+  private getMultipleValuesArray(value: string): string[] {
+    return value.replace(/({|})/g, '').split(',');
+  }
+
+  private getLogicalOperator(operation: string): string {
+    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
   }
 
   private async delay(timeout: number): Promise<void> {
