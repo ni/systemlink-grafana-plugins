@@ -199,8 +199,6 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
       messages={queryBuilderMessages}
       onChange={onChange}
       value={sanitizedFilter}
-      autoPrompt={true}
-      applyMode="immediately"
       fieldsMode="static"
     />
   );
