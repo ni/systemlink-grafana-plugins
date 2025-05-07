@@ -9,12 +9,12 @@ import { QueryBuilderOperations } from "core/query-builder.constants";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
-  
+
   private timeRange: { [key: string]: string } = {
     Started: 'startedAt',
     Updated: 'updatedAt',
   };
-  
+
   private fromDateString = '${__from:date}';
   private toDateString = '${__to:date}';
 
