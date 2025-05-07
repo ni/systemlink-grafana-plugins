@@ -16,7 +16,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   private toDateString = '${__to:date}';
   
   readonly workspacesCache = new Map<string, Workspace>([]);
-  readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   abstract runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
@@ -102,12 +101,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       });
 
     workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
-  }
-
-  private getVariableOptions() {
-    return this.templateSrv
-      .getVariables()
-      .map(variable => ({ label: '$' + variable.name, value: '$' + variable.name }));
   }
 
   private async delay(timeout: number): Promise<void> {

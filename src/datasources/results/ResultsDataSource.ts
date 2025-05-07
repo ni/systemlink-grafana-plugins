@@ -28,7 +28,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery, ResultsDataS
 
   async runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     if (query.queryType === QueryType.Results) {
-      return this.getQueryResultsDataSource().runQuery(query as QueryResults, options);
+      return this.queryResultsDataSource.runQuery(query as QueryResults, options);
     } else if (query.queryType === QueryType.Steps) {
       return this.queryStepsDataSource.runQuery(query as QuerySteps, options);
     }
@@ -37,15 +37,11 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery, ResultsDataS
 
   shouldRunQuery(query: ResultsQuery): boolean {
     if (query.queryType === QueryType.Results) {
-      return this.getQueryResultsDataSource().shouldRunQuery(query as QueryResults);
+      return this.queryResultsDataSource.shouldRunQuery(query as QueryResults);
     } else if (query.queryType === QueryType.Steps) {
       return this.queryStepsDataSource.shouldRunQuery(query as QuerySteps);
     }
     return false;
-  }
-
-  getQueryResultsDataSource(): QueryResultsDataSource {
-    return this.queryResultsDataSource;
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
