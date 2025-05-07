@@ -12,8 +12,8 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     super(instanceSettings, backendSrv, templateSrv);
   }
 
-  baseUrl = this.instanceSettings.url + '/niworkorder/v1';
-  queryTestPlansUrl = this.baseUrl + '/query-testplans';
+  baseUrl = `${this.instanceSettings.url}/niworkorder/v1`;
+  queryTestPlansUrl = `${this.baseUrl}/query-testplans`;
 
   defaultQuery = {};
 
@@ -29,7 +29,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
-    await this.post(`${this.queryTestPlansUrl}`, { take: 1 });
+    await this.post(this.queryTestPlansUrl, { take: 1 });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }
