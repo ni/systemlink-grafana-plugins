@@ -34,15 +34,15 @@ export const ResultsFeatureTogglesDefaults: ResultsFeatureToggles = {
 }
 
 export enum TestMeasurementStatus {
-  Done = 'DONE',
-  Errored = 'ERRORED',
-  Failed = 'FAILED',
-  Passed = 'PASSED',
-  Skipped = 'SKIPPED',
-  Terminated = 'TERMINATED',
-  TimedOut = 'TIMED_OUT',
-  Custom = 'CUSTOM',
-  Looping = 'LOOPING',
-  Running = 'RUNNING',
-  Waiting = 'WAITING',
+  Done = 'Done',
+  Errored = 'Errored',
+  Failed = 'Failed',
+  Passed = 'Passed',
+  Skipped = 'Skipped',
+  Terminated = 'Terminated',
+  TimedOut = 'Timed out',
+  Custom = 'Custom',
+  Looping = 'Looping',
+  Running = 'Running',
+  Waiting = 'Waiting',
 }
