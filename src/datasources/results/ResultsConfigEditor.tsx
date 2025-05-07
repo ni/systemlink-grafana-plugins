@@ -6,16 +6,13 @@ import { ResultsDataSourceOptions, ResultsFeatureTogglesDefaults } from './types
 interface Props extends DataSourcePluginOptionsEditorProps<ResultsDataSourceOptions> {}
 
 export const ResultsConfigEditor: React.FC<Props> = ({ options, onOptionsChange }) => {
-    const handleFeatureChange = useCallback(
-    (featureKey: string) => (event: ChangeEvent<HTMLInputElement>) => {
-      const jsonData = {
-        ...options.jsonData,
-        ...{ featureToggles: { ...options.jsonData.featureToggles, [featureKey]: event.target.checked } },
-      };
-      onOptionsChange({ ...options, jsonData });
-    },
-    [options, onOptionsChange]
-  );
+  const handleFeatureChange = (featureKey: string) => (event: ChangeEvent<HTMLInputElement>) => {
+    const jsonData = {
+      ...options.jsonData,
+      featureToggles: { ...options.jsonData.featureToggles, [featureKey]: event.target.checked },
+    };
+    onOptionsChange({ ...options, jsonData });
+  };
 
   return (
     <>
