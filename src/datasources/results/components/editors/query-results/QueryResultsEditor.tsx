@@ -10,7 +10,6 @@ import {
 } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
 import React, { useEffect, useState } from 'react';
-import React, { useEffect, useState } from 'react';
 import '../../ResultsQueryEditor.scss';
 import { OrderBy, QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
 import { OutputType, TestMeasurementStatus } from 'datasources/results/types/types';

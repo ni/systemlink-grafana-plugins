@@ -20,7 +20,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
   readonly workspacesCache = new Map<string, Workspace>([]);
-  readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   abstract runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
@@ -106,12 +105,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       });
 
     workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
-  }
-
-  private getVariableOptions() {
-    return this.templateSrv
-      .getVariables()
-      .map(variable => ({ label: '$' + variable.name, value: '$' + variable.name }));
   }
 
   protected multipleValuesQuery(field: string): ExpressionTransformFunction {
