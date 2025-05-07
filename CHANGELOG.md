@@ -1,3 +1,9 @@
+## [3.57.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.56.1...v3.57.0) (2025-05-07)
+
+### Features
+
+* **results:** Introduce feature flag toggles for Results and Steps query builders ([#159](https://github.com/ni/systemlink-grafana-plugins/issues/159)) ([6e543ac](https://github.com/ni/systemlink-grafana-plugins/commit/6e543ac9fde4d23d23f8e730ec7f0946ffd28c1d))
+
 ## [3.56.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.56.0...v3.56.1) (2025-05-05)
 
 ### Bug Fixes
