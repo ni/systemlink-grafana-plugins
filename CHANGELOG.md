@@ -1,3 +1,9 @@
+## [3.58.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.57.0...v3.58.0) (2025-05-07)
+
+### Features
+
+* **testplans:** Set base for testplans ([#165](https://github.com/ni/systemlink-grafana-plugins/issues/165)) ([c2659f5](https://github.com/ni/systemlink-grafana-plugins/commit/c2659f556e64143c38724f0a83258514185911f4))
+
 ## [3.57.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.56.1...v3.57.0) (2025-05-07)
 
 ### Features
