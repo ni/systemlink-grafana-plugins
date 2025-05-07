@@ -138,13 +138,3 @@ export interface QueryResultsResponse {
   continuationToken?: string;
   totalCount?: number;
 }
-
-export interface QBField extends QueryBuilderField {
-  lookup?: {
-    readonly?: boolean;
-    dataSource: Array<{
-      label: string,
-      value: string
-    }>;
-  },
-}
