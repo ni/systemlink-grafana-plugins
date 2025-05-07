@@ -40,7 +40,7 @@ describe('ResultsDataSource', () => {
       const mockOptions: DataQueryRequest = {} as DataQueryRequest;
       const mockResponse: DataFrameDTO = { fields: [] };
 
-      const queryResultsDataSource = (datastore as any).queryResultsDataSource;
+      const queryResultsDataSource = datastore.getQueryResultsDataSource();
       queryResultsDataSource.runQuery = jest.fn().mockResolvedValue(mockResponse);
 
       const result = await datastore.runQuery(mockQuery, mockOptions);
@@ -75,7 +75,7 @@ describe('ResultsDataSource', () => {
     test('should call QueryResultsDataSource shouldRunQuery when query type is results', () => {
       const mockQuery: ResultsQuery = { refId: 'A', queryType: 'Results' } as ResultsQuery;
 
-      const queryResultsDataSource = (datastore as any).queryResultsDataSource;
+      const queryResultsDataSource = datastore.getQueryResultsDataSource();
       queryResultsDataSource.shouldRunQuery = jest.fn().mockReturnValue(true);
 
       const result = datastore.shouldRunQuery(mockQuery);
