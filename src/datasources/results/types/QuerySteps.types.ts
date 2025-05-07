@@ -1,3 +1,4 @@
+import { QueryBuilderField } from 'smart-webcomponents-react';
 import { OutputType, ResultsQuery } from './types';
 
 export interface QuerySteps extends ResultsQuery {
@@ -156,3 +157,13 @@ export interface BatchQueryConfig {
   maxTakePerRequest: number;
   requestsPerSecond: number;
 };
+
+export interface QBField extends QueryBuilderField {
+  lookup?: {
+    readonly?: boolean;
+    dataSource: Array<{
+      label: string,
+      value: string
+    }>;
+  },
+}
