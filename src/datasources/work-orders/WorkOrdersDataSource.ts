@@ -12,8 +12,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     super(instanceSettings, backendSrv, templateSrv);
   }
 
-  baseUrl = this.instanceSettings.url + '/niworkorder/v1';
-  queryWorkOrdersUrl = this.baseUrl + '/query-workorders';
+  baseUrl = `${this.instanceSettings.url}/niworkorder/v1`;
+  queryWorkOrdersUrl = `${this.baseUrl}/query-workorders`;
 
   defaultQuery = {};
 
@@ -29,7 +29,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
-    await this.post(`${this.queryWorkOrdersUrl}`, { take: 1 });
+    await this.post(this.queryWorkOrdersUrl, { take: 1 });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }
