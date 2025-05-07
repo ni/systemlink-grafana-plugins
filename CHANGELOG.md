@@ -1,3 +1,9 @@
+## [3.59.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.58.0...v3.59.0) (2025-05-07)
+
+### Features
+
+* **workorders:** Set base for workorders ([#162](https://github.com/ni/systemlink-grafana-plugins/issues/162)) ([3e5464b](https://github.com/ni/systemlink-grafana-plugins/commit/3e5464be8f9597c362c93eb8e489da6ade04f8e4))
+
 ## [3.58.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.57.0...v3.58.0) (2025-05-07)
 
 ### Features
