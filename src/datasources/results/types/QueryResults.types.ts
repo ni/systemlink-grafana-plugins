@@ -1,4 +1,3 @@
-import { QueryBuilderField } from 'smart-webcomponents-react';
 import { OutputType, ResultsQuery } from './types';
 
 export interface QueryResults extends ResultsQuery {
