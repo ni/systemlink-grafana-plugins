@@ -1,4 +1,4 @@
-import { DataQuery } from '@grafana/schema';
+import { DataQuery, DataSourceJsonData } from '@grafana/schema';
 
 export interface ResultsQuery extends DataQuery {
   queryType: QueryType;
@@ -17,6 +17,20 @@ export enum OutputType {
 export enum UseTimeRangeFor {
   Started = 'Started',
   Updated = 'Updated'
+}
+
+export interface ResultsFeatureToggles {
+  queryByResults: boolean;
+  queryBySteps: boolean;
+}
+
+export interface ResultsDataSourceOptions extends DataSourceJsonData {
+  featureToggles: ResultsFeatureToggles;
+}
+
+export const ResultsFeatureTogglesDefaults: ResultsFeatureToggles = {
+  queryByResults: true,
+  queryBySteps: true
 }
 
 export enum TestMeasurementStatus {

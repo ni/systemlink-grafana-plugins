@@ -1,3 +1,21 @@
+## [3.57.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.56.1...v3.57.0) (2025-05-07)
+
+### Features
+
+* **results:** Introduce feature flag toggles for Results and Steps query builders ([#159](https://github.com/ni/systemlink-grafana-plugins/issues/159)) ([6e543ac](https://github.com/ni/systemlink-grafana-plugins/commit/6e543ac9fde4d23d23f8e730ec7f0946ffd28c1d))
+
+## [3.56.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.56.0...v3.56.1) (2025-05-05)
+
+### Bug Fixes
+
+* **data-frame:** Replace Variable support for $__all variable ([#155](https://github.com/ni/systemlink-grafana-plugins/issues/155)) ([9f4a242](https://github.com/ni/systemlink-grafana-plugins/commit/9f4a2421c59934e4dfe1630de03b96c16c1bf468))
+
+## [3.56.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.55.0...v3.56.0) (2025-04-30)
+
+### Features
+
+* **results:** Add Constants for Results Query Builder ([#154](https://github.com/ni/systemlink-grafana-plugins/issues/154)) ([cef3f2c](https://github.com/ni/systemlink-grafana-plugins/commit/cef3f2ca7a1845ad792dd0a3a03836572fa8dfda))
+
 ## [3.55.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.54.0...v3.55.0) (2025-04-25)
 
 ### Features
