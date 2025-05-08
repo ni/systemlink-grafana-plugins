@@ -9,18 +9,33 @@ import {
   VerticalGroup,
 } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import '../../ResultsQueryEditor.scss';
 import { OutputType } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
 import { OrderBy, QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
+import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
+import { StepsQueryBuilder } from '../../query-builders/query-steps/StepsQueryBuilder';
+import { Workspace } from 'core/types';
 
 type Props = {
   query: QuerySteps;
   handleQueryChange: (query: QuerySteps, runQuery?: boolean) => void;
+  datasource: QueryStepsDataSource;
 };
 
-export function QueryStepsEditor({ query, handleQueryChange }: Props) {
+export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props) {
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+
+  useEffect(() => {
+    const loadWorkspaces = async () => {
+      await datasource.loadWorkspaces();
+      setWorkspaces(Array.from(datasource.workspacesCache.values()));
+    };
+
+    loadWorkspaces();
+  }, [datasource]);
+  
   const onOutputChange = (outputType: OutputType) => {
     handleQueryChange({ ...query, outputType: outputType });
   };
@@ -47,6 +62,14 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
   const onShowMeasurementChange = (isShowMeasurementChecked: boolean) => {
     handleQueryChange({ ...query, showMeasurements: isShowMeasurementChecked });
   };
+
+  const onResultsFilterChange = (value: string) => {
+    console.log('Results filter changed:', value);
+  }
+
+  const onStepsFilterChange = (value: string) => {
+    console.log('Steps filter changed:', value);
+  }
 
   return (
     <>
@@ -128,6 +151,18 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
             }}
           />
         )}
+        <StepsQueryBuilder
+          resultsFilter={query.resultsFilter}
+          stepsFilter={query.stepsFilter}
+          workspaces={workspaces}
+          partNumbers={[]}
+          status={[]}
+          stepsPath={["a","b"]}
+          globalVariableOptions={datasource.globalVariableOptions()}
+          onResultsFilterChange={(value: string) => onResultsFilterChange(value)}
+          onStepsFilterChange={(value: string) => onStepsFilterChange(value)}
+          disableResultsQueryBuilder={false}
+        ></StepsQueryBuilder>
       </VerticalGroup>
     </>
   );

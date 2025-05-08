@@ -14,13 +14,16 @@ import '../../ResultsQueryEditor.scss';
 import { OrderBy, QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
 import { OutputType } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
+import { ResultsQueryBuilder } from '../../query-builders/query-results/ResultsQueryBuilder';
+import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
 
 type Props = {
   query: QueryResults;
   handleQueryChange: (query: QueryResults, runQuery?: boolean) => void;
+  datasource: QueryResultsDataSource
 };
 
-export function QueryResultsEditor({ query, handleQueryChange }: Props) {
+export function QueryResultsEditor({ query, handleQueryChange, datasource }: Props) {
   const onOutputChange = (value: OutputType) => {
     handleQueryChange({ ...query, outputType: value });
   };
@@ -43,6 +46,10 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
     handleQueryChange({ ...query, recordCount: value });
   };
+
+  const onParameterChange = (value: string) => {
+    console.log('onParameterChange', value);
+  }
 
   return (
     <>
@@ -116,6 +123,14 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
             }}
           />
         )}
+        <ResultsQueryBuilder
+           filter={query.queryBy}
+           workspaces={[]}
+           partNumbers={[]}
+           status={[]}
+           globalVariableOptions={datasource.globalVariableOptions()}
+           onChange={(event: any) => onParameterChange(event.detail.linq)}>
+        </ResultsQueryBuilder>
       </VerticalGroup>
     </>
   );
