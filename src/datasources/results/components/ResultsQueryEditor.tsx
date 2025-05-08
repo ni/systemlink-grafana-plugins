@@ -53,14 +53,12 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
         <QueryResultsEditor
           query={query as QueryResults} 
           handleQueryChange={handleQueryChange}
-          datasource={datasource.getResultsDataSource()}
         />
       )}
       {query.queryType === QueryType.Steps && (
         <QueryStepsEditor
           query={query as QuerySteps} 
           handleQueryChange={handleQueryChange}
-          datasource={datasource.getStepsDataSource()}
         />
       )}
     </VerticalGroup>
