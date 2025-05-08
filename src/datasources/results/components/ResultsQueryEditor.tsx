@@ -60,6 +60,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
         <QueryStepsEditor
           query={query as QuerySteps} 
           handleQueryChange={handleQueryChange}
+          datasource={datasource.getStepsDataSource()}
         />
       )}
     </VerticalGroup>
