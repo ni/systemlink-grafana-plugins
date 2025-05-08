@@ -16,9 +16,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   private fromDateString = '${__from:date}';
   private toDateString = '${__to:date}';
 
-  readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
-  readonly workspacesCache = new Map<string, Workspace>([]);
-
   abstract runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
   abstract shouldRunQuery(query: ResultsQuery): boolean;
