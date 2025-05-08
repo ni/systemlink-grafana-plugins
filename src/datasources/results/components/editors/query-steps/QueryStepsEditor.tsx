@@ -9,7 +9,7 @@ import {
   VerticalGroup,
 } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import '../../ResultsQueryEditor.scss';
 import { OutputType } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
