@@ -1,7 +1,7 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, TestDataSourceResponse } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { AlarmsQuery } from './types';
+import { AlarmQueryType, AlarmsQuery } from './types';
 
 export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
   constructor(
@@ -16,7 +16,7 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
   baseUrl = this.instanceSettings.url + '/nifoo/v2';
 
   defaultQuery = {
-    constant: 3.14,
+      queryKind: AlarmQueryType.ListAlarms,
   };
 
   async runQuery(query: AlarmsQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
@@ -24,7 +24,6 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
       refId: query.refId,
       fields: [
         { name: 'Time', values: [range.from.valueOf(), range.to.valueOf()], type: FieldType.time },
-        { name: 'Value', values: [query.constant, query.constant], type: FieldType.number },
       ],
     };
   }
@@ -37,5 +36,9 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     // TODO: Implement a health and authentication check
     await this.backendSrv.get(this.baseUrl + '/bar');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
+  }
+
+  async metricFindQuery(): Promise<MetricFindValue[]> {
+    return [];
   }
 }

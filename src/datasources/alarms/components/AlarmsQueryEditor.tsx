@@ -1,33 +1,58 @@
-import React, { ChangeEvent } from 'react';
-import { Input } from '@grafana/ui';
-import { QueryEditorProps } from '@grafana/data';
+import React, { useState } from 'react';
+import { HorizontalGroup, Select, VerticalGroup } from '@grafana/ui';
+import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { InlineField } from 'core/components/InlineField';
 import { AlarmsDataSource } from '../AlarmsDataSource';
-import { AlarmsQuery } from '../types';
+import { AlarmQueryType, AlarmsQuery } from '../types';
+import { AlarmsQueryBuilder } from './query-builder/AlarmsQueryBuilder';
+import { ListAlarmsEditor } from './editors/list-alams/ListAlarmsEditor';
+import { AlarmsTrendEditor } from './editors/alarm-trend/AlaramTrendEditor';
 
 type Props = QueryEditorProps<AlarmsDataSource, AlarmsQuery>;
 
 export function AlarmsQueryEditor({ query, onChange, onRunQuery }: Props) {
-  const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
-    onChange({ ...query, queryText: event.target.value });
-  };
-
-  const onConstantChange = (event: ChangeEvent<HTMLInputElement>) => {
-    onChange({ ...query, constant: parseFloat(event.target.value) });
-    // executes the query
+  const [ queryKind, setQueryKind ] = useState(query.queryKind);
+  const onQueryTypeChange = (value: SelectableValue<AlarmQueryType>) => {
+    setQueryKind(value.value!);
     onRunQuery();
   };
 
-  const { queryText, constant } = query;
+  const onParameterChange = (value: string) => {
+  }
 
   return (
     <>
-      <InlineField label="Constant">
-        <Input onChange={onConstantChange} value={constant} width={8} type="number" step="0.1" />
+      <InlineField label="Query Type" labelWidth={18} tooltip={'Select the type of query to run'}>
+        <Select
+          options={Object.values(AlarmQueryType).map(value => ({ label: value, value })) as SelectableValue<AlarmQueryType>[]}
+          onChange={onQueryTypeChange}
+          value={queryKind}
+          width={65}
+        />
       </InlineField>
-      <InlineField label="Query Text" labelWidth={16} tooltip="Not used yet">
-        <Input onChange={onQueryTextChange} value={queryText || ''} />
-      </InlineField>
+
+      <HorizontalGroup align="flex-start">
+        <VerticalGroup>
+          <InlineField label="Query By" labelWidth={18} tooltip={'Select the type of query to run'}>
+            <AlarmsQueryBuilder
+              filter=''
+              partNumbers={[]}
+              workspaces={[]}
+              familyNames={[]}
+              globalVariableOptions={[]}
+              onChange={(event: any) => onParameterChange(event.detail.linq)}
+            ></AlarmsQueryBuilder>
+          </InlineField>
+        </VerticalGroup>
+        <VerticalGroup>
+          {(queryKind === AlarmQueryType.ListAlarms) && (
+            <ListAlarmsEditor/>
+          )}
+          {(queryKind === AlarmQueryType.AlarmTrend) && (
+            <AlarmsTrendEditor />
+          )}
+        </VerticalGroup>
+      </HorizontalGroup>
     </>
   );
 }
