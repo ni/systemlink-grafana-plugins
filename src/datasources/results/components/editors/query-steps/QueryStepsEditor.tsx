@@ -9,7 +9,7 @@ import {
   VerticalGroup,
 } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import '../../ResultsQueryEditor.scss';
 import { OutputType } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
@@ -20,7 +20,6 @@ import { StepsQueryBuilderWrapper } from '../../query-builders/steps-querybuilde
 type Props = {
   query: QuerySteps;
   handleQueryChange: (query: QuerySteps, runQuery?: boolean) => void;
-  datasource: QueryStepsDataSource;
 };
 
 export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props) {
