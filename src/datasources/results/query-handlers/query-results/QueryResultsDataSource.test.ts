@@ -188,15 +188,14 @@ describe('QueryResultsDataSource', () => {
     test('returns part numbers', async () => {  
       await datastore.getPartNumbers();
   
-      expect(datastore.partNumbersCache.get('partNumber1')).toBe('partNumber1');
-      expect(datastore.partNumbersCache.get('partNumber2')).toBe('partNumber2');
+      expect(datastore.partNumbersCache).toEqual(["partNumber1", "partNumber2"]);
     });
 
     test('should not query part number values if cache exists', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values' }))
         .mockReturnValue(createFetchResponse(['value1']));
-      datastore.partNumbersCache.set('partNumber', 'value1');
+      datastore.partNumbersCache.push('partNumber');
       backendServer.fetch.mockClear();
   
       await datastore.query(buildQuery())

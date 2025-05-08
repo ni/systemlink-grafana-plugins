@@ -10,7 +10,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
 
   defaultQuery = defaultResultsQuery;
 
-  readonly partNumbersCache = new Map<string, string>([]);
+  readonly partNumbersCache: string[] = [];
 
   async queryResults(
     filter?: string,
@@ -85,7 +85,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   }
 
   async getPartNumbers(): Promise<void> {
-    if (this.partNumbersCache.size > 0) {
+    if (this.partNumbersCache.length > 0) {
       return;
     }
     
@@ -95,7 +95,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       throw new Error(error);
     });
 
-    partNumbers?.forEach(partNumber => this.partNumbersCache.set(partNumber, partNumber));
+    partNumbers?.forEach(partNumber => this.partNumbersCache.push(partNumber));
   }
 
   shouldRunQuery(_: QueryResults): boolean {
