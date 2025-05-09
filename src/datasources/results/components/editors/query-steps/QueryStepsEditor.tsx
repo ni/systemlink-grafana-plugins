@@ -14,13 +14,16 @@ import '../../ResultsQueryEditor.scss';
 import { OutputType } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
 import { OrderBy, QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
+import { StepsQueryBuilderContainer } from '../../query-builders/steps-querybuilder-container/StepsQueryBuilderContainer';
+import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 
 type Props = {
   query: QuerySteps;
   handleQueryChange: (query: QuerySteps, runQuery?: boolean) => void;
+  datasource: QueryStepsDataSource;
 };
 
-export function QueryStepsEditor({ query, handleQueryChange }: Props) {
+export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props) {
   const onOutputChange = (outputType: OutputType) => {
     handleQueryChange({ ...query, outputType: outputType });
   };
@@ -46,6 +49,18 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
 
   const onShowMeasurementChange = (isShowMeasurementChecked: boolean) => {
     handleQueryChange({ ...query, showMeasurements: isShowMeasurementChecked });
+  };
+
+  const onResultsFilterChange = (resultsQuery: string) => {
+    if(query.resultsQuery !== resultsQuery){
+      handleQueryChange({ ...query, resultsQuery: resultsQuery });
+    }
+  };
+
+  const onStepsFilterChange = (stepsQuery: string) => {
+    if(query.stepsQuery !== stepsQuery){
+      handleQueryChange({ ...query, stepsQuery: stepsQuery });
+    }
   };
 
   return (
@@ -75,8 +90,14 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
               />
             </InlineField>
             <div>
+              <InlineField label="Show Measurements" labelWidth={25} tooltip={tooltips.showMeasurements}>
+                <InlineSwitch
+                  onChange={event => onShowMeasurementChange(event.currentTarget.checked)}
+                  value={query.showMeasurements}
+                />
+              </InlineField>
               <div className="horizontal-control-group">
-                <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
+              <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
                   <Select
                     options={OrderBy as SelectableValue[]}
                     placeholder="Select field to order by"
@@ -92,12 +113,6 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
                   />
                 </InlineField>
               </div>
-              <InlineField label="Show Measurements" labelWidth={25} tooltip={tooltips.showMeasurements}>
-                <InlineSwitch
-                  onChange={event => onShowMeasurementChange(event.currentTarget.checked)}
-                  value={query.showMeasurements}
-                />
-              </InlineField>
               <InlineField label="Take" labelWidth={25} tooltip={tooltips.recordCount}>
                 <AutoSizeInput
                   minWidth={20}
@@ -111,23 +126,23 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
                   }}
                 />
               </InlineField>
-              <TimeRangeControls
-                query={query}
-                handleQueryChange={(updatedQuery, runQuery) => {
-                  handleQueryChange(updatedQuery as QuerySteps, runQuery);
-                }}
-              />
             </div>
           </VerticalGroup>
         )}
-        {query.outputType === OutputType.TotalCount && (
-          <TimeRangeControls
-            query={query}
-            handleQueryChange={(updatedQuery, runQuery) => {
-              handleQueryChange(updatedQuery as QuerySteps, runQuery);
-            }}
-          />
-        )}
+        <TimeRangeControls
+          query={query}
+          handleQueryChange={(updatedQuery, runQuery) => {
+            handleQueryChange(updatedQuery as QuerySteps, runQuery);
+          }}
+        />
+        <StepsQueryBuilderContainer
+          datasource={datasource}
+          resultsQuery={query.resultsQuery}
+          stepsQuery={query.stepsQuery}
+          onResultsQueryChange={(value: string) => onResultsFilterChange(value)}
+          onStepsQueryChange={(value: string) => onStepsFilterChange(value)}
+          disableStepsQueryBuilder={false}
+        />
       </VerticalGroup>
     </>
   );
