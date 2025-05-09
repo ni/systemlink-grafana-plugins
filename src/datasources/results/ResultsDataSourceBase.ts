@@ -4,9 +4,11 @@ import { ResultsQuery } from "./types/types";
 import { BatchQueryConfig, QueryResponse } from "./types/QuerySteps.types";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { getVariableOptions } from "core/utils";
+import { ResultsPropertiesOptions } from "./types/QueryResults.types";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
+  queryResultsValuesUrl = this.baseUrl + '/v2/query-result-values';
 
   private timeRange: { [key: string]: string } = {
     Started: 'startedAt',
@@ -18,6 +20,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
   readonly workspacesCache = new Map<string, Workspace>([]);
+  readonly partNumbersCache: string[] = [];
 
   abstract runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
@@ -103,6 +106,20 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       });
 
     workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
+  }
+
+  async getPartNumbers(): Promise<void> {
+    if (this.partNumbersCache.length > 0) {
+      return;
+    }
+    
+    const partNumbers = await this.post<string[]>(this.queryResultsValuesUrl, {
+      field: ResultsPropertiesOptions.PART_NUMBER,
+    }).catch(error => {
+      throw new Error(error);
+    });
+
+    partNumbers?.forEach(partNumber => this.partNumbersCache.push(partNumber));
   }
 
   private async delay(timeout: number): Promise<void> {
