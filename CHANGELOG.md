@@ -1,3 +1,9 @@
+## [3.61.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.60.0...v3.61.0) (2025-05-09)
+
+### Features
+
+* **results:** Add Results Query Builder component ([#158](https://github.com/ni/systemlink-grafana-plugins/issues/158)) ([66b41c5](https://github.com/ni/systemlink-grafana-plugins/commit/66b41c585664e45b4f4ed32041d9aafe241b83eb))
+
 ## [3.60.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.59.0...v3.60.0) (2025-05-09)
 
 ### Features
