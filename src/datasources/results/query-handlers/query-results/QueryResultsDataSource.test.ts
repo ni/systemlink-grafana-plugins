@@ -17,6 +17,7 @@ const mockQueryResultsResponse: QueryResultsResponse = {
   ],
   totalCount: 1
 };
+const mockQueryResultsValuesResponse = ["partNumber1", "partNumber2"];
 
 let datastore: QueryResultsDataSource, backendServer: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
 
@@ -27,6 +28,10 @@ describe('QueryResultsDataSource', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
       .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
+
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
+      .mockReturnValue(createFetchResponse(mockQueryResultsValuesResponse));
   })
 
   describe('queryResults', () => {
@@ -178,6 +183,54 @@ describe('QueryResultsDataSource', () => {
         expect(fields).toEqual([
           { name: 'properties', values: [""], type: 'string' },
         ]);
+    });
+
+    test('returns part numbers', async () => {  
+      await datastore.getPartNumbers();
+  
+      expect(datastore.partNumbersCache).toEqual(["partNumber1", "partNumber2"]);
+    });
+
+    test('should not query part number values if cache exists', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values' }))
+        .mockReturnValue(createFetchResponse(['value1']));
+      datastore.partNumbersCache.push('partNumber');
+      backendServer.fetch.mockClear();
+  
+      await datastore.query(buildQuery())
+  
+      expect(backendServer.fetch).not.toHaveBeenCalled();
+    });
+
+    test('returns workspaces', async () => {
+      await datastore.loadWorkspaces();
+  
+      expect(datastore.workspacesCache.get('1')).toEqual({"id": "1", "name": "Default workspace"});
+      expect(datastore.workspacesCache.get('2')).toEqual({"id": "2", "name": "Other workspace"});
+    });
+  
+    test('should not query workspace values if cache exists', async () => {
+      const mockWorkspacesResponse = { id: 'workspace1', name: 'workspace1', default: false, enabled: true };
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/niauth/v1/user' }))
+        .mockReturnValue(createFetchResponse(mockWorkspacesResponse));
+      datastore.workspacesCache.set('workspace', mockWorkspacesResponse);
+      backendServer.fetch.mockClear();
+      const query = buildQuery(
+        {
+          refId: 'A',
+          outputType: OutputType.Data
+        },
+      );
+
+      await datastore.query(query)
+  
+      expect(backendServer.fetch).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: '/niauth/v1/user',
+        })
+      );
     });
   });
 

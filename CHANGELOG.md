@@ -1,3 +1,45 @@
+## [3.62.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.61.0...v3.62.0) (2025-05-09)
+
+### Features
+
+* **results:** Add Global Variable Options to ResultsDataSourceBase for Query Builder ([#173](https://github.com/ni/systemlink-grafana-plugins/issues/173)) ([6f73c41](https://github.com/ni/systemlink-grafana-plugins/commit/6f73c41358468983f881bcfa07a39bd9dc2767c1))
+
+## [3.61.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.60.0...v3.61.0) (2025-05-09)
+
+### Features
+
+* **results:** Add Results Query Builder component ([#158](https://github.com/ni/systemlink-grafana-plugins/issues/158)) ([66b41c5](https://github.com/ni/systemlink-grafana-plugins/commit/66b41c585664e45b4f4ed32041d9aafe241b83eb))
+
+## [3.60.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.59.0...v3.60.0) (2025-05-09)
+
+### Features
+
+* **results:** Add workspace and part number caching for results query builder ([#157](https://github.com/ni/systemlink-grafana-plugins/issues/157)) ([db59790](https://github.com/ni/systemlink-grafana-plugins/commit/db59790580332db691eecbe39d852b4091cf3ad4))
+
+## [3.59.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.58.0...v3.59.0) (2025-05-07)
+
+### Features
+
+* **workorders:** Set base for workorders ([#162](https://github.com/ni/systemlink-grafana-plugins/issues/162)) ([3e5464b](https://github.com/ni/systemlink-grafana-plugins/commit/3e5464be8f9597c362c93eb8e489da6ade04f8e4))
+
+## [3.58.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.57.0...v3.58.0) (2025-05-07)
+
+### Features
+
+* **testplans:** Set base for testplans ([#165](https://github.com/ni/systemlink-grafana-plugins/issues/165)) ([c2659f5](https://github.com/ni/systemlink-grafana-plugins/commit/c2659f556e64143c38724f0a83258514185911f4))
+
+## [3.57.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.56.1...v3.57.0) (2025-05-07)
+
+### Features
+
+* **results:** Introduce feature flag toggles for Results and Steps query builders ([#159](https://github.com/ni/systemlink-grafana-plugins/issues/159)) ([6e543ac](https://github.com/ni/systemlink-grafana-plugins/commit/6e543ac9fde4d23d23f8e730ec7f0946ffd28c1d))
+
+## [3.56.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.56.0...v3.56.1) (2025-05-05)
+
+### Bug Fixes
+
+* **data-frame:** Replace Variable support for $__all variable ([#155](https://github.com/ni/systemlink-grafana-plugins/issues/155)) ([9f4a242](https://github.com/ni/systemlink-grafana-plugins/commit/9f4a2421c59934e4dfe1630de03b96c16c1bf468))
+
 ## [3.56.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.55.0...v3.56.0) (2025-04-30)
 
 ### Features

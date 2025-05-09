@@ -1,4 +1,5 @@
-import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression } from "./utils";
+import { TemplateSrv } from "@grafana/runtime";
+import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables } from "./utils";
 
 test('enumToOptions', () => {
     enum fakeStringEnum {
@@ -86,4 +87,66 @@ describe('validateNumericInput', () => {
         
         expect(mockPreventDefault).toHaveBeenCalled();
     });
+});
+
+describe('replaceVariables', () => {
+  let mockTemplateSrv: TemplateSrv;
+
+  beforeEach(() => {
+    mockTemplateSrv = {
+      containsTemplate: jest.fn(),
+      replace: jest.fn(),
+    } as unknown as TemplateSrv;
+  });
+
+  test('should replace variables when multi-value variables are selected', () => {
+    mockTemplateSrv.containsTemplate = jest.fn().mockReturnValue(true);
+    mockTemplateSrv.replace = jest.fn().mockReturnValue('{value1,value2}');
+
+    const result = replaceVariables(['$var1'], mockTemplateSrv);
+
+    expect(result).toEqual(['value1', 'value2']);
+  });
+
+  test('should replace variables when single value variable is selected', () => {
+    mockTemplateSrv.containsTemplate = jest.fn().mockReturnValue(true);
+    mockTemplateSrv.replace = jest.fn().mockReturnValue('value1');
+
+    const result = replaceVariables(['$var1'], mockTemplateSrv);
+
+    expect(result).toEqual(['value1']);
+  });
+
+  test('should replace variables when multiple variables are selected', () => {
+    mockTemplateSrv.containsTemplate = jest.fn().mockReturnValue(true);
+    mockTemplateSrv.replace = jest.fn((variable: string) => ({
+        '$var1': '{value1,value2}',
+        '$var2': '{value3,value4}',
+        '$var3': 'value5',
+    }[variable] || variable));
+
+    const result = replaceVariables(['$var1', '$var2', '$var3'], mockTemplateSrv);
+
+    expect(result).toEqual(['value1', 'value2', 'value3', 'value4', 'value5']);
+  })
+
+  test('should return original values when no variables are found', () => {
+    mockTemplateSrv.containsTemplate = jest.fn().mockReturnValue(false);
+
+    const result = replaceVariables(['value1', 'value2'], mockTemplateSrv);
+
+    expect(result).toEqual(['value1', 'value2']);
+  });
+
+  test('should deduplicate and flatten the replaced values', () => {
+    mockTemplateSrv.containsTemplate = jest.fn().mockReturnValue(true);
+    mockTemplateSrv.replace = jest.fn((variable: string) => ({
+        '$var1': '{value1,value2}',
+        '$var2': '{value2,value3}',
+        '$var3': 'value3',
+    }[variable] || variable));
+    const result = replaceVariables(['$var1', '$var2', '$var3'], mockTemplateSrv);
+
+    expect(result).toEqual(['value1', 'value2', 'value3']);
+  });
 });
