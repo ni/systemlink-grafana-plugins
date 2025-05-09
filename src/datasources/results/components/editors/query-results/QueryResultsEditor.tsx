@@ -34,8 +34,8 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
       setWorkspaces(Array.from(datasource.workspacesCache.values()));
     };
     const loadPartNumbers = async () => {
-      await datasource.getResultsPartNumbers();
-      setPartNumbers(Array.from(datasource.partNumbersCache.values()));
+      await datasource.getPartNumbers();
+      setPartNumbers(datasource.partNumbersCache);
     };
 
     loadWorkspaces();

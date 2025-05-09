@@ -37,9 +37,9 @@ const mockGlobalVars = [{ label: '$var1', value: '$var1' }];
 
 const mockDatasource = {
   loadWorkspaces: jest.fn().mockResolvedValue(undefined),
-  getResultsPartNumbers: jest.fn().mockResolvedValue(undefined),
+  getPartNumbers: jest.fn().mockResolvedValue(undefined),
   workspacesCache: new Map(mockWorkspaces.map(workspace => [workspace, workspace])),
-  partNumbersCache: new Map(mockPartNumbers.map(partNumber => [partNumber, partNumber])),
+  partNumbersCache: mockPartNumbers,
   globalVariableOptions: jest.fn(() => mockGlobalVars),
 } as unknown as QueryResultsDataSource;
 
@@ -173,7 +173,7 @@ describe('QueryResultsEditor', () => {
 
     test('should call loadWorkspaces and getResultsPartNumbers when component is loaded',() => {
       expect(mockDatasource.loadWorkspaces).toHaveBeenCalledTimes(1);
-      expect(mockDatasource.getResultsPartNumbers).toHaveBeenCalledTimes(1);
+      expect(mockDatasource.getPartNumbers).toHaveBeenCalledTimes(1);
     })
 
     test('should render ResultsQueryBuilder with default props when component is loaded', () => {
