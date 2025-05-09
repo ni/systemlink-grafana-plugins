@@ -1,5 +1,5 @@
 import { QueryBuilderOperations } from 'core/query-builder.constants';
-import { QBField } from '../types/QueryResults.types';
+import { QBField } from 'core/types';
 
 export enum ResultsQueryBuilderFieldNames {
   HOSTNAME = 'HostName',

@@ -1,3 +1,4 @@
+import { QueryBuilderField } from "smart-webcomponents-react";
 import { SystemProperties } from "../datasources/system/types";
 
 export const LEGACY_METADATA_TYPE = 'Metadata';
@@ -44,3 +45,13 @@ export interface PropertyFieldKeyValuePair {
   key: string;
   value: string | number;
 };
+
+export interface QBField extends QueryBuilderField {
+  lookup?: {
+    readonly?: boolean;
+    dataSource: Array<{
+      label: string,
+      value: string
+    }>;
+  },
+}
