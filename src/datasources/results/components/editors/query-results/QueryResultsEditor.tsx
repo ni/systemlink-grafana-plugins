@@ -161,5 +161,4 @@ const tooltips = {
   recordCount: 'This field sets the maximum number of results.',
   orderBy: 'This field orders the query results by field.',
   descending: 'This field returns the query results in descending order.',
-  queryBy: 'Specifies the filter to be applied on the queried results. This is an optional field.',
 };
