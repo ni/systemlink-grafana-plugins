@@ -20,6 +20,7 @@ import { StepsQueryBuilderWrapper } from '../../query-builders/steps-querybuilde
 type Props = {
   query: QuerySteps;
   handleQueryChange: (query: QuerySteps, runQuery?: boolean) => void;
+  datasource: QueryStepsDataSource;
 };
 
 export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props) {
