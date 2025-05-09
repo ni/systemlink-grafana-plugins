@@ -1,9 +1,9 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react';
-import { QueryBuilderWrapper } from './QueryBuilderWrapper';
+import { SlQueryBuilder } from './SlQueryBuilder';
 import { QueryBuilderCustomOperation, QueryBuilderField } from 'smart-webcomponents-react';
 
-describe('QueryBuilderWrapper', () => {
+describe('SlQueryBuilder', () => {
   const containerClass = 'smart-filter-group-condition-container';
 
   function renderElement (
@@ -13,7 +13,7 @@ describe('QueryBuilderWrapper', () => {
     filter = '',
     onChange = jest.fn()
   ) {
-    const reactNode = React.createElement(QueryBuilderWrapper, { filter, customOperations, fields, messages, onChange });
+    const reactNode = React.createElement(SlQueryBuilder, { filter, customOperations, fields, messages, onChange });
     const renderResult = render(reactNode);
 
     return {

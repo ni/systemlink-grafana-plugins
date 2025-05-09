@@ -6,18 +6,17 @@ import 'smart-webcomponents-react/source/styles/smart.orange.css';
 import 'smart-webcomponents-react/source/styles/components/smart.base.css';
 import 'smart-webcomponents-react/source/styles/components/smart.common.css';
 import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
-import './QueryBuilderWrapper.css';
 import { filterXSSLINQExpression } from 'core/utils';
 
-type QueryBuilderWrapperProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
+type SlQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
     filter?: string;
   };
 
 /**
- * QueryBuilderWrapper is a React functional component that wraps the QueryBuilder component.
+ * SlQueryBuilder is a React functional component that wraps the QueryBuilder component.
  * It provides additional functionality such as theme-based styling and filter sanitization.
  *
- * @param {QueryBuilderWrapperProps} props - The props for the QueryBuilderWrapper component.
+ * @param {SlQueryBuilderProps} props - The props for the SlQueryBuilder component.
  * @param {CustomOperations} props.customOperations - Custom operations to be used in the QueryBuilder.
  * @param {Field[]} props.fields - The fields available for building queries.
  * @param {Messages} props.messages - Custom messages for the QueryBuilder UI.
@@ -27,7 +26,7 @@ type QueryBuilderWrapperProps = QueryBuilderProps & React.HTMLAttributes<Element
  *
  * @returns {JSX.Element} The rendered QueryBuilder component with additional functionality.
  */
-export const QueryBuilderWrapper: React.FC<QueryBuilderWrapperProps> = ({
+export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
   customOperations,
   fields,
   messages,
