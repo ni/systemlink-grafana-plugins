@@ -1,7 +1,7 @@
 import { useTheme2 } from '@grafana/ui';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
-import { Workspace, QueryBuilderOption } from 'core/types';
+import { Workspace, QueryBuilderOption, QBField } from 'core/types';
 import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -12,7 +12,6 @@ import 'smart-webcomponents-react/source/styles/smart.orange.css';
 import 'smart-webcomponents-react/source/styles/components/smart.base.css';
 import 'smart-webcomponents-react/source/styles/components/smart.common.css';
 import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
-import { QBField } from 'datasources/results/types/QueryResults.types';
 import {
   ResultsQueryBuilderFields,
   ResultsQueryBuilderStaticFields,
