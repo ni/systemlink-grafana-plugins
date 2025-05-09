@@ -2,7 +2,8 @@ import { DataSourceBase } from "core/DataSourceBase";
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse } from "@grafana/data";
 import { ResultsQuery } from "./types/types";
 import { BatchQueryConfig, QueryResponse } from "./types/QuerySteps.types";
-import { Workspace } from "core/types";
+import { QueryBuilderOption, Workspace } from "core/types";
+import { getVariableOptions } from "core/utils";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
@@ -15,6 +16,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   private fromDateString = '${__from:date}';
   private toDateString = '${__to:date}';
 
+  readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
   readonly workspacesCache = new Map<string, Workspace>([]);
 
   abstract runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
