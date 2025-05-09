@@ -52,13 +52,13 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   };
 
   const onResultsFilterChange = (resultsQuery: string) => {
-    if(query.resultsQuery !== resultsQuery){
+    if (query.resultsQuery !== resultsQuery) {
       handleQueryChange({ ...query, resultsQuery: resultsQuery });
     }
   };
 
   const onStepsFilterChange = (stepsQuery: string) => {
-    if(query.stepsQuery !== stepsQuery){
+    if (query.stepsQuery !== stepsQuery) {
       handleQueryChange({ ...query, stepsQuery: stepsQuery });
     }
   };
@@ -74,75 +74,81 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
           />
         </InlineField>
         {query.outputType === OutputType.Data && (
-          <VerticalGroup>
-            <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
-              <MultiSelect
-                placeholder="Select properties to fetch"
-                options={enumToOptions(StepsProperties)}
-                onChange={onPropertiesChange}
-                value={query.properties}
-                defaultValue={query.properties!}
-                noMultiValueWrap={true}
-                maxVisibleValues={5}
-                width={60}
-                allowCustomValue={false}
-                closeMenuOnSelect={false}
+          <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
+            <MultiSelect
+              placeholder="Select properties to fetch"
+              options={enumToOptions(StepsProperties)}
+              onChange={onPropertiesChange}
+              value={query.properties}
+              defaultValue={query.properties!}
+              noMultiValueWrap={true}
+              maxVisibleValues={5}
+              width={65}
+              allowCustomValue={false}
+              closeMenuOnSelect={false}
+            />
+          </InlineField>
+        )}
+        <div>
+          {query.outputType === OutputType.Data && (
+            <InlineField label="Show Measurements" labelWidth={25} tooltip={tooltips.showMeasurements}>
+              <InlineSwitch
+                onChange={event => onShowMeasurementChange(event.currentTarget.checked)}
+                value={query.showMeasurements}
               />
             </InlineField>
-            <div>
-              <InlineField label="Show Measurements" labelWidth={25} tooltip={tooltips.showMeasurements}>
-                <InlineSwitch
-                  onChange={event => onShowMeasurementChange(event.currentTarget.checked)}
-                  value={query.showMeasurements}
+          )}
+          <TimeRangeControls
+            query={query}
+            handleQueryChange={(updatedQuery, runQuery) => {
+              handleQueryChange(updatedQuery as QuerySteps, runQuery);
+            }}
+          />
+        </div>
+        <div className="horizontal-control-group">
+          <StepsQueryBuilderContainer
+            datasource={datasource}
+            resultsQuery={query.resultsQuery}
+            stepsQuery={query.stepsQuery}
+            onResultsQueryChange={(value: string) => onResultsFilterChange(value)}
+            onStepsQueryChange={(value: string) => onStepsFilterChange(value)}
+            disableStepsQueryBuilder={false}
+          />
+
+          <div className="right-query-controls">
+            <div className="horizontal-control-group">
+              <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
+                <Select
+                  options={OrderBy as SelectableValue[]}
+                  width={25}
+                  placeholder="Select field to order by"
+                  onChange={onOrderByChange}
+                  value={query.orderBy}
+                  defaultValue={query.orderBy}
                 />
               </InlineField>
-              <div className="horizontal-control-group">
-              <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
-                  <Select
-                    options={OrderBy as SelectableValue[]}
-                    placeholder="Select field to order by"
-                    onChange={onOrderByChange}
-                    value={query.orderBy}
-                    defaultValue={query.orderBy}
-                  />
-                </InlineField>
-                <InlineField label="Descending" tooltip={tooltips.descending}>
-                  <InlineSwitch
-                    onChange={event => onDescendingChange(event.currentTarget.checked)}
-                    value={query.descending}
-                  />
-                </InlineField>
-              </div>
-              <InlineField label="Take" labelWidth={25} tooltip={tooltips.recordCount}>
-                <AutoSizeInput
-                  minWidth={20}
-                  maxWidth={40}
-                  type="number"
-                  defaultValue={query.recordCount}
-                  onCommitChange={recordCountChange}
-                  placeholder="Enter record count"
-                  onKeyDown={event => {
-                    validateNumericInput(event);
-                  }}
+              <InlineField label="Descending" tooltip={tooltips.descending}>
+                <InlineSwitch
+                  onChange={event => onDescendingChange(event.currentTarget.checked)}
+                  value={query.descending}
                 />
               </InlineField>
             </div>
-          </VerticalGroup>
-        )}
-        <TimeRangeControls
-          query={query}
-          handleQueryChange={(updatedQuery, runQuery) => {
-            handleQueryChange(updatedQuery as QuerySteps, runQuery);
-          }}
-        />
-        <StepsQueryBuilderContainer
-          datasource={datasource}
-          resultsQuery={query.resultsQuery}
-          stepsQuery={query.stepsQuery}
-          onResultsQueryChange={(value: string) => onResultsFilterChange(value)}
-          onStepsQueryChange={(value: string) => onStepsFilterChange(value)}
-          disableStepsQueryBuilder={false}
-        />
+            <InlineField label="Take" labelWidth={25} tooltip={tooltips.recordCount}>
+              <AutoSizeInput
+                minWidth={25}
+                maxWidth={25}
+                type="number"
+                defaultValue={query.recordCount}
+                onCommitChange={recordCountChange}
+                placeholder="Enter record count"
+                onKeyDown={event => {
+                  validateNumericInput(event);
+                }}
+              />
+            </InlineField>
+          </div>
+        </div>
       </VerticalGroup>
     </>
   );
