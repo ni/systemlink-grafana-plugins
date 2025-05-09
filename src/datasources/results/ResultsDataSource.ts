@@ -10,7 +10,7 @@ import { QueryStepsDataSource } from './query-handlers/query-steps/QueryStepsDat
 export class ResultsDataSource extends DataSourceBase<ResultsQuery, ResultsDataSourceOptions> {
   public defaultQuery: Partial<ResultsQuery> & Omit<ResultsQuery, 'refId'>;
 
-  private queryResultsDataSource: QueryResultsDataSource;
+  private _queryResultsDataSource: QueryResultsDataSource;
   private queryStepsDataSource: QueryStepsDataSource;
 
   constructor(
@@ -19,7 +19,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery, ResultsDataS
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
-    this.queryResultsDataSource = new QueryResultsDataSource(instanceSettings, backendSrv, templateSrv);
+    this._queryResultsDataSource = new QueryResultsDataSource(instanceSettings, backendSrv, templateSrv);
     this.queryStepsDataSource = new QueryStepsDataSource(instanceSettings, backendSrv, templateSrv);
     this.defaultQuery = this.queryResultsDataSource.defaultQuery;
   }
@@ -28,7 +28,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery, ResultsDataS
 
   async runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     if (query.queryType === QueryType.Results) {
-      return this.getQueryResultsDataSource().runQuery(query as QueryResults, options);
+      return this.queryResultsDataSource.runQuery(query as QueryResults, options);
     } else if (query.queryType === QueryType.Steps) {
       return this.queryStepsDataSource.runQuery(query as QuerySteps, options);
     }
@@ -37,15 +37,15 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery, ResultsDataS
 
   shouldRunQuery(query: ResultsQuery): boolean {
     if (query.queryType === QueryType.Results) {
-      return this.getQueryResultsDataSource().shouldRunQuery(query as QueryResults);
+      return this.queryResultsDataSource.shouldRunQuery(query as QueryResults);
     } else if (query.queryType === QueryType.Steps) {
       return this.queryStepsDataSource.shouldRunQuery(query as QuerySteps);
     }
     return false;
   }
 
-  getQueryResultsDataSource(): QueryResultsDataSource {
-    return this.queryResultsDataSource;
+  get queryResultsDataSource(): QueryResultsDataSource {
+    return this._queryResultsDataSource;
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
