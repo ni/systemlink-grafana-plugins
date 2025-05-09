@@ -1,3 +1,9 @@
+## [3.62.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.61.0...v3.62.0) (2025-05-09)
+
+### Features
+
+* **results:** Add Global Variable Options to ResultsDataSourceBase for Query Builder ([#173](https://github.com/ni/systemlink-grafana-plugins/issues/173)) ([6f73c41](https://github.com/ni/systemlink-grafana-plugins/commit/6f73c41358468983f881bcfa07a39bd9dc2767c1))
+
 ## [3.61.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.60.0...v3.61.0) (2025-05-09)
 
 ### Features
