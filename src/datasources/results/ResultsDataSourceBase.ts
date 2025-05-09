@@ -4,6 +4,7 @@ import { ResultsQuery } from "./types/types";
 import { BatchQueryConfig, QueryResponse } from "./types/QuerySteps.types";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { getVariableOptions } from "core/utils";
+import { ResultsPropertiesOptions } from "./types/QueryResults.types";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
