@@ -109,8 +109,8 @@ export const StepsQueryBuilderFields: Record<string, QBField> = {
 };
 
 export const StepsQueryBuilderStaticFields = [
-  StepsQueryBuilderFields.name,
-  StepsQueryBuilderFields.keywords,
-  StepsQueryBuilderFields.properties,
-  StepsQueryBuilderFields.type,
+  StepsQueryBuilderFields.NAME,
+  StepsQueryBuilderFields.KEYWORDS,
+  StepsQueryBuilderFields.PROPERTIES,
+  StepsQueryBuilderFields.TYPE,
 ];
