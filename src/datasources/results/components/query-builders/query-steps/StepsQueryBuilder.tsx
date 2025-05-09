@@ -1,4 +1,4 @@
-import { useTheme2, VerticalGroup } from '@grafana/ui';
+import { useTheme2 } from '@grafana/ui';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
 import { Workspace, QueryBuilderOption } from 'core/types';
@@ -14,35 +14,26 @@ import 'smart-webcomponents-react/source/styles/components/smart.common.css';
 import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
 import { QBField } from 'datasources/results/types/QueryResults.types';
 import { StepsQueryBuilderFields, StepsQueryBuilderStaticFields } from 'datasources/results/constants/StepsQueryBuilder.constants';
-import { ResultsQueryBuilder } from '../query-results/ResultsQueryBuilder';
-
-type onFilterChange = (filter: string) => void;
 
 type StepsQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
-    resultsFilter?: string;
-    stepsFilter?: string;
+    filter?: string;
     workspaces: Workspace[];
-    partNumbers: string[];
     status: string[];
     stepsPath: string[];
     globalVariableOptions: QueryBuilderOption[];
-    onResultsFilterChange: onFilterChange;
-    onStepsFilterChange: onFilterChange;
-    disableResultsQueryBuilder?: boolean;
+    onFilterChange: (filter: string) => void;
+    disableQueryBuilder?: boolean;
   };
 
 export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
-  resultsFilter,
-  stepsFilter,
+  filter,
   workspaces,
-  partNumbers,
   status,
   stepsPath,
   globalVariableOptions,
-  onResultsFilterChange,
-  onStepsFilterChange,
-  disableResultsQueryBuilder
+  onFilterChange,
+  disableQueryBuilder
 }) => {
   const theme = useTheme2();
   document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
@@ -51,8 +42,8 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
 
   const sanitizedFilter = useMemo(() => {
-    return filterXSSLINQExpression(stepsFilter);
-  }, [stepsFilter]);
+    return filterXSSLINQExpression(filter);
+  }, [filter]);
 
   const workspaceField = useMemo(() => {
     const workspaceField = StepsQueryBuilderFields.WORKSPACE;
@@ -183,25 +174,14 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
   }, [workspaceField, updatedAtField, stepsPathField, globalVariableOptions, statusField]);
 
   return (
-    <VerticalGroup>
-      <ResultsQueryBuilder
-        filter={resultsFilter}
-        onChange={(event) => onResultsFilterChange((event as CustomEvent<{ linq: string }>).detail.linq)}
-        workspaces={workspaces}
-        partNumbers={partNumbers}
-        status={status}
-        globalVariableOptions={globalVariableOptions}
-      >
-      </ResultsQueryBuilder>
-      <QueryBuilder
-        customOperations={operations}
-        fields={fields}
-        messages={queryBuilderMessages}
-        onChange={(event) => onStepsFilterChange((event as CustomEvent<{ linq: string }>).detail.linq)}
-        value={sanitizedFilter}
-        fieldsMode="static"
-        disabled={disableResultsQueryBuilder}
-      />
-    </VerticalGroup>
+    <QueryBuilder
+      customOperations={operations}
+      fields={fields}
+      messages={queryBuilderMessages}
+      onChange={(event) => onFilterChange((event as CustomEvent<{ linq: string }>).detail.linq)}
+      value={sanitizedFilter}
+      fieldsMode="static"
+      disabled={disableQueryBuilder}
+    />
   );
 };
