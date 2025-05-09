@@ -6,13 +6,12 @@ import 'smart-webcomponents-react/source/styles/smart.orange.css';
 import 'smart-webcomponents-react/source/styles/components/smart.base.css';
 import 'smart-webcomponents-react/source/styles/components/smart.common.css';
 import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
+import './SlQueryBuilder.css';
 import { filterXSSLINQExpression } from 'core/utils';
 
-type SlQueryBuilderProps = QueryBuilderProps &
-  React.HTMLAttributes<Element> & {
-    filter?: string;
-    validateOnInput?: boolean;
-  };
+type SlQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
+  validateOnInput?: boolean;
+};
 
 /**
  * SlQueryBuilder is a React functional component that wraps the QueryBuilder component.
@@ -38,7 +37,7 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
   validateOnInput = false,
 }) => {
   const theme = useTheme2();
-  document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
+  document.body.setAttribute('theme', theme.isDark ? 'ni-dark' : 'ni-light');
 
   const initialize = useRef(true);
   useEffect(() => {

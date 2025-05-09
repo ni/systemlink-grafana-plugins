@@ -5,15 +5,21 @@ import { QueryBuilderCustomOperation, QueryBuilderField } from 'smart-webcompone
 
 describe('SlQueryBuilder', () => {
   const containerClass = 'smart-filter-group-condition-container';
+  const customOperations = [{
+    name: '=',
+    label: 'Custom operation',
+    expressionTemplate: '{0} = "{1}"'
+  }];
+  const fields = [ { label: 'Field1', dataField: 'field1', filterOperations: ['='] } ];
 
   function renderElement (
     customOperations: QueryBuilderCustomOperation[] = [],
     fields: QueryBuilderField[] = [],
     messages: any = {},
-    filter = '',
+    value = '',
     onChange = jest.fn()
   ) {
-    const reactNode = React.createElement(SlQueryBuilder, { filter, customOperations, fields, messages, onChange });
+    const reactNode = React.createElement(SlQueryBuilder, { value, customOperations, fields, messages, onChange });
     const renderResult = render(reactNode);
 
     return {
@@ -30,12 +36,6 @@ describe('SlQueryBuilder', () => {
   });
 
   it('should render QueryBuilder with custom operations and fields', () => {
-    const customOperations = [{
-      name: '=',
-      label: 'Custom operation',
-      expressionTemplate: '{0} = "{1}"'
-    }];
-    const fields = [ { label: 'Field1', dataField: 'field1', filterOperations: ['='] } ];
     const value = 'field1 = "value1"';
 
     const { conditionsContainer } = renderElement(customOperations, fields, {}, value);
@@ -48,7 +48,7 @@ describe('SlQueryBuilder', () => {
   });
 
   it('should sanitize fields in query builder', () => {
-    const { conditionsContainer } = renderElement([], [], {}, 'field1 = "<script>alert(\'Test\')</script>"');
+    const { conditionsContainer } = renderElement(customOperations, fields, {}, 'field1 = "<script>alert(\'Test\')</script>"');
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.innerHTML).not.toContain('alert(\'Test\')');
@@ -56,7 +56,7 @@ describe('SlQueryBuilder', () => {
 
   it('should call onChange when the filter changes', () => {
     const onChange = jest.fn();
-    const { renderResult } = renderElement([], [], {}, '', onChange);
+    const { renderResult } = renderElement(customOperations, fields, {}, '', onChange);
 
     const queryBuilder = renderResult.container.querySelector('.smart-query-builder');
     fireEvent.change(queryBuilder!, { target: { value: 'field1 = "value1"' } });
