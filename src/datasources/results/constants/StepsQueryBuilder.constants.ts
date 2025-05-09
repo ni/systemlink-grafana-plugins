@@ -14,7 +14,7 @@ export enum StepsQueryBuilderFieldNames {
 
 export const StepsQueryBuilderFields: Record<string, QBField> = {
   KEYWORDS: {
-    label: 'Keyword',
+    label: 'Step keywords',
     dataField: StepsQueryBuilderFieldNames.KEYWORDS,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
@@ -48,7 +48,7 @@ export const StepsQueryBuilderFields: Record<string, QBField> = {
     },
   },
   PROPERTIES: {
-    label: 'Properties',
+    label: 'Step properties',
     dataField: StepsQueryBuilderFieldNames.PROPERTIES,
     dataType: 'object',
     filterOperations: [
@@ -65,7 +65,7 @@ export const StepsQueryBuilderFields: Record<string, QBField> = {
     ],
   },
   STATUS: {
-    label: 'Status',
+    label: 'Step status',
     dataField: StepsQueryBuilderFieldNames.STATUS,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
@@ -84,7 +84,7 @@ export const StepsQueryBuilderFields: Record<string, QBField> = {
     ],
   },
   UPDATEDAT: {
-    label: 'Step updated At',
+    label: 'Step updated at',
     dataField: StepsQueryBuilderFieldNames.UPDATED_AT,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
