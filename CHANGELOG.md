@@ -1,3 +1,9 @@
+## [3.60.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.59.0...v3.60.0) (2025-05-09)
+
+### Features
+
+* **results:** Add workspace and part number caching for results query builder ([#157](https://github.com/ni/systemlink-grafana-plugins/issues/157)) ([db59790](https://github.com/ni/systemlink-grafana-plugins/commit/db59790580332db691eecbe39d852b4091cf3ad4))
+
 ## [3.59.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.58.0...v3.59.0) (2025-05-07)
 
 ### Features
