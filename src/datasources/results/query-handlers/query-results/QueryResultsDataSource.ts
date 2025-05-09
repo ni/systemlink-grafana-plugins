@@ -6,11 +6,8 @@ import { defaultResultsQuery } from "datasources/results/defaultQueries";
 
 export class QueryResultsDataSource extends ResultsDataSourceBase {
   queryResultsUrl = this.baseUrl + '/v2/query-results';
-  queryResultsValuesUrl = this.baseUrl + '/v2/query-result-values';
 
   defaultQuery = defaultResultsQuery;
-
-  readonly partNumbersCache: string[] = [];
 
   async queryResults(
     filter?: string,
@@ -82,20 +79,6 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
         fields: [{ name: 'Total count', values: [responseData.totalCount] }],
       };
     }
-  }
-
-  async getPartNumbers(): Promise<void> {
-    if (this.partNumbersCache.length > 0) {
-      return;
-    }
-    
-    const partNumbers = await this.post<string[]>(this.queryResultsValuesUrl, {
-      field: ResultsPropertiesOptions.PART_NUMBER,
-    }).catch(error => {
-      throw new Error(error);
-    });
-
-    partNumbers?.forEach(partNumber => this.partNumbersCache.push(partNumber));
   }
 
   shouldRunQuery(_: QueryResults): boolean {
