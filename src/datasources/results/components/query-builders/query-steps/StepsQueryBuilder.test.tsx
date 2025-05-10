@@ -43,7 +43,7 @@ describe('StepsQueryBuilder', () => {
       expect(renderResult.findByLabelText('Empty condition row')).toBeTruthy();
     });
 
-    it('should disable steps query builder when disableQueryBuilder is true', () => {
+    it('should disbale results query builder', () => {
       const { queryBuilderContainer } = renderElement('', [], [], [], [], true);
 
       expect(queryBuilderContainer?.length).toBe(1);
