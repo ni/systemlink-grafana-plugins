@@ -20,9 +20,10 @@ import { StepsQueryBuilderWrapper } from '../../query-builders/steps-querybuilde
 type Props = {
   query: QuerySteps;
   handleQueryChange: (query: QuerySteps, runQuery?: boolean) => void;
+  datasource: QueryStepsDataSource;
 };
 
-export function QueryStepsEditor({ query, handleQueryChange }: Props) {
+export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props) {
   const onOutputChange = (outputType: OutputType) => {
     handleQueryChange({ ...query, outputType: outputType });
   };
@@ -50,6 +51,18 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
     handleQueryChange({ ...query, showMeasurements: isShowMeasurementChecked });
   };
 
+  const onResultsFilterChange = (resultsQuery: string) => {
+    if (query.resultsQuery !== resultsQuery) {
+      handleQueryChange({ ...query, resultsQuery: resultsQuery });
+    }
+  };
+
+  const onStepsFilterChange = (stepsQuery: string) => {
+    if (query.stepsQuery !== stepsQuery) {
+      handleQueryChange({ ...query, stepsQuery: stepsQuery });
+    }
+  };
+
   return (
     <>
       <VerticalGroup>
@@ -61,19 +74,27 @@ export function QueryStepsEditor({ query, handleQueryChange }: Props) {
           />
         </InlineField>
         {query.outputType === OutputType.Data && (
-          <VerticalGroup>
-            <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
-              <MultiSelect
-                placeholder="Select properties to fetch"
-                options={enumToOptions(StepsProperties)}
-                onChange={onPropertiesChange}
-                value={query.properties}
-                defaultValue={query.properties!}
-                noMultiValueWrap={true}
-                maxVisibleValues={5}
-                width={60}
-                allowCustomValue={false}
-                closeMenuOnSelect={false}
+          <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
+            <MultiSelect
+              placeholder="Select properties to fetch"
+              options={enumToOptions(StepsProperties)}
+              onChange={onPropertiesChange}
+              value={query.properties}
+              defaultValue={query.properties!}
+              noMultiValueWrap={true}
+              maxVisibleValues={5}
+              width={65}
+              allowCustomValue={false}
+              closeMenuOnSelect={false}
+            />
+          </InlineField>
+        )}
+        <div>
+          {query.outputType === OutputType.Data && (
+            <InlineField label="Show Measurements" labelWidth={25} tooltip={tooltips.showMeasurements}>
+              <InlineSwitch
+                onChange={event => onShowMeasurementChange(event.currentTarget.checked)}
+                value={query.showMeasurements}
               />
             </InlineField>
           )}
