@@ -11,7 +11,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery, ResultsDataS
   public defaultQuery: Partial<ResultsQuery> & Omit<ResultsQuery, 'refId'>;
 
   private _queryResultsDataSource: QueryResultsDataSource;
-  private _queryStepsDataSource: QueryStepsDataSource;
+  private queryStepsDataSource: QueryStepsDataSource;
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<ResultsDataSourceOptions>,
@@ -20,7 +20,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery, ResultsDataS
   ) {
     super(instanceSettings, backendSrv, templateSrv);
     this._queryResultsDataSource = new QueryResultsDataSource(instanceSettings, backendSrv, templateSrv);
-    this._queryStepsDataSource = new QueryStepsDataSource(instanceSettings, backendSrv, templateSrv);
+    this.queryStepsDataSource = new QueryStepsDataSource(instanceSettings, backendSrv, templateSrv);
     this.defaultQuery = this.queryResultsDataSource.defaultQuery;
   }
 
@@ -50,10 +50,6 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery, ResultsDataS
 
   get queryResultsDataSource(): QueryResultsDataSource {
     return this._queryResultsDataSource;
-  }
-
-  get queryStepsDataSource(): QueryStepsDataSource {
-    return this._queryStepsDataSource;
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

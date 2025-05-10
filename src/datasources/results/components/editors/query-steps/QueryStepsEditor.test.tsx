@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
 import { QueryStepsEditor } from './QueryStepsEditor';
 import React from 'react';
@@ -42,20 +42,10 @@ describe('QueryStepsEditor', () => {
     useTimeRange: true,
     useTimeRangeFor: 'Updated',
     recordCount: 1000,
-    showMeasurements: false,
-    resultsQuery: 'partNumber = "PN1"',
-    stepsQuery: 'stepName = "Step1"',
+    showMeasurements: false
   };
 
   const mockHandleQueryChange = jest.fn();
-
-  const mockDatasource = {
-    loadWorkspaces: jest.fn(),
-    getPartNumbers: jest.fn(),
-    workspacesCache: new Map(),
-    partNumbersCache: [],
-    globalVariableOptions: jest.fn(() => []),
-  } as unknown as QueryStepsDataSource;
 
   let properties: HTMLElement;
   let orderBy: HTMLElement;
@@ -66,14 +56,14 @@ describe('QueryStepsEditor', () => {
   let showMeasurements: HTMLElement;
 
   beforeEach(() => {
-    render(<QueryStepsEditor query={defaultQuery} handleQueryChange={mockHandleQueryChange} datasource={mockDatasource}/>);
+    render(<QueryStepsEditor query={defaultQuery} handleQueryChange={mockHandleQueryChange} />);
     properties = screen.getAllByRole('combobox')[0];
-    orderBy = screen.getAllByRole('combobox')[2];
-    descending = screen.getAllByRole('checkbox')[2];
+    orderBy = screen.getAllByRole('combobox')[1];
+    descending = screen.getAllByRole('checkbox')[0];
     dataOutput = screen.getByRole('radio', { name: 'Data' });
     totalCountOutput = screen.getByRole('radio', { name: 'Total Count' });
     recordCount = screen.getByDisplayValue(1000);
-    showMeasurements = screen.getAllByRole('checkbox')[0];
+    showMeasurements = screen.getAllByRole('checkbox')[1];
   });
 
   describe('Data outputType', () => {
@@ -81,8 +71,8 @@ describe('QueryStepsEditor', () => {
     let useTimeRangeFor: HTMLElement;
 
     beforeEach(() => {
-      useTimeRange = screen.getAllByRole('checkbox')[1];
-      useTimeRangeFor = screen.getAllByRole('combobox')[1];
+      useTimeRange = screen.getAllByRole('checkbox')[2];
+      useTimeRangeFor = screen.getAllByRole('combobox')[2];
     });
 
     test('should render with default query when default values are provided', async () => {
@@ -109,7 +99,6 @@ describe('QueryStepsEditor', () => {
       <QueryStepsEditor
         query={{outputType: OutputType.Data } as QuerySteps}
         handleQueryChange={mockHandleQueryChange}
-        datasource={mockDatasource}
       />
       );
 
