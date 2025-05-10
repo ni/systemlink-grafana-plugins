@@ -67,7 +67,7 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
         ...statusField.lookup,
         dataSource: [
           ...(statusField.lookup?.dataSource || []),
-          ...status.map(name => ({ label: name, value: name })),
+          ...status.map(name => ({ label: name, value: name.replace(/\s+/g, '') })),
         ],
       },
     };
