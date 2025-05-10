@@ -5,7 +5,7 @@ import { QueryType, ResultsDataSourceOptions, ResultsQuery } from '../types/type
 import { QueryResultsEditor } from './editors/query-results/QueryResultsEditor';
 import { QueryResults } from '../types/QueryResults.types';
 import { defaultResultsQuery, defaultStepsQuery } from '../defaultQueries';
-import { InlineField, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
+import { InlineField, RadioButtonGroup } from '@grafana/ui';
 import { QueryStepsEditor } from './editors/query-steps/QueryStepsEditor';
 import { QuerySteps } from '../types/QuerySteps.types';
 
