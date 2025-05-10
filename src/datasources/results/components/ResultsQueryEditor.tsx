@@ -5,7 +5,7 @@ import { QueryType, ResultsDataSourceOptions, ResultsQuery } from '../types/type
 import { QueryResultsEditor } from './editors/query-results/QueryResultsEditor';
 import { QueryResults } from '../types/QueryResults.types';
 import { defaultResultsQuery, defaultStepsQuery } from '../defaultQueries';
-import { InlineField, RadioButtonGroup } from '@grafana/ui';
+import { InlineField, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
 import { QueryStepsEditor } from './editors/query-steps/QueryStepsEditor';
 import { QuerySteps } from '../types/QuerySteps.types';
 
@@ -41,7 +41,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
   }, [query, handleQueryChange]);
 
   return (
-    <>
+    <VerticalGroup>
       <InlineField label="Query Type" labelWidth={25} tooltip={tooltips.queryType}>
         <RadioButtonGroup
           options={Object.values(QueryType).map(value => ({ label: value, value })) as SelectableValue[]}
@@ -60,10 +60,9 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
         <QueryStepsEditor
           query={query as QuerySteps} 
           handleQueryChange={handleQueryChange}
-          datasource={datasource.queryStepsDataSource}
         />
       )}
-    </>
+    </VerticalGroup>
   );
 }
 
