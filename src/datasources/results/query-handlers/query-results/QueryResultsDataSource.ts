@@ -50,7 +50,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
 
     const responseData = await this.queryResults(
-      [query.queryBy, useTimeRangeFilter].filter(Boolean).join(' && '),
+      this.buildQueryFilter(query.queryBy, useTimeRangeFilter),
       query.orderBy,
       query.properties,
       query.recordCount,
@@ -109,6 +109,10 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     partNumbers?.forEach(partNumber => this.partNumbersCache.push(partNumber));
   }
 
+  /**
+   * A map linking each field name to its corresponding query transformation function.
+   * It dynamically processes and formats query expressions based on the field type.
+   */
   readonly resultsComputedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(ResultsQueryBuilderFieldNames).map(field => [
       field,

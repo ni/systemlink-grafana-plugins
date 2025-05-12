@@ -126,6 +126,14 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     };
   }
 
+  /**
+   * Combines two filter strings into a single query filter using the '&&' operator.
+   * Filters that are undefined or empty are excluded from the final query.
+   */
+  protected buildQueryFilter(filterA?: string, filterB?: string): string {
+    return [filterA, filterB].filter(Boolean).join(' && ');
+  };
+
   private isMultiSelectValue(value: string): boolean {
     return value.startsWith('{') && value.endsWith('}');
   }
