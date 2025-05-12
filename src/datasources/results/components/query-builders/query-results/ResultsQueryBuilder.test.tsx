@@ -47,7 +47,7 @@ describe('ResultsQueryBuilder', () => {
     });
 
     it('should select status in query builder', () => {
-      const { conditionsContainer } = renderElement([workspace], partNumber, status, 'Status = "PASSED"');
+      const { conditionsContainer } = renderElement([workspace], partNumber, status, 'Status.statusType = "PASSED"');
 
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain("Status"); //label
@@ -66,7 +66,7 @@ describe('ResultsQueryBuilder', () => {
     });
 
     it('should render multiple conditions in query builder', () => {
-      const filter = '(PartNumber = "partNumber1" && ProgramName = "programName1") || Status = "FAILED"';
+      const filter = '(PartNumber = "partNumber1" && ProgramName = "programName1") || Status.statusType = "FAILED"';
       const { renderResult, conditionsContainer } = renderElement([workspace], partNumber, status, filter);
       const filterConditions = renderResult.container.getElementsByClassName('smart-filter-group-condition');
       const logicalOperators = renderResult.container.getElementsByClassName('smart-filter-group-operator');
