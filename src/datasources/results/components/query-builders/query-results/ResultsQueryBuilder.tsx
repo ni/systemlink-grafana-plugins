@@ -169,6 +169,10 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
       QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO,
       QueryBuilderOperations.IS_BLANK,
       QueryBuilderOperations.IS_NOT_BLANK,
+      QueryBuilderOperations.LIST_EQUALS,
+      QueryBuilderOperations.LIST_DOES_NOT_EQUAL,
+      QueryBuilderOperations.LIST_CONTAINS,
+      QueryBuilderOperations.LIST_DOES_NOT_CONTAIN,
     ].map(operation => {
       return {
         ...operation,

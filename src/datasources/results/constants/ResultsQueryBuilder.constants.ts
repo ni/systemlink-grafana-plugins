@@ -33,10 +33,10 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
     label: 'Keyword',
     dataField: ResultsQueryBuilderFieldNames.KEYWORDS,
     filterOperations: [
-      QueryBuilderOperations.EQUALS.name,
-      QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.CONTAINS.name,
-      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
+      QueryBuilderOperations.LIST_EQUALS.name,
+      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.LIST_CONTAINS.name,
+      QueryBuilderOperations.LIST_DOES_NOT_CONTAIN.name,
     ],
   },
   OPERATOR: {
