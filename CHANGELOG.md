@@ -1,3 +1,9 @@
+## [3.63.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.62.0...v3.63.0) (2025-05-12)
+
+### Features
+
+* **results:** Integrate ResultsQueryBuilder into QueryResultsEditor ([#164](https://github.com/ni/systemlink-grafana-plugins/issues/164)) ([c1293b6](https://github.com/ni/systemlink-grafana-plugins/commit/c1293b612cea5b049bed6440f68f44908956ca4d))
+
 ## [3.62.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.61.0...v3.62.0) (2025-05-09)
 
 ### Features
