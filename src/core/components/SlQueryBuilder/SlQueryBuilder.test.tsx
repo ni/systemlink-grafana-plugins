@@ -12,7 +12,7 @@ describe('SlQueryBuilder', () => {
   }];
   const fields = [ { label: 'Field1', dataField: 'field1', filterOperations: ['='] } ];
 
-  function renderElement (
+  function renderElement(
     customOperations: QueryBuilderCustomOperation[] = [],
     fields: QueryBuilderField[] = [],
     messages: any = {},
@@ -24,7 +24,7 @@ describe('SlQueryBuilder', () => {
 
     return {
       renderResult,
-      conditionsContainer: renderResult.container.getElementsByClassName(`${ containerClass }`),
+      conditionsContainer: renderResult.container.getElementsByClassName(`${containerClass}`),
     };
   }
 
