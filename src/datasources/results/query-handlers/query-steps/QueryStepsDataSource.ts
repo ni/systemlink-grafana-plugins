@@ -11,11 +11,16 @@ import {
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { defaultStepsQuery } from 'datasources/results/defaultQueries';
 import { MAX_TAKE_PER_REQUEST, QUERY_STEPS_REQUEST_PER_SECOND } from 'datasources/results/constants/QuerySteps.constants';
+import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/StepsQueryBuilder.constants';
+import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
 
   defaultQuery = defaultStepsQuery;
+
+  disableStepsQueryBuilder = true;
 
   async querySteps(
     filter?: string,
@@ -23,6 +28,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     projection?: StepsProperties[],
     take?: number,
     descending?: boolean,
+    resultsFilter?: string,
     continuationToken?: string,
     returnCount = false
   ): Promise<QueryStepsResponse> {
@@ -33,6 +39,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       descending,
       projection,
       take,
+      resultsFilter,
       continuationToken,
       returnCount,
     });
@@ -50,6 +57,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     projection?: StepsProperties[],
     take?: number,
     descending?: boolean,
+    resultsFilter?: string,
     returnCount = false,
   ): Promise<QueryStepsResponse> {
     const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<StepsResponseProperties>> => {
@@ -59,6 +67,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         projection,
         currentTake,
         descending,
+        resultsFilter,
         token,
         returnCount
       );
@@ -85,17 +94,38 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
   
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
+    if (query.resultsQuery) {
+      this.disableStepsQueryBuilder = false;
+    }
+
+    if (query.stepsQuery) {
+      query.stepsQuery = transformComputedFieldsQuery(
+        this.templateSrv.replace(query.stepsQuery, options.scopedVars),
+        this.stepsComputedDataFields,
+      );
+    }
+
+    if (query.resultsQuery) {
+      query.resultsQuery = transformComputedFieldsQuery(
+        this.templateSrv.replace(query.resultsQuery, options.scopedVars),
+        this.resultsComputedDataFields,
+      );
+    }
+
     const projection = query.showMeasurements
       ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
       : query.properties;
 
     if (query.outputType === OutputType.Data) {
+      const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
+
       const responseData = await this.queryStepsInBatches(
-        this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
+        [query.stepsQuery, useTimeRangeFilter].filter(Boolean).join(' && '),
         query.orderBy,
         projection as StepsProperties[],
         query.recordCount,
         query.descending,
+        query.resultsQuery,
         true
       );
   
@@ -121,6 +151,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     } else {
       const responseData = await this.querySteps(
         this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
+        undefined,
         undefined,
         undefined,
         undefined,
@@ -192,6 +223,24 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       };
     });
   }
+
+  readonly stepsComputedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(StepsQueryBuilderFieldNames).map(field => [
+      field,
+      field === (StepsQueryBuilderFieldNames.UPDATED_AT)
+        ? this.timeFieldsQuery(field)
+        : this.multipleValuesQuery(field),
+    ])
+  );
+
+  readonly resultsComputedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(ResultsQueryBuilderFieldNames).map(field => [
+      field,
+      field === (ResultsQueryBuilderFieldNames.UPDATED_AT) || field === (ResultsQueryBuilderFieldNames.STARTED_AT)
+        ? this.timeFieldsQuery(field)
+        : this.multipleValuesQuery(field),
+    ])
+  );
 
   shouldRunQuery(_: QuerySteps): boolean {
     return true;
