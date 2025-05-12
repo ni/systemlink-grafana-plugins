@@ -4,7 +4,7 @@ import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching
 import { Field } from '@grafana/data';
 import { QueryResultsDataSource } from './QueryResultsDataSource';
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions } from 'datasources/results/types/QueryResults.types';
-import { OutputType, QueryType } from 'datasources/results/types/types';
+import { OutputType, QueryType, UseTimeRangeFor } from 'datasources/results/types/types';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 
 const mockQueryResultsResponse: QueryResultsResponse = {
@@ -330,6 +330,77 @@ describe('QueryResultsDataSource', () => {
           })
         );
       });
+    });
+
+    describe('buildQueryFilter', () => {
+      test('should combine queryBy and useTimeRangeFilter into a single filter', async () => {
+        const filter = '(startedAt > "\${__from:date}" && startedAt < "\${__to:date}")';
+        const replacedFilter = '(startedAt > "2025-04-01" && startedAt < "2025-04-02")';
+        templateSrv.replace.calledWith(filter).mockReturnValue(replacedFilter); 
+
+        const queryBy = `(${ResultsQueryBuilderFieldNames.PART_NUMBER} = "123"` 
+          && `${ResultsQueryBuilderFieldNames.KEYWORDS} != "keyword1") `;
+        const query = buildQuery({
+          refId: 'A',
+          queryBy,
+          useTimeRange: true,
+          useTimeRangeFor: UseTimeRangeFor.Started,
+        });
+        const expectedFilter = `${queryBy} && ${replacedFilter}`;
+
+        await datastore.query(query);
+      
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              filter: expectedFilter,
+            }),
+          })
+        );
+      });
+
+      test('should return only queryBy filter when useTimeRange filter is not defined', async () => {
+        const queryBy = `(${ResultsQueryBuilderFieldNames.PART_NUMBER} = "123"` 
+          && `${ResultsQueryBuilderFieldNames.KEYWORDS} != "keyword1") `;
+        const query = buildQuery({
+          refId: 'A',
+          queryBy,
+          useTimeRange: false,
+        });
+        const expectedFilter = `${queryBy}`;
+
+        await datastore.query(query);
+      
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              filter: expectedFilter,
+            }),
+          })
+        );
+      });
+    });
+
+    test('should return only useTimeRange filter when queryby is not defined', async () => {
+      const filter = '(startedAt > "\${__from:date}" && startedAt < "\${__to:date}")';
+      const replacedFilter = '(startedAt > "2025-04-01" && startedAt < "2025-04-02")';
+      templateSrv.replace.calledWith(filter).mockReturnValue(replacedFilter); 
+      const query = buildQuery({
+        refId: 'A',
+        queryBy: '',
+        useTimeRange: true,
+        useTimeRangeFor: UseTimeRangeFor.Started,
+      });
+
+      await datastore.query(query);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            filter: replacedFilter,
+          }),
+        })
+      );
     });
   });
 
