@@ -21,6 +21,12 @@ jest.mock('../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrap
           Trigger Results Change
         </button>
         <button
+          data-testid="results-empty-trigger"
+          onClick={() => onResultsQueryChange('')}
+        >
+          Trigger Empty Results
+        </button>
+        <button
           data-testid="steps-trigger-change"
           onClick={() => onStepsQueryChange('updated-steps-query')}
         >
@@ -55,6 +61,7 @@ describe('QueryStepsEditor', () => {
     workspacesCache: new Map(),
     partNumbersCache: [],
     globalVariableOptions: jest.fn(() => []),
+    disableStepsQueryBuilder: false
   } as unknown as QueryStepsDataSource;
 
   let properties: HTMLElement;
@@ -227,6 +234,20 @@ describe('QueryStepsEditor', () => {
           expect.objectContaining({ stepsQuery: 'updated-steps-query' })
         );
       });
+    });
+
+    test('should handle empty results query and disable steps query builder', async () => {
+      const emptyQueryTriggerButton = screen.getByTestId('results-empty-trigger');
+      
+      await userEvent.click(emptyQueryTriggerButton);
+      
+      await waitFor(() => {
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(
+          expect.objectContaining({ resultsQuery: '' }),
+          false
+        );
+      });
+      expect(mockDatasource.disableStepsQueryBuilder).toBe(true);
     });
   })
 });
