@@ -101,12 +101,11 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     query.stepsQuery = this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options);
     query.resultsQuery = this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options);
 
+    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
+    const stepsQuery = this.buildQueryFilter(query.stepsQuery, useTimeRangeFilter);
     const projection = query.showMeasurements
       ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
       : query.properties;
-
-    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
-    const stepsQuery = this.buildQueryFilter(query.stepsQuery, useTimeRangeFilter);
     
     if (query.outputType === OutputType.Data) {
       const responseData = await this.queryStepsInBatches(
@@ -222,6 +221,9 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     });
   }
 
+  /**
+   * A map linking each steps field name to its corresponding query transformation function.
+   */
   private readonly stepsComputedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(StepsQueryBuilderFieldNames).map(field => [
       field,
@@ -231,6 +233,9 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     ])
   );
 
+  /**
+   * A map linking each results field name to its corresponding query transformation function.
+   */
   private readonly resultsComputedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(ResultsQueryBuilderFieldNames).map(field => [
       field,
@@ -240,6 +245,13 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     ])
   );
 
+  /**
+   * Transforms a query by applying the appropriate transformation functions to its fields.
+   * @param queryField - The query string to be transformed
+   * @param computedDataFields - A map of fields and their corresponding transformation functions.
+   * @param options - The data query request options, which include scoped variables for template replacement.
+   * @returns - The transformed query string, or undefined if the input queryField is undefined.
+   */
   private transformQuery(queryField: string | undefined, computedDataFields: Map<string, ExpressionTransformFunction>, options: DataQueryRequest): string | undefined {
   return queryField
     ? transformComputedFieldsQuery(
