@@ -16,6 +16,7 @@ export const StepsQueryBuilderFields: Record<string, QBField> = {
   KEYWORDS: {
     label: 'Step keywords',
     dataField: StepsQueryBuilderFieldNames.KEYWORDS,
+    dataType: 'Array',
     filterOperations: [
       QueryBuilderOperations.LIST_EQUALS.name,
       QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
