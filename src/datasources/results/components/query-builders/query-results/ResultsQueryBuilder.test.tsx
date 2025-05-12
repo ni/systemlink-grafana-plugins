@@ -55,6 +55,15 @@ describe('ResultsQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain("PASSED"); //value
     });
 
+    it('should select keyword in query builder', () => {
+      const { conditionsContainer } = renderElement([], [], [], 'Keywords listequals "keyword1"');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("Keywords"); //label
+      expect(conditionsContainer.item(0)?.textContent).toContain("Equals"); //operator
+      expect(conditionsContainer.item(0)?.textContent).toContain("keyword1"); //value
+    });
+
     it('should select global variable option', () => {
       const globalVariableOption = { label: 'Global variable', value: 'global_variable' };
       const { conditionsContainer } = renderElement([workspace], partNumber, status, 'PartNumber = \"global_variable\"', [globalVariableOption]);
