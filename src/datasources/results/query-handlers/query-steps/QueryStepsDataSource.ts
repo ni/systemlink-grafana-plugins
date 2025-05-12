@@ -94,30 +94,20 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
   
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
-    if (query.resultsQuery) {
+    if (query.resultsQuery && query.resultsQuery !== "") {
       this.disableStepsQueryBuilder = false;
     }
 
-    if (query.stepsQuery) {
-      query.stepsQuery = transformComputedFieldsQuery(
-        this.templateSrv.replace(query.stepsQuery, options.scopedVars),
-        this.stepsComputedDataFields,
-      );
-    }
-
-    if (query.resultsQuery) {
-      query.resultsQuery = transformComputedFieldsQuery(
-        this.templateSrv.replace(query.resultsQuery, options.scopedVars),
-        this.resultsComputedDataFields,
-      );
-    }
+    query.stepsQuery = this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options);
+    query.resultsQuery = this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options);
 
     const projection = query.showMeasurements
       ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
       : query.properties;
 
+    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
+    
     if (query.outputType === OutputType.Data) {
-      const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
 
       const responseData = await this.queryStepsInBatches(
         [query.stepsQuery, useTimeRangeFilter].filter(Boolean).join(' && '),
@@ -155,7 +145,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         undefined,
         undefined,
         undefined,
-        undefined,
+        query.resultsQuery,
         undefined,
         true
       );
@@ -241,6 +231,15 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         : this.multipleValuesQuery(field),
     ])
   );
+
+  private transformQuery(queryField: string | undefined, computedDataFields: Map<string, ExpressionTransformFunction>, options: DataQueryRequest): string | undefined {
+  return queryField
+    ? transformComputedFieldsQuery(
+        this.templateSrv.replace(queryField, options.scopedVars),
+        computedDataFields
+      )
+    : undefined;
+  }
 
   shouldRunQuery(_: QuerySteps): boolean {
     return true;
