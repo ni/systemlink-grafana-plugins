@@ -11,7 +11,6 @@ const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: ResultsQuery) => query),
-  getQueryResultsDataSource: jest.fn(() => ({}))
 } as unknown as ResultsDataSource;
 
 const queryResultsDataSourceMock = jest.fn(() => {});
