@@ -66,7 +66,7 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
         ...statusField.lookup,
         dataSource: [
           ...(statusField.lookup?.dataSource || []), 
-          ...stepStatus.map(name => ({ label: name, value: name }))
+          ...stepStatus.map(name => ({ label: name, value: name.replace(/\s+/g, '') })),
         ],
       },
     };

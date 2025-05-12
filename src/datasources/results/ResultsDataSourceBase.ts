@@ -7,6 +7,8 @@ import { getVariableOptions } from "core/utils";
 import { ExpressionTransformFunction } from "core/query-builder.utils";
 import { QueryBuilderOperations } from "core/query-builder.constants";
 import { ResultsPropertiesOptions } from "./types/QueryResults.types";
+import { QueryBuilderOperations } from "core/query-builder.constants";
+import { ExpressionTransformFunction } from "core/query-builder.utils";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
   baseUrl = this.instanceSettings.url + '/nitestmonitor';

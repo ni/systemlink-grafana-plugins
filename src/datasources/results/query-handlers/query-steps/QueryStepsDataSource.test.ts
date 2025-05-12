@@ -309,6 +309,7 @@ describe('QueryStepsDataSource', () => {
           undefined,
           100,
           undefined,
+          undefined,
           true
         );
         const response = await responsePromise;
@@ -344,6 +345,7 @@ describe('QueryStepsDataSource', () => {
             undefined,
             undefined,
             10000,
+            undefined,
             undefined,
             true
           );
@@ -404,6 +406,7 @@ describe('QueryStepsDataSource', () => {
           undefined,
           2000,
           undefined,
+          undefined,
           true
         );
 
@@ -455,6 +458,7 @@ describe('QueryStepsDataSource', () => {
           undefined,
           3000,
           undefined,
+          undefined,
           true
         );
   
@@ -487,6 +491,7 @@ describe('QueryStepsDataSource', () => {
           undefined,
           1500,
           false,
+          undefined,
           true
         );
         
@@ -538,6 +543,7 @@ describe('QueryStepsDataSource', () => {
           undefined,
           undefined,
           2000,
+          undefined,
           undefined,
           true
         );
