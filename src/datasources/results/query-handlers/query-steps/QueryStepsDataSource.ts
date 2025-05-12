@@ -160,7 +160,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   get disableStepsQueryBuilder(): boolean {
     return this._disableStepsQueryBuilder;
   }
-  
+
   set disableStepsQueryBuilder(value: boolean) {
     this._disableStepsQueryBuilder = value;
   }
@@ -222,7 +222,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     });
   }
 
-  readonly stepsComputedDataFields = new Map<string, ExpressionTransformFunction>(
+  private readonly stepsComputedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(StepsQueryBuilderFieldNames).map(field => [
       field,
       field === (StepsQueryBuilderFieldNames.UPDATED_AT)
@@ -231,7 +231,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     ])
   );
 
-  readonly resultsComputedDataFields = new Map<string, ExpressionTransformFunction>(
+  private readonly resultsComputedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(ResultsQueryBuilderFieldNames).map(field => [
       field,
       field === (ResultsQueryBuilderFieldNames.UPDATED_AT) || field === (ResultsQueryBuilderFieldNames.STARTED_AT)
