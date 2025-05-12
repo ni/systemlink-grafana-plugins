@@ -20,7 +20,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
   defaultQuery = defaultStepsQuery;
 
-  disableStepsQueryBuilder = true;
+  private _disableStepsQueryBuilder = true;
 
   async querySteps(
     filter?: string,
@@ -94,7 +94,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
   
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
-    if (query.resultsQuery && query.resultsQuery !== "") {
+    if (query.resultsQuery) {
       this.disableStepsQueryBuilder = false;
     }
 
@@ -106,11 +106,11 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       : query.properties;
 
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
+    const stepsQuery = this.buildQueryFilter(query.stepsQuery, useTimeRangeFilter);
     
     if (query.outputType === OutputType.Data) {
-
       const responseData = await this.queryStepsInBatches(
-        [query.stepsQuery, useTimeRangeFilter].filter(Boolean).join(' && '),
+        stepsQuery,
         query.orderBy,
         projection as StepsProperties[],
         query.recordCount,
@@ -140,7 +140,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       };
     } else {
       const responseData = await this.querySteps(
-        this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
+        stepsQuery,
         undefined,
         undefined,
         undefined,
@@ -155,6 +155,14 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         fields: [{ name: 'Total count', values: [responseData.totalCount] }],
       };
     }
+  }
+
+  get disableStepsQueryBuilder(): boolean {
+    return this._disableStepsQueryBuilder;
+  }
+  
+  set disableStepsQueryBuilder(value: boolean) {
+    this._disableStepsQueryBuilder = value;
   }
 
   private processFields(
