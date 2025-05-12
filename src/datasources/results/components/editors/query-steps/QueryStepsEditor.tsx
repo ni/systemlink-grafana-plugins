@@ -52,7 +52,10 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   };
 
   const onResultsFilterChange = (resultsQuery: string) => {
-    if (query.resultsQuery !== resultsQuery) {
+    if(resultsQuery === "") {
+      handleQueryChange({ ...query, resultsQuery: resultsQuery }, false);
+      datasource.disableStepsQueryBuilder = true;
+    } else if (query.resultsQuery !== resultsQuery) {
       handleQueryChange({ ...query, resultsQuery: resultsQuery });
     }
   };
@@ -62,6 +65,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
       handleQueryChange({ ...query, stepsQuery: stepsQuery });
     }
   };
+
 
   return (
     <>

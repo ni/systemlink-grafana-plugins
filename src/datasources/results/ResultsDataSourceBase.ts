@@ -142,6 +142,11 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     };
   }
 
+  protected buildQueryFilter(filterA?: string, filterB?: string): string | undefined {
+    const filters = [filterA, filterB].filter(Boolean);
+    return filters.length > 0 ? filters.join(' && ') : undefined;
+  };
+
   private isMultiSelectValue(value: string): boolean {
     return value.startsWith('{') && value.endsWith('}');
   }
