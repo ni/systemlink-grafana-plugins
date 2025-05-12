@@ -169,7 +169,13 @@ export class DataSource extends DataSourceApi<NotebookQuery, NotebookDataSourceO
 
   private async executeNotebook(notebookId: string, workspaceId: string, parameters: any, cacheTimeout: number) {
     try {
-      const response = await getBackendSrv().datasourceRequest({
+      interface ICreateExecutionResponse {
+        executions: {
+          id: string;
+        }[]
+      }
+
+      const response = await getBackendSrv().datasourceRequest<ICreateExecutionResponse>({
         url: this.url + '/ninbexecution/v1/executions',
         method: 'POST',
         data: [
@@ -193,7 +199,7 @@ export class DataSource extends DataSourceApi<NotebookQuery, NotebookDataSourceO
       url: this.url + '/ninbexecution/v1/executions/' + id,
       method: 'GET',
     });
-    const execution: Execution = response.data;
+    const execution = response.data as Execution;
     if (execution.status === 'QUEUED' || execution.status === 'IN_PROGRESS') {
       await timeout(3000);
       return this.handleNotebookExecution(id);
