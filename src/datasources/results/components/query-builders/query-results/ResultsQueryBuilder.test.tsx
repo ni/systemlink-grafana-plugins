@@ -56,10 +56,10 @@ describe('ResultsQueryBuilder', () => {
     });
 
     it('should select keyword in query builder', () => {
-      const { conditionsContainer } = renderElement([], [], [], 'Keywords listequals "keyword1"');
+      const { conditionsContainer } = renderElement([], [], [], 'Keywords.Contains("keyword1")');
 
       expect(conditionsContainer?.length).toBe(1);
-      expect(conditionsContainer.item(0)?.textContent).toContain("Keywords"); //label
+      expect(conditionsContainer.item(0)?.textContent).toContain("Keyword"); //label
       expect(conditionsContainer.item(0)?.textContent).toContain("Equals"); //operator
       expect(conditionsContainer.item(0)?.textContent).toContain("keyword1"); //value
     });
