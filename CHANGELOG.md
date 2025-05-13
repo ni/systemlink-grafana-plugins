@@ -1,3 +1,9 @@
+## [3.68.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.67.0...v3.68.0) (2025-05-13)
+
+### Features
+
+* **results:** Add Step query builder wrapper ([#177](https://github.com/ni/systemlink-grafana-plugins/issues/177)) ([26b6a52](https://github.com/ni/systemlink-grafana-plugins/commit/26b6a521a2cb4b5bfb3dd596ed87b875a95fd5b9))
+
 ## [3.67.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.66.1...v3.67.0) (2025-05-13)
 
 ### Features
