@@ -105,7 +105,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
           }}
         />
         <div className="horizontal-control-group">
-          <InlineField label="Query By" labelWidth={25} tooltip={tooltips.properties}>
+          <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
             <ResultsQueryBuilder
               filter={query.queryBy}
               workspaces={workspaces}
