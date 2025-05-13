@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 import { useTheme2 } from '@grafana/ui';
 import QueryBuilder, { QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 import 'smart-webcomponents-react/source/styles/smart.dark-orange.css';
@@ -37,11 +37,6 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
 }) => {
   const theme = useTheme2();
   document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
-
-  const initialize = useRef(true);
-  useEffect(() => {
-    initialize.current = false;
-  }, []);
 
   const sanitizedFilter = useMemo(() => {
     return filterXSSLINQExpression(value);
