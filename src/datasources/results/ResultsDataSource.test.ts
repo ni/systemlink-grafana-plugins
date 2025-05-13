@@ -3,7 +3,7 @@ import { ResultsDataSource } from './ResultsDataSource';
 import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { ResultsQuery } from './types/types';
-import { DataFrameDTO, DataQueryRequest } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, LegacyMetricFindQueryOptions } from '@grafana/data';
 
 let datastore: ResultsDataSource, backendServer: MockProxy<BackendSrv>
 
@@ -103,6 +103,34 @@ describe('ResultsDataSource', () => {
 
       expect(result).toBe(false);
     });
+    describe('metricFindQuery', () => {
+      test('should call QueryResultsDataSource metricFindQuery with correct arguments', async () => {
+        const mockQuery = { properties: 'TestProgramName', queryBy: 'TestProgramName'};
+        const mockOptions = { range: {} };
+        const mockResponse = [{ text: 'value1', value: '1' }];
 
+        const queryResultsDataSource = datastore.queryResultsDataSource;
+        queryResultsDataSource.metricFindQuery = jest.fn().mockResolvedValue(mockResponse);
+
+        const result = await datastore.metricFindQuery(mockQuery, mockOptions as LegacyMetricFindQueryOptions);
+
+        expect(queryResultsDataSource.metricFindQuery).toHaveBeenCalledWith(mockQuery, mockOptions);
+        expect(result).toBe(mockResponse);
+      });
+
+      test('should call QueryResultsDataSource metricFindQuery with undefined options', async () => {
+        const mockQuery = {queryType:'', properties: 'TestProgramName', queryBy: 'TestProgramName'};
+        const mockResponse = [{ text: 'value2', value: '2' }];
+
+        const queryResultsDataSource = datastore.queryResultsDataSource;
+        queryResultsDataSource.metricFindQuery = jest.fn().mockResolvedValue(mockResponse);
+
+        const result = await datastore.metricFindQuery(mockQuery);
+
+        expect(queryResultsDataSource.metricFindQuery).toHaveBeenCalledWith(mockQuery, undefined);
+        expect(result).toBe(mockResponse);
+      });
+    });
   });
+
 });

@@ -233,6 +233,20 @@ describe('QueryResultsDataSource', () => {
       );
     });
   });
+  describe('metricFindQuery', () => {
+    test('returns an empty array when called', async () => {
+      const query = {};
+      const options = {};
+      const result = await datastore.metricFindQuery(query, options);
+      expect(result).toEqual([]);
+    });
+
+    test('returns an empty array when called without options', async () => {
+      const query = {};
+      const result = await datastore.metricFindQuery(query);
+      expect(result).toEqual([]);
+    });
+  });
 
   const buildQuery = getQueryBuilder<QueryResults>()({
     refId: 'A',

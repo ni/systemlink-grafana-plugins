@@ -11,6 +11,24 @@ export interface QueryResults extends ResultsQuery {
   recordCount?: number;
 }
 
+export interface ResultsVariableQuery extends ResultsQuery {
+  properties?: string;
+  queryBy?: string;
+}
+
+export const ResultsVariableProperties = [
+  {
+    value: 'dataTableIds',
+    label: 'Data Table IDs',
+    description: 'Data Table IDs associated with the result',
+  },
+  {
+    value: 'programName',
+    label: 'Test Program Name',
+    description: 'Test Program Name of the result',
+  }
+]
+
 export const OrderBy = [
   {
     value: 'ID',
