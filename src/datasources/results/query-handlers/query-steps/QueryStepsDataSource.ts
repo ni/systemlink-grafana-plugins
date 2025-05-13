@@ -2,8 +2,11 @@ import { DataQueryRequest, DataFrameDTO, FieldType } from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
   QueryResponse,
+  QueryStepPathsResponse,
   QuerySteps,
   QueryStepsResponse,
+  StepPathResponseProperties,
+  StepsPathProperties,
   StepsProperties,
   StepsPropertiesOptions,
   StepsResponseProperties,
@@ -17,6 +20,7 @@ import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/Res
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
+  queryPathsUrl = this.baseUrl + '/v2/query-paths';
 
   defaultQuery = defaultStepsQuery;
 
@@ -44,6 +48,27 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       returnCount,
     });
 
+    if (response.error) {
+      throw new Error(`An error occurred while querying steps: ${response.error}`);
+    }
+
+    return response;
+  }
+
+  async queryStepPaths(
+    projection?: StepsPathProperties[],
+    filter?: string,
+    take?: number,
+    continuationToken?: string,
+    returnCount = false
+  ): Promise<QueryStepPathsResponse> {
+    const response = await this.post<QueryStepPathsResponse>(this.queryPathsUrl, {
+      filter,
+      projection,
+      take,
+      continuationToken,
+      returnCount,
+    })
     if (response.error) {
       throw new Error(`An error occurred while querying steps: ${response.error}`);
     }
@@ -92,14 +117,54 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       totalCount: response.totalCount
     };
   }
+
+  async queryStepPathInBatches(
+    filter?: string,
+    projection?: StepsPathProperties[],
+    take?: number,
+    returnCount = false,
+  ): Promise<QueryStepPathsResponse> {
+    const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<StepPathResponseProperties>> => {
+      const response = await this.queryStepPaths(
+        projection,
+        filter,
+        currentTake,
+        token,
+        returnCount
+      );
+
+      return {
+        data: response.paths,
+        continuationToken: response.continuationToken,
+        totalCount: response.totalCount
+      };
+    };
+
+    const batchQueryConfig = {
+      maxTakePerRequest: 500,
+      requestsPerSecond: 6
+    };
+
+    const response = await this.queryInBatches(queryRecord, batchQueryConfig, take);
+
+    return {
+      paths: response.data,
+      continuationToken: response.continuationToken,
+      totalCount: response.totalCount
+    };
+  }
   
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
     if (query.resultsQuery) {
       this.disableStepsQueryBuilder = false;
     }
-
+    
     query.stepsQuery = this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options);
     query.resultsQuery = this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options);
+    
+    if(query.resultsQuery) {
+      await this.queryStepPathInBatches(query.resultsQuery, [StepsPathProperties.path] ,10000, true);
+    }
 
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
     const stepsQuery = this.buildQueryFilter(query.stepsQuery, useTimeRangeFilter);
