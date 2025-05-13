@@ -1,3 +1,9 @@
+## [3.65.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.64.0...v3.65.0) (2025-05-13)
+
+### Features
+
+* add output type to test plans query editor ([#180](https://github.com/ni/systemlink-grafana-plugins/issues/180)) ([e979aeb](https://github.com/ni/systemlink-grafana-plugins/commit/e979aebd7adb99a7a89190e3a5256e866a8b534d))
+
 ## [3.64.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.63.0...v3.64.0) (2025-05-13)
 
 ### Features
