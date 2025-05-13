@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { InlineField, VerticalGroup } from '@grafana/ui';
+import { InlineField } from '@grafana/ui';
 import { ResultsQueryBuilder } from '../query-results/ResultsQueryBuilder';
 import { StepsQueryBuilder } from '../query-steps/StepsQueryBuilder';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
@@ -60,7 +60,7 @@ export const StepsQueryBuilderContainer = (
         <StepsQueryBuilder
           filter={stepsQuery}
           workspaces={workspaces}
-          status={enumToOptions(TestMeasurementStatus).map(option => option.value?.toString() || '')}
+          stepStatus={enumToOptions(TestMeasurementStatus).map(option => option.value?.toString() || '')}
           stepsPath={[]}
           globalVariableOptions={datasource.globalVariableOptions()}
           disableQueryBuilder={disableStepsQueryBuilder}
