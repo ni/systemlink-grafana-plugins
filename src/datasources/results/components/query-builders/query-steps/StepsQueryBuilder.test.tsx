@@ -85,8 +85,8 @@ describe('StepsQueryBuilder', () => {
       const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
 
       expect(filterContainer?.length).toBe(1);
-      expect(filterContainer.item(0)?.textContent).toContain("Keyword"); //label
-      expect(filterContainer.item(0)?.textContent).toContain("Equals"); //operator
+      expect(filterContainer.item(0)?.textContent).toContain("Step keywords"); //label
+      expect(filterContainer.item(0)?.textContent).toContain("Contains"); //operator
       expect(filterContainer.item(0)?.textContent).toContain("keyword1"); //value
     });
 
@@ -108,9 +108,6 @@ describe('StepsQueryBuilder', () => {
       const filterConditions = renderResult.container.getElementsByClassName('smart-filter-group-condition');
       const logicalOperators = renderResult.container.getElementsByClassName('smart-filter-group-operator');
 
-      console.log('filterconditios', filterConditions.item(0)?.textContent);
-      console.log('logicalOperators', filterConditions.item(1)?.textContent);
-      console.log('logicalOperators', filterConditions.item(2)?.textContent);
       expect(filterContainer?.length).toBe(2);
       expect(filterConditions?.length).toBe(3);
       expect(logicalOperators?.length).toBe(2);
@@ -118,7 +115,7 @@ describe('StepsQueryBuilder', () => {
       expect(logicalOperators?.item(0)?.textContent).toContain('And');
       expect(logicalOperators?.item(1)?.textContent).toContain('Or');
 
-      expect(filterConditions.item(0)?.textContent).toContain('keywords1');
+      expect(filterConditions.item(0)?.textContent).toContain('keyword1');
       expect(filterConditions.item(1)?.textContent).toContain('stepName1');
       expect(filterConditions.item(2)?.textContent).toContain('FAILED');
     });
