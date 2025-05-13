@@ -53,7 +53,7 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
       fields={fields}
       messages={messages}
       onChange={onChange}
-      {...(initialize.current && { value: sanitizedFilter })}
+      value={sanitizedFilter}
       validateOnInput={validateOnInput}
       showIcons={showIcons}
     />
