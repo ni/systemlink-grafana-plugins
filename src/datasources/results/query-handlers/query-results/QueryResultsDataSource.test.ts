@@ -4,7 +4,8 @@ import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching
 import { Field } from '@grafana/data';
 import { QueryResultsDataSource } from './QueryResultsDataSource';
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions } from 'datasources/results/types/QueryResults.types';
-import { OutputType, QueryType } from 'datasources/results/types/types';
+import { OutputType, QueryType, UseTimeRangeFor } from 'datasources/results/types/types';
+import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 
 const mockQueryResultsResponse: QueryResultsResponse = {
   results: [
@@ -17,6 +18,7 @@ const mockQueryResultsResponse: QueryResultsResponse = {
   ],
   totalCount: 1
 };
+const mockQueryResultsValuesResponse = ["partNumber1", "partNumber2"];
 
 let datastore: QueryResultsDataSource, backendServer: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
 
@@ -27,6 +29,10 @@ describe('QueryResultsDataSource', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
       .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
+
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
+      .mockReturnValue(createFetchResponse(mockQueryResultsValuesResponse));
   })
 
   describe('queryResults', () => {
@@ -178,6 +184,223 @@ describe('QueryResultsDataSource', () => {
         expect(fields).toEqual([
           { name: 'properties', values: [""], type: 'string' },
         ]);
+    });
+
+    test('returns part numbers', async () => {  
+      await datastore.getPartNumbers();
+  
+      expect(datastore.partNumbersCache).toEqual(["partNumber1", "partNumber2"]);
+    });
+
+    test('should not query part number values if cache exists', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values' }))
+        .mockReturnValue(createFetchResponse(['value1']));
+      datastore.partNumbersCache.push('partNumber');
+      backendServer.fetch.mockClear();
+  
+      await datastore.query(buildQuery())
+  
+      expect(backendServer.fetch).not.toHaveBeenCalled();
+    });
+
+    test('returns workspaces', async () => {
+      await datastore.loadWorkspaces();
+  
+      expect(datastore.workspacesCache.get('1')).toEqual({"id": "1", "name": "Default workspace"});
+      expect(datastore.workspacesCache.get('2')).toEqual({"id": "2", "name": "Other workspace"});
+    });
+  
+    test('should not query workspace values if cache exists', async () => {
+      const mockWorkspacesResponse = { id: 'workspace1', name: 'workspace1', default: false, enabled: true };
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/niauth/v1/user' }))
+        .mockReturnValue(createFetchResponse(mockWorkspacesResponse));
+      datastore.workspacesCache.set('workspace', mockWorkspacesResponse);
+      backendServer.fetch.mockClear();
+      const query = buildQuery(
+        {
+          refId: 'A',
+          outputType: OutputType.Data
+        },
+      );
+
+      await datastore.query(query)
+  
+      expect(backendServer.fetch).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: '/niauth/v1/user',
+        })
+      );
+    });
+
+    describe('query builder queries', () => {
+      test('should transform field when queryBy contains a single value', async () => {
+        const query = buildQuery(
+          {
+            refId: 'A',
+            properties: [
+              ResultsPropertiesOptions.PART_NUMBER
+            ] as ResultsProperties[],
+            orderBy: undefined,
+            queryBy: `${ResultsPropertiesOptions.PART_NUMBER} = '123'`
+          },
+        );
+  
+        await datastore.query(query);
+  
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: "partNumber = '123'"
+            }),
+          })
+        );
+      });
+  
+      test('should transform fields when queryBy contains a multiple values', async () => {
+        const query = buildQuery(
+          {
+            refId: 'A',
+            properties: [
+              ResultsPropertiesOptions.PART_NUMBER
+            ] as ResultsProperties[],
+            orderBy: undefined,
+            queryBy: `${ResultsQueryBuilderFieldNames.PART_NUMBER} = "{partNumber1,partNumber2}"`
+          },
+        );
+  
+        await datastore.query(query);
+  
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: "(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\")"
+            }),
+          })
+        );
+      });
+
+      test('should transform fields when queryBy contains a date', async () => {   
+        jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));     
+
+        const query = buildQuery(
+          {
+            refId: 'A',
+            properties: [
+              ResultsPropertiesOptions.UPDATED_AT
+            ] as ResultsProperties[],
+            orderBy: undefined,
+            queryBy: 'UpdatedAt = "${__now:date}"'
+          },
+        );
+      
+        await datastore.query(query);
+      
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: 'UpdatedAt = "2025-01-01T00:00:00.000Z"'
+            }),
+          })
+        );
+
+        jest.useRealTimers();
+      });
+
+      test('should transform query when queryBy contains nested expressions', async () => {
+        const query = buildQuery(
+          {
+            refId: 'A',
+            queryBy: `(${ResultsQueryBuilderFieldNames.PART_NUMBER} = "123" || ${ResultsQueryBuilderFieldNames.KEYWORDS} != "456") && ${ResultsQueryBuilderFieldNames.HOSTNAME} contains "Test"`,
+          },
+        );
+      
+        await datastore.query(query);
+      
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: '(PartNumber = "123" || Keywords != "456") && HostName contains "Test"'
+            }),
+          })
+        );
+      });
+    });
+
+    describe('buildQueryFilter', () => {
+      test('should combine queryBy and useTimeRangeFilter into a single filter', async () => {
+        const filter = '(startedAt > "\${__from:date}" && startedAt < "\${__to:date}")';
+        const replacedFilter = '(startedAt > "2025-04-01" && startedAt < "2025-04-02")';
+        templateSrv.replace.calledWith(filter).mockReturnValue(replacedFilter); 
+
+        const queryBy = `(${ResultsQueryBuilderFieldNames.PART_NUMBER} = "123"` 
+          && `${ResultsQueryBuilderFieldNames.KEYWORDS} != "keyword1") `;
+        const query = buildQuery({
+          refId: 'A',
+          queryBy,
+          useTimeRange: true,
+          useTimeRangeFor: UseTimeRangeFor.Started,
+        });
+        const expectedFilter = `${queryBy} && ${replacedFilter}`;
+
+        await datastore.query(query);
+      
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              filter: expectedFilter,
+            }),
+          })
+        );
+      });
+
+      test('should return only queryBy filter when useTimeRange filter is not defined', async () => {
+        const queryBy = `(${ResultsQueryBuilderFieldNames.PART_NUMBER} = "123"` 
+          && `${ResultsQueryBuilderFieldNames.KEYWORDS} != "keyword1") `;
+        const query = buildQuery({
+          refId: 'A',
+          queryBy,
+          useTimeRange: false,
+        });
+        const expectedFilter = `${queryBy}`;
+
+        await datastore.query(query);
+      
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              filter: expectedFilter,
+            }),
+          })
+        );
+      });
+    });
+
+    test('should return only useTimeRange filter when queryby is not defined', async () => {
+      const filter = '(startedAt > "\${__from:date}" && startedAt < "\${__to:date}")';
+      const replacedFilter = '(startedAt > "2025-04-01" && startedAt < "2025-04-02")';
+      templateSrv.replace.calledWith(filter).mockReturnValue(replacedFilter); 
+      const query = buildQuery({
+        refId: 'A',
+        queryBy: '',
+        useTimeRange: true,
+        useTimeRangeFor: UseTimeRangeFor.Started,
+      });
+
+      await datastore.query(query);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            filter: replacedFilter,
+          }),
+        })
+      );
     });
   });
 

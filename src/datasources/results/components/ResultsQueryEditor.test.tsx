@@ -3,7 +3,7 @@ import { render, waitFor } from '@testing-library/react';
 import { ResultsQueryEditor } from './ResultsQueryEditor';
 import { QueryEditorProps } from '@grafana/data';
 import { ResultsDataSource } from '../ResultsDataSource';
-import { QueryType, ResultsQuery } from '../types/types';
+import { QueryType, ResultsDataSourceOptions, ResultsQuery } from '../types/types';
 import userEvent from '@testing-library/user-event';
 import { defaultResultsQuery, defaultStepsQuery } from '../defaultQueries';
 
@@ -13,7 +13,12 @@ const mockDatasource = {
   prepareQuery: jest.fn((query: ResultsQuery) => query),
 } as unknown as ResultsDataSource;
 
-const defaultProps: QueryEditorProps<ResultsDataSource, ResultsQuery> = {
+const queryResultsDataSourceMock = jest.fn(() => {});
+Object.defineProperty(mockDatasource, 'queryResultsDataSource', {
+  get: queryResultsDataSourceMock,
+});
+
+const defaultProps: QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSourceOptions> = {
   query: {
     refId: 'A',
     queryType: QueryType.Results,
@@ -97,6 +102,25 @@ describe('ResultsQueryEditor', () => {
 
       expect(renderResult.queryByTestId('query-steps-editor')).toBeInTheDocument();
       expect(renderResult.queryByTestId('query-results-editor')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Datasource', () => {
+    test('should call queryResultsDataSource when query type is results', () => {
+      renderElement();
+
+      expect(queryResultsDataSourceMock).toHaveBeenCalled();
+    });
+
+    test('should not call queryResultsDataSource when query type is steps', () => {
+      const query = {
+        refId: 'A',
+        queryType: QueryType.Steps,
+      };
+
+      renderElement(query);
+
+      expect(queryResultsDataSourceMock).not.toHaveBeenCalled();
     });
   });
 });

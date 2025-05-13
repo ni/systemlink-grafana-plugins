@@ -8,6 +8,7 @@ export interface QueryResults extends ResultsQuery {
   useTimeRange?: boolean;
   useTimeRangeFor?: string;
   recordCount?: number;
+  queryBy?: string;
 }
 
 export const OrderBy = [

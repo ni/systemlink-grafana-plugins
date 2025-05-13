@@ -9,21 +9,23 @@ import { LEGACY_METADATA_TYPE } from 'core/types';
 jest.mock('@grafana/runtime', () => ({
   ...jest.requireActual('@grafana/runtime'),
   getBackendSrv: () => ({ fetch: fetchMock }),
-  getTemplateSrv: () => ({ replace: replaceMock, containsTemplate: containsTemplateMock, getVariables: getVariablesMock }),
+  getTemplateSrv: () => ({ replace: replaceMock, containsTemplate: containsTemplateMock }),
 }));
 
 const mockVariables = [{
   name: 'tableId',
-  current: { value: '1' }
+  value: '1'
 }, {
   name: 'columns',
-  current: { value: ['time', 'int'] }
+  value: '{time,int}'
 }];
 
 const fetchMock = jest.fn<Observable<FetchResponse>, [BackendSrvRequest]>();
-const replaceMock = jest.fn((a: string, ...rest: any) => a);
+const replaceMock = jest.fn((variable: string) => {
+  const matchedVariable = mockVariables.find(v => `$${v.name}` === variable);
+  return matchedVariable ? matchedVariable.value : variable;
+});
 const containsTemplateMock = jest.fn((a: string) => mockVariables.map(v => `$${v.name}`).includes(a));
-const getVariablesMock = jest.fn(() => mockVariables);
 
 let ds: DataFrameDataSource;
 
@@ -207,7 +209,6 @@ it('should migrate queries using columns of arrays of objects', async () => {
 
 it('attempts to replace variables in properties query', async () => {
   const tableId = '$tableId';
-  replaceMock.mockReturnValueOnce('1');
 
   await ds.getTableProperties(tableId);
 
@@ -217,11 +218,10 @@ it('attempts to replace variables in properties query', async () => {
 
 it('attempts to replace variables in data query', async () => {
   const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Data, tableId: '$tableId', columns: ['$columns'] }]);
-  replaceMock.mockReturnValueOnce('1');
 
   await ds.query(query);
 
-  expect(replaceMock).toHaveBeenCalledTimes(2);
+  expect(replaceMock).toHaveBeenCalledTimes(3);
   expect(replaceMock).toHaveBeenCalledWith(query.targets[0].tableId, expect.anything());
   expect(containsTemplateMock).toHaveBeenCalledTimes(1);
   expect(containsTemplateMock).toHaveBeenCalledWith(query.targets[0].columns![0]);
