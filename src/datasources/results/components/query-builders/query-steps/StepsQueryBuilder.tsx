@@ -18,7 +18,7 @@ type StepsQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     filter?: string;
     workspaces: Workspace[];
-    status: string[];
+    stepStatus: string[];
     stepsPath: string[];
     globalVariableOptions: QueryBuilderOption[];
     onFilterChange: (filter: string) => void;
@@ -28,7 +28,7 @@ type StepsQueryBuilderProps = QueryBuilderProps &
 export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
   filter,
   workspaces,
-  status,
+  stepStatus,
   stepsPath,
   globalVariableOptions,
   onFilterChange,
@@ -58,7 +58,7 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
     };
   }, [workspaces]);
 
-  const statusField = useMemo(() => {
+  const stepStatusField = useMemo(() => {
     const statusField = StepsQueryBuilderFields.STATUS;
     return {
       ...statusField,
@@ -66,11 +66,11 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
         ...statusField.lookup,
         dataSource: [
           ...(statusField.lookup?.dataSource || []), 
-          ...status.map(name => ({ label: name, value: name }))
+          ...stepStatus.map(name => ({ label: name, value: name }))
         ],
       },
     };
-  }, [status]);
+  }, [stepStatus]);
 
   const updatedAtField = useMemo(() => {
     const updatedField = StepsQueryBuilderFields.UPDATEDAT;
@@ -107,7 +107,7 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
       stepsPathField,
       updatedAtField,
       workspaceField,
-      statusField,
+      stepStatusField,
       ...StepsQueryBuilderStaticFields!,
     ].map(field => {
       if (field.lookup?.dataSource) {
@@ -170,7 +170,7 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
     ];
 
     setOperations([...customOperations, ...keyValueOperations]);
-  }, [workspaceField, updatedAtField, stepsPathField, globalVariableOptions, statusField]);
+  }, [workspaceField, updatedAtField, stepsPathField, globalVariableOptions, stepStatusField]);
 
   return (
     <QueryBuilder
