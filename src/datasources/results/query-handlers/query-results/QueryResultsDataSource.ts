@@ -3,6 +3,8 @@ import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase
 import { DataQueryRequest, DataFrameDTO, FieldType } from "@grafana/data";
 import { OutputType } from "datasources/results/types/types";
 import { defaultResultsQuery } from "datasources/results/defaultQueries";
+import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
+import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
 
 export class QueryResultsDataSource extends ResultsDataSourceBase {
   queryResultsUrl = this.baseUrl + '/v2/query-results';
@@ -35,8 +37,17 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     await this.getPartNumbers();
     await this.loadWorkspaces();
 
+    if (query.queryBy) {
+      query.queryBy = transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.resultsComputedDataFields,
+      );
+    }
+
+    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
+
     const responseData = await this.queryResults(
-      this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
+      this.buildQueryFilter(query.queryBy, useTimeRangeFilter),
       query.orderBy,
       query.properties,
       query.recordCount,
@@ -81,6 +92,19 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     }
   }
 
+  /**
+   * A map linking each field name to its corresponding query transformation function.
+   * It dynamically processes and formats query expressions based on the field type.
+   */
+  readonly resultsComputedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(ResultsQueryBuilderFieldNames).map(field => [
+      field,
+      field === (ResultsQueryBuilderFieldNames.UPDATED_AT) || field === (ResultsQueryBuilderFieldNames.STARTED_AT)
+        ? this.timeFieldsQuery(field)
+        : this.multipleValuesQuery(field),
+    ])
+  );
+  
   shouldRunQuery(_: QueryResults): boolean {
     return true;
   }
