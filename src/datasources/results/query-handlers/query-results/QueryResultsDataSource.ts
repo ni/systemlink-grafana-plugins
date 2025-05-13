@@ -98,7 +98,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     partNumbers?.forEach(partNumber => this.partNumbersCache.push(partNumber));
   }
 
-  async metricFindQuery(query: ResultsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+  async metricFindQuery(_query: ResultsVariableQuery, _options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     return [];
   }
 

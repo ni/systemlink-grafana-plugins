@@ -4,6 +4,7 @@ import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { ResultsQuery } from './types/types';
 import { DataFrameDTO, DataQueryRequest, LegacyMetricFindQueryOptions } from '@grafana/data';
+import { ResultsVariableQuery } from './types/QueryResults.types';
 
 let datastore: ResultsDataSource, backendServer: MockProxy<BackendSrv>
 
@@ -105,7 +106,7 @@ describe('ResultsDataSource', () => {
     });
     describe('metricFindQuery', () => {
       test('should call QueryResultsDataSource metricFindQuery with correct arguments', async () => {
-        const mockQuery = { properties: 'TestProgramName', queryBy: 'TestProgramName'};
+        const mockQuery = { properties: 'TestProgramName', queryBy: 'TestProgramName'} as unknown as ResultsVariableQuery;
         const mockOptions = { range: {} };
         const mockResponse = [{ text: 'value1', value: '1' }];
 
@@ -119,7 +120,7 @@ describe('ResultsDataSource', () => {
       });
 
       test('should call QueryResultsDataSource metricFindQuery with undefined options', async () => {
-        const mockQuery = {queryType:'', properties: 'TestProgramName', queryBy: 'TestProgramName'};
+        const mockQuery = {queryType:'', properties: 'TestProgramName', queryBy: 'TestProgramName'} as unknown as ResultsVariableQuery;
         const mockResponse = [{ text: 'value2', value: '2' }];
 
         const queryResultsDataSource = datastore.queryResultsDataSource;
