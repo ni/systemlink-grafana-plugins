@@ -18,7 +18,7 @@ React.HTMLAttributes<Element> & {
   disableStepsQueryBuilder: boolean;
 }
 
-export const StepsQueryBuilderContainer = (
+export const StepsQueryBuilderWrapper = (
   {
     datasource, 
     resultsQuery,
@@ -60,7 +60,7 @@ export const StepsQueryBuilderContainer = (
         <StepsQueryBuilder
           filter={stepsQuery}
           workspaces={workspaces}
-          status={enumToOptions(TestMeasurementStatus).map(option => option.value?.toString() || '')}
+          stepStatus={enumToOptions(TestMeasurementStatus).map(option => option.value?.toString() || '')}
           stepsPath={[]}
           globalVariableOptions={datasource.globalVariableOptions()}
           disableQueryBuilder={disableStepsQueryBuilder}

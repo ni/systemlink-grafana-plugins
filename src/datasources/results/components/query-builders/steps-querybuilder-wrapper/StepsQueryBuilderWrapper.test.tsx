@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, act, cleanup } from '@testing-library/react';
-import { StepsQueryBuilderContainer } from './StepsQueryBuilderContainer';
+import { StepsQueryBuilderWrapper } from './StepsQueryBuilderWrapper';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 import userEvent from '@testing-library/user-event';
 
@@ -26,12 +26,12 @@ jest.mock('../query-results/ResultsQueryBuilder', () => ({
 
 jest.mock('../query-steps/StepsQueryBuilder', () => ({
   StepsQueryBuilder: jest.fn(
-    ({ filter, workspaces, status, stepsPath, globalVariableOptions, disableQueryBuilder, onFilterChange }) => {
+    ({ filter, workspaces, stepStatus, stepsPath, globalVariableOptions, disableQueryBuilder, onFilterChange }) => {
       return (
         <div data-testid="steps-query-builder">
           <div data-testid="steps-filter">{filter}</div>
           <div data-testid="steps-workspaces">{JSON.stringify(workspaces)}</div>
-          <div data-testid="steps-status">{JSON.stringify(status)}</div>
+          <div data-testid="steps-status">{JSON.stringify(stepStatus)}</div>
           <div data-testid="steps-path">{JSON.stringify(stepsPath)}</div>
           <div data-testid="steps-global-vars">{JSON.stringify(globalVariableOptions)}</div>
           <button data-testid="steps-trigger-change" onClick={() => onFilterChange('newStepsQuery')}>
@@ -62,7 +62,7 @@ jest.mock('core/utils', () => ({
   ]),
 }));
 
-describe('StepsQueryBuilderContainer', () => {
+describe('StepsQueryBuilderWrapper', () => {
   const defaultProps = {
     datasource: mockDatasource,
     resultsQuery: 'partNumber = "PN1"',
@@ -74,7 +74,7 @@ describe('StepsQueryBuilderContainer', () => {
 
   beforeEach(async () => {
     await act(async () => {
-      render(<StepsQueryBuilderContainer {...defaultProps} />);
+      render(<StepsQueryBuilderWrapper {...defaultProps} />);
     });
   });
 
@@ -118,7 +118,7 @@ describe('StepsQueryBuilderContainer', () => {
   test('should disable StepsQueryBuilder when disableStepsQueryBuilder property is true', () => {
     cleanup();
 
-    render(<StepsQueryBuilderContainer {...defaultProps} disableStepsQueryBuilder={true} />);
+    render(<StepsQueryBuilderWrapper {...defaultProps} disableStepsQueryBuilder={true} />);
 
     expect(screen.getByTestId('disable-steps-query-builder').textContent).toBe('true');
   });
