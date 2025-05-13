@@ -14,8 +14,8 @@ import '../../ResultsQueryEditor.scss';
 import { OutputType } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
 import { OrderBy, QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
-import { StepsQueryBuilderContainer } from '../../query-builders/steps-querybuilder-container/StepsQueryBuilderContainer';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
+import { StepsQueryBuilderWrapper } from '../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
 
 type Props = {
   query: QuerySteps;
@@ -106,7 +106,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
           />
         </div>
         <div className="horizontal-control-group">
-          <StepsQueryBuilderContainer
+          <StepsQueryBuilderWrapper
             datasource={datasource}
             resultsQuery={query.resultsQuery}
             stepsQuery={query.stepsQuery}

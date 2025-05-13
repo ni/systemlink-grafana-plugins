@@ -6,7 +6,7 @@ import { OutputType, QueryType } from 'datasources/results/types/types';
 import { select } from 'react-select-event';
 import userEvent from '@testing-library/user-event';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
-import { StepsQueryBuilderContainer } from '../../query-builders/steps-querybuilder-container/StepsQueryBuilderContainer';
+import { StepsQueryBuilderWrapper } from '../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
 
 jest.mock('../../query-builders/steps-querybuilder-container/StepsQueryBuilderContainer', () => ({
   StepsQueryBuilderContainer: jest.fn(({ resultsQuery, stepsQuery, onResultsQueryChange, onStepsQueryChange }) => {
@@ -197,7 +197,7 @@ describe('QueryStepsEditor', () => {
     test('should render query builder with default values', () => {
       const queryBuilderContainer = screen.getByTestId('steps-query-builder-container');
       expect(queryBuilderContainer).toBeInTheDocument();
-      expect(jest.mocked(StepsQueryBuilderContainer)).toHaveBeenCalledWith(
+      expect(jest.mocked(StepsQueryBuilderWrapper)).toHaveBeenCalledWith(
         expect.objectContaining({
           resultsQuery: defaultQuery.resultsQuery,
           stepsQuery: defaultQuery.stepsQuery,
