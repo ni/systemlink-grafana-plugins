@@ -1,3 +1,13 @@
+## [3.66.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.65.0...v3.66.0) (2025-05-13)
+
+### Features
+
+* **results:** Implement Query Transformation Logic for Results Query Builder ([#166](https://github.com/ni/systemlink-grafana-plugins/issues/166)) ([8a6344b](https://github.com/ni/systemlink-grafana-plugins/commit/8a6344b8849d42b05ef71bc7326a7d070872ac24))
+
+### Bug Fixes
+
+* **results:** Fix Steps Query Builder Field Configurations and Filter Operations for Keywords ([#182](https://github.com/ni/systemlink-grafana-plugins/issues/182)) ([b124073](https://github.com/ni/systemlink-grafana-plugins/commit/b124073c71db98b6baff3c2f7068a68e3983ef53))
+
 ## [3.65.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.64.0...v3.65.0) (2025-05-13)
 
 ### Features
