@@ -25,6 +25,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   defaultQuery = defaultStepsQuery;
 
   private _disableStepsQueryBuilder = true;
+  private _stepPaths: Set<string> = new Set();
 
   async querySteps(
     filter?: string,
@@ -163,7 +164,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     query.resultsQuery = this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options);
     
     if(query.resultsQuery) {
-      await this.queryStepPathInBatches(query.resultsQuery, [StepsPathProperties.path] ,10000, true);
+      const response = await this.queryStepPathInBatches(query.resultsQuery, [StepsPathProperties.path] ,10000, true);
+      this.stepPaths = response.paths.map(path => path.toString());
     }
 
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
@@ -229,6 +231,13 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     this._disableStepsQueryBuilder = value;
   }
 
+  get stepPaths(): string[] {
+    return Array.from(this._stepPaths);
+  }
+
+  set stepPaths(value: string[]) {
+    this._stepPaths = new Set(value);
+  }
   private processFields(
     selectedFields: StepsProperties[],
     stepsResponse: StepsResponseProperties[]

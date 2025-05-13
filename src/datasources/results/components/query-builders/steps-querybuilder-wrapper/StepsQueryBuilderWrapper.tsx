@@ -61,7 +61,7 @@ export const StepsQueryBuilderWrapper = (
           filter={stepsQuery}
           workspaces={workspaces}
           stepStatus={enumToOptions(TestMeasurementStatus).map(option => option.value?.toString() || '')}
-          stepsPath={[]}
+          stepsPath={datasource.stepPaths}
           globalVariableOptions={datasource.globalVariableOptions()}
           disableQueryBuilder={disableStepsQueryBuilder}
           onFilterChange={(filter) => onStepsQueryChange(filter)}
