@@ -14,13 +14,34 @@ import '../../ResultsQueryEditor.scss';
 import { OrderBy, QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
 import { OutputType, TestMeasurementStatus } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
+import { Workspace } from 'core/types';
+import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
+import { ResultsQueryBuilder } from '../../query-builders/query-results/ResultsQueryBuilder';
 
 type Props = {
   query: QueryResults;
   handleQueryChange: (query: QueryResults, runQuery?: boolean) => void;
+  datasource: QueryResultsDataSource;
 };
 
-export function QueryResultsEditor({ query, handleQueryChange }: Props) {
+export function QueryResultsEditor({ query, handleQueryChange, datasource }: Props) {
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [partNumbers, setPartNumbers] = useState<string[]>([]);
+
+  useEffect(() => {
+    const loadWorkspaces = async () => {
+      await datasource.loadWorkspaces();
+      setWorkspaces(Array.from(datasource.workspacesCache.values()));
+    };
+    const loadPartNumbers = async () => {
+      await datasource.getPartNumbers();
+      setPartNumbers(datasource.partNumbersCache);
+    };
+
+    loadWorkspaces();
+    loadPartNumbers();
+  }, [datasource]);
+
   const onOutputChange = (value: OutputType) => {
     handleQueryChange({ ...query, outputType: value });
   };
@@ -43,6 +64,12 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
     handleQueryChange({ ...query, recordCount: value });
   };
+
+  const onParameterChange = (value: string) => {
+    if (query.queryBy !== value) {
+      handleQueryChange({ ...query, queryBy: value });
+    }
+  }
 
   return (
     <>
@@ -120,16 +147,9 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
                 />
               </InlineField>
             </div>
-          </VerticalGroup>
-        )}
-        {query.outputType === OutputType.TotalCount && (
-          <TimeRangeControls
-            query={query}
-            handleQueryChange={(updatedQuery, runQuery) => {
-              handleQueryChange(updatedQuery as QueryResults, runQuery);
-            }}
-          />
-        )}
+          )}
+        </div>
+        </div>
       </VerticalGroup>
     </>
   );
