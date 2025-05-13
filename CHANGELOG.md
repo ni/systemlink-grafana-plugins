@@ -1,3 +1,9 @@
+## [3.64.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.63.0...v3.64.0) (2025-05-13)
+
+### Features
+
+* **results:** Add constants for Steps Query Builder ([#170](https://github.com/ni/systemlink-grafana-plugins/issues/170)) ([708f355](https://github.com/ni/systemlink-grafana-plugins/commit/708f355801c9925b794b484491a5552edc57030b))
+
 ## [3.63.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.62.0...v3.63.0) (2025-05-12)
 
 ### Features
