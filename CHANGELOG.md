@@ -1,3 +1,9 @@
+## [3.66.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.66.0...v3.66.1) (2025-05-13)
+
+### Bug Fixes
+
+* **results:** Update keyword filter operations in result query builder ([#179](https://github.com/ni/systemlink-grafana-plugins/issues/179)) ([8981c35](https://github.com/ni/systemlink-grafana-plugins/commit/8981c35d4807053bbea6ab9090ac0752f3b1f893))
+
 ## [3.66.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.65.0...v3.66.0) (2025-05-13)
 
 ### Features
