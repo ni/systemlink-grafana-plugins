@@ -9,7 +9,7 @@ export enum ResultsQueryBuilderFieldNames {
   PROPERTIES = 'Properties',
   SERIAL_NUMBER = 'SerialNumber',
   STARTED_AT = 'StartedAt',
-  STATUS = 'Status.statusType',
+  STATUS = 'Status',
   SYSTEM_ID = 'SystemId',
   PROGRAM_NAME = 'ProgramName',
   UPDATED_AT = 'UpdatedAt',
