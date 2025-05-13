@@ -65,11 +65,11 @@ class SharedCache<T> {
    */
   private cleanup(): void {
     const now = Date.now();
-    for (const [key, { expiresAt }] of this.store.entries()) {
+    this.store.forEach(({ expiresAt }, key) => {
       if (expiresAt !== null && expiresAt <= now) {
         this.store.delete(key);
       }
-    }
+    });
 
     this.checkAndStopCleanup();
   }
