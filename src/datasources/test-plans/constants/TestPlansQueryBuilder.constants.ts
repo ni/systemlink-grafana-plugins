@@ -14,8 +14,8 @@ export enum TestPlansQueryBuilderFieldNames {
     UPDATED_BY = "updatedBy",
     CREATED_AT = "createdAt",
     UPDATED_AT = "updatedAt",
-    EARLIEST_START_DATE = "plannedStartDateTime",
-    DUE_DATE = "estimatedEndDateTime",
+    PLANNED_START_DATE = "plannedStartDateTime",
+    ESTIMATED_END_DATE = "estimatedEndDateTime",
     PROPERTIES = "properties"
 }
 
@@ -201,8 +201,8 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
         }
     },
     EARLIESTSTARTDATE: {
-        label: 'Earliest Start Date',
-        dataField: TestPlansQueryBuilderFieldNames.EARLIEST_START_DATE,
+        label: 'Planned Start Date',
+        dataField: TestPlansQueryBuilderFieldNames.PLANNED_START_DATE,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -216,8 +216,8 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
         }
     },
     DUEDATE: {
-        label: 'Due Date',
-        dataField: TestPlansQueryBuilderFieldNames.DUE_DATE,
+        label: 'Estimated Date',
+        dataField: TestPlansQueryBuilderFieldNames.ESTIMATED_END_DATE,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -227,7 +227,11 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
             QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name
         ],
         lookup: {
-            dataSource: []
+            dataSource: [
+                { label: "From", value: "${__from:date}" },
+                { label: "To", value: "${__to:date}" },
+                { label: "Now", value: "${__now:date}" },
+            ]
         }
     },
     PROPERTIES: {

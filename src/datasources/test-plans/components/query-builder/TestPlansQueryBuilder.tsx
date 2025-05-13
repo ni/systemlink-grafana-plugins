@@ -130,7 +130,7 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
 
     setOperations([...customOperations, ...keyValueOperations]);
 
-  }, [globalVariableOptions]);
+  }, [dueDateField, earlieastStartDateField, globalVariableOptions]);
 
   return (
     <QueryBuilder
