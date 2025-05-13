@@ -10,6 +10,7 @@ services:
         grafana_image: ${GRAFANA_IMAGE:-grafana}
     environment:
       - GF_USERS_DEFAULT_THEME=light
+      - GF_PLUGINS_PREINSTALL=marcusolsson-json-datasource
     ports:
       - 3000:3000/tcp
     volumes:
