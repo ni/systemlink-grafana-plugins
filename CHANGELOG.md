@@ -1,3 +1,9 @@
+## [3.67.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.66.1...v3.67.0) (2025-05-13)
+
+### Features
+
+* **results:** Add steps query builder component ([#174](https://github.com/ni/systemlink-grafana-plugins/issues/174)) ([1f79d1b](https://github.com/ni/systemlink-grafana-plugins/commit/1f79d1b0ca7f252f7970c230f970502dda9c0541))
+
 ## [3.66.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.66.0...v3.66.1) (2025-05-13)
 
 ### Bug Fixes
