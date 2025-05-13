@@ -15,7 +15,7 @@ describe('StepsQueryBuilder', () => {
     function renderElement(
       filter: string,
       workspaces: Workspace[],
-      status: string[],
+      stepStatus: string[],
       stepsPath: string[],
       globalVariableOptions: QueryBuilderOption[] = [],
       disableQueryBuilder: boolean,
@@ -23,7 +23,7 @@ describe('StepsQueryBuilder', () => {
       reactNode = React.createElement(StepsQueryBuilder, {
         filter,
         workspaces,
-        status,
+        stepStatus,
         stepsPath,
         globalVariableOptions,
         disableQueryBuilder,
@@ -71,13 +71,23 @@ describe('StepsQueryBuilder', () => {
     });
 
     it('should select status in query builder', () => {
-      const { renderResult } = renderElement('status = "PASSED"', [], [], status, [], false);
+      const { renderResult } = renderElement('status.statusType = "PASSED"', [], [], status, [], false);
       const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
 
       expect(filterContainer?.length).toBe(1);
-      expect(filterContainer.item(0)?.textContent).toContain('Status'); //label
+      expect(filterContainer.item(0)?.textContent).toContain('Step status'); //label
       expect(filterContainer.item(0)?.textContent).toContain('Equals'); //operator
       expect(filterContainer.item(0)?.textContent).toContain('PASSED'); //value
+    });
+
+    it('should select keyword in query builder', () => {
+      const { renderResult } = renderElement('keywords.Any(it.Contains("keyword1"))', [], [], [], [], false);
+      const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
+
+      expect(filterContainer?.length).toBe(1);
+      expect(filterContainer.item(0)?.textContent).toContain("Keyword"); //label
+      expect(filterContainer.item(0)?.textContent).toContain("Equals"); //operator
+      expect(filterContainer.item(0)?.textContent).toContain("keyword1"); //value
     });
 
     it('should select global variable option', () => {
@@ -92,12 +102,15 @@ describe('StepsQueryBuilder', () => {
     });
 
     it('should render multiple conditions in query builder', () => {
-      const filter = '(keywords = "keywords1" && stepName = "stepName1") || status = "FAILED"';
+      const filter = '(keywords.Contains("keyword1") && name = "stepName1") || status.statusType = "FAILED"';
       const { renderResult } = renderElement(filter, [workspace], status, stepsPath, [], false);
       const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
       const filterConditions = renderResult.container.getElementsByClassName('smart-filter-group-condition');
       const logicalOperators = renderResult.container.getElementsByClassName('smart-filter-group-operator');
 
+      console.log('filterconditios', filterConditions.item(0)?.textContent);
+      console.log('logicalOperators', filterConditions.item(1)?.textContent);
+      console.log('logicalOperators', filterConditions.item(2)?.textContent);
       expect(filterContainer?.length).toBe(2);
       expect(filterConditions?.length).toBe(3);
       expect(logicalOperators?.length).toBe(2);
