@@ -43,11 +43,7 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery, ResultsDataS
     }
     return false;
   }
-
-  getStepsDataSource(): QueryStepsDataSource {
-    return this.queryStepsDataSource;
-  }
-
+  
   get queryResultsDataSource(): QueryResultsDataSource {
     return this._queryResultsDataSource;
   }
