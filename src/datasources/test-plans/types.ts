@@ -3,6 +3,8 @@ import { DataQuery } from '@grafana/schema'
 export interface TestPlansQuery extends DataQuery {
     properties?: Properties[];
     outputType: OutputType;
+    orderBy?: string;
+    descending?: boolean;
 }
 
 export enum OutputType {
@@ -66,4 +68,17 @@ export const PropertiesOptions = {
     SUBSTATE: 'substate',
     FIXTURE_IDS: 'fixtureIds',
     DUT: 'dut',
-}
+};
+
+export const OrderBy = [
+    {
+        value: 'ID',
+        label: 'ID',
+        description: `ID of the test plan`,
+    },
+    {
+        value: 'UPDATED_AT',
+        label: 'Updated At',
+        description: `Latest update at time of the test plan`,
+    }
+];
