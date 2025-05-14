@@ -71,6 +71,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
                   onChange={onOrderByChange}
                   value={query.orderBy}
                   defaultValue={query.orderBy}
+                  width={26}
                 />
               </InlineField>
               <InlineField label="Descending" tooltip={tooltips.descending}>
