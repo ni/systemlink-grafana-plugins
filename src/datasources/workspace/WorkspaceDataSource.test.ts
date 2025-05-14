@@ -40,12 +40,15 @@ describe('testDatasource', () => {
 });
 
 describe('queries', () => {
-  test('returns all workspaces', async () => {
-    const result = await ds.query(buildQuery({}));
+  test('returns all workspaces', () => {
+    const response$ = ds.query(buildQuery({}));
 
-    expect(result.data[0]).toHaveProperty('fields', [
-      { name: 'name', values: ['Default workspace', 'Other workspace'] }
-    ]);
+    response$.subscribe(response => {
+      const data = response.data;
+      expect(data).toHaveProperty('fields', [
+        { name: 'name', values: ['Default workspace', 'Other workspace'] }
+      ]);
+    });
   });
 
   test('metricFindQuery returns all workspaces', async () => {

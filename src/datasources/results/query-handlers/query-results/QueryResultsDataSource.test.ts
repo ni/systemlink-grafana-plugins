@@ -48,31 +48,33 @@ describe('QueryResultsDataSource', () => {
   });
 
   describe('query', () => {
-    test('returns data for valid data-output-type query', async () => {
+    test('returns data for valid data-output-type query', () => {
       const query = buildQuery({
         refId: 'A',
         outputType: OutputType.Data
       });
 
-      const response = await datastore.query(query);
-
-      expect(response.data).toHaveLength(1);
-      expect(response.data).toMatchSnapshot();
+      const response$ = datastore.query(query);
+      response$.subscribe((response) => {
+        expect(response.data).toMatchSnapshot();
+        expect(response.data).toHaveLength(1);
+      });
     });
 
-    test('returns total count for valid total count output type queries', async () => {
+    test('returns total count for valid total count output type queries', () => {
       const query = buildQuery({
         refId: 'A',
         outputType: OutputType.TotalCount
       });
 
-      const response = await datastore.query(query);
-
-      expect(response.data).toHaveLength(1);
-      expect(response.data).toMatchSnapshot();
+      const response$ = datastore.query(query);
+      response$.subscribe((response) => {
+        expect(response.data).toMatchSnapshot();
+        expect(response.data).toHaveLength(1);
+      });
     });
 
-    test('returns no data when QueryResults API returns empty array', async () => {
+    test('returns no data when QueryResults API returns empty array', () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
         .mockReturnValue(
@@ -86,16 +88,35 @@ describe('QueryResultsDataSource', () => {
         );
 
       const query = buildQuery();
-      const response = await datastore.query(query);
-
-      expect(response.data).toMatchSnapshot();
+      const response$ = datastore.query(query);
+      response$.subscribe((response) => {
+        expect(response.data).toMatchSnapshot();
+      });
     });
 
     test('returns no data when Query Results returns error', async () => {
-        backendServer.fetch
-          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results' }))
-          .mockReturnValue(createFetchError(400));
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results' }))
+        .mockReturnValue(createFetchError(400));
 
+      const query = buildQuery(
+        {
+          refId: 'A',
+          outputType: OutputType.Data
+        },
+      );
+
+      await expect(
+        new Promise((resolve, reject) => {
+          const response$ = datastore.query(query);
+          response$.subscribe({
+            error: error => reject(error),
+          });
+        })
+      ).rejects.toThrow('Request to url "/nitestmonitor/v2/query-results" failed with status code: 400. Error message: "Error"');
+    });
+
+    test('should convert properties to Grafana fields', () => {
         const query = buildQuery(
           {
             refId: 'A',
@@ -103,26 +124,14 @@ describe('QueryResultsDataSource', () => {
           },
         );
 
-        await expect(datastore.query(query))
-        .rejects
-        .toThrow('Request to url "/nitestmonitor/v2/query-results" failed with status code: 400. Error message: "Error"');
+        const response$ = datastore.query(query);
+        response$.subscribe((response) => {
+          const fields = response.data[0].fields as Field[];
+          expect(fields).toMatchSnapshot();
+        });
     });
 
-    test('should convert properties to Grafana fields', async () => {
-        const query = buildQuery(
-          {
-            refId: 'A',
-            outputType: OutputType.Data
-          },
-        );
-
-        const response = await datastore.query(query);
-
-        const fields = response.data[0].fields as Field[];
-        expect(fields).toMatchSnapshot();
-    });
-
-    test('includes templateSrv replaced values in the filter', async () => {
+    test('includes templateSrv replaced values in the filter', () => {
       const timeRange = {
         Started: 'startedAt',
         Updated: 'updatedAt',
@@ -140,7 +149,7 @@ describe('QueryResultsDataSource', () => {
           },
         );
 
-      await datastore.query(query);
+      datastore.query(query).subscribe();
 
       expect(templateSrv.replace).toHaveBeenCalledWith(filter, expect.anything());
       expect(backendServer.fetch).toHaveBeenCalledWith(
@@ -150,7 +159,7 @@ describe('QueryResultsDataSource', () => {
       );
     });
 
-    test('should handle null and undefined properties', async () => {
+    test('should handle null and undefined properties', () => {
         backendServer.fetch
           .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results' }))
           .mockReturnValue(createFetchResponse({
@@ -173,11 +182,13 @@ describe('QueryResultsDataSource', () => {
           },
         );
 
-        const response = await datastore.query(query);
-        const fields = response.data[0].fields as Field[];
-        expect(fields).toEqual([
-          { name: 'properties', values: [""], type: 'string' },
-        ]);
+        const response$ = datastore.query(query);
+        response$.subscribe((response) => {
+          const fields = response.data[0].fields as Field[];
+          expect(fields).toEqual([
+            { name: 'properties', values: [""], type: 'string' },
+          ]);
+        });
     });
   });
 

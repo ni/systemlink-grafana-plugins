@@ -345,14 +345,15 @@ describe('testDatasource', () => {
 })
 
 describe('queries', () => {
-  test('run metadata query', async () => {
+  test('run metadata query', () => {
     backendSrv.fetch
       .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
-      .mockReturnValue(createFetchResponse(assetsResponseMock as AssetsResponse))
+      .mockReturnValue(createFetchResponse(assetsResponseMock as AssetsResponse));
 
-    const result = await ds.query(buildMetadataQuery(assetMetadataQueryMock))
-
-    expect(result.data).toMatchSnapshot()
+    const response$ = ds.query(buildMetadataQuery(assetMetadataQueryMock));
+    response$.subscribe((response) => {
+      expect(response.data).toMatchSnapshot();
+    });
   })
 
   test('handles metadata query error', async () => {
@@ -360,7 +361,15 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
       .mockReturnValue(createFetchError(418))
 
-    await expect(ds.query(buildMetadataQuery(assetMetadataQueryMock))).rejects.toThrow()
+    await expect(
+      new Promise((resolve, reject) => {
+        const response$ = ds.query(buildMetadataQuery(assetMetadataQueryMock));
+        response$.subscribe({
+          next: () => reject('Should not have reached here'),
+          error: error => resolve(error),
+        });
+      })
+    ).resolves.toThrow();
   })
 
   describe('metricFindQuery', () => {

@@ -31,13 +31,13 @@ describe('List assets location queries', () => {
             filter: `${ListAssetsFieldNames.LOCATION} = "Location1"`,
         });
 
-        await datastore.query(query);
-
-        expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
-            expect.objectContaining({
-                filter: "Locations.Any(l => l.MinionId = \"Location1\" || l.PhysicalLocation = \"Location1\")"
-            })
-        );
+        datastore.query(query).subscribe(() => {
+            expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: "Locations.Any(l => l.MinionId = \"Location1\" || l.PhysicalLocation = \"Location1\")"
+                })
+            );
+        });
     });
 
     test('should transform LOCATION field with single value and cache hit', async () => {
@@ -49,13 +49,13 @@ describe('List assets location queries', () => {
             filter: `${ListAssetsFieldNames.LOCATION} = "Location1"`,
         });
 
-        await datastore.query(query);
-
-        expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
-            expect.objectContaining({
-                filter: "Location.MinionId = \"Location1\""
-            })
-        );
+        datastore.query(query).subscribe(() => {
+            expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: "Location.MinionId = \"Location1\""
+                })
+            );
+        });
     });
 
     test('should transform LOCATION field with multiple values and cache hit', async () => {
@@ -68,12 +68,12 @@ describe('List assets location queries', () => {
             filter: `${ListAssetsFieldNames.LOCATION} = "{Location1,Location2}"`,
         });
 
-        await datastore.query(query);
-
-        expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
-            expect.objectContaining({
-                filter: "(Location.MinionId = \"Location1\" || Location.MinionId = \"Location2\")"
-            })
-        );
+        datastore.query(query).subscribe(() => {
+            expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: "(Location.MinionId = \"Location1\" || Location.MinionId = \"Location2\")"
+                })
+            );
+        });
     });
 });

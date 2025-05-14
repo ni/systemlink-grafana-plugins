@@ -39,42 +39,45 @@ beforeEach(() => {
   setupFetchMock();
 });
 
-it('should return no data if there are no valid queries', async () => {
+it('should return no data if there are no valid queries', () => {
   const query = buildQuery([
     { refId: 'A', type: DataFrameQueryType.Data }, // initial state when creating a panel
     { refId: 'B', type: DataFrameQueryType.Data, tableId: '_', columns: [] }, // state after entering a table id, but no columns selected
   ]);
 
-  const response = await ds.query(query);
-
-  expect(response.data).toHaveLength(0);
+  const response$ = ds.query(query);
+  response$.subscribe(response => {
+    expect(response.data).toHaveLength(0);
+  });
 });
 
-it('should return data ignoring invalid queries', async () => {
+it('should return data ignoring invalid queries', () => {
   const query = buildQuery([
     { refId: 'A', type: DataFrameQueryType.Data, tableId: '_' }, // invalid
     { refId: 'B', type: DataFrameQueryType.Data, tableId: '1', columns: ['float'] },
   ]);
 
-  await ds.query(query);
-
-  expect(fetchMock).toHaveBeenCalledTimes(2);
-  expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/nidataframe/v1/tables/1/query-decimated-data' }));
+  const response$ = ds.query(query);
+  response$.subscribe(() => {
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/nidataframe/v1/tables/1/query-decimated-data' }));
+  });
 });
 
-it('should return data for multiple targets', async () => {
+it('should return data for multiple targets', () => {
   const query = buildQuery([
     { refId: 'A', type: DataFrameQueryType.Data, tableId: '1', columns: ['int'] },
     { refId: 'B', type: DataFrameQueryType.Data, tableId: '1', columns: ['float'] },
   ]);
 
-  const response = await ds.query(query);
-
-  expect(fetchMock).toHaveBeenCalledTimes(4);
-  expect(response.data).toHaveLength(2);
+  const response$ = ds.query(query);
+  response$.subscribe(response => {
+    expect(response.data).toHaveLength(2);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
 });
 
-it('should convert columns to Grafana fields', async () => {
+it('should convert columns to Grafana fields', () => {
   const query = buildQuery([
     {
       refId: 'A',
@@ -84,20 +87,21 @@ it('should convert columns to Grafana fields', async () => {
     },
   ]);
 
-  const response = await ds.query(query);
-
-  const fields = response.data[0].fields as Field[];
-  expect(fields).toEqual([
-    { name: 'int', type: FieldType.number, values: [1, 2] },
-    { name: 'float', type: FieldType.number, values: [1.1, 2.2] },
-    { name: 'string', type: FieldType.string, values: ['first', 'second'] },
-    { name: 'time', type: FieldType.time, values: [1663135260000, 1663135320000] },
-    { name: 'bool', type: FieldType.boolean, values: [true, false] },
-    { name: 'Value', type: FieldType.string, values: ['test1', 'test2'], config: { displayName: 'Value' } },
-  ]);
+  const response$ = ds.query(query);
+  response$.subscribe(response => {
+    const fields = response.data[0].fields as Field[];
+    expect(fields).toEqual([
+      { name: 'int', type: FieldType.number, values: [1, 2] },
+      { name: 'float', type: FieldType.number, values: [1.1, 2.2] },
+      { name: 'string', type: FieldType.string, values: ['first', 'second'] },
+      { name: 'time', type: FieldType.time, values: [1663135260000, 1663135320000] },
+      { name: 'bool', type: FieldType.boolean, values: [true, false] },
+      { name: 'Value', type: FieldType.string, values: ['test1', 'test2'], config: { displayName: 'Value' } },
+    ]);
+  });
 });
 
-it('should automatically apply time filters when index column is a timestamp', async () => {
+it('should automatically apply time filters when index column is a timestamp', () => {
   const query = buildQuery([
     {
       refId: 'A',
@@ -111,21 +115,22 @@ it('should automatically apply time filters when index column is a timestamp', a
   const to = dateTime('2022-09-16T00:00:00Z');
   query.range = { from, to, raw: { from, to } };
 
-  await ds.query(query);
-
-  expect(fetchMock).toHaveBeenCalledWith(
-    expect.objectContaining({
-      data: expect.objectContaining({
-        filters: [
-          { column: 'time', operation: 'GREATER_THAN_EQUALS', value: from.toISOString() },
-          { column: 'time', operation: 'LESS_THAN_EQUALS', value: to.toISOString() },
-        ],
-      }),
-    })
-  );
+  const response$ = ds.query(query);
+  response$.subscribe(() => {
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          filters: [
+            { column: 'time', operation: 'GREATER_THAN_EQUALS', value: from.toISOString() },
+            { column: 'time', operation: 'LESS_THAN_EQUALS', value: to.toISOString() },
+          ],
+        }),
+      })
+    );
+  });
 });
 
-it('should apply null and NaN filters', async () => {
+it('should apply null and NaN filters', () => {
   const query = buildQuery([
     {
       refId: 'A',
@@ -136,22 +141,22 @@ it('should apply null and NaN filters', async () => {
     },
   ]);
 
-  await ds.query(query);
-
-  expect(fetchMock).toHaveBeenCalledWith(
-    expect.objectContaining({
-      data: expect.objectContaining({
-        filters: [
-          { column: 'float', operation: 'NOT_EQUALS', value: null },
-          { column: 'float', operation: 'NOT_EQUALS', value: 'NaN' },
-          { column: 'string', operation: 'NOT_EQUALS', value: null },
-        ],
-      }),
-    })
-  );
+  ds.query(query).subscribe(() => {
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          filters: [
+            { column: 'float', operation: 'NOT_EQUALS', value: null },
+            { column: 'float', operation: 'NOT_EQUALS', value: 'NaN' },
+            { column: 'string', operation: 'NOT_EQUALS', value: null },
+          ],
+        }),
+      })
+    );
+  });
 });
 
-it('should provide decimation parameters correctly', async () => {
+it('should provide decimation parameters correctly', () => {
   const query = buildQuery([
     {
       refId: 'A',
@@ -163,37 +168,45 @@ it('should provide decimation parameters correctly', async () => {
   ]);
   query.maxDataPoints = 300;
 
-  await ds.query(query);
-
-  expect(fetchMock).toHaveBeenCalledWith(
-    expect.objectContaining({
-      data: expect.objectContaining({
-        decimation: { intervals: 300, method: 'ENTRY_EXIT', yColumns: ['int', 'float'] },
-      }),
-    })
-  );
+  ds.query(query).subscribe(() => {
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          decimation: { intervals: 300, method: 'ENTRY_EXIT', yColumns: ['int', 'float'] },
+        }),
+      })
+    );
+  });
 });
 
-it('should cache table properties for subsequent requests', async () => {
+it('should cache table properties for subsequent requests', () => {
   const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Data, tableId: '1', columns: ['int'] }]);
 
-  await ds.query(query);
+  const response$ = ds.query(query);
+  response$.subscribe(() => {
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/nidataframe/v1/tables/1' }));
+  });
 
-  expect(fetchMock).toHaveBeenCalledTimes(2);
-  expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/nidataframe/v1/tables/1' }));
-
-  await ds.query(query);
-
-  expect(fetchMock).toHaveBeenCalledTimes(3);
+  response$.subscribe(() => {
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
 });
 
 it('should return error if query columns do not match table properties', async () => {
   const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Data, tableId: '1', columns: ['nonexistent'] }]);
 
-  await expect(ds.query(query)).rejects.toEqual(expect.anything());
+  await expect(
+    new Promise((resolve, reject) => {
+      const response$ = ds.query(query);
+      response$.subscribe({
+        error: error => reject(error),
+      });
+    })
+  ).rejects.toEqual("The table does not contain the column 'nonexistent'");
 });
 
-it('should migrate queries using columns of arrays of objects', async () => {
+it('should migrate queries using columns of arrays of objects', () => {
   const query = buildQuery([
     {
       refId: 'B',
@@ -202,9 +215,9 @@ it('should migrate queries using columns of arrays of objects', async () => {
     } as unknown as DataFrameQuery,
   ]);
 
-  await ds.query(query);
-
-  expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ columns: ['float'] }) }));
+  ds.query(query).subscribe(() => {
+    expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ columns: ['float'] }) }));
+  });
 });
 
 it('attempts to replace variables in properties query', async () => {
@@ -216,15 +229,15 @@ it('attempts to replace variables in properties query', async () => {
   expect(replaceMock).toHaveBeenCalledWith(tableId);
 });
 
-it('attempts to replace variables in data query', async () => {
+it('attempts to replace variables in data query', () => {
   const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Data, tableId: '$tableId', columns: ['$columns'] }]);
 
-  await ds.query(query);
-
-  expect(replaceMock).toHaveBeenCalledTimes(3);
-  expect(replaceMock).toHaveBeenCalledWith(query.targets[0].tableId, expect.anything());
-  expect(containsTemplateMock).toHaveBeenCalledTimes(1);
-  expect(containsTemplateMock).toHaveBeenCalledWith(query.targets[0].columns![0]);
+  ds.query(query).subscribe(() => {
+    expect(replaceMock).toHaveBeenCalledTimes(3);
+    expect(replaceMock).toHaveBeenCalledWith(query.targets[0].tableId, expect.anything());
+    expect(containsTemplateMock).toHaveBeenCalledTimes(1);
+    expect(containsTemplateMock).toHaveBeenCalledWith(query.targets[0].columns![0]);
+  });
 });
 
 it('metricFindQuery returns table columns', async () => {
@@ -237,16 +250,18 @@ it('metricFindQuery returns table columns', async () => {
   expect(columns).toEqual(expect.arrayContaining(expectedColumns));
 });
 
-it('returns table properties for properties query', async () => {
+it('returns table properties for properties query', () => {
   const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Properties, tableId: '1' }]);
 
-  const response = await ds.query(query);
+  const response$ = ds.query(query);
+  response$.subscribe(response => {
+    expect(response.data[0].fields).toEqual([
+      { name: 'hello', values: ['world'] },
+      { name: 'foo', values: ['bar'] },
+    ]);
+  });
 
   expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/nidataframe/v1/tables/1' }));
-  expect(response.data[0].fields).toEqual([
-    { name: 'hello', values: ['world'] },
-    { name: 'foo', values: ['bar'] },
-  ])
 });
 
 it('should migrate legacy metadata type to properties type', () => {
@@ -256,13 +271,15 @@ it('should migrate legacy metadata type to properties type', () => {
   expect(result.type).toBe(DataFrameQueryType.Properties);
 });
 
-it('handles properties query when table has no properties', async () => {
+it('handles properties query when table has no properties', () => {
   const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Properties, tableId: '2' }]);
 
-  const response = await ds.query(query);
+  const response$ = ds.query(query);
+  response$.subscribe(response => {
+    expect(response.data[0].fields).toEqual([]);
+  });
 
   expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/nidataframe/v1/tables/2' }));
-  expect(response.data[0].fields).toEqual([]);
 });
 
 const buildQuery = (targets: DataFrameQuery[]): DataQueryRequest<DataFrameQuery> => {

@@ -10,7 +10,8 @@ import { BackendSrv, BackendSrvRequest, FetchError, TemplateSrv, isFetchError } 
 import { DataQuery } from '@grafana/schema';
 import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
 import { sleep } from './utils';
-import { lastValueFrom } from 'rxjs';
+import { lastValueFrom, Observable, of, throwError } from 'rxjs';
+import { catchError, mergeMap } from 'rxjs/operators';
 
 export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData = DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
   constructor(
@@ -27,13 +28,27 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
 
   abstract shouldRunQuery(query: TQuery): boolean;
 
-  query(request: DataQueryRequest<TQuery>): Promise<DataQueryResponse> {
-    const promises = request.targets
-      .map(this.prepareQuery, this)
-      .filter(this.shouldRunQuery, this)
-      .map(q => this.runQuery(q, request), this);
+  query(request: DataQueryRequest<TQuery>): Observable<DataQueryResponse> {
+    const requestTargets = request.targets
+      .map(target => this.prepareQuery(target as TQuery))
+      .filter(target =>  this.shouldRunQuery(target as TQuery));
 
-    return Promise.all(promises).then(data => ({ data }));
+    const requestTargets$ = of(requestTargets).pipe(
+        mergeMap(async targets => {
+          const data = await Promise.all(
+            targets.map(async target => {
+              const queryResults = await this.runQuery(target, request);
+              return queryResults;
+            })
+          );
+          return { data } as DataQueryResponse;
+        }),
+        catchError(error => {
+          return throwError(() => error);
+        })
+    );
+
+    return requestTargets$;
   }
 
   prepareQuery(query: TQuery): TQuery {

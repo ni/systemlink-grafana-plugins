@@ -17,17 +17,18 @@ test('query for summary counts', async () => {
     .calledWith(requestMatching({ url: '/nisysmgmt/v1/get-systems-summary' }))
     .mockReturnValue(createFetchResponse({ connectedCount: 1, disconnectedCount: 2 }));
 
-  const result = await ds.query(buildQuery({ queryKind: SystemQueryType.Summary }));
-
-  expect(result.data).toEqual([
-    {
-      fields: [
-        { name: 'Connected', values: [1] },
-        { name: 'Disconnected', values: [2] },
-      ],
-      refId: 'A',
-    },
-  ]);
+  const response$ = ds.query(buildQuery({ queryKind: SystemQueryType.Summary }));
+  response$.subscribe((result) => {
+    expect(result.data).toEqual([
+      {
+        fields: [
+          { name: 'Connected', values: [1] },
+          { name: 'Disconnected', values: [2] },
+        ],
+        refId: 'A',
+      },
+    ]);
+  });
 });
 
 test('query properties for all systems', async () => {
@@ -35,25 +36,26 @@ test('query properties for all systems', async () => {
     .calledWith(requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { filter: '' } }))
     .mockReturnValue(createFetchResponse({ data: fakeSystems }));
 
-  const result = await ds.query(buildQuery({ queryKind: SystemQueryType.Properties }));
-
-  expect(result.data).toEqual([
-    {
-      fields: [
-        { name: 'id', values: ['system-1', 'system-2'] },
-        { name: 'alias', values: ['my system', 'Cool system 😎'] },
-        { name: 'connection status', values: ['CONNECTED', 'DISCONNECTED'] },
-        { name: 'locked status', values: [false, true] },
-        { name: 'system start time', values: ['2023-07-18T10:19:46Z', '2023-03-02T18:48:09Z'] },
-        { name: 'model', values: ['NI cRIO-9033', '20LCS0X700'] },
-        { name: 'vendor', values: ['National Instruments', 'LENOVO'] },
-        { name: 'operating system', values: ['nilrt', 'Microsoft Windows 10 Enterprise'] },
-        { name: 'ip address', values: ['172.17.0.1', 'fe80::280:2fff:fe24:fcfa'] },
-        { name: 'workspace', values: ['Default workspace', 'Other workspace'] },
-      ],
-      refId: 'A',
-    },
-  ]);
+  const response$ = ds.query(buildQuery({ queryKind: SystemQueryType.Properties }));
+  response$.subscribe((result) => {
+    expect(result.data).toEqual([
+      {
+        fields: [
+          { name: 'id', values: ['system-1', 'system-2'] },
+          { name: 'alias', values: ['my system', 'Cool system 😎'] },
+          { name: 'connection status', values: ['CONNECTED', 'DISCONNECTED'] },
+          { name: 'locked status', values: [false, true] },
+          { name: 'system start time', values: ['2023-07-18T10:19:46Z', '2023-03-02T18:48:09Z'] },
+          { name: 'model', values: ['NI cRIO-9033', '20LCS0X700'] },
+          { name: 'vendor', values: ['National Instruments', 'LENOVO'] },
+          { name: 'operating system', values: ['nilrt', 'Microsoft Windows 10 Enterprise'] },
+          { name: 'ip address', values: ['172.17.0.1', 'fe80::280:2fff:fe24:fcfa'] },
+          { name: 'workspace', values: ['Default workspace', 'Other workspace'] },
+        ],
+        refId: 'A',
+      },
+    ]);
+  });
 });
 
 test('query properties for one system', async () => {
@@ -63,32 +65,33 @@ test('query properties for one system', async () => {
     )
     .mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
 
-  const result = await ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: 'system-1' }));
-
-  expect(result.data).toEqual([
-    {
-      fields: [
-        { name: 'id', values: ['system-1'] },
-        { name: 'alias', values: ['my system'] },
-        { name: 'connection status', values: ['CONNECTED'] },
-        { name: 'locked status', values: [false] },
-        { name: 'system start time', values: ['2023-07-18T10:19:46Z'] },
-        { name: 'model', values: ['NI cRIO-9033'] },
-        { name: 'vendor', values: ['National Instruments'] },
-        { name: 'operating system', values: ['nilrt'] },
-        { name: 'ip address', values: ['172.17.0.1'] },
-        { name: 'workspace', values: ['Default workspace'] },
-      ],
-      refId: 'A',
-    },
-  ]);
+  const response$ = ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: 'system-1' }));
+  response$.subscribe((result) => {
+    expect(result.data).toEqual([
+      {
+        fields: [
+          { name: 'id', values: ['system-1'] },
+          { name: 'alias', values: ['my system'] },
+          { name: 'connection status', values: ['CONNECTED'] },
+          { name: 'locked status', values: [false] },
+          { name: 'system start time', values: ['2023-07-18T10:19:46Z'] },
+          { name: 'model', values: ['NI cRIO-9033'] },
+          { name: 'vendor', values: ['National Instruments'] },
+          { name: 'operating system', values: ['nilrt'] },
+          { name: 'ip address', values: ['172.17.0.1'] },
+          { name: 'workspace', values: ['Default workspace'] },
+        ],
+        refId: 'A',
+      },
+    ]);
+  });
 });
 
 test('query properties with templated system name', async () => {
   templateSrv.replace.calledWith('$system_id').mockReturnValue('system-1');
   backendSrv.fetch.mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
 
-  await ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: '$system_id' }));
+  ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: '$system_id' })).subscribe();
 
   expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('filter', 'id = "system-1" || alias = "system-1"');
 });
@@ -119,7 +122,7 @@ test('attempts to replace variables in properties query', async () => {
   backendSrv.fetch.mockReturnValue(createFetchResponse({ data: fakeSystems }));
   templateSrv.replace.calledWith(workspaceVariable).mockReturnValue('1');
 
-  await ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: 'system', workspace: workspaceVariable }));
+  ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: 'system', workspace: workspaceVariable })).subscribe();
 
   expect(templateSrv.replace).toHaveBeenCalledTimes(2);
   expect(templateSrv.replace.mock.calls[1][0]).toBe(workspaceVariable);

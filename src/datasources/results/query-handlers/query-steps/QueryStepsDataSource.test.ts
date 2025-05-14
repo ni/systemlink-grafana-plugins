@@ -5,6 +5,7 @@ import { Field } from '@grafana/data';
 import { QuerySteps, QueryStepsResponse, StepsProperties, StepsPropertiesOptions } from 'datasources/results/types/QuerySteps.types';
 import { OutputType, QueryType } from 'datasources/results/types/types';
 import { QueryStepsDataSource } from './QueryStepsDataSource';
+import { rejects } from 'assert';
 
 const mockQueryStepsResponse: QueryStepsResponse = {
   steps: [
@@ -66,10 +67,11 @@ describe('QueryStepsDataSource', () => {
         outputType: OutputType.Data
       });
 
-      const response = await datastore.query(query);
-
-      expect(response.data).toHaveLength(1);
-      expect(response.data).toMatchSnapshot();
+      const response$ = datastore.query(query);
+      response$.subscribe(response => {
+        expect(response.data).toHaveLength(1);
+        expect(response.data).toMatchSnapshot();
+      });
     });
 
     test('should return total count for valid total count output type queries', async () => {
@@ -78,10 +80,11 @@ describe('QueryStepsDataSource', () => {
         outputType: OutputType.TotalCount,
       });
 
-      const response = await datastore.query(query);
-
-      expect(response.data).toHaveLength(1);
-      expect(response.data).toMatchSnapshot();
+      const response$ = datastore.query(query);
+      response$.subscribe(response => {
+        expect(response.data).toHaveLength(1);
+        expect(response.data).toMatchSnapshot();
+      });
     });
 
     test('should return no data when QuerySteps API returns empty array', async () => {
@@ -98,9 +101,10 @@ describe('QueryStepsDataSource', () => {
         );
 
       const query = buildQuery();
-      const response = await datastore.query(query);
-
-      expect(response.data).toMatchSnapshot();
+      const response$ = datastore.query(query);
+      response$.subscribe(response => {
+        expect(response.data).toMatchSnapshot();
+      });
     });
 
     test('should return no data when Query Steps returns error', async () => {
@@ -115,9 +119,14 @@ describe('QueryStepsDataSource', () => {
         },
       );
 
-      await expect(datastore.query(query))
-        .rejects
-        .toThrow('Request to url "/nitestmonitor/v2/query-steps" failed with status code: 400. Error message: "Error"');
+      await expect(
+        new Promise((resolve, reject) => {
+          const response$ = datastore.query(query);
+          response$.subscribe({
+            error: error => reject(error),
+          });
+        })
+      ).rejects.toThrow('Request to url "/nitestmonitor/v2/query-steps" failed with status code: 400. Error message: "Error"');
     });
 
     test('should convert properties to Grafana fields', async () => {
@@ -129,10 +138,11 @@ describe('QueryStepsDataSource', () => {
         },
       );
 
-      const response = await datastore.query(query);
-
-      const fields = response.data[0].fields as Field[];
-      expect(fields).toMatchSnapshot();
+      const response$ = datastore.query(query);
+      response$.subscribe(response => {
+        const fields = response.data[0].fields as Field[];
+        expect(fields).toMatchSnapshot();
+      });
     });
 
     test('should convert step measurements to Grafana fields when show measurments is enabled', async () => {
@@ -189,10 +199,11 @@ describe('QueryStepsDataSource', () => {
         },
       );
 
-      const response = await datastore.query(query);
-
-      const fields = response.data[0].fields as Field[];
-      expect(fields).toMatchSnapshot();
+      const response$ = datastore.query(query);
+      response$.subscribe(response => {
+        const fields = response.data[0].fields as Field[];
+        expect(fields).toMatchSnapshot();
+      });
     });
 
     test('should include templateSrv replaced values in the filter', async () => {
@@ -214,7 +225,7 @@ describe('QueryStepsDataSource', () => {
         },
       );
 
-      await datastore.query(query);
+      datastore.query(query).subscribe();
 
       expect(templateSrv.replace).toHaveBeenCalledWith(filter, expect.anything());
       expect(backendServer.fetch).toHaveBeenCalledWith(
@@ -247,11 +258,13 @@ describe('QueryStepsDataSource', () => {
         },
       );
 
-      const response = await datastore.query(query);
-      const fields = response.data[0].fields as Field[];
-      expect(fields).toEqual([
-        { name: 'properties', values: [""], type: 'string' },
-      ]);
+      const response$ = datastore.query(query);
+      response$.subscribe(response => {
+        const fields = response.data[0].fields as Field[];
+        expect(fields).toEqual([
+          { name: 'properties', values: [""], type: 'string' },
+        ]);
+      });
     });
 
     test('should call query steps API once when output type is total count', async () => {
@@ -283,12 +296,13 @@ describe('QueryStepsDataSource', () => {
         },
       );
 
-      const response = await datastore.query(query);
-
-      const fields = response.data[0].fields as Field[];
-      expect(fields).toEqual([
-        { name: 'Total count', values: [5000] },
-      ]);
+      const response$ = datastore.query(query);
+      response$.subscribe(response => {
+        const fields = response.data[0].fields as Field[];
+        expect(fields).toEqual([
+          { name: 'Total count', values: [5000] },
+        ]);
+      });
       expect(backendServer.fetch).toHaveBeenCalledTimes(1);
     });
   });

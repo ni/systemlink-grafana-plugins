@@ -1,24 +1,27 @@
-import { DataFrameDTO, DataSourceInstanceSettings, DataSourceJsonData, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
+import { DataFrameDTO, DataSourceInstanceSettings, DataSourceJsonData,  MetricFindValue, TestDataSourceResponse, toDataFrame } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { Workspace } from 'core/types';
-import { WorkspaceQuery } from './types';
+import { WorkspaceQuery, WorkspaceDataSourceVariable } from './types';
 
 export class WorkspaceDataSource extends DataSourceBase<WorkspaceQuery, DataSourceJsonData> {
+
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    instanceSettings.type = 'datasource';
+    this.variables = new WorkspaceDataSourceVariable();
   }
 
   baseUrl = this.instanceSettings.url + '/niuser/v1';
 
-  defaultQuery = {};
-
+  defaultQuery = { key: 'default' };
+ 
   async runQuery(_query: WorkspaceQuery): Promise<DataFrameDTO> {
-    return { fields: this.workspacesToFields( await this.getWorkspaces()) };
+    return toDataFrame({ fields: this.workspacesToFields( await this.getWorkspaces()) });
   }
 
   shouldRunQuery(): boolean {

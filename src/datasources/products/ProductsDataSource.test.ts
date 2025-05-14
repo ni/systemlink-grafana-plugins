@@ -140,7 +140,7 @@ describe('getFamilyNames', () => {
 });
 
 describe('query', () => {
-  test('returns data when there are valid queries', async () => {
+  test('returns data when there are valid queries', () => {
     const query = buildQuery(
       {
         refId: 'A',
@@ -157,13 +157,14 @@ describe('query', () => {
       },
     );
 
-    const response = await datastore.query(query);
-
-    expect(response.data).toHaveLength(1);
-    expect(response.data).toMatchSnapshot();
+    const response$ = datastore.query(query);
+    response$.subscribe((response) => {
+      expect(response.data).toMatchSnapshot();
+      expect(response.data).toHaveLength(1);
+    });
   });
 
-  test('returns no data when Query Products returns no data', async () => {
+  test('returns no data when Query Products returns no data', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
       .mockReturnValue(
@@ -176,9 +177,10 @@ describe('query', () => {
 
     const query = buildQuery();
 
-    const response = await datastore.query(query);
-
-    expect(response.data).toMatchSnapshot();
+    const response$ = datastore.query(query);
+    response$.subscribe((response) => {
+      expect(response.data).toMatchSnapshot();
+    });
   });
 
   test('returns no data when Query Products returns error', async () => {
@@ -198,12 +200,17 @@ describe('query', () => {
       },
     );
 
-    await expect(datastore.query(query))
-      .rejects
-      .toThrow('Request to url "/nitestmonitor/v2/query-products" failed with status code: 400. Error message: "Error"');
+    await expect(
+      new Promise((resolve, reject) => {
+        const response$ = datastore.query(query);
+        response$.subscribe({
+          error: error => reject(error),
+        });
+      })
+    ).rejects.toThrow('Request to url "/nitestmonitor/v2/query-products" failed with status code: 400. Error message: "Error"');
   });
 
-  it('should convert properties to Grafana fields', async () => {
+  it('should convert properties to Grafana fields', () => {
     const query = buildQuery(
       {
         refId: 'A',
@@ -218,20 +225,21 @@ describe('query', () => {
       },
     );
 
-    const response = await datastore.query(query);
-
-    const fields = response.data[0].fields as Field[];
-    expect(fields).toEqual([
-      { name: 'partNumber', values: ['123'], type: 'string' },
-      { name: 'family', values: ['Family 1'], type: 'string' },
-      { name: 'name', values: ['Product 1'], type: 'string' },
-      { name: 'workspace', values: ['Workspace 1'], type: 'string' },
-      { name: 'updatedAt', values: ['2021-08-01T00:00:00Z'], type: 'time' },
-      { name: 'properties', values: ['{"prop1":"value1"}'], type: 'string' },
-    ]);
+    const response$ = datastore.query(query);
+    response$.subscribe((response) => {
+      const fields = response.data[0].fields as Field[];
+      expect(fields).toEqual([
+        { name: 'partNumber', values: ['123'], type: 'string' },
+        { name: 'family', values: ['Family 1'], type: 'string' },
+        { name: 'name', values: ['Product 1'], type: 'string' },
+        { name: 'workspace', values: ['Workspace 1'], type: 'string' },
+        { name: 'updatedAt', values: ['2021-08-01T00:00:00Z'], type: 'time' },
+        { name: 'properties', values: ['{"prop1":"value1"}'], type: 'string' },
+      ]);
+    });
   });
 
-  it('should convert workspaceIds to workspace names for workspace field', async () => {
+  it('should convert workspaceIds to workspace names for workspace field', () => {
     datastore.workspacesCache.set('Workspace 1', { id: 'Workspace 1', name: 'WorkspaceName'} as Workspace);
 
     const query = buildQuery(
@@ -243,15 +251,16 @@ describe('query', () => {
       },
     );
 
-    const response = await datastore.query(query);
-
-    const fields = response.data[0].fields as Field[];
-    expect(fields).toEqual([
-      { name: 'workspace', values: ['WorkspaceName'], type: 'string' },
-    ]);
+    const response$ = datastore.query(query);
+    response$.subscribe((response) => {
+      const fields = response.data[0].fields as Field[];
+      expect(fields).toEqual([
+        { name: 'workspace', values: ['WorkspaceName'], type: 'string' },
+      ]);
+    });
   });
 
-  test('should handle null and undefined properties', async () => {
+  test('should handle null and undefined properties', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
       .mockReturnValue(createFetchResponse({
@@ -273,39 +282,41 @@ describe('query', () => {
       },
     );
 
-    const response = await datastore.query(query);
-    const fields = response.data[0].fields as Field[];
-    expect(fields).toEqual([
-      { name: 'properties', values: [''], type: 'string' },
-    ]);
+    const response$ = datastore.query(query);
+    response$.subscribe((response) => {
+      const fields = response.data[0].fields as Field[];
+      expect(fields).toEqual([
+        { name: 'properties', values: [''], type: 'string' },
+      ]);
+    });
   });
 
-  test('should not query product values if cache exists', async () => {
+  test('should not query product values if cache exists', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-product-values' }))
       .mockReturnValue(createFetchResponse(['value1']));
     datastore.partNumbersCache.set('partNumber', 'value1');
     backendServer.fetch.mockClear();
 
-    await datastore.query(buildQuery())
+    datastore.query(buildQuery()).subscribe();
 
     expect(backendServer.fetch).not.toHaveBeenCalled();
   });
 
-  test('should not query workspace values if cache exists', async () => {
+  test('should not query workspace values if cache exists', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niauth/v1/user' }))
       .mockReturnValue(createFetchResponse(['workspace1']));
     datastore.workspacesCache.set('workspace', { id: 'workspace1', name: 'workspace1', default: false, enabled: true });
     backendServer.fetch.mockClear();
 
-    await datastore.query(buildQuery())
+    datastore.query(buildQuery()).subscribe();
 
     expect(backendServer.fetch).not.toHaveBeenCalled();
   });
 
   describe('Query builder queries', () => {
-    test('should transform fields with single value', async () => {
+    test('should transform fields with single value', () => {
       const query = buildQuery(
         {
           refId: 'A',
@@ -317,22 +328,22 @@ describe('query', () => {
         },
       );
 
-      await datastore.query(query);
-
-      expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: {
-            descending: false,
-            filter: "partNumber = '123'",
-            orderBy: undefined,
-            projection: ["partNumber"],
-            returnCount: false, take: 1000
-          }
-        })
-      );
+      datastore.query(query).subscribe(() => {
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: {
+              descending: false,
+              filter: "partNumber = '123'",
+              orderBy: undefined,
+              projection: ["partNumber"],
+              returnCount: false, take: 1000
+            }
+          })
+        );
+      });
     });
 
-    test('should transform fields with multiple values', async () => {
+    test('should transform fields with multiple values', () => {
       const query = buildQuery(
         {
           refId: 'A',
@@ -344,19 +355,19 @@ describe('query', () => {
         },
       );
 
-      await datastore.query(query);
-
-      expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: {
-            descending: false,
-            filter: "(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\")",
-            orderBy: undefined,
-            projection: ["partNumber"],
-            returnCount: false, take: 1000
-          }
-        })
-      );
+      datastore.query(query).subscribe(() => {
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: {
+              descending: false,
+              filter: "(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\")",
+              orderBy: undefined,
+              projection: ["partNumber"],
+              returnCount: false, take: 1000
+            }
+          })
+        );
+      });
     });
 
   });
