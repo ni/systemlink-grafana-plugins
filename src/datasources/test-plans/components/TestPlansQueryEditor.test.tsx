@@ -110,6 +110,13 @@ describe('TestPlansQueryEditor', () => {
                 expect(orderBy).not.toBeInTheDocument();
             });
         });
+
+        it('should not render descending', async () => {
+            await waitFor(() => {
+                const descending = container.queryByRole('checkbox', { name: 'Descending' });
+                expect(descending).not.toBeInTheDocument();
+            });
+        });
     });
 
     describe('onChange', () => {
