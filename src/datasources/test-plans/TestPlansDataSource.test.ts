@@ -48,5 +48,6 @@ describe('testDatasource', () => {
     ]);
     expect(defaultQuery.orderBy).toEqual(OrderByOptions.UPDATED_AT);
     expect(defaultQuery.descending).toEqual(true);
+    expect(defaultQuery.recordCount).toEqual(1000);
   });
 });
