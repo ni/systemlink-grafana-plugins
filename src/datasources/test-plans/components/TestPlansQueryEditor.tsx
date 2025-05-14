@@ -31,7 +31,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
   return (
     <>
       <VerticalGroup>
-        <InlineField label="Output" labelWidth={18} tooltip={tooltips.outputType}>
+        <InlineField label="Output" labelWidth={25} tooltip={tooltips.outputType}>
           <RadioButtonGroup
             options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
             onChange={onOutputTypeChange}
@@ -39,7 +39,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
           />
         </InlineField>
         {query.outputType === OutputType.Properties && (
-          <InlineField label="Properties" labelWidth={18} tooltip={tooltips.properties}>
+          <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
             <MultiSelect
               placeholder="Select properties to query"
               options={Object.entries(Properties).map(([key, value]) => ({ label: value, value: key })) as SelectableValue[]}
