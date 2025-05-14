@@ -82,3 +82,8 @@ export const OrderBy = [
         description: `Latest update at time of the test plan`,
     }
 ];
+
+export const OrderByOptions = {
+    ID: 'ID',
+    UPDATED_AT: 'UPDATED_AT'
+};
