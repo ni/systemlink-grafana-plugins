@@ -1,7 +1,4 @@
-ARG grafana_version=latest
-ARG grafana_image=grafana-enterprise
-
-FROM grafana/${grafana_image}:${grafana_version}
+FROM pull.artifacts.ni.com/rnd-docker-ci/ni/systemlink/ni-grafana:v11.6.0-8f3586c2ee-ni
 
 # Make it as simple as possible to access the grafana instance for development purposes
 # Do NOT enable these settings in a public facing / production grafana instance
