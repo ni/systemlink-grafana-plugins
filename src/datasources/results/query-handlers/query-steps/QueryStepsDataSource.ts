@@ -17,6 +17,7 @@ import { MAX_TAKE_PER_REQUEST, QUERY_STEPS_REQUEST_PER_SECOND } from 'datasource
 import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/StepsQueryBuilder.constants';
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
+import { MAX_PATH_TAKE_PER_REQUEST, QUERY_PATH_REQUEST_PER_SECOND, TOTAL_PATH_LIMIT } from 'datasources/results/constants/QueryPaths.constants';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
@@ -142,8 +143,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     };
 
     const batchQueryConfig = {
-      maxTakePerRequest: 500,
-      requestsPerSecond: 6
+      maxTakePerRequest: MAX_PATH_TAKE_PER_REQUEST,
+      requestsPerSecond: QUERY_PATH_REQUEST_PER_SECOND
     };
 
     const response = await this.queryInBatches(queryRecord, batchQueryConfig, take);
@@ -236,7 +237,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
   private async loadStepPaths(resultsQuery: string, options: DataQueryRequest){
     const transformedResultsQuery = this.transformQuery(resultsQuery, this.resultsComputedDataFields, options);
-    const response = await this.queryStepPathInBatches(transformedResultsQuery, [StepsPathProperties.path] ,10000, true);
+    const response = await this.queryStepPathInBatches(transformedResultsQuery, [StepsPathProperties.path] ,TOTAL_PATH_LIMIT, true);
     this.stepPaths = response.paths.map((path) => path.path);
   }
 
