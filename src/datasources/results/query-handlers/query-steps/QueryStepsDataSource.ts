@@ -27,8 +27,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   private _disableStepsQueryBuilder = true;
   private _stepPaths: Set<string> = new Set();
 
-  private counter = 0;
-
   async querySteps(
     filter?: string,
     orderBy?: string,
@@ -157,12 +155,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     };
   }
 
-  private getStepPaths() {
-    const result = [];
-    result.push(this.counter);
-    return result;
-  }
-  
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
     if (query.resultsQuery) {
       this.disableStepsQueryBuilder = false;
@@ -170,14 +162,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     
     query.stepsQuery = this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options);
     query.resultsQuery = this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options);
-    
-    if(query.resultsQuery) {
-      // const response = await this.queryStepPathInBatches(query.resultsQuery, [StepsPathProperties.path] ,10000, true);
-      // this.stepPaths = response.paths as string[];
-      this.counter++;
-      this.stepPaths = this.getStepPaths();
-      console.log('stepPaths', this.stepPaths);
-    }
 
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
     const stepsQuery = this.buildQueryFilter(query.stepsQuery, useTimeRangeFilter);
@@ -243,12 +227,17 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   get stepPaths(): string[] {
-    console.log('called get method');
     return Array.from(this._stepPaths);
   }
 
   set stepPaths(value: string[]) {
     this._stepPaths = new Set(value);
+  }
+
+  private async loadStepPaths(resultsQuery: string, options: DataQueryRequest){
+    const transformedResultsQuery = this.transformQuery(resultsQuery, this.resultsComputedDataFields, options);
+    const response = await this.queryStepPathInBatches(transformedResultsQuery, [StepsPathProperties.path] ,10000, true);
+    this.stepPaths = response.paths.map((path) => path.path);
   }
 
   private processFields(
