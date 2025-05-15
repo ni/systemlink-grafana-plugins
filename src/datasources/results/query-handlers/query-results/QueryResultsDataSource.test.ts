@@ -4,7 +4,8 @@ import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching
 import { Field } from '@grafana/data';
 import { QueryResultsDataSource } from './QueryResultsDataSource';
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsVariableQuery } from 'datasources/results/types/QueryResults.types';
-import { OutputType, QueryType } from 'datasources/results/types/types';
+import { OutputType, QueryType, UseTimeRangeFor } from 'datasources/results/types/types';
+import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 
 const mockQueryResultsResponse: QueryResultsResponse = {
   results: [
@@ -229,6 +230,175 @@ describe('QueryResultsDataSource', () => {
       expect(backendServer.fetch).not.toHaveBeenCalledWith(
         expect.objectContaining({
           url: '/niauth/v1/user',
+        })
+      );
+    });
+
+    describe('query builder queries', () => {
+      test('should transform field when queryBy contains a single value', async () => {
+        const query = buildQuery(
+          {
+            refId: 'A',
+            properties: [
+              ResultsPropertiesOptions.PART_NUMBER
+            ] as ResultsProperties[],
+            orderBy: undefined,
+            queryBy: `${ResultsPropertiesOptions.PART_NUMBER} = '123'`
+          },
+        );
+  
+        await datastore.query(query);
+  
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: "partNumber = '123'"
+            }),
+          })
+        );
+      });
+  
+      test('should transform fields when queryBy contains a multiple values', async () => {
+        const query = buildQuery(
+          {
+            refId: 'A',
+            properties: [
+              ResultsPropertiesOptions.PART_NUMBER
+            ] as ResultsProperties[],
+            orderBy: undefined,
+            queryBy: `${ResultsQueryBuilderFieldNames.PART_NUMBER} = "{partNumber1,partNumber2}"`
+          },
+        );
+  
+        await datastore.query(query);
+  
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: "(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\")"
+            }),
+          })
+        );
+      });
+
+      test('should transform fields when queryBy contains a date', async () => {   
+        jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));     
+
+        const query = buildQuery(
+          {
+            refId: 'A',
+            properties: [
+              ResultsPropertiesOptions.UPDATED_AT
+            ] as ResultsProperties[],
+            orderBy: undefined,
+            queryBy: 'UpdatedAt = "${__now:date}"'
+          },
+        );
+      
+        await datastore.query(query);
+      
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: 'UpdatedAt = "2025-01-01T00:00:00.000Z"'
+            }),
+          })
+        );
+
+        jest.useRealTimers();
+      });
+
+      test('should transform query when queryBy contains nested expressions', async () => {
+        const query = buildQuery(
+          {
+            refId: 'A',
+            queryBy: `(${ResultsQueryBuilderFieldNames.PART_NUMBER} = "123" || ${ResultsQueryBuilderFieldNames.KEYWORDS} != "456") && ${ResultsQueryBuilderFieldNames.HOSTNAME} contains "Test"`,
+          },
+        );
+      
+        await datastore.query(query);
+      
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: '(PartNumber = "123" || Keywords != "456") && HostName contains "Test"'
+            }),
+          })
+        );
+      });
+    });
+
+    describe('buildQueryFilter', () => {
+      test('should combine queryBy and useTimeRangeFilter into a single filter', async () => {
+        const filter = '(startedAt > "\${__from:date}" && startedAt < "\${__to:date}")';
+        const replacedFilter = '(startedAt > "2025-04-01" && startedAt < "2025-04-02")';
+        templateSrv.replace.calledWith(filter).mockReturnValue(replacedFilter); 
+
+        const queryBy = `(${ResultsQueryBuilderFieldNames.PART_NUMBER} = "123"` 
+          && `${ResultsQueryBuilderFieldNames.KEYWORDS} != "keyword1") `;
+        const query = buildQuery({
+          refId: 'A',
+          queryBy,
+          useTimeRange: true,
+          useTimeRangeFor: UseTimeRangeFor.Started,
+        });
+        const expectedFilter = `${queryBy} && ${replacedFilter}`;
+
+        await datastore.query(query);
+      
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              filter: expectedFilter,
+            }),
+          })
+        );
+      });
+
+      test('should return only queryBy filter when useTimeRange filter is not defined', async () => {
+        const queryBy = `(${ResultsQueryBuilderFieldNames.PART_NUMBER} = "123"` 
+          && `${ResultsQueryBuilderFieldNames.KEYWORDS} != "keyword1") `;
+        const query = buildQuery({
+          refId: 'A',
+          queryBy,
+          useTimeRange: false,
+        });
+        const expectedFilter = `${queryBy}`;
+
+        await datastore.query(query);
+      
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              filter: expectedFilter,
+            }),
+          })
+        );
+      });
+    });
+
+    test('should return only useTimeRange filter when queryby is not defined', async () => {
+      const filter = '(startedAt > "\${__from:date}" && startedAt < "\${__to:date}")';
+      const replacedFilter = '(startedAt > "2025-04-01" && startedAt < "2025-04-02")';
+      templateSrv.replace.calledWith(filter).mockReturnValue(replacedFilter); 
+      const query = buildQuery({
+        refId: 'A',
+        queryBy: '',
+        useTimeRange: true,
+        useTimeRangeFor: UseTimeRangeFor.Started,
+      });
+
+      await datastore.query(query);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            filter: replacedFilter,
+          }),
         })
       );
     });

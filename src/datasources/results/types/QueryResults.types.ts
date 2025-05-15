@@ -1,4 +1,3 @@
-import { QueryBuilderField } from 'smart-webcomponents-react';
 import { OutputType, ResultsQuery } from './types';
 
 export interface QueryResults extends ResultsQuery {
@@ -9,6 +8,7 @@ export interface QueryResults extends ResultsQuery {
   useTimeRange?: boolean;
   useTimeRangeFor?: string;
   recordCount?: number;
+  queryBy?: string;
 }
 
 export interface ResultsVariableQuery extends ResultsQuery {
@@ -155,14 +155,4 @@ export interface QueryResultsResponse {
   results: ResultsResponseProperties[];
   continuationToken?: string;
   totalCount?: number;
-}
-
-export interface QBField extends QueryBuilderField {
-  lookup?: {
-    readonly?: boolean;
-    dataSource: Array<{
-      label: string,
-      value: string
-    }>;
-  },
 }
