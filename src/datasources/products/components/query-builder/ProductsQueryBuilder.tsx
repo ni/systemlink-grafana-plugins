@@ -5,7 +5,7 @@ import { Workspace, QueryBuilderOption } from "core/types";
 import { filterXSSField, filterXSSLINQExpression } from "core/utils";
 import { ProductsQueryBuilderFields, ProductsQueryBuilderStaticFields } from "datasources/products/constants/ProductsQueryBuilder.constants";
 import { QBField } from "datasources/products/types";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import QueryBuilder, { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
 
 import 'smart-webcomponents-react/source/styles/smart.dark-orange.css';
@@ -32,6 +32,11 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
 }) => {
   const theme = useTheme2();
   document.body.setAttribute("theme", theme.isDark ? "dark-orange" : "orange");
+
+  const initialize = useRef(true);
+  useEffect(() => {
+    initialize.current = false;
+  }, []);
 
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
@@ -173,8 +178,9 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
       fields={fields}
       messages={queryBuilderMessages}
       onChange={onChange}
-      value={sanitizedFilter}
+      {...(initialize.current && { value: sanitizedFilter })}
+      validateOnInput={false}
       showIcons
     />
   );
-}
+};
