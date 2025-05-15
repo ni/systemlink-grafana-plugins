@@ -105,11 +105,11 @@ describe('ResultsDataSource', () => {
       expect(result).toBe(false);
     });
     describe('metricFindQuery', () => {
-      test('should call QueryResultsDataSource metricFindQuery with correct arguments', async () => {
-        const mockQuery = { properties: 'TestProgramName', queryBy: 'TestProgramName'} as unknown as ResultsVariableQuery;
-        const mockOptions = { range: {} };
-        const mockResponse = [{ text: 'value1', value: '1' }];
+      const mockQuery = { properties: 'TestProgramName', queryBy: 'TestProgramName'} as unknown as ResultsVariableQuery;
+      const mockResponse = [{ text: 'value1', value: '1' }];
 
+      test('should call QueryResultsDataSource metricFindQuery with correct arguments', async () => {
+        const mockOptions = { range: {} };
         const queryResultsDataSource = datastore.queryResultsDataSource;
         queryResultsDataSource.metricFindQuery = jest.fn().mockResolvedValue(mockResponse);
 
@@ -120,9 +120,6 @@ describe('ResultsDataSource', () => {
       });
 
       test('should call QueryResultsDataSource metricFindQuery with undefined options', async () => {
-        const mockQuery = {queryType:'', properties: 'TestProgramName', queryBy: 'TestProgramName'} as unknown as ResultsVariableQuery;
-        const mockResponse = [{ text: 'value2', value: '2' }];
-
         const queryResultsDataSource = datastore.queryResultsDataSource;
         queryResultsDataSource.metricFindQuery = jest.fn().mockResolvedValue(mockResponse);
 
