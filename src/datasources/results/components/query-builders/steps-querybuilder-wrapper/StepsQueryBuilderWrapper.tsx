@@ -72,6 +72,6 @@ export const StepsQueryBuilderWrapper = (
 };
 
 const tooltips = {
-  resultsQueryBuilder: 'Specifies the filter to be applied on the queried results. This is an optional field.',
+  resultsQueryBuilder: 'Specifies the filter to be applied on the queried results.',
   stepsQueryBuilder: 'Specifies the filter to be applied on the queried steps. This is an optional field.',
 };
