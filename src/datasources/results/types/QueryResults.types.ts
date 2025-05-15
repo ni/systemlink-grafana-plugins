@@ -18,12 +18,12 @@ export interface ResultsVariableQuery extends ResultsQuery {
 
 export const ResultsVariableProperties = [
   {
-    value: 'dataTableIds',
+    value: 'DATA_TABLE_IDS',
     label: 'Data Table IDs',
     description: 'Data Table IDs associated with the result',
   },
   {
-    value: 'programName',
+    value: 'PROGRAM_NAME',
     label: 'Test Program Name',
     description: 'Test Program Name of the result',
   }
