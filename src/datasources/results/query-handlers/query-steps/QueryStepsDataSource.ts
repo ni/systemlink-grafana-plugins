@@ -27,8 +27,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   private _disableStepsQueryBuilder = true;
   private _stepPaths: Set<string> = new Set();
 
-  private array1: string[] = [];
-
   private counter = 0;
 
   async querySteps(
@@ -158,6 +156,12 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       totalCount: response.totalCount
     };
   }
+
+  private getStepPaths() {
+    const result = [];
+    result.push(this.counter);
+    return result;
+  }
   
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
     if (query.resultsQuery) {
@@ -170,9 +174,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     if(query.resultsQuery) {
       // const response = await this.queryStepPathInBatches(query.resultsQuery, [StepsPathProperties.path] ,10000, true);
       // this.stepPaths = response.paths as string[];
-      // this.counter++;
-      this.array1.push(`path${this.counter}`);
-      this.stepPaths = this.array1;
+      this.counter++;
+      this.stepPaths = this.getStepPaths();
       console.log('stepPaths', this.stepPaths);
     }
 
