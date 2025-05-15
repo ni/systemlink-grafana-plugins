@@ -1,0 +1,170 @@
+import { QueryBuilderOperations } from "core/query-builder.constants";
+import { QBField } from "core/types";
+
+
+export enum WorkOrdersQueryBuilderFieldNames {
+    Name = 'name',
+    Description = 'description',
+    WorkOrderID = 'id',
+    State = 'state',
+    Type = 'type',
+    Workspace = 'workspace',
+    EarliestStartDate = 'earliestStartDate',
+    DueDate = 'dueDate',
+    CreatedAt = 'createdAt',
+    UpdatedAt = 'updatedAt',
+    AssignedTo = 'assignedTo',
+    RequestedBy = 'requestedBy',
+    CreatedBy = 'createdBy',
+    UpdatedBy = 'updatedBy',
+  }
+
+export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
+    NAME: {
+        label: 'Name',
+        dataField: WorkOrdersQueryBuilderFieldNames.Name,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name,
+            QueryBuilderOperations.CONTAINS.name,
+            QueryBuilderOperations.DOES_NOT_CONTAIN.name
+        ]
+    },
+    DESCRIPTION: {
+        label: 'Description',
+        dataField: WorkOrdersQueryBuilderFieldNames.Description,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name
+        ]
+    },
+    WORK_ORDER_ID: {
+        label: 'Work Order ID',
+        dataField: WorkOrdersQueryBuilderFieldNames.WorkOrderID,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name
+        ]
+    },
+    STATE: {
+        label: 'State',
+        dataField: WorkOrdersQueryBuilderFieldNames.State,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name
+        ]
+    },
+    TYPE: {
+        label: 'Type',
+        dataField: WorkOrdersQueryBuilderFieldNames.Type,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name
+        ]
+    },
+    WORKSPACE: {
+        label: 'Workspace',
+        dataField: WorkOrdersQueryBuilderFieldNames.Workspace,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name
+        ]
+    },
+    EARLIEST_START_DATE: {
+        label: 'Earliest Start Date',
+        dataField: WorkOrdersQueryBuilderFieldNames.EarliestStartDate,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name,
+            QueryBuilderOperations.GREATER_THAN.name,
+            QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name,
+            QueryBuilderOperations.LESS_THAN.name,
+            QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
+        ]
+    },
+    DUE_DATE: {
+        label: 'Due Date',
+        dataField: WorkOrdersQueryBuilderFieldNames.DueDate,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name,
+            QueryBuilderOperations.GREATER_THAN.name,
+            QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name,
+            QueryBuilderOperations.LESS_THAN.name,
+            QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
+        ]
+    },
+    CREATED_AT: {
+        label: 'Created At',
+        dataField: WorkOrdersQueryBuilderFieldNames.CreatedAt,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name,
+            QueryBuilderOperations.GREATER_THAN.name,
+            QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name,
+            QueryBuilderOperations.LESS_THAN.name,
+            QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
+        ]
+    },
+    UPDATED_AT: {
+        label: 'Updated At',
+        dataField: WorkOrdersQueryBuilderFieldNames.UpdatedAt,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name,
+            QueryBuilderOperations.GREATER_THAN.name,
+            QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name,
+            QueryBuilderOperations.LESS_THAN.name,
+            QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
+        ]
+    },
+    ASSIGNED_TO: {
+        label: 'Assigned To',
+        dataField: WorkOrdersQueryBuilderFieldNames.AssignedTo,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name
+        ]
+    },
+    REQUESTED_BY: {
+        label: 'Requested By',
+        dataField: WorkOrdersQueryBuilderFieldNames.RequestedBy,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name
+        ]
+    },
+    CREATED_BY: {
+        label: 'Created By',
+        dataField: WorkOrdersQueryBuilderFieldNames.CreatedBy,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name
+        ]
+    },
+    UPDATED_BY: {
+        label: 'Updated By',
+        dataField: WorkOrdersQueryBuilderFieldNames.UpdatedBy,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name
+        ]
+    }
+}
+
+export const WorkOrdersQueryBuilderStaticFields = [
+    WorkOrdersQueryBuilderFields.NAME,
+    WorkOrdersQueryBuilderFields.DESCRIPTION,
+    WorkOrdersQueryBuilderFields.WORK_ORDER_ID,
+    WorkOrdersQueryBuilderFields.STATE,
+    WorkOrdersQueryBuilderFields.TYPE,
+    WorkOrdersQueryBuilderFields.WORKSPACE,
+    WorkOrdersQueryBuilderFields.EARLIEST_START_DATE,
+    WorkOrdersQueryBuilderFields.DUE_DATE,
+    WorkOrdersQueryBuilderFields.CREATED_AT,
+    WorkOrdersQueryBuilderFields.UPDATED_AT,
+    WorkOrdersQueryBuilderFields.ASSIGNED_TO,
+    WorkOrdersQueryBuilderFields.REQUESTED_BY,
+    WorkOrdersQueryBuilderFields.CREATED_BY,
+    WorkOrdersQueryBuilderFields.UPDATED_BY
+];
