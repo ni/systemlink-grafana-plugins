@@ -24,7 +24,7 @@ describe('ProductsQueryEditor', () => {
   });
 
 
-  it('renders with default query', async () => {
+  it('should render with default query and call onRunQuery on mount', async () => {
     expect(properties).toBeInTheDocument();
     expect(properties).toHaveDisplayValue('');
     expect(orderBy).toBeInTheDocument();
