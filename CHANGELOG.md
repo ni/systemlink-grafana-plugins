@@ -1,3 +1,9 @@
+## [3.70.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.69.0...v3.70.0) (2025-05-16)
+
+### Features
+
+* **results:** Add tooltip for results and steps query builder ([#185](https://github.com/ni/systemlink-grafana-plugins/issues/185)) ([33b0be5](https://github.com/ni/systemlink-grafana-plugins/commit/33b0be5d914c22d8e366622c99ac9f5351fa3011))
+
 ## [3.69.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.68.0...v3.69.0) (2025-05-16)
 
 ### Features
