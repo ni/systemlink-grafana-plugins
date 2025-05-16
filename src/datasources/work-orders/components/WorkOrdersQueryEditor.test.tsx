@@ -5,10 +5,9 @@ import { WorkOrdersQueryEditor } from './WorkOrdersQueryEditor';
 import { WorkOrdersQuery } from '../types';
 
 const render = setupRenderer(WorkOrdersQueryEditor, WorkOrdersDataSource);
-let onChange: jest.Mock<any, any>;
 describe('WorkOrdersQueryEditor', () => {
   beforeEach(async () => {
-    [onChange] = render({ refId: '' } as WorkOrdersQuery);
+    render({ refId: '' } as WorkOrdersQuery);
   });
 
   it('renders the query builder', async () => {

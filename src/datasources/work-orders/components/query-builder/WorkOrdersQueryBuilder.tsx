@@ -2,7 +2,6 @@ import { SlQueryBuilder } from "core/components/SlQueryBuilder/SlQueryBuilder";
 import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder.constants";
 import { expressionBuilderCallback, expressionReaderCallback } from "core/query-builder.utils";
 import { QBField, QueryBuilderOption } from "core/types";
-import { filterXSSField } from "core/utils";
 import { WorkOrdersQueryBuilderStaticFields } from "datasources/work-orders/constants/WorkOrdersQueryBuilder.constants";
 import React, { useState, useEffect } from "react";
 import { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
@@ -22,17 +21,6 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
 
   useEffect(() => {
     const updatedFields = WorkOrdersQueryBuilderStaticFields
-      .map((field) => {
-        if (field.lookup?.dataSource) {
-          return {
-            ...field,
-            lookup: {
-              dataSource: [...globalVariableOptions, ...field.lookup!.dataSource].map(filterXSSField),
-            },
-          }
-        }
-        return field;
-      });
 
     setFields(updatedFields);
 
