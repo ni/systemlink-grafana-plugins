@@ -1,14 +1,9 @@
 import React, { useCallback } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { TestPlansDataSource } from '../TestPlansDataSource';
-<<<<<<< HEAD
 import { OrderBy, OutputType, Properties, TestPlansQuery } from '../types';
 import { InlineField, InlineSwitch, MultiSelect, RadioButtonGroup, Select, VerticalGroup } from '@grafana/ui';
 import './TestPlansQueryEditor.scss';
-=======
-import { OutputType, Properties, TestPlansQuery } from '../types';
-import { InlineField, MultiSelect, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
->>>>>>> main
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansQuery>;
 
