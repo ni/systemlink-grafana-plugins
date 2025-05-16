@@ -48,7 +48,7 @@ describe('TestPlansQueryEditor', () => {
 
             const orderBy = container.getAllByRole('combobox')[1];
             expect(orderBy).toBeInTheDocument();
-            expect(orderBy).toHaveAccessibleDescription('Select field to order by');
+            expect(orderBy).toHaveAccessibleDescription('Select a field to set the query order');
             expect(orderBy).toHaveDisplayValue('');
 
             const descending = container.getByRole('checkbox');
