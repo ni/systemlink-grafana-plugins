@@ -2,8 +2,9 @@ import React, { useCallback } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { TestPlansDataSource } from '../TestPlansDataSource';
 import { OrderBy, OutputType, Properties, TestPlansQuery } from '../types';
-import { InlineField, InlineSwitch, MultiSelect, RadioButtonGroup, Select, VerticalGroup } from '@grafana/ui';
+import { AutoSizeInput, InlineField, InlineSwitch, MultiSelect, RadioButtonGroup, Select, VerticalGroup } from '@grafana/ui';
 import './TestPlansQueryEditor.scss';
+import { validateNumericInput } from 'core/utils';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansQuery>;
 
@@ -35,6 +36,11 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const onDescendingChange = (isDescendingChecked: boolean) => {
     handleQueryChange({ ...query, descending: isDescendingChecked });
+  };
+
+  const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
+    const value = parseInt((event.target as HTMLInputElement).value, 10);
+    handleQueryChange({ ...query, recordCount: value });
   };
 
   return (
@@ -81,6 +87,17 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
                 />
               </InlineField>
             </div>
+            <InlineField label="Take" labelWidth={25} tooltip={tooltips.recordCount}>
+              <AutoSizeInput
+                minWidth={26}
+                maxWidth={26}
+                type='number'
+                defaultValue={query.recordCount}
+                onCommitChange={recordCountChange}
+                placeholder="Enter record count"
+                onKeyDown={(event) => { validateNumericInput(event) }}
+              />
+            </InlineField>
           </VerticalGroup>
         )}
       </VerticalGroup>
@@ -92,5 +109,6 @@ const tooltips = {
   outputType: 'This field specifies the output type to fetch test plan properties or total count.',
   properties: 'This field specifies the properties to use in the query.',
   orderBy: 'This field specifies the query order of the test plans.',
-  descending: 'This toggle returns the test plans query in descending order.'
+  descending: 'This toggle returns the test plans query in descending order.',
+  recordCount: 'This field specifies the maximum number of test plans to return.'
 };

@@ -29,7 +29,8 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       PropertiesOptions.UPDATED_AT
     ] as Properties[],
     orderBy: OrderByOptions.UPDATED_AT,
-    descending: true
+    descending: true,
+    recordCount: 1000
   };
 
   async runQuery(query: TestPlansQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
