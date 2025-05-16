@@ -1,9 +1,14 @@
 import React, { useCallback } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { TestPlansDataSource } from '../TestPlansDataSource';
+<<<<<<< HEAD
 import { OrderBy, OutputType, Properties, TestPlansQuery } from '../types';
 import { InlineField, InlineSwitch, MultiSelect, RadioButtonGroup, Select, VerticalGroup } from '@grafana/ui';
 import './TestPlansQueryEditor.scss';
+=======
+import { OutputType, Properties, TestPlansQuery } from '../types';
+import { InlineField, MultiSelect, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
+>>>>>>> main
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansQuery>;
 
@@ -51,7 +56,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
           <VerticalGroup>
             <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
               <MultiSelect
-                placeholder="Select properties to query"
+                placeholder="Select the properties to query"
                 options={Object.entries(Properties).map(([key, value]) => ({ label: value, value: key })) as SelectableValue[]}
                 onChange={onPropertiesChange}
                 value={query.properties}
@@ -90,7 +95,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
 
 const tooltips = {
   outputType: 'This field specifies the output type to fetch test plan properties or total count.',
-  properties: "Specifies the properties to be queried.",
+  properties: 'This field specifies the properties to use in the query.',
   orderBy: "Specifies the field to order the queried test plans by.",
   descending: "Specifies whether to return the test plans in descending order."
 };

@@ -3,10 +3,10 @@ import { QBField } from 'core/types';
 
 export enum StepsQueryBuilderFieldNames {
   KEYWORDS = 'keywords',
-  NAME = 'stepName',
+  NAME = 'name',
   PATH = 'path',
   PROPERTIES = 'properties',
-  STATUS = 'status',
+  STATUS = 'status.statusType',
   TYPE = 'stepType',
   UPDATED_AT = 'updatedAt',
   WORKSPACE = 'workspace',
@@ -17,10 +17,10 @@ export const StepsQueryBuilderFields: Record<string, QBField> = {
     label: 'Step keywords',
     dataField: StepsQueryBuilderFieldNames.KEYWORDS,
     filterOperations: [
-      QueryBuilderOperations.EQUALS.name,
-      QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.CONTAINS.name,
-      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
+      QueryBuilderOperations.LIST_EQUALS.name,
+      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.LIST_CONTAINS.name,
+      QueryBuilderOperations.LIST_DOES_NOT_CONTAIN.name,
     ],
   },
   NAME: {

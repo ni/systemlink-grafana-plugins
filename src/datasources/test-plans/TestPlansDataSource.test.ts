@@ -4,7 +4,6 @@ import { BackendSrv } from "@grafana/runtime";
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from "test/fixtures";
 import { OrderByOptions, OutputType, PropertiesOptions } from "./types";
 
-
 let datastore: TestPlansDataSource, backendServer: MockProxy<BackendSrv>
 
 beforeEach(() => {
