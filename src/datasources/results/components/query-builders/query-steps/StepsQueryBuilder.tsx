@@ -12,27 +12,27 @@ import 'smart-webcomponents-react/source/styles/smart.orange.css';
 import 'smart-webcomponents-react/source/styles/components/smart.base.css';
 import 'smart-webcomponents-react/source/styles/components/smart.common.css';
 import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
-import {
-  ResultsQueryBuilderFields,
-  ResultsQueryBuilderStaticFields,
-} from 'datasources/results/constants/ResultsQueryBuilder.constants';
+import { StepsQueryBuilderFields, StepsQueryBuilderStaticFields } from 'datasources/results/constants/StepsQueryBuilder.constants';
 
-type ResultsQueryBuilderProps = QueryBuilderProps &
+type StepsQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     filter?: string;
     workspaces: Workspace[];
-    partNumbers: string[];
-    status: string[];
+    stepStatus: string[];
+    stepsPath: string[];
     globalVariableOptions: QueryBuilderOption[];
+    onFilterChange: (filter: string) => void;
+    disableQueryBuilder?: boolean;
   };
 
-export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
+export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
   filter,
-  onChange,
   workspaces,
-  partNumbers,
-  status,
+  stepStatus,
+  stepsPath,
   globalVariableOptions,
+  onFilterChange,
+  disableQueryBuilder
 }) => {
   const theme = useTheme2();
   document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
@@ -45,7 +45,7 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
   }, [filter]);
 
   const workspaceField = useMemo(() => {
-    const workspaceField = ResultsQueryBuilderFields.WORKSPACE;
+    const workspaceField = StepsQueryBuilderFields.WORKSPACE;
     return {
       ...workspaceField,
       lookup: {
@@ -58,22 +58,22 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
     };
   }, [workspaces]);
 
-  const statusField = useMemo(() => {
-    const statusField = ResultsQueryBuilderFields.STATUS;
+  const stepStatusField = useMemo(() => {
+    const statusField = StepsQueryBuilderFields.STATUS;
     return {
       ...statusField,
       lookup: {
         ...statusField.lookup,
         dataSource: [
-          ...(statusField.lookup?.dataSource || []),
-          ...status.map(name => ({ label: name, value: name.replace(/\s+/g, '') })),
+          ...(statusField.lookup?.dataSource || []), 
+          ...stepStatus.map(name => ({ label: name, value: name }))
         ],
       },
     };
-  }, [status]);
+  }, [stepStatus]);
 
   const updatedAtField = useMemo(() => {
-    const updatedField = ResultsQueryBuilderFields.UPDATEDAT;
+    const updatedField = StepsQueryBuilderFields.UPDATEDAT;
     return {
       ...updatedField,
       lookup: {
@@ -88,57 +88,38 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
     };
   }, []);
 
-  const startedAtField = useMemo(() => {
-    const startedField = ResultsQueryBuilderFields.STARTEDAT;
+  const stepsPathField = useMemo(() => {
+    const stepsPathField = StepsQueryBuilderFields.PATH;
     return {
-      ...startedField,
+      ...stepsPathField,
       lookup: {
-        ...startedField.lookup,
+        ...stepsPathField.lookup,
         dataSource: [
-          ...(startedField.lookup?.dataSource || []),
-          { label: 'From', value: '${__from:date}' },
-          { label: 'To', value: '${__to:date}' },
-          { label: 'Now', value: '${__now:date}' },
+          ...(stepsPathField.lookup?.dataSource || []),
+          ...stepsPath.map(path => ({ label: path, value: path })),
         ],
       },
     };
-  }, []);
-
-  const partNumberField = useMemo(() => {
-    const partNumberField = ResultsQueryBuilderFields.PARTNUMBER;
-    return {
-      ...partNumberField,
-      lookup: {
-        ...partNumberField.lookup,
-        dataSource: [
-          ...(partNumberField.lookup?.dataSource || []),
-          ...partNumbers.map(partNumber => ({ label: partNumber, value: partNumber })),
-        ],
-      },
-    };
-  }, [partNumbers]);
+  }, [stepsPath]);
 
   useEffect(() => {
     const updatedFields = [
-      partNumberField,
-      ...ResultsQueryBuilderStaticFields!,
+      stepsPathField,
       updatedAtField,
       workspaceField,
-      startedAtField,
-      statusField
-    ].map(
-      field => {
-        if (field.lookup?.dataSource) {
-          return {
-            ...field,
-            lookup: {
-              dataSource: [...globalVariableOptions, ...field.lookup!.dataSource].map(filterXSSField),
-            },
-          };
-        }
-        return field;
+      stepStatusField,
+      ...StepsQueryBuilderStaticFields!,
+    ].map(field => {
+      if (field.lookup?.dataSource) {
+        return {
+          ...field,
+          lookup: {
+            dataSource: [...globalVariableOptions, ...field.lookup!.dataSource].map(filterXSSField),
+          },
+        };
       }
-    );
+      return field;
+    });
 
     setFields(updatedFields);
 
@@ -193,16 +174,17 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
     ];
 
     setOperations([...customOperations, ...keyValueOperations]);
-  }, [workspaceField, startedAtField, updatedAtField, partNumberField, globalVariableOptions, statusField]);
+  }, [workspaceField, updatedAtField, stepsPathField, globalVariableOptions, stepStatusField]);
 
   return (
     <QueryBuilder
       customOperations={operations}
       fields={fields}
       messages={queryBuilderMessages}
-      onChange={onChange}
+      onChange={(event) => onFilterChange((event as CustomEvent<{ linq: string }>).detail.linq)}
       value={sanitizedFilter}
       fieldsMode="static"
+      disabled={disableQueryBuilder}
     />
   );
 };
