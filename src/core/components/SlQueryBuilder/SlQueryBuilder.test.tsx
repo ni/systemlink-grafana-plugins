@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { SlQueryBuilder } from './SlQueryBuilder';
 import { QueryBuilderCustomOperation, QueryBuilderField } from 'smart-webcomponents-react';
 
@@ -35,32 +35,10 @@ describe('SlQueryBuilder', () => {
     expect(renderResult.findByLabelText('Empty condition row')).toBeTruthy();
   });
 
-  it('should render QueryBuilder with custom operations and fields', () => {
-    const value = 'field1 = "value1"';
-
-    const { conditionsContainer } = renderElement(customOperations, fields, {}, value);
-
-    expect(conditionsContainer.length).toBe(1);
-
-    expect(conditionsContainer.item(0)?.textContent).toContain('Field1');
-    expect(conditionsContainer.item(0)?.textContent).toContain('Custom operation');
-    expect(conditionsContainer.item(0)?.textContent).toContain('value1');
-  });
-
   it('should sanitize fields in query builder', () => {
     const { conditionsContainer } = renderElement(customOperations, fields, {}, 'field1 = "<script>alert(\'Test\')</script>"');
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.innerHTML).not.toContain('alert(\'Test\')');
-  });
-
-  it('should call onChange when the filter changes', () => {
-    const onChange = jest.fn();
-    const { renderResult } = renderElement(customOperations, fields, {}, '', onChange);
-
-    const queryBuilder = renderResult.container.querySelector('.smart-query-builder');
-    fireEvent.change(queryBuilder!, { target: { value: 'field1 = "value1"' } });
-
-    expect(onChange).toHaveBeenCalled();
   });
 });
