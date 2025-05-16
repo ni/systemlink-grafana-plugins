@@ -1,3 +1,9 @@
+## [3.72.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.71.0...v3.72.0) (2025-05-16)
+
+### Features
+
+* Add a wrapper query builder ([#160](https://github.com/ni/systemlink-grafana-plugins/issues/160)) ([12a1877](https://github.com/ni/systemlink-grafana-plugins/commit/12a1877a5462769013f8d57eb4078b1e76e6c141))
+
 ## [3.71.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.70.0...v3.71.0) (2025-05-16)
 
 ### Features
