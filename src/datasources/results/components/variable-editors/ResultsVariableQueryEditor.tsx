@@ -42,6 +42,6 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
 }
 
 const tooltips = {
-  queryBy: 'Specifies the filter to be applied on the queried results.',
+  queryBy: 'This field applies a filter to the query results.',
   properties: "This field specifies the properties to use in the query.",
 };
