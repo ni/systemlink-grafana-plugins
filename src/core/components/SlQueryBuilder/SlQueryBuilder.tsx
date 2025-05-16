@@ -1,8 +1,6 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 import { useTheme2 } from '@grafana/ui';
 import QueryBuilder, { QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
-import 'smart-webcomponents-react/source/styles/smart.dark-orange.css';
-import 'smart-webcomponents-react/source/styles/smart.orange.css';
 import 'smart-webcomponents-react/source/styles/components/smart.base.css';
 import 'smart-webcomponents-react/source/styles/components/smart.common.css';
 import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
@@ -39,11 +37,6 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
   const theme = useTheme2();
   document.body.setAttribute('theme', theme.isDark ? 'sl-dark' : 'sl-light');
 
-  const initialize = useRef(true);
-  useEffect(() => {
-    initialize.current = false;
-  }, []);
-
   const sanitizedFilter = useMemo(() => {
     return filterXSSLINQExpression(value);
   }, [value]);
@@ -54,7 +47,7 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
       fields={fields}
       messages={messages}
       onChange={onChange}
-      {...(initialize.current && { value: sanitizedFilter })}
+      value={sanitizedFilter}
       validateOnInput={validateOnInput}
       showIcons={showIcons}
     />

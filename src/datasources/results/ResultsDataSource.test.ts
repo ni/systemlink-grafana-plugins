@@ -3,7 +3,8 @@ import { ResultsDataSource } from './ResultsDataSource';
 import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { ResultsQuery } from './types/types';
-import { DataFrameDTO, DataQueryRequest } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, LegacyMetricFindQueryOptions } from '@grafana/data';
+import { ResultsVariableQuery } from './types/QueryResults.types';
 
 let datastore: ResultsDataSource, backendServer: MockProxy<BackendSrv>
 
@@ -40,7 +41,7 @@ describe('ResultsDataSource', () => {
       const mockOptions: DataQueryRequest = {} as DataQueryRequest;
       const mockResponse: DataFrameDTO = { fields: [] };
 
-      const queryResultsDataSource = (datastore as any).queryResultsDataSource;
+      const queryResultsDataSource = datastore.queryResultsDataSource;
       queryResultsDataSource.runQuery = jest.fn().mockResolvedValue(mockResponse);
 
       const result = await datastore.runQuery(mockQuery, mockOptions);
@@ -75,7 +76,7 @@ describe('ResultsDataSource', () => {
     test('should call QueryResultsDataSource shouldRunQuery when query type is results', () => {
       const mockQuery: ResultsQuery = { refId: 'A', queryType: 'Results' } as ResultsQuery;
 
-      const queryResultsDataSource = (datastore as any).queryResultsDataSource;
+      const queryResultsDataSource = datastore.queryResultsDataSource;
       queryResultsDataSource.shouldRunQuery = jest.fn().mockReturnValue(true);
 
       const result = datastore.shouldRunQuery(mockQuery);
@@ -103,6 +104,31 @@ describe('ResultsDataSource', () => {
 
       expect(result).toBe(false);
     });
+    describe('metricFindQuery', () => {
+      const mockQuery = { properties: 'TestProgramName', queryBy: 'TestProgramName'} as unknown as ResultsVariableQuery;
+      const mockResponse = [{ text: 'value1', value: '1' }];
 
+      test('should call QueryResultsDataSource metricFindQuery with correct arguments', async () => {
+        const mockOptions = { range: {} };
+        const queryResultsDataSource = datastore.queryResultsDataSource;
+        queryResultsDataSource.metricFindQuery = jest.fn().mockResolvedValue(mockResponse);
+
+        const result = await datastore.metricFindQuery(mockQuery, mockOptions as LegacyMetricFindQueryOptions);
+
+        expect(queryResultsDataSource.metricFindQuery).toHaveBeenCalledWith(mockQuery, mockOptions);
+        expect(result).toBe(mockResponse);
+      });
+
+      test('should call QueryResultsDataSource metricFindQuery with undefined options', async () => {
+        const queryResultsDataSource = datastore.queryResultsDataSource;
+        queryResultsDataSource.metricFindQuery = jest.fn().mockResolvedValue(mockResponse);
+
+        const result = await datastore.metricFindQuery(mockQuery);
+
+        expect(queryResultsDataSource.metricFindQuery).toHaveBeenCalledWith(mockQuery, undefined);
+        expect(result).toBe(mockResponse);
+      });
+    });
   });
+
 });

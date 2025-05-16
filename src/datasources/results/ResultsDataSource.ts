@@ -1,25 +1,25 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TestDataSourceResponse } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { QueryType, ResultsQuery } from './types/types';
+import { QueryType, ResultsDataSourceOptions, ResultsQuery } from './types/types';
 import { QueryResultsDataSource } from './query-handlers/query-results/QueryResultsDataSource';
-import { QueryResults } from './types/QueryResults.types';
+import { QueryResults, ResultsVariableQuery } from './types/QueryResults.types';
 import { QuerySteps } from './types/QuerySteps.types';
 import { QueryStepsDataSource } from './query-handlers/query-steps/QueryStepsDataSource';
 
-export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
+export class ResultsDataSource extends DataSourceBase<ResultsQuery, ResultsDataSourceOptions> {
   public defaultQuery: Partial<ResultsQuery> & Omit<ResultsQuery, 'refId'>;
 
-  private queryResultsDataSource: QueryResultsDataSource;
+  private _queryResultsDataSource: QueryResultsDataSource;
   private queryStepsDataSource: QueryStepsDataSource;
 
   constructor(
-    readonly instanceSettings: DataSourceInstanceSettings,
+    readonly instanceSettings: DataSourceInstanceSettings<ResultsDataSourceOptions>,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
-    this.queryResultsDataSource = new QueryResultsDataSource(instanceSettings, backendSrv, templateSrv);
+    this._queryResultsDataSource = new QueryResultsDataSource(instanceSettings, backendSrv, templateSrv);
     this.queryStepsDataSource = new QueryStepsDataSource(instanceSettings, backendSrv, templateSrv);
     this.defaultQuery = this.queryResultsDataSource.defaultQuery;
   }
@@ -42,6 +42,14 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
       return this.queryStepsDataSource.shouldRunQuery(query as QuerySteps);
     }
     return false;
+  }
+
+  async metricFindQuery(query: ResultsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    return this.queryResultsDataSource.metricFindQuery(query as ResultsVariableQuery, options);
+  }
+
+  get queryResultsDataSource(): QueryResultsDataSource {
+    return this._queryResultsDataSource;
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
