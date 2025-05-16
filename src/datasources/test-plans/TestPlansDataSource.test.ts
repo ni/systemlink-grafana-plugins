@@ -2,7 +2,7 @@ import { MockProxy } from "jest-mock-extended";
 import { TestPlansDataSource } from "./TestPlansDataSource";
 import { BackendSrv } from "@grafana/runtime";
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from "test/fixtures";
-import { OutputType } from "./types";
+import { OutputType, PropertiesOptions } from "./types";
 
 
 let datastore: TestPlansDataSource, backendServer: MockProxy<BackendSrv>
@@ -32,8 +32,19 @@ describe('testDatasource', () => {
       .toThrow('Request to url "/niworkorder/v1/query-testplans" failed with status code: 400. Error message: "Error"');
   });
 
-  test('default query output type should be properties', async () => {
+  test('default query output type as properties and default properties', async () => {
     const defaultQuery = datastore.defaultQuery;
     expect(defaultQuery.outputType).toEqual(OutputType.Properties);
+    expect(defaultQuery.properties).toEqual([
+      PropertiesOptions.NAME,
+      PropertiesOptions.STATE,
+      PropertiesOptions.ASSIGNED_TO,
+      PropertiesOptions.PRODUCT,
+      PropertiesOptions.DUT,
+      PropertiesOptions.PLANNED_START_DATE,
+      PropertiesOptions.ESTIMATED_DURATION,
+      PropertiesOptions.SYSTEM,
+      PropertiesOptions.UPDATED_AT
+    ]);
   });
 });

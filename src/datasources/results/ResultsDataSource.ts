@@ -1,9 +1,9 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TestDataSourceResponse } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { QueryType, ResultsDataSourceOptions, ResultsQuery } from './types/types';
 import { QueryResultsDataSource } from './query-handlers/query-results/QueryResultsDataSource';
-import { QueryResults } from './types/QueryResults.types';
+import { QueryResults, ResultsVariableQuery } from './types/QueryResults.types';
 import { QuerySteps } from './types/QuerySteps.types';
 import { QueryStepsDataSource } from './query-handlers/query-steps/QueryStepsDataSource';
 
@@ -42,6 +42,10 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery, ResultsDataS
       return this.queryStepsDataSource.shouldRunQuery(query as QuerySteps);
     }
     return false;
+  }
+
+  async metricFindQuery(query: ResultsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    return this.queryResultsDataSource.metricFindQuery(query as ResultsVariableQuery, options);
   }
 
   get queryResultsDataSource(): QueryResultsDataSource {

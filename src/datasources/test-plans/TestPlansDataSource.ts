@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { OutputType, TestPlansQuery } from './types';
+import { OutputType, Properties, PropertiesOptions, TestPlansQuery } from './types';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(
@@ -16,7 +16,18 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   queryTestPlansUrl = `${this.baseUrl}/query-testplans`;
 
   defaultQuery = {
-    outputType: OutputType.Properties
+    outputType: OutputType.Properties,
+    properties: [
+      PropertiesOptions.NAME,
+      PropertiesOptions.STATE,
+      PropertiesOptions.ASSIGNED_TO,
+      PropertiesOptions.PRODUCT,
+      PropertiesOptions.DUT,
+      PropertiesOptions.PLANNED_START_DATE,
+      PropertiesOptions.ESTIMATED_DURATION,
+      PropertiesOptions.SYSTEM,
+      PropertiesOptions.UPDATED_AT
+    ] as Properties[]
   };
 
   async runQuery(query: TestPlansQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
