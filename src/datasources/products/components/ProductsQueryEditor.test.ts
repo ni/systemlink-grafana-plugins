@@ -8,6 +8,7 @@ import userEvent from "@testing-library/user-event";
 
 const render = setupRenderer(ProductsQueryEditor, ProductsDataSource);
 let onChange: jest.Mock<any, any>
+let onRunQuery: jest.Mock<any, any>
 let properties: HTMLElement
 let orderBy: HTMLElement
 let descending: HTMLElement
@@ -15,12 +16,13 @@ let recordCount: HTMLElement
 
 describe('ProductsQueryEditor', () => {
   beforeEach(async () => {
-    [onChange] = render({ refId: '', properties: [], orderBy: undefined } as ProductQuery);
+    [onChange, onRunQuery] = render({ refId: '', properties: [], orderBy: undefined } as ProductQuery);
     await waitFor(() => properties = screen.getAllByRole('combobox')[0]);
     orderBy = screen.getAllByRole('combobox')[1];
     descending = screen.getByRole('checkbox');
     recordCount = screen.getByDisplayValue('1000');
   });
+
 
   it('renders with default query', async () => {
     expect(properties).toBeInTheDocument();
@@ -31,6 +33,17 @@ describe('ProductsQueryEditor', () => {
     expect(descending).toBeChecked();
     expect(recordCount).toBeInTheDocument();
     expect(recordCount).toHaveValue(1000);
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        refId: 'A',
+        properties: [],
+        orderBy: undefined,
+        descending: true,
+        recordCount: 1000,
+        queryBy: ''
+      }));
+    expect(onRunQuery).toHaveBeenCalledTimes(1);
   });
 
   it('renders the query builder', async () => {
