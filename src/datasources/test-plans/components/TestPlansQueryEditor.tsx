@@ -72,7 +72,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
               <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
                 <Select
                   options={OrderBy as SelectableValue[]}
-                  placeholder="Select field to order by"
+                  placeholder="Select a field to set the query order"
                   onChange={onOrderByChange}
                   value={query.orderBy}
                   defaultValue={query.orderBy}
@@ -96,6 +96,6 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
 const tooltips = {
   outputType: 'This field specifies the output type to fetch test plan properties or total count.',
   properties: 'This field specifies the properties to use in the query.',
-  orderBy: "Specifies the field to order the queried test plans by.",
-  descending: "Specifies whether to return the test plans in descending order."
+  orderBy: 'This field specifies the query order of the test plans.',
+  descending: 'This toggle returns the test plans query in descending order.'
 };
