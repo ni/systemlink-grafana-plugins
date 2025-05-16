@@ -68,7 +68,7 @@ describe('WorkOrdersDataSource', () => {
     test('returns work orders from API response', async () => {
       jest.spyOn(datastore, 'queryWorkOrders').mockResolvedValue(mockWorkOrders);
 
-      const result = await datastore.queryWorkordersData('filter', 10);
+      const result = await datastore.queryWorkordersData('filter');
 
       expect(result).toMatchSnapshot();
     });
