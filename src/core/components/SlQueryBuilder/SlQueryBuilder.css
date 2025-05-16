@@ -6,7 +6,6 @@ body {
     --smart-border-bottom-right-radius: 2px;
     --smart-border-bottom-left-radius: 2px;
     --smart-ui-state-color-focus: var(--smart-background-color);
-    /* --smart-font-family: Inter, Helvetica, Arial, sans-serif; */
 }
 
 body[theme="sl-light"], .smart-ui-component[theme="sl-light"] {
