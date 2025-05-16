@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { TestPlansDataSource } from '../TestPlansDataSource';
-import { OrderBy, OutputType, Properties, TestPlansQuery } from '../types';
+import { OrderBy, OutputType, PropertiesWithProjections, TestPlanProperties, TestPlansQuery } from '../types';
 import { AutoSizeInput, InlineField, InlineSwitch, MultiSelect, RadioButtonGroup, Select, VerticalGroup } from '@grafana/ui';
 import './TestPlansQueryEditor.scss';
 import { validateNumericInput } from 'core/utils';
@@ -24,9 +24,9 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
     handleQueryChange({ ...query, outputType: value });
   };
 
-  const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
+  const onPropertiesChange = (items: Array<SelectableValue<TestPlanProperties>>) => {
     if (items !== undefined) {
-      handleQueryChange({ ...query, properties: items.map(i => i.value as Properties) });
+      handleQueryChange({ ...query, properties: items.map(i => i.value!) });
     }
   };
 
@@ -58,7 +58,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
             <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
               <MultiSelect
                 placeholder="Select properties to query"
-                options={Object.entries(Properties).map(([key, value]) => ({ label: value, value: key })) as SelectableValue[]}
+                options={Array.from(PropertiesWithProjections.values()).map(value => ({ label: value.label, value })) as SelectableValue[]}
                 onChange={onPropertiesChange}
                 value={query.properties}
                 defaultValue={query.properties}

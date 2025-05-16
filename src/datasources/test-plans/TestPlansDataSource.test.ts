@@ -2,7 +2,7 @@ import { MockProxy } from "jest-mock-extended";
 import { TestPlansDataSource } from "./TestPlansDataSource";
 import { BackendSrv } from "@grafana/runtime";
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from "test/fixtures";
-import { OrderByOptions, OutputType, PropertiesOptions } from "./types";
+import { OrderByOptions, OutputType, Properties } from "./types";
 
 
 let datastore: TestPlansDataSource, backendServer: MockProxy<BackendSrv>
@@ -36,15 +36,15 @@ describe('testDatasource', () => {
     const defaultQuery = datastore.defaultQuery;
     expect(defaultQuery.outputType).toEqual(OutputType.Properties);
     expect(defaultQuery.properties).toEqual([
-      PropertiesOptions.NAME,
-      PropertiesOptions.STATE,
-      PropertiesOptions.ASSIGNED_TO,
-      PropertiesOptions.PRODUCT,
-      PropertiesOptions.DUT,
-      PropertiesOptions.PLANNED_START_DATE,
-      PropertiesOptions.ESTIMATED_DURATION,
-      PropertiesOptions.SYSTEM,
-      PropertiesOptions.UPDATED_AT
+      Properties.NAME,
+      Properties.STATE,
+      Properties.ASSIGNED_TO,
+      Properties.PRODUCT,
+      Properties.DUT_ID,
+      Properties.PLANNED_START_DATE_TIME,
+      Properties.ESTIMATED_DURATION_IN_SECONDS,
+      Properties.SYSTEM_ID,
+      Properties.UPDATED_AT
     ]);
     expect(defaultQuery.orderBy).toEqual(OrderByOptions.UPDATED_AT);
     expect(defaultQuery.descending).toEqual(true);

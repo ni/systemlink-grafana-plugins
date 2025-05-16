@@ -82,7 +82,7 @@ describe('TestPlansQueryEditor', () => {
 
         it('should call onChange with properties when user selects properties', async () => {
             userEvent.click(propertiesSelect);
-            await select(propertiesSelect, Properties.assignedTo, { container: document.body });
+            await select(propertiesSelect, Properties.ASSIGNED_TO, { container: document.body });
 
             await waitFor(() => {
                 expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['assignedTo'] }));
