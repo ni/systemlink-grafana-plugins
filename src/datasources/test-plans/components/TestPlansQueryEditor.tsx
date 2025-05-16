@@ -41,7 +41,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
         {query.outputType === OutputType.Properties && (
           <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
             <MultiSelect
-              placeholder="Select properties to query"
+              placeholder="Select the properties to query"
               options={Object.entries(Properties).map(([key, value]) => ({ label: value, value: key })) as SelectableValue[]}
               onChange={onPropertiesChange}
               value={query.properties}
@@ -61,5 +61,5 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
 
 const tooltips = {
   outputType: 'This field specifies the output type to fetch test plan properties or total count.',
-  properties: "Specifies the properties to be queried."
+  properties: 'This field specifies the properties to use in the query.'
 };
