@@ -1,6 +1,6 @@
-import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties } from "datasources/results/types/QueryResults.types";
+import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties, ResultsVariableQuery } from "datasources/results/types/QueryResults.types";
 import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase";
-import { DataQueryRequest, DataFrameDTO, FieldType } from "@grafana/data";
+import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from "@grafana/data";
 import { OutputType } from "datasources/results/types/types";
 import { defaultResultsQuery } from "datasources/results/defaultQueries";
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
@@ -105,6 +105,10 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     ])
   );
   
+  async metricFindQuery(_query: ResultsVariableQuery, _options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    return [];
+  }
+
   shouldRunQuery(_: QueryResults): boolean {
     return true;
   }

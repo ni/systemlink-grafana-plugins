@@ -3,7 +3,7 @@ import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
 import { Field } from '@grafana/data';
 import { QueryResultsDataSource } from './QueryResultsDataSource';
-import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions } from 'datasources/results/types/QueryResults.types';
+import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsVariableQuery } from 'datasources/results/types/QueryResults.types';
 import { OutputType, QueryType, UseTimeRangeFor } from 'datasources/results/types/types';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 
@@ -401,6 +401,20 @@ describe('QueryResultsDataSource', () => {
           }),
         })
       );
+    });
+  });
+  describe('metricFindQuery', () => {
+    test('should return an empty array when called', async () => {
+      const query = { queryType:'', properties: 'TestProgramName', queryBy: 'TestProgramName'} as unknown as ResultsVariableQuery;
+      const options = {};
+      const result = await datastore.metricFindQuery(query, options);
+      expect(result).toEqual([]);
+    });
+
+    test('should return an empty array when called without options', async () => {
+      const query = {queryType:'', properties: 'TestProgramName', queryBy: 'TestProgramName'} as unknown as ResultsVariableQuery;
+      const result = await datastore.metricFindQuery(query);
+      expect(result).toEqual([]);
     });
   });
 
