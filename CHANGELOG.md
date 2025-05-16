@@ -1,3 +1,9 @@
+## [3.71.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.70.0...v3.71.0) (2025-05-16)
+
+### Features
+
+* **results:** Add variable Query editor template for Results Datasource ([#183](https://github.com/ni/systemlink-grafana-plugins/issues/183)) ([f42879d](https://github.com/ni/systemlink-grafana-plugins/commit/f42879d060f1e7f1d664251feba5a3078ccad7bf))
+
 ## [3.70.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.69.0...v3.70.0) (2025-05-16)
 
 ### Features
