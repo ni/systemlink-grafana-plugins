@@ -1,3 +1,55 @@
+## [3.71.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.70.0...v3.71.0) (2025-05-16)
+
+### Features
+
+* **results:** Add variable Query editor template for Results Datasource ([#183](https://github.com/ni/systemlink-grafana-plugins/issues/183)) ([f42879d](https://github.com/ni/systemlink-grafana-plugins/commit/f42879d060f1e7f1d664251feba5a3078ccad7bf))
+
+## [3.70.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.69.0...v3.70.0) (2025-05-16)
+
+### Features
+
+* **results:** Add tooltip for results and steps query builder ([#185](https://github.com/ni/systemlink-grafana-plugins/issues/185)) ([33b0be5](https://github.com/ni/systemlink-grafana-plugins/commit/33b0be5d914c22d8e366622c99ac9f5351fa3011))
+
+## [3.69.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.68.0...v3.69.0) (2025-05-16)
+
+### Features
+
+* add properties to test plans query editor ([#186](https://github.com/ni/systemlink-grafana-plugins/issues/186)) ([3df5d20](https://github.com/ni/systemlink-grafana-plugins/commit/3df5d2051b75d2752b9eae23ade55dc852e3077b))
+
+## [3.68.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.67.0...v3.68.0) (2025-05-13)
+
+### Features
+
+* **results:** Add Step query builder wrapper ([#177](https://github.com/ni/systemlink-grafana-plugins/issues/177)) ([26b6a52](https://github.com/ni/systemlink-grafana-plugins/commit/26b6a521a2cb4b5bfb3dd596ed87b875a95fd5b9))
+
+## [3.67.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.66.1...v3.67.0) (2025-05-13)
+
+### Features
+
+* **results:** Add steps query builder component ([#174](https://github.com/ni/systemlink-grafana-plugins/issues/174)) ([1f79d1b](https://github.com/ni/systemlink-grafana-plugins/commit/1f79d1b0ca7f252f7970c230f970502dda9c0541))
+
+## [3.66.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.66.0...v3.66.1) (2025-05-13)
+
+### Bug Fixes
+
+* **results:** Update keyword filter operations in result query builder ([#179](https://github.com/ni/systemlink-grafana-plugins/issues/179)) ([8981c35](https://github.com/ni/systemlink-grafana-plugins/commit/8981c35d4807053bbea6ab9090ac0752f3b1f893))
+
+## [3.66.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.65.0...v3.66.0) (2025-05-13)
+
+### Features
+
+* **results:** Implement Query Transformation Logic for Results Query Builder ([#166](https://github.com/ni/systemlink-grafana-plugins/issues/166)) ([8a6344b](https://github.com/ni/systemlink-grafana-plugins/commit/8a6344b8849d42b05ef71bc7326a7d070872ac24))
+
+### Bug Fixes
+
+* **results:** Fix Steps Query Builder Field Configurations and Filter Operations for Keywords ([#182](https://github.com/ni/systemlink-grafana-plugins/issues/182)) ([b124073](https://github.com/ni/systemlink-grafana-plugins/commit/b124073c71db98b6baff3c2f7068a68e3983ef53))
+
+## [3.65.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.64.0...v3.65.0) (2025-05-13)
+
+### Features
+
+* add output type to test plans query editor ([#180](https://github.com/ni/systemlink-grafana-plugins/issues/180)) ([e979aeb](https://github.com/ni/systemlink-grafana-plugins/commit/e979aebd7adb99a7a89190e3a5256e866a8b534d))
+
 ## [3.64.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.63.0...v3.64.0) (2025-05-13)
 
 ### Features

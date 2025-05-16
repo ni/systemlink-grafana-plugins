@@ -105,7 +105,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
           }}
         />
         <div className="horizontal-control-group">
-          <InlineField label="Query By" labelWidth={25}>
+          <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
             <ResultsQueryBuilder
               filter={query.queryBy}
               workspaces={workspaces}
@@ -161,4 +161,5 @@ const tooltips = {
   recordCount: 'This field sets the maximum number of results.',
   orderBy: 'This field orders the query results by field.',
   descending: 'This field returns the query results in descending order.',
+  queryBy: 'This optional field applies a filter to the query results.',
 };
