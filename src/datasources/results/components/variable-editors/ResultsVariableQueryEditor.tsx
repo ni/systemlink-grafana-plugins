@@ -34,7 +34,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
           workspaces={[]}
           partNumbers={[]}
           status={[]}
-          globalVariableOptions={datasource.globalVariableOptions()}
+          globalVariableOptions={[]}
         ></ResultsQueryBuilder>
       </InlineField>
     </>
