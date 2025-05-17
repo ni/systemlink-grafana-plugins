@@ -8,8 +8,8 @@ import userEvent from '@testing-library/user-event';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 import { StepsQueryBuilderWrapper } from '../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
 
-jest.mock('../../query-builders/steps-querybuilder-container/StepsQueryBuilderContainer', () => ({
-  StepsQueryBuilderContainer: jest.fn(({ resultsQuery, stepsQuery, onResultsQueryChange, onStepsQueryChange }) => {
+jest.mock('../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper', () => ({
+  StepsQueryBuilderWrapper: jest.fn(({ resultsQuery, stepsQuery, onResultsQueryChange, onStepsQueryChange }) => {
     return (
       <div data-testid="steps-query-builder-container">
         <div data-testid="results-query">{resultsQuery}</div>
