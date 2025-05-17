@@ -1,3 +1,9 @@
+## [3.73.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.72.0...v3.73.0) (2025-05-17)
+
+### Features
+
+* add order by and descending controls in test plans data source ([#187](https://github.com/ni/systemlink-grafana-plugins/issues/187)) ([7408090](https://github.com/ni/systemlink-grafana-plugins/commit/7408090939b340ad0e55043d2db109070d2278cf))
+
 ## [3.72.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.71.0...v3.72.0) (2025-05-16)
 
 ### Features
