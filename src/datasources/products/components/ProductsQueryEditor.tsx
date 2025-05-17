@@ -18,6 +18,11 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const [familyNames, setFamilyNames] = useState<string[]>([]);
+
+  useEffect(() => {
+      handleQueryChange(query, true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
   
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -37,6 +42,10 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
     loadPartNumbers();
     loadFamilyNames();
   }, [datasource]);
+
+  useEffect(() => {
+
+  },[] );
 
   const handleQueryChange = useCallback((query: ProductQuery, runQuery = true): void => {
     onChange(query);
