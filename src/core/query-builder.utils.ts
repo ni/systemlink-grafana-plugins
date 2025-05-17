@@ -45,6 +45,7 @@ export function transformComputedFieldsQuery(
  * @returns callback to be used by query builder when building the query
  */
 export function expressionBuilderCallback(options: Record<string, QueryBuilderOption[]>) {
+  console.log("called")
   return function (this: QueryBuilderCustomOperation, fieldName: string, _operation: string, value: string) {
     const buildExpression = (field: string, value: string) => {
       const fieldOptions = options[fieldName];

@@ -29,6 +29,7 @@ export const StepsQueryBuilderWrapper = (
   }: Props) => {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
+  const [areDependenciesLoaded, setAreDependenciesLoaded] = useState(false);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -42,6 +43,7 @@ export const StepsQueryBuilderWrapper = (
 
     loadPartNumbers();
     loadWorkspaces();
+    setAreDependenciesLoaded(true);
   }, [datasource]);
   
   return (
@@ -65,6 +67,7 @@ export const StepsQueryBuilderWrapper = (
           globalVariableOptions={datasource.globalVariableOptions()}
           disableQueryBuilder={disableStepsQueryBuilder}
           onFilterChange={(filter) => onStepsQueryChange(filter)}
+          areDependenciesLoaded={areDependenciesLoaded}
         ></StepsQueryBuilder>
       </InlineField>
     </div>
