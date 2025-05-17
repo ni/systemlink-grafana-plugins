@@ -58,11 +58,13 @@ export enum Properties {
     UPDATED_BY = 'UPDATED_BY',
     WORKSPACE = 'WORKSPACE',
     WORK_ORDER = 'WORK_ORDER',
+    WORK_ORDER_ID = 'WORK_ORDER_ID',
     PRODUCT = 'PRODUCT',
     PLANNED_START_DATE_TIME = 'PLANNED_START_DATE_TIME',
     ESTIMATED_END_DATE_TIME = 'ESTIMATED_END_DATE_TIME',
     ESTIMATED_DURATION_IN_SECONDS = 'ESTIMATED_DURATION_IN_SECONDS',
     SYSTEM_ID = 'SYSTEM_ID',
+    TEMPLATE = 'TEMPLATE',
     TEMPLATE_ID = 'TEMPLATE_ID',
     TEST_PROGRAM = 'TEST_PROGRAM',
     SUBSTATE = 'SUBSTATE',
@@ -81,17 +83,19 @@ export const PropertiesWithProjections: Map<Properties, TestPlanProperties> = ne
     [Properties.STATE, { id: Properties.STATE, label: 'State', field: ['state'] }],
     [Properties.UPDATED_AT, { id: Properties.UPDATED_AT, label: 'Updated at', field: ['updatedAt'] }],
     [Properties.UPDATED_BY, { id: Properties.UPDATED_BY, label: 'Updated by', field: ['updatedBy'] }],
-    [Properties.WORKSPACE, { id: Properties.WORKSPACE, label: 'Workspace name (Workspace ID)', field: [] }],
-    [Properties.WORK_ORDER, { id: Properties.WORK_ORDER, label: 'Work order name (Work order ID)', projection: ['WORK_ORDER_ID', 'WORK_ORDER_NAME'], field: ['workOrderId', 'workOrderName'] }],
+    [Properties.WORKSPACE, { id: Properties.WORKSPACE, label: 'Workspace name (Workspace ID)', field: ['workspace'] }],
+    [Properties.WORK_ORDER, { id: Properties.WORK_ORDER, label: 'Work order', projection: ['WORK_ORDER_ID', 'WORK_ORDER_NAME'], field: ['workOrderId', 'workOrderName'] }],
+    [Properties.WORK_ORDER_ID, { id: Properties.WORK_ORDER_ID, label: 'Work order ID', field: ['workOrderId'] }],
     [Properties.PRODUCT, { id: Properties.PRODUCT, label: 'Product (Part number)', projection: ['PART_NUMBER'], field: ['partNumber'] }],
     [Properties.PLANNED_START_DATE_TIME, { id: Properties.PLANNED_START_DATE_TIME, label: 'Planned start date time', field: ['plannedStartDateTime'] }],
     [Properties.ESTIMATED_END_DATE_TIME, { id: Properties.ESTIMATED_END_DATE_TIME, label: 'Estimated end date time', field: ['estimatedEndDateTime'] }],
     [Properties.ESTIMATED_DURATION_IN_SECONDS, { id: Properties.ESTIMATED_DURATION_IN_SECONDS, label: 'Estimated duration in seconds (seconds)', field: ['estimatedDurationInSeconds'] }],
     [Properties.SYSTEM_ID, { id: Properties.SYSTEM_ID, label: 'System name (System ID)', field: ['systemId'] }],
-    [Properties.TEMPLATE_ID, { id: Properties.TEMPLATE_ID, label: 'Test plan template (Template ID)', field: ['templateId'] }],
+    [Properties.TEMPLATE_ID, { id: Properties.TEMPLATE_ID, label: 'Template ID', field: ['templateId'] }],
+    [Properties.TEMPLATE, { id: Properties.TEMPLATE, label: 'Test plan template', field: [], projection: ['TEMPLATE_ID'] }],
     [Properties.TEST_PROGRAM, { id: Properties.TEST_PROGRAM, label: 'Test program name', field: ['testProgram'] }],
     [Properties.SUBSTATE, { id: Properties.SUBSTATE, label: 'Substate', field: ['substate'] }],
-    [Properties.FIXTURE_IDS, { id: Properties.FIXTURE_IDS, label: 'List of Fixture name (Fixture ID)', field: ['fixtureIds'] }],
+    [Properties.FIXTURE_IDS, { id: Properties.FIXTURE_IDS, label: 'List of Fixture names', field: ['fixtureIds'] }],
     [Properties.DUT_ID, { id: Properties.DUT_ID, label: 'DUT', field: ['dutId'] }]
 ]);
 
@@ -155,14 +159,25 @@ export interface QueryProductResponse {
 }
 
 export interface ProductResponseProperties {
-    id: string;
     partNumber: string;
     name?: string;
-    family?: string;
-    updatedAt?: string;
-    workspace?: string;
-    keywords?: any;
-    properties?: Object;
-    fileIds?: string[];
-    returnCount?: number;
+}
+
+export interface QueryTemplatesResponse {
+    testPlanTemplates: TemplateResponseProperties[],
+    continuationToken: string,
+}
+
+export interface TemplateResponseProperties {
+    id: string;
+    name: string;
+}
+
+export interface AssetModel {
+    name: string,
+    id: string
+}
+export interface AssetsResponse {
+    assets: AssetModel[],
+    totalCount: number
 }

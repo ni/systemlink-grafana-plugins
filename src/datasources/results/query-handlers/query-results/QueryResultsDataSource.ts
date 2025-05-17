@@ -47,7 +47,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       true
     );
 
-    if(responseData.results.length === 0) {
+    if (responseData.results.length === 0) {
       return {
         refId: query.refId,
         fields: [],
@@ -88,7 +88,6 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     if (this.partNumbersCache.length > 0) {
       return;
     }
-    
     const partNumbers = await this.post<string[]>(this.queryResultsValuesUrl, {
       field: ResultsPropertiesOptions.PART_NUMBER,
     }).catch(error => {
