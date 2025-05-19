@@ -18,7 +18,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
   return (
     <>
       <VerticalGroup>
-        <InlineField label="Output" labelWidth={14} tooltip={tooltips.outputType}>
+        <InlineField label="Output" labelWidth={25} tooltip={tooltips.outputType}>
           <RadioButtonGroup
             options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
             onChange={onOutputTypeChange}
