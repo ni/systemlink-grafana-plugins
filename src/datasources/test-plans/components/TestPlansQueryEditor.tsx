@@ -99,7 +99,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
               labelWidth={25}
               tooltip={tooltips.recordCount}
               invalid={!isRecordCountValid}
-              error="Record count must be less than 10k"
+              error={errors.recordCount}
             >
               <AutoSizeInput
                 minWidth={26}
@@ -125,4 +125,8 @@ const tooltips = {
   orderBy: 'This field specifies the query order of the test plans.',
   descending: 'This toggle returns the test plans query in descending order.',
   recordCount: 'This field specifies the maximum number of test plans to return.'
+};
+
+const errors = {
+  recordCount: 'Record count must be less than 10k'
 };
