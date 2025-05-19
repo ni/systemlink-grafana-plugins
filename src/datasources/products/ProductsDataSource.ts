@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { ProductQuery, ProductVariableQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
+import { ProductQuery, ProductResponseProperties, ProductVariableQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { parseErrorMessage } from 'core/errors';
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
@@ -91,7 +91,6 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     await this.workspaceLoadedPromise;
     await this.partNumberLoadedPromise;
 
-    console.log(this.workspacesCache, 'product');
     if (query.queryBy) {
       query.queryBy = transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
@@ -106,11 +105,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
         query.queryBy,
         query.recordCount,
         query.descending
-      )).products.filter((value, index, self) =>
-        index === self.findIndex((t) => (
-            t.workspace === value.workspace
-        ))
-    ).map((product) => product.workspace??'');
+      )).products;
 
     if (products.length > 0) {
       const selectedFields = query.properties?.filter(
@@ -121,7 +116,8 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
           ? FieldType.time
           : FieldType.string;
 
-        const values = products;
+        const values = products
+          .map(data => data[field as unknown as keyof ProductResponseProperties]);
 
         const fieldValues = values.map(value => {
           switch (field) {
@@ -131,32 +127,20 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
               const workspace = this.workspacesCache.get(value);
               return workspace ? getWorkspaceName([workspace], value) : value;
             default:
-              return value;
+              return value == null ? '' : value;
           }
         });
-
-        // if(PropertiesOptions.WORKSPACE){
-        //   return {
-        //     name: field,
-        //     values: fieldValues,
-        //     type: fieldType,  
-        //     config: { links: [{ title: 'Google', url: 'www.google.com' }] },      
-        //   };
-        // }
 
         return {
           name: field,
           values: fieldValues,
           type: fieldType, 
-          config: { links: [{ title: 'Google', url: `${field}`, targetBlank: true }] },             
+          // config: { links: [{ title: 'Google', url: `${field}`, targetBlank: true }] },             
         };
       });
-
-      
-console.log(fields, 'fields');
       return {
         refId: query.refId,
-        fields: fields,
+        fields: fields
       };
     }
     return {

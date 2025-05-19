@@ -80,12 +80,12 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
     if (query.outputType === OutputType.Data) {
       const testPlansResponse = responseData.testPlans;
-      const fields = ['id', 'name', 'state', 'systemId', 'workspace'] as const;
+      const fields = ['id', 'name', 'state', 'systemId','systemName', 'workspace'] as const;
       const mappedFields = fields.map(field => {
-        if (field === 'systemId') {
+        if (field === 'systemName') {
           return {
             name: field,
-            values: testPlansResponse.map((testPlan: TestPlan) => this.systemsCache.get(testPlan[field] ?? '') ?? ''),
+            values: testPlansResponse.map((testPlan: TestPlan) => this.systemsCache.get(testPlan.systemId ?? '') ?? ''),
           };
         }
         return {
