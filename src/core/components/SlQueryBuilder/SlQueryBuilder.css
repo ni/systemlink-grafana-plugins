@@ -1,5 +1,7 @@
+@import url('@ni/nimble-tokens/dist/styledictionary/css/variables.css');
+
 body {
-    --smart-primary: #009b65;
+    --smart-primary: var(--ni-nimble-base-digital-green-light);
     --smart-disabled: #4D5359;
     --smart-border-top-right-radius: 2px;
     --smart-border-top-left-radius: 2px;
