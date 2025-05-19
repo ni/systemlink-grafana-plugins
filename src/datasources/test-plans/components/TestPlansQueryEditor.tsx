@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { TestPlansDataSource } from '../TestPlansDataSource';
 import { OrderBy, OutputType, Properties, TestPlansQuery } from '../types';
@@ -40,8 +40,15 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
+    if (isNaN(value) || value < 0 || value > 10000) {
+      setIsRecordCountValid(false);
+    } else {
+      setIsRecordCountValid(true);
+    }
     handleQueryChange({ ...query, recordCount: value });
   };
+
+  const [isRecordCountValid, setIsRecordCountValid] = useState<boolean>(true);
 
   return (
     <>
@@ -87,7 +94,12 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
                 />
               </InlineField>
             </div>
-            <InlineField label="Take" labelWidth={25} tooltip={tooltips.recordCount}>
+            <InlineField
+              label="Take"
+              labelWidth={25}
+              tooltip={tooltips.recordCount}
+              invalid={!isRecordCountValid}
+              error="Record count must be less than 10k">
               <AutoSizeInput
                 minWidth={26}
                 maxWidth={26}

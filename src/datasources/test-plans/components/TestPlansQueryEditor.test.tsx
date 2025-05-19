@@ -261,5 +261,18 @@ describe('TestPlansQueryEditor', () => {
                 expect(mockOnRunQuery).toHaveBeenCalled();
             });
         });
+
+        it('should show error message when record count is invalid', async () => {
+            const container = renderElement();
+            const recordCountInput = container.getByRole('spinbutton');
+
+            await userEvent.clear(recordCountInput);
+            await userEvent.type(recordCountInput, '10001');
+            userEvent.tab();
+
+            await waitFor(() => {
+                expect(container.getByText('Record count must be less than 10k')).toBeInTheDocument();
+            });
+        });
     });
 });
