@@ -79,7 +79,7 @@ export const PropertiesWithProjections: Map<Properties, TestPlanProperties> = ne
     [Properties.DESCRIPTION, { id: Properties.DESCRIPTION, label: 'Description', field: ['description'] }],
     [Properties.ID, { id: Properties.ID, label: 'ID', field: ['id'] }],
     [Properties.NAME, { id: Properties.NAME, label: 'Name', field: ['name'] }],
-    [Properties.PROPERTIES, { id: Properties.PROPERTIES, label: 'Properties', field: [] }],
+    [Properties.PROPERTIES, { id: Properties.PROPERTIES, label: 'Properties', field: ['properties'] }],
     [Properties.STATE, { id: Properties.STATE, label: 'State', field: ['state'] }],
     [Properties.UPDATED_AT, { id: Properties.UPDATED_AT, label: 'Updated at', field: ['updatedAt'] }],
     [Properties.UPDATED_BY, { id: Properties.UPDATED_BY, label: 'Updated by', field: ['updatedBy'] }],
