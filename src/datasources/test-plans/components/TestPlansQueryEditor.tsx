@@ -99,7 +99,8 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
               labelWidth={25}
               tooltip={tooltips.recordCount}
               invalid={!isRecordCountValid}
-              error="Record count must be less than 10k">
+              error="Record count must be less than 10k"
+            >
               <AutoSizeInput
                 minWidth={26}
                 maxWidth={26}
