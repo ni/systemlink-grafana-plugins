@@ -23,7 +23,6 @@ describe('ProductsQueryEditor', () => {
     recordCount = screen.getByDisplayValue('1000');
   });
 
-
   it('should render with default query and call onRunQuery on mount', async () => {
     expect(properties).toBeInTheDocument();
     expect(properties).toHaveDisplayValue('');

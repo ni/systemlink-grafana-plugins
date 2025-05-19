@@ -43,10 +43,6 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
     loadFamilyNames();
   }, [datasource]);
 
-  useEffect(() => {
-
-  },[] );
-
   const handleQueryChange = useCallback((query: ProductQuery, runQuery = true): void => {
     onChange(query);
     if (runQuery) {
