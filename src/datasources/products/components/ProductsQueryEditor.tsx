@@ -18,6 +18,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const [familyNames, setFamilyNames] = useState<string[]>([]);
+  const [inputValidity, setInputValidity] = useState(false);
   
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -61,6 +62,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
+    setInputValidity(value > 10000);
     handleQueryChange({ ...query, recordCount: value });
   }
 
@@ -120,7 +122,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
                 />
               </InlineField>
             </div>
-            <InlineField label="Take" labelWidth={18} tooltip={tooltips.recordCount}>
+            <InlineField label="Take" labelWidth={18} tooltip={tooltips.recordCount} invalid={inputValidity} error={"Record count must be less than 10000"}>
               <AutoSizeInput
                 minWidth={26}
                 maxWidth={26}
