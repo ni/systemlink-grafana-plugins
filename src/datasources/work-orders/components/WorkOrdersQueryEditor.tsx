@@ -22,5 +22,5 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery }: Props) {
 }
 
 const tooltips = {
-  queryBy: 'This optional field applies a filter to query workorders.',
+  queryBy: 'This optional field specifies the filters to use in the query.',
 };

@@ -5,6 +5,7 @@ import { WorkOrdersQueryEditor } from './WorkOrdersQueryEditor';
 import { WorkOrdersQuery } from '../types';
 
 const render = setupRenderer(WorkOrdersQueryEditor, WorkOrdersDataSource);
+
 describe('WorkOrdersQueryEditor', () => {
   beforeEach(async () => {
     render({ refId: '' } as WorkOrdersQuery);
