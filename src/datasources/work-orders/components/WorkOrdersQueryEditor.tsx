@@ -37,5 +37,5 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
 
 const tooltips = {
   queryBy: 'This optional field specifies the filters to use in the query.',
-  outputType: 'This field specifies the output type to fetch test plan properties or total count'
+  outputType: 'This field specifies the output type to fetch work order properties or total count'
 };
