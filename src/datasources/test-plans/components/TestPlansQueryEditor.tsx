@@ -98,9 +98,10 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
                 onKeyDown={(event) => { validateNumericInput(event) }}
               />
             </InlineField>
-          </VerticalGroup>
-        )}
-      </VerticalGroup>
+          </VerticalGroup >
+        )
+        }
+      </VerticalGroup >
     </>
   );
 }
