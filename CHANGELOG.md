@@ -1,3 +1,9 @@
+## [3.73.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.73.0...v3.73.1) (2025-05-19)
+
+### Bug Fixes
+
+* **products:** Render and run Query on Mount ([#190](https://github.com/ni/systemlink-grafana-plugins/issues/190)) ([8311f85](https://github.com/ni/systemlink-grafana-plugins/commit/8311f856e04c9529ba99e1f6831fe66991bf6469))
+
 ## [3.73.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.72.0...v3.73.0) (2025-05-17)
 
 ### Features
