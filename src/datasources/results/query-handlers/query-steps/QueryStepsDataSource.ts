@@ -20,8 +20,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
   defaultQuery = defaultStepsQuery;
 
-  private _disableStepsQueryBuilder = true;
-
   async querySteps(
     filter?: string,
     orderBy?: string,
@@ -94,10 +92,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
   
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
-    if (query.resultsQuery) {
-      this.disableStepsQueryBuilder = false;
-    }
-
     query.stepsQuery = this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options);
     query.resultsQuery = this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options) || '';
 
@@ -154,14 +148,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         fields: [{ name: 'Total count', values: [responseData.totalCount] }],
       };
     }
-  }
-
-  get disableStepsQueryBuilder(): boolean {
-    return this._disableStepsQueryBuilder;
-  }
-
-  set disableStepsQueryBuilder(value: boolean) {
-    this._disableStepsQueryBuilder = value;
   }
 
   private processFields(

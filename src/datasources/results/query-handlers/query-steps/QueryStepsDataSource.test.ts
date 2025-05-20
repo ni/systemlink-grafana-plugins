@@ -560,16 +560,6 @@ describe('QueryStepsDataSource', () => {
     });
 
     describe('query builder queries', () => {
-      test('should get the default value of disableStepsQueryBuilder', () => {
-        expect(datastore.disableStepsQueryBuilder).toBe(true);
-      });
-
-      test('should set the value of disableStepsQueryBuilder', () => {
-        datastore.disableStepsQueryBuilder = false;
-    
-        expect(datastore.disableStepsQueryBuilder).toBe(false);
-      });
-
       test('should transform the resultsfilter and stepsfilter contains single query', async () => {
         const query = buildQuery({
           refId: 'A',
