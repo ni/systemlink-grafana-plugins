@@ -19,7 +19,7 @@ describe('StepsQueryBuilder', () => {
       stepsPath: string[],
       globalVariableOptions: QueryBuilderOption[] = [],
       disableQueryBuilder: boolean,
-      areDependenciesLoaded: boolean,
+      areDependenciesLoaded = true,
     ) {
       reactNode = React.createElement(StepsQueryBuilder, {
         filter,
@@ -39,21 +39,21 @@ describe('StepsQueryBuilder', () => {
     }
 
     it('should render empty query builder', () => {
-      const { renderResult, queryBuilderContainer } = renderElement('', [], [], [], [], false, true);
+      const { renderResult, queryBuilderContainer } = renderElement('', [], [], [], [], false);
 
       expect(queryBuilderContainer.length).toBe(1);
       expect(renderResult.findByLabelText('Empty condition row')).toBeTruthy();
     });
 
     it('should disable steps query builder when disableQueryBuilder property is true', () => {
-      const { queryBuilderContainer } = renderElement('', [], [], [], [], true, true);
+      const { queryBuilderContainer } = renderElement('', [], [], [], [], true);
 
       expect(queryBuilderContainer?.length).toBe(1);
       expect(queryBuilderContainer[0]?.getAttribute('aria-disabled')).toBe('true');
     });
 
     it('should select workspace in query builder', () => {
-      const { renderResult } = renderElement('workspace = "1"',[workspace], [], [], [], false, true);
+      const { renderResult } = renderElement('workspace = "1"',[workspace], [], [], [], false);
       const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
 
       expect(filterContainer?.length).toBe(1);
@@ -63,7 +63,7 @@ describe('StepsQueryBuilder', () => {
     });
 
     it('should select steps path in query builder', () => {
-      const { renderResult } = renderElement('path = "path1"',[], [], stepsPath, [], false, true);
+      const { renderResult } = renderElement('path = "path1"',[], [], stepsPath, [], false);
       const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
 
       expect(filterContainer?.length).toBe(1);
@@ -73,7 +73,7 @@ describe('StepsQueryBuilder', () => {
     });
 
     it('should select status in query builder', () => {
-      const { renderResult } = renderElement('status.statusType = "PASSED"', [], [], status, [], false, true);
+      const { renderResult } = renderElement('status.statusType = "PASSED"', [], [], status, [], false);
       const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
 
       expect(filterContainer?.length).toBe(1);
@@ -83,7 +83,7 @@ describe('StepsQueryBuilder', () => {
     });
 
     it('should select keyword in query builder', () => {
-      const { renderResult } = renderElement('keywords.Any(it.Contains("keyword1"))', [], [], [], [], false, true);
+      const { renderResult } = renderElement('keywords.Any(it.Contains("keyword1"))', [], [], [], [], false);
       const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
 
       expect(filterContainer?.length).toBe(1);
@@ -94,7 +94,7 @@ describe('StepsQueryBuilder', () => {
 
     it('should select global variable option', () => {
       const globalVariableOption = { label: 'Global variable', value: 'global_variable' };
-      const { renderResult } = renderElement('path = "global_variable"', [], [], [], [globalVariableOption], false, true);
+      const { renderResult } = renderElement('path = "global_variable"', [], [], [], [globalVariableOption], false);
       const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
 
       expect(filterContainer?.length).toBe(1);
@@ -105,7 +105,7 @@ describe('StepsQueryBuilder', () => {
 
     it('should render multiple conditions in query builder', () => {
       const filter = '(keywords.Contains("keyword1") && name = "stepName1") || status.statusType = "FAILED"';
-      const { renderResult } = renderElement(filter, [workspace], status, stepsPath, [], false, true);
+      const { renderResult } = renderElement(filter, [workspace], status, stepsPath, [], false);
       const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
       const filterConditions = renderResult.container.getElementsByClassName('smart-filter-group-condition');
       const logicalOperators = renderResult.container.getElementsByClassName('smart-filter-group-operator');
@@ -128,7 +128,7 @@ describe('StepsQueryBuilder', () => {
       ['${__now:date}', 'Now'],
     ].forEach(([value, label]) => {
       it(`should select user friendly value for updated date`, () => {
-        const { renderResult } = renderElement(`updatedAt > \"${value}\"`, [], [], [], [], false, true);
+        const { renderResult } = renderElement(`updatedAt > \"${value}\"`, [], [], [], [], false);
         const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
 
         expect(filterContainer?.length).toBe(1);
@@ -139,7 +139,7 @@ describe('StepsQueryBuilder', () => {
     });
 
     it('should sanitize fields in query builder', () => {
-      const { queryBuilderContainer } = renderElement('Family = "<script>alert(\'Family\')</script>"', [], [], [], [], false, true);
+      const { queryBuilderContainer } = renderElement('Family = "<script>alert(\'Family\')</script>"', [], [], [], [], false);
 
       expect(queryBuilderContainer?.length).toBe(1);
       expect(queryBuilderContainer.item(0)?.innerHTML).not.toContain("alert('Family')");
@@ -155,14 +155,14 @@ describe('StepsQueryBuilder', () => {
       it('should set light theme when isDark is false', () => {
         mockUseTheme.mockReturnValue({ isDark: false });
 
-        renderElement('', [], [], [], [], false, true);
+        renderElement('', [], [], [], [], false);
 
         expect(document.body.setAttribute).toHaveBeenCalledWith('theme', 'orange');
       });
       it('should set dark theme when isDark is true', () => {
         mockUseTheme.mockReturnValue({ isDark: true });
 
-        renderElement('', [], [], [], [], false, true);
+        renderElement('', [], [], [], [], false);
 
         expect(document.body.setAttribute).toHaveBeenCalledWith('theme', 'dark-orange');
       });
