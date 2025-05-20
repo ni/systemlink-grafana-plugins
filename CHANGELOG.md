@@ -1,3 +1,27 @@
+## [3.74.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.73.1...v3.74.0) (2025-05-20)
+
+### Features
+
+* **results:** Integrate StepsQueryBuilder in editor ([#178](https://github.com/ni/systemlink-grafana-plugins/issues/178)) ([213e639](https://github.com/ni/systemlink-grafana-plugins/commit/213e63989c2e1b0d60c73077e76cf03256bbfbdd))
+
+## [3.73.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.73.0...v3.73.1) (2025-05-19)
+
+### Bug Fixes
+
+* **products:** Render and run Query on Mount ([#190](https://github.com/ni/systemlink-grafana-plugins/issues/190)) ([8311f85](https://github.com/ni/systemlink-grafana-plugins/commit/8311f856e04c9529ba99e1f6831fe66991bf6469))
+
+## [3.73.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.72.0...v3.73.0) (2025-05-17)
+
+### Features
+
+* add order by and descending controls in test plans data source ([#187](https://github.com/ni/systemlink-grafana-plugins/issues/187)) ([7408090](https://github.com/ni/systemlink-grafana-plugins/commit/7408090939b340ad0e55043d2db109070d2278cf))
+
+## [3.72.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.71.0...v3.72.0) (2025-05-16)
+
+### Features
+
+* Add a wrapper query builder ([#160](https://github.com/ni/systemlink-grafana-plugins/issues/160)) ([12a1877](https://github.com/ni/systemlink-grafana-plugins/commit/12a1877a5462769013f8d57eb4078b1e76e6c141))
+
 ## [3.71.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.70.0...v3.71.0) (2025-05-16)
 
 ### Features

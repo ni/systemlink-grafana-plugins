@@ -1,10 +1,35 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import { QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
 import { QueryStepsEditor } from './QueryStepsEditor';
 import React from 'react';
 import { OutputType, QueryType } from 'datasources/results/types/types';
 import { select } from 'react-select-event';
 import userEvent from '@testing-library/user-event';
+import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
+import { StepsQueryBuilderWrapper } from '../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
+
+jest.mock('../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper', () => ({
+  StepsQueryBuilderWrapper: jest.fn(({ resultsQuery, stepsQuery, onResultsQueryChange, onStepsQueryChange }) => {
+    return (
+      <div data-testid="steps-query-builder-container">
+        <div data-testid="results-query">{resultsQuery}</div>
+        <div data-testid="steps-query">{stepsQuery}</div>
+        <button
+          data-testid="results-trigger-change"
+          onClick={() => onResultsQueryChange('updated-results-query')}
+        >
+          Trigger Results Change
+        </button>
+        <button
+          data-testid="steps-trigger-change"
+          onClick={() => onStepsQueryChange('updated-steps-query')}
+        >
+          Trigger Steps Change
+        </button>
+      </div>
+    );
+  }),
+}));
 
 describe('QueryStepsEditor', () => {
   const defaultQuery: QuerySteps = {
@@ -17,10 +42,20 @@ describe('QueryStepsEditor', () => {
     useTimeRange: true,
     useTimeRangeFor: 'Updated',
     recordCount: 1000,
-    showMeasurements: false
+    showMeasurements: false,
+    resultsQuery: 'partNumber = "PN1"',
+    stepsQuery: 'stepName = "Step1"',
   };
 
   const mockHandleQueryChange = jest.fn();
+
+  const mockDatasource = {
+    loadWorkspaces: jest.fn(),
+    getPartNumbers: jest.fn(),
+    workspacesCache: new Map(),
+    partNumbersCache: [],
+    globalVariableOptions: jest.fn(() => []),
+  } as unknown as QueryStepsDataSource;
 
   let properties: HTMLElement;
   let orderBy: HTMLElement;
@@ -31,14 +66,14 @@ describe('QueryStepsEditor', () => {
   let showMeasurements: HTMLElement;
 
   beforeEach(() => {
-    render(<QueryStepsEditor query={defaultQuery} handleQueryChange={mockHandleQueryChange} />);
+    render(<QueryStepsEditor query={defaultQuery} handleQueryChange={mockHandleQueryChange} datasource={mockDatasource}/>);
     properties = screen.getAllByRole('combobox')[0];
-    orderBy = screen.getAllByRole('combobox')[1];
-    descending = screen.getAllByRole('checkbox')[0];
+    orderBy = screen.getAllByRole('combobox')[2];
+    descending = screen.getAllByRole('checkbox')[2];
     dataOutput = screen.getByRole('radio', { name: 'Data' });
     totalCountOutput = screen.getByRole('radio', { name: 'Total Count' });
     recordCount = screen.getByDisplayValue(1000);
-    showMeasurements = screen.getAllByRole('checkbox')[1];
+    showMeasurements = screen.getAllByRole('checkbox')[0];
   });
 
   describe('Data outputType', () => {
@@ -46,8 +81,8 @@ describe('QueryStepsEditor', () => {
     let useTimeRangeFor: HTMLElement;
 
     beforeEach(() => {
-      useTimeRange = screen.getAllByRole('checkbox')[2];
-      useTimeRangeFor = screen.getAllByRole('combobox')[2];
+      useTimeRange = screen.getAllByRole('checkbox')[1];
+      useTimeRangeFor = screen.getAllByRole('combobox')[1];
     });
 
     test('should render with default query when default values are provided', async () => {
@@ -74,6 +109,7 @@ describe('QueryStepsEditor', () => {
       <QueryStepsEditor
         query={{outputType: OutputType.Data } as QuerySteps}
         handleQueryChange={mockHandleQueryChange}
+        datasource={mockDatasource}
       />
       );
 
@@ -135,4 +171,62 @@ describe('QueryStepsEditor', () => {
       });
     });
   });
+
+  describe('Query builder', () => {
+    [OutputType.Data, OutputType.TotalCount].forEach(outputType => {
+      test('should render StepsQueryBuilderContainer for both Data and TotalCount when component is loaded',async() => {
+        cleanup();
+        await act(async () => {
+          render(
+            <QueryStepsEditor
+              query={{
+                refId: 'A',
+                queryType: QueryType.Steps,
+                outputType: outputType,
+                resultsQuery: 'PartNumber = "partNumber1"'
+              }}
+              handleQueryChange={mockHandleQueryChange}
+              datasource={mockDatasource}
+            />
+          );
+        });
+
+        expect(screen.getByTestId('steps-query-builder-container')).toBeInTheDocument();
+      })
+    });
+    
+    test('should render query builder with default values', () => {
+      const queryBuilderContainer = screen.getByTestId('steps-query-builder-container');
+      expect(queryBuilderContainer).toBeInTheDocument();
+      expect(jest.mocked(StepsQueryBuilderWrapper)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          resultsQuery: defaultQuery.resultsQuery,
+          stepsQuery: defaultQuery.stepsQuery,
+        }),
+        expect.anything()
+      );
+      expect(screen.getByTestId('results-query')).toHaveTextContent('partNumber = "PN1"');
+      expect(screen.getByTestId('steps-query')).toHaveTextContent('stepName = "Step1"');
+    });
+
+    test('should update results query when user triggers results query change', async () => {
+      const triggerResultsChange = screen.getByTestId('results-trigger-change');
+      await userEvent.click(triggerResultsChange);
+      await waitFor(() => {
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(
+          expect.objectContaining({ resultsQuery: 'updated-results-query' })
+        );
+      });
+    });
+
+    test('should update steps query when user triggers steps query change', async () => {
+      const triggerStepsChange = screen.getByTestId('steps-trigger-change');
+      await userEvent.click(triggerStepsChange);
+      await waitFor(() => {
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(
+          expect.objectContaining({ stepsQuery: 'updated-steps-query' })
+        );
+      });
+    });
+  })
 });
