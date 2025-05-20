@@ -12,8 +12,8 @@ describe('ResultsQueryBuilder', () => {
     const partNumber = ['partNumber1', 'partNumber2'];
     const status = ['PASSED', 'FAILED'];
 
-    function renderElement(workspaces: Workspace[], partNumbers: string[], status: string[], filter: string, globalVariableOptions: QueryBuilderOption[] = []) {
-      reactNode = React.createElement(ResultsQueryBuilder, { filter, workspaces, partNumbers, status, globalVariableOptions, onChange: jest.fn(), });
+    function renderElement(workspaces: Workspace[], partNumbers: string[], status: string[], filter: string, globalVariableOptions: QueryBuilderOption[] = [], areDependenciesLoaded = true) {
+      reactNode = React.createElement(ResultsQueryBuilder, { filter, workspaces, partNumbers, status, globalVariableOptions, onChange: jest.fn(), areDependenciesLoaded});
       const renderResult = render(reactNode);
       return {
         renderResult,

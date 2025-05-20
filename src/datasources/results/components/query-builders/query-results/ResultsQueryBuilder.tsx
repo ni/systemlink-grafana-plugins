@@ -24,6 +24,7 @@ type ResultsQueryBuilderProps = QueryBuilderProps &
     partNumbers: string[];
     status: string[];
     globalVariableOptions: QueryBuilderOption[];
+    areDependenciesLoaded: boolean;
   };
 
 export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
@@ -33,6 +34,7 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
   partNumbers,
   status,
   globalVariableOptions,
+  areDependenciesLoaded,
 }) => {
   const theme = useTheme2();
   document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
@@ -119,6 +121,10 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
   }, [partNumbers]);
 
   useEffect(() => {
+    if (!areDependenciesLoaded) {
+      return;
+    }
+
     const updatedFields = [
       partNumberField,
       ...ResultsQueryBuilderStaticFields!,
@@ -193,7 +199,7 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
     ];
 
     setOperations([...customOperations, ...keyValueOperations]);
-  }, [workspaceField, startedAtField, updatedAtField, partNumberField, globalVariableOptions, statusField]);
+  }, [workspaceField, startedAtField, updatedAtField, partNumberField, globalVariableOptions, statusField, areDependenciesLoaded]);
 
   return (
     <QueryBuilder
