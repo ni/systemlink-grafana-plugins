@@ -554,6 +554,7 @@ describe('QueryStepsDataSource', () => {
   const buildQuery = getQueryBuilder<QuerySteps>()({
     refId: 'A',
     queryType: QueryType.Steps,
-    outputType: OutputType.Data
+    outputType: OutputType.Data,
+    resultsQuery: 'PartNumber = "partNumber1"'
   });
 });
