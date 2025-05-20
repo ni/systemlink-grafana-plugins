@@ -295,6 +295,20 @@ describe('QueryStepsDataSource', () => {
     });
   });
 
+  it('should not call query-steps when resultsQuery is empty',async () => {
+    const query = buildQuery({
+      refId: 'A',
+      outputType: OutputType.Data,
+      resultsQuery: '',
+    });
+
+    const response = await datastore.query(query);
+
+    const fields = response.data[0].fields as Field[];
+    expect(fields).toEqual([]);
+    expect(backendServer.fetch).not.toHaveBeenCalled();
+  });
+
   describe('fetch Steps with rate limiting', () => {
     it('should make a single request when take is less than MAX_TAKE_PER_REQUEST', async () => {
       const mockResponses = [

@@ -209,7 +209,6 @@ describe('QueryStepsEditor', () => {
 
     test('should update results query when user triggers results query change', () => {
       const resultsQueryInput = screen.getByTestId('results-query');
-      const stepsQueryInput = screen.getByTestId('steps-query');
 
       fireEvent.change(resultsQueryInput, { target: { value: 'updated-results-query' } });
 
