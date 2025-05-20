@@ -39,7 +39,7 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
         ]
     },
     WORK_ORDER_ID: {
-        label: 'Work Order ID',
+        label: 'Work order ID',
         dataField: WorkOrdersQueryBuilderFieldNames.WorkOrderID,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
@@ -71,7 +71,7 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
         ]
     },
     EARLIEST_START_DATE: {
-        label: 'Earliest Start Date',
+        label: 'Earliest start date',
         dataField: WorkOrdersQueryBuilderFieldNames.EarliestStartDate,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
@@ -83,7 +83,7 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
         ]
     },
     DUE_DATE: {
-        label: 'Due Date',
+        label: 'Due date',
         dataField: WorkOrdersQueryBuilderFieldNames.DueDate,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
@@ -95,7 +95,7 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
         ]
     },
     CREATED_AT: {
-        label: 'Created At',
+        label: 'Created',
         dataField: WorkOrdersQueryBuilderFieldNames.CreatedAt,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
@@ -107,7 +107,7 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
         ]
     },
     UPDATED_AT: {
-        label: 'Updated At',
+        label: 'Updated',
         dataField: WorkOrdersQueryBuilderFieldNames.UpdatedAt,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
@@ -119,7 +119,7 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
         ]
     },
     ASSIGNED_TO: {
-        label: 'Assigned To',
+        label: 'Assigned to',
         dataField: WorkOrdersQueryBuilderFieldNames.AssignedTo,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
@@ -127,7 +127,7 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
         ]
     },
     REQUESTED_BY: {
-        label: 'Requested By',
+        label: 'Requested by',
         dataField: WorkOrdersQueryBuilderFieldNames.RequestedBy,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
@@ -135,7 +135,7 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
         ]
     },
     CREATED_BY: {
-        label: 'Created By',
+        label: 'Created by',
         dataField: WorkOrdersQueryBuilderFieldNames.CreatedBy,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
@@ -143,7 +143,7 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
         ]
     },
     UPDATED_BY: {
-        label: 'Updated By',
+        label: 'Updated by',
         dataField: WorkOrdersQueryBuilderFieldNames.UpdatedBy,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
