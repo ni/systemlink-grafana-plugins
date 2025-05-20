@@ -1,3 +1,9 @@
+## [3.74.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.73.1...v3.74.0) (2025-05-20)
+
+### Features
+
+* **results:** Integrate StepsQueryBuilder in editor ([#178](https://github.com/ni/systemlink-grafana-plugins/issues/178)) ([213e639](https://github.com/ni/systemlink-grafana-plugins/commit/213e63989c2e1b0d60c73077e76cf03256bbfbdd))
+
 ## [3.73.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.73.0...v3.73.1) (2025-05-19)
 
 ### Bug Fixes
