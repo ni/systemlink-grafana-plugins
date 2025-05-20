@@ -1,3 +1,9 @@
+## [3.76.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.75.0...v3.76.0) (2025-05-20)
+
+### Features
+
+* **workorders:** add support for output type ([#194](https://github.com/ni/systemlink-grafana-plugins/issues/194)) ([113ee2f](https://github.com/ni/systemlink-grafana-plugins/commit/113ee2f088bea805fd4a6912deae49705344e4c1))
+
 ## [3.75.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.74.0...v3.75.0) (2025-05-20)
 
 ### Features
