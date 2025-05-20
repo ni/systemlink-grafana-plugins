@@ -176,6 +176,55 @@ export async function queryInBatches<T>(
   };
 }
 
+export async function queryUntilComplete<T>(
+  queryRecord: (take: number, continuationToken?: string) => Promise<QueryResponse<T>>,
+  { maxTakePerRequest, requestsPerSecond }: BatchQueryConfig,
+): Promise<QueryResponse<T>> {
+  const data: T[] = [];
+  let token: string | undefined | null;
+
+  while (token !== null) {
+    const start = Date.now();
+
+    for (let i = 0; i < requestsPerSecond; i++) {
+      const response: QueryResponse<T> = await queryRecord(maxTakePerRequest, token!);
+      data.push(...response.data);
+      token = response.continuationToken;
+
+      if (!token) {
+        break;
+      }
+    }
+
+    const elapsed = Date.now() - start;
+    if (token && elapsed < 1000) {
+      await delay(1000 - elapsed);
+    }
+  }
+
+  return { data, totalCount: data.length };
+}
+
+export async function queryUsingSkip<T>(
+  queryRecord: (take: number, skip: number) => Promise<QueryResponse<T>>,
+  { maxTakePerRequest, requestsPerSecond }: BatchQueryConfig
+): Promise<QueryResponse<T>> {
+  let skip = 0;
+  const data: T[] = [];
+
+  while (true) {
+    const response = await queryRecord(maxTakePerRequest, skip);
+    data.push(...response.data);
+
+    if (response.data.length < maxTakePerRequest) {
+      break;
+    }
+
+    skip += maxTakePerRequest;
+  }
+
+  return { data, totalCount: data.length };
+}
 
 async function delay(timeout: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, timeout));

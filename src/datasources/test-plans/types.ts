@@ -64,12 +64,20 @@ export enum Properties {
     ESTIMATED_END_DATE_TIME = 'ESTIMATED_END_DATE_TIME',
     ESTIMATED_DURATION_IN_SECONDS = 'ESTIMATED_DURATION_IN_SECONDS',
     SYSTEM_ID = 'SYSTEM_ID',
+    SYSTEM_NAME = 'SYSTEM_NAME',
     TEMPLATE = 'TEMPLATE',
     TEMPLATE_ID = 'TEMPLATE_ID',
     TEST_PROGRAM = 'TEST_PROGRAM',
     SUBSTATE = 'SUBSTATE',
     FIXTURE_IDS = 'FIXTURE_IDS',
     DUT_ID = 'DUT_ID',
+};
+
+export enum TimeFields {
+    CREATED_AT = 'createdAt',
+    UPDATED_AT = 'updatedAt',
+    PLANNED_START_DATE_TIME = 'plannedStartDateTime',
+    ESTIMATED_END_DATE_TIME = 'estimatedEndDateTime'
 };
 
 export const PropertiesWithProjections: Map<Properties, TestPlanProperties> = new Map([
@@ -83,14 +91,15 @@ export const PropertiesWithProjections: Map<Properties, TestPlanProperties> = ne
     [Properties.STATE, { id: Properties.STATE, label: 'State', field: ['state'] }],
     [Properties.UPDATED_AT, { id: Properties.UPDATED_AT, label: 'Updated at', field: ['updatedAt'] }],
     [Properties.UPDATED_BY, { id: Properties.UPDATED_BY, label: 'Updated by', field: ['updatedBy'] }],
-    [Properties.WORKSPACE, { id: Properties.WORKSPACE, label: 'Workspace name (Workspace ID)', field: ['workspace'] }],
+    [Properties.WORKSPACE, { id: Properties.WORKSPACE, label: 'Workspace', field: ['workspace'] }],
     [Properties.WORK_ORDER, { id: Properties.WORK_ORDER, label: 'Work order', projection: ['WORK_ORDER_ID', 'WORK_ORDER_NAME'], field: ['workOrderId', 'workOrderName'] }],
     [Properties.WORK_ORDER_ID, { id: Properties.WORK_ORDER_ID, label: 'Work order ID', field: ['workOrderId'] }],
     [Properties.PRODUCT, { id: Properties.PRODUCT, label: 'Product (Part number)', projection: ['PART_NUMBER'], field: ['partNumber'] }],
     [Properties.PLANNED_START_DATE_TIME, { id: Properties.PLANNED_START_DATE_TIME, label: 'Planned start date time', field: ['plannedStartDateTime'] }],
     [Properties.ESTIMATED_END_DATE_TIME, { id: Properties.ESTIMATED_END_DATE_TIME, label: 'Estimated end date time', field: ['estimatedEndDateTime'] }],
     [Properties.ESTIMATED_DURATION_IN_SECONDS, { id: Properties.ESTIMATED_DURATION_IN_SECONDS, label: 'Estimated duration in seconds (seconds)', field: ['estimatedDurationInSeconds'] }],
-    [Properties.SYSTEM_ID, { id: Properties.SYSTEM_ID, label: 'System name (System ID)', field: ['systemId'] }],
+    [Properties.SYSTEM_NAME, { id: Properties.SYSTEM_NAME, label: 'System name', projection: ['SYSTEM_ID'], field: ['systemId'] }],
+    [Properties.SYSTEM_ID, { id: Properties.SYSTEM_ID, label: 'System ID', field: ['systemId'] }],
     [Properties.TEMPLATE_ID, { id: Properties.TEMPLATE_ID, label: 'Template ID', field: ['templateId'] }],
     [Properties.TEMPLATE, { id: Properties.TEMPLATE, label: 'Test plan template', field: [], projection: ['TEMPLATE_ID'] }],
     [Properties.TEST_PROGRAM, { id: Properties.TEST_PROGRAM, label: 'Test program name', field: ['testProgram'] }],
@@ -119,8 +128,8 @@ export const OrderByOptions = {
 
 export interface QueryTestPlansResponse {
     testPlans: TestPlanResponseProperties[],
-    continuationToken: string,
-    totalCount: number
+    continuationToken?: string,
+    totalCount?: number
 }
 
 export interface TestPlanResponseProperties {
@@ -133,7 +142,7 @@ export interface TestPlanResponseProperties {
     assignedTo?: string;
     workOrderId?: string;
     partNumber?: string;
-    dutIdd?: string;
+    dutId?: string;
     testProgram?: string;
     workspace?: string;
     createdBy?: string;
@@ -154,6 +163,12 @@ export interface TestPlanResponseProperties {
 
 export interface QueryProductResponse {
     products: ProductResponseProperties[],
+    continuationToken?: string,
+    totalCount?: number
+}
+
+export interface QueryUsersResponse {
+    users: UserResponseProperties[],
     continuationToken: string,
     totalCount: number
 }
@@ -161,6 +176,13 @@ export interface QueryProductResponse {
 export interface ProductResponseProperties {
     partNumber: string;
     name?: string;
+}
+
+export interface UserResponseProperties {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
 }
 
 export interface QueryTemplatesResponse {
@@ -180,4 +202,14 @@ export interface AssetModel {
 export interface AssetsResponse {
     assets: AssetModel[],
     totalCount: number
+}
+
+export interface QuerySystemsResponse {
+    data: SystemProperties[],
+    count: number
+}
+
+export interface SystemProperties {
+    id: string;
+    alias: string;
 }
