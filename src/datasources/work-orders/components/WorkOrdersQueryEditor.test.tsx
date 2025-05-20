@@ -1,15 +1,19 @@
 import { setupRenderer } from 'test/fixtures';
-import { screen } from '@testing-library/react';
-import { WorkOrdersQuery } from '../types';
+import { screen, waitFor } from '@testing-library/react';
 import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
 import { WorkOrdersQueryEditor } from './WorkOrdersQueryEditor';
+import { WorkOrdersQuery } from '../types';
 
 const render = setupRenderer(WorkOrdersQueryEditor, WorkOrdersDataSource);
 
 describe('WorkOrdersQueryEditor', () => {
-  it('renders with query defaults', async () => {
-    render({} as WorkOrdersQuery);
+  beforeEach(async () => {
+    render({ refId: '' } as WorkOrdersQuery);
+  });
 
-    expect(screen.getByText('Placeholder for querybuilder')).toBeInTheDocument();
+  it('renders the query builder', async () => {
+    await waitFor(() => expect(screen.getAllByText('Property').length).toBe(1));
+    await waitFor(() => expect(screen.getAllByText('Operator').length).toBe(1));
+    await waitFor(() => expect(screen.getAllByText('Value').length).toBe(1));
   });
 });
