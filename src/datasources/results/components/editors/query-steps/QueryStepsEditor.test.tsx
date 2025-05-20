@@ -183,6 +183,7 @@ describe('QueryStepsEditor', () => {
                 refId: 'A',
                 queryType: QueryType.Steps,
                 outputType: outputType,
+                resultsQuery: 'PartNumber = "partNumber1"'
               }}
               handleQueryChange={mockHandleQueryChange}
               datasource={mockDatasource}
