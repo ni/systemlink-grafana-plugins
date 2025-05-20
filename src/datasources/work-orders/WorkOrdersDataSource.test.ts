@@ -2,7 +2,7 @@ import { BackendSrv } from '@grafana/runtime';
 import { MockProxy } from 'jest-mock-extended';
 import { setupDataSource, requestMatching, createFetchResponse, createFetchError } from 'test/fixtures';
 import { WorkOrdersDataSource } from './WorkOrdersDataSource';
-import { OutputType } from './types';
+import { OutputType, WorkOrderPropertiesOptions } from './types';
 
 let datastore: WorkOrdersDataSource, backendServer: MockProxy<BackendSrv>;
 
@@ -15,6 +15,19 @@ describe('WorkOrdersDataSource', () => {
     test('default query output type should be properties', async () => {
       const defaultQuery = datastore.defaultQuery;
       expect(defaultQuery.outputType).toEqual(OutputType.Properties);
+    });
+
+    test('default query should have default properties', async () => {
+      const defaultQuery = datastore.defaultQuery;
+      expect(defaultQuery.properties).toEqual([
+        WorkOrderPropertiesOptions.NAME,
+        WorkOrderPropertiesOptions.STATE,
+        WorkOrderPropertiesOptions.REQUESTED_BY,
+        WorkOrderPropertiesOptions.ASSIGNED_TO,
+        WorkOrderPropertiesOptions.EARLIEST_START_DATE,
+        WorkOrderPropertiesOptions.DUE_DATE,
+        WorkOrderPropertiesOptions.UPDATED_AT,
+      ]);
     });
   });
 
