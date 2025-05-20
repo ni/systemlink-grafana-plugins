@@ -112,7 +112,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
             stepsQuery={query.stepsQuery}
             onResultsQueryChange={(value: string) => onResultsFilterChange(value)}
             onStepsQueryChange={(value: string) => onStepsFilterChange(value)}
-            disableStepsQueryBuilder={false}
+            disableStepsQueryBuilder={true}
           />
 
           <div className="right-query-controls">
