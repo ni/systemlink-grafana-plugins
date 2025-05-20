@@ -12,7 +12,11 @@ import { ResultsDataSource } from 'datasources/results/ResultsDataSource';
 type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSourceOptions>;
 
 export function ResultsVariableQueryEditor({ query, onChange, datasource }: Props) {
-  const areDependenciesLoaded = true;
+  const [areDependenciesLoaded, setAreDependenciesLoaded] = useState(false);
+
+  useEffect(()=> {
+    setAreDependenciesLoaded(true);
+  }, [])
 
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
