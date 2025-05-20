@@ -1,3 +1,9 @@
+## [3.75.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.74.0...v3.75.0) (2025-05-20)
+
+### Features
+
+* **workorders:** Add dummy workorders query builder ([#189](https://github.com/ni/systemlink-grafana-plugins/issues/189)) ([a03f89b](https://github.com/ni/systemlink-grafana-plugins/commit/a03f89b31b2f00a60f8393d0bc30b763dc4a720d))
+
 ## [3.74.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.73.1...v3.74.0) (2025-05-20)
 
 ### Features
