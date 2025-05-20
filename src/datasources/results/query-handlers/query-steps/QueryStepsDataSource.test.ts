@@ -648,7 +648,7 @@ describe('QueryStepsDataSource', () => {
             url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({
               resultsFilter:  "(PartNumber = \"123\" || Keywords != \"456\") && HostName contains \"Test\"",
-              filter: "(stepType = \"123\" || keywords != \"456\") && stepName contains \"Test\""
+              filter: "(stepType = \"123\" || keywords != \"456\") && name contains \"Test\""
             }),
           })
         );
