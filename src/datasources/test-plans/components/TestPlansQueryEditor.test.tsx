@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react';
+import { render, RenderResult, waitFor } from '@testing-library/react';
 import { TestPlansQueryEditor } from './TestPlansQueryEditor';
 import { QueryEditorProps } from '@grafana/data';
 import { TestPlansDataSource } from '../TestPlansDataSource';
@@ -45,6 +45,77 @@ describe('TestPlansQueryEditor', () => {
             expect(properties).toBeInTheDocument();
             expect(properties).toHaveAttribute('aria-expanded', 'false');
             expect(properties).toHaveDisplayValue('');
+
+            const orderBy = container.getAllByRole('combobox')[1];
+            expect(orderBy).toBeInTheDocument();
+            expect(orderBy).toHaveAccessibleDescription('Select a field to set the query order');
+            expect(orderBy).toHaveDisplayValue('');
+
+            const descending = container.getByRole('checkbox');
+            expect(descending).toBeInTheDocument();
+            expect(descending).not.toBeChecked();
+        });
+    });
+
+    describe('when output type is properties', () => {
+        let propertiesSelect: HTMLElement;
+
+        beforeEach(() => {
+            const query = {
+                refId: 'A',
+                outputType: OutputType.Properties,
+            };
+            const container = renderElement(query);
+            propertiesSelect = container.getAllByRole('combobox')[0];
+        });
+
+        it('should render properties select', async () => {
+            expect(propertiesSelect).toBeInTheDocument();
+            expect(propertiesSelect).toHaveAttribute('aria-expanded', 'false');
+            expect(propertiesSelect).toHaveDisplayValue('');
+        });
+
+        it('should call onChange with properties when user selects properties', async () => {
+            userEvent.click(propertiesSelect);
+            await select(propertiesSelect, Properties.assignedTo, { container: document.body });
+
+            await waitFor(() => {
+                expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['assignedTo'] }));
+                expect(mockOnRunQuery).toHaveBeenCalled();
+            });
+        });
+    });
+
+    describe('when output type is total count', () => {
+        let container: RenderResult;
+
+        beforeEach(() => {
+            const query = {
+                refId: 'A',
+                outputType: OutputType.TotalCount,
+            };
+            container = renderElement(query);
+        });
+
+        it('should not render properties', async () => {
+            await waitFor(() => {
+                const properties = container.queryByRole('combobox', { name: 'Properties' });
+                expect(properties).not.toBeInTheDocument();
+            });
+        });
+
+        it('should not render order by', async () => {
+            await waitFor(() => {
+                const orderBy = container.queryByRole('combobox', { name: 'OrderBy' });
+                expect(orderBy).not.toBeInTheDocument();
+            });
+        });
+
+        it('should not render descending', async () => {
+            await waitFor(() => {
+                const descending = container.queryByRole('checkbox', { name: 'Descending' });
+                expect(descending).not.toBeInTheDocument();
+            });
         });
     });
 
@@ -118,6 +189,31 @@ describe('TestPlansQueryEditor', () => {
 
             await waitFor(() => {
                 expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ outputType: OutputType.TotalCount }));
+                expect(mockOnRunQuery).toHaveBeenCalled();
+            });
+        });
+
+        it('should call onChange with order by when user selects order by', async () => {
+            const container = renderElement();
+            const orderBySelect = container.getAllByRole('combobox')[1];
+
+            userEvent.click(orderBySelect);
+            await select(orderBySelect, 'ID', { container: document.body });
+
+            await waitFor(() => {
+                expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ orderBy: 'ID' }));
+                expect(mockOnRunQuery).toHaveBeenCalled();
+            });
+        });
+
+        it('should call onChange with descending when user toggles descending', async () => {
+            const container = renderElement();
+            const descendingCheckbox = container.getByRole('checkbox');
+
+            userEvent.click(descendingCheckbox);
+
+            await waitFor(() => {
+                expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ descending: true }));
                 expect(mockOnRunQuery).toHaveBeenCalled();
             });
         });
