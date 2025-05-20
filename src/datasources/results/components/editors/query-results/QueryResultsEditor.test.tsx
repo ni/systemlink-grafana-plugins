@@ -7,7 +7,7 @@ import { QueryResultsEditor } from './QueryResultsEditor';
 import React from 'react';
 
 jest.mock('../../query-builders/query-results/ResultsQueryBuilder', () => ({
-  ResultsQueryBuilder: jest.fn(({ filter, workspaces, partNumbers, status, globalVariableOptions, onChange }) => {
+  ResultsQueryBuilder: jest.fn(({ filter, workspaces, partNumbers, status, globalVariableOptions, onChange, areDependenciesLoaded }) => {
     return (
       <div data-testid="results-query-builder">
         <div data-testid="filter">{filter}</div>
@@ -15,6 +15,7 @@ jest.mock('../../query-builders/query-results/ResultsQueryBuilder', () => ({
         <div data-testid="part-numbers">{JSON.stringify(partNumbers)}</div>
         <div data-testid="status">{JSON.stringify(status)}</div>
         <div data-testid="global-vars">{JSON.stringify(globalVariableOptions)}</div>
+        <div data-testid="are-dependencies-loaded">{areDependenciesLoaded.toString()}</div>
         <button data-testid="trigger-change" onClick={() => onChange({ detail: { linq: 'workspace = "Workspace1"' } })}>
           Trigger Change
         </button>
@@ -184,6 +185,7 @@ describe('QueryResultsEditor', () => {
       expect(screen.getByTestId('part-numbers')).toHaveTextContent(JSON.stringify(mockPartNumbers));
       expect(screen.getByTestId('status')).toHaveTextContent(JSON.stringify(['PASSED', 'FAILED']));
       expect(screen.getByTestId('global-vars')).toHaveTextContent(JSON.stringify(mockGlobalVars));
+      expect(screen.getByTestId('are-dependencies-loaded')).toHaveTextContent('true');
     });
 
     test('should update queryBy when filter is changed', async () => {
