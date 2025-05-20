@@ -128,5 +128,5 @@ const tooltips = {
 };
 
 const errors = {
-  recordCount: 'Record count must be less than 10k'
+  recordCount: 'Record count must be less than 10000'
 };
