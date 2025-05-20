@@ -99,7 +99,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
 
     query.stepsQuery = this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options);
-    query.resultsQuery = this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options);
+    query.resultsQuery = this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options) || '';
 
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
     const stepsQuery = this.buildQueryFilter(query.stepsQuery, useTimeRangeFilter);
