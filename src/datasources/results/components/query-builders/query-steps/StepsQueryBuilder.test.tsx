@@ -145,6 +145,13 @@ describe('StepsQueryBuilder', () => {
       expect(queryBuilderContainer.item(0)?.innerHTML).not.toContain("alert('Family')");
     });
 
+    it('should not load fields and operations if areDependenciesLoaded is false', () => {
+      const { queryBuilderContainer } = renderElement('status.statusType = "FAILED"', [], status, stepsPath, [], false, false);
+    
+      expect(queryBuilderContainer?.length).toBe(1);
+      expect(queryBuilderContainer[0]?.textContent).toContain('PropertyOperatorValue');
+    });
+
     describe('theme', () => {
       const mockUseTheme = jest.spyOn(require('@grafana/ui'), 'useTheme2');
 
