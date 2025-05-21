@@ -1,7 +1,21 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, TestDataSourceResponse } from '@grafana/data';
+import {
+  DataFrameDTO,
+  DataQueryRequest,
+  DataSourceInstanceSettings,
+  FieldType,
+  TestDataSourceResponse,
+} from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { OutputType, QueryWorkOrdersRequestBody, WorkOrder, WorkOrderProperties, WorkOrderPropertiesOptions, WorkOrdersQuery, WorkOrdersResponse } from './types';
+import {
+  OutputType,
+  QueryWorkOrdersRequestBody,
+  WorkOrder,
+  WorkOrderProperties,
+  WorkOrderPropertiesOptions,
+  WorkOrdersQuery,
+  WorkOrdersResponse,
+} from './types';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
@@ -36,7 +50,6 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       return this.processWorkOrdersQuery(query);
     } else {
       const totalCount = await this.queryWorkordersCount(query.queryBy);
-
       return {
         refId: query.refId,
         name: query.refId,
