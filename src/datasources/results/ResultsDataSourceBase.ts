@@ -110,7 +110,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   }
 
   async loadWorkspaces(): Promise<void> {
-    console.log('this.workspacesCache', this.workspacesCache);
     if (this.workspacesCache.size > 0) {
       return;
     }
@@ -126,7 +125,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   }
 
   async getPartNumbers(): Promise<void> {
-    console.log('this.partNumbersCache', this.partNumbersCache);
     if (this.partNumbersCache.length > 0) {
       return;
     }
