@@ -2,7 +2,9 @@ import { MockProxy } from "jest-mock-extended";
 import { TestPlansDataSource } from "./TestPlansDataSource";
 import { BackendSrv } from "@grafana/runtime";
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from "test/fixtures";
-import { OrderByOptions, OutputType, PropertiesOptions } from "./types";
+import { OrderByOptions, OutputType, QueryTestPlansResponse } from "./types";
+import { LegacyMetricFindQueryOptions } from "@grafana/data";
+import { PropertiesOptions } from "datasources/products/types";
 
 let datastore: TestPlansDataSource, backendServer: MockProxy<BackendSrv>
 
@@ -48,5 +50,19 @@ describe('testDatasource', () => {
     expect(defaultQuery.orderBy).toEqual(OrderByOptions.UPDATED_AT);
     expect(defaultQuery.descending).toEqual(true);
     expect(defaultQuery.recordCount).toEqual(1000);
+  });
+});
+
+describe('metricFindQuery', () => {
+  let options: LegacyMetricFindQueryOptions = {};
+
+  it('should return empty response', async () => {
+    const query: TestPlansVariableQuery = {
+      refId: '',
+    };
+
+    const results = await datastore.metricFindQuery(query, options);
+
+    expect(results).toEqual([]);
   });
 });
