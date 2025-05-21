@@ -2,8 +2,7 @@ import { MockProxy } from "jest-mock-extended";
 import { TestPlansDataSource } from "./TestPlansDataSource";
 import { BackendSrv } from "@grafana/runtime";
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from "test/fixtures";
-import { OutputType, PropertiesOptions } from "./types";
-
+import { OrderByOptions, OutputType, PropertiesOptions } from "./types";
 
 let datastore: TestPlansDataSource, backendServer: MockProxy<BackendSrv>
 
@@ -46,5 +45,8 @@ describe('testDatasource', () => {
       PropertiesOptions.SYSTEM,
       PropertiesOptions.UPDATED_AT
     ]);
+    expect(defaultQuery.orderBy).toEqual(OrderByOptions.UPDATED_AT);
+    expect(defaultQuery.descending).toEqual(true);
+    expect(defaultQuery.recordCount).toEqual(1000);
   });
 });
