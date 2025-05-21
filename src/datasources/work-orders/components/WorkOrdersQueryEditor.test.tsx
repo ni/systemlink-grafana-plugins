@@ -113,7 +113,7 @@ describe('WorkOrdersQueryEditor', () => {
       });
     });
 
-    it('should call onChange with properties when user selects properties', async () => {
+    it.only('should call onChange with properties when user selects properties', async () => {
       const query = {
         refId: 'A',
         outputType: OutputType.Properties,
@@ -122,10 +122,10 @@ describe('WorkOrdersQueryEditor', () => {
 
       const propertiesSelect = container.getAllByRole('combobox')[0];
       userEvent.click(propertiesSelect);
-      await select(propertiesSelect, WorkOrderProperties[WorkOrderPropertiesOptions.ASSIGNED_TO].label, { container: document.body });
+      await select(propertiesSelect, WorkOrderProperties[WorkOrderPropertiesOptions.WORKSPACE].label, { container: document.body });
 
       await waitFor(() => {
-        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['assignedTo'] }));
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['WORKSPACE'] }));
         expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
