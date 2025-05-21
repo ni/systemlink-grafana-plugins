@@ -4,10 +4,11 @@
 @import url('@ni/nimble-tokens/dist/styledictionary/css/variables.css');
 
 .smart-query-builder {
+    /* Tokens from nimble tokens */
     --smart-primary: var(--ni-nimble-base-digital-green-light);
 
+    /* Tokens from grafana */
     --smart-background: var(--grafana-background-primary);
-    --smart-ui-state-color-focus: var(--smart-background-color);
     --smart-border: var(--grafana-border-medium);
     --smart-background-color: var(--grafana-text-primary);
     --smart-ui-state-focus: var(--grafana-focus-color);
@@ -15,11 +16,15 @@
     --smart-border-top-left-radius: var(--grafana-border-radius-default);
     --smart-border-bottom-right-radius: var(--grafana-border-radius-default);
     --smart-border-bottom-left-radius: var(--grafana-border-radius-default);
+
+    --smart-ui-state-color-focus: var(--smart-background-color);
 }
 
 .smart-scroll-bar {
     --smart-scroll-bar-button-border: transparent;
     --smart-scroll-bar-background: var(--smart-background);
+
+    /* Tokens from grafana */
     --smart-scroll-bar-track-background: var(--grafana-focus-color);
     --smart-scroll-bar-thumb-background: var(--grafana-focus-color);
     --smart-scroll-bar-thumb-background-hover: var(--grafana-focus-color);
