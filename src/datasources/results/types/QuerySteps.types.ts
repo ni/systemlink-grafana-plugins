@@ -147,14 +147,3 @@ export interface ErrorBody {
   args?: string[];
   innerErrors?: ErrorBody[];
 }
-
-export interface QueryResponse<T> {
-  data: T[];
-  continuationToken?: string;
-  totalCount?: number;
-};
-
-export interface BatchQueryConfig {
-  maxTakePerRequest: number;
-  requestsPerSecond: number;
-};

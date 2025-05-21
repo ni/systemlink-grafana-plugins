@@ -1,7 +1,6 @@
 import { DataQueryRequest, DataFrameDTO, FieldType } from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
-  QueryResponse,
   QuerySteps,
   QueryStepsResponse,
   StepsProperties,
@@ -11,6 +10,8 @@ import {
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { defaultStepsQuery } from 'datasources/results/defaultQueries';
 import { MAX_TAKE_PER_REQUEST, QUERY_STEPS_REQUEST_PER_SECOND } from 'datasources/results/constants/QuerySteps.constants';
+import { queryInBatches } from 'core/utils';
+import { QueryResponse } from 'core/types';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
@@ -75,7 +76,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       requestsPerSecond: QUERY_STEPS_REQUEST_PER_SECOND
     };
 
-    const response = await this.queryInBatches(queryRecord, batchQueryConfig, take);
+    const response = await queryInBatches(queryRecord, batchQueryConfig, take);
 
     return {
       steps: response.data,
