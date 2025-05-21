@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
-import { OutputType, WorkOrderProperties, WorkOrdersQuery } from '../types';
+import { OutputType, WorkOrderProperties, WorkOrderPropertiesOptions, WorkOrdersQuery } from '../types';
 import { WorkOrdersQueryBuilder } from './query-builder/WorkOrdersQueryBuilder';
 import { InlineField, MultiSelect, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
 
@@ -16,7 +16,8 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
       if (runQuery) {
         onRunQuery();
       }
-    }, [onChange, onRunQuery]
+    },
+    [onChange, onRunQuery]
   );
 
   const onOutputTypeChange = (value: OutputType) => {
@@ -25,10 +26,10 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
 
   const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
     if (items !== undefined) {
-      handleQueryChange({ ...query, properties: items.map(i => i.value as WorkOrderProperties) });
+      handleQueryChange({ ...query, properties: items.map(i => i.value as WorkOrderPropertiesOptions) });
     }
   };
-  
+
   return (
     <>
       <VerticalGroup>
@@ -43,7 +44,12 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
           <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
             <MultiSelect
               placeholder="Select the properties to query"
-              options={Object.entries(WorkOrderProperties).map(([key, value]) => ({ label: value, value: key })) as SelectableValue[]}
+              options={
+                Object.values(WorkOrderProperties).map(workOrderProperty => ({
+                  label: workOrderProperty.label,
+                  value: workOrderProperty.value,
+                })) as SelectableValue[]
+              }
               onChange={onPropertiesChange}
               value={query.properties}
               defaultValue={query.properties!}
@@ -68,5 +74,5 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
 const tooltips = {
   queryBy: 'This optional field specifies the query filters.',
   outputType: 'This field specifies the output type to fetch work order properties or total count',
-  properties: 'This field specifies the properties to use in the query.'
+  properties: 'This field specifies the properties to use in the query.',
 };
