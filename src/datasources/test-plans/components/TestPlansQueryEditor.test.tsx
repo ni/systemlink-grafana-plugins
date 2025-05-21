@@ -85,7 +85,7 @@ describe('TestPlansQueryEditor', () => {
             await select(propertiesSelect, PropertiesProjectionMap.ASSIGNED_TO.label, { container: document.body });
 
             await waitFor(() => {
-                expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['assignedTo'] }));
+                expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['ASSIGNED_TO'] }));
                 expect(mockOnRunQuery).toHaveBeenCalled();
             });
         });
@@ -189,7 +189,7 @@ describe('TestPlansQueryEditor', () => {
         await select(propertiesSelect, PropertiesProjectionMap.ASSIGNED_TO.label, { container: document.body });
 
         await waitFor(() => {
-            expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['assignedTo'] }));
+            expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['ASSIGNED_TO'] }));
             expect(mockOnRunQuery).toHaveBeenCalled();
         });
     });
