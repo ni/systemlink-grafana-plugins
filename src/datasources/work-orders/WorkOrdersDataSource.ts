@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { OutputType, WorkOrderProperties, WorkOrderPropertiesOptions, WorkOrdersQuery } from './types';
+import { OrderByOptions, OutputType, WorkOrderProperties, WorkOrderPropertiesOptions, WorkOrdersQuery } from './types';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
@@ -26,6 +26,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       WorkOrderPropertiesOptions.DUE_DATE,
       WorkOrderPropertiesOptions.UPDATED_AT,
     ] as WorkOrderProperties[],
+    orderBy: OrderByOptions.UPDATED_AT,
+    descending: true
   };
 
   async runQuery(query: WorkOrdersQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
