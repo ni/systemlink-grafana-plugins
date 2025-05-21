@@ -66,7 +66,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   return (
     <>
       <VerticalGroup>
-        <InlineField label="Output" labelWidth={25} tooltip={tooltips.output}>
+        <InlineField label="Output" labelWidth={26} tooltip={tooltips.output}>
           <RadioButtonGroup
             options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
             value={query.outputType}
@@ -74,7 +74,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
           />
         </InlineField>
         {query.outputType === OutputType.Data && (
-          <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
+          <InlineField label="Properties" labelWidth={26} tooltip={tooltips.properties}>
             <MultiSelect
               placeholder="Select properties to fetch"
               options={enumToOptions(StepsProperties)}
@@ -91,7 +91,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
         )}
         <div>
           {query.outputType === OutputType.Data && (
-            <InlineField label="Show Measurements" labelWidth={25} tooltip={tooltips.showMeasurements}>
+            <InlineField label="Show Measurements" labelWidth={26} tooltip={tooltips.showMeasurements}>
               <InlineSwitch
                 onChange={event => onShowMeasurementChange(event.currentTarget.checked)}
                 value={query.showMeasurements}
@@ -117,7 +117,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
 
           <div className="right-query-controls">
             <div className="horizontal-control-group">
-              <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
+              <InlineField label="OrderBy" labelWidth={26} tooltip={tooltips.orderBy}>
                 <Select
                   options={OrderBy as SelectableValue[]}
                   width={25}
@@ -134,7 +134,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
                 />
               </InlineField>
             </div>
-            <InlineField label="Take" labelWidth={25} tooltip={tooltips.recordCount}>
+            <InlineField label="Take" labelWidth={26} tooltip={tooltips.recordCount}>
               <AutoSizeInput
                 minWidth={25}
                 maxWidth={25}
