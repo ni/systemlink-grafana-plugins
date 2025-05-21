@@ -5,7 +5,7 @@ import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-s
 import userEvent from '@testing-library/user-event';
 
 jest.mock('../query-results/ResultsQueryBuilder', () => ({
-  ResultsQueryBuilder: jest.fn(({ filter, workspaces, partNumbers, status, globalVariableOptions, onChange, areDependenciesLoaded }) => {
+  ResultsQueryBuilder: jest.fn(({ filter, workspaces, partNumbers, status, globalVariableOptions, onChange }) => {
     return (
       <div data-testid="results-query-builder">
         <div data-testid="results-filter">{filter}</div>
@@ -13,7 +13,6 @@ jest.mock('../query-results/ResultsQueryBuilder', () => ({
         <div data-testid="results-part-numbers">{JSON.stringify(partNumbers)}</div>
         <div data-testid="results-status">{JSON.stringify(status)}</div>
         <div data-testid="results-global-vars">{JSON.stringify(globalVariableOptions)}</div>
-        <div data-testid="results-are-dependencies-loaded">{areDependenciesLoaded.toString()}</div>
         <button
           data-testid="results-trigger-change"
           onClick={() => onChange(new CustomEvent('change', { detail: { linq: 'newResultsQuery' } }))}
@@ -112,7 +111,6 @@ describe('StepsQueryBuilderWrapper', () => {
     expect(screen.getByTestId('results-part-numbers').textContent).toEqual(JSON.stringify(['PN1', 'PN2']));
     expect(screen.getByTestId('results-global-vars').textContent).toEqual(JSON.stringify(['var1', 'var2']));
     expect(screen.getByTestId('results-status').textContent).toEqual(JSON.stringify(['PASS', 'FAIL']));
-    expect(screen.getByTestId('results-are-dependencies-loaded').textContent).toBe('true');
 
     expect(screen.getByTestId('steps-filter').textContent).toBe('stepName = "Step1"');
     expect(screen.getByTestId('steps-workspaces').textContent).toEqual(
@@ -128,10 +126,11 @@ describe('StepsQueryBuilderWrapper', () => {
     expect(screen.getByTestId('steps-are-dependencies-loaded').textContent).toBe('true');
   });
 
-  test('should disable StepsQueryBuilder when disableStepsQueryBuilder property is true', () => {
+  test('should disable StepsQueryBuilder when disableStepsQueryBuilder property is true', async () => {
     cleanup();
-
-    render(<StepsQueryBuilderWrapper {...defaultProps} disableStepsQueryBuilder={true} />);
+    await act(async () => {
+      render(<StepsQueryBuilderWrapper {...defaultProps} disableStepsQueryBuilder={true} />);
+    })
 
     expect(screen.getByTestId('disable-steps-query-builder').textContent).toBe('true');
   });
