@@ -27,19 +27,14 @@ type Props = {
 export function QueryResultsEditor({ query, handleQueryChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
+  const [areDependenciesLoaded, setAreDependenciesLoaded] = useState(false);
 
   useEffect(() => {
-    const loadWorkspaces = async () => {
-      await datasource.loadWorkspaces();
+    Promise.all([datasource.arePartNumbersLoaded$, datasource.areWorkspacesLoaded$]).then(() => {
       setWorkspaces(Array.from(datasource.workspacesCache.values()));
-    };
-    const loadPartNumbers = async () => {
-      await datasource.getPartNumbers();
       setPartNumbers(datasource.partNumbersCache);
-    };
-
-    loadWorkspaces();
-    loadPartNumbers();
+      setAreDependenciesLoaded(true);
+    });
   }, [datasource]);
 
   const onOutputChange = (value: OutputType) => {
@@ -112,7 +107,8 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
               partNumbers={partNumbers}
               status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
               globalVariableOptions={datasource.globalVariableOptions()}
-              onChange={(event: any) => onParameterChange(event.detail.linq)}>
+              onChange={(event: any) => onParameterChange(event.detail.linq)}
+              areDependenciesLoaded={areDependenciesLoaded}>
             </ResultsQueryBuilder>
           </InlineField>
           {query.outputType === OutputType.Data && (

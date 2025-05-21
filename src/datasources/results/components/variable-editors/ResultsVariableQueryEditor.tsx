@@ -14,21 +14,16 @@ type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSource
 export function ResultsVariableQueryEditor({ query, onChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
+  const [areDependenciesLoaded, setAreDependenciesLoaded] = useState(false);
   const queryResultsquery = query as ResultsVariableQuery;
   const queryResultsDataSource = useRef(datasource.queryResultsDataSource);
 
-  useEffect(() => { 
-    const loadWorkspaces = async () => {
-      await queryResultsDataSource.current.loadWorkspaces();
+  useEffect(() => {
+    Promise.all([queryResultsDataSource.current.arePartNumbersLoaded$, queryResultsDataSource.current.areWorkspacesLoaded$]).then(() => {
       setWorkspaces(Array.from(queryResultsDataSource.current.workspacesCache.values()));
-    };
-    const loadPartNumbers = async () => {
-      await queryResultsDataSource.current.getPartNumbers();
       setPartNumbers(queryResultsDataSource.current.partNumbersCache);
-    };
-
-    loadWorkspaces();
-    loadPartNumbers();
+      setAreDependenciesLoaded(true);
+    });
   }, [datasource]);
 
   const onPropertiesChange = (item: SelectableValue<string>) => {
@@ -57,6 +52,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
           partNumbers={partNumbers}
           status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
           globalVariableOptions={queryResultsDataSource.current.globalVariableOptions()}
+          areDependenciesLoaded={areDependenciesLoaded}
         ></ResultsQueryBuilder>
       </InlineField>
     </>

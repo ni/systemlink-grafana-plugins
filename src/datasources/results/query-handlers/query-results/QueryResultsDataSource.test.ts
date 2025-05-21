@@ -22,6 +22,18 @@ const mockQueryResultsValuesResponse = ["partNumber1", "partNumber2"];
 
 let datastore: QueryResultsDataSource, backendServer: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
 
+jest.mock('../../ResultsDataSourceBase', () => {
+  const original = jest.requireActual('../../ResultsDataSourceBase');
+  return {
+    ...original,
+    ResultsDataSourceBase: class extends original.ResultsDataSourceBase {
+      loadDependencies() {
+        return Promise.resolve();
+      }
+    }
+  };
+});
+
 describe('QueryResultsDataSource', () => {
   beforeEach(() => {
     [datastore, backendServer, templateSrv] = setupDataSource(QueryResultsDataSource);

@@ -21,18 +21,24 @@ const fakeWorkspaces: Workspace[] = [
   },
 ];
 
-class FakeQueryResultsSource extends QueryResultsDataSource {
-  getWorkspaces(): Promise<Workspace[]> {
-    return Promise.resolve(fakeWorkspaces);
-  }
-  getPartNumbers(): Promise<void> {
-    return Promise.resolve();
-  }
-}
+jest.mock('../../ResultsDataSourceBase', () => {
+  const original = jest.requireActual('../../ResultsDataSourceBase');
+  return {
+    ...original,
+    ResultsDataSourceBase: class extends original.ResultsDataSourceBase {
+      loadWorkspaces() {
+        return Promise.resolve();
+      }
+      getPartNumbers(): Promise<void> {
+        return Promise.resolve();
+      }
+    }
+  };
+});
 
 class FakeResultsDataSource extends ResultsDataSource {
   get queryResultsDataSource() {
-    return new FakeQueryResultsSource(this.instanceSettings, this.backendSrv, this.templateSrv);
+    return new QueryResultsDataSource(this.instanceSettings, this.backendSrv, this.templateSrv);
   }
 }
 
@@ -54,14 +60,14 @@ it('should render properties select and results query builder', async () => {
 });
 
 it('should load part numbers on mount', async () => {
-  const queryResultValuesSpy = jest.spyOn(FakeQueryResultsSource.prototype, 'getPartNumbers');
+  const queryResultValuesSpy = jest.spyOn(QueryResultsDataSource.prototype, 'getPartNumbers');
   renderEditor({ refId: '', properties: '', queryBy: '' } as unknown as ResultsQuery);
 
   expect(queryResultValuesSpy).toHaveBeenCalledTimes(1);
 });
 
 it('should load workspaces on mount', async () => {
-  const getWorkspace = jest.spyOn(FakeQueryResultsSource.prototype, 'getWorkspaces');
+  const getWorkspace = jest.spyOn(QueryResultsDataSource.prototype, 'loadWorkspaces');
   renderEditor({ refId: '', properties: '', queryBy: '' } as unknown as ResultsQuery);
 
   expect(getWorkspace).toHaveBeenCalledTimes(1);
