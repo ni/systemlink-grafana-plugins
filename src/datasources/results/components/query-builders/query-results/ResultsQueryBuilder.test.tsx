@@ -12,23 +12,8 @@ describe('ResultsQueryBuilder', () => {
     const partNumber = ['partNumber1', 'partNumber2'];
     const status = ['PASSED', 'FAILED'];
 
-    function renderElement(
-      workspaces: Workspace[],
-      partNumbers: string[],
-      status: string[],
-      filter: string,
-      globalVariableOptions: QueryBuilderOption[] = [],
-      areDependenciesLoaded = true
-    ) {
-      reactNode = React.createElement(ResultsQueryBuilder, {
-        filter,
-        workspaces,
-        partNumbers,
-        status,
-        globalVariableOptions,
-        onChange: jest.fn(),
-        areDependenciesLoaded
-      });
+    function renderElement(workspaces: Workspace[], partNumbers: string[], status: string[], filter: string, globalVariableOptions: QueryBuilderOption[] = []) {
+      reactNode = React.createElement(ResultsQueryBuilder, { filter, workspaces, partNumbers, status, globalVariableOptions, onChange: jest.fn(), });
       const renderResult = render(reactNode);
       return {
         renderResult,
@@ -124,26 +109,6 @@ describe('ResultsQueryBuilder', () => {
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.innerHTML).not.toContain('alert(\'Family\')');
     })
-
-    describe('areDependenciesLoaded', () => {
-      it('should load fields and operations when areDependenciesLoaded is true', () => {
-        const { conditionsContainer } = renderElement([], [], status, 'Status.statusType = "FAILED"');
-
-        expect(conditionsContainer?.length).toBe(1);
-        expect(conditionsContainer.item(0)?.textContent).toContain('Status'); //label
-        expect(conditionsContainer.item(0)?.textContent).toContain('Equals'); //operator
-        expect(conditionsContainer.item(0)?.textContent).toContain('FAILED'); //value
-      });
-
-      it('should not load fields and operations when areDependenciesLoaded is false', () => {
-        const { conditionsContainer } = renderElement([], [], status, 'Status.statusType = "FAILED"', [], false);
-
-        expect(conditionsContainer?.length).toBe(1);
-        expect(conditionsContainer.item(0)?.textContent).toContain('Property'); //label
-        expect(conditionsContainer.item(0)?.textContent).toContain('Operator'); //operator
-        expect(conditionsContainer.item(0)?.textContent).toContain('Value'); //value
-      });
-    });
 
     describe('theme', () => {  
       const mockUseTheme = jest.spyOn(require('@grafana/ui'), 'useTheme2');

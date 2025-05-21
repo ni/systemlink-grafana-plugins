@@ -48,8 +48,7 @@ export const StepsQueryBuilderWrapper = (
           workspaces={workspaces}
           partNumbers={partNumbers}
           status={enumToOptions(TestMeasurementStatus).map(option => option.value?.toString() || '')}
-          globalVariableOptions={datasource.globalVariableOptions()}
-          areDependenciesLoaded={areDependenciesLoaded}>
+          globalVariableOptions={datasource.globalVariableOptions()}>
         </ResultsQueryBuilder>
       </InlineField>
       <InlineField label="Query by steps properties" labelWidth={25} tooltip={tooltips.stepsQueryBuilder}>

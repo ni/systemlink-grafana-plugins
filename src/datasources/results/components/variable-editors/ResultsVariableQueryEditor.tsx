@@ -12,7 +12,6 @@ import { ResultsDataSource } from 'datasources/results/ResultsDataSource';
 type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSourceOptions>;
 
 export function ResultsVariableQueryEditor({ query, onChange, datasource }: Props) {
-  const [areDependenciesLoaded, setAreDependenciesLoaded] = useState(false);
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const queryResultsquery = query as ResultsVariableQuery;
@@ -27,10 +26,9 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
       await queryResultsDataSource.current.getPartNumbers();
       setPartNumbers(queryResultsDataSource.current.partNumbersCache);
     };
-    
+
     loadWorkspaces();
     loadPartNumbers();
-    setAreDependenciesLoaded(true);
   }, [datasource]);
 
   const onPropertiesChange = (item: SelectableValue<string>) => {
@@ -59,7 +57,6 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
           partNumbers={partNumbers}
           status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
           globalVariableOptions={queryResultsDataSource.current.globalVariableOptions()}
-          areDependenciesLoaded={areDependenciesLoaded}
         ></ResultsQueryBuilder>
       </InlineField>
     </>
