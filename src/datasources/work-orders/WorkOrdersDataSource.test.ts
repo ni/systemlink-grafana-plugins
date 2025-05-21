@@ -2,7 +2,7 @@ import { BackendSrv } from '@grafana/runtime';
 import { MockProxy } from 'jest-mock-extended';
 import { setupDataSource, requestMatching, createFetchResponse, createFetchError } from 'test/fixtures';
 import { WorkOrdersDataSource } from './WorkOrdersDataSource';
-import { OutputType, WorkOrderPropertiesOptions } from './types';
+import { OrderByOptions, OutputType, WorkOrderPropertiesOptions } from './types';
 
 let datastore: WorkOrdersDataSource, backendServer: MockProxy<BackendSrv>;
 
@@ -28,6 +28,12 @@ describe('WorkOrdersDataSource', () => {
         WorkOrderPropertiesOptions.DUE_DATE,
         WorkOrderPropertiesOptions.UPDATED_AT,
       ]);
+    });
+
+    test('default query should have default order by value and order by direction', async () => {
+      const defaultQuery = datastore.defaultQuery;
+      expect(defaultQuery.orderBy).toEqual(OrderByOptions.UPDATED_AT);
+      expect(defaultQuery.descending).toEqual(true);
     });
   });
 
