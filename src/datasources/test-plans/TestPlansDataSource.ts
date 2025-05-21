@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { OutputType, Properties, PropertiesOptions, TestPlansQuery } from './types';
+import { OrderByOptions, OutputType, Properties, PropertiesOptions, TestPlansQuery } from './types';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(
@@ -27,7 +27,10 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       PropertiesOptions.ESTIMATED_DURATION,
       PropertiesOptions.SYSTEM,
       PropertiesOptions.UPDATED_AT
-    ] as Properties[]
+    ] as Properties[],
+    orderBy: OrderByOptions.UPDATED_AT,
+    descending: true,
+    recordCount: 1000
   };
 
   async runQuery(query: TestPlansQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
