@@ -99,6 +99,52 @@ describe('runQuery', () => {
 
     expect(result.fields).toHaveLength(0);
   });
+
+  test('returns total count when output type is TotalCount', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.TotalCount,
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [],
+      totalCount: 42,
+    };
+
+    jest.spyOn(datastore, 'queryTestPlans').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Total count');
+    expect(result.fields[0].values).toEqual([42]);
+  });
+
+  test('returns empty total count when no test plans are available and output type is TotalCount', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.TotalCount,
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [],
+      totalCount: 0,
+    };
+
+    jest.spyOn(datastore, 'queryTestPlans').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Total count');
+    expect(result.fields[0].values).toEqual([0]);
+  });
 });
 
 describe('queryTestPlansInBatches', () => {

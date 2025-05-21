@@ -38,47 +38,64 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   };
 
   async runQuery(query: TestPlansQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
-    const projectionAndFields = query.properties?.map(property => PropertiesProjectionMap[property]);
-    const projection = [...new Set(projectionAndFields?.map(data => data.projection).flat())];
 
-    const testPlans = (
-      await this.queryTestPlansInBatches(
-        query.orderBy,
-        projection,
-        query.recordCount,
-        query.descending,
-        true
-      )).testPlans;
+    if (query.outputType === OutputType.Properties) {
+      const projectionAndFields = query.properties?.map(property => PropertiesProjectionMap[property]);
+      const projection = [...new Set(projectionAndFields?.map(data => data.projection).flat())];
 
-    if (testPlans.length > 0) {
-      const fields = projectionAndFields?.map((data) => {
-        const field = data.field[0];
-        const fieldType = isTimeField(field)
-          ? FieldType.time
-          : FieldType.string;
-        const fieldValues = testPlans
-          .map(data => data[field as unknown as keyof TestPlanResponseProperties] as string);
+      const testPlans = (
+        await this.queryTestPlansInBatches(
+          query.orderBy,
+          projection,
+          query.recordCount,
+          query.descending,
+          true
+        )).testPlans;
 
-        // TODO: AB#3133188 Add support for other field mapping
+      if (testPlans.length > 0) {
+        const fields = projectionAndFields?.map((data) => {
+          const field = data.field[0];
+          const fieldType = isTimeField(field)
+            ? FieldType.time
+            : FieldType.string;
+          const fieldValues = testPlans
+            .map(data => data[field as unknown as keyof TestPlanResponseProperties] as string);
 
+          // TODO: AB#3133188 Add support for other field mapping
+
+          return {
+            name: data.label,
+            values: fieldValues,
+            type: fieldType
+          };
+        });
         return {
-          name: data.label,
-          values: fieldValues,
-          type: fieldType
+          refId: query.refId,
+          name: query.refId,
+          fields: fields ?? [],
         };
-      });
+      }
       return {
         refId: query.refId,
         name: query.refId,
-        fields: fields ?? [],
+        fields: [],
+      };
+    } else {
+      const responseData = await this.queryTestPlans(
+        query.orderBy,
+        undefined,
+        0,
+        undefined,
+        undefined,
+        true
+      );
+
+      return {
+        refId: query.refId,
+        name: query.refId,
+        fields: [{ name: 'Total count', values: [responseData.totalCount] }],
       };
     }
-
-    return {
-      refId: query.refId,
-      name: query.refId,
-      fields: [],
-    };
   }
 
   shouldRunQuery(query: TestPlansQuery): boolean {
