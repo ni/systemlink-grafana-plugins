@@ -198,7 +198,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     return [];
   }
 
-
   shouldRunQuery(_: QuerySteps): boolean {
     return true;
   }

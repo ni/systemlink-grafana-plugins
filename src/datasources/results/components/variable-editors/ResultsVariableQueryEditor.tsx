@@ -34,7 +34,6 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
     onChange({
       ...query,
       queryType: QueryType.Results,
-      properties: ResultsVariableProperties[1].value,
     } as ResultsVariableQuery);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
@@ -84,7 +83,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
 
   return (
     <>
-      <InlineField label="Query Type" labelWidth={15} tooltip={tooltips.queryType}>
+      <InlineField label="Query Type" labelWidth={26} tooltip={tooltips.queryType}>
         <RadioButtonGroup
           options={Object.values(QueryType).map(value => ({ label: value, value })) as SelectableValue[]}
           value={query.queryType}
@@ -93,7 +92,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
       </InlineField>
       {query.queryType === QueryType.Results && (
         <>
-          <InlineField label="Properties" labelWidth={12} tooltip={tooltips.properties}>
+          <InlineField label="Properties" labelWidth={26} tooltip={tooltips.properties}>
             <Select
               onChange={onPropertiesChange}
               options={ResultsVariableProperties as SelectableValue[]}
@@ -101,16 +100,19 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
               defaultValue={queryResultsquery.properties}
             ></Select>
           </InlineField>
-          <InlineField label="Query By" labelWidth={12} tooltip={tooltips.queryBy}>
-            <ResultsQueryBuilder
-              filter={queryResultsquery.queryBy}
-              onChange={(event: any) => onQueryByChange(event.detail.linq)}
-              workspaces={workspaces}
-              partNumbers={partNumbers}
-              status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
-              globalVariableOptions={queryResultsDataSource.current.globalVariableOptions()}
-            ></ResultsQueryBuilder>
-          </InlineField>
+          {(queryResultsquery.properties! === ResultsVariableProperties[0].value ||
+            queryResultsquery.properties === ResultsVariableProperties[1].value) && (
+            <InlineField label="Query by results properties" labelWidth={26} tooltip={tooltips.queryBy}>
+              <ResultsQueryBuilder
+                filter={queryResultsquery.queryBy}
+                onChange={(event: any) => onQueryByChange(event.detail.linq)}
+                workspaces={workspaces}
+                partNumbers={partNumbers}
+                status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
+                globalVariableOptions={queryResultsDataSource.current.globalVariableOptions()}
+              ></ResultsQueryBuilder>
+            </InlineField>
+          )}
         </>
       )}
       {query.queryType === QueryType.Steps && (

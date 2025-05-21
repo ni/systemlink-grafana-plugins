@@ -405,6 +405,13 @@ describe('QueryResultsDataSource', () => {
   });
 
   describe('metricFindQuery', () => {
+    test('should return empty array when properties is not selected', async () => {
+      const query = { properties: undefined, queryBy: '' } as ResultsVariableQuery;
+      const result = await datastore.metricFindQuery(query, {});
+
+      expect(result).toEqual([]);
+    });
+
     test('should return empty array when there are no results', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
