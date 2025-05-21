@@ -47,8 +47,8 @@ jest.mock('../query-steps/StepsQueryBuilder', () => ({
 }));
 
 const mockDatasource = {
-  loadWorkspaces: jest.fn().mockResolvedValue(undefined),
-  getPartNumbers: jest.fn().mockResolvedValue(undefined),
+  arePartNumbersLoaded$: Promise.resolve(),
+  areWorkspacesLoaded$: Promise.resolve(),
   workspacesCache: new Map([
     [1, { id: 1, name: 'Workspace 1' }],
     [2, { id: 2, name: 'Workspace 2' }],
@@ -87,9 +87,18 @@ describe('StepsQueryBuilderWrapper', () => {
     expect(screen.getByTestId('steps-query-builder')).toBeInTheDocument();
   });
   
-  test('should load workspaces and part numbers from datasource', () => {
-    expect(mockDatasource.loadWorkspaces).toHaveBeenCalledTimes(1);
-    expect(mockDatasource.getPartNumbers).toHaveBeenCalledTimes(1);
+  test('should call Promise.all with arePartNumbersLoaded$ and areWorkspacesLoaded$', async () => {
+    cleanup();
+    const promiseAllSpy = jest.spyOn(Promise, 'all');
+  
+    await act(async () => {
+      render(<StepsQueryBuilderWrapper {...defaultProps} />);
+    });
+  
+    expect(promiseAllSpy).toHaveBeenCalledWith([
+      mockDatasource.arePartNumbersLoaded$,
+      mockDatasource.areWorkspacesLoaded$,
+    ]);
   });
 
   test('should pass default properties to result and steps query builder', () => {

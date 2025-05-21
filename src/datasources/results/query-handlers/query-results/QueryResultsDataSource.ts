@@ -1,15 +1,25 @@
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties, ResultsVariableQuery } from "datasources/results/types/QueryResults.types";
 import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase";
-import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from "@grafana/data";
+import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, DataSourceInstanceSettings } from "@grafana/data";
 import { OutputType } from "datasources/results/types/types";
 import { defaultResultsQuery } from "datasources/results/defaultQueries";
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
+import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
 
 export class QueryResultsDataSource extends ResultsDataSourceBase {
   queryResultsUrl = this.baseUrl + '/v2/query-results';
 
   defaultQuery = defaultResultsQuery;
+
+  constructor(
+    readonly instanceSettings: DataSourceInstanceSettings,
+    readonly backendSrv: BackendSrv = getBackendSrv(),
+    readonly templateSrv: TemplateSrv = getTemplateSrv()
+  ) {
+    super(instanceSettings, backendSrv, templateSrv);
+    this.loadDependencies();
+  }
 
   async queryResults(
     filter?: string,
@@ -34,13 +44,10 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   }
 
   async runQuery(query: QueryResults, options: DataQueryRequest): Promise<DataFrameDTO> {
-    await this.getPartNumbers();
-    await this.loadWorkspaces();
-
     if (query.queryBy) {
       query.queryBy = transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
-        this.resultsComputedDataFields,
+        this.resultsComputedDataFields
       );
     }
 
@@ -55,7 +62,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       true
     );
 
-    if(responseData.results.length === 0) {
+    if (responseData.results.length === 0) {
       return {
         refId: query.refId,
         fields: [],
@@ -64,16 +71,23 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
 
     if (query.outputType === OutputType.Data) {
       const testResultsResponse = responseData.results;
-      const selectedFields = query.properties?.filter((field: ResultsProperties) => Object.keys(testResultsResponse[0]).includes(field)) || [];
+      const selectedFields =
+        query.properties?.filter((field: ResultsProperties) => Object.keys(testResultsResponse[0]).includes(field)) ||
+        [];
       const fields = selectedFields.map(field => {
-        const isTimeField = field === ResultsPropertiesOptions.UPDATED_AT || field === ResultsPropertiesOptions.STARTED_AT;
+        const isTimeField =
+          field === ResultsPropertiesOptions.UPDATED_AT || field === ResultsPropertiesOptions.STARTED_AT;
         const fieldType = isTimeField ? FieldType.time : FieldType.string;
         const values = testResultsResponse.map(data => data[field as unknown as keyof ResultsResponseProperties]);
 
         switch (field) {
           case ResultsPropertiesOptions.PROPERTIES:
           case ResultsPropertiesOptions.STATUS_TYPE_SUMMARY:
-            return { name: field, values: values.map(value => value !== null ? JSON.stringify(value) : ''), type: fieldType };
+            return {
+              name: field,
+              values: values.map(value => (value !== null ? JSON.stringify(value) : '')),
+              type: fieldType,
+            };
           case ResultsPropertiesOptions.STATUS:
             return { name: field, values: values.map((value: any) => value?.statusType), type: fieldType };
           default:
@@ -99,13 +113,16 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   readonly resultsComputedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(ResultsQueryBuilderFieldNames).map(field => [
       field,
-      field === (ResultsQueryBuilderFieldNames.UPDATED_AT) || field === (ResultsQueryBuilderFieldNames.STARTED_AT)
+      field === ResultsQueryBuilderFieldNames.UPDATED_AT || field === ResultsQueryBuilderFieldNames.STARTED_AT
         ? this.timeFieldsQuery(field)
         : this.multipleValuesQuery(field),
     ])
   );
-  
-  async metricFindQuery(_query: ResultsVariableQuery, _options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+
+  async metricFindQuery(
+    _query: ResultsVariableQuery,
+    _options?: LegacyMetricFindQueryOptions
+  ): Promise<MetricFindValue[]> {
     return [];
   }
 

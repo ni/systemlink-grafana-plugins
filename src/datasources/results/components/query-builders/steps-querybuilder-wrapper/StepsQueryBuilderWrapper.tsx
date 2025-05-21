@@ -32,18 +32,11 @@ export const StepsQueryBuilderWrapper = (
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState(false);
 
   useEffect(() => {
-    const loadWorkspaces = async () => {
-      await datasource.loadWorkspaces();
+    Promise.all([datasource.arePartNumbersLoaded$, datasource.areWorkspacesLoaded$]).then(() => {
       setWorkspaces(Array.from(datasource.workspacesCache.values()));
-    };
-    const loadPartNumbers = async () => {
-      await datasource.getPartNumbers();
       setPartNumbers(datasource.partNumbersCache);
-    };
-
-    loadPartNumbers();
-    loadWorkspaces();
-    setAreDependenciesLoaded(true);
+      setAreDependenciesLoaded(true);
+    });
   }, [datasource]);
   
   return (

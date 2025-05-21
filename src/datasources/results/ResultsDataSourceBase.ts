@@ -7,8 +7,15 @@ import { ResultsPropertiesOptions } from "./types/QueryResults.types";
 import { getVariableOptions } from "core/utils";
 import { ExpressionTransformFunction } from "core/query-builder.utils";
 import { QueryBuilderOperations } from "core/query-builder.constants";
+import { parseErrorMessage } from "core/errors";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
+  private partNumbersLoaded!: () => void;
+  private workspacesLoaded!: () => void;
+
+  public arePartNumbersLoaded$ = new Promise<void>(resolve => this.partNumbersLoaded = resolve);
+  public areWorkspacesLoaded$ = new Promise<void>(resolve => this.workspacesLoaded = resolve);
+
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
   queryResultsValuesUrl = this.baseUrl + '/v2/query-result-values';
 
@@ -27,6 +34,11 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   abstract runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
   abstract shouldRunQuery(query: ResultsQuery): boolean;
+
+  public async loadDependencies(): Promise<void> {
+    await this.getPartNumbers();
+    await this.loadWorkspaces();
+  }
 
   getTimeRangeFilter(options: DataQueryRequest, useTimeRange?: boolean, useTimeRangeFor?: string): string | undefined {
     if (!useTimeRange || useTimeRangeFor === undefined) {
@@ -104,10 +116,12 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
     const workspaces = await this.getWorkspaces()
       .catch(error => {
-        throw new Error(error);
+        console.error('Error fetching part numbers:', parseErrorMessage(error));
       });
 
     workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
+
+    this.workspacesLoaded();
   }
 
   async getPartNumbers(): Promise<void> {
@@ -118,10 +132,12 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     const partNumbers = await this.post<string[]>(this.queryResultsValuesUrl, {
       field: ResultsPropertiesOptions.PART_NUMBER,
     }).catch(error => {
-      throw new Error(error);
+      console.error('Error fetching part numbers:', parseErrorMessage(error));
     });
 
     partNumbers?.forEach(partNumber => this.partNumbersCache.push(partNumber));
+
+    this.partNumbersLoaded();
   }
 
   protected multipleValuesQuery(field: string): ExpressionTransformFunction {

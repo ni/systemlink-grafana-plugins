@@ -23,6 +23,8 @@ const mockQueryStepsResponse: QueryStepsResponse = {
   totalCount: 1
 };
 
+const mockQueryResultsValuesResponse = ["partNumber1", "partNumber2"];
+
 let datastore: QueryStepsDataSource, backendServer: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
 
 jest.mock('datasources/results/constants/QuerySteps.constants', () => ({
@@ -37,6 +39,10 @@ describe('QueryStepsDataSource', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
       .mockReturnValue(createFetchResponse(mockQueryStepsResponse));
+
+    backendServer.fetch
+    .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
+    .mockReturnValue(createFetchResponse(mockQueryResultsValuesResponse));
   })
 
   afterEach(() => {
@@ -288,10 +294,13 @@ describe('QueryStepsDataSource', () => {
       const response = await datastore.query(query);
 
       const fields = response.data[0].fields as Field[];
+      const queryStepsCalls = backendServer.fetch.mock.calls.filter(call =>
+        call[0].url === '/nitestmonitor/v2/query-steps'
+      );
       expect(fields).toEqual([
         { name: 'Total count', values: [5000] },
       ]);
-      expect(backendServer.fetch).toHaveBeenCalledTimes(1);
+      expect(queryStepsCalls).toHaveLength(1);
     });
   });
 
@@ -306,7 +315,12 @@ describe('QueryStepsDataSource', () => {
 
     const fields = response.data[0].fields as Field[];
     expect(fields).toEqual([]);
-    expect(backendServer.fetch).not.toHaveBeenCalled();
+    expect(backendServer.fetch).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: '/nitestmonitor/v2/query-steps',
+      })
+    );
+  
   });
 
   describe('fetch Steps with rate limiting', () => {
@@ -329,12 +343,16 @@ describe('QueryStepsDataSource', () => {
           true
         );
         const response = await responsePromise;
-  
+        const queryStepsCalls = backendServer.fetch.mock.calls.filter(call =>
+          call[0].url === '/nitestmonitor/v2/query-steps'
+        );
+
         expect(response.steps).toHaveLength(100);
-        expect(backendServer.fetch).toHaveBeenCalledTimes(1);
+        expect(queryStepsCalls).toHaveLength(1);
         expect(backendServer.fetch).toHaveBeenNthCalledWith(
-          1,
+          2,
           expect.objectContaining({
+            url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({ take: 100, continuationToken: undefined }),
           })
         );
@@ -366,17 +384,20 @@ describe('QueryStepsDataSource', () => {
             true
           );
           const response = await responsePromise;
+          const queryStepsCalls = backendServer.fetch.mock.calls.filter(call =>
+            call[0].url === '/nitestmonitor/v2/query-steps'
+          );
     
           expect(response.steps).toHaveLength(900);
-          expect(backendServer.fetch).toHaveBeenCalledTimes(2);
+          expect(queryStepsCalls).toHaveLength(2);
           expect(backendServer.fetch).toHaveBeenNthCalledWith(
-            1,
+            2,
             expect.objectContaining({
               data: expect.objectContaining({ take: 500, continuationToken: undefined }),
             })
           );
           expect(backendServer.fetch).toHaveBeenNthCalledWith(
-            2,
+            3,
             expect.objectContaining({
               data: expect.objectContaining({ take: 400, continuationToken: 'token1' }),
             })
@@ -425,34 +446,41 @@ describe('QueryStepsDataSource', () => {
           undefined,
           true
         );
+        const queryStepsCalls = fetchSpy.mock.calls.filter(call =>
+          call[0].url === '/nitestmonitor/v2/query-steps'
+        );
 
         await jest.advanceTimersByTimeAsync(0);
-        expect(fetchSpy).toHaveBeenCalledTimes(2);
+        expect(queryStepsCalls).toHaveLength(2);
         await jest.advanceTimersByTimeAsync(1000);
-        expect(fetchSpy).toHaveBeenCalledTimes(4);
+        expect(queryStepsCalls).toHaveLength(4);
         await responsePromise;
 
         expect(fetchSpy).toHaveBeenNthCalledWith(
-          1,
-          expect.objectContaining({
-            data: expect.objectContaining({ take: 500, continuationToken: undefined }),
-          })
-        );
-        expect(fetchSpy).toHaveBeenNthCalledWith(
           2,
           expect.objectContaining({
-            data: expect.objectContaining({ take: 500, continuationToken: 'token1' }),
+            url: '/nitestmonitor/v2/query-steps',
+            data: expect.objectContaining({ take: 500, continuationToken: undefined }),
           })
         );
         expect(fetchSpy).toHaveBeenNthCalledWith(
           3,
           expect.objectContaining({
-            data: expect.objectContaining({ take: 500, continuationToken: 'token2' }),
+            url: '/nitestmonitor/v2/query-steps',
+            data: expect.objectContaining({ take: 500, continuationToken: 'token1' }),
           })
         );
         expect(fetchSpy).toHaveBeenNthCalledWith(
           4,
           expect.objectContaining({
+            url: '/nitestmonitor/v2/query-steps',
+            data: expect.objectContaining({ take: 500, continuationToken: 'token2' }),
+          })
+        );
+        expect(fetchSpy).toHaveBeenNthCalledWith(
+          5,
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({ take: 500, continuationToken: 'token3' }),
           })
         );
@@ -477,11 +505,15 @@ describe('QueryStepsDataSource', () => {
           undefined,
           true
         );
+        const queryStepsCalls = backendServer.fetch.mock.calls.filter(call =>
+          call[0].url === '/nitestmonitor/v2/query-steps'
+        );
   
         expect(response.steps).toHaveLength(500);
-        expect(backendServer.fetch).toHaveBeenCalledTimes(1);
+        expect(queryStepsCalls).toHaveLength(1);
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
+            url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({ take: 500, continuationToken: undefined }),
           })
         );
@@ -510,11 +542,14 @@ describe('QueryStepsDataSource', () => {
           undefined,
           true
         );
+        const queryStepsCalls = backendServer.fetch.mock.calls.filter(call =>
+          call[0].url === '/nitestmonitor/v2/query-steps'
+        );
         
         await expect(batchPromise)
           .rejects
           .toThrow('Request to url "/nitestmonitor/v2/query-steps" failed with status code: 400. Error message: "Error"');
-        expect(backendServer.fetch).toHaveBeenCalledTimes(2);
+        expect(queryStepsCalls).toHaveLength(2);
       });
 
       test('should delay between consecutive batch API calls', async () => {
@@ -565,9 +600,12 @@ describe('QueryStepsDataSource', () => {
         );
 
         const response = await responsePromise;
+        const queryStepsCalls = backendServer.fetch.mock.calls.filter(call =>
+          call[0].url === '/nitestmonitor/v2/query-steps'
+        );
   
         expect(response.steps).toHaveLength(2000);
-        expect(backendServer.fetch).toHaveBeenCalledTimes(4);
+        expect(queryStepsCalls).toHaveLength(4);
         expect(spyDelay).toHaveBeenCalledTimes(1);
         expect(spyDelay).toHaveBeenCalledWith(800); // delay for 1000 - 200 = 800ms
       });

@@ -30,18 +30,11 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState(false);
 
   useEffect(() => {
-    const loadWorkspaces = async () => {
-      await datasource.loadWorkspaces();
+    Promise.all([datasource.arePartNumbersLoaded$, datasource.areWorkspacesLoaded$]).then(() => {
       setWorkspaces(Array.from(datasource.workspacesCache.values()));
-    };
-    const loadPartNumbers = async () => {
-      await datasource.getPartNumbers();
       setPartNumbers(datasource.partNumbersCache);
-    };
-
-    loadWorkspaces();
-    loadPartNumbers();
-    setAreDependenciesLoaded(true);
+      setAreDependenciesLoaded(true);
+    });
   }, [datasource]);
 
   const onOutputChange = (value: OutputType) => {

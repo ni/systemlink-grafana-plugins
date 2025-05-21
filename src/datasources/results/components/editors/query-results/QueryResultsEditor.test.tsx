@@ -37,8 +37,8 @@ const mockPartNumbers = ['PN1', 'PN2', 'PN3'];
 const mockGlobalVars = [{ label: '$var1', value: '$var1' }];
 
 const mockDatasource = {
-  loadWorkspaces: jest.fn().mockResolvedValue(undefined),
-  getPartNumbers: jest.fn().mockResolvedValue(undefined),
+  arePartNumbersLoaded$: Promise.resolve(),
+  areWorkspacesLoaded$: Promise.resolve(),
   workspacesCache: new Map(mockWorkspaces.map(workspace => [workspace, workspace])),
   partNumbersCache: mockPartNumbers,
   globalVariableOptions: jest.fn(() => mockGlobalVars),
@@ -172,10 +172,29 @@ describe('QueryResultsEditor', () => {
       })
     });
 
-    test('should call loadWorkspaces and getResultsPartNumbers when component is loaded',() => {
-      expect(mockDatasource.loadWorkspaces).toHaveBeenCalledTimes(1);
-      expect(mockDatasource.getPartNumbers).toHaveBeenCalledTimes(1);
-    })
+    test('should call Promise.all with arePartNumbersLoaded$ and areWorkspacesLoaded$', async () => {
+      const promiseAllSpy = jest.spyOn(Promise, 'all');
+    
+      cleanup();
+      await act(async () => {
+        render(
+          <QueryResultsEditor
+            query={{
+              refId: 'A',
+              queryType: QueryType.Results,
+              outputType: OutputType.Data,
+            }}
+            handleQueryChange={mockHandleQueryChange}
+            datasource={mockDatasource}
+          />
+        );
+      });
+    
+      expect(promiseAllSpy).toHaveBeenCalledWith([
+        mockDatasource.arePartNumbersLoaded$,
+        mockDatasource.areWorkspacesLoaded$,
+      ]);
+    });
 
     test('should render ResultsQueryBuilder with default props when component is loaded', () => {
       const resultsQueryBuilder = screen.getByTestId('results-query-builder');
