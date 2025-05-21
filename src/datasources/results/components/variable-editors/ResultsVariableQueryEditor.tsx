@@ -41,7 +41,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
 
   return (
     <>
-      <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
+      <InlineField label="Properties" labelWidth={26} tooltip={tooltips.properties}>
         <Select
           onChange={onPropertiesChange}
           options={ResultsVariableProperties as SelectableValue[]}
@@ -51,7 +51,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
       </InlineField>
       {(queryResultsquery.properties! === ResultsVariableProperties[0].value ||
         queryResultsquery.properties === ResultsVariableProperties[1].value) && (
-        <InlineField label="Query by result properties" labelWidth={25} tooltip={tooltips.queryBy}>
+        <InlineField label="Query by results properties" labelWidth={26} tooltip={tooltips.queryBy}>
           <ResultsQueryBuilder
             filter={queryResultsquery.queryBy}
             onChange={(event: any) => onQueryByChange(event.detail.linq)}

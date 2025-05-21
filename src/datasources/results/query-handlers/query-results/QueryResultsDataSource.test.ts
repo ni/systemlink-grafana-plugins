@@ -406,7 +406,7 @@ describe('QueryResultsDataSource', () => {
 
   describe('metricFindQuery', () => {
     test('should return empty array when properties is not selected', async () => {
-      const query = { properties: '', queryBy: '' } as ResultsVariableQuery;
+      const query = { properties: undefined, queryBy: '' } as ResultsVariableQuery;
       const result = await datastore.metricFindQuery(query, {});
 
       expect(result).toEqual([]);

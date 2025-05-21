@@ -52,7 +52,7 @@ it('should render properties select and results query builder progressively', as
   const option = await screen.findByText(ResultsVariableProperties[0].label);
   fireEvent.click(option);
 
-  queryBy = screen.getByText('Query by result properties');
+  queryBy = screen.getByText('Query by results properties');
   expect(queryBy).toBeInTheDocument();
 
   await waitFor(() => expect(screen.getAllByText('Property').length).toBe(1));

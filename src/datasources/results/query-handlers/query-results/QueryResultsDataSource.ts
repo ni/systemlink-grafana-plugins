@@ -106,7 +106,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   );
 
   async metricFindQuery(query: ResultsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    if (query.properties !== '') {
+    if (query.properties !== undefined) {
       const filter = query.queryBy ? transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options?.scopedVars),
         this.resultsComputedDataFields
