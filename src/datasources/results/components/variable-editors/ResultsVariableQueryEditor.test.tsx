@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { ResultsVariableQueryEditor } from './ResultsVariableQueryEditor';
 import { setupRenderer } from 'test/fixtures';
 import { ResultsDataSource } from 'datasources/results/ResultsDataSource';
@@ -6,7 +6,6 @@ import { ResultsQuery } from 'datasources/results/types/types';
 import { Workspace } from 'core/types';
 import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
 import { ResultsVariableProperties, ResultsVariableQuery } from 'datasources/results/types/QueryResults.types';
-import React = require('react');
 
 const fakeWorkspaces: Workspace[] = [
   {
