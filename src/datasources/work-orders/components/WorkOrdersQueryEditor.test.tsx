@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
 import { WorkOrdersQueryEditor } from './WorkOrdersQueryEditor';
-import { OutputType, WorkOrderProperties, WorkOrdersQuery } from '../types';
+import { OutputType, WorkOrderProperties, WorkOrderPropertiesOptions, WorkOrdersQuery } from '../types';
 import { QueryEditorProps } from '@grafana/data';
 import React from 'react';
 import userEvent from '@testing-library/user-event';
@@ -122,7 +122,7 @@ describe('WorkOrdersQueryEditor', () => {
 
       const propertiesSelect = container.getAllByRole('combobox')[0];
       userEvent.click(propertiesSelect);
-      await select(propertiesSelect, WorkOrderProperties.assignedTo, { container: document.body });
+      await select(propertiesSelect, WorkOrderProperties[WorkOrderPropertiesOptions.ASSIGNED_TO].label, { container: document.body });
 
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['assignedTo'] }));
