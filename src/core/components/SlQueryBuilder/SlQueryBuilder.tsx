@@ -55,7 +55,6 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
       value={sanitizedFilter}
       validateOnInput={validateOnInput}
       showIcons={showIcons}
-      disabled={true}
     />
   );
 };
