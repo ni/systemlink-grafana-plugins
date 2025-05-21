@@ -106,23 +106,25 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   );
 
   async metricFindQuery(query: ResultsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    const filter = query.queryBy ? transformComputedFieldsQuery(
-      this.templateSrv.replace(query.queryBy, options?.scopedVars),
-      this.resultsComputedDataFields
-    ) : undefined;
+    if (query.properties !== '') {
+      const filter = query.queryBy ? transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBy, options?.scopedVars),
+        this.resultsComputedDataFields
+      ) : undefined;
 
-    const metadata = (await this.queryResults(
-      filter,
-      'UPDATED_AT',
-      [query.properties as ResultsProperties],
-      1000
-    )).results;
+      const metadata = (await this.queryResults(
+        filter,
+        'UPDATED_AT',
+        [query.properties as ResultsProperties],
+        1000
+      )).results;
 
-    if (metadata.length > 0) {
-      const propertyKey = ResultsPropertiesOptions[query.properties as keyof typeof ResultsPropertiesOptions] as keyof ResultsResponseProperties;
-      const values = metadata.map((data: ResultsResponseProperties) => data[propertyKey]).filter(value => value !== undefined && value !== null);
-      const flattenedResults = this.flattenAndDeduplicate(values as string[]);
-      return flattenedResults.map(value => ({ text: String(value), value }));
+      if (metadata.length > 0) {
+        const propertyKey = ResultsPropertiesOptions[query.properties as keyof typeof ResultsPropertiesOptions] as keyof ResultsResponseProperties;
+        const values = metadata.map((data: ResultsResponseProperties) => data[propertyKey]).filter(value => value !== undefined && value !== null);
+        const flattenedResults = this.flattenAndDeduplicate(values as string[]);
+        return flattenedResults.map(value => ({ text: String(value), value }));
+      }
     }
     return [];
   }

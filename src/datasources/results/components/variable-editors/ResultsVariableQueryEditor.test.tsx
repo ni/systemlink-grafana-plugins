@@ -5,7 +5,7 @@ import { ResultsDataSource } from 'datasources/results/ResultsDataSource';
 import { ResultsQuery } from 'datasources/results/types/types';
 import { Workspace } from 'core/types';
 import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
-import { ResultsVariableProperties, ResultsVariableQuery } from 'datasources/results/types/QueryResults.types';
+import { ResultsVariableProperties } from 'datasources/results/types/QueryResults.types';
 
 const fakeWorkspaces: Workspace[] = [
   {
