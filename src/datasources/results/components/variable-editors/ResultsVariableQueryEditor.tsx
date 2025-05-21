@@ -41,7 +41,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
 
   return (
     <>
-      <InlineField label="Properties" labelWidth={12} tooltip={tooltips.properties}>
+      <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
         <Select
           onChange={onPropertiesChange}
           options={ResultsVariableProperties as SelectableValue[]}
@@ -49,16 +49,19 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
           defaultValue={queryResultsquery.properties}
         ></Select>
       </InlineField>
-      <InlineField label="Query By" labelWidth={12} tooltip={tooltips.queryBy}>
-        <ResultsQueryBuilder
-          filter={queryResultsquery.queryBy}
-          onChange={(event: any) => onQueryByChange(event.detail.linq)}
-          workspaces={workspaces}
-          partNumbers={partNumbers}
-          status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
-          globalVariableOptions={queryResultsDataSource.current.globalVariableOptions()}
-        ></ResultsQueryBuilder>
-      </InlineField>
+      {(queryResultsquery.properties! === ResultsVariableProperties[0].value ||
+        queryResultsquery.properties === ResultsVariableProperties[1].value) && (
+        <InlineField label="Query by result properties" labelWidth={25} tooltip={tooltips.queryBy}>
+          <ResultsQueryBuilder
+            filter={queryResultsquery.queryBy}
+            onChange={(event: any) => onQueryByChange(event.detail.linq)}
+            workspaces={workspaces}
+            partNumbers={partNumbers}
+            status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
+            globalVariableOptions={queryResultsDataSource.current.globalVariableOptions()}
+          ></ResultsQueryBuilder>
+        </InlineField>
+      )}
     </>
   );
 }
