@@ -420,20 +420,37 @@ describe('QueryResultsDataSource', () => {
       const mockResults = [
         { dataTableIds: ['A', 'B'] },
         { dataTableIds: ['B', 'C'] },
-        { partNumber: 'D' }
+        { dataTableIds: ['C'] },
       ];
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
         .mockReturnValue(createFetchResponse({ results: mockResults, totalCount: 3 }));
 
-      const query = { properties: ResultsPropertiesOptions.PART_NUMBER, queryBy: '' } as ResultsVariableQuery;
+      const query = { properties: 'DATA_TABLE_IDS', queryBy: '' } as ResultsVariableQuery;
       const result = await datastore.metricFindQuery(query, {});
 
       expect(result).toEqual([
         { text: 'A', value: 'A' },
         { text: 'B', value: 'B' },
         { text: 'C', value: 'C' },
-        { text: 'D', value: 'D' }
+      ]);
+    });
+
+    test('should return values when results is scalar', async () => {
+      const mockResults = [
+        { programName: 'programName1' },
+        { programName: 'programName2' },
+      ];
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({ results: mockResults, totalCount: 2 }));
+
+      const query = { properties: 'PROGRAM_NAME', queryBy: '' } as ResultsVariableQuery;
+      const result = await datastore.metricFindQuery(query, {});
+
+      expect(result).toEqual([
+        { text: 'programName1', value: 'programName1' },
+        { text: 'programName2', value: 'programName2' },
       ]);
     });
 
@@ -449,7 +466,7 @@ describe('QueryResultsDataSource', () => {
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
         .mockReturnValue(createFetchResponse({ results: mockResults, totalCount: 1 }));
 
-      const query = { properties: ResultsPropertiesOptions.PROGRAM_NAME, queryBy } as ResultsVariableQuery;
+      const query = { properties: 'PROGRAM_NAME', queryBy } as ResultsVariableQuery;
       const options = { scopedVars: { var: { value: 'ReplacedValue' } } };
       const result = await datastore.metricFindQuery(query, options);
 
