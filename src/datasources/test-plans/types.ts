@@ -5,6 +5,7 @@ export interface TestPlansQuery extends DataQuery {
     outputType: OutputType;
     orderBy?: string;
     descending?: boolean;
+    recordCount?: number;
 }
 
 export enum OutputType {

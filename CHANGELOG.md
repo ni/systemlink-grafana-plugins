@@ -1,3 +1,27 @@
+## [3.77.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.76.0...v3.77.0) (2025-05-21)
+
+### Features
+
+* **results:** Load PartNumber and Workspace lookups in Variable Editor Query builder ([#193](https://github.com/ni/systemlink-grafana-plugins/issues/193)) ([4e26618](https://github.com/ni/systemlink-grafana-plugins/commit/4e266182eb527d334b52c0fd57caa61752189de5))
+
+## [3.76.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.75.0...v3.76.0) (2025-05-20)
+
+### Features
+
+* **workorders:** add support for output type ([#194](https://github.com/ni/systemlink-grafana-plugins/issues/194)) ([113ee2f](https://github.com/ni/systemlink-grafana-plugins/commit/113ee2f088bea805fd4a6912deae49705344e4c1))
+
+## [3.75.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.74.0...v3.75.0) (2025-05-20)
+
+### Features
+
+* **workorders:** Add dummy workorders query builder ([#189](https://github.com/ni/systemlink-grafana-plugins/issues/189)) ([a03f89b](https://github.com/ni/systemlink-grafana-plugins/commit/a03f89b31b2f00a60f8393d0bc30b763dc4a720d))
+
+## [3.74.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.73.1...v3.74.0) (2025-05-20)
+
+### Features
+
+* **results:** Integrate StepsQueryBuilder in editor ([#178](https://github.com/ni/systemlink-grafana-plugins/issues/178)) ([213e639](https://github.com/ni/systemlink-grafana-plugins/commit/213e63989c2e1b0d60c73077e76cf03256bbfbdd))
+
 ## [3.73.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.73.0...v3.73.1) (2025-05-19)
 
 ### Bug Fixes

@@ -54,10 +54,15 @@ describe('TestPlansQueryEditor', () => {
             const descending = container.getByRole('checkbox');
             expect(descending).toBeInTheDocument();
             expect(descending).not.toBeChecked();
+
+            const recordCount = container.getByRole('spinbutton');
+            expect(recordCount).toBeInTheDocument();
+            expect(recordCount).toHaveDisplayValue('');
         });
     });
 
     describe('when output type is properties', () => {
+        let container: RenderResult;
         let propertiesSelect: HTMLElement;
 
         beforeEach(() => {
@@ -65,7 +70,7 @@ describe('TestPlansQueryEditor', () => {
                 refId: 'A',
                 outputType: OutputType.Properties,
             };
-            const container = renderElement(query);
+            container = renderElement(query);
             propertiesSelect = container.getAllByRole('combobox')[0];
         });
 
@@ -82,6 +87,24 @@ describe('TestPlansQueryEditor', () => {
             await waitFor(() => {
                 expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['assignedTo'] }));
                 expect(mockOnRunQuery).toHaveBeenCalled();
+            });
+        });
+
+        it('only allows numbers in Take field', async () => {
+            const recordCountInput = container.getByRole('spinbutton');
+
+            // User tries to enter a non-numeric value
+            await userEvent.clear(recordCountInput);
+            await userEvent.type(recordCountInput, 'abc');
+            await waitFor(() => {
+                expect(recordCountInput).toHaveValue(null);
+            });
+
+            // User enters a valid numeric value
+            await userEvent.clear(recordCountInput);
+            await userEvent.type(recordCountInput, '500');
+            await waitFor(() => {
+                expect(recordCountInput).toHaveValue(500);
             });
         });
     });
@@ -115,6 +138,13 @@ describe('TestPlansQueryEditor', () => {
             await waitFor(() => {
                 const descending = container.queryByRole('checkbox', { name: 'Descending' });
                 expect(descending).not.toBeInTheDocument();
+            });
+        });
+
+        it('should not render record count', async () => {
+            await waitFor(() => {
+                const recordCount = container.queryByRole('spinbutton', { name: 'Take' });
+                expect(recordCount).not.toBeInTheDocument();
             });
         });
     });
@@ -215,6 +245,33 @@ describe('TestPlansQueryEditor', () => {
             await waitFor(() => {
                 expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ descending: true }));
                 expect(mockOnRunQuery).toHaveBeenCalled();
+            });
+        });
+
+        it('should call onChange with record count when user enters record count', async () => {
+            const container = renderElement();
+            const recordCountInput = container.getByRole('spinbutton');
+
+            await userEvent.clear(recordCountInput);
+            await userEvent.type(recordCountInput, '50');
+            userEvent.tab(); // Trigger onCommitChange
+
+            await waitFor(() => {
+                expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: 50 }));
+                expect(mockOnRunQuery).toHaveBeenCalled();
+            });
+        });
+
+        it('should show error message when record count is invalid', async () => {
+            const container = renderElement();
+            const recordCountInput = container.getByRole('spinbutton');
+
+            await userEvent.clear(recordCountInput);
+            await userEvent.type(recordCountInput, '10001');
+            userEvent.tab();
+
+            await waitFor(() => {
+                expect(container.getByText('Record count must be less than 10000')).toBeInTheDocument();
             });
         });
     });
