@@ -1,45 +1,33 @@
+@import url('smart-webcomponents-react/source/styles/components/smart.base.css');
+@import url('smart-webcomponents-react/source/styles/components/smart.common.css');
+@import url('smart-webcomponents-react/source/styles/components/smart.querybuilder.css');
 @import url('@ni/nimble-tokens/dist/styledictionary/css/variables.css');
 
-body {
+.smart-query-builder {
     --smart-primary: var(--ni-nimble-base-digital-green-light);
-    --smart-disabled: #4D5359;
-    --smart-border-top-right-radius: 2px;
-    --smart-border-top-left-radius: 2px;
-    --smart-border-bottom-right-radius: 2px;
-    --smart-border-bottom-left-radius: 2px;
+
+    --smart-background: var(--grafana-background-primary);
     --smart-ui-state-color-focus: var(--smart-background-color);
+    --smart-border: var(--grafana-border-medium);
+    --smart-background-color: var(--grafana-text-primary);
+    --smart-ui-state-focus: var(--grafana-focus-color);
+    --smart-border-top-right-radius: var(--grafana-border-radius-default);
+    --smart-border-top-left-radius: var(--grafana-border-radius-default);
+    --smart-border-bottom-right-radius: var(--grafana-border-radius-default);
+    --smart-border-bottom-left-radius: var(--grafana-border-radius-default);
 }
 
-body[theme="sl-light"], .smart-ui-component[theme="sl-light"] {
-    --smart-background: #ffffff;
-    --smart-background-color: #24292e;
-    --smart-ui-state-focus: #1616171a;
-    --smart-border: #24292e4d;
-}
-
-body[theme="sl-dark"], .smart-ui-component[theme="sl-dark"] {
-    --smart-background:#111217;
-    --smart-background-color: #ccccdc;
-    --smart-primary-color:#ffffff;
-    --smart-border: #ccccdc33;
-    --smart-ui-state-focus: #f1f1f21a;
-
-    --smart-scroll-bar-background: #3E3E42;
-    --smart-scroll-bar-track-background: #3E3E42;
-    --smart-scroll-bar-border: #3E3E42;
-    --smart-scroll-bar-thumb-background: #686868;
-    --smart-scroll-bar-thumb-border: #686868;
-    --smart-scroll-bar-thumb-background-hover: #9E9E9E;
-    --smart-scroll-bar-thumb-border-hover: #9E9E9E;
-    --smart-scroll-bar-thumb-background-active: #444;
-    --smart-scroll-bar-thumb-border-active: #444;
-    --smart-scroll-bar-button-background: #3E3E42;
-    --smart-scroll-bar-button-border: #3E3E42;
-    --smart-scroll-bar-button-color: #999999;
-    --smart-scroll-bar-button-background-hover: #3E3E42;
-    --smart-scroll-bar-button-border-hover: #3E3E42;
-    --smart-scroll-bar-button-color-hover: var(--smart-primary);
-    --smart-scroll-bar-button-background-active: #3E3E42;
-    --smart-scroll-bar-button-border-active: #3E3E42;
-    --smart-scroll-bar-button-color-active: var(--smart-primary);
+.smart-scroll-bar {
+    --smart-scroll-bar-button-border: transparent;
+    --smart-scroll-bar-background: var(--smart-background);
+    --smart-scroll-bar-track-background: var(--grafana-focus-color);
+    --smart-scroll-bar-thumb-background: var(--grafana-focus-color);
+    --smart-scroll-bar-thumb-background-hover: var(--grafana-focus-color);
+    --smart-scroll-bar-thumb-background-active: var(--grafana-active-color);
+    --smart-scroll-bar-button-background: var(--grafana-focus-color);
+    --smart-scroll-bar-button-color: var(--grafana-text-primary);
+    --smart-scroll-bar-button-background-hover: var(--grafana-focus-color);
+    --smart-scroll-bar-button-color-hover: var(--grafana-text-primary);
+    --smart-scroll-bar-button-background-active: var(--grafana-focus-color);
+    --smart-scroll-bar-button-color-active: var(--grafana-text-primary);
 }

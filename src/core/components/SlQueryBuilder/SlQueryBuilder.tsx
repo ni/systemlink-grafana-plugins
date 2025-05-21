@@ -1,9 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useTheme2 } from '@grafana/ui';
 import QueryBuilder, { QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
-import 'smart-webcomponents-react/source/styles/components/smart.base.css';
-import 'smart-webcomponents-react/source/styles/components/smart.common.css';
-import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
 import './SlQueryBuilder.css';
 import { filterXSSLINQExpression } from 'core/utils';
 
@@ -35,7 +32,15 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
   validateOnInput = false,
 }) => {
   const theme = useTheme2();
-  document.body.setAttribute('theme', theme.isDark ? 'sl-dark' : 'sl-light');
+
+  useEffect(() => {
+    document.body.style.setProperty('--grafana-background-primary', theme.colors.background.primary);
+    document.body.style.setProperty('--grafana-text-primary', theme.colors.text.primary);
+    document.body.style.setProperty('--grafana-border-medium', theme.colors.border.medium);
+    document.body.style.setProperty('--grafana-focus-color', theme.colors.action.focus);
+    document.body.style.setProperty('--grafana-active-color', theme.colors.action.selected);
+    document.body.style.setProperty('--grafana-border-radius-default', theme.shape.radius.default);
+  }, [theme]);
 
   const sanitizedFilter = useMemo(() => {
     return filterXSSLINQExpression(value);
@@ -50,6 +55,7 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
       value={sanitizedFilter}
       validateOnInput={validateOnInput}
       showIcons={showIcons}
+      disabled={true}
     />
   );
 };
