@@ -3,7 +3,15 @@ import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
 import { OutputType, WorkOrderProperties, WorkOrdersQuery } from '../types';
 import { WorkOrdersQueryBuilder } from './query-builder/WorkOrdersQueryBuilder';
-import { HorizontalGroup, InlineField, InlineSwitch, MultiSelect, RadioButtonGroup, Select, VerticalGroup } from '@grafana/ui';
+import {
+  HorizontalGroup,
+  InlineField,
+  InlineSwitch,
+  MultiSelect,
+  RadioButtonGroup,
+  Select,
+  VerticalGroup,
+} from '@grafana/ui';
 import { OrderBy } from 'datasources/products/types';
 import './WorkOrdersQueryEditor.scss';
 
@@ -39,8 +47,6 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
     handleQueryChange({ ...query, descending: isDescendingChecked });
   };
 
-
-  
   return (
     <>
       <HorizontalGroup align="flex-start">
@@ -69,13 +75,12 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
             </InlineField>
           )}
           <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
-            <WorkOrdersQueryBuilder 
-              globalVariableOptions={[]}
-            ></WorkOrdersQueryBuilder>
+            <WorkOrdersQueryBuilder globalVariableOptions={[]}></WorkOrdersQueryBuilder>
           </InlineField>
         </VerticalGroup>
         <VerticalGroup>
-          <div className="right-query-controls">
+          {query.outputType === OutputType.Properties && (
+            <div className="right-query-controls">
               <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
                 <Select
                   options={OrderBy as SelectableValue[]}
@@ -92,7 +97,8 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
                   value={query.descending}
                 />
               </InlineField>
-          </div>
+            </div>
+          )}
         </VerticalGroup>
       </HorizontalGroup>
     </>
@@ -104,5 +110,5 @@ const tooltips = {
   outputType: 'This field specifies the output type to fetch work order properties or total count',
   properties: 'This field specifies the properties to use in the query.',
   orderBy: 'This field specifies the query order of the work orders.',
-  descending: 'This toggle returns the work orders query in descending order.'
+  descending: 'This toggle returns the work orders query in descending order.',
 };
