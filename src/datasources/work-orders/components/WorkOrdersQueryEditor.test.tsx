@@ -113,7 +113,7 @@ describe('WorkOrdersQueryEditor', () => {
       });
     });
 
-    it.only('should call onChange with properties when user selects properties', async () => {
+    it('should call onChange with properties when user selects properties', async () => {
       const query = {
         refId: 'A',
         outputType: OutputType.Properties,
