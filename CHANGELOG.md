@@ -1,3 +1,9 @@
+## [3.77.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.76.0...v3.77.0) (2025-05-21)
+
+### Features
+
+* **results:** Load PartNumber and Workspace lookups in Variable Editor Query builder ([#193](https://github.com/ni/systemlink-grafana-plugins/issues/193)) ([4e26618](https://github.com/ni/systemlink-grafana-plugins/commit/4e266182eb527d334b52c0fd57caa61752189de5))
+
 ## [3.76.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.75.0...v3.76.0) (2025-05-20)
 
 ### Features
