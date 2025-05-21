@@ -403,18 +403,58 @@ describe('QueryResultsDataSource', () => {
       );
     });
   });
+
   describe('metricFindQuery', () => {
-    test('should return an empty array when called', async () => {
-      const query = { queryType:'', properties: 'TestProgramName', queryBy: 'TestProgramName'} as unknown as ResultsVariableQuery;
-      const options = {};
-      const result = await datastore.metricFindQuery(query, options);
+    test('should return empty array when there are no results', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({ results: [], totalCount: 0 }));
+
+      const query = { properties: ResultsPropertiesOptions.PART_NUMBER, queryBy: '' } as ResultsVariableQuery;
+      const result = await datastore.metricFindQuery(query, {});
+
       expect(result).toEqual([]);
     });
 
-    test('should return an empty array when called without options', async () => {
-      const query = {queryType:'', properties: 'TestProgramName', queryBy: 'TestProgramName'} as unknown as ResultsVariableQuery;
-      const result = await datastore.metricFindQuery(query);
-      expect(result).toEqual([]);
+    test('should return flattened and deduplicated values as MetricFindValue[]', async () => {
+      const mockResults = [
+        { dataTableIds: ['A', 'B'] },
+        { dataTableIds: ['B', 'C'] },
+        { partNumber: 'D' }
+      ];
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({ results: mockResults, totalCount: 3 }));
+
+      const query = { properties: ResultsPropertiesOptions.PART_NUMBER, queryBy: '' } as ResultsVariableQuery;
+      const result = await datastore.metricFindQuery(query, {});
+
+      expect(result).toEqual([
+        { text: 'A', value: 'A' },
+        { text: 'B', value: 'B' },
+        { text: 'C', value: 'C' },
+        { text: 'D', value: 'D' }
+      ]);
+    });
+
+    test('should replace variables', async () => {
+      const mockResults = [
+        { programName: 'TestProgram' }
+      ];
+      const queryBy = 'ProgramName = "${var}"';
+      const replacedQueryBy = 'ProgramName = "ReplacedValue"';
+      templateSrv.replace.calledWith(queryBy, expect.anything()).mockReturnValue(replacedQueryBy);
+
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({ results: mockResults, totalCount: 1 }));
+
+      const query = { properties: ResultsPropertiesOptions.PROGRAM_NAME, queryBy } as ResultsVariableQuery;
+      const options = { scopedVars: { var: { value: 'ReplacedValue' } } };
+      const result = await datastore.metricFindQuery(query, options);
+
+      expect(templateSrv.replace).toHaveBeenCalledWith(queryBy, options.scopedVars);
+      expect(result).toEqual([{ text: 'TestProgram', value: 'TestProgram' }]);
     });
   });
 
