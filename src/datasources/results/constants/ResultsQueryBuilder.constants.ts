@@ -101,12 +101,8 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
     label: 'Started',
     dataField: ResultsQueryBuilderFieldNames.STARTED_AT,
     filterOperations: [
-      QueryBuilderOperations.EQUALS.name,
-      QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.GREATER_THAN.name,
-      QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name,
-      QueryBuilderOperations.LESS_THAN.name,
-      QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
+      QueryBuilderOperations.DATE_TIME_IS_AFTER.name,
+      QueryBuilderOperations.DATE_TIME_IS_BEFORE.name,
     ],
     lookup: {
       dataSource: [],
@@ -151,12 +147,8 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
     label: 'Updated',
     dataField: ResultsQueryBuilderFieldNames.UPDATED_AT,
     filterOperations: [
-      QueryBuilderOperations.EQUALS.name,
-      QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.GREATER_THAN.name,
-      QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name,
-      QueryBuilderOperations.LESS_THAN.name,
-      QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
+      QueryBuilderOperations.DATE_TIME_IS_AFTER.name,
+      QueryBuilderOperations.DATE_TIME_IS_BEFORE.name,
     ],
     lookup: {
       dataSource: [],
