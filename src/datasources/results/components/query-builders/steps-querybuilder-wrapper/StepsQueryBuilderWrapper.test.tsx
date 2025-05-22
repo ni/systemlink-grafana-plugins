@@ -26,7 +26,7 @@ jest.mock('../query-results/ResultsQueryBuilder', () => ({
 
 jest.mock('../query-steps/StepsQueryBuilder', () => ({
   StepsQueryBuilder: jest.fn(
-    ({ filter, workspaces, stepStatus, stepsPath, globalVariableOptions, disableQueryBuilder, onFilterChange, areDependenciesLoaded }) => {
+    ({ filter, workspaces, stepStatus, stepsPath, globalVariableOptions, disableQueryBuilder, onFilterChange }) => {
       return (
         <div data-testid="steps-query-builder">
           <div data-testid="steps-filter">{filter}</div>
@@ -34,7 +34,6 @@ jest.mock('../query-steps/StepsQueryBuilder', () => ({
           <div data-testid="steps-status">{JSON.stringify(stepStatus)}</div>
           <div data-testid="steps-path">{JSON.stringify(stepsPath)}</div>
           <div data-testid="steps-global-vars">{JSON.stringify(globalVariableOptions)}</div>
-          <div data-testid="steps-are-dependencies-loaded">{areDependenciesLoaded.toString()}</div>
           <button data-testid="steps-trigger-change" onClick={() => onFilterChange('newStepsQuery')}>
             Trigger Steps Change
           </button>
@@ -46,8 +45,8 @@ jest.mock('../query-steps/StepsQueryBuilder', () => ({
 }));
 
 const mockDatasource = {
-  arePartNumbersLoaded$: Promise.resolve(),
-  areWorkspacesLoaded$: Promise.resolve(),
+  loadWorkspaces: jest.fn().mockResolvedValue(undefined),
+  getPartNumbers: jest.fn().mockResolvedValue(undefined),
   workspacesCache: new Map([
     [1, { id: 1, name: 'Workspace 1' }],
     [2, { id: 2, name: 'Workspace 2' }],
@@ -86,18 +85,9 @@ describe('StepsQueryBuilderWrapper', () => {
     expect(screen.getByTestId('steps-query-builder')).toBeInTheDocument();
   });
   
-  test('should call Promise.all with arePartNumbersLoaded$ and areWorkspacesLoaded$', async () => {
-    cleanup();
-    const promiseAllSpy = jest.spyOn(Promise, 'all');
-  
-    await act(async () => {
-      render(<StepsQueryBuilderWrapper {...defaultProps} />);
-    });
-  
-    expect(promiseAllSpy).toHaveBeenCalledWith([
-      mockDatasource.arePartNumbersLoaded$,
-      mockDatasource.areWorkspacesLoaded$,
-    ]);
+  test('should load workspaces and part numbers from datasource', () => {
+    expect(mockDatasource.loadWorkspaces).toHaveBeenCalledTimes(1);
+    expect(mockDatasource.getPartNumbers).toHaveBeenCalledTimes(1);
   });
 
   test('should pass default properties to result and steps query builder', () => {
@@ -123,14 +113,12 @@ describe('StepsQueryBuilderWrapper', () => {
     expect(screen.getByTestId('steps-path').textContent).toEqual(JSON.stringify([]));
     expect(screen.getByTestId('steps-global-vars').textContent).toEqual(JSON.stringify(['var1', 'var2']));
     expect(screen.getByTestId('disable-steps-query-builder').textContent).toBe('false');
-    expect(screen.getByTestId('steps-are-dependencies-loaded').textContent).toBe('true');
   });
 
-  test('should disable StepsQueryBuilder when disableStepsQueryBuilder property is true', async () => {
+  test('should disable StepsQueryBuilder when disableStepsQueryBuilder property is true', () => {
     cleanup();
-    await act(async () => {
-      render(<StepsQueryBuilderWrapper {...defaultProps} disableStepsQueryBuilder={true} />);
-    })
+
+    render(<StepsQueryBuilderWrapper {...defaultProps} disableStepsQueryBuilder={true} />);
 
     expect(screen.getByTestId('disable-steps-query-builder').textContent).toBe('true');
   });

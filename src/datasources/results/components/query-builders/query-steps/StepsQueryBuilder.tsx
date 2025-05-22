@@ -23,7 +23,6 @@ type StepsQueryBuilderProps = QueryBuilderProps &
     globalVariableOptions: QueryBuilderOption[];
     onFilterChange: (filter: string) => void;
     disableQueryBuilder?: boolean;
-    areDependenciesLoaded: boolean;
   };
 
 export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
@@ -33,8 +32,7 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
   stepsPath,
   globalVariableOptions,
   onFilterChange,
-  disableQueryBuilder,
-  areDependenciesLoaded
+  disableQueryBuilder
 }) => {
   const theme = useTheme2();
   document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
@@ -105,9 +103,6 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
   }, [stepsPath]);
 
   useEffect(() => {
-    if (!areDependenciesLoaded) {
-      return;
-    }
     const updatedFields = [
       stepsPathField,
       updatedAtField,
@@ -179,7 +174,7 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
     ];
 
     setOperations([...customOperations, ...keyValueOperations]);
-  }, [workspaceField, updatedAtField, stepsPathField, globalVariableOptions, stepStatusField, areDependenciesLoaded]);
+  }, [workspaceField, updatedAtField, stepsPathField, globalVariableOptions, stepStatusField]);
 
   return (
     <QueryBuilder

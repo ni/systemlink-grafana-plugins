@@ -25,18 +25,6 @@ const mockQueryStepsResponse: QueryStepsResponse = {
 
 let datastore: QueryStepsDataSource, backendServer: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
 
-jest.mock('../../ResultsDataSourceBase', () => {
-  const original = jest.requireActual('../../ResultsDataSourceBase');
-  return {
-    ...original,
-    ResultsDataSourceBase: class extends original.ResultsDataSourceBase {
-      loadDependencies() {
-        return Promise.resolve();
-      }
-    }
-  };
-});
-
 jest.mock('datasources/results/constants/QuerySteps.constants', () => ({
   ...jest.requireActual('datasources/results/constants/QuerySteps.constants'),
   QUERY_STEPS_REQUEST_PER_SECOND: 2,

@@ -19,7 +19,6 @@ describe('StepsQueryBuilder', () => {
       stepsPath: string[],
       globalVariableOptions: QueryBuilderOption[] = [],
       disableQueryBuilder: boolean,
-      areDependenciesLoaded = true,
     ) {
       reactNode = React.createElement(StepsQueryBuilder, {
         filter,
@@ -28,7 +27,6 @@ describe('StepsQueryBuilder', () => {
         stepsPath,
         globalVariableOptions,
         disableQueryBuilder,
-        areDependenciesLoaded,
         onFilterChange: jest.fn(),
       });
       const renderResult = render(reactNode);
@@ -143,26 +141,6 @@ describe('StepsQueryBuilder', () => {
 
       expect(queryBuilderContainer?.length).toBe(1);
       expect(queryBuilderContainer.item(0)?.innerHTML).not.toContain("alert('Family')");
-    });
-
-    describe('areDependenciesLoaded', () => {
-      it('should load fields and operations when areDependenciesLoaded is true', () => {
-        const { queryBuilderContainer } = renderElement('status.statusType = "PASSED"', [], status, stepsPath, [], false, true);
-
-        expect(queryBuilderContainer?.length).toBe(1);
-        expect(queryBuilderContainer[0]?.textContent).toContain('Step status'); //label
-        expect(queryBuilderContainer[0]?.textContent).toContain('Equals'); //operator
-        expect(queryBuilderContainer[0]?.textContent).toContain('PASSED'); //value
-      });
-
-      it('should not load fields and operations when areDependenciesLoaded is false', () => {
-        const { queryBuilderContainer } = renderElement('status.statusType = "FAILED"', [], status, stepsPath, [], false, false);
-      
-        expect(queryBuilderContainer?.length).toBe(1);
-        expect(queryBuilderContainer[0]?.textContent).toContain('Property'); //label
-        expect(queryBuilderContainer[0]?.textContent).toContain('Operator'); //operator
-        expect(queryBuilderContainer[0]?.textContent).toContain('Value'); //value
-      });
     });
 
     describe('theme', () => {

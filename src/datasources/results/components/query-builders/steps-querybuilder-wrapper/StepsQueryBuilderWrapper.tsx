@@ -29,19 +29,24 @@ export const StepsQueryBuilderWrapper = (
   }: Props) => {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
-  const [areDependenciesLoaded, setAreDependenciesLoaded] = useState(false);
 
   useEffect(() => {
-    Promise.all([datasource.arePartNumbersLoaded$, datasource.areWorkspacesLoaded$]).then(() => {
+    const loadWorkspaces = async () => {
+      await datasource.loadWorkspaces();
       setWorkspaces(Array.from(datasource.workspacesCache.values()));
+    };
+    const loadPartNumbers = async () => {
+      await datasource.getPartNumbers();
       setPartNumbers(datasource.partNumbersCache);
-      setAreDependenciesLoaded(true);
-    });
+    };
+
+    loadPartNumbers();
+    loadWorkspaces();
   }, [datasource]);
   
   return (
     <div>
-      <InlineField label="Query by results properties" labelWidth={25} tooltip={tooltips.resultsQueryBuilder}>
+      <InlineField label="Query by results properties" labelWidth={26} tooltip={tooltips.resultsQueryBuilder}>
         <ResultsQueryBuilder
           filter={resultsQuery}
           onChange={(event) => onResultsQueryChange((event as CustomEvent<{ linq: string }>).detail.linq)}
@@ -51,7 +56,7 @@ export const StepsQueryBuilderWrapper = (
           globalVariableOptions={datasource.globalVariableOptions()}>
         </ResultsQueryBuilder>
       </InlineField>
-      <InlineField label="Query by steps properties" labelWidth={25} tooltip={tooltips.stepsQueryBuilder}>
+      <InlineField label="Query by steps properties" labelWidth={26} tooltip={tooltips.stepsQueryBuilder}>
         <StepsQueryBuilder
           filter={stepsQuery}
           workspaces={workspaces}
@@ -60,7 +65,6 @@ export const StepsQueryBuilderWrapper = (
           globalVariableOptions={datasource.globalVariableOptions()}
           disableQueryBuilder={disableStepsQueryBuilder}
           onFilterChange={(filter) => onStepsQueryChange(filter)}
-          areDependenciesLoaded={areDependenciesLoaded}
         ></StepsQueryBuilder>
       </InlineField>
     </div>
