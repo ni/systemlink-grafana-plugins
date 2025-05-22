@@ -5,6 +5,8 @@ import { Field } from '@grafana/data';
 import { QuerySteps, QueryStepsResponse, StepsProperties, StepsPropertiesOptions } from 'datasources/results/types/QuerySteps.types';
 import { OutputType, QueryType } from 'datasources/results/types/types';
 import { QueryStepsDataSource } from './QueryStepsDataSource';
+import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
+import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/StepsQueryBuilder.constants';
 import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
 
 const mockQueryStepsResponse: QueryStepsResponse = {
@@ -294,6 +296,20 @@ describe('QueryStepsDataSource', () => {
     });
   });
 
+  it('should not call query-steps when resultsQuery is empty',async () => {
+    const query = buildQuery({
+      refId: 'A',
+      outputType: OutputType.Data,
+      resultsQuery: '',
+    });
+
+    const response = await datastore.query(query);
+
+    const fields = response.data[0].fields as Field[];
+    expect(fields).toEqual([]);
+    expect(backendServer.fetch).not.toHaveBeenCalled();
+  });
+
   describe('fetch Steps with rate limiting', () => {
     it('should make a single request when take is less than MAX_TAKE_PER_REQUEST', async () => {
       const mockResponses = [
@@ -309,6 +325,7 @@ describe('QueryStepsDataSource', () => {
           undefined,
           undefined,
           100,
+          undefined,
           undefined,
           true
         );
@@ -345,6 +362,7 @@ describe('QueryStepsDataSource', () => {
             undefined,
             undefined,
             10000,
+            undefined,
             undefined,
             true
           );
@@ -405,6 +423,7 @@ describe('QueryStepsDataSource', () => {
           undefined,
           2000,
           undefined,
+          undefined,
           true
         );
 
@@ -456,6 +475,7 @@ describe('QueryStepsDataSource', () => {
           undefined,
           3000,
           undefined,
+          undefined,
           true
         );
   
@@ -488,6 +508,7 @@ describe('QueryStepsDataSource', () => {
           undefined,
           1500,
           false,
+          undefined,
           true
         );
         
@@ -540,6 +561,7 @@ describe('QueryStepsDataSource', () => {
           undefined,
           2000,
           undefined,
+          undefined,
           true
         );
 
@@ -549,6 +571,92 @@ describe('QueryStepsDataSource', () => {
         expect(backendServer.fetch).toHaveBeenCalledTimes(4);
         expect(spyDelay).toHaveBeenCalledTimes(1);
         expect(spyDelay).toHaveBeenCalledWith(800); // delay for 1000 - 200 = 800ms
+      });
+    });
+
+    describe('query builder queries', () => {
+      test('should transform the resultsfilter and stepsfilter contains single query', async () => {
+        const query = buildQuery({
+          refId: 'A',
+          outputType: OutputType.Data,
+          resultsQuery: `${ResultsQueryBuilderFieldNames.PART_NUMBER} = "partNumber1"`,
+          stepsQuery: `${StepsQueryBuilderFieldNames.TYPE} = "Type1"`
+        })
+        await datastore.query(query);
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-steps',
+            data: expect.objectContaining({
+              resultsFilter: "PartNumber = \"partNumber1\"",
+              filter: "stepType = \"Type1\""
+            }),
+          })
+        );
+      });
+
+      test('should transform fields when contains multiple queries', async () => {
+        const query = buildQuery({
+          refId: 'A',
+          outputType: OutputType.Data,
+          resultsQuery: `${ResultsQueryBuilderFieldNames.PART_NUMBER} = "{partNumber1,partNumber2}"`
+        })
+        await datastore.query(query);
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-steps',
+            data: expect.objectContaining({
+              resultsFilter: "(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\")",
+            }),
+          })
+        );
+      });
+
+      test('should transform fields when queryBy contains a date', async () => {   
+        jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));     
+
+        const query = buildQuery(
+          {
+            resultsQuery: 'UpdatedAt = "${__now:date}"',
+            stepsQuery: 'StartedAt = "${__now:date}"',
+          },
+        );
+
+        await datastore.query(query);
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-steps',
+            data: expect.objectContaining({
+              resultsFilter: 'UpdatedAt = "2025-01-01T00:00:00.000Z"'
+            }),
+          })
+        );
+
+        jest.useRealTimers();
+      });
+
+      test('should transform query when queryBy contains nested expressions', async () => {
+        const query = buildQuery(
+          {
+            refId: 'A',
+            resultsQuery: `(${ResultsQueryBuilderFieldNames.PART_NUMBER} = "123" || ${ResultsQueryBuilderFieldNames.KEYWORDS} != "456") && ${ResultsQueryBuilderFieldNames.HOSTNAME} contains "Test"`,
+            stepsQuery: `(${StepsQueryBuilderFieldNames.TYPE} = "123" || ${StepsQueryBuilderFieldNames.KEYWORDS} != "456") && ${StepsQueryBuilderFieldNames.NAME} contains "Test"`
+          },
+        );
+
+        await datastore.query(query);
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-steps',
+            data: expect.objectContaining({
+              resultsFilter:  "(PartNumber = \"123\" || Keywords != \"456\") && HostName contains \"Test\"",
+              filter: "(stepType = \"123\" || keywords != \"456\") && name contains \"Test\""
+            }),
+          })
+        );
       });
     });
 

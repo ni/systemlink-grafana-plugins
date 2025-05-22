@@ -1,3 +1,21 @@
+## [3.79.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.79.0...v3.79.1) (2025-05-22)
+
+### Bug Fixes
+
+* **results:** Align label widths ([#206](https://github.com/ni/systemlink-grafana-plugins/issues/206)) ([a43d0bc](https://github.com/ni/systemlink-grafana-plugins/commit/a43d0bc4bffae6dadf9205e0d67a8005d222d0aa))
+
+## [3.79.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.78.0...v3.79.0) (2025-05-22)
+
+### Features
+
+* **results:** Implement Query Transformation Logic for Steps Query Builder ([#181](https://github.com/ni/systemlink-grafana-plugins/issues/181)) ([6662454](https://github.com/ni/systemlink-grafana-plugins/commit/66624540eb151cbb653ae558a6e995c45eaab006))
+
+## [3.78.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.77.0...v3.78.0) (2025-05-22)
+
+### Features
+
+* **results:** Add logic to metricFindQuery of results variable query ([#197](https://github.com/ni/systemlink-grafana-plugins/issues/197)) ([ec819f6](https://github.com/ni/systemlink-grafana-plugins/commit/ec819f631ad35969db6d51c1ea15c9eb2d74a764))
+
 ## [3.77.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.76.0...v3.77.0) (2025-05-21)
 
 ### Features
