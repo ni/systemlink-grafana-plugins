@@ -1,3 +1,9 @@
+## [3.78.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.77.0...v3.78.0) (2025-05-22)
+
+### Features
+
+* **results:** Add logic to metricFindQuery of results variable query ([#197](https://github.com/ni/systemlink-grafana-plugins/issues/197)) ([ec819f6](https://github.com/ni/systemlink-grafana-plugins/commit/ec819f631ad35969db6d51c1ea15c9eb2d74a764))
+
 ## [3.77.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.76.0...v3.77.0) (2025-05-21)
 
 ### Features
