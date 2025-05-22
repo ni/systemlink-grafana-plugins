@@ -11,6 +11,9 @@ import {
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { defaultStepsQuery } from 'datasources/results/defaultQueries';
 import { MAX_TAKE_PER_REQUEST, QUERY_STEPS_REQUEST_PER_SECOND } from 'datasources/results/constants/QuerySteps.constants';
+import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/StepsQueryBuilder.constants';
+import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
@@ -23,6 +26,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     projection?: StepsProperties[],
     take?: number,
     descending?: boolean,
+    resultsFilter?: string,
     continuationToken?: string,
     returnCount = false
   ): Promise<QueryStepsResponse> {
@@ -33,6 +37,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       descending,
       projection,
       take,
+      resultsFilter,
       continuationToken,
       returnCount,
     });
@@ -50,6 +55,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     projection?: StepsProperties[],
     take?: number,
     descending?: boolean,
+    resultsFilter?: string,
     returnCount = false,
   ): Promise<QueryStepsResponse> {
     const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<StepsResponseProperties>> => {
@@ -59,6 +65,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         projection,
         currentTake,
         descending,
+        resultsFilter,
         token,
         returnCount
       );
@@ -85,17 +92,30 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
   
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
+    if (!query.resultsQuery) {
+      return {
+        refId: query.refId,
+        fields: [],
+      };
+    }
+    
+    query.stepsQuery = this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options);
+    query.resultsQuery = this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options) || '';
+
+    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
+    const stepsQuery = this.buildQueryFilter(query.stepsQuery, useTimeRangeFilter);
     const projection = query.showMeasurements
       ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
       : query.properties;
-
+    
     if (query.outputType === OutputType.Data) {
       const responseData = await this.queryStepsInBatches(
-        this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
+        stepsQuery,
         query.orderBy,
         projection as StepsProperties[],
         query.recordCount,
         query.descending,
+        query.resultsQuery,
         true
       );
   
@@ -120,11 +140,12 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       };
     } else {
       const responseData = await this.querySteps(
-        this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor),
+        stepsQuery,
         undefined,
         undefined,
         undefined,
         undefined,
+        query.resultsQuery,
         undefined,
         true
       );
@@ -191,6 +212,46 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         type: FieldType.string,
       };
     });
+  }
+
+  /**
+   * A map linking each steps field name to its corresponding query transformation function.
+   */
+  private readonly stepsComputedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(StepsQueryBuilderFieldNames).map(field => [
+      field,
+      field === (StepsQueryBuilderFieldNames.UPDATED_AT)
+        ? this.timeFieldsQuery(field)
+        : this.multipleValuesQuery(field),
+    ])
+  );
+
+  /**
+   * A map linking each results field name to its corresponding query transformation function.
+   */
+  private readonly resultsComputedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(ResultsQueryBuilderFieldNames).map(field => [
+      field,
+      field === (ResultsQueryBuilderFieldNames.UPDATED_AT) || field === (ResultsQueryBuilderFieldNames.STARTED_AT)
+        ? this.timeFieldsQuery(field)
+        : this.multipleValuesQuery(field),
+    ])
+  );
+
+  /**
+   * Transforms a query by applying the appropriate transformation functions to its fields.
+   * @param queryField - The query string to be transformed
+   * @param computedDataFields - A map of fields and their corresponding transformation functions.
+   * @param options - The data query request options, which include scoped variables for template replacement.
+   * @returns - The transformed query string, or undefined if the input queryField is undefined.
+   */
+  private transformQuery(queryField: string | undefined, computedDataFields: Map<string, ExpressionTransformFunction>, options: DataQueryRequest): string | undefined {
+  return queryField
+    ? transformComputedFieldsQuery(
+        this.templateSrv.replace(queryField, options.scopedVars),
+        computedDataFields
+      )
+    : undefined;
   }
 
   shouldRunQuery(_: QuerySteps): boolean {

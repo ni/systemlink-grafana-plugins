@@ -9,7 +9,7 @@ import {
   VerticalGroup,
 } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
-import React from 'react';
+import React, { useState } from 'react';
 import '../../ResultsQueryEditor.scss';
 import { OutputType } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
@@ -24,6 +24,8 @@ type Props = {
 };
 
 export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props) {
+  const [disableStepsQueryBuilder, setDisableStepsQueryBuilder] = useState(true);
+  
   const onOutputChange = (outputType: OutputType) => {
     handleQueryChange({ ...query, outputType: outputType });
   };
@@ -52,8 +54,12 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   };
 
   const onResultsFilterChange = (resultsQuery: string) => {
-    if (query.resultsQuery !== resultsQuery) {
+    if(resultsQuery === "") {
+      handleQueryChange({ ...query, resultsQuery: resultsQuery }, false);
+      setDisableStepsQueryBuilder(true);
+    } else if (query.resultsQuery !== resultsQuery) {
       handleQueryChange({ ...query, resultsQuery: resultsQuery });
+      setDisableStepsQueryBuilder(false);
     }
   };
 
@@ -62,6 +68,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
       handleQueryChange({ ...query, stepsQuery: stepsQuery });
     }
   };
+
 
   return (
     <>
@@ -112,7 +119,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
             stepsQuery={query.stepsQuery}
             onResultsQueryChange={(value: string) => onResultsFilterChange(value)}
             onStepsQueryChange={(value: string) => onStepsFilterChange(value)}
-            disableStepsQueryBuilder={true}
+            disableStepsQueryBuilder={disableStepsQueryBuilder}
           />
 
           <div className="right-query-controls">
