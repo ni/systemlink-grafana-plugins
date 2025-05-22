@@ -20,7 +20,7 @@
     --smart-ui-state-color-focus: var(--smart-background-color);
 }
 
-.sl-query-builder, .smart-scroll-bar {
+.sl-query-builder .smart-scroll-bar {
     --smart-scroll-bar-button-border: transparent;
     --smart-scroll-bar-background: var(--smart-background);
 
