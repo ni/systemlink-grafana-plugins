@@ -1,3 +1,9 @@
+## [3.79.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.79.0...v3.79.1) (2025-05-22)
+
+### Bug Fixes
+
+* **results:** Align label widths ([#206](https://github.com/ni/systemlink-grafana-plugins/issues/206)) ([a43d0bc](https://github.com/ni/systemlink-grafana-plugins/commit/a43d0bc4bffae6dadf9205e0d67a8005d222d0aa))
+
 ## [3.79.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.78.0...v3.79.0) (2025-05-22)
 
 ### Features
