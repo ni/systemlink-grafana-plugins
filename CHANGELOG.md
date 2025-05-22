@@ -1,3 +1,9 @@
+## [3.79.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.78.0...v3.79.0) (2025-05-22)
+
+### Features
+
+* **results:** Implement Query Transformation Logic for Steps Query Builder ([#181](https://github.com/ni/systemlink-grafana-plugins/issues/181)) ([6662454](https://github.com/ni/systemlink-grafana-plugins/commit/66624540eb151cbb653ae558a6e995c45eaab006))
+
 ## [3.78.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.77.0...v3.78.0) (2025-05-22)
 
 ### Features
