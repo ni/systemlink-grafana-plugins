@@ -1,7 +1,7 @@
 import { render, RenderResult, screen, waitFor } from '@testing-library/react';
 import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
 import { WorkOrdersQueryEditor } from './WorkOrdersQueryEditor';
-import { OutputType, WorkOrderProperties, WorkOrdersQuery } from '../types';
+import { OutputType, WorkOrdersQuery } from '../types';
 import { QueryEditorProps } from '@grafana/data';
 import React from 'react';
 import userEvent from '@testing-library/user-event';
@@ -49,14 +49,7 @@ describe('WorkOrdersQueryEditor', () => {
     expect(container.getByRole('radio', { name: OutputType.TotalCount })).toBeInTheDocument();
     expect(container.getByRole('radio', { name: OutputType.TotalCount })).not.toBeChecked();
 
-    await waitFor(() => {
-      const properties = container.getAllByRole('combobox')[0];
-      expect(properties).toBeInTheDocument();
-      expect(properties).toHaveAttribute('aria-expanded', 'false');
-      expect(properties).toHaveDisplayValue('');
-    });
-
-    const orderBy = container.getAllByRole('combobox')[1];
+    const orderBy = container.getAllByRole('combobox')[0];
     expect(orderBy).toBeInTheDocument();
     expect(orderBy).toHaveAccessibleDescription('Select a field to set the query order');
     expect(orderBy).toHaveDisplayValue('');
@@ -71,16 +64,9 @@ describe('WorkOrdersQueryEditor', () => {
     beforeEach(() => {
       const query = {
         refId: 'A',
-        outputType: OutputType.Properties,
+        outputType: OutputType.TotalCount,
       };
       container = renderElement(query);
-    });
-
-    it('should not render properties', async () => {
-      await waitFor(() => {
-        const properties = container.queryByRole('combobox', { name: 'Properties' });
-        expect(properties).not.toBeInTheDocument();
-      });
     });
 
     it('should not render order by', async () => {
@@ -98,18 +84,24 @@ describe('WorkOrdersQueryEditor', () => {
     });
   });
 
-  it('should render properties when output type is properties', async () => {
-    const query = {
-      refId: 'A',
-      outputType: OutputType.Properties,
-    };
-    const container = renderElement(query);
+  describe('output type is properties', () => {
+    let container: RenderResult;
+    beforeEach(() => {
+      const query = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+      };
+      container = renderElement(query);
+    });
 
-    await waitFor(() => {
-      const properties = container.getAllByRole('combobox')[0];
-      expect(properties).toBeInTheDocument();
-      expect(properties).toHaveAttribute('aria-expanded', 'false');
-      expect(properties).toHaveDisplayValue('');
+    it('should render order by', async () => {
+      const orderBy = container.getByRole('combobox');
+      expect(orderBy).toBeInTheDocument();
+    });
+
+    it('should render descending', async () => {
+      const descending = container.getByRole('checkbox');
+      expect(descending).toBeInTheDocument();
     });
   });
 
@@ -142,26 +134,9 @@ describe('WorkOrdersQueryEditor', () => {
       });
     });
 
-    it('should call onChange with properties when user selects properties', async () => {
-      const query = {
-        refId: 'A',
-        outputType: OutputType.Properties,
-      };
-      const container = renderElement(query);
-
-      const propertiesSelect = container.getAllByRole('combobox')[0];
-      userEvent.click(propertiesSelect);
-      await select(propertiesSelect, WorkOrderProperties.assignedTo, { container: document.body });
-
-      await waitFor(() => {
-        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['assignedTo'] }));
-        expect(mockOnRunQuery).toHaveBeenCalled();
-      });
-    });
-
     it('should call onChange with order by when user changes order by', async () => {
       const container = renderElement();
-      const orderBySelect = container.getAllByRole('combobox')[1];
+      const orderBySelect = container.getAllByRole('combobox')[0];
 
       userEvent.click(orderBySelect);
       await select(orderBySelect, 'ID', { container: document.body });

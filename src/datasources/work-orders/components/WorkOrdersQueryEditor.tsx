@@ -1,16 +1,14 @@
 import React, { useCallback } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
-import { OutputType, WorkOrderProperties, WorkOrdersQuery } from '../types';
+import { OutputType, WorkOrdersQuery } from '../types';
 import { WorkOrdersQueryBuilder } from './query-builder/WorkOrdersQueryBuilder';
 import {
   HorizontalGroup,
   InlineField,
-  InlineSwitch,
-  MultiSelect,
-  RadioButtonGroup,
+  InlineSwitch, RadioButtonGroup,
   Select,
-  VerticalGroup,
+  VerticalGroup
 } from '@grafana/ui';
 import { OrderBy } from 'datasources/products/types';
 import './WorkOrdersQueryEditor.scss';
@@ -33,12 +31,6 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
     handleQueryChange({ ...query, outputType: value });
   };
 
-  const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
-    if (items !== undefined) {
-      handleQueryChange({ ...query, properties: items.map(i => i.value as WorkOrderProperties) });
-    }
-  };
-
   const onOrderByChange = (item: SelectableValue<string>) => {
     handleQueryChange({ ...query, orderBy: item.value });
   };
@@ -58,22 +50,6 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
               value={query.outputType}
             />
           </InlineField>
-          {query.outputType === OutputType.Properties && (
-            <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
-              <MultiSelect
-                placeholder="Select the properties to query"
-                options={Object.entries(WorkOrderProperties).map(([key, value]) => ({ label: value, value: key })) as SelectableValue[]}
-                onChange={onPropertiesChange}
-                value={query.properties}
-                defaultValue={query.properties!}
-                noMultiValueWrap={true}
-                maxVisibleValues={5}
-                width={65}
-                allowCustomValue={false}
-                closeMenuOnSelect={false}
-              />
-            </InlineField>
-          )}
           <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
             <WorkOrdersQueryBuilder globalVariableOptions={[]}></WorkOrdersQueryBuilder>
           </InlineField>
