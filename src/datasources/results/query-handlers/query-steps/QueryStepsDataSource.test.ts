@@ -661,17 +661,71 @@ describe('QueryStepsDataSource', () => {
     });
 
     describe('metricFindQuery', () => {
-      it('should return an empty array for any query', async () => {
-        const query = { queryByResults: 'resultsQuery', queryBySteps: 'stepsQuery' } as StepsVariableQuery;
+      it('should return empty array if queryByResults and queryBySteps are undefined', async () => {
+        const query = {
+          refId: 'A',
+          queryType: QueryType.Steps,
+          queryByResults: undefined,
+          queryBySteps: undefined,
+        } as unknown as StepsVariableQuery;
         const result = await datastore.metricFindQuery(query);
 
         expect(result).toEqual([]);
       });
 
-      it('should return an empty array when called with undefined', async () => {
-        const result = await datastore.metricFindQuery(undefined as unknown as StepsVariableQuery);
+      it('should return mapped names when queryByResults is provided and API returns steps', async () => {
+        backendServer.fetch
+          .mockReturnValue(createFetchResponse({
+            steps: [
+              { name: 'StepA' },
+              { name: 'StepB' }
+            ],
+            totalCount: 2
+          } as QueryStepsResponse));
+
+        const query = { queryByResults: 'PartNumber = "partNumber1"' } as StepsVariableQuery;
+        const result = await datastore.metricFindQuery(query);
+
+        expect(result).toEqual([
+          { text: 'StepA', value: 'StepA' },
+          { text: 'StepB', value: 'StepB' }
+        ]);
+      });
+
+      it('should return empty array if API returns no steps', async () => {
+        backendServer.fetch
+          .mockReturnValue(createFetchResponse({
+            steps: [],
+            totalCount: 0
+          } as QueryStepsResponse));
+
+        const query = { queryByResults: 'PartNumber = "partNumber1"' } as StepsVariableQuery;
+        const result = await datastore.metricFindQuery(query);
 
         expect(result).toEqual([]);
+      });
+
+      it('should return empty array if API throws error', async () => {
+        backendServer.fetch.mockImplementationOnce(() => { throw new Error('API error'); });
+
+        const query = { queryByResults: 'PartNumber = "partNumber1"' } as StepsVariableQuery;
+        const result = await datastore.metricFindQuery(query);
+
+        expect(result).toEqual([]);
+      });
+
+      it('should use templateSrv.replace for queryByResults and queryBySteps', async () => {
+        templateSrv.replace.mockReturnValueOnce('PartNumber = "replaced"').mockReturnValueOnce('stepType = "replaced"');
+        backendServer.fetch.mockReturnValue(createFetchResponse({
+          steps: [{ name: 'StepX' }],
+          totalCount: 1
+        } as QueryStepsResponse));
+
+        const query = { queryByResults: 'PartNumber = "${var}"', queryBySteps: 'stepType = "${var}"' } as StepsVariableQuery;
+        await datastore.metricFindQuery(query, { scopedVars: { var: { value: 'replaced' } } } as any);
+
+        expect(templateSrv.replace).toHaveBeenCalledWith('PartNumber = "${var}"', expect.anything());
+        expect(templateSrv.replace).toHaveBeenCalledWith('stepType = "${var}"', expect.anything());
       });
     });
 
