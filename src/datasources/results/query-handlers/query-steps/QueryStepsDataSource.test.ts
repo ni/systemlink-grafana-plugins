@@ -669,7 +669,7 @@ describe('QueryStepsDataSource', () => {
       });
 
       it('should return an empty array when called with undefined', async () => {
-        const result = await datastore.metricFindQuery(undefined as StepsVariableQuery);
+        const result = await datastore.metricFindQuery(undefined as unknown as StepsVariableQuery);
 
         expect(result).toEqual([]);
       });
