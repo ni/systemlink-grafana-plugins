@@ -19,6 +19,7 @@ export interface ResultsVariableQuery extends ResultsQuery {
 export interface StepsVariableQuery extends ResultsQuery {
   queryByResults: string;
   queryBySteps?: string;
+  take?: number;
 }
 
 export const ResultsVariableProperties = [

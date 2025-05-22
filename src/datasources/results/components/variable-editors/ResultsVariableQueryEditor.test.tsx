@@ -7,6 +7,7 @@ import { Workspace } from 'core/types';
 import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
 import { ResultsVariableProperties } from 'datasources/results/types/QueryResults.types';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
+import userEvent from '@testing-library/user-event';
 
 const fakeWorkspaces: Workspace[] = [
   {
@@ -108,6 +109,70 @@ describe('Steps Query Type', () => {
 
     expect(queryByResults).toBeInTheDocument();
     expect(queryBySteps).toBeInTheDocument();
+  });
+
+  describe('Take input field', () => {
+    it('should render take input field', () => {
+      renderEditor({
+        refId: '',
+        queryType: QueryType.Steps,
+        queryByResults: 'resultsQuery',
+        queryBySteps: '',
+      } as unknown as ResultsQuery);
+
+      const takeInput = screen.getByPlaceholderText('Enter record count');
+      expect(takeInput).toBeInTheDocument();
+    });
+
+    it('should render with 1000 on mount', () => {
+      renderEditor({
+        refId: '',
+        queryType: QueryType.Steps,
+        queryByResults: 'resultsQuery',
+        queryBySteps: '',
+      } as unknown as ResultsQuery);
+
+      const takeInput = screen.getByPlaceholderText('Enter record count');
+      expect(takeInput).toHaveValue(1000);
+    });
+
+    it('should render with existing take when take is already set', () => {
+      renderEditor({
+        refId: '',
+        queryType: QueryType.Steps,
+        queryByResults: 'resultsQuery',
+        queryBySteps: '',
+        take: 2000,
+      } as unknown as ResultsQuery);
+
+      const takeInput = screen.getByPlaceholderText('Enter record count');
+      expect(takeInput).toHaveValue(2000);
+    });
+
+    it('should only allows numbers in Take field', async () => {
+      renderEditor({
+        refId: '',
+        queryType: QueryType.Steps,
+        queryByResults: 'resultsQuery',
+        queryBySteps: '',
+        take: 2000,
+      } as unknown as ResultsQuery);
+      const takeInput = screen.getByPlaceholderText('Enter record count');
+
+      // User tries to enter a non-numeric value
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, 'abc');
+      await waitFor(() => {
+        expect(takeInput).toHaveValue(null);
+      });
+
+      // User enters a valid numeric value
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, '500');
+      await waitFor(() => {
+        expect(takeInput).toHaveValue(500);
+      });
+    });
   });
 });
 
