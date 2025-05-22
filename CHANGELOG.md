@@ -1,3 +1,9 @@
+## [3.80.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.79.1...v3.80.0) (2025-05-22)
+
+### Features
+
+* **results:**  Conditionally render QueryBy field and adjust label widths ([#202](https://github.com/ni/systemlink-grafana-plugins/issues/202)) ([64bfb10](https://github.com/ni/systemlink-grafana-plugins/commit/64bfb10604a1cf0c73123f4e71a8e48756def751))
+
 ## [3.79.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.79.0...v3.79.1) (2025-05-22)
 
 ### Bug Fixes
