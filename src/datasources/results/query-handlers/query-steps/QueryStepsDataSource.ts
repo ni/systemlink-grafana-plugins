@@ -271,7 +271,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       try {
         responseData = await this.queryStepsInBatches(
           stepsQuery,
-          'STARTED_AT',
+          'UPDATED_AT',
           [StepsPropertiesOptions.NAME as StepsProperties],
           1000,
           true,
