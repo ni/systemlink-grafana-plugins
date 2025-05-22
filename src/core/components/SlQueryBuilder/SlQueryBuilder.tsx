@@ -1,12 +1,13 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useTheme2 } from '@grafana/ui';
 import QueryBuilder, { QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 import './SlQueryBuilder.css';
 import { filterXSSLINQExpression } from 'core/utils';
 
-type SlQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
-  validateOnInput?: boolean;
-};
+type SlQueryBuilderProps = QueryBuilderProps &
+  React.HTMLAttributes<Element> & {
+    validateOnInput?: boolean;
+  };
 
 /**
  * SlQueryBuilder is a React functional component that wraps the QueryBuilder component.
@@ -33,28 +34,33 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
 }) => {
   const theme = useTheme2();
 
-  useEffect(() => {
-    document.body.style.setProperty('--grafana-background-primary', theme.colors.background.primary);
-    document.body.style.setProperty('--grafana-text-primary', theme.colors.text.primary);
-    document.body.style.setProperty('--grafana-border-medium', theme.colors.border.medium);
-    document.body.style.setProperty('--grafana-focus-color', theme.colors.action.focus);
-    document.body.style.setProperty('--grafana-active-color', theme.colors.action.selected);
-    document.body.style.setProperty('--grafana-border-radius-default', theme.shape.radius.default);
-  }, [theme]);
-
   const sanitizedFilter = useMemo(() => {
     return filterXSSLINQExpression(value);
   }, [value]);
 
   return (
-    <QueryBuilder
-      customOperations={customOperations}
-      fields={fields}
-      messages={messages}
-      onChange={onChange}
-      value={sanitizedFilter}
-      validateOnInput={validateOnInput}
-      showIcons={showIcons}
-    />
+    <div
+      className="sl-query-builder"
+      style={
+        {
+          '--ni-grafana-background-canvas': theme.colors.background.canvas,
+          '--ni-grafana-text-primary': theme.colors.text.primary,
+          '--ni-grafana-border-medium': theme.colors.border.medium,
+          '--ni-grafana-focus-color': theme.colors.action.focus,
+          '--ni-grafana-active-color': theme.colors.action.selected,
+          '--ni-grafana-border-radius-default': theme.shape.radius.default,
+        } as React.CSSProperties
+      }
+    >
+      <QueryBuilder
+        customOperations={customOperations}
+        fields={fields}
+        messages={messages}
+        onChange={onChange}
+        value={sanitizedFilter}
+        validateOnInput={validateOnInput}
+        showIcons={showIcons}
+      />
+    </div>
   );
 };
