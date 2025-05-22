@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
 import { QueryStepsEditor } from './QueryStepsEditor';
 import React from 'react';
@@ -9,23 +9,20 @@ import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-s
 import { StepsQueryBuilderWrapper } from '../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
 
 jest.mock('../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper', () => ({
-  StepsQueryBuilderWrapper: jest.fn(({ resultsQuery, stepsQuery, onResultsQueryChange, onStepsQueryChange }) => {
+  StepsQueryBuilderWrapper: jest.fn(({ resultsQuery, stepsQuery, onResultsQueryChange, onStepsQueryChange, disableStepsQueryBuilder }) => {
     return (
       <div data-testid="steps-query-builder-container">
-        <div data-testid="results-query">{resultsQuery}</div>
-        <div data-testid="steps-query">{stepsQuery}</div>
-        <button
-          data-testid="results-trigger-change"
-          onClick={() => onResultsQueryChange('updated-results-query')}
-        >
-          Trigger Results Change
-        </button>
-        <button
-          data-testid="steps-trigger-change"
-          onClick={() => onStepsQueryChange('updated-steps-query')}
-        >
-          Trigger Steps Change
-        </button>
+        <input 
+          data-testid="results-query"
+          value={resultsQuery}
+          onChange={(e) => onResultsQueryChange(e.target.value)}
+        />
+        <input 
+          data-testid="steps-query"
+          value={stepsQuery}
+          onChange={(e) => onStepsQueryChange(e.target.value)}
+          disabled={disableStepsQueryBuilder} 
+        />
       </div>
     );
   }),
@@ -55,6 +52,7 @@ describe('QueryStepsEditor', () => {
     workspacesCache: new Map(),
     partNumbersCache: [],
     globalVariableOptions: jest.fn(() => []),
+    disableStepsQueryBuilder: false
   } as unknown as QueryStepsDataSource;
 
   let properties: HTMLElement;
@@ -205,28 +203,45 @@ describe('QueryStepsEditor', () => {
         }),
         expect.anything()
       );
-      expect(screen.getByTestId('results-query')).toHaveTextContent('partNumber = "PN1"');
-      expect(screen.getByTestId('steps-query')).toHaveTextContent('stepName = "Step1"');
+      expect(screen.getByTestId('results-query')).toHaveValue('partNumber = "PN1"');
+      expect(screen.getByTestId('steps-query')).toHaveValue('stepName = "Step1"');
     });
 
-    test('should update results query when user triggers results query change', async () => {
-      const triggerResultsChange = screen.getByTestId('results-trigger-change');
-      await userEvent.click(triggerResultsChange);
-      await waitFor(() => {
-        expect(mockHandleQueryChange).toHaveBeenCalledWith(
-          expect.objectContaining({ resultsQuery: 'updated-results-query' })
-        );
-      });
+    test('should update results query when user triggers results query change', () => {
+      const resultsQueryInput = screen.getByTestId('results-query');
+
+      fireEvent.change(resultsQueryInput, { target: { value: 'updated-results-query' } });
+
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(
+        expect.objectContaining({ resultsQuery: 'updated-results-query' })
+      );
     });
 
-    test('should update steps query when user triggers steps query change', async () => {
-      const triggerStepsChange = screen.getByTestId('steps-trigger-change');
-      await userEvent.click(triggerStepsChange);
+    test('should update steps query when user triggers steps query change', () => {
+      const stepsQueryInput = screen.getByTestId('steps-query');
+
+      fireEvent.change(stepsQueryInput, { target: { value: 'updated-steps-query' } });
+
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(
+        expect.objectContaining({ stepsQuery: 'updated-steps-query' })
+      );
+    });
+
+    test('should handle empty results query and disable steps query builder', async () => {
+      const resultsQueryInput = screen.getByTestId('results-query');
+      const stepsQueryInput = screen.getByTestId('steps-query');
+  
+      fireEvent.change(resultsQueryInput, { target: { value: 'initial-results-query' } });
+      fireEvent.change(stepsQueryInput, { target: { value: 'initial-steps-query' } });
+      fireEvent.change(resultsQueryInput, { target: { value: '' } });
+      
       await waitFor(() => {
         expect(mockHandleQueryChange).toHaveBeenCalledWith(
-          expect.objectContaining({ stepsQuery: 'updated-steps-query' })
+          expect.objectContaining({ resultsQuery: '' }),
+          false
         );
       });
+      expect(stepsQueryInput).toBeDisabled();
     });
   })
 });

@@ -46,7 +46,7 @@ export const StepsQueryBuilderWrapper = (
   
   return (
     <div>
-      <InlineField label="Query by results properties" labelWidth={25} tooltip={tooltips.resultsQueryBuilder}>
+      <InlineField label="Query by results properties" labelWidth={26} tooltip={tooltips.resultsQueryBuilder}>
         <ResultsQueryBuilder
           filter={resultsQuery}
           onChange={(event) => onResultsQueryChange((event as CustomEvent<{ linq: string }>).detail.linq)}
@@ -56,7 +56,7 @@ export const StepsQueryBuilderWrapper = (
           globalVariableOptions={datasource.globalVariableOptions()}>
         </ResultsQueryBuilder>
       </InlineField>
-      <InlineField label="Query by steps properties" labelWidth={25} tooltip={tooltips.stepsQueryBuilder}>
+      <InlineField label="Query by steps properties" labelWidth={26} tooltip={tooltips.stepsQueryBuilder}>
         <StepsQueryBuilder
           filter={stepsQuery}
           workspaces={workspaces}
