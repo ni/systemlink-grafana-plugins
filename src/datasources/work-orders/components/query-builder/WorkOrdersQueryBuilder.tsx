@@ -1,26 +1,50 @@
 import { SlQueryBuilder } from "core/components/SlQueryBuilder/SlQueryBuilder";
 import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder.constants";
 import { expressionBuilderCallback, expressionReaderCallback } from "core/query-builder.utils";
-import { QBField, QueryBuilderOption } from "core/types";
-import { WorkOrdersQueryBuilderStaticFields } from "datasources/work-orders/constants/WorkOrdersQueryBuilder.constants";
-import React, { useState, useEffect } from "react";
+import { QBField, QueryBuilderOption, Workspace } from "core/types";
+import { WorkOrdersQueryBuilderFields, WorkOrdersQueryBuilderStaticFields } from "datasources/work-orders/constants/WorkOrdersQueryBuilder.constants";
+import React, { useState, useEffect, useMemo } from "react";
 import { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
 
 type WorkOrdersQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
   filter?: string;
+  workspaces: Workspace[]|null;
   globalVariableOptions: QueryBuilderOption[];
 };
 
 export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
   filter,
   onChange,
+  workspaces,
   globalVariableOptions,
 }) => {
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
 
+  const workspaceField = useMemo(() => {
+      const workspaceField = WorkOrdersQueryBuilderFields.WORKSPACE;
+      if (!workspaces) {
+        return null;
+      }
+  
+      return {
+        ...workspaceField,
+        lookup: {
+          ...workspaceField.lookup,
+          dataSource: [
+            ...(workspaceField.lookup?.dataSource || []),
+            ...workspaces.map(({ id, name }) => ({ label: name, value: id })),
+          ],
+        },
+      };
+    }, [workspaces])
+
   useEffect(() => {
-    const updatedFields = WorkOrdersQueryBuilderStaticFields
+    if(!workspaceField) {
+      return;
+    }
+
+    const updatedFields = [...WorkOrdersQueryBuilderStaticFields, workspaceField]
 
     setFields(updatedFields);
 
@@ -59,7 +83,7 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
 
     setOperations(customOperations);
 
-  }, [globalVariableOptions]);
+  }, [globalVariableOptions, workspaceField]);
 
   return (
     <SlQueryBuilder
