@@ -4,7 +4,7 @@ import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { ResultsQuery } from './types/types';
 import { DataFrameDTO, DataQueryRequest, LegacyMetricFindQueryOptions } from '@grafana/data';
-import { ResultsVariableQuery } from './types/QueryResults.types';
+import { ResultsVariableQuery, StepsVariableQuery } from './types/QueryResults.types';
 
 let datastore: ResultsDataSource, backendServer: MockProxy<BackendSrv>
 
@@ -16,8 +16,8 @@ describe('ResultsDataSource', () => {
   describe('testDataSource', () => {
     test('returns success', async () => {
       backendServer.fetch
-      .calledWith(requestMatching({ url: '/nitestmonitor/v2/results?take=1', method: 'GET' }))
-      .mockReturnValue(createFetchResponse('testData'));
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/results?take=1', method: 'GET' }))
+        .mockReturnValue(createFetchResponse('testData'));
 
       const response = await datastore.testDatasource();
 
@@ -26,12 +26,12 @@ describe('ResultsDataSource', () => {
 
     test('bubbles up exception', async () => {
       backendServer.fetch
-      .calledWith(requestMatching({ url: '/nitestmonitor/v2/results?take=1', method: 'GET' }))
-      .mockReturnValue(createFetchError(400));
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/results?take=1', method: 'GET' }))
+        .mockReturnValue(createFetchError(400));
 
       await expect(datastore.testDatasource())
-      .rejects
-      .toThrow('Request to url "/nitestmonitor/v2/results?take=1" failed with status code: 400. Error message: "Error"');
+        .rejects
+        .toThrow('Request to url "/nitestmonitor/v2/results?take=1" failed with status code: 400. Error message: "Error"');
     });
   });
 
@@ -104,29 +104,60 @@ describe('ResultsDataSource', () => {
 
       expect(result).toBe(false);
     });
+
     describe('metricFindQuery', () => {
-      const mockQuery = { properties: 'TestProgramName', queryBy: 'TestProgramName'} as unknown as ResultsVariableQuery;
-      const mockResponse = [{ text: 'value1', value: '1' }];
+      const mockResultsQuery = { queryType: 'Results', properties: 'TestProgramName', queryBy: 'TestProgramName' } as ResultsVariableQuery;
+      const mockStepsQuery = { queryType: 'Steps', queryByResults: 'resultsQuery', queryBySteps: 'stepsQuery' } as StepsVariableQuery;
+      const mockOptions = { range: {} } as LegacyMetricFindQueryOptions;
+      const mockResultsResponse = [{ text: 'result1', value: '1' }];
+      const mockStepsResponse = [{ text: 'step1', value: '2' }];
 
-      test('should call QueryResultsDataSource metricFindQuery with correct arguments', async () => {
-        const mockOptions = { range: {} };
+      test('should call QueryResultsDataSource.metricFindQuery when queryType is Results', async () => {
         const queryResultsDataSource = datastore.queryResultsDataSource;
-        queryResultsDataSource.metricFindQuery = jest.fn().mockResolvedValue(mockResponse);
+        queryResultsDataSource.metricFindQuery = jest.fn().mockResolvedValue(mockResultsResponse);
 
-        const result = await datastore.metricFindQuery(mockQuery, mockOptions as LegacyMetricFindQueryOptions);
+        const result = await datastore.metricFindQuery(mockResultsQuery, mockOptions);
 
-        expect(queryResultsDataSource.metricFindQuery).toHaveBeenCalledWith(mockQuery, mockOptions);
-        expect(result).toBe(mockResponse);
+        expect(queryResultsDataSource.metricFindQuery).toHaveBeenCalledWith(mockResultsQuery, mockOptions);
+        expect(result).toBe(mockResultsResponse);
       });
 
-      test('should call QueryResultsDataSource metricFindQuery with undefined options', async () => {
+      test('should call QueryStepsDataSource.metricFindQuery when queryType is Steps', async () => {
+        const queryStepsDataSource = datastore.queryStepsDataSource;
+        queryStepsDataSource.metricFindQuery = jest.fn().mockResolvedValue(mockStepsResponse);
+
+        const result = await datastore.metricFindQuery(mockStepsQuery, mockOptions);
+
+        expect(queryStepsDataSource.metricFindQuery).toHaveBeenCalledWith(mockStepsQuery, mockOptions);
+        expect(result).toBe(mockStepsResponse);
+      });
+
+      test('should return empty array for invalid queryType', async () => {
+        const invalidQuery = { queryType: 'InvalidType' } as any;
+
+        const result = await datastore.metricFindQuery(invalidQuery, mockOptions);
+
+        expect(result).toEqual([]);
+      });
+
+      test('should call QueryResultsDataSource.metricFindQuery with undefined options', async () => {
         const queryResultsDataSource = datastore.queryResultsDataSource;
-        queryResultsDataSource.metricFindQuery = jest.fn().mockResolvedValue(mockResponse);
+        queryResultsDataSource.metricFindQuery = jest.fn().mockResolvedValue(mockResultsResponse);
 
-        const result = await datastore.metricFindQuery(mockQuery);
+        const result = await datastore.metricFindQuery(mockResultsQuery);
 
-        expect(queryResultsDataSource.metricFindQuery).toHaveBeenCalledWith(mockQuery, undefined);
-        expect(result).toBe(mockResponse);
+        expect(queryResultsDataSource.metricFindQuery).toHaveBeenCalledWith(mockResultsQuery, undefined);
+        expect(result).toBe(mockResultsResponse);
+      });
+
+      test('should call QueryStepsDataSource.metricFindQuery with undefined options', async () => {
+        const queryStepsDataSource = datastore.queryStepsDataSource;
+        queryStepsDataSource.metricFindQuery = jest.fn().mockResolvedValue(mockStepsResponse);
+
+        const result = await datastore.metricFindQuery(mockStepsQuery);
+
+        expect(queryStepsDataSource.metricFindQuery).toHaveBeenCalledWith(mockStepsQuery, undefined);
+        expect(result).toBe(mockStepsResponse);
       });
     });
   });

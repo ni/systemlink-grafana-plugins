@@ -5,6 +5,7 @@ import { Field } from '@grafana/data';
 import { QuerySteps, QueryStepsResponse, StepsProperties, StepsPropertiesOptions } from 'datasources/results/types/QuerySteps.types';
 import { OutputType, QueryType } from 'datasources/results/types/types';
 import { QueryStepsDataSource } from './QueryStepsDataSource';
+import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
 
 const mockQueryStepsResponse: QueryStepsResponse = {
   steps: [
@@ -548,6 +549,21 @@ describe('QueryStepsDataSource', () => {
         expect(backendServer.fetch).toHaveBeenCalledTimes(4);
         expect(spyDelay).toHaveBeenCalledTimes(1);
         expect(spyDelay).toHaveBeenCalledWith(800); // delay for 1000 - 200 = 800ms
+      });
+    });
+
+    describe('metricFindQuery', () => {
+      it('should return an empty array for any query', async () => {
+        const query = { queryByResults: 'resultsQuery', queryBySteps: 'stepsQuery' } as StepsVariableQuery;
+        const result = await datastore.metricFindQuery(query);
+
+        expect(result).toEqual([]);
+      });
+
+      it('should return an empty array when called with undefined', async () => {
+        const result = await datastore.metricFindQuery(undefined as StepsVariableQuery);
+
+        expect(result).toEqual([]);
       });
     });
 
