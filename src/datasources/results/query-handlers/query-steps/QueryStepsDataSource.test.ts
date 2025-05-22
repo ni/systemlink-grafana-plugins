@@ -715,17 +715,20 @@ describe('QueryStepsDataSource', () => {
       });
 
       it('should use templateSrv.replace for queryByResults and queryBySteps', async () => {
-        templateSrv.replace.mockReturnValueOnce('PartNumber = "replaced"').mockReturnValueOnce('stepType = "replaced"');
+        let resultsQuery = 'PartNumber = "${partNumber}"'
+        let stepsQuery = 'stepName = "${step}"'
+        templateSrv.replace.mockReturnValueOnce('PartNumber = "partNumber1"').mockReturnValueOnce('stepName = "Step1"');
         backendServer.fetch.mockReturnValue(createFetchResponse({
-          steps: [{ name: 'StepX' }],
+          steps: [{ name: 'Step1' }],
           totalCount: 1
         } as QueryStepsResponse));
 
-        const query = { queryByResults: 'PartNumber = "${var}"', queryBySteps: 'stepType = "${var}"' } as StepsVariableQuery;
+        const query = { queryByResults: resultsQuery, queryBySteps: stepsQuery } as StepsVariableQuery;
         await datastore.metricFindQuery(query, { scopedVars: { var: { value: 'replaced' } } } as any);
 
-        expect(templateSrv.replace).toHaveBeenCalledWith('PartNumber = "${var}"', expect.anything());
-        expect(templateSrv.replace).toHaveBeenCalledWith('stepType = "${var}"', expect.anything());
+        expect(templateSrv.replace).toHaveBeenCalledTimes(2);
+        expect(templateSrv.replace.mock.calls[0][0]).toBe(resultsQuery);
+        expect(templateSrv.replace.mock.calls[1][0]).toBe(stepsQuery);
       });
     });
 
