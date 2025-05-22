@@ -24,17 +24,19 @@ type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSource
 export function ResultsVariableQueryEditor({ query, onChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
-  const [isQueryBuilderDisabled, setStepsQueryBuilderState] = useState<boolean>(true);
+  const [isQueryBuilderDisabled, disableStepsQueryBuilder] = useState<boolean>(true);
   const queryResultsquery = query as ResultsVariableQuery;
   const stepsVariableQuery = query as StepsVariableQuery;
   const queryResultsDataSource = useRef(datasource.queryResultsDataSource);
   const queryStepsDatasource = useRef(datasource.queryStepsDataSource);
 
   useEffect(() => {
-    onChange({
-      ...query,
-      queryType: QueryType.Results,
-    } as ResultsVariableQuery);
+    if(!query.queryType) {
+      onChange({
+        ...query,
+        queryType: QueryType.Results,
+      } as ResultsVariableQuery);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
 
@@ -69,12 +71,8 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
   };
 
   const onResultsQueryChange = (resultsQuery: string) => {
-    if (resultsQuery !== '') {
-      setStepsQueryBuilderState(false);
-      onChange({ ...queryResultsquery, queryByResults: resultsQuery } as ResultsVariableQuery);
-    } else {
-      setStepsQueryBuilderState(false);
-    }
+    disableStepsQueryBuilder(resultsQuery === '');
+    onChange({ ...queryResultsquery, queryByResults: resultsQuery } as ResultsVariableQuery);
   };
 
   const onStepsQueryChange = (stepsQuery: string) => {
