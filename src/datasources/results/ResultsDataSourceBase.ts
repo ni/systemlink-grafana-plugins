@@ -104,7 +104,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
     const workspaces = await this.getWorkspaces()
       .catch(error => {
-        throw new Error(error);
+        return;
       });
 
     workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));

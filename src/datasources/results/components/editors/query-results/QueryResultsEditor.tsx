@@ -25,7 +25,7 @@ type Props = {
 };
 
 export function QueryResultsEditor({ query, handleQueryChange, datasource }: Props) {
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
 
   useEffect(() => {

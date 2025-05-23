@@ -20,7 +20,7 @@ import {
 type ResultsQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     filter?: string;
-    workspaces: Workspace[];
+    workspaces: Workspace[] | null;
     partNumbers: string[];
     status: string[];
     globalVariableOptions: QueryBuilderOption[];
@@ -45,7 +45,12 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
   }, [filter]);
 
   const workspaceField = useMemo(() => {
+    console.log('workspaces', workspaces);
     const workspaceField = ResultsQueryBuilderFields.WORKSPACE;
+    if (!workspaces) {
+      return null;
+    }
+
     return {
       ...workspaceField,
       lookup: {
@@ -119,6 +124,10 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
   }, [partNumbers]);
 
   useEffect(() => {
+    if(!workspaceField) {
+      return;
+    }
+
     const updatedFields = [
       partNumberField,
       ...ResultsQueryBuilderStaticFields!,
