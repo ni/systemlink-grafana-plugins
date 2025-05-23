@@ -67,12 +67,8 @@ describe('WorkOrdersQueryEditor', () => {
 
     expect(mockOnChange).toHaveBeenCalledWith(
       expect.objectContaining({
-        refId: 'A',
-        properties: [],
-        orderBy: undefined,
-        descending: true,
-        recordCount: 1000,
-        queryBy: ''
+        outputType: OutputType.Properties,
+        refId: 'A'
       }));
     expect(mockOnRunQuery).toHaveBeenCalledTimes(1);
   });
