@@ -6,6 +6,7 @@ export interface WorkOrdersQuery extends DataQuery {
   properties?: WorkOrderPropertiesOptions[];
   orderBy?: string;
   descending?: boolean;
+  take?: number;
 }
 
 export enum OutputType {
@@ -110,19 +111,71 @@ export const WorkOrderProperties = {
 } as const;
 
 export const OrderByOptions = {
-    ID: 'ID',
-    UPDATED_AT: 'UPDATED_AT'
+  ID: 'ID',
+  UPDATED_AT: 'UPDATED_AT'
 };
 
 export const OrderBy = [
-    {
-        value: OrderByOptions.ID,
-        label: 'ID',
-        description: `ID of the work order`,
-    },
-    {
-        value: OrderByOptions.UPDATED_AT,
-        label: 'Updated At',
-        description: `Latest update at time of the work order`,
-    }
+  {
+    value: OrderByOptions.ID,
+    label: 'ID',
+    description: `ID of the work order`,
+  },
+  {
+    value: OrderByOptions.UPDATED_AT,
+    label: 'Updated At',
+    description: `Latest update at time of the work order`,
+  },
 ];
+
+export interface QueryWorkOrdersRequestBody {
+  filter?: string;
+  take?: number;
+  orderBy?: string;
+  descending?: boolean;
+  returnCount?: boolean;
+  projection?: string[];
+  substitutions?: string[];
+  continuationToken?: string;
+}
+
+export interface WorkOrdersResponse {
+  workOrders: WorkOrder[];
+  continuationToken?: string;
+  totalCount?: number;
+}
+
+export interface WorkOrder {
+  id: string;
+  name: string;
+  type: Type;
+  description: string | null;
+  state: State;
+  createdBy: string;
+  updatedBy: string;
+  assignedTo: string | null;
+  requestedBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+  earliestStartDate: string | null;
+  dueDate: string | null;
+  properties: {
+    [key: string]: string;
+  };
+  workspace: string;
+}
+
+export enum Type {
+  TestRequest = 'TEST_REQUEST',
+}
+
+export enum State {
+  New = 'NEW',
+  Defined = 'DEFINED',
+  Reviewed = 'REVIEWED',
+  Scheduled = 'SCHEDULED',
+  InProgress = 'IN_PROGRESS',
+  PendingApproval = 'PENDING_APPROVAL',
+  Closed = 'CLOSED',
+  Canceled = 'CANCELED',
+}
