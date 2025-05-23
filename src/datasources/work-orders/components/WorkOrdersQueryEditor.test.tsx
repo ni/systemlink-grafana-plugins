@@ -190,7 +190,7 @@ describe('WorkOrdersQueryEditor', () => {
 
     it('should call onChange with order by when user changes order by', async () => {
       const container = renderElement();
-      const orderBySelect = container.getAllByRole('combobox')[0];
+      const orderBySelect = container.getAllByRole('combobox')[1];
 
       userEvent.click(orderBySelect);
       await select(orderBySelect, 'ID', { container: document.body });
