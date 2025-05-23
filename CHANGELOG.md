@@ -1,3 +1,22 @@
+## [3.82.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.81.0...v3.82.0) (2025-05-23)
+
+### Features
+
+* **results:** Add logic to MetricFindQuery for Steps Query in Variable Editor ([#209](https://github.com/ni/systemlink-grafana-plugins/issues/209)) ([7c86540](https://github.com/ni/systemlink-grafana-plugins/commit/7c86540aa9dc7dc70c80b8d151efada85dbec04f))
+* Update Date-Time query builder operators to 'isAfter' & 'isBefore' ([#210](https://github.com/ni/systemlink-grafana-plugins/issues/210)) ([d5b8264](https://github.com/ni/systemlink-grafana-plugins/commit/d5b826401d765d26293415ebe19910e391126a29))
+
+## [3.81.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.80.0...v3.81.0) (2025-05-23)
+
+### Features
+
+* **results:** Add steps Query type to Variable Query Editor ([#200](https://github.com/ni/systemlink-grafana-plugins/issues/200)) ([eeb8eb6](https://github.com/ni/systemlink-grafana-plugins/commit/eeb8eb65037fde7d58781c1ca01b5eff383c082a))
+
+## [3.80.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.79.1...v3.80.0) (2025-05-22)
+
+### Features
+
+* **results:**  Conditionally render QueryBy field and adjust label widths ([#202](https://github.com/ni/systemlink-grafana-plugins/issues/202)) ([64bfb10](https://github.com/ni/systemlink-grafana-plugins/commit/64bfb10604a1cf0c73123f4e71a8e48756def751))
+
 ## [3.79.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.79.0...v3.79.1) (2025-05-22)
 
 ### Bug Fixes

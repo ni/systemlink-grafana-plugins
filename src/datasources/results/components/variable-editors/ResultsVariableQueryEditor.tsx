@@ -18,6 +18,7 @@ import {
 } from 'datasources/results/types/types';
 import { ResultsDataSource } from 'datasources/results/ResultsDataSource';
 import { StepsQueryBuilderWrapper } from '../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
+import { TAKE_LIMIT } from 'datasources/results/constants/QuerySteps.constants';
 
 type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSourceOptions>;
 
@@ -33,7 +34,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
 
   useEffect(() => {
     if (!query.queryType) {
-      onChange({ ...query, queryType: QueryType.Results } as ResultsVariableQuery);
+      onChange({ ...query, queryType: QueryType.Results, take: 1000 } as ResultsVariableQuery);
       return;
     }
     if (query.queryType === QueryType.Steps) {
@@ -88,14 +89,14 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
     const value = parseInt((event.target as HTMLInputElement).value, 10);
     switch (true) {
       case isNaN(value) || value <= 0:
-      setRecordCountInvalidMessage('Please enter a positive number greater than 0');
-      break;
-      case value > 10000:
-      setRecordCountInvalidMessage('Please enter a value less than or equal to 10,000');
-      break;
+        setRecordCountInvalidMessage('Enter a value greater than 0');
+        break;
+      case value > TAKE_LIMIT:
+        setRecordCountInvalidMessage('Enter a value less than or equal to 10,000');
+        break;
       default:
-      setRecordCountInvalidMessage('');
-      break;
+        setRecordCountInvalidMessage('');
+        break;
     }
     onChange({ ...stepsVariableQuery, take: value } as StepsVariableQuery);
   };
@@ -170,8 +171,8 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
 }
 
 const tooltips = {
-  queryType: 'This field specifies the query type to fetch results or steps data',
-  take: 'This field sets the maximum number of steps to fetch.',
-  queryBy: 'Apply a filter to the query results using this field.',
-  properties: 'Select the property to return from the query.',
+  queryType: 'This field specifies the query type to return as either results data or steps data.',
+  take: 'This field sets the maximum number of steps to return.',
+  queryBy: 'This field applies a filter to the query results.',
+  properties: 'This field specifies the property to return from the query.',
 };
