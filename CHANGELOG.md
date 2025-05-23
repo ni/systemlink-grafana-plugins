@@ -1,3 +1,9 @@
+## [3.85.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.84.0...v3.85.0) (2025-05-23)
+
+### Features
+
+* **workorders:** Add support to order by and order by descending in work orders datasource ([#198](https://github.com/ni/systemlink-grafana-plugins/issues/198)) ([2eafdf8](https://github.com/ni/systemlink-grafana-plugins/commit/2eafdf8d83b6575f88d2b2a73122defe72bde954))
+
 ## [3.84.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.83.0...v3.84.0) (2025-05-23)
 
 ### Features
