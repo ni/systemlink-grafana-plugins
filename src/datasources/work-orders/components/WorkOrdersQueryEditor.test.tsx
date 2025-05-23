@@ -75,6 +75,7 @@ describe('WorkOrdersQueryEditor', () => {
       };
       container = renderElement(query);
     });
+
     it('should not render properties', async () => {
       const query = {
         refId: 'A',

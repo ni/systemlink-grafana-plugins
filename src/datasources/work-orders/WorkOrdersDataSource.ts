@@ -27,7 +27,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       WorkOrderPropertiesOptions.UPDATED_AT,
     ] as WorkOrderPropertiesOptions[],
     orderBy: OrderByOptions.UPDATED_AT,
-    descending: true,
+    descending: true
   };
 
   async runQuery(query: WorkOrdersQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
