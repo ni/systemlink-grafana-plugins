@@ -7,6 +7,7 @@ import { OutputType, QueryType } from 'datasources/results/types/types';
 import { QueryStepsDataSource } from './QueryStepsDataSource';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/StepsQueryBuilder.constants';
+import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
 
 const mockQueryStepsResponse: QueryStepsResponse = {
   steps: [
@@ -656,6 +657,21 @@ describe('QueryStepsDataSource', () => {
             }),
           })
         );
+      });
+    });
+
+    describe('metricFindQuery', () => {
+      it('should return an empty array for any query', async () => {
+        const query = { queryByResults: 'resultsQuery', queryBySteps: 'stepsQuery' } as StepsVariableQuery;
+        const result = await datastore.metricFindQuery(query);
+
+        expect(result).toEqual([]);
+      });
+
+      it('should return an empty array when called with undefined', async () => {
+        const result = await datastore.metricFindQuery(undefined as unknown as StepsVariableQuery);
+
+        expect(result).toEqual([]);
       });
     });
 
