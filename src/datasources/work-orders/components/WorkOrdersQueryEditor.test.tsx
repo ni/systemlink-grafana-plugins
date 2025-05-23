@@ -64,6 +64,17 @@ describe('WorkOrdersQueryEditor', () => {
     const descending = container.getByRole('checkbox');
     expect(descending).toBeInTheDocument();
     expect(descending).not.toBeChecked();
+
+    expect(mockOnChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        refId: 'A',
+        properties: [],
+        orderBy: undefined,
+        descending: true,
+        recordCount: 1000,
+        queryBy: ''
+      }));
+    expect(mockOnRunQuery).toHaveBeenCalledTimes(1);
   });
 
   describe('output type is total count', () => {
@@ -210,6 +221,44 @@ describe('WorkOrdersQueryEditor', () => {
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ descending: true }));
         expect(mockOnRunQuery).toHaveBeenCalled();
+      });
+    });
+
+    it('should call onChange when query by changes', async () => {
+      const container = renderElement();
+
+      const queryBuilder = container.getByRole('dialog');
+      expect(queryBuilder).toBeInTheDocument();
+
+      // Simulate a change event
+      const event = { detail: { linq: 'new-query' } };
+      queryBuilder?.dispatchEvent(new CustomEvent('change', event));
+
+      await waitFor(() => {
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ queryBy: 'new-query' }));
+        expect(mockOnRunQuery).toHaveBeenCalled();
+      });
+    });
+
+    it('should not call onChange when query by changes with same value', async () => {
+      const container = renderElement();
+      mockOnChange.mockClear();
+      mockOnRunQuery.mockClear();
+
+      const queryBuilder = container.getByRole('dialog');
+      expect(queryBuilder).toBeInTheDocument();
+
+      // Simulate a change event
+      let event = { detail: { linq: 'new-query' } };
+      queryBuilder?.dispatchEvent(new CustomEvent('change', event));
+
+      // Simulate a change event with the same value
+      event = { detail: { linq: 'new-query' } };
+      queryBuilder?.dispatchEvent(new CustomEvent('change', event));
+
+      await waitFor(() => {
+        expect(mockOnChange).toHaveBeenCalledTimes(1);
+        expect(mockOnRunQuery).toHaveBeenCalledTimes(1);
       });
     });
   });
