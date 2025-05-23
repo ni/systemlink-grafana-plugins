@@ -23,12 +23,14 @@ const fakeWorkspaces: Workspace[] = [
   },
 ];
 
+const fakePartNumbers = [ "part1", "part2", "part3" ];
+
 class FakeQueryResultsSource extends QueryResultsDataSource {
   getWorkspaces(): Promise<Workspace[]> {
     return Promise.resolve(fakeWorkspaces);
   }
-  getPartNumbers(): Promise<void> {
-    return Promise.resolve();
+  getPartNumbers(): Promise<string[]> {
+    return Promise.resolve(fakePartNumbers);
   }
 }
 
@@ -36,8 +38,8 @@ class FakeQueryStepsDataSource extends QueryStepsDataSource {
   getWorkspaces(): Promise<Workspace[]> {
     return Promise.resolve(fakeWorkspaces);
   }
-  getPartNumbers(): Promise<void> {
-    return Promise.resolve();
+  getPartNumbers(): Promise<string[]> {
+    return Promise.resolve(fakePartNumbers);
   }
 }
 

@@ -21,8 +21,11 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   private toDateString = '${__to:date}';
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
-  readonly workspacesCache = new Map<string, Workspace>([]);
-  readonly partNumbersCache: string[] = [];
+  static workspacesCache = new Map<string, Workspace>([]);
+  static partNumbersCache: string[] = [];
+
+  static workspacesPromise: Promise<Map<string, Workspace> | void> | null = null;
+  static partNumbersPromise: Promise<string[] | void> | null = null;
 
   abstract runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
@@ -97,31 +100,61 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     };
   }
 
-  async loadWorkspaces(): Promise<void> {
-    if (this.workspacesCache.size > 0) {
-      return;
+  async loadWorkspaces(): Promise<Map<string, Workspace> | void> {
+    if (ResultsDataSourceBase.workspacesCache.size > 0) {
+      return ResultsDataSourceBase.workspacesCache;
     }
 
-    const workspaces = await this.getWorkspaces()
+    if (ResultsDataSourceBase.workspacesPromise) {
+      return ResultsDataSourceBase.workspacesPromise;
+    }
+
+    ResultsDataSourceBase.workspacesPromise = this.getWorkspaces()
+      .then(workspaces => {
+        if (workspaces) {
+          workspaces.forEach(workspace => ResultsDataSourceBase.workspacesCache.set(workspace.id, workspace));
+        }
+        return ResultsDataSourceBase.workspacesCache;
+      })
       .catch(error => {
         console.error('Error in loading workspaces:', error);
       });
 
-    workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
+    return ResultsDataSourceBase.workspacesPromise;
   }
 
-  async getPartNumbers(): Promise<void> {
-    if (this.partNumbersCache.length > 0) {
-      return;
+  async getPartNumbers(): Promise<string[] | void> {
+    if (ResultsDataSourceBase.partNumbersCache.length > 0) {
+      return ResultsDataSourceBase.partNumbersCache;
     }
-    
-    const partNumbers = await this.post<string[]>(this.queryResultsValuesUrl, {
-      field: ResultsPropertiesOptions.PART_NUMBER,
-    }).catch(error => {
-      console.error('Error in loading part numbers:', error);
-    });
 
-    partNumbers?.forEach(partNumber => this.partNumbersCache.push(partNumber));
+    if (ResultsDataSourceBase.partNumbersPromise) {
+      return ResultsDataSourceBase.partNumbersPromise;
+    }
+
+    ResultsDataSourceBase.partNumbersPromise = this.queryResultsValues(ResultsPropertiesOptions.PART_NUMBER, undefined)
+      .then(partNumbers => {
+        if (partNumbers) {
+          partNumbers.forEach(partNumber => ResultsDataSourceBase.partNumbersCache.push(partNumber));
+        }
+        return ResultsDataSourceBase.partNumbersCache;
+      })
+      .catch(error => {
+        console.error('Error in loading part numbers:', error);
+      });
+
+    return ResultsDataSourceBase.partNumbersPromise;
+  }
+
+  async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {
+    try {
+      return await this.post<string[]>(this.queryResultsValuesUrl, {
+        field: fieldName,
+        filter
+      });
+    } catch (error) {
+      throw new Error(`An error occurred while querying result values: ${error}`);
+    }
   }
 
   protected multipleValuesQuery(field: string): ExpressionTransformFunction {
