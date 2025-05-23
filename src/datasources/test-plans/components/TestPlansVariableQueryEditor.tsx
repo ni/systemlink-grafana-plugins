@@ -65,8 +65,7 @@ export function TestPlansVariableQueryEditor({ query, onChange, onRunQuery, data
         labelWidth={25}
         tooltip={tooltips.recordCount}
         invalid={!isRecordCountValid}
-        error={errors.recordCount}
-      >
+        error={errors.recordCount}      >
         <AutoSizeInput
           minWidth={26}
           maxWidth={26}
