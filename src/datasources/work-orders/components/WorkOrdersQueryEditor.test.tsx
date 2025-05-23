@@ -5,7 +5,7 @@ import { OutputType, WorkOrderProperties, WorkOrderPropertiesOptions, WorkOrders
 import { QueryEditorProps } from '@grafana/data';
 import React from 'react';
 import userEvent from '@testing-library/user-event';
-import { select } from 'react-select-event';
+import selectEvent, { select } from 'react-select-event';
 
 const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
@@ -139,6 +139,13 @@ describe('WorkOrdersQueryEditor', () => {
     it('should render order by', async () => {
       const orderBy = container.getAllByRole('combobox')[1];
       expect(orderBy).toBeInTheDocument();
+
+     selectEvent.openMenu(orderBy);
+
+     expect(screen.getByText('ID')).toBeInTheDocument();
+     expect(screen.getByText('ID of the work order')).toBeInTheDocument();
+     expect(screen.getByText('Updated At')).toBeInTheDocument();
+     expect(screen.getByText('Latest update at time of the work order')).toBeInTheDocument();
     });
 
     it('should render descending', async () => {
