@@ -1,7 +1,7 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
-import { OutputType, WorkOrderProperties, WorkOrderPropertiesOptions, WorkOrdersQuery } from '../types';
+import { OrderBy, OutputType, WorkOrderProperties, WorkOrderPropertiesOptions, WorkOrdersQuery } from '../types';
 import { WorkOrdersQueryBuilder } from './query-builder/WorkOrdersQueryBuilder';
 import {
   HorizontalGroup,
@@ -10,13 +10,17 @@ import {
   Select,
   VerticalGroup
 } from '@grafana/ui';
-import { OrderBy } from 'datasources/products/types';
 import './WorkOrdersQueryEditor.scss';
 
 type Props = QueryEditorProps<WorkOrdersDataSource, WorkOrdersQuery>;
 
 export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
+
+  useEffect(() => {
+    handleQueryChange(query, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
 
   const handleQueryChange = useCallback(
     (query: WorkOrdersQuery, runQuery = true): void => {
@@ -43,6 +47,13 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
 
   const onDescendingChange = (isDescendingChecked: boolean) => {
     handleQueryChange({ ...query, descending: isDescendingChecked });
+  };
+
+  const onQueryByChange = (queryBy: string) => {
+    if(query.queryBy !== queryBy) {
+      query.queryBy = queryBy;
+      handleQueryChange({ ...query, queryBy });
+    }
   };
 
   return (
@@ -78,7 +89,11 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
           </InlineField>
         )}
         <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
-            <WorkOrdersQueryBuilder globalVariableOptions={[]}></WorkOrdersQueryBuilder>
+            <WorkOrdersQueryBuilder
+              filter={query.queryBy} 
+              globalVariableOptions={[]}
+              onChange={(event: any) => onQueryByChange(event.detail.linq)}
+            ></WorkOrdersQueryBuilder>
           </InlineField>
         </VerticalGroup>
         <VerticalGroup>
