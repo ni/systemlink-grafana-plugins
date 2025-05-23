@@ -256,6 +256,38 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   async metricFindQuery(query: StepsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    if (query.queryByResults !== undefined) {
+      const resultsQuery = query.queryByResults ? transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryByResults, options?.scopedVars),
+        this.resultsComputedDataFields
+      ) : undefined;
+
+      const stepsQuery = query.queryBySteps ? transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBySteps, options?.scopedVars),
+        this.resultsComputedDataFields
+      ) : undefined;
+
+      let responseData: QueryStepsResponse;
+      try {
+        responseData = await this.queryStepsInBatches(
+          stepsQuery,
+          'UPDATED_AT',
+          [StepsPropertiesOptions.NAME as StepsProperties],
+          1000,
+          true,
+          resultsQuery,
+        );
+      } catch (error) {
+        console.error('Error in querying steps:', error);
+        return [];
+      }
+
+      if (responseData.steps.length > 0) {
+        return responseData.steps
+          ? responseData.steps.map((data: StepsResponseProperties) => ({ text: data.name!, value: data.name! }))
+          : [];
+      }
+    }
     return [];
   }
 
