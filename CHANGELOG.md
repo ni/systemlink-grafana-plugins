@@ -1,3 +1,10 @@
+## [3.82.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.81.0...v3.82.0) (2025-05-23)
+
+### Features
+
+* **results:** Add logic to MetricFindQuery for Steps Query in Variable Editor ([#209](https://github.com/ni/systemlink-grafana-plugins/issues/209)) ([7c86540](https://github.com/ni/systemlink-grafana-plugins/commit/7c86540aa9dc7dc70c80b8d151efada85dbec04f))
+* Update Date-Time query builder operators to 'isAfter' & 'isBefore' ([#210](https://github.com/ni/systemlink-grafana-plugins/issues/210)) ([d5b8264](https://github.com/ni/systemlink-grafana-plugins/commit/d5b826401d765d26293415ebe19910e391126a29))
+
 ## [3.81.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.80.0...v3.81.0) (2025-05-23)
 
 ### Features
