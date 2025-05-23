@@ -74,7 +74,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
   return (
     <>
       <VerticalGroup>
-        <InlineField label="Output" labelWidth={25} tooltip={tooltips.output}>
+        <InlineField label="Output" labelWidth={26} tooltip={tooltips.output}>
           <RadioButtonGroup
             options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
             value={query.outputType}
@@ -82,7 +82,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
           />
         </InlineField>
         {query.outputType === OutputType.Data && (
-          <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
+          <InlineField label="Properties" labelWidth={26} tooltip={tooltips.properties}>
             <MultiSelect
               placeholder="Select properties to fetch"
               options={enumToOptions(ResultsProperties)}
@@ -105,7 +105,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
           }}
         />
         <div className="horizontal-control-group">
-          <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
+          <InlineField label="Query By" labelWidth={26} tooltip={tooltips.queryBy}>
             <ResultsQueryBuilder
               filter={query.queryBy}
               workspaces={workspaces}
@@ -118,7 +118,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
           {query.outputType === OutputType.Data && (
             <div className="right-query-controls">
               <div className="horizontal-control-group">
-                <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
+                <InlineField label="OrderBy" labelWidth={26} tooltip={tooltips.orderBy}>
                   <Select
                     width={25}
                     options={OrderBy as SelectableValue[]}
@@ -135,7 +135,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
                   />
                 </InlineField>
               </div>
-              <InlineField label="Take" labelWidth={25} tooltip={tooltips.recordCount}>
+              <InlineField label="Take" labelWidth={26} tooltip={tooltips.recordCount}>
                 <AutoSizeInput
                   minWidth={25}
                   maxWidth={25}
