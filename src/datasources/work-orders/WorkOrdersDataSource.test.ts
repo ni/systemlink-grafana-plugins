@@ -22,6 +22,11 @@ describe('WorkOrdersDataSource', () => {
       expect(defaultQuery.orderBy).toEqual(OrderByOptions.UPDATED_AT);
       expect(defaultQuery.descending).toEqual(true);
     });
+
+    test('default query should have default take value', async () => {
+      const defaultQuery = datastore.defaultQuery;
+      expect(defaultQuery.take).toEqual(1000);
+    });
   });
 
   describe('testDataSource', () => {

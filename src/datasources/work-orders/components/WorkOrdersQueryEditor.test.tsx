@@ -57,6 +57,10 @@ describe('WorkOrdersQueryEditor', () => {
     const descending = container.getByRole('checkbox');
     expect(descending).toBeInTheDocument();
     expect(descending).not.toBeChecked();
+
+    const take = container.getByRole('spinbutton');
+    expect(take).toBeInTheDocument();
+    expect(take).toHaveDisplayValue('');
   });
 
   describe('output type is total count', () => {
@@ -82,6 +86,11 @@ describe('WorkOrdersQueryEditor', () => {
         expect(descending).not.toBeInTheDocument();
       });
     });
+
+    it('should render take', async () => {
+      const take = container.getByRole('spinbutton', { name: 'Take' });
+      expect(take).toBeInTheDocument();
+    });
   });
 
   describe('output type is properties', () => {
@@ -102,6 +111,30 @@ describe('WorkOrdersQueryEditor', () => {
     it('should render descending', async () => {
       const descending = container.getByRole('checkbox');
       expect(descending).toBeInTheDocument();
+    });
+
+    it('should render take', async () => {
+      const take = container.getByRole('spinbutton');
+      expect(take).toBeInTheDocument();
+    });
+  });
+
+  it('only allows numbers in Take field', async () => {
+    const container = renderElement();
+    const recordCountInput = container.getByRole('spinbutton');
+
+    // User tries to enter a non-numeric value
+    await userEvent.clear(recordCountInput);
+    await userEvent.type(recordCountInput, 'abc');
+    await waitFor(() => {
+      expect(recordCountInput).toHaveValue(null);
+    });
+
+    // User enters a valid numeric value
+    await userEvent.clear(recordCountInput);
+    await userEvent.type(recordCountInput, '500');
+    await waitFor(() => {
+      expect(recordCountInput).toHaveValue(500);
     });
   });
 
@@ -156,6 +189,67 @@ describe('WorkOrdersQueryEditor', () => {
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ descending: true }));
         expect(mockOnRunQuery).toHaveBeenCalled();
+      });
+    });
+
+    it('should call onChange with take when user changes take', async () => {
+      const container = renderElement();
+      const takeInput = container.getByRole('spinbutton');
+
+      userEvent.type(takeInput, '10');
+      userEvent.tab(); // Trigger onCommitChange
+
+      await waitFor(() => {
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ take: 10 }));
+        expect(mockOnRunQuery).toHaveBeenCalled();
+      });
+    });
+
+    it('should show error message when when user changes take to number greater than max take', async () => {
+      const container = renderElement();
+      const takeInput = container.getByRole('spinbutton');
+
+      userEvent.clear(takeInput);
+      userEvent.type(takeInput, '1000000');
+      userEvent.tab();
+
+      await waitFor(() => {
+        expect(container.getByText('Record count must be less than 10000')).toBeInTheDocument();
+      });
+    });
+    it('should show error message when when user changes take to number less than min take', async () => {
+      const container = renderElement();
+      const takeInput = container.getByRole('spinbutton');
+
+      userEvent.clear(takeInput);
+      userEvent.type(takeInput, '0');
+      userEvent.tab();
+
+      await waitFor(() => {
+        expect(container.getByText('Record count must be greater than 0')).toBeInTheDocument();
+      });
+    });
+
+    it('should not show error message when when user changes take to number between min and max take', async () => {
+      const container = renderElement();
+      const takeInput = container.getByRole('spinbutton');
+
+      // User enters a value greater than max take
+      userEvent.clear(takeInput);
+      userEvent.type(takeInput, '1000000');
+      userEvent.tab();
+      await waitFor(() => {
+        expect(container.getByText('Record count must be less than 10000')).toBeInTheDocument();
+      });
+
+      // User enters a valid value
+      userEvent.clear(takeInput);
+      userEvent.type(takeInput, '100');
+      userEvent.tab();
+
+      await waitFor(() => {
+        expect(container.queryByText('Record count must be greater than 0')).not.toBeInTheDocument();
+        expect(container.queryByText('Record count must be less than 10000')).not.toBeInTheDocument();
       });
     });
   });
