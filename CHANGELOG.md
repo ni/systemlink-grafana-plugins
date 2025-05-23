@@ -1,3 +1,9 @@
+## [3.86.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.85.0...v3.86.0) (2025-05-23)
+
+### Features
+
+* add nimble theming for query builder ([#175](https://github.com/ni/systemlink-grafana-plugins/issues/175)) ([d241e93](https://github.com/ni/systemlink-grafana-plugins/commit/d241e932e71dd88109c4e4be2b1a58b3f764eb84))
+
 ## [3.85.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.84.0...v3.85.0) (2025-05-23)
 
 ### Features
