@@ -32,11 +32,11 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
   useEffect(() => {
     const loadWorkspaces = async () => {
       await ResultsDataSourceBase.workspacesPromise;
-      setWorkspaces(Array.from(datasource.workspacesCache.values()));
+      setWorkspaces(Array.from(ResultsDataSourceBase.workspacesCache.values()));
     };
     const loadPartNumbers = async () => {
       await ResultsDataSourceBase.partNumbersPromise;
-      setPartNumbers(datasource.partNumbersCache);
+      setPartNumbers(ResultsDataSourceBase.partNumbersCache);
     };
 
     loadWorkspaces();
