@@ -14,7 +14,7 @@ describe('StepsQueryBuilder', () => {
 
     function renderElement(
       filter: string,
-      workspaces: Workspace[],
+      workspaces: Workspace[] | null,
       stepStatus: string[],
       stepsPath: string[],
       globalVariableOptions: QueryBuilderOption[] = [],
@@ -141,6 +141,16 @@ describe('StepsQueryBuilder', () => {
 
       expect(queryBuilderContainer?.length).toBe(1);
       expect(queryBuilderContainer.item(0)?.innerHTML).not.toContain("alert('Family')");
+    });
+
+    it('should not set workspace field when workspace is null', () => {
+      const { renderResult } = renderElement('workspace = "1"', null, [], [], [], false);
+      const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
+
+      expect(filterContainer?.length).toBe(1);
+      expect(filterContainer.item(0)?.textContent).toContain('Property'); //label
+      expect(filterContainer.item(0)?.textContent).toContain('Operator'); //operator
+      expect(filterContainer.item(0)?.textContent).toContain('Value'); //value
     });
 
     describe('theme', () => {

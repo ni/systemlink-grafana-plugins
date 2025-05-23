@@ -17,7 +17,7 @@ import { StepsQueryBuilderFields, StepsQueryBuilderStaticFields } from 'datasour
 type StepsQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     filter?: string;
-    workspaces: Workspace[];
+    workspaces: Workspace[] | null;
     stepStatus: string[];
     stepsPath: string[];
     globalVariableOptions: QueryBuilderOption[];
@@ -45,6 +45,10 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
   }, [filter]);
 
   const workspaceField = useMemo(() => {
+    if (!workspaces) {
+      return null;
+    }
+    
     const workspaceField = StepsQueryBuilderFields.WORKSPACE;
     return {
       ...workspaceField,
@@ -103,6 +107,10 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
   }, [stepsPath]);
 
   useEffect(() => {
+    if(!workspaceField) {
+      return;
+    }
+
     const updatedFields = [
       stepsPathField,
       updatedAtField,
