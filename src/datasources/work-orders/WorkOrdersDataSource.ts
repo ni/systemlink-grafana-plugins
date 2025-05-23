@@ -7,8 +7,9 @@ import {
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import {
-  OutputType,
+import { 
+  OrderByOptions,
+  OutputType, WorkOrderPropertiesOptions,
   QueryWorkOrdersRequestBody,
   WorkOrder,
   WorkOrderProperties,
@@ -16,6 +17,7 @@ import {
   WorkOrdersQuery,
   WorkOrdersResponse,
 } from './types';
+import { take } from 'lodash';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
@@ -40,7 +42,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       WorkOrderPropertiesOptions.DUE_DATE,
       WorkOrderPropertiesOptions.UPDATED_AT,
     ] as WorkOrderPropertiesOptions[],
-    orderBy: WorkOrderPropertiesOptions.UPDATED_AT,
+    orderBy: OrderByOptions.UPDATED_AT,
     descending: true,
     take: 1000,
   };

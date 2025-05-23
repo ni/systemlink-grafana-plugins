@@ -1,0 +1,42 @@
+@import url('smart-webcomponents-react/source/styles/components/smart.base.css');
+@import url('smart-webcomponents-react/source/styles/components/smart.common.css');
+@import url('smart-webcomponents-react/source/styles/components/smart.querybuilder.css');
+@import url('@ni/nimble-tokens/dist/styledictionary/css/variables.css');
+
+body[theme="ni-grafana"] .smart-query-builder, body[theme="ni-grafana"] .smart-scroll-viewer{
+    /* Tokens from grafana */
+    --smart-background: var(--ni-grafana-input-background);
+    --smart-border: var(--ni-grafana-border-medium);
+}
+
+body[theme="ni-grafana"] .smart-query-builder {
+    /* Tokens from nimble tokens */
+    --smart-primary: var(--ni-nimble-base-digital-green-light);
+
+    /* Tokens from grafana */
+    --smart-border-top-right-radius: var(--ni-grafana-border-radius-default);
+    --smart-border-top-left-radius: var(--ni-grafana-border-radius-default);
+    --smart-border-bottom-right-radius: var(--ni-grafana-border-radius-default);
+    --smart-border-bottom-left-radius: var(--ni-grafana-border-radius-default);
+}
+
+body[theme="ni-grafana"] .smart-scroll-viewer{
+    --smart-scroll-bar-button-border: transparent;
+
+    /* Tokens from grafana */
+    --smart-background-color: var(--ni-grafana-text-primary);
+    --smart-ui-state-focus: var(--ni-grafana-focus-color);
+    --smart-ui-state-color-focus: var(--smart-background-color);
+    --smart-scroll-bar-background: var(--smart-background);
+
+    --smart-scroll-bar-track-background: var(--ni-grafana-focus-color);
+    --smart-scroll-bar-thumb-background: var(--ni-grafana-focus-color);
+    --smart-scroll-bar-thumb-background-hover: var(--ni-grafana-focus-color);
+    --smart-scroll-bar-thumb-background-active: var(--ni-grafana-active-color);
+    --smart-scroll-bar-button-background: var(--ni-grafana-focus-color);
+    --smart-scroll-bar-button-color: var(--ni-grafana-text-primary);
+    --smart-scroll-bar-button-background-hover: var(--ni-grafana-focus-color);
+    --smart-scroll-bar-button-color-hover: var(--ni-grafana-text-primary);
+    --smart-scroll-bar-button-background-active: var(--ni-grafana-focus-color);
+    --smart-scroll-bar-button-color-active: var(--ni-grafana-text-primary);
+}

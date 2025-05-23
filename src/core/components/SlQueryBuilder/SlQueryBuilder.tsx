@@ -1,16 +1,13 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useTheme2 } from '@grafana/ui';
 import QueryBuilder, { QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
-import 'smart-webcomponents-react/source/styles/smart.dark-orange.css';
-import 'smart-webcomponents-react/source/styles/smart.orange.css';
-import 'smart-webcomponents-react/source/styles/components/smart.base.css';
-import 'smart-webcomponents-react/source/styles/components/smart.common.css';
-import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
+import './SlQueryBuilder.css';
 import { filterXSSLINQExpression } from 'core/utils';
 
-type SlQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
-  validateOnInput?: boolean;
-};
+type SlQueryBuilderProps = QueryBuilderProps &
+  React.HTMLAttributes<Element> & {
+    validateOnInput?: boolean;
+  };
 
 /**
  * SlQueryBuilder is a React functional component that wraps the QueryBuilder component.
@@ -36,7 +33,26 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
   validateOnInput = false,
 }) => {
   const theme = useTheme2();
-  document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
+
+  useEffect(() => {
+    document.body.setAttribute('theme', 'ni-grafana');
+
+    document.body.style.setProperty('--ni-grafana-input-background', theme.components.input.background);
+    document.body.style.setProperty('--ni-grafana-text-primary', theme.colors.text.primary);
+    document.body.style.setProperty('--ni-grafana-border-medium', theme.colors.border.medium);
+    document.body.style.setProperty('--ni-grafana-focus-color', theme.colors.action.focus);
+    document.body.style.setProperty('--ni-grafana-active-color', theme.colors.action.selected);
+    document.body.style.setProperty('--ni-grafana-border-radius-default', theme.shape.radius.default);
+
+    return () => {
+      document.body.style.removeProperty('--ni-grafana-input-background');
+      document.body.style.removeProperty('--ni-grafana-text-primary');
+      document.body.style.removeProperty('--ni-grafana-border-medium');
+      document.body.style.removeProperty('--ni-grafana-focus-color');
+      document.body.style.removeProperty('--ni-grafana-active-color');
+      document.body.style.removeProperty('--ni-grafana-border-radius-default');
+    }
+  }, [theme]);
 
   const sanitizedFilter = useMemo(() => {
     return filterXSSLINQExpression(value);

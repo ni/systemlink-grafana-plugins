@@ -16,6 +16,12 @@ export interface ResultsVariableQuery extends ResultsQuery {
   queryBy?: string;
 }
 
+export interface StepsVariableQuery extends ResultsQuery {
+  queryByResults: string;
+  queryBySteps?: string;
+  take?: number;
+}
+
 export const ResultsVariableProperties = [
   {
     value: 'DATA_TABLE_IDS',

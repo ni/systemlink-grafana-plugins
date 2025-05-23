@@ -110,6 +110,25 @@ export const WorkOrderProperties = {
   },
 } as const;
 
+export const OrderByOptions = {
+  ID: 'ID',
+  UPDATED_AT: 'UPDATED_AT'
+};
+
+export const OrderBy = [
+  {
+      value: OrderByOptions.ID,
+      label: 'ID',
+      description: `ID of the work order`,
+  },
+  {
+      value: OrderByOptions.UPDATED_AT,
+      label: 'Updated At',
+      description: `Latest update at time of the work order`,
+  }
+];
+
+
 export interface QueryWorkOrdersRequestBody {
   filter?: string;
   take?: number;
