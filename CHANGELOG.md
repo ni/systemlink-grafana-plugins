@@ -1,3 +1,9 @@
+## [3.81.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.80.0...v3.81.0) (2025-05-23)
+
+### Features
+
+* **results:** Add steps Query type to Variable Query Editor ([#200](https://github.com/ni/systemlink-grafana-plugins/issues/200)) ([eeb8eb6](https://github.com/ni/systemlink-grafana-plugins/commit/eeb8eb65037fde7d58781c1ca01b5eff383c082a))
+
 ## [3.80.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.79.1...v3.80.0) (2025-05-22)
 
 ### Features
