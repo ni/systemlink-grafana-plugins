@@ -45,7 +45,6 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
   }, [filter]);
 
   const workspaceField = useMemo(() => {
-    console.log('workspaces', workspaces);
     const workspaceField = ResultsQueryBuilderFields.WORKSPACE;
     if (!workspaces) {
       return null;

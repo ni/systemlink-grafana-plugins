@@ -12,7 +12,7 @@ import { ResultsDataSource } from 'datasources/results/ResultsDataSource';
 type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSourceOptions>;
 
 export function ResultsVariableQueryEditor({ query, onChange, datasource }: Props) {
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const queryResultsquery = query as ResultsVariableQuery;
   const queryResultsDataSource = useRef(datasource.queryResultsDataSource);
