@@ -6,6 +6,8 @@ import { QueryResultsDataSource } from './QueryResultsDataSource';
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsVariableQuery } from 'datasources/results/types/QueryResults.types';
 import { OutputType, QueryType, UseTimeRangeFor } from 'datasources/results/types/types';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
+import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
+import { Workspace } from 'core/types';
 
 const mockQueryResultsResponse: QueryResultsResponse = {
   results: [
@@ -26,6 +28,8 @@ describe('QueryResultsDataSource', () => {
   beforeEach(() => {
     [datastore, backendServer, templateSrv] = setupDataSource(QueryResultsDataSource);
 
+    datastore.partNumbersCache = [];
+    datastore.workspacesCache = new Map<string, Workspace >();
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
       .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
@@ -186,7 +190,23 @@ describe('QueryResultsDataSource', () => {
         ]);
     });
 
-    test('returns part numbers', async () => {  
+    test('should return the same promise instance when partnumber promise already exists', async () => {
+      const mockPromise = Promise.resolve(['partNumber1', 'partNumber2']);
+      ResultsDataSourceBase.partNumbersPromise = mockPromise;
+
+      const result = datastore.getPartNumbers();
+
+      expect(result).toEqual(mockPromise);
+    })
+
+    test('should create and return a new promise when partnumber promise does not exist', async () => {
+      const promise = datastore.getPartNumbers();
+
+      expect(promise).not.toBeNull();
+    });
+
+    test('returns part numbers', async () => { 
+      ResultsDataSourceBase.partNumbersPromise = null;
       await datastore.getPartNumbers();
   
       expect(datastore.partNumbersCache).toEqual(["partNumber1", "partNumber2"]);
@@ -204,7 +224,27 @@ describe('QueryResultsDataSource', () => {
       expect(backendServer.fetch).not.toHaveBeenCalled();
     });
 
+    test('should return the same promise instance when workspacePromise already exists', async () => {
+      const mockWorkspaces = new Map<string, Workspace>([
+        ['1', { id: '1', name: 'Default workspace', default: true, enabled: true }],
+        ['2', { id: '2', name: 'Other workspace', default: false, enabled: true }],
+      ]);
+      const mockPromise = Promise.resolve(mockWorkspaces);
+      ResultsDataSourceBase.workspacesPromise = mockPromise;
+
+      const result = datastore.getPartNumbers();
+
+      expect(result).toEqual(mockPromise);
+    })
+
+    test('should create and return a new promise when wrokspace promise does not exist', async () => {
+      const promise = datastore.loadWorkspaces();
+
+      expect(promise).not.toBeNull();
+    });
+
     test('returns workspaces', async () => {
+      ResultsDataSourceBase.workspacesPromise = null;
       await datastore.loadWorkspaces();
   
       expect(datastore.workspacesCache.get('1')).toEqual({"id": "1", "name": "Default workspace"});

@@ -21,11 +21,11 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   private toDateString = '${__to:date}';
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
-  readonly workspacesCache = new Map<string, Workspace>([]);
-  readonly partNumbersCache: string[] = [];
+  workspacesCache = new Map<string, Workspace>([]);
+  partNumbersCache: string[] = [];
 
-  static workspacesPromise: Promise<Map<string, Workspace>> | null = null;
-  static partNumbersPromise: Promise<string[]> | null = null;
+  static workspacesPromise: Promise<Map<string, Workspace> | void> | null = null;
+  static partNumbersPromise: Promise<string[] | void> | null = null;
 
   abstract runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
@@ -45,28 +45,29 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   async queryInBatches<T>(
     queryRecord: (take: number, continuationToken?: string) => Promise<QueryResponse<T>>,
     queryConfig: BatchQueryConfig,
-    take?: number,
+    take?: number
   ): Promise<QueryResponse<T>> {
     if (take === undefined || take <= queryConfig.maxTakePerRequest) {
       return await queryRecord(take || queryConfig.maxTakePerRequest);
     }
-  
+
     let queryResponse: T[] = [];
     let continuationToken: string | undefined;
     let totalCount: number | undefined;
 
-    const getRecords = async (currentRecordCount: number): Promise<void> => { 
-      const response = await queryRecord(currentRecordCount, continuationToken); 
-      queryResponse.push(...response.data); 
-      continuationToken = response.continuationToken; 
-      totalCount = response.totalCount ?? totalCount; 
+    const getRecords = async (currentRecordCount: number): Promise<void> => {
+      const response = await queryRecord(currentRecordCount, continuationToken);
+      queryResponse.push(...response.data);
+      continuationToken = response.continuationToken;
+      totalCount = response.totalCount ?? totalCount;
     };
 
     const queryRecordsInCurrentBatch = async (): Promise<void> => {
-      const remainingRecordsToGet = totalCount !== undefined ? 
-      Math.min(take - queryResponse.length, totalCount - queryResponse.length) : 
-      take - queryResponse.length;
-    
+      const remainingRecordsToGet =
+        totalCount !== undefined
+          ? Math.min(take - queryResponse.length, totalCount - queryResponse.length)
+          : take - queryResponse.length;
+
       if (remainingRecordsToGet <= 0) {
         return;
       }
@@ -74,17 +75,17 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       const currentRecordCount = Math.min(queryConfig.maxTakePerRequest, remainingRecordsToGet);
       await getRecords(currentRecordCount);
     };
-  
+
     const queryCurrentBatch = async (requestsInCurrentBatch: number): Promise<void> => {
-      for( let request = 0; request < requestsInCurrentBatch; request++ ){
+      for (let request = 0; request < requestsInCurrentBatch; request++) {
         await queryRecordsInCurrentBatch();
       }
     };
-  
+
     while (queryResponse.length < take && (totalCount === undefined || queryResponse.length < totalCount)) {
       const remainingRequestCount = Math.ceil((take - queryResponse.length) / queryConfig.maxTakePerRequest);
       const requestsInCurrentBatch = Math.min(queryConfig.requestsPerSecond, remainingRequestCount);
-      
+
       const startTime = Date.now();
       await queryCurrentBatch(requestsInCurrentBatch);
       const elapsedTime = Date.now() - startTime;
@@ -93,14 +94,14 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
         await this.delay(1000 - elapsedTime);
       }
     }
-  
+
     return {
       data: queryResponse,
       totalCount,
     };
   }
 
-  async loadWorkspaces(): Promise<Map<string, Workspace>> {
+  async loadWorkspaces(): Promise<Map<string, Workspace> | void> {
     if (this.workspacesCache.size > 0) {
       return this.workspacesCache;
     }
@@ -116,14 +117,14 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
         }
         return this.workspacesCache;
       })
-      .catch(_ => {
-        return new Map<string, Workspace>(); 
+      .catch(error => {
+        console.error(`Error fetching part numbers: ${error}`);
       });
 
     return ResultsDataSourceBase.workspacesPromise;
   }
 
-  async getPartNumbers(): Promise<string[]> {
+  async getPartNumbers(): Promise<string[] | void> {
     if (this.partNumbersCache.length > 0) {
       return this.partNumbersCache;
     }
@@ -132,27 +133,29 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       return ResultsDataSourceBase.partNumbersPromise;
     }
 
-    ResultsDataSourceBase.partNumbersPromise = this.post<string[]>(this.queryResultsValuesUrl, {
-      field: ResultsPropertiesOptions.PART_NUMBER,
-    })
+    ResultsDataSourceBase.partNumbersPromise = this.queryResultsValues(ResultsPropertiesOptions.PART_NUMBER, '')
       .then(partNumbers => {
         if (partNumbers) {
           partNumbers.forEach(partNumber => this.partNumbersCache.push(partNumber));
         }
         return this.partNumbersCache;
       })
-      .catch(_ => {
-        return []; 
+      .catch(error => {
+        console.error(`Error fetching part numbers: ${error}`);
       });
 
     return ResultsDataSourceBase.partNumbersPromise;
   }
 
-  async queryResultsValues(field: string, filter?: string): Promise<string[]> {
-    return this.post<string[]>(this.queryResultsValuesUrl, {
-      field,
-      filter,
-    });
+  async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {
+    try {
+      return await this.post<string[]>(this.queryResultsValuesUrl, {
+        field: fieldName,
+        filter
+      });
+    } catch (error) {
+      throw new Error(`An error occurred while querying product values: ${error}`);
+    }
   }
 
   protected multipleValuesQuery(field: string): ExpressionTransformFunction {
@@ -160,12 +163,12 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       const isMultiSelect = this.isMultiSelectValue(value);
       const valuesArray = this.getMultipleValuesArray(value);
       const logicalOperator = this.getLogicalOperator(operation);
-      
-      return isMultiSelect ? `(${valuesArray
-        .map(val => `${field} ${operation} "${val}"`)
-        .join(` ${logicalOperator} `)})` : `${field} ${operation} "${value}"`;
-      }
-    }
+
+      return isMultiSelect
+        ? `(${valuesArray.map(val => `${field} ${operation} "${val}"`).join(` ${logicalOperator} `)})`
+        : `${field} ${operation} "${value}"`;
+    };
+  }
 
   protected timeFieldsQuery(field: string): ExpressionTransformFunction {
     return (value: string, operation: string): string => {
@@ -181,7 +184,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   protected buildQueryFilter(filterA?: string, filterB?: string): string | undefined {
     const filters = [filterA, filterB].filter(Boolean);
     return filters.length > 0 ? filters.join(' && ') : undefined;
-  };
+  }
 
   private isMultiSelectValue(value: string): boolean {
     return value.startsWith('{') && value.endsWith('}');
@@ -200,6 +203,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   }
 
   testDatasource(): Promise<TestDataSourceResponse> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 }
