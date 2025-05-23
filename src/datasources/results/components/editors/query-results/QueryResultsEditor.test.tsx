@@ -5,6 +5,11 @@ import userEvent from '@testing-library/user-event';
 import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
 import { QueryResultsEditor } from './QueryResultsEditor';
 import React from 'react';
+import { QueryBuilderOption, Workspace } from 'core/types';
+import { Data } from 'plotly.js-basic-dist-min';
+import { DataSourceInstanceSettings } from '@grafana/data';
+import { BackendSrv, TemplateSrv } from '@grafana/runtime';
+import { mock } from 'node:test';
 
 jest.mock('../../query-builders/query-results/ResultsQueryBuilder', () => ({
   ResultsQueryBuilder: jest.fn(({ filter, workspaces, partNumbers, status, globalVariableOptions, onChange }) => {
@@ -31,26 +36,53 @@ jest.mock('../../../types/types', () => ({
   },
 }));
 
-jest.mock('datasources/results/ResultsDataSourceBase', () => {
-  const actual = jest.requireActual('datasources/results/ResultsDataSourceBase');
-  return {
-    ...actual,
-    ResultsDataSourceBase: class MockResultsDataSourceBase extends actual.ResultsDataSourceBase {
-      static workspacesCache = ['Workspace1', 'Workspace2'];
-      static partNumbersCache = ['PN1', 'PN2', 'PN3'];
-    }
-  };
-});
+// jest.mock('datasources/results/ResultsDataSourceBase', () => {
+//   const actual = jest.requireActual('datasources/results/ResultsDataSourceBase');
+//   return {
+//     ...actual,
+//     ResultsDataSourceBase: class MockResultsDataSourceBase extends actual.ResultsDataSourceBase {
+//       static workspacesCache = ['Workspace1', 'Workspace2'];
+//       static partNumbersCache = ['PN1', 'PN2', 'PN3'];
+//     }
+//   };
+// });
 
 
 const mockGlobalVars = [{ label: '$var1', value: '$var1' }];
 
-const mockDatasource = {
-  loadWorkspaces: jest.fn().mockResolvedValue(undefined),
-  getPartNumbers: jest.fn().mockResolvedValue(undefined),
-  globalVariableOptions: jest.fn(() => mockGlobalVars),
-} as unknown as QueryResultsDataSource;
+// const mockDatasource = {
+//   loadWorkspaces: jest.fn().mockResolvedValue(undefined),
+//   getPartNumbers: jest.fn().mockResolvedValue(undefined),
+//   globalVariableOptions: jest.fn(() => mockGlobalVars),
+// } as unknown as QueryResultsDataSource;
 
+const mockWorkspaces: Workspace[] = [
+  {
+    id: '1',
+    name: 'workspace1',
+    default: false,
+    enabled: true,
+  },
+  {
+    id: '2',
+    name: 'workspace2',
+    default: false,
+    enabled: true,
+  },
+];
+
+const mockPartNumbers = [ "part1", "part2", "part3" ];
+
+class FakeQueryResultsSource extends QueryResultsDataSource {
+  getWorkspaces(): Promise<Workspace[]> {
+    return Promise.resolve(mockWorkspaces);
+  }
+  queryResultsValues(): Promise<string[]> {
+    return Promise.resolve(mockPartNumbers);
+  }
+
+  globalVariableOptions = () => mockGlobalVars;
+}
 
 const mockHandleQueryChange = jest.fn();
 let properties: HTMLElement;
@@ -63,11 +95,11 @@ let useTimeRange: HTMLElement;
 let useTimeRangeFor: HTMLElement;
 
 describe('QueryResultsEditor', () => {
-  beforeEach(async () => {
-    // Calls to the constructor of the mock class
-    mockDatasource.loadWorkspaces();
-    mockDatasource.getPartNumbers();
+  const mockDatasource = new FakeQueryResultsSource({} as DataSourceInstanceSettings, {} as unknown as BackendSrv, {} as unknown as TemplateSrv);
+  mockDatasource.loadWorkspaces = jest.fn().mockResolvedValue(undefined);
+  mockDatasource.getPartNumbers = jest.fn().mockResolvedValue(undefined);
 
+  beforeEach(async () => {
     await act(async () => {
       render(
         <QueryResultsEditor
@@ -185,6 +217,8 @@ describe('QueryResultsEditor', () => {
     });
 
     test('should call loadWorkspaces and getResultsPartNumbers when component is loaded',() => {
+      mockDatasource.loadWorkspaces = jest.fn().mockResolvedValue(undefined);
+mockDatasource.getPartNumbers = jest.fn().mockResolvedValue(undefined);
       expect(mockDatasource.loadWorkspaces).toHaveBeenCalledTimes(1);
       expect(mockDatasource.getPartNumbers).toHaveBeenCalledTimes(1);
     })
@@ -193,8 +227,8 @@ describe('QueryResultsEditor', () => {
       const resultsQueryBuilder = screen.getByTestId('results-query-builder');
       expect(resultsQueryBuilder).toBeInTheDocument();
       expect(screen.getByTestId('filter')).toHaveTextContent('partNumber = "PN1"');
-      expect(screen.getByTestId('workspaces')).toHaveTextContent(JSON.stringify(['Workspace1', 'Workspace2']));
-      expect(screen.getByTestId('part-numbers')).toHaveTextContent(JSON.stringify(['PN1', 'PN2', 'PN3']));
+      expect(screen.getByTestId('workspaces')).toHaveTextContent(JSON.stringify(mockWorkspaces));
+      expect(screen.getByTestId('part-numbers')).toHaveTextContent(JSON.stringify(mockPartNumbers));
       expect(screen.getByTestId('status')).toHaveTextContent(JSON.stringify(['PASSED', 'FAILED']));
       expect(screen.getByTestId('global-vars')).toHaveTextContent(JSON.stringify(mockGlobalVars));
     });
