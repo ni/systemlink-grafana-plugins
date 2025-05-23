@@ -128,6 +128,11 @@ describe('WorkOrdersDataSource', () => {
         WorkOrderPropertiesOptions.UPDATED_AT,
       ]);
     });
+
+    test('default query should have default take value', async () => {
+      const defaultQuery = datastore.defaultQuery;
+      expect(defaultQuery.take).toEqual(1000);
+    });
   });
 
   describe('testDataSource', () => {
