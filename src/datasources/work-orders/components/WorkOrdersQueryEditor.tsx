@@ -1,13 +1,13 @@
 import React, { useCallback, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
-import { OutputType, WorkOrdersQuery } from '../types';
+import { OutputType, WorkOrderProperties, WorkOrderPropertiesOptions, WorkOrdersQuery } from '../types';
 import { WorkOrdersQueryBuilder } from './query-builder/WorkOrdersQueryBuilder';
 import {
   AutoSizeInput,
   HorizontalGroup,
   InlineField,
-  InlineSwitch, RadioButtonGroup,
+  InlineSwitch, MultiSelect, RadioButtonGroup,
   Select,
   VerticalGroup
 } from '@grafana/ui';
@@ -33,6 +33,12 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
 
   const onOutputTypeChange = (value: OutputType) => {
     handleQueryChange({ ...query, outputType: value });
+  };
+
+  const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
+    if (items !== undefined) {
+      handleQueryChange({ ...query, properties: items.map(i => i.value as WorkOrderPropertiesOptions) });
+    }
   };
 
   const onOrderByChange = (item: SelectableValue<string>) => {
@@ -70,7 +76,28 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
               value={query.outputType}
             />
           </InlineField>
-          <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
+          {query.outputType === OutputType.Properties && (
+          <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
+            <MultiSelect
+              placeholder="Select the properties to query"
+              options={
+                Object.values(WorkOrderProperties).map(workOrderProperty => ({
+                  label: workOrderProperty.label,
+                  value: workOrderProperty.value,
+                })) as SelectableValue[]
+              }
+              onChange={onPropertiesChange}
+              value={query.properties}
+              defaultValue={query.properties!}
+              noMultiValueWrap={true}
+              maxVisibleValues={5}
+              width={65}
+              allowCustomValue={false}
+              closeMenuOnSelect={false}
+            />
+          </InlineField>
+        )}
+        <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
             <WorkOrdersQueryBuilder globalVariableOptions={[]}></WorkOrdersQueryBuilder>
           </InlineField>
         </VerticalGroup>
@@ -127,6 +154,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
 const tooltips = {
   queryBy: 'This optional field specifies the query filters.',
   outputType: 'This field specifies the output type to fetch work order properties or total count',
+  properties: 'This field specifies the properties to use in the query.',
   orderBy: 'This field specifies the query order of the work orders.',
   descending: 'This toggle returns the work orders query in descending order.',
   take: 'This field specifies the maximum number of work order to return.'
