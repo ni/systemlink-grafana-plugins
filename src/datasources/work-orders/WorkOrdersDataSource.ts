@@ -7,17 +7,14 @@ import {
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { 
+import {
   OrderByOptions,
   OutputType, WorkOrderPropertiesOptions,
   QueryWorkOrdersRequestBody,
   WorkOrder,
-  WorkOrderProperties,
-  WorkOrderPropertiesOptions,
-  WorkOrdersQuery,
-  WorkOrdersResponse,
+  WorkOrderProperties, WorkOrdersQuery,
+  WorkOrdersResponse
 } from './types';
-import { take } from 'lodash';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
@@ -75,7 +72,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
 
     const mappedFields = query.properties?.map(property => {
       const field = WorkOrderProperties[property];
-      const fieldType = isTimeField(field.value) ? FieldType.time : FieldType.string;
+      const fieldType = this.isTimeField(field.value) ? FieldType.time : FieldType.string;
       const fieldName = field.label;
 
       // TODO: Add mapping for other field types
@@ -135,14 +132,16 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     await this.post(this.queryWorkOrdersUrl, { take: 1 });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
-}
-function isTimeField(field: WorkOrderPropertiesOptions): boolean {
-  const timeFields = [
-    WorkOrderPropertiesOptions.UPDATED_AT,
-    WorkOrderPropertiesOptions.CREATED_AT,
-    WorkOrderPropertiesOptions.EARLIEST_START_DATE,
-    WorkOrderPropertiesOptions.DUE_DATE,
-  ];
 
-  return timeFields.includes(field);
+  private isTimeField(field: WorkOrderPropertiesOptions): boolean {
+    const timeFields = [
+      WorkOrderPropertiesOptions.UPDATED_AT,
+      WorkOrderPropertiesOptions.CREATED_AT,
+      WorkOrderPropertiesOptions.EARLIEST_START_DATE,
+      WorkOrderPropertiesOptions.DUE_DATE,
+    ];
+  
+    return timeFields.includes(field);
+  }
 }
+
