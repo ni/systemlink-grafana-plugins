@@ -18,7 +18,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   defaultQuery = {
     outputType: OutputType.Properties,
     orderBy: OrderByOptions.UPDATED_AT,
-    descending: true
+    descending: true,
+    take: 1000
   };
 
   async runQuery(query: WorkOrdersQuery, options: DataQueryRequest): Promise<DataFrameDTO> {

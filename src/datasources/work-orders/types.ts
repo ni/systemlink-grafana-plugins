@@ -5,6 +5,7 @@ export interface WorkOrdersQuery extends DataQuery {
     outputType: OutputType;
     orderBy?: string;
     descending?: boolean;
+    take?: number;
 }
 
 export enum OutputType {

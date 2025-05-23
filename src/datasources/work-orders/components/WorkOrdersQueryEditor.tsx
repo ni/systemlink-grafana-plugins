@@ -1,9 +1,10 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
 import { OutputType, WorkOrdersQuery } from '../types';
 import { WorkOrdersQueryBuilder } from './query-builder/WorkOrdersQueryBuilder';
 import {
+  AutoSizeInput,
   HorizontalGroup,
   InlineField,
   InlineSwitch, RadioButtonGroup,
@@ -12,11 +13,14 @@ import {
 } from '@grafana/ui';
 import { OrderBy } from 'datasources/products/types';
 import './WorkOrdersQueryEditor.scss';
+import { validateNumericInput } from 'core/utils';
+import { TAKE_LIMIT } from 'datasources/results/constants/QuerySteps.constants';
 
 type Props = QueryEditorProps<WorkOrdersDataSource, WorkOrdersQuery>;
 
 export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
+  const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
 
   const handleQueryChange = useCallback(
     (query: WorkOrdersQuery, runQuery = true): void => {
@@ -39,6 +43,22 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
     handleQueryChange({ ...query, descending: isDescendingChecked });
   };
 
+  const takeChange = (event: React.FormEvent<HTMLInputElement>) => {
+    const value = parseInt((event.target as HTMLInputElement).value, 10);
+    switch (true) {
+      case isNaN(value) || value <= 0:
+        setRecordCountInvalidMessage('Enter a value greater than 0');
+        break;
+      case value > TAKE_LIMIT:
+        setRecordCountInvalidMessage('Enter a value less than or equal to 10,000');
+        break;
+      default:
+        setRecordCountInvalidMessage('');
+        break;
+    }
+    onChange({ ...query, take: value });
+  };
+
   return (
     <>
       <HorizontalGroup align="flex-start">
@@ -57,22 +77,45 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
         <VerticalGroup>
           {query.outputType === OutputType.Properties && (
             <div className="right-query-controls">
-              <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
-                <Select
-                  options={OrderBy as SelectableValue[]}
-                  placeholder="Select a field to set the query order"
-                  onChange={onOrderByChange}
-                  value={query.orderBy}
-                  defaultValue={query.orderBy}
-                  width={26}
+              <VerticalGroup>
+                <div>
+                  <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
+                    <Select
+                      options={OrderBy as SelectableValue[]}
+                      placeholder="Select a field to set the query order"
+                      onChange={onOrderByChange}
+                      value={query.orderBy}
+                      defaultValue={query.orderBy}
+                      width={26}
+                    />
+                  </InlineField>
+                  <InlineField label="Descending" labelWidth={18} tooltip={tooltips.descending}>
+                    <InlineSwitch
+                      onChange={event => onDescendingChange(event.currentTarget.checked)}
+                      value={query.descending}
+                    />
+                  </InlineField>
+                </div>
+                <InlineField
+                label="Take"
+                labelWidth={18}
+                tooltip={tooltips.take}
+                invalid={!!recordCountInvalidMessage}
+                error={recordCountInvalidMessage}
+              >
+                <AutoSizeInput
+                  minWidth={26}
+                  maxWidth={26}
+                  type="number"
+                  defaultValue={query.take}
+                  onCommitChange={takeChange}
+                  placeholder="Enter record count"
+                  onKeyDown={event => {
+                    validateNumericInput(event);
+                  }}
                 />
-              </InlineField>
-              <InlineField label="Descending" labelWidth={18} tooltip={tooltips.descending}>
-                <InlineSwitch
-                  onChange={event => onDescendingChange(event.currentTarget.checked)}
-                  value={query.descending}
-                />
-              </InlineField>
+                </InlineField>
+              </VerticalGroup>
             </div>
           )}
         </VerticalGroup>
@@ -86,4 +129,5 @@ const tooltips = {
   outputType: 'This field specifies the output type to fetch work order properties or total count',
   orderBy: 'This field specifies the query order of the work orders.',
   descending: 'This toggle returns the work orders query in descending order.',
+  take: 'This field specifies the maximum number of work order to return.'
 };
