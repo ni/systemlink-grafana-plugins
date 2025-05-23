@@ -24,6 +24,9 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   readonly workspacesCache = new Map<string, Workspace>([]);
   readonly partNumbersCache: string[] = [];
 
+  static workspacesPromise: Promise<Map<string, Workspace>> | null = null;
+  static partNumbersPromise: Promise<string[]> | null = null;
+
   abstract runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
   abstract shouldRunQuery(query: ResultsQuery): boolean;
@@ -97,31 +100,59 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     };
   }
 
-  async loadWorkspaces(): Promise<void> {
+  async loadWorkspaces(): Promise<Map<string, Workspace>> {
     if (this.workspacesCache.size > 0) {
-      return;
+      return this.workspacesCache;
     }
 
-    const workspaces = await this.getWorkspaces()
-      .catch(error => {
-        console.error('Error in loading workspaces:', error);
+    if (ResultsDataSourceBase.workspacesPromise) {
+      return ResultsDataSourceBase.workspacesPromise;
+    }
+
+    ResultsDataSourceBase.workspacesPromise = this.getWorkspaces()
+      .then(workspaces => {
+        if (workspaces) {
+          workspaces.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
+        }
+        return this.workspacesCache;
+      })
+      .catch(_ => {
+        return new Map<string, Workspace>(); 
       });
 
-    workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
+    return ResultsDataSourceBase.workspacesPromise;
   }
 
-  async getPartNumbers(): Promise<void> {
+  async getPartNumbers(): Promise<string[]> {
     if (this.partNumbersCache.length > 0) {
-      return;
+      return this.partNumbersCache;
     }
-    
-    const partNumbers = await this.post<string[]>(this.queryResultsValuesUrl, {
-      field: ResultsPropertiesOptions.PART_NUMBER,
-    }).catch(error => {
-      console.error('Error in loading part numbers:', error);
-    });
 
-    partNumbers?.forEach(partNumber => this.partNumbersCache.push(partNumber));
+    if (ResultsDataSourceBase.partNumbersPromise) {
+      return ResultsDataSourceBase.partNumbersPromise;
+    }
+
+    ResultsDataSourceBase.partNumbersPromise = this.post<string[]>(this.queryResultsValuesUrl, {
+      field: ResultsPropertiesOptions.PART_NUMBER,
+    })
+      .then(partNumbers => {
+        if (partNumbers) {
+          partNumbers.forEach(partNumber => this.partNumbersCache.push(partNumber));
+        }
+        return this.partNumbersCache;
+      })
+      .catch(_ => {
+        return []; 
+      });
+
+    return ResultsDataSourceBase.partNumbersPromise;
+  }
+
+  async queryResultsValues(field: string, filter?: string): Promise<string[]> {
+    return this.post<string[]>(this.queryResultsValuesUrl, {
+      field,
+      filter,
+    });
   }
 
   protected multipleValuesQuery(field: string): ExpressionTransformFunction {
