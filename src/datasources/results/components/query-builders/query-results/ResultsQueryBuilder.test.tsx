@@ -98,7 +98,7 @@ describe('ResultsQueryBuilder', () => {
 
         expect(conditionsContainer?.length).toBe(1);
         expect(conditionsContainer.item(0)?.textContent).toContain("Updated"); //label
-        expect(conditionsContainer.item(0)?.textContent).toContain("Greater than"); //operator
+        expect(conditionsContainer.item(0)?.textContent).toContain("is after"); //operator
         expect(conditionsContainer.item(0)?.textContent).toContain(label); //value
       });
     });
