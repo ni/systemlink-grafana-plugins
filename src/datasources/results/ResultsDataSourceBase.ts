@@ -104,7 +104,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
     const workspaces = await this.getWorkspaces()
       .catch(error => {
-        return;
+        console.error('Error in loading workspaces:', error);
       });
 
     workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
@@ -118,7 +118,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     const partNumbers = await this.post<string[]>(this.queryResultsValuesUrl, {
       field: ResultsPropertiesOptions.PART_NUMBER,
     }).catch(error => {
-      throw new Error(error);
+      console.error('Error in loading part numbers:', error);
     });
 
     partNumbers?.forEach(partNumber => this.partNumbersCache.push(partNumber));
