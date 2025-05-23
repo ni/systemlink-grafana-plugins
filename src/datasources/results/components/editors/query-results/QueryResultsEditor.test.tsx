@@ -31,17 +31,26 @@ jest.mock('../../../types/types', () => ({
   },
 }));
 
-const mockWorkspaces = ['Workspace1', 'Workspace2'];
-const mockPartNumbers = ['PN1', 'PN2', 'PN3'];
+jest.mock('datasources/results/ResultsDataSourceBase', () => {
+  const actual = jest.requireActual('datasources/results/ResultsDataSourceBase');
+  return {
+    ...actual,
+    ResultsDataSourceBase: class MockResultsDataSourceBase extends actual.ResultsDataSourceBase {
+      static workspacesCache = ['Workspace1', 'Workspace2'];
+      static partNumbersCache = ['PN1', 'PN2', 'PN3'];
+    }
+  };
+});
+
+
 const mockGlobalVars = [{ label: '$var1', value: '$var1' }];
 
 const mockDatasource = {
   loadWorkspaces: jest.fn().mockResolvedValue(undefined),
   getPartNumbers: jest.fn().mockResolvedValue(undefined),
-  workspacesCache: new Map(mockWorkspaces.map(workspace => [workspace, workspace])),
-  partNumbersCache: mockPartNumbers,
   globalVariableOptions: jest.fn(() => mockGlobalVars),
 } as unknown as QueryResultsDataSource;
+
 
 const mockHandleQueryChange = jest.fn();
 let properties: HTMLElement;
@@ -55,6 +64,10 @@ let useTimeRangeFor: HTMLElement;
 
 describe('QueryResultsEditor', () => {
   beforeEach(async () => {
+    // Calls to the constructor of the mock class
+    mockDatasource.loadWorkspaces();
+    mockDatasource.getPartNumbers();
+
     await act(async () => {
       render(
         <QueryResultsEditor
@@ -180,8 +193,8 @@ describe('QueryResultsEditor', () => {
       const resultsQueryBuilder = screen.getByTestId('results-query-builder');
       expect(resultsQueryBuilder).toBeInTheDocument();
       expect(screen.getByTestId('filter')).toHaveTextContent('partNumber = "PN1"');
-      expect(screen.getByTestId('workspaces')).toHaveTextContent(JSON.stringify(mockWorkspaces));
-      expect(screen.getByTestId('part-numbers')).toHaveTextContent(JSON.stringify(mockPartNumbers));
+      expect(screen.getByTestId('workspaces')).toHaveTextContent(JSON.stringify(['Workspace1', 'Workspace2']));
+      expect(screen.getByTestId('part-numbers')).toHaveTextContent(JSON.stringify(['PN1', 'PN2', 'PN3']));
       expect(screen.getByTestId('status')).toHaveTextContent(JSON.stringify(['PASSED', 'FAILED']));
       expect(screen.getByTestId('global-vars')).toHaveTextContent(JSON.stringify(mockGlobalVars));
     });
