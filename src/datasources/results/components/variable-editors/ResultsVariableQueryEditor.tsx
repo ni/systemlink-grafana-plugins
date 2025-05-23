@@ -7,9 +7,9 @@ import {
   StepsVariableQuery,
 } from 'datasources/results/types/QueryResults.types';
 import { ResultsQueryBuilder } from '../query-builders/query-results/ResultsQueryBuilder';
-import { RadioButtonGroup, Select } from '@grafana/ui';
+import { AutoSizeInput, RadioButtonGroup, Select } from '@grafana/ui';
 import { Workspace } from 'core/types';
-import { enumToOptions } from 'core/utils';
+import { enumToOptions, validateNumericInput } from 'core/utils';
 import {
   QueryType,
   ResultsDataSourceOptions,
@@ -18,6 +18,7 @@ import {
 } from 'datasources/results/types/types';
 import { ResultsDataSource } from 'datasources/results/ResultsDataSource';
 import { StepsQueryBuilderWrapper } from '../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
+import { TAKE_LIMIT } from 'datasources/results/constants/QuerySteps.constants';
 
 type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSourceOptions>;
 
@@ -25,17 +26,22 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const [isQueryBuilderDisabled, disableStepsQueryBuilder] = useState<boolean>(true);
+  const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
   const queryResultsquery = query as ResultsVariableQuery;
   const stepsVariableQuery = query as StepsVariableQuery;
   const queryResultsDataSource = useRef(datasource.queryResultsDataSource);
   const queryStepsDatasource = useRef(datasource.queryStepsDataSource);
 
   useEffect(() => {
-    if(!query.queryType) {
-      onChange({
-        ...query,
-        queryType: QueryType.Results,
-      } as ResultsVariableQuery);
+    if (!query.queryType) {
+      onChange({ ...query, queryType: QueryType.Results, take: 1000 } as ResultsVariableQuery);
+      return;
+    }
+    if (query.queryType === QueryType.Steps) {
+      const stepsQuery = query as StepsVariableQuery;
+      if (stepsQuery.take === undefined || Number.isNaN(stepsQuery.take)) {
+        onChange({ ...stepsQuery, take: 1000 } as StepsVariableQuery);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
@@ -79,6 +85,22 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
     onChange({ ...stepsVariableQuery, queryBySteps: stepsQuery } as StepsVariableQuery);
   };
 
+  const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
+    const value = parseInt((event.target as HTMLInputElement).value, 10);
+    switch (true) {
+      case isNaN(value) || value <= 0:
+        setRecordCountInvalidMessage('Enter a value greater than 0');
+        break;
+      case value > TAKE_LIMIT:
+        setRecordCountInvalidMessage('Enter a value less than or equal to 10,000');
+        break;
+      default:
+        setRecordCountInvalidMessage('');
+        break;
+    }
+    onChange({ ...stepsVariableQuery, take: value } as StepsVariableQuery);
+  };
+
   return (
     <>
       <InlineField label="Query Type" labelWidth={26} tooltip={tooltips.queryType}>
@@ -114,21 +136,43 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
         </>
       )}
       {query.queryType === QueryType.Steps && (
-        <StepsQueryBuilderWrapper
-          datasource={queryStepsDatasource.current}
-          resultsQuery={stepsVariableQuery.queryByResults}
-          stepsQuery={stepsVariableQuery.queryBySteps}
-          onResultsQueryChange={(value: string) => onResultsQueryChange(value)}
-          onStepsQueryChange={(value: string) => onStepsQueryChange(value)}
-          disableStepsQueryBuilder={isQueryBuilderDisabled}
-        />
+        <>
+          <StepsQueryBuilderWrapper
+            datasource={queryStepsDatasource.current}
+            resultsQuery={stepsVariableQuery.queryByResults}
+            stepsQuery={stepsVariableQuery.queryBySteps}
+            onResultsQueryChange={(value: string) => onResultsQueryChange(value)}
+            onStepsQueryChange={(value: string) => onStepsQueryChange(value)}
+            disableStepsQueryBuilder={isQueryBuilderDisabled}
+          />
+          <InlineField
+            label="Take"
+            labelWidth={26}
+            tooltip={tooltips.take}
+            invalid={!!recordCountInvalidMessage}
+            error={recordCountInvalidMessage}
+          >
+            <AutoSizeInput
+              minWidth={25}
+              maxWidth={25}
+              type="number"
+              defaultValue={stepsVariableQuery.take ? stepsVariableQuery.take : 1000}
+              onCommitChange={recordCountChange}
+              placeholder="Enter record count"
+              onKeyDown={event => {
+                validateNumericInput(event);
+              }}
+            />
+          </InlineField>
+        </>
       )}
     </>
   );
 }
 
 const tooltips = {
-  queryType: 'This field specifies the query type to fetch results or steps data',
-  queryBy: 'Apply a filter to the query results using this field.',
-  properties: 'Select the property to return from the query.',
+  queryType: 'This field specifies the query type to return as either results data or steps data.',
+  take: 'This field sets the maximum number of steps to return.',
+  queryBy: 'This field applies a filter to the query results.',
+  properties: 'This field specifies the property to return from the query.',
 };

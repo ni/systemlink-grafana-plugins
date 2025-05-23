@@ -10,7 +10,7 @@ import {
 } from 'datasources/results/types/QuerySteps.types';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { defaultStepsQuery } from 'datasources/results/defaultQueries';
-import { MAX_TAKE_PER_REQUEST, QUERY_STEPS_REQUEST_PER_SECOND } from 'datasources/results/constants/QuerySteps.constants';
+import { MAX_TAKE_PER_REQUEST, QUERY_STEPS_REQUEST_PER_SECOND, TAKE_LIMIT } from 'datasources/results/constants/QuerySteps.constants';
 import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/StepsQueryBuilder.constants';
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
@@ -256,7 +256,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   async metricFindQuery(query: StepsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    if (query.queryByResults !== undefined) {
+    if (query.queryByResults !== undefined && this.isTakeValid(query.take!)) {
       const resultsQuery = query.queryByResults ? transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryByResults, options?.scopedVars),
         this.resultsComputedDataFields
@@ -273,7 +273,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
           stepsQuery,
           'UPDATED_AT',
           [StepsPropertiesOptions.NAME as StepsProperties],
-          1000,
+          query.take,
           true,
           resultsQuery,
         );
@@ -289,6 +289,10 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       }
     }
     return [];
+  }
+
+  private isTakeValid(value: number): boolean {
+    return !isNaN(value) && value > 0 && value <= TAKE_LIMIT;
   }
 
   shouldRunQuery(_: QuerySteps): boolean {
