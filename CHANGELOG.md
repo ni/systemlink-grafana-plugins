@@ -1,3 +1,9 @@
+## [3.84.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.83.0...v3.84.0) (2025-05-23)
+
+### Features
+
+* **results:** Add take control for Steps Query in Results variable query ([#211](https://github.com/ni/systemlink-grafana-plugins/issues/211)) ([7214f9e](https://github.com/ni/systemlink-grafana-plugins/commit/7214f9ea33e844332db86ab4d064a6daa594a95c))
+
 ## [3.83.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.82.0...v3.83.0) (2025-05-23)
 
 ### Features
