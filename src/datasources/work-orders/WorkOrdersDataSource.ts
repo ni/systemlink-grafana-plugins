@@ -1,20 +1,7 @@
-import {
-  DataFrameDTO,
-  DataQueryRequest,
-  DataSourceInstanceSettings,
-  FieldType,
-  TestDataSourceResponse,
-} from '@grafana/data';
+import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import {
-  OrderByOptions,
-  OutputType, WorkOrderPropertiesOptions,
-  QueryWorkOrdersRequestBody,
-  WorkOrder,
-  WorkOrderProperties, WorkOrdersQuery,
-  WorkOrdersResponse
-} from './types';
+import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse } from './types';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
