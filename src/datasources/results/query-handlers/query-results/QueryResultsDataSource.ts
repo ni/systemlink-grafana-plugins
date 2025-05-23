@@ -104,12 +104,47 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
         : this.multipleValuesQuery(field),
     ])
   );
-  
-  async metricFindQuery(_query: ResultsVariableQuery, _options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+
+  async metricFindQuery(query: ResultsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    if (query.properties !== undefined) {
+      const filter = query.queryBy ? transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBy, options?.scopedVars),
+        this.resultsComputedDataFields
+      ) : undefined;
+
+      const metadata = (await this.queryResults(
+        filter,
+        'UPDATED_AT',
+        [query.properties as ResultsProperties],
+        1000
+      )).results;
+
+      if (metadata.length > 0) {
+        const propertyKey = ResultsPropertiesOptions[query.properties as keyof typeof ResultsPropertiesOptions] as keyof ResultsResponseProperties;
+        const values = metadata.map((data: ResultsResponseProperties) => data[propertyKey]).filter(value => value !== undefined && value !== null);
+        const flattenedResults = this.flattenAndDeduplicate(values as string[]);
+        return flattenedResults.map(value => ({ text: String(value), value }));
+      }
+    }
     return [];
+  }
+
+  /**
+   * Flattens an array of strings, where each element may be a string or an array of strings,
+   * into a single-level array and removes duplicate values.
+   *
+   * @param values - An array containing strings or arrays of strings to be flattened and deduplicated.
+   * @returns A new array containing unique string values from the input, flattened to a single level.
+   */
+  private flattenAndDeduplicate(values: string[]): string[] {
+    const flatValues = values.flatMap(
+      (value) => Array.isArray(value) ? value : [value]);
+    return Array.from(new Set(flatValues));
   }
 
   shouldRunQuery(_: QueryResults): boolean {
     return true;
   }
 }
+
+
