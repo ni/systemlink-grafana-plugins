@@ -112,7 +112,7 @@ describe('Steps Query Type', () => {
   });
 
   describe('Take input field', () => {
-    it('should render take input field', () => {
+    it('should render take input field with 1000 as value by default', () => {
       renderEditor({
         refId: '',
         queryType: QueryType.Steps,
@@ -122,17 +122,6 @@ describe('Steps Query Type', () => {
 
       const takeInput = screen.getByPlaceholderText('Enter record count');
       expect(takeInput).toBeInTheDocument();
-    });
-
-    it('should render with 1000 on mount', () => {
-      renderEditor({
-        refId: '',
-        queryType: QueryType.Steps,
-        queryByResults: 'resultsQuery',
-        queryBySteps: '',
-      } as unknown as ResultsQuery);
-
-      const takeInput = screen.getByPlaceholderText('Enter record count');
       expect(takeInput).toHaveValue(1000);
     });
 
