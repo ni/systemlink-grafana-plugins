@@ -526,7 +526,7 @@ describe('QueryStepsDataSource', () => {
           return mockTimeValues[timeCallCount++] || mockTimeValues[mockTimeValues.length - 1];
         });
         
-        const spyDelay = jest.spyOn(datastore as any, 'delay');
+        const spyDelay = jest.spyOn(global, 'setTimeout');
 
         const mockResponses = [
           createFetchResponse({
@@ -570,7 +570,7 @@ describe('QueryStepsDataSource', () => {
         expect(response.steps).toHaveLength(2000);
         expect(backendServer.fetch).toHaveBeenCalledTimes(4);
         expect(spyDelay).toHaveBeenCalledTimes(1);
-        expect(spyDelay).toHaveBeenCalledWith(800); // delay for 1000 - 200 = 800ms
+        expect(spyDelay).toHaveBeenCalledWith(expect.any(Function), 800); // delay for 1000 - 200 = 800ms
       });
     });
 

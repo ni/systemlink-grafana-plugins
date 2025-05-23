@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { TestPlansDataSource } from '../TestPlansDataSource';
-import { OrderBy, OutputType, Properties, TestPlansQuery } from '../types';
+import { OrderBy, OutputType, Properties, PropertiesProjectionMap, TestPlansQuery } from '../types';
 import { AutoSizeInput, InlineField, InlineSwitch, MultiSelect, RadioButtonGroup, Select, VerticalGroup } from '@grafana/ui';
 import './TestPlansQueryEditor.scss';
 import { validateNumericInput } from 'core/utils';
@@ -65,7 +65,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
             <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
               <MultiSelect
                 placeholder="Select the properties to query"
-                options={Object.entries(Properties).map(([key, value]) => ({ label: value, value: key })) as SelectableValue[]}
+                options={Object.entries(PropertiesProjectionMap).map(([key, value]) => ({ label: value.label, value: key })) as SelectableValue[]}
                 onChange={onPropertiesChange}
                 value={query.properties}
                 defaultValue={query.properties}
@@ -79,7 +79,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
             <div className="horizontal-control-group">
               <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
                 <Select
-                  options={OrderBy as SelectableValue[]}
+                  options={[...OrderBy] as SelectableValue[]}
                   placeholder="Select a field to set the query order"
                   onChange={onOrderByChange}
                   value={query.orderBy}

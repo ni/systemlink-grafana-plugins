@@ -3,7 +3,7 @@ import { render, RenderResult, waitFor } from '@testing-library/react';
 import { TestPlansQueryEditor } from './TestPlansQueryEditor';
 import { QueryEditorProps } from '@grafana/data';
 import { TestPlansDataSource } from '../TestPlansDataSource';
-import { OutputType, Properties, TestPlansQuery } from '../types';
+import { OutputType, PropertiesProjectionMap, TestPlansQuery } from '../types';
 import userEvent from '@testing-library/user-event';
 import { select } from 'react-select-event';
 
@@ -82,10 +82,10 @@ describe('TestPlansQueryEditor', () => {
 
         it('should call onChange with properties when user selects properties', async () => {
             userEvent.click(propertiesSelect);
-            await select(propertiesSelect, Properties.assignedTo, { container: document.body });
+            await select(propertiesSelect, PropertiesProjectionMap.ASSIGNED_TO.label, { container: document.body });
 
             await waitFor(() => {
-                expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['assignedTo'] }));
+                expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['ASSIGNED_TO'] }));
                 expect(mockOnRunQuery).toHaveBeenCalled();
             });
         });
@@ -186,10 +186,10 @@ describe('TestPlansQueryEditor', () => {
 
         const propertiesSelect = container.getAllByRole('combobox')[0];
         userEvent.click(propertiesSelect);
-        await select(propertiesSelect, Properties.assignedTo, { container: document.body });
+        await select(propertiesSelect, PropertiesProjectionMap.ASSIGNED_TO.label, { container: document.body });
 
         await waitFor(() => {
-            expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['assignedTo'] }));
+            expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['ASSIGNED_TO'] }));
             expect(mockOnRunQuery).toHaveBeenCalled();
         });
     });
