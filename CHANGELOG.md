@@ -1,3 +1,9 @@
+## [3.88.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.87.0...v3.88.0) (2025-05-23)
+
+### Features
+
+* **workorders:** Add support to query workorders ([#204](https://github.com/ni/systemlink-grafana-plugins/issues/204)) ([a7a12f5](https://github.com/ni/systemlink-grafana-plugins/commit/a7a12f5e0087f9ffe8ce24927973c7e85f6ba476))
+
 ## [3.87.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.86.0...v3.87.0) (2025-05-23)
 
 ### Features
