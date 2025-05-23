@@ -45,29 +45,28 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   async queryInBatches<T>(
     queryRecord: (take: number, continuationToken?: string) => Promise<QueryResponse<T>>,
     queryConfig: BatchQueryConfig,
-    take?: number
+    take?: number,
   ): Promise<QueryResponse<T>> {
     if (take === undefined || take <= queryConfig.maxTakePerRequest) {
       return await queryRecord(take || queryConfig.maxTakePerRequest);
     }
-
+  
     let queryResponse: T[] = [];
     let continuationToken: string | undefined;
     let totalCount: number | undefined;
 
-    const getRecords = async (currentRecordCount: number): Promise<void> => {
-      const response = await queryRecord(currentRecordCount, continuationToken);
-      queryResponse.push(...response.data);
-      continuationToken = response.continuationToken;
-      totalCount = response.totalCount ?? totalCount;
+    const getRecords = async (currentRecordCount: number): Promise<void> => { 
+      const response = await queryRecord(currentRecordCount, continuationToken); 
+      queryResponse.push(...response.data); 
+      continuationToken = response.continuationToken; 
+      totalCount = response.totalCount ?? totalCount; 
     };
 
     const queryRecordsInCurrentBatch = async (): Promise<void> => {
-      const remainingRecordsToGet =
-        totalCount !== undefined
-          ? Math.min(take - queryResponse.length, totalCount - queryResponse.length)
-          : take - queryResponse.length;
-
+      const remainingRecordsToGet = totalCount !== undefined ? 
+      Math.min(take - queryResponse.length, totalCount - queryResponse.length) : 
+      take - queryResponse.length;
+    
       if (remainingRecordsToGet <= 0) {
         return;
       }
@@ -75,17 +74,17 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       const currentRecordCount = Math.min(queryConfig.maxTakePerRequest, remainingRecordsToGet);
       await getRecords(currentRecordCount);
     };
-
+  
     const queryCurrentBatch = async (requestsInCurrentBatch: number): Promise<void> => {
-      for (let request = 0; request < requestsInCurrentBatch; request++) {
+      for( let request = 0; request < requestsInCurrentBatch; request++ ){
         await queryRecordsInCurrentBatch();
       }
     };
-
+  
     while (queryResponse.length < take && (totalCount === undefined || queryResponse.length < totalCount)) {
       const remainingRequestCount = Math.ceil((take - queryResponse.length) / queryConfig.maxTakePerRequest);
       const requestsInCurrentBatch = Math.min(queryConfig.requestsPerSecond, remainingRequestCount);
-
+      
       const startTime = Date.now();
       await queryCurrentBatch(requestsInCurrentBatch);
       const elapsedTime = Date.now() - startTime;
@@ -94,7 +93,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
         await this.delay(1000 - elapsedTime);
       }
     }
-
+  
     return {
       data: queryResponse,
       totalCount,
@@ -118,7 +117,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
         return ResultsDataSourceBase.workspacesCache;
       })
       .catch(error => {
-        console.error(`Error fetching part numbers: ${error}`);
+        console.error('Error in loading workspaces:', error);
       });
 
     return ResultsDataSourceBase.workspacesPromise;
@@ -141,7 +140,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
         return ResultsDataSourceBase.partNumbersCache;
       })
       .catch(error => {
-        console.error(`Error fetching part numbers: ${error}`);
+        console.error('Error in loading part numbers:', error);
       });
 
     return ResultsDataSourceBase.partNumbersPromise;
@@ -154,7 +153,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
         filter
       });
     } catch (error) {
-      throw new Error(`An error occurred while querying product values: ${error}`);
+      throw new Error(`An error occurred while querying result values: ${error}`);
     }
   }
 
@@ -163,12 +162,12 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       const isMultiSelect = this.isMultiSelectValue(value);
       const valuesArray = this.getMultipleValuesArray(value);
       const logicalOperator = this.getLogicalOperator(operation);
-
-      return isMultiSelect
-        ? `(${valuesArray.map(val => `${field} ${operation} "${val}"`).join(` ${logicalOperator} `)})`
-        : `${field} ${operation} "${value}"`;
-    };
-  }
+      
+      return isMultiSelect ? `(${valuesArray
+        .map(val => `${field} ${operation} "${val}"`)
+        .join(` ${logicalOperator} `)})` : `${field} ${operation} "${value}"`;
+      }
+    }
 
   protected timeFieldsQuery(field: string): ExpressionTransformFunction {
     return (value: string, operation: string): string => {
@@ -184,7 +183,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   protected buildQueryFilter(filterA?: string, filterB?: string): string | undefined {
     const filters = [filterA, filterB].filter(Boolean);
     return filters.length > 0 ? filters.join(' && ') : undefined;
-  }
+  };
 
   private isMultiSelectValue(value: string): boolean {
     return value.startsWith('{') && value.endsWith('}');
@@ -203,6 +202,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   }
 
   testDatasource(): Promise<TestDataSourceResponse> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
 }
