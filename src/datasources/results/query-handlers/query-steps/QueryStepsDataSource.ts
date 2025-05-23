@@ -94,7 +94,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
-    if (!query.resultsQuery) {
+    if (!query.resultsQuery || query.resultsQuery === defaultStepsQuery.resultsQuery) {
+      console.log(query.resultsQuery);
       return {
         refId: query.refId,
         fields: [],

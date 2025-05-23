@@ -8,6 +8,7 @@ import { QueryStepsDataSource } from './QueryStepsDataSource';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/StepsQueryBuilder.constants';
 import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
+import { defaultStepsQuery } from 'datasources/results/defaultQueries';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { Workspace } from 'core/types';
 
@@ -386,6 +387,20 @@ describe('QueryStepsDataSource', () => {
       refId: 'A',
       outputType: OutputType.Data,
       resultsQuery: '',
+    });
+
+    const response = await datastore.query(query);
+
+    const fields = response.data[0].fields as Field[];
+    expect(fields).toEqual([]);
+    expect(backendServer.fetch).not.toHaveBeenCalled();
+  });
+
+  it('should not call query-steps API when resultsQuery is set to the default query', async () => {
+    const query = buildQuery({
+      refId: 'A',
+      outputType: OutputType.Data,
+      resultsQuery: defaultStepsQuery.resultsQuery,
     });
 
     const response = await datastore.query(query);

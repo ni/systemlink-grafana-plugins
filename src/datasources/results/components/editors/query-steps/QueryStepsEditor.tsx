@@ -16,6 +16,7 @@ import { TimeRangeControls } from '../time-range/TimeRangeControls';
 import { OrderBy, QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 import { StepsQueryBuilderWrapper } from '../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
+import { defaultStepsQuery } from 'datasources/results/defaultQueries';
 
 type Props = {
   query: QuerySteps;
@@ -54,8 +55,8 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   };
 
   const onResultsFilterChange = (resultsQuery: string) => {
-    if(resultsQuery === "") {
-      handleQueryChange({ ...query, resultsQuery: resultsQuery }, false);
+    if(resultsQuery === "" || resultsQuery === defaultStepsQuery.resultsQuery) {
+      handleQueryChange({ ...query, resultsQuery: defaultStepsQuery.resultsQuery }, false);
       setDisableStepsQueryBuilder(true);
     } else if (query.resultsQuery !== resultsQuery) {
       handleQueryChange({ ...query, resultsQuery: resultsQuery });

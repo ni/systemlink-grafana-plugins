@@ -237,7 +237,7 @@ describe('QueryStepsEditor', () => {
       
       await waitFor(() => {
         expect(mockHandleQueryChange).toHaveBeenCalledWith(
-          expect.objectContaining({ resultsQuery: '' }),
+          expect.objectContaining({ resultsQuery: 'PartNumber = \"\"' }),
           false
         );
       });

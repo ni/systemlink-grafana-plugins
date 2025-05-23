@@ -36,7 +36,7 @@ export const defaultStepsQuery = {
   recordCount: 10_000,
   useTimeRange: false,
   useTimeRangeFor: undefined,
-  resultsQuery: '',
+  resultsQuery: 'PartNumber = ""',
   stepsQuery: '',
 };
 
