@@ -131,7 +131,7 @@ describe('StepsQueryBuilder', () => {
 
         expect(filterContainer?.length).toBe(1);
         expect(filterContainer.item(0)?.textContent).toContain('Step updated at'); //label
-        expect(filterContainer.item(0)?.textContent).toContain('Greater than'); //operator
+        expect(filterContainer.item(0)?.textContent).toContain('is after'); //operator
         expect(filterContainer.item(0)?.textContent).toContain(label); //value
       });
     });
