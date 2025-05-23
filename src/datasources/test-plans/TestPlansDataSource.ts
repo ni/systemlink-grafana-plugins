@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { OrderByOptions, OutputType, Properties, PropertiesProjectionMap, QueryTestPlansResponse, TestPlanResponseProperties, TestPlansQuery } from './types';
+import { OrderByOptions, OutputType, Projections, Properties, PropertiesProjectionMap, QueryTestPlansResponse, TestPlanResponseProperties, TestPlansQuery } from './types';
 import { queryInBatches } from 'core/utils';
 import { QueryResponse } from 'core/types';
 import { QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
@@ -109,7 +109,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
   async queryTestPlansInBatches(
     orderBy?: string,
-    projection?: string[],
+    projection?: Projections[],
     take?: number,
     descending = false,
     returnCount = false
@@ -147,7 +147,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
   async queryTestPlans(
     orderBy?: string,
-    projection?: string[],
+    projection?: Projections[],
     take?: number,
     descending?: boolean,
     continuationToken?: string,

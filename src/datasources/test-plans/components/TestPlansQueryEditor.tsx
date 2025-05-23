@@ -79,7 +79,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
             <div className="horizontal-control-group">
               <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
                 <Select
-                  options={OrderBy as SelectableValue[]}
+                  options={[...OrderBy] as SelectableValue[]}
                   placeholder="Select a field to set the query order"
                   onChange={onOrderByChange}
                   value={query.orderBy}

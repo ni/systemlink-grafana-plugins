@@ -48,133 +48,163 @@ export enum TimeFields {
     ESTIMATED_END_DATE_TIME = 'ESTIMATED_END_DATE_TIME'
 };
 
-export const PropertiesProjectionMap: Record<Properties, { label: string, projection: string[], field: string[] }> = {
+export enum Projections {
+    ASSIGNED_TO = 'ASSIGNED_TO',
+    CREATED_AT = 'CREATED_AT',
+    CREATED_BY = 'CREATED_BY',
+    DESCRIPTION = 'DESCRIPTION',
+    ID = 'ID',
+    NAME = 'NAME',
+    PROPERTIES = 'PROPERTIES',
+    STATE = 'STATE',
+    UPDATED_AT = 'UPDATED_AT',
+    UPDATED_BY = 'UPDATED_BY',
+    WORKSPACE = 'WORKSPACE',
+    WORK_ORDER_NAME = 'WORK_ORDER_NAME',
+    WORK_ORDER_ID = 'WORK_ORDER_ID',
+    PART_NUMBER = 'PART_NUMBER',
+    PLANNED_START_DATE_TIME = 'PLANNED_START_DATE_TIME',
+    ESTIMATED_END_DATE_TIME = 'ESTIMATED_END_DATE_TIME',
+    ESTIMATED_DURATION_IN_SECONDS = 'ESTIMATED_DURATION_IN_SECONDS',
+    SYSTEM_ID = 'SYSTEM_ID',
+    TEMPLATE_ID = 'TEMPLATE_ID',
+    TEST_PROGRAM = 'TEST_PROGRAM',
+    SUBSTATE = 'SUBSTATE',
+    FIXTURE_IDS = 'FIXTURE_IDS',
+    DUT_ID = 'DUT_ID'
+};
+
+export const PropertiesProjectionMap: Record<Properties, {
+    label: string,
+    projection: readonly Projections[],
+    field: ReadonlyArray<keyof TestPlanResponseProperties>
+}> = {
     [Properties.ASSIGNED_TO]: {
         label: 'Assigned to',
-        projection: ['ASSIGNED_TO'],
+        projection: [Projections.ASSIGNED_TO],
         field: ['assignedTo'],
     },
     [Properties.CREATED_AT]: {
         label: 'Created at',
-        projection: ['CREATED_AT'],
+        projection: [Projections.CREATED_AT],
         field: ['createdAt'],
     },
     [Properties.CREATED_BY]: {
         label: 'Created by',
-        projection: ['CREATED_BY'],
+        projection: [Projections.CREATED_BY],
         field: ['createdBy'],
     },
     [Properties.DESCRIPTION]: {
         label: 'Description',
-        projection: ['DESCRIPTION'],
+        projection: [Projections.DESCRIPTION],
         field: ['description'],
     },
     [Properties.ID]: {
         label: 'ID',
-        projection: ['ID'],
+        projection: [Projections.ID],
         field: ['id'],
     },
     [Properties.NAME]: {
         label: 'Name',
-        projection: ['NAME'],
+        projection: [Projections.NAME],
         field: ['name'],
     },
     [Properties.PROPERTIES]: {
         label: 'Properties',
-        projection: ['PROPERTIES'],
+        projection: [Projections.PROPERTIES],
         field: ['properties'],
     },
     [Properties.STATE]: {
         label: 'State',
-        projection: ['STATE'],
+        projection: [Projections.STATE],
         field: ['state'],
     },
     [Properties.UPDATED_AT]: {
         label: 'Updated at',
-        projection: ['UPDATED_AT'],
+        projection: [Projections.UPDATED_AT],
         field: ['updatedAt'],
     },
     [Properties.UPDATED_BY]: {
         label: 'Updated by',
-        projection: ['UPDATED_BY'],
+        projection: [Projections.UPDATED_BY],
         field: ['updatedBy'],
     },
     [Properties.WORKSPACE]: {
         label: 'Workspace',
-        projection: ['WORKSPACE'],
+        projection: [Projections.WORKSPACE],
         field: ['workspace'],
     },
     [Properties.WORK_ORDER]: {
         label: 'Work order',
-        projection: ['WORK_ORDER_NAME', 'WORK_ORDER_ID'],
+        projection: [Projections.WORK_ORDER_NAME, Projections.WORK_ORDER_ID],
         field: ['workOrderName', 'workOrderId']
     },
     [Properties.WORK_ORDER_ID]: {
         label: 'Work order ID',
-        projection: ['WORK_ORDER_ID'],
+        projection: [Projections.WORK_ORDER_ID],
         field: ['workOrderId'],
     },
     [Properties.PRODUCT]: {
         label: 'Product (Part number)',
-        projection: ['PART_NUMBER'],
+        projection: [Projections.PART_NUMBER],
         field: ['partNumber'],
     },
     [Properties.PLANNED_START_DATE_TIME]: {
         label: 'Planned start date/time',
-        projection: ['PLANNED_START_DATE_TIME'],
+        projection: [Projections.PLANNED_START_DATE_TIME],
         field: ['plannedStartDateTime'],
     },
     [Properties.ESTIMATED_END_DATE_TIME]: {
         label: 'Estimated end date/time',
-        projection: ['ESTIMATED_END_DATE_TIME'],
+        projection: [Projections.ESTIMATED_END_DATE_TIME],
         field: ['estimatedEndDateTime'],
     },
     [Properties.ESTIMATED_DURATION_IN_SECONDS]: {
         label: 'Estimated duration',
-        projection: ['ESTIMATED_DURATION_IN_SECONDS'],
+        projection: [Projections.ESTIMATED_DURATION_IN_SECONDS],
         field: ['estimatedDurationInSeconds'],
     },
     [Properties.SYSTEM_NAME]: {
         label: 'System name',
-        projection: ['SYSTEM_ID'],
+        projection: [Projections.SYSTEM_ID],
         field: ['systemId'],
     },
     [Properties.SYSTEM_ID]: {
         label: 'System ID',
-        projection: ['SYSTEM_ID'],
+        projection: [Projections.SYSTEM_ID],
         field: ['systemId'],
     },
     [Properties.TEMPLATE]: {
         label: 'Test plan template',
-        projection: ['TEMPLATE_ID'],
+        projection: [Projections.TEMPLATE_ID],
         field: ['templateId'],
     },
     [Properties.TEMPLATE_ID]: {
         label: 'Template ID',
-        projection: ['TEMPLATE_ID'],
+        projection: [Projections.TEMPLATE_ID],
         field: ['templateId'],
     },
     [Properties.TEST_PROGRAM]: {
         label: 'Test program name',
-        projection: ['TEST_PROGRAM'],
+        projection: [Projections.TEST_PROGRAM],
         field: ['testProgram'],
     },
     [Properties.SUBSTATE]: {
         label: 'Substate',
-        projection: ['SUBSTATE'],
+        projection: [Projections.SUBSTATE],
         field: ['substate'],
     },
     [Properties.FIXTURE_NAMES]: {
         label: 'Fixture names',
-        projection: ['FIXTURE_IDS'],
+        projection: [Projections.FIXTURE_IDS],
         field: ['fixtureIds'],
     },
     [Properties.DUT_ID]: {
         label: 'DUT',
-        projection: ['DUT_ID'],
+        projection: [Projections.DUT_ID],
         field: ['dutId'],
     },
-};
+} as const;
 
 export const OrderBy = [
     {
@@ -187,12 +217,12 @@ export const OrderBy = [
         label: 'Updated At',
         description: `Latest update at time of the test plan`,
     }
-];
+] as const;
 
 export const OrderByOptions = {
     ID: 'ID',
     UPDATED_AT: 'UPDATED_AT'
-};
+} as const;
 
 export interface QueryTestPlansResponse {
     testPlans: TestPlanResponseProperties[],

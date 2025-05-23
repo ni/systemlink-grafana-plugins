@@ -2,7 +2,7 @@ import { MockProxy } from "jest-mock-extended";
 import { TestPlansDataSource } from "./TestPlansDataSource";
 import { BackendSrv } from "@grafana/runtime";
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from "test/fixtures";
-import { OrderByOptions, OutputType, Properties } from "./types";
+import { OrderByOptions, OutputType, Projections, Properties } from "./types";
 import { DataQueryRequest } from "@grafana/data";
 
 let datastore: TestPlansDataSource, backendServer: MockProxy<BackendSrv>
@@ -160,7 +160,7 @@ describe('queryTestPlansInBatches', () => {
 
     jest.spyOn(datastore, 'queryTestPlans').mockResolvedValue(mockQueryResponse);
 
-    const result = await datastore.queryTestPlansInBatches(OrderByOptions.UPDATED_AT, ['name'], 2, true);
+    const result = await datastore.queryTestPlansInBatches(OrderByOptions.UPDATED_AT, [Projections.NAME], 2, true);
 
     expect(result.testPlans).toEqual(mockQueryResponse.testPlans);
     expect(result.totalCount).toEqual(2);
@@ -169,7 +169,7 @@ describe('queryTestPlansInBatches', () => {
   test('handles errors during batch querying', async () => {
     jest.spyOn(datastore, 'queryTestPlans').mockRejectedValue(new Error('Query failed'));
 
-    await expect(datastore.queryTestPlansInBatches(OrderByOptions.UPDATED_AT, ['name'], 2, true))
+    await expect(datastore.queryTestPlansInBatches(OrderByOptions.UPDATED_AT, [Projections.NAME], 2, true))
       .rejects
       .toThrow('Query failed');
   });
@@ -183,7 +183,7 @@ describe('queryTestPlans', () => {
       .calledWith(requestMatching({ url: '/niworkorder/v1/query-testplans', data: { orderBy: OrderByOptions.UPDATED_AT, take: 1 } }))
       .mockReturnValue(createFetchResponse(mockResponse));
 
-    const result = await datastore.queryTestPlans(OrderByOptions.UPDATED_AT, ['name'], 1, true);
+    const result = await datastore.queryTestPlans(OrderByOptions.UPDATED_AT, [Projections.NAME], 1, true);
 
     expect(result).toEqual(mockResponse);
   });
@@ -193,7 +193,7 @@ describe('queryTestPlans', () => {
       .calledWith(requestMatching({ url: '/niworkorder/v1/query-testplans', data: { orderBy: OrderByOptions.UPDATED_AT, take: 1 } }))
       .mockReturnValue(createFetchError(500));
 
-    await expect(datastore.queryTestPlans(OrderByOptions.UPDATED_AT, ['name'], 1, true))
+    await expect(datastore.queryTestPlans(OrderByOptions.UPDATED_AT, [Projections.NAME], 1, true))
       .rejects
       .toThrow('An error occurred while querying test plans: Error: Request to url "/niworkorder/v1/query-testplans" failed with status code: 500. Error message: "Error"');
   });
