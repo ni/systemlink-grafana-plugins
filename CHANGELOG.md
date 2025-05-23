@@ -1,3 +1,9 @@
+## [3.87.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.86.0...v3.87.0) (2025-05-23)
+
+### Features
+
+* **workorders:** Add support for properties ([#196](https://github.com/ni/systemlink-grafana-plugins/issues/196)) ([021a8f8](https://github.com/ni/systemlink-grafana-plugins/commit/021a8f84bc8c66ec3e14c5fe420673d926a2fa29))
+
 ## [3.86.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.85.0...v3.86.0) (2025-05-23)
 
 ### Features
