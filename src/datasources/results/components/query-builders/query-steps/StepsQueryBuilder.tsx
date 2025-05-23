@@ -66,7 +66,7 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
         ...statusField.lookup,
         dataSource: [
           ...(statusField.lookup?.dataSource || []), 
-          ...stepStatus.map(name => ({ label: name, value: name }))
+          ...stepStatus.map(name => ({ label: name, value: name.replace(/\s+/g, '') })),
         ],
       },
     };
@@ -153,6 +153,8 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
       QueryBuilderOperations.LIST_DOES_NOT_EQUAL,
       QueryBuilderOperations.LIST_CONTAINS,
       QueryBuilderOperations.LIST_DOES_NOT_CONTAIN,
+      QueryBuilderOperations.DATE_TIME_IS_AFTER,
+      QueryBuilderOperations.DATE_TIME_IS_BEFORE
     ].map(operation => {
       return {
         ...operation,

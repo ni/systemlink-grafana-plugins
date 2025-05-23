@@ -9,7 +9,7 @@ import {
   VerticalGroup,
 } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
-import React from 'react';
+import React, { useState } from 'react';
 import '../../ResultsQueryEditor.scss';
 import { OutputType } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
@@ -24,6 +24,8 @@ type Props = {
 };
 
 export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props) {
+  const [disableStepsQueryBuilder, setDisableStepsQueryBuilder] = useState(true);
+  
   const onOutputChange = (outputType: OutputType) => {
     handleQueryChange({ ...query, outputType: outputType });
   };
@@ -52,8 +54,12 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   };
 
   const onResultsFilterChange = (resultsQuery: string) => {
-    if (query.resultsQuery !== resultsQuery) {
+    if(resultsQuery === "") {
+      handleQueryChange({ ...query, resultsQuery: resultsQuery }, false);
+      setDisableStepsQueryBuilder(true);
+    } else if (query.resultsQuery !== resultsQuery) {
       handleQueryChange({ ...query, resultsQuery: resultsQuery });
+      setDisableStepsQueryBuilder(false);
     }
   };
 
@@ -63,10 +69,11 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
     }
   };
 
+
   return (
     <>
       <VerticalGroup>
-        <InlineField label="Output" labelWidth={25} tooltip={tooltips.output}>
+        <InlineField label="Output" labelWidth={26} tooltip={tooltips.output}>
           <RadioButtonGroup
             options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
             value={query.outputType}
@@ -74,7 +81,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
           />
         </InlineField>
         {query.outputType === OutputType.Data && (
-          <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
+          <InlineField label="Properties" labelWidth={26} tooltip={tooltips.properties}>
             <MultiSelect
               placeholder="Select properties to fetch"
               options={enumToOptions(StepsProperties)}
@@ -91,7 +98,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
         )}
         <div>
           {query.outputType === OutputType.Data && (
-            <InlineField label="Show Measurements" labelWidth={25} tooltip={tooltips.showMeasurements}>
+            <InlineField label="Show Measurements" labelWidth={26} tooltip={tooltips.showMeasurements}>
               <InlineSwitch
                 onChange={event => onShowMeasurementChange(event.currentTarget.checked)}
                 value={query.showMeasurements}
@@ -112,12 +119,12 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
             stepsQuery={query.stepsQuery}
             onResultsQueryChange={(value: string) => onResultsFilterChange(value)}
             onStepsQueryChange={(value: string) => onStepsFilterChange(value)}
-            disableStepsQueryBuilder={true}
+            disableStepsQueryBuilder={disableStepsQueryBuilder}
           />
 
           <div className="right-query-controls">
             <div className="horizontal-control-group">
-              <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
+              <InlineField label="OrderBy" labelWidth={26} tooltip={tooltips.orderBy}>
                 <Select
                   options={OrderBy as SelectableValue[]}
                   width={25}
@@ -134,7 +141,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
                 />
               </InlineField>
             </div>
-            <InlineField label="Take" labelWidth={25} tooltip={tooltips.recordCount}>
+            <InlineField label="Take" labelWidth={26} tooltip={tooltips.recordCount}>
               <AutoSizeInput
                 minWidth={25}
                 maxWidth={25}

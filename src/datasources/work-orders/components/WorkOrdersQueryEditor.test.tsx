@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, RenderResult, screen, waitFor } from '@testing-library/react';
 import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
 import { WorkOrdersQueryEditor } from './WorkOrdersQueryEditor';
 import { OutputType, WorkOrderProperties, WorkOrderPropertiesOptions, WorkOrdersQuery } from '../types';
@@ -48,39 +48,94 @@ describe('WorkOrdersQueryEditor', () => {
     expect(container.getByRole('radio', { name: OutputType.Properties })).toBeChecked();
     expect(container.getByRole('radio', { name: OutputType.TotalCount })).toBeInTheDocument();
     expect(container.getByRole('radio', { name: OutputType.TotalCount })).not.toBeChecked();
-    await waitFor(() => {
-      const properties = container.getAllByRole('combobox')[0];
-      expect(properties).toBeInTheDocument();
-      expect(properties).toHaveAttribute('aria-expanded', 'false');
-      expect(properties).toHaveDisplayValue('');
-    });
-  });
-
-  it('should not render properties when output type is total count', async () => {
-    const query = {
-      refId: 'A',
-      outputType: OutputType.TotalCount,
-    };
-    const container = renderElement(query);
-
-    await waitFor(() => {
-      const properties = container.queryByRole('combobox', { name: 'Properties' });
-      expect(properties).not.toBeInTheDocument();
-    });
-  });
-
-  it('should render properties when output type is properties', async () => {
-    const query = {
-      refId: 'A',
-      outputType: OutputType.Properties,
-    };
-    const container = renderElement(query);
 
     await waitFor(() => {
       const properties = container.getAllByRole('combobox')[0];
       expect(properties).toBeInTheDocument();
       expect(properties).toHaveAttribute('aria-expanded', 'false');
       expect(properties).toHaveDisplayValue('');
+    });
+
+    const orderBy = container.getAllByRole('combobox')[1];
+    expect(orderBy).toBeInTheDocument();
+    expect(orderBy).toHaveAccessibleDescription('Select a field to set the query order');
+    expect(orderBy).toHaveDisplayValue('');
+
+    const descending = container.getByRole('checkbox');
+    expect(descending).toBeInTheDocument();
+    expect(descending).not.toBeChecked();
+  });
+
+  describe('output type is total count', () => {
+    let container: RenderResult;
+    beforeEach(() => {
+      const query = {
+        refId: 'A',
+        outputType: OutputType.TotalCount,
+      };
+      container = renderElement(query);
+    });
+    it('should not render properties', async () => {
+      const query = {
+        refId: 'A',
+        outputType: OutputType.TotalCount,
+      };
+      const container = renderElement(query);
+
+      await waitFor(() => {
+        const properties = container.queryByRole('combobox', { name: 'Properties' });
+        expect(properties).not.toBeInTheDocument();
+      });
+    });
+
+    it('should not render order by', async () => {
+      await waitFor(() => {
+        const orderBy = container.queryByRole('combobox', { name: 'OrderBy' });
+        expect(orderBy).not.toBeInTheDocument();
+      });
+    });
+
+    it('should not render descending', async () => {
+      await waitFor(() => {
+        const descending = container.queryByRole('checkbox', { name: 'Descending' });
+        expect(descending).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('output type is properties', () => {
+    let container: RenderResult;
+    beforeEach(() => {
+      const query = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+      };
+      container = renderElement(query);
+    });
+
+    it('should render properties', async () => {
+      const query = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+      };
+      const container = renderElement(query);
+
+      await waitFor(() => {
+        const properties = container.getAllByRole('combobox')[0];
+        expect(properties).toBeInTheDocument();
+        expect(properties).toHaveAttribute('aria-expanded', 'false');
+        expect(properties).toHaveDisplayValue('');
+      });
+    });
+
+    it('should render order by', async () => {
+      const orderBy = container.getAllByRole('combobox')[1];
+      expect(orderBy).toBeInTheDocument();
+    });
+
+    it('should render descending', async () => {
+      const descending = container.getByRole('checkbox');
+      expect(descending).toBeInTheDocument();
     });
   });
 
@@ -122,10 +177,37 @@ describe('WorkOrdersQueryEditor', () => {
 
       const propertiesSelect = container.getAllByRole('combobox')[0];
       userEvent.click(propertiesSelect);
-      await select(propertiesSelect, WorkOrderProperties[WorkOrderPropertiesOptions.WORKSPACE].label, { container: document.body });
+      await select(propertiesSelect, WorkOrderProperties[WorkOrderPropertiesOptions.WORKSPACE].label, {
+        container: document.body,
+      });
 
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['WORKSPACE'] }));
+        expect(mockOnRunQuery).toHaveBeenCalled();
+      });
+    });
+
+    it('should call onChange with order by when user changes order by', async () => {
+      const container = renderElement();
+      const orderBySelect = container.getAllByRole('combobox')[0];
+
+      userEvent.click(orderBySelect);
+      await select(orderBySelect, 'ID', { container: document.body });
+
+      await waitFor(() => {
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ orderBy: 'ID' }));
+        expect(mockOnRunQuery).toHaveBeenCalled();
+      });
+    });
+
+    it('should call onChange with descending when user toggles descending', async () => {
+      const container = renderElement();
+      const descendingCheckbox = container.getByRole('checkbox');
+
+      userEvent.click(descendingCheckbox);
+
+      await waitFor(() => {
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ descending: true }));
         expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });

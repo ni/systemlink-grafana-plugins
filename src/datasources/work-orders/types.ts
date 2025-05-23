@@ -4,6 +4,8 @@ export interface WorkOrdersQuery extends DataQuery {
   queryBy?: string;
   outputType: OutputType;
   properties?: WorkOrderPropertiesOptions[];
+  orderBy?: string;
+  descending?: boolean;
 }
 
 export enum OutputType {
@@ -106,3 +108,21 @@ export const WorkOrderProperties = {
     field: 'properties',
   },
 } as const;
+
+export const OrderByOptions = {
+    ID: 'ID',
+    UPDATED_AT: 'UPDATED_AT'
+};
+
+export const OrderBy = [
+    {
+        value: OrderByOptions.ID,
+        label: 'ID',
+        description: `ID of the work order`,
+    },
+    {
+        value: OrderByOptions.UPDATED_AT,
+        label: 'Updated At',
+        description: `Latest update at time of the work order`,
+    }
+];
