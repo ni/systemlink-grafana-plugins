@@ -3,6 +3,7 @@ import { render, screen, act, cleanup } from '@testing-library/react';
 import { StepsQueryBuilderWrapper } from './StepsQueryBuilderWrapper';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 import userEvent from '@testing-library/user-event';
+import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 
 jest.mock('../query-results/ResultsQueryBuilder', () => ({
   ResultsQueryBuilder: jest.fn(({ filter, workspaces, partNumbers, status, globalVariableOptions, onChange }) => {
@@ -45,13 +46,6 @@ jest.mock('../query-steps/StepsQueryBuilder', () => ({
 }));
 
 const mockDatasource = {
-  loadWorkspaces: jest.fn().mockResolvedValue(undefined),
-  getPartNumbers: jest.fn().mockResolvedValue(undefined),
-  workspacesCache: new Map([
-    [1, { id: 1, name: 'Workspace 1' }],
-    [2, { id: 2, name: 'Workspace 2' }],
-  ]),
-  partNumbersCache: ['PN1', 'PN2'],
   globalVariableOptions: jest.fn().mockReturnValue(['var1', 'var2']),
 } as unknown as QueryStepsDataSource;
 
@@ -72,7 +66,21 @@ describe('StepsQueryBuilderWrapper', () => {
     disableStepsQueryBuilder: false,
   };
 
+  let getPartNumbersSpy: Promise<string[]>;
+  let getWorkspacesSpy: Promise<Map<string, any>>;
+
   beforeEach(async () => {
+    getPartNumbersSpy = Promise.resolve(['PN1', 'PN2']);
+    getWorkspacesSpy = Promise.resolve(
+      new Map([
+        ['1', { id: 1, name: 'Workspace 1', default: false, enabled: true }],
+        ['2', { id: 2, name: 'Workspace 2', default: false, enabled: true }],
+      ])
+    );
+
+    ResultsDataSourceBase.partNumbersPromise = getPartNumbersSpy;
+    ResultsDataSourceBase.workspacesPromise = getWorkspacesSpy;
+    
     await act(async () => {
       render(<StepsQueryBuilderWrapper {...defaultProps} />);
     });
@@ -84,18 +92,29 @@ describe('StepsQueryBuilderWrapper', () => {
     expect(screen.getByTestId('results-query-builder')).toBeInTheDocument();
     expect(screen.getByTestId('steps-query-builder')).toBeInTheDocument();
   });
-  
-  test('should load workspaces and part numbers from datasource', () => {
-    expect(mockDatasource.loadWorkspaces).toHaveBeenCalledTimes(1);
-    expect(mockDatasource.getPartNumbers).toHaveBeenCalledTimes(1);
+
+  test('should render empty workspaces and part numbers when promises resolve to undefined', async () => {
+    cleanup();
+      ResultsDataSourceBase.workspacesPromise = Promise.resolve(undefined);
+      ResultsDataSourceBase.partNumbersPromise = Promise.resolve(undefined);
+
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      await act(async () => {
+      render(<StepsQueryBuilderWrapper {...defaultProps} />);
+    });
+
+    expect(screen.getByTestId('results-workspaces').textContent).toBe('[]');
+    expect(screen.getByTestId('results-part-numbers').textContent).toBe('[]');
+    expect(screen.getByTestId('steps-workspaces').textContent).toBe('[]');
   });
 
   test('should pass default properties to result and steps query builder', () => {
     expect(screen.getByTestId('results-filter').textContent).toBe('partNumber = "PN1"');
     expect(screen.getByTestId('results-workspaces').textContent).toEqual(
       JSON.stringify([
-        { id: 1, name: 'Workspace 1' },
-        { id: 2, name: 'Workspace 2' },
+        { id: 1, name: 'Workspace 1', default: false, enabled: true },
+        { id: 2, name: 'Workspace 2', default: false, enabled: true },
       ])
     );
     expect(screen.getByTestId('results-part-numbers').textContent).toEqual(JSON.stringify(['PN1', 'PN2']));
@@ -105,8 +124,8 @@ describe('StepsQueryBuilderWrapper', () => {
     expect(screen.getByTestId('steps-filter').textContent).toBe('stepName = "Step1"');
     expect(screen.getByTestId('steps-workspaces').textContent).toEqual(
       JSON.stringify([
-        { id: 1, name: 'Workspace 1' },
-        { id: 2, name: 'Workspace 2' },
+        { id: 1, name: 'Workspace 1', default: false, enabled: true },
+        { id: 2, name: 'Workspace 2', default: false, enabled: true },
       ])
     );
     expect(screen.getByTestId('steps-status').textContent).toEqual(JSON.stringify(['PASS', 'FAIL']));
@@ -115,10 +134,12 @@ describe('StepsQueryBuilderWrapper', () => {
     expect(screen.getByTestId('disable-steps-query-builder').textContent).toBe('false');
   });
 
-  test('should disable StepsQueryBuilder when disableStepsQueryBuilder property is true', () => {
+  test('should disable StepsQueryBuilder when disableStepsQueryBuilder property is true', async () => {
     cleanup();
 
-    render(<StepsQueryBuilderWrapper {...defaultProps} disableStepsQueryBuilder={true} />);
+    await act(async () => {
+      render(<StepsQueryBuilderWrapper {...defaultProps} disableStepsQueryBuilder={true} />);
+    });
 
     expect(screen.getByTestId('disable-steps-query-builder').textContent).toBe('true');
   });

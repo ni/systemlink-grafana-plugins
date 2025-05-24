@@ -21,8 +21,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   private toDateString = '${__to:date}';
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
-  static workspacesCache = new Map<string, Workspace>([]);
-  static partNumbersCache: string[] = [];
 
   static workspacesPromise: Promise<Map<string, Workspace> | void> | null = null;
   static partNumbersPromise: Promise<string[] | void> | null = null;
@@ -101,20 +99,17 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   }
 
   async loadWorkspaces(): Promise<Map<string, Workspace> | void> {
-    if (ResultsDataSourceBase.workspacesCache.size > 0) {
-      return ResultsDataSourceBase.workspacesCache;
-    }
-
     if (ResultsDataSourceBase.workspacesPromise) {
       return ResultsDataSourceBase.workspacesPromise;
     }
 
     ResultsDataSourceBase.workspacesPromise = this.getWorkspaces()
       .then(workspaces => {
+        const workspaceMap = new Map<string, Workspace>();
         if (workspaces) {
-          workspaces.forEach(workspace => ResultsDataSourceBase.workspacesCache.set(workspace.id, workspace));
+          workspaces.forEach(workspace => workspaceMap.set(workspace.id, workspace));
         }
-        return ResultsDataSourceBase.workspacesCache;
+        return workspaceMap;
       })
       .catch(error => {
         console.error('Error in loading workspaces:', error);
@@ -124,24 +119,14 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   }
 
   async getPartNumbers(): Promise<string[] | void> {
-    if (ResultsDataSourceBase.partNumbersCache.length > 0) {
-      return ResultsDataSourceBase.partNumbersCache;
-    }
-
     if (ResultsDataSourceBase.partNumbersPromise) {
       return ResultsDataSourceBase.partNumbersPromise;
     }
 
     ResultsDataSourceBase.partNumbersPromise = this.queryResultsValues(ResultsPropertiesOptions.PART_NUMBER, undefined)
-      .then(partNumbers => {
-        if (partNumbers) {
-          partNumbers.forEach(partNumber => ResultsDataSourceBase.partNumbersCache.push(partNumber));
-        }
-        return ResultsDataSourceBase.partNumbersCache;
-      })
-      .catch(error => {
-        console.error('Error in loading part numbers:', error);
-      });
+    .catch(error => {
+      console.error('Error in loading part numbers:', error);
+    });
 
     return ResultsDataSourceBase.partNumbersPromise;
   }

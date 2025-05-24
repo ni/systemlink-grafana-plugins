@@ -33,12 +33,12 @@ export const StepsQueryBuilderWrapper = (
 
   useEffect(() => {
     const loadWorkspaces = async () => {
-      await ResultsDataSourceBase.workspacesPromise;
-      setWorkspaces(Array.from(ResultsDataSourceBase.workspacesCache.values()));
+      const workspace = await ResultsDataSourceBase.workspacesPromise;
+      workspace ? setWorkspaces(Array.from(workspace.values())) : setWorkspaces([]);
     };
     const loadPartNumbers = async () => {
-      await ResultsDataSourceBase.partNumbersPromise;
-      setPartNumbers(ResultsDataSourceBase.partNumbersCache);
+      const partNumbers = await ResultsDataSourceBase.partNumbersPromise;
+      partNumbers ? setPartNumbers(partNumbers) : setPartNumbers([]);
     };
 
     loadPartNumbers();

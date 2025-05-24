@@ -26,15 +26,17 @@ let datastore: QueryResultsDataSource, backendServer: MockProxy<BackendSrv>, tem
 
 describe('QueryResultsDataSource', () => {
   beforeEach(() => {
+    ResultsDataSourceBase.partNumbersPromise = Promise.resolve(mockQueryResultsValuesResponse);
     [datastore, backendServer, templateSrv] = setupDataSource(QueryResultsDataSource);
-
+    
     backendServer.fetch
-      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
-      .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
-
+    .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+    .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
+    
     backendServer.fetch
-      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
-      .mockReturnValue(createFetchResponse(mockQueryResultsValuesResponse));
+    .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
+    .mockReturnValue(createFetchResponse(mockQueryResultsValuesResponse));
+    
   })
 
   describe('queryResults', () => {
@@ -188,90 +190,84 @@ describe('QueryResultsDataSource', () => {
         ]);
     });
 
-    test('should return the same promise instance when partnumber promise already exists', async () => {
-      const mockPromise = Promise.resolve(['partNumber1', 'partNumber2']);
-      ResultsDataSourceBase.partNumbersPromise = mockPromise;
+    describe('Dependencies', () => {
+      test('should return the same promise instance when partnumber promise already exists', async () => {
+        const mockPromise = Promise.resolve(['partNumber1', 'partNumber2']);
+        ResultsDataSourceBase.partNumbersPromise = mockPromise;
+        backendServer.fetch.mockClear();
 
-      const result = datastore.getPartNumbers();
+        const partNumberPromise = datastore.getPartNumbers();
 
-      expect(result).toEqual(mockPromise);
-    })
+        expect(partNumberPromise).toEqual(mockPromise);
+        expect(await partNumberPromise).toEqual(['partNumber1', 'partNumber2']);
+        expect(backendServer.fetch).not.toHaveBeenCalledWith(
+          expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' })
+        );
+      })
 
-    test('should create and return a new promise when partnumber promise does not exist', async () => {
-      const promise = datastore.getPartNumbers();
+      test('should create and return a new promise when partnumber promise does not exist', async () => {
+        ResultsDataSourceBase.partNumbersPromise = null;
 
-      expect(promise).not.toBeNull();
+        const promise = datastore.getPartNumbers();
+
+        expect(promise).not.toBeNull();
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' })
+        );
+      });
+
+      test('should return the same promise instance when workspacePromise already exists', async () => {
+        const mockWorkspaces = new Map<string, Workspace>([
+          ['1', { id: '1', name: 'Default workspace', default: true, enabled: true }],
+          ['2', { id: '2', name: 'Other workspace', default: false, enabled: true }],
+        ]);
+        const mockPromise = Promise.resolve(mockWorkspaces);
+        ResultsDataSourceBase.workspacesPromise = mockPromise;
+        const workspaceSpy = jest.spyOn(ResultsDataSourceBase.prototype, 'getWorkspaces');
+        backendServer.fetch.mockClear();
+
+        const workspacePromise = datastore.loadWorkspaces();
+
+        expect(workspacePromise).toEqual(mockPromise);
+        expect(await workspacePromise).toEqual(mockWorkspaces);
+        expect(workspaceSpy).not.toHaveBeenCalledTimes(1);
+      })
+
+      test('should create and return a new promise when wrokspace promise does not exist', async () => {
+        ResultsDataSourceBase.workspacesPromise = null;
+        const workspaceSpy = jest.spyOn(ResultsDataSourceBase.prototype, 'getWorkspaces');
+
+        const promise = datastore.loadWorkspaces();
+
+        expect(promise).not.toBeNull();
+        expect(workspaceSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it('should handle errors in getPartNumbers', async () => {
+        ResultsDataSourceBase.partNumbersPromise = null;
+        const error = new Error('API failed');
+        jest.spyOn(QueryResultsDataSource.prototype, 'queryResultsValues').mockRejectedValue(error);
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        await datastore.getPartNumbers();
+
+        expect(console.error).toHaveBeenCalledTimes(1);
+        expect(console.error).toHaveBeenCalledWith('Error in loading part numbers:', error);
+      });
+
+      it('should handle errors in getWorkspaces', async () => {
+        ResultsDataSourceBase.workspacesPromise = null;
+        const error = new Error('API failed');
+        jest.spyOn(QueryResultsDataSource.prototype, 'getWorkspaces').mockRejectedValue(error);
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        await datastore.loadWorkspaces();
+
+        expect(console.error).toHaveBeenCalledTimes(1);
+        expect(console.error).toHaveBeenCalledWith('Error in loading workspaces:', error);
+      });
     });
-
-    test('returns part numbers', async () => { 
-      ResultsDataSourceBase.partNumbersPromise = null;
-      await datastore.getPartNumbers();
   
-      expect(ResultsDataSourceBase.partNumbersCache).toEqual(["partNumber1", "partNumber2"]);
-    });
-
-    test('should not query part number values if cache exists', async () => {
-      backendServer.fetch
-        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values' }))
-        .mockReturnValue(createFetchResponse(['value1']));
-      ResultsDataSourceBase.partNumbersCache.push('partNumber');
-      backendServer.fetch.mockClear();
-  
-      await datastore.query(buildQuery())
-  
-      expect(backendServer.fetch).not.toHaveBeenCalled();
-    });
-
-    test('should return the same promise instance when workspacePromise already exists', async () => {
-      const mockWorkspaces = new Map<string, Workspace>([
-        ['1', { id: '1', name: 'Default workspace', default: true, enabled: true }],
-        ['2', { id: '2', name: 'Other workspace', default: false, enabled: true }],
-      ]);
-      const mockPromise = Promise.resolve(mockWorkspaces);
-      ResultsDataSourceBase.workspacesPromise = mockPromise;
-
-      const result = datastore.getPartNumbers();
-
-      expect(result).toEqual(mockPromise);
-    })
-
-    test('should create and return a new promise when wrokspace promise does not exist', async () => {
-      const promise = datastore.loadWorkspaces();
-
-      expect(promise).not.toBeNull();
-    });
-
-    test('returns workspaces', async () => {
-      ResultsDataSourceBase.workspacesPromise = null;
-      await datastore.loadWorkspaces();
-  
-      expect(ResultsDataSourceBase.workspacesCache.get('1')).toEqual({"id": "1", "name": "Default workspace"});
-      expect(ResultsDataSourceBase.workspacesCache.get('2')).toEqual({"id": "2", "name": "Other workspace"});
-    });
-  
-    test('should not query workspace values if cache exists', async () => {
-      const mockWorkspacesResponse = { id: 'workspace1', name: 'workspace1', default: false, enabled: true };
-      backendServer.fetch
-        .calledWith(requestMatching({ url: '/niauth/v1/user' }))
-        .mockReturnValue(createFetchResponse(mockWorkspacesResponse));
-      ResultsDataSourceBase.workspacesCache.set('workspace', mockWorkspacesResponse);
-      backendServer.fetch.mockClear();
-      const query = buildQuery(
-        {
-          refId: 'A',
-          outputType: OutputType.Data
-        },
-      );
-
-      await datastore.query(query)
-  
-      expect(backendServer.fetch).not.toHaveBeenCalledWith(
-        expect.objectContaining({
-          url: '/niauth/v1/user',
-        })
-      );
-    });
-
     describe('query builder queries', () => {
       test('should transform field when queryBy contains a single value', async () => {
         const query = buildQuery(
