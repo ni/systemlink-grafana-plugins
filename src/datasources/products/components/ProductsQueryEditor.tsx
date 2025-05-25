@@ -74,7 +74,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
       query.queryBy = value;
       handleQueryChange({ ...query, queryBy: value });
     }
-  } 
+  }
 
   return (
     <>
