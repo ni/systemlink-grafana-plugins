@@ -131,7 +131,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
                 defaultValue={query.recordCount}
                 onCommitChange={recordCountChange}
                 placeholder="Enter record count"
-                onKeyDown={event => {validateNumericInput(event)}}
+                onKeyDown={(event) => {validateNumericInput(event)}}
               />
             </InlineField>
           </div>
@@ -148,4 +148,4 @@ const tooltips = {
   orderBy: "Specifies the field to order the queried products by.",
   descending: "Specifies whether to return the products in descending order.",
   queryBy: 'Specifies the filter to be applied on the queried products. This is an optional field.',
-};
+}
