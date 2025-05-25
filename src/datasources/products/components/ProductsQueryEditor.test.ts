@@ -51,7 +51,7 @@ describe('ProductsQueryEditor', () => {
     await waitFor(() => expect(screen.getAllByText('Value').length).toBe(1));
   });
 
-  it('should not call onRunQuery when query is not changed', async () => {
+  it('should not call `onChange` when queryBy filter is not changed', async () => {
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onRunQuery).toHaveBeenCalledTimes(1);
     onChange.mockReset();
@@ -101,7 +101,4 @@ describe('ProductsQueryEditor', () => {
       expect(recordCount).toHaveValue(500);
     });
   });
-
-
-
 });
