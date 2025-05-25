@@ -16,7 +16,7 @@ let recordCount: HTMLElement
 
 describe('ProductsQueryEditor', () => {
   beforeEach(async () => {
-    [onChange, onRunQuery] = render({ refId: '', properties: [], orderBy: undefined, queryBy: 'PartNumber = "partNumber1"' } as ProductQuery);
+    [onChange, onRunQuery] = render({ refId: '', properties: [], orderBy: undefined, queryBy: '' } as ProductQuery);
     await waitFor(() => properties = screen.getAllByRole('combobox')[0]);
     orderBy = screen.getAllByRole('combobox')[1];
     descending = screen.getByRole('checkbox');
@@ -40,7 +40,7 @@ describe('ProductsQueryEditor', () => {
         orderBy: undefined,
         descending: true,
         recordCount: 1000,
-        queryBy: 'PartNumber = \"partNumber1\"'
+        queryBy: ''
       }));
     expect(onRunQuery).toHaveBeenCalledTimes(1);
   });
@@ -54,10 +54,10 @@ describe('ProductsQueryEditor', () => {
   it('should not call `onChange` when queryBy filter is not changed', async () => {
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onRunQuery).toHaveBeenCalledTimes(1);
-    onChange.mockReset();
-    onRunQuery.mockReset();
+    onChange.mockClear();
+    onRunQuery.mockClear();
 
-    render({ refId: '', properties: [], orderBy: undefined, queryBy: 'PartNumber = "partNumber1"' } as ProductQuery);
+    render({ refId: '', properties: [], orderBy: undefined, queryBy: '' } as ProductQuery);
     expect(onChange).not.toHaveBeenCalled();
     expect(onRunQuery).not.toHaveBeenCalled();
   });
