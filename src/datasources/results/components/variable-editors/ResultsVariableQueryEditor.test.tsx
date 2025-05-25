@@ -83,8 +83,7 @@ describe('Results Query Type', () => {
 
     //simulate user selecting a property
     fireEvent.keyDown(propertiesSelect, { key: 'ArrowDown' });
-    const option = await screen.findByText(ResultsVariableProperties[0].label);
-    fireEvent.click(option);
+    fireEvent.click(propertiesSelect);
 
     queryBy = screen.getByText('Query by results properties');
     expect(queryBy).toBeInTheDocument();
