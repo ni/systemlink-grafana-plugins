@@ -7,7 +7,7 @@ import { isSystemLinkError } from './utils';
 
 export const FloatingError = ({ message = '', innerMessage = '', severity = 'error' }) => {
   const [hide, setHide] = useState(false);
-  const reset = useTimeoutFn(() => setHide(true), 500000)[2];
+  const reset = useTimeoutFn(() => setHide(true), 5000)[2];
   useEffect(() => {
     setHide(false);
     reset();
