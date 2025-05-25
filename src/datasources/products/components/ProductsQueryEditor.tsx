@@ -107,33 +107,33 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
         </VerticalGroup>
         <VerticalGroup>
           <div className="right-query-controls">
-            <div className="horizontal-control-group">
-              <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
-                <Select
-                  options={OrderBy as SelectableValue[]}
-                  placeholder="Select field to order by"
-                  onChange={onOrderByChange}
-                  value={query.orderBy}
-                  defaultValue={query.orderBy}
-                  width={26}
-                />
-              </InlineField>
-              <InlineField label="Descending" tooltip={tooltips.descending}>
-                <InlineSwitch
-                  onChange={event => onDescendingChange(event.currentTarget.checked)}
-                  value={query.descending}
-                />
-              </InlineField>
-            </div>
+            <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
+              <Select
+                options={OrderBy as SelectableValue[]}
+                placeholder="Select field to order by"
+                onChange={onOrderByChange}
+                value={query.orderBy}
+                defaultValue={query.orderBy}
+                width={26}
+              />
+            </InlineField>
+            <InlineField label="Descending" labelWidth={18} tooltip={tooltips.descending}>
+              <InlineSwitch
+                onChange={event => onDescendingChange(event.currentTarget.checked)}
+                value={query.descending}
+              />
+            </InlineField>
             <InlineField label="Take" labelWidth={18} tooltip={tooltips.recordCount}>
               <AutoSizeInput
                 minWidth={26}
                 maxWidth={26}
-                type='number'
+                type="number"
                 defaultValue={query.recordCount}
                 onCommitChange={recordCountChange}
                 placeholder="Enter record count"
-                onKeyDown={(event) => {validateNumericInput(event)}}
+                onKeyDown={event => {
+                  validateNumericInput(event);
+                }}
               />
             </InlineField>
           </div>
@@ -145,9 +145,9 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
 }
 
 const tooltips = {
-  properties: "Specifies the properties to be queried.",
-  recordCount: "Specifies the maximum number of products to return.",
-  orderBy: "Specifies the field to order the queried products by.",
-  descending: "Specifies whether to return the products in descending order.",
+  properties: 'Specifies the properties to be queried.',
+  recordCount: 'Specifies the maximum number of products to return.',
+  orderBy: 'Specifies the field to order the queried products by.',
+  descending: 'Specifies whether to return the products in descending order.',
   queryBy: 'Specifies the filter to be applied on the queried products. This is an optional field.',
-}
+};
