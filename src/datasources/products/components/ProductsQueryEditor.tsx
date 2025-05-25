@@ -131,9 +131,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
                 defaultValue={query.recordCount}
                 onCommitChange={recordCountChange}
                 placeholder="Enter record count"
-                onKeyDown={event => {
-                  validateNumericInput(event);
-                }}
+                onKeyDown={event => {validateNumericInput(event)}}
               />
             </InlineField>
           </div>
