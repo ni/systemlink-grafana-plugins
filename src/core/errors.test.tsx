@@ -10,7 +10,25 @@ test('renders with error message', () => {
   render(<FloatingError message='error msg'/>)
 
   expect(screen.getByText('error msg')).toBeInTheDocument()
+  expect(screen.queryByText('inner msg')).not.toBeInTheDocument()
 })
+
+test('renders with inner message', () => {
+  render(<FloatingError message='error msg' innerMessage='inner msg'/>)
+
+  expect(screen.getByText('error msg')).toBeInTheDocument()
+  expect(screen.getByText('inner msg')).toBeInTheDocument()
+})
+
+test.each([
+  ['error'],
+  ['warning']
+])('renders with severity %s', (severity) => {
+  render(<FloatingError message='error msg' severity={severity as any} />);
+
+  expect(screen.getByText('error msg')).toBeInTheDocument();
+  expect(screen.getByRole('alert')).toHaveAttribute('data-testid', `data-testid Alert ${severity}`);
+});
 
 test('does not render without error message', () => {
   const { container } = render(<FloatingError message=''/>)
