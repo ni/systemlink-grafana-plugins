@@ -820,7 +820,7 @@ describe('QueryStepsDataSource', () => {
 
         expect(result).toEqual([]);
         expect(console.error).toHaveBeenCalledTimes(1);
-        expect(console.error).toHaveBeenCalledWith('Error in querying steps:', error);});
+        expect(console.error).toHaveBeenCalledWith('Error in querying steps:', error)});
 
       it('should use templateSrv.replace for queryByResults and queryBySteps', async () => {
         let resultsQuery = 'PartNumber = "${partNumber}"'
