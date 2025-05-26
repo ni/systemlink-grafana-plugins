@@ -149,13 +149,13 @@ describe('ResultsVariableQueryEditor', () => {
       expect(takeInput).toHaveValue(1000);
     });
 
-    it('should render with existing take when take is already set', () => {
+    it('should render with existing stepsTake when take is already set', () => {
       renderEditor({
         refId: '',
         queryType: QueryType.Steps,
         queryByResults: 'resultsQuery',
         queryBySteps: '',
-        take: 2000,
+        stepsTake: 2000,
       } as unknown as ResultsQuery);
 
       const takeInput = screen.getByPlaceholderText('Enter record count');
@@ -168,7 +168,7 @@ describe('ResultsVariableQueryEditor', () => {
         queryType: QueryType.Steps,
         queryByResults: 'resultsQuery',
         queryBySteps: '',
-        take: 2000,
+        stepsTake: 2000,
       } as unknown as ResultsQuery);
       const takeInput = screen.getByPlaceholderText('Enter record count');
 

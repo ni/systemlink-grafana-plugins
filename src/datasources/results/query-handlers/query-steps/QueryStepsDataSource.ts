@@ -267,7 +267,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   async metricFindQuery(query: StepsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    if (query.queryByResults !== undefined && this.isTakeValid(query.take!)) {
+    if (query.queryByResults !== undefined && this.isTakeValid(query.stepsTake!)) {
       const resultsQuery = query.queryByResults ? transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryByResults, options?.scopedVars),
         this.resultsComputedDataFields
@@ -284,7 +284,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
           stepsQuery,
           'UPDATED_AT',
           [StepsPropertiesOptions.NAME as StepsProperties],
-          query.take,
+          query.stepsTake,
           true,
           resultsQuery,
         );

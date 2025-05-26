@@ -27,7 +27,8 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const [isQueryBuilderDisabled, disableStepsQueryBuilder] = useState<boolean>(true);
-  const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
+  const [stepsRecordCountInvalidMessage, setStepsRecordCountInvalidMessage] = useState<string>('');
+  const [resultsRecordCountInvalidMessage, setResultsRecordCountInvalidMessage] = useState<string>('');
   const queryResultsquery = query as ResultsVariableQuery;
   const stepsVariableQuery = query as StepsVariableQuery;
   const queryResultsDataSource = useRef(datasource.queryResultsDataSource);
@@ -35,13 +36,13 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
 
   useEffect(() => {
     if (!query.queryType) {
-      onChange({ ...query, queryType: QueryType.Results, take: 1000 } as ResultsVariableQuery);
+      onChange({ ...query, queryType: QueryType.Results, stepsTake: 1000, resultsTake: 1000 } as ResultsVariableQuery);
       return;
     }
     if (query.queryType === QueryType.Steps) {
       const stepsQuery = query as StepsVariableQuery;
-      if (stepsQuery.take === undefined || Number.isNaN(stepsQuery.take)) {
-        onChange({ ...stepsQuery, take: 1000 } as StepsVariableQuery);
+      if (stepsQuery.stepsTake === undefined || Number.isNaN(stepsQuery.stepsTake)) {
+        onChange({ ...stepsQuery, stepsTake: 1000 } as StepsVariableQuery);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -86,21 +87,27 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
     onChange({ ...stepsVariableQuery, queryBySteps: stepsQuery } as StepsVariableQuery);
   };
 
-  const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
+  const onStepsRecordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    switch (true) {
-      case isNaN(value) || value <= 0:
-        setRecordCountInvalidMessage('Enter a value greater than 0');
-        break;
-      case value > TAKE_LIMIT:
-        setRecordCountInvalidMessage('Enter a value less than or equal to 10,000');
-        break;
-      default:
-        setRecordCountInvalidMessage('');
-        break;
-    }
-    onChange({ ...stepsVariableQuery, take: value } as StepsVariableQuery);
+    setStepsRecordCountInvalidMessage(validateRecordCount(value, TAKE_LIMIT));
+    onChange({ ...stepsVariableQuery, stepsTake: value } as StepsVariableQuery);
   };
+
+  const onResultsRecordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
+    const value = parseInt((event.target as HTMLInputElement).value, 10);
+    setResultsRecordCountInvalidMessage(validateRecordCount(value, TAKE_LIMIT));
+    onChange({ ...queryResultsquery, resultsTake: value } as ResultsVariableQuery);
+  };
+
+  function validateRecordCount(value: number, takeLimit: number): string {
+    if (Number.isNaN(value) || value <= 0) {
+      return 'Enter a value greater than 0';
+    }
+    if (value > takeLimit) {
+      return `Enter a value less than or equal to ${takeLimit.toLocaleString()}`;
+    }
+    return '';
+  }
 
   return (
     <>
@@ -123,16 +130,37 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
           </InlineField>
           {(queryResultsquery.properties! === ResultsVariableProperties[0].value ||
             queryResultsquery.properties === ResultsVariableProperties[1].value) && (
-            <InlineField label="Query by results properties" labelWidth={26} tooltip={tooltips.queryBy}>
-              <ResultsQueryBuilder
-                filter={queryResultsquery.queryBy}
-                onChange={(event: any) => onQueryByChange(event.detail.linq)}
-                workspaces={workspaces}
-                partNumbers={partNumbers}
-                status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
-                globalVariableOptions={queryResultsDataSource.current.globalVariableOptions()}
-              ></ResultsQueryBuilder>
-            </InlineField>
+            <>
+              <InlineField label="Query by results properties" labelWidth={26} tooltip={tooltips.queryBy}>
+                <ResultsQueryBuilder
+                  filter={queryResultsquery.queryBy}
+                  onChange={(event: any) => onQueryByChange(event.detail.linq)}
+                  workspaces={workspaces}
+                  partNumbers={partNumbers}
+                  status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
+                  globalVariableOptions={queryResultsDataSource.current.globalVariableOptions()}
+                ></ResultsQueryBuilder>
+              </InlineField>
+              <InlineField
+                label="Take"
+                labelWidth={26}
+                tooltip={tooltips.resultsTake}
+                invalid={!!resultsRecordCountInvalidMessage}
+                error={resultsRecordCountInvalidMessage}
+              >
+                <AutoSizeInput
+                  minWidth={25}
+                  maxWidth={25}
+                  type="number"
+                  defaultValue={queryResultsquery.resultsTake ? queryResultsquery.resultsTake : 1000}
+                  onCommitChange={onResultsRecordCountChange}
+                  placeholder="Enter record count"
+                  onKeyDown={event => {
+                    validateNumericInput(event);
+                  }}
+                />
+              </InlineField>
+            </>
           )}
         </>
       )}
@@ -149,16 +177,16 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
           <InlineField
             label="Take"
             labelWidth={26}
-            tooltip={tooltips.take}
-            invalid={!!recordCountInvalidMessage}
-            error={recordCountInvalidMessage}
+            tooltip={tooltips.stepsTake}
+            invalid={!!stepsRecordCountInvalidMessage}
+            error={stepsRecordCountInvalidMessage}
           >
             <AutoSizeInput
               minWidth={25}
               maxWidth={25}
               type="number"
-              defaultValue={stepsVariableQuery.take ? stepsVariableQuery.take : 1000}
-              onCommitChange={recordCountChange}
+              defaultValue={stepsVariableQuery.stepsTake ? stepsVariableQuery.stepsTake : 1000}
+              onCommitChange={onStepsRecordCountChange}
               placeholder="Enter record count"
               onKeyDown={event => {
                 validateNumericInput(event);
@@ -173,7 +201,8 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
 
 const tooltips = {
   queryType: 'This field specifies the query type to return as either results data or steps data.',
-  take: 'This field sets the maximum number of steps to return.',
+  stepsTake: 'This field sets the maximum number of steps to return.',
+  resultsTake: 'This field sets the maximum number of results to return.',
   queryBy: 'This field applies a filter to the query results.',
   properties: 'This field specifies the property to return from the query.',
 };

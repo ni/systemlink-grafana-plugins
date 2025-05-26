@@ -6,6 +6,7 @@ import { defaultResultsQuery } from "datasources/results/defaultQueries";
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
+import { TAKE_LIMIT } from "datasources/results/constants/QuerySteps.constants";
 
 export class QueryResultsDataSource extends ResultsDataSourceBase {
   queryResultsUrl = this.baseUrl + '/v2/query-results';
@@ -114,7 +115,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   );
 
   async metricFindQuery(query: ResultsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    if (query.properties !== undefined) {
+    if (query.properties !== undefined && this.isTakeValidValid(query.resultsTake!)) {
       const filter = query.queryBy ? transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options?.scopedVars),
         this.resultsComputedDataFields
@@ -124,7 +125,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
         filter,
         'UPDATED_AT',
         [query.properties as ResultsProperties],
-        1000
+        query.resultsTake,
       )).results;
 
       if (metadata.length > 0) {
@@ -148,6 +149,10 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     const flatValues = values.flatMap(
       (value) => Array.isArray(value) ? value : [value]);
     return Array.from(new Set(flatValues));
+  }
+
+  private isTakeValidValid(value: number): boolean {
+    return !isNaN(value) && value > 0 && value <= TAKE_LIMIT;
   }
 
   shouldRunQuery(_: QueryResults): boolean {

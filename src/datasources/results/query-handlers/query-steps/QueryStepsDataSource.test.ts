@@ -759,19 +759,19 @@ describe('QueryStepsDataSource', () => {
           queryType: QueryType.Steps,
           queryByResults: undefined,
           queryBySteps: undefined,
-          take: 1000,
+          stepsTake: 1000,
         } as unknown as StepsVariableQuery;
         const result = await datastore.metricFindQuery(query);
 
         expect(result).toEqual([]);
       });
 
-      it.each([-1, NaN, 10001])('should return empty array if take value is invalid (%p)', async (invalidTake) => {
+      it.each([-1, NaN, 10001])('should return empty array if stepsTake value is invalid (%p)', async (invalidStepsTake) => {
         const query = {
           refId: 'A',
           queryType: QueryType.Steps,
           queryByResults: 'PartNumber = "partNumber1"',
-          take: invalidTake,
+          stepsTake: invalidStepsTake,
         } as unknown as StepsVariableQuery;
         const result = await datastore.metricFindQuery(query);
 
@@ -788,7 +788,7 @@ describe('QueryStepsDataSource', () => {
             totalCount: 2
           } as QueryStepsResponse));
 
-        const query = { queryByResults: 'PartNumber = "partNumber1"', take: 1000 } as StepsVariableQuery;
+        const query = { queryByResults: 'PartNumber = "partNumber1"', stepsTake: 1000 } as StepsVariableQuery;
         const result = await datastore.metricFindQuery(query);
 
         expect(result).toEqual([
@@ -804,7 +804,7 @@ describe('QueryStepsDataSource', () => {
             totalCount: 0
           } as QueryStepsResponse));
 
-        const query = { queryByResults: 'PartNumber = "partNumber1"', take: 1000 } as StepsVariableQuery;
+        const query = { queryByResults: 'PartNumber = "partNumber1"', stepsTake: 1000 } as StepsVariableQuery;
         const result = await datastore.metricFindQuery(query);
 
         expect(result).toEqual([]);
@@ -815,7 +815,7 @@ describe('QueryStepsDataSource', () => {
         backendServer.fetch.mockImplementationOnce(() => { throw error; });
         jest.spyOn(console, 'error').mockImplementation(() => {});
 
-        const query = { queryByResults: 'PartNumber = "partNumber1"', take: 1000 } as StepsVariableQuery;
+        const query = { queryByResults: 'PartNumber = "partNumber1"', stepsTake: 1000 } as StepsVariableQuery;
         const result = await datastore.metricFindQuery(query);
 
         expect(result).toEqual([]);
@@ -831,7 +831,7 @@ describe('QueryStepsDataSource', () => {
           totalCount: 1
         } as QueryStepsResponse));
 
-        const query = { queryByResults: resultsQuery, queryBySteps: stepsQuery, take: 1000 } as StepsVariableQuery;
+        const query = { queryByResults: resultsQuery, queryBySteps: stepsQuery, stepsTake: 1000 } as StepsVariableQuery;
         await datastore.metricFindQuery(query, { scopedVars: { var: { value: 'replaced' } } } as any);
 
         expect(templateSrv.replace).toHaveBeenCalledTimes(2);

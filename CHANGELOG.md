@@ -1,3 +1,14 @@
+## [3.89.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.88.1...v3.89.0) (2025-05-26)
+
+### Features
+
+* **products:** Fix Duplicate API calls in query builder for Workspace and Updated At ([#216](https://github.com/ni/systemlink-grafana-plugins/issues/216)) ([ece36fe](https://github.com/ni/systemlink-grafana-plugins/commit/ece36fe5798873eac971a45b0d104373faf63471))
+* **results:** Add Take control for Results Query in Results Variable Editor ([#214](https://github.com/ni/systemlink-grafana-plugins/issues/214)) ([d4dda93](https://github.com/ni/systemlink-grafana-plugins/commit/d4dda936bf36de26c7fe9a4e16c67470aab3e061))
+
+### Bug Fixes
+
+* **products, results:** Refactor Descending control below the Order by ([#218](https://github.com/ni/systemlink-grafana-plugins/issues/218)) ([d644ad6](https://github.com/ni/systemlink-grafana-plugins/commit/d644ad668e84aa08bbc4ea36ef90cf19e885416b))
+
 ## [3.88.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.88.0...v3.88.1) (2025-05-26)
 
 ### Bug Fixes
