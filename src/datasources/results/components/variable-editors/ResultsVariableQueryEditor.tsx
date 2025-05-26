@@ -19,6 +19,7 @@ import {
 import { ResultsDataSource } from 'datasources/results/ResultsDataSource';
 import { StepsQueryBuilderWrapper } from '../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
 import { TAKE_LIMIT } from 'datasources/results/constants/QuerySteps.constants';
+import { defaultStepsQuery } from 'datasources/results/defaultQueries';
 
 type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSourceOptions>;
 
@@ -78,7 +79,8 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
   };
 
   const onResultsQueryChange = (resultsQuery: string) => {
-    disableStepsQueryBuilder(resultsQuery === '');
+    disableStepsQueryBuilder(resultsQuery === '' || resultsQuery === defaultStepsQuery.resultsQuery);
+    console.log('onResultsQueryChange', resultsQuery);
     onChange({ ...queryResultsquery, queryByResults: resultsQuery } as ResultsVariableQuery);
   };
 
@@ -167,7 +169,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
         <>
           <StepsQueryBuilderWrapper
             datasource={queryStepsDatasource.current}
-            resultsQuery={stepsVariableQuery.queryByResults}
+            resultsQuery={stepsVariableQuery.queryByResults ? stepsVariableQuery.queryByResults : defaultStepsQuery.resultsQuery}
             stepsQuery={stepsVariableQuery.queryBySteps}
             onResultsQueryChange={(value: string) => onResultsQueryChange(value)}
             onStepsQueryChange={(value: string) => onStepsQueryChange(value)}

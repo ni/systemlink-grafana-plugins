@@ -95,7 +95,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
     if (!query.resultsQuery || query.resultsQuery === defaultStepsQuery.resultsQuery) {
-      console.log(query.resultsQuery);
       return {
         refId: query.refId,
         fields: [],
@@ -258,7 +257,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   async metricFindQuery(query: StepsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    if (query.queryByResults !== undefined && this.isTakeValid(query.stepsTake!)) {
+    console.log('in data', query.queryByResults)
+    if (query.queryByResults !== undefined && this.isTakeValid(query.take!) && query.queryByResults !== defaultStepsQuery.resultsQuery) {
       const resultsQuery = query.queryByResults ? transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryByResults, options?.scopedVars),
         this.resultsComputedDataFields
