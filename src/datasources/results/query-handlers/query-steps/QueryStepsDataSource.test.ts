@@ -774,6 +774,19 @@ describe('QueryStepsDataSource', () => {
         expect(result).toEqual([]);
       });
 
+      it('should return empty array if queryByResults is default query', async () => {
+        const query = {
+          refId: 'A',
+          queryType: QueryType.Steps,
+          queryByResults: defaultStepsQuery.resultsQuery,
+          queryBySteps: undefined,
+          stepsTake: 1000,
+        } as unknown as StepsVariableQuery;
+        const result = await datastore.metricFindQuery(query);
+
+        expect(result).toEqual([]);
+      });
+
       it.each([-1, NaN, 10001])('should return empty array if stepsTake value is invalid (%p)', async (invalidStepsTake) => {
         const query = {
           refId: 'A',

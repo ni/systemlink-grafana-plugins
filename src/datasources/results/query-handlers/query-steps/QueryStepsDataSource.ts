@@ -257,8 +257,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   async metricFindQuery(query: StepsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    console.log('in data', query.queryByResults)
-    if (query.queryByResults !== undefined && this.isTakeValid(query.take!) && query.queryByResults !== defaultStepsQuery.resultsQuery) {
+    if (query.queryByResults !== undefined && this.isTakeValid(query.stepsTake!) && query.queryByResults !== defaultStepsQuery.resultsQuery) {
       const resultsQuery = query.queryByResults ? transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryByResults, options?.scopedVars),
         this.resultsComputedDataFields
