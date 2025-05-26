@@ -1,3 +1,9 @@
+## [3.88.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.88.0...v3.88.1) (2025-05-26)
+
+### Bug Fixes
+
+* **results:** Label not persisting in Query Builder after selection from dropdown ([#195](https://github.com/ni/systemlink-grafana-plugins/issues/195)) ([ff26625](https://github.com/ni/systemlink-grafana-plugins/commit/ff2662511b2890c860832786bf13404270755013))
+
 ## [3.88.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.87.0...v3.88.0) (2025-05-23)
 
 ### Features
