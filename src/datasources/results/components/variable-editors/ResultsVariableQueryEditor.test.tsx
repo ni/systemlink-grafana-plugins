@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { ResultsVariableQueryEditor } from './ResultsVariableQueryEditor';
 import { setupRenderer } from 'test/fixtures';
 import { ResultsDataSource } from 'datasources/results/ResultsDataSource';
