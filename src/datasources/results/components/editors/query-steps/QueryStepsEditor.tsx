@@ -123,24 +123,22 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
           />
 
           <div className="right-query-controls">
-            <div className="horizontal-control-group">
-              <InlineField label="OrderBy" labelWidth={26} tooltip={tooltips.orderBy}>
-                <Select
-                  options={OrderBy as SelectableValue[]}
-                  width={25}
-                  placeholder="Select field to order by"
-                  onChange={onOrderByChange}
-                  value={query.orderBy}
-                  defaultValue={query.orderBy}
-                />
-              </InlineField>
-              <InlineField label="Descending" tooltip={tooltips.descending}>
-                <InlineSwitch
-                  onChange={event => onDescendingChange(event.currentTarget.checked)}
-                  value={query.descending}
-                />
-              </InlineField>
-            </div>
+            <InlineField label="OrderBy" labelWidth={26} tooltip={tooltips.orderBy}>
+              <Select
+                options={OrderBy as SelectableValue[]}
+                width={25}
+                placeholder="Select field to order by"
+                onChange={onOrderByChange}
+                value={query.orderBy}
+                defaultValue={query.orderBy}
+              />
+            </InlineField>
+            <InlineField label="Descending" labelWidth={26} tooltip={tooltips.descending}>
+              <InlineSwitch
+                onChange={event => onDescendingChange(event.currentTarget.checked)}
+                value={query.descending}
+              />
+            </InlineField>
             <InlineField label="Take" labelWidth={26} tooltip={tooltips.recordCount}>
               <AutoSizeInput
                 minWidth={25}

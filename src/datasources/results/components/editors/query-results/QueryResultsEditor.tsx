@@ -117,24 +117,22 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
           </InlineField>
           {query.outputType === OutputType.Data && (
             <div className="right-query-controls">
-              <div className="horizontal-control-group">
-                <InlineField label="OrderBy" labelWidth={26} tooltip={tooltips.orderBy}>
-                  <Select
-                    width={25}
-                    options={OrderBy as SelectableValue[]}
-                    placeholder="Select field to order by"
-                    onChange={onOrderByChange}
-                    value={query.orderBy}
-                    defaultValue={query.orderBy}
-                  />
-                </InlineField>
-                <InlineField label="Descending" tooltip={tooltips.descending}>
-                  <InlineSwitch
-                    onChange={event => onDescendingChange(event.currentTarget.checked)}
-                    value={query.descending}
-                  />
-                </InlineField>
-              </div>
+              <InlineField label="OrderBy" labelWidth={26} tooltip={tooltips.orderBy}>
+                <Select
+                  width={25}
+                  options={OrderBy as SelectableValue[]}
+                  placeholder="Select field to order by"
+                  onChange={onOrderByChange}
+                  value={query.orderBy}
+                  defaultValue={query.orderBy}
+                />
+              </InlineField>
+              <InlineField label="Descending" labelWidth={26} tooltip={tooltips.descending}>
+                <InlineSwitch
+                  onChange={event => onDescendingChange(event.currentTarget.checked)}
+                  value={query.descending}
+                />
+              </InlineField>
               <InlineField label="Take" labelWidth={26} tooltip={tooltips.recordCount}>
                 <AutoSizeInput
                   minWidth={25}
