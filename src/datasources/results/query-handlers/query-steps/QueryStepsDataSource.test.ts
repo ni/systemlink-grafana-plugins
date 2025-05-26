@@ -38,6 +38,13 @@ const mockQueryResultsValuesResponse = ["partNumber1", "partNumber2"];
 describe('QueryStepsDataSource', () => {
   beforeEach(() => {
     ResultsDataSourceBase.partNumbersPromise = Promise.resolve(mockQueryResultsValuesResponse);
+    ResultsDataSourceBase.workspacesPromise = Promise.resolve(
+      new Map<string, Workspace>([
+        ['1', { id: '1', name: 'Default workspace', default: true, enabled: true }],
+        ['2', { id: '2', name: 'Other workspace', default: false, enabled: true }],
+      ])
+    );
+
     [datastore, backendServer, templateSrv] = setupDataSource(QueryStepsDataSource);
 
     backendServer.fetch

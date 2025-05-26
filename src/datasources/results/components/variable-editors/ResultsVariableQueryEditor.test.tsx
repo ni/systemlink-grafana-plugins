@@ -74,7 +74,7 @@ let queryBySteps: HTMLElement;
 describe('ResultsVariableQueryEditor', () => {
   beforeEach(() => {
     ResultsDataSourceBase.partNumbersPromise = Promise.resolve(fakePartNumbers);
-    ResultsDataSourceBase.workspacesPromise = Promise.resolve(new Map(fakeWorkspaces.map(ws => [ws.id, ws])));
+    ResultsDataSourceBase.workspacesPromise = Promise.resolve(new Map(fakeWorkspaces.map(workspace => [workspace.id, workspace])));
   });
 
   describe('Results Query Type', () => {

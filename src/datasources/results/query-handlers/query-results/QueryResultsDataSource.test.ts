@@ -21,22 +21,27 @@ const mockQueryResultsResponse: QueryResultsResponse = {
   totalCount: 1
 };
 const mockQueryResultsValuesResponse = ["partNumber1", "partNumber2"];
+const mockWorkspaces = new Map<string, Workspace>([
+  ['1', { id: '1', name: 'Default workspace', default: true, enabled: true }],
+  ['2', { id: '2', name: 'Other workspace', default: false, enabled: true }],
+]);
 
 let datastore: QueryResultsDataSource, backendServer: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
 
 describe('QueryResultsDataSource', () => {
   beforeEach(() => {
     ResultsDataSourceBase.partNumbersPromise = Promise.resolve(mockQueryResultsValuesResponse);
+    ResultsDataSourceBase.workspacesPromise = Promise.resolve(mockWorkspaces);
+
     [datastore, backendServer, templateSrv] = setupDataSource(QueryResultsDataSource);
     
     backendServer.fetch
-    .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
-    .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
-    
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+      .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
+
     backendServer.fetch
-    .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
-    .mockReturnValue(createFetchResponse(mockQueryResultsValuesResponse));
-    
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
+      .mockReturnValue(createFetchResponse(mockQueryResultsValuesResponse));
   })
 
   describe('queryResults', () => {
@@ -218,8 +223,7 @@ describe('QueryResultsDataSource', () => {
 
       test('should return the same promise instance when workspacePromise already exists', async () => {
         const mockWorkspaces = new Map<string, Workspace>([
-          ['1', { id: '1', name: 'Default workspace', default: true, enabled: true }],
-          ['2', { id: '2', name: 'Other workspace', default: false, enabled: true }],
+          ['1', { id: '1', name: 'New workspace', default: true, enabled: true }],
         ]);
         const mockPromise = Promise.resolve(mockWorkspaces);
         ResultsDataSourceBase.workspacesPromise = mockPromise;
