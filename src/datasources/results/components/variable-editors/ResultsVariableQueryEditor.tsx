@@ -23,7 +23,7 @@ import { TAKE_LIMIT } from 'datasources/results/constants/QuerySteps.constants';
 type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSourceOptions>;
 
 export function ResultsVariableQueryEditor({ query, onChange, datasource }: Props) {
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const [isQueryBuilderDisabled, disableStepsQueryBuilder] = useState<boolean>(true);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
