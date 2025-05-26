@@ -60,7 +60,7 @@ let queryBySteps: HTMLElement;
 
 describe('Results Query Type', () => {
   beforeEach(() => {
-    renderEditor({ refId: '', queryType: QueryType.Results, properties: '', queryBy: '' } as unknown as ResultsQuery);
+    renderEditor({ refId: '', queryType: QueryType.Results, properties: ResultsVariableProperties[0].value, queryBy: '', resultsTake: 1000 } as unknown as ResultsQuery);
   });
 
   it('should render query type radio buttons', () => {
@@ -83,8 +83,7 @@ describe('Results Query Type', () => {
 
     //simulate user selecting a property
     fireEvent.keyDown(propertiesSelect, { key: 'ArrowDown' });
-    const option = await screen.findByText(ResultsVariableProperties[0].label);
-    fireEvent.click(option);
+    fireEvent.click(propertiesSelect);
 
     queryBy = screen.getByText('Query by results properties');
     expect(queryBy).toBeInTheDocument();
@@ -92,6 +91,32 @@ describe('Results Query Type', () => {
     await waitFor(() => expect(screen.getAllByText('Property').length).toBe(1));
     await waitFor(() => expect(screen.getAllByText('Operator').length).toBe(1));
     await waitFor(() => expect(screen.getAllByText('Value').length).toBe(1));
+  });
+
+  describe('Take input field', () => {
+    it('should render take input field with 1000 as value by default', () => {
+      const takeInput = screen.getByPlaceholderText('Enter record count');
+      expect(takeInput).toBeInTheDocument();
+      expect(takeInput).toHaveValue(1000);
+    });
+
+    it('should only allows numbers in Take field', async () => {
+      const takeInput = screen.getByPlaceholderText('Enter record count');
+
+      // User tries to enter a non-numeric value
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, 'abc');
+      await waitFor(() => {
+        expect(takeInput).toHaveValue(null);
+      });
+
+      // User enters a valid numeric value
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, '500');
+      await waitFor(() => {
+        expect(takeInput).toHaveValue(500);
+      });
+    });
   });
 });
 
@@ -125,13 +150,13 @@ describe('Steps Query Type', () => {
       expect(takeInput).toHaveValue(1000);
     });
 
-    it('should render with existing take when take is already set', () => {
+    it('should render with existing stepsTake when take is already set', () => {
       renderEditor({
         refId: '',
         queryType: QueryType.Steps,
         queryByResults: 'resultsQuery',
         queryBySteps: '',
-        take: 2000,
+        stepsTake: 2000,
       } as unknown as ResultsQuery);
 
       const takeInput = screen.getByPlaceholderText('Enter record count');
@@ -144,7 +169,7 @@ describe('Steps Query Type', () => {
         queryType: QueryType.Steps,
         queryByResults: 'resultsQuery',
         queryBySteps: '',
-        take: 2000,
+        stepsTake: 2000,
       } as unknown as ResultsQuery);
       const takeInput = screen.getByPlaceholderText('Enter record count');
 
