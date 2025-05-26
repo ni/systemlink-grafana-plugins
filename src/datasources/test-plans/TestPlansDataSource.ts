@@ -1,7 +1,7 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TestDataSourceResponse } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { OrderByOptions, OutputType, Properties, PropertiesOptions, TestPlansQuery } from './types';
+import { OrderByOptions, OutputType, Properties, PropertiesOptions, TestPlansQuery, TestPlansVariableQuery } from './types';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(
@@ -42,6 +42,10 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
   shouldRunQuery(query: TestPlansQuery): boolean {
     return true;
+  }
+
+  async metricFindQuery(query: TestPlansVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    return [];
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
