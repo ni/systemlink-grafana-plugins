@@ -121,7 +121,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
             onStepsQueryChange={(value: string) => onStepsFilterChange(value)}
             disableStepsQueryBuilder={disableStepsQueryBuilder}
           />
-
+          {query.outputType === OutputType.Data && (
           <div className="right-query-controls">
             <div className="horizontal-control-group">
               <InlineField label="OrderBy" labelWidth={26} tooltip={tooltips.orderBy}>
@@ -155,6 +155,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
               />
             </InlineField>
           </div>
+          )}
         </div>
       </VerticalGroup>
     </>
