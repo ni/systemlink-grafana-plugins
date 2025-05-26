@@ -5,7 +5,13 @@ import React, { useState, useEffect } from 'react';
 import { useTimeoutFn } from 'react-use';
 import { isSystemLinkError } from './utils';
 
-export const FloatingError = ({ message = '', innerMessage = '', severity = 'error' }) => {
+type FloatingErrorProps = {
+  message?: string;
+  innerMessage?: string;
+  severity?: AlertVariant;
+};
+
+export const FloatingError = ({ message = '', innerMessage = '', severity = 'error' }: FloatingErrorProps) => {
   const [hide, setHide] = useState(false);
   const reset = useTimeoutFn(() => setHide(true), 5000)[2];
   useEffect(() => {
@@ -24,7 +30,7 @@ export const FloatingError = ({ message = '', innerMessage = '', severity = 'err
       severity={severity as AlertVariant}
       onRemove={() => setHide(true)}
     >
-      {innerMessage && <div>{innerMessage}</div>}
+      {innerMessage && <span>{innerMessage}</span>}
     </Alert>
   );
 };
