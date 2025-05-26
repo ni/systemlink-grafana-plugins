@@ -80,7 +80,6 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
 
   const onResultsQueryChange = (resultsQuery: string) => {
     disableStepsQueryBuilder(resultsQuery === '' || resultsQuery === defaultStepsQuery.resultsQuery);
-    console.log('onResultsQueryChange', resultsQuery);
     onChange({ ...queryResultsquery, queryByResults: resultsQuery } as ResultsVariableQuery);
   };
 
