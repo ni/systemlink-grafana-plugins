@@ -27,7 +27,7 @@ export const FloatingError = ({ message = '', innerMessage = '', severity = 'err
       title={message}
       elevated
       style={{ position: 'absolute', top: 0, right: 0, width: '50%' }}
-      severity={severity as AlertVariant}
+      severity={severity}
       onRemove={() => setHide(true)}
     >
       {innerMessage && <span>{innerMessage}</span>}
