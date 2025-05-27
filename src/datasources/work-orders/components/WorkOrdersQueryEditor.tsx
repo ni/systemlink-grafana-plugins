@@ -108,6 +108,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
             />
           </InlineField>
         )}
+          <div className="workorders-horizontal-control-group">
         <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
             <WorkOrdersQueryBuilder
               filter={query.queryBy} 
@@ -115,10 +116,8 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
               onChange={(event: any) => onQueryByChange(event.detail.linq)}
             ></WorkOrdersQueryBuilder>
           </InlineField>
-        </VerticalGroup>
-        <VerticalGroup>
           {query.outputType === OutputType.Properties && (
-            <div className="right-query-controls">
+            <div className="workorders-right-query-control">
               <VerticalGroup>
                 <div>
                   <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
@@ -140,7 +139,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
                 </div>
                 <InlineField
                   label="Take"
-                  labelWidth={25}
+                  labelWidth={18}
                   tooltip={tooltips.take}
                   invalid={!!recordCountInvalidMessage}
                   error={recordCountInvalidMessage}
@@ -158,6 +157,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
               </VerticalGroup>
             </div>
           )}
+          </div>
         </VerticalGroup>
       </HorizontalGroup>
     </>
