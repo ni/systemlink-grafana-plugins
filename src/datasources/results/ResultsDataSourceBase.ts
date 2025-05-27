@@ -1,7 +1,6 @@
 import { DataSourceBase } from "core/DataSourceBase";
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse } from "@grafana/data";
 import { ResultsQuery } from "./types/types";
-import { BatchQueryConfig, QueryResponse } from "./types/QuerySteps.types";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { ResultsPropertiesOptions } from "./types/QueryResults.types";
 import { getVariableOptions } from "core/utils";
@@ -180,10 +179,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
   private getLogicalOperator(operation: string): string {
     return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
-  }
-
-  private async delay(timeout: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, timeout));
   }
 
   testDatasource(): Promise<TestDataSourceResponse> {

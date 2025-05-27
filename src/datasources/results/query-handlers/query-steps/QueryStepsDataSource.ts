@@ -1,7 +1,6 @@
 import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, DataSourceInstanceSettings } from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
-  QueryResponse,
   QuerySteps,
   QueryStepsResponse,
   StepsProperties,
@@ -16,6 +15,8 @@ import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
+import { QueryResponse } from 'core/types';
+import { queryInBatches } from 'core/utils';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
@@ -94,7 +95,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       requestsPerSecond: QUERY_STEPS_REQUEST_PER_SECOND
     };
 
-    const response = await this.queryInBatches(queryRecord, batchQueryConfig, take);
+    const response = await queryInBatches(queryRecord, batchQueryConfig, take);
 
     return {
       steps: response.data,
@@ -102,7 +103,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       totalCount: response.totalCount
     };
   }
-  
+
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
     if (!query.resultsQuery) {
       return {
@@ -110,7 +111,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         fields: [],
       };
     }
-    
+
     query.stepsQuery = this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options);
     query.resultsQuery = this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options) || '';
 
@@ -119,7 +120,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     const projection = query.showMeasurements
       ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
       : query.properties;
-    
+
     if (query.outputType === OutputType.Data) {
       const responseData = await this.queryStepsInBatches(
         stepsQuery,
@@ -130,7 +131,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         query.resultsQuery,
         true
       );
-  
+
       if (responseData.steps.length === 0) {
         return {
           refId: query.refId,
@@ -258,12 +259,12 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
    * @returns - The transformed query string, or undefined if the input queryField is undefined.
    */
   private transformQuery(queryField: string | undefined, computedDataFields: Map<string, ExpressionTransformFunction>, options: DataQueryRequest): string | undefined {
-  return queryField
-    ? transformComputedFieldsQuery(
+    return queryField
+      ? transformComputedFieldsQuery(
         this.templateSrv.replace(queryField, options.scopedVars),
         computedDataFields
       )
-    : undefined;
+      : undefined;
   }
 
   async metricFindQuery(query: StepsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {

@@ -1,3 +1,21 @@
+## [3.91.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.91.0...v3.91.1) (2025-05-27)
+
+### Bug Fixes
+
+* **results:** Hide Order by and Take fields when output type is set to total count ([#219](https://github.com/ni/systemlink-grafana-plugins/issues/219)) ([ae9a06b](https://github.com/ni/systemlink-grafana-plugins/commit/ae9a06be5a9e94a0e7d5f6ae75ea7ef3f5854ea5))
+
+## [3.91.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.90.0...v3.91.0) (2025-05-27)
+
+### Features
+
+* **workorders:** add query by change ([#215](https://github.com/ni/systemlink-grafana-plugins/issues/215)) ([e87753d](https://github.com/ni/systemlink-grafana-plugins/commit/e87753daa67e967a092ea28b3e6897148fcdf9c8))
+
+## [3.90.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.89.0...v3.90.0) (2025-05-27)
+
+### Features
+
+* **test-plans:** Query test plans in batches ([#199](https://github.com/ni/systemlink-grafana-plugins/issues/199)) ([c3e1559](https://github.com/ni/systemlink-grafana-plugins/commit/c3e15594fd25c55855dae2ace0a3e5695e903860))
+
 ## [3.89.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.88.1...v3.89.0) (2025-05-26)
 
 ### Features
