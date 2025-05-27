@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`metricFindQuery should return test plan name with id when orderBy is provided 1`] = `
+[
+  {
+    "text": "testPlan 1 (1)",
+    "value": "1",
+  },
+  {
+    "text": "testPlan 2 (2)",
+    "value": "2",
+  },
+]
+`;
+
+exports[`metricFindQuery should return test plan name with id when queryBy is not provided 1`] = `
+[
+  {
+    "text": "testPlan 1 (1)",
+    "value": "1",
+  },
+  {
+    "text": "testPlan 2 (2)",
+    "value": "2",
+  },
+]
+`;

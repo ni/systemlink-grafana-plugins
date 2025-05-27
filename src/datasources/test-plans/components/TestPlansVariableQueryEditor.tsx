@@ -8,16 +8,13 @@ import { TestPlansDataSource } from '../TestPlansDataSource';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansVariableQuery>;
 
-export function TestPlansVariableQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
+export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Props) {
   query = datasource.prepareQuery(query);
 
   const handleQueryChange = useCallback(
-    (query: TestPlansVariableQuery, runQuery = true): void => {
+    (query: TestPlansVariableQuery): void => {
       onChange(query);
-      if (runQuery) {
-        onRunQuery();
-      }
-    }, [onChange, onRunQuery]
+    }, [onChange]
   );
 
   const onOrderByChange = (item: SelectableValue<string>) => {
