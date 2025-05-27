@@ -15,10 +15,10 @@ import { MAX_TAKE_PER_REQUEST, QUERY_STEPS_REQUEST_PER_SECOND, TAKE_LIMIT } from
 import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/StepsQueryBuilder.constants';
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
-import { ResultsPropertiesOptions, StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
+import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
 import { QueryResponse } from 'core/types';
 import { queryInBatches } from 'core/utils';
-import { MAX_PATH_TAKE_PER_REQUEST, QUERY_PATH_REQUEST_PER_SECOND, TOTAL_PATH_LIMIT } from 'datasources/results/constants/QueryPaths.constants';
+import { MAX_PATH_TAKE_PER_REQUEST, QUERY_PATH_REQUEST_PER_SECOND } from 'datasources/results/constants/QueryPaths.constants';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
@@ -165,7 +165,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
     query.stepsQuery = this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options);
     query.resultsQuery = this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options) || '';
-    await this.loadStepPaths(query.resultsQuery, options);
 
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
     const stepsQuery = this.buildQueryFilter(query.stepsQuery, useTimeRangeFilter);
@@ -325,22 +324,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
   set stepPaths(value: string[]) {
     this._stepPaths = new Set(value);
-  }
-
-  async loadStepPaths(resultsQuery: string, options: DataQueryRequest){
-    const transformedResultsQuery = this.transformQuery(resultsQuery, this.resultsComputedDataFields, options);
-    const programNames = await this.queryResultsValues(ResultsPropertiesOptions.PROGRAM_NAME, transformedResultsQuery);
-    if(!programNames.length) {
-      return;
-    }
-    const queryRequest = this.buildQueryPathRequest(programNames);
-    const response = await this.queryStepPathInBatches(queryRequest, [StepsPathProperties.path] ,TOTAL_PATH_LIMIT, true);
-    this.stepPaths = response.paths.map((path) => path.path);
-  }
-
-  private buildQueryPathRequest(programNames: string[]): string {
-    const programNamesQuery = programNames.map(name => `programName="${name}"`).join(' || ');
-    return `(${programNamesQuery})`;
   }
 
   async metricFindQuery(query: StepsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
