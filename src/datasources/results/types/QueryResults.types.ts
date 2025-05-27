@@ -14,12 +14,13 @@ export interface QueryResults extends ResultsQuery {
 export interface ResultsVariableQuery extends ResultsQuery {
   properties?: string;
   queryBy?: string;
+  resultsTake?: number;
 }
 
 export interface StepsVariableQuery extends ResultsQuery {
   queryByResults: string;
   queryBySteps?: string;
-  take?: number;
+  stepsTake?: number;
 }
 
 export const ResultsVariableProperties = [

@@ -1,7 +1,6 @@
 import { DataSourceBase } from "core/DataSourceBase";
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse } from "@grafana/data";
 import { ResultsQuery } from "./types/types";
-import { BatchQueryConfig, QueryResponse } from "./types/QuerySteps.types";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { ResultsPropertiesOptions } from "./types/QueryResults.types";
 import { getVariableOptions } from "core/utils";
@@ -39,64 +38,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     return this.templateSrv.replace(timeRangeFilter, options.scopedVars);
   }
 
-  async queryInBatches<T>(
-    queryRecord: (take: number, continuationToken?: string) => Promise<QueryResponse<T>>,
-    queryConfig: BatchQueryConfig,
-    take?: number,
-  ): Promise<QueryResponse<T>> {
-    if (take === undefined || take <= queryConfig.maxTakePerRequest) {
-      return await queryRecord(take || queryConfig.maxTakePerRequest);
-    }
-  
-    let queryResponse: T[] = [];
-    let continuationToken: string | undefined;
-    let totalCount: number | undefined;
-
-    const getRecords = async (currentRecordCount: number): Promise<void> => { 
-      const response = await queryRecord(currentRecordCount, continuationToken); 
-      queryResponse.push(...response.data); 
-      continuationToken = response.continuationToken; 
-      totalCount = response.totalCount ?? totalCount; 
-    };
-
-    const queryRecordsInCurrentBatch = async (): Promise<void> => {
-      const remainingRecordsToGet = totalCount !== undefined ? 
-      Math.min(take - queryResponse.length, totalCount - queryResponse.length) : 
-      take - queryResponse.length;
-    
-      if (remainingRecordsToGet <= 0) {
-        return;
-      }
-
-      const currentRecordCount = Math.min(queryConfig.maxTakePerRequest, remainingRecordsToGet);
-      await getRecords(currentRecordCount);
-    };
-  
-    const queryCurrentBatch = async (requestsInCurrentBatch: number): Promise<void> => {
-      for( let request = 0; request < requestsInCurrentBatch; request++ ){
-        await queryRecordsInCurrentBatch();
-      }
-    };
-  
-    while (queryResponse.length < take && (totalCount === undefined || queryResponse.length < totalCount)) {
-      const remainingRequestCount = Math.ceil((take - queryResponse.length) / queryConfig.maxTakePerRequest);
-      const requestsInCurrentBatch = Math.min(queryConfig.requestsPerSecond, remainingRequestCount);
-      
-      const startTime = Date.now();
-      await queryCurrentBatch(requestsInCurrentBatch);
-      const elapsedTime = Date.now() - startTime;
-
-      if (queryResponse.length <= take && continuationToken && elapsedTime < 1000) {
-        await this.delay(1000 - elapsedTime);
-      }
-    }
-  
-    return {
-      data: queryResponse,
-      totalCount,
-    };
-  }
-
   async loadWorkspaces(): Promise<void> {
     if (this.workspacesCache.size > 0) {
       return;
@@ -104,7 +45,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
     const workspaces = await this.getWorkspaces()
       .catch(error => {
-        throw new Error(error);
+        console.error('Error in loading workspaces:', error);
       });
 
     workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
@@ -118,7 +59,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     const partNumbers = await this.post<string[]>(this.queryResultsValuesUrl, {
       field: ResultsPropertiesOptions.PART_NUMBER,
     }).catch(error => {
-      throw new Error(error);
+      console.error('Error in loading part numbers:', error);
     });
 
     partNumbers?.forEach(partNumber => this.partNumbersCache.push(partNumber));
@@ -162,10 +103,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
   private getLogicalOperator(operation: string): string {
     return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
-  }
-
-  private async delay(timeout: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, timeout));
   }
 
   testDatasource(): Promise<TestDataSourceResponse> {
