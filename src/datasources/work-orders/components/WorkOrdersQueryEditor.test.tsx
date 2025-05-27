@@ -26,8 +26,6 @@ const defaultProps: QueryEditorProps<WorkOrdersDataSource, WorkOrdersQuery> = {
 describe('WorkOrdersQueryEditor', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockOnChange.mockClear();
-    mockOnRunQuery.mockClear();
   });
 
   function renderElement(query: WorkOrdersQuery = { refId: 'A', outputType: OutputType.Properties }) {
@@ -316,6 +314,8 @@ describe('WorkOrdersQueryEditor', () => {
     it('should show error message when when user changes take to number greater than max take', async () => {
       const container = renderElement();
       const takeInput = container.getByRole('spinbutton');
+      mockOnChange.mockClear();
+      mockOnRunQuery.mockClear();
 
       await userEvent.clear(takeInput);
       await userEvent.type(takeInput, '1000000');
@@ -331,9 +331,10 @@ describe('WorkOrdersQueryEditor', () => {
     it('should show error message when when user changes take to number less than min take', async () => {
       const container = renderElement();
       const takeInput = container.getByRole('spinbutton');
+      mockOnChange.mockClear();
+      mockOnRunQuery.mockClear();
 
       await userEvent.clear(takeInput);
-      await userEvent.type(takeInput, '0');
       await userEvent.tab();
 
       await waitFor(() => {
