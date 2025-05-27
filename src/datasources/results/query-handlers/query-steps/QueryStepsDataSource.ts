@@ -25,7 +25,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryPathsUrl = this.baseUrl + '/v2/query-paths';
 
   defaultQuery = defaultStepsQuery;
-  private _stepPaths: Set<string> = new Set();
 
   async querySteps(
     filter?: string,
@@ -316,14 +315,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         computedDataFields
       )
       : undefined;
-  }
-
-  get stepPaths(): string[] {
-    return Array.from(this._stepPaths);
-  }
-
-  set stepPaths(value: string[]) {
-    this._stepPaths = new Set(value);
   }
 
   async metricFindQuery(query: StepsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
