@@ -1,3 +1,9 @@
+## [3.91.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.91.0...v3.91.1) (2025-05-27)
+
+### Bug Fixes
+
+* **results:** Hide Order by and Take fields when output type is set to total count ([#219](https://github.com/ni/systemlink-grafana-plugins/issues/219)) ([ae9a06b](https://github.com/ni/systemlink-grafana-plugins/commit/ae9a06be5a9e94a0e7d5f6ae75ea7ef3f5854ea5))
+
 ## [3.91.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.90.0...v3.91.0) (2025-05-27)
 
 ### Features
