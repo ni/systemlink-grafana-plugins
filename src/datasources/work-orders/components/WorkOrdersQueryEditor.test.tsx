@@ -26,6 +26,8 @@ const defaultProps: QueryEditorProps<WorkOrdersDataSource, WorkOrdersQuery> = {
 describe('WorkOrdersQueryEditor', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockOnChange.mockClear();
+    mockOnRunQuery.mockClear();
   });
 
   function renderElement(query: WorkOrdersQuery = { refId: 'A', outputType: OutputType.Properties }) {
@@ -321,6 +323,8 @@ describe('WorkOrdersQueryEditor', () => {
 
       await waitFor(() => {
         expect(container.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
+        expect(mockOnChange).not.toHaveBeenCalled();
+        expect(mockOnRunQuery).not.toHaveBeenCalled();
       });
     });
 
@@ -334,6 +338,8 @@ describe('WorkOrdersQueryEditor', () => {
 
       await waitFor(() => {
         expect(container.getByText('Enter a value greater than or equal to 0')).toBeInTheDocument();
+        expect(mockOnChange).not.toHaveBeenCalled();
+        expect(mockOnRunQuery).not.toHaveBeenCalled();
       });
     });
 

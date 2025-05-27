@@ -71,9 +71,9 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
         break;
       default:
         setRecordCountInvalidMessage('');
+        handleQueryChange({ ...query, take: value });
         break;
     }
-    handleQueryChange({ ...query, take: value });
   };
 
   return (
