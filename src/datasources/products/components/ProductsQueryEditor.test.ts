@@ -16,7 +16,7 @@ let recordCount: HTMLElement
 
 describe('ProductsQueryEditor', () => {
   beforeEach(async () => {
-    [onChange, onRunQuery] = render({ refId: '', properties: [], orderBy: undefined } as ProductQuery);
+    [onChange, onRunQuery] = render({ refId: '', properties: [], orderBy: undefined, queryBy: '' } as ProductQuery);
     await waitFor(() => properties = screen.getAllByRole('combobox')[0]);
     orderBy = screen.getAllByRole('combobox')[1];
     descending = screen.getByRole('checkbox');
@@ -49,6 +49,17 @@ describe('ProductsQueryEditor', () => {
     await waitFor(() => expect(screen.getAllByText('Property').length).toBe(1));
     await waitFor(() => expect(screen.getAllByText('Operator').length).toBe(1));
     await waitFor(() => expect(screen.getAllByText('Value').length).toBe(1));
+  });
+
+  it('should not call `onChange` when queryBy filter is not changed', async () => {
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onRunQuery).toHaveBeenCalledTimes(1);
+    onChange.mockClear();
+    onRunQuery.mockClear();
+
+    render({ refId: '', properties: [], orderBy: undefined, queryBy: '' } as ProductQuery);
+    expect(onChange).not.toHaveBeenCalled();
+    expect(onRunQuery).not.toHaveBeenCalled();
   });
 
   it('updates when user makes changes', async () => {

@@ -143,6 +143,8 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
       QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO,
       QueryBuilderOperations.IS_BLANK,
       QueryBuilderOperations.IS_NOT_BLANK,
+      QueryBuilderOperations.DATE_TIME_IS_AFTER,
+      QueryBuilderOperations.DATE_TIME_IS_BEFORE,
     ].map((operation) => {
       return {
         ...operation,

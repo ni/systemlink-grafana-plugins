@@ -1,3 +1,69 @@
+## [3.89.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.88.1...v3.89.0) (2025-05-26)
+
+### Features
+
+* **products:** Fix Duplicate API calls in query builder for Workspace and Updated At ([#216](https://github.com/ni/systemlink-grafana-plugins/issues/216)) ([ece36fe](https://github.com/ni/systemlink-grafana-plugins/commit/ece36fe5798873eac971a45b0d104373faf63471))
+* **results:** Add Take control for Results Query in Results Variable Editor ([#214](https://github.com/ni/systemlink-grafana-plugins/issues/214)) ([d4dda93](https://github.com/ni/systemlink-grafana-plugins/commit/d4dda936bf36de26c7fe9a4e16c67470aab3e061))
+
+### Bug Fixes
+
+* **products, results:** Refactor Descending control below the Order by ([#218](https://github.com/ni/systemlink-grafana-plugins/issues/218)) ([d644ad6](https://github.com/ni/systemlink-grafana-plugins/commit/d644ad668e84aa08bbc4ea36ef90cf19e885416b))
+
+## [3.88.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.88.0...v3.88.1) (2025-05-26)
+
+### Bug Fixes
+
+* **results:** Label not persisting in Query Builder after selection from dropdown ([#195](https://github.com/ni/systemlink-grafana-plugins/issues/195)) ([ff26625](https://github.com/ni/systemlink-grafana-plugins/commit/ff2662511b2890c860832786bf13404270755013))
+
+## [3.88.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.87.0...v3.88.0) (2025-05-23)
+
+### Features
+
+* **workorders:** Add support to query workorders ([#204](https://github.com/ni/systemlink-grafana-plugins/issues/204)) ([a7a12f5](https://github.com/ni/systemlink-grafana-plugins/commit/a7a12f5e0087f9ffe8ce24927973c7e85f6ba476))
+
+## [3.87.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.86.0...v3.87.0) (2025-05-23)
+
+### Features
+
+* **workorders:** Add support for properties ([#196](https://github.com/ni/systemlink-grafana-plugins/issues/196)) ([021a8f8](https://github.com/ni/systemlink-grafana-plugins/commit/021a8f84bc8c66ec3e14c5fe420673d926a2fa29))
+
+## [3.86.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.85.0...v3.86.0) (2025-05-23)
+
+### Features
+
+* add nimble theming for query builder ([#175](https://github.com/ni/systemlink-grafana-plugins/issues/175)) ([d241e93](https://github.com/ni/systemlink-grafana-plugins/commit/d241e932e71dd88109c4e4be2b1a58b3f764eb84))
+
+## [3.85.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.84.0...v3.85.0) (2025-05-23)
+
+### Features
+
+* **workorders:** Add support to order by and order by descending in work orders datasource ([#198](https://github.com/ni/systemlink-grafana-plugins/issues/198)) ([2eafdf8](https://github.com/ni/systemlink-grafana-plugins/commit/2eafdf8d83b6575f88d2b2a73122defe72bde954))
+
+## [3.84.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.83.0...v3.84.0) (2025-05-23)
+
+### Features
+
+* **results:** Add take control for Steps Query in Results variable query ([#211](https://github.com/ni/systemlink-grafana-plugins/issues/211)) ([7214f9e](https://github.com/ni/systemlink-grafana-plugins/commit/7214f9ea33e844332db86ab4d064a6daa594a95c))
+
+## [3.83.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.82.0...v3.83.0) (2025-05-23)
+
+### Features
+
+* **testplans:** Add variable Query editor ([#203](https://github.com/ni/systemlink-grafana-plugins/issues/203)) ([f00a4fe](https://github.com/ni/systemlink-grafana-plugins/commit/f00a4fe89d0c949110b35e4bd8a0480070d2fe41))
+
+## [3.82.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.81.0...v3.82.0) (2025-05-23)
+
+### Features
+
+* **results:** Add logic to MetricFindQuery for Steps Query in Variable Editor ([#209](https://github.com/ni/systemlink-grafana-plugins/issues/209)) ([7c86540](https://github.com/ni/systemlink-grafana-plugins/commit/7c86540aa9dc7dc70c80b8d151efada85dbec04f))
+* Update Date-Time query builder operators to 'isAfter' & 'isBefore' ([#210](https://github.com/ni/systemlink-grafana-plugins/issues/210)) ([d5b8264](https://github.com/ni/systemlink-grafana-plugins/commit/d5b826401d765d26293415ebe19910e391126a29))
+
+## [3.81.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.80.0...v3.81.0) (2025-05-23)
+
+### Features
+
+* **results:** Add steps Query type to Variable Query Editor ([#200](https://github.com/ni/systemlink-grafana-plugins/issues/200)) ([eeb8eb6](https://github.com/ni/systemlink-grafana-plugins/commit/eeb8eb65037fde7d58781c1ca01b5eff383c082a))
+
 ## [3.80.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.79.1...v3.80.0) (2025-05-22)
 
 ### Features

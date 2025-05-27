@@ -1,0 +1,61 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkOrdersDataSource queryWorkOrders returns response from API 1`] = `
+{
+  "continuationToken": "",
+  "totalCount": 2,
+  "workOrders": [
+    {
+      "assignedTo": "User1",
+      "createdAt": "2023-01-01T00:00:00Z",
+      "createdBy": "User3",
+      "description": "Test description",
+      "dueDate": "2023-01-03T00:00:00Z",
+      "earliestStartDate": "2023-01-04T00:00:00Z",
+      "id": "1",
+      "name": "WorkOrder1",
+      "properties": {},
+      "requestedBy": "User2",
+      "state": "CLOSED",
+      "type": "TEST_REQUEST",
+      "updatedAt": "2023-01-02T00:00:00Z",
+      "updatedBy": "User4",
+      "workspace": "Workspace1",
+    },
+  ],
+}
+`;
+
+exports[`WorkOrdersDataSource queryWorkordersData returns work orders from API response 1`] = `
+[
+  {
+    "assignedTo": "User1",
+    "createdAt": "2023-01-01T00:00:00Z",
+    "createdBy": "User3",
+    "description": "Test description",
+    "dueDate": "2023-01-03T00:00:00Z",
+    "earliestStartDate": "2023-01-04T00:00:00Z",
+    "id": "1",
+    "name": "WorkOrder1",
+    "properties": {},
+    "requestedBy": "User2",
+    "state": "CLOSED",
+    "type": "TEST_REQUEST",
+    "updatedAt": "2023-01-02T00:00:00Z",
+    "updatedBy": "User4",
+    "workspace": "Workspace1",
+  },
+]
+`;
+
+exports[`WorkOrdersDataSource runQuery processes work orders query when outputType is Properties 1`] = `
+[
+  {
+    "name": "Workspace",
+    "type": "string",
+    "values": [
+      "Workspace1",
+    ],
+  },
+]
+`;

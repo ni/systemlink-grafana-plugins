@@ -2,8 +2,8 @@ import { MockProxy } from "jest-mock-extended";
 import { TestPlansDataSource } from "./TestPlansDataSource";
 import { BackendSrv } from "@grafana/runtime";
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from "test/fixtures";
-import { OrderByOptions, OutputType, Projections, Properties } from "./types";
-import { DataQueryRequest } from "@grafana/data";
+import { OrderByOptions, OutputType, Projections, Properties, TestPlansVariableQuery } from "./types";
+import { DataQueryRequest, LegacyMetricFindQueryOptions } from "@grafana/data";
 
 let datastore: TestPlansDataSource, backendServer: MockProxy<BackendSrv>
 
@@ -196,5 +196,19 @@ describe('queryTestPlans', () => {
     await expect(datastore.queryTestPlans(OrderByOptions.UPDATED_AT, [Projections.NAME], 1, true))
       .rejects
       .toThrow('An error occurred while querying test plans: Error: Request to url "/niworkorder/v1/query-testplans" failed with status code: 500. Error message: "Error"');
+  });
+});
+
+describe('metricFindQuery', () => {
+  let options: LegacyMetricFindQueryOptions = {};
+
+  it('should return empty response', async () => {
+    const query: TestPlansVariableQuery = {
+      refId: '',
+    };
+
+    const results = await datastore.metricFindQuery(query, options);
+
+    expect(results).toEqual([]);
   });
 });

@@ -3,7 +3,7 @@ import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana
 import { DataSourceBase } from 'core/DataSourceBase';
 import { QueryType, ResultsDataSourceOptions, ResultsQuery } from './types/types';
 import { QueryResultsDataSource } from './query-handlers/query-results/QueryResultsDataSource';
-import { QueryResults, ResultsVariableQuery } from './types/QueryResults.types';
+import { QueryResults, ResultsVariableQuery, StepsVariableQuery } from './types/QueryResults.types';
 import { QuerySteps } from './types/QuerySteps.types';
 import { QueryStepsDataSource } from './query-handlers/query-steps/QueryStepsDataSource';
 
@@ -44,8 +44,13 @@ export class ResultsDataSource extends DataSourceBase<ResultsQuery, ResultsDataS
     return false;
   }
 
-  async metricFindQuery(query: ResultsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    return this.queryResultsDataSource.metricFindQuery(query as ResultsVariableQuery, options);
+  async metricFindQuery(query: ResultsVariableQuery | StepsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    if (query.queryType === QueryType.Results) {
+      return this.queryResultsDataSource.metricFindQuery(query as ResultsVariableQuery, options);
+    } else if (query.queryType === QueryType.Steps) {
+      return this.queryStepsDataSource.metricFindQuery(query as StepsVariableQuery, options);
+    } 
+    return [];
   }
 
   get queryResultsDataSource(): QueryResultsDataSource {

@@ -2,9 +2,16 @@ import { DataQuery } from '@grafana/schema'
 
 export interface TestPlansQuery extends DataQuery {
     properties?: Properties[];
-    outputType: OutputType;
+    outputType?: OutputType;
     orderBy?: string;
     descending?: boolean;
+    recordCount?: number;
+}
+
+export interface TestPlansVariableQuery extends DataQuery {
+    orderBy?: string;
+    descending?: boolean;
+    queryBy?: string;
     recordCount?: number;
 }
 

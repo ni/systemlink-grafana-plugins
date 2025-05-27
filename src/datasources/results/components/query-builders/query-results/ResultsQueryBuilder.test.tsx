@@ -12,7 +12,7 @@ describe('ResultsQueryBuilder', () => {
     const partNumber = ['partNumber1', 'partNumber2'];
     const status = ['PASSED', 'FAILED'];
 
-    function renderElement(workspaces: Workspace[], partNumbers: string[], status: string[], filter: string, globalVariableOptions: QueryBuilderOption[] = []) {
+    function renderElement(workspaces: Workspace[] | null, partNumbers: string[], status: string[], filter: string, globalVariableOptions: QueryBuilderOption[] = []) {
       reactNode = React.createElement(ResultsQueryBuilder, { filter, workspaces, partNumbers, status, globalVariableOptions, onChange: jest.fn(), });
       const renderResult = render(reactNode);
       return {
@@ -98,7 +98,7 @@ describe('ResultsQueryBuilder', () => {
 
         expect(conditionsContainer?.length).toBe(1);
         expect(conditionsContainer.item(0)?.textContent).toContain("Updated"); //label
-        expect(conditionsContainer.item(0)?.textContent).toContain("Greater than"); //operator
+        expect(conditionsContainer.item(0)?.textContent).toContain("is after"); //operator
         expect(conditionsContainer.item(0)?.textContent).toContain(label); //value
       });
     });
@@ -108,6 +108,15 @@ describe('ResultsQueryBuilder', () => {
 
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.innerHTML).not.toContain('alert(\'Family\')');
+    })
+
+    it('should not set workspace field when workspace is null', () => {
+      const { conditionsContainer } = renderElement(null, partNumber, status, 'Workspace = "1"');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("Property"); //label
+      expect(conditionsContainer.item(0)?.textContent).toContain("Operator"); //operator
+      expect(conditionsContainer.item(0)?.textContent).toContain("Value"); //value
     })
 
     describe('theme', () => {  

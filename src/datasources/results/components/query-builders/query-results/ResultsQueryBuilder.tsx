@@ -20,7 +20,7 @@ import {
 type ResultsQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     filter?: string;
-    workspaces: Workspace[];
+    workspaces: Workspace[] | null;
     partNumbers: string[];
     status: string[];
     globalVariableOptions: QueryBuilderOption[];
@@ -46,6 +46,10 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
 
   const workspaceField = useMemo(() => {
     const workspaceField = ResultsQueryBuilderFields.WORKSPACE;
+    if (!workspaces) {
+      return null;
+    }
+
     return {
       ...workspaceField,
       lookup: {
@@ -119,6 +123,10 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
   }, [partNumbers]);
 
   useEffect(() => {
+    if(!workspaceField) {
+      return;
+    }
+
     const updatedFields = [
       partNumberField,
       ...ResultsQueryBuilderStaticFields!,
@@ -172,6 +180,8 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
       QueryBuilderOperations.LIST_DOES_NOT_EQUAL,
       QueryBuilderOperations.LIST_CONTAINS,
       QueryBuilderOperations.LIST_DOES_NOT_CONTAIN,
+      QueryBuilderOperations.DATE_TIME_IS_AFTER,
+      QueryBuilderOperations.DATE_TIME_IS_BEFORE,
     ].map(operation => {
       return {
         ...operation,

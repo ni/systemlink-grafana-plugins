@@ -87,12 +87,8 @@ export const StepsQueryBuilderFields: Record<string, QBField> = {
     label: 'Step updated at',
     dataField: StepsQueryBuilderFieldNames.UPDATED_AT,
     filterOperations: [
-      QueryBuilderOperations.EQUALS.name,
-      QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.GREATER_THAN.name,
-      QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name,
-      QueryBuilderOperations.LESS_THAN.name,
-      QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
+      QueryBuilderOperations.DATE_TIME_IS_AFTER.name,
+      QueryBuilderOperations.DATE_TIME_IS_BEFORE.name,
     ],
     lookup: {
       dataSource: [],

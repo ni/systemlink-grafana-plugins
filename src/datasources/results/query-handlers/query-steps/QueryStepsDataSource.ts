@@ -1,4 +1,4 @@
-import { DataQueryRequest, DataFrameDTO, FieldType } from '@grafana/data';
+import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
   QuerySteps,
@@ -9,12 +9,13 @@ import {
 } from 'datasources/results/types/QuerySteps.types';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { defaultStepsQuery } from 'datasources/results/defaultQueries';
-import { MAX_TAKE_PER_REQUEST, QUERY_STEPS_REQUEST_PER_SECOND } from 'datasources/results/constants/QuerySteps.constants';
-import { queryInBatches } from 'core/utils';
-import { QueryResponse } from 'core/types';
+import { MAX_TAKE_PER_REQUEST, QUERY_STEPS_REQUEST_PER_SECOND, TAKE_LIMIT } from 'datasources/results/constants/QuerySteps.constants';
 import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/StepsQueryBuilder.constants';
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
+import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
+import { QueryResponse } from 'core/types';
+import { queryInBatches } from 'core/utils';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
@@ -253,6 +254,46 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         computedDataFields
       )
       : undefined;
+  }
+
+  async metricFindQuery(query: StepsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    if (query.queryByResults !== undefined && this.isTakeValid(query.stepsTake!)) {
+      const resultsQuery = query.queryByResults ? transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryByResults, options?.scopedVars),
+        this.resultsComputedDataFields
+      ) : undefined;
+
+      const stepsQuery = query.queryBySteps ? transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBySteps, options?.scopedVars),
+        this.resultsComputedDataFields
+      ) : undefined;
+
+      let responseData: QueryStepsResponse;
+      try {
+        responseData = await this.queryStepsInBatches(
+          stepsQuery,
+          'UPDATED_AT',
+          [StepsPropertiesOptions.NAME as StepsProperties],
+          query.stepsTake,
+          true,
+          resultsQuery,
+        );
+      } catch (error) {
+        console.error('Error in querying steps:', error);
+        return [];
+      }
+
+      if (responseData.steps.length > 0) {
+        return responseData.steps
+          ? responseData.steps.map((data: StepsResponseProperties) => ({ text: data.name!, value: data.name! }))
+          : [];
+      }
+    }
+    return [];
+  }
+
+  private isTakeValid(value: number): boolean {
+    return !isNaN(value) && value > 0 && value <= TAKE_LIMIT;
   }
 
   shouldRunQuery(_: QuerySteps): boolean {
