@@ -1,3 +1,9 @@
+## [3.90.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.89.0...v3.90.0) (2025-05-27)
+
+### Features
+
+* **test-plans:** Query test plans in batches ([#199](https://github.com/ni/systemlink-grafana-plugins/issues/199)) ([c3e1559](https://github.com/ni/systemlink-grafana-plugins/commit/c3e15594fd25c55855dae2ace0a3e5695e903860))
+
 ## [3.89.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.88.1...v3.89.0) (2025-05-26)
 
 ### Features
