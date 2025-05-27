@@ -55,7 +55,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     return response;
   }
 
-    async queryStepPaths(
+    private async queryStepPaths(
     projection?: StepsPathProperties[],
     filter?: string,
     take?: number,

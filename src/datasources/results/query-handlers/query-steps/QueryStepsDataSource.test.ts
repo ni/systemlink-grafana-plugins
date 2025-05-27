@@ -659,6 +659,36 @@ describe('QueryStepsDataSource', () => {
       });
     });
 
+    describe('query step path',() => {
+      test('should make a single request when take is less than MAX_TAKE_PER_REQUESTh', async () => {
+        const mockResponses = [
+        createFetchResponse({
+          paths: Array(100).fill({ path: 'path1' }),
+          continuationToken: null,
+          totalCount: 100,
+      })]
+      backendServer.fetch
+        .mockImplementationOnce(() => mockResponses[0])
+        const responsePromise = datastore.queryStepPathInBatches(
+          undefined,
+          undefined,
+          100,
+          true
+        );
+        const response = await responsePromise;
+  
+        expect(response.paths).toHaveLength(100);
+        expect(backendServer.fetch).toHaveBeenCalledTimes(1);
+        expect(backendServer.fetch).toHaveBeenNthCalledWith(
+          1,
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-paths',
+            data: expect.objectContaining({ take: 100, continuationToken: undefined }),
+          })
+        );
+      });
+    })
+
     describe('query builder queries', () => {
       test('should transform the resultsfilter and stepsfilter contains single query', async () => {
         const query = buildQuery({
