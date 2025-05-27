@@ -39,64 +39,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     return this.templateSrv.replace(timeRangeFilter, options.scopedVars);
   }
 
-  async queryInBatches<T>(
-    queryRecord: (take: number, continuationToken?: string) => Promise<QueryResponse<T>>,
-    queryConfig: BatchQueryConfig,
-    take?: number,
-  ): Promise<QueryResponse<T>> {
-    if (take === undefined || take <= queryConfig.maxTakePerRequest) {
-      return await queryRecord(take || queryConfig.maxTakePerRequest);
-    }
-  
-    let queryResponse: T[] = [];
-    let continuationToken: string | undefined;
-    let totalCount: number | undefined;
-
-    const getRecords = async (currentRecordCount: number): Promise<void> => { 
-      const response = await queryRecord(currentRecordCount, continuationToken); 
-      queryResponse.push(...response.data); 
-      continuationToken = response.continuationToken; 
-      totalCount = response.totalCount ?? totalCount; 
-    };
-
-    const queryRecordsInCurrentBatch = async (): Promise<void> => {
-      const remainingRecordsToGet = totalCount !== undefined ? 
-      Math.min(take - queryResponse.length, totalCount - queryResponse.length) : 
-      take - queryResponse.length;
-    
-      if (remainingRecordsToGet <= 0) {
-        return;
-      }
-
-      const currentRecordCount = Math.min(queryConfig.maxTakePerRequest, remainingRecordsToGet);
-      await getRecords(currentRecordCount);
-    };
-  
-    const queryCurrentBatch = async (requestsInCurrentBatch: number): Promise<void> => {
-      for( let request = 0; request < requestsInCurrentBatch; request++ ){
-        await queryRecordsInCurrentBatch();
-      }
-    };
-  
-    while (queryResponse.length < take && (totalCount === undefined || queryResponse.length < totalCount)) {
-      const remainingRequestCount = Math.ceil((take - queryResponse.length) / queryConfig.maxTakePerRequest);
-      const requestsInCurrentBatch = Math.min(queryConfig.requestsPerSecond, remainingRequestCount);
-      
-      const startTime = Date.now();
-      await queryCurrentBatch(requestsInCurrentBatch);
-      const elapsedTime = Date.now() - startTime;
-
-      if (queryResponse.length <= take && continuationToken && elapsedTime < 1000) {
-        await this.delay(1000 - elapsedTime);
-      }
-    }
-  
-    return {
-      data: queryResponse,
-      totalCount,
-    };
-  }
-
   async loadWorkspaces(): Promise<Map<string, Workspace> | void> {
     if (ResultsDataSourceBase.workspacesPromise) {
       return ResultsDataSourceBase.workspacesPromise;
