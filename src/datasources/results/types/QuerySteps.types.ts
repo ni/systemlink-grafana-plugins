@@ -147,3 +147,31 @@ export interface ErrorBody {
   args?: string[];
   innerErrors?: ErrorBody[];
 }
+
+export interface QueryResponse<T> {
+  data: T[];
+  continuationToken?: string;
+  totalCount?: number;
+};
+
+export interface BatchQueryConfig {
+  maxTakePerRequest: number;
+  requestsPerSecond: number;
+};
+
+export enum StepsPathProperties {
+  path = 'path'
+};
+
+
+export interface QueryStepPathsResponse {
+  paths: StepPathResponseProperties[];
+  continuationToken?: string;
+  totalCount?: number;
+  error?: ErrorBody
+};
+
+
+export interface StepPathResponseProperties {
+  path: string;
+};
