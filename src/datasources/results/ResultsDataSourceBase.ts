@@ -18,11 +18,11 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
   private fromDateString = '${__from:date}';
   private toDateString = '${__to:date}';
+  private static _workspacesPromise: Promise<Map<string, Workspace> | void> | null = null;
+  private static _partNumbersPromise: Promise<string[] | void> | null = null;
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
-  static workspacesPromise: Promise<Map<string, Workspace> | void> | null = null;
-  static partNumbersPromise: Promise<string[] | void> | null = null;
 
   abstract runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
@@ -37,6 +37,22 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     const timeRangeFilter = `(${timeRangeField} > "${this.fromDateString}" && ${timeRangeField} < "${this.toDateString}")`;
 
     return this.templateSrv.replace(timeRangeFilter, options.scopedVars);
+  }
+
+  static get workspacesPromise(): Promise<Map<string, Workspace> | void> | null {
+    return ResultsDataSourceBase._workspacesPromise;
+  }
+
+  static set workspacesPromise(value: Promise<Map<string, Workspace> | void> | null) {
+    ResultsDataSourceBase._workspacesPromise = value;
+  }
+
+  static get partNumbersPromise(): Promise<string[] | void> | null {
+    return ResultsDataSourceBase._partNumbersPromise;
+  }
+
+  static set partNumbersPromise(value: Promise<string[] | void> | null) {
+    ResultsDataSourceBase._partNumbersPromise = value;
   }
 
   async loadWorkspaces(): Promise<Map<string, Workspace> | void> {
