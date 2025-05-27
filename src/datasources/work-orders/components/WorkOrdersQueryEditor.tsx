@@ -49,11 +49,11 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
     handleQueryChange({ ...query, descending: isDescendingChecked });
   };
 
-  const takeChange = (event: React.FormEvent<HTMLInputElement>) => {
+  const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
     switch (true) {
-      case isNaN(value) || value <= 0:
-        setRecordCountInvalidMessage('Enter a value greater than 0');
+      case isNaN(value) || value < 0:
+        setRecordCountInvalidMessage('Enter a value greater than or equal to 0');
         break;
       case value > TAKE_LIMIT:
         setRecordCountInvalidMessage('Enter a value less than or equal to 10,000');
@@ -62,7 +62,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
         setRecordCountInvalidMessage('');
         break;
     }
-    onChange({ ...query, take: value });
+    handleQueryChange({ ...query, take: value });
   };
 
   return (
@@ -124,23 +124,21 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
                   </InlineField>
                 </div>
                 <InlineField
-                label="Take"
-                labelWidth={18}
-                tooltip={tooltips.take}
-                invalid={!!recordCountInvalidMessage}
-                error={recordCountInvalidMessage}
-              >
-                <AutoSizeInput
-                  minWidth={26}
-                  maxWidth={26}
-                  type="number"
-                  defaultValue={query.take}
-                  onCommitChange={takeChange}
-                  placeholder="Enter record count"
-                  onKeyDown={event => {
-                    validateNumericInput(event);
-                  }}
-                />
+                  label="Take"
+                  labelWidth={25}
+                  tooltip={tooltips.take}
+                  invalid={!!recordCountInvalidMessage}
+                  error={recordCountInvalidMessage}
+                >
+                  <AutoSizeInput
+                    minWidth={26}
+                    maxWidth={26}
+                    type='number'
+                    defaultValue={query.take}
+                    onCommitChange={onTakeChange}
+                    placeholder="Enter record count"
+                    onKeyDown={(event) => { validateNumericInput(event) }}
+                  />
                 </InlineField>
               </VerticalGroup>
             </div>

@@ -107,9 +107,9 @@ describe('WorkOrdersQueryEditor', () => {
       });
     });
 
-    it('should render take', async () => {
-      const take = container.getByRole('spinbutton', { name: 'Take' });
-      expect(take).toBeInTheDocument();
+    it('should not render take', async () => {
+      const take = container.queryByRole('spinbutton', { name: 'Take' });
+      expect(take).not.toBeInTheDocument();
     });
   });
 
@@ -250,8 +250,8 @@ describe('WorkOrdersQueryEditor', () => {
       const container = renderElement();
       const takeInput = container.getByRole('spinbutton');
 
-      userEvent.type(takeInput, '10');
-      userEvent.tab(); // Trigger onCommitChange
+      await userEvent.type(takeInput, '10');
+      await userEvent.tab(); // Trigger onCommitChange
 
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ take: 10 }));
@@ -263,24 +263,25 @@ describe('WorkOrdersQueryEditor', () => {
       const container = renderElement();
       const takeInput = container.getByRole('spinbutton');
 
-      userEvent.clear(takeInput);
-      userEvent.type(takeInput, '1000000');
-      userEvent.tab();
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, '1000000');
+      await userEvent.tab();
 
       await waitFor(() => {
-        expect(container.getByText('Record count must be less than 10000')).toBeInTheDocument();
+        expect(container.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
       });
     });
+
     it('should show error message when when user changes take to number less than min take', async () => {
       const container = renderElement();
       const takeInput = container.getByRole('spinbutton');
 
-      userEvent.clear(takeInput);
-      userEvent.type(takeInput, '0');
-      userEvent.tab();
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, '0');
+      await userEvent.tab();
 
       await waitFor(() => {
-        expect(container.getByText('Record count must be greater than 0')).toBeInTheDocument();
+        expect(container.getByText('Enter a value greater than or equal to 0')).toBeInTheDocument();
       });
     });
 
@@ -289,21 +290,21 @@ describe('WorkOrdersQueryEditor', () => {
       const takeInput = container.getByRole('spinbutton');
 
       // User enters a value greater than max take
-      userEvent.clear(takeInput);
-      userEvent.type(takeInput, '1000000');
-      userEvent.tab();
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, '1000000');
+      await userEvent.tab();
       await waitFor(() => {
-        expect(container.getByText('Record count must be less than 10000')).toBeInTheDocument();
+        expect(container.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
       });
 
       // User enters a valid value
-      userEvent.clear(takeInput);
-      userEvent.type(takeInput, '100');
-      userEvent.tab();
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, '100');
+      await userEvent.tab();
 
       await waitFor(() => {
-        expect(container.queryByText('Record count must be greater than 0')).not.toBeInTheDocument();
-        expect(container.queryByText('Record count must be less than 10000')).not.toBeInTheDocument();
+        expect(container.queryByText('Enter a value greater than or equal to 0')).not.toBeInTheDocument();
+        expect(container.queryByText('Enter a value less than or equal to 10,000')).not.toBeInTheDocument();
       });
     });
   });
