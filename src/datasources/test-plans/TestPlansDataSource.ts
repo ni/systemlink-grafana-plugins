@@ -4,8 +4,8 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import { OrderByOptions, OutputType, Projections, Properties, PropertiesProjectionMap, QueryTestPlansResponse, TestPlanResponseProperties, TestPlansQuery, TestPlansVariableQuery } from './types';
 import { queryInBatches } from 'core/utils';
 import { QueryResponse } from 'core/types';
-import { QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
 import { isTimeField } from './utils';
+import { QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(
@@ -103,7 +103,13 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   async metricFindQuery(query: TestPlansVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    return [];
+    const metadata = (await this.queryTestPlansInBatches(
+      query.orderBy,
+      [Projections.ID, Projections.NAME],
+      query.recordCount,
+      query.descending
+    )).testPlans;
+    return metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.id})`, value: frame.id })) : [];
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

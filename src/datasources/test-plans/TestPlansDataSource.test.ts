@@ -2,10 +2,24 @@ import { MockProxy } from "jest-mock-extended";
 import { TestPlansDataSource } from "./TestPlansDataSource";
 import { BackendSrv } from "@grafana/runtime";
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from "test/fixtures";
-import { OrderByOptions, OutputType, Projections, Properties, TestPlansVariableQuery } from "./types";
+import { OrderByOptions, OutputType, Projections, Properties, QueryTestPlansResponse, TestPlansVariableQuery } from "./types";
 import { DataQueryRequest, LegacyMetricFindQueryOptions } from "@grafana/data";
 
-let datastore: TestPlansDataSource, backendServer: MockProxy<BackendSrv>
+let datastore: TestPlansDataSource, backendServer: MockProxy<BackendSrv>;
+
+const mockVariableQueryTestPlansResponse: QueryTestPlansResponse = {
+  testPlans: [
+    {
+      id: '1',
+      name: 'testPlan 1',
+    },
+    {
+      id: '2',
+      name: 'testPlan 2',
+    }
+  ],
+  totalCount: 2
+};
 
 beforeEach(() => {
   [datastore, backendServer] = setupDataSource(TestPlansDataSource);
@@ -200,15 +214,56 @@ describe('queryTestPlans', () => {
 });
 
 describe('metricFindQuery', () => {
-  let options: LegacyMetricFindQueryOptions = {};
+  let options: LegacyMetricFindQueryOptions;
+  beforeEach(() => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/niworkorder/v1/query-testplans' }))
+      .mockReturnValue(
+        createFetchResponse<QueryTestPlansResponse>(mockVariableQueryTestPlansResponse));
+    options = {}
+  });
 
-  it('should return empty response', async () => {
+  it('should return test plan name with id when queryBy is not provided', async () => {
     const query: TestPlansVariableQuery = {
       refId: '',
     };
 
     const results = await datastore.metricFindQuery(query, options);
 
-    expect(results).toEqual([]);
+    expect(results).toMatchSnapshot();
+    expect(backendServer.fetch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: {
+          descending: false,
+          projection: ["ID", "NAME"],
+          returnCount: false,
+          take: 1000
+        }
+      })
+    );
+  });
+
+  it('should return test plan name with id when orderBy is provided', async () => {
+    const query: TestPlansVariableQuery = {
+      refId: '',
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 1000,
+      descending: false,
+    };
+
+    const results = await datastore.metricFindQuery(query, options);
+
+    expect(results).toMatchSnapshot();
+    expect(backendServer.fetch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: {
+          descending: false,
+          orderBy: OrderByOptions.UPDATED_AT,
+          projection: ["ID", "NAME"],
+          returnCount: false,
+          take: 1000
+        }
+      })
+    );
   });
 });
