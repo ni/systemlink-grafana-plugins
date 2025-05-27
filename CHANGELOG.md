@@ -1,3 +1,9 @@
+## [3.91.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.90.0...v3.91.0) (2025-05-27)
+
+### Features
+
+* **workorders:** add query by change ([#215](https://github.com/ni/systemlink-grafana-plugins/issues/215)) ([e87753d](https://github.com/ni/systemlink-grafana-plugins/commit/e87753daa67e967a092ea28b3e6897148fcdf9c8))
+
 ## [3.90.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.89.0...v3.90.0) (2025-05-27)
 
 ### Features
