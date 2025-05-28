@@ -1,6 +1,7 @@
 import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
+  QueryStepPathsResponse,
   QuerySteps,
   QueryStepsResponse,
   StepPathResponseProperties,
@@ -145,7 +146,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       requestsPerSecond: QUERY_PATH_REQUEST_PER_SECOND
     };
 
-    const response = await this.queryInBatches(queryRecord, batchQueryConfig, take);
+    const response = await queryInBatches(queryRecord, batchQueryConfig, take);
 
     return {
       paths: response.data,
