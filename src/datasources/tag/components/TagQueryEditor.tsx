@@ -1,5 +1,5 @@
-import { QueryEditorProps, SelectableValue } from '@grafana/data';
-import { AutoSizeInput, InlineSwitch, RadioButtonGroup, Select } from '@grafana/ui';
+import { QueryEditorProps } from '@grafana/data';
+import { AutoSizeInput, Combobox, ComboboxOption, InlineSwitch, RadioButtonGroup } from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
 import { enumToOptions, useWorkspaceOptions } from 'core/utils';
 import React, { FormEvent } from 'react';
@@ -22,7 +22,7 @@ export function TagQueryEditor({ query, onChange, onRunQuery, datasource }: Prop
     onRunQuery();
   };
 
-  const onWorkspaceChange = (option?: SelectableValue<string>) => {
+  const onWorkspaceChange = (option?: ComboboxOption<string> | null) => {
     onChange({ ...query, workspace: option?.value ?? '' });
     onRunQuery();
   };
@@ -41,11 +41,10 @@ export function TagQueryEditor({ query, onChange, onRunQuery, datasource }: Prop
         <AutoSizeInput minWidth={20} maxWidth={80} defaultValue={query.path} onCommitChange={onPathChange}/>
       </InlineField>
       <InlineField label="Workspace" labelWidth={14} tooltip={tooltips.workspace}>
-        <Select
+        <Combobox
           isClearable
-          isLoading={workspaces.loading}
           onChange={onWorkspaceChange}
-          options={workspaces.value}
+          options={workspaces.value ?? []}
           placeholder="Any workspace"
           value={query.workspace}
         />
