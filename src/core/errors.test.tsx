@@ -5,6 +5,7 @@ import { FloatingError, parseErrorMessage } from './errors';
 import { SystemLinkError } from "./types";
 import React from 'react';
 import { errorCodes } from "../datasources/data-frame/constants";
+import { AlertVariant } from '@grafana/ui';
 
 test('renders with error message', () => {
   render(<FloatingError message='error msg'/>)
@@ -20,11 +21,12 @@ test('renders with inner message', () => {
   expect(screen.getByText('inner msg')).toBeInTheDocument()
 })
 
-test.each([
+const severityCases: Array<[AlertVariant]> = [
   ['error'],
-  ['warning']
-])('renders with severity %s', (severity) => {
-  render(<FloatingError message='error msg' severity={severity as any} />);
+  ['warning'],
+]
+test.each(severityCases)('renders with severity %s', (severity: AlertVariant) => {
+  render(<FloatingError message='error msg' severity={severity} />);
 
   expect(screen.getByText('error msg')).toBeInTheDocument();
   expect(screen.getByRole('alert')).toHaveAttribute('data-testid', `data-testid Alert ${severity}`);
