@@ -88,14 +88,6 @@ jest.mock('../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper
 const renderEditor = setupRenderer(ResultsVariableQueryEditor, FakeResultsDataSource, () => {});
 let propertiesSelect: HTMLElement;
 let queryBy: HTMLElement;
-let queryByResults: HTMLElement;
-let queryBySteps: HTMLElement;
-
-describe('ResultsVariableQueryEditor', () => {
-  beforeEach(() => {
-    ResultsDataSourceBase.partNumbersPromise = Promise.resolve(fakePartNumbers);
-    ResultsDataSourceBase.workspacesPromise = Promise.resolve(new Map(fakeWorkspaces.map(workspace => [workspace.id, workspace])));
-  });
 
 describe('Results Query Type', () => {
   beforeEach(async () => {
