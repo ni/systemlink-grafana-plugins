@@ -17,7 +17,6 @@ import { TimeRangeControls } from '../time-range/TimeRangeControls';
 import { Workspace } from 'core/types';
 import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
 import { ResultsQueryBuilder } from '../../query-builders/query-results/ResultsQueryBuilder';
-import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 
 type Props = {
   query: QueryResults;
@@ -31,12 +30,12 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
 
   useEffect(() => {
     const loadWorkspaces = async () => {
-      const workspaces = await ResultsDataSourceBase.workspacesPromise;
-      workspaces ? setWorkspaces(Array.from(workspaces.values())) : setWorkspaces([]);
+      const workspaces = await datasource.workspacesCache;
+      setWorkspaces(Array.from(workspaces.values()));
     };
     const loadPartNumbers = async () => {
-      const partNumbers = await ResultsDataSourceBase.partNumbersPromise;
-      partNumbers ? setPartNumbers(partNumbers) : setPartNumbers([]);
+      const partNumbers = await datasource.partNumbersCache;
+      setPartNumbers(partNumbers);
     };
 
     loadPartNumbers();

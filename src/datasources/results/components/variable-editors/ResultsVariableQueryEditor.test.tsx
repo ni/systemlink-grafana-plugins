@@ -7,7 +7,6 @@ import { Workspace } from 'core/types';
 import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
 import { ResultsVariableProperties } from 'datasources/results/types/QueryResults.types';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
-import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import React from 'react';
 import userEvent from '@testing-library/user-event';
 
@@ -74,8 +73,7 @@ let queryBySteps: HTMLElement;
 
 describe('ResultsVariableQueryEditor', () => {
   beforeEach(() => {
-    ResultsDataSourceBase.partNumbersPromise = Promise.resolve(fakePartNumbers);
-    ResultsDataSourceBase.workspacesPromise = Promise.resolve(new Map(fakeWorkspaces.map(workspace => [workspace.id, workspace])));
+    
   });
 
   describe('Results Query Type', () => {
@@ -193,31 +191,53 @@ describe('ResultsVariableQueryEditor', () => {
     it('should load part numbers and workspaces on mount', async () => {
       cleanup();
       await act(async () => {
-        renderEditor({ refId: '', queryType: QueryType.Results, properties: '', queryBy: '' } as unknown as ResultsQuery);
+        renderEditor({
+          refId: '',
+          queryType: QueryType.Results,
+          properties: '',
+          queryBy: '',
+        } as unknown as ResultsQuery);
       });
 
       await selectResultsPropertiesOption();
 
-      expect(screen.getByTestId('results-part-numbers').textContent).toEqual(
-        JSON.stringify(fakePartNumbers));
+      expect(screen.getByTestId('results-part-numbers').textContent).toEqual(JSON.stringify(fakePartNumbers));
       expect(screen.getByTestId('results-workspaces').textContent).toEqual(
-      JSON.stringify([
-        { id: '1', name: 'workspace1', default: false, enabled: true },
-        { id: '2', name: 'workspace2', default: false, enabled: true },
-      ]));
+        JSON.stringify([
+          { id: '1', name: 'workspace1', default: false, enabled: true },
+          { id: '2', name: 'workspace2', default: false, enabled: true },
+        ])
+      );
     });
 
     it('should not render part numbers and workspaces when promises resolve to undefined', async () => {
       cleanup();
-      ResultsDataSourceBase.workspacesPromise = Promise.resolve(undefined);
-      ResultsDataSourceBase.partNumbersPromise = Promise.resolve(undefined);
+      const emptyDatasource = {
+        globalVariableOptions: jest.fn().mockReturnValue([]),
+        get workspacesCache() {
+          return Promise.resolve(new Map());
+        },
+        get partNumbersCache() {
+          return Promise.resolve([]);
+        },
+      } as unknown as QueryResultsDataSource;
+
+      Object.defineProperty(FakeResultsDataSource.prototype, 'queryResultsDataSource', {
+        get: () => emptyDatasource,
+      });
+
       jest.spyOn(console, 'error').mockImplementation(() => {});
 
       await act(async () => {
-        renderEditor({ refId: '', queryType: QueryType.Results, properties: '', queryBy: '' } as unknown as ResultsQuery);
+        renderEditor({
+          refId: '',
+          queryType: QueryType.Results,
+          properties: '',
+          queryBy: '',
+        } as unknown as ResultsQuery);
       });
       await selectResultsPropertiesOption();
-      
+
       expect(screen.getByTestId('results-part-numbers').textContent).toBe('[]');
       expect(screen.getByTestId('results-workspaces').textContent).toBe('[]');
     });

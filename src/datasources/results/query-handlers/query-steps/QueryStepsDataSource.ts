@@ -23,16 +23,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
   defaultQuery = defaultStepsQuery;
 
-  constructor(
-    readonly instanceSettings: DataSourceInstanceSettings,
-    readonly backendSrv: BackendSrv = getBackendSrv(),
-    readonly templateSrv: TemplateSrv = getTemplateSrv()
-  ) {
-    super(instanceSettings, backendSrv, templateSrv);
-    this.loadWorkspaces();
-    this.getPartNumbers();
-  }
-
   async querySteps(
     filter?: string,
     orderBy?: string,

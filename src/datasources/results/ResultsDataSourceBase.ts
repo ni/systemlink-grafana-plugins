@@ -18,8 +18,8 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
   private fromDateString = '${__from:date}';
   private toDateString = '${__to:date}';
-  private static _workspacesPromise: Promise<Map<string, Workspace> | void> | null = null;
-  private static _partNumbersPromise: Promise<string[] | void> | null = null;
+  private static _workspacesCache: Promise<Map<string, Workspace>> | null = null;
+  private static _partNumbersCache: Promise<string[]> | null = null;
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
@@ -39,28 +39,20 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     return this.templateSrv.replace(timeRangeFilter, options.scopedVars);
   }
 
-  static get workspacesPromise(): Promise<Map<string, Workspace> | void> | null {
-    return ResultsDataSourceBase._workspacesPromise;
+  get workspacesCache(): Promise<Map<string, Workspace>> {
+    return this.loadWorkspaces();
   }
 
-  static set workspacesPromise(value: Promise<Map<string, Workspace> | void> | null) {
-    ResultsDataSourceBase._workspacesPromise = value;
+  get partNumbersCache(): Promise<string[]> {
+    return this.getPartNumbers();
   }
 
-  static get partNumbersPromise(): Promise<string[] | void> | null {
-    return ResultsDataSourceBase._partNumbersPromise;
-  }
-
-  static set partNumbersPromise(value: Promise<string[] | void> | null) {
-    ResultsDataSourceBase._partNumbersPromise = value;
-  }
-
-  async loadWorkspaces(): Promise<Map<string, Workspace> | void> {
-    if (ResultsDataSourceBase.workspacesPromise) {
-      return ResultsDataSourceBase.workspacesPromise;
+  async loadWorkspaces(): Promise<Map<string, Workspace>> {
+    if (ResultsDataSourceBase._workspacesCache) {
+      return ResultsDataSourceBase._workspacesCache;
     }
 
-    ResultsDataSourceBase.workspacesPromise = this.getWorkspaces()
+    ResultsDataSourceBase._workspacesCache = this.getWorkspaces()
       .then(workspaces => {
         const workspaceMap = new Map<string, Workspace>();
         if (workspaces) {
@@ -70,22 +62,24 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       })
       .catch(error => {
         console.error('Error in loading workspaces:', error);
+        return new Map<string, Workspace>();
       });
 
-    return ResultsDataSourceBase.workspacesPromise;
+    return ResultsDataSourceBase._workspacesCache;
   }
 
-  async getPartNumbers(): Promise<string[] | void> {
-    if (ResultsDataSourceBase.partNumbersPromise) {
-      return ResultsDataSourceBase.partNumbersPromise;
+  async getPartNumbers(): Promise<string[]> {
+    if (ResultsDataSourceBase._partNumbersCache) {
+      return ResultsDataSourceBase._partNumbersCache;
     }
 
-    ResultsDataSourceBase.partNumbersPromise = this.queryResultsValues(ResultsPropertiesOptions.PART_NUMBER, undefined)
+    ResultsDataSourceBase._partNumbersCache = this.queryResultsValues(ResultsPropertiesOptions.PART_NUMBER, undefined)
     .catch(error => {
       console.error('Error in loading part numbers:', error);
+      return [];
     });
 
-    return ResultsDataSourceBase.partNumbersPromise;
+    return ResultsDataSourceBase._partNumbersCache;
   }
 
   async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {

@@ -7,7 +7,6 @@ import { Workspace } from 'core/types';
 import { enumToOptions } from 'core/utils';
 import { TestMeasurementStatus } from 'datasources/results/types/types';
 import { QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
-import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 
 type Props = QueryBuilderProps &
 React.HTMLAttributes<Element> & {
@@ -33,12 +32,12 @@ export const StepsQueryBuilderWrapper = (
 
   useEffect(() => {
     const loadWorkspaces = async () => {
-      const workspaces = await ResultsDataSourceBase.workspacesPromise;
-      workspaces ? setWorkspaces(Array.from(workspaces.values())) : setWorkspaces([]);
+      const workspaces = await datasource.workspacesCache;
+      setWorkspaces(Array.from(workspaces.values()));
     };
     const loadPartNumbers = async () => {
-      const partNumbers = await ResultsDataSourceBase.partNumbersPromise;
-      partNumbers ? setPartNumbers(partNumbers) : setPartNumbers([]);
+      const partNumbers = await datasource.partNumbersCache;
+      setPartNumbers(partNumbers);
     };
 
     loadPartNumbers();

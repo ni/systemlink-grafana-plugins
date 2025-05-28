@@ -18,7 +18,6 @@ import {
 } from 'datasources/results/types/types';
 import { ResultsDataSource } from 'datasources/results/ResultsDataSource';
 import { StepsQueryBuilderWrapper } from '../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
-import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { TAKE_LIMIT } from 'datasources/results/constants/QuerySteps.constants';
 
 type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSourceOptions>;
@@ -50,11 +49,11 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
 
   useEffect(() => {
     const loadWorkspaces = async () => {
-      const workspaces = await ResultsDataSourceBase.workspacesPromise;
+      const workspaces = await queryResultsDataSource.current.workspacesCache;
       workspaces ? setWorkspaces(Array.from(workspaces.values())) : setWorkspaces([]);
     };
     const loadPartNumbers = async () => {
-      const partNumbers = await ResultsDataSourceBase.partNumbersPromise;
+      const partNumbers = await queryResultsDataSource.current.partNumbersCache;
       partNumbers ? setPartNumbers(partNumbers) : setPartNumbers([]);
     };
 

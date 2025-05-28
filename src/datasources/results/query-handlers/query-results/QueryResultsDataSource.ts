@@ -13,16 +13,6 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
 
   defaultQuery = defaultResultsQuery;
 
-    constructor(
-    readonly instanceSettings: DataSourceInstanceSettings,
-    readonly backendSrv: BackendSrv = getBackendSrv(),
-    readonly templateSrv: TemplateSrv = getTemplateSrv()
-  ) {
-    super(instanceSettings, backendSrv, templateSrv);
-    this.loadWorkspaces();
-    this.getPartNumbers();
-  }
-
   async queryResults(
     filter?: string,
     orderBy?: string,

@@ -37,14 +37,6 @@ const mockQueryResultsValuesResponse = ["partNumber1", "partNumber2"];
 
 describe('QueryStepsDataSource', () => {
   beforeEach(() => {
-    ResultsDataSourceBase.partNumbersPromise = Promise.resolve(mockQueryResultsValuesResponse);
-    ResultsDataSourceBase.workspacesPromise = Promise.resolve(
-      new Map<string, Workspace>([
-        ['1', { id: '1', name: 'Default workspace', default: true, enabled: true }],
-        ['2', { id: '2', name: 'Other workspace', default: false, enabled: true }],
-      ])
-    );
-
     [datastore, backendServer, templateSrv] = setupDataSource(QueryStepsDataSource);
 
     backendServer.fetch
@@ -309,22 +301,25 @@ describe('QueryStepsDataSource', () => {
   });
 
   describe('Dependencies', () => {
+    afterEach(() => {
+      (ResultsDataSourceBase as any)._partNumbersCache = null;
+      (ResultsDataSourceBase as any)._workspacesCache = null;
+    });
+    
     test('should return the same promise instance when partnumber promise already exists', async () => {
       const mockPromise = Promise.resolve(['partNumber1', 'partNumber2']);
-      ResultsDataSourceBase.partNumbersPromise = mockPromise;
+      (ResultsDataSourceBase as any)._partNumbersCache = mockPromise;
       backendServer.fetch.mockClear();
 
-      const partNumberPromise = datastore.getPartNumbers();
+      const partNumbersPromise = datastore.getPartNumbers();
 
-      expect(partNumberPromise).toEqual(mockPromise);
-      expect(await partNumberPromise).toEqual(['partNumber1', 'partNumber2']);
-      expect(backendServer.fetch).not.toHaveBeenCalledWith(
-        expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' })
-      );
+      expect(partNumbersPromise).toEqual(mockPromise);
+      expect(datastore.partNumbersCache).toEqual(mockPromise);
+      expect(backendServer.fetch).not.toHaveBeenCalledWith(expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' }));
     });
 
     test('should create and return a new promise when partnumber promise does not exist', async () => {
-      ResultsDataSourceBase.partNumbersPromise = null;
+      (ResultsDataSourceBase as any)._partNumbersCache = null;
       backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
       .mockReturnValue(createFetchResponse(mockQueryResultsValuesResponse));
@@ -343,7 +338,7 @@ describe('QueryStepsDataSource', () => {
         ['2', { id: '2', name: 'Other workspace', default: false, enabled: true }],
       ]);
       const mockPromise = Promise.resolve(mockWorkspaces);
-      ResultsDataSourceBase.workspacesPromise = mockPromise;
+      (ResultsDataSourceBase as any)._workspacesCache = mockPromise;
       backendServer.fetch.mockClear();
 
       const workspacePromise = datastore.loadWorkspaces();
@@ -354,7 +349,7 @@ describe('QueryStepsDataSource', () => {
     });
 
     test('should create and return a new promise when wrokspace promise does not exist', async () => {
-      ResultsDataSourceBase.workspacesPromise = null;
+      (ResultsDataSourceBase as any)._workspacesCache = null;
       const workspaceSpy = jest.spyOn(ResultsDataSourceBase.prototype, 'getWorkspaces');
 
       const promise = datastore.loadWorkspaces();
@@ -364,7 +359,7 @@ describe('QueryStepsDataSource', () => {
     });
 
     it('should handle errors in getPartNumbers', async () => {
-      ResultsDataSourceBase.partNumbersPromise = null;
+      (ResultsDataSourceBase as any).partNumbersCache = null;
       const error = new Error('API failed');
       jest.spyOn(QueryStepsDataSource.prototype, 'queryResultsValues').mockRejectedValue(error);
       jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -376,7 +371,7 @@ describe('QueryStepsDataSource', () => {
     });
 
     it('should handle errors in getWorkspaces', async () => {
-      ResultsDataSourceBase.workspacesPromise = null;
+      (ResultsDataSourceBase as any)._workspacesCache = null;
       const error = new Error('API failed');
       jest.spyOn(QueryStepsDataSource.prototype, 'getWorkspaces').mockRejectedValue(error);
       jest.spyOn(console, 'error').mockImplementation(() => {});

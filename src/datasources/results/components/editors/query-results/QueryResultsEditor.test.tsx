@@ -8,7 +8,6 @@ import React from 'react';
 import { Workspace } from 'core/types';
 import { DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
-import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 
 jest.mock('../../query-builders/query-results/ResultsQueryBuilder', () => ({
   ResultsQueryBuilder: jest.fn(({ filter, workspaces, partNumbers, status, globalVariableOptions, onChange }) => {
@@ -55,11 +54,11 @@ const mockWorkspaces: Workspace[] = [
 const mockPartNumbers = [ "part1", "part2", "part3" ];
 
 class FakeQueryResultsSource extends QueryResultsDataSource {
-  getPartNumbers(): Promise<string[] | void> {
+  getPartNumbers(): Promise<string[]> {
     return Promise.resolve(mockPartNumbers);
   }
 
-  loadWorkspaces(): Promise<Map<string, Workspace> | void> {
+  loadWorkspaces(): Promise<Map<string, Workspace>> {
     return Promise.resolve(new Map(mockWorkspaces.map(ws => [ws.id, ws])));
   }
 
@@ -77,12 +76,9 @@ let useTimeRange: HTMLElement;
 let useTimeRangeFor: HTMLElement;
 
 describe('QueryResultsEditor', () => {
-  const mockDatasource = new FakeQueryResultsSource({} as DataSourceInstanceSettings, {} as unknown as BackendSrv, {} as unknown as TemplateSrv);
-
+  let mockDatasource: QueryResultsDataSource;
   beforeEach(async () => {
-    ResultsDataSourceBase.workspacesPromise = Promise.resolve(new Map(mockWorkspaces.map(ws => [ws.id, ws])));
-    ResultsDataSourceBase.partNumbersPromise = Promise.resolve(mockPartNumbers);
-
+    mockDatasource = new FakeQueryResultsSource({} as DataSourceInstanceSettings, {} as unknown as BackendSrv, {} as unknown as TemplateSrv); 
     await act(async () => {
       render(
         <QueryResultsEditor
@@ -199,11 +195,10 @@ describe('QueryResultsEditor', () => {
       })
     });
 
-    test('should render empty workspaces and part numbers when promises resolve to undefined', async () => {
+    test('should render empty workspaces and part numbers when promises resolve to empty', async () => {
       cleanup();
-      ResultsDataSourceBase.workspacesPromise = Promise.resolve(undefined);
-      ResultsDataSourceBase.partNumbersPromise = Promise.resolve(undefined);
-
+      mockDatasource.loadWorkspaces = jest.fn().mockResolvedValue(new Map());
+      mockDatasource.getPartNumbers = jest.fn().mockResolvedValue([]);
       jest.spyOn(console, 'error').mockImplementation(() => {});
 
       await act(async () => {

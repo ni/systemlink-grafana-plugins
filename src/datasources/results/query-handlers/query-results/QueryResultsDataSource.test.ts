@@ -21,18 +21,11 @@ const mockQueryResultsResponse: QueryResultsResponse = {
   totalCount: 1
 };
 const mockQueryResultsValuesResponse = ["partNumber1", "partNumber2"];
-const mockWorkspaces = new Map<string, Workspace>([
-  ['1', { id: '1', name: 'Default workspace', default: true, enabled: true }],
-  ['2', { id: '2', name: 'Other workspace', default: false, enabled: true }],
-]);
 
 let datastore: QueryResultsDataSource, backendServer: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
 
 describe('QueryResultsDataSource', () => {
   beforeEach(() => {
-    ResultsDataSourceBase.partNumbersPromise = Promise.resolve(mockQueryResultsValuesResponse);
-    ResultsDataSourceBase.workspacesPromise = Promise.resolve(mockWorkspaces);
-
     [datastore, backendServer, templateSrv] = setupDataSource(QueryResultsDataSource);
     
     backendServer.fetch
@@ -196,81 +189,87 @@ describe('QueryResultsDataSource', () => {
     });
 
     describe('Dependencies', () => {
-      test('should return the same promise instance when partnumber promise already exists', async () => {
-        const mockPromise = Promise.resolve(['partNumber1', 'partNumber2']);
-        ResultsDataSourceBase.partNumbersPromise = mockPromise;
-        backendServer.fetch.mockClear();
-
-        const partNumberPromise = datastore.getPartNumbers();
-
-        expect(partNumberPromise).toEqual(mockPromise);
-        expect(await partNumberPromise).toEqual(['partNumber1', 'partNumber2']);
-        expect(backendServer.fetch).not.toHaveBeenCalledWith(
-          expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' })
-        );
-      })
-
-      test('should create and return a new promise when partnumber promise does not exist', async () => {
-        ResultsDataSourceBase.partNumbersPromise = null;
-
-        const promise = datastore.getPartNumbers();
-
-        expect(promise).not.toBeNull();
-        expect(backendServer.fetch).toHaveBeenCalledWith(
-          expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' })
-        );
-      });
-
-      test('should return the same promise instance when workspacePromise already exists', async () => {
-        const mockWorkspaces = new Map<string, Workspace>([
-          ['1', { id: '1', name: 'New workspace', default: true, enabled: true }],
-        ]);
-        const mockPromise = Promise.resolve(mockWorkspaces);
-        ResultsDataSourceBase.workspacesPromise = mockPromise;
-        const workspaceSpy = jest.spyOn(ResultsDataSourceBase.prototype, 'getWorkspaces');
-        backendServer.fetch.mockClear();
-
-        const workspacePromise = datastore.loadWorkspaces();
-
-        expect(workspacePromise).toEqual(mockPromise);
-        expect(await workspacePromise).toEqual(mockWorkspaces);
-        expect(workspaceSpy).not.toHaveBeenCalledTimes(1);
-      })
-
-      test('should create and return a new promise when wrokspace promise does not exist', async () => {
-        ResultsDataSourceBase.workspacesPromise = null;
-        const workspaceSpy = jest.spyOn(ResultsDataSourceBase.prototype, 'getWorkspaces');
-
-        const promise = datastore.loadWorkspaces();
-
-        expect(promise).not.toBeNull();
-        expect(workspaceSpy).toHaveBeenCalledTimes(1);
-      });
-
-      it('should handle errors in getPartNumbers', async () => {
-        ResultsDataSourceBase.partNumbersPromise = null;
-        const error = new Error('API failed');
-        jest.spyOn(QueryResultsDataSource.prototype, 'queryResultsValues').mockRejectedValue(error);
-        jest.spyOn(console, 'error').mockImplementation(() => {});
-
-        await datastore.getPartNumbers();
-
-        expect(console.error).toHaveBeenCalledTimes(1);
-        expect(console.error).toHaveBeenCalledWith('Error in loading part numbers:', error);
-      });
-
-      it('should handle errors in getWorkspaces', async () => {
-        ResultsDataSourceBase.workspacesPromise = null;
-        const error = new Error('API failed');
-        jest.spyOn(QueryResultsDataSource.prototype, 'getWorkspaces').mockRejectedValue(error);
-        jest.spyOn(console, 'error').mockImplementation(() => {});
-
-        await datastore.loadWorkspaces();
-
-        expect(console.error).toHaveBeenCalledTimes(1);
-        expect(console.error).toHaveBeenCalledWith('Error in loading workspaces:', error);
-      });
+    afterEach(() => {
+      (ResultsDataSourceBase as any)._partNumbersCache = null;
+      (ResultsDataSourceBase as any)._workspacesCache = null;
     });
+    
+    test('should return the same promise instance when partnumber promise already exists', async () => {
+      const mockPromise = Promise.resolve(['partNumber1', 'partNumber2']);
+      (ResultsDataSourceBase as any)._partNumbersCache = mockPromise;
+      backendServer.fetch.mockClear();
+
+      const partNumbersPromise = datastore.getPartNumbers();
+
+      expect(partNumbersPromise).toEqual(mockPromise);
+      expect(datastore.partNumbersCache).toEqual(mockPromise);
+      expect(backendServer.fetch).not.toHaveBeenCalledWith(expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' }));
+    });
+
+    test('should create and return a new promise when partnumber promise does not exist', async () => {
+      (ResultsDataSourceBase as any)._partNumbersCache = null;
+      backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
+      .mockReturnValue(createFetchResponse(mockQueryResultsValuesResponse));
+
+      const promise = datastore.getPartNumbers();
+
+      expect(promise).not.toBeNull();
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' })
+      );
+    });
+
+    test('should return the same promise instance when workspacePromise already exists', async () => {
+      const mockWorkspaces = new Map<string, Workspace>([
+        ['1', { id: '1', name: 'Default workspace', default: true, enabled: true }],
+        ['2', { id: '2', name: 'Other workspace', default: false, enabled: true }],
+      ]);
+      const mockPromise = Promise.resolve(mockWorkspaces);
+      (ResultsDataSourceBase as any)._workspacesCache = mockPromise;
+      backendServer.fetch.mockClear();
+
+      const workspacePromise = datastore.loadWorkspaces();
+
+      expect(workspacePromise).toEqual(mockPromise);
+      expect(await workspacePromise).toEqual(mockWorkspaces);
+      expect(backendServer.fetch).not.toHaveBeenCalledWith(expect.objectContaining({ url: '/niauth/v1/user' }));
+    });
+
+    test('should create and return a new promise when wrokspace promise does not exist', async () => {
+      (ResultsDataSourceBase as any)._workspacesCache = null;
+      const workspaceSpy = jest.spyOn(ResultsDataSourceBase.prototype, 'getWorkspaces');
+
+      const promise = datastore.loadWorkspaces();
+
+      expect(promise).not.toBeNull();
+      expect(workspaceSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle errors in getPartNumbers', async () => {
+      (ResultsDataSourceBase as any).partNumbersCache = null;
+      const error = new Error('API failed');
+      jest.spyOn(QueryResultsDataSource.prototype, 'queryResultsValues').mockRejectedValue(error);
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      await datastore.getPartNumbers();
+
+      expect(console.error).toHaveBeenCalledTimes(1);
+      expect(console.error).toHaveBeenCalledWith('Error in loading part numbers:', error);
+    });
+
+    it('should handle errors in getWorkspaces', async () => {
+      (ResultsDataSourceBase as any)._workspacesCache = null;
+      const error = new Error('API failed');
+      jest.spyOn(QueryResultsDataSource.prototype, 'getWorkspaces').mockRejectedValue(error);
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      await datastore.loadWorkspaces();
+
+      expect(console.error).toHaveBeenCalledTimes(1);
+      expect(console.error).toHaveBeenCalledWith('Error in loading workspaces:', error);
+    });
+  });
   
     describe('query builder queries', () => {
       test('should transform field when queryBy contains a single value', async () => {
