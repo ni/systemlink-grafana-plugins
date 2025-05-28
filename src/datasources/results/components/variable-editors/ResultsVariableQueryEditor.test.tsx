@@ -204,20 +204,6 @@ describe('Steps Query Type', () => {
   });
 });
 
-it('should load part numbers on mount', async () => {
-  const queryResultValuesSpy = jest.spyOn(FakeQueryResultsSource.prototype, 'getPartNumbers');
-  renderEditor({ refId: '', properties: '', queryBy: '' } as unknown as ResultsQuery);
-
-  expect(queryResultValuesSpy).toHaveBeenCalledTimes(1);
-});
-
-it('should load workspaces on mount', async () => {
-  const getWorkspace = jest.spyOn(FakeQueryResultsSource.prototype, 'getWorkspaces');
-  renderEditor({ refId: '', properties: '', queryBy: '' } as unknown as ResultsQuery);
-
-  expect(getWorkspace).toHaveBeenCalledTimes(1);
-});
-
 describe('Dependencies', () => {
   it('should load workspaces and part numbers from the datasource', async () => {
     await act(async () => { 
