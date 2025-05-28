@@ -1,3 +1,9 @@
+## [3.93.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.92.0...v3.93.0) (2025-05-28)
+
+### Features
+
+* **core:** Add inner Errors with Severity support and Toast message support  ([#217](https://github.com/ni/systemlink-grafana-plugins/issues/217)) ([a4194f4](https://github.com/ni/systemlink-grafana-plugins/commit/a4194f492d9c176ecffa10ddb7f33df3ea32c996))
+
 ## [3.92.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.91.1...v3.92.0) (2025-05-27)
 
 ### Features
