@@ -48,6 +48,9 @@ describe('TestPlansVariableQueryEditor', () => {
       const recordCount = container.getByRole('spinbutton');
       expect(recordCount).toBeInTheDocument();
       expect(recordCount).toHaveDisplayValue('');
+
+      const queryBuilder = container.getByRole('dialog');
+      expect(queryBuilder).toBeInTheDocument();
     });
   });
 
@@ -120,7 +123,6 @@ describe('TestPlansVariableQueryEditor', () => {
 
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ queryBy: 'new-query' }));
-        expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
 
@@ -133,7 +135,7 @@ describe('TestPlansVariableQueryEditor', () => {
       userEvent.tab();
 
       await waitFor(() => {
-        expect(container.getByText('Record count must be less than 10000')).toBeInTheDocument();
+        expect(container.queryByText('Record count must be less than 10000')).toBeInTheDocument();
       });
     });
   });

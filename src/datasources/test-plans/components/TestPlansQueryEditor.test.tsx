@@ -290,7 +290,7 @@ describe('TestPlansQueryEditor', () => {
             userEvent.tab();
 
             await waitFor(() => {
-                expect(container.getByText('Record count must be less than 10000')).toBeInTheDocument();
+                expect(container.queryByText('Record count must be less than 10000')).toBeInTheDocument();
             });
         });
     });
