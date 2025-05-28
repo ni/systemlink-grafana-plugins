@@ -111,6 +111,22 @@ describe('TestPlansVariableQueryEditor', () => {
       });
     });
 
+    it('should call onChange when query by changes', async () => {
+      const container = renderElement();
+
+      const queryBuilder = container.getByRole('dialog');
+      expect(queryBuilder).toBeInTheDocument();
+
+      // Simulate a change event
+      const event = { detail: { linq: 'new-query' } };
+      queryBuilder?.dispatchEvent(new CustomEvent('change', event));
+
+      await waitFor(() => {
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ queryBy: 'new-query' }));
+        expect(mockOnRunQuery).toHaveBeenCalled();
+      });
+    });
+
     it('should show error message when record count is invalid', async () => {
       const container = renderElement();
       const recordCountInput = container.getByRole('spinbutton');

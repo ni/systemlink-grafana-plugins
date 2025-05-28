@@ -58,6 +58,9 @@ describe('TestPlansQueryEditor', () => {
             const recordCount = container.getByRole('spinbutton');
             expect(recordCount).toBeInTheDocument();
             expect(recordCount).toHaveDisplayValue('');
+
+            const queryBuilder = container.getByRole('dialog');
+            expect(queryBuilder).toBeInTheDocument();
         });
     });
 
@@ -258,6 +261,22 @@ describe('TestPlansQueryEditor', () => {
 
             await waitFor(() => {
                 expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: 50 }));
+                expect(mockOnRunQuery).toHaveBeenCalled();
+            });
+        });
+
+        it('should call onChange when query by changes', async () => {
+            const container = renderElement();
+
+            const queryBuilder = container.getByRole('dialog');
+            expect(queryBuilder).toBeInTheDocument();
+
+            // Simulate a change event
+            const event = { detail: { linq: 'new-query' } };
+            queryBuilder?.dispatchEvent(new CustomEvent('change', event));
+
+            await waitFor(() => {
+                expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ queryBy: 'new-query' }));
                 expect(mockOnRunQuery).toHaveBeenCalled();
             });
         });
