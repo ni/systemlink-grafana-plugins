@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
 import { OrderBy, OutputType, WorkOrderProperties, WorkOrderPropertiesOptions, WorkOrdersQuery } from '../types';
@@ -11,11 +11,23 @@ import {
   VerticalGroup
 } from '@grafana/ui';
 import './WorkOrdersQueryEditor.scss';
+import { User } from 'shared/types/QueryUsers.types';
 
 type Props = QueryEditorProps<WorkOrdersDataSource, WorkOrdersQuery>;
 
 export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
+  const [users, setUsers] = useState<User[]|null>(null);
+
+  useEffect(() => {
+    const loadUsers = async () => {
+      const usersList = await datasource.usersObj.usersCache;
+      setUsers(usersList);
+    };
+
+    loadUsers();
+  }, [datasource.usersObj]);
+
 
   useEffect(() => {
     handleQueryChange(query, true);
@@ -92,6 +104,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
             <WorkOrdersQueryBuilder
               filter={query.queryBy} 
               globalVariableOptions={[]}
+              users={users}
               onChange={(event: any) => onQueryByChange(event.detail.linq)}
             ></WorkOrdersQueryBuilder>
           </InlineField>
