@@ -1,4 +1,4 @@
-import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, DataSourceInstanceSettings } from '@grafana/data';
+import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
   QuerySteps,
@@ -13,7 +13,6 @@ import { MAX_TAKE_PER_REQUEST, QUERY_STEPS_REQUEST_PER_SECOND, TAKE_LIMIT } from
 import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/StepsQueryBuilder.constants';
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
-import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
 import { QueryResponse } from 'core/types';
 import { queryInBatches } from 'core/utils';

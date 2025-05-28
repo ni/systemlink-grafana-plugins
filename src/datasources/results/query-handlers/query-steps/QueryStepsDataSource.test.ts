@@ -33,8 +33,6 @@ jest.mock('datasources/results/constants/QuerySteps.constants', () => ({
   QUERY_STEPS_REQUEST_PER_SECOND: 2,
 }));
 
-const mockQueryResultsValuesResponse = ["partNumber1", "partNumber2"];
-
 describe('QueryStepsDataSource', () => {
   beforeEach(() => {
     [datastore, backendServer, templateSrv] = setupDataSource(QueryStepsDataSource);
@@ -322,7 +320,7 @@ describe('QueryStepsDataSource', () => {
       (ResultsDataSourceBase as any)._partNumbersCache = null;
       backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
-      .mockReturnValue(createFetchResponse(mockQueryResultsValuesResponse));
+      .mockReturnValue(createFetchResponse(["partNumber1", "partNumber2"]));
 
       const promise = datastore.getPartNumbers();
 

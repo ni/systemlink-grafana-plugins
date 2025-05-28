@@ -27,7 +27,7 @@ let datastore: QueryResultsDataSource, backendServer: MockProxy<BackendSrv>, tem
 describe('QueryResultsDataSource', () => {
   beforeEach(() => {
     [datastore, backendServer, templateSrv] = setupDataSource(QueryResultsDataSource);
-    
+
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
       .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
