@@ -6,8 +6,6 @@ import { QueryResultsDataSource } from 'datasources/results/query-handlers/query
 import { QueryResultsEditor } from './QueryResultsEditor';
 import React from 'react';
 import { Workspace } from 'core/types';
-import { DataSourceInstanceSettings } from '@grafana/data';
-import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 
 jest.mock('../../query-builders/query-results/ResultsQueryBuilder', () => ({
   ResultsQueryBuilder: jest.fn(({ filter, workspaces, partNumbers, status, globalVariableOptions, onChange }) => {
@@ -34,36 +32,18 @@ jest.mock('../../../types/types', () => ({
   },
 }));
 
+const mockWorkspaces: Workspace[] = [
+  { id: '1', name: 'Workspace1', default: false, enabled: true },
+  { id: '2', name: 'Workspace2', default: false, enabled: true },
+]
+const mockPartNumbers = ['PN1', 'PN2', 'PN3'];
 const mockGlobalVars = [{ label: '$var1', value: '$var1' }];
 
-const mockWorkspaces: Workspace[] = [
-  {
-    id: '1',
-    name: 'workspace1',
-    default: false,
-    enabled: true,
-  },
-  {
-    id: '2',
-    name: 'workspace2',
-    default: false,
-    enabled: true,
-  },
-];
-
-const mockPartNumbers = [ "part1", "part2", "part3" ];
-
-class FakeQueryResultsSource extends QueryResultsDataSource {
-  getPartNumbers(): Promise<string[]> {
-    return Promise.resolve(mockPartNumbers);
-  }
-
-  loadWorkspaces(): Promise<Map<string, Workspace>> {
-    return Promise.resolve(new Map(mockWorkspaces.map(ws => [ws.id, ws])));
-  }
-
-  globalVariableOptions = () => mockGlobalVars;
-}
+const mockDatasource = {
+  workspacesCache: Promise.resolve(new Map(mockWorkspaces.map(workspace => [workspace.id, workspace]))),
+  partNumbersCache: Promise.resolve(mockPartNumbers),
+  globalVariableOptions: jest.fn(() => mockGlobalVars),
+} as unknown as QueryResultsDataSource;
 
 const mockHandleQueryChange = jest.fn();
 let properties: HTMLElement;
@@ -76,9 +56,7 @@ let useTimeRange: HTMLElement;
 let useTimeRangeFor: HTMLElement;
 
 describe('QueryResultsEditor', () => {
-  let mockDatasource: QueryResultsDataSource;
   beforeEach(async () => {
-    mockDatasource = new FakeQueryResultsSource({} as DataSourceInstanceSettings, {} as unknown as BackendSrv, {} as unknown as TemplateSrv); 
     await act(async () => {
       render(
         <QueryResultsEditor
@@ -195,11 +173,14 @@ describe('QueryResultsEditor', () => {
       })
     });
 
-    test('should render empty workspaces and part numbers when promises resolve to empty', async () => {
+    test('should render empty workspaces and partnumbers when cache is empty', async () => {
       cleanup();
-      mockDatasource.loadWorkspaces = jest.fn().mockResolvedValue(new Map());
-      mockDatasource.getPartNumbers = jest.fn().mockResolvedValue([]);
-      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const emptyDatasource = {
+        workspacesCache: Promise.resolve(new Map()),
+        partNumbersCache: Promise.resolve([]),
+        globalVariableOptions: jest.fn(() => []),
+      } as unknown as QueryResultsDataSource;
 
       await act(async () => {
         render(
@@ -210,14 +191,15 @@ describe('QueryResultsEditor', () => {
               outputType: OutputType.Data,
             }}
             handleQueryChange={mockHandleQueryChange}
-            datasource={mockDatasource}
+            datasource={emptyDatasource}
           />
         );
       });
 
+      expect(screen.getByTestId('results-query-builder')).toBeInTheDocument();
       expect(screen.getByTestId('workspaces')).toHaveTextContent('[]');
       expect(screen.getByTestId('part-numbers')).toHaveTextContent('[]');
-    });
+    })
 
     test('should render ResultsQueryBuilder with default props when component is loaded', () => {
       const resultsQueryBuilder = screen.getByTestId('results-query-builder');

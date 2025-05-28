@@ -67,14 +67,15 @@ jest.mock('../query-builders/query-results/ResultsQueryBuilder', () => ({
 }));
 
 const renderEditor = setupRenderer(ResultsVariableQueryEditor, FakeResultsDataSource, () => {});
+let propertiesSelect: HTMLElement;
 let queryBy: HTMLElement;
 let queryByResults: HTMLElement;
 let queryBySteps: HTMLElement;
 
 describe('Results Query Type', () => {
-  beforeEach(async() => {
+  beforeEach(async () => {
     await act(async () => {
-      renderEditor({ refId: '', queryType: QueryType.Results, properties: '', queryBy: '' } as unknown as ResultsQuery);
+      renderEditor({ refId: '', queryType: QueryType.Results, properties: ResultsVariableProperties[0].value, queryBy: '', resultsTake: 1000 } as unknown as ResultsQuery);
     });
   });
 
@@ -91,110 +92,141 @@ describe('Results Query Type', () => {
     expect(screen.getByRole('radio', { name: QueryType.Steps })).not.toBeChecked();
   });
 
-  it('should not render results query builder initially', () => {
-    const queryBy = screen.queryByText('Query by results properties');
+  it('should render properties select and results query builder progressively', async () => {
+    propertiesSelect = screen.getAllByRole('combobox')[0];
 
-    expect(queryBy).not.toBeInTheDocument();
-    expect(screen.queryByTestId('results-query-builder')).not.toBeInTheDocument();
+    expect(propertiesSelect).toBeInTheDocument();
+
+    //simulate user selecting a property
+    fireEvent.keyDown(propertiesSelect, { key: 'ArrowDown' });
+    fireEvent.click(propertiesSelect);
+
+    queryBy = screen.getByText('Query by results properties');
+    expect(queryBy).toBeInTheDocument();
+
+    expect(screen.queryByTestId('results-query-builder')).toBeInTheDocument();
   });
 
-  it('should render properties select and results query builder progressively', async () => {
-    const propertiesSelect = screen.getAllByRole('combobox')[0];
+  describe('Take input field', () => {
+    it('should render take input field with 1000 as value by default', () => {
+      const takeInput = screen.getByPlaceholderText('Enter record count');
+      expect(takeInput).toBeInTheDocument();
+      expect(takeInput).toHaveValue(1000);
+    });
 
-    await selectResultsPropertiesOption();
-    
-    queryBy = screen.getByText('Query by results properties');
-    expect(propertiesSelect).toBeInTheDocument();
-    expect(queryBy).toBeInTheDocument();
-    expect(screen.queryByTestId('results-query-builder')).toBeInTheDocument();
+    it('should only allows numbers in Take field', async () => {
+      const takeInput = screen.getByPlaceholderText('Enter record count');
+
+      // User tries to enter a non-numeric value
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, 'abc');
+      await waitFor(() => {
+        expect(takeInput).toHaveValue(null);
+      });
+
+      // User enters a valid numeric value
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, '500');
+      await waitFor(() => {
+        expect(takeInput).toHaveValue(500);
+      });
+    });
   });
 });
 
 describe('Steps Query Type', () => {
   it('should render steps wrapper query builder', async () => {
-    await act(async () => {
+    renderEditor({
+      refId: '',
+      queryType: QueryType.Steps,
+      queryByResults: 'resultsQuery',
+      queryBySteps: '',
+    } as unknown as ResultsQuery);
+
+    queryByResults = screen.getByText('Query by results properties');
+    queryBySteps = screen.getByText('Query by steps properties');
+
+    expect(queryByResults).toBeInTheDocument();
+    expect(queryBySteps).toBeInTheDocument();
+  });
+
+  describe('Take input field', () => {
+    it('should render take input field with 1000 as value by default', () => {
       renderEditor({
         refId: '',
         queryType: QueryType.Steps,
         queryByResults: 'resultsQuery',
         queryBySteps: '',
       } as unknown as ResultsQuery);
+
+      const takeInput = screen.getByPlaceholderText('Enter record count');
+      expect(takeInput).toBeInTheDocument();
+      expect(takeInput).toHaveValue(1000);
     });
 
-    queryByResults = screen.getByText('Query by results properties');
-    queryBySteps = screen.getByText('Query by steps properties');
-
-  expect(queryByResults).toBeInTheDocument();
-  expect(queryBySteps).toBeInTheDocument();
-});
-
-describe('Take input field', () => {
-  it('should render take input field with 1000 as value by default', () => {
-    renderEditor({
-      refId: '',
-      queryType: QueryType.Steps,
-      queryByResults: 'resultsQuery',
-      queryBySteps: '',
-    } as unknown as ResultsQuery);
-
-    const takeInput = screen.getByPlaceholderText('Enter record count');
-    expect(takeInput).toBeInTheDocument();
-    expect(takeInput).toHaveValue(1000);
-  });
-
-  it('should render with existing stepsTake when take is already set', () => {
-    renderEditor({
-      refId: '',
-      queryType: QueryType.Steps,
-      queryByResults: 'resultsQuery',
-      queryBySteps: '',
-      stepsTake: 2000,
-    } as unknown as ResultsQuery);
-
-    const takeInput = screen.getByPlaceholderText('Enter record count');
-    expect(takeInput).toHaveValue(2000);
-  });
-
-  it('should only allows numbers in Take field', async () => {
-    renderEditor({
-      refId: '',
-      queryType: QueryType.Steps,
-      queryByResults: 'resultsQuery',
-      queryBySteps: '',
-      stepsTake: 2000,
-    } as unknown as ResultsQuery);
-    const takeInput = screen.getByPlaceholderText('Enter record count');
-
-    // User tries to enter a non-numeric value
-    await userEvent.clear(takeInput);
-    await userEvent.type(takeInput, 'abc');
-    await waitFor(() => {
-      expect(takeInput).toHaveValue(null);
-    });
-
-    // User enters a valid numeric value
-    await userEvent.clear(takeInput);
-    await userEvent.type(takeInput, '500');
-    await waitFor(() => {
-      expect(takeInput).toHaveValue(500);
-    });
-  });
-});
-});
-
-describe('dependencies', () => {
-  it('should load part numbers and workspaces on mount', async () => {
-    cleanup();
-    await act(async () => {
+    it('should render with existing stepsTake when take is already set', () => {
       renderEditor({
         refId: '',
-        queryType: QueryType.Results,
-        properties: '',
-        queryBy: '',
+        queryType: QueryType.Steps,
+        queryByResults: 'resultsQuery',
+        queryBySteps: '',
+        stepsTake: 2000,
       } as unknown as ResultsQuery);
+
+      const takeInput = screen.getByPlaceholderText('Enter record count');
+      expect(takeInput).toHaveValue(2000);
     });
 
-    await selectResultsPropertiesOption();
+    it('should only allows numbers in Take field', async () => {
+      renderEditor({
+        refId: '',
+        queryType: QueryType.Steps,
+        queryByResults: 'resultsQuery',
+        queryBySteps: '',
+        stepsTake: 2000,
+      } as unknown as ResultsQuery);
+      const takeInput = screen.getByPlaceholderText('Enter record count');
+
+      // User tries to enter a non-numeric value
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, 'abc');
+      await waitFor(() => {
+        expect(takeInput).toHaveValue(null);
+      });
+
+      // User enters a valid numeric value
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, '500');
+      await waitFor(() => {
+        expect(takeInput).toHaveValue(500);
+      });
+    });
+  });
+});
+
+it('should load part numbers on mount', async () => {
+  const queryResultValuesSpy = jest.spyOn(FakeQueryResultsSource.prototype, 'getPartNumbers');
+  renderEditor({ refId: '', properties: '', queryBy: '' } as unknown as ResultsQuery);
+
+  expect(queryResultValuesSpy).toHaveBeenCalledTimes(1);
+});
+
+it('should load workspaces on mount', async () => {
+  const getWorkspace = jest.spyOn(FakeQueryResultsSource.prototype, 'getWorkspaces');
+  renderEditor({ refId: '', properties: '', queryBy: '' } as unknown as ResultsQuery);
+
+  expect(getWorkspace).toHaveBeenCalledTimes(1);
+});
+
+describe('Dependencies', () => {
+  it('should load workspaces and part numbers from the datasource', async () => {
+    await act(async () => { 
+      renderEditor({ refId: '', properties: '', queryBy: '' } as unknown as ResultsQuery);
+    });
+
+    fireEvent.keyDown(screen.getAllByRole('combobox')[0], { key: 'ArrowDown' });
+    const option = await screen.findByText(ResultsVariableProperties[0].label);
+    fireEvent.click(option);
 
     expect(screen.getByTestId('results-part-numbers').textContent).toEqual(JSON.stringify(fakePartNumbers));
     expect(screen.getByTestId('results-workspaces').textContent).toEqual(
@@ -222,24 +254,15 @@ describe('dependencies', () => {
     });
 
     jest.spyOn(console, 'error').mockImplementation(() => {});
-
     await act(async () => {
-      renderEditor({
-        refId: '',
-        queryType: QueryType.Results,
-        properties: '',
-        queryBy: '',
-      } as unknown as ResultsQuery);
+      renderEditor({ refId: '', properties: '', queryBy: '' } as unknown as ResultsQuery);
     });
-    await selectResultsPropertiesOption();
+
+    fireEvent.keyDown(screen.getAllByRole('combobox')[0], { key: 'ArrowDown' });
+    const option = await screen.findByText(ResultsVariableProperties[0].label);
+    fireEvent.click(option);
 
     expect(screen.getByTestId('results-part-numbers').textContent).toBe('[]');
     expect(screen.getByTestId('results-workspaces').textContent).toBe('[]');
   });
 });
-
-async function selectResultsPropertiesOption() {
-  fireEvent.keyDown(screen.getAllByRole('combobox')[0], { key: 'ArrowDown' });
-  const option = await screen.findByText(ResultsVariableProperties[0].label);
-  fireEvent.click(option);
-}
