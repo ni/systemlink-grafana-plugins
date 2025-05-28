@@ -19,7 +19,7 @@ import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/Res
 import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
 import { QueryResponse } from 'core/types';
 import { queryInBatches } from 'core/utils';
-import { MAX_PATH_TAKE_PER_REQUEST, QUERY_PATH_REQUEST_PER_SECOND } from 'datasources/results/constants/QueryPaths.constants';
+import { MAX_PATH_TAKE_PER_REQUEST, QUERY_PATH_REQUEST_PER_SECOND } from 'datasources/results/constants/QueryStepPath.constants';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';

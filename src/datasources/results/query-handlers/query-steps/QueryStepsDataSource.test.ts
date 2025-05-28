@@ -33,12 +33,10 @@ jest.mock('datasources/results/constants/QuerySteps.constants', () => ({
   QUERY_STEPS_REQUEST_PER_SECOND: 2,
 }));
 
-jest.mock('../../constants/QueryPaths.constants', () => ({
-  ...jest.requireActual('../../constants/QueryPaths.constants'),
+jest.mock('../../constants/QueryStepPath.constants', () => ({
+  ...jest.requireActual('../../constants/QueryStepPath.constants'),
   QUERY_PATH_REQUEST_PER_SECOND: 2,
 }));
-
-const mockQueryResultsValuesResponse = ["partNumber1", "partNumber2"];
 
 describe('QueryStepsDataSource', () => {
   beforeEach(() => {
