@@ -5,12 +5,32 @@ import { FloatingError, parseErrorMessage } from './errors';
 import { SystemLinkError } from "./types";
 import React from 'react';
 import { errorCodes } from "../datasources/data-frame/constants";
+import { AlertVariant } from '@grafana/ui';
 
 test('renders with error message', () => {
   render(<FloatingError message='error msg'/>)
 
   expect(screen.getByText('error msg')).toBeInTheDocument()
+  expect(screen.queryByText('inner msg')).not.toBeInTheDocument()
 })
+
+test('renders with inner message', () => {
+  render(<FloatingError message='error msg' innerMessage='inner msg'/>)
+
+  expect(screen.getByText('error msg')).toBeInTheDocument()
+  expect(screen.getByText('inner msg')).toBeInTheDocument()
+})
+
+const severityCases: Array<[AlertVariant]> = [
+  ['error'],
+  ['warning'],
+]
+test.each(severityCases)('renders with severity %s', (severity: AlertVariant) => {
+  render(<FloatingError message='error msg' severity={severity} />);
+
+  expect(screen.getByText('error msg')).toBeInTheDocument();
+  expect(screen.getByRole('alert')).toHaveAttribute('data-testid', `data-testid Alert ${severity}`);
+});
 
 test('does not render without error message', () => {
   const { container } = render(<FloatingError message=''/>)
