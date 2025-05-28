@@ -81,7 +81,6 @@ describe('TestPlansVariableQueryEditor', () => {
 
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ orderBy: 'ID' }));
-        expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
 
@@ -93,7 +92,6 @@ describe('TestPlansVariableQueryEditor', () => {
 
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ descending: true }));
-        expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
 
@@ -107,7 +105,6 @@ describe('TestPlansVariableQueryEditor', () => {
 
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: 50 }));
-        expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
 

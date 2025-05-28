@@ -1,3 +1,9 @@
+## [3.92.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.91.1...v3.92.0) (2025-05-27)
+
+### Features
+
+* **test-plans:** Query variable query editor ([#221](https://github.com/ni/systemlink-grafana-plugins/issues/221)) ([3e58cb4](https://github.com/ni/systemlink-grafana-plugins/commit/3e58cb465f5c4bc3af110dd623366e8a2f5d3d57))
+
 ## [3.91.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.91.0...v3.91.1) (2025-05-27)
 
 ### Bug Fixes
