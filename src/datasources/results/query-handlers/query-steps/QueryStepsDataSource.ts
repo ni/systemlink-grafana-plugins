@@ -56,17 +56,19 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     return response;
   }
 
-    private async queryStepPaths(
+  private async queryStepPaths(
     projection?: StepsPathProperties[],
     filter?: string,
     take?: number,
     continuationToken?: string,
     returnCount = false
   ): Promise<QueryStepPathsResponse> {
+    const defaultOrderBy = StepsPathProperties.path
     const response = await this.post<QueryStepPathsResponse>(this.queryPathsUrl, {
       filter,
       projection,
       take,
+      orderBy: defaultOrderBy,
       continuationToken,
       returnCount,
     })
