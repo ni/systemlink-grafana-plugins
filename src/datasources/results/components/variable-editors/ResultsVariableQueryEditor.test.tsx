@@ -9,7 +9,6 @@ import { ResultsVariableProperties } from 'datasources/results/types/QueryResult
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 import React from 'react';
 import userEvent from '@testing-library/user-event';
-import { defaultStepsQuery } from 'datasources/results/defaultQueries';
 
 const fakeWorkspaces: Workspace[] = [
   {
@@ -67,27 +66,11 @@ jest.mock('../query-builders/query-results/ResultsQueryBuilder', () => ({
   }),
 }));
 
-jest.mock('../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper', () => ({
-  StepsQueryBuilderWrapper: jest.fn(({ resultsQuery, stepsQuery, disableStepsQueryBuilder }) => {
-    return (
-      <div data-testid="steps-query-builder-wrapper">
-        <input 
-          data-testid="results-query"
-          value={resultsQuery}
-        />
-        <input 
-          data-testid="steps-query"
-          value={stepsQuery}
-          disabled={disableStepsQueryBuilder} 
-        />
-      </div>
-    );
-  }),
-}));
-
 const renderEditor = setupRenderer(ResultsVariableQueryEditor, FakeResultsDataSource, () => {});
 let propertiesSelect: HTMLElement;
 let queryBy: HTMLElement;
+let queryByResults: HTMLElement;
+let queryBySteps: HTMLElement;
 
 describe('Results Query Type', () => {
   beforeEach(async () => {
@@ -151,31 +134,20 @@ describe('Results Query Type', () => {
   });
 });
 
-  describe('Steps Query Type', () => {
-    it('should render steps wrapper query builder', async () => {
-      await act(async () => {
-        renderEditor({
-          refId: '',
-          queryType: QueryType.Steps,
-          queryByResults: 'resultsQuery',
-          queryBySteps: '',
-        } as unknown as ResultsQuery);
-      });
-    expect(screen.getByTestId('steps-query-builder-wrapper')).toBeInTheDocument();
-  });
+describe('Steps Query Type', () => {
+  it('should render steps wrapper query builder', async () => {
+    renderEditor({
+      refId: '',
+      queryType: QueryType.Steps,
+      queryByResults: 'resultsQuery',
+      queryBySteps: '',
+    } as unknown as ResultsQuery);
 
-  it('should have default query in results query builder', async () => {
-    await act(async () => {
-      renderEditor({
-        refId: '',
-        queryType: QueryType.Steps,
-        queryByResults: undefined,
-        queryBySteps: '',
-      } as unknown as ResultsQuery);
-    });
+    queryByResults = screen.getByText('Query by results properties');
+    queryBySteps = screen.getByText('Query by steps properties');
 
-    expect(screen.getByTestId('results-query')).toHaveValue(defaultStepsQuery.resultsQuery);
-    expect(screen.getByTestId('steps-query')).toBeDisabled();
+    expect(queryByResults).toBeInTheDocument();
+    expect(queryBySteps).toBeInTheDocument();
   });
 
   describe('Take input field', () => {
