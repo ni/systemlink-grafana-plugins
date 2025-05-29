@@ -682,6 +682,7 @@ describe('QueryStepsDataSource', () => {
       expect(backendServer.fetch).toHaveBeenNthCalledWith(
         1,
         expect.objectContaining({
+          url: '/nitestmonitor/v2/query-paths',
           data: expect.objectContaining({ take: 100, continuationToken: undefined }),
         })
       );
@@ -716,12 +717,14 @@ describe('QueryStepsDataSource', () => {
         expect(backendServer.fetch).toHaveBeenNthCalledWith(
           1,
           expect.objectContaining({
+            url: '/nitestmonitor/v2/query-paths',
             data: expect.objectContaining({ take: 1000, continuationToken: undefined }),
           })
         );
         expect(backendServer.fetch).toHaveBeenNthCalledWith(
           2,
           expect.objectContaining({
+            url: '/nitestmonitor/v2/query-paths',
             data: expect.objectContaining({ take: 500, continuationToken: 'token1' }),
           })
         );
@@ -776,24 +779,28 @@ describe('QueryStepsDataSource', () => {
       expect(fetchSpy).toHaveBeenNthCalledWith(
         1,
         expect.objectContaining({
+          url: '/nitestmonitor/v2/query-paths',
           data: expect.objectContaining({ take: 1000, continuationToken: undefined }),
         })
       );
       expect(fetchSpy).toHaveBeenNthCalledWith(
         2,
         expect.objectContaining({
+          url: '/nitestmonitor/v2/query-paths',
           data: expect.objectContaining({ take: 1000, continuationToken: 'token1' }),
         })
       );
       expect(fetchSpy).toHaveBeenNthCalledWith(
         3,
         expect.objectContaining({
+          url: '/nitestmonitor/v2/query-paths',
           data: expect.objectContaining({ take: 1000, continuationToken: 'token2' }),
         })
       );
       expect(fetchSpy).toHaveBeenNthCalledWith(
         4,
         expect.objectContaining({
+          url: '/nitestmonitor/v2/query-paths',
           data: expect.objectContaining({ take: 1000, continuationToken: 'token3' }),
         })
       );
@@ -820,6 +827,7 @@ describe('QueryStepsDataSource', () => {
       expect(backendServer.fetch).toHaveBeenCalledTimes(1);
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
+          url: '/nitestmonitor/v2/query-paths',
           data: expect.objectContaining({ take: 1000, continuationToken: undefined }),
         })
       );
@@ -904,36 +912,6 @@ describe('QueryStepsDataSource', () => {
       expect(spyDelay).toHaveBeenCalledWith(expect.any(Function), 800); // delay for 1000 - 200 = 800ms
     });
   });
-
-  describe('query step path',() => {
-    test('should make a single request when take is less than MAX_TAKE_PER_REQUESTh', async () => {
-      const mockResponses = [
-      createFetchResponse({
-        paths: Array(100).fill({ path: 'path1' }),
-        continuationToken: null,
-        totalCount: 100,
-    })]
-    backendServer.fetch
-      .mockImplementationOnce(() => mockResponses[0])
-      const responsePromise = datastore.queryStepPathInBatches(
-        undefined,
-        undefined,
-        100,
-        true
-      );
-      const response = await responsePromise;
-
-      expect(response.paths).toHaveLength(100);
-      expect(backendServer.fetch).toHaveBeenCalledTimes(1);
-      expect(backendServer.fetch).toHaveBeenNthCalledWith(
-        1,
-        expect.objectContaining({
-          url: '/nitestmonitor/v2/query-paths',
-          data: expect.objectContaining({ take: 100, continuationToken: undefined }),
-        })
-      );
-    });
-  })
 
     describe('query builder queries', () => {
       test('should transform the resultsfilter and stepsfilter contains single query', async () => {
