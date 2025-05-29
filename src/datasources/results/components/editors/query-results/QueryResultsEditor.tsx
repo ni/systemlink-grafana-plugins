@@ -30,16 +30,16 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
 
   useEffect(() => {
     const loadWorkspaces = async () => {
-      await datasource.loadWorkspaces();
-      setWorkspaces(Array.from(datasource.workspacesCache.values()));
+      const workspaces = await datasource.workspacesCache;
+      setWorkspaces(Array.from(workspaces.values()));
     };
     const loadPartNumbers = async () => {
-      await datasource.getPartNumbers();
-      setPartNumbers(datasource.partNumbersCache);
+      const partNumbers = await datasource.partNumbersCache;
+      setPartNumbers(partNumbers);
     };
 
-    loadWorkspaces();
     loadPartNumbers();
+    loadWorkspaces();
   }, [datasource]);
 
   const onOutputChange = (value: OutputType) => {

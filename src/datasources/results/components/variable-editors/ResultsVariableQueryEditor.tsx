@@ -49,12 +49,12 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
 
   useEffect(() => {
     const loadWorkspaces = async () => {
-      await queryResultsDataSource.current.loadWorkspaces();
-      setWorkspaces(Array.from(queryResultsDataSource.current.workspacesCache.values()));
+      const workspaces = await queryResultsDataSource.current.workspacesCache;
+      setWorkspaces(Array.from(workspaces.values()));
     };
     const loadPartNumbers = async () => {
-      await queryResultsDataSource.current.getPartNumbers();
-      setPartNumbers(queryResultsDataSource.current.partNumbersCache);
+      const partNumbers = await queryResultsDataSource.current.partNumbersCache;
+      setPartNumbers(partNumbers);
     };
 
     loadWorkspaces();

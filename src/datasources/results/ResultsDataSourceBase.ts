@@ -18,10 +18,11 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
   private fromDateString = '${__from:date}';
   private toDateString = '${__to:date}';
+  private static _workspacesCache: Promise<Map<string, Workspace>> | null = null;
+  private static _partNumbersCache: Promise<string[]> | null = null;
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
-  readonly workspacesCache = new Map<string, Workspace>([]);
-  readonly partNumbersCache: string[] = [];
+
 
   abstract runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
@@ -38,31 +39,58 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     return this.templateSrv.replace(timeRangeFilter, options.scopedVars);
   }
 
-  async loadWorkspaces(): Promise<void> {
-    if (this.workspacesCache.size > 0) {
-      return;
-    }
-
-    const workspaces = await this.getWorkspaces()
-      .catch(error => {
-        console.error('Error in loading workspaces:', error);
-      });
-
-    workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
+  get workspacesCache(): Promise<Map<string, Workspace>> {
+    return this.loadWorkspaces();
   }
 
-  async getPartNumbers(): Promise<void> {
-    if (this.partNumbersCache.length > 0) {
-      return;
+  get partNumbersCache(): Promise<string[]> {
+    return this.getPartNumbers();
+  }
+
+  async loadWorkspaces(): Promise<Map<string, Workspace>> {
+    if (ResultsDataSourceBase._workspacesCache) {
+      return ResultsDataSourceBase._workspacesCache;
     }
-    
-    const partNumbers = await this.post<string[]>(this.queryResultsValuesUrl, {
-      field: ResultsPropertiesOptions.PART_NUMBER,
-    }).catch(error => {
+
+    ResultsDataSourceBase._workspacesCache = this.getWorkspaces()
+      .then(workspaces => {
+        const workspaceMap = new Map<string, Workspace>();
+        if (workspaces) {
+          workspaces.forEach(workspace => workspaceMap.set(workspace.id, workspace));
+        }
+        return workspaceMap;
+      })
+      .catch(error => {
+        console.error('Error in loading workspaces:', error);
+        return new Map<string, Workspace>();
+      });
+
+    return ResultsDataSourceBase._workspacesCache;
+  }
+
+  async getPartNumbers(): Promise<string[]> {
+    if (ResultsDataSourceBase._partNumbersCache) {
+      return ResultsDataSourceBase._partNumbersCache;
+    }
+
+    ResultsDataSourceBase._partNumbersCache = this.queryResultsValues(ResultsPropertiesOptions.PART_NUMBER, undefined)
+    .catch(error => {
       console.error('Error in loading part numbers:', error);
+      return [];
     });
 
-    partNumbers?.forEach(partNumber => this.partNumbersCache.push(partNumber));
+    return ResultsDataSourceBase._partNumbersCache;
+  }
+
+  async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {
+    try {
+      return await this.post<string[]>(this.queryResultsValuesUrl, {
+        field: fieldName,
+        filter
+      });
+    } catch (error) {
+      throw new Error(`An error occurred while querying result values: ${error}`);
+    }
   }
 
   protected multipleValuesQuery(field: string): ExpressionTransformFunction {
