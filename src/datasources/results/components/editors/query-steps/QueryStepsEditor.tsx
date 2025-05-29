@@ -1,5 +1,6 @@
 import { SelectableValue } from '@grafana/data';
 import {
+  AsyncMultiSelect,
   AutoSizeInput,
   InlineField,
   InlineSwitch,
@@ -69,6 +70,9 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
     }
   };
 
+  const onProductNameChange = (productName: SelectableValue<string>) => {
+    console.log('Product name changed:', productName);
+  }
 
   return (
     <>
@@ -112,6 +116,22 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
             }}
           />
         </div>
+        <InlineField label="Product name" labelWidth={26}>
+          <AsyncMultiSelect
+            width={65}
+            onChange={onProductNameChange}
+            closeMenuOnSelect={false}
+            loadOptions={async () => {
+              const response = await datasource.queryProducts();
+              const productOptions = response.products.map(product => ({
+                label: `${product.name} (${product.partNumber})`,
+                value: product.partNumber,
+              }));
+              return [...datasource.globalVariableOptions(), ...productOptions];
+            }}
+            defaultOptions
+          />
+        </InlineField>
         <div className="horizontal-control-group">
           <StepsQueryBuilderWrapper
             datasource={datasource}
