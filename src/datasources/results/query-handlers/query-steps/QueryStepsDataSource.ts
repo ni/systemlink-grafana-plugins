@@ -165,8 +165,10 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       };
     }
 
+    const resultsQuery = this.getResultsQuery(query.partNumberQuery, query.resultsQuery);
+
     query.stepsQuery = this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options);
-    query.resultsQuery = this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options) || '';
+    query.resultsQuery = this.transformQuery(resultsQuery, this.resultsComputedDataFields, options) || '';
 
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
     const stepsQuery = this.buildQueryFilter(query.stepsQuery, useTimeRangeFilter);
@@ -238,6 +240,19 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       });
     return this._productCache;
   };
+
+  private buildPartNumberQuery = (selected: string[]): string => {
+    if (selected.length === 0){
+      return '';
+    } 
+    const conditions = selected.map(item => `${ResultsQueryBuilderFieldNames.PART_NUMBER} = "${item}"`).join(' || ');
+    return `(${conditions})`;
+  };
+
+  private getResultsQuery(partNumberQuery: string[], resultsQuery: string): string {
+    const build = this.buildPartNumberQuery(partNumberQuery);
+    return this.buildQueryFilter(build, resultsQuery) || '';
+  }
 
   private processFields(
     selectedFields: StepsProperties[],

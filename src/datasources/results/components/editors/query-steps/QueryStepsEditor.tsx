@@ -55,6 +55,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   };
 
   const onResultsFilterChange = (resultsQuery: string) => {
+    console.log('onResultsFilterChange', resultsQuery);
     if(resultsQuery === "") {
       handleQueryChange({ ...query, resultsQuery: resultsQuery }, false);
       setDisableStepsQueryBuilder(true);
@@ -70,8 +71,8 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
     }
   };
 
-  const onProductNameChange = (productName: SelectableValue<string>) => {
-    console.log('Product name changed:', productName);
+  const onProductNameChange = (productNames: Array<SelectableValue<string>>) => {
+    handleQueryChange({ ...query, partNumberQuery: productNames.map(product => product.value as string) });
   }
 
   return (
@@ -122,7 +123,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
             onChange={onProductNameChange}
             closeMenuOnSelect={false}
             loadOptions={async () => {
-              const response = await datasource.queryProducts();
+              const response = await datasource.productCache;
               const productOptions = response.products.map(product => ({
                 label: `${product.name} (${product.partNumber})`,
                 value: product.partNumber,
