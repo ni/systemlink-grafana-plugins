@@ -1,3 +1,9 @@
+## [3.93.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.93.0...v3.93.1) (2025-05-29)
+
+### Bug Fixes
+
+* **results:** Share Workspace and Part Number Cache Across Results and Steps Query Types ([#213](https://github.com/ni/systemlink-grafana-plugins/issues/213)) ([f0bf56d](https://github.com/ni/systemlink-grafana-plugins/commit/f0bf56de3022a35820acd609975f9f10b6601936))
+
 ## [3.93.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.92.0...v3.93.0) (2025-05-28)
 
 ### Features
