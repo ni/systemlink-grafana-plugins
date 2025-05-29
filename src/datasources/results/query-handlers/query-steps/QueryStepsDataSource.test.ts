@@ -480,24 +480,24 @@ describe('QueryStepsDataSource', () => {
         
         const mockResponses = [
           createFetchResponse({
-            paths: Array(1000).fill({ path : 'path1' }),
+            steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),
             continuationToken: 'token1',
-            totalCount: 4000,
+            totalCount: 2000,
           }),
           createFetchResponse({
-            paths: Array(1000).fill({ path: 'path2' }),
+            steps: Array(500).fill({ stepId: '2', name: 'Step 2' }),
             continuationToken: 'token2', 
-            totalCount: 4000,
+            totalCount: 2000,
           }),
           createFetchResponse({
-            paths: Array(1000).fill({ path: 'path3' }),
+            steps: Array(500).fill({ stepId: '3', name: 'Step 3' }),
             continuationToken: 'token3',
-            totalCount: 4000,
+            totalCount: 2000,
           }),
           createFetchResponse({
-            paths: Array(1000).fill({ path: 'path4' }),
+            steps: Array(500).fill({ stepId: '4', name: 'Step 4' }),
             continuationToken: null,
-            totalCount: 4000,
+            totalCount: 2000,
           })
         ];
 
@@ -507,10 +507,13 @@ describe('QueryStepsDataSource', () => {
           .mockImplementationOnce(() => mockResponses[2])
           .mockImplementationOnce(() => mockResponses[3])
           
-        const responsePromise = datastore.queryStepPathInBatches(
+        const responsePromise = datastore.queryStepsInBatches(
           undefined,
           undefined,
-          4000,
+          undefined,
+          2000,
+          undefined,
+          undefined,
           true
         );
 
@@ -523,25 +526,25 @@ describe('QueryStepsDataSource', () => {
         expect(fetchSpy).toHaveBeenNthCalledWith(
           1,
           expect.objectContaining({
-            data: expect.objectContaining({ take: 1000, continuationToken: undefined }),
+            data: expect.objectContaining({ take: 500, continuationToken: undefined }),
           })
         );
         expect(fetchSpy).toHaveBeenNthCalledWith(
           2,
           expect.objectContaining({
-            data: expect.objectContaining({ take: 1000, continuationToken: 'token1' }),
+            data: expect.objectContaining({ take: 500, continuationToken: 'token1' }),
           })
         );
         expect(fetchSpy).toHaveBeenNthCalledWith(
           3,
           expect.objectContaining({
-            data: expect.objectContaining({ take: 1000, continuationToken: 'token2' }),
+            data: expect.objectContaining({ take: 500, continuationToken: 'token2' }),
           })
         );
         expect(fetchSpy).toHaveBeenNthCalledWith(
           4,
           expect.objectContaining({
-            data: expect.objectContaining({ take: 1000, continuationToken: 'token3' }),
+            data: expect.objectContaining({ take: 500, continuationToken: 'token3' }),
           })
         );
       });
@@ -549,25 +552,28 @@ describe('QueryStepsDataSource', () => {
       test('should stop fetching when continuationToken is null', async () => {
         const mockResponses = [
           createFetchResponse({
-            paths: Array(1000).fill({ path: 'path1' }),
+            steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),
             continuationToken: null,
-            totalCount: 1000,
+            totalCount: 500,
           }),
         ];
   
         backendServer.fetch.mockImplementationOnce(() => mockResponses[0]);
-        const response = await datastore.queryStepPathInBatches(
+        const response = await datastore.queryStepsInBatches(
+          undefined,
           undefined,
           undefined,
           3000,
+          undefined,
+          undefined,
           true
         );
   
-        expect(response.paths).toHaveLength(1000);
+        expect(response.steps).toHaveLength(500);
         expect(backendServer.fetch).toHaveBeenCalledTimes(1);
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
-            data: expect.objectContaining({ take: 1000, continuationToken: undefined }),
+            data: expect.objectContaining({ take: 500, continuationToken: undefined }),
           })
         );
       });
