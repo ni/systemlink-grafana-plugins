@@ -158,7 +158,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
   
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
-    if (!query.resultsQuery) {
+    if (!query.partNumberQuery || query.partNumberQuery.length === 0) {
       return {
         refId: query.refId,
         fields: [],
@@ -245,8 +245,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     if (selected.length === 0){
       return '';
     } 
-    const conditions = selected.map(item => `${ResultsQueryBuilderFieldNames.PART_NUMBER} = "${item}"`).join(' || ');
-    return `(${conditions})`;
+    return selected.map(item => `${ResultsQueryBuilderFieldNames.PART_NUMBER} = "${item}"`).join(' || ');
   };
 
   private getResultsQuery(partNumberQuery: string[], resultsQuery: string): string {

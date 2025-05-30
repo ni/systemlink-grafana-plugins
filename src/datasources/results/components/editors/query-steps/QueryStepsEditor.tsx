@@ -10,7 +10,7 @@ import {
   VerticalGroup,
 } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import '../../ResultsQueryEditor.scss';
 import { OutputType } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
@@ -25,7 +25,11 @@ type Props = {
 };
 
 export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props) {
-  const [disableStepsQueryBuilder, setDisableStepsQueryBuilder] = useState(true);
+  const [disableStepsQueryBuilder, setDisableStepsQueryBuilder] = useState(false);
+
+  useEffect(() => {
+    setDisableStepsQueryBuilder(!query.partNumberQuery || query.partNumberQuery.length === 0);
+  }, [query.partNumberQuery]);
   
   const onOutputChange = (outputType: OutputType) => {
     handleQueryChange({ ...query, outputType: outputType });
@@ -55,13 +59,8 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   };
 
   const onResultsFilterChange = (resultsQuery: string) => {
-    console.log('onResultsFilterChange', resultsQuery);
-    if(resultsQuery === "") {
-      handleQueryChange({ ...query, resultsQuery: resultsQuery }, false);
-      setDisableStepsQueryBuilder(true);
-    } else if (query.resultsQuery !== resultsQuery) {
+    if (query.resultsQuery !== resultsQuery) {
       handleQueryChange({ ...query, resultsQuery: resultsQuery });
-      setDisableStepsQueryBuilder(false);
     }
   };
 
@@ -122,6 +121,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
             width={65}
             onChange={onProductNameChange}
             closeMenuOnSelect={false}
+            value={query.partNumberQuery?.map(pn => ({ label: pn, value: pn }))}
             loadOptions={async () => {
               const response = await datasource.productCache;
               const productOptions = response.products.map(product => ({
