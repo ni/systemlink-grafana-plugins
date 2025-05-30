@@ -1,5 +1,5 @@
 import { TemplateSrv } from "@grafana/runtime";
-import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches } from "./utils";
+import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUntilComplete } from "./utils";
 import { BatchQueryConfig } from "./types";
 
 test('enumToOptions', () => {
@@ -261,3 +261,89 @@ describe('queryInBatches', () => {
     jest.useRealTimers();
   });
 });
+
+describe('queryUntilComplete', () => {
+  const mockQueryRecord = jest.fn();
+  const batchQueryConfig = {
+    maxTakePerRequest: 100,
+    requestsPerSecond: 2,
+  };
+
+  beforeEach(() => {
+    mockQueryRecord.mockReset();
+  });
+
+  test('should fetch all data in a single batch when no continuation token is returned', async () => {
+    mockQueryRecord.mockResolvedValue({
+      data: Array(50).fill({ id: 1 }),
+      continuationToken: undefined,
+    });
+
+    const result = await queryUntilComplete(mockQueryRecord, batchQueryConfig);
+
+    expect(mockQueryRecord).toHaveBeenCalledTimes(1);
+    expect(mockQueryRecord).toHaveBeenCalledWith(100, undefined);
+    expect(result.data.length).toBe(50);
+  });
+
+  test('should fetch data across multiple batches when continuation token is returned', async () => {
+    mockQueryRecord
+      .mockResolvedValueOnce({
+        data: Array(100).fill({ id: 1 }),
+        continuationToken: 'token1',
+      })
+      .mockResolvedValueOnce({
+        data: Array(50).fill({ id: 2 }),
+        continuationToken: null,
+      });
+
+    const result = await queryUntilComplete(mockQueryRecord, batchQueryConfig);
+
+    expect(mockQueryRecord).toHaveBeenCalledTimes(2);
+    expect(mockQueryRecord).toHaveBeenNthCalledWith(1, 100, undefined);
+    expect(mockQueryRecord).toHaveBeenNthCalledWith(2, 100, 'token1');
+    expect(result.data.length).toBe(150);
+  });
+
+  test('should delay between requests if requests exceed requestsPerSecond', async () => {
+    jest.useFakeTimers();
+    mockQueryRecord
+      .mockResolvedValueOnce({
+        data: Array(100).fill({ id: 1 }),
+        continuationToken: 'token1',
+      })
+      .mockResolvedValueOnce({
+        data: Array(100).fill({ id: 2 }),
+        continuationToken: 'token2',
+      })
+      .mockResolvedValueOnce({
+        data: Array(100).fill({ id: 3 }),
+        continuationToken: null,
+      });
+
+    const promise = queryUntilComplete(mockQueryRecord, batchQueryConfig);
+    jest.advanceTimersByTime(1000);
+    await promise;
+
+    expect(mockQueryRecord).toHaveBeenCalledTimes(3);
+    jest.useRealTimers();
+  });
+
+  test('should stop fetching when continuation token is null', async () => {
+    mockQueryRecord
+      .mockResolvedValueOnce({
+        data: Array(100).fill({ id: 1 }),
+        continuationToken: 'token1',
+      })
+      .mockResolvedValueOnce({
+        data: Array(50).fill({ id: 2 }),
+        continuationToken: null,
+      });
+
+    const result = await queryUntilComplete(mockQueryRecord, batchQueryConfig);
+
+    expect(mockQueryRecord).toHaveBeenCalledTimes(2);
+    expect(result.data.length).toBe(150);
+  });
+});
+
