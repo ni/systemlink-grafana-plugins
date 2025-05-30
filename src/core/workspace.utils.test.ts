@@ -24,7 +24,6 @@ describe('WorkspaceUtils', () => {
 
     afterEach(() => {
         jest.clearAllMocks();
-        WorkspaceUtils.Workspaces = null;
     });
 
     it('should load workspaces and cache them', async () => {
