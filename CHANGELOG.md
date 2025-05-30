@@ -1,3 +1,9 @@
+## [3.94.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.93.1...v3.94.0) (2025-05-30)
+
+### Features
+
+* **results:** Add batching for step path ([#222](https://github.com/ni/systemlink-grafana-plugins/issues/222)) ([413bfde](https://github.com/ni/systemlink-grafana-plugins/commit/413bfde3686505b0027d17e0b91d0b82344e2562))
+
 ## [3.93.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.93.0...v3.93.1) (2025-05-29)
 
 ### Bug Fixes
