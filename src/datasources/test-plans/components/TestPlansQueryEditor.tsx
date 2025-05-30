@@ -2,9 +2,9 @@ import React, { useCallback, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { TestPlansDataSource } from '../TestPlansDataSource';
 import { OrderBy, OutputType, Properties, PropertiesProjectionMap, TestPlansQuery } from '../types';
-import { AutoSizeInput, InlineField, InlineSwitch, MultiSelect, RadioButtonGroup, Select, VerticalGroup } from '@grafana/ui';
-import './TestPlansQueryEditor.scss';
+import { AutoSizeInput, HorizontalGroup, InlineField, InlineSwitch, MultiSelect, RadioButtonGroup, Select, VerticalGroup } from '@grafana/ui';
 import { validateNumericInput } from 'core/utils';
+import { TestPlansQueryBuilder } from './query-builder/TestPlansQueryBuilder';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansQuery>;
 
@@ -44,8 +44,15 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
       setIsRecordCountValid(false);
     } else {
       setIsRecordCountValid(true);
+      handleQueryChange({ ...query, recordCount: value });
     }
-    handleQueryChange({ ...query, recordCount: value });
+  };
+
+  const onQueryByChange = (queryBy: string) => {
+    if (query.queryBy !== queryBy) {
+      query.queryBy = queryBy;
+      handleQueryChange({ ...query, queryBy });
+    }
   };
 
   const [isRecordCountValid, setIsRecordCountValid] = useState<boolean>(true);
@@ -61,60 +68,70 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
           />
         </InlineField>
         {query.outputType === OutputType.Properties && (
-          <VerticalGroup>
-            <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
-              <MultiSelect
-                placeholder="Select the properties to query"
-                options={Object.entries(PropertiesProjectionMap).map(([key, value]) => ({ label: value.label, value: key })) as SelectableValue[]}
-                onChange={onPropertiesChange}
-                value={query.properties}
-                defaultValue={query.properties}
-                noMultiValueWrap={true}
-                maxVisibleValues={5}
-                width={60}
-                allowCustomValue={false}
-                closeMenuOnSelect={false}
-              />
-            </InlineField>
-            <div className="horizontal-control-group">
-              <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
-                <Select
-                  options={[...OrderBy] as SelectableValue[]}
-                  placeholder="Select a field to set the query order"
-                  onChange={onOrderByChange}
-                  value={query.orderBy}
-                  defaultValue={query.orderBy}
-                  width={26}
+          <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
+            <MultiSelect
+              placeholder="Select the properties to query"
+              options={Object.entries(PropertiesProjectionMap).map(([key, value]) => ({ label: value.label, value: key })) as SelectableValue[]}
+              onChange={onPropertiesChange}
+              value={query.properties}
+              defaultValue={query.properties}
+              noMultiValueWrap={true}
+              maxVisibleValues={5}
+              width={60}
+              allowCustomValue={false}
+              closeMenuOnSelect={false}
+            />
+          </InlineField>
+        )}
+        <HorizontalGroup align="flex-start">
+          <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
+            <TestPlansQueryBuilder
+              filter={query.queryBy}
+              globalVariableOptions={[]}
+              onChange={(event: any) => onQueryByChange(event.detail.linq)}
+            ></TestPlansQueryBuilder>
+          </InlineField>
+          {query.outputType === OutputType.Properties && (
+            <VerticalGroup>
+              <div>
+                <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
+                  <Select
+                    options={[...OrderBy] as SelectableValue[]}
+                    placeholder="Select a field to set the query order"
+                    onChange={onOrderByChange}
+                    value={query.orderBy}
+                    defaultValue={query.orderBy}
+                    width={26}
+                  />
+                </InlineField>
+                <InlineField label="Descending" labelWidth={18} tooltip={tooltips.descending}>
+                  <InlineSwitch
+                    onChange={event => onDescendingChange(event.currentTarget.checked)}
+                    value={query.descending}
+                  />
+                </InlineField>
+              </div>
+              <InlineField
+                label="Take"
+                labelWidth={18}
+                tooltip={tooltips.recordCount}
+                invalid={!isRecordCountValid}
+                error={errors.recordCount}
+              >
+                <AutoSizeInput
+                  minWidth={26}
+                  maxWidth={26}
+                  type='number'
+                  defaultValue={query.recordCount}
+                  onCommitChange={recordCountChange}
+                  placeholder="Enter record count"
+                  onKeyDown={(event) => { validateNumericInput(event) }}
                 />
               </InlineField>
-              <InlineField label="Descending" tooltip={tooltips.descending}>
-                <InlineSwitch
-                  onChange={event => onDescendingChange(event.currentTarget.checked)}
-                  value={query.descending}
-                />
-              </InlineField>
-            </div>
-            <InlineField
-              label="Take"
-              labelWidth={25}
-              tooltip={tooltips.recordCount}
-              invalid={!isRecordCountValid}
-              error={errors.recordCount}
-            >
-              <AutoSizeInput
-                minWidth={26}
-                maxWidth={26}
-                type='number'
-                defaultValue={query.recordCount}
-                onCommitChange={recordCountChange}
-                placeholder="Enter record count"
-                onKeyDown={(event) => { validateNumericInput(event) }}
-              />
-            </InlineField>
-          </VerticalGroup >
-        )
-        }
-      </VerticalGroup >
+            </VerticalGroup>
+          )}
+        </HorizontalGroup >
+      </VerticalGroup>
     </>
   );
 }
@@ -124,7 +141,8 @@ const tooltips = {
   properties: 'This field specifies the properties to use in the query.',
   orderBy: 'This field specifies the query order of the test plans.',
   descending: 'This toggle returns the test plans query in descending order.',
-  recordCount: 'This field specifies the maximum number of test plans to return.'
+  recordCount: 'This field specifies the maximum number of test plans to return.',
+  queryBy: 'This optional field specifies the query filters.'
 };
 
 const errors = {

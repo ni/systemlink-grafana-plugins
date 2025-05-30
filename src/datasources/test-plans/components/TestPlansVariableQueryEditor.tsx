@@ -2,9 +2,9 @@ import React, { useCallback, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { OrderBy, TestPlansVariableQuery } from '../types';
 import { AutoSizeInput, InlineField, InlineSwitch, Select, VerticalGroup } from '@grafana/ui';
-import './TestPlansQueryEditor.scss';
 import { validateNumericInput } from 'core/utils';
 import { TestPlansDataSource } from '../TestPlansDataSource';
+import { TestPlansQueryBuilder } from './query-builder/TestPlansQueryBuilder';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansVariableQuery>;
 
@@ -31,15 +31,29 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
       setIsRecordCountValid(false);
     } else {
       setIsRecordCountValid(true);
+      handleQueryChange({ ...query, recordCount: value });
     }
-    handleQueryChange({ ...query, recordCount: value });
+  };
+
+  const onQueryByChange = (queryBy: string) => {
+    if (query.queryBy !== queryBy) {
+      query.queryBy = queryBy;
+      handleQueryChange({ ...query, queryBy });
+    }
   };
 
   const [isRecordCountValid, setIsRecordCountValid] = useState<boolean>(true);
 
   return (
     <VerticalGroup>
-      <div className="horizontal-control-group">
+      <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
+        <TestPlansQueryBuilder
+          filter={query.queryBy}
+          globalVariableOptions={[]}
+          onChange={(event: any) => onQueryByChange(event.detail.linq)}
+        ></TestPlansQueryBuilder>
+      </InlineField>
+      <div>
         <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
           <Select
             options={[...OrderBy] as SelectableValue[]}
@@ -50,7 +64,7 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
             width={26}
           />
         </InlineField>
-        <InlineField label="Descending" tooltip={tooltips.descending}>
+        <InlineField label="Descending" labelWidth={25} tooltip={tooltips.descending}>
           <InlineSwitch
             onChange={event => onDescendingChange(event.currentTarget.checked)}
             value={query.descending}
@@ -81,7 +95,8 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
 const tooltips = {
   orderBy: 'This field specifies the query order of the test plans.',
   descending: 'This toggle returns the test plans query in descending order.',
-  recordCount: 'This field specifies the maximum number of test plans to return.'
+  recordCount: 'This field specifies the maximum number of test plans to return.',
+  queryBy: 'This optional field specifies the query filters.'
 };
 
 const errors = {
