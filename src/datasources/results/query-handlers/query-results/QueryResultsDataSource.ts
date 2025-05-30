@@ -42,6 +42,15 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       );
     }
 
+    if(query.partNumberQuery) {
+      const partNumberFilter = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, query.partNumberQuery);
+      const transformedPartNumberFilter = transformComputedFieldsQuery(
+        this.templateSrv.replace(partNumberFilter, options.scopedVars),
+        this.resultsComputedDataFields,
+      );
+      query.queryBy = this.buildQueryFilter(`(${transformedPartNumberFilter})`, query.queryBy);
+    }
+
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
 
     const responseData = await this.queryResults(

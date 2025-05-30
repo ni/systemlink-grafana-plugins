@@ -116,6 +116,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
                 width={65}
                 onChange={onProductNameChange}
                 closeMenuOnSelect={false}
+                value={query.partNumberQuery?.map(pn => ({ label: pn, value: pn }))}
                 loadOptions={async () => {
                   const response = await datasource.productCache;
                   const productOptions = response.products.map(product => ({
@@ -127,16 +128,16 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
                 defaultOptions
               />
             </InlineField>
-          <InlineField label="Query By" labelWidth={26} tooltip={tooltips.queryBy}>
-            <ResultsQueryBuilder
-              filter={query.queryBy}
-              workspaces={workspaces}
-              partNumbers={partNumbers}
-              status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
-              globalVariableOptions={datasource.globalVariableOptions()}
-              onChange={(event: any) => onParameterChange(event.detail.linq)}>
-            </ResultsQueryBuilder>
-          </InlineField>
+            <InlineField label="Query By" labelWidth={26} tooltip={tooltips.queryBy}>
+              <ResultsQueryBuilder
+                filter={query.queryBy}
+                workspaces={workspaces}
+                partNumbers={partNumbers}
+                status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
+                globalVariableOptions={datasource.globalVariableOptions()}
+                onChange={(event: any) => onParameterChange(event.detail.linq)}>
+              </ResultsQueryBuilder>
+            </InlineField>
           </div>
           {query.outputType === OutputType.Data && (
             <div className="right-query-controls">

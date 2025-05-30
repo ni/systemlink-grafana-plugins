@@ -152,6 +152,21 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     return filters.length > 0 ? filters.join(' && ') : undefined;
   };
 
+  /**
+   * Builds a query string for the given field using multiple values,
+   * joining each condition with the logical OR operator
+   *
+   * @param fieldName - The field name to filter on
+   * @param values - Array of values to include in the OR condition.
+   * @returns The constructed query string, or an empty string if no values are provided.
+   */
+  protected buildQueryWithOrOperator = (fieldName: string, values: string[]): string => {
+    if (values.length === 0){
+      return '';
+    } 
+    return values.map(item => `${fieldName} = "${item}"`).join(' || ');
+  };
+
   private isMultiSelectValue(value: string): boolean {
     return value.startsWith('{') && value.endsWith('}');
   }
