@@ -72,10 +72,10 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
   }, [users]);
 
   useEffect(() => {
-    if(!usersField) {
-      return;
+    const updatedFields = WorkOrdersQueryBuilderStaticFields;
+    if(usersField) {
+      updatedFields.push(...usersField);
     }
-    const updatedFields = [...WorkOrdersQueryBuilderStaticFields, ...usersField];
 
     updatedFields.map(field => {
       if (field.lookup?.dataSource) {
