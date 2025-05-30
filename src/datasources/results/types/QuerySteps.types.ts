@@ -147,3 +147,18 @@ export interface ErrorBody {
   args?: string[];
   innerErrors?: ErrorBody[];
 }
+
+export enum StepsPathProperties {
+  path = 'path'
+};
+
+export interface QueryStepPathsResponse {
+  paths: StepPathResponseProperties[];
+  continuationToken?: string;
+  totalCount?: number;
+  error?: ErrorBody
+};
+
+export interface StepPathResponseProperties {
+  path: string;
+};
