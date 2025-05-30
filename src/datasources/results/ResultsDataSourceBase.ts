@@ -1,6 +1,6 @@
 import { DataSourceBase } from "core/DataSourceBase";
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse } from "@grafana/data";
-import { ResultsQuery } from "./types/types";
+import { ProductProperties, QueryProductResponse, ResultsQuery } from "./types/types";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { ResultsPropertiesOptions } from "./types/QueryResults.types";
 import { getVariableOptions } from "core/utils";
@@ -10,6 +10,7 @@ import { QueryBuilderOperations } from "core/query-builder.constants";
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
   queryResultsValuesUrl = this.baseUrl + '/v2/query-result-values';
+  queryProductsUrl = this.baseUrl + '/v2/query-products';
 
   private timeRange: { [key: string]: string } = {
     Started: 'startedAt',
@@ -20,6 +21,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   private toDateString = '${__to:date}';
   private static _workspacesCache: Promise<Map<string, Workspace>> | null = null;
   private static _partNumbersCache: Promise<string[]> | null = null;
+  private static _productCache: Promise<QueryProductResponse> | null = null;
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
@@ -92,6 +94,35 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       throw new Error(`An error occurred while querying result values: ${error}`);
     }
   }
+
+  async queryProducts(
+    projection?: ProductProperties[],
+  ): Promise<QueryProductResponse> {
+    try {
+      const response = await this.post<QueryProductResponse>(this.queryProductsUrl, {
+        projection,
+      });
+      return response;
+    } catch (error) {
+      throw new Error(`An error occurred while querying products: ${error}`);
+    }
+  }
+
+  get productCache(): Promise<QueryProductResponse> {
+    return this.loadProducts();
+  }
+
+  async loadProducts(): Promise<QueryProductResponse> {
+    if (ResultsDataSourceBase._productCache) {
+      return ResultsDataSourceBase._productCache;
+    }
+    ResultsDataSourceBase._productCache = this.queryProducts([ProductProperties.name, ProductProperties.partNumber])
+      .catch(error => {
+        console.error('Error in loading products:', error);
+        return { products: [] };
+      });
+    return ResultsDataSourceBase._productCache;
+  };
 
   protected multipleValuesQuery(field: string): ExpressionTransformFunction {
     return (value: string, operation: string, _options?: any) => {

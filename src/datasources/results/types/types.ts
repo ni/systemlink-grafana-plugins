@@ -46,3 +46,19 @@ export enum TestMeasurementStatus {
   Running = 'Running',
   Waiting = 'Waiting',
 }
+
+export interface QueryProductResponse {
+  products: ProductResponseProperties[],
+  continuationToken?: string,
+  totalCount?: number
+}
+
+export interface ProductResponseProperties {
+  partNumber: string;
+  name?: string;
+}
+
+export enum ProductProperties {
+  partNumber = 'PART_NUMBER',
+  name = 'NAME',
+}

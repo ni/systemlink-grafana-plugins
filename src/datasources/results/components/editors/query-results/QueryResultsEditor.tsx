@@ -1,5 +1,6 @@
 import { SelectableValue } from '@grafana/data';
 import {
+  AsyncMultiSelect,
   AutoSizeInput,
   InlineField,
   InlineSwitch,
@@ -71,6 +72,10 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
     }
   }
 
+  const onProductNameChange = (productNames: Array<SelectableValue<string>>) => {
+    handleQueryChange({ ...query, partNumberQuery: productNames.map(product => product.value as string) });
+  }
+
   return (
     <>
       <VerticalGroup>
@@ -105,6 +110,23 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
           }}
         />
         <div className="horizontal-control-group">
+          <div>
+            <InlineField label="Product name" labelWidth={26}>
+              <AsyncMultiSelect
+                width={65}
+                onChange={onProductNameChange}
+                closeMenuOnSelect={false}
+                loadOptions={async () => {
+                  const response = await datasource.productCache;
+                  const productOptions = response.products.map(product => ({
+                    label: `${product.name} (${product.partNumber})`,
+                    value: product.partNumber,
+                  }));
+                  return [...datasource.globalVariableOptions(), ...productOptions];
+                }}
+                defaultOptions
+              />
+            </InlineField>
           <InlineField label="Query By" labelWidth={26} tooltip={tooltips.queryBy}>
             <ResultsQueryBuilder
               filter={query.queryBy}
@@ -115,6 +137,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
               onChange={(event: any) => onParameterChange(event.detail.linq)}>
             </ResultsQueryBuilder>
           </InlineField>
+          </div>
           {query.outputType === OutputType.Data && (
             <div className="right-query-controls">
               <InlineField label="OrderBy" labelWidth={26} tooltip={tooltips.orderBy}>
