@@ -11,6 +11,12 @@ const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: WorkOrdersQuery) => query),
+  usersObj: jest.fn().mockImplementation(() => ({
+    usersCache: Promise.resolve(
+      [{ id: '1', name: 'User 1' },
+       { id: '2', name: 'User 2' },]
+    ),
+  })),
 } as unknown as WorkOrdersDataSource;
 
 const defaultProps: QueryEditorProps<WorkOrdersDataSource, WorkOrdersQuery> = {
