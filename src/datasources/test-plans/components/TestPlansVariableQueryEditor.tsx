@@ -1,15 +1,27 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { OrderBy, TestPlansVariableQuery } from '../types';
 import { AutoSizeInput, InlineField, InlineSwitch, Select, VerticalGroup } from '@grafana/ui';
 import { validateNumericInput } from 'core/utils';
 import { TestPlansDataSource } from '../TestPlansDataSource';
 import { TestPlansQueryBuilder } from './query-builder/TestPlansQueryBuilder';
+import { Workspace } from 'core/types';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansVariableQuery>;
 
 export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Props) {
   query = datasource.prepareQuery(query);
+
+  const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
+
+  useEffect(() => {
+    const loadWorkspaces = async () => {
+      await datasource.workspaceUtils.workspacesPromise;
+      setWorkspaces(Array.from(datasource.workspaceUtils.workspacesCache.values()));
+    };
+
+    loadWorkspaces();
+  }, [datasource]);
 
   const handleQueryChange = useCallback(
     (query: TestPlansVariableQuery): void => {
@@ -49,6 +61,7 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
       <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
         <TestPlansQueryBuilder
           filter={query.queryBy}
+          workspaces={workspaces}
           globalVariableOptions={[]}
           onChange={(event: any) => onQueryByChange(event.detail.linq)}
         ></TestPlansQueryBuilder>

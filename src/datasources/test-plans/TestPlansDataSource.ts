@@ -2,10 +2,11 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, 
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { OrderByOptions, OutputType, Projections, Properties, PropertiesProjectionMap, QueryTestPlansResponse, TestPlanResponseProperties, TestPlansQuery, TestPlansVariableQuery } from './types';
-import { queryInBatches } from 'core/utils';
+import { getWorkspaceName, queryInBatches } from 'core/utils';
 import { QueryResponse } from 'core/types';
 import { isTimeField } from './utils';
 import { QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
+import { WorkspaceUtils } from 'core/workspace.utils';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(
@@ -14,10 +15,12 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
   }
 
   baseUrl = `${this.instanceSettings.url}/niworkorder/v1`;
   queryTestPlansUrl = `${this.baseUrl}/query-testplans`;
+  workspaceUtils: WorkspaceUtils;
 
   defaultQuery = {
     outputType: OutputType.Properties,
@@ -58,10 +61,19 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
           const fieldType = isTimeField(field)
             ? FieldType.time
             : FieldType.string;
-          const fieldValues = testPlans
+          const values = testPlans
             .map(data => data[field as unknown as keyof TestPlanResponseProperties] as string);
 
           // TODO: AB#3133188 Add support for other field mapping
+          const fieldValues = values.map(value => {
+            switch (field) {
+              case PropertiesProjectionMap.WORKSPACE.field[0]:
+                const workspace = this.workspaceUtils.workspacesCache.get(value);
+                return workspace ? getWorkspaceName([workspace], value) : value;
+              default:
+                return value == null ? '' : value;
+            }
+          });
 
           return {
             name: data.label,

@@ -21,6 +21,17 @@ const mockVariableQueryTestPlansResponse: QueryTestPlansResponse = {
   totalCount: 2
 };
 
+jest.mock('core/workspace.utils', () => {
+  return {
+    WorkspaceUtils: jest.fn().mockImplementation(() => ({
+      workspacesCache: new Map([
+        ['1', { id: '1', name: 'WorkspaceName' }],
+        ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+      ])
+    }))
+  };
+});
+
 beforeEach(() => {
   [datastore, backendServer] = setupDataSource(TestPlansDataSource);
 });
@@ -158,6 +169,32 @@ describe('runQuery', () => {
     expect(result.fields).toHaveLength(1);
     expect(result.fields[0].name).toEqual('Total count');
     expect(result.fields[0].values).toEqual([0]);
+  });
+
+  it('should convert workspaceIds to workspace names for workspace field', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.WORKSPACE],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', workspace: '1' },
+        { id: '2', workspace: '2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Workspace');
+    expect(result.fields[0].values).toEqual(['WorkspaceName', 'AnotherWorkspaceName']);
   });
 });
 
