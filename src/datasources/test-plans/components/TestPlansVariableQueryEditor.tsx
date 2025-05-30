@@ -54,7 +54,7 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
         ></TestPlansQueryBuilder>
       </InlineField>
       <div>
-        <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
+        <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
           <Select
             options={[...OrderBy] as SelectableValue[]}
             placeholder="Select a field to set the query order"
@@ -64,7 +64,7 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
             width={26}
           />
         </InlineField>
-        <InlineField label="Descending" labelWidth={18} tooltip={tooltips.descending}>
+        <InlineField label="Descending" labelWidth={25} tooltip={tooltips.descending}>
           <InlineSwitch
             onChange={event => onDescendingChange(event.currentTarget.checked)}
             value={query.descending}
@@ -73,7 +73,7 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
       </div>
       <InlineField
         label="Take"
-        labelWidth={18}
+        labelWidth={25}
         tooltip={tooltips.recordCount}
         invalid={!isRecordCountValid}
         error={errors.recordCount}
