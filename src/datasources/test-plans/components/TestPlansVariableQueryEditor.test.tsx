@@ -11,6 +11,13 @@ const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: TestPlansVariableQuery) => query),
+  workspaceUtils: {
+    workspacesPromise: Promise.resolve(),
+    workspacesCache: new Map([
+      ['1', { id: '1', name: 'WorkspaceName' }],
+      ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+    ]),
+  }
 } as unknown as TestPlansDataSource;
 
 const defaultProps: QueryEditorProps<TestPlansDataSource, TestPlansVariableQuery> = {
