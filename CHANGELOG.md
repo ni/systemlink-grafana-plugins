@@ -1,3 +1,9 @@
+## [3.95.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.94.0...v3.95.0) (2025-05-30)
+
+### Features
+
+* **test-plan:** add dummy query builder in test plans editors ([#223](https://github.com/ni/systemlink-grafana-plugins/issues/223)) ([b1553d2](https://github.com/ni/systemlink-grafana-plugins/commit/b1553d2a067a1a215f997cf2ccf04fbd11e3714c))
+
 ## [3.94.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.93.1...v3.94.0) (2025-05-30)
 
 ### Features
