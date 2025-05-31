@@ -11,7 +11,7 @@ import { QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 type Props = QueryBuilderProps &
 React.HTMLAttributes<Element> & {
   datasource: QueryStepsDataSource;
-  resultsQuery: string;
+  resultsQuery?: string;
   stepsQuery?: string;
   onResultsQueryChange: (query: string) => void;
   onStepsQueryChange: (query: string) => void;

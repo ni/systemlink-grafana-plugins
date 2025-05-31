@@ -165,20 +165,16 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       };
     }
 
-    const resultsQuery = this.getResultsQuery(query.partNumberQuery, query.resultsQuery);
+    query.resultsQuery = this.buildResultsQuery(options, query.partNumberQuery, query.resultsQuery);
+    query.stepsQuery = this.buildStepsQuery(options, query.useTimeRange, query.useTimeRangeFor, query.stepsQuery);
 
-    query.stepsQuery = this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options);
-    query.resultsQuery = this.transformQuery(resultsQuery, this.resultsComputedDataFields, options) || '';
-
-    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
-    const stepsQuery = this.buildQueryFilter(query.stepsQuery, useTimeRangeFilter);
     const projection = query.showMeasurements
       ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
       : query.properties;
 
     if (query.outputType === OutputType.Data) {
       const responseData = await this.queryStepsInBatches(
-        stepsQuery,
+        query.stepsQuery,
         query.orderBy,
         projection as StepsProperties[],
         query.recordCount,
@@ -208,7 +204,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       };
     } else {
       const responseData = await this.querySteps(
-        stepsQuery,
+        query.stepsQuery,
         undefined,
         undefined,
         undefined,
@@ -225,16 +221,16 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  private buildPartNumberQuery = (selected: string[]): string => {
-    if (selected.length === 0){
-      return '';
-    } 
-    return selected.map(item => `${ResultsQueryBuilderFieldNames.PART_NUMBER} = "${item}"`).join(' || ');
-  };
+  private buildResultsQuery(options: DataQueryRequest, partNumberQuery: string[], resultsQuery?: string): string {
+    const partNumberFilter = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery);
+    const combinedResultsQuery = this.buildQueryFilter(`(${partNumberFilter})`, resultsQuery);
+    return this.transformQuery(combinedResultsQuery, this.resultsComputedDataFields, options) || '';
+  }
 
-  private getResultsQuery(partNumberQuery: string[], resultsQuery: string): string {
-    const build = this.buildPartNumberQuery(partNumberQuery);
-    return this.buildQueryFilter(build, resultsQuery) || '';
+  private buildStepsQuery(options: DataQueryRequest, useTimeRange?: boolean, useTimeRangeFor?: string, stepsQuery?: string): string {
+    const transformStepsQuery = this.transformQuery(stepsQuery, this.stepsComputedDataFields, options);
+    const useTimeRangeFilter = this.getTimeRangeFilter(options, useTimeRange, useTimeRangeFor);
+    return this.buildQueryFilter(transformStepsQuery, useTimeRangeFilter) || '';
   }
 
   private processFields(
