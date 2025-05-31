@@ -1,11 +1,12 @@
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { OutputType, QueryType } from '../../../types/types';
-import { select } from 'react-select-event';
+import selectEvent, { select } from 'react-select-event';
 import userEvent from '@testing-library/user-event';
 import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
 import { QueryResultsEditor } from './QueryResultsEditor';
 import React from 'react';
 import { Workspace } from 'core/types';
+import exp from 'constants';
 
 jest.mock('../../query-builders/query-results/ResultsQueryBuilder', () => ({
   ResultsQueryBuilder: jest.fn(({ filter, workspaces, partNumbers, status, globalVariableOptions, onChange }) => {
@@ -38,10 +39,17 @@ const mockWorkspaces: Workspace[] = [
 ]
 const mockPartNumbers = ['PN1', 'PN2', 'PN3'];
 const mockGlobalVars = [{ label: '$var1', value: '$var1' }];
+const mockProducts = {
+  products: [
+    {partNumber: 'PartNumber1', name: 'ProductName1'},
+    {partNumber: 'PartNumber2', name: 'ProductName2'}
+  ]
+}
 
 const mockDatasource = {
   workspacesCache: Promise.resolve(new Map(mockWorkspaces.map(workspace => [workspace.id, workspace]))),
   partNumbersCache: Promise.resolve(mockPartNumbers),
+  productCache: Promise.resolve(mockProducts),
   globalVariableOptions: jest.fn(() => mockGlobalVars),
 } as unknown as QueryResultsDataSource;
 
@@ -54,6 +62,7 @@ let dataOutput: HTMLElement;
 let totalCountOutput: HTMLElement;
 let useTimeRange: HTMLElement;
 let useTimeRangeFor: HTMLElement;
+let productName: HTMLElement;
 
 describe('QueryResultsEditor', () => {
   beforeEach(async () => {
@@ -70,6 +79,7 @@ describe('QueryResultsEditor', () => {
             recordCount: 1000,
             useTimeRange: true,
             useTimeRangeFor: 'Updated',
+            partNumberQuery: ['PartNumber1'],
             queryBy: 'partNumber = "PN1"',
           }}
           handleQueryChange={mockHandleQueryChange}
@@ -78,13 +88,14 @@ describe('QueryResultsEditor', () => {
       );
     });
     properties = screen.getAllByRole('combobox')[0];
-    orderBy = screen.getAllByRole('combobox')[2];
+    orderBy = screen.getAllByRole('combobox')[3];
     descending = screen.getAllByRole('checkbox')[1];
     dataOutput = screen.getByRole('radio', { name: 'Data' });
     totalCountOutput = screen.getByRole('radio', { name: 'Total Count' });
     recordCount = screen.getByDisplayValue(1000);
     useTimeRange = screen.getAllByRole('checkbox')[0];
     useTimeRangeFor = screen.getAllByRole('combobox')[1];
+    productName = screen.getAllByRole('combobox')[2];
   });
 
   test('should render with default query when default values are provided', async () => {
@@ -102,6 +113,8 @@ describe('QueryResultsEditor', () => {
     expect(useTimeRange).toBeChecked();
     expect(useTimeRangeFor).toBeInTheDocument();
     expect(screen.getAllByText('Updated').length).toBe(1);
+    expect(productName).toBeInTheDocument();
+    expect(screen.getAllByText('PartNumber1').length).toBe(1);
   });
 
   test('should update properties when user adds a property', async () => {
@@ -122,6 +135,13 @@ describe('QueryResultsEditor', () => {
     await userEvent.click(descending);
     await waitFor(() => {
       expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ descending: false }));
+    });
+  });
+
+  test('should update part number query when user changes a product name', async () => {
+    await select(productName, '$var1', { container: document.body });
+    await waitFor(() => {
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "$var1"] }));
     });
   });
 

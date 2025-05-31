@@ -49,6 +49,10 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     return this.getPartNumbers();
   }
 
+  get productCache(): Promise<QueryProductResponse> {
+    return this.loadProducts();
+  }
+
   async loadWorkspaces(): Promise<Map<string, Workspace>> {
     if (ResultsDataSourceBase._workspacesCache) {
       return ResultsDataSourceBase._workspacesCache;
@@ -106,10 +110,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     } catch (error) {
       throw new Error(`An error occurred while querying products: ${error}`);
     }
-  }
-
-  get productCache(): Promise<QueryProductResponse> {
-    return this.loadProducts();
   }
 
   async loadProducts(): Promise<QueryProductResponse> {
