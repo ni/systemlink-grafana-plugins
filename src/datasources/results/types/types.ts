@@ -55,7 +55,7 @@ export interface QueryProductResponse {
 
 export interface ProductResponseProperties {
   partNumber: string;
-  name?: string;
+  name: string;
 }
 
 export enum ProductProperties {

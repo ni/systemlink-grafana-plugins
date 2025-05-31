@@ -1,12 +1,11 @@
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import { OutputType, QueryType } from '../../../types/types';
-import selectEvent, { select } from 'react-select-event';
+import { select } from 'react-select-event';
 import userEvent from '@testing-library/user-event';
 import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
 import { QueryResultsEditor } from './QueryResultsEditor';
 import React from 'react';
 import { Workspace } from 'core/types';
-import exp from 'constants';
 
 jest.mock('../../query-builders/query-results/ResultsQueryBuilder', () => ({
   ResultsQueryBuilder: jest.fn(({ filter, workspaces, partNumbers, status, globalVariableOptions, onChange }) => {
