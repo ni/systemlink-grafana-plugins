@@ -35,22 +35,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   }
 
   async runQuery(query: QueryResults, options: DataQueryRequest): Promise<DataFrameDTO> {
-    if (query.queryBy) {
-      query.queryBy = transformComputedFieldsQuery(
-        this.templateSrv.replace(query.queryBy, options.scopedVars),
-        this.resultsComputedDataFields,
-      );
-    }
-
-    if(query.partNumberQuery && query.partNumberQuery.length > 0) {
-      const partNumberFilter = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, query.partNumberQuery);
-      const transformedPartNumberFilter = transformComputedFieldsQuery(
-        this.templateSrv.replace(partNumberFilter, options.scopedVars),
-        this.resultsComputedDataFields,
-      );
-      query.queryBy = this.buildQueryFilter(`(${transformedPartNumberFilter})`, query.queryBy);
-    }
-
+    query.queryBy = this.buildResultsQuery(options, query.partNumberQuery, query.queryBy);
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
 
     const responseData = await this.queryResults(
@@ -97,6 +82,24 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
         fields: [{ name: 'Total count', values: [responseData.totalCount] }],
       };
     }
+  }
+
+  private buildResultsQuery( options: DataQueryRequest, partNumberQuery?: string[], resultsQuery?: string): string | undefined {
+    const partNumberFilter =
+      partNumberQuery && partNumberQuery.length > 0
+        ? `(${this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery)})`
+        : '';
+
+    const combinedQuery = this.buildQueryFilter(partNumberFilter, resultsQuery);
+
+    if (!combinedQuery) {
+      return undefined;
+    }
+
+    return transformComputedFieldsQuery(
+      this.templateSrv.replace(combinedQuery, options.scopedVars), 
+      this.resultsComputedDataFields
+    );
   }
 
   /**

@@ -236,8 +236,8 @@ describe('QueryResultsDataSource', () => {
 
       test('should handle part number query with template variables', async () => {
         const partNumberQuery = ['PartNumber1', '${var}'];
-        const templateSrvCalledWith = 'PartNumber = "PartNumber1" || PartNumber = "${var}"';
-        const replacedPartNumberQuery = 'PartNumber = "PartNumber1" || PartNumber = "ReplacedValue"';
+        const templateSrvCalledWith = '(PartNumber = "PartNumber1" || PartNumber = "${var}")';
+        const replacedPartNumberQuery = '(PartNumber = "PartNumber1" || PartNumber = "ReplacedValue")';
         templateSrv.replace.calledWith(templateSrvCalledWith).mockReturnValue(replacedPartNumberQuery);
 
         const query = buildQuery(
@@ -251,7 +251,7 @@ describe('QueryResultsDataSource', () => {
 
         await datastore.query(query);
 
-        expect(templateSrv.replace).toHaveBeenCalledWith("PartNumber = \"PartNumber1\" || PartNumber = \"${var}\"", expect.anything());
+        expect(templateSrv.replace).toHaveBeenCalledWith("(PartNumber = \"PartNumber1\" || PartNumber = \"${var}\")", expect.anything());
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
             url: '/nitestmonitor/v2/query-results',
@@ -266,8 +266,8 @@ describe('QueryResultsDataSource', () => {
         const resultsQuery = `${ResultsQueryBuilderFieldNames.PROGRAM_NAME} = "{name1,name2}"`;
         const partNumberQuery = ['PartNumber1', '${var}'];
 
-        const templateSrvCalledWith = 'PartNumber = "PartNumber1" || PartNumber = "${var}"';
-        const replacedPartNumberQuery = 'PartNumber = "PartNumber1" || PartNumber = "{partNumber2,partNumber3}"';
+        const templateSrvCalledWith = '(PartNumber = "PartNumber1" || PartNumber = "${var}") && ProgramName = "{name1,name2}"';
+        const replacedPartNumberQuery = '(PartNumber = "PartNumber1" || PartNumber = "{partNumber2,partNumber3}") && ProgramName = "{name1,name2}"';
         templateSrv.replace.calledWith(templateSrvCalledWith).mockReturnValue(replacedPartNumberQuery);
 
         const query = buildQuery(
@@ -281,8 +281,7 @@ describe('QueryResultsDataSource', () => {
 
         await datastore.query(query);
 
-        expect(templateSrv.replace).toHaveBeenNthCalledWith(1, resultsQuery, expect.anything());
-        expect(templateSrv.replace).toHaveBeenNthCalledWith(2, "PartNumber = \"PartNumber1\" || PartNumber = \"${var}\"", expect.anything());
+        expect(templateSrv.replace).toHaveBeenCalledWith("(PartNumber = \"PartNumber1\" || PartNumber = \"${var}\") && ProgramName = \"{name1,name2}\"", expect.anything());
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
             url: '/nitestmonitor/v2/query-results',
