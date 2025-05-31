@@ -225,22 +225,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  get productCache(): Promise<QueryProductResponse> {
-    return this.loadProducts();
-  }
-
-  async loadProducts(): Promise<QueryProductResponse> {
-    if (this._productCache) {
-      return this._productCache;
-    }
-    this._productCache = this.queryProducts([ProductProperties.name, ProductProperties.partNumber])
-      .catch(error => {
-        console.error('Error in loading products:', error);
-        return { products: [] };
-      });
-    return this._productCache;
-  };
-
   private buildPartNumberQuery = (selected: string[]): string => {
     if (selected.length === 0){
       return '';
