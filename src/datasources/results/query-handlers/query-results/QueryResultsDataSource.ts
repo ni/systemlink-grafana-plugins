@@ -42,7 +42,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       );
     }
 
-    if(query.partNumberQuery) {
+    if(query.partNumberQuery && query.partNumberQuery.length > 0) {
       const partNumberFilter = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, query.partNumberQuery);
       const transformedPartNumberFilter = transformComputedFieldsQuery(
         this.templateSrv.replace(partNumberFilter, options.scopedVars),

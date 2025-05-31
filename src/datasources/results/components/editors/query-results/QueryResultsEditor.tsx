@@ -113,6 +113,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
           <div>
             <InlineField label="Product name" labelWidth={26}>
               <AsyncMultiSelect
+                maxVisibleValues={5}
                 width={65}
                 onChange={onProductNameChange}
                 closeMenuOnSelect={false}

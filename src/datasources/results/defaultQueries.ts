@@ -20,6 +20,7 @@ export const defaultResultsQuery = {
   recordCount: 1000,
   useTimeRange: false,
   useTimeRangeFor: undefined,
+  partNumberQuery: [],
   queryBy: '',
 };
 
