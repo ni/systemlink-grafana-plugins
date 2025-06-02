@@ -122,6 +122,10 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
     onChange({ ...queryResultsquery, partNumberQuery: productNames.map(product => product.value as string) } as ResultsVariableQuery );
   }
 
+  const onProductNameChangesinSteps = (productNames: Array<SelectableValue<string>>) => {
+    onChange({ ...stepsVariableQuery, partNumberQueryInSteps: productNames.map(product => product.value as string) } as StepsVariableQuery );
+  }
+
   const formatOptionLabel = (option: SelectableValue<string>) => (
     <div style={{ maxWidth: 500, whiteSpace: 'normal' }}>
       {option.label}
@@ -198,6 +202,19 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
       )}
       {query.queryType === QueryType.Steps && (
         <>
+          <InlineField label="Product name" labelWidth={26} tooltip={tooltips.productName}>
+            <MultiSelect
+              maxVisibleValues={5}
+              width={65}
+              onChange={onProductNameChangesinSteps}
+              placeholder='Select part numbers to query'
+              noMultiValueWrap={true}
+              closeMenuOnSelect={false}
+              value={stepsVariableQuery.partNumberQueryInSteps}
+              formatOptionLabel={formatOptionLabel}
+              options={productNameOptions}
+            />
+          </InlineField>
           <StepsQueryBuilderWrapper
             datasource={queryStepsDatasource.current}
             resultsQuery={stepsVariableQuery.queryByResults}
