@@ -3,7 +3,7 @@ import { MockProxy } from 'jest-mock-extended';
 import { setupDataSource, requestMatching, createFetchResponse, createFetchError } from 'test/fixtures';
 import { WorkOrdersDataSource } from './WorkOrdersDataSource';
 import { OrderByOptions, OutputType, State, Type, WorkOrderPropertiesOptions, WorkOrdersResponse } from './types';
-import { DataQueryRequest } from '@grafana/data';
+import { DataQueryRequest, Field } from '@grafana/data';
 
 let datastore: WorkOrdersDataSource, backendServer: MockProxy<BackendSrv>;
 
@@ -25,7 +25,10 @@ describe('WorkOrdersDataSource', () => {
         createdBy: 'User3',
         updatedBy: 'User4',
         description: 'Test description',
-        properties: {},
+        properties: {
+          'customProperty1': 'value1',
+          'customProperty2': 'value2'
+        },
       },
     ],
     continuationToken: '',
@@ -62,6 +65,21 @@ describe('WorkOrdersDataSource', () => {
       expect(result.fields).toEqual([{ name: 'Total count', values: [42] }]);
       expect(result.refId).toEqual('B');
     });
+
+    
+
+    test('should convert properties to Grafana fields', async () => {
+      const query = {
+          refId: 'A',
+          outputType: OutputType.Properties
+        };
+    
+
+      const response = await datastore.runQuery(query, {} as DataQueryRequest);
+
+      const fields = response.fields as Field[];
+      expect(fields).toMatchSnapshot();
+  });
   });
 
   describe('queryWorkordersData', () => {
