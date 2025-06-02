@@ -6,7 +6,7 @@ import { getWorkspaceName, queryInBatches } from 'core/utils';
 import { QueryResponse } from 'core/types';
 import { isTimeField } from './utils';
 import { QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
-import { WorkspaceUtils } from 'core/workspace.utils';
+import { WorkspaceUtils } from 'shared/workspace.utils';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(

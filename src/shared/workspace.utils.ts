@@ -1,12 +1,12 @@
 import { DataSourceInstanceSettings } from "@grafana/data";
 import { BackendSrv } from "@grafana/runtime";
-import { Workspace } from "./types";
+import { Workspace } from "core/types";
 
 export class WorkspaceUtils {
     readonly workspacesCache = new Map<string, Workspace>([]);
     workspacesPromise: Promise<Map<string, Workspace>> | null = null;
 
-    queryWorkspacesUrl = `${this.instanceSettings.url}/niauth/v1/auth`;
+    private readonly queryWorkspacesUrl = `${this.instanceSettings.url}/niauth/v1/auth`;
 
     constructor(
         readonly instanceSettings: DataSourceInstanceSettings,
@@ -15,9 +15,7 @@ export class WorkspaceUtils {
         this.loadWorkspaces();
     }
 
-    private static Workspaces: Workspace[] | null = null;
-
-    async loadWorkspaces(): Promise<Map<string, Workspace>> {
+    private async loadWorkspaces(): Promise<Map<string, Workspace>> {
         if (this.workspacesCache.size > 0) {
             return this.workspacesCache;
         }
@@ -36,13 +34,8 @@ export class WorkspaceUtils {
         return this.workspacesPromise;
     }
 
-    async getWorkspaces(): Promise<Workspace[]> {
-        if (WorkspaceUtils.Workspaces) {
-            return WorkspaceUtils.Workspaces;
-        }
-
+    private async getWorkspaces(): Promise<Workspace[]> {
         const response = await this.backendSrv.get<{ workspaces: Workspace[] }>(this.queryWorkspacesUrl);
-
-        return (WorkspaceUtils.Workspaces = response.workspaces);
+        return response.workspaces;
     }
 }

@@ -1,7 +1,7 @@
 import { WorkspaceUtils } from './workspace.utils';
 import { DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv } from '@grafana/runtime';
-import { Workspace } from './types';
+import { Workspace } from 'core/types';
 
 describe('WorkspaceUtils', () => {
     let instanceSettings: DataSourceInstanceSettings;
@@ -27,7 +27,7 @@ describe('WorkspaceUtils', () => {
     });
 
     it('should load workspaces and cache them', async () => {
-        const result = await workspaceUtils.loadWorkspaces();
+        const result = workspaceUtils.workspacesCache;
 
         expect(backendSrv.get).toHaveBeenCalledWith(`${instanceSettings.url}/niauth/v1/auth`);
         expect(result.size).toBe(2);
@@ -41,7 +41,7 @@ describe('WorkspaceUtils', () => {
         workspaceUtils.workspacesCache.set('1', mockWorkspaces[0]);
         workspaceUtils.workspacesCache.set('2', mockWorkspaces[1]);
 
-        const result = await workspaceUtils.loadWorkspaces();
+        const result = workspaceUtils.workspacesCache;
 
         expect(backendSrv.get).not.toHaveBeenCalled();
         expect(result.size).toBe(2);
