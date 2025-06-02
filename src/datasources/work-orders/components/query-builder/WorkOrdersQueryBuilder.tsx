@@ -2,8 +2,8 @@ import { SlQueryBuilder } from "core/components/SlQueryBuilder/SlQueryBuilder";
 import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder.constants";
 import { expressionBuilderCallback, expressionReaderCallback } from "core/query-builder.utils";
 import { QBField, QueryBuilderOption } from "core/types";
-import { WorkOrdersQueryBuilderStaticFields } from "datasources/work-orders/constants/WorkOrdersQueryBuilder.constants";
-import React, { useState, useEffect } from "react";
+import { WorkOrdersQueryBuilderFields, WorkOrdersQueryBuilderStaticFields } from "datasources/work-orders/constants/WorkOrdersQueryBuilder.constants";
+import React, { useState, useEffect, useMemo } from "react";
 import { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
 
 type WorkOrdersQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
@@ -18,9 +18,37 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
 }) => {
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
+  
+  const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]) => {
+    return {
+      ...field,
+      lookup: {
+        ...field.lookup,
+        dataSource: [
+          ...(field.lookup?.dataSource || []),
+          ...options,
+        ],
+      },
+    };
+  };
+
+  const timeFields = useMemo(() => {
+    const timeOptions = [
+      { label: 'From', value: '${__from:date}' },
+      { label: 'To', value: '${__to:date}' },
+      { label: 'Now', value: '${__now:date}' },
+    ]
+
+    return [
+      addOptionsToLookup(WorkOrdersQueryBuilderFields.EARLIEST_START_DATE, timeOptions),
+      addOptionsToLookup(WorkOrdersQueryBuilderFields.DUE_DATE, timeOptions),
+      addOptionsToLookup(WorkOrdersQueryBuilderFields.CREATED_AT, timeOptions),
+      addOptionsToLookup(WorkOrdersQueryBuilderFields.UPDATED_AT, timeOptions),
+    ];
+  }, []);
 
   useEffect(() => {
-    const updatedFields = WorkOrdersQueryBuilderStaticFields
+    const updatedFields = [...WorkOrdersQueryBuilderStaticFields, ...timeFields]
 
     setFields(updatedFields);
 
@@ -59,7 +87,7 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
 
     setOperations(customOperations);
 
-  }, [globalVariableOptions]);
+  }, [globalVariableOptions, timeFields]);
 
   return (
     <SlQueryBuilder
