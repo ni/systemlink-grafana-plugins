@@ -11,7 +11,7 @@ const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
     prepareQuery: jest.fn((query: TestPlansQuery) => query),
-    workspaces: {
+    workspaceUtils: {
         workspacesCache: Promise.resolve(new Map([
             ['1', { id: '1', name: 'WorkspaceName' }],
             ['2', { id: '2', name: 'AnotherWorkspaceName' }],
@@ -218,8 +218,8 @@ describe('TestPlansQueryEditor', () => {
             renderElement();
         });
 
-        expect(mockDatasource.workspaces.workspacesCache).toBeDefined();
-        await expect(mockDatasource.workspaces.workspacesCache).resolves.toEqual(
+        expect(mockDatasource.workspaceUtils.workspacesCache).toBeDefined();
+        await expect(mockDatasource.workspaceUtils.workspacesCache).resolves.toEqual(
             new Map([
                 ['1', { id: '1', name: 'WorkspaceName' }],
                 ['2', { id: '2', name: 'AnotherWorkspaceName' }],

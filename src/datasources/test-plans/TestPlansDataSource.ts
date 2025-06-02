@@ -6,7 +6,7 @@ import { getWorkspaceName, queryInBatches } from 'core/utils';
 import { QueryResponse } from 'core/types';
 import { isTimeField } from './utils';
 import { QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
-import { Workspaces } from 'shared/Workspaces';
+import { WorkspaceUtils } from 'shared/workspace.utils';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(
@@ -15,12 +15,12 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
-    this.workspaces = new Workspaces(this.instanceSettings, this.backendSrv);
+    this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
   }
 
   baseUrl = `${this.instanceSettings.url}/niworkorder/v1`;
   queryTestPlansUrl = `${this.baseUrl}/query-testplans`;
-  workspaces: Workspaces;
+  workspaceUtils: WorkspaceUtils;
 
   defaultQuery = {
     outputType: OutputType.Properties,
@@ -41,7 +41,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   };
 
   async runQuery(query: TestPlansQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
-    const workspaces = await this.workspaces.workspacesCache;
+    const workspaces = await this.workspaceUtils.workspacesCache;
 
     if (query.outputType === OutputType.Properties) {
       const projectionAndFields = query.properties?.map(property => PropertiesProjectionMap[property]);
