@@ -224,7 +224,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   private buildResultsQuery(options: DataQueryRequest, partNumberQuery: string[], resultsQuery?: string): string {
     const partNumberFilter = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery);
     const combinedResultsQuery = this.buildQueryFilter(`(${partNumberFilter})`, resultsQuery);
-    return this.transformQuery(combinedResultsQuery, this.resultsComputedDataFields, options) || '';
+    return this.transformQuery(combinedResultsQuery, this.resultsComputedDataFields, options)!;
   }
 
   private buildStepsQuery(options: DataQueryRequest, useTimeRange?: boolean, useTimeRangeFor?: string, stepsQuery?: string): string | undefined {
