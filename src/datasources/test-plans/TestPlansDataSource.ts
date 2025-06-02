@@ -41,6 +41,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   };
 
   async runQuery(query: TestPlansQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
+    const workspaces = await this.workspaces.workspacesCache;
 
     if (query.outputType === OutputType.Properties) {
       const projectionAndFields = query.properties?.map(property => PropertiesProjectionMap[property]);
@@ -65,10 +66,9 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
             .map(data => data[field as unknown as keyof TestPlanResponseProperties] as string);
 
           // TODO: AB#3133188 Add support for other field mapping
-          const fieldValues = values.map(async value => {
+          const fieldValues = values.map(value => {
             switch (field) {
               case PropertiesProjectionMap.WORKSPACE.field[0]:
-                const workspaces = await this.workspaces.workspacesCache;
                 const workspace = workspaces.get(value);
                 return workspace ? getWorkspaceName([workspace], value) : value;
               default:
