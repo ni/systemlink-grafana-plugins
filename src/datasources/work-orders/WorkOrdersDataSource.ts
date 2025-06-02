@@ -2,6 +2,9 @@ import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, 
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse } from './types';
+import { WorkOrdersQueryBuilderFieldNames } from './constants/WorkOrdersQueryBuilder.constants';
+import { multipleValuesQuery, timeFieldsQuery } from 'core/utils';
+import { transformComputedFieldsQuery, ExpressionTransformFunction } from 'core/query-builder.utils';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
@@ -32,6 +35,13 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   };
 
   async runQuery(query: WorkOrdersQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    if (query.queryBy) {
+          query.queryBy = transformComputedFieldsQuery(
+            this.templateSrv.replace(query.queryBy, options.scopedVars),
+            this.workordersComputedDataFields,
+          );
+        }
+      
     if (query.outputType === OutputType.Properties) {
       return this.processWorkOrdersQuery(query);
     } else {
@@ -47,6 +57,15 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   shouldRunQuery(query: WorkOrdersQuery): boolean {
     return true;
   }
+
+  readonly workordersComputedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(WorkOrdersQueryBuilderFieldNames).map(field => [
+      field,
+      this.isTimeField(field)
+        ? timeFieldsQuery(field)
+        : multipleValuesQuery(field)
+    ])
+  );
 
   async processWorkOrdersQuery(query: WorkOrdersQuery): Promise<DataFrameDTO> {
     const workOrders: WorkOrder[] = await this.queryWorkordersData(
@@ -120,12 +139,16 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 
-  private isTimeField(field: WorkOrderPropertiesOptions): boolean {
+  private isTimeField(field: WorkOrderPropertiesOptions|WorkOrdersQueryBuilderFieldNames): boolean {
     const timeFields = [
       WorkOrderPropertiesOptions.UPDATED_AT,
       WorkOrderPropertiesOptions.CREATED_AT,
       WorkOrderPropertiesOptions.EARLIEST_START_DATE,
       WorkOrderPropertiesOptions.DUE_DATE,
+      WorkOrdersQueryBuilderFieldNames.UpdatedAt,
+      WorkOrdersQueryBuilderFieldNames.CreatedAt,
+      WorkOrdersQueryBuilderFieldNames.EarliestStartDate,
+      WorkOrdersQueryBuilderFieldNames.DueDate
     ];
   
     return timeFields.includes(field);
