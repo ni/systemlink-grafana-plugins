@@ -50,7 +50,7 @@ describe('Users', () => {
 
   describe('usersCache', () => {
     it('should fetch and cache users', async () => {
-      const result = await users.usersCache;
+      const result = await users.users;
 
       expect(result).toEqual(mockUsers);
       expect(queryUntilComplete).toHaveBeenCalledTimes(1);
@@ -59,7 +59,7 @@ describe('Users', () => {
         requestsPerSecond: QUERY_USERS_REQUEST_PER_SECOND,
       });
 
-      const cachedUsers = await users.usersCache;
+      const cachedUsers = await users.users;
       expect(cachedUsers).toEqual(mockUsers);
       expect(queryUntilComplete).toHaveBeenCalledTimes(1);
     });
@@ -67,7 +67,7 @@ describe('Users', () => {
 
   describe('usersMapCache', () => {
     it('should generate a map of user IDs to full names', async () => {
-      const userMap = await users.usersMapCache;
+      const userMap = await users.usersMap;
 
       expect(userMap.get('1')).toBe('John Doe');
       expect(userMap.get('2')).toBe('Jane Smith');

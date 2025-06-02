@@ -13,20 +13,14 @@ export class Users {
    * A cached promise that resolves to an array of users.
    * This cache is used to avoid redundant user data fetches.
    */
-  private static _usersCache: Promise<User[]> | null = null;
-
-  /**
-   * A cached promise that resolves to a map of user IDs to their full names.
-   * This cache is used to optimize user name lookups.
-   */
-  private static _usersMapCache: Promise<Map<string, string>> | null = null;
+  private static _users: Promise<User[]> | null = null;
 
   
   /**
    * Retrieves the cached promise for the list of users.
    * If the cache is not initialized, it triggers the loading of users.
    */
-  get usersCache(): Promise<User[]> {
+  public get users(): Promise<User[]> {
     return this.loadUsers();
   }
 
@@ -34,11 +28,8 @@ export class Users {
    * Retrieves the cached promise for the map of user IDs to full names.
    * If the cache is not initialized, it generates the map from the user list.
    */
-  get usersMapCache(): Promise<Map<string, string>> {
-    if (Users._usersMapCache) {
-      return Users._usersMapCache;
-    }
-    return this.usersCache.then(users => {
+  public get usersMap(): Promise<Map<string, string>> {
+    return this.users.then(users => {
       const userMap = new Map<string, string>();
       users.forEach(user => {
         const fullName = Users.getUserFullName(user);
@@ -76,11 +67,10 @@ export class Users {
    * @returns A promise that resolves to an array of users.
    */
   private async loadUsers(): Promise<User[]> {
-    if (Users._usersCache) {
-      return Users._usersCache;
+    if (!Users._users) {
+      Users._users = this.queryUsersInBatches().then(response => response.users);
     }
-    Users._usersCache = this.queryUsersInBatches().then(response => response.users);
-    return Users._usersCache;
+    return Users._users;
   }
 
   /**
