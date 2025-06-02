@@ -72,7 +72,7 @@ jest.mock('../query-builders/query-results/ResultsQueryBuilder', () => ({
     return (
       <div data-testid="results-query-builder">
         <div data-testid="results-workspaces">{JSON.stringify(workspaces)}</div>
-        <div data-testid="results-part-numbers">{JSON.stringify(partNumbers)}</div>=
+        <div data-testid="results-part-numbers">{JSON.stringify(partNumbers)}</div>
       </div>
     );
   }),

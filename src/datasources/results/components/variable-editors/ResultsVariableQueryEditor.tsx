@@ -88,7 +88,6 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
   };
 
   const onResultsQueryChange = (resultsQuery: string) => {
-    disableStepsQueryBuilder(resultsQuery === '');
     onChange({ ...queryResultsquery, queryByResults: resultsQuery } as ResultsVariableQuery);
   };
 
@@ -123,6 +122,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
   }
 
   const onProductNameChangesinSteps = (productNames: Array<SelectableValue<string>>) => {
+    disableStepsQueryBuilder(productNames.length === 0);
     onChange({ ...stepsVariableQuery, partNumberQueryInSteps: productNames.map(product => product.value as string) } as StepsVariableQuery );
   }
 
