@@ -2,17 +2,17 @@ import { QueryBuilderOption } from 'core/types';
 import React, { ReactNode } from 'react';
 import { render } from '@testing-library/react';
 import { TestPlansQueryBuilder } from './TestPlansQueryBuilder';
-import { systemAlias } from 'shared/types/QuerySystems.types';
+import { SystemAlias } from 'shared/types/QuerySystems.types';
 
 describe('TestPlansQueryBuilder', () => {
     let reactNode: ReactNode;
     const containerClass = 'smart-filter-group-condition-container';
-    const systemAlias: systemAlias = {
+    const systemAlias: SystemAlias = {
         id: '1',
         alias: 'System 1'
     };
 
-    function renderElement(filter: string, systemAliases: systemAlias[] | null, globalVariableOptions: QueryBuilderOption[] = []) {
+    function renderElement(filter: string, systemAliases: SystemAlias[] | null, globalVariableOptions: QueryBuilderOption[] = []) {
         reactNode = React.createElement(TestPlansQueryBuilder, { filter, systemAliases, globalVariableOptions, onChange: jest.fn() });
         const renderResult = render(reactNode);
         return {

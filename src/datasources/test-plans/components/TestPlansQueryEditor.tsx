@@ -5,14 +5,14 @@ import { OrderBy, OutputType, Properties, PropertiesProjectionMap, TestPlansQuer
 import { AutoSizeInput, HorizontalGroup, InlineField, InlineSwitch, MultiSelect, RadioButtonGroup, Select, VerticalGroup } from '@grafana/ui';
 import { validateNumericInput } from 'core/utils';
 import { TestPlansQueryBuilder } from './query-builder/TestPlansQueryBuilder';
-import { systemAlias } from 'shared/types/QuerySystems.types';
+import { SystemAlias } from 'shared/types/QuerySystems.types';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansQuery>;
 
 export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
 
-  const [systemAliases, setSystemAliases] = useState<systemAlias[] | null>(null);
+  const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
 
   useEffect(() => {
     const loadSystemAliases = async () => {

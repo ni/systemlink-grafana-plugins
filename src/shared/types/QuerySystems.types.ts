@@ -1,4 +1,4 @@
-export interface systemAlias {
+export interface SystemAlias {
     id: string;
     alias: string;
 }

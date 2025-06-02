@@ -4,12 +4,12 @@ import { expressionBuilderCallback, expressionReaderCallback } from "core/query-
 import { QBField, QueryBuilderOption } from "core/types";
 import { TestPlansQueryBuilderFields, TestPlansQueryBuilderStaticFields } from "datasources/test-plans/constants/TestPlansQueryBuilder.constants";
 import React, { useState, useEffect, useMemo } from "react";
-import { systemAlias } from "shared/types/QuerySystems.types";
+import { SystemAlias } from "shared/types/QuerySystems.types";
 import { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
 
 type TestPlansQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
     filter?: string;
-    systemAliases: systemAlias[] | null;
+    systemAliases: SystemAlias[] | null;
     globalVariableOptions: QueryBuilderOption[];
 };
 

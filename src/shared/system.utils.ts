@@ -3,30 +3,32 @@ import { BackendSrv } from "@grafana/runtime";
 import { QUERY_SYSTEMS_ALIAS_PROJECTION, QUERY_SYSTEMS_MAX_TAKE, QUERY_SYSTEMS_REQUEST_PER_SECOND } from "./constants/QuerySystems.constants";
 import { QueryResponse, QuerySystemsResponse } from "core/types";
 import { queryUsingSkip } from "core/utils";
-import { systemAlias } from "./types/QuerySystems.types";
+import { SystemAlias } from "./types/QuerySystems.types";
 
 export class SystemUtils {
-    private _systemAliasCache: Promise<Map<string, systemAlias>> | null = null;
+    private _systemAliasCache: Promise<Map<string, SystemAlias>> | null = null;
 
     private readonly querySystemsUrl = `${this.instanceSettings.url}/nisysmgmt/v1/query-systems`;
 
     constructor(
         readonly instanceSettings: DataSourceInstanceSettings,
         readonly backendSrv: BackendSrv
-    ) {}
-
-    get systemAliasCache(): Promise<Map<string, systemAlias>> {
-        return this.loadSystems()
+    ) {
+        this.loadSystems();
     }
 
-    private async loadSystems(): Promise<Map<string, systemAlias>> {
+    get systemAliasCache(): Promise<Map<string, SystemAlias>> {
+        return this._systemAliasCache ?? this.loadSystems();
+    }
+
+    private async loadSystems(): Promise<Map<string, SystemAlias>> {
         if (this._systemAliasCache) {
             return this._systemAliasCache;
         }
 
         this._systemAliasCache = this.querySystemsInBatches()
             .then(systems => {
-                const systemMap = new Map<string, systemAlias>();
+                const systemMap = new Map<string, SystemAlias>();
                 if (systems) {
                     systems.forEach(system => systemMap.set(system.id, system));
                 }
@@ -34,17 +36,17 @@ export class SystemUtils {
             })
             .catch(error => {
                 console.error('Error in loading systems:', error);
-                return new Map<string, systemAlias>();
+                return new Map<string, SystemAlias>();
             });
 
         return this._systemAliasCache;
     }
 
-    private async querySystemsInBatches(): Promise<systemAlias[]> {
-        const queryRecord = async (take: number, skip: number): Promise<QueryResponse<systemAlias>> => {
+    private async querySystemsInBatches(): Promise<SystemAlias[]> {
+        const queryRecord = async (take: number, skip: number): Promise<QueryResponse<SystemAlias>> => {
             const response = await this.querySystems(take, skip);
             return {
-                data: response.data as systemAlias[],
+                data: response.data as SystemAlias[],
                 totalCount: response.count
             };
         };

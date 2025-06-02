@@ -1,10 +1,10 @@
 import { SystemUtils } from './system.utils';
 import { BackendSrv } from '@grafana/runtime';
 import { DataSourceInstanceSettings } from '@grafana/data';
-import { systemAlias } from './types/QuerySystems.types';
+import { SystemAlias } from './types/QuerySystems.types';
 import { queryUsingSkip } from 'core/utils';
 
-const systemAliases: systemAlias[] = [
+const systemAliases: SystemAlias[] = [
     {
         id: '1',
         alias: 'System 1',
@@ -54,18 +54,22 @@ describe('SystemUtils', () => {
             return Promise.reject(error);
         });
 
+        systemUtils = new SystemUtils(instanceSettings, backendSrv);
         const result = await systemUtils.systemAliasCache;
 
         expect(console.error).toHaveBeenCalledTimes(1);
         expect(console.error).toHaveBeenCalledWith('Error in loading systems:', error);
-        expect(result).toEqual(new Map<string, systemAlias>());
+        expect(result).toEqual(new Map<string, SystemAlias>());
     });
 
     it('should return cached system aliases if already loaded', async () => {
+        (SystemUtils as any)['systemAliasCache'] = null;
         await systemUtils.systemAliasCache;
+        jest.clearAllMocks();
+
         const cachedResult = await systemUtils.systemAliasCache;
 
-        expect(queryUsingSkip).toHaveBeenCalledTimes(1);
+        expect(queryUsingSkip).not.toHaveBeenCalled();
         expect(cachedResult.size).toEqual(systemAliases.length);
         expect(cachedResult.get('1')).toEqual(systemAliases[0]);
         expect(cachedResult.get('2')).toEqual(systemAliases[1]);

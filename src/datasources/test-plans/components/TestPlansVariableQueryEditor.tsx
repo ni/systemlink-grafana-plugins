@@ -5,7 +5,7 @@ import { AutoSizeInput, InlineField, InlineSwitch, Select, VerticalGroup } from 
 import { validateNumericInput } from 'core/utils';
 import { TestPlansDataSource } from '../TestPlansDataSource';
 import { TestPlansQueryBuilder } from './query-builder/TestPlansQueryBuilder';
-import { systemAlias } from 'shared/types/QuerySystems.types';
+import { SystemAlias } from 'shared/types/QuerySystems.types';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansVariableQuery>;
 
@@ -13,7 +13,7 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
   query = datasource.prepareQuery(query);
 
 
-  const [systemAliases, setSystemAliases] = useState<systemAlias[] | null>(null);
+  const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
 
   useEffect(() => {
     const loadSystemAliases = async () => {
