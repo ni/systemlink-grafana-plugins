@@ -2,11 +2,12 @@ import { Workspaces } from './Workspaces';
 import { DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv } from '@grafana/runtime';
 import { Workspace } from 'core/types';
+import { mock } from 'jest-mock-extended';
 
 describe('Workspaces', () => {
     let instanceSettings: DataSourceInstanceSettings;
     let backendSrv: BackendSrv;
-    let workspaceUtils: Workspaces;
+    let workspaces: Workspaces;
 
     const mockWorkspaces: Workspace[] = [
         { id: '1', name: 'Workspace 1', default: true, enabled: true },
@@ -19,7 +20,7 @@ describe('Workspaces', () => {
             get: jest.fn().mockResolvedValue({ workspaces: mockWorkspaces }),
         } as unknown as BackendSrv;
 
-        workspaceUtils = new Workspaces(instanceSettings, backendSrv);
+        workspaces = new Workspaces(instanceSettings, backendSrv);
     });
 
     afterEach(() => {
@@ -27,7 +28,7 @@ describe('Workspaces', () => {
     });
 
     it('should load workspaces and cache them', async () => {
-        const result = workspaceUtils.workspacesCache;
+        const result = await workspaces.workspacesCache;
 
         expect(backendSrv.get).toHaveBeenCalledWith(`${instanceSettings.url}/niauth/v1/auth`);
         expect(result.size).toBe(2);
@@ -36,16 +37,28 @@ describe('Workspaces', () => {
     });
 
     it('should return cached workspaces if already loaded', async () => {
+        await workspaces.workspacesCache;
         jest.clearAllMocks();
 
-        workspaceUtils.workspacesCache.set('1', mockWorkspaces[0]);
-        workspaceUtils.workspacesCache.set('2', mockWorkspaces[1]);
-
-        const result = workspaceUtils.workspacesCache;
+        const result = await workspaces.workspacesCache;
 
         expect(backendSrv.get).not.toHaveBeenCalled();
         expect(result.size).toBe(2);
         expect(result.get('1')).toEqual(mockWorkspaces[0]);
         expect(result.get('2')).toEqual(mockWorkspaces[1]);
+    });
+
+    it('should handle errors when loading workspaces', async () => {
+        (Workspaces._workspacesCache as any) = null;
+        const error = new Error('API failed');
+        backendSrv.get = jest.fn().mockRejectedValue(error);
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        workspaces = new Workspaces(instanceSettings, backendSrv);
+        const result = await workspaces.workspacesCache;
+
+        expect(result.size).toBe(0);
+        expect(console.error).toHaveBeenCalledTimes(1);
+        expect(console.error).toHaveBeenCalledWith('Error in loading workspaces:', error);
     });
 });

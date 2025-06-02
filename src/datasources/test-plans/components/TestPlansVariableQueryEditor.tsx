@@ -16,8 +16,8 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
 
   useEffect(() => {
     const loadWorkspaces = async () => {
-      await datasource.workspaceUtils.workspacesPromise;
-      setWorkspaces(Array.from(datasource.workspaceUtils.workspacesCache.values()));
+      const workspaces = await datasource.workspaces.workspacesCache;
+      setWorkspaces(Array.from(workspaces.values()));
     };
 
     loadWorkspaces();

@@ -15,12 +15,12 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
-    this.workspaceUtils = new Workspaces(this.instanceSettings, this.backendSrv);
+    this.workspaces = new Workspaces(this.instanceSettings, this.backendSrv);
   }
 
   baseUrl = `${this.instanceSettings.url}/niworkorder/v1`;
   queryTestPlansUrl = `${this.baseUrl}/query-testplans`;
-  workspaceUtils: Workspaces;
+  workspaces: Workspaces;
 
   defaultQuery = {
     outputType: OutputType.Properties,
@@ -65,10 +65,11 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
             .map(data => data[field as unknown as keyof TestPlanResponseProperties] as string);
 
           // TODO: AB#3133188 Add support for other field mapping
-          const fieldValues = values.map(value => {
+          const fieldValues = values.map(async value => {
             switch (field) {
               case PropertiesProjectionMap.WORKSPACE.field[0]:
-                const workspace = this.workspaceUtils.workspacesCache.get(value);
+                const workspaces = await this.workspaces.workspacesCache;
+                const workspace = workspaces.get(value);
                 return workspace ? getWorkspaceName([workspace], value) : value;
               default:
                 return value == null ? '' : value;
