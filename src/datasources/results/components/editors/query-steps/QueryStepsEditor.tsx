@@ -1,6 +1,5 @@
 import { SelectableValue } from '@grafana/data';
 import {
-  AsyncMultiSelect,
   AutoSizeInput,
   InlineField,
   InlineSwitch,
@@ -26,10 +25,24 @@ type Props = {
 
 export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props) {
   const [disableStepsQueryBuilder, setDisableStepsQueryBuilder] = useState(false);
+  const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
 
   useEffect(() => {
     setDisableStepsQueryBuilder(!query.partNumberQuery || query.partNumberQuery.length === 0);
   }, [query.partNumberQuery]);
+
+  useEffect(() => {
+    const loadProductNameOptions = async () => {
+      const response = await datasource.productCache;
+      const productOptions = response.products.map(product => ({
+        label: `${product.name} (${product.partNumber})`,
+        value: product.partNumber,
+      }));
+      const globalVariableOptions = datasource.globalVariableOptions();
+      setProductNameOptions([...globalVariableOptions, ...productOptions]);
+    }
+    loadProductNameOptions();
+  }, [datasource]);
   
   const onOutputChange = (outputType: OutputType) => {
     handleQueryChange({ ...query, outputType: outputType });
@@ -74,6 +87,12 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
     handleQueryChange({ ...query, partNumberQuery: productNames.map(product => product.value as string) });
   }
 
+  const formatOptionLabel = (option: SelectableValue<string>) => (
+    <div style={{ maxWidth: 520, whiteSpace: 'normal' }}>
+      {option.label}
+    </div>
+  );
+
   return (
     <>
       <VerticalGroup>
@@ -116,21 +135,17 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
             }}
           />
         </div>
-        <InlineField label="Product name" labelWidth={26}>
-          <AsyncMultiSelect
+        <InlineField label="Product name" labelWidth={26} tooltip={tooltips.productName}>
+          <MultiSelect
+            maxVisibleValues={5}
             width={65}
             onChange={onProductNameChange}
+            placeholder='Select part numbers to query'
+            noMultiValueWrap={true}
             closeMenuOnSelect={false}
-            value={query.partNumberQuery?.map(pn => ({ label: pn, value: pn }))}
-            loadOptions={async () => {
-              const response = await datasource.productCache;
-              const productOptions = response.products.map(product => ({
-                label: `${product.name} (${product.partNumber})`,
-                value: product.partNumber,
-              }));
-              return [...datasource.globalVariableOptions(), ...productOptions];
-            }}
-            defaultOptions
+            value={query.partNumberQuery}
+            formatOptionLabel={formatOptionLabel}
+            options={productNameOptions}
           />
         </InlineField>
         <div className="horizontal-control-group">
@@ -188,4 +203,5 @@ const tooltips = {
   orderBy: 'This field orders the query steps by field.',
   descending: 'This field returns the query steps in descending order.',
   showMeasurements: 'This toggle enables the display of step measurement data.',
+  productName: 'This field filters results by part number.',
 };

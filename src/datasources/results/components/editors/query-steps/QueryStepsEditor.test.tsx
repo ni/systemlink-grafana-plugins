@@ -117,7 +117,6 @@ describe('QueryStepsEditor', () => {
       expect(showMeasurements).toBeInTheDocument();
       expect(showMeasurements).not.toBeChecked();
       expect(productName).toBeInTheDocument();
-      expect(screen.getAllByText('PartNumber1').length).toBe(1);
     });
 
     test('should display placeholders for properties and orderBy when default values are not provided', async () => {
@@ -155,10 +154,17 @@ describe('QueryStepsEditor', () => {
       });
     });
 
-    test('should update part number query when user changes a product name', async () => {
+    test('should update part number query when user selects a variable in product name dropdown', async () => {
       await select(productName, '$var1', { container: document.body });
       await waitFor(() => {
         expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "$var1"] }));
+      });
+    });
+
+    test('should update part number query when user selects a product in product name dropdown', async () => {
+      await select(productName, 'ProductName2 (PartNumber2)', { container: document.body });
+      await waitFor(() => {
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "PartNumber2"] }));
       });
     });
 
