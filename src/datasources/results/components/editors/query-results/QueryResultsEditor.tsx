@@ -126,7 +126,6 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
                 width={65}
                 onChange={onProductNameChange}
                 closeMenuOnSelect={false}
-                menuShouldPortal={false}
                 value={query.partNumberQuery?.map(pn => ({ label: pn, value: pn }))}
                 loadOptions={loadProductNameOptions}
                 defaultOptions
