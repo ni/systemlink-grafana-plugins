@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, RenderResult, waitFor } from '@testing-library/react';
+import { act, render, waitFor, screen } from '@testing-library/react';
 import { TestPlansQueryEditor } from './TestPlansQueryEditor';
 import { QueryEditorProps } from '@grafana/data';
 import { TestPlansDataSource } from '../TestPlansDataSource';
@@ -11,6 +11,14 @@ const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
     prepareQuery: jest.fn((query: TestPlansQuery) => query),
+    systemUtils: {
+        systemAliasCache: Promise.resolve(
+            new Map([
+                ['1', { id: '1', alias: 'System 1' }],
+                ['2', { id: '2', alias: 'System 2' }],
+            ])
+        ),
+    },
 } as unknown as TestPlansDataSource;
 
 const defaultProps: QueryEditorProps<TestPlansDataSource, TestPlansQuery> = {
@@ -34,47 +42,50 @@ describe('TestPlansQueryEditor', () => {
     }
 
     it('should render default query', async () => {
-        const container = renderElement();
+        await act(async () => {
+            renderElement();
+        });
 
-        expect(container.getByRole('radio', { name: OutputType.Properties })).toBeInTheDocument();
-        expect(container.getByRole('radio', { name: OutputType.Properties })).toBeChecked();
-        expect(container.getByRole('radio', { name: OutputType.TotalCount })).toBeInTheDocument();
-        expect(container.getByRole('radio', { name: OutputType.TotalCount })).not.toBeChecked();
+        expect(screen.getByRole('radio', { name: OutputType.Properties })).toBeInTheDocument();
+        expect(screen.getByRole('radio', { name: OutputType.Properties })).toBeChecked();
+        expect(screen.getByRole('radio', { name: OutputType.TotalCount })).toBeInTheDocument();
+        expect(screen.getByRole('radio', { name: OutputType.TotalCount })).not.toBeChecked();
         await waitFor(() => {
-            const properties = container.getAllByRole('combobox')[0];
+            const properties = screen.getAllByRole('combobox')[0];
             expect(properties).toBeInTheDocument();
             expect(properties).toHaveAttribute('aria-expanded', 'false');
             expect(properties).toHaveDisplayValue('');
 
-            const orderBy = container.getAllByRole('combobox')[1];
+            const orderBy = screen.getAllByRole('combobox')[1];
             expect(orderBy).toBeInTheDocument();
             expect(orderBy).toHaveAccessibleDescription('Select a field to set the query order');
             expect(orderBy).toHaveDisplayValue('');
 
-            const descending = container.getByRole('checkbox');
+            const descending = screen.getByRole('checkbox');
             expect(descending).toBeInTheDocument();
             expect(descending).not.toBeChecked();
 
-            const recordCount = container.getByRole('spinbutton');
+            const recordCount = screen.getByRole('spinbutton');
             expect(recordCount).toBeInTheDocument();
             expect(recordCount).toHaveDisplayValue('');
 
-            const queryBuilder = container.getByRole('dialog');
+            const queryBuilder = screen.getByRole('dialog');
             expect(queryBuilder).toBeInTheDocument();
         });
     });
 
     describe('when output type is properties', () => {
-        let container: RenderResult;
         let propertiesSelect: HTMLElement;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             const query = {
                 refId: 'A',
                 outputType: OutputType.Properties,
             };
-            container = renderElement(query);
-            propertiesSelect = container.getAllByRole('combobox')[0];
+            await act(async () => {
+                renderElement(query);
+            });
+            propertiesSelect = screen.getAllByRole('combobox')[0];
         });
 
         it('should render properties select', async () => {
@@ -94,7 +105,7 @@ describe('TestPlansQueryEditor', () => {
         });
 
         it('only allows numbers in Take field', async () => {
-            const recordCountInput = container.getByRole('spinbutton');
+            const recordCountInput = screen.getByRole('spinbutton');
 
             // User tries to enter a non-numeric value
             await userEvent.clear(recordCountInput);
@@ -113,40 +124,41 @@ describe('TestPlansQueryEditor', () => {
     });
 
     describe('when output type is total count', () => {
-        let container: RenderResult;
-
-        beforeEach(() => {
+        beforeEach(async () => {
             const query = {
                 refId: 'A',
                 outputType: OutputType.TotalCount,
             };
-            container = renderElement(query);
+
+            await act(async () => {
+                renderElement(query);
+            });
         });
 
         it('should not render properties', async () => {
             await waitFor(() => {
-                const properties = container.queryByRole('combobox', { name: 'Properties' });
+                const properties = screen.queryByRole('combobox', { name: 'Properties' });
                 expect(properties).not.toBeInTheDocument();
             });
         });
 
         it('should not render order by', async () => {
             await waitFor(() => {
-                const orderBy = container.queryByRole('combobox', { name: 'OrderBy' });
+                const orderBy = screen.queryByRole('combobox', { name: 'OrderBy' });
                 expect(orderBy).not.toBeInTheDocument();
             });
         });
 
         it('should not render descending', async () => {
             await waitFor(() => {
-                const descending = container.queryByRole('checkbox', { name: 'Descending' });
+                const descending = screen.queryByRole('checkbox', { name: 'Descending' });
                 expect(descending).not.toBeInTheDocument();
             });
         });
 
         it('should not render record count', async () => {
             await waitFor(() => {
-                const recordCount = container.queryByRole('spinbutton', { name: 'Take' });
+                const recordCount = screen.queryByRole('spinbutton', { name: 'Take' });
                 expect(recordCount).not.toBeInTheDocument();
             });
         });
@@ -157,10 +169,12 @@ describe('TestPlansQueryEditor', () => {
             refId: 'A',
             outputType: OutputType.TotalCount,
         };
-        const container = renderElement(query);
+        await act(async () => {
+            renderElement(query);
+        });
 
         await waitFor(() => {
-            const properties = container.queryByRole('combobox', { name: 'Properties' });
+            const properties = screen.queryByRole('combobox', { name: 'Properties' });
             expect(properties).not.toBeInTheDocument();
         });
     });
@@ -170,10 +184,12 @@ describe('TestPlansQueryEditor', () => {
             refId: 'A',
             outputType: OutputType.Properties,
         };
-        const container = renderElement(query);
+        await act(async () => {
+            renderElement(query);
+        });
 
         await waitFor(() => {
-            const properties = container.getAllByRole('combobox')[0];
+            const properties = screen.getAllByRole('combobox')[0];
             expect(properties).toBeInTheDocument();
             expect(properties).toHaveAttribute('aria-expanded', 'false');
             expect(properties).toHaveDisplayValue('');
@@ -185,9 +201,11 @@ describe('TestPlansQueryEditor', () => {
             refId: 'A',
             outputType: OutputType.Properties,
         };
-        const container = renderElement(query);
+        await act(async () => {
+            renderElement(query);
+        });
 
-        const propertiesSelect = container.getAllByRole('combobox')[0];
+        const propertiesSelect = screen.getAllByRole('combobox')[0];
         userEvent.click(propertiesSelect);
         await select(propertiesSelect, PropertiesProjectionMap.ASSIGNED_TO.label, { container: document.body });
 
@@ -197,15 +215,31 @@ describe('TestPlansQueryEditor', () => {
         });
     });
 
+    it('should load system names', async () => {
+        await act(async () => {
+            renderElement();
+        });
+
+        expect(mockDatasource.systemUtils.systemAliasCache).toBeDefined();
+        await expect(mockDatasource.systemUtils.systemAliasCache).resolves.toEqual(
+            new Map([
+                ['1', { id: '1', alias: 'System 1' }],
+                ['2', { id: '2', alias: 'System 2' }],
+            ])
+        );
+    });
+
     describe('onChange', () => {
         it('should call onChange with properties output type when switching from total count', async () => {
             const query = {
                 refId: 'A',
                 outputType: OutputType.TotalCount
             };
-            const container = renderElement(query);
+            await act(async () => {
+                renderElement(query);
+            });
 
-            const propertiesRadio = container.getByRole('radio', { name: OutputType.Properties });
+            const propertiesRadio = screen.getByRole('radio', { name: OutputType.Properties });
             userEvent.click(propertiesRadio);
 
             await waitFor(() => {
@@ -215,9 +249,11 @@ describe('TestPlansQueryEditor', () => {
         });
 
         it('should call onChange with total count output type when switching from properties', async () => {
-            const container = renderElement();
+            await act(async () => {
+                renderElement();
+            });
 
-            const totalCountRadio = container.getByRole('radio', { name: OutputType.TotalCount });
+            const totalCountRadio = screen.getByRole('radio', { name: OutputType.TotalCount });
             userEvent.click(totalCountRadio);
 
             await waitFor(() => {
@@ -227,8 +263,10 @@ describe('TestPlansQueryEditor', () => {
         });
 
         it('should call onChange with order by when user selects order by', async () => {
-            const container = renderElement();
-            const orderBySelect = container.getAllByRole('combobox')[1];
+            await act(async () => {
+                renderElement();
+            });
+            const orderBySelect = screen.getAllByRole('combobox')[1];
 
             userEvent.click(orderBySelect);
             await select(orderBySelect, 'ID', { container: document.body });
@@ -240,8 +278,10 @@ describe('TestPlansQueryEditor', () => {
         });
 
         it('should call onChange with descending when user toggles descending', async () => {
-            const container = renderElement();
-            const descendingCheckbox = container.getByRole('checkbox');
+            await act(async () => {
+                renderElement();
+            });
+            const descendingCheckbox = screen.getByRole('checkbox');
 
             userEvent.click(descendingCheckbox);
 
@@ -252,8 +292,10 @@ describe('TestPlansQueryEditor', () => {
         });
 
         it('should call onChange with record count when user enters record count', async () => {
-            const container = renderElement();
-            const recordCountInput = container.getByRole('spinbutton');
+            await act(async () => {
+                renderElement();
+            });
+            const recordCountInput = screen.getByRole('spinbutton');
 
             await userEvent.clear(recordCountInput);
             await userEvent.type(recordCountInput, '50');
@@ -266,9 +308,11 @@ describe('TestPlansQueryEditor', () => {
         });
 
         it('should call onChange when query by changes', async () => {
-            const container = renderElement();
+            await act(async () => {
+                renderElement();
+            });
 
-            const queryBuilder = container.getByRole('dialog');
+            const queryBuilder = screen.getByRole('dialog');
             expect(queryBuilder).toBeInTheDocument();
 
             // Simulate a change event
@@ -282,15 +326,17 @@ describe('TestPlansQueryEditor', () => {
         });
 
         it('should show error message when record count is invalid', async () => {
-            const container = renderElement();
-            const recordCountInput = container.getByRole('spinbutton');
+            await act(async () => {
+                renderElement();
+            });
+            const recordCountInput = screen.getByRole('spinbutton');
 
             await userEvent.clear(recordCountInput);
             await userEvent.type(recordCountInput, '10001');
             userEvent.tab();
 
             await waitFor(() => {
-                expect(container.queryByText('Record count must be less than 10000')).toBeInTheDocument();
+                expect(screen.queryByText('Record count must be less than 10000')).toBeInTheDocument();
             });
         });
     });

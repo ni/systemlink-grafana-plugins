@@ -176,6 +176,49 @@ export async function queryInBatches<T>(
   };
 }
 
+export async function queryUsingSkip<T>(
+  queryRecord: (take: number, skip: number) => Promise<QueryResponse<T>>,
+  { maxTakePerRequest, requestsPerSecond }: BatchQueryConfig
+): Promise<QueryResponse<T>> {
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  let skip = 0;
+  const data: T[] = [];
+  let hasMore = true;
+
+  do {
+    const start = Date.now();
+
+    for (let i = 0; i < requestsPerSecond && hasMore; i++) {
+      try {
+        const response = await queryRecord(maxTakePerRequest, skip);
+        data.push(...response.data);
+
+        if (response.data.length < maxTakePerRequest) {
+          hasMore = false;
+          break;
+        }
+
+        skip += maxTakePerRequest;
+      } catch (error) {
+        console.error(`Error during batch fetch at skip=${skip}:`, error);
+        hasMore = false;
+        break;
+      }
+    }
+
+    const elapsed = Date.now() - start;
+    if (hasMore && elapsed < 1000) {
+      await delay(1000 - elapsed);
+    }
+  } while (hasMore);
+
+  return {
+    data,
+    totalCount: data.length,
+  };
+}
+
 async function delay(timeout: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, timeout));
 }

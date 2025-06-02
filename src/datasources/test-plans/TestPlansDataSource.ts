@@ -6,6 +6,7 @@ import { queryInBatches } from 'core/utils';
 import { QueryResponse } from 'core/types';
 import { isTimeField } from './utils';
 import { QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
+import { SystemUtils } from 'shared/system.utils';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(
@@ -14,10 +15,12 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    this.systemUtils = new SystemUtils(instanceSettings, backendSrv);
   }
 
   baseUrl = `${this.instanceSettings.url}/niworkorder/v1`;
   queryTestPlansUrl = `${this.baseUrl}/query-testplans`;
+  systemUtils: SystemUtils;
 
   defaultQuery = {
     outputType: OutputType.Properties,
@@ -38,6 +41,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   };
 
   async runQuery(query: TestPlansQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
+    const systemAliases = await this.systemUtils.systemAliasCache;
 
     if (query.outputType === OutputType.Properties) {
       const projectionAndFields = query.properties?.map(property => PropertiesProjectionMap[property]);
@@ -54,14 +58,24 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
       if (testPlans.length > 0) {
         const fields = projectionAndFields?.map((data) => {
+          const label = data.label;
           const field = data.field[0];
           const fieldType = isTimeField(field)
             ? FieldType.time
             : FieldType.string;
-          const fieldValues = testPlans
+          const values = testPlans
             .map(data => data[field as unknown as keyof TestPlanResponseProperties] as string);
 
           // TODO: AB#3133188 Add support for other field mapping
+          const fieldValues = values.map(value => {
+            switch (label) {
+              case PropertiesProjectionMap.SYSTEM_NAME.label:
+                const system = systemAliases.get(value);
+                return system ? system.alias : value;
+              default:
+                return value == null ? '' : value;
+            }
+          });
 
           return {
             name: data.label,

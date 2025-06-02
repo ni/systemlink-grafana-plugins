@@ -21,6 +21,19 @@ const mockVariableQueryTestPlansResponse: QueryTestPlansResponse = {
   totalCount: 2
 };
 
+jest.mock('shared/system.utils', () => {
+  return {
+    SystemUtils: jest.fn().mockImplementation(() => ({
+      systemAliasCache: Promise.resolve(
+        new Map([
+          ['1', { id: '1', alias: 'System 1' }],
+          ['2', { id: '2', alias: 'System 2' }],
+        ])
+      )
+    }))
+  };
+});
+
 beforeEach(() => {
   [datastore, backendServer] = setupDataSource(TestPlansDataSource);
 });
@@ -158,6 +171,32 @@ describe('runQuery', () => {
     expect(result.fields).toHaveLength(1);
     expect(result.fields[0].name).toEqual('Total count');
     expect(result.fields[0].values).toEqual([0]);
+  });
+
+  it('should convert systemIds to system names for system name property', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.SYSTEM_NAME],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', systemId: '1' },
+        { id: '2', systemId: '2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('System name');
+    expect(result.fields[0].values).toEqual(['System 1', 'System 2']);
   });
 });
 

@@ -1,15 +1,27 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { TestPlansDataSource } from '../TestPlansDataSource';
 import { OrderBy, OutputType, Properties, PropertiesProjectionMap, TestPlansQuery } from '../types';
 import { AutoSizeInput, HorizontalGroup, InlineField, InlineSwitch, MultiSelect, RadioButtonGroup, Select, VerticalGroup } from '@grafana/ui';
 import { validateNumericInput } from 'core/utils';
 import { TestPlansQueryBuilder } from './query-builder/TestPlansQueryBuilder';
+import { systemAlias } from 'shared/types/QuerySystems.types';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansQuery>;
 
 export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
+
+  const [systemAliases, setSystemAliases] = useState<systemAlias[] | null>(null);
+
+  useEffect(() => {
+    const loadSystemAliases = async () => {
+      const systemAliases = await datasource.systemUtils.systemAliasCache;
+      setSystemAliases(Array.from(systemAliases.values()));
+    };
+
+    loadSystemAliases();
+  }, [datasource]);
 
   const handleQueryChange = useCallback(
     (query: TestPlansQuery, runQuery = true): void => {
@@ -87,6 +99,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
           <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
             <TestPlansQueryBuilder
               filter={query.queryBy}
+              systemAliases={systemAliases}
               globalVariableOptions={[]}
               onChange={(event: any) => onQueryByChange(event.detail.linq)}
             ></TestPlansQueryBuilder>

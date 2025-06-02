@@ -2,13 +2,18 @@ import { QueryBuilderOption } from 'core/types';
 import React, { ReactNode } from 'react';
 import { render } from '@testing-library/react';
 import { TestPlansQueryBuilder } from './TestPlansQueryBuilder';
+import { systemAlias } from 'shared/types/QuerySystems.types';
 
 describe('TestPlansQueryBuilder', () => {
     let reactNode: ReactNode;
     const containerClass = 'smart-filter-group-condition-container';
+    const systemAlias: systemAlias = {
+        id: '1',
+        alias: 'System 1'
+    };
 
-    function renderElement(filter: string, globalVariableOptions: QueryBuilderOption[] = []) {
-        reactNode = React.createElement(TestPlansQueryBuilder, { filter, globalVariableOptions, onChange: jest.fn() });
+    function renderElement(filter: string, systemAliases: systemAlias[] | null, globalVariableOptions: QueryBuilderOption[] = []) {
+        reactNode = React.createElement(TestPlansQueryBuilder, { filter, systemAliases, globalVariableOptions, onChange: jest.fn() });
         const renderResult = render(reactNode);
         return {
             renderResult,
@@ -17,9 +22,17 @@ describe('TestPlansQueryBuilder', () => {
     }
 
     it('should render empty query builder', () => {
-        const { renderResult, conditionsContainer } = renderElement('');
+        const { renderResult, conditionsContainer } = renderElement('', []);
 
         expect(conditionsContainer.length).toBe(1);
         expect(renderResult.findByLabelText('Empty condition row')).toBeTruthy();
     });
+
+    it('should select system alis in query builder', () => {
+        const { conditionsContainer } = renderElement('systemAliasName = "1"', [systemAlias]);
+
+        expect(conditionsContainer?.length).toBe(1);
+        expect(conditionsContainer.item(0)?.textContent).toContain(systemAlias.alias);
+    });
+
 });
