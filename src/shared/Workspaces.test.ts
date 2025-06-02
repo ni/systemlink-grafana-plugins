@@ -49,7 +49,7 @@ describe('Workspaces', () => {
     });
 
     it('should handle errors when loading workspaces', async () => {
-        (Workspaces._workspacesCache as any) = null;
+        (Workspaces as any)['_workspacesCache'] = null;
         const error = new Error('API failed');
         backendSrv.get = jest.fn().mockRejectedValue(error);
         jest.spyOn(console, 'error').mockImplementation(() => {});
