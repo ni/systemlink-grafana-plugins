@@ -76,6 +76,15 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
     handleQueryChange({ ...query, partNumberQuery: productNames.map(product => product.value as string) });
   }
 
+  const loadProductNameOptions = async () => {
+    const response = await datasource.productCache;
+    const productOptions = response.products.map(product => ({
+      label: `${product.name} (${product.partNumber})`,
+      value: product.partNumber,
+    }));
+    return [...datasource.globalVariableOptions(), ...productOptions];
+  };
+
   return (
     <>
       <VerticalGroup>
@@ -111,7 +120,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
         />
         <div className="horizontal-control-group">
           <div>
-            <InlineField label="Product name" labelWidth={26}>
+            <InlineField label="Product name" labelWidth={26} tooltip={tooltips.productName}>
               <AsyncMultiSelect
                 maxVisibleValues={5}
                 width={65}
@@ -119,14 +128,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
                 closeMenuOnSelect={false}
                 menuShouldPortal={false}
                 value={query.partNumberQuery?.map(pn => ({ label: pn, value: pn }))}
-                loadOptions={async () => {
-                  const response = await datasource.productCache;
-                  const productOptions = response.products.map(product => ({
-                    label: `${product.name} (${product.partNumber})`,
-                    value: product.partNumber,
-                  }));
-                  return [...datasource.globalVariableOptions(), ...productOptions];
-                }}
+                loadOptions={loadProductNameOptions}
                 defaultOptions
               />
             </InlineField>
@@ -186,4 +188,5 @@ const tooltips = {
   orderBy: 'This field orders the query results by field.',
   descending: 'This field returns the query results in descending order.',
   queryBy: 'This optional field applies a filter to the query results.',
+  productName: 'This field filters results by part number.',
 };
