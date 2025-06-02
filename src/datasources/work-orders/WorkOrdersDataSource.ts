@@ -2,6 +2,8 @@ import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, 
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
+import { QueryBuilderOption } from 'core/types';
+import { getVariableOptions } from 'core/utils';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
@@ -30,6 +32,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     descending: true,
     take: 1000,
   };
+
+  readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
   async runQuery(query: WorkOrdersQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     if (query.outputType === OutputType.Properties) {
@@ -75,7 +79,15 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       const fieldName = field.label;
 
       // TODO: Add mapping for other field types
-      const fieldValue = workOrders.map(data => data[field.field as unknown as keyof WorkOrder]);
+      const fieldValue = workOrders.map(workOrder => {
+        switch (field.value) {
+          case WorkOrderPropertiesOptions.PROPERTIES:
+            const properties = workOrder.properties || {};
+            return JSON.stringify(properties)
+          default:
+            return workOrder[field.field] ?? '';
+        }
+      });
 
       return { name: fieldName, values: fieldValue, type: fieldType };
     });
