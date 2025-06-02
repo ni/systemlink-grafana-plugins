@@ -22,9 +22,15 @@ export class Users {
    */
   public get users(): Promise<User[]> {
     if (!Users._users) {
-      Users._users = this.queryUsersInBatches().then(response => response.users);
+      Users._users = this.queryUsersInBatches()
+        .then(response => response.users)
+        .catch(error => {
+          console.error('An error occurred while querying users:', error);
+          Users._users = null; // Reset the cache on error
+          return [];
+        });
     }
-    return Users._users;  
+    return Users._users;
   }
 
   /**

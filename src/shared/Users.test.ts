@@ -49,6 +49,19 @@ describe('Users', () => {
   });
 
   describe('users', () => {
+    it('should handle errors when fetching users', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+      (queryUntilComplete as jest.Mock).mockImplementationOnce(() => {
+        return Promise.reject(new Error('Failed to fetch users'));
+      });
+
+      const result = await users.users;
+
+      expect(console.error).toHaveBeenCalledTimes(1);
+      expect(console.error).toHaveBeenCalledWith('An error occurred while querying users:', expect.any(Error));
+      expect(result).toEqual([]);
+    });
+    
     it('should fetch and cache users', async () => {
       const result = await users.users;
 
@@ -62,19 +75,6 @@ describe('Users', () => {
       const cachedUsers = await users.users;
       expect(cachedUsers).toEqual(mockUsers);
       expect(queryUntilComplete).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle errors when fetching users', async () => {
-      jest.spyOn(console, 'error').mockImplementation(() => {});
-      (queryUntilComplete as jest.Mock).mockImplementationOnce(() => {
-        return Promise.reject(new Error('Failed to fetch users'));
-      });
-
-      const result = await users.users;
-
-      expect(console.error).toHaveBeenCalledTimes(1);
-      expect(console.error).toHaveBeenCalledWith('An error occurred while querying users:', expect.any(Error));
-      expect(result).toEqual([]);
     });
   });
 
