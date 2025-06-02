@@ -47,7 +47,7 @@ describe('WorkOrdersQueryBuilder', () => {
     expect(conditionsContainer.item(0)?.textContent).toContain(globalVariableOption.label);
   });
 
-  it('should support key value operrations',()=>{
+  it('should support key value operations',()=>{
     const { conditionsContainer } = renderElement("properties[\"key\"] = \"value\"");
 
     expect(conditionsContainer?.length).toBe(1);
@@ -55,5 +55,5 @@ describe('WorkOrdersQueryBuilder', () => {
     expect(conditionsContainer.item(0)?.textContent).toContain('matches');
     expect(conditionsContainer.item(0)?.textContent).toContain('key');
     expect(conditionsContainer.item(0)?.textContent).toContain('value');
-  })
+  });
 });
