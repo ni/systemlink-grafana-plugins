@@ -1,4 +1,4 @@
-import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
+import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars } from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
   QueryStepPathsResponse,
@@ -164,9 +164,13 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         fields: [],
       };
     }
+    query.resultsQuery = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.resultsQuery);
 
-    query.resultsQuery = this.buildResultsQuery(options, query.partNumberQuery, query.resultsQuery);
-    query.stepsQuery = this.buildStepsQuery(options, query.useTimeRange, query.useTimeRangeFor, query.stepsQuery);
+    const transformStepsQuery = query.stepsQuery
+      ? this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options.scopedVars)
+      : undefined;
+    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
+    query.stepsQuery = this.buildQueryFilter(transformStepsQuery, useTimeRangeFilter);
 
     const projection = query.showMeasurements
       ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
@@ -221,16 +225,10 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  private buildResultsQuery(options: DataQueryRequest, partNumberQuery: string[], resultsQuery?: string): string {
+  private buildResultsQuery(scopedVars: ScopedVars, partNumberQuery: string[], resultsQuery?: string): string {
     const partNumberFilter = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery);
     const combinedResultsQuery = this.buildQueryFilter(`(${partNumberFilter})`, resultsQuery);
-    return this.transformQuery(combinedResultsQuery, this.resultsComputedDataFields, options)!;
-  }
-
-  private buildStepsQuery(options: DataQueryRequest, useTimeRange?: boolean, useTimeRangeFor?: string, stepsQuery?: string): string | undefined {
-    const transformStepsQuery = stepsQuery ? this.transformQuery(stepsQuery, this.stepsComputedDataFields, options): undefined;
-    const useTimeRangeFilter = this.getTimeRangeFilter(options, useTimeRange, useTimeRangeFor);
-    return this.buildQueryFilter(transformStepsQuery, useTimeRangeFilter);
+    return this.transformQuery(combinedResultsQuery, this.resultsComputedDataFields, scopedVars)!;
   }
 
   private processFields(
@@ -318,13 +316,13 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
    * Transforms a query by applying the appropriate transformation functions to its fields.
    * @param queryField - The query string to be transformed
    * @param computedDataFields - A map of fields and their corresponding transformation functions.
-   * @param options - The data query request options, which include scoped variables for template replacement.
+   * @param scopedVars - The scoped variables for template replacement.
    * @returns - The transformed query string, or undefined if the input queryField is undefined.
    */
-  private transformQuery(queryField: string | undefined, computedDataFields: Map<string, ExpressionTransformFunction>, options: DataQueryRequest): string | undefined {
+  private transformQuery(queryField: string | undefined, computedDataFields: Map<string, ExpressionTransformFunction>, scopedVars: ScopedVars): string | undefined {
     return queryField
       ? transformComputedFieldsQuery(
-        this.templateSrv.replace(queryField, options.scopedVars),
+        this.templateSrv.replace(queryField, scopedVars),
         computedDataFields
       )
       : undefined;
