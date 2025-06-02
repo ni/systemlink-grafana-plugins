@@ -1,3 +1,9 @@
+## [3.97.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.96.0...v3.97.0) (2025-06-02)
+
+### Features
+
+* **workorders:** Add workorders variable query editor ([#231](https://github.com/ni/systemlink-grafana-plugins/issues/231)) ([302c2b9](https://github.com/ni/systemlink-grafana-plugins/commit/302c2b92d1631a41a41b20e621ac8b33ddfdfb66))
+
 ## [3.96.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.95.0...v3.96.0) (2025-06-02)
 
 ### Features
