@@ -59,3 +59,5 @@ exports[`WorkOrdersDataSource runQuery processes work orders query when outputTy
   },
 ]
 `;
+
+exports[`WorkOrdersDataSource runQuery should convert properties to Grafana fields 1`] = `[]`;
