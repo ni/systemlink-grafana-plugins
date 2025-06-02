@@ -53,7 +53,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       query.queryBy,
       [WorkOrderPropertiesOptions.ID, WorkOrderPropertiesOptions.NAME],
       query.orderBy,
-      query.descending
+      query.descending,
+      query.take
     ));
 
     return metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.id})`, value: frame.id })) : [];

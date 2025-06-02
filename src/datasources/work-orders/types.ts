@@ -13,6 +13,7 @@ export interface WorkOrdersVariableQuery extends DataQuery {
   orderBy?: string;
   descending?: boolean;
   queryBy?: string;
+  take?: number;
 }
 
 export enum OutputType {

@@ -1,5 +1,23 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`WorkOrdersDataSource metricFindQuery should return work orders name with id 1`] = `
+[
+  {
+    "text": "WorkOrder1 (1)",
+    "value": "1",
+  },
+]
+`;
+
+exports[`WorkOrdersDataSource metricFindQuery should return work orders name with id when query properties are provided 1`] = `
+[
+  {
+    "text": "WorkOrder1 (1)",
+    "value": "1",
+  },
+]
+`;
+
 exports[`WorkOrdersDataSource queryWorkOrders returns response from API 1`] = `
 {
   "continuationToken": "",
