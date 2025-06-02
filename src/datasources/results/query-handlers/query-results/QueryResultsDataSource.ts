@@ -1,6 +1,6 @@
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties, ResultsVariableQuery } from "datasources/results/types/QueryResults.types";
 import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase";
-import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from "@grafana/data";
+import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars } from "@grafana/data";
 import { OutputType } from "datasources/results/types/types";
 import { defaultResultsQuery } from "datasources/results/defaultQueries";
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
@@ -35,7 +35,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   }
 
   async runQuery(query: QueryResults, options: DataQueryRequest): Promise<DataFrameDTO> {
-    query.queryBy = this.buildResultsQuery(options, query.partNumberQuery, query.queryBy);
+    query.queryBy = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.queryBy);
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
 
     const responseData = await this.queryResults(
@@ -84,7 +84,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  private buildResultsQuery( options: DataQueryRequest, partNumberQuery?: string[], resultsQuery?: string): string | undefined {
+  private buildResultsQuery( scopedVars: ScopedVars, partNumberQuery?: string[], resultsQuery?: string): string | undefined {
     const partNumberFilter =
       partNumberQuery && partNumberQuery.length > 0
         ? `(${this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery)})`
@@ -97,7 +97,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     }
 
     return transformComputedFieldsQuery(
-      this.templateSrv.replace(combinedQuery, options.scopedVars), 
+      this.templateSrv.replace(combinedQuery, scopedVars), 
       this.resultsComputedDataFields
     );
   }
