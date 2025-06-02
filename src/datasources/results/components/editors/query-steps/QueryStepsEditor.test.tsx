@@ -78,8 +78,10 @@ describe('QueryStepsEditor', () => {
   let showMeasurements: HTMLElement;
   let productName: HTMLElement;
 
-  beforeEach(() => {
-    render(<QueryStepsEditor query={defaultQuery} handleQueryChange={mockHandleQueryChange} datasource={mockDatasource}/>);
+  beforeEach(async () => {
+    await act(async () => {
+      render(<QueryStepsEditor query={defaultQuery} handleQueryChange={mockHandleQueryChange} datasource={mockDatasource}/>);
+    });
     properties = screen.getAllByRole('combobox')[0];
     orderBy = screen.getAllByRole('combobox')[3];
     descending = screen.getAllByRole('checkbox')[2];
@@ -117,6 +119,7 @@ describe('QueryStepsEditor', () => {
       expect(showMeasurements).toBeInTheDocument();
       expect(showMeasurements).not.toBeChecked();
       expect(productName).toBeInTheDocument();
+      expect(screen.getAllByText('ProductName1 (PartNumber1)').length).toBe(1);
     });
 
     test('should display placeholders for properties and orderBy when default values are not provided', async () => {

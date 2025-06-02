@@ -227,10 +227,10 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     return this.transformQuery(combinedResultsQuery, this.resultsComputedDataFields, options) || '';
   }
 
-  private buildStepsQuery(options: DataQueryRequest, useTimeRange?: boolean, useTimeRangeFor?: string, stepsQuery?: string): string {
-    const transformStepsQuery = this.transformQuery(stepsQuery, this.stepsComputedDataFields, options);
+  private buildStepsQuery(options: DataQueryRequest, useTimeRange?: boolean, useTimeRangeFor?: string, stepsQuery?: string): string | undefined {
+    const transformStepsQuery = stepsQuery ? this.transformQuery(stepsQuery, this.stepsComputedDataFields, options): undefined;
     const useTimeRangeFilter = this.getTimeRangeFilter(options, useTimeRange, useTimeRangeFor);
-    return this.buildQueryFilter(transformStepsQuery, useTimeRangeFilter) || '';
+    return this.buildQueryFilter(transformStepsQuery, useTimeRangeFilter);
   }
 
   private processFields(
