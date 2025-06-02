@@ -92,7 +92,7 @@ describe('TestPlansVariableQueryEditor', () => {
     });
 
     expect(mockDatasource.workspaces.workspacesCache).toBeDefined();
-    expect(mockDatasource.workspaces.workspacesCache).resolves.toEqual(
+    await expect(mockDatasource.workspaces.workspacesCache).resolves.toEqual(
       new Map([
         ['1', { id: '1', name: 'WorkspaceName' }],
         ['2', { id: '2', name: 'AnotherWorkspaceName' }],
