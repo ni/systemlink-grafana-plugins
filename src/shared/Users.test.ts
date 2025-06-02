@@ -48,7 +48,7 @@ describe('Users', () => {
     users = new Users(mockInstanceSettings, mockBackendSrv);
   });
 
-  describe('usersCache', () => {
+  describe('users', () => {
     it('should fetch and cache users', async () => {
       const result = await users.users;
 
@@ -63,9 +63,22 @@ describe('Users', () => {
       expect(cachedUsers).toEqual(mockUsers);
       expect(queryUntilComplete).toHaveBeenCalledTimes(1);
     });
+
+    it('should handle errors when fetching users', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+      (queryUntilComplete as jest.Mock).mockImplementationOnce(() => {
+        return Promise.reject(new Error('Failed to fetch users'));
+      });
+
+      const result = await users.users;
+
+      expect(console.error).toHaveBeenCalledTimes(1);
+      expect(console.error).toHaveBeenCalledWith('An error occurred while querying users:', expect.any(Error));
+      expect(result).toEqual([]);
+    });
   });
 
-  describe('usersMapCache', () => {
+  describe('usersMap', () => {
     it('should generate a map of user IDs to full names', async () => {
       const userMap = await users.usersMap;
 

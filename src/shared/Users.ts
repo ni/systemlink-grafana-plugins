@@ -85,12 +85,18 @@ export class Users {
       requestsPerSecond: QUERY_USERS_REQUEST_PER_SECOND,
     };
 
-    const response = await queryUntilComplete(queryRecord, batchQueryConfig);
-
-    return {
-      users: response.data,
-      continuationToken: response.continuationToken ?? undefined,
-    };
+    try{
+      const response = await queryUntilComplete(queryRecord, batchQueryConfig);
+      return {
+        users: response.data,
+        continuationToken: response.continuationToken ?? undefined,
+      };
+    } catch (error) {
+      console.error('An error occurred while querying users:', error);
+      return {
+        users: []
+      }
+    }
   }
 
   /**

@@ -345,5 +345,12 @@ describe('queryUntilComplete', () => {
     expect(mockQueryRecord).toHaveBeenCalledTimes(2);
     expect(result.data.length).toBe(150);
   });
+
+  it('should handle errors during query execution', async () => {
+    mockQueryRecord.mockRejectedValue(new Error('Query failed'));
+
+    await expect(queryUntilComplete(mockQueryRecord, batchQueryConfig)).rejects.toThrow('Query failed');
+    expect(mockQueryRecord).toHaveBeenCalledTimes(1);
+  });
 });
 

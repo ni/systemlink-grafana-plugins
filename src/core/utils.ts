@@ -191,7 +191,7 @@ export async function queryInBatches<T>(
  */
 export async function queryUntilComplete<T>(
   queryRecord: (take: number, continuationToken?: string) => Promise<QueryResponse<T>>,
-  { maxTakePerRequest, requestsPerSecond }: BatchQueryConfig,
+  { maxTakePerRequest, requestsPerSecond }: BatchQueryConfig
 ): Promise<QueryResponse<T>> {
   const data: T[] = [];
   let continuationToken: string | undefined;
@@ -199,19 +199,23 @@ export async function queryUntilComplete<T>(
   do {
     const start = Date.now();
     for (let i = 0; i < requestsPerSecond; i++) {
-      const response: QueryResponse<T> = await queryRecord(maxTakePerRequest, continuationToken);
-      data.push(...response.data);
-      continuationToken = response.continuationToken;
+      try {
+        const response: QueryResponse<T> = await queryRecord(maxTakePerRequest, continuationToken);
+        data.push(...response.data);
+        continuationToken = response.continuationToken;
 
-      if (!continuationToken) {
-        break;
+        if (!continuationToken) {
+          break;
+        }
+      } catch (error) {
+        throw error; // Re-throw the error to be handled by the caller
       }
     }
     const elapsed = Date.now() - start;
     if (continuationToken && elapsed < 1000) {
       await delay(1000 - elapsed);
     }
-  } while(continuationToken);
+  } while (continuationToken);
 
   return { data };
 }
