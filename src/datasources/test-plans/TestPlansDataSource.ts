@@ -6,7 +6,7 @@ import { getWorkspaceName, queryInBatches } from 'core/utils';
 import { QueryResponse } from 'core/types';
 import { isTimeField } from './utils';
 import { QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
-import { WorkspaceUtils } from 'shared/workspace.utils';
+import { Workspaces } from 'shared/Workspaces';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(
@@ -15,12 +15,12 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
-    this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
+    this.workspaceUtils = new Workspaces(this.instanceSettings, this.backendSrv);
   }
 
   baseUrl = `${this.instanceSettings.url}/niworkorder/v1`;
   queryTestPlansUrl = `${this.baseUrl}/query-testplans`;
-  workspaceUtils: WorkspaceUtils;
+  workspaceUtils: Workspaces;
 
   defaultQuery = {
     outputType: OutputType.Properties,

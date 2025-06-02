@@ -2,7 +2,7 @@ import { DataSourceInstanceSettings } from "@grafana/data";
 import { BackendSrv } from "@grafana/runtime";
 import { Workspace } from "core/types";
 
-export class WorkspaceUtils {
+export class Workspaces {
     readonly workspacesCache = new Map<string, Workspace>([]);
     workspacesPromise: Promise<Map<string, Workspace>> | null = null;
 

@@ -23,7 +23,7 @@ const mockVariableQueryTestPlansResponse: QueryTestPlansResponse = {
 
 jest.mock('core/workspace.utils', () => {
   return {
-    WorkspaceUtils: jest.fn().mockImplementation(() => ({
+    Workspaces: jest.fn().mockImplementation(() => ({
       workspacesCache: new Map([
         ['1', { id: '1', name: 'WorkspaceName' }],
         ['2', { id: '2', name: 'AnotherWorkspaceName' }],

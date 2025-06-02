@@ -1,12 +1,12 @@
-import { WorkspaceUtils } from './workspace.utils';
+import { Workspaces } from './workspace.utils';
 import { DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv } from '@grafana/runtime';
 import { Workspace } from 'core/types';
 
-describe('WorkspaceUtils', () => {
+describe('Workspaces', () => {
     let instanceSettings: DataSourceInstanceSettings;
     let backendSrv: BackendSrv;
-    let workspaceUtils: WorkspaceUtils;
+    let workspaceUtils: Workspaces;
 
     const mockWorkspaces: Workspace[] = [
         { id: '1', name: 'Workspace 1', default: true, enabled: true },
@@ -19,7 +19,7 @@ describe('WorkspaceUtils', () => {
             get: jest.fn().mockResolvedValue({ workspaces: mockWorkspaces }),
         } as unknown as BackendSrv;
 
-        workspaceUtils = new WorkspaceUtils(instanceSettings, backendSrv);
+        workspaceUtils = new Workspaces(instanceSettings, backendSrv);
     });
 
     afterEach(() => {
