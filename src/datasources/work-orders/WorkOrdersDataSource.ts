@@ -1,7 +1,9 @@
-import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, TestDataSourceResponse } from '@grafana/data';
+import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, TestDataSourceResponse, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse } from './types';
+import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
+import { QueryBuilderOption } from 'core/types';
+import { getVariableOptions } from 'core/utils';
 import { WorkOrdersQueryBuilderFieldNames } from './constants/WorkOrdersQueryBuilder.constants';
 import { multipleValuesQuery, timeFieldsQuery } from 'core/utils';
 import { transformComputedFieldsQuery, ExpressionTransformFunction } from 'core/query-builder.utils';
@@ -33,6 +35,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     descending: true,
     take: 1000,
   };
+
+  readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
   async runQuery(query: WorkOrdersQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     if (query.queryBy) {
@@ -67,13 +71,25 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     ])
   );
 
+  async metricFindQuery(query: WorkOrdersVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    const metadata = (await this.queryWorkordersData(
+      query.queryBy,
+      [WorkOrderPropertiesOptions.ID, WorkOrderPropertiesOptions.NAME],
+      query.orderBy,
+      query.descending,
+      query.take
+    ));
+
+    return metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.id})`, value: frame.id })) : [];
+  }
+
   async processWorkOrdersQuery(query: WorkOrdersQuery): Promise<DataFrameDTO> {
     const workOrders: WorkOrder[] = await this.queryWorkordersData(
       query.queryBy,
       query.properties,
       query.orderBy,
-      query.take,
-      query.descending
+      query.descending,
+      query.take
     );
 
     const mappedFields = query.properties?.map(property => {
@@ -82,7 +98,15 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       const fieldName = field.label;
 
       // TODO: Add mapping for other field types
-      const fieldValue = workOrders.map(data => data[field.field as unknown as keyof WorkOrder]);
+      const fieldValue = workOrders.map(workOrder => {
+        switch (field.value) {
+          case WorkOrderPropertiesOptions.PROPERTIES:
+            const properties = workOrder.properties || {};
+            return JSON.stringify(properties)
+          default:
+            return workOrder[field.field] ?? '';
+        }
+      });
 
       return { name: fieldName, values: fieldValue, type: fieldType };
     });
@@ -98,8 +122,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     filter?: string,
     projection?: string[],
     orderBy?: string,
+    descending?: boolean,
     take?: number,
-    descending?: boolean
   ): Promise<WorkOrder[]> {
     const body = {
       filter,
