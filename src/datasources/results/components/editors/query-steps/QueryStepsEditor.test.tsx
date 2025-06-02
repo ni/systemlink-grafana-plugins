@@ -244,4 +244,35 @@ describe('QueryStepsEditor', () => {
       expect(stepsQueryInput).toBeDisabled();
     });
   })
+
+  describe('Total Count outputType', () => {
+    test('should not render orderBy, descending, take when outputType is Total Count', () => {
+      cleanup();
+      render(
+        <QueryStepsEditor
+          query={{ ...defaultQuery, outputType: OutputType.TotalCount }}
+          handleQueryChange={mockHandleQueryChange}
+          datasource={mockDatasource}
+        />
+      );
+
+      expect(screen.queryByText('OrderBy')).not.toBeInTheDocument();
+      expect(screen.queryByText('Descending')).not.toBeInTheDocument();
+      expect(screen.queryByText('Take')).not.toBeInTheDocument();
+    });
+
+    test('should render useTimeRange and useTimeRangeFor when outputType is Total Count', () => {
+      cleanup();
+      render(
+        <QueryStepsEditor
+          query={{ ...defaultQuery, outputType: OutputType.TotalCount }}
+          handleQueryChange={mockHandleQueryChange}
+          datasource={mockDatasource}
+        />
+      );
+
+      expect(screen.queryByText('Use time range')).toBeInTheDocument();
+      expect(screen.queryByText('to filter by')).toBeInTheDocument();
+    });
+  });
 });

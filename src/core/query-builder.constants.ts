@@ -151,6 +151,18 @@ export const QueryBuilderOperations = {
     name: 'listnotcontains',
     expressionTemplate: '{0}.Any(!it.Contains("{1}"))',
   },
+  LIST_IS_EMPTY: {
+    label: 'Is empty',
+    name: 'listisempty',
+    expressionTemplate: '{0}.Count == 0',
+    hideValue: true,
+  },
+  LIST_IS_NOT_EMPTY: {
+    label: 'Is not empty',
+    name: 'listisnotempty',
+    expressionTemplate: '{0}.Count > 0',
+    hideValue: true,
+  },
   // Properties expressions
   PROPERTY_EQUALS: {
     label: 'Equals',

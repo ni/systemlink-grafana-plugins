@@ -48,6 +48,9 @@ describe('TestPlansVariableQueryEditor', () => {
       const recordCount = container.getByRole('spinbutton');
       expect(recordCount).toBeInTheDocument();
       expect(recordCount).toHaveDisplayValue('');
+
+      const queryBuilder = container.getByRole('dialog');
+      expect(queryBuilder).toBeInTheDocument();
     });
   });
 
@@ -81,7 +84,6 @@ describe('TestPlansVariableQueryEditor', () => {
 
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ orderBy: 'ID' }));
-        expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
 
@@ -93,7 +95,6 @@ describe('TestPlansVariableQueryEditor', () => {
 
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ descending: true }));
-        expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
 
@@ -107,7 +108,21 @@ describe('TestPlansVariableQueryEditor', () => {
 
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: 50 }));
-        expect(mockOnRunQuery).toHaveBeenCalled();
+      });
+    });
+
+    it('should call onChange when query by changes', async () => {
+      const container = renderElement();
+
+      const queryBuilder = container.getByRole('dialog');
+      expect(queryBuilder).toBeInTheDocument();
+
+      // Simulate a change event
+      const event = { detail: { linq: 'new-query' } };
+      queryBuilder?.dispatchEvent(new CustomEvent('change', event));
+
+      await waitFor(() => {
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ queryBy: 'new-query' }));
       });
     });
 
@@ -120,7 +135,7 @@ describe('TestPlansVariableQueryEditor', () => {
       userEvent.tab();
 
       await waitFor(() => {
-        expect(container.getByText('Record count must be less than 10000')).toBeInTheDocument();
+        expect(container.queryByText('Record count must be less than 10000')).toBeInTheDocument();
       });
     });
   });

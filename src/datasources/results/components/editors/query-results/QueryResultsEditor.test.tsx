@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
 import { QueryResultsEditor } from './QueryResultsEditor';
 import React from 'react';
+import { Workspace } from 'core/types';
 
 jest.mock('../../query-builders/query-results/ResultsQueryBuilder', () => ({
   ResultsQueryBuilder: jest.fn(({ filter, workspaces, partNumbers, status, globalVariableOptions, onChange }) => {
@@ -31,15 +32,16 @@ jest.mock('../../../types/types', () => ({
   },
 }));
 
-const mockWorkspaces = ['Workspace1', 'Workspace2'];
+const mockWorkspaces: Workspace[] = [
+  { id: '1', name: 'Workspace1', default: false, enabled: true },
+  { id: '2', name: 'Workspace2', default: false, enabled: true },
+]
 const mockPartNumbers = ['PN1', 'PN2', 'PN3'];
 const mockGlobalVars = [{ label: '$var1', value: '$var1' }];
 
 const mockDatasource = {
-  loadWorkspaces: jest.fn().mockResolvedValue(undefined),
-  getPartNumbers: jest.fn().mockResolvedValue(undefined),
-  workspacesCache: new Map(mockWorkspaces.map(workspace => [workspace, workspace])),
-  partNumbersCache: mockPartNumbers,
+  workspacesCache: Promise.resolve(new Map(mockWorkspaces.map(workspace => [workspace.id, workspace]))),
+  partNumbersCache: Promise.resolve(mockPartNumbers),
   globalVariableOptions: jest.fn(() => mockGlobalVars),
 } as unknown as QueryResultsDataSource;
 
@@ -171,9 +173,32 @@ describe('QueryResultsEditor', () => {
       })
     });
 
-    test('should call loadWorkspaces and getResultsPartNumbers when component is loaded',() => {
-      expect(mockDatasource.loadWorkspaces).toHaveBeenCalledTimes(1);
-      expect(mockDatasource.getPartNumbers).toHaveBeenCalledTimes(1);
+    test('should render empty workspaces and partnumbers when cache is empty', async () => {
+      cleanup();
+
+      const emptyDatasource = {
+        workspacesCache: Promise.resolve(new Map()),
+        partNumbersCache: Promise.resolve([]),
+        globalVariableOptions: jest.fn(() => []),
+      } as unknown as QueryResultsDataSource;
+
+      await act(async () => {
+        render(
+          <QueryResultsEditor
+            query={{
+              refId: 'A',
+              queryType: QueryType.Results,
+              outputType: OutputType.Data,
+            }}
+            handleQueryChange={mockHandleQueryChange}
+            datasource={emptyDatasource}
+          />
+        );
+      });
+
+      expect(screen.getByTestId('results-query-builder')).toBeInTheDocument();
+      expect(screen.getByTestId('workspaces')).toHaveTextContent('[]');
+      expect(screen.getByTestId('part-numbers')).toHaveTextContent('[]');
     })
 
     test('should render ResultsQueryBuilder with default props when component is loaded', () => {

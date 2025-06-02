@@ -2,8 +2,8 @@ import { BackendSrv } from '@grafana/runtime';
 import { MockProxy } from 'jest-mock-extended';
 import { setupDataSource, requestMatching, createFetchResponse, createFetchError } from 'test/fixtures';
 import { WorkOrdersDataSource } from './WorkOrdersDataSource';
-import { OrderByOptions, OutputType, State, Type, WorkOrderPropertiesOptions, WorkOrdersResponse } from './types';
-import { DataQueryRequest } from '@grafana/data';
+import { OrderByOptions, OutputType, State, Type, WorkOrderPropertiesOptions, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
+import { DataQueryRequest, Field, LegacyMetricFindQueryOptions } from '@grafana/data';
 
 let datastore: WorkOrdersDataSource, backendServer: MockProxy<BackendSrv>;
 
@@ -25,7 +25,10 @@ describe('WorkOrdersDataSource', () => {
         createdBy: 'User3',
         updatedBy: 'User4',
         description: 'Test description',
-        properties: {},
+        properties: {
+          'customProperty1': 'value1',
+          'customProperty2': 'value2'
+        },
       },
     ],
     continuationToken: '',
@@ -62,6 +65,21 @@ describe('WorkOrdersDataSource', () => {
       expect(result.fields).toEqual([{ name: 'Total count', values: [42] }]);
       expect(result.refId).toEqual('B');
     });
+
+    
+
+    test('should convert properties to Grafana fields', async () => {
+      const query = {
+          refId: 'A',
+          outputType: OutputType.Properties
+        };
+    
+
+      const response = await datastore.runQuery(query, {} as DataQueryRequest);
+
+      const fields = response.fields as Field[];
+      expect(fields).toMatchSnapshot();
+  });
   });
 
   describe('queryWorkordersData', () => {
@@ -132,6 +150,53 @@ describe('WorkOrdersDataSource', () => {
     test('default query should have default take value', async () => {
       const defaultQuery = datastore.defaultQuery;
       expect(defaultQuery.take).toEqual(1000);
+    });
+  });
+
+  describe('metricFindQuery', () => {
+    let options: LegacyMetricFindQueryOptions;
+    beforeEach(() => {
+      options = {}
+    });
+  
+    it('should return work orders name with id when query properties are not provided', async () => {
+      const query: WorkOrdersVariableQuery = {
+        refId: '',
+      };
+  
+      const results = await datastore.metricFindQuery(query, options);
+  
+      expect(results).toMatchSnapshot();
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {projection: ["ID", "NAME"]}
+        })
+      );
+    });
+
+    it('should return work orders name with id when query properties are provided', async () => {
+      const query: WorkOrdersVariableQuery = {
+        refId: '',
+        queryBy: 'filter = "test"',
+        orderBy: OrderByOptions.ID,
+        descending: true,
+        take: 1000,
+      };
+  
+      const results = await datastore.metricFindQuery(query, options);
+  
+      expect(results).toMatchSnapshot();
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            filter: 'filter = "test"',
+            projection: ["ID", "NAME"],
+            orderBy: OrderByOptions.ID,
+            descending: true,
+            take: 1000,
+          }
+        })
+      );
     });
   });
 

@@ -6,6 +6,8 @@ import { QueryResultsDataSource } from './QueryResultsDataSource';
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsVariableQuery } from 'datasources/results/types/QueryResults.types';
 import { OutputType, QueryType, UseTimeRangeFor } from 'datasources/results/types/types';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
+import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
+import { Workspace } from 'core/types';
 
 const mockQueryResultsResponse: QueryResultsResponse = {
   results: [
@@ -186,54 +188,89 @@ describe('QueryResultsDataSource', () => {
         ]);
     });
 
-    test('returns part numbers', async () => {  
+    describe('Dependencies', () => {
+    afterEach(() => {
+      (ResultsDataSourceBase as any)._partNumbersCache = null;
+      (ResultsDataSourceBase as any)._workspacesCache = null;
+    });
+    
+    test('should return the same promise instance when partnumber promise already exists', async () => {
+      const mockPromise = Promise.resolve(['partNumber1', 'partNumber2']);
+      (ResultsDataSourceBase as any)._partNumbersCache = mockPromise;
+      backendServer.fetch.mockClear();
+
+      const partNumbersPromise = datastore.getPartNumbers();
+
+      expect(partNumbersPromise).toEqual(mockPromise);
+      expect(datastore.partNumbersCache).toEqual(mockPromise);
+      expect(backendServer.fetch).not.toHaveBeenCalledWith(expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' }));
+    });
+
+    test('should create and return a new promise when partnumber promise does not exist', async () => {
+      (ResultsDataSourceBase as any)._partNumbersCache = null;
+      backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
+      .mockReturnValue(createFetchResponse(mockQueryResultsValuesResponse));
+
+      const promise = datastore.getPartNumbers();
+
+      expect(promise).not.toBeNull();
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' })
+      );
+    });
+
+    test('should return the same promise instance when workspacePromise already exists', async () => {
+      const mockWorkspaces = new Map<string, Workspace>([
+        ['1', { id: '1', name: 'Default workspace', default: true, enabled: true }],
+        ['2', { id: '2', name: 'Other workspace', default: false, enabled: true }],
+      ]);
+      const mockPromise = Promise.resolve(mockWorkspaces);
+      (ResultsDataSourceBase as any)._workspacesCache = mockPromise;
+      backendServer.fetch.mockClear();
+
+      const workspacePromise = datastore.loadWorkspaces();
+
+      expect(workspacePromise).toEqual(mockPromise);
+      expect(await workspacePromise).toEqual(mockWorkspaces);
+      expect(backendServer.fetch).not.toHaveBeenCalledWith(expect.objectContaining({ url: '/niauth/v1/user' }));
+    });
+
+    test('should create and return a new promise when wrokspace promise does not exist', async () => {
+      (ResultsDataSourceBase as any)._workspacesCache = null;
+      const workspaceSpy = jest.spyOn(ResultsDataSourceBase.prototype, 'getWorkspaces');
+
+      const promise = datastore.loadWorkspaces();
+
+      expect(promise).not.toBeNull();
+      expect(workspaceSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle errors in getPartNumbers', async () => {
+      (ResultsDataSourceBase as any).partNumbersCache = null;
+      const error = new Error('API failed');
+      jest.spyOn(QueryResultsDataSource.prototype, 'queryResultsValues').mockRejectedValue(error);
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
       await datastore.getPartNumbers();
-  
-      expect(datastore.partNumbersCache).toEqual(["partNumber1", "partNumber2"]);
+
+      expect(console.error).toHaveBeenCalledTimes(1);
+      expect(console.error).toHaveBeenCalledWith('Error in loading part numbers:', error);
     });
 
-    test('should not query part number values if cache exists', async () => {
-      backendServer.fetch
-        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values' }))
-        .mockReturnValue(createFetchResponse(['value1']));
-      datastore.partNumbersCache.push('partNumber');
-      backendServer.fetch.mockClear();
-  
-      await datastore.query(buildQuery())
-  
-      expect(backendServer.fetch).not.toHaveBeenCalled();
-    });
+    it('should handle errors in getWorkspaces', async () => {
+      (ResultsDataSourceBase as any)._workspacesCache = null;
+      const error = new Error('API failed');
+      jest.spyOn(QueryResultsDataSource.prototype, 'getWorkspaces').mockRejectedValue(error);
+      jest.spyOn(console, 'error').mockImplementation(() => {});
 
-    test('returns workspaces', async () => {
       await datastore.loadWorkspaces();
-  
-      expect(datastore.workspacesCache.get('1')).toEqual({"id": "1", "name": "Default workspace"});
-      expect(datastore.workspacesCache.get('2')).toEqual({"id": "2", "name": "Other workspace"});
-    });
-  
-    test('should not query workspace values if cache exists', async () => {
-      const mockWorkspacesResponse = { id: 'workspace1', name: 'workspace1', default: false, enabled: true };
-      backendServer.fetch
-        .calledWith(requestMatching({ url: '/niauth/v1/user' }))
-        .mockReturnValue(createFetchResponse(mockWorkspacesResponse));
-      datastore.workspacesCache.set('workspace', mockWorkspacesResponse);
-      backendServer.fetch.mockClear();
-      const query = buildQuery(
-        {
-          refId: 'A',
-          outputType: OutputType.Data
-        },
-      );
 
-      await datastore.query(query)
-  
-      expect(backendServer.fetch).not.toHaveBeenCalledWith(
-        expect.objectContaining({
-          url: '/niauth/v1/user',
-        })
-      );
+      expect(console.error).toHaveBeenCalledTimes(1);
+      expect(console.error).toHaveBeenCalledWith('Error in loading workspaces:', error);
     });
-
+  });
+  
     describe('query builder queries', () => {
       test('should transform field when queryBy contains a single value', async () => {
         const query = buildQuery(

@@ -5,20 +5,24 @@ import {
   DataSourceApi,
   DataSourceInstanceSettings,
   DataSourceJsonData,
+  EventBus,
 } from '@grafana/data';
-import { BackendSrv, BackendSrvRequest, FetchError, TemplateSrv, isFetchError } from '@grafana/runtime';
+import { BackendSrv, BackendSrvRequest, FetchError, TemplateSrv, getAppEvents, isFetchError } from '@grafana/runtime';
 import { DataQuery } from '@grafana/schema';
 import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
 import { sleep } from './utils';
 import { lastValueFrom } from 'rxjs';
 
 export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData = DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
+  appEvents: EventBus;
+
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<TOptions>,
     readonly backendSrv: BackendSrv,
     readonly templateSrv: TemplateSrv
   ) {
     super(instanceSettings);
+    this.appEvents = getAppEvents();
   }
 
   abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;

@@ -1,8 +1,11 @@
 import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
+  QueryStepPathsResponse,
   QuerySteps,
   QueryStepsResponse,
+  StepPathResponseProperties,
+  StepsPathProperties,
   StepsProperties,
   StepsPropertiesOptions,
   StepsResponseProperties,
@@ -16,9 +19,11 @@ import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/Res
 import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
 import { QueryResponse } from 'core/types';
 import { queryInBatches } from 'core/utils';
+import { MAX_PATH_TAKE_PER_REQUEST, QUERY_PATH_REQUEST_PER_SECOND } from 'datasources/results/constants/QueryStepPath.constants';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
+  queryPathsUrl = this.baseUrl + '/v2/query-paths';
 
   defaultQuery = defaultStepsQuery;
 
@@ -44,6 +49,29 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       returnCount,
     });
 
+    if (response.error) {
+      throw new Error(`An error occurred while querying steps: ${response.error}`);
+    }
+
+    return response;
+  }
+
+  private async queryStepPaths(
+    projection?: StepsPathProperties[],
+    filter?: string,
+    take?: number,
+    continuationToken?: string,
+    returnCount = false
+  ): Promise<QueryStepPathsResponse> {
+    const defaultOrderBy = StepsPathProperties.path
+    const response = await this.post<QueryStepPathsResponse>(this.queryPathsUrl, {
+      filter,
+      projection,
+      take,
+      orderBy: defaultOrderBy,
+      continuationToken,
+      returnCount,
+    })
     if (response.error) {
       throw new Error(`An error occurred while querying steps: ${response.error}`);
     }
@@ -93,6 +121,42 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     };
   }
 
+  async queryStepPathInBatches(
+    filter?: string,
+    projection?: StepsPathProperties[],
+    take?: number,
+    returnCount = false,
+  ): Promise<QueryStepPathsResponse> {
+    const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<StepPathResponseProperties>> => {
+      const response = await this.queryStepPaths(
+        projection,
+        filter,
+        currentTake,
+        token,
+        returnCount
+      );
+
+      return {
+        data: response.paths,
+        continuationToken: response.continuationToken,
+        totalCount: response.totalCount
+      };
+    };
+
+    const batchQueryConfig = {
+      maxTakePerRequest: MAX_PATH_TAKE_PER_REQUEST,
+      requestsPerSecond: QUERY_PATH_REQUEST_PER_SECOND
+    };
+
+    const response = await queryInBatches(queryRecord, batchQueryConfig, take);
+
+    return {
+      paths: response.data,
+      continuationToken: response.continuationToken,
+      totalCount: response.totalCount
+    };
+  }
+  
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
     if (!query.resultsQuery) {
       return {

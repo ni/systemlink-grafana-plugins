@@ -12,6 +12,7 @@ import {
   VerticalGroup
 } from '@grafana/ui';
 import './WorkOrdersQueryEditor.scss';
+import { tooltips } from '../constants/QueryEditor.constants';
 import { validateNumericInput } from 'core/utils';
 import { TAKE_LIMIT } from 'datasources/results/constants/QuerySteps.constants';
 
@@ -112,7 +113,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
         <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
             <WorkOrdersQueryBuilder
               filter={query.queryBy} 
-              globalVariableOptions={[]}
+              globalVariableOptions={datasource.globalVariableOptions()}
               onChange={(event: any) => onQueryByChange(event.detail.linq)}
             ></WorkOrdersQueryBuilder>
           </InlineField>
@@ -163,12 +164,3 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
     </>
   );
 }
-
-const tooltips = {
-  queryBy: 'This optional field specifies the query filters.',
-  outputType: 'This field specifies the output type to fetch work order properties or total count',
-  properties: 'This field specifies the properties to use in the query.',
-  orderBy: 'This field specifies the query order of the work orders.',
-  descending: 'This toggle returns the work orders query in descending order.',
-  take: 'This field specifies the maximum number of work order to return.'
-};

@@ -8,6 +8,8 @@ import { QueryStepsDataSource } from './QueryStepsDataSource';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/StepsQueryBuilder.constants';
 import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
+import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
+import { Workspace } from 'core/types';
 
 const mockQueryStepsResponse: QueryStepsResponse = {
   steps: [
@@ -29,6 +31,11 @@ let datastore: QueryStepsDataSource, backendServer: MockProxy<BackendSrv>, templ
 jest.mock('datasources/results/constants/QuerySteps.constants', () => ({
   ...jest.requireActual('datasources/results/constants/QuerySteps.constants'),
   QUERY_STEPS_REQUEST_PER_SECOND: 2,
+}));
+
+jest.mock('../../constants/QueryStepPath.constants', () => ({
+  ...jest.requireActual('../../constants/QueryStepPath.constants'),
+  QUERY_PATH_REQUEST_PER_SECOND: 2,
 }));
 
 describe('QueryStepsDataSource', () => {
@@ -293,6 +300,89 @@ describe('QueryStepsDataSource', () => {
         { name: 'Total count', values: [5000] },
       ]);
       expect(backendServer.fetch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Dependencies', () => {
+    afterEach(() => {
+      (ResultsDataSourceBase as any)._partNumbersCache = null;
+      (ResultsDataSourceBase as any)._workspacesCache = null;
+    });
+    
+    test('should return the same promise instance when partnumber promise already exists', async () => {
+      const mockPromise = Promise.resolve(['partNumber1', 'partNumber2']);
+      (ResultsDataSourceBase as any)._partNumbersCache = mockPromise;
+      backendServer.fetch.mockClear();
+
+      const partNumbersPromise = datastore.getPartNumbers();
+
+      expect(partNumbersPromise).toEqual(mockPromise);
+      expect(datastore.partNumbersCache).toEqual(mockPromise);
+      expect(backendServer.fetch).not.toHaveBeenCalledWith(expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' }));
+    });
+
+    test('should create and return a new promise when partnumber promise does not exist', async () => {
+      (ResultsDataSourceBase as any)._partNumbersCache = null;
+      backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
+      .mockReturnValue(createFetchResponse(["partNumber1", "partNumber2"]));
+
+      const promise = datastore.getPartNumbers();
+
+      expect(promise).not.toBeNull();
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' })
+      );
+    });
+
+    test('should return the same promise instance when workspacePromise already exists', async () => {
+      const mockWorkspaces = new Map<string, Workspace>([
+        ['1', { id: '1', name: 'Default workspace', default: true, enabled: true }],
+        ['2', { id: '2', name: 'Other workspace', default: false, enabled: true }],
+      ]);
+      const mockPromise = Promise.resolve(mockWorkspaces);
+      (ResultsDataSourceBase as any)._workspacesCache = mockPromise;
+      backendServer.fetch.mockClear();
+
+      const workspacePromise = datastore.loadWorkspaces();
+
+      expect(workspacePromise).toEqual(mockPromise);
+      expect(await workspacePromise).toEqual(mockWorkspaces);
+      expect(backendServer.fetch).not.toHaveBeenCalledWith(expect.objectContaining({ url: '/niauth/v1/user' }));
+    });
+
+    test('should create and return a new promise when wrokspace promise does not exist', async () => {
+      (ResultsDataSourceBase as any)._workspacesCache = null;
+      const workspaceSpy = jest.spyOn(ResultsDataSourceBase.prototype, 'getWorkspaces');
+
+      const promise = datastore.loadWorkspaces();
+
+      expect(promise).not.toBeNull();
+      expect(workspaceSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle errors in getPartNumbers', async () => {
+      (ResultsDataSourceBase as any).partNumbersCache = null;
+      const error = new Error('API failed');
+      jest.spyOn(QueryStepsDataSource.prototype, 'queryResultsValues').mockRejectedValue(error);
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      await datastore.getPartNumbers();
+
+      expect(console.error).toHaveBeenCalledTimes(1);
+      expect(console.error).toHaveBeenCalledWith('Error in loading part numbers:', error);
+    });
+
+    it('should handle errors in getWorkspaces', async () => {
+      (ResultsDataSourceBase as any)._workspacesCache = null;
+      const error = new Error('API failed');
+      jest.spyOn(QueryStepsDataSource.prototype, 'getWorkspaces').mockRejectedValue(error);
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      await datastore.loadWorkspaces();
+
+      expect(console.error).toHaveBeenCalledTimes(1);
+      expect(console.error).toHaveBeenCalledWith('Error in loading workspaces:', error);
     });
   });
 
@@ -574,6 +664,255 @@ describe('QueryStepsDataSource', () => {
       });
     });
 
+  describe('fetch Step path', () => {
+    it('should make a single request when take is less than MAX_PATH_TAKE_PER_REQUEST', async () => {
+      const mockResponses = [
+        createFetchResponse({
+          paths: Array(100).fill({ path: 'path1' }),
+          continuationToken: null,
+          totalCount: 100,
+        }),
+      ];
+      backendServer.fetch.mockImplementationOnce(() => mockResponses[0]);
+      const responsePromise = datastore.queryStepPathInBatches(undefined, undefined, 100, true);
+      const response = await responsePromise;
+
+      expect(response.paths).toHaveLength(100);
+      expect(backendServer.fetch).toHaveBeenCalledTimes(1);
+      expect(backendServer.fetch).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          url: '/nitestmonitor/v2/query-paths',
+          data: expect.objectContaining({ take: 100, continuationToken: undefined }),
+        })
+      );
+    });
+
+    test('should batch requests when total number of paths matching the filter is less than requested take', async () => {
+      const mockResponses = [
+        createFetchResponse({
+          paths: Array(1000).fill({ path: 'path1' }),
+          continuationToken: 'token1',
+          totalCount: 1500,
+        }),
+        createFetchResponse({
+          paths: Array(500).fill({ path: 'path2' }),
+          continuationToken: 'token2',
+          totalCount: 1500,
+        })
+      ]
+      backendServer.fetch
+        .mockImplementationOnce(() => mockResponses[0])
+        .mockImplementationOnce(() => mockResponses[1])
+        const responsePromise = datastore.queryStepPathInBatches(
+          'name = \"test\"',
+          undefined,
+          3000,
+          true
+        );
+        const response = await responsePromise;
+  
+        expect(response.paths).toHaveLength(1500);
+        expect(backendServer.fetch).toHaveBeenCalledTimes(2);
+        expect(backendServer.fetch).toHaveBeenNthCalledWith(
+          1,
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-paths',
+            data: expect.objectContaining({ take: 1000, continuationToken: undefined }),
+          })
+        );
+        expect(backendServer.fetch).toHaveBeenNthCalledWith(
+          2,
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-paths',
+            data: expect.objectContaining({ take: 500, continuationToken: 'token1' }),
+          })
+        );
+    })
+
+    test('should batch requests with RequestPerSecond', async () => {
+      jest.useFakeTimers();
+      const fetchSpy = jest.spyOn(backendServer, 'fetch');
+      
+      const mockResponses = [
+        createFetchResponse({
+          paths: Array(1000).fill({ path: 'path1' }),
+          continuationToken: 'token1',
+          totalCount: 4000,
+        }),
+        createFetchResponse({
+          paths: Array(1000).fill({ path: 'path2' }),
+          continuationToken: 'token2', 
+          totalCount: 4000,
+        }),
+        createFetchResponse({
+          paths: Array(1000).fill({ path: 'path3' }),
+          continuationToken: 'token3',
+          totalCount: 4000,
+        }),
+        createFetchResponse({
+          paths: Array(1000).fill({ path: 'path4' }),
+          continuationToken: null,
+          totalCount: 4000,
+        })
+      ];
+
+      backendServer.fetch
+        .mockImplementationOnce(() => mockResponses[0])
+        .mockImplementationOnce(() => mockResponses[1])
+        .mockImplementationOnce(() => mockResponses[2])
+        .mockImplementationOnce(() => mockResponses[3])
+        
+      const responsePromise = datastore.queryStepPathInBatches(
+        undefined,
+        undefined,
+        4000,
+        true
+      );
+
+      await jest.advanceTimersByTimeAsync(0);
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+      await jest.advanceTimersByTimeAsync(1000);
+      expect(fetchSpy).toHaveBeenCalledTimes(4);
+      await responsePromise;
+
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          url: '/nitestmonitor/v2/query-paths',
+          data: expect.objectContaining({ take: 1000, continuationToken: undefined }),
+        })
+      );
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          url: '/nitestmonitor/v2/query-paths',
+          data: expect.objectContaining({ take: 1000, continuationToken: 'token1' }),
+        })
+      );
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        3,
+        expect.objectContaining({
+          url: '/nitestmonitor/v2/query-paths',
+          data: expect.objectContaining({ take: 1000, continuationToken: 'token2' }),
+        })
+      );
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        4,
+        expect.objectContaining({
+          url: '/nitestmonitor/v2/query-paths',
+          data: expect.objectContaining({ take: 1000, continuationToken: 'token3' }),
+        })
+      );
+    });
+
+    test('should stop fetching when continuationToken is null', async () => {
+      const mockResponses = [
+        createFetchResponse({
+          paths: Array(1000).fill({ path: 'path1' }),
+          continuationToken: null,
+          totalCount: 1000,
+        }),
+      ];
+
+      backendServer.fetch.mockImplementationOnce(() => mockResponses[0]);
+      const response = await datastore.queryStepPathInBatches(
+        undefined,
+        undefined,
+        3000,
+        true
+      );
+
+      expect(response.paths).toHaveLength(1000);
+      expect(backendServer.fetch).toHaveBeenCalledTimes(1);
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: '/nitestmonitor/v2/query-paths',
+          data: expect.objectContaining({ take: 1000, continuationToken: undefined }),
+        })
+      );
+    });
+
+    test('should stop subsequent API calls after error occurs', async () => {
+      backendServer.fetch
+        .mockImplementationOnce(() => createFetchResponse({
+          paths: Array(1000).fill({ path: 'path1' }),
+          continuationToken: 'token1',
+          totalCount: 3000,
+        }))
+        .mockImplementationOnce(() => createFetchError(400)) //Error
+        .mockImplementationOnce(() => createFetchResponse({
+          paths: Array(1000).fill({ path: 'path2' }),
+          continuationToken: 'token2',
+          totalCount: 3000,
+        }));
+      
+      const batchPromise = datastore.queryStepPathInBatches(
+        'filter',
+        undefined,
+        3000,
+        true
+      );
+      
+      await expect(batchPromise)
+        .rejects
+        .toThrow('Request to url "/nitestmonitor/v2/query-paths" failed with status code: 400. Error message: "Error"');
+      expect(backendServer.fetch).toHaveBeenCalledTimes(2);
+    });
+
+    test('should delay between consecutive batch API calls', async () => {
+      const mockTimeValues = [1000, 1200];
+      let timeCallCount = 0;
+      
+      Date.now = jest.fn().mockImplementation(() => {
+        return mockTimeValues[timeCallCount++] || mockTimeValues[mockTimeValues.length - 1];
+      });
+      
+      const spyDelay = jest.spyOn(global, 'setTimeout');
+
+      const mockResponses = [
+        createFetchResponse({
+          paths: Array(1000).fill({ path: 'path1' }),
+          continuationToken: 'token1',
+          totalCount: 4000,
+        }),
+        createFetchResponse({
+          paths: Array(1000).fill({ path: 'path2' }),
+          continuationToken: 'token2',
+          totalCount: 4000,
+        }),
+        createFetchResponse({
+          paths: Array(1000).fill({ path: 'path3' }),
+          continuationToken: 'token3',
+          totalCount: 4000,
+        }),
+        createFetchResponse({
+          paths: Array(1000).fill({ path: 'path4' }),
+          continuationToken: null,
+          totalCount: 4000,
+        }),
+      ];
+      backendServer.fetch
+        .mockImplementationOnce(() => mockResponses[0])
+        .mockImplementationOnce(() => mockResponses[1])
+        .mockImplementationOnce(() => mockResponses[2])
+        .mockImplementationOnce(() => mockResponses[3])
+      const responsePromise = datastore.queryStepPathInBatches(
+        undefined,
+        undefined,
+        4000,
+        true
+      );
+
+      const response = await responsePromise;
+
+      expect(response.paths).toHaveLength(4000);
+      expect(backendServer.fetch).toHaveBeenCalledTimes(4);
+      expect(spyDelay).toHaveBeenCalledTimes(1);
+      expect(spyDelay).toHaveBeenCalledWith(expect.any(Function), 800); // delay for 1000 - 200 = 800ms
+    });
+  });
+
     describe('query builder queries', () => {
       test('should transform the resultsfilter and stepsfilter contains single query', async () => {
         const query = buildQuery({
@@ -719,13 +1058,16 @@ describe('QueryStepsDataSource', () => {
       });
 
       it('should return empty array if API throws error', async () => {
-        backendServer.fetch.mockImplementationOnce(() => { throw new Error('API error'); });
+        const error = new Error('API failed');
+        backendServer.fetch.mockImplementationOnce(() => { throw error; });
+        jest.spyOn(console, 'error').mockImplementation(() => {});
 
         const query = { queryByResults: 'PartNumber = "partNumber1"', stepsTake: 1000 } as StepsVariableQuery;
         const result = await datastore.metricFindQuery(query);
 
         expect(result).toEqual([]);
-      });
+        expect(console.error).toHaveBeenCalledTimes(1);
+        expect(console.error).toHaveBeenCalledWith('Error in querying steps:', error)});
 
       it('should use templateSrv.replace for queryByResults and queryBySteps', async () => {
         let resultsQuery = 'PartNumber = "${partNumber}"'

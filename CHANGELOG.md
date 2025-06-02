@@ -1,3 +1,51 @@
+## [3.97.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.96.0...v3.97.0) (2025-06-02)
+
+### Features
+
+* **workorders:** Add workorders variable query editor ([#231](https://github.com/ni/systemlink-grafana-plugins/issues/231)) ([302c2b9](https://github.com/ni/systemlink-grafana-plugins/commit/302c2b92d1631a41a41b20e621ac8b33ddfdfb66))
+
+## [3.96.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.95.0...v3.96.0) (2025-06-02)
+
+### Features
+
+* **workorders:** Add support for key value operations and global variables ([#229](https://github.com/ni/systemlink-grafana-plugins/issues/229)) ([165f62a](https://github.com/ni/systemlink-grafana-plugins/commit/165f62ab6fd112ff292f58e7da4f986c04c7f373))
+
+## [3.95.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.94.0...v3.95.0) (2025-05-30)
+
+### Features
+
+* **test-plan:** add dummy query builder in test plans editors ([#223](https://github.com/ni/systemlink-grafana-plugins/issues/223)) ([b1553d2](https://github.com/ni/systemlink-grafana-plugins/commit/b1553d2a067a1a215f997cf2ccf04fbd11e3714c))
+
+## [3.94.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.93.1...v3.94.0) (2025-05-30)
+
+### Features
+
+* **results:** Add batching for step path ([#222](https://github.com/ni/systemlink-grafana-plugins/issues/222)) ([413bfde](https://github.com/ni/systemlink-grafana-plugins/commit/413bfde3686505b0027d17e0b91d0b82344e2562))
+
+## [3.93.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.93.0...v3.93.1) (2025-05-29)
+
+### Bug Fixes
+
+* **results:** Share Workspace and Part Number Cache Across Results and Steps Query Types ([#213](https://github.com/ni/systemlink-grafana-plugins/issues/213)) ([f0bf56d](https://github.com/ni/systemlink-grafana-plugins/commit/f0bf56de3022a35820acd609975f9f10b6601936))
+
+## [3.93.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.92.0...v3.93.0) (2025-05-28)
+
+### Features
+
+* **core:** Add inner Errors with Severity support and Toast message support  ([#217](https://github.com/ni/systemlink-grafana-plugins/issues/217)) ([a4194f4](https://github.com/ni/systemlink-grafana-plugins/commit/a4194f492d9c176ecffa10ddb7f33df3ea32c996))
+
+## [3.92.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.91.1...v3.92.0) (2025-05-27)
+
+### Features
+
+* **test-plans:** Query variable query editor ([#221](https://github.com/ni/systemlink-grafana-plugins/issues/221)) ([3e58cb4](https://github.com/ni/systemlink-grafana-plugins/commit/3e58cb465f5c4bc3af110dd623366e8a2f5d3d57))
+
+## [3.91.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.91.0...v3.91.1) (2025-05-27)
+
+### Bug Fixes
+
+* **results:** Hide Order by and Take fields when output type is set to total count ([#219](https://github.com/ni/systemlink-grafana-plugins/issues/219)) ([ae9a06b](https://github.com/ni/systemlink-grafana-plugins/commit/ae9a06be5a9e94a0e7d5f6ae75ea7ef3f5854ea5))
+
 ## [3.91.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.90.0...v3.91.0) (2025-05-27)
 
 ### Features

@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { ResultsVariableQueryEditor } from './ResultsVariableQueryEditor';
 import { setupRenderer } from 'test/fixtures';
 import { ResultsDataSource } from 'datasources/results/ResultsDataSource';
@@ -7,6 +7,7 @@ import { Workspace } from 'core/types';
 import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
 import { ResultsVariableProperties } from 'datasources/results/types/QueryResults.types';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
+import React from 'react';
 import userEvent from '@testing-library/user-event';
 
 const fakeWorkspaces: Workspace[] = [
@@ -24,12 +25,14 @@ const fakeWorkspaces: Workspace[] = [
   },
 ];
 
+const fakePartNumbers = [ "part1", "part2", "part3" ];
+
 class FakeQueryResultsSource extends QueryResultsDataSource {
   getWorkspaces(): Promise<Workspace[]> {
     return Promise.resolve(fakeWorkspaces);
   }
-  getPartNumbers(): Promise<void> {
-    return Promise.resolve();
+  queryResultsValues(): Promise<string[]> {
+    return Promise.resolve(fakePartNumbers);
   }
 }
 
@@ -37,8 +40,8 @@ class FakeQueryStepsDataSource extends QueryStepsDataSource {
   getWorkspaces(): Promise<Workspace[]> {
     return Promise.resolve(fakeWorkspaces);
   }
-  getPartNumbers(): Promise<void> {
-    return Promise.resolve();
+  queryResultsValues(): Promise<string[]> {
+    return Promise.resolve(fakePartNumbers);
   }
 }
 
@@ -52,6 +55,17 @@ class FakeResultsDataSource extends ResultsDataSource {
   }
 }
 
+jest.mock('../query-builders/query-results/ResultsQueryBuilder', () => ({
+  ResultsQueryBuilder: jest.fn(({ workspaces, partNumbers }) => {
+    return (
+      <div data-testid="results-query-builder">
+        <div data-testid="results-workspaces">{JSON.stringify(workspaces)}</div>
+        <div data-testid="results-part-numbers">{JSON.stringify(partNumbers)}</div>=
+      </div>
+    );
+  }),
+}));
+
 const renderEditor = setupRenderer(ResultsVariableQueryEditor, FakeResultsDataSource, () => {});
 let propertiesSelect: HTMLElement;
 let queryBy: HTMLElement;
@@ -59,8 +73,10 @@ let queryByResults: HTMLElement;
 let queryBySteps: HTMLElement;
 
 describe('Results Query Type', () => {
-  beforeEach(() => {
-    renderEditor({ refId: '', queryType: QueryType.Results, properties: ResultsVariableProperties[0].value, queryBy: '', resultsTake: 1000 } as unknown as ResultsQuery);
+  beforeEach(async () => {
+    await act(async () => {
+      renderEditor({ refId: '', queryType: QueryType.Results, properties: ResultsVariableProperties[0].value, queryBy: '', resultsTake: 1000 } as unknown as ResultsQuery);
+    });
   });
 
   it('should render query type radio buttons', () => {
@@ -88,9 +104,7 @@ describe('Results Query Type', () => {
     queryBy = screen.getByText('Query by results properties');
     expect(queryBy).toBeInTheDocument();
 
-    await waitFor(() => expect(screen.getAllByText('Property').length).toBe(1));
-    await waitFor(() => expect(screen.getAllByText('Operator').length).toBe(1));
-    await waitFor(() => expect(screen.getAllByText('Value').length).toBe(1));
+    expect(screen.queryByTestId('results-query-builder')).toBeInTheDocument();
   });
 
   describe('Take input field', () => {
@@ -190,16 +204,51 @@ describe('Steps Query Type', () => {
   });
 });
 
-it('should load part numbers on mount', async () => {
-  const queryResultValuesSpy = jest.spyOn(FakeQueryResultsSource.prototype, 'getPartNumbers');
-  renderEditor({ refId: '', properties: '', queryBy: '' } as unknown as ResultsQuery);
+describe('Dependencies', () => {
+  it('should load workspaces and part numbers from the datasource', async () => {
+    await act(async () => { 
+      renderEditor({ refId: '', properties: '', queryBy: '' } as unknown as ResultsQuery);
+    });
 
-  expect(queryResultValuesSpy).toHaveBeenCalledTimes(1);
-});
+    fireEvent.keyDown(screen.getAllByRole('combobox')[0], { key: 'ArrowDown' });
+    const option = await screen.findByText(ResultsVariableProperties[0].label);
+    fireEvent.click(option);
 
-it('should load workspaces on mount', async () => {
-  const getWorkspace = jest.spyOn(FakeQueryResultsSource.prototype, 'getWorkspaces');
-  renderEditor({ refId: '', properties: '', queryBy: '' } as unknown as ResultsQuery);
+    expect(screen.getByTestId('results-part-numbers').textContent).toEqual(JSON.stringify(fakePartNumbers));
+    expect(screen.getByTestId('results-workspaces').textContent).toEqual(
+      JSON.stringify([
+        { id: '1', name: 'workspace1', default: false, enabled: true },
+        { id: '2', name: 'workspace2', default: false, enabled: true },
+      ])
+    );
+  });
 
-  expect(getWorkspace).toHaveBeenCalledTimes(1);
+  it('should not render part numbers and workspaces when promises resolve to undefined', async () => {
+    cleanup();
+    const emptyDatasource = {
+      globalVariableOptions: jest.fn().mockReturnValue([]),
+      get workspacesCache() {
+        return Promise.resolve(new Map());
+      },
+      get partNumbersCache() {
+        return Promise.resolve([]);
+      },
+    } as unknown as QueryResultsDataSource;
+
+    Object.defineProperty(FakeResultsDataSource.prototype, 'queryResultsDataSource', {
+      get: () => emptyDatasource,
+    });
+
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    await act(async () => {
+      renderEditor({ refId: '', properties: '', queryBy: '' } as unknown as ResultsQuery);
+    });
+
+    fireEvent.keyDown(screen.getAllByRole('combobox')[0], { key: 'ArrowDown' });
+    const option = await screen.findByText(ResultsVariableProperties[0].label);
+    fireEvent.click(option);
+
+    expect(screen.getByTestId('results-part-numbers').textContent).toBe('[]');
+    expect(screen.getByTestId('results-workspaces').textContent).toBe('[]');
+  });
 });
