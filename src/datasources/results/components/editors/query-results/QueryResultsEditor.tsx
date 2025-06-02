@@ -84,6 +84,12 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
     handleQueryChange({ ...query, partNumberQuery: productNames.map(product => product.value as string) });
   }
 
+  const formatOptionLabel = (option: SelectableValue<string>) => (
+    <div style={{ maxWidth: 520, whiteSpace: 'normal' }}>
+      {option.label}
+    </div>
+  );
+
   return (
     <>
       <VerticalGroup>
@@ -128,8 +134,8 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
                 noMultiValueWrap={true}
                 closeMenuOnSelect={false}
                 value={query.partNumberQuery}
+                formatOptionLabel={formatOptionLabel}
                 options={productNameOptions}
-                defaultOptions
               />
             </InlineField>
             <InlineField label="Query By" labelWidth={26} tooltip={tooltips.queryBy}>
