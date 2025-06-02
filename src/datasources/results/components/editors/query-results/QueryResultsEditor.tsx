@@ -124,6 +124,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
                 maxVisibleValues={5}
                 width={65}
                 onChange={onProductNameChange}
+                placeholder='Select part numbers to query'
                 noMultiValueWrap={true}
                 closeMenuOnSelect={false}
                 value={query.partNumberQuery}
