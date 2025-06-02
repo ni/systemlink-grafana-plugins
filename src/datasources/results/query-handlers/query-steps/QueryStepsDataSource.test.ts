@@ -1119,6 +1119,67 @@ describe('QueryStepsDataSource', () => {
         expect(templateSrv.replace.mock.calls[0][0]).toBe(resultsQuery);
         expect(templateSrv.replace.mock.calls[1][0]).toBe(stepsQuery);
       });
+
+      it('should merge partnumber and resultsQuery filters', async () => {
+        let resultsQuery = 'ProgramName = "name1"'
+        let stepsQuery = 'stepName = "step1"'
+        const query = {
+          queryByResults: resultsQuery,
+          queryBySteps: stepsQuery,
+          stepsTake: 1000,
+          partNumberQueryInSteps: ['PartNumber1'],
+        } as StepsVariableQuery;
+        const options = { scopedVars: { var: { value: 'ReplacedValue' } } };
+
+        await datastore.metricFindQuery(query, options);
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-steps',
+            data: expect.objectContaining({
+              resultsFilter: "(PartNumber = \"PartNumber1\") && ProgramName = \"name1\""
+            }),
+          })
+        );
+      });
+
+      it('should not call query-steps API when partNumberQueryInSteps is empty', async () => {
+        let resultsQuery = 'ProgramName = "name1"'
+        const partNumberQuery: string[] = [];
+        const query = {
+          queryByResults: resultsQuery,
+          stepsTake: 1000,
+          partNumberQueryInSteps: partNumberQuery,
+        } as StepsVariableQuery;
+
+        await datastore.metricFindQuery(query);
+
+        expect(backendServer.fetch).not.toHaveBeenCalled();
+      });
+
+      it('should handle part number query with template variables', async () => {
+        const resultsQuery = 'ProgramName = "name1"';
+        const partNumberQuery = ['PartNumber1', '${var}'];
+        const templateSrvCalledWith = '(PartNumber = "PartNumber1" || PartNumber = "${var}") && ProgramName = "name1"';
+        templateSrv.replace.calledWith(templateSrvCalledWith).mockReturnValue('(PartNumber = "PartNumber1" || PartNumber = "partNumber2") && ProgramName = "name1"');
+        const query = {
+          queryByResults: resultsQuery,
+          stepsTake: 1000,
+          partNumberQueryInSteps: partNumberQuery,
+        } as StepsVariableQuery;
+
+        await datastore.metricFindQuery(query, { scopedVars: { var: { value: 'partNumber2' } } } as any);
+
+        expect(templateSrv.replace).toHaveBeenCalledWith('(PartNumber = "PartNumber1" || PartNumber = "${var}") && ProgramName = "name1"', expect.anything());
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-steps',
+            data: expect.objectContaining({
+              resultsFilter: '(PartNumber = "PartNumber1" || PartNumber = "partNumber2") && ProgramName = "name1"'
+            }),
+          })
+        );
+      });
     });
 
   const buildQuery = getQueryBuilder<QuerySteps>()({

@@ -189,6 +189,47 @@ describe('Steps Query Type', () => {
     expect(queryBySteps).toBeInTheDocument();
   });
 
+  it('should select the product name from the product name dropdown', async () => {
+    await act(async () => {
+      renderEditor({
+        refId: '',
+        queryType: QueryType.Steps,
+        queryByResults: 'resultsQuery',
+        queryBySteps: '',
+      } as unknown as ResultsQuery);
+    });
+
+    const productNameSelectInSteps = screen.getAllByRole('combobox')[0];
+
+    expect(productNameSelectInSteps).toBeInTheDocument();
+
+    fireEvent.keyDown(productNameSelectInSteps, { key: 'ArrowDown' });
+    const option = await screen.findByText("Product (part1)");
+    fireEvent.click(option);
+
+    expect(screen.getByText("Product (part1)")).toBeInTheDocument();
+  });
+
+  it('should select variable from product name dropdown', async () => {
+    await act(async () => {
+      renderEditor({
+        refId: '',
+        queryType: QueryType.Steps,
+        queryByResults: 'resultsQuery',
+        queryBySteps: '',
+      } as unknown as ResultsQuery);
+    });
+    const productNameSelectInSteps = screen.getAllByRole('combobox')[0];
+
+    expect(productNameSelectInSteps).toBeInTheDocument();
+
+    fireEvent.keyDown(productNameSelectInSteps, { key: 'ArrowDown' });
+    const option = await screen.findByText('$var1');
+    fireEvent.click(option);
+
+    expect(screen.getByText('$var1')).toBeInTheDocument();
+  });
+
   describe('Take input field', () => {
     it('should render take input field with 1000 as value by default', () => {
       renderEditor({
