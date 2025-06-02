@@ -117,10 +117,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
 
   async metricFindQuery(query: ResultsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     if (query.properties !== undefined && this.isTakeValidValid(query.resultsTake!)) {
-      const filter = query.queryBy ? transformComputedFieldsQuery(
-        this.templateSrv.replace(query.queryBy, options?.scopedVars),
-        this.resultsComputedDataFields
-      ) : undefined;
+      const filter = this.buildResultsQuery( options?.scopedVars!, query.partNumberQuery, query.queryBy );
 
       const metadata = (await this.queryResults(
         filter,

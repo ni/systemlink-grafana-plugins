@@ -7,7 +7,7 @@ import {
   StepsVariableQuery,
 } from 'datasources/results/types/QueryResults.types';
 import { ResultsQueryBuilder } from '../query-builders/query-results/ResultsQueryBuilder';
-import { AutoSizeInput, RadioButtonGroup, Select } from '@grafana/ui';
+import { AsyncMultiSelect, AutoSizeInput, RadioButtonGroup, Select } from '@grafana/ui';
 import { Workspace } from 'core/types';
 import { enumToOptions, validateNumericInput } from 'core/utils';
 import {
@@ -108,6 +108,10 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
     return '';
   }
 
+  const onProductNameChange = (productNames: Array<SelectableValue<string>>) => {
+    onChange({ ...queryResultsquery, partNumberQuery: productNames.map(product => product.value as string) } as ResultsVariableQuery );
+  }
+
   return (
     <>
       <InlineField label="Query Type" labelWidth={26} tooltip={tooltips.queryType}>
@@ -130,6 +134,25 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
           {(queryResultsquery.properties! === ResultsVariableProperties[0].value ||
             queryResultsquery.properties === ResultsVariableProperties[1].value) && (
             <>
+            <InlineField label="Product name" labelWidth={26}>
+              <AsyncMultiSelect
+                maxVisibleValues={5}
+                width={65}
+                onChange={onProductNameChange}
+                closeMenuOnSelect={false}
+                menuShouldPortal={false}
+                value={queryResultsquery.partNumberQuery?.map(pn => ({ label: pn, value: pn }))}
+                loadOptions={async () => {
+                  const response = await queryResultsDataSource.current.productCache;
+                  const productOptions = response.products.map(product => ({
+                    label: `${product.name} (${product.partNumber})`,
+                    value: product.partNumber,
+                  }));
+                  return [...queryResultsDataSource.current.globalVariableOptions(), ...productOptions];
+                }}
+                defaultOptions
+              />
+            </InlineField>
               <InlineField label="Query by results properties" labelWidth={26} tooltip={tooltips.queryBy}>
                 <ResultsQueryBuilder
                   filter={queryResultsquery.queryBy}

@@ -14,6 +14,7 @@ export interface QueryResults extends ResultsQuery {
 
 export interface ResultsVariableQuery extends ResultsQuery {
   properties?: string;
+  partNumberQuery?: string[];
   queryBy?: string;
   resultsTake?: number;
 }
