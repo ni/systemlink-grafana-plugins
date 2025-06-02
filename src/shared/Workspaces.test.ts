@@ -2,7 +2,6 @@ import { Workspaces } from './Workspaces';
 import { DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv } from '@grafana/runtime';
 import { Workspace } from 'core/types';
-import { mock } from 'jest-mock-extended';
 
 describe('Workspaces', () => {
     let instanceSettings: DataSourceInstanceSettings;
