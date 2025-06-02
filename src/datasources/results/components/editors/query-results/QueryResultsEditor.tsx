@@ -1,6 +1,5 @@
 import { SelectableValue } from '@grafana/data';
 import {
-  AsyncMultiSelect,
   AutoSizeInput,
   InlineField,
   InlineSwitch,
@@ -28,6 +27,7 @@ type Props = {
 export function QueryResultsEditor({ query, handleQueryChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
+  const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -38,7 +38,15 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
       const partNumbers = await datasource.partNumbersCache;
       setPartNumbers(partNumbers);
     };
-
+    const loadProductNameOptions = async () => {
+      const response = await datasource.productCache;
+      const productOptions = response.products.map(product => ({
+        label: `${product.name} (${product.partNumber})`,
+        value: product.partNumber,
+      }));
+      setProductNameOptions([...datasource.globalVariableOptions(), ...productOptions]);
+    }
+    loadProductNameOptions();
     loadPartNumbers();
     loadWorkspaces();
   }, [datasource]);
@@ -76,15 +84,6 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
     handleQueryChange({ ...query, partNumberQuery: productNames.map(product => product.value as string) });
   }
 
-  const loadProductNameOptions = async () => {
-    const response = await datasource.productCache;
-    const productOptions = response.products.map(product => ({
-      label: `${product.name} (${product.partNumber})`,
-      value: product.partNumber,
-    }));
-    return [...datasource.globalVariableOptions(), ...productOptions];
-  };
-
   return (
     <>
       <VerticalGroup>
@@ -121,13 +120,13 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
         <div className="horizontal-control-group">
           <div>
             <InlineField label="Product name" labelWidth={26} tooltip={tooltips.productName}>
-              <AsyncMultiSelect
+              <MultiSelect
                 maxVisibleValues={5}
                 width={65}
                 onChange={onProductNameChange}
                 closeMenuOnSelect={false}
-                value={query.partNumberQuery?.map(pn => ({ label: pn, value: pn }))}
-                loadOptions={loadProductNameOptions}
+                value={query.partNumberQuery}
+                options={productNameOptions}
                 defaultOptions
               />
             </InlineField>

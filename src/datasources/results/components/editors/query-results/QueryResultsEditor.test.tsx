@@ -113,7 +113,7 @@ describe('QueryResultsEditor', () => {
     expect(useTimeRangeFor).toBeInTheDocument();
     expect(screen.getAllByText('Updated').length).toBe(1);
     expect(productName).toBeInTheDocument();
-    expect(screen.getAllByText('PartNumber1').length).toBe(1);
+    expect(screen.getAllByText('ProductName1 (PartNumber1)').length).toBe(1);
   });
 
   test('should update properties when user adds a property', async () => {
@@ -138,6 +138,13 @@ describe('QueryResultsEditor', () => {
   });
 
   test('should update part number query when user changes a product name', async () => {
+    await select(productName, 'ProductName2 (PartNumber2)', { container: document.body });
+    await waitFor(() => {
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "PartNumber2"] }));
+    });
+  });
+
+    test('should update part number query when user selects a variable in product name field', async () => {
     await select(productName, '$var1', { container: document.body });
     await waitFor(() => {
       expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "$var1"] }));
@@ -198,6 +205,7 @@ describe('QueryResultsEditor', () => {
       const emptyDatasource = {
         workspacesCache: Promise.resolve(new Map()),
         partNumbersCache: Promise.resolve([]),
+        productCache: Promise.resolve({ products: [] }),
         globalVariableOptions: jest.fn(() => []),
       } as unknown as QueryResultsDataSource;
 
