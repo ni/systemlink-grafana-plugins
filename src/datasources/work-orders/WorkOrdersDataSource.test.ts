@@ -2,8 +2,8 @@ import { BackendSrv } from '@grafana/runtime';
 import { MockProxy } from 'jest-mock-extended';
 import { setupDataSource, requestMatching, createFetchResponse, createFetchError } from 'test/fixtures';
 import { WorkOrdersDataSource } from './WorkOrdersDataSource';
-import { OrderByOptions, OutputType, State, Type, WorkOrderPropertiesOptions, WorkOrdersResponse } from './types';
-import { DataQueryRequest, Field } from '@grafana/data';
+import { OrderByOptions, OutputType, State, Type, WorkOrderPropertiesOptions, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
+import { DataQueryRequest, Field, LegacyMetricFindQueryOptions } from '@grafana/data';
 
 let datastore: WorkOrdersDataSource, backendServer: MockProxy<BackendSrv>;
 
@@ -145,6 +145,53 @@ describe('WorkOrdersDataSource', () => {
         WorkOrderPropertiesOptions.DUE_DATE,
         WorkOrderPropertiesOptions.UPDATED_AT,
       ]);
+    });
+  });
+
+  describe('metricFindQuery', () => {
+    let options: LegacyMetricFindQueryOptions;
+    beforeEach(() => {
+      options = {}
+    });
+  
+    it('should return work orders name with id when query properties are not provided', async () => {
+      const query: WorkOrdersVariableQuery = {
+        refId: '',
+      };
+  
+      const results = await datastore.metricFindQuery(query, options);
+  
+      expect(results).toMatchSnapshot();
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {projection: ["ID", "NAME"]}
+        })
+      );
+    });
+
+    it('should return work orders name with id when query properties are provided', async () => {
+      const query: WorkOrdersVariableQuery = {
+        refId: '',
+        queryBy: 'filter = "test"',
+        orderBy: OrderByOptions.ID,
+        descending: true,
+        take: 1000,
+      };
+  
+      const results = await datastore.metricFindQuery(query, options);
+  
+      expect(results).toMatchSnapshot();
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            filter: 'filter = "test"',
+            projection: ["ID", "NAME"],
+            orderBy: OrderByOptions.ID,
+            descending: true,
+            take: 1000,
+          }
+        })
+      );
     });
   });
 

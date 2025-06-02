@@ -1,7 +1,7 @@
-import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, TestDataSourceResponse } from '@grafana/data';
+import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, TestDataSourceResponse, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse } from './types';
+import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
 import { QueryBuilderOption } from 'core/types';
 import { getVariableOptions } from 'core/utils';
 
@@ -52,13 +52,25 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     return true;
   }
 
+  async metricFindQuery(query: WorkOrdersVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    const metadata = (await this.queryWorkordersData(
+      query.queryBy,
+      [WorkOrderPropertiesOptions.ID, WorkOrderPropertiesOptions.NAME],
+      query.orderBy,
+      query.descending,
+      query.take
+    ));
+
+    return metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.id})`, value: frame.id })) : [];
+  }
+
   async processWorkOrdersQuery(query: WorkOrdersQuery): Promise<DataFrameDTO> {
     const workOrders: WorkOrder[] = await this.queryWorkordersData(
       query.queryBy,
       query.properties,
       query.orderBy,
-      query.take,
-      query.descending
+      query.descending,
+      query.take
     );
 
     const mappedFields = query.properties?.map(property => {
@@ -91,8 +103,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     filter?: string,
     projection?: string[],
     orderBy?: string,
+    descending?: boolean,
     take?: number,
-    descending?: boolean
   ): Promise<WorkOrder[]> {
     const body = {
       filter,
