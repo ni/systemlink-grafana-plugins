@@ -41,7 +41,7 @@ export function useWorkspaceOptions<DSType extends DataSourceBase<any, any>>(dat
   return useAsync(async () => {
     const workspaces = await datasource.getWorkspaces();
     const workspaceOptions = workspaces.map(w => ({ label: w.name, value: w.id }));
-    workspaceOptions?.unshift(...getVariableOptions(datasource));
+    workspaceOptions?.unshift(...getVariableOptions(datasource))
     return workspaceOptions;
   });
 }
@@ -74,8 +74,7 @@ export function replaceVariables(values: string[], templateSrv: TemplateSrv) {
   const replaced: string[] = [];
   values.forEach(value => {
     if (templateSrv.containsTemplate(value)) {
-      const variableReplacedValues = templateSrv
-        .replace(value) // Replace variable with their values
+      const variableReplacedValues = templateSrv.replace(value) // Replace variable with their values
         .replace(/[{}]/g, '') // return values without curly braces for multi-value variables which are returned as {value1,value2}
         .split(',');
       replaced.push(...variableReplacedValues.filter(v => v.trim() !== ''));
@@ -90,6 +89,7 @@ export function replaceVariables(values: string[], templateSrv: TemplateSrv) {
 export function isSystemLinkError(error: any): error is SystemLinkError {
   return Boolean(error?.error?.code) && Boolean(error?.error?.name);
 }
+
 
 /**
  * Used for filtering XSS in query builder fields
@@ -106,12 +106,12 @@ export function filterXSSLINQExpression(value: string | null | undefined): strin
   const sanitizedTarget = textUtil.sanitize(unsanitizedTarget);
 
   return sanitizedTarget
-    .replace(/ &lt; /g, ' < ')
-    .replace(/ &lt;= /g, ' <= ')
-    .replace(/ &gt; /g, ' > ')
-    .replace(/ &gt;= /g, ' >= ')
-    .replace(/ &amp;&amp; /g, ' && ')
-    .replace(/ &lt;&gt; /g, ' <> ');
+    .replace(/ &lt; /g, " < ")
+    .replace(/ &lt;= /g, " <= ")
+    .replace(/ &gt; /g, " > ")
+    .replace(/ &gt;= /g, " >= ")
+    .replace(/ &amp;&amp; /g, " && ")
+    .replace(/ &lt;&gt; /g, " <> ");
 }
 
 export function validateNumericInput(event: React.KeyboardEvent<HTMLInputElement>) {
@@ -123,7 +123,7 @@ export function validateNumericInput(event: React.KeyboardEvent<HTMLInputElement
 export async function queryInBatches<T>(
   queryRecord: (take: number, continuationToken?: string) => Promise<QueryResponse<T>>,
   queryConfig: BatchQueryConfig,
-  take?: number
+  take?: number,
 ): Promise<QueryResponse<T>> {
   if (take === undefined || take <= queryConfig.maxTakePerRequest) {
     return await queryRecord(take || queryConfig.maxTakePerRequest);
@@ -141,10 +141,9 @@ export async function queryInBatches<T>(
   };
 
   const queryRecordsInCurrentBatch = async (): Promise<void> => {
-    const remainingRecordsToGet =
-      totalCount !== undefined
-        ? Math.min(take - queryResponse.length, totalCount - queryResponse.length)
-        : take - queryResponse.length;
+    const remainingRecordsToGet = totalCount !== undefined ?
+      Math.min(take - queryResponse.length, totalCount - queryResponse.length) :
+      take - queryResponse.length;
 
     if (remainingRecordsToGet <= 0) {
       return;
