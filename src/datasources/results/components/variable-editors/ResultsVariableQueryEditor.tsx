@@ -123,7 +123,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
   }
 
   const formatOptionLabel = (option: SelectableValue<string>) => (
-    <div style={{ maxWidth: 520, whiteSpace: 'normal' }}>
+    <div style={{ maxWidth: 500, whiteSpace: 'normal' }}>
       {option.label}
     </div>
   );

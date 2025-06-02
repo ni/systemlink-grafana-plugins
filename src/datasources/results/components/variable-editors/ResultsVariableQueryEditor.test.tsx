@@ -3,7 +3,7 @@ import { ResultsVariableQueryEditor } from './ResultsVariableQueryEditor';
 import { setupRenderer } from 'test/fixtures';
 import { ResultsDataSource } from 'datasources/results/ResultsDataSource';
 import { QueryProductResponse, QueryType, ResultsQuery } from 'datasources/results/types/types';
-import { QueryBuilderOption, Workspace } from 'core/types';
+import { Workspace } from 'core/types';
 import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
 import { ResultsVariableProperties } from 'datasources/results/types/QueryResults.types';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
