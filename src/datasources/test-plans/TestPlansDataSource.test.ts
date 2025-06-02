@@ -21,7 +21,7 @@ const mockVariableQueryTestPlansResponse: QueryTestPlansResponse = {
   totalCount: 2
 };
 
-jest.mock('core/workspace.utils', () => {
+jest.mock('shared/Workspaces', () => {
   return {
     Workspaces: jest.fn().mockImplementation(() => ({
       workspacesCache: new Map([
