@@ -21,7 +21,10 @@ export class Users {
    * If the cache is not initialized, it triggers the loading of users.
    */
   public get users(): Promise<User[]> {
-    return this.loadUsers();
+    if (!Users._users) {
+      Users._users = this.queryUsersInBatches().then(response => response.users);
+    }
+    return Users._users;  
   }
 
   /**
@@ -39,9 +42,7 @@ export class Users {
     });
   }
 
-  constructor(readonly instanceSettings: DataSourceInstanceSettings, readonly backendSrv: BackendSrv) {
-    this.loadUsers();
-  }
+  constructor(readonly instanceSettings: DataSourceInstanceSettings, readonly backendSrv: BackendSrv) {}
 
   /**
    * Generates the full name of a user by combining their first and last names.
@@ -59,18 +60,6 @@ export class Users {
    */
   public static getUserNameAndEmail(user: User): string {
     return `${user?.firstName ?? ''} ${user?.lastName ?? ''} (${user?.email ?? ''})`;
-  }
-
-  /**
-   * Loads the list of users from the backend or returns the cached users if available.
-   * This method ensures that user data is fetched only once and reused across the application.
-   * @returns A promise that resolves to an array of users.
-   */
-  private async loadUsers(): Promise<User[]> {
-    if (!Users._users) {
-      Users._users = this.queryUsersInBatches().then(response => response.users);
-    }
-    return Users._users;
   }
 
   /**
