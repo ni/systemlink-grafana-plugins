@@ -38,7 +38,7 @@ export function WorkOrdersVariableQueryEditor({ query, onChange, datasource }: P
       <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
         <WorkOrdersQueryBuilder
           filter={query.queryBy}
-          globalVariableOptions={[]}
+          globalVariableOptions={datasource.globalVariableOptions()}
           onChange={(event: any) => onQueryByChange(event.detail.linq)}
         ></WorkOrdersQueryBuilder>
       </InlineField>

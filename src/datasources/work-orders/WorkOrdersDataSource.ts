@@ -3,9 +3,8 @@ import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana
 import { DataSourceBase } from 'core/DataSourceBase';
 import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
 import { QueryBuilderOption } from 'core/types';
-import { getVariableOptions } from 'core/utils';
 import { WorkOrdersQueryBuilderFieldNames } from './constants/WorkOrdersQueryBuilder.constants';
-import { multipleValuesQuery, timeFieldsQuery } from 'core/utils';
+import { getVariableOptions, multipleValuesQuery, timeFieldsQuery } from 'core/utils';
 import { transformComputedFieldsQuery, ExpressionTransformFunction } from 'core/query-builder.utils';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
@@ -40,12 +39,12 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
 
   async runQuery(query: WorkOrdersQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     if (query.queryBy) {
-          query.queryBy = transformComputedFieldsQuery(
-            this.templateSrv.replace(query.queryBy, options.scopedVars),
-            this.workordersComputedDataFields,
-          );
-        }
-      
+      query.queryBy = transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.workordersComputedDataFields
+      );
+    }
+
     if (query.outputType === OutputType.Properties) {
       return this.processWorkOrdersQuery(query);
     } else {
@@ -65,20 +64,28 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   readonly workordersComputedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(WorkOrdersQueryBuilderFieldNames).map(field => [
       field,
-      this.isTimeField(field)
-        ? timeFieldsQuery(field)
-        : multipleValuesQuery(field)
+      this.isTimeField(field) ? timeFieldsQuery(field) : multipleValuesQuery(field),
     ])
   );
 
-  async metricFindQuery(query: WorkOrdersVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    const metadata = (await this.queryWorkordersData(
+  async metricFindQuery(
+    query: WorkOrdersVariableQuery,
+    options: LegacyMetricFindQueryOptions
+  ): Promise<MetricFindValue[]> {
+    if (query.queryBy) {
+      query.queryBy = transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.workordersComputedDataFields
+      );
+    }
+
+    const metadata = await this.queryWorkordersData(
       query.queryBy,
       [WorkOrderPropertiesOptions.ID, WorkOrderPropertiesOptions.NAME],
       query.orderBy,
       query.descending,
       query.take
-    ));
+    );
 
     return metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.id})`, value: frame.id })) : [];
   }
@@ -102,7 +109,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
         switch (field.value) {
           case WorkOrderPropertiesOptions.PROPERTIES:
             const properties = workOrder.properties || {};
-            return JSON.stringify(properties)
+            return JSON.stringify(properties);
           default:
             return workOrder[field.field] ?? '';
         }
@@ -123,7 +130,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     projection?: string[],
     orderBy?: string,
     descending?: boolean,
-    take?: number,
+    take?: number
   ): Promise<WorkOrder[]> {
     const body = {
       filter,
@@ -163,7 +170,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 
-  private isTimeField(field: WorkOrderPropertiesOptions|WorkOrdersQueryBuilderFieldNames): boolean {
+  private isTimeField(field: WorkOrderPropertiesOptions | WorkOrdersQueryBuilderFieldNames): boolean {
     const timeFields = [
       WorkOrderPropertiesOptions.UPDATED_AT,
       WorkOrderPropertiesOptions.CREATED_AT,
@@ -172,10 +179,9 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       WorkOrdersQueryBuilderFieldNames.UpdatedAt,
       WorkOrdersQueryBuilderFieldNames.CreatedAt,
       WorkOrdersQueryBuilderFieldNames.EarliestStartDate,
-      WorkOrdersQueryBuilderFieldNames.DueDate
+      WorkOrdersQueryBuilderFieldNames.DueDate,
     ];
-  
+
     return timeFields.includes(field);
   }
 }
-
