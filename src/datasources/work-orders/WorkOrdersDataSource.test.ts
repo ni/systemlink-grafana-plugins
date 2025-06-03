@@ -51,6 +51,8 @@ describe('WorkOrdersDataSource', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niworkorder/v1/query-workorders', method: 'POST' }))
       .mockReturnValue(createFetchResponse(mockWorkOrders));
+    
+    jest.spyOn(datastore, 'queryWorkordersData');
   });
 
   describe('runQuery', () => {
@@ -105,12 +107,12 @@ describe('WorkOrdersDataSource', () => {
       await datastore.runQuery(mockQuery, options as unknown as DataQueryRequest);
 
       expect(datastore.templateSrv.replace).toHaveBeenCalledWith('workspace = "${var}"', options.scopedVars);
-      expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: {
-            filter: 'workspace = "testWorkspace"'
-          },
-        })
+      expect(datastore.queryWorkordersData).toHaveBeenCalledWith(
+        'workspace = "testWorkspace"',
+        undefined,
+        undefined,
+        undefined,
+        undefined
       );
     });
 
@@ -125,12 +127,12 @@ describe('WorkOrdersDataSource', () => {
 
       await datastore.runQuery(mockQuery, options as unknown as DataQueryRequest);
 
-      expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: {
-            filter: '(workspace = "testWorkspace1" || workspace = "testWorkspace2")'
-          },
-        })
+      expect(datastore.queryWorkordersData).toHaveBeenCalledWith(
+        '(workspace = "testWorkspace1" || workspace = "testWorkspace2")',
+        undefined,
+        undefined,
+        undefined,
+        undefined
       );
     });
 
@@ -145,12 +147,12 @@ describe('WorkOrdersDataSource', () => {
 
       await datastore.runQuery(mockQuery, {} as DataQueryRequest);
 
-      expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: {
-            filter: 'updatedAt = "2025-01-01T00:00:00.000Z"'
-          },
-        })
+      expect(datastore.queryWorkordersData).toHaveBeenCalledWith(
+        'updatedAt = "2025-01-01T00:00:00.000Z"',
+        undefined,
+        undefined,
+        undefined,
+        undefined
       );
 
       jest.useRealTimers();
@@ -292,13 +294,12 @@ describe('WorkOrdersDataSource', () => {
       await datastore.metricFindQuery(mockQuery, options);
 
       expect(datastore.templateSrv.replace).toHaveBeenCalledWith('workspace = "${var}"', options.scopedVars);
-      expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: {
-            filter: 'workspace = "testWorkspace"',
-            projection: ["ID", "NAME"]
-          },
-        })
+      expect(datastore.queryWorkordersData).toHaveBeenCalledWith(
+        'workspace = "testWorkspace"',
+        ["ID", "NAME"],
+        undefined,
+        undefined,
+        undefined
       );
     });
 
@@ -313,13 +314,12 @@ describe('WorkOrdersDataSource', () => {
 
       await datastore.metricFindQuery(mockQuery, options);
 
-      expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: {
-            filter: '(workspace = "testWorkspace1" || workspace = "testWorkspace2")',
-            projection: ["ID", "NAME"]
-          },
-        })
+      expect(datastore.queryWorkordersData).toHaveBeenCalledWith(
+        '(workspace = "testWorkspace1" || workspace = "testWorkspace2")',
+        ["ID", "NAME"],
+        undefined,
+        undefined,
+        undefined
       );
     });
 
@@ -334,13 +334,12 @@ describe('WorkOrdersDataSource', () => {
 
       await datastore.metricFindQuery(mockQuery, {});
 
-      expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: {
-            filter: 'updatedAt = "2025-01-01T00:00:00.000Z"',
-            projection: ["ID", "NAME"]
-          },
-        })
+      expect(datastore.queryWorkordersData).toHaveBeenCalledWith(
+        'updatedAt = "2025-01-01T00:00:00.000Z"',
+        ["ID", "NAME"],
+        undefined,
+        undefined,
+        undefined
       );
 
       jest.useRealTimers();
