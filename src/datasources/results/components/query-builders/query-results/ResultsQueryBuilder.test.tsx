@@ -21,7 +21,7 @@ describe('ResultsQueryBuilder', () => {
     }
 
     it('should render empty query builder', () => {
-      const { renderResult, conditionsContainer } = renderElement([], [], [], '');
+      const { renderResult, conditionsContainer } = renderElement([], [], '');
 
       expect(conditionsContainer.length).toBe(1);
       expect(renderResult.findByLabelText('Empty condition row')).toBeTruthy();
