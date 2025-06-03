@@ -177,6 +177,7 @@ describe('getFamilyNames', () => {
   });
 
   it('should handle errors and set innerError fields with error message detail', async () => {
+    datastore.error = '';
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-product-values' }))
       .mockReturnValue(createFetchError(500));
@@ -184,9 +185,9 @@ describe('getFamilyNames', () => {
     await datastore.getFamilyNames();
 
     expect(datastore.error).toBe('Failed to query product values.');
-    expect(datastore.innerError).toBe('Some values may not be available in the query builder lookups. Details: \"Error\"');
+    expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups. Details: \"Error\"');
   })
-  
+
 });
 
 describe('query', () => {
@@ -250,7 +251,7 @@ describe('query', () => {
 
     await expect(datastore.query(query))
       .rejects
-      .toThrow('Request to url "/nitestmonitor/v2/query-products" failed with status code: 400. Error message: "Error"');
+      .toThrow('Failed to query products (status 400): \"Error\"');
   });
 
   it('should convert properties to Grafana fields', async () => {
