@@ -12,9 +12,8 @@ import {
   VerticalGroup
 } from '@grafana/ui';
 import './WorkOrdersQueryEditor.scss';
-import { tooltips } from '../constants/QueryEditor.constants';
+import { TAKE_LIMIT, takeErrorMessages, tooltips } from '../constants/QueryEditor.constants';
 import { validateNumericInput } from 'core/utils';
-import { TAKE_LIMIT } from 'datasources/results/constants/QuerySteps.constants';
 
 type Props = QueryEditorProps<WorkOrdersDataSource, WorkOrdersQuery>;
 
@@ -65,10 +64,10 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
     const value = parseInt((event.target as HTMLInputElement).value, 10);
     switch (true) {
       case isNaN(value) || value < 0:
-        setRecordCountInvalidMessage('Enter a value greater than or equal to 0');
+        setRecordCountInvalidMessage(takeErrorMessages.greaterOrEqualToZero);
         break;
       case value > TAKE_LIMIT:
-        setRecordCountInvalidMessage('Enter a value less than or equal to 10,000');
+        setRecordCountInvalidMessage(takeErrorMessages.lessOrEqualToTenThousand);
         break;
       default:
         setRecordCountInvalidMessage('');
