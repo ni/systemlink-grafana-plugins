@@ -110,7 +110,7 @@ describe('queryProducts', () => {
 
     await expect(datastore.queryProducts())
       .rejects
-      .toThrow();
+      .toThrow('Failed to query products (status 400): "Error"');
 
     expect(publishMock).toHaveBeenCalledWith({
       type: 'alert-error',
