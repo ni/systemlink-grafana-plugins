@@ -290,7 +290,6 @@ describe('QueryResultsDataSource', () => {
 
     describe('Dependencies', () => {
     afterEach(() => {
-      (ResultsDataSourceBase as any)._partNumbersCache = null;
       (ResultsDataSourceBase as any)._workspacesCache = null;
       (ResultsDataSourceBase as any)._productCache = null;
     });

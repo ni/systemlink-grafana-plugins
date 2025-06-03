@@ -308,9 +308,6 @@ describe('Dependencies', () => {
       get workspacesCache() {
         return Promise.resolve(new Map());
       },
-      get partNumbersCache() {
-        return Promise.resolve([]);
-      },
       get productCache() {
         return Promise.resolve({ products: [] });
       },
