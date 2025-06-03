@@ -27,6 +27,9 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
   defaultQuery = defaultStepsQuery;
 
+  private _stepsPath: string[] = [];
+  private options: DataQueryRequest;
+
   async querySteps(
     filter?: string,
     orderBy?: string,
@@ -158,15 +161,16 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
   
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
-    if (!query.resultsQuery) {
+    this.options = options;
+    if (!query.partNumberQuery || query.partNumberQuery.length === 0) {
       return {
         refId: query.refId,
         fields: [],
       };
     }
-
-    query.stepsQuery = this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options);
-    query.resultsQuery = this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options) || '';
+    const isResultsQueryEmpty = !query.resultsQuery;
+    query.resultsQuery = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.resultsQuery);
+    await this.loadStepPath(query.partNumberQuery, options.scopedVars, isResultsQueryEmpty, query.isOnlyProgramNameFilter, query.resultsQuery);
 
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
     const stepsQuery = this.buildQueryFilter(query.stepsQuery, useTimeRangeFilter);
@@ -221,6 +225,67 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         fields: [{ name: 'Total count', values: [responseData.totalCount] }],
       };
     }
+  }
+
+  public get stepsPath(): string[] {
+    return this._stepsPath;
+  }
+  public set stepsPath(paths: string[]) {
+    this._stepsPath = Array.from(new Set(paths.map(String)));
+  }
+
+  private async callStepPathDirectly(transformedResultsQuery?: string): Promise<QueryStepPathsResponse> {
+    return await this.queryStepPathInBatches(transformedResultsQuery, [StepsPathProperties.path], MAX_PATH_TAKE_PER_REQUEST, true)
+  }
+
+  private async callResultsValuesAndStePath(
+    options: ScopedVars,
+    partNumberQuery: string[],
+    transformedResultsQuery?: string
+  ): Promise<QueryStepPathsResponse> {
+    const programNames = await this.queryResultsValues(ResultsQueryBuilderFieldNames.PROGRAM_NAME, transformedResultsQuery);
+    if(programNames.length === 0) {
+      return { paths: [] };
+    }
+
+    const buildProgramNameQuery = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PROGRAM_NAME, programNames);
+    const partNumberString = this.buildPartNumbersQuery(options, partNumberQuery);
+    const buildStepPathFilter = this.buildQueryFilter(`(${buildProgramNameQuery})`, `(${partNumberString})`);
+    return await this.queryStepPathInBatches(
+      buildStepPathFilter,
+      [StepsPathProperties.path],
+      MAX_PATH_TAKE_PER_REQUEST,
+      true
+    );
+  }
+
+  private async loadStepPath(
+    partNumberQuery: string[],
+    options: ScopedVars,
+    resultsQuery: boolean,
+    isOnlyProgramNameFilter?: boolean,
+    transformedResultsQuery?: string
+  ) {
+    this._stepsPath = [];
+    let stepPathResponse: QueryStepPathsResponse;
+    if (isOnlyProgramNameFilter || resultsQuery) {
+      stepPathResponse = await this.callStepPathDirectly(transformedResultsQuery);
+    } else {
+      stepPathResponse = await this.callResultsValuesAndStePath(options, partNumberQuery, transformedResultsQuery);
+    }
+    this.stepsPath = [...stepPathResponse.paths.map(pathObj => pathObj.path)];
+    console.log('Step paths loaded:', this.stepsPath);
+  }
+
+  private buildResultsQuery(scopedVars: ScopedVars, partNumberQuery: string[], resultsQuery?: string): string {
+    const partNumberFilter = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery);
+    const combinedResultsQuery = this.buildQueryFilter(`(${partNumberFilter})`, resultsQuery);
+    return this.transformQuery(combinedResultsQuery, this.resultsComputedDataFields, scopedVars)!;
+  }
+
+  private buildPartNumbersQuery(scopedVars: ScopedVars, partNumberQuery: string[]): string {
+    const partNumberFilter = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery);
+    return this.transformQuery(partNumberFilter, this.resultsComputedDataFields, scopedVars)!;
   }
 
   private processFields(

@@ -13,7 +13,7 @@ React.HTMLAttributes<Element> & {
   datasource: QueryStepsDataSource;
   resultsQuery: string;
   stepsQuery?: string;
-  onResultsQueryChange: (query: string) => void;
+  onResultsQueryChange: (query: CustomEvent) => void;
   onStepsQueryChange: (query: string) => void;
   disableStepsQueryBuilder: boolean;
 }
@@ -28,7 +28,7 @@ export const StepsQueryBuilderWrapper = (
     disableStepsQueryBuilder
   }: Props) => {
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
-  const [partNumbers, setPartNumbers] = useState<string[]>([]);
+  const [stepsPath, setStepsPath] = useState<string[]>([]);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -43,13 +43,19 @@ export const StepsQueryBuilderWrapper = (
     loadPartNumbers();
     loadWorkspaces();
   }, [datasource]);
+
+  useEffect(() => {
+      const currentStepsPath = datasource.stepsPath;
+      setStepsPath(currentStepsPath);
+      console.log('Steps path in editor:', currentStepsPath);
+  }, [datasource.stepsPath]);
   
   return (
     <div>
       <InlineField label="Query by results properties" labelWidth={26} tooltip={tooltips.resultsQueryBuilder}>
         <ResultsQueryBuilder
           filter={resultsQuery}
-          onChange={(event) => onResultsQueryChange((event as CustomEvent<{ linq: string }>).detail.linq)}
+          onChange={(event) => onResultsQueryChange(event as CustomEvent)}
           workspaces={workspaces}
           partNumbers={partNumbers}
           status={enumToOptions(TestMeasurementStatus).map(option => option.value?.toString() || '')}
@@ -61,7 +67,7 @@ export const StepsQueryBuilderWrapper = (
           filter={stepsQuery}
           workspaces={workspaces}
           stepStatus={enumToOptions(TestMeasurementStatus).map(option => option.value?.toString() || '')}
-          stepsPath={[]}
+          stepsPath={stepsPath}
           globalVariableOptions={datasource.globalVariableOptions()}
           disableQueryBuilder={disableStepsQueryBuilder}
           onFilterChange={(filter) => onStepsQueryChange(filter)}

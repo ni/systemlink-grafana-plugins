@@ -16,6 +16,7 @@ import { TimeRangeControls } from '../time-range/TimeRangeControls';
 import { OrderBy, QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 import { StepsQueryBuilderWrapper } from '../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
+import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 
 type Props = {
   query: QuerySteps;
@@ -53,15 +54,37 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
     handleQueryChange({ ...query, showMeasurements: isShowMeasurementChecked });
   };
 
-  const onResultsFilterChange = (resultsQuery: string) => {
-    if(resultsQuery === "") {
-      handleQueryChange({ ...query, resultsQuery: resultsQuery }, false);
-      setDisableStepsQueryBuilder(true);
-    } else if (query.resultsQuery !== resultsQuery) {
-      handleQueryChange({ ...query, resultsQuery: resultsQuery });
-      setDisableStepsQueryBuilder(false);
+  const onResultsFilterChange = (event: CustomEvent) => {
+    const resultsQueryInLinqFormat = event.detail.linq;
+    const resultsQueryInArrayFormat = event.detail.value;
+    if (query.resultsQuery !== resultsQueryInLinqFormat) {
+      const isOnlyProgramNameFilter = checkIfAllFiltersHaveSpecifiedProperty(
+        ResultsQueryBuilderFieldNames.PROGRAM_NAME,
+        resultsQueryInArrayFormat
+      );
+
+      handleQueryChange({ ...query, resultsQuery: resultsQueryInLinqFormat, isOnlyProgramNameFilter: isOnlyProgramNameFilter });
     }
   };
+
+  const checkIfAllFiltersHaveSpecifiedProperty = (property: string, queryFilterObjects: any): boolean => {
+    const filters = flattenFilters(queryFilterObjects);
+    if (filters.length === 0) {
+      return false;
+    }
+    const filtersWithSpecifiedProperty = filters.filter(filter => filter[0] === property);
+    return filtersWithSpecifiedProperty.length === filters.length;
+  }
+
+  const flattenFilters = (filter: any): any[] => {
+    if (Array.isArray(filter)) {
+      if (typeof filter[0] === 'string' && Array.isArray(filter)) {
+        return [filter];
+      }
+      return filter.flatMap(innerFilter => flattenFilters(innerFilter));
+    }
+    return [];
+  }
 
   const onStepsFilterChange = (stepsQuery: string) => {
     if (query.stepsQuery !== stepsQuery) {
@@ -117,7 +140,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
             datasource={datasource}
             resultsQuery={query.resultsQuery}
             stepsQuery={query.stepsQuery}
-            onResultsQueryChange={(value: string) => onResultsFilterChange(value)}
+            onResultsQueryChange={(value: CustomEvent) => onResultsFilterChange(value)}
             onStepsQueryChange={(value: string) => onStepsFilterChange(value)}
             disableStepsQueryBuilder={disableStepsQueryBuilder}
           />

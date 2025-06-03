@@ -38,5 +38,6 @@ export const defaultStepsQuery = {
   useTimeRangeFor: undefined,
   resultsQuery: '',
   stepsQuery: '',
+  isOnlyProgramNameFilter: false,
 };
 
