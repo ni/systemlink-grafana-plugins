@@ -47,6 +47,31 @@ exports[`WorkOrdersDataSource queryWorkOrders returns response from API 1`] = `
 }
 `;
 
+exports[`WorkOrdersDataSource queryWorkordersData queries work orders in batches and returns aggregated response 1`] = `
+[
+  {
+    "assignedTo": "User1",
+    "createdAt": "2023-01-01T00:00:00Z",
+    "createdBy": "User3",
+    "description": "Test description",
+    "dueDate": "2023-01-03T00:00:00Z",
+    "earliestStartDate": "2023-01-04T00:00:00Z",
+    "id": "1",
+    "name": "WorkOrder1",
+    "properties": {
+      "customProperty1": "value1",
+      "customProperty2": "value2",
+    },
+    "requestedBy": "User2",
+    "state": "CLOSED",
+    "type": "TEST_REQUEST",
+    "updatedAt": "2023-01-02T00:00:00Z",
+    "updatedBy": "User4",
+    "workspace": "Workspace1",
+  },
+]
+`;
+
 exports[`WorkOrdersDataSource queryWorkordersData returns work orders from API response 1`] = `
 [
   {
