@@ -2,25 +2,55 @@ import { SlQueryBuilder } from "core/components/SlQueryBuilder/SlQueryBuilder";
 import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder.constants";
 import { expressionBuilderCallback, expressionReaderCallback } from "core/query-builder.utils";
 import { QBField, QueryBuilderOption } from "core/types";
-import { TestPlansQueryBuilderStaticFields } from "datasources/test-plans/constants/TestPlansQueryBuilder.constants";
-import React, { useState, useEffect } from "react";
+import { ProductResponseProperties } from "datasources/products/types";
+import { TestPlansQueryBuilderFields, TestPlansQueryBuilderStaticFields } from "datasources/test-plans/constants/TestPlansQueryBuilder.constants";
+import React, { useState, useEffect, useMemo } from "react";
 import { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
 
 type TestPlansQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
     filter?: string;
+    products: ProductResponseProperties[] | null;
     globalVariableOptions: QueryBuilderOption[];
 };
 
 export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
     filter,
     onChange,
+    products,
     globalVariableOptions,
 }) => {
     const [fields, setFields] = useState<QBField[]>([]);
     const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
 
+    const productsField = useMemo(() => {
+        const productsField = TestPlansQueryBuilderFields.PRODUCT;
+        if (!products) {
+            return null;
+        }
+
+        return {
+            ...productsField,
+            lookup: {
+                ...productsField.lookup,
+                dataSource: [
+                    ...(productsField.lookup?.dataSource || []),
+                    ...products.map(({ partNumber, name }) => (
+                        {
+                            label: name ? `${name} (${partNumber})` : partNumber,
+                            value: partNumber
+                        }
+                    )),
+                ],
+            },
+        };
+    }, [products])
+
     useEffect(() => {
-        const updatedFields = TestPlansQueryBuilderStaticFields
+        if (!productsField) {
+            return;
+        }
+
+        const updatedFields = [...TestPlansQueryBuilderStaticFields, productsField];
 
         setFields(updatedFields);
 
@@ -72,7 +102,7 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
 
         setOperations([...customOperations, ...keyValueOperations]);
 
-    }, [globalVariableOptions]);
+    }, [globalVariableOptions, productsField]);
 
     return (
         <SlQueryBuilder

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react';
+import { act, render, waitFor, screen } from '@testing-library/react';
 import { TestPlansVariableQueryEditor } from './TestPlansVariableQueryEditor';
 import { QueryEditorProps } from '@grafana/data';
 import { TestPlansDataSource } from '../TestPlansDataSource';
@@ -11,6 +11,17 @@ const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: TestPlansVariableQuery) => query),
+  productUtils: {
+    productsCache: Promise.resolve(
+      new Map(
+        [
+          ['part-number-1', { partNumber: 'part-number-1', name: 'Product 1' }],
+          ['part-number-2', { partNumber: 'part-number-2', name: 'Product 2' }]
+
+        ]
+      )
+    )
+  }
 } as unknown as TestPlansDataSource;
 
 const defaultProps: QueryEditorProps<TestPlansDataSource, TestPlansVariableQuery> = {
@@ -33,31 +44,35 @@ describe('TestPlansVariableQueryEditor', () => {
   }
 
   it('should render default query', async () => {
-    const container = renderElement();
+    await act(async () => {
+      renderElement();
+    });
 
     await waitFor(() => {
-      const orderBy = container.getAllByRole('combobox')[0];
+      const orderBy = screen.getAllByRole('combobox')[0];
       expect(orderBy).toBeInTheDocument();
       expect(orderBy).toHaveAccessibleDescription('Select a field to set the query order');
       expect(orderBy).toHaveDisplayValue('');
 
-      const descending = container.getByRole('checkbox');
+      const descending = screen.getByRole('checkbox');
       expect(descending).toBeInTheDocument();
       expect(descending).not.toBeChecked();
 
-      const recordCount = container.getByRole('spinbutton');
+      const recordCount = screen.getByRole('spinbutton');
       expect(recordCount).toBeInTheDocument();
       expect(recordCount).toHaveDisplayValue('');
 
-      const queryBuilder = container.getByRole('dialog');
+      const queryBuilder = screen.getByRole('dialog');
       expect(queryBuilder).toBeInTheDocument();
     });
   });
 
   it('only allows numbers in Take field', async () => {
-    const container = renderElement();
+    await act(async () => {
+      renderElement();
+    });
 
-    const recordCountInput = container.getByRole('spinbutton');
+    const recordCountInput = screen.getByRole('spinbutton');
 
     // User tries to enter a non-numeric value
     await userEvent.clear(recordCountInput);
@@ -74,10 +89,26 @@ describe('TestPlansVariableQueryEditor', () => {
     });
   });
 
+  it('should load part numbers and product names', async () => {
+    await act(async () => {
+      renderElement();
+    });
+
+    expect(mockDatasource.productUtils.productsCache).toBeDefined();
+    await expect(mockDatasource.productUtils.productsCache).resolves.toEqual(
+      new Map([
+        ['part-number-1', { partNumber: 'part-number-1', name: 'Product 1' }],
+        ['part-number-2', { partNumber: 'part-number-2', name: 'Product 2' }]
+      ])
+    );
+  });
+
   describe('onChange', () => {
     it('should call onChange with order by when user selects order by', async () => {
-      const container = renderElement();
-      const orderBySelect = container.getAllByRole('combobox')[0];
+      await act(async () => {
+        renderElement();
+      });
+      const orderBySelect = screen.getAllByRole('combobox')[0];
 
       userEvent.click(orderBySelect);
       await select(orderBySelect, 'ID', { container: document.body });
@@ -88,8 +119,10 @@ describe('TestPlansVariableQueryEditor', () => {
     });
 
     it('should call onChange with descending when user toggles descending', async () => {
-      const container = renderElement();
-      const descendingCheckbox = container.getByRole('checkbox');
+      await act(async () => {
+        renderElement();
+      });
+      const descendingCheckbox = screen.getByRole('checkbox');
 
       userEvent.click(descendingCheckbox);
 
@@ -99,8 +132,10 @@ describe('TestPlansVariableQueryEditor', () => {
     });
 
     it('should call onChange with record count when user enters record count', async () => {
-      const container = renderElement();
-      const recordCountInput = container.getByRole('spinbutton');
+      await act(async () => {
+        renderElement();
+      });
+      const recordCountInput = screen.getByRole('spinbutton');
 
       await userEvent.clear(recordCountInput);
       await userEvent.type(recordCountInput, '50');
@@ -112,9 +147,11 @@ describe('TestPlansVariableQueryEditor', () => {
     });
 
     it('should call onChange when query by changes', async () => {
-      const container = renderElement();
+      await act(async () => {
+        renderElement();
+      });
 
-      const queryBuilder = container.getByRole('dialog');
+      const queryBuilder = screen.getByRole('dialog');
       expect(queryBuilder).toBeInTheDocument();
 
       // Simulate a change event

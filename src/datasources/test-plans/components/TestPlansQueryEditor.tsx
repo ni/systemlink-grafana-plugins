@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { TestPlansDataSource } from '../TestPlansDataSource';
 import { OrderBy, OutputType, Properties, PropertiesProjectionMap, TestPlansQuery } from '../types';
@@ -6,12 +6,24 @@ import { AutoSizeInput, HorizontalGroup, InlineField, InlineSwitch, MultiSelect,
 import { validateNumericInput } from 'core/utils';
 import { TestPlansQueryBuilder } from './query-builder/TestPlansQueryBuilder';
 import { recordCountErrorMessages, TAKE_LIMIT } from '../constants/QueryEditor.constants';
+import { ProductResponseProperties } from 'datasources/products/types';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansQuery>;
 
 export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
+
+  const [products, setProducts] = useState<ProductResponseProperties[] | null>(null);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      const products = await datasource.productUtils.productsCache;
+      setProducts(Array.from(products.values()));
+    };
+
+    loadProducts();
+  }, [datasource]);
 
   const handleQueryChange = useCallback(
     (query: TestPlansQuery, runQuery = true): void => {
@@ -41,20 +53,20 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
   };
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
-      const value = parseInt((event.target as HTMLInputElement).value, 10);
-      switch (true) {
-        case isNaN(value) || value < 0:
-          setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
-          break;
-        case value > TAKE_LIMIT:
-          setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTenThousand);
-          break;
-        default:
-          setRecordCountInvalidMessage('');
-          handleQueryChange({ ...query, recordCount: value });
-          break;
-      }
-    };
+    const value = parseInt((event.target as HTMLInputElement).value, 10);
+    switch (true) {
+      case isNaN(value) || value < 0:
+        setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
+        break;
+      case value > TAKE_LIMIT:
+        setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTenThousand);
+        break;
+      default:
+        setRecordCountInvalidMessage('');
+        handleQueryChange({ ...query, recordCount: value });
+        break;
+    }
+  };
 
   const onQueryByChange = (queryBy: string) => {
     if (query.queryBy !== queryBy) {
@@ -93,6 +105,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
           <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
             <TestPlansQueryBuilder
               filter={query.queryBy}
+              products={products}
               globalVariableOptions={[]}
               onChange={(event: any) => onQueryByChange(event.detail.linq)}
             ></TestPlansQueryBuilder>

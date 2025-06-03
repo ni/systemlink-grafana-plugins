@@ -141,7 +141,10 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name
-        ]
+        ],
+        lookup: {
+            dataSource: []
+        }
     },
     PROPERTIES: {
         label: 'Properties',
@@ -240,7 +243,6 @@ export const TestPlansQueryBuilderStaticFields = [
     TestPlansQueryBuilderFields.FIXTURE_IDENTIFIER,
     TestPlansQueryBuilderFields.NAME,
     TestPlansQueryBuilderFields.PLANNED_START_DATE,
-    TestPlansQueryBuilderFields.PRODUCT,
     TestPlansQueryBuilderFields.PROPERTIES,
     TestPlansQueryBuilderFields.STATE,
     TestPlansQueryBuilderFields.SYSTEM_ALIAS_NAME,
