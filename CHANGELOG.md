@@ -1,3 +1,9 @@
+## [3.98.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.97.0...v3.98.0) (2025-06-03)
+
+### Features
+
+* **workorders:** Add support for take ([#212](https://github.com/ni/systemlink-grafana-plugins/issues/212)) ([77a077c](https://github.com/ni/systemlink-grafana-plugins/commit/77a077c5e51e93db6623875d721bdab3f2021668))
+
 ## [3.97.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.96.0...v3.97.0) (2025-06-02)
 
 ### Features
