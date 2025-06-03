@@ -9,11 +9,10 @@ describe('ResultsQueryBuilder', () => {
 
     const containerClass = 'smart-filter-group-condition-container';
     const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
-    const partNumber = ['partNumber1', 'partNumber2'];
     const status = ['PASSED', 'FAILED'];
 
-    function renderElement(workspaces: Workspace[] | null, partNumbers: string[], status: string[], filter: string, globalVariableOptions: QueryBuilderOption[] = []) {
-      reactNode = React.createElement(ResultsQueryBuilder, { filter, workspaces, partNumbers, status, globalVariableOptions, onChange: jest.fn(), });
+    function renderElement(workspaces: Workspace[] | null, status: string[], filter: string, globalVariableOptions: QueryBuilderOption[] = []) {
+      reactNode = React.createElement(ResultsQueryBuilder, { filter, workspaces, status, globalVariableOptions, onChange: jest.fn(), });
       const renderResult = render(reactNode);
       return {
         renderResult,
@@ -29,25 +28,16 @@ describe('ResultsQueryBuilder', () => {
     })
 
     it('should select workspace in query builder', () => {
-      const { conditionsContainer } = renderElement([workspace], partNumber, status, 'Workspace = "1"');
+      const { conditionsContainer } = renderElement([workspace], status, 'Workspace = "1"');
 
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain("Workspace"); //label
       expect(conditionsContainer.item(0)?.textContent).toContain("Equals"); //operator
       expect(conditionsContainer.item(0)?.textContent).toContain(workspace.name); //value
-    })
-
-    it('should select part number in query builder', () => {
-      const { conditionsContainer } = renderElement([workspace], partNumber, status,  'PartNumber = "partNumber1"');
-
-      expect(conditionsContainer?.length).toBe(1);
-      expect(conditionsContainer.item(0)?.textContent).toContain("Part number"); //label
-      expect(conditionsContainer.item(0)?.textContent).toContain("Equals"); //operator
-      expect(conditionsContainer.item(0)?.textContent).toContain("partNumber1"); //value
     });
 
     it('should select status in query builder', () => {
-      const { conditionsContainer } = renderElement([workspace], partNumber, status, 'Status.statusType = "PASSED"');
+      const { conditionsContainer } = renderElement([workspace], status, 'Status.statusType = "PASSED"');
 
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain("Status"); //label
@@ -56,7 +46,7 @@ describe('ResultsQueryBuilder', () => {
     });
 
     it('should select keyword in query builder', () => {
-      const { conditionsContainer } = renderElement([], [], [], 'Keywords.Contains("keyword1")');
+      const { conditionsContainer } = renderElement([], [], 'Keywords.Contains("keyword1")');
 
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain("Keyword"); //label
@@ -66,17 +56,17 @@ describe('ResultsQueryBuilder', () => {
 
     it('should select global variable option', () => {
       const globalVariableOption = { label: 'Global variable', value: 'global_variable' };
-      const { conditionsContainer } = renderElement([workspace], partNumber, status, 'PartNumber = \"global_variable\"', [globalVariableOption]);
+      const { conditionsContainer } = renderElement([workspace], status, 'Workspace = \"global_variable\"', [globalVariableOption]);
 
       expect(conditionsContainer?.length).toBe(1);
-      expect(conditionsContainer.item(0)?.textContent).toContain("Part number"); //label
+      expect(conditionsContainer.item(0)?.textContent).toContain("Workspace"); //label
       expect(conditionsContainer.item(0)?.textContent).toContain("Equals"); //operator
       expect(conditionsContainer.item(0)?.textContent).toContain(globalVariableOption.label); //value
     });
 
     it('should render multiple conditions in query builder', () => {
-      const filter = '(PartNumber = "partNumber1" && ProgramName = "programName1") || Status.statusType = "FAILED"';
-      const { renderResult, conditionsContainer } = renderElement([workspace], partNumber, status, filter);
+      const filter = '(Keywords.Contains("keyword1") && ProgramName = "programName1") || Status.statusType = "FAILED"';
+      const { renderResult, conditionsContainer } = renderElement([workspace], status, filter);
       const filterConditions = renderResult.container.getElementsByClassName('smart-filter-group-condition');
       const logicalOperators = renderResult.container.getElementsByClassName('smart-filter-group-operator');
 ;    
@@ -87,14 +77,14 @@ describe('ResultsQueryBuilder', () => {
       expect(logicalOperators?.item(0)?.textContent).toContain("And");
       expect(logicalOperators?.item(1)?.textContent).toContain("Or");
 
-      expect(filterConditions.item(0)?.textContent).toContain('partNumber1');
+      expect(filterConditions.item(0)?.textContent).toContain('keyword1');
       expect(filterConditions.item(1)?.textContent).toContain('programName1');
       expect(filterConditions.item(2)?.textContent).toContain('FAILED');
     });
 
     [['${__from:date}', 'From'], ['${__to:date}', 'To'], ['${__now:date}', 'Now']].forEach(([value, label]) => {
       it(`should select user friendly value for updated date`, () => {
-        const { conditionsContainer } = renderElement([workspace], partNumber, status, `UpdatedAt > \"${value}\"`);
+        const { conditionsContainer } = renderElement([workspace], status, `UpdatedAt > \"${value}\"`);
 
         expect(conditionsContainer?.length).toBe(1);
         expect(conditionsContainer.item(0)?.textContent).toContain("Updated"); //label
@@ -104,14 +94,14 @@ describe('ResultsQueryBuilder', () => {
     });
 
     it('should sanitize fields in query builder', () => {
-      const { conditionsContainer } = renderElement([workspace], partNumber, status, 'Family = "<script>alert(\'Family\')</script>"');
+      const { conditionsContainer } = renderElement([workspace], status, 'Family = "<script>alert(\'Family\')</script>"');
 
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.innerHTML).not.toContain('alert(\'Family\')');
     })
 
     it('should not set workspace field when workspace is null', () => {
-      const { conditionsContainer } = renderElement(null, partNumber, status, 'Workspace = "1"');
+      const { conditionsContainer } = renderElement(null, status, 'Workspace = "1"');
 
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain("Property"); //label
@@ -129,14 +119,14 @@ describe('ResultsQueryBuilder', () => {
       it('should set light theme when isDark is false', () => {
         mockUseTheme.mockReturnValue({ isDark: false });
         
-        renderElement([], [], [], '');
+        renderElement([], [], '');
        
         expect(document.body.setAttribute).toHaveBeenCalledWith('theme', 'orange');
       });
       it('should set dark theme when isDark is true', () => {
         mockUseTheme.mockReturnValue({ isDark: true });
 
-        renderElement([], [], [], '');
+        renderElement([], [], '');
   
         expect(document.body.setAttribute).toHaveBeenCalledWith('theme', 'dark-orange');
       });

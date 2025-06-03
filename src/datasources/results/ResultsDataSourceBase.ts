@@ -2,7 +2,6 @@ import { DataSourceBase } from "core/DataSourceBase";
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse } from "@grafana/data";
 import { ProductProperties, QueryProductResponse, ResultsQuery } from "./types/types";
 import { QueryBuilderOption, Workspace } from "core/types";
-import { ResultsPropertiesOptions } from "./types/QueryResults.types";
 import { getVariableOptions } from "core/utils";
 import { ExpressionTransformFunction } from "core/query-builder.utils";
 import { QueryBuilderOperations } from "core/query-builder.constants";
@@ -20,7 +19,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   private fromDateString = '${__from:date}';
   private toDateString = '${__to:date}';
   private static _workspacesCache: Promise<Map<string, Workspace>> | null = null;
-  private static _partNumbersCache: Promise<string[]> | null = null;
   private static _productCache: Promise<QueryProductResponse> | null = null;
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
@@ -43,10 +41,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
   get workspacesCache(): Promise<Map<string, Workspace>> {
     return this.loadWorkspaces();
-  }
-
-  get partNumbersCache(): Promise<string[]> {
-    return this.getPartNumbers();
   }
 
   get productCache(): Promise<QueryProductResponse> {
@@ -72,20 +66,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       });
 
     return ResultsDataSourceBase._workspacesCache;
-  }
-
-  async getPartNumbers(): Promise<string[]> {
-    if (ResultsDataSourceBase._partNumbersCache) {
-      return ResultsDataSourceBase._partNumbersCache;
-    }
-
-    ResultsDataSourceBase._partNumbersCache = this.queryResultsValues(ResultsPropertiesOptions.PART_NUMBER, undefined)
-    .catch(error => {
-      console.error('Error in loading part numbers:', error);
-      return [];
-    });
-
-    return ResultsDataSourceBase._partNumbersCache;
   }
 
   async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {

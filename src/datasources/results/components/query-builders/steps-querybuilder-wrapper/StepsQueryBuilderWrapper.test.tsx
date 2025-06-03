@@ -6,12 +6,11 @@ import userEvent from '@testing-library/user-event';
 import { Workspace } from 'core/types';
 
 jest.mock('../query-results/ResultsQueryBuilder', () => ({
-  ResultsQueryBuilder: jest.fn(({ filter, workspaces, partNumbers, status, globalVariableOptions, onChange }) => {
+  ResultsQueryBuilder: jest.fn(({ filter, workspaces, status, globalVariableOptions, onChange }) => {
     return (
       <div data-testid="results-query-builder">
         <div data-testid="results-filter">{filter}</div>
         <div data-testid="results-workspaces">{JSON.stringify(workspaces)}</div>
-        <div data-testid="results-part-numbers">{JSON.stringify(partNumbers)}</div>
         <div data-testid="results-status">{JSON.stringify(status)}</div>
         <div data-testid="results-global-vars">{JSON.stringify(globalVariableOptions)}</div>
         <button
@@ -60,11 +59,9 @@ const mockWorkspaces: Workspace[] = [
   },
 ];
 
-const mockPartNumbers = [ 'PN1', 'PN2' ];
 const mockDatasource = {
   globalVariableOptions: jest.fn().mockReturnValue(['var1', 'var2']),
   workspacesCache: Promise.resolve(new Map(mockWorkspaces.map(ws => [ws.id, ws]))),
-  partNumbersCache: Promise.resolve(mockPartNumbers),
 } as unknown as QueryStepsDataSource;
 
 jest.mock('core/utils', () => ({
@@ -97,12 +94,11 @@ describe('StepsQueryBuilderWrapper', () => {
     expect(screen.getByTestId('steps-query-builder')).toBeInTheDocument();
   });
 
-  test('should render empty workspaces and part numbers when promises resolve to empty values', async () => {
+  test('should render empty workspaces when promise resolve to empty value', async () => {
     cleanup();
     const emptyDatasource = {
       globalVariableOptions: jest.fn().mockReturnValue([]),
       workspacesCache: Promise.resolve(new Map()),
-      partNumbersCache: Promise.resolve([]),
     } as unknown as QueryStepsDataSource;
 
     jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -112,7 +108,6 @@ describe('StepsQueryBuilderWrapper', () => {
     });
 
     expect(screen.getByTestId('results-workspaces').textContent).toBe('[]');
-    expect(screen.getByTestId('results-part-numbers').textContent).toBe('[]');
     expect(screen.getByTestId('steps-workspaces').textContent).toBe('[]');
   });
 
@@ -124,7 +119,6 @@ describe('StepsQueryBuilderWrapper', () => {
         { id: '2', name: 'workspace2', default: false, enabled: true },
       ])
     );
-    expect(screen.getByTestId('results-part-numbers').textContent).toEqual(JSON.stringify(['PN1', 'PN2']));
     expect(screen.getByTestId('results-global-vars').textContent).toEqual(JSON.stringify(['var1', 'var2']));
     expect(screen.getByTestId('results-status').textContent).toEqual(JSON.stringify(['PASS', 'FAIL']));
 
