@@ -4,8 +4,9 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
 import { QueryBuilderOption } from 'core/types';
 import { WorkOrdersQueryBuilderFieldNames } from './constants/WorkOrdersQueryBuilder.constants';
-import { getVariableOptions, multipleValuesQuery, timeFieldsQuery } from 'core/utils';
 import { transformComputedFieldsQuery, ExpressionTransformFunction } from 'core/query-builder.utils';
+import { QueryBuilderOperations } from 'core/query-builder.constants';
+import { getVariableOptions } from 'core/utils';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
@@ -64,7 +65,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   readonly workordersComputedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(WorkOrdersQueryBuilderFieldNames).map(field => [
       field,
-      this.isTimeField(field) ? timeFieldsQuery(field) : multipleValuesQuery(field),
+      this.isTimeField(field) ? this.timeFieldsQuery(field) : this.multipleValuesQuery(field),
     ])
   );
 
@@ -163,6 +164,46 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     } catch (error) {
       throw new Error(`An error occurred while querying workorders: ${error}`);
     }
+  }
+
+  protected multipleValuesQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string, _options?: any) => {
+      const isMultiSelect = this.isMultiSelectValue(value);
+      const valuesArray = this.getMultipleValuesArray(value);
+      const logicalOperator = this.getLogicalOperator(operation);
+
+      return isMultiSelect
+        ? `(${valuesArray.map(val => `${field} ${operation} "${val}"`).join(` ${logicalOperator} `)})`
+        : `${field} ${operation} "${value}"`;
+    };
+  }
+
+  protected timeFieldsQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string): string => {
+      const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
+      return `${field} ${operation} "${formattedValue}"`;
+    };
+  }
+
+  /**
+   * Combines two filter strings into a single query filter using the '&&' operator.
+   * Filters that are undefined or empty are excluded from the final query.
+   */
+  protected buildQueryFilter(filterA?: string, filterB?: string): string | undefined {
+    const filters = [filterA, filterB].filter(Boolean);
+    return filters.length > 0 ? filters.join(' && ') : undefined;
+  }
+
+  private isMultiSelectValue(value: string): boolean {
+    return value.startsWith('{') && value.endsWith('}');
+  }
+
+  private getMultipleValuesArray(value: string): string[] {
+    return value.replace(/({|})/g, '').split(',');
+  }
+
+  private getLogicalOperator(operation: string): string {
+    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

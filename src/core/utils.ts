@@ -3,8 +3,6 @@ import { useAsync } from 'react-use';
 import { DataSourceBase } from './DataSourceBase';
 import { BatchQueryConfig, QueryResponse, SystemLinkError, Workspace } from './types';
 import { TemplateSrv } from '@grafana/runtime';
-import { QueryBuilderOperations } from './query-builder.constants';
-import { ExpressionTransformFunction } from './query-builder.utils';
 
 export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<SelectableValue<T>> {
   const RESULT = [];
@@ -176,48 +174,6 @@ export async function queryInBatches<T>(
     data: queryResponse,
     totalCount,
   };
-}
-
-/**
- * The function checks if the provided value is a multi-select value. If it is, it generates
- * a query expression that combines all values using the specified operation and a logical
- * operator (e.g., AND/OR). If the value is not a multi-select, it generates a simple query
- * expression for the single value.
- */
-export function multipleValuesQuery(field: string): ExpressionTransformFunction {
-  return (value: string, operation: string, _options?: any) => {
-    const isMultiSelect = isMultiSelectValue(value);
-    const valuesArray = getMultipleValuesArray(value);
-    const logicalOperator = getLogicalOperator(operation);
-
-    return isMultiSelect
-      ? `(${valuesArray.map(val => `${field} ${operation} "${val}"`).join(` ${logicalOperator} `)})`
-      : `${field} ${operation} "${value}"`;
-  };
-}
-
-/**
- * Creates a function that generates a query expression for a given field, 
- * applying a specified operation and value. The value is formatted to ISO 
- * string format if it matches the placeholder '${__now:date}'.
- */
-export function timeFieldsQuery(field: string): ExpressionTransformFunction {
-  return (value: string, operation: string): string => {
-    const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
-    return `${field} ${operation} "${formattedValue}"`;
-  };
-}
-
-function isMultiSelectValue(value: string): boolean {
-  return value.startsWith('{') && value.endsWith('}');
-}
-
-function getMultipleValuesArray(value: string): string[] {
-  return value.replace(/({|})/g, '').split(',');
-}
-
-function getLogicalOperator(operation: string): string {
-  return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
 }
 
 async function delay(timeout: number): Promise<void> {
