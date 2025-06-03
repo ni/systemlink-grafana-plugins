@@ -3,8 +3,11 @@ import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
 import { Field } from '@grafana/data';
 import { QueryResultsDataSource } from './QueryResultsDataSource';
-import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions } from 'datasources/results/types/QueryResults.types';
-import { OutputType, QueryType } from 'datasources/results/types/types';
+import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsVariableQuery } from 'datasources/results/types/QueryResults.types';
+import { OutputType, QueryType, UseTimeRangeFor } from 'datasources/results/types/types';
+import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
+import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
+import { Workspace } from 'core/types';
 
 const mockQueryResultsResponse: QueryResultsResponse = {
   results: [
@@ -17,6 +20,7 @@ const mockQueryResultsResponse: QueryResultsResponse = {
   ],
   totalCount: 1
 };
+const mockQueryResultsValuesResponse = ["partNumber1", "partNumber2"];
 
 let datastore: QueryResultsDataSource, backendServer: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
 
@@ -27,6 +31,10 @@ describe('QueryResultsDataSource', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
       .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
+
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
+      .mockReturnValue(createFetchResponse(mockQueryResultsValuesResponse));
   })
 
   describe('queryResults', () => {
@@ -178,6 +186,348 @@ describe('QueryResultsDataSource', () => {
         expect(fields).toEqual([
           { name: 'properties', values: [""], type: 'string' },
         ]);
+    });
+
+    describe('Dependencies', () => {
+    afterEach(() => {
+      (ResultsDataSourceBase as any)._partNumbersCache = null;
+      (ResultsDataSourceBase as any)._workspacesCache = null;
+    });
+    
+    test('should return the same promise instance when partnumber promise already exists', async () => {
+      const mockPromise = Promise.resolve(['partNumber1', 'partNumber2']);
+      (ResultsDataSourceBase as any)._partNumbersCache = mockPromise;
+      backendServer.fetch.mockClear();
+
+      const partNumbersPromise = datastore.getPartNumbers();
+
+      expect(partNumbersPromise).toEqual(mockPromise);
+      expect(datastore.partNumbersCache).toEqual(mockPromise);
+      expect(backendServer.fetch).not.toHaveBeenCalledWith(expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' }));
+    });
+
+    test('should create and return a new promise when partnumber promise does not exist', async () => {
+      (ResultsDataSourceBase as any)._partNumbersCache = null;
+      backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
+      .mockReturnValue(createFetchResponse(mockQueryResultsValuesResponse));
+
+      const promise = datastore.getPartNumbers();
+
+      expect(promise).not.toBeNull();
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' })
+      );
+    });
+
+    test('should return the same promise instance when workspacePromise already exists', async () => {
+      const mockWorkspaces = new Map<string, Workspace>([
+        ['1', { id: '1', name: 'Default workspace', default: true, enabled: true }],
+        ['2', { id: '2', name: 'Other workspace', default: false, enabled: true }],
+      ]);
+      const mockPromise = Promise.resolve(mockWorkspaces);
+      (ResultsDataSourceBase as any)._workspacesCache = mockPromise;
+      backendServer.fetch.mockClear();
+
+      const workspacePromise = datastore.loadWorkspaces();
+
+      expect(workspacePromise).toEqual(mockPromise);
+      expect(await workspacePromise).toEqual(mockWorkspaces);
+      expect(backendServer.fetch).not.toHaveBeenCalledWith(expect.objectContaining({ url: '/niauth/v1/user' }));
+    });
+
+    test('should create and return a new promise when wrokspace promise does not exist', async () => {
+      (ResultsDataSourceBase as any)._workspacesCache = null;
+      const workspaceSpy = jest.spyOn(ResultsDataSourceBase.prototype, 'getWorkspaces');
+
+      const promise = datastore.loadWorkspaces();
+
+      expect(promise).not.toBeNull();
+      expect(workspaceSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle errors in getPartNumbers', async () => {
+      (ResultsDataSourceBase as any).partNumbersCache = null;
+      const error = new Error('API failed');
+      jest.spyOn(QueryResultsDataSource.prototype, 'queryResultsValues').mockRejectedValue(error);
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      await datastore.getPartNumbers();
+
+      expect(console.error).toHaveBeenCalledTimes(1);
+      expect(console.error).toHaveBeenCalledWith('Error in loading part numbers:', error);
+    });
+
+    it('should handle errors in getWorkspaces', async () => {
+      (ResultsDataSourceBase as any)._workspacesCache = null;
+      const error = new Error('API failed');
+      jest.spyOn(QueryResultsDataSource.prototype, 'getWorkspaces').mockRejectedValue(error);
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      await datastore.loadWorkspaces();
+
+      expect(console.error).toHaveBeenCalledTimes(1);
+      expect(console.error).toHaveBeenCalledWith('Error in loading workspaces:', error);
+    });
+  });
+  
+    describe('query builder queries', () => {
+      test('should transform field when queryBy contains a single value', async () => {
+        const query = buildQuery(
+          {
+            refId: 'A',
+            properties: [
+              ResultsPropertiesOptions.PART_NUMBER
+            ] as ResultsProperties[],
+            orderBy: undefined,
+            queryBy: `${ResultsPropertiesOptions.PART_NUMBER} = '123'`
+          },
+        );
+  
+        await datastore.query(query);
+  
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: "partNumber = '123'"
+            }),
+          })
+        );
+      });
+  
+      test('should transform fields when queryBy contains a multiple values', async () => {
+        const query = buildQuery(
+          {
+            refId: 'A',
+            properties: [
+              ResultsPropertiesOptions.PART_NUMBER
+            ] as ResultsProperties[],
+            orderBy: undefined,
+            queryBy: `${ResultsQueryBuilderFieldNames.PART_NUMBER} = "{partNumber1,partNumber2}"`
+          },
+        );
+  
+        await datastore.query(query);
+  
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: "(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\")"
+            }),
+          })
+        );
+      });
+
+      test('should transform fields when queryBy contains a date', async () => {   
+        jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));     
+
+        const query = buildQuery(
+          {
+            refId: 'A',
+            properties: [
+              ResultsPropertiesOptions.UPDATED_AT
+            ] as ResultsProperties[],
+            orderBy: undefined,
+            queryBy: 'UpdatedAt = "${__now:date}"'
+          },
+        );
+      
+        await datastore.query(query);
+      
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: 'UpdatedAt = "2025-01-01T00:00:00.000Z"'
+            }),
+          })
+        );
+
+        jest.useRealTimers();
+      });
+
+      test('should transform query when queryBy contains nested expressions', async () => {
+        const query = buildQuery(
+          {
+            refId: 'A',
+            queryBy: `(${ResultsQueryBuilderFieldNames.PART_NUMBER} = "123" || ${ResultsQueryBuilderFieldNames.KEYWORDS} != "456") && ${ResultsQueryBuilderFieldNames.HOSTNAME} contains "Test"`,
+          },
+        );
+      
+        await datastore.query(query);
+      
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: '(PartNumber = "123" || Keywords != "456") && HostName contains "Test"'
+            }),
+          })
+        );
+      });
+    });
+
+    describe('buildQueryFilter', () => {
+      test('should combine queryBy and useTimeRangeFilter into a single filter', async () => {
+        const filter = '(startedAt > "\${__from:date}" && startedAt < "\${__to:date}")';
+        const replacedFilter = '(startedAt > "2025-04-01" && startedAt < "2025-04-02")';
+        templateSrv.replace.calledWith(filter).mockReturnValue(replacedFilter); 
+
+        const queryBy = `(${ResultsQueryBuilderFieldNames.PART_NUMBER} = "123"` 
+          && `${ResultsQueryBuilderFieldNames.KEYWORDS} != "keyword1") `;
+        const query = buildQuery({
+          refId: 'A',
+          queryBy,
+          useTimeRange: true,
+          useTimeRangeFor: UseTimeRangeFor.Started,
+        });
+        const expectedFilter = `${queryBy} && ${replacedFilter}`;
+
+        await datastore.query(query);
+      
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              filter: expectedFilter,
+            }),
+          })
+        );
+      });
+
+      test('should return only queryBy filter when useTimeRange filter is not defined', async () => {
+        const queryBy = `(${ResultsQueryBuilderFieldNames.PART_NUMBER} = "123"` 
+          && `${ResultsQueryBuilderFieldNames.KEYWORDS} != "keyword1") `;
+        const query = buildQuery({
+          refId: 'A',
+          queryBy,
+          useTimeRange: false,
+        });
+        const expectedFilter = `${queryBy}`;
+
+        await datastore.query(query);
+      
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              filter: expectedFilter,
+            }),
+          })
+        );
+      });
+    });
+
+    test('should return only useTimeRange filter when queryby is not defined', async () => {
+      const filter = '(startedAt > "\${__from:date}" && startedAt < "\${__to:date}")';
+      const replacedFilter = '(startedAt > "2025-04-01" && startedAt < "2025-04-02")';
+      templateSrv.replace.calledWith(filter).mockReturnValue(replacedFilter); 
+      const query = buildQuery({
+        refId: 'A',
+        queryBy: '',
+        useTimeRange: true,
+        useTimeRangeFor: UseTimeRangeFor.Started,
+      });
+
+      await datastore.query(query);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            filter: replacedFilter,
+          }),
+        })
+      );
+    });
+  });
+
+  describe('metricFindQuery', () => {
+    test('should return empty array when properties is not selected', async () => {
+      const query = { properties: undefined, queryBy: '', resultsTake: 1000 } as ResultsVariableQuery;
+      const result = await datastore.metricFindQuery(query, {});
+
+      expect(result).toEqual([]);
+    });
+
+     it.each([-1, NaN, 10001])('should return empty array if resultsTake value is invalid (%p)', async (invalidResultsTake) => {
+            const query = {
+              refId: 'A',
+              queryType: QueryType.Results,
+              queryByResults: 'PartNumber = "partNumber1"',
+              resultsTake: invalidResultsTake,
+            } as unknown as ResultsVariableQuery;
+            const result = await datastore.metricFindQuery(query);
+    
+            expect(result).toEqual([]);
+          });
+
+    test('should return empty array when there are no results', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({ results: [], totalCount: 0 }));
+
+      const query = { properties: ResultsPropertiesOptions.PART_NUMBER, queryBy: '', resultsTake: 1000 } as ResultsVariableQuery;
+      const result = await datastore.metricFindQuery(query, {});
+
+      expect(result).toEqual([]);
+    });
+
+    test('should return flattened and deduplicated values as MetricFindValue[]', async () => {
+      const mockResults = [
+        { dataTableIds: ['A', 'B'] },
+        { dataTableIds: ['B', 'C'] },
+        { dataTableIds: ['C'] },
+      ];
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({ results: mockResults, totalCount: 3 }));
+
+      const query = { properties: 'DATA_TABLE_IDS', queryBy: '', resultsTake: 1000 } as ResultsVariableQuery;
+      const result = await datastore.metricFindQuery(query, {});
+
+      expect(result).toEqual([
+        { text: 'A', value: 'A' },
+        { text: 'B', value: 'B' },
+        { text: 'C', value: 'C' },
+      ]);
+    });
+
+    test('should return values when results is scalar', async () => {
+      const mockResults = [
+        { programName: 'programName1' },
+        { programName: 'programName2' },
+      ];
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({ results: mockResults, totalCount: 2 }));
+
+      const query = { properties: 'PROGRAM_NAME', queryBy: '',resultsTake: 1000 } as ResultsVariableQuery;
+      const result = await datastore.metricFindQuery(query, {});
+
+      expect(result).toEqual([
+        { text: 'programName1', value: 'programName1' },
+        { text: 'programName2', value: 'programName2' },
+      ]);
+    });
+
+    test('should replace variables', async () => {
+      const mockResults = [
+        { programName: 'TestProgram' }
+      ];
+      const queryBy = 'ProgramName = "${var}"';
+      const replacedQueryBy = 'ProgramName = "ReplacedValue"';
+      templateSrv.replace.calledWith(queryBy, expect.anything()).mockReturnValue(replacedQueryBy);
+
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({ results: mockResults, totalCount: 1 }));
+
+      const query = { properties: 'PROGRAM_NAME', queryBy, resultsTake: 1000 } as ResultsVariableQuery;
+      const options = { scopedVars: { var: { value: 'ReplacedValue' } } };
+      const result = await datastore.metricFindQuery(query, options);
+
+      expect(templateSrv.replace).toHaveBeenCalledWith(queryBy, options.scopedVars);
+      expect(result).toEqual([{ text: 'TestProgram', value: 'TestProgram' }]);
     });
   });
 

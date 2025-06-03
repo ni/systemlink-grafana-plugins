@@ -8,7 +8,33 @@ export interface QueryResults extends ResultsQuery {
   useTimeRange?: boolean;
   useTimeRangeFor?: string;
   recordCount?: number;
+  queryBy?: string;
 }
+
+export interface ResultsVariableQuery extends ResultsQuery {
+  properties?: string;
+  queryBy?: string;
+  resultsTake?: number;
+}
+
+export interface StepsVariableQuery extends ResultsQuery {
+  queryByResults: string;
+  queryBySteps?: string;
+  stepsTake?: number;
+}
+
+export const ResultsVariableProperties = [
+  {
+    value: 'DATA_TABLE_IDS',
+    label: 'Data Table IDs',
+    description: 'Data Table IDs associated with the result',
+  },
+  {
+    value: 'PROGRAM_NAME',
+    label: 'Test Program Name',
+    description: 'Test Program Name of the result',
+  }
+]
 
 export const OrderBy = [
   {

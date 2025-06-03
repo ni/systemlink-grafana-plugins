@@ -1,15 +1,15 @@
 import React, { useCallback } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { ResultsDataSource } from '../ResultsDataSource';
-import { QueryType, ResultsQuery } from '../types/types';
+import { QueryType, ResultsDataSourceOptions, ResultsQuery } from '../types/types';
 import { QueryResultsEditor } from './editors/query-results/QueryResultsEditor';
 import { QueryResults } from '../types/QueryResults.types';
 import { defaultResultsQuery, defaultStepsQuery } from '../defaultQueries';
-import { InlineField, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
+import { InlineField, RadioButtonGroup } from '@grafana/ui';
 import { QueryStepsEditor } from './editors/query-steps/QueryStepsEditor';
 import { QuerySteps } from '../types/QuerySteps.types';
 
-type Props = QueryEditorProps<ResultsDataSource, ResultsQuery>;
+type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSourceOptions>;
 
 export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
@@ -41,8 +41,8 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
   }, [query, handleQueryChange]);
 
   return (
-    <VerticalGroup>
-      <InlineField label="Query Type" labelWidth={25} tooltip={tooltips.queryType}>
+    <>
+      <InlineField label="Query Type" labelWidth={26} tooltip={tooltips.queryType}>
         <RadioButtonGroup
           options={Object.values(QueryType).map(value => ({ label: value, value })) as SelectableValue[]}
           value={query.queryType}
@@ -53,15 +53,17 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
         <QueryResultsEditor
           query={query as QueryResults} 
           handleQueryChange={handleQueryChange}
+          datasource={datasource.queryResultsDataSource}
         />
       )}
       {query.queryType === QueryType.Steps && (
         <QueryStepsEditor
           query={query as QuerySteps} 
           handleQueryChange={handleQueryChange}
+          datasource={datasource.queryStepsDataSource}
         />
       )}
-    </VerticalGroup>
+    </>
   );
 }
 

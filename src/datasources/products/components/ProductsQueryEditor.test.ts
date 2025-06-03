@@ -8,6 +8,7 @@ import userEvent from "@testing-library/user-event";
 
 const render = setupRenderer(ProductsQueryEditor, ProductsDataSource);
 let onChange: jest.Mock<any, any>
+let onRunQuery: jest.Mock<any, any>
 let properties: HTMLElement
 let orderBy: HTMLElement
 let descending: HTMLElement
@@ -15,14 +16,14 @@ let recordCount: HTMLElement
 
 describe('ProductsQueryEditor', () => {
   beforeEach(async () => {
-    [onChange] = render({ refId: '', properties: [], orderBy: undefined } as ProductQuery);
+    [onChange, onRunQuery] = render({ refId: '', properties: [], orderBy: undefined, queryBy: '' } as ProductQuery);
     await waitFor(() => properties = screen.getAllByRole('combobox')[0]);
     orderBy = screen.getAllByRole('combobox')[1];
     descending = screen.getByRole('checkbox');
     recordCount = screen.getByDisplayValue('1000');
   });
 
-  it('renders with default query', async () => {
+  it('should render with default query and call onRunQuery on mount', async () => {
     expect(properties).toBeInTheDocument();
     expect(properties).toHaveDisplayValue('');
     expect(orderBy).toBeInTheDocument();
@@ -31,12 +32,34 @@ describe('ProductsQueryEditor', () => {
     expect(descending).toBeChecked();
     expect(recordCount).toBeInTheDocument();
     expect(recordCount).toHaveValue(1000);
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        refId: 'A',
+        properties: [],
+        orderBy: undefined,
+        descending: true,
+        recordCount: 1000,
+        queryBy: ''
+      }));
+    expect(onRunQuery).toHaveBeenCalledTimes(1);
   });
 
   it('renders the query builder', async () => {
     await waitFor(() => expect(screen.getAllByText('Property').length).toBe(1));
     await waitFor(() => expect(screen.getAllByText('Operator').length).toBe(1));
     await waitFor(() => expect(screen.getAllByText('Value').length).toBe(1));
+  });
+
+  it('should not call `onChange` when queryBy filter is not changed', async () => {
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onRunQuery).toHaveBeenCalledTimes(1);
+    onChange.mockClear();
+    onRunQuery.mockClear();
+
+    render({ refId: '', properties: [], orderBy: undefined, queryBy: '' } as ProductQuery);
+    expect(onChange).not.toHaveBeenCalled();
+    expect(onRunQuery).not.toHaveBeenCalled();
   });
 
   it('updates when user makes changes', async () => {

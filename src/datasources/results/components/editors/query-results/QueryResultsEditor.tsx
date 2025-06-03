@@ -9,18 +9,39 @@ import {
   VerticalGroup,
 } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import '../../ResultsQueryEditor.scss';
 import { OrderBy, QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
-import { OutputType } from 'datasources/results/types/types';
+import { OutputType, TestMeasurementStatus } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
+import { Workspace } from 'core/types';
+import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
+import { ResultsQueryBuilder } from '../../query-builders/query-results/ResultsQueryBuilder';
 
 type Props = {
   query: QueryResults;
   handleQueryChange: (query: QueryResults, runQuery?: boolean) => void;
+  datasource: QueryResultsDataSource;
 };
 
-export function QueryResultsEditor({ query, handleQueryChange }: Props) {
+export function QueryResultsEditor({ query, handleQueryChange, datasource }: Props) {
+  const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
+  const [partNumbers, setPartNumbers] = useState<string[]>([]);
+
+  useEffect(() => {
+    const loadWorkspaces = async () => {
+      const workspaces = await datasource.workspacesCache;
+      setWorkspaces(Array.from(workspaces.values()));
+    };
+    const loadPartNumbers = async () => {
+      const partNumbers = await datasource.partNumbersCache;
+      setPartNumbers(partNumbers);
+    };
+
+    loadPartNumbers();
+    loadWorkspaces();
+  }, [datasource]);
+
   const onOutputChange = (value: OutputType) => {
     handleQueryChange({ ...query, outputType: value });
   };
@@ -44,10 +65,16 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
     handleQueryChange({ ...query, recordCount: value });
   };
 
+  const onParameterChange = (value: string) => {
+    if (query.queryBy !== value) {
+      handleQueryChange({ ...query, queryBy: value });
+    }
+  }
+
   return (
     <>
       <VerticalGroup>
-        <InlineField label="Output" labelWidth={25} tooltip={tooltips.output}>
+        <InlineField label="Output" labelWidth={26} tooltip={tooltips.output}>
           <RadioButtonGroup
             options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
             value={query.outputType}
@@ -55,43 +82,61 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
           />
         </InlineField>
         {query.outputType === OutputType.Data && (
-          <VerticalGroup>
-            <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
-              <MultiSelect
-                placeholder="Select properties to fetch"
-                options={enumToOptions(ResultsProperties)}
-                onChange={onPropertiesChange}
-                value={query.properties}
-                defaultValue={query.properties!}
-                noMultiValueWrap={true}
-                maxVisibleValues={5}
-                width={60}
-                allowCustomValue={false}
-                closeMenuOnSelect={false}
-              />
-            </InlineField>
-            <div>
-              <div className="horizontal-control-group">
-                <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
-                  <Select
-                    options={OrderBy as SelectableValue[]}
-                    placeholder="Select field to order by"
-                    onChange={onOrderByChange}
-                    value={query.orderBy}
-                    defaultValue={query.orderBy}
-                  />
-                </InlineField>
-                <InlineField label="Descending" tooltip={tooltips.descending}>
-                  <InlineSwitch
-                    onChange={event => onDescendingChange(event.currentTarget.checked)}
-                    value={query.descending}
-                  />
-                </InlineField>
-              </div>
-              <InlineField label="Take" labelWidth={25} tooltip={tooltips.recordCount}>
+          <InlineField label="Properties" labelWidth={26} tooltip={tooltips.properties}>
+            <MultiSelect
+              placeholder="Select properties to fetch"
+              options={enumToOptions(ResultsProperties)}
+              onChange={onPropertiesChange}
+              value={query.properties}
+              defaultValue={query.properties!}
+              noMultiValueWrap={true}
+              maxVisibleValues={5}
+              width={65}
+              allowCustomValue={false}
+              closeMenuOnSelect={false}
+            />
+          </InlineField>
+        )}
+        <div>
+        <TimeRangeControls
+          query={query}
+          handleQueryChange={(updatedQuery, runQuery) => {
+            handleQueryChange(updatedQuery as QueryResults, runQuery);
+          }}
+        />
+        <div className="horizontal-control-group">
+          <InlineField label="Query By" labelWidth={26} tooltip={tooltips.queryBy}>
+            <ResultsQueryBuilder
+              filter={query.queryBy}
+              workspaces={workspaces}
+              partNumbers={partNumbers}
+              status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
+              globalVariableOptions={datasource.globalVariableOptions()}
+              onChange={(event: any) => onParameterChange(event.detail.linq)}>
+            </ResultsQueryBuilder>
+          </InlineField>
+          {query.outputType === OutputType.Data && (
+            <div className="right-query-controls">
+              <InlineField label="OrderBy" labelWidth={26} tooltip={tooltips.orderBy}>
+                <Select
+                  width={25}
+                  options={OrderBy as SelectableValue[]}
+                  placeholder="Select field to order by"
+                  onChange={onOrderByChange}
+                  value={query.orderBy}
+                  defaultValue={query.orderBy}
+                />
+              </InlineField>
+              <InlineField label="Descending" labelWidth={26} tooltip={tooltips.descending}>
+                <InlineSwitch
+                  onChange={event => onDescendingChange(event.currentTarget.checked)}
+                  value={query.descending}
+                />
+              </InlineField>
+              <InlineField label="Take" labelWidth={26} tooltip={tooltips.recordCount}>
                 <AutoSizeInput
-                  minWidth={20}
-                  maxWidth={40}
+                  minWidth={25}
+                  maxWidth={25}
                   type="number"
                   defaultValue={query.recordCount}
                   onCommitChange={recordCountChange}
@@ -99,23 +144,10 @@ export function QueryResultsEditor({ query, handleQueryChange }: Props) {
                   onKeyDown={(event) => {validateNumericInput(event)}}
                 />
               </InlineField>
-              <TimeRangeControls
-                query={query}
-                handleQueryChange={(updatedQuery, runQuery) => {
-                  handleQueryChange(updatedQuery as QueryResults, runQuery);
-                }}
-              />
             </div>
-          </VerticalGroup>
-        )}
-        {query.outputType === OutputType.TotalCount && (
-          <TimeRangeControls
-            query={query}
-            handleQueryChange={(updatedQuery, runQuery) => {
-              handleQueryChange(updatedQuery as QueryResults, runQuery);
-            }}
-          />
-        )}
+          )}
+        </div>
+        </div>
       </VerticalGroup>
     </>
   );
@@ -127,4 +159,5 @@ const tooltips = {
   recordCount: 'This field sets the maximum number of results.',
   orderBy: 'This field orders the query results by field.',
   descending: 'This field returns the query results in descending order.',
+  queryBy: 'This optional field applies a filter to the query results.',
 };

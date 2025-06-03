@@ -151,6 +151,18 @@ export const QueryBuilderOperations = {
     name: 'listnotcontains',
     expressionTemplate: '{0}.Any(!it.Contains("{1}"))',
   },
+  LIST_IS_EMPTY: {
+    label: 'Is empty',
+    name: 'listisempty',
+    expressionTemplate: '{0}.Count == 0',
+    hideValue: true,
+  },
+  LIST_IS_NOT_EMPTY: {
+    label: 'Is not empty',
+    name: 'listisnotempty',
+    expressionTemplate: '{0}.Count > 0',
+    hideValue: true,
+  },
   // Properties expressions
   PROPERTY_EQUALS: {
     label: 'Equals',
@@ -293,7 +305,19 @@ export const QueryBuilderOperations = {
     handleValue: handleNumberValue,
     expressionBuilderCallback: keyValueExpressionBuilderCallback,
     expressionReaderCallback: numericKeyValueExpressionReaderCallback,
+  },
+  // DateTime expressions
+  DATE_TIME_IS_AFTER: {
+    label: 'is after',
+    name: 'isafter',
+    expressionTemplate: '{0} > "{1}"',
+  },
+  DATE_TIME_IS_BEFORE: {
+    label: 'is before',
+    name: 'isbefore',
+    expressionTemplate: '{0} < "{1}"',
   }
+
 };
 
 export const customOperations: QueryBuilderCustomOperation[] = [
@@ -321,4 +345,6 @@ export const customOperations: QueryBuilderCustomOperation[] = [
     QueryBuilderOperations.PROPERTY_DOES_NOT_CONTAIN,
     QueryBuilderOperations.PROPERTY_IS_BLANK,
     QueryBuilderOperations.PROPERTY_IS_NOT_BLANK,
+    QueryBuilderOperations.DATE_TIME_IS_AFTER,
+    QueryBuilderOperations.DATE_TIME_IS_BEFORE,
   ];

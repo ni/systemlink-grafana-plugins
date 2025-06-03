@@ -9,6 +9,8 @@ export interface QuerySteps extends ResultsQuery {
   useTimeRangeFor?: string;
   recordCount?: number;
   showMeasurements?: boolean;
+  resultsQuery: string;
+  stepsQuery?: string;
 }
 
 export const OrderBy = [
@@ -146,13 +148,17 @@ export interface ErrorBody {
   innerErrors?: ErrorBody[];
 }
 
-export interface QueryResponse<T> {
-  data: T[];
-  continuationToken?: string;
-  totalCount?: number;
+export enum StepsPathProperties {
+  path = 'path'
 };
 
-export interface BatchQueryConfig {
-  maxTakePerRequest: number;
-  requestsPerSecond: number;
+export interface QueryStepPathsResponse {
+  paths: StepPathResponseProperties[];
+  continuationToken?: string;
+  totalCount?: number;
+  error?: ErrorBody
+};
+
+export interface StepPathResponseProperties {
+  path: string;
 };

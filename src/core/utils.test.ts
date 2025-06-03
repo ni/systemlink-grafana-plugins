@@ -1,4 +1,6 @@
-import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression } from "./utils";
+import { TemplateSrv } from "@grafana/runtime";
+import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches } from "./utils";
+import { BatchQueryConfig } from "./types";
 
 test('enumToOptions', () => {
     enum fakeStringEnum {
@@ -86,4 +88,176 @@ describe('validateNumericInput', () => {
         
         expect(mockPreventDefault).toHaveBeenCalled();
     });
+});
+
+describe('replaceVariables', () => {
+  let mockTemplateSrv: TemplateSrv;
+
+  beforeEach(() => {
+    mockTemplateSrv = {
+      containsTemplate: jest.fn(),
+      replace: jest.fn(),
+    } as unknown as TemplateSrv;
+  });
+
+  test('should replace variables when multi-value variables are selected', () => {
+    mockTemplateSrv.containsTemplate = jest.fn().mockReturnValue(true);
+    mockTemplateSrv.replace = jest.fn().mockReturnValue('{value1,value2}');
+
+    const result = replaceVariables(['$var1'], mockTemplateSrv);
+
+    expect(result).toEqual(['value1', 'value2']);
+  });
+
+  test('should replace variables when single value variable is selected', () => {
+    mockTemplateSrv.containsTemplate = jest.fn().mockReturnValue(true);
+    mockTemplateSrv.replace = jest.fn().mockReturnValue('value1');
+
+    const result = replaceVariables(['$var1'], mockTemplateSrv);
+
+    expect(result).toEqual(['value1']);
+  });
+
+  test('should replace variables when multiple variables are selected', () => {
+    mockTemplateSrv.containsTemplate = jest.fn().mockReturnValue(true);
+    mockTemplateSrv.replace = jest.fn((variable: string) => ({
+        '$var1': '{value1,value2}',
+        '$var2': '{value3,value4}',
+        '$var3': 'value5',
+    }[variable] || variable));
+
+    const result = replaceVariables(['$var1', '$var2', '$var3'], mockTemplateSrv);
+
+    expect(result).toEqual(['value1', 'value2', 'value3', 'value4', 'value5']);
+  })
+
+  test('should return original values when no variables are found', () => {
+    mockTemplateSrv.containsTemplate = jest.fn().mockReturnValue(false);
+
+    const result = replaceVariables(['value1', 'value2'], mockTemplateSrv);
+
+    expect(result).toEqual(['value1', 'value2']);
+  });
+
+  test('should deduplicate and flatten the replaced values', () => {
+    mockTemplateSrv.containsTemplate = jest.fn().mockReturnValue(true);
+    mockTemplateSrv.replace = jest.fn((variable: string) => ({
+        '$var1': '{value1,value2}',
+        '$var2': '{value2,value3}',
+        '$var3': 'value3',
+    }[variable] || variable));
+    const result = replaceVariables(['$var1', '$var2', '$var3'], mockTemplateSrv);
+
+    expect(result).toEqual(['value1', 'value2', 'value3']);
+  });
+});
+
+describe('queryInBatches', () => {
+  const mockQueryRecord = jest.fn();
+  const queryConfig: BatchQueryConfig = {
+    maxTakePerRequest: 100,
+    requestsPerSecond: 2,
+  };
+
+  beforeEach(() => {
+    mockQueryRecord.mockReset();
+  });
+
+  test('should fetch all records in a single request when take is less than maxTakePerRequest', async () => {
+    mockQueryRecord.mockResolvedValue({
+      data: [{ id: 1 }, { id: 2 }],
+      totalCount: 2,
+      continuationToken: null,
+    });
+
+    const result = await queryInBatches(mockQueryRecord, queryConfig, 2);
+
+    expect(mockQueryRecord).toHaveBeenCalledTimes(1);
+    expect(mockQueryRecord).toHaveBeenCalledWith(2);
+    expect(result).toEqual({
+      data: [{ id: 1 }, { id: 2 }],
+      totalCount: 2,
+      continuationToken: null,
+    });
+  });
+
+  test('should fetch records in multiple requests when take is greater than maxTakePerRequest', async () => {
+    mockQueryRecord
+      .mockResolvedValueOnce({
+        data: Array(100).fill({ id: 1 }),
+        continuationToken: 'token1',
+        totalCount: 200,
+      })
+      .mockResolvedValueOnce({
+        data: Array(100).fill({ id: 2 }),
+        continuationToken: undefined,
+        totalCount: 200,
+      });
+
+    const result = await queryInBatches(mockQueryRecord, queryConfig, 200);
+
+    expect(mockQueryRecord).toHaveBeenCalledTimes(2);
+    expect(mockQueryRecord).toHaveBeenNthCalledWith(1, 100, undefined);
+    expect(mockQueryRecord).toHaveBeenNthCalledWith(2, 100, 'token1');
+    expect(result.data.length).toBe(200);
+  });
+
+  test('should stop fetching when totalCount is reached', async () => {
+    mockQueryRecord
+      .mockResolvedValueOnce({
+        data: Array(100).fill({ id: 1 }),
+        continuationToken: 'token1',
+        totalCount: 150,
+      })
+      .mockResolvedValueOnce({
+        data: Array(50).fill({ id: 2 }),
+        continuationToken: undefined,
+        totalCount: 150,
+      });
+
+    const result = await queryInBatches(mockQueryRecord, queryConfig, 200);
+
+    expect(mockQueryRecord).toHaveBeenCalledTimes(2);
+    expect(result.data.length).toBe(150);
+  });
+
+  test('should handle no continuationToken and return all data', async () => {
+    mockQueryRecord.mockResolvedValue({
+      data: Array(50).fill({ id: 1 }),
+      continuationToken: undefined,
+      totalCount: 50,
+    });
+
+    const result = await queryInBatches(mockQueryRecord, queryConfig, 50);
+
+    expect(mockQueryRecord).toHaveBeenCalledTimes(1);
+    expect(result.data.length).toBe(50);
+  });
+
+  test('should delay between batches if requests exceed requestsPerSecond', async () => {
+    jest.useFakeTimers();
+    mockQueryRecord
+      .mockResolvedValueOnce({
+        data: Array(100).fill({ id: 1 }),
+        continuationToken: 'token1',
+        totalCount: 300,
+      })
+      .mockResolvedValueOnce({
+        data: Array(100).fill({ id: 2 }),
+        continuationToken: 'token2',
+        totalCount: 300,
+      })
+      .mockResolvedValueOnce({
+        data: Array(100).fill({ id: 3 }),
+        continuationToken: undefined,
+        totalCount: 300,
+      });
+
+    const promise = queryInBatches(mockQueryRecord, queryConfig, 300);
+    jest.advanceTimersByTime(1000);
+    await promise;
+
+    expect(mockQueryRecord).toHaveBeenCalledTimes(3);
+    jest.useRealTimers();
+  });
 });
