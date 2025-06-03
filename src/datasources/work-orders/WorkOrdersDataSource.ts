@@ -2,8 +2,9 @@ import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, 
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
-import { QueryBuilderOption } from 'core/types';
-import { getVariableOptions } from 'core/utils';
+import { QueryBuilderOption, QueryResponse } from 'core/types';
+import { getVariableOptions, queryInBatches } from 'core/utils';
+import { QUERY_WORK_ORDERS_MAX_TAKE, QUERY_WORK_ORDERS_REQUEST_PER_SECOND } from './constants/QueryWorkOrders.constants';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
@@ -83,7 +84,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
         switch (field.value) {
           case WorkOrderPropertiesOptions.PROPERTIES:
             const properties = workOrder.properties || {};
-            return JSON.stringify(properties)
+            return JSON.stringify(properties);
           default:
             return workOrder[field.field] ?? '';
         }
@@ -104,19 +105,34 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     projection?: string[],
     orderBy?: string,
     descending?: boolean,
-    take?: number,
+    take?: number
   ): Promise<WorkOrder[]> {
-    const body = {
-      filter,
-      projection,
-      orderBy,
-      take,
-      descending,
+    const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<WorkOrder>> => {
+      const body = {
+        filter,
+        projection,
+        orderBy,
+        descending,
+        take: currentTake,
+        continationToken: token,
+        returnCount: true,
+      };
+      const response = await this.queryWorkOrders(body);
+
+      return {
+        data: response.workOrders,
+        continuationToken: response.continuationToken,
+        totalCount: response.totalCount,
+      };
     };
 
-    // TODO: query work orders in batches
-    const response = await this.queryWorkOrders(body);
-    return response.workOrders;
+    const batchQueryConfig = {
+      maxTakePerRequest: QUERY_WORK_ORDERS_MAX_TAKE,
+      requestsPerSecond: QUERY_WORK_ORDERS_REQUEST_PER_SECOND,
+    };
+    const response = await queryInBatches(queryRecord, batchQueryConfig, take);
+
+    return response.data;
   }
 
   async queryWorkordersCount(filter = ''): Promise<number> {
@@ -151,7 +167,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       WorkOrderPropertiesOptions.EARLIEST_START_DATE,
       WorkOrderPropertiesOptions.DUE_DATE,
     ];
-  
+
     return timeFields.includes(field);
   }
 }
