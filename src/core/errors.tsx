@@ -46,3 +46,19 @@ export const parseErrorMessage = (error: Error): string | undefined => {
 
   return error.message;
 };
+
+export const extractErrorInfo = (errorMessage: string): { url: string; statusCode: string; message: string } => {
+  const urlMatch = errorMessage.match(/url "([^"]+)"/);
+  const statusCodeMatch = errorMessage.match(/status code: (\d+)/);
+  const messageMatch = errorMessage.match(/Error message: (.+)$/);
+
+  const url = urlMatch ? urlMatch[1] : '';
+  const statusCode = statusCodeMatch ? statusCodeMatch[1] : '';
+  const message = messageMatch ? messageMatch[1] : '';
+
+  return {
+    url,
+    statusCode,
+    message,
+  };
+};

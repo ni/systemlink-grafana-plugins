@@ -50,7 +50,7 @@ export function ProductsVariableQueryEditor({ query, onChange, datasource }: Pro
                     globalVariableOptions={datasource.globalVariableOptions()}
                 ></ProductsQueryBuilder>
             </InlineField>
-            <FloatingError message={datasource.error} />
+            <FloatingError message={datasource.error} innerMessage={datasource.innerError} severity="warning"/>
         </>
     );
 };

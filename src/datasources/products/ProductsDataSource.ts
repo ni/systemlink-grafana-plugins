@@ -1,9 +1,9 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
+import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { ProductQuery, ProductResponseProperties, ProductVariableQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
 import { QueryBuilderOption, Workspace } from 'core/types';
-import { parseErrorMessage } from 'core/errors';
+import { extractErrorInfo } from 'core/errors';
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
@@ -17,6 +17,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   ) {
     super(instanceSettings, backendSrv, templateSrv);
     this.error = '';
+    this.innerError = '';
     this.workspaceLoadedPromise = this.loadWorkspaces();
     this.partNumberLoadedPromise = this.getProductPartNumbers();
   }
@@ -24,6 +25,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   areWorkspacesLoaded$ = new Promise<void>(resolve => this.workspacesLoaded = resolve);
   arePartNumberLoaded$ = new Promise<void>(resolve => this.partNumberLoaded = resolve);
   error = '';
+  innerError = '';
 
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
   queryProductsUrl = this.baseUrl + '/v2/query-products';
@@ -73,18 +75,35 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       });
       return response;
     } catch (error) {
-      throw new Error(`An error occurred while querying products: ${error}`);
+      const errorDetails = extractErrorInfo((error as Error).message);
+      let errorMessage: string;
+
+      if (!errorDetails.statusCode) {
+        errorMessage = 'Failed to query products due to an unknown error.';
+      } else {
+        let detailedMessage = '';
+        try {
+          const parsed = JSON.parse(errorDetails.message);
+          detailedMessage = parsed?.message || errorDetails.message;
+        } catch {
+          detailedMessage = errorDetails.message;
+        }
+        errorMessage = `Failed to query products (status ${errorDetails.statusCode}): ${detailedMessage}`;
+      }
+
+      this.appEvents?.publish?.({
+        type: AppEvents.alertError.name,
+        payload: ['Error querying products', errorMessage],
+      });
+
+      throw new Error(errorMessage);
     }
   }
 
   async queryProductValues(fieldName: string): Promise<string[]> {
-    try {
-      return await this.post<string[]>(this.queryProductValuesUrl, {
-        field: fieldName
-      });
-    } catch (error) {
-      throw new Error(`An error occurred while querying product values: ${error}`);
-    }
+    return await this.post<string[]>(this.queryProductValuesUrl, {
+      field: fieldName
+    });
   }
 
   async runQuery(query: ProductQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
@@ -164,7 +183,9 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
     const familyNames = await this.queryProductValues(PropertiesOptions.FAMILY)
       .catch(error => {
-        this.error = parseErrorMessage(error)!;
+        if (!this.error) {
+          this.handleQueryProductValuesError(error);
+        }
       });
 
     familyNames?.forEach(familyName => this.familyNamesCache.set(familyName, familyName));
@@ -237,7 +258,9 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
     const workspaces = await this.getWorkspaces()
       .catch(error => {
-        this.error = parseErrorMessage(error.message)!;
+        if (!this.error) {
+          this.handleQueryProductValuesError(error);
+        }
       });
 
     workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
@@ -251,11 +274,21 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     }
     const partNumbers = await this.queryProductValues(PropertiesOptions.PART_NUMBER)
       .catch(error => {
-        this.error = parseErrorMessage(error)!;
-      });
+        if (!this.error) {
+          this.handleQueryProductValuesError(error);
+        }
+      })
 
     partNumbers?.forEach(partNumber => this.partNumbersCache.set(partNumber, partNumber));
 
     this.partNumberLoaded();
+  }
+
+  private handleQueryProductValuesError(error: unknown): void {
+    const errorDetails = extractErrorInfo((error as Error).message);
+    this.error = 'Failed to query product values.';
+    this.innerError = errorDetails.message
+      ? `Some values may not be available in the query builder lookups. Details: ${errorDetails.message}`
+      : 'Some values may not be available in the query builder lookups.';
   }
 }
