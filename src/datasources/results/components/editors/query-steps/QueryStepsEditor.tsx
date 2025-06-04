@@ -9,7 +9,7 @@ import {
   VerticalGroup,
 } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import '../../ResultsQueryEditor.scss';
 import { OutputType } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
@@ -25,7 +25,25 @@ type Props = {
 };
 
 export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props) {
-  const [disableStepsQueryBuilder, setDisableStepsQueryBuilder] = useState(true);
+  const [disableStepsQueryBuilder, setDisableStepsQueryBuilder] = useState(false);
+  const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
+
+  useEffect(() => {
+    setDisableStepsQueryBuilder(!query.partNumberQuery || query.partNumberQuery.length === 0);
+  }, [query.partNumberQuery]);
+
+  useEffect(() => {
+    const loadProductNameOptions = async () => {
+      const response = await datasource.productCache;
+      const productOptions = response.products.map(product => ({
+        label: `${product.name} (${product.partNumber})`,
+        value: product.partNumber,
+      }));
+      const globalVariableOptions = datasource.globalVariableOptions();
+      setProductNameOptions([...globalVariableOptions, ...productOptions]);
+    }
+    loadProductNameOptions();
+  }, [datasource]);
   
   const onOutputChange = (outputType: OutputType) => {
     handleQueryChange({ ...query, outputType: outputType });
@@ -92,6 +110,15 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
     }
   };
 
+  const onProductNameChange = (productNames: Array<SelectableValue<string>>) => {
+    handleQueryChange({ ...query, partNumberQuery: productNames.map(product => product.value as string) });
+  }
+
+  const formatOptionLabel = (option: SelectableValue<string>) => (
+    <div style={{ maxWidth: 500, whiteSpace: 'normal' }}>
+      {option.label}
+    </div>
+  );
 
   return (
     <>
@@ -135,6 +162,19 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
             }}
           />
         </div>
+        <InlineField label="Product (part number)" labelWidth={26} tooltip={tooltips.productName}>
+          <MultiSelect
+            maxVisibleValues={5}
+            width={65}
+            onChange={onProductNameChange}
+            placeholder='Select part numbers to use in a query'
+            noMultiValueWrap={true}
+            closeMenuOnSelect={false}
+            value={query.partNumberQuery}
+            formatOptionLabel={formatOptionLabel}
+            options={productNameOptions}
+          />
+        </InlineField>
         <div className="horizontal-control-group">
           <StepsQueryBuilderWrapper
             datasource={datasource}
@@ -190,4 +230,5 @@ const tooltips = {
   orderBy: 'This field orders the query steps by field.',
   descending: 'This field returns the query steps in descending order.',
   showMeasurements: 'This toggle enables the display of step measurement data.',
+  productName: 'This field filters results by part number.',
 };

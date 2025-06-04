@@ -26,19 +26,22 @@ type Props = {
 
 export function QueryResultsEditor({ query, handleQueryChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
-  const [partNumbers, setPartNumbers] = useState<string[]>([]);
+  const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
       const workspaces = await datasource.workspacesCache;
       setWorkspaces(Array.from(workspaces.values()));
     };
-    const loadPartNumbers = async () => {
-      const partNumbers = await datasource.partNumbersCache;
-      setPartNumbers(partNumbers);
-    };
-
-    loadPartNumbers();
+    const loadProductNameOptions = async () => {
+      const response = await datasource.productCache;
+      const productOptions = response.products.map(product => ({
+        label: `${product.name} (${product.partNumber})`,
+        value: product.partNumber,
+      }));
+      setProductNameOptions([...datasource.globalVariableOptions(), ...productOptions]);
+    }
+    loadProductNameOptions();
     loadWorkspaces();
   }, [datasource]);
 
@@ -70,6 +73,16 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
       handleQueryChange({ ...query, queryBy: value });
     }
   }
+
+  const onProductNameChange = (productNames: Array<SelectableValue<string>>) => {
+    handleQueryChange({ ...query, partNumberQuery: productNames.map(product => product.value as string) });
+  }
+
+  const formatOptionLabel = (option: SelectableValue<string>) => (
+    <div style={{ maxWidth: 500, whiteSpace: 'normal' }}>
+      {option.label}
+    </div>
+  );
 
   return (
     <>
@@ -105,16 +118,30 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
           }}
         />
         <div className="horizontal-control-group">
-          <InlineField label="Query By" labelWidth={26} tooltip={tooltips.queryBy}>
-            <ResultsQueryBuilder
-              filter={query.queryBy}
-              workspaces={workspaces}
-              partNumbers={partNumbers}
-              status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
-              globalVariableOptions={datasource.globalVariableOptions()}
-              onChange={(event: any) => onParameterChange(event.detail.linq)}>
-            </ResultsQueryBuilder>
-          </InlineField>
+          <div>
+            <InlineField label="Product (part number)" labelWidth={26} tooltip={tooltips.productName}>
+              <MultiSelect
+                maxVisibleValues={5}
+                width={65}
+                onChange={onProductNameChange}
+                placeholder='Select part numbers to use in a query'
+                noMultiValueWrap={true}
+                closeMenuOnSelect={false}
+                value={query.partNumberQuery}
+                formatOptionLabel={formatOptionLabel}
+                options={productNameOptions}
+              />
+            </InlineField>
+            <InlineField label="Query By" labelWidth={26} tooltip={tooltips.queryBy}>
+              <ResultsQueryBuilder
+                filter={query.queryBy}
+                workspaces={workspaces}
+                status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
+                globalVariableOptions={datasource.globalVariableOptions()}
+                onChange={(event: any) => onParameterChange(event.detail.linq)}>
+              </ResultsQueryBuilder>
+            </InlineField>
+          </div>
           {query.outputType === OutputType.Data && (
             <div className="right-query-controls">
               <InlineField label="OrderBy" labelWidth={26} tooltip={tooltips.orderBy}>
@@ -160,4 +187,5 @@ const tooltips = {
   orderBy: 'This field orders the query results by field.',
   descending: 'This field returns the query results in descending order.',
   queryBy: 'This optional field applies a filter to the query results.',
+  productName: 'This field filters results by part number.',
 };
