@@ -20,7 +20,6 @@ const mockQueryResultsResponse: QueryResultsResponse = {
   ],
   totalCount: 1
 };
-const mockQueryResultsValuesResponse = ["partNumber1", "partNumber2"];
 
 let datastore: QueryResultsDataSource, backendServer: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
 
@@ -31,10 +30,6 @@ describe('QueryResultsDataSource', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
       .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
-
-    backendServer.fetch
-      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
-      .mockReturnValue(createFetchResponse(mockQueryResultsValuesResponse));
   })
 
   describe('queryResults', () => {
@@ -295,7 +290,6 @@ describe('QueryResultsDataSource', () => {
 
     describe('Dependencies', () => {
     afterEach(() => {
-      (ResultsDataSourceBase as any)._partNumbersCache = null;
       (ResultsDataSourceBase as any)._workspacesCache = null;
       (ResultsDataSourceBase as any)._productCache = null;
     });
@@ -348,32 +342,6 @@ describe('QueryResultsDataSource', () => {
       expect(console.error).toHaveBeenCalledWith('Error in loading products:', error);
     });
 
-    test('should return the same promise instance when partnumber promise already exists', async () => {
-      const mockPromise = Promise.resolve(['partNumber1', 'partNumber2']);
-      (ResultsDataSourceBase as any)._partNumbersCache = mockPromise;
-      backendServer.fetch.mockClear();
-
-      const partNumbersPromise = datastore.getPartNumbers();
-
-      expect(partNumbersPromise).toEqual(mockPromise);
-      expect(datastore.partNumbersCache).toEqual(mockPromise);
-      expect(backendServer.fetch).not.toHaveBeenCalledWith(expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' }));
-    });
-
-    test('should create and return a new promise when partnumber promise does not exist', async () => {
-      (ResultsDataSourceBase as any)._partNumbersCache = null;
-      backendServer.fetch
-      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
-      .mockReturnValue(createFetchResponse(mockQueryResultsValuesResponse));
-
-      const promise = datastore.getPartNumbers();
-
-      expect(promise).not.toBeNull();
-      expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' })
-      );
-    });
-
     test('should return the same promise instance when workspacePromise already exists', async () => {
       const mockWorkspaces = new Map<string, Workspace>([
         ['1', { id: '1', name: 'Default workspace', default: true, enabled: true }],
@@ -398,18 +366,6 @@ describe('QueryResultsDataSource', () => {
 
       expect(promise).not.toBeNull();
       expect(workspaceSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle errors in getPartNumbers', async () => {
-      (ResultsDataSourceBase as any).partNumbersCache = null;
-      const error = new Error('API failed');
-      jest.spyOn(QueryResultsDataSource.prototype, 'queryResultsValues').mockRejectedValue(error);
-      jest.spyOn(console, 'error').mockImplementation(() => {});
-
-      await datastore.getPartNumbers();
-
-      expect(console.error).toHaveBeenCalledTimes(1);
-      expect(console.error).toHaveBeenCalledWith('Error in loading part numbers:', error);
     });
 
     it('should handle errors in getWorkspaces', async () => {

@@ -24,7 +24,6 @@ type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSource
 
 export function ResultsVariableQueryEditor({ query, onChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
-  const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
   const [isQueryBuilderDisabled, disableStepsQueryBuilder] = useState<boolean>(true);
   const [stepsRecordCountInvalidMessage, setStepsRecordCountInvalidMessage] = useState<string>('');
@@ -53,10 +52,6 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
       const workspaces = await queryResultsDataSource.current.workspacesCache;
       setWorkspaces(Array.from(workspaces.values()));
     };
-    const loadPartNumbers = async () => {
-      const partNumbers = await queryResultsDataSource.current.partNumbersCache;
-      setPartNumbers(partNumbers);
-    };
     const loadProductNameOptions = async () => {
       const response = await queryResultsDataSource.current.productCache;
       const productOptions = response.products.map(product => ({
@@ -68,7 +63,6 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
 
     loadProductNameOptions();
     loadWorkspaces();
-    loadPartNumbers();
   }, [datasource]);
 
   const onQueryTypeChange = (queryType: QueryType) => {
@@ -172,7 +166,6 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
                   filter={queryResultsquery.queryBy}
                   onChange={(event: any) => onQueryByChange(event.detail.linq)}
                   workspaces={workspaces}
-                  partNumbers={partNumbers}
                   status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
                   globalVariableOptions={queryResultsDataSource.current.globalVariableOptions()}
                 ></ResultsQueryBuilder>

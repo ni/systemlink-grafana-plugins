@@ -26,17 +26,12 @@ type Props = {
 
 export function QueryResultsEditor({ query, handleQueryChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
-  const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
       const workspaces = await datasource.workspacesCache;
       setWorkspaces(Array.from(workspaces.values()));
-    };
-    const loadPartNumbers = async () => {
-      const partNumbers = await datasource.partNumbersCache;
-      setPartNumbers(partNumbers);
     };
     const loadProductNameOptions = async () => {
       const response = await datasource.productCache;
@@ -47,7 +42,6 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
       setProductNameOptions([...datasource.globalVariableOptions(), ...productOptions]);
     }
     loadProductNameOptions();
-    loadPartNumbers();
     loadWorkspaces();
   }, [datasource]);
 
@@ -85,7 +79,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
   }
 
   const formatOptionLabel = (option: SelectableValue<string>) => (
-    <div style={{ maxWidth: 520, whiteSpace: 'normal' }}>
+    <div style={{ maxWidth: 500, whiteSpace: 'normal' }}>
       {option.label}
     </div>
   );
@@ -142,7 +136,6 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
               <ResultsQueryBuilder
                 filter={query.queryBy}
                 workspaces={workspaces}
-                partNumbers={partNumbers}
                 status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
                 globalVariableOptions={datasource.globalVariableOptions()}
                 onChange={(event: any) => onParameterChange(event.detail.linq)}>

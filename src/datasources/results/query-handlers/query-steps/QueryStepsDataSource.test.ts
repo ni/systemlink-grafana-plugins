@@ -305,34 +305,7 @@ describe('QueryStepsDataSource', () => {
 
   describe('Dependencies', () => {
     afterEach(() => {
-      (ResultsDataSourceBase as any)._partNumbersCache = null;
       (ResultsDataSourceBase as any)._workspacesCache = null;
-    });
-    
-    test('should return the same promise instance when partnumber promise already exists', async () => {
-      const mockPromise = Promise.resolve(['partNumber1', 'partNumber2']);
-      (ResultsDataSourceBase as any)._partNumbersCache = mockPromise;
-      backendServer.fetch.mockClear();
-
-      const partNumbersPromise = datastore.getPartNumbers();
-
-      expect(partNumbersPromise).toEqual(mockPromise);
-      expect(datastore.partNumbersCache).toEqual(mockPromise);
-      expect(backendServer.fetch).not.toHaveBeenCalledWith(expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' }));
-    });
-
-    test('should create and return a new promise when partnumber promise does not exist', async () => {
-      (ResultsDataSourceBase as any)._partNumbersCache = null;
-      backendServer.fetch
-      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
-      .mockReturnValue(createFetchResponse(["partNumber1", "partNumber2"]));
-
-      const promise = datastore.getPartNumbers();
-
-      expect(promise).not.toBeNull();
-      expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' })
-      );
     });
 
     test('should return the same promise instance when workspacePromise already exists', async () => {
@@ -359,18 +332,6 @@ describe('QueryStepsDataSource', () => {
 
       expect(promise).not.toBeNull();
       expect(workspaceSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle errors in getPartNumbers', async () => {
-      (ResultsDataSourceBase as any).partNumbersCache = null;
-      const error = new Error('API failed');
-      jest.spyOn(QueryStepsDataSource.prototype, 'queryResultsValues').mockRejectedValue(error);
-      jest.spyOn(console, 'error').mockImplementation(() => {});
-
-      await datastore.getPartNumbers();
-
-      expect(console.error).toHaveBeenCalledTimes(1);
-      expect(console.error).toHaveBeenCalledWith('Error in loading part numbers:', error);
     });
 
     it('should handle errors in getWorkspaces', async () => {
@@ -1034,12 +995,13 @@ describe('QueryStepsDataSource', () => {
     });
 
     describe('metricFindQuery', () => {
-      it('should return empty array if queryByResults and queryBySteps are undefined', async () => {
+      it('should return empty array if partnumber query is undefined', async () => {
         const query = {
           refId: 'A',
           queryType: QueryType.Steps,
-          queryByResults: undefined,
-          queryBySteps: undefined,
+          queryByResults: "programName = \"name\"",
+          queryBySteps: "stepName = \"Step1\"",
+          partNumberQueryInSteps: undefined,
           stepsTake: 1000,
         } as unknown as StepsVariableQuery;
         const result = await datastore.metricFindQuery(query);
@@ -1053,6 +1015,7 @@ describe('QueryStepsDataSource', () => {
           queryType: QueryType.Steps,
           queryByResults: 'PartNumber = "partNumber1"',
           stepsTake: invalidStepsTake,
+          partNumberQueryInSteps: ['PartNumber1'],
         } as unknown as StepsVariableQuery;
         const result = await datastore.metricFindQuery(query);
 
@@ -1069,7 +1032,7 @@ describe('QueryStepsDataSource', () => {
             totalCount: 2
           } as QueryStepsResponse));
 
-        const query = { queryByResults: 'PartNumber = "partNumber1"', stepsTake: 1000, partNumberQueryInSteps: ['partnumber1'] } as StepsVariableQuery;
+        const query = { queryByResults: 'programName = "name"', stepsTake: 1000, partNumberQueryInSteps: ['PartNumber1'] } as StepsVariableQuery;
         const result = await datastore.metricFindQuery(query);
 
         expect(result).toEqual([
@@ -1085,7 +1048,7 @@ describe('QueryStepsDataSource', () => {
             totalCount: 0
           } as QueryStepsResponse));
 
-        const query = { queryByResults: 'PartNumber = "partNumber1"', stepsTake: 1000, partNumberQueryInSteps: ['partnumber1'] } as StepsVariableQuery;
+        const query = { queryByResults: 'programName = "name"', stepsTake: 1000, partNumberQueryInSteps: ['PartNumber1'] } as StepsVariableQuery;
         const result = await datastore.metricFindQuery(query);
 
         expect(result).toEqual([]);
@@ -1096,7 +1059,7 @@ describe('QueryStepsDataSource', () => {
         backendServer.fetch.mockImplementationOnce(() => { throw error; });
         jest.spyOn(console, 'error').mockImplementation(() => {});
 
-        const query = { queryByResults: 'PartNumber = "partNumber1"', stepsTake: 1000, partNumberQueryInSteps: ['partnumber1'] } as StepsVariableQuery;
+        const query = { queryByResults: 'programName = "name1"', stepsTake: 1000, partNumberQueryInSteps: ['PartNumber1'] } as StepsVariableQuery;
         const result = await datastore.metricFindQuery(query);
 
         expect(result).toEqual([]);
@@ -1104,19 +1067,20 @@ describe('QueryStepsDataSource', () => {
         expect(console.error).toHaveBeenCalledWith('Error in querying steps:', error)});
 
       it('should use templateSrv.replace for queryByResults and queryBySteps', async () => {
-        let resultsQuery = 'PartNumber = "${partNumber}"'
+        let resultsQuery = 'programName = "${name}"'
         let stepsQuery = 'stepName = "${step}"'
-        templateSrv.replace.mockReturnValueOnce('PartNumber = "partNumber1"').mockReturnValueOnce('stepName = "Step1"');
+        const partNumberQuery = ['PartNumber1', 'PartNumber2'];
+        templateSrv.replace.mockReturnValueOnce('programName = "programName1"').mockReturnValueOnce('stepName = "Step1"');
         backendServer.fetch.mockReturnValue(createFetchResponse({
           steps: [{ name: 'Step1' }],
           totalCount: 1
         } as QueryStepsResponse));
 
-        const query = { queryByResults: resultsQuery, queryBySteps: stepsQuery, stepsTake: 1000, partNumberQueryInSteps: ['partnumber1'] } as StepsVariableQuery;
+        const query = { queryByResults: resultsQuery, queryBySteps: stepsQuery, stepsTake: 1000, partNumberQueryInSteps: partNumberQuery } as StepsVariableQuery;
         await datastore.metricFindQuery(query, { scopedVars: { var: { value: 'replaced' } } } as any);
 
         expect(templateSrv.replace).toHaveBeenCalledTimes(2);
-        expect(templateSrv.replace.mock.calls[0][0]).toBe("(PartNumber = \"partnumber1\") && PartNumber = \"${partNumber}\"");
+        expect(templateSrv.replace.mock.calls[0][0]).toBe("(PartNumber = \"PartNumber1\" || PartNumber = \"PartNumber2\") && programName = \"${name}\"");
         expect(templateSrv.replace.mock.calls[1][0]).toBe(stepsQuery);
       });
 

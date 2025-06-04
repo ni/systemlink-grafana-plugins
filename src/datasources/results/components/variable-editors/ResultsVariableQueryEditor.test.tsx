@@ -68,11 +68,10 @@ class FakeResultsDataSource extends ResultsDataSource {
 }
 
 jest.mock('../query-builders/query-results/ResultsQueryBuilder', () => ({
-  ResultsQueryBuilder: jest.fn(({ workspaces, partNumbers }) => {
+  ResultsQueryBuilder: jest.fn(({ workspaces }) => {
     return (
       <div data-testid="results-query-builder">
         <div data-testid="results-workspaces">{JSON.stringify(workspaces)}</div>
-        <div data-testid="results-part-numbers">{JSON.stringify(partNumbers)}</div>
       </div>
     );
   }),
@@ -285,7 +284,7 @@ describe('Steps Query Type', () => {
 });
 
 describe('Dependencies', () => {
-  it('should load workspaces and part numbers from the datasource', async () => {
+  it('should load workspaces from the datasource', async () => {
     await act(async () => { 
       renderEditor({ refId: '', properties: '', queryBy: '' } as unknown as ResultsQuery);
     });
@@ -294,7 +293,6 @@ describe('Dependencies', () => {
     const option = await screen.findByText(ResultsVariableProperties[0].label);
     fireEvent.click(option);
 
-    expect(screen.getByTestId('results-part-numbers').textContent).toEqual(JSON.stringify(fakePartNumbers));
     expect(screen.getByTestId('results-workspaces').textContent).toEqual(
       JSON.stringify([
         { id: '1', name: 'workspace1', default: false, enabled: true },
@@ -303,15 +301,12 @@ describe('Dependencies', () => {
     );
   });
 
-  it('should not render part numbers and workspaces when promises resolve to undefined', async () => {
+  it('should not render workspaces when promise resolve to undefined', async () => {
     cleanup();
     const emptyDatasource = {
       globalVariableOptions: jest.fn().mockReturnValue([]),
       get workspacesCache() {
         return Promise.resolve(new Map());
-      },
-      get partNumbersCache() {
-        return Promise.resolve([]);
       },
       get productCache() {
         return Promise.resolve({ products: [] });
@@ -331,7 +326,6 @@ describe('Dependencies', () => {
     const option = await screen.findByText(ResultsVariableProperties[0].label);
     fireEvent.click(option);
 
-    expect(screen.getByTestId('results-part-numbers').textContent).toBe('[]');
     expect(screen.getByTestId('results-workspaces').textContent).toBe('[]');
   });
 });

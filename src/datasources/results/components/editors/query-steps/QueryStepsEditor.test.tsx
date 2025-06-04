@@ -64,7 +64,6 @@ describe('QueryStepsEditor', () => {
     getPartNumbers: jest.fn(),
     productCache: Promise.resolve(mockProducts),
     workspacesCache: new Map(),
-    partNumbersCache: [],
     globalVariableOptions: jest.fn(() => mockGlobalVars),
     disableStepsQueryBuilder: false
   } as unknown as QueryStepsDataSource;

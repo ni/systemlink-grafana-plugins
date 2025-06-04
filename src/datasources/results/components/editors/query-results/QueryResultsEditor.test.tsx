@@ -8,12 +8,11 @@ import React from 'react';
 import { Workspace } from 'core/types';
 
 jest.mock('../../query-builders/query-results/ResultsQueryBuilder', () => ({
-  ResultsQueryBuilder: jest.fn(({ filter, workspaces, partNumbers, status, globalVariableOptions, onChange }) => {
+  ResultsQueryBuilder: jest.fn(({ filter, workspaces, status, globalVariableOptions, onChange }) => {
     return (
       <div data-testid="results-query-builder">
         <div data-testid="filter">{filter}</div>
         <div data-testid="workspaces">{JSON.stringify(workspaces)}</div>
-        <div data-testid="part-numbers">{JSON.stringify(partNumbers)}</div>
         <div data-testid="status">{JSON.stringify(status)}</div>
         <div data-testid="global-vars">{JSON.stringify(globalVariableOptions)}</div>
         <button data-testid="trigger-change" onClick={() => onChange({ detail: { linq: 'workspace = "Workspace1"' } })}>
@@ -36,7 +35,6 @@ const mockWorkspaces: Workspace[] = [
   { id: '1', name: 'Workspace1', default: false, enabled: true },
   { id: '2', name: 'Workspace2', default: false, enabled: true },
 ]
-const mockPartNumbers = ['PN1', 'PN2', 'PN3'];
 const mockGlobalVars = [{ label: '$var1', value: '$var1' }];
 const mockProducts = {
   products: [
@@ -47,7 +45,6 @@ const mockProducts = {
 
 const mockDatasource = {
   workspacesCache: Promise.resolve(new Map(mockWorkspaces.map(workspace => [workspace.id, workspace]))),
-  partNumbersCache: Promise.resolve(mockPartNumbers),
   productCache: Promise.resolve(mockProducts),
   globalVariableOptions: jest.fn(() => mockGlobalVars),
 } as unknown as QueryResultsDataSource;
@@ -79,7 +76,7 @@ describe('QueryResultsEditor', () => {
             useTimeRange: true,
             useTimeRangeFor: 'Updated',
             partNumberQuery: ['PartNumber1'],
-            queryBy: 'partNumber = "PN1"',
+            queryBy: 'programName = "name1"',
           }}
           handleQueryChange={mockHandleQueryChange}
           datasource={mockDatasource}
@@ -199,12 +196,11 @@ describe('QueryResultsEditor', () => {
       })
     });
 
-    test('should render empty workspaces and partnumbers when cache is empty', async () => {
+    test('should render empty workspaces when cache is empty', async () => {
       cleanup();
 
       const emptyDatasource = {
         workspacesCache: Promise.resolve(new Map()),
-        partNumbersCache: Promise.resolve([]),
         productCache: Promise.resolve({ products: [] }),
         globalVariableOptions: jest.fn(() => []),
       } as unknown as QueryResultsDataSource;
@@ -225,15 +221,13 @@ describe('QueryResultsEditor', () => {
 
       expect(screen.getByTestId('results-query-builder')).toBeInTheDocument();
       expect(screen.getByTestId('workspaces')).toHaveTextContent('[]');
-      expect(screen.getByTestId('part-numbers')).toHaveTextContent('[]');
     })
 
     test('should render ResultsQueryBuilder with default props when component is loaded', () => {
       const resultsQueryBuilder = screen.getByTestId('results-query-builder');
       expect(resultsQueryBuilder).toBeInTheDocument();
-      expect(screen.getByTestId('filter')).toHaveTextContent('partNumber = "PN1"');
+      expect(screen.getByTestId('filter')).toHaveTextContent('programName = "name1"');
       expect(screen.getByTestId('workspaces')).toHaveTextContent(JSON.stringify(mockWorkspaces));
-      expect(screen.getByTestId('part-numbers')).toHaveTextContent(JSON.stringify(mockPartNumbers));
       expect(screen.getByTestId('status')).toHaveTextContent(JSON.stringify(['PASSED', 'FAILED']));
       expect(screen.getByTestId('global-vars')).toHaveTextContent(JSON.stringify(mockGlobalVars));
     });
