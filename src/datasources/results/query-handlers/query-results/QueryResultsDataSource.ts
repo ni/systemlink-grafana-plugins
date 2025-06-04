@@ -1,11 +1,12 @@
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties, ResultsVariableQuery } from "datasources/results/types/QueryResults.types";
 import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase";
-import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from "@grafana/data";
+import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents } from "@grafana/data";
 import { OutputType } from "datasources/results/types/types";
 import { defaultResultsQuery } from "datasources/results/defaultQueries";
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
 import { TAKE_LIMIT } from "datasources/results/constants/QuerySteps.constants";
+import { extractErrorInfo } from "core/errors";
 
 export class QueryResultsDataSource extends ResultsDataSourceBase {
   queryResultsUrl = this.baseUrl + '/v2/query-results';
@@ -30,7 +31,28 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
         returnCount,
       });
     } catch (error) {
-      throw new Error(`An error occurred while querying results: ${error}`);
+      const errorDetails = extractErrorInfo((error as Error).message);
+      let errorMessage: string;
+
+      if (!errorDetails.statusCode) {
+        errorMessage = 'Failed to query results due to an unknown error.';
+      } else {
+        let detailedMessage = '';
+        try {
+          const parsed = JSON.parse(errorDetails.message);
+          detailedMessage = parsed?.message || errorDetails.message;
+        } catch {
+          detailedMessage = errorDetails.message;
+        }
+        errorMessage = `Failed to query results (status ${errorDetails.statusCode}): ${detailedMessage}`;
+      }
+
+      this.appEvents?.publish?.({
+        type: AppEvents.alertError.name,
+        payload: ['Error querying results', errorMessage],
+      });
+
+      throw new Error(errorMessage);
     }
   }
 

@@ -51,7 +51,7 @@ describe('QueryResultsDataSource', () => {
 
       await expect(datastore.queryResults())
         .rejects
-        .toThrow('Request to url "/nitestmonitor/v2/query-results" failed with status code: 400. Error message: "Error"');
+        .toThrow('Failed to query results (status 400): \"Error\"');
     });
   });
 
@@ -113,7 +113,7 @@ describe('QueryResultsDataSource', () => {
 
         await expect(datastore.query(query))
         .rejects
-        .toThrow('Request to url "/nitestmonitor/v2/query-results" failed with status code: 400. Error message: "Error"');
+        .toThrow('Failed to query results (status 400): \"Error\"');
     });
 
     test('should convert properties to Grafana fields', async () => {
@@ -250,24 +250,33 @@ describe('QueryResultsDataSource', () => {
       (ResultsDataSourceBase as any).partNumbersCache = null;
       const error = new Error('API failed');
       jest.spyOn(QueryResultsDataSource.prototype, 'queryResultsValues').mockRejectedValue(error);
-      jest.spyOn(console, 'error').mockImplementation(() => {});
 
       await datastore.getPartNumbers();
 
-      expect(console.error).toHaveBeenCalledTimes(1);
-      expect(console.error).toHaveBeenCalledWith('Error in loading part numbers:', error);
+      expect(datastore.error).toBe('Failed to query result values.');
+      expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups.');
     });
 
     it('should handle errors in getWorkspaces', async () => {
       (ResultsDataSourceBase as any)._workspacesCache = null;
       const error = new Error('API failed');
       jest.spyOn(QueryResultsDataSource.prototype, 'getWorkspaces').mockRejectedValue(error);
-      jest.spyOn(console, 'error').mockImplementation(() => {});
 
       await datastore.loadWorkspaces();
 
-      expect(console.error).toHaveBeenCalledTimes(1);
-      expect(console.error).toHaveBeenCalledWith('Error in loading workspaces:', error);
+      expect(datastore.error).toBe('Failed to query result values.');
+      expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups.');
+    });
+
+    it('should contain error details when error contains additional information', async () => {
+      (ResultsDataSourceBase as any)._workspacesCache = null;
+      const error = new Error(`API failed Error message: ${JSON.stringify({ message: 'Detailed error message', statusCode: 500 })}`);
+      jest.spyOn(QueryResultsDataSource.prototype, 'getWorkspaces').mockRejectedValue(error);
+
+      await datastore.loadWorkspaces();
+
+      expect(datastore.error).toBe('Failed to query result values.');
+      expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups. Details: Detailed error message');
     });
   });
   

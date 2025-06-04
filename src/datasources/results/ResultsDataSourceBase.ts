@@ -6,8 +6,11 @@ import { ResultsPropertiesOptions } from "./types/QueryResults.types";
 import { getVariableOptions } from "core/utils";
 import { ExpressionTransformFunction } from "core/query-builder.utils";
 import { QueryBuilderOperations } from "core/query-builder.constants";
+import { extractErrorInfo } from "core/errors";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
+  error = '';
+  innerError = '';
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
   queryResultsValuesUrl = this.baseUrl + '/v2/query-result-values';
 
@@ -61,7 +64,9 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
         return workspaceMap;
       })
       .catch(error => {
-        console.error('Error in loading workspaces:', error);
+        if (!this.error) {
+          this.handleQueryResultValuesError(error);
+        }
         return new Map<string, Workspace>();
       });
 
@@ -74,23 +79,21 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     }
 
     ResultsDataSourceBase._partNumbersCache = this.queryResultsValues(ResultsPropertiesOptions.PART_NUMBER, undefined)
-    .catch(error => {
-      console.error('Error in loading part numbers:', error);
-      return [];
-    });
+      .catch(error => {
+        if (!this.error) {
+          this.handleQueryResultValuesError(error);
+        } 
+        return [];
+      });
 
     return ResultsDataSourceBase._partNumbersCache;
   }
 
   async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {
-    try {
-      return await this.post<string[]>(this.queryResultsValuesUrl, {
-        field: fieldName,
-        filter
-      });
-    } catch (error) {
-      throw new Error(`An error occurred while querying result values: ${error}`);
-    }
+    return await this.post<string[]>(this.queryResultsValuesUrl, {
+      field: fieldName,
+      filter
+    });
   }
 
   protected multipleValuesQuery(field: string): ExpressionTransformFunction {
@@ -135,5 +138,20 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
   testDatasource(): Promise<TestDataSourceResponse> {
     throw new Error("Method not implemented.");
+  }
+
+  private handleQueryResultValuesError(error: unknown): void {
+    const errorDetails = extractErrorInfo((error as Error).message);
+    let detailedMessage = '';
+    try {
+      const parsed = JSON.parse(errorDetails.message);
+      detailedMessage = parsed?.message || errorDetails.message;
+    } catch {
+      detailedMessage = errorDetails.message;
+    }
+    this.error = 'Failed to query result values.';
+    this.innerError = errorDetails.message
+      ? `Some values may not be available in the query builder lookups. Details: ${detailedMessage}`
+      : 'Some values may not be available in the query builder lookups.';
   }
 }
