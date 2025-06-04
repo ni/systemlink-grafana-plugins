@@ -136,6 +136,16 @@ describe('extractErrorInfo', () => {
     expect(result.statusCode).toBe('404');
     expect(result.message).toBe('Not Found');
   });
+
+  test('extractErrorInfo extracts inner message from JSON', () => {
+    const errorMessage =
+      'Request failed with status code: 500, url "https://example.com/api", Error message: {"message": "Internal Server Error"}';
+    const result = extractErrorInfo(errorMessage);
+  
+    expect(result.url).toBe('https://example.com/api');
+    expect(result.statusCode).toBe('500');
+    expect(result.message).toBe('Internal Server Error');
+  });
   
   test('extractErrorInfo returns empty strings if no matches', () => {
     const errorMessage = 'Some unrelated error text';

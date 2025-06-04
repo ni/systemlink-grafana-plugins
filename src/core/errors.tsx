@@ -54,7 +54,16 @@ export const extractErrorInfo = (errorMessage: string): { url: string; statusCod
 
   const url = urlMatch ? urlMatch[1] : '';
   const statusCode = statusCodeMatch ? statusCodeMatch[1] : '';
-  const message = messageMatch ? messageMatch[1] : '';
+  //Try to parse the inner message from the error message
+  let message = '';
+  if (messageMatch) {
+    try {
+      const parsed = JSON.parse(messageMatch[1]);
+      message = parsed?.message || messageMatch[1];
+    } catch {
+      message = messageMatch[1];
+    }
+  }
 
   return {
     url,
