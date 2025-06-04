@@ -40,6 +40,5 @@ export const defaultStepsQuery = {
   partNumberQuery: [],
   resultsQuery: '',
   stepsQuery: '',
-  isOnlyProgramNameFilter: false,
 };
 
