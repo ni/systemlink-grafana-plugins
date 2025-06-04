@@ -162,9 +162,5 @@ export const WorkOrdersQueryBuilderStaticFields = [
     WorkOrdersQueryBuilderFields.EARLIEST_START_DATE,
     WorkOrdersQueryBuilderFields.DUE_DATE,
     WorkOrdersQueryBuilderFields.CREATED_AT,
-    WorkOrdersQueryBuilderFields.UPDATED_AT,
-    WorkOrdersQueryBuilderFields.ASSIGNED_TO,
-    WorkOrdersQueryBuilderFields.REQUESTED_BY,
-    WorkOrdersQueryBuilderFields.CREATED_BY,
-    WorkOrdersQueryBuilderFields.UPDATED_BY
+    WorkOrdersQueryBuilderFields.UPDATED_AT
 ];

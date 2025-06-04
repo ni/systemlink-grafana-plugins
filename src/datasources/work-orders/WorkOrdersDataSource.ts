@@ -2,8 +2,10 @@ import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, 
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse } from './types';
+import { Users } from 'shared/Users';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
+  readonly usersObj = new Users(this.instanceSettings, this.backendSrv)
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
@@ -57,17 +59,26 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       query.descending
     );
 
-    const mappedFields = query.properties?.map(property => {
+    const mappedFields = await Promise.all(query.properties?.map(async property => {
       const field = WorkOrderProperties[property];
       const fieldType = this.isTimeField(field.value) ? FieldType.time : FieldType.string;
       const fieldName = field.label;
 
-      // TODO: Add mapping for other field types
-      const fieldValue = workOrders.map(data => data[field.field as unknown as keyof WorkOrder]);
-
-      return { name: fieldName, values: fieldValue, type: fieldType };
-    });
-
+      const fieldValues = await Promise.all(workOrders.map(async workOrder => {
+          // TODO: Add mapping for other field types
+          switch (field.value) {
+            case WorkOrderPropertiesOptions.ASSIGNED_TO:
+            case WorkOrderPropertiesOptions.CREATED_BY:
+            case WorkOrderPropertiesOptions.REQUESTED_BY:
+            case WorkOrderPropertiesOptions.UPDATED_BY:
+              return await this.getUserName(workOrder[field.field] as string).then(name => name || workOrder[field.field] || '');
+            default:
+              return workOrder[field.field] ?? '';
+          }
+        })
+      )
+      return { name: fieldName, values: fieldValues, type: fieldType };
+    }) ?? [])
     return {
       refId: query.refId,
       name: query.refId,
@@ -130,5 +141,15 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   
     return timeFields.includes(field);
   }
+
+  private async getUserName(userId: string): Promise<string> {
+    if (!userId) {
+      return '';
+    }
+    const usersMap = await this.usersObj.usersMapCache;
+    const userName = usersMap.get(userId);
+    return userName ?? userId;
+  }
+
 }
 
