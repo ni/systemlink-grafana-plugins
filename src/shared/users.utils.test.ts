@@ -1,4 +1,4 @@
-import { Users } from './Users';
+import { UsersUtils } from './users.utils';
 import { BackendSrv } from '@grafana/runtime';
 import { DataSourceInstanceSettings } from '@grafana/data';
 import { QUERY_USERS_MAX_TAKE, QUERY_USERS_REQUEST_PER_SECOND } from './constants/Users.constants';
@@ -42,10 +42,10 @@ const mockInstanceSettings: DataSourceInstanceSettings = {
 } as DataSourceInstanceSettings;
 
 describe('Users', () => {
-  let users: Users;
+  let users: UsersUtils;
 
   beforeEach(() => {
-    users = new Users(mockInstanceSettings, mockBackendSrv);
+    users = new UsersUtils(mockInstanceSettings, mockBackendSrv);
   });
 
   describe('users', () => {
@@ -89,14 +89,14 @@ describe('Users', () => {
 
   describe('getUserFullName', () => {
     it('should return the full name of a user', () => {
-      const fullName = Users.getUserFullName(mockUsers[0]);
+      const fullName = UsersUtils.getUserFullName(mockUsers[0]);
       expect(fullName).toBe('John Doe');
     });
   });
 
   describe('getUserNameAndEmail', () => {
     it('should return the full name and email of a user', () => {
-      const result = Users.getUserNameAndEmail(mockUsers[0]);
+      const result = UsersUtils.getUserNameAndEmail(mockUsers[0]);
       expect(result).toBe('John Doe (john.doe@example.com)');
     });
   });

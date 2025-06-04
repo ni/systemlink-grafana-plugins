@@ -8,7 +8,7 @@ import { QUERY_USERS_MAX_TAKE, QUERY_USERS_REQUEST_PER_SECOND } from './constant
 /**
  * Represents a utility class for managing and querying user data.
  */
-export class Users {
+export class UsersUtils {
   /**
    * A cached promise that resolves to an array of users.
    * This cache is used to avoid redundant user data fetches.
@@ -21,16 +21,16 @@ export class Users {
    * If the cache is not initialized, it triggers the loading of users.
    */
   public get users(): Promise<User[]> {
-    if (!Users._users) {
-      Users._users = this.queryUsersInBatches()
+    if (!UsersUtils._users) {
+      UsersUtils._users = this.queryUsersInBatches()
         .then(response => response.users)
         .catch(error => {
           console.error('An error occurred while querying users:', error);
-          Users._users = null; // Reset the cache on error
+          UsersUtils._users = null; // Reset the cache on error
           return [];
         });
     }
-    return Users._users;
+    return UsersUtils._users;
   }
 
   /**
@@ -41,7 +41,7 @@ export class Users {
     return this.users.then(users => {
       const userMap = new Map<string, string>();
       users.forEach(user => {
-        const fullName = Users.getUserFullName(user);
+        const fullName = UsersUtils.getUserFullName(user);
         userMap.set(user.id, fullName);
       });
       return userMap;
