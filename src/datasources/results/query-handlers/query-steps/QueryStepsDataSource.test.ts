@@ -1069,7 +1069,7 @@ describe('QueryStepsDataSource', () => {
             totalCount: 2
           } as QueryStepsResponse));
 
-        const query = { queryByResults: 'PartNumber = "partNumber1"', stepsTake: 1000 } as StepsVariableQuery;
+        const query = { queryByResults: 'PartNumber = "partNumber1"', stepsTake: 1000, partNumberQueryInSteps: ['partnumber1'] } as StepsVariableQuery;
         const result = await datastore.metricFindQuery(query);
 
         expect(result).toEqual([
@@ -1085,7 +1085,7 @@ describe('QueryStepsDataSource', () => {
             totalCount: 0
           } as QueryStepsResponse));
 
-        const query = { queryByResults: 'PartNumber = "partNumber1"', stepsTake: 1000 } as StepsVariableQuery;
+        const query = { queryByResults: 'PartNumber = "partNumber1"', stepsTake: 1000, partNumberQueryInSteps: ['partnumber1'] } as StepsVariableQuery;
         const result = await datastore.metricFindQuery(query);
 
         expect(result).toEqual([]);
@@ -1096,7 +1096,7 @@ describe('QueryStepsDataSource', () => {
         backendServer.fetch.mockImplementationOnce(() => { throw error; });
         jest.spyOn(console, 'error').mockImplementation(() => {});
 
-        const query = { queryByResults: 'PartNumber = "partNumber1"', stepsTake: 1000 } as StepsVariableQuery;
+        const query = { queryByResults: 'PartNumber = "partNumber1"', stepsTake: 1000, partNumberQueryInSteps: ['partnumber1'] } as StepsVariableQuery;
         const result = await datastore.metricFindQuery(query);
 
         expect(result).toEqual([]);
@@ -1112,11 +1112,11 @@ describe('QueryStepsDataSource', () => {
           totalCount: 1
         } as QueryStepsResponse));
 
-        const query = { queryByResults: resultsQuery, queryBySteps: stepsQuery, stepsTake: 1000 } as StepsVariableQuery;
+        const query = { queryByResults: resultsQuery, queryBySteps: stepsQuery, stepsTake: 1000, partNumberQueryInSteps: ['partnumber1'] } as StepsVariableQuery;
         await datastore.metricFindQuery(query, { scopedVars: { var: { value: 'replaced' } } } as any);
 
         expect(templateSrv.replace).toHaveBeenCalledTimes(2);
-        expect(templateSrv.replace.mock.calls[0][0]).toBe(resultsQuery);
+        expect(templateSrv.replace.mock.calls[0][0]).toBe("(PartNumber = \"partnumber1\") && PartNumber = \"${partNumber}\"");
         expect(templateSrv.replace.mock.calls[1][0]).toBe(stepsQuery);
       });
 
