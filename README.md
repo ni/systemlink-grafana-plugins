@@ -21,7 +21,6 @@ Tools](https://grafana.github.io/plugin-tools/).
 - [Assets](src/datasources/asset/)
 - [Products](src/datasources/products/)
 - [Results](src/datasources/results/)
-- [Work orders](src/datasources/work-orders/)
 
 ### Panels
 
