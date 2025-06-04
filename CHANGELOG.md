@@ -1,3 +1,9 @@
+## [3.103.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.103.0...v3.103.1) (2025-06-04)
+
+### Bug Fixes
+
+* **testplans:** record count error message when it is undefined ([#239](https://github.com/ni/systemlink-grafana-plugins/issues/239)) ([d046dbc](https://github.com/ni/systemlink-grafana-plugins/commit/d046dbc371fa9983348fe8de0638bbdbc47d74dd))
+
 ## [3.103.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.102.0...v3.103.0) (2025-06-04)
 
 ### Features
