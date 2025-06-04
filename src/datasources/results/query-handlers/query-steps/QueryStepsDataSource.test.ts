@@ -386,11 +386,12 @@ describe('QueryStepsDataSource', () => {
     });
   });
 
-  it('should not call query-steps when resultsQuery is empty',async () => {
+  it('should not call query-steps when partNumberQuery is empty',async () => {
     const query = buildQuery({
       refId: 'A',
       outputType: OutputType.Data,
       resultsQuery: '',
+      partNumberQuery: []
     });
 
     const response = await datastore.query(query);
@@ -913,12 +914,44 @@ describe('QueryStepsDataSource', () => {
     });
   });
 
+  test('should handle multiple part numbers and query variables', async () => {
+    const resultsQuery = `${ResultsQueryBuilderFieldNames.PROGRAM_NAME} = "{name1,name2}"`;
+    const partNumberQuery = ['PartNumber1', '${var}'];
+
+    const templateSrvCalledWith = '(PartNumber = "PartNumber1" || PartNumber = "${var}") && ProgramName = "{name1,name2}"';
+    const replacedPartNumberQuery = '(PartNumber = "PartNumber1" || PartNumber = "{partNumber2,partNumber3}") && ProgramName = "{name1,name2}"';
+    templateSrv.replace.calledWith(templateSrvCalledWith).mockReturnValue(replacedPartNumberQuery);
+
+    const query = buildQuery(
+      {
+        refId: 'A',
+        outputType: OutputType.Data,
+        partNumberQuery,
+        resultsQuery
+      },
+    );
+
+    await datastore.query(query);
+
+    expect(templateSrv.replace).toHaveBeenNthCalledWith(
+      1, "(PartNumber = \"PartNumber1\" || PartNumber = \"${var}\") && ProgramName = \"{name1,name2}\"", expect.anything()
+    );
+    expect(backendServer.fetch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: '/nitestmonitor/v2/query-steps',
+        data: expect.objectContaining({
+          resultsFilter: '(PartNumber = \"PartNumber1\" || (PartNumber = \"partNumber2\" || PartNumber = \"partNumber3\")) && (ProgramName = \"name1\" || ProgramName = \"name2\")'
+        }),
+      })
+    );
+  });
+
     describe('query builder queries', () => {
       test('should transform the resultsfilter and stepsfilter contains single query', async () => {
         const query = buildQuery({
           refId: 'A',
           outputType: OutputType.Data,
-          resultsQuery: `${ResultsQueryBuilderFieldNames.PART_NUMBER} = "partNumber1"`,
+          resultsQuery: `${ResultsQueryBuilderFieldNames.PROGRAM_NAME} = "name1"`,
           stepsQuery: `${StepsQueryBuilderFieldNames.TYPE} = "Type1"`
         })
         await datastore.query(query);
@@ -927,7 +960,7 @@ describe('QueryStepsDataSource', () => {
           expect.objectContaining({
             url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({
-              resultsFilter: "PartNumber = \"partNumber1\"",
+              resultsFilter: "(PartNumber = \"partNumber1\") && ProgramName = \"name1\"",
               filter: "stepType = \"Type1\""
             }),
           })
@@ -938,7 +971,8 @@ describe('QueryStepsDataSource', () => {
         const query = buildQuery({
           refId: 'A',
           outputType: OutputType.Data,
-          resultsQuery: `${ResultsQueryBuilderFieldNames.PART_NUMBER} = "{partNumber1,partNumber2}"`
+          resultsQuery: `${ResultsQueryBuilderFieldNames.PROGRAM_NAME} = "{name1,name2}"`,
+          partNumberQuery: ['partNumber1', 'partNumber2'],
         })
         await datastore.query(query);
 
@@ -946,7 +980,7 @@ describe('QueryStepsDataSource', () => {
           expect.objectContaining({
             url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({
-              resultsFilter: "(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\")",
+              resultsFilter: "(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\") && (ProgramName = \"name1\" || ProgramName = \"name2\")"
             }),
           })
         );
@@ -968,7 +1002,7 @@ describe('QueryStepsDataSource', () => {
           expect.objectContaining({
             url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({
-              resultsFilter: 'UpdatedAt = "2025-01-01T00:00:00.000Z"'
+              resultsFilter: "(PartNumber = \"partNumber1\") && UpdatedAt = \"2025-01-01T00:00:00.000Z\""
             }),
           })
         );
@@ -991,7 +1025,7 @@ describe('QueryStepsDataSource', () => {
           expect.objectContaining({
             url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({
-              resultsFilter:  "(PartNumber = \"123\" || Keywords != \"456\") && HostName contains \"Test\"",
+              resultsFilter:  "(PartNumber = \"partNumber1\") && (PartNumber = \"123\" || Keywords != \"456\") && HostName contains \"Test\"",
               filter: "(stepType = \"123\" || keywords != \"456\") && name contains \"Test\""
             }),
           })
@@ -1091,6 +1125,7 @@ describe('QueryStepsDataSource', () => {
     refId: 'A',
     queryType: QueryType.Steps,
     outputType: OutputType.Data,
-    resultsQuery: 'PartNumber = "partNumber1"'
+    resultsQuery: 'ProgramName = "name1"',
+    partNumberQuery: ['partNumber1'],
   });
 });
