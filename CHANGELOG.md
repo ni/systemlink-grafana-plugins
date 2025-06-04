@@ -1,3 +1,9 @@
+## [3.103.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.102.0...v3.103.0) (2025-06-04)
+
+### Features
+
+* **results:** Remove partnumber field from results query builder ([#236](https://github.com/ni/systemlink-grafana-plugins/issues/236)) ([f729e48](https://github.com/ni/systemlink-grafana-plugins/commit/f729e48b32a6fb59d0c4818828c6eb4d184d1a88))
+
 ## [3.102.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.101.0...v3.102.0) (2025-06-04)
 
 ### Features
