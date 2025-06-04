@@ -136,7 +136,6 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
               <ResultsQueryBuilder
                 filter={query.queryBy}
                 workspaces={workspaces}
-                partNumbers={partNumbers}
                 status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
                 globalVariableOptions={datasource.globalVariableOptions()}
                 onChange={(event: any) => onParameterChange(event.detail.linq)}>
