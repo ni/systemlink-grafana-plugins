@@ -9,6 +9,7 @@ export interface QueryResults extends ResultsQuery {
   useTimeRangeFor?: string;
   recordCount?: number;
   queryBy?: string;
+  partNumberQuery?: string[];
 }
 
 export interface ResultsVariableQuery extends ResultsQuery {
