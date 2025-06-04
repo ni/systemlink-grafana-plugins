@@ -135,12 +135,12 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
             }}
           />
         </div>
-        <InlineField label="Product name" labelWidth={26} tooltip={tooltips.productName}>
+        <InlineField label="Product (part number)" labelWidth={26} tooltip={tooltips.productName}>
           <MultiSelect
             maxVisibleValues={5}
             width={65}
             onChange={onProductNameChange}
-            placeholder='Select part numbers to query'
+            placeholder='Select part numbers to use in a query'
             noMultiValueWrap={true}
             closeMenuOnSelect={false}
             value={query.partNumberQuery}
