@@ -1,7 +1,10 @@
-import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, TestDataSourceResponse } from '@grafana/data';
+import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, TestDataSourceResponse, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse } from './types';
+import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
+import { QueryBuilderOption, QueryResponse } from 'core/types';
+import { getVariableOptions, queryInBatches } from 'core/utils';
+import { QUERY_WORK_ORDERS_MAX_TAKE, QUERY_WORK_ORDERS_REQUEST_PER_SECOND } from './constants/QueryWorkOrders.constants';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
@@ -31,6 +34,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     take: 1000,
   };
 
+  readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
+
   async runQuery(query: WorkOrdersQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     if (query.outputType === OutputType.Properties) {
       return this.processWorkOrdersQuery(query);
@@ -48,13 +53,25 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     return true;
   }
 
+  async metricFindQuery(query: WorkOrdersVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    const metadata = (await this.queryWorkordersData(
+      query.queryBy,
+      [WorkOrderPropertiesOptions.ID, WorkOrderPropertiesOptions.NAME],
+      query.orderBy,
+      query.descending,
+      query.take
+    ));
+
+    return metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.id})`, value: frame.id })) : [];
+  }
+
   async processWorkOrdersQuery(query: WorkOrdersQuery): Promise<DataFrameDTO> {
     const workOrders: WorkOrder[] = await this.queryWorkordersData(
       query.queryBy,
       query.properties,
       query.orderBy,
-      query.take,
-      query.descending
+      query.descending,
+      query.take
     );
 
     const mappedFields = query.properties?.map(property => {
@@ -63,7 +80,15 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       const fieldName = field.label;
 
       // TODO: Add mapping for other field types
-      const fieldValue = workOrders.map(data => data[field.field as unknown as keyof WorkOrder]);
+      const fieldValue = workOrders.map(workOrder => {
+        switch (field.value) {
+          case WorkOrderPropertiesOptions.PROPERTIES:
+            const properties = workOrder.properties || {};
+            return JSON.stringify(properties);
+          default:
+            return workOrder[field.field] ?? '';
+        }
+      });
 
       return { name: fieldName, values: fieldValue, type: fieldType };
     });
@@ -79,20 +104,35 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     filter?: string,
     projection?: string[],
     orderBy?: string,
-    take?: number,
-    descending?: boolean
+    descending?: boolean,
+    take?: number
   ): Promise<WorkOrder[]> {
-    const body = {
-      filter,
-      projection,
-      orderBy,
-      take,
-      descending,
+    const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<WorkOrder>> => {
+      const body = {
+        filter,
+        projection,
+        orderBy,
+        descending,
+        take: currentTake,
+        continationToken: token,
+        returnCount: true,
+      };
+      const response = await this.queryWorkOrders(body);
+
+      return {
+        data: response.workOrders,
+        continuationToken: response.continuationToken,
+        totalCount: response.totalCount,
+      };
     };
 
-    // TODO: query work orders in batches
-    const response = await this.queryWorkOrders(body);
-    return response.workOrders;
+    const batchQueryConfig = {
+      maxTakePerRequest: QUERY_WORK_ORDERS_MAX_TAKE,
+      requestsPerSecond: QUERY_WORK_ORDERS_REQUEST_PER_SECOND,
+    };
+    const response = await queryInBatches(queryRecord, batchQueryConfig, take);
+
+    return response.data;
   }
 
   async queryWorkordersCount(filter = ''): Promise<number> {
@@ -127,7 +167,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       WorkOrderPropertiesOptions.EARLIEST_START_DATE,
       WorkOrderPropertiesOptions.DUE_DATE,
     ];
-  
+
     return timeFields.includes(field);
   }
 }
