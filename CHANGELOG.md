@@ -1,3 +1,21 @@
+## [3.98.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.97.0...v3.98.0) (2025-06-03)
+
+### Features
+
+* **workorders:** Add support for take ([#212](https://github.com/ni/systemlink-grafana-plugins/issues/212)) ([77a077c](https://github.com/ni/systemlink-grafana-plugins/commit/77a077c5e51e93db6623875d721bdab3f2021668))
+
+## [3.97.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.96.0...v3.97.0) (2025-06-02)
+
+### Features
+
+* **workorders:** Add workorders variable query editor ([#231](https://github.com/ni/systemlink-grafana-plugins/issues/231)) ([302c2b9](https://github.com/ni/systemlink-grafana-plugins/commit/302c2b92d1631a41a41b20e621ac8b33ddfdfb66))
+
+## [3.96.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.95.0...v3.96.0) (2025-06-02)
+
+### Features
+
+* **workorders:** Add support for key value operations and global variables ([#229](https://github.com/ni/systemlink-grafana-plugins/issues/229)) ([165f62a](https://github.com/ni/systemlink-grafana-plugins/commit/165f62ab6fd112ff292f58e7da4f986c04c7f373))
+
 ## [3.95.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.94.0...v3.95.0) (2025-05-30)
 
 ### Features
