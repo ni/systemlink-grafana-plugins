@@ -21,7 +21,7 @@ export class AssetUtils {
 
         while (ids.length > 0) {
             const start = Date.now();
-            const promises: Promise<void>[] = [];
+            const promises: Array<Promise<void>> = [];
 
             for (let i = 0; i < QUERY_ASSETS_REQUEST_PER_SECOND && ids.length > 0; i++) {
                 const idsToQuery = ids.splice(0, QUERY_ASSETS_BATCH_SIZE);
