@@ -77,7 +77,6 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     } catch (error) {
       const errorDetails = extractErrorInfo((error as Error).message);
       let errorMessage: string;
-
       if (!errorDetails.statusCode) {
         errorMessage = 'The query failed due to an unknown error.';
       } else {
