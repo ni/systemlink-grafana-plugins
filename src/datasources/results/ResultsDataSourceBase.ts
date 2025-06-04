@@ -149,9 +149,9 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     } catch {
       detailedMessage = errorDetails.message;
     }
-    this.error = 'Failed to query result values.';
+    this.error = 'Warning during result value query';
     this.innerError = errorDetails.message
-      ? `Some values may not be available in the query builder lookups. Details: ${detailedMessage}`
-      : 'Some values may not be available in the query builder lookups.';
+      ? `Some values may not be available in the query builder lookups due to the following error:${detailedMessage}.`
+      : 'Some values may not be available in the query builder lookups due to an unknown error.';
   }
 }

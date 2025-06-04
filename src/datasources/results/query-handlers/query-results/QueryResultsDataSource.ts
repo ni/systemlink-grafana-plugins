@@ -35,21 +35,14 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       let errorMessage: string;
 
       if (!errorDetails.statusCode) {
-        errorMessage = 'Failed to query results due to an unknown error.';
+        errorMessage = 'The query failed due to an unknown error.';
       } else {
-        let detailedMessage = '';
-        try {
-          const parsed = JSON.parse(errorDetails.message);
-          detailedMessage = parsed?.message || errorDetails.message;
-        } catch {
-          detailedMessage = errorDetails.message;
-        }
-        errorMessage = `Failed to query results (status ${errorDetails.statusCode}): ${detailedMessage}`;
+        errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
       }
 
       this.appEvents?.publish?.({
         type: AppEvents.alertError.name,
-        payload: ['Error querying results', errorMessage],
+        payload: ['Error during result query', errorMessage],
       });
 
       throw new Error(errorMessage);

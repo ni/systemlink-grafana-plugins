@@ -51,8 +51,25 @@ describe('QueryResultsDataSource', () => {
 
       await expect(datastore.queryResults())
         .rejects
-        .toThrow('Failed to query results (status 400): \"Error\"');
+        .toThrow('The query failed due to the following error: (status 400) \"Error\"');
     });
+
+    test('should publish alertError event when error occurs', async () => {
+        const publishMock = jest.fn();
+        (datastore as any).appEvents = { publish: publishMock };
+        backendServer.fetch
+          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results' }))
+          .mockReturnValue(createFetchError(400));
+    
+        await expect(datastore.queryResults())
+          .rejects
+          .toThrow('The query failed due to the following error: (status 400) "Error".');
+    
+        expect(publishMock).toHaveBeenCalledWith({
+          type: 'alert-error',
+          payload: ['Error during result query', expect.stringContaining('The query failed due to the following error: (status 400) "Error".')],
+        });
+      });
   });
 
   describe('query', () => {
@@ -113,7 +130,7 @@ describe('QueryResultsDataSource', () => {
 
         await expect(datastore.query(query))
         .rejects
-        .toThrow('Failed to query results (status 400): \"Error\"');
+        .toThrow('The query failed due to the following error: (status 400) \"Error\"');
     });
 
     test('should convert properties to Grafana fields', async () => {
@@ -253,8 +270,8 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.getPartNumbers();
 
-      expect(datastore.error).toBe('Failed to query result values.');
-      expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups.');
+      expect(datastore.error).toBe('Warning during result value query');
+      expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
     });
 
     it('should handle errors in getWorkspaces', async () => {
@@ -264,8 +281,8 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.loadWorkspaces();
 
-      expect(datastore.error).toBe('Failed to query result values.');
-      expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups.');
+      expect(datastore.error).toBe('Warning during result value query');
+      expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
     });
 
     it('should contain error details when error contains additional information', async () => {
@@ -275,8 +292,8 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.loadWorkspaces();
 
-      expect(datastore.error).toBe('Failed to query result values.');
-      expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups. Details: Detailed error message');
+      expect(datastore.error).toBe('Warning during result value query');
+      expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
     });
   });
   
