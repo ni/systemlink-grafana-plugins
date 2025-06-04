@@ -1,28 +1,11 @@
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { QBField } from 'core/types';
-
-export enum WorkOrdersQueryBuilderFieldNames {
-  Name = 'name',
-  Description = 'description',
-  WorkOrderID = 'id',
-  State = 'state',
-  Type = 'type',
-  Workspace = 'workspace',
-  EarliestStartDate = 'earliestStartDate',
-  DueDate = 'dueDate',
-  CreatedAt = 'createdAt',
-  UpdatedAt = 'updatedAt',
-  AssignedTo = 'assignedTo',
-  RequestedBy = 'requestedBy',
-  CreatedBy = 'createdBy',
-  UpdatedBy = 'updatedBy',
-  Properties = 'properties',
-}
+import { WorkOrdersFieldNames } from '../types';
 
 export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
   NAME: {
     label: 'Name',
-    dataField: WorkOrdersQueryBuilderFieldNames.Name,
+    dataField: WorkOrdersFieldNames.Name,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -32,17 +15,17 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
   },
   DESCRIPTION: {
     label: 'Description',
-    dataField: WorkOrdersQueryBuilderFieldNames.Description,
+    dataField: WorkOrdersFieldNames.Description,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
   },
   WORK_ORDER_ID: {
     label: 'Work order ID',
-    dataField: WorkOrdersQueryBuilderFieldNames.WorkOrderID,
+    dataField: WorkOrdersFieldNames.WorkOrderID,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
   },
   STATE: {
     label: 'State',
-    dataField: WorkOrdersQueryBuilderFieldNames.State,
+    dataField: WorkOrdersFieldNames.State,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
     lookup: {
       dataSource: [
@@ -59,7 +42,7 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
   },
   TYPE: {
     label: 'Type',
-    dataField: WorkOrdersQueryBuilderFieldNames.Type,
+    dataField: WorkOrdersFieldNames.Type,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
     lookup: {
       dataSource: [
@@ -69,12 +52,12 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
   },
   WORKSPACE: {
     label: 'Workspace',
-    dataField: WorkOrdersQueryBuilderFieldNames.Workspace,
+    dataField: WorkOrdersFieldNames.Workspace,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
   },
   EARLIEST_START_DATE: {
     label: 'Earliest start date',
-    dataField: WorkOrdersQueryBuilderFieldNames.EarliestStartDate,
+    dataField: WorkOrdersFieldNames.EarliestStartDate,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -86,7 +69,7 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
   },
   DUE_DATE: {
     label: 'Due date',
-    dataField: WorkOrdersQueryBuilderFieldNames.DueDate,
+    dataField: WorkOrdersFieldNames.DueDate,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -98,7 +81,7 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
   },
   CREATED_AT: {
     label: 'Created',
-    dataField: WorkOrdersQueryBuilderFieldNames.CreatedAt,
+    dataField: WorkOrdersFieldNames.CreatedAt,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -110,7 +93,7 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
   },
   UPDATED_AT: {
     label: 'Updated',
-    dataField: WorkOrdersQueryBuilderFieldNames.UpdatedAt,
+    dataField: WorkOrdersFieldNames.UpdatedAt,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -122,27 +105,27 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
   },
   ASSIGNED_TO: {
     label: 'Assigned to',
-    dataField: WorkOrdersQueryBuilderFieldNames.AssignedTo,
+    dataField: WorkOrdersFieldNames.AssignedTo,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
   },
   REQUESTED_BY: {
     label: 'Requested by',
-    dataField: WorkOrdersQueryBuilderFieldNames.RequestedBy,
+    dataField: WorkOrdersFieldNames.RequestedBy,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
   },
   CREATED_BY: {
     label: 'Created by',
-    dataField: WorkOrdersQueryBuilderFieldNames.CreatedBy,
+    dataField: WorkOrdersFieldNames.CreatedBy,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
   },
   UPDATED_BY: {
     label: 'Updated by',
-    dataField: WorkOrdersQueryBuilderFieldNames.UpdatedBy,
+    dataField: WorkOrdersFieldNames.UpdatedBy,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
   },
   PROPERTIES: {
     label: 'Properties',
-    dataField: WorkOrdersQueryBuilderFieldNames.Properties,
+    dataField: WorkOrdersFieldNames.Properties,
     dataType: 'object',
     filterOperations: [
       QueryBuilderOperations.KEY_VALUE_MATCH.name,

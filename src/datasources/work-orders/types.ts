@@ -39,81 +39,99 @@ export enum WorkOrderPropertiesOptions {
   PROPERTIES = 'PROPERTIES',
 }
 
+export enum WorkOrdersFieldNames {
+  Name = 'name',
+  Description = 'description',
+  WorkOrderID = 'id',
+  State = 'state',
+  Type = 'type',
+  Workspace = 'workspace',
+  EarliestStartDate = 'earliestStartDate',
+  DueDate = 'dueDate',
+  CreatedAt = 'createdAt',
+  UpdatedAt = 'updatedAt',
+  AssignedTo = 'assignedTo',
+  RequestedBy = 'requestedBy',
+  CreatedBy = 'createdBy',
+  UpdatedBy = 'updatedBy',
+  Properties = 'properties',
+}
+
 export const WorkOrderProperties = {
   [WorkOrderPropertiesOptions.ID]: {
     label: 'Work order ID',
     value: WorkOrderPropertiesOptions.ID,
-    field: 'id',
+    field: WorkOrdersFieldNames.WorkOrderID,
   },
   [WorkOrderPropertiesOptions.NAME]: {
     label: 'Work order name',
     value: WorkOrderPropertiesOptions.NAME,
-    field: 'name',
+    field: WorkOrdersFieldNames.Name,
   },
   [WorkOrderPropertiesOptions.TYPE]: {
     label: 'Work order type',
     value: WorkOrderPropertiesOptions.TYPE,
-    field: 'type',
+    field: WorkOrdersFieldNames.Type,
   },
   [WorkOrderPropertiesOptions.STATE]: {
     label: 'State',
     value: WorkOrderPropertiesOptions.STATE,
-    field: 'state',
+    field: WorkOrdersFieldNames.State,
   },
   [WorkOrderPropertiesOptions.REQUESTED_BY]: {
     label: 'Requested by',
     value: WorkOrderPropertiesOptions.REQUESTED_BY,
-    field: 'requestedBy',
+    field: WorkOrdersFieldNames.RequestedBy,
   },
   [WorkOrderPropertiesOptions.ASSIGNED_TO]: {
     label: 'Assigned to',
     value: WorkOrderPropertiesOptions.ASSIGNED_TO,
-    field: 'assignedTo',
+    field: WorkOrdersFieldNames.AssignedTo,
   },
   [WorkOrderPropertiesOptions.CREATED_AT]: {
     label: 'Created at',
     value: WorkOrderPropertiesOptions.CREATED_AT,
-    field: 'createdAt',
+    field: WorkOrdersFieldNames.CreatedAt,
   },
   [WorkOrderPropertiesOptions.UPDATED_AT]: {
     label: 'Updated at',
     value: WorkOrderPropertiesOptions.UPDATED_AT,
-    field: 'updatedAt',
+    field: WorkOrdersFieldNames.UpdatedAt,
   },
   [WorkOrderPropertiesOptions.CREATED_BY]: {
     label: 'Created by',
     value: WorkOrderPropertiesOptions.CREATED_BY,
-    field: 'createdBy',
+    field: WorkOrdersFieldNames.CreatedBy,
   },
   [WorkOrderPropertiesOptions.UPDATED_BY]: {
     label: 'Updated by',
     value: WorkOrderPropertiesOptions.UPDATED_BY,
-    field: 'updatedBy',
+    field: WorkOrdersFieldNames.UpdatedBy,
   },
   [WorkOrderPropertiesOptions.DESCRIPTION]: {
     label: 'Description',
     value: WorkOrderPropertiesOptions.DESCRIPTION,
-    field: 'description',
+    field: WorkOrdersFieldNames.Description,
   },
   [WorkOrderPropertiesOptions.EARLIEST_START_DATE]: {
     label: 'Earliest start date',
     value: WorkOrderPropertiesOptions.EARLIEST_START_DATE,
-    field: 'earliestStartDate',
+    field: WorkOrdersFieldNames.EarliestStartDate,
   },
   [WorkOrderPropertiesOptions.DUE_DATE]: {
     label: 'Due date',
     value: WorkOrderPropertiesOptions.DUE_DATE,
-    field: 'dueDate',
+    field: WorkOrdersFieldNames.DueDate,
   },
   [WorkOrderPropertiesOptions.WORKSPACE]: {
     label: 'Workspace',
     value: WorkOrderPropertiesOptions.WORKSPACE,
-    field: 'workspace',
+    field: WorkOrdersFieldNames.Workspace,
   },
   [WorkOrderPropertiesOptions.PROPERTIES]: {
     label: 'Properties',
     value: WorkOrderPropertiesOptions.PROPERTIES,
-    field: 'properties',
+    field: WorkOrdersFieldNames.Properties,
   },
 } as const;
 
