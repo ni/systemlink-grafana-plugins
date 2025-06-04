@@ -1,3 +1,9 @@
+## [3.99.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.98.0...v3.99.0) (2025-06-04)
+
+### Features
+
+* **results:** Add product multiselect field in results query editor ([#230](https://github.com/ni/systemlink-grafana-plugins/issues/230)) ([d63e4cc](https://github.com/ni/systemlink-grafana-plugins/commit/d63e4cca57b6ae561f93c36246da62f5bae85810))
+
 ## [3.98.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.97.0...v3.98.0) (2025-06-03)
 
 ### Features
