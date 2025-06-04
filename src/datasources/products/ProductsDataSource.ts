@@ -79,21 +79,14 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       let errorMessage: string;
 
       if (!errorDetails.statusCode) {
-        errorMessage = 'Failed to query products due to an unknown error.';
+        errorMessage = 'The query failed due to an unknown error.';
       } else {
-        let detailedMessage = '';
-        try {
-          const parsed = JSON.parse(errorDetails.message);
-          detailedMessage = parsed?.message || errorDetails.message;
-        } catch {
-          detailedMessage = errorDetails.message;
-        }
-        errorMessage = `Failed to query products (status ${errorDetails.statusCode}): ${detailedMessage}`;
+        errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}`;
       }
 
       this.appEvents?.publish?.({
         type: AppEvents.alertError.name,
-        payload: ['Error querying products', errorMessage],
+        payload: ['Error during product query', errorMessage],
       });
 
       throw new Error(errorMessage);
@@ -286,9 +279,9 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
   private handleQueryProductValuesError(error: unknown): void {
     const errorDetails = extractErrorInfo((error as Error).message);
-    this.error = 'Failed to query product values.';
+    this.error = 'Warning during product value query.';
     this.innerError = errorDetails.message
-      ? `Some values may not be available in the query builder lookups. Details: ${errorDetails.message}`
-      : 'Some values may not be available in the query builder lookups.';
+      ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}`
+      : 'Some values may not be available in the query builder lookups due to an unknown error.';
   }
 }

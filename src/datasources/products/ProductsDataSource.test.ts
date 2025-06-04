@@ -88,7 +88,7 @@ describe('queryProducts', () => {
 
     await expect(datastore.queryProducts())
       .rejects
-      .toThrow('Failed to query products (status 400): "Error"');
+      .toThrow('The query failed due to the following error: (status 400) "Error"');
   });
 
   it('should throw error with unknown error when API returns error without status', async () => {
@@ -98,7 +98,7 @@ describe('queryProducts', () => {
 
     await expect(datastore.queryProducts())
       .rejects
-      .toThrow('Failed to query products due to an unknown error.');
+      .toThrow('The query failed due to an unknown error.');
   });
 
   it('should publish alertError event when error occurs', async () => {
@@ -110,11 +110,11 @@ describe('queryProducts', () => {
 
     await expect(datastore.queryProducts())
       .rejects
-      .toThrow('Failed to query products (status 400): "Error"');
+      .toThrow('The query failed due to the following error: (status 400) "Error"');
 
     expect(publishMock).toHaveBeenCalledWith({
       type: 'alert-error',
-      payload: ['Error querying products', expect.stringContaining('Failed to query products')],
+      payload: ['Error during product query', expect.stringContaining('The query failed due to the following error: (status 400) "Error"')],
     });
   });
 });
@@ -172,8 +172,8 @@ describe('getFamilyNames', () => {
 
     await datastore.getFamilyNames();
 
-    expect(datastore.error).toBe('Failed to query product values.');
-    expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups.');
+    expect(datastore.error).toBe('Warning during product value query.');
+    expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
   });
 
   it('should handle errors and set innerError fields with error message detail', async () => {
@@ -184,8 +184,8 @@ describe('getFamilyNames', () => {
 
     await datastore.getFamilyNames();
 
-    expect(datastore.error).toBe('Failed to query product values.');
-    expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups. Details: \"Error\"');
+    expect(datastore.error).toBe('Warning during product value query.');
+    expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups due to the following error: \"Error\"');
   })
 
 });
@@ -251,7 +251,7 @@ describe('query', () => {
 
     await expect(datastore.query(query))
       .rejects
-      .toThrow('Failed to query products (status 400): \"Error\"');
+      .toThrow('The query failed due to the following error: (status 400) \"Error\"');
   });
 
   it('should convert properties to Grafana fields', async () => {
