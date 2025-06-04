@@ -13,7 +13,7 @@ React.HTMLAttributes<Element> & {
   datasource: QueryStepsDataSource;
   resultsQuery?: string;
   stepsQuery?: string;
-  onResultsQueryChange: (query: CustomEvent) => void;
+  onResultsQueryChange: (query: string) => void;
   onStepsQueryChange: (query: string) => void;
   disableStepsQueryBuilder: boolean;
 }
@@ -35,21 +35,21 @@ export const StepsQueryBuilderWrapper = (
       const workspaces = await datasource.workspacesCache;
       setWorkspaces(Array.from(workspaces.values()));
     };
+    const loadStepsPath = async () => {
+      const stepsPath = datasource.getStepPaths();;
+      setStepsPath(stepsPath);
+      console.log('Steps Path:', stepsPath);
+    };
+    loadStepsPath();
     loadWorkspaces();
-  }, [datasource]);
-
-  useEffect(() => {
-      const currentStepsPath = datasource.stepsPath;
-      setStepsPath(currentStepsPath);
-      console.log('Steps path in editor:', currentStepsPath);
-  }, [datasource.stepsPath]);
+  }, [datasource, datasource.stepsPath]);
   
   return (
     <div>
       <InlineField label="Query by results properties" labelWidth={26} tooltip={tooltips.resultsQueryBuilder}>
         <ResultsQueryBuilder
           filter={resultsQuery}
-          onChange={(event) => onResultsQueryChange(event as CustomEvent)}
+          onChange={(event) => onResultsQueryChange((event as CustomEvent<{ linq: string }>).detail.linq)}
           workspaces={workspaces}
           status={enumToOptions(TestMeasurementStatus).map(option => option.value?.toString() || '')}
           globalVariableOptions={datasource.globalVariableOptions()}>

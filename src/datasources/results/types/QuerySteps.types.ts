@@ -12,7 +12,6 @@ export interface QuerySteps extends ResultsQuery {
   showMeasurements?: boolean;
   resultsQuery?: string;
   stepsQuery?: string;
-  isOnlyProgramNameFilter?: boolean;
 }
 
 export const OrderBy = [

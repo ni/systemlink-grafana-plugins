@@ -27,8 +27,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
   defaultQuery = defaultStepsQuery;
 
-  private _stepsPath: string[] = [];
-  private options: DataQueryRequest;
+  stepsPath: Array<string | undefined> = [];
+  private previousResultsQuery: string | undefined;
 
   async querySteps(
     filter?: string,
@@ -161,17 +161,22 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
   
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
-    this.options = options;
     if (!query.partNumberQuery || query.partNumberQuery.length === 0) {
       return {
         refId: query.refId,
         fields: [],
       };
     }
-    const isResultsQueryEmpty = !query.resultsQuery;
     query.resultsQuery = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.resultsQuery);
-    await this.loadStepPath(query.partNumberQuery, options.scopedVars, isResultsQueryEmpty, query.isOnlyProgramNameFilter, query.resultsQuery);
-
+    
+    if( this.previousResultsQuery !== query.resultsQuery) {
+      await this.loadStepPath(query.partNumberQuery, options.scopedVars, query.resultsQuery);
+    }
+    this.previousResultsQuery = query.resultsQuery;
+    
+    const transformStepsQuery = query.stepsQuery
+      ? this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options.scopedVars)
+      : undefined;
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
     query.stepsQuery = this.buildQueryFilter(transformStepsQuery, useTimeRangeFilter);
 
@@ -228,17 +233,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  public get stepsPath(): string[] {
-    return this._stepsPath;
-  }
-  public set stepsPath(paths: string[]) {
-    this._stepsPath = Array.from(new Set(paths.map(String)));
-  }
-
-  private async callStepPathDirectly(transformedResultsQuery?: string): Promise<QueryStepPathsResponse> {
-    return await this.queryStepPathInBatches(transformedResultsQuery, [StepsPathProperties.path], MAX_PATH_TAKE_PER_REQUEST, true)
-  }
-
   private async callResultsValuesAndStePath(
     options: ScopedVars,
     partNumberQuery: string[],
@@ -263,19 +257,18 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   private async loadStepPath(
     partNumberQuery: string[],
     options: ScopedVars,
-    resultsQuery: boolean,
-    isOnlyProgramNameFilter?: boolean,
     transformedResultsQuery?: string
   ) {
-    this._stepsPath = [];
-    let stepPathResponse: QueryStepPathsResponse;
-    if (isOnlyProgramNameFilter || resultsQuery) {
-      stepPathResponse = await this.callStepPathDirectly(transformedResultsQuery);
-    } else {
-      stepPathResponse = await this.callResultsValuesAndStePath(options, partNumberQuery, transformedResultsQuery);
-    }
+    const stepPathResponse = await this.callResultsValuesAndStePath(options, partNumberQuery, transformedResultsQuery);
     this.stepsPath = [...stepPathResponse.paths.map(pathObj => pathObj.path)];
-    console.log('Step paths loaded:', this.stepsPath);
+  }
+
+  getStepPaths(): string[] {
+    console.log('Steps Path in ds:', this.stepsPath);
+    if (this.stepsPath?.length > 0) {
+      return this.stepsPath.filter((name): name is string => name !== undefined);
+    }
+    return [];
   }
 
   private buildResultsQuery(scopedVars: ScopedVars, partNumberQuery: string[], resultsQuery?: string): string {
