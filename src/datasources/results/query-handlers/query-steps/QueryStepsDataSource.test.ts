@@ -894,7 +894,7 @@ describe('QueryStepsDataSource', () => {
   });
 
   describe('load step paths', () => {
-    it('should call loadStepPaths when previousResultsQuery is not equal to query.resultsQuery', async () => {
+    it('should call loadStepPaths when resultsQuery is changed', async () => {
       const query = {
         refId: 'A',
         partNumberQuery: ['PN1'],
@@ -907,7 +907,7 @@ describe('QueryStepsDataSource', () => {
       expect(spy).toHaveBeenCalled();
     });
 
-    it('should not call loadStepPaths when previousResultsQuery is equal to query.resultsQuery', async () => {
+    it('should not call loadStepPaths when resultsQuery is not changed', async () => {
       const query = {
         refId: 'A',
         partNumberQuery: ['PN1'],
