@@ -1,21 +1,20 @@
-import React, { useCallback, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
-import { OrderBy, TestPlansVariableQuery } from '../types';
-import { AutoSizeInput, InlineField, InlineSwitch, Select, VerticalGroup } from '@grafana/ui';
+import { VerticalGroup, InlineField, Select, InlineSwitch, AutoSizeInput } from '@grafana/ui';
+import React, { useCallback, useState } from 'react';
+import { OrderBy, WorkOrdersVariableQuery } from '../types';
+import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
+import { WorkOrdersQueryBuilder } from './query-builder/WorkOrdersQueryBuilder';
+import { TAKE_LIMIT, takeErrorMessages, tooltips } from '../constants/QueryEditor.constants';
 import { validateNumericInput } from 'core/utils';
-import { TestPlansDataSource } from '../TestPlansDataSource';
-import { TestPlansQueryBuilder } from './query-builder/TestPlansQueryBuilder';
-import { recordCountErrorMessages, TAKE_LIMIT } from '../constants/QueryEditor.constants';
 
-type Props = QueryEditorProps<TestPlansDataSource, TestPlansVariableQuery>;
+type Props = QueryEditorProps<WorkOrdersDataSource, WorkOrdersVariableQuery>;
 
-export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Props) {
+export function WorkOrdersVariableQueryEditor({ query, onChange, datasource }: Props) {
   query = datasource.prepareQuery(query);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
 
-
   const handleQueryChange = useCallback(
-    (query: TestPlansVariableQuery): void => {
+    (query: WorkOrdersVariableQuery): void => {
       onChange(query);
     }, [onChange]
   );
@@ -28,22 +27,6 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
     handleQueryChange({ ...query, descending: isDescendingChecked });
   };
 
-  const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
-    const value = parseInt((event.target as HTMLInputElement).value, 10);
-    switch (true) {
-      case isNaN(value) || value < 0:
-        setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
-        break;
-      case value > TAKE_LIMIT:
-        setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTenThousand);
-        break;
-      default:
-        setRecordCountInvalidMessage('');
-        handleQueryChange({ ...query, recordCount: value });
-        break;
-    }
-  };
-
   const onQueryByChange = (queryBy: string) => {
     if (query.queryBy !== queryBy) {
       query.queryBy = queryBy;
@@ -51,14 +34,30 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
     }
   };
 
+  const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
+    const value = parseInt((event.target as HTMLInputElement).value, 10);
+    switch (true) {
+      case isNaN(value) || value < 0:
+        setRecordCountInvalidMessage(takeErrorMessages.greaterOrEqualToZero);
+        break;
+      case value > TAKE_LIMIT:
+        setRecordCountInvalidMessage(takeErrorMessages.lessOrEqualToTenThousand);
+        break;
+      default:
+        setRecordCountInvalidMessage('');
+        handleQueryChange({ ...query, take: value });
+        break;
+    }
+  };
+
   return (
     <VerticalGroup>
       <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
-        <TestPlansQueryBuilder
+        <WorkOrdersQueryBuilder
           filter={query.queryBy}
           globalVariableOptions={[]}
           onChange={(event: any) => onQueryByChange(event.detail.linq)}
-        ></TestPlansQueryBuilder>
+        ></WorkOrdersQueryBuilder>
       </InlineField>
       <div>
         <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
@@ -81,27 +80,22 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
       <InlineField
         label="Take"
         labelWidth={25}
-        tooltip={tooltips.recordCount}
+        tooltip={tooltips.take}
         invalid={!!recordCountInvalidMessage}
         error={recordCountInvalidMessage}
       >
         <AutoSizeInput
           minWidth={26}
           maxWidth={26}
-          type='number'
-          defaultValue={query.recordCount}
-          onCommitChange={recordCountChange}
+          type="number"
+          defaultValue={query.take}
+          onCommitChange={onTakeChange}
           placeholder="Enter record count"
-          onKeyDown={(event) => { validateNumericInput(event) }}
+          onKeyDown={event => {
+            validateNumericInput(event);
+          }}
         />
       </InlineField>
-    </VerticalGroup >
+    </VerticalGroup>
   );
 }
-
-const tooltips = {
-  orderBy: 'This field specifies the query order of the test plans.',
-  descending: 'This toggle returns the test plans query in descending order.',
-  recordCount: 'This field specifies the maximum number of test plans to return.',
-  queryBy: 'This optional field specifies the query filters.'
-};

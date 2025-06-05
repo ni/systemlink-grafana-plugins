@@ -1,6 +1,6 @@
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties, ResultsVariableQuery } from "datasources/results/types/QueryResults.types";
 import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase";
-import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from "@grafana/data";
+import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars } from "@grafana/data";
 import { OutputType } from "datasources/results/types/types";
 import { defaultResultsQuery } from "datasources/results/defaultQueries";
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
@@ -35,13 +35,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   }
 
   async runQuery(query: QueryResults, options: DataQueryRequest): Promise<DataFrameDTO> {
-    if (query.queryBy) {
-      query.queryBy = transformComputedFieldsQuery(
-        this.templateSrv.replace(query.queryBy, options.scopedVars),
-        this.resultsComputedDataFields,
-      );
-    }
-
+    query.queryBy = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.queryBy);
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
 
     const responseData = await this.queryResults(
@@ -90,6 +84,24 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     }
   }
 
+  private buildResultsQuery( scopedVars: ScopedVars, partNumberQuery?: string[], resultsQuery?: string): string | undefined {
+    const partNumberFilter =
+      partNumberQuery && partNumberQuery.length > 0
+        ? `(${this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery)})`
+        : '';
+
+    const combinedQuery = this.buildQueryFilter(partNumberFilter, resultsQuery);
+
+    if (!combinedQuery) {
+      return undefined;
+    }
+
+    return transformComputedFieldsQuery(
+      this.templateSrv.replace(combinedQuery, scopedVars), 
+      this.resultsComputedDataFields
+    );
+  }
+
   /**
    * A map linking each field name to its corresponding query transformation function.
    * It dynamically processes and formats query expressions based on the field type.
@@ -105,10 +117,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
 
   async metricFindQuery(query: ResultsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     if (query.properties !== undefined && this.isTakeValidValid(query.resultsTake!)) {
-      const filter = query.queryBy ? transformComputedFieldsQuery(
-        this.templateSrv.replace(query.queryBy, options?.scopedVars),
-        this.resultsComputedDataFields
-      ) : undefined;
+      const filter = this.buildResultsQuery( options?.scopedVars!, query.partNumberQuery, query.queryBy );
 
       const metadata = (await this.queryResults(
         filter,
