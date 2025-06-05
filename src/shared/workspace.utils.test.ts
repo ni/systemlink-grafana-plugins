@@ -27,7 +27,7 @@ describe('WorkspaceUtils', () => {
     });
 
     it('should load workspaces and cache them', async () => {
-        const result = await workspaceUtils.workspacesCache;
+        const result = await workspaceUtils.getWorkspaces();
 
         expect(backendSrv.get).toHaveBeenCalledWith(`${instanceSettings.url}/niauth/v1/auth`);
         expect(result.size).toBe(2);
@@ -36,10 +36,10 @@ describe('WorkspaceUtils', () => {
     });
 
     it('should return cached workspaces if already loaded', async () => {
-        await workspaceUtils.workspacesCache;
+        await workspaceUtils.getWorkspaces();
         jest.clearAllMocks();
 
-        const result = await workspaceUtils.workspacesCache;
+        const result = await workspaceUtils.getWorkspaces();
 
         expect(backendSrv.get).not.toHaveBeenCalled();
         expect(result.size).toBe(2);
@@ -48,16 +48,15 @@ describe('WorkspaceUtils', () => {
     });
 
     it('should handle errors when loading workspaces', async () => {
-        (WorkspaceUtils as any)['workspacesCache'] = null;
         const error = new Error('API failed');
         backendSrv.get = jest.fn().mockRejectedValue(error);
         jest.spyOn(console, 'error').mockImplementation(() => {});
 
         workspaceUtils = new WorkspaceUtils(instanceSettings, backendSrv);
-        const result = await workspaceUtils.workspacesCache;
+        const result = await workspaceUtils.getWorkspaces();
 
         expect(result.size).toBe(0);
-        expect(console.error).toHaveBeenCalledTimes(1);
+        expect(console.error).toHaveBeenCalledTimes(2);
         expect(console.error).toHaveBeenCalledWith('Error in loading workspaces:', error);
     });
 });

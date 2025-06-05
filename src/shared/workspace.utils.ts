@@ -14,7 +14,7 @@ export class WorkspaceUtils {
         this.loadWorkspaces();
     }
 
-    get workspacesCache(): Promise<Map<string, Workspace>> {
+    async getWorkspaces(): Promise<Map<string, Workspace>> {
         return this._workspacesCache ?? this.loadWorkspaces();
     }
 
@@ -22,24 +22,23 @@ export class WorkspaceUtils {
         if (this._workspacesCache) {
             return this._workspacesCache;
         }
-
-        this._workspacesCache = this.getWorkspaces()
-            .then(workspaces => {
-                const workspaceMap = new Map<string, Workspace>();
-                if (workspaces) {
-                    workspaces.forEach(workspace => workspaceMap.set(workspace.id, workspace));
-                }
-                return workspaceMap;
-            })
-            .catch(error => {
-                console.error('Error in loading workspaces:', error);
-                return new Map<string, Workspace>();
-            });
-
-        return this._workspacesCache;
+        try {
+            const workspaces = await this.fetchWorkspaces();
+            const workspaceMap = new Map<string, Workspace>();
+            if (workspaces) {
+                workspaces.forEach(workspace => workspaceMap.set(workspace.id, workspace));
+            }
+            this._workspacesCache = Promise.resolve(workspaceMap);
+            return workspaceMap;
+        } catch (error) {
+            console.error('Error in loading workspaces:', error);
+            const emptyMap = new Map<string, Workspace>();
+            this._workspacesCache = Promise.resolve(emptyMap);
+            return emptyMap;
+        }
     }
 
-    private async getWorkspaces(): Promise<Workspace[]> {
+    private async fetchWorkspaces(): Promise<Workspace[]> {
         const response = await this.backendSrv.get<{ workspaces: Workspace[] }>(this.queryWorkspacesUrl);
         return response.workspaces;
     }

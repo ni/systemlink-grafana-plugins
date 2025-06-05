@@ -16,7 +16,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
 
   useEffect(() => {
     const loadWorkspaces = async () => {
-      const workspaces = await datasource.workspaceUtils.workspacesCache;
+      const workspaces = await datasource.workspaceUtils.getWorkspaces();
       setWorkspaces(Array.from(workspaces.values()));
     };
 

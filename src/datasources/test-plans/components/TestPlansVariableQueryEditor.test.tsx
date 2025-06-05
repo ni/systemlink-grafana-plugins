@@ -12,7 +12,7 @@ const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: TestPlansVariableQuery) => query),
   workspaceUtils: {
-    workspacesCache: Promise.resolve(
+    getWorkspaces: jest.fn().mockResolvedValue(
       new Map([
         ['1', { id: '1', name: 'WorkspaceName' }],
         ['2', { id: '2', name: 'AnotherWorkspaceName' }],
@@ -35,15 +35,15 @@ describe('TestPlansVariableQueryEditor', () => {
     jest.clearAllMocks();
   });
 
-  function renderElement(query: TestPlansVariableQuery = { refId: 'A' }) {
-    const reactNode = React.createElement(TestPlansVariableQueryEditor, { ...defaultProps, query });
-    return render(reactNode);
+  async function renderElement(query: TestPlansVariableQuery = { refId: 'A' }) {
+    await act(async () => {
+      const reactNode = React.createElement(TestPlansVariableQueryEditor, { ...defaultProps, query });
+      render(reactNode);
+    });
   }
 
   it('should render default query', async () => {
-    await act(async () => {
-      renderElement();
-    });
+    await renderElement();
 
     await waitFor(() => {
       const orderBy = screen.getAllByRole('combobox')[0];
@@ -65,9 +65,7 @@ describe('TestPlansVariableQueryEditor', () => {
   });
 
   it('only allows numbers in Take field', async () => {
-    await act(async () => {
-      renderElement();
-    });
+    await renderElement();
 
     const recordCountInput = screen.getByRole('spinbutton');
 
@@ -87,12 +85,10 @@ describe('TestPlansVariableQueryEditor', () => {
   });
 
   it('should load workspaces and set them in state', async () => {
-    await act(async () => {
-      renderElement();
-    });
+    await renderElement();
 
-    expect(mockDatasource.workspaceUtils.workspacesCache).toBeDefined();
-    await expect(mockDatasource.workspaceUtils.workspacesCache).resolves.toEqual(
+    expect(mockDatasource.workspaceUtils.getWorkspaces()).toBeDefined();
+    await expect(mockDatasource.workspaceUtils.getWorkspaces()).resolves.toEqual(
       new Map([
         ['1', { id: '1', name: 'WorkspaceName' }],
         ['2', { id: '2', name: 'AnotherWorkspaceName' }],
@@ -102,9 +98,7 @@ describe('TestPlansVariableQueryEditor', () => {
 
   describe('onChange', () => {
     it('should call onChange with order by when user selects order by', async () => {
-      await act(async () => {
-        renderElement();
-      });
+      await renderElement();
       const orderBySelect = screen.getAllByRole('combobox')[0];
 
       userEvent.click(orderBySelect);
@@ -116,9 +110,7 @@ describe('TestPlansVariableQueryEditor', () => {
     });
 
     it('should call onChange with descending when user toggles descending', async () => {
-      await act(async () => {
-        renderElement();
-      });
+      await renderElement();
       const descendingCheckbox = screen.getByRole('checkbox');
 
       userEvent.click(descendingCheckbox);
@@ -129,9 +121,7 @@ describe('TestPlansVariableQueryEditor', () => {
     });
 
     it('should call onChange with record count when user enters record count', async () => {
-      await act(async () => {
-        renderElement();
-      });
+      await renderElement();
       const recordCountInput = screen.getByRole('spinbutton');
 
       await userEvent.clear(recordCountInput);
@@ -144,9 +134,7 @@ describe('TestPlansVariableQueryEditor', () => {
     });
 
     it('should call onChange when query by changes', async () => {
-      await act(async () => {
-        renderElement();
-      });
+      await renderElement();
 
       const queryBuilder = screen.getByRole('dialog');
       expect(queryBuilder).toBeInTheDocument();
@@ -161,9 +149,7 @@ describe('TestPlansVariableQueryEditor', () => {
     });
 
     it('should show error message when record count is invalid', async () => {
-      await act(async () => {
-        renderElement();
-      });
+      await renderElement();
       const recordCountInput = screen.getByRole('spinbutton');
 
       await userEvent.clear(recordCountInput);

@@ -24,7 +24,7 @@ const mockVariableQueryTestPlansResponse: QueryTestPlansResponse = {
 jest.mock('shared/workspace.utils', () => {
   return {
     WorkspaceUtils: jest.fn().mockImplementation(() => ({
-      workspacesCache: Promise.resolve(
+      getWorkspaces: jest.fn().mockResolvedValue(
         new Map([
           ['1', { id: '1', name: 'WorkspaceName' }],
           ['2', { id: '2', name: 'AnotherWorkspaceName' }],
