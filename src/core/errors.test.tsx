@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { FetchError } from '@grafana/runtime';
 import { act } from 'react-dom/test-utils';
-import { FloatingError, parseErrorMessage } from './errors';
+import { extractErrorInfo, FloatingError, parseErrorMessage } from './errors';
 import { SystemLinkError } from "./types";
 import React from 'react';
 import { errorCodes } from "../datasources/data-frame/constants";
@@ -125,3 +125,34 @@ test('parses SystemLink error message', () => {
   expect(result).toBe(errorCodes[fetchErrorMock.data.error.code] ?? fetchErrorMock.data.error.message)
 
 })
+
+describe('extractErrorInfo', () => {
+  test('extractErrorInfo extracts url, statusCode, and message correctly', () => {
+    const errorMessage =
+      'Request failed with status code: 404, url "https://example.com/api", Error message: Not Found';
+    const result = extractErrorInfo(errorMessage);
+  
+    expect(result.url).toBe('https://example.com/api');
+    expect(result.statusCode).toBe('404');
+    expect(result.message).toBe('Not Found');
+  });
+
+  test('extractErrorInfo extracts inner message from JSON', () => {
+    const errorMessage =
+      'Request failed with status code: 500, url "https://example.com/api", Error message: {"message": "Internal Server Error"}';
+    const result = extractErrorInfo(errorMessage);
+  
+    expect(result.url).toBe('https://example.com/api');
+    expect(result.statusCode).toBe('500');
+    expect(result.message).toBe('Internal Server Error');
+  });
+  
+  test('extractErrorInfo returns empty strings if no matches', () => {
+    const errorMessage = 'Some unrelated error text';
+    const result = extractErrorInfo(errorMessage);
+  
+    expect(result.url).toBe('');
+    expect(result.statusCode).toBe('');
+    expect(result.message).toBe('');
+  });
+});

@@ -17,6 +17,7 @@ import { TimeRangeControls } from '../time-range/TimeRangeControls';
 import { Workspace } from 'core/types';
 import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
 import { ResultsQueryBuilder } from '../../query-builders/query-results/ResultsQueryBuilder';
+import { FloatingError } from 'core/errors';
 import { TAKE_LIMIT } from 'datasources/test-plans/constants/QueryEditor.constants';
 import { recordCountErrorMessages } from 'datasources/results/constants/ResultsQueryEditor.constants';
 
@@ -200,6 +201,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
         </div>
         </div>
       </VerticalGroup>
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity='warning'/>
     </>
   );
 }

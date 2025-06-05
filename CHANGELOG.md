@@ -1,3 +1,21 @@
+## [3.105.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.104.1...v3.105.0) (2025-06-05)
+
+### Features
+
+* **workorders:** Add support for time fields & Transform the values of global variables ([#232](https://github.com/ni/systemlink-grafana-plugins/issues/232)) ([45c48fb](https://github.com/ni/systemlink-grafana-plugins/commit/45c48fbc611a2473459e53a8f4efcdc3d000d42f))
+
+## [3.104.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.104.0...v3.104.1) (2025-06-05)
+
+### Bug Fixes
+
+* **results:** update error handling for Results query  ([#240](https://github.com/ni/systemlink-grafana-plugins/issues/240)) ([94eff1a](https://github.com/ni/systemlink-grafana-plugins/commit/94eff1a0816aed6bb784c8f38dc5e646519945db))
+
+## [3.104.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.103.1...v3.104.0) (2025-06-05)
+
+### Features
+
+* **products:** Update error handling for products datasource ([#237](https://github.com/ni/systemlink-grafana-plugins/issues/237)) ([fed043d](https://github.com/ni/systemlink-grafana-plugins/commit/fed043def7090f749ac44eab498a87523e597433))
+
 ## [3.103.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.103.0...v3.103.1) (2025-06-04)
 
 ### Bug Fixes

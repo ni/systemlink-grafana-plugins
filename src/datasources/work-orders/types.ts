@@ -39,7 +39,11 @@ export enum WorkOrderPropertiesOptions {
   PROPERTIES = 'PROPERTIES',
 }
 
-export const WorkOrderProperties = {
+export const WorkOrderProperties: Record<WorkOrderPropertiesOptions, {
+  label: string;
+  value: WorkOrderPropertiesOptions;
+  field: keyof WorkOrder;
+}> = {
   [WorkOrderPropertiesOptions.ID]: {
     label: 'Work order ID',
     value: WorkOrderPropertiesOptions.ID,
