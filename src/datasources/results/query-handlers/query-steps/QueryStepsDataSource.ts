@@ -1,4 +1,4 @@
-import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents } from '@grafana/data';
+import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, AppEvents } from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
   QueryStepPathsResponse,
@@ -91,8 +91,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
       return response;
     } catch (error) {
-      if (!this.error) {
-        this.handleQueryResultValuesError(error, 'step paths');
+      if (!this.errorTitle) {
+        this.handleQueryValuesError(error, 'step paths');
       }
       const errorDetails = extractErrorInfo((error as Error).message);
       // Throw an error to stop the batch query process
@@ -179,25 +179,27 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
   
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
-    if (!query.resultsQuery) {
+    if (!query.partNumberQuery || query.partNumberQuery.length === 0) {
       return {
         refId: query.refId,
         fields: [],
       };
     }
+    query.resultsQuery = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.resultsQuery);
 
-    query.stepsQuery = this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options);
-    query.resultsQuery = this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options) || '';
-
+    const transformStepsQuery = query.stepsQuery
+      ? this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options.scopedVars)
+      : undefined;
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
-    const stepsQuery = this.buildQueryFilter(query.stepsQuery, useTimeRangeFilter);
+    query.stepsQuery = this.buildQueryFilter(transformStepsQuery, useTimeRangeFilter);
+
     const projection = query.showMeasurements
       ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
       : query.properties;
 
     if (query.outputType === OutputType.Data) {
       const responseData = await this.queryStepsInBatches(
-        stepsQuery,
+        query.stepsQuery,
         query.orderBy,
         projection as StepsProperties[],
         query.recordCount,
@@ -227,7 +229,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       };
     } else {
       const responseData = await this.querySteps(
-        stepsQuery,
+        query.stepsQuery,
         undefined,
         undefined,
         undefined,
@@ -242,6 +244,12 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         fields: [{ name: 'Total count', values: [responseData.totalCount] }],
       };
     }
+  }
+
+  private buildResultsQuery(scopedVars: ScopedVars, partNumberQuery: string[], resultsQuery?: string): string {
+    const partNumberFilter = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery);
+    const combinedResultsQuery = this.buildQueryFilter(`(${partNumberFilter})`, resultsQuery);
+    return this.transformQuery(combinedResultsQuery, this.resultsComputedDataFields, scopedVars)!;
   }
 
   private processFields(
@@ -329,24 +337,21 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
    * Transforms a query by applying the appropriate transformation functions to its fields.
    * @param queryField - The query string to be transformed
    * @param computedDataFields - A map of fields and their corresponding transformation functions.
-   * @param options - The data query request options, which include scoped variables for template replacement.
+   * @param scopedVars - The scoped variables for template replacement.
    * @returns - The transformed query string, or undefined if the input queryField is undefined.
    */
-  private transformQuery(queryField: string | undefined, computedDataFields: Map<string, ExpressionTransformFunction>, options: DataQueryRequest): string | undefined {
+  private transformQuery(queryField: string | undefined, computedDataFields: Map<string, ExpressionTransformFunction>, scopedVars: ScopedVars): string | undefined {
     return queryField
       ? transformComputedFieldsQuery(
-        this.templateSrv.replace(queryField, options.scopedVars),
+        this.templateSrv.replace(queryField, scopedVars),
         computedDataFields
       )
       : undefined;
   }
 
   async metricFindQuery(query: StepsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    if (query.queryByResults !== undefined && this.isTakeValid(query.stepsTake!)) {
-      const resultsQuery = query.queryByResults ? transformComputedFieldsQuery(
-        this.templateSrv.replace(query.queryByResults, options?.scopedVars),
-        this.resultsComputedDataFields
-      ) : undefined;
+    if (query.partNumberQueryInSteps !== undefined && query.partNumberQueryInSteps.length > 0 && this.isTakeValid(query.stepsTake!)) {
+      const resultsQuery = this.buildResultsQuery(options?.scopedVars!, query.partNumberQueryInSteps, query.queryByResults);
 
       const stepsQuery = query.queryBySteps ? transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBySteps, options?.scopedVars),

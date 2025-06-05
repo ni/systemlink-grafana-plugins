@@ -138,7 +138,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
           </div>
         </VerticalGroup>
       </HorizontalGroup>
-      <FloatingError message={datasource.error} innerMessage={datasource.innerError} severity="warning" />
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
     </>
   );
 }
