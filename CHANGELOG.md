@@ -1,3 +1,9 @@
+## [3.104.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.104.0...v3.104.1) (2025-06-05)
+
+### Bug Fixes
+
+* **results:** update error handling for Results query  ([#240](https://github.com/ni/systemlink-grafana-plugins/issues/240)) ([94eff1a](https://github.com/ni/systemlink-grafana-plugins/commit/94eff1a0816aed6bb784c8f38dc5e646519945db))
+
 ## [3.104.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.103.1...v3.104.0) (2025-06-05)
 
 ### Features
