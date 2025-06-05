@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, RenderResult, waitFor } from '@testing-library/react';
+import { act, render, waitFor } from '@testing-library/react';
 import { TestPlansVariableQueryEditor } from './TestPlansVariableQueryEditor';
 import { QueryEditorProps } from '@grafana/data';
 import { TestPlansDataSource } from '../TestPlansDataSource';
