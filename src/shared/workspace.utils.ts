@@ -15,7 +15,7 @@ export class WorkspaceUtils {
     }
 
     async getWorkspaces(): Promise<Map<string, Workspace>> {
-        return this._workspacesCache ?? this.loadWorkspaces();
+        return this._workspacesCache ?? await this.loadWorkspaces();
     }
 
     private async loadWorkspaces(): Promise<Map<string, Workspace>> {
