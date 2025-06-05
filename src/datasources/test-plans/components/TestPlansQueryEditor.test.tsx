@@ -211,7 +211,7 @@ describe('TestPlansQueryEditor', () => {
         await renderElement();
         const result = await mockDatasource.systemUtils.getSystemAliases();
         expect(result).toBeDefined();
-        expect(result).resolves.toEqual(
+        expect(result).toEqual(
             new Map([
                 ['1', { id: '1', alias: 'System 1' }],
                 ['2', { id: '2', alias: 'System 2' }],
