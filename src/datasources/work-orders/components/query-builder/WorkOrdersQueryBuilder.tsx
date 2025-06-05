@@ -1,10 +1,11 @@
-import { SlQueryBuilder } from "core/components/SlQueryBuilder/SlQueryBuilder";
-import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder.constants";
-import { expressionBuilderCallback, expressionReaderCallback } from "core/query-builder.utils";
-import { QBField, QueryBuilderOption } from "core/types";
-import { WorkOrdersQueryBuilderStaticFields } from "datasources/work-orders/constants/WorkOrdersQueryBuilder.constants";
-import React, { useState, useEffect } from "react";
-import { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
+import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
+import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
+import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
+import { QBField, QueryBuilderOption } from 'core/types';
+import { filterXSSField } from 'core/utils';
+import { WorkOrdersQueryBuilderStaticFields } from 'datasources/work-orders/constants/WorkOrdersQueryBuilder.constants';
+import React, { useState, useEffect } from 'react';
+import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 
 type WorkOrdersQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
   filter?: string;
@@ -20,7 +21,17 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
 
   useEffect(() => {
-    const updatedFields = WorkOrdersQueryBuilderStaticFields
+    const updatedFields = WorkOrdersQueryBuilderStaticFields.map(field => {
+      if (field.lookup?.dataSource) {
+        return {
+          ...field,
+          lookup: {
+            dataSource: [...globalVariableOptions, ...field.lookup?.dataSource].map(filterXSSField),
+          },
+        };
+      }
+      return field;
+    });
 
     setFields(updatedFields);
 
@@ -50,15 +61,21 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
       QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO,
       QueryBuilderOperations.IS_BLANK,
       QueryBuilderOperations.IS_NOT_BLANK,
-    ].map((operation) => {
+    ].map(operation => {
       return {
         ...operation,
         ...callbacks,
       };
     });
 
-    setOperations(customOperations);
+    const keyValueOperations = [
+      QueryBuilderOperations.KEY_VALUE_MATCH,
+      QueryBuilderOperations.KEY_VALUE_DOES_NOT_MATCH,
+      QueryBuilderOperations.KEY_VALUE_CONTAINS,
+      QueryBuilderOperations.KEY_VALUE_DOES_NOT_CONTAINS,
+    ];
 
+    setOperations([...customOperations, ...keyValueOperations]);
   }, [globalVariableOptions]);
 
   return (
@@ -71,4 +88,4 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
       showIcons
     />
   );
-}
+};
