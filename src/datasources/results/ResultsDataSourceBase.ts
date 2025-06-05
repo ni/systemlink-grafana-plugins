@@ -65,7 +65,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       })
       .catch(error => {
         if (!this.errorTitle) {
-          this.handleQueryResultValuesError(error);
+          this.handleQueryValuesError(error);
         }
         return new Map<string, Workspace>();
       });
@@ -96,7 +96,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     ResultsDataSourceBase._productCache = this.queryProducts([ProductProperties.name, ProductProperties.partNumber])
       .catch(error => {
         if (!this.errorTitle) {
-          this.handleQueryResultValuesError(error);
+          this.handleQueryValuesError(error);
         }
         return { products: [] };
       });
@@ -162,7 +162,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     throw new Error("Method not implemented.");
   }
 
-  private handleQueryResultValuesError(error: unknown): void {
+  private handleQueryValuesError(error: unknown): void {
     const errorDetails = extractErrorInfo((error as Error).message);
     let detailedMessage = '';
     try {
