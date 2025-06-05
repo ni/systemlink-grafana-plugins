@@ -124,6 +124,19 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   }
 
   /**
+   * Flattens an array of strings, where each element may be a string or an array of strings,
+   * into a single-level array and removes duplicate values.
+   *
+   * @param values - An array containing strings or arrays of strings to be flattened and deduplicated.
+   * @returns A new array containing unique string values from the input, flattened to a single level.
+   */
+  protected flattenAndDeduplicate(values: string[]): string[] {
+    const flatValues = values.flatMap(
+      (value) => Array.isArray(value) ? value : [value]);
+    return Array.from(new Set(flatValues));
+  }
+
+  /**
    * Combines two filter strings into a single query filter using the '&&' operator.
    * Filters that are undefined or empty are excluded from the final query.
    */

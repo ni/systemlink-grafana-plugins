@@ -136,19 +136,6 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     return [];
   }
 
-  /**
-   * Flattens an array of strings, where each element may be a string or an array of strings,
-   * into a single-level array and removes duplicate values.
-   *
-   * @param values - An array containing strings or arrays of strings to be flattened and deduplicated.
-   * @returns A new array containing unique string values from the input, flattened to a single level.
-   */
-  private flattenAndDeduplicate(values: string[]): string[] {
-    const flatValues = values.flatMap(
-      (value) => Array.isArray(value) ? value : [value]);
-    return Array.from(new Set(flatValues));
-  }
-
   private isTakeValidValid(value: number): boolean {
     return !isNaN(value) && value > 0 && value <= TAKE_LIMIT;
   }

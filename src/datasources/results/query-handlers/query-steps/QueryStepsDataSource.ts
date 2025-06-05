@@ -27,8 +27,14 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
   defaultQuery = defaultStepsQuery;
 
-  stepsPath: Array<string | undefined> = [];
+  private stepsPath: string[] = [];
   private previousResultsQuery: string | undefined;
+
+  private stepsPathChangeCallback?: () => void;
+
+  setStepsPathChangeCallback(callback: () => void) {
+    this.stepsPathChangeCallback = callback;
+  }
 
   async querySteps(
     filter?: string,
@@ -169,8 +175,9 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
     query.resultsQuery = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.resultsQuery);
     
-    if( this.previousResultsQuery !== query.resultsQuery) {
-      await this.loadStepPath(query.partNumberQuery, options.scopedVars, query.resultsQuery);
+    if(this.previousResultsQuery !== query.resultsQuery) {
+      this.stepsPath = await this.getStepPathsLookupValues(options.scopedVars, query.partNumberQuery, query.resultsQuery)
+      this.stepsPathChangeCallback?.();
     }
     this.previousResultsQuery = query.resultsQuery;
     
@@ -233,7 +240,19 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  private async callResultsValuesAndStePath(
+  private async getStepPathsLookupValues(scopedVars: ScopedVars, partNumberQuery: string[], transformedResultsQuery: string): Promise<string[]> {
+    let stepPathValues: string[];
+    try {
+      const stepPathResponse = await this.loadStepPaths(scopedVars, partNumberQuery, transformedResultsQuery);
+      stepPathValues = stepPathResponse.paths.map(pathObj => pathObj.path);
+    } catch (error) {
+      console.error('Error in loading step paths:', error);
+      stepPathValues = [];
+    }
+    return stepPathValues;
+  }
+
+  private async loadStepPaths(
     options: ScopedVars,
     partNumberQuery: string[],
     transformedResultsQuery?: string
@@ -254,19 +273,9 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     );
   }
 
-  private async loadStepPath(
-    partNumberQuery: string[],
-    options: ScopedVars,
-    transformedResultsQuery?: string
-  ) {
-    const stepPathResponse = await this.callResultsValuesAndStePath(options, partNumberQuery, transformedResultsQuery);
-    this.stepsPath = [...stepPathResponse.paths.map(pathObj => pathObj.path)];
-  }
-
   getStepPaths(): string[] {
-    console.log('Steps Path in ds:', this.stepsPath);
     if (this.stepsPath?.length > 0) {
-      return this.stepsPath.filter((name): name is string => name !== undefined);
+      return this.flattenAndDeduplicate(this.stepsPath);
     }
     return [];
   }

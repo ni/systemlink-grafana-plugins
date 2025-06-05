@@ -35,14 +35,14 @@ export const StepsQueryBuilderWrapper = (
       const workspaces = await datasource.workspacesCache;
       setWorkspaces(Array.from(workspaces.values()));
     };
-    const loadStepsPath = async () => {
-      const stepsPath = datasource.getStepPaths();;
-      setStepsPath(stepsPath);
-      console.log('Steps Path:', stepsPath);
+    const loadStepsPath = () => {
+      datasource.setStepsPathChangeCallback(() => {
+        setStepsPath(datasource.getStepPaths());
+      });
     };
     loadStepsPath();
     loadWorkspaces();
-  }, [datasource, datasource.stepsPath]);
+  }, [datasource]);
   
   return (
     <div>
