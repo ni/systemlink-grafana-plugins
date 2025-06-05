@@ -21,7 +21,6 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
   const [familyNames, setFamilyNames] = useState<string[]>([]);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
   
-
   useEffect(() => {
       handleQueryChange(query, true);
   // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -196,7 +196,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
                 label="Take"
                 labelWidth={26}
                 tooltip={tooltips.recordCount}
-                 invalid={!!recordCountInvalidMessage}
+                invalid={!!recordCountInvalidMessage}
                 error={recordCountInvalidMessage}>
               <AutoSizeInput
                 minWidth={25}
