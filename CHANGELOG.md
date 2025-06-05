@@ -1,3 +1,9 @@
+## [3.104.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.103.1...v3.104.0) (2025-06-05)
+
+### Features
+
+* **products:** Update error handling for products datasource ([#237](https://github.com/ni/systemlink-grafana-plugins/issues/237)) ([fed043d](https://github.com/ni/systemlink-grafana-plugins/commit/fed043def7090f749ac44eab498a87523e597433))
+
 ## [3.103.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.103.0...v3.103.1) (2025-06-04)
 
 ### Bug Fixes
