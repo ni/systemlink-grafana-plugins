@@ -16,16 +16,16 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
-    this.error = '';
-    this.innerError = '';
+    this.errorTitle = '';
+    this.errorDescription = '';
     this.workspaceLoadedPromise = this.loadWorkspaces();
     this.partNumberLoadedPromise = this.getProductPartNumbers();
   }
 
   areWorkspacesLoaded$ = new Promise<void>(resolve => this.workspacesLoaded = resolve);
   arePartNumberLoaded$ = new Promise<void>(resolve => this.partNumberLoaded = resolve);
-  error = '';
-  innerError = '';
+  errorTitle = '';
+  errorDescription = '';
 
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
   queryProductsUrl = this.baseUrl + '/v2/query-products';
@@ -175,7 +175,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
     const familyNames = await this.queryProductValues(PropertiesOptions.FAMILY)
       .catch(error => {
-        if (!this.error) {
+        if (!this.errorTitle) {
           this.handleQueryProductValuesError(error);
         }
       });
@@ -250,7 +250,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
     const workspaces = await this.getWorkspaces()
       .catch(error => {
-        if (!this.error) {
+        if (!this.errorTitle) {
           this.handleQueryProductValuesError(error);
         }
       });
@@ -266,7 +266,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     }
     const partNumbers = await this.queryProductValues(PropertiesOptions.PART_NUMBER)
       .catch(error => {
-        if (!this.error) {
+        if (!this.errorTitle) {
           this.handleQueryProductValuesError(error);
         }
       })
@@ -278,8 +278,8 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
   private handleQueryProductValuesError(error: unknown): void {
     const errorDetails = extractErrorInfo((error as Error).message);
-    this.error = 'Warning during product value query';
-    this.innerError = errorDetails.message
+    this.errorTitle = 'Warning during product value query';
+    this.errorDescription = errorDetails.message
       ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
       : 'Some values may not be available in the query builder lookups due to an unknown error.';
   }
