@@ -4,7 +4,6 @@ import { StepsQueryBuilderWrapper } from './StepsQueryBuilderWrapper';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 import userEvent from '@testing-library/user-event';
 import { Workspace } from 'core/types';
-import { StepsQueryBuilder } from '../query-steps/StepsQueryBuilder';
 
 jest.mock('../query-results/ResultsQueryBuilder', () => ({
   ResultsQueryBuilder: jest.fn(({ filter, workspaces, status, globalVariableOptions, onChange }) => {
