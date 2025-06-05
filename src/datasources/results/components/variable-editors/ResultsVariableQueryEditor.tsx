@@ -238,7 +238,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
           </InlineField>
         </>
       )}
-      <FloatingError message={queryResultsDataSource.current.error} innerMessage={queryResultsDataSource.current.innerError} severity='warning'/>
+      <FloatingError message={queryResultsDataSource.current.errorTitle} innerMessage={queryResultsDataSource.current.errorDescription} severity='warning'/>
     </>
   );
 }

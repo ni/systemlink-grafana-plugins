@@ -193,7 +193,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
           )}
         </div>
       </VerticalGroup>
-      <FloatingError message={datasource.error} innerMessage={datasource.innerError} severity='warning'/>
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity='warning'/>
     </>
   );
 }
