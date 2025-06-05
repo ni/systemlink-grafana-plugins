@@ -156,17 +156,29 @@ describe('QueryStepsEditor', () => {
       });
     });
 
-    test('should update part number query when user selects a variable in product name dropdown', async () => {
-      await select(productName, '$var1', { container: document.body });
-      await waitFor(() => {
-        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "$var1"] }));
+    describe('Product Part Number', () => {
+      test('should update part number query when user selects a variable in product name dropdown', async () => {
+        await select(productName, '$var1', { container: document.body });
+        await waitFor(() => {
+          expect(mockHandleQueryChange).toHaveBeenCalledWith(
+            expect.objectContaining({ partNumberQuery: ['PartNumber1', '$var1'] })
+          );
+        });
       });
-    });
 
-    test('should update part number query when user selects a product in product name dropdown', async () => {
-      await select(productName, 'ProductName2 (PartNumber2)', { container: document.body });
-      await waitFor(() => {
-        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "PartNumber2"] }));
+      test('should update part number query when user selects a product in product name dropdown', async () => {
+        await select(productName, 'ProductName2 (PartNumber2)', { container: document.body });
+        await waitFor(() => {
+          expect(mockHandleQueryChange).toHaveBeenCalledWith(
+            expect.objectContaining({ partNumberQuery: ['PartNumber1', 'PartNumber2'] })
+          );
+        });
+      });
+
+      test('should show error and onChange should not be called when no product is selected', async () => {
+        await select(productName, [], { container: document.body });
+        expect(screen.getByText('This field requires at least one product to be selected.')).toBeInTheDocument();
+         expect(mockHandleQueryChange).not.toHaveBeenCalled();
       });
     });
 

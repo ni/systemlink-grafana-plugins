@@ -134,17 +134,29 @@ describe('QueryResultsEditor', () => {
     });
   });
 
-  test('should update part number query when user changes a product name', async () => {
-    await select(productName, 'ProductName2 (PartNumber2)', { container: document.body });
-    await waitFor(() => {
-      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "PartNumber2"] }));
+  describe('Product Part Number', () => {
+    test('should update part number query when user changes a product name', async () => {
+      await select(productName, 'ProductName2 (PartNumber2)', { container: document.body });
+      await waitFor(() => {
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(
+          expect.objectContaining({ partNumberQuery: ['PartNumber1', 'PartNumber2'] })
+        );
+      });
     });
-  });
 
     test('should update part number query when user selects a variable in product name field', async () => {
-    await select(productName, '$var1', { container: document.body });
-    await waitFor(() => {
-      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "$var1"] }));
+      await select(productName, '$var1', { container: document.body });
+      await waitFor(() => {
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(
+          expect.objectContaining({ partNumberQuery: ['PartNumber1', '$var1'] })
+        );
+      });
+    });
+
+    test('should show error and onChange should not be called when no product is selected', async () => {
+      await select(productName, [], { container: document.body });
+      expect(screen.getByText('This field requires at least one product to be selected.')).toBeInTheDocument();
+      expect(mockHandleQueryChange).not.toHaveBeenCalled();
     });
   });
 
@@ -193,7 +205,7 @@ describe('QueryResultsEditor', () => {
         });
   
         expect(screen.getByTestId('results-query-builder')).toBeInTheDocument();
-      })
+      });
     });
 
     test('should render empty workspaces when cache is empty', async () => {
@@ -221,7 +233,7 @@ describe('QueryResultsEditor', () => {
 
       expect(screen.getByTestId('results-query-builder')).toBeInTheDocument();
       expect(screen.getByTestId('workspaces')).toHaveTextContent('[]');
-    })
+    });
 
     test('should render ResultsQueryBuilder with default props when component is loaded', () => {
       const resultsQueryBuilder = screen.getByTestId('results-query-builder');
@@ -236,7 +248,9 @@ describe('QueryResultsEditor', () => {
       const triggerChangeButton = screen.getByTestId('trigger-change');
       await userEvent.click(triggerChangeButton);
       await waitFor(() => {
-        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ queryBy: 'workspace = "Workspace1"' }));
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(
+          expect.objectContaining({ queryBy: 'workspace = "Workspace1"' })
+        );
       });
     });
   });

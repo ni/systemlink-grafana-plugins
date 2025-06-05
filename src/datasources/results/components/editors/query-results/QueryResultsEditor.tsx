@@ -28,6 +28,7 @@ type Props = {
 export function QueryResultsEditor({ query, handleQueryChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
+  const [isProductSelectionValid, setIsProductSelectionValid] = useState(true);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -76,7 +77,12 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
   }
 
   const onProductNameChange = (productNames: Array<SelectableValue<string>>) => {
-    handleQueryChange({ ...query, partNumberQuery: productNames.map(product => product.value as string) });
+    if (productNames.length === 0) {
+      setIsProductSelectionValid(false);
+    } else {
+      setIsProductSelectionValid(true);
+      handleQueryChange({ ...query, partNumberQuery: productNames.map(product => product.value as string) });
+    }
   }
 
   const formatOptionLabel = (option: SelectableValue<string>) => (
@@ -120,7 +126,12 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
         />
         <div className="horizontal-control-group">
           <div>
-            <InlineField label="Product (part number)" labelWidth={26} tooltip={tooltips.productName}>
+            <InlineField 
+              label="Product (part number)"
+              labelWidth={26}
+              tooltip={tooltips.productName}
+              invalid={!isProductSelectionValid}
+              error="This field requires at least one product to be selected.">
               <MultiSelect
                 maxVisibleValues={5}
                 width={65}
