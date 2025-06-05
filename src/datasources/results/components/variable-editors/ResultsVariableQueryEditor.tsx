@@ -65,6 +65,10 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
     loadWorkspaces();
   }, [datasource]);
 
+  useEffect(() => {
+    disableStepsQueryBuilder(!stepsVariableQuery.partNumberQueryInSteps || stepsVariableQuery.partNumberQueryInSteps.length === 0);
+  }, [stepsVariableQuery.partNumberQueryInSteps]);
+
   const onQueryTypeChange = (queryType: QueryType) => {
     if (queryType === QueryType.Results) {
       onChange({ ...queryResultsquery, queryType } as ResultsVariableQuery);
@@ -116,7 +120,6 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
   }
 
   const onProductNameChangesinSteps = (productNames: Array<SelectableValue<string>>) => {
-    disableStepsQueryBuilder(productNames.length === 0);
     onChange({ ...stepsVariableQuery, partNumberQueryInSteps: productNames.map(product => product.value as string) } as StepsVariableQuery );
   }
 
