@@ -91,7 +91,7 @@ describe('TestPlansVariableQueryEditor', () => {
       renderElement();
     });
 
-    const result = mockDatasource.productUtils.getProducts();
+    const result = await mockDatasource.productUtils.getProducts();
     expect(result).toBeDefined();
     expect(result).toEqual(
       new Map([

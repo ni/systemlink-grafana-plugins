@@ -30,7 +30,7 @@ describe('TestPlansQueryBuilder', () => {
     });
 
     it('should select product name and part number in query builder', () => {
-        const { conditionsContainer } = renderElement('systemAliasName = "1"', [product]);
+        const { conditionsContainer } = renderElement('product = "part-number"', [product]);
 
         expect(conditionsContainer?.length).toBe(1);
         expect(conditionsContainer.item(0)?.textContent).toContain(product.partNumber);

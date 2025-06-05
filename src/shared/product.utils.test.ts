@@ -52,14 +52,17 @@ describe('ProductUtils', () => {
     it('should handle errors when loading products', async () => {
         jest.spyOn(console, 'error').mockImplementation(() => {});
         const error = new Error('Failed to fetch products');
-        (queryUntilComplete as jest.Mock).mockImplementationOnce(() => {
-            return Promise.reject(error);
-        });
+        (queryUntilComplete as jest.Mock)
+            .mockImplementationOnce(() => {
+                return Promise.reject(error);
+            }).mockImplementationOnce(() => {
+                return Promise.reject(error);
+            });
 
         productUtils = new ProductUtils(instanceSettings, backendSrv);
         const result = await productUtils.getProducts();
 
-        expect(console.error).toHaveBeenCalledTimes(1);
+        expect(console.error).toHaveBeenCalledTimes(2);
         expect(console.error).toHaveBeenCalledWith('Error in loading products:', error);
         expect(result).toEqual(new Map<string, ProductResponseProperties>());
     });
