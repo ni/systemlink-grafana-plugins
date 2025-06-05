@@ -354,8 +354,8 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.loadProducts();
 
-      expect(datastore.error).toBe('Warning during result value query');
-      expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
+      expect(datastore.errorTitle).toBe('Warning during result value query');
+      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
     });
 
     test('should return the same promise instance when workspacePromise already exists', async () => {
@@ -391,8 +391,8 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.loadWorkspaces();
 
-      expect(datastore.error).toBe('Warning during result value query');
-      expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
+      expect(datastore.errorTitle).toBe('Warning during result value query');
+      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
     });
 
     it('should contain error details when error contains additional information', async () => {
@@ -402,8 +402,8 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.loadWorkspaces();
 
-      expect(datastore.error).toBe('Warning during result value query');
-      expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
+      expect(datastore.errorTitle).toBe('Warning during result value query');
+      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
     });
   });
   

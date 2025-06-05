@@ -8,8 +8,8 @@ import { QueryBuilderOperations } from "core/query-builder.constants";
 import { extractErrorInfo } from "core/errors";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
-  error = '';
-  innerError = '';
+  errorTitle = '';
+  errorDescription = '';
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
   queryResultsValuesUrl = this.baseUrl + '/v2/query-result-values';
   queryProductsUrl = this.baseUrl + '/v2/query-products';
@@ -64,7 +64,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
         return workspaceMap;
       })
       .catch(error => {
-        if (!this.error) {
+        if (!this.errorTitle) {
           this.handleQueryResultValuesError(error);
         }
         return new Map<string, Workspace>();
@@ -95,7 +95,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     }
     ResultsDataSourceBase._productCache = this.queryProducts([ProductProperties.name, ProductProperties.partNumber])
       .catch(error => {
-        if (!this.error) {
+        if (!this.errorTitle) {
           this.handleQueryResultValuesError(error);
         }
         return { products: [] };
@@ -171,8 +171,8 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     } catch {
       detailedMessage = errorDetails.message;
     }
-    this.error = 'Warning during result value query';
-    this.innerError = errorDetails.message
+    this.errorTitle = 'Warning during result value query';
+    this.errorDescription = errorDetails.message
       ? `Some values may not be available in the query builder lookups due to the following error:${detailedMessage}.`
       : 'Some values may not be available in the query builder lookups due to an unknown error.';
   }

@@ -177,7 +177,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
         </div>
         </div>
       </VerticalGroup>
-      <FloatingError message={datasource.error} innerMessage={datasource.innerError} severity='warning'/>
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity='warning'/>
     </>
   );
 }
