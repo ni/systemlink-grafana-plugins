@@ -65,7 +65,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       })
       .catch(error => {
         if (!this.error) {
-          this.handleQueryResultValuesError(error);
+          this.handleQueryResultValuesError(error, 'result');
         }
         return new Map<string, Workspace>();
       });
@@ -81,7 +81,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     ResultsDataSourceBase._partNumbersCache = this.queryResultsValues(ResultsPropertiesOptions.PART_NUMBER, undefined)
       .catch(error => {
         if (!this.error) {
-          this.handleQueryResultValuesError(error);
+          this.handleQueryResultValuesError(error, 'result');
         } 
         return [];
       });
@@ -140,7 +140,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     throw new Error("Method not implemented.");
   }
 
-  private handleQueryResultValuesError(error: unknown): void {
+  handleQueryResultValuesError(error: unknown, errorContext: string): void {
     const errorDetails = extractErrorInfo((error as Error).message);
     let detailedMessage = '';
     try {
@@ -149,7 +149,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     } catch {
       detailedMessage = errorDetails.message;
     }
-    this.error = 'Warning during result value query';
+    this.error = `Warning during ${errorContext} value query`;
     this.innerError = errorDetails.message
       ? `Some values may not be available in the query builder lookups due to the following error:${detailedMessage}.`
       : 'Some values may not be available in the query builder lookups due to an unknown error.';

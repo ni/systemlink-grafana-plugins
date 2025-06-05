@@ -65,7 +65,24 @@ describe('QueryStepsDataSource', () => {
 
       await expect(datastore.querySteps())
         .rejects
-        .toThrow('Request to url "/nitestmonitor/v2/query-steps" failed with status code: 400. Error message: "Error"');
+        .toThrow('The query failed due to the following error: (status 400) \"Error"\.');
+    });
+
+    test('should publish alertError event when error occurs', async () => {
+      const publishMock = jest.fn();
+      (datastore as any).appEvents = { publish: publishMock };
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps' }))
+        .mockReturnValue(createFetchError(400));
+
+      await expect(datastore.querySteps())
+        .rejects
+        .toThrow('The query failed due to the following error: (status 400) "Error".');
+
+      expect(publishMock).toHaveBeenCalledWith({
+        type: 'alert-error',
+        payload: ['Error during step query', expect.stringContaining('The query failed due to the following error: (status 400) "Error".')],
+      });
     });
   });
 
@@ -127,7 +144,7 @@ describe('QueryStepsDataSource', () => {
 
       await expect(datastore.query(query))
         .rejects
-        .toThrow('Request to url "/nitestmonitor/v2/query-steps" failed with status code: 400. Error message: "Error"');
+        .toThrow('The query failed due to the following error: (status 400) \"Error\".');
     });
 
     test('should convert properties to Grafana fields', async () => {
@@ -365,24 +382,33 @@ describe('QueryStepsDataSource', () => {
       (ResultsDataSourceBase as any).partNumbersCache = null;
       const error = new Error('API failed');
       jest.spyOn(QueryStepsDataSource.prototype, 'queryResultsValues').mockRejectedValue(error);
-      jest.spyOn(console, 'error').mockImplementation(() => {});
 
       await datastore.getPartNumbers();
 
-      expect(console.error).toHaveBeenCalledTimes(1);
-      expect(console.error).toHaveBeenCalledWith('Error in loading part numbers:', error);
+      expect(datastore.error).toBe('Warning during result value query');
+      expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
     });
 
     it('should handle errors in getWorkspaces', async () => {
       (ResultsDataSourceBase as any)._workspacesCache = null;
       const error = new Error('API failed');
       jest.spyOn(QueryStepsDataSource.prototype, 'getWorkspaces').mockRejectedValue(error);
-      jest.spyOn(console, 'error').mockImplementation(() => {});
 
       await datastore.loadWorkspaces();
 
-      expect(console.error).toHaveBeenCalledTimes(1);
-      expect(console.error).toHaveBeenCalledWith('Error in loading workspaces:', error);
+      expect(datastore.error).toBe('Warning during result value query');
+      expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
+    });
+
+    it('should contain error details when error contains additional information', async () => {
+      (ResultsDataSourceBase as any)._workspacesCache = null;
+      const error = new Error(`API failed Error message: ${JSON.stringify({ message: 'Detailed error message', statusCode: 500 })}`);
+      jest.spyOn(QueryStepsDataSource.prototype, 'getWorkspaces').mockRejectedValue(error);
+
+      await datastore.loadWorkspaces();
+
+      expect(datastore.error).toBe('Warning during result value query');
+      expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
     });
   });
 
@@ -604,7 +630,7 @@ describe('QueryStepsDataSource', () => {
         
         await expect(batchPromise)
           .rejects
-          .toThrow('Request to url "/nitestmonitor/v2/query-steps" failed with status code: 400. Error message: "Error"');
+          .toThrow('The query failed due to the following error: (status 400) \"Error\".');
         expect(backendServer.fetch).toHaveBeenCalledTimes(2);
       });
 
@@ -856,7 +882,7 @@ describe('QueryStepsDataSource', () => {
       
       await expect(batchPromise)
         .rejects
-        .toThrow('Request to url "/nitestmonitor/v2/query-paths" failed with status code: 400. Error message: "Error"');
+        .toThrow('The query failed due to the following error: (status 400) \"Error\".');
       expect(backendServer.fetch).toHaveBeenCalledTimes(2);
     });
 
@@ -1057,17 +1083,24 @@ describe('QueryStepsDataSource', () => {
         expect(result).toEqual([]);
       });
 
-      it('should return empty array if API throws error', async () => {
-        const error = new Error('API failed');
-        backendServer.fetch.mockImplementationOnce(() => { throw error; });
-        jest.spyOn(console, 'error').mockImplementation(() => {});
+       it('should return undefined if API throws error', async () => {
+      const error = new Error('API failed');
+      backendServer.fetch.mockImplementationOnce(() => { throw error; });
 
-        const query = { queryByResults: 'PartNumber = "partNumber1"', stepsTake: 1000 } as StepsVariableQuery;
-        const result = await datastore.metricFindQuery(query);
+      const query = { queryByResults: 'PartNumber = "partNumber1"', stepsTake: 1000 } as StepsVariableQuery;
 
-        expect(result).toEqual([]);
-        expect(console.error).toHaveBeenCalledTimes(1);
-        expect(console.error).toHaveBeenCalledWith('Error in querying steps:', error)});
+      let result;
+      let caughtError;
+
+      try {
+        result = await datastore.metricFindQuery(query);
+      } catch (error) {
+        caughtError = (error as Error).message;
+      }
+
+      expect(caughtError).toBe(`The query failed due to an unknown error.`);
+      expect(result).toEqual(undefined);
+    });
 
       it('should use templateSrv.replace for queryByResults and queryBySteps', async () => {
         let resultsQuery = 'PartNumber = "${partNumber}"'

@@ -16,6 +16,7 @@ import { TimeRangeControls } from '../time-range/TimeRangeControls';
 import { OrderBy, QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 import { StepsQueryBuilderWrapper } from '../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
+import { FloatingError } from 'core/errors';
 
 type Props = {
   query: QuerySteps;
@@ -156,6 +157,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
           )}
         </div>
       </VerticalGroup>
+      <FloatingError message={datasource.error} innerMessage={datasource.innerError} severity='warning'/>
     </>
   );
 }
