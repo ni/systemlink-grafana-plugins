@@ -172,20 +172,20 @@ describe('getFamilyNames', () => {
 
     await datastore.getFamilyNames();
 
-    expect(datastore.error).toBe('Warning during product value query');
-    expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
+    expect(datastore.errorTitle).toBe('Warning during product value query');
+    expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
   });
 
   it('should handle errors and set innerError fields with error message detail', async () => {
-    datastore.error = '';
+    datastore.errorTitle = '';
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-product-values' }))
       .mockReturnValue(createFetchError(500));
 
     await datastore.getFamilyNames();
 
-    expect(datastore.error).toBe('Warning during product value query');
-    expect(datastore.innerError).toContain('Some values may not be available in the query builder lookups due to the following error: \"Error\".');
+    expect(datastore.errorTitle).toBe('Warning during product value query');
+    expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error: \"Error\".');
   })
 
 });
