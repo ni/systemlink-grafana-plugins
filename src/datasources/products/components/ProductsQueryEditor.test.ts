@@ -5,6 +5,7 @@ import { screen, waitFor } from "@testing-library/react";
 import { ProductQuery } from "../types";
 import { select } from "react-select-event";
 import userEvent from "@testing-library/user-event";
+import { recordCountErrorMessages } from "../constants/ProductsQueryEditor.constants";
 
 const render = setupRenderer(ProductsQueryEditor, ProductsDataSource);
 let onChange: jest.Mock<any, any>
@@ -86,19 +87,38 @@ describe('ProductsQueryEditor', () => {
     });
   });
 
-  it('only allows numbers in Take field', async () => {
-    // User tries to enter a non-numeric value
-    await userEvent.clear(recordCount);
-    await userEvent.type(recordCount, 'abc');
-    await waitFor(() => {
-      expect(recordCount).toHaveValue(null);
-    });
+  describe('Take field', () => {
+    it('should not show error and  call onChange when Take is valid', async () => {
+      await userEvent.clear(recordCount);
+      await userEvent.type(recordCount, '500');
+      await userEvent.click(document.body);
 
-    // User enters a valid numeric value
-    await userEvent.clear(recordCount);
-    await userEvent.type(recordCount, '500');
-    await waitFor(() => {
-      expect(recordCount).toHaveValue(500);
+      expect(recordCount).toHaveValue(500); 
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining({ recordCount: 500 })
+      );
+    });
+  
+    it('should show error and not call onChange when Take is greater than Take limit', async () => {
+      onChange.mockClear();
+  
+      await userEvent.clear(recordCount);
+      await userEvent.type(recordCount, '10001');
+      await userEvent.click(document.body);
+  
+      expect(onChange).not.toHaveBeenCalled();
+      expect(screen.getByText(recordCountErrorMessages.lessOrEqualToTakeLimit)).toBeInTheDocument();
+    });
+  
+    it('should show error and not call onChange when Take is not a number', async () => {
+      onChange.mockClear();
+  
+      await userEvent.clear(recordCount);
+      await userEvent.type(recordCount, 'abc');
+      await userEvent.click(document.body);
+  
+      expect(onChange).not.toHaveBeenCalled();
+      expect(screen.getByText(recordCountErrorMessages.greaterOrEqualToZero)).toBeInTheDocument();
     });
   });
 });

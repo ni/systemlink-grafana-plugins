@@ -9,6 +9,7 @@ import { ProductsQueryBuilder } from 'datasources/products/components/query-buil
 import { FloatingError } from 'core/errors';
 import './ProductsQueryEditor.scss';
 import { validateNumericInput } from 'core/utils';
+import { recordCountErrorMessages, TAKE_LIMIT } from '../constants/ProductsQueryEditor.constants';
 
 type Props = QueryEditorProps<ProductsDataSource, ProductQuery>;
 
@@ -18,6 +19,8 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const [familyNames, setFamilyNames] = useState<string[]>([]);
+  const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
+  
 
   useEffect(() => {
       handleQueryChange(query, true);
@@ -66,7 +69,22 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    handleQueryChange({ ...query, recordCount: value });
+    if (isRecordCountValid(value, TAKE_LIMIT)) {
+      handleQueryChange({ ...query, recordCount: value });
+    }
+  }
+
+  function isRecordCountValid(value: number, takeLimit: number): boolean {
+    if (Number.isNaN(value) || value < 0) {
+      setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
+      return false;
+    }
+    if (value > takeLimit) {
+      setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTakeLimit);
+      return false;
+    }
+    setRecordCountInvalidMessage('');
+    return true;
   }
 
   const onParameterChange = (value: string) => {
@@ -124,7 +142,12 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
                 value={query.descending}
               />
             </InlineField>
-            <InlineField label="Take" labelWidth={18} tooltip={tooltips.recordCount}>
+            <InlineField 
+                label="Take" 
+                labelWidth={18} 
+                tooltip={tooltips.recordCount} 
+                invalid={!!recordCountInvalidMessage}
+                error={recordCountInvalidMessage}>
               <AutoSizeInput
                 minWidth={26}
                 maxWidth={26}

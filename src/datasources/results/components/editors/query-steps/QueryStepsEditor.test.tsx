@@ -7,6 +7,7 @@ import { select } from 'react-select-event';
 import userEvent from '@testing-library/user-event';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 import { StepsQueryBuilderWrapper } from '../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
+import { recordCountErrorMessages } from 'datasources/results/constants/StepsQueryEditor.constants';
 
 jest.mock('../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper', () => ({
   StepsQueryBuilderWrapper: jest.fn(({ resultsQuery, stepsQuery, onResultsQueryChange, onStepsQueryChange, disableStepsQueryBuilder }) => {
@@ -171,20 +172,35 @@ describe('QueryStepsEditor', () => {
     });
 
     describe('recordCount', () => {
-      test('should update record count when user enters numeric values in the take', async () => {
+      it('should not show error and call onChange when Take is valid', async () => {
         await userEvent.clear(recordCount);
         await userEvent.type(recordCount, '500');
-        await waitFor(() => {
-          expect(recordCount).toHaveValue(500);
-        });
+        await userEvent.click(document.body);
+      
+        expect(recordCount).toHaveValue(500);
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: 500 }));
       });
-
-      test('should not update record count when user enters non-numeric values in the take', async () => {
+    
+      it('should show error and not call onChange when Take is greater than Take limit', async () => {
+        mockHandleQueryChange.mockClear();
+      
         await userEvent.clear(recordCount);
-        await userEvent.type(recordCount, 'Test');
-        await waitFor(() => {
-          expect(recordCount).toHaveValue(null);
-        });
+        await userEvent.type(recordCount, '10001');
+        await userEvent.click(document.body);
+      
+        expect(mockHandleQueryChange).not.toHaveBeenCalled();
+        expect(screen.getByText(recordCountErrorMessages.lessOrEqualToTakeLimit)).toBeInTheDocument();
+      });
+    
+      it('should show error and not call onChange when Take is not a number', async () => {
+        mockHandleQueryChange.mockClear();
+      
+        await userEvent.clear(recordCount);
+        await userEvent.type(recordCount, 'abc');
+        await userEvent.click(document.body);
+      
+        expect(mockHandleQueryChange).not.toHaveBeenCalled();
+        expect(screen.getByText(recordCountErrorMessages.greaterOrEqualToZero)).toBeInTheDocument();
       });
     });
 

@@ -6,6 +6,7 @@ import { QueryResultsDataSource } from 'datasources/results/query-handlers/query
 import { QueryResultsEditor } from './QueryResultsEditor';
 import React from 'react';
 import { Workspace } from 'core/types';
+import { recordCountErrorMessages } from 'datasources/results/constants/ResultsQueryEditor.constants';
 
 jest.mock('../../query-builders/query-results/ResultsQueryBuilder', () => ({
   ResultsQueryBuilder: jest.fn(({ filter, workspaces, status, globalVariableOptions, onChange }) => {
@@ -34,14 +35,14 @@ jest.mock('../../../types/types', () => ({
 const mockWorkspaces: Workspace[] = [
   { id: '1', name: 'Workspace1', default: false, enabled: true },
   { id: '2', name: 'Workspace2', default: false, enabled: true },
-]
+];
 const mockGlobalVars = [{ label: '$var1', value: '$var1' }];
 const mockProducts = {
   products: [
-    {partNumber: 'PartNumber1', name: 'ProductName1'},
-    {partNumber: 'PartNumber2', name: 'ProductName2'}
-  ]
-}
+    { partNumber: 'PartNumber1', name: 'ProductName1' },
+    { partNumber: 'PartNumber2', name: 'ProductName2' },
+  ],
+};
 
 const mockDatasource = {
   workspacesCache: Promise.resolve(new Map(mockWorkspaces.map(workspace => [workspace.id, workspace]))),
@@ -149,20 +150,35 @@ describe('QueryResultsEditor', () => {
   });
 
   describe('recordCount', () => {
-    test('should update record count when user enters numeric values in the take', async () => {
+    it('should not show error and call onChange when Take is valid', async () => {
       await userEvent.clear(recordCount);
       await userEvent.type(recordCount, '500');
-      await waitFor(() => {
-        expect(recordCount).toHaveValue(500);
-      });
+      await userEvent.click(document.body);
+
+      expect(recordCount).toHaveValue(500);
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: 500 }));
     });
 
-    test('should not update record count when user enters non-numeric values in the take', async () => {
+    it('should show error and not call onChange when Take is greater than Take limit', async () => {
+      mockHandleQueryChange.mockClear();
+
       await userEvent.clear(recordCount);
-      await userEvent.type(recordCount, 'Test');
-      await waitFor(() => {
-        expect(recordCount).toHaveValue(null);
-      });
+      await userEvent.type(recordCount, '10001');
+      await userEvent.click(document.body);
+
+      expect(mockHandleQueryChange).not.toHaveBeenCalled();
+      expect(screen.getByText(recordCountErrorMessages.lessOrEqualToTakeLimit)).toBeInTheDocument();
+    });
+
+    it('should show error and not call onChange when Take is not a number', async () => {
+      mockHandleQueryChange.mockClear();
+
+      await userEvent.clear(recordCount);
+      await userEvent.type(recordCount, 'abc');
+      await userEvent.click(document.body);
+
+      expect(mockHandleQueryChange).not.toHaveBeenCalled();
+      expect(screen.getByText(recordCountErrorMessages.greaterOrEqualToZero)).toBeInTheDocument();
     });
   });
 
