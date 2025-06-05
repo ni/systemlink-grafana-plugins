@@ -19,7 +19,7 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
 
   useEffect(() => {
     const loadProducts = async () => {
-      const products = await datasource.productUtils.productsCache;
+      const products = await datasource.productUtils.getProducts();
       setProducts(Array.from(products.values()));
     };
 

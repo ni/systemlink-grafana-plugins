@@ -18,8 +18,8 @@ export class ProductUtils {
         this.loadProducts();
     }
 
-    get productsCache(): Promise<Map<string, ProductResponseProperties>> {
-        return this._productCache ?? this.loadProducts();
+    async getProducts(): Promise<Map<string, ProductResponseProperties>> {
+        return this._productCache ?? await this.loadProducts();
     }
 
     private async loadProducts(): Promise<Map<string, ProductResponseProperties>> {
@@ -27,20 +27,19 @@ export class ProductUtils {
             return this._productCache;
         }
 
-        this._productCache = this.queryProductsInBatches()
-            .then(products => {
-                const productMap = new Map<string, ProductResponseProperties>();
-                if (products) {
-                    products.forEach(product => productMap.set(product.partNumber, product));
-                }
-                return productMap;
-            })
-            .catch(error => {
-                console.error('Error in loading products:', error);
-                return new Map<string, ProductResponseProperties>();
-            });
-
-        return this._productCache;
+        try {
+            const products = await this.queryProductsInBatches();
+            const productMap = new Map<string, ProductResponseProperties>();
+            if (products) {
+                products.forEach(product => productMap.set(product.partNumber, product));
+            }
+            this._productCache = Promise.resolve(productMap);
+            return this._productCache;
+        } catch (error) {
+            console.error('Error in loading products:', error);
+            this._productCache = Promise.resolve(new Map<string, ProductResponseProperties>());
+            return this._productCache;
+        }
     }
 
     private async queryProductsInBatches(): Promise<ProductResponseProperties[]> {

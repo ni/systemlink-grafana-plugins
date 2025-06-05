@@ -18,7 +18,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
 
   useEffect(() => {
     const loadProducts = async () => {
-      const products = await datasource.productUtils.productsCache;
+      const products = await datasource.productUtils.getProducts();
       setProducts(Array.from(products.values()));
     };
 
