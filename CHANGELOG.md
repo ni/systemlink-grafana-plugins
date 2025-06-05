@@ -1,3 +1,57 @@
+## [3.103.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.103.0...v3.103.1) (2025-06-04)
+
+### Bug Fixes
+
+* **testplans:** record count error message when it is undefined ([#239](https://github.com/ni/systemlink-grafana-plugins/issues/239)) ([d046dbc](https://github.com/ni/systemlink-grafana-plugins/commit/d046dbc371fa9983348fe8de0638bbdbc47d74dd))
+
+## [3.103.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.102.0...v3.103.0) (2025-06-04)
+
+### Features
+
+* **results:** Remove partnumber field from results query builder ([#236](https://github.com/ni/systemlink-grafana-plugins/issues/236)) ([f729e48](https://github.com/ni/systemlink-grafana-plugins/commit/f729e48b32a6fb59d0c4818828c6eb4d184d1a88))
+
+## [3.102.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.101.0...v3.102.0) (2025-06-04)
+
+### Features
+
+* **results:** Add product multiselect field in steps variable query editor ([#235](https://github.com/ni/systemlink-grafana-plugins/issues/235)) ([8d36d0d](https://github.com/ni/systemlink-grafana-plugins/commit/8d36d0d24f527ce40fc3d209d78dec25861160ad))
+
+## [3.101.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.100.0...v3.101.0) (2025-06-04)
+
+### Features
+
+* **results:** Add product multiselect field in steps query editor ([#225](https://github.com/ni/systemlink-grafana-plugins/issues/225)) ([971c1bc](https://github.com/ni/systemlink-grafana-plugins/commit/971c1bca663dfb993f05cadced140ae1e4a13fd3))
+
+## [3.100.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.99.0...v3.100.0) (2025-06-04)
+
+### Features
+
+* **results:** Add product multiselect field in results variable query editor ([#233](https://github.com/ni/systemlink-grafana-plugins/issues/233)) ([cc9e706](https://github.com/ni/systemlink-grafana-plugins/commit/cc9e706636652c81af6f52059a983097d34d8e74))
+
+## [3.99.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.98.0...v3.99.0) (2025-06-04)
+
+### Features
+
+* **results:** Add product multiselect field in results query editor ([#230](https://github.com/ni/systemlink-grafana-plugins/issues/230)) ([d63e4cc](https://github.com/ni/systemlink-grafana-plugins/commit/d63e4cca57b6ae561f93c36246da62f5bae85810))
+
+## [3.98.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.97.0...v3.98.0) (2025-06-03)
+
+### Features
+
+* **workorders:** Add support for take ([#212](https://github.com/ni/systemlink-grafana-plugins/issues/212)) ([77a077c](https://github.com/ni/systemlink-grafana-plugins/commit/77a077c5e51e93db6623875d721bdab3f2021668))
+
+## [3.97.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.96.0...v3.97.0) (2025-06-02)
+
+### Features
+
+* **workorders:** Add workorders variable query editor ([#231](https://github.com/ni/systemlink-grafana-plugins/issues/231)) ([302c2b9](https://github.com/ni/systemlink-grafana-plugins/commit/302c2b92d1631a41a41b20e621ac8b33ddfdfb66))
+
+## [3.96.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.95.0...v3.96.0) (2025-06-02)
+
+### Features
+
+* **workorders:** Add support for key value operations and global variables ([#229](https://github.com/ni/systemlink-grafana-plugins/issues/229)) ([165f62a](https://github.com/ni/systemlink-grafana-plugins/commit/165f62ab6fd112ff292f58e7da4f986c04c7f373))
+
 ## [3.95.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.94.0...v3.95.0) (2025-05-30)
 
 ### Features

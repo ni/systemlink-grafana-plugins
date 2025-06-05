@@ -5,12 +5,14 @@ import { OrderBy, OutputType, Properties, PropertiesProjectionMap, TestPlansQuer
 import { AutoSizeInput, HorizontalGroup, InlineField, InlineSwitch, MultiSelect, RadioButtonGroup, Select, VerticalGroup } from '@grafana/ui';
 import { validateNumericInput } from 'core/utils';
 import { TestPlansQueryBuilder } from './query-builder/TestPlansQueryBuilder';
+import { recordCountErrorMessages, TAKE_LIMIT } from '../constants/QueryEditor.constants';
 import { Workspace } from 'core/types';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansQuery>;
 
 export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
+  const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
 
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
 
@@ -52,11 +54,17 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    if (isNaN(value) || value < 0 || value > 10000) {
-      setIsRecordCountValid(false);
-    } else {
-      setIsRecordCountValid(true);
-      handleQueryChange({ ...query, recordCount: value });
+    switch (true) {
+      case isNaN(value) || value < 0:
+        setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
+        break;
+      case value > TAKE_LIMIT:
+        setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTenThousand);
+        break;
+      default:
+        setRecordCountInvalidMessage('');
+        handleQueryChange({ ...query, recordCount: value });
+        break;
     }
   };
 
@@ -66,8 +74,6 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
       handleQueryChange({ ...query, queryBy });
     }
   };
-
-  const [isRecordCountValid, setIsRecordCountValid] = useState<boolean>(true);
 
   return (
     <>
@@ -128,8 +134,8 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
                 label="Take"
                 labelWidth={18}
                 tooltip={tooltips.recordCount}
-                invalid={!isRecordCountValid}
-                error={errors.recordCount}
+                invalid={!!recordCountInvalidMessage}
+                error={recordCountInvalidMessage}
               >
                 <AutoSizeInput
                   minWidth={26}
@@ -156,8 +162,4 @@ const tooltips = {
   descending: 'This toggle returns the test plans query in descending order.',
   recordCount: 'This field specifies the maximum number of test plans to return.',
   queryBy: 'This optional field specifies the query filters.'
-};
-
-const errors = {
-  recordCount: 'Record count must be less than 10000'
 };

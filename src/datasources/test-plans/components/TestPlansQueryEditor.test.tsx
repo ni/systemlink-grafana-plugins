@@ -306,16 +306,59 @@ describe('TestPlansQueryEditor', () => {
             });
         });
 
-        it('should show error message when record count is invalid', async () => {
+        it('should show error message when when user changes take to number greater than max take', async () => {
             await renderElement();
-            const recordCountInput = screen.getByRole('spinbutton');
+            const takeInput = screen.getByRole('spinbutton');
+            mockOnChange.mockClear();
+            mockOnRunQuery.mockClear();
 
-            await userEvent.clear(recordCountInput);
-            await userEvent.type(recordCountInput, '10001');
-            userEvent.tab();
+            await userEvent.clear(takeInput);
+            await userEvent.type(takeInput, '1000000');
+            await userEvent.tab();
 
             await waitFor(() => {
-                expect(screen.queryByText('Record count must be less than 10000')).toBeInTheDocument();
+                expect(screen.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
+                expect(mockOnChange).not.toHaveBeenCalled();
+                expect(mockOnRunQuery).not.toHaveBeenCalled();
+            });
+        });
+
+        it('should show error message when when user changes take to number less than min take', async () => {
+            await renderElement();
+            const takeInput = screen.getByRole('spinbutton');
+            mockOnChange.mockClear();
+            mockOnRunQuery.mockClear();
+
+            await userEvent.clear(takeInput);
+            await userEvent.tab();
+
+            await waitFor(() => {
+                expect(screen.getByText('Enter a value greater than or equal to 0')).toBeInTheDocument();
+                expect(mockOnChange).not.toHaveBeenCalled();
+                expect(mockOnRunQuery).not.toHaveBeenCalled();
+            });
+        });
+
+        it('should not show error message when when user changes take to number between min and max take', async () => {
+            await renderElement();
+            const takeInput = screen.getByRole('spinbutton');
+
+            // User enters a value greater than max take
+            await userEvent.clear(takeInput);
+            await userEvent.type(takeInput, '1000000');
+            await userEvent.tab();
+            await waitFor(() => {
+                expect(screen.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
+            });
+
+            // User enters a valid value
+            await userEvent.clear(takeInput);
+            await userEvent.type(takeInput, '100');
+            await userEvent.tab();
+
+            await waitFor(() => {
+                expect(screen.queryByText('Enter a value greater than or equal to 0')).not.toBeInTheDocument();
+                expect(screen.queryByText('Enter a value less than or equal to 10,000')).not.toBeInTheDocument();
             });
         });
     });
