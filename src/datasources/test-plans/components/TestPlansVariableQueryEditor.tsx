@@ -17,7 +17,7 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
 
   useEffect(() => {
     const loadSystemAliases = async () => {
-      const systemAliases = await datasource.systemUtils.systemAliasCache;
+      const systemAliases = await datasource.systemUtils.getSystemAliases();
       setSystemAliases(Array.from(systemAliases.values()));
     };
 

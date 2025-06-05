@@ -17,8 +17,8 @@ export class SystemUtils {
         this.loadSystems();
     }
 
-    get systemAliasCache(): Promise<Map<string, SystemAlias>> {
-        return this._systemAliasCache ?? this.loadSystems();
+    async getSystemAliases(): Promise<Map<string, SystemAlias>> {
+        return this._systemAliasCache ?? await this.loadSystems();
     }
 
     private async loadSystems(): Promise<Map<string, SystemAlias>> {
@@ -26,20 +26,19 @@ export class SystemUtils {
             return this._systemAliasCache;
         }
 
-        this._systemAliasCache = this.querySystemsInBatches()
-            .then(systems => {
-                const systemMap = new Map<string, SystemAlias>();
-                if (systems) {
-                    systems.forEach(system => systemMap.set(system.id, system));
-                }
-                return systemMap;
-            })
-            .catch(error => {
-                console.error('Error in loading systems:', error);
-                return new Map<string, SystemAlias>();
-            });
-
-        return this._systemAliasCache;
+        try {
+            const systems = await this.querySystemsInBatches();
+            const systemAliasMap = new Map<string, SystemAlias>();
+            if (systems) {
+                systems.forEach(system => systemAliasMap.set(system.id, system));
+            }
+            this._systemAliasCache = Promise.resolve(systemAliasMap);
+            return this._systemAliasCache;
+        } catch (error) {
+            console.error('Error in loading systems:', error);
+            this._systemAliasCache = Promise.resolve(new Map<string, SystemAlias>());
+            return this._systemAliasCache;
+        }
     }
 
     private async querySystemsInBatches(): Promise<SystemAlias[]> {

@@ -24,7 +24,7 @@ const mockVariableQueryTestPlansResponse: QueryTestPlansResponse = {
 jest.mock('shared/system.utils', () => {
   return {
     SystemUtils: jest.fn().mockImplementation(() => ({
-      systemAliasCache: Promise.resolve(
+      getSystemAliases: jest.fn().mockResolvedValue(
         new Map([
           ['1', { id: '1', alias: 'System 1' }],
           ['2', { id: '2', alias: 'System 2' }],

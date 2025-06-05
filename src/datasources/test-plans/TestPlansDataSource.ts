@@ -41,7 +41,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   };
 
   async runQuery(query: TestPlansQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
-    const systemAliases = await this.systemUtils.systemAliasCache;
+    const systemAliases = await this.systemUtils.getSystemAliases();
 
     if (query.outputType === OutputType.Properties) {
       const projectionAndFields = query.properties?.map(property => PropertiesProjectionMap[property]);
