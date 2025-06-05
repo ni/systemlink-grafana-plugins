@@ -55,7 +55,7 @@ describe('Users', () => {
         return Promise.reject(new Error('Failed to fetch users'));
       });
 
-      const result = await users.users;
+      const result = await users.getUsers;
 
       expect(console.error).toHaveBeenCalledTimes(1);
       expect(console.error).toHaveBeenCalledWith('An error occurred while querying users:', expect.any(Error));
@@ -63,7 +63,7 @@ describe('Users', () => {
     });
     
     it('should fetch and cache users', async () => {
-      const result = await users.users;
+      const result = await users.getUsers;
 
       expect(result).toEqual(mockUsers);
       expect(queryUntilComplete).toHaveBeenCalledTimes(1);
@@ -72,7 +72,7 @@ describe('Users', () => {
         requestsPerSecond: QUERY_USERS_REQUEST_PER_SECOND,
       });
 
-      const cachedUsers = await users.users;
+      const cachedUsers = await users.getUsers;
       expect(cachedUsers).toEqual(mockUsers);
       expect(queryUntilComplete).toHaveBeenCalledTimes(1);
     });
@@ -80,7 +80,7 @@ describe('Users', () => {
 
   describe('usersMap', () => {
     it('should generate a map of user IDs to full names', async () => {
-      const userMap = await users.usersMap;
+      const userMap = await users.getusersMap();
 
       expect(userMap.get('1')).toBe('John Doe');
       expect(userMap.get('2')).toBe('Jane Smith');
