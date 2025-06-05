@@ -1,3 +1,9 @@
+## [3.105.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.104.1...v3.105.0) (2025-06-05)
+
+### Features
+
+* **workorders:** Add support for time fields & Transform the values of global variables ([#232](https://github.com/ni/systemlink-grafana-plugins/issues/232)) ([45c48fb](https://github.com/ni/systemlink-grafana-plugins/commit/45c48fbc611a2473459e53a8f4efcdc3d000d42f))
+
 ## [3.104.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.104.0...v3.104.1) (2025-06-05)
 
 ### Bug Fixes
