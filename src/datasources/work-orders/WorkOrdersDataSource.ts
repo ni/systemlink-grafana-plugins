@@ -1,7 +1,7 @@
 import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, TestDataSourceResponse, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery, WorkOrdersFieldNames } from './types';
+import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
 import { QueryBuilderOption, QueryResponse } from 'core/types';
 import { transformComputedFieldsQuery, ExpressionTransformFunction } from 'core/query-builder.utils';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
@@ -63,9 +63,9 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   }
 
   readonly workordersComputedDataFields = new Map<string, ExpressionTransformFunction>(
-    Object.values(WorkOrdersFieldNames).map(field => [
-      field,
-      this.isTimeField(field) ? this.timeFieldsQuery(field) : this.multipleValuesQuery(field),
+    Object.values(WorkOrderProperties).map(field => [
+      field.field,
+      this.isTimeField(field.value) ? this.timeFieldsQuery(field.field) : this.multipleValuesQuery(field.field),
     ])
   );
 
@@ -102,7 +102,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
 
     const mappedFields = query.properties?.map(property => {
       const field = WorkOrderProperties[property];
-      const fieldType = this.isTimeField(field.field) ? FieldType.time : FieldType.string;
+      const fieldType = this.isTimeField(field.value) ? FieldType.time : FieldType.string;
       const fieldName = field.label;
 
       // TODO: Add mapping for other field types
@@ -226,12 +226,12 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 
-  private isTimeField(field: WorkOrdersFieldNames): boolean {
+  private isTimeField(field: WorkOrderPropertiesOptions): boolean {
     const timeFields = [
-      WorkOrdersFieldNames.UpdatedAt,
-      WorkOrdersFieldNames.CreatedAt,
-      WorkOrdersFieldNames.EarliestStartDate,
-      WorkOrdersFieldNames.DueDate,
+      WorkOrderPropertiesOptions.UPDATED_AT,
+      WorkOrderPropertiesOptions.CREATED_AT,
+      WorkOrderPropertiesOptions.EARLIEST_START_DATE,
+      WorkOrderPropertiesOptions.DUE_DATE
     ];
 
     return timeFields.includes(field);
