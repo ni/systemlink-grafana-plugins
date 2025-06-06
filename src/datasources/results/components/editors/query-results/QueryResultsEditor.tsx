@@ -30,6 +30,11 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
   const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
 
   useEffect(() => {
+    handleQueryChange(query);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
+
+  useEffect(() => {
     const loadWorkspaces = async () => {
       const workspaces = await datasource.workspacesCache;
       setWorkspaces(Array.from(workspaces.values()));
