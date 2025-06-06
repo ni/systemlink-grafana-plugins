@@ -29,6 +29,11 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
 
   useEffect(() => {
+    handleQueryChange(query);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
+
+  useEffect(() => {
     setDisableStepsQueryBuilder(!query.partNumberQuery || query.partNumberQuery.length === 0);
   }, [query.partNumberQuery]);
 

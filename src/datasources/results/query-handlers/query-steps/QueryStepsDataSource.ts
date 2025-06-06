@@ -413,6 +413,12 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     if (query.partNumberQueryInSteps !== undefined && query.partNumberQueryInSteps.length > 0 && this.isTakeValid(query.stepsTake!)) {
       const resultsQuery = this.buildResultsQuery(options?.scopedVars!, query.partNumberQueryInSteps, query.queryByResults);
 
+      if (this.previousResultsQuery !== resultsQuery) {
+        this.stepsPath = await this.getStepPathsLookupValues(options?.scopedVars!, query.partNumberQueryInSteps, resultsQuery)
+        this.stepsPathChangeCallback?.();
+      }
+      this.previousResultsQuery = resultsQuery;
+
       const stepsQuery = query.queryBySteps ? transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBySteps, options?.scopedVars),
         this.resultsComputedDataFields

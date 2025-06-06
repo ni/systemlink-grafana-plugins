@@ -101,7 +101,8 @@ describe('StepsQueryBuilderWrapper', () => {
     const emptyDatasource = {
       globalVariableOptions: jest.fn().mockReturnValue([]),
       workspacesCache: Promise.resolve(new Map()),
-      setStepsPathChangeCallback: jest.fn()
+      setStepsPathChangeCallback: jest.fn(),
+      getStepPaths: jest.fn().mockReturnValue([]),
     } as unknown as QueryStepsDataSource;
 
     jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -163,6 +164,28 @@ describe('StepsQueryBuilderWrapper', () => {
     await waitFor(() => {
       expect(screen.getByTestId('steps-path').textContent).toEqual(JSON.stringify(['pathA', 'pathB']));
     });
+  });
+
+  test('should load initial stepsPath on mount', async () => {
+    cleanup();
+    const mockDatasource = {
+      setStepsPathChangeCallback: jest.fn(),
+      getStepPaths: jest.fn().mockReturnValue(['initPath1', 'initPath2']),
+      workspacesCache: Promise.resolve(new Map()),
+      globalVariableOptions: jest.fn().mockReturnValue([]),
+    } as any;
+
+    await act(async () => {
+      render(
+        <StepsQueryBuilderWrapper
+          {...defaultProps}
+          datasource={mockDatasource}
+        />
+      );
+    });
+
+    expect(mockDatasource.getStepPaths).toHaveBeenCalled();
+    expect(screen.getByTestId('steps-path').textContent).toEqual(JSON.stringify(['initPath1', 'initPath2']));
   });
 
   test('should disable StepsQueryBuilder when disableStepsQueryBuilder property is true', async () => {
