@@ -7,6 +7,7 @@ export enum ResultsQueryBuilderFieldNames {
   OPERATOR = 'Operator',
   PART_NUMBER = 'PartNumber',
   PROPERTIES = 'Properties',
+  RESULT_ID = 'id',
   SERIAL_NUMBER = 'SerialNumber',
   STARTED_AT = 'StartedAt',
   STATUS = 'Status.statusType',
@@ -66,6 +67,14 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
       QueryBuilderOperations.KEY_VALUE_IS_LESS_THAN_OR_EQUAL.name,
       QueryBuilderOperations.KEY_VALUE_IS_NUMERICAL_EQUAL.name,
       QueryBuilderOperations.KEY_VALUE_IS_NUMERICAL_NOT_EQUAL.name,
+    ],
+  },
+  RESULT_ID: {
+    label: 'Result ID',
+    dataField: ResultsQueryBuilderFieldNames.ResultId,
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
     ],
   },
   SERIALNUMBER: {
@@ -150,6 +159,7 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
 export const ResultsQueryBuilderStaticFields = [
   ResultsQueryBuilderFields.PROGRAMNAME,
   ResultsQueryBuilderFields.PROPERTIES,
+  ResultsQueryBuilderFields.RESULT_ID,
   ResultsQueryBuilderFields.SYSTEMID,
   ResultsQueryBuilderFields.KEYWORDS,
   ResultsQueryBuilderFields.OPERATOR,
