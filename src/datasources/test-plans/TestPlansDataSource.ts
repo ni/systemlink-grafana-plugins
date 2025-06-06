@@ -1,11 +1,12 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { OrderByOptions, OutputType, Projections, Properties, PropertiesProjectionMap, QueryTestPlansResponse, TestPlanResponseProperties, TestPlansQuery, TestPlansVariableQuery } from './types';
+import { Asset, OrderByOptions, OutputType, Projections, Properties, PropertiesProjectionMap, QueryTestPlansResponse, TestPlanResponseProperties, TestPlansQuery, TestPlansVariableQuery } from './types';
 import { getWorkspaceName, queryInBatches } from 'core/utils';
 import { QueryResponse } from 'core/types';
 import { isTimeField } from './utils';
 import { QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
+import { AssetUtils } from './asset.utils';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
@@ -15,11 +16,13 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    this.assetUtils = new AssetUtils(instanceSettings, backendSrv);
     this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
   }
 
   baseUrl = `${this.instanceSettings.url}/niworkorder/v1`;
   queryTestPlansUrl = `${this.baseUrl}/query-testplans`;
+  assetUtils: AssetUtils;
   workspaceUtils: WorkspaceUtils;
 
   defaultQuery = {
@@ -45,7 +48,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
     if (query.outputType === OutputType.Properties) {
       const projectionAndFields = query.properties?.map(property => PropertiesProjectionMap[property]);
-      const projection = [...new Set(projectionAndFields?.map(data => data.projection).flat())];
+      const projection = [...new Set(projectionAndFields?.map(data => data.projection).flat()), Projections.ID];
 
       const testPlans = (
         await this.queryTestPlansInBatches(
@@ -56,18 +59,30 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
           true
         )).testPlans;
 
+      const labels = projectionAndFields?.map(data => data.label) ?? [];
       if (testPlans.length > 0) {
+        let fixtureNames: Asset[] = await this.getFixtureNames(labels, testPlans);
+
+        let dutNames: Asset[] = await this.getDutNames(labels, testPlans);
+
         const fields = projectionAndFields?.map((data) => {
+          const label = data.label;
           const field = data.field[0];
           const fieldType = isTimeField(field)
             ? FieldType.time
             : FieldType.string;
           const values = testPlans
-            .map(data => data[field as unknown as keyof TestPlanResponseProperties] as string);
+            .map(data => data[field as unknown as keyof TestPlanResponseProperties] as any);
 
           // TODO: AB#3133188 Add support for other field mapping
           const fieldValues = values.map(value => {
-            switch (field) {
+            switch (label) {
+              case PropertiesProjectionMap.FIXTURE_NAMES.label:
+                const names = value.map((id: string) => fixtureNames.find(data => data.id === id)?.name);
+                return names ? names.filter((name: string) => name !== '').join(', ') : value;
+              case PropertiesProjectionMap.DUT_ID.label:
+                const dut = dutNames.find(data => data.id === value);
+                return dut ? dut.name : value;
               case PropertiesProjectionMap.WORKSPACE.field[0]:
                 const workspace = workspaces.get(value);
                 return workspace ? getWorkspaceName([workspace], value) : value;
@@ -113,6 +128,27 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
   shouldRunQuery(query: TestPlansQuery): boolean {
     return true;
+  }
+
+  private async getFixtureNames(labels: string[], testPlans: TestPlanResponseProperties[]): Promise<Asset[]> {
+    if (labels?.find(label => label === PropertiesProjectionMap.FIXTURE_NAMES.label)) {
+      const fixtureIds = testPlans
+        .map(data => data['fixtureIds'] as string[])
+        .filter(data => data.length > 0)
+        .flat();
+      return await this.assetUtils.queryAssetsInBatches(fixtureIds);
+    }
+    return [];
+  }
+
+  private async getDutNames(labels: string[], testPlans: TestPlanResponseProperties[]): Promise<Asset[]> {
+    if (labels?.find(label => label === PropertiesProjectionMap.DUT_ID.label)) {
+      const dutIds = testPlans
+        .map(data => data['dutId'] as string)
+        .filter(data => data != null);
+      return await this.assetUtils.queryAssetsInBatches(dutIds);
+    }
+    return [];
   }
 
   async metricFindQuery(query: TestPlansVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {

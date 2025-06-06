@@ -81,14 +81,41 @@ describe('queryProducts', () => {
     expect(response).toMatchSnapshot();
   });
 
-  test('raises an error when API fails', async () => {
+  it('should throw error with status code when API returns error with status', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
       .mockReturnValue(createFetchError(400));
 
     await expect(datastore.queryProducts())
       .rejects
-      .toThrow('Request to url "/nitestmonitor/v2/query-products" failed with status code: 400. Error message: "Error"');
+      .toThrow('The query failed due to the following error: (status 400) "Error".');
+  });
+
+  it('should throw error with unknown error when API returns error without status', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
+      .mockImplementation(() => { throw new Error('Error'); });
+
+    await expect(datastore.queryProducts())
+      .rejects
+      .toThrow('The query failed due to an unknown error.');
+  });
+
+  it('should publish alertError event when error occurs', async () => {
+    const publishMock = jest.fn();
+    (datastore as any).appEvents = { publish: publishMock };
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
+      .mockReturnValue(createFetchError(400));
+
+    await expect(datastore.queryProducts())
+      .rejects
+      .toThrow('The query failed due to the following error: (status 400) "Error".');
+
+    expect(publishMock).toHaveBeenCalledWith({
+      type: 'alert-error',
+      payload: ['Error during product query', expect.stringContaining('The query failed due to the following error: (status 400) "Error".')],
+    });
   });
 });
 
@@ -137,6 +164,30 @@ describe('getFamilyNames', () => {
 
     expect(backendServer.fetch).not.toHaveBeenCalled();
   });
+
+  it('should handle errors and set error and innerError fields', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-product-values' }))
+      .mockReturnValue(createFetchError(500));
+
+    await datastore.getFamilyNames();
+
+    expect(datastore.errorTitle).toBe('Warning during product value query');
+    expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
+  });
+
+  it('should handle errors and set innerError fields with error message detail', async () => {
+    datastore.errorTitle = '';
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-product-values' }))
+      .mockReturnValue(createFetchError(500));
+
+    await datastore.getFamilyNames();
+
+    expect(datastore.errorTitle).toBe('Warning during product value query');
+    expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error: \"Error\".');
+  })
+
 });
 
 describe('query', () => {
@@ -200,7 +251,7 @@ describe('query', () => {
 
     await expect(datastore.query(query))
       .rejects
-      .toThrow('Request to url "/nitestmonitor/v2/query-products" failed with status code: 400. Error message: "Error"');
+      .toThrow('The query failed due to the following error: (status 400) \"Error\".');
   });
 
   it('should convert properties to Grafana fields', async () => {

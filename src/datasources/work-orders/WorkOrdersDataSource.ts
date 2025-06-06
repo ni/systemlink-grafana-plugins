@@ -3,6 +3,8 @@ import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana
 import { DataSourceBase } from 'core/DataSourceBase';
 import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
 import { QueryBuilderOption, QueryResponse } from 'core/types';
+import { transformComputedFieldsQuery, ExpressionTransformFunction } from 'core/query-builder.utils';
+import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { getVariableOptions, queryInBatches } from 'core/utils';
 import { QUERY_WORK_ORDERS_MAX_TAKE, QUERY_WORK_ORDERS_REQUEST_PER_SECOND } from './constants/QueryWorkOrders.constants';
 
@@ -37,6 +39,13 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
   async runQuery(query: WorkOrdersQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    if (query.queryBy) {
+      query.queryBy = transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.workordersComputedDataFields
+      );
+    }
+
     if (query.outputType === OutputType.Properties) {
       return this.processWorkOrdersQuery(query);
     } else {
@@ -53,14 +62,31 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     return true;
   }
 
-  async metricFindQuery(query: WorkOrdersVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    const metadata = (await this.queryWorkordersData(
+  readonly workordersComputedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(WorkOrderProperties).map(field => [
+      field.field,
+      this.isTimeField(field.value) ? this.timeFieldsQuery(field.field) : this.multipleValuesQuery(field.field),
+    ])
+  );
+
+  async metricFindQuery(
+    query: WorkOrdersVariableQuery,
+    options: LegacyMetricFindQueryOptions
+  ): Promise<MetricFindValue[]> {
+    if (query.queryBy) {
+      query.queryBy = transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.workordersComputedDataFields
+      );
+    }
+
+    const metadata = await this.queryWorkordersData(
       query.queryBy,
       [WorkOrderPropertiesOptions.ID, WorkOrderPropertiesOptions.NAME],
       query.orderBy,
       query.descending,
       query.take
-    ));
+    );
 
     return metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.id})`, value: frame.id })) : [];
   }
@@ -155,6 +181,46 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     }
   }
 
+  protected multipleValuesQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string, _options?: any) => {
+      const isMultiSelect = this.isMultiSelectValue(value);
+      const valuesArray = this.getMultipleValuesArray(value);
+      const logicalOperator = this.getLogicalOperator(operation);
+
+      return isMultiSelect
+        ? `(${valuesArray.map(val => `${field} ${operation} "${val}"`).join(` ${logicalOperator} `)})`
+        : `${field} ${operation} "${value}"`;
+    };
+  }
+
+  protected timeFieldsQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string): string => {
+      const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
+      return `${field} ${operation} "${formattedValue}"`;
+    };
+  }
+
+  /**
+   * Combines two filter strings into a single query filter using the '&&' operator.
+   * Filters that are undefined or empty are excluded from the final query.
+   */
+  protected buildQueryFilter(filterA?: string, filterB?: string): string | undefined {
+    const filters = [filterA, filterB].filter(Boolean);
+    return filters.length > 0 ? filters.join(' && ') : undefined;
+  }
+
+  private isMultiSelectValue(value: string): boolean {
+    return value.startsWith('{') && value.endsWith('}');
+  }
+
+  private getMultipleValuesArray(value: string): string[] {
+    return value.replace(/({|})/g, '').split(',');
+  }
+
+  private getLogicalOperator(operation: string): string {
+    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
+  }
+
   async testDatasource(): Promise<TestDataSourceResponse> {
     await this.post(this.queryWorkOrdersUrl, { take: 1 });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
@@ -165,10 +231,9 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       WorkOrderPropertiesOptions.UPDATED_AT,
       WorkOrderPropertiesOptions.CREATED_AT,
       WorkOrderPropertiesOptions.EARLIEST_START_DATE,
-      WorkOrderPropertiesOptions.DUE_DATE,
+      WorkOrderPropertiesOptions.DUE_DATE
     ];
 
     return timeFields.includes(field);
   }
 }
-

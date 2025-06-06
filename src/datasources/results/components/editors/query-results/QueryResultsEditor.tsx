@@ -17,6 +17,7 @@ import { TimeRangeControls } from '../time-range/TimeRangeControls';
 import { Workspace } from 'core/types';
 import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
 import { ResultsQueryBuilder } from '../../query-builders/query-results/ResultsQueryBuilder';
+import { FloatingError } from 'core/errors';
 
 type Props = {
   query: QueryResults;
@@ -176,6 +177,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
         </div>
         </div>
       </VerticalGroup>
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity='warning'/>
     </>
   );
 }

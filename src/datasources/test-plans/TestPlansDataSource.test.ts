@@ -34,6 +34,19 @@ jest.mock('shared/workspace.utils', () => {
   };
 });
 
+jest.mock('./asset.utils', () => {
+  return {
+    AssetUtils: jest.fn().mockImplementation(() => ({
+      queryAssetsInBatches: jest.fn().mockResolvedValue(
+        [
+          { id: '1', name: 'Asset 1' },
+          { id: '2', name: 'Asset 2' }
+        ]
+      )
+    }))
+  };
+});
+
 beforeEach(() => {
   [datastore, backendServer] = setupDataSource(TestPlansDataSource);
 });
@@ -171,6 +184,58 @@ describe('runQuery', () => {
     expect(result.fields).toHaveLength(1);
     expect(result.fields[0].name).toEqual('Total count');
     expect(result.fields[0].values).toEqual([0]);
+  });
+
+  it('should convert fixtureIds to fixture names', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.FIXTURE_NAMES],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', fixtureIds: ['1'] },
+        { id: '2', fixtureIds: ['1', '2'] }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Fixture names');
+    expect(result.fields[0].values).toEqual(['Asset 1', 'Asset 1, Asset 2']);
+  });
+
+  it('should convert dutIds to dut names', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.DUT_ID],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', dutId: '1' },
+        { id: '2', dutId: '2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('DUT');
+    expect(result.fields[0].values).toEqual(['Asset 1', 'Asset 2']);
   });
 
   it('should convert workspaceIds to workspace names for workspace field', async () => {
