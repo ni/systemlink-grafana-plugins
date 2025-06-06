@@ -140,30 +140,31 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
             }}
           />
         </div>
-        <InlineField label="Product (part number)" labelWidth={26} tooltip={tooltips.productName}>
-          <MultiSelect
-            maxVisibleValues={5}
-            width={65}
-            onChange={onProductNameChange}
-            placeholder='Select part numbers to use in a query'
-            noMultiValueWrap={true}
-            closeMenuOnSelect={false}
-            value={query.partNumberQuery}
-            formatOptionLabel={formatOptionLabel}
-            options={productNameOptions}
-          />
-        </InlineField>
-        <div className="horizontal-control-group">
-          <StepsQueryBuilderWrapper
-            datasource={datasource}
-            resultsQuery={query.resultsQuery}
-            stepsQuery={query.stepsQuery}
-            onResultsQueryChange={(value: string) => onResultsFilterChange(value)}
-            onStepsQueryChange={(value: string) => onStepsFilterChange(value)}
-            disableStepsQueryBuilder={disableStepsQueryBuilder}
-          />
+        <div className="results-horizontal-control-group">
+          <div>
+            <InlineField label="Product (part number)" labelWidth={26} tooltip={tooltips.productName}>
+              <MultiSelect
+                maxVisibleValues={5}
+                width={65}
+                onChange={onProductNameChange}
+                placeholder='Select part numbers to use in a query'
+                noMultiValueWrap={true}
+                closeMenuOnSelect={false}
+                value={query.partNumberQuery}
+                formatOptionLabel={formatOptionLabel}
+                options={productNameOptions}/>
+            </InlineField>
+            <StepsQueryBuilderWrapper
+              datasource={datasource}
+              resultsQuery={query.resultsQuery}
+              stepsQuery={query.stepsQuery}
+              onResultsQueryChange={(value: string) => onResultsFilterChange(value)}
+              onStepsQueryChange={(value: string) => onStepsFilterChange(value)}
+              disableStepsQueryBuilder={disableStepsQueryBuilder}
+            />
+          </div>
           {query.outputType === OutputType.Data && (
-          <div className="right-query-controls">
+          <div className="results-right-query-controls">
             <InlineField label="OrderBy" labelWidth={26} tooltip={tooltips.orderBy}>
               <Select
                 options={OrderBy as SelectableValue[]}

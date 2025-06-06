@@ -123,7 +123,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
             handleQueryChange(updatedQuery as QueryResults, runQuery);
           }}
         />
-        <div className="horizontal-control-group">
+        <div className="results-horizontal-control-group">
           <div>
             <InlineField label="Product (part number)" labelWidth={26} tooltip={tooltips.productName}>
               <MultiSelect
@@ -149,7 +149,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
             </InlineField>
           </div>
           {query.outputType === OutputType.Data && (
-            <div className="right-query-controls">
+            <div className="results-right-query-controls">
               <InlineField label="OrderBy" labelWidth={26} tooltip={tooltips.orderBy}>
                 <Select
                   width={25}
