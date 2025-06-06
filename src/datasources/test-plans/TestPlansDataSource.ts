@@ -1,11 +1,11 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { Asset, OrderByOptions, OutputType, Projections, Properties, PropertiesProjectionMap, QueryTestPlansResponse, TestPlanResponseProperties, TestPlansQuery, TestPlansVariableQuery } from './types';
+import { Asset, OrderByOptions, OutputType, Projections, Properties, PropertiesProjectionMap, QueryTemplatesResponse, QueryTestPlansResponse, TemplateResponseProperties, TestPlanResponseProperties, TestPlansQuery, TestPlansVariableQuery } from './types';
 import { queryInBatches } from 'core/utils';
 import { QueryResponse } from 'core/types';
-import { isTimeField } from './utils';
-import { QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
+import { isTimeField, transformDuration } from './utils';
+import { QUERY_TEMPLATES_BATCH_SIZE, QUERY_TEMPLATES_REQUEST_PER_SECOND, QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
 import { AssetUtils } from './asset.utils';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
@@ -20,6 +20,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
   baseUrl = `${this.instanceSettings.url}/niworkorder/v1`;
   queryTestPlansUrl = `${this.baseUrl}/query-testplans`;
+  queryTemplatesUrl = `${this.baseUrl}/query-testplan-templates`;
   assetUtils: AssetUtils;
 
   defaultQuery = {
@@ -73,9 +74,26 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
           dutNames = await this.assetUtils.queryAssetsInBatches(dutIds);
         }
 
+        let workOrderIdAndName: Array<{ id: string, name: string }> = [];
+        if (projectionAndFields?.find(property => property === PropertiesProjectionMap.WORK_ORDER)) {
+          workOrderIdAndName = testPlans
+            .map(data => ({
+              id: data['workOrderId'] as string,
+              name: data['workOrderName'] as string
+            }));
+        }
+
+        let templatesName: TemplateResponseProperties[] = [];
+        if (query.properties?.find(property => property === Properties.TEMPLATE)) {
+          const templateIds = testPlans
+            .map(data => data['templateId'] as string)
+            .filter(id => id != null);
+          templatesName = await this.queryTestPlanTemplatesInBatches(templateIds);
+        }
+
         const fields = projectionAndFields?.map((data) => {
           const label = data.label;
-          const field = data.field[0];
+          const field = data.field;
           const fieldType = isTimeField(field)
             ? FieldType.time
             : FieldType.string;
@@ -91,6 +109,16 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
               case PropertiesProjectionMap.DUT_ID.label:
                 const dut = dutNames.find(data => data.id === value);
                 return dut ? dut.name : value;
+              case PropertiesProjectionMap.WORK_ORDER.label:
+                const workOrder = workOrderIdAndName.find(data => data.id === value);
+                const workOrderId = value ? `(${value})` : '';
+                const workOrderName = (workOrder && workOrder?.name) ? workOrder.name : '';
+                return `${workOrderName} ${workOrderId}`;
+              case PropertiesProjectionMap.TEMPLATE.label:
+                const template = templatesName.find(data => data.id === value);
+                return template ? `${template.name} (${template.id})` : value;
+              case PropertiesProjectionMap.ESTIMATED_DURATION_IN_SECONDS.label:
+                return value ? transformDuration(value) : '';
               default:
                 return value == null ? '' : value;
             }
@@ -208,6 +236,50 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       return response;
     } catch (error) {
       throw new Error(`An error occurred while querying test plans: ${error} `);
+    }
+  }
+
+  async queryTestPlanTemplatesInBatches(
+    templateIds: string[]
+  ): Promise<TemplateResponseProperties[]> {
+    const queryRecord = async (idsChunk: string[]): Promise<TemplateResponseProperties[]> => {
+      return await this.queryTestPlanTemplates(idsChunk);
+    };
+
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    const response: TemplateResponseProperties[] = [];
+    while (templateIds.length > 0) {
+      const start = Date.now();
+
+      for (let i = 0; i < QUERY_TEMPLATES_REQUEST_PER_SECOND && templateIds.length > 0; i++) {
+        const idsToQuery = templateIds.splice(0, QUERY_TEMPLATES_BATCH_SIZE);
+
+        try {
+          const template = await queryRecord(idsToQuery);
+          response.push(...template);
+        } catch (error) {
+          console.error(`Error fetching test plan templates for chunk:`, error);
+        }
+      }
+
+      const elapsed = Date.now() - start;
+      if (templateIds.length > 0 && elapsed < 1000) {
+        await delay(1000 - elapsed);
+      }
+    }
+
+    return response;
+  }
+
+  async queryTestPlanTemplates(templateIds: string[]): Promise<TemplateResponseProperties[]> {
+    try {
+      const filter = templateIds.map(id => `id = "${id}"`).join(' || ');
+      const response = await this.post<QueryTemplatesResponse>(this.queryTemplatesUrl, {
+        filter
+      });
+      return response.testPlanTemplates;
+    } catch (error) {
+      throw new Error(`An error occurred while querying test plan templates: ${error} `);
     }
   }
 }
