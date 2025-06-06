@@ -21,7 +21,6 @@ type ResultsQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     filter?: string;
     workspaces: Workspace[] | null;
-    partNumbers: string[];
     status: string[];
     globalVariableOptions: QueryBuilderOption[];
   };
@@ -30,7 +29,6 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
   filter,
   onChange,
   workspaces,
-  partNumbers,
   status,
   globalVariableOptions,
 }) => {
@@ -108,27 +106,12 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
     };
   }, []);
 
-  const partNumberField = useMemo(() => {
-    const partNumberField = ResultsQueryBuilderFields.PARTNUMBER;
-    return {
-      ...partNumberField,
-      lookup: {
-        ...partNumberField.lookup,
-        dataSource: [
-          ...(partNumberField.lookup?.dataSource || []),
-          ...partNumbers.map(partNumber => ({ label: partNumber, value: partNumber })),
-        ],
-      },
-    };
-  }, [partNumbers]);
-
   useEffect(() => {
     if(!workspaceField) {
       return;
     }
 
     const updatedFields = [
-      partNumberField,
       ...ResultsQueryBuilderStaticFields!,
       updatedAtField,
       workspaceField,
@@ -203,7 +186,7 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
     ];
 
     setOperations([...customOperations, ...keyValueOperations]);
-  }, [workspaceField, startedAtField, updatedAtField, partNumberField, globalVariableOptions, statusField]);
+  }, [workspaceField, startedAtField, updatedAtField, globalVariableOptions, statusField]);
 
   return (
     <QueryBuilder

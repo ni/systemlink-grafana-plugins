@@ -9,15 +9,18 @@ export interface QueryResults extends ResultsQuery {
   useTimeRangeFor?: string;
   recordCount?: number;
   queryBy?: string;
+  partNumberQuery?: string[];
 }
 
 export interface ResultsVariableQuery extends ResultsQuery {
   properties?: string;
+  partNumberQuery?: string[];
   queryBy?: string;
   resultsTake?: number;
 }
 
 export interface StepsVariableQuery extends ResultsQuery {
+  partNumberQueryInSteps: string[];
   queryByResults: string;
   queryBySteps?: string;
   stepsTake?: number;

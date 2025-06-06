@@ -11,7 +11,7 @@ import { QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 type Props = QueryBuilderProps &
 React.HTMLAttributes<Element> & {
   datasource: QueryStepsDataSource;
-  resultsQuery: string;
+  resultsQuery?: string;
   stepsQuery?: string;
   onResultsQueryChange: (query: string) => void;
   onStepsQueryChange: (query: string) => void;
@@ -28,19 +28,20 @@ export const StepsQueryBuilderWrapper = (
     disableStepsQueryBuilder
   }: Props) => {
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
-  const [partNumbers, setPartNumbers] = useState<string[]>([]);
+  const [stepsPath, setStepsPath] = useState<string[]>([]);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
       const workspaces = await datasource.workspacesCache;
       setWorkspaces(Array.from(workspaces.values()));
     };
-    const loadPartNumbers = async () => {
-      const partNumbers = await datasource.partNumbersCache;
-      setPartNumbers(partNumbers);
+    const loadStepsPath = () => {
+      setStepsPath(datasource.getStepPaths());
+      datasource.setStepsPathChangeCallback(() => {
+        setStepsPath(datasource.getStepPaths());
+      });
     };
-
-    loadPartNumbers();
+    loadStepsPath();
     loadWorkspaces();
   }, [datasource]);
   
@@ -51,7 +52,6 @@ export const StepsQueryBuilderWrapper = (
           filter={resultsQuery}
           onChange={(event) => onResultsQueryChange((event as CustomEvent<{ linq: string }>).detail.linq)}
           workspaces={workspaces}
-          partNumbers={partNumbers}
           status={enumToOptions(TestMeasurementStatus).map(option => option.value?.toString() || '')}
           globalVariableOptions={datasource.globalVariableOptions()}>
         </ResultsQueryBuilder>
@@ -61,7 +61,7 @@ export const StepsQueryBuilderWrapper = (
           filter={stepsQuery}
           workspaces={workspaces}
           stepStatus={enumToOptions(TestMeasurementStatus).map(option => option.value?.toString() || '')}
-          stepsPath={[]}
+          stepsPath={stepsPath}
           globalVariableOptions={datasource.globalVariableOptions()}
           disableQueryBuilder={disableStepsQueryBuilder}
           onFilterChange={(filter) => onStepsQueryChange(filter)}
