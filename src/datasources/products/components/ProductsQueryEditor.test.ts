@@ -101,4 +101,20 @@ describe('ProductsQueryEditor', () => {
       expect(recordCount).toHaveValue(500);
     });
   });
+
+  it('should show error when all properties are removed', async () => {
+    // User adds a property
+    await select(properties, "id", { container: document.body });
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining({ properties: ["id"] })
+      )
+    });
+    
+    // User removes the property
+    const removeButton = screen.getByRole('button', { name: 'Remove' });
+    await userEvent.click(removeButton);
+
+    expect(screen.getByText('At least one property must be selected to display data.')).toBeInTheDocument();
+  })
 });

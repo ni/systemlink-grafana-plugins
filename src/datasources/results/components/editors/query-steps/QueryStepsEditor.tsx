@@ -26,6 +26,7 @@ type Props = {
 export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props) {
   const [disableStepsQueryBuilder, setDisableStepsQueryBuilder] = useState(false);
   const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
+  const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);
 
   useEffect(() => {
     setDisableStepsQueryBuilder(!query.partNumberQuery || query.partNumberQuery.length === 0);
@@ -49,6 +50,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   };
 
   const onPropertiesChange = (properties: Array<SelectableValue<string>>) => {
+    setIsPropertiesValid(properties.length > 0);
     if (properties !== undefined) {
       handleQueryChange({ ...query, properties: properties.map(property => property.value as StepsProperties) });
     }
@@ -104,7 +106,12 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
           />
         </InlineField>
         {query.outputType === OutputType.Data && (
-          <InlineField label="Properties" labelWidth={26} tooltip={tooltips.properties}>
+          <InlineField
+            label="Properties"
+            labelWidth={26}
+            tooltip={tooltips.properties}
+            invalid={!isPropertiesValid}
+            error='At least one property must be selected to display data.'>
             <MultiSelect
               placeholder="Select properties to fetch"
               options={enumToOptions(StepsProperties)}

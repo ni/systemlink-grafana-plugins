@@ -120,6 +120,20 @@ describe('QueryResultsEditor', () => {
     });
   });
 
+  it('should show error when all properties are removed', async () => {
+    await select(properties, 'properties', { container: document.body });
+
+    // User removes the property
+    const removeButton = screen.getAllByRole('button', { name: 'Remove' });
+    for (const button of removeButton) {
+      await userEvent.click(button);
+    }
+
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+    expect(screen.getByText('At least one property must be selected to display data.')).toBeInTheDocument();
+  });
+
+
   test('should update orderBy when user changes the orderBy', async () => {
     await select(orderBy, 'Started At', { container: document.body });
     await waitFor(() => {
