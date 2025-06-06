@@ -21,6 +21,19 @@ const mockVariableQueryTestPlansResponse: QueryTestPlansResponse = {
   totalCount: 2
 };
 
+jest.mock('shared/system.utils', () => {
+  return {
+    SystemUtils: jest.fn().mockImplementation(() => ({
+      getSystemAliases: jest.fn().mockResolvedValue(
+        new Map([
+          ['1', { id: '1', alias: 'System 1' }],
+          ['2', { id: '2', alias: 'System 2' }],
+        ])
+      )
+    }))
+  };
+});
+
 jest.mock('./asset.utils', () => {
   return {
     AssetUtils: jest.fn().mockImplementation(() => ({
@@ -419,6 +432,32 @@ describe('runQuery', () => {
     expect(result.fields).toHaveLength(1);
     expect(result.fields[0].name).toEqual('Test plan template');
     expect(result.fields[0].values).toEqual(['', 'Template 2 (TPL-2)']);
+  });
+
+  it('should convert systemIds to system names for system name property', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.SYSTEM_NAME],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', systemId: '1' },
+        { id: '2', systemId: '2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('System name');
+    expect(result.fields[0].values).toEqual(['System 1', 'System 2']);
   });
 });
 
