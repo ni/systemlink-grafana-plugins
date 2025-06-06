@@ -266,3 +266,13 @@ export interface TestPlanResponseProperties {
     dashboard?: Object;
     workOrderName?: string;
 }
+
+export interface QueryAssetNameResponse {
+    assets: Asset[],
+    totalCount: number
+}
+
+export interface Asset {
+    id: string;
+    name: string;
+}
