@@ -86,10 +86,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
 
   const onProductNameChange = (productNames: Array<SelectableValue<string>>) => {
     setIsProductSelectionValid(productNames.length > 0);
-    handleQueryChange({ 
-      ...query, 
-      partNumberQuery: productNames.map(product => product.value as string) 
-    });
+    handleQueryChange({ ...query, partNumberQuery: productNames.map(product => product.value as string) });
   }
 
   const formatOptionLabel = (option: SelectableValue<string>) => (
