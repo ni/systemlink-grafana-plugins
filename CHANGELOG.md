@@ -1,3 +1,9 @@
+## [3.109.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.108.0...v3.109.0) (2025-06-06)
+
+### Features
+
+* **results:** Add step path lookup in steps variable editor ([#248](https://github.com/ni/systemlink-grafana-plugins/issues/248)) ([1349bca](https://github.com/ni/systemlink-grafana-plugins/commit/1349bcab5ab7e690dc3fb325a3e77caa1f00547f))
+
 ## [3.108.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.107.0...v3.108.0) (2025-06-06)
 
 ### Features
