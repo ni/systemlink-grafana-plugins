@@ -156,7 +156,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     return [];
   }
 
-  private getWorkOrderIdAndName(labels: string[], testPlans: TestPlanResponseProperties[]): { id: string; name: string }[] {
+  private getWorkOrderIdAndName(labels: string[], testPlans: TestPlanResponseProperties[]): Array<{ id: string; name: string }> {
     if (labels.find(label => label === PropertiesProjectionMap.WORK_ORDER.label)) {
       return testPlans
         .map(data => ({
