@@ -13,39 +13,21 @@ export class UsersUtils {
    * A cached promise that resolves to an array of users.
    * This cache is used to avoid redundant user data fetches.
    */
-  private static _usersCache: Promise<User[]> | null = null;
-  /**
-   * A cache that stores a promise resolving to a map of user IDs to user names.   
-   */
-  private static _usersMapCache: Promise<Map<string, string>> | null = null;
+  private static _usersCache: Promise<Map<string, User>> | null = null;
 
   
   /**
    * Retrieves the cached promise for the list of users.
    * If the cache is not initialized, it triggers the loading of users.
    */
-  public get getUsers(): Promise<User[]> {
-    return UsersUtils._usersCache ?? this.loadUsers();
+  public async getUsers(): Promise<Map<string, User>> {
+    if (!UsersUtils._usersCache) {
+      UsersUtils._usersCache = this.loadUsers();
+    }
+    return UsersUtils._usersCache;
   }
 
   constructor(readonly instanceSettings: DataSourceInstanceSettings, readonly backendSrv: BackendSrv) {}
-
-  /**
-   * Retrieves the cached promise for the map of user IDs to full names.
-   * If the cache is not initialized, it generates the map from the user list.
-   */
-  public async getusersMap(): Promise<Map<string, string>> {
-    if(!UsersUtils._usersMapCache) {
-      const users = await this.getUsers;
-      const userMap = new Map<string, string>();
-      users.forEach(user => {
-        const fullName = UsersUtils.getUserFullName(user);
-        userMap.set(user.id, fullName);
-      });
-      UsersUtils._usersMapCache = Promise.resolve(userMap);
-    };
-    return UsersUtils._usersMapCache;
-  }
 
   /**
    * Generates the full name of a user by combining their first and last names.
@@ -69,18 +51,18 @@ export class UsersUtils {
    * Loads the list of users, utilizing a cache to avoid redundant queries.
    * In case of an error during the query, an empty array is returned, and the cache is cleared.
    */
-  private async loadUsers(): Promise<User[]> {
-    if (UsersUtils._usersCache) {
-        return UsersUtils._usersCache;
-    }
+  private async loadUsers(): Promise<Map<string, User>> {
     try {
       const users = await this.queryUsersInBatches()
-      UsersUtils._usersCache = Promise.resolve(users.users);
-      return users.users;
+      const usersMap = new Map<string, User>();
+      users.users.forEach((user) => {
+        usersMap.set(user.id, user);
+      });
+      return usersMap;
     } catch (error) {
         console.error('An error occurred while querying users:', error);
         UsersUtils._usersCache = null;
-        return [];
+        return new Map<string, User>();
     }
   }
 

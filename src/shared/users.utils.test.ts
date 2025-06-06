@@ -2,6 +2,7 @@ import { UsersUtils } from './users.utils';
 import { BackendSrv } from '@grafana/runtime';
 import { DataSourceInstanceSettings } from '@grafana/data';
 import { QUERY_USERS_MAX_TAKE, QUERY_USERS_REQUEST_PER_SECOND } from './constants/Users.constants';
+import { User } from './types/QueryUsers.types';
 const queryUntilComplete = require('core/utils').queryUntilComplete;
 
 jest.mock('core/utils', () => ({
@@ -41,49 +42,44 @@ const mockInstanceSettings: DataSourceInstanceSettings = {
   url: 'http://mock-url',
 } as DataSourceInstanceSettings;
 
-describe('Users', () => {
+describe('UsersUtils', () => {
   let users: UsersUtils;
 
   beforeEach(() => {
     users = new UsersUtils(mockInstanceSettings, mockBackendSrv);
   });
 
-  describe('users', () => {
+  describe('getUsers', () => {
     it('should handle errors when fetching users', async () => {
       jest.spyOn(console, 'error').mockImplementation(() => {});
       (queryUntilComplete as jest.Mock).mockImplementationOnce(() => {
         return Promise.reject(new Error('Failed to fetch users'));
       });
 
-      const result = await users.getUsers;
+      const result = await users.getUsers();
 
       expect(console.error).toHaveBeenCalledTimes(1);
       expect(console.error).toHaveBeenCalledWith('An error occurred while querying users:', expect.any(Error));
-      expect(result).toEqual([]);
+      expect(result).toEqual(new Map<string, UsersUtils>());
     });
     
     it('should fetch and cache users', async () => {
-      const result = await users.getUsers;
+      const result = await users.getUsers();
+      const expectedUsersMap = new Map<string, User>([
+        [mockUsers[0].id, mockUsers[0]],
+        [mockUsers[1].id, mockUsers[1]],
+      ]);
 
-      expect(result).toEqual(mockUsers);
+      expect(result).toEqual(expectedUsersMap);
       expect(queryUntilComplete).toHaveBeenCalledTimes(1);
       expect(queryUntilComplete).toHaveBeenCalledWith(expect.any(Function), {
         maxTakePerRequest: QUERY_USERS_MAX_TAKE,
         requestsPerSecond: QUERY_USERS_REQUEST_PER_SECOND,
       });
 
-      const cachedUsers = await users.getUsers;
-      expect(cachedUsers).toEqual(mockUsers);
+      const cachedUsers = await users.getUsers();
+      expect(cachedUsers).toEqual(expectedUsersMap);
       expect(queryUntilComplete).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('usersMap', () => {
-    it('should generate a map of user IDs to full names', async () => {
-      const userMap = await users.getusersMap();
-
-      expect(userMap.get('1')).toBe('John Doe');
-      expect(userMap.get('2')).toBe('Jane Smith');
     });
   });
 
