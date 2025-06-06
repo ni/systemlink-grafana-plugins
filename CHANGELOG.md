@@ -1,3 +1,21 @@
+## [3.107.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.106.0...v3.107.0) (2025-06-06)
+
+### Features
+
+* **test-plan:** show fixture and dut name for ids ([#242](https://github.com/ni/systemlink-grafana-plugins/issues/242)) ([960f954](https://github.com/ni/systemlink-grafana-plugins/commit/960f954f5656351d9ab1ead136001331939fa113))
+
+## [3.106.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.105.1...v3.106.0) (2025-06-06)
+
+### Features
+
+* **results:** Integrate result values and path methods to load lookups for steps path ([#241](https://github.com/ni/systemlink-grafana-plugins/issues/241)) ([3446140](https://github.com/ni/systemlink-grafana-plugins/commit/3446140161a8657095a9281b2f6a43ceb5c39a11))
+
+## [3.105.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.105.0...v3.105.1) (2025-06-05)
+
+### Bug Fixes
+
+* **results:** Enable steps query builder when product name field has value ([#246](https://github.com/ni/systemlink-grafana-plugins/issues/246)) ([4179e6e](https://github.com/ni/systemlink-grafana-plugins/commit/4179e6e924bc7ea5da063b5250f4a1bb417c4054))
+
 ## [3.105.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.104.1...v3.105.0) (2025-06-05)
 
 ### Features
