@@ -176,6 +176,20 @@ export async function queryInBatches<T>(
   };
 }
 
+/**
+ * Executes a query function repeatedly until the response length < maxTakePerRequest i.e. all data is retrieved, adhering to the specified
+ * batch query configuration for maximum requests per second and items per request.
+ * 
+ * Note: This method should strictly be used with SLE APIs that require or support a skip parameter.
+ * 
+ * @param queryRecord - A function that performs the query. It takes the maximum number of items
+ *                      to retrieve (`take`) and an optional continuation token, and returns a
+ *                      promise that resolves to a `QueryResponse<T>`.
+ * @param config - The batch query configuration, including:
+ *   - `maxTakePerRequest`: The maximum number of items to retrieve per request.
+ *   - `requestsPerSecond`: The maximum number of requests to make per second.
+ * @returns A promise that containing all retrieved data
+ */
 export async function queryUsingSkip<T>(
   queryRecord: (take: number, skip: number) => Promise<QueryResponse<T>>,
   { maxTakePerRequest, requestsPerSecond }: BatchQueryConfig

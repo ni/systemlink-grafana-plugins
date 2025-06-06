@@ -97,7 +97,7 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
 
         setOperations([...customOperations, ...keyValueOperations]);
 
-    }, [globalVariableOptions, systemAliasField]);
+    }, [systemAliasField]);
 
     return (
         <SlQueryBuilder

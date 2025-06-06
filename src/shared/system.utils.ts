@@ -6,7 +6,7 @@ import { queryUsingSkip } from "core/utils";
 import { SystemAlias } from "./types/QuerySystems.types";
 
 export class SystemUtils {
-    private _systemAliasCache: Promise<Map<string, SystemAlias>> | null = null;
+    private static _systemAliasCache?: Promise<Map<string, SystemAlias>>;
 
     private readonly querySystemsUrl = `${this.instanceSettings.url}/nisysmgmt/v1/query-systems`;
 
@@ -18,26 +18,23 @@ export class SystemUtils {
     }
 
     async getSystemAliases(): Promise<Map<string, SystemAlias>> {
-        return this._systemAliasCache ?? await this.loadSystems();
+        if (!SystemUtils._systemAliasCache) {
+            SystemUtils._systemAliasCache = this.loadSystems();
+        }
+        return await SystemUtils._systemAliasCache;
     }
 
     private async loadSystems(): Promise<Map<string, SystemAlias>> {
-        if (this._systemAliasCache) {
-            return this._systemAliasCache;
-        }
-
         try {
             const systems = await this.querySystemsInBatches();
             const systemAliasMap = new Map<string, SystemAlias>();
             if (systems) {
                 systems.forEach(system => systemAliasMap.set(system.id, system));
             }
-            this._systemAliasCache = Promise.resolve(systemAliasMap);
-            return this._systemAliasCache;
+            return systemAliasMap;
         } catch (error) {
             console.error('Error in loading systems:', error);
-            this._systemAliasCache = Promise.resolve(new Map<string, SystemAlias>());
-            return this._systemAliasCache;
+            return new Map<string, SystemAlias>();
         }
     }
 
