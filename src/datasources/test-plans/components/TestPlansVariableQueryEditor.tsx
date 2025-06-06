@@ -6,7 +6,7 @@ import { validateNumericInput } from 'core/utils';
 import { TestPlansDataSource } from '../TestPlansDataSource';
 import { TestPlansQueryBuilder } from './query-builder/TestPlansQueryBuilder';
 import { recordCountErrorMessages, TAKE_LIMIT } from '../constants/QueryEditor.constants';
-import { ProductResponseProperties } from 'datasources/products/types';
+import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansVariableQuery>;
 
@@ -15,7 +15,7 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
 
 
-  const [products, setProducts] = useState<ProductResponseProperties[] | null>(null);
+  const [products, setProducts] = useState<ProductPartNumberAndName[] | null>(null);
 
   useEffect(() => {
     const loadProducts = async () => {

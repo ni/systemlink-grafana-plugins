@@ -3,50 +3,46 @@ import { BackendSrv } from "@grafana/runtime";
 import { QueryResponse } from "core/types";
 import { queryUntilComplete } from "core/utils";
 import { QUERY_PRODUCTS_MAX_TAKE, QUERY_PRODUCTS_REQUEST_PER_SECOND } from "./constants/QueryProducts.constants";
-import { ProductResponseProperties, Properties, QueryProductResponse } from "datasources/products/types";
+import { Properties, QueryProductResponse } from "datasources/products/types";
+import { ProductPartNumberAndName } from "./types/QueryProducts.types";
 
 
 export class ProductUtils {
-    private _productCache: Promise<Map<string, ProductResponseProperties>> | null = null;
+    private static _productCache?: Promise<Map<string, ProductPartNumberAndName>>;
 
     private readonly queryProductsUrl = `${this.instanceSettings.url}/nitestmonitor/v2/query-products`;
 
     constructor(
         readonly instanceSettings: DataSourceInstanceSettings,
         readonly backendSrv: BackendSrv
-    ) {
-        this.loadProducts();
-    }
+    ) {}
 
-    async getProducts(): Promise<Map<string, ProductResponseProperties>> {
-        return this._productCache ?? await this.loadProducts();
-    }
-
-    private async loadProducts(): Promise<Map<string, ProductResponseProperties>> {
-        if (this._productCache) {
-            return this._productCache;
+    async getProducts(): Promise<Map<string, ProductPartNumberAndName>> {
+        if (!ProductUtils._productCache) {
+            ProductUtils._productCache = this.loadProducts();
         }
+        return await ProductUtils._productCache;
+    }
 
+    private async loadProducts(): Promise<Map<string, ProductPartNumberAndName>> {
         try {
             const products = await this.queryProductsInBatches();
-            const productMap = new Map<string, ProductResponseProperties>();
+            const productMap = new Map<string, ProductPartNumberAndName>();
             if (products) {
                 products.forEach(product => productMap.set(product.partNumber, product));
             }
-            this._productCache = Promise.resolve(productMap);
-            return this._productCache;
+            return productMap;
         } catch (error) {
             console.error('Error in loading products:', error);
-            this._productCache = Promise.resolve(new Map<string, ProductResponseProperties>());
-            return this._productCache;
+            return new Map<string, ProductPartNumberAndName>();
         }
     }
 
-    private async queryProductsInBatches(): Promise<ProductResponseProperties[]> {
-        const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<ProductResponseProperties>> => {
+    private async queryProductsInBatches(): Promise<ProductPartNumberAndName[]> {
+        const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<ProductPartNumberAndName>> => {
             const response = await this.queryProducts(currentTake, token);
             return {
-                data: response.products,
+                data: response.products as ProductPartNumberAndName[],
                 continuationToken: response.continuationToken,
                 totalCount: response.totalCount
             };

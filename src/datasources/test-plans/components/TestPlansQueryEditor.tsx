@@ -6,7 +6,7 @@ import { AutoSizeInput, HorizontalGroup, InlineField, InlineSwitch, MultiSelect,
 import { validateNumericInput } from 'core/utils';
 import { TestPlansQueryBuilder } from './query-builder/TestPlansQueryBuilder';
 import { recordCountErrorMessages, TAKE_LIMIT } from '../constants/QueryEditor.constants';
-import { ProductResponseProperties } from 'datasources/products/types';
+import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansQuery>;
 
@@ -14,7 +14,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
   query = datasource.prepareQuery(query);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
 
-  const [products, setProducts] = useState<ProductResponseProperties[] | null>(null);
+  const [products, setProducts] = useState<ProductPartNumberAndName[] | null>(null);
 
   useEffect(() => {
     const loadProducts = async () => {

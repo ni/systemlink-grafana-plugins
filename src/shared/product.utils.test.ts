@@ -1,17 +1,15 @@
 import { BackendSrv } from '@grafana/runtime';
 import { DataSourceInstanceSettings } from '@grafana/data';
-import { ProductResponseProperties } from 'datasources/products/types';
 import { ProductUtils } from './product.utils';
 import { queryUntilComplete } from 'core/utils';
+import { ProductPartNumberAndName } from './types/QueryProducts.types';
 
-const products: ProductResponseProperties[] = [
+const products: ProductPartNumberAndName[] = [
     {
-        id: '1',
         partNumber: 'part-number-1',
         name: 'Product 1',
     },
     {
-        id: '2',
         partNumber: 'part-number-2',
         name: 'Product 2',
     }
@@ -50,25 +48,23 @@ describe('ProductUtils', () => {
     });
 
     it('should handle errors when loading products', async () => {
+        (ProductUtils as any)['_productCache'] = undefined;
         jest.spyOn(console, 'error').mockImplementation(() => {});
         const error = new Error('Failed to fetch products');
         (queryUntilComplete as jest.Mock)
             .mockImplementationOnce(() => {
                 return Promise.reject(error);
-            }).mockImplementationOnce(() => {
-                return Promise.reject(error);
             });
 
-        productUtils = new ProductUtils(instanceSettings, backendSrv);
         const result = await productUtils.getProducts();
 
-        expect(console.error).toHaveBeenCalledTimes(2);
+        expect(console.error).toHaveBeenCalledTimes(1);
         expect(console.error).toHaveBeenCalledWith('Error in loading products:', error);
-        expect(result).toEqual(new Map<string, ProductResponseProperties>());
+        expect(result).toEqual(new Map<string, ProductPartNumberAndName>());
     });
 
     it('should return cached products if already loaded', async () => {
-        (ProductUtils as any)['_productsCache'] = null;
+        (ProductUtils as any)['_productCache'] = undefined;
         await productUtils.getProducts();
         jest.clearAllMocks();
 

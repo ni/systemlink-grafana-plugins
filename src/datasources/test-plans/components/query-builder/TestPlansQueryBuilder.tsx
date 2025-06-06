@@ -2,14 +2,14 @@ import { SlQueryBuilder } from "core/components/SlQueryBuilder/SlQueryBuilder";
 import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder.constants";
 import { expressionBuilderCallback, expressionReaderCallback } from "core/query-builder.utils";
 import { QBField, QueryBuilderOption } from "core/types";
-import { ProductResponseProperties } from "datasources/products/types";
 import { TestPlansQueryBuilderFields, TestPlansQueryBuilderStaticFields } from "datasources/test-plans/constants/TestPlansQueryBuilder.constants";
 import React, { useState, useEffect, useMemo } from "react";
+import { ProductPartNumberAndName } from "shared/types/QueryProducts.types";
 import { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
 
 type TestPlansQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
     filter?: string;
-    products: ProductResponseProperties[] | null;
+    products: ProductPartNumberAndName[] | null;
     globalVariableOptions: QueryBuilderOption[];
 };
 

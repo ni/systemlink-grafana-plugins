@@ -2,18 +2,17 @@ import { QueryBuilderOption } from 'core/types';
 import React, { ReactNode } from 'react';
 import { render } from '@testing-library/react';
 import { TestPlansQueryBuilder } from './TestPlansQueryBuilder';
-import { ProductResponseProperties } from 'datasources/products/types';
+import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 
 describe('TestPlansQueryBuilder', () => {
     let reactNode: ReactNode;
     const containerClass = 'smart-filter-group-condition-container';
-    const product: ProductResponseProperties = {
-        id: '1',
+    const product: ProductPartNumberAndName = {
         partNumber: 'part-number',
         name: 'Product name'
     };
 
-    function renderElement(filter: string, products: ProductResponseProperties[] | null, globalVariableOptions: QueryBuilderOption[] = []) {
+    function renderElement(filter: string, products: ProductPartNumberAndName[] | null, globalVariableOptions: QueryBuilderOption[] = []) {
         reactNode = React.createElement(TestPlansQueryBuilder, { filter, products, globalVariableOptions, onChange: jest.fn() });
         const renderResult = render(reactNode);
         return {
