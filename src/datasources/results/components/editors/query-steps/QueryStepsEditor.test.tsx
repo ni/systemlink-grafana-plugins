@@ -7,6 +7,7 @@ import { select } from 'react-select-event';
 import userEvent from '@testing-library/user-event';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 import { StepsQueryBuilderWrapper } from '../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
+import { mock } from 'node:test';
 
 jest.mock('../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper', () => ({
   StepsQueryBuilderWrapper: jest.fn(({ resultsQuery, stepsQuery, onResultsQueryChange, onStepsQueryChange, disableStepsQueryBuilder }) => {
@@ -119,6 +120,7 @@ describe('QueryStepsEditor', () => {
       expect(showMeasurements).not.toBeChecked();
       expect(productName).toBeInTheDocument();
       expect(screen.getAllByText('ProductName1 (PartNumber1)').length).toBe(1);
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining(defaultQuery));
     });
 
     test('should display placeholders for properties and orderBy when default values are not provided', async () => {
