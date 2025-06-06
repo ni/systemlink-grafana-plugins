@@ -31,6 +31,11 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
   const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);
 
   useEffect(() => {
+    handleQueryChange(query);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
+
+  useEffect(() => {
     const loadWorkspaces = async () => {
       const workspaces = await datasource.workspacesCache;
       setWorkspaces(Array.from(workspaces.values()));

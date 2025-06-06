@@ -36,6 +36,7 @@ export const StepsQueryBuilderWrapper = (
       setWorkspaces(Array.from(workspaces.values()));
     };
     const loadStepsPath = () => {
+      setStepsPath(datasource.getStepPaths());
       datasource.setStepsPathChangeCallback(() => {
         setStepsPath(datasource.getStepPaths());
       });
