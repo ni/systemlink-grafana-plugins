@@ -13,7 +13,7 @@ export class UsersUtils {
    * A cached promise that resolves to an map of users.
    * This cache is used to avoid redundant user data fetches.
    */
-  private static _usersCache: Promise<Map<string, User>> | null = null;
+  private static _usersCache?: Promise<Map<string, User>>;
 
   
   /**
@@ -65,7 +65,7 @@ export class UsersUtils {
       return usersMap;
     } catch (error) {
         console.error('An error occurred while querying users:', error);
-        UsersUtils._usersCache = null;
+        UsersUtils._usersCache = undefined; // Clear the cache on error
         return new Map<string, User>();
     }
   }
