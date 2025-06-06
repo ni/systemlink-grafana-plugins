@@ -48,15 +48,15 @@ describe('WorkspaceUtils', () => {
     });
 
     it('should handle errors when loading workspaces', async () => {
+        (WorkspaceUtils as any)._workspacesCache = undefined;
         const error = new Error('API failed');
         backendSrv.get = jest.fn().mockRejectedValue(error);
         jest.spyOn(console, 'error').mockImplementation(() => {});
 
-        workspaceUtils = new WorkspaceUtils(instanceSettings, backendSrv);
         const result = await workspaceUtils.getWorkspaces();
 
         expect(result.size).toBe(0);
-        expect(console.error).toHaveBeenCalledTimes(2);
+        expect(console.error).toHaveBeenCalledTimes(1);
         expect(console.error).toHaveBeenCalledWith('Error in loading workspaces:', error);
     });
 });
