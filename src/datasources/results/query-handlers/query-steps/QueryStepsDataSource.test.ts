@@ -356,12 +356,11 @@ describe('QueryStepsDataSource', () => {
       (ResultsDataSourceBase as any)._workspacesCache = null;
       const error = new Error('API failed');
       jest.spyOn(QueryStepsDataSource.prototype, 'getWorkspaces').mockRejectedValue(error);
-      jest.spyOn(console, 'error').mockImplementation(() => {});
 
       await datastore.loadWorkspaces();
 
-      expect(console.error).toHaveBeenCalledTimes(1);
-      expect(console.error).toHaveBeenCalledWith('Error in loading workspaces:', error);
+      expect(datastore.errorTitle).toBe('Warning during result value query');
+      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error');
     });
   });
 
