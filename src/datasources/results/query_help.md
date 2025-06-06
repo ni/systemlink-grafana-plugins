@@ -12,7 +12,7 @@ The _SystemLink TestResults_ data source allows you to display results and steps
 
 Here are some example queries you can create using the _SystemLink TestResults_ data source:
 
-- **View all Test Results for a specific product**: View list of test results associated with a specific product, including properties such as status, part number, and test program.
+- **View summary of test result statuses for products**: View list of test results properties such as status, part number, and test program for a selected product by choosing the Product name (part number) field.
 
 - **Summary of Test Results statuses**: Group test results by their statuses (e.g., passed, failed, terminated) and use data transformation to display the count of results. Filter results by product part number and time range (e.g., last 7 days or last month) to view the summary in a Stat visualization.
 
