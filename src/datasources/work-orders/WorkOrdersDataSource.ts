@@ -100,29 +100,36 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       query.take
     );
 
-    const mappedFields = query.properties?.map(property => {
-      const field = WorkOrderProperties[property];
-      const fieldType = this.isTimeField(field.value) ? FieldType.time : FieldType.string;
-      const fieldName = field.label;
+    if (workOrders.length > 0) {
+      const mappedFields = query.properties?.map(property => {
+        const field = WorkOrderProperties[property];
+        const fieldType = this.isTimeField(field.value) ? FieldType.time : FieldType.string;
+        const fieldName = field.label;
 
-      // TODO: Add mapping for other field types
-      const fieldValue = workOrders.map(workOrder => {
-        switch (field.value) {
-          case WorkOrderPropertiesOptions.PROPERTIES:
-            const properties = workOrder.properties || {};
-            return JSON.stringify(properties);
-          default:
-            return workOrder[field.field] ?? '';
-        }
+        // TODO: Add mapping for other field types
+        const fieldValue = workOrders.map(workOrder => {
+          switch (field.value) {
+            case WorkOrderPropertiesOptions.PROPERTIES:
+              const properties = workOrder.properties || {};
+              return JSON.stringify(properties);
+            default:
+              return workOrder[field.field] ?? '';
+          }
+        });
+
+        return { name: fieldName, values: fieldValue, type: fieldType };
       });
 
-      return { name: fieldName, values: fieldValue, type: fieldType };
-    });
-
+      return {
+        refId: query.refId,
+        name: query.refId,
+        fields: mappedFields ?? [],
+      };
+    }
     return {
       refId: query.refId,
       name: query.refId,
-      fields: mappedFields ?? [],
+      fields: [],
     };
   }
 

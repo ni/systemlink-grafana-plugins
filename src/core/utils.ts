@@ -124,7 +124,7 @@ export async function queryInBatches<T>(
   take?: number,
 ): Promise<QueryResponse<T>> {
   if (take === undefined || take <= queryConfig.maxTakePerRequest) {
-    return await queryRecord(take || queryConfig.maxTakePerRequest);
+    return await queryRecord(take ?? queryConfig.maxTakePerRequest);
   }
 
   let queryResponse: T[] = [];
