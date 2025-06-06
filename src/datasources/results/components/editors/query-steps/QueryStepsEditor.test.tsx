@@ -175,10 +175,14 @@ describe('QueryStepsEditor', () => {
         });
       });
 
-      test('should show error and onChange should not be called when no product is selected', async () => {
-        await select(productName, [], { container: document.body });
+      test('should show error when no product is selected', async () => {        
+        const removeButton = screen.getAllByRole('button', { name: 'Remove' });
+        
+        for (const button of removeButton) {
+          await userEvent.click(button);//Click remove button to remove all the selected product
+        }
+
         expect(screen.getByText('This field requires at least one product to be selected.')).toBeInTheDocument();
-         expect(mockHandleQueryChange).not.toHaveBeenCalled();
       });
     });
 

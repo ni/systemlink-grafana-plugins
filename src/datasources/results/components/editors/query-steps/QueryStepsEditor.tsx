@@ -85,12 +85,11 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   };
 
   const onProductNameChange = (productNames: Array<SelectableValue<string>>) => {
-     if (productNames.length === 0) {
-      setIsProductSelectionValid(false);
-    } else {
-      setIsProductSelectionValid(true);
-      handleQueryChange({ ...query, partNumberQuery: productNames.map(product => product.value as string) });
-    }
+    setIsProductSelectionValid(productNames.length > 0);
+    handleQueryChange({ 
+      ...query, 
+      partNumberQuery: productNames.map(product => product.value as string) 
+    });
   }
 
   const formatOptionLabel = (option: SelectableValue<string>) => (

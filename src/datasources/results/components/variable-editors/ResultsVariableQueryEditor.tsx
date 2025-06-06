@@ -28,6 +28,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
   const [isQueryBuilderDisabled, disableStepsQueryBuilder] = useState<boolean>(true);
   const [stepsRecordCountInvalidMessage, setStepsRecordCountInvalidMessage] = useState<string>('');
   const [resultsRecordCountInvalidMessage, setResultsRecordCountInvalidMessage] = useState<string>('');
+  const [isProductSelectionInStepsValid, setIsProductSelectionInStepsValid] = useState(true);
   const queryResultsquery = query as ResultsVariableQuery;
   const stepsVariableQuery = query as StepsVariableQuery;
   const queryResultsDataSource = useRef(datasource.queryResultsDataSource);
@@ -116,7 +117,9 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
   }
 
   const onProductNameChangesinSteps = (productNames: Array<SelectableValue<string>>) => {
-    disableStepsQueryBuilder(productNames.length === 0);
+    const hasSelection = productNames.length > 0;
+    setIsProductSelectionInStepsValid(hasSelection);
+    disableStepsQueryBuilder(!hasSelection);
     onChange({ ...stepsVariableQuery, partNumberQueryInSteps: productNames.map(product => product.value as string) } as StepsVariableQuery );
   }
 
@@ -195,7 +198,12 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
       )}
       {query.queryType === QueryType.Steps && (
         <>
-          <InlineField label="Product (part number)" labelWidth={26} tooltip={tooltips.productName}>
+          <InlineField
+            label="Product (part number)"
+            labelWidth={26}
+            tooltip={tooltips.productName}
+            invalid={!isProductSelectionInStepsValid}
+            error="This field requires at least one product to be selected.">
             <MultiSelect
               maxVisibleValues={5}
               width={65}
