@@ -209,7 +209,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
   readonly testPlansComputedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(PropertiesProjectionMap).map(({ field, projection }) => {
-      const fieldName = field[0];
+      const fieldName = field;
       const isTime = isTimeField(projection[0]);
       return [fieldName, isTime ? this.timeFieldsQuery(fieldName) : this.multipleValuesQuery(fieldName)];
     })
