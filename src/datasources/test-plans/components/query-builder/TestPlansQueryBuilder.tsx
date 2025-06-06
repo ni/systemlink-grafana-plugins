@@ -96,7 +96,7 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
 
         setOperations([...customOperations, ...keyValueOperations]);
 
-    }, [globalVariableOptions, workspaceField]);
+    }, [workspaceField]);
 
     return (
         <SlQueryBuilder

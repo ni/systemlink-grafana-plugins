@@ -16,7 +16,7 @@ export class WorkspaceUtils {
         if (!WorkspaceUtils._workspacesCache) {
             WorkspaceUtils._workspacesCache = this.loadWorkspaces();
         }
-        return WorkspaceUtils._workspacesCache;
+        return await WorkspaceUtils._workspacesCache;
     }
 
     private async loadWorkspaces(): Promise<Map<string, Workspace>> {
