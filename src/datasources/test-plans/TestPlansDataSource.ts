@@ -273,7 +273,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
           const template = await queryRecord(idsToQuery);
           response.push(...template);
         } catch (error) {
-          console.error(`Error fetching test plan templates for chunk:`, error);
+          console.error(`Error fetching test plan templates:`, error);
         }
       }
 
