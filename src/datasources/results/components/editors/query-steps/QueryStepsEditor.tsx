@@ -26,6 +26,7 @@ type Props = {
 export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props) {
   const [disableStepsQueryBuilder, setDisableStepsQueryBuilder] = useState(false);
   const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
+  const [isProductSelectionValid, setIsProductSelectionValid] = useState(true);
 
   useEffect(() => {
     handleQueryChange(query);
@@ -89,6 +90,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   };
 
   const onProductNameChange = (productNames: Array<SelectableValue<string>>) => {
+    setIsProductSelectionValid(productNames.length > 0);
     handleQueryChange({ ...query, partNumberQuery: productNames.map(product => product.value as string) });
   }
 
@@ -140,7 +142,12 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
             }}
           />
         </div>
-        <InlineField label="Product (part number)" labelWidth={26} tooltip={tooltips.productName}>
+        <InlineField
+          label="Product (part number)"
+          labelWidth={26}
+          tooltip={tooltips.productName}
+          invalid={!isProductSelectionValid}
+          error="This field requires at least one product to be selected.">
           <MultiSelect
             maxVisibleValues={5}
             width={65}
