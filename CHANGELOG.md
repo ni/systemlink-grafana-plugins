@@ -1,3 +1,9 @@
+## [3.106.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.105.1...v3.106.0) (2025-06-06)
+
+### Features
+
+* **results:** Integrate result values and path methods to load lookups for steps path ([#241](https://github.com/ni/systemlink-grafana-plugins/issues/241)) ([3446140](https://github.com/ni/systemlink-grafana-plugins/commit/3446140161a8657095a9281b2f6a43ceb5c39a11))
+
 ## [3.105.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.105.0...v3.105.1) (2025-06-05)
 
 ### Bug Fixes
