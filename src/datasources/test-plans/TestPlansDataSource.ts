@@ -105,7 +105,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
           });
 
           return {
-            name: data.label,
+            name: label,
             values: fieldValues,
             type: fieldType
           };
