@@ -1,3 +1,9 @@
+## [3.108.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.107.0...v3.108.0) (2025-06-06)
+
+### Features
+
+* **test-plans:** show workorder name, template name and estimated duration ([#249](https://github.com/ni/systemlink-grafana-plugins/issues/249)) ([4404b0e](https://github.com/ni/systemlink-grafana-plugins/commit/4404b0e67846392c6e37d9cfaceef6d5bc55f43f))
+
 ## [3.107.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.106.0...v3.107.0) (2025-06-06)
 
 ### Features
