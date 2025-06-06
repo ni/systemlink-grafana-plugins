@@ -354,7 +354,7 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.loadProducts();
 
-      expect(datastore.errorTitle).toBe('Warning during result value query');
+      expect(datastore.errorTitle).toBe('Warning during product value query');
       expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
     });
 
