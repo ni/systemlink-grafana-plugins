@@ -17,6 +17,7 @@ import { TimeRangeControls } from '../time-range/TimeRangeControls';
 import { Workspace } from 'core/types';
 import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
 import { ResultsQueryBuilder } from '../../query-builders/query-results/ResultsQueryBuilder';
+import { FloatingError } from 'core/errors';
 
 type Props = {
   query: QueryResults;
@@ -27,6 +28,11 @@ type Props = {
 export function QueryResultsEditor({ query, handleQueryChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
+
+  useEffect(() => {
+    handleQueryChange(query);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -176,6 +182,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
         </div>
         </div>
       </VerticalGroup>
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity='warning'/>
     </>
   );
 }

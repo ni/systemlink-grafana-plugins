@@ -27,6 +27,15 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
   defaultQuery = defaultStepsQuery;
 
+  private stepsPath: string[] = [];
+  private previousResultsQuery: string | undefined;
+
+  private stepsPathChangeCallback?: () => void;
+
+  setStepsPathChangeCallback(callback: () => void) {
+    this.stepsPathChangeCallback = callback;
+  }
+
   async querySteps(
     filter?: string,
     orderBy?: string,
@@ -165,7 +174,13 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       };
     }
     query.resultsQuery = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.resultsQuery);
-
+    
+    if(this.previousResultsQuery !== query.resultsQuery) {
+      this.stepsPath = await this.getStepPathsLookupValues(options.scopedVars, query.partNumberQuery, query.resultsQuery)
+      this.stepsPathChangeCallback?.();
+    }
+    this.previousResultsQuery = query.resultsQuery;
+    
     const transformStepsQuery = query.stepsQuery
       ? this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options.scopedVars)
       : undefined;
@@ -225,10 +240,55 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
   }
 
+  private async getStepPathsLookupValues(scopedVars: ScopedVars, partNumberQuery: string[], transformedResultsQuery: string): Promise<string[]> {
+    let stepPathValues: string[];
+    try {
+      const stepPathResponse = await this.loadStepPaths(scopedVars, partNumberQuery, transformedResultsQuery);
+      stepPathValues = stepPathResponse.paths.map(pathObj => pathObj.path);
+    } catch (error) {
+      console.error('Error in loading step paths:', error);
+      stepPathValues = [];
+    }
+    return stepPathValues;
+  }
+
+  private async loadStepPaths(
+    options: ScopedVars,
+    partNumberQuery: string[],
+    transformedResultsQuery?: string
+  ): Promise<QueryStepPathsResponse> {
+    const programNames = await this.queryResultsValues(ResultsQueryBuilderFieldNames.PROGRAM_NAME, transformedResultsQuery);
+    if(programNames.length === 0) {
+      return { paths: [] };
+    }
+
+    const buildProgramNameQuery = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PROGRAM_NAME, programNames);
+    const partNumberString = this.buildPartNumbersQuery(options, partNumberQuery);
+    const buildStepPathFilter = this.buildQueryFilter(`(${buildProgramNameQuery})`, `(${partNumberString})`);
+    return await this.queryStepPathInBatches(
+      buildStepPathFilter,
+      [StepsPathProperties.path],
+      MAX_PATH_TAKE_PER_REQUEST,
+      true
+    );
+  }
+
+  getStepPaths(): string[] {
+    if (this.stepsPath?.length > 0) {
+      return this.flattenAndDeduplicate(this.stepsPath);
+    }
+    return [];
+  }
+
   private buildResultsQuery(scopedVars: ScopedVars, partNumberQuery: string[], resultsQuery?: string): string {
     const partNumberFilter = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery);
     const combinedResultsQuery = this.buildQueryFilter(`(${partNumberFilter})`, resultsQuery);
     return this.transformQuery(combinedResultsQuery, this.resultsComputedDataFields, scopedVars)!;
+  }
+
+  private buildPartNumbersQuery(scopedVars: ScopedVars, partNumberQuery: string[]): string {
+    const partNumberFilter = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery);
+    return this.transformQuery(partNumberFilter, this.resultsComputedDataFields, scopedVars)!;
   }
 
   private processFields(
@@ -331,6 +391,12 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   async metricFindQuery(query: StepsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     if (query.partNumberQueryInSteps !== undefined && query.partNumberQueryInSteps.length > 0 && this.isTakeValid(query.stepsTake!)) {
       const resultsQuery = this.buildResultsQuery(options?.scopedVars!, query.partNumberQueryInSteps, query.queryByResults);
+
+      if (this.previousResultsQuery !== resultsQuery) {
+        this.stepsPath = await this.getStepPathsLookupValues(options?.scopedVars!, query.partNumberQueryInSteps, resultsQuery)
+        this.stepsPathChangeCallback?.();
+      }
+      this.previousResultsQuery = resultsQuery;
 
       const stepsQuery = query.queryBySteps ? transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBySteps, options?.scopedVars),
