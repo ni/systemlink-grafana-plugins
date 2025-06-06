@@ -88,25 +88,14 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     returnCount = false
   ): Promise<QueryStepPathsResponse> {
     const defaultOrderBy = StepsPathProperties.path
-    try {
-      const response = await this.post<QueryStepPathsResponse>(this.queryPathsUrl, {
-        filter,
-        projection,
-        take,
-        orderBy: defaultOrderBy,
-        continuationToken,
-        returnCount,
-      });
-
-      return response;
-    } catch (error) {
-      if (!this.errorTitle) {
-        this.handleQueryValuesError(error, 'step paths');
-      }
-      const errorDetails = extractErrorInfo((error as Error).message);
-      // Throw an error to stop the batch query process
-      throw new Error(`The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`);
-    }
+    return await this.post<QueryStepPathsResponse>(this.queryPathsUrl, {
+      filter,
+      projection,
+      take,
+      orderBy: defaultOrderBy,
+      continuationToken,
+      returnCount,
+    });
   }
 
   async queryStepsInBatches(
@@ -267,7 +256,9 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       const stepPathResponse = await this.loadStepPaths(scopedVars, partNumberQuery, transformedResultsQuery);
       stepPathValues = stepPathResponse.paths.map(pathObj => pathObj.path);
     } catch (error) {
-      console.error('Error in loading step paths:', error);
+        if (!this.errorTitle) {
+          this.handleQueryValuesError(error, 'step paths');
+        }
       stepPathValues = [];
     }
     return stepPathValues;
