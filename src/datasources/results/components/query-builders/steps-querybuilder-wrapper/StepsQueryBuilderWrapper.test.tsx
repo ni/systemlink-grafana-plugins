@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, act, cleanup } from '@testing-library/react';
+import { render, screen, act, cleanup, waitFor } from '@testing-library/react';
 import { StepsQueryBuilderWrapper } from './StepsQueryBuilderWrapper';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 import userEvent from '@testing-library/user-event';
@@ -61,6 +61,8 @@ const mockWorkspaces: Workspace[] = [
 
 const mockDatasource = {
   globalVariableOptions: jest.fn().mockReturnValue(['var1', 'var2']),
+  setStepsPathChangeCallback: jest.fn(),
+  getStepPaths: jest.fn().mockReturnValue([]),
   workspacesCache: Promise.resolve(new Map(mockWorkspaces.map(ws => [ws.id, ws]))),
 } as unknown as QueryStepsDataSource;
 
@@ -99,6 +101,7 @@ describe('StepsQueryBuilderWrapper', () => {
     const emptyDatasource = {
       globalVariableOptions: jest.fn().mockReturnValue([]),
       workspacesCache: Promise.resolve(new Map()),
+      setStepsPathChangeCallback: jest.fn()
     } as unknown as QueryStepsDataSource;
 
     jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -133,6 +136,33 @@ describe('StepsQueryBuilderWrapper', () => {
     expect(screen.getByTestId('steps-path').textContent).toEqual(JSON.stringify([]));
     expect(screen.getByTestId('steps-global-vars').textContent).toEqual(JSON.stringify(['var1', 'var2']));
     expect(screen.getByTestId('disable-steps-query-builder').textContent).toBe('false');
+  });
+
+  test('should update stepsPath when stepsPathChangeCallback is triggered', async () => {
+    cleanup();
+    let callback: (() => void) | undefined;
+    const mockDatasource = {
+      setStepsPathChangeCallback: jest.fn(cb => { callback = cb; }),
+      getStepPaths: jest.fn().mockReturnValue(['pathA', 'pathB']),
+      workspacesCache: Promise.resolve(new Map()),
+      globalVariableOptions: jest.fn().mockReturnValue([]),
+    } as any;
+
+    await act(async () => {
+      render(
+        <StepsQueryBuilderWrapper
+        {...defaultProps}
+          datasource={mockDatasource}
+        />
+      );
+    });
+
+    callback && callback();
+
+    expect(mockDatasource.getStepPaths).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.getByTestId('steps-path').textContent).toEqual(JSON.stringify(['pathA', 'pathB']));
+    });
   });
 
   test('should disable StepsQueryBuilder when disableStepsQueryBuilder property is true', async () => {

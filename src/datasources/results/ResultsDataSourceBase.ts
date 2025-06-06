@@ -5,8 +5,11 @@ import { QueryBuilderOption, Workspace } from "core/types";
 import { getVariableOptions } from "core/utils";
 import { ExpressionTransformFunction } from "core/query-builder.utils";
 import { QueryBuilderOperations } from "core/query-builder.constants";
+import { extractErrorInfo } from "core/errors";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
+  errorTitle = '';
+  errorDescription = '';
   baseUrl = this.instanceSettings.url + '/nitestmonitor';
   queryResultsValuesUrl = this.baseUrl + '/v2/query-result-values';
   queryProductsUrl = this.baseUrl + '/v2/query-products';
@@ -61,7 +64,9 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
         return workspaceMap;
       })
       .catch(error => {
-        console.error('Error in loading workspaces:', error);
+        if (!this.errorTitle) {
+          this.handleQueryValuesError(error);
+        }
         return new Map<string, Workspace>();
       });
 
@@ -69,27 +74,19 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   }
 
   async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {
-    try {
-      return await this.post<string[]>(this.queryResultsValuesUrl, {
-        field: fieldName,
-        filter
-      });
-    } catch (error) {
-      throw new Error(`An error occurred while querying result values: ${error}`);
-    }
+    return await this.post<string[]>(this.queryResultsValuesUrl, {
+      field: fieldName,
+      filter
+    });
   }
 
   async queryProducts(
     projection?: ProductProperties[],
   ): Promise<QueryProductResponse> {
-    try {
-      const response = await this.post<QueryProductResponse>(this.queryProductsUrl, {
-        projection,
-      });
-      return response;
-    } catch (error) {
-      throw new Error(`An error occurred while querying products: ${error}`);
-    }
+    const response = await this.post<QueryProductResponse>(this.queryProductsUrl, {
+      projection,
+    });
+    return response;
   }
 
   async loadProducts(): Promise<QueryProductResponse> {
@@ -98,7 +95,9 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     }
     ResultsDataSourceBase._productCache = this.queryProducts([ProductProperties.name, ProductProperties.partNumber])
       .catch(error => {
-        console.error('Error in loading products:', error);
+        if (!this.errorTitle) {
+          this.handleQueryValuesError(error);
+        }
         return { products: [] };
       });
     return ResultsDataSourceBase._productCache;
@@ -109,18 +108,31 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       const isMultiSelect = this.isMultiSelectValue(value);
       const valuesArray = this.getMultipleValuesArray(value);
       const logicalOperator = this.getLogicalOperator(operation);
-      
+
       return isMultiSelect ? `(${valuesArray
         .map(val => `${field} ${operation} "${val}"`)
         .join(` ${logicalOperator} `)})` : `${field} ${operation} "${value}"`;
-      }
     }
+  }
 
   protected timeFieldsQuery(field: string): ExpressionTransformFunction {
     return (value: string, operation: string): string => {
       const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
       return `${field} ${operation} "${formattedValue}"`;
     };
+  }
+
+  /**
+   * Flattens an array of strings, where each element may be a string or an array of strings,
+   * into a single-level array and removes duplicate values.
+   *
+   * @param values - An array containing strings or arrays of strings to be flattened and deduplicated.
+   * @returns A new array containing unique string values from the input, flattened to a single level.
+   */
+  protected flattenAndDeduplicate(values: string[]): string[] {
+    const flatValues = values.flatMap(
+      (value) => Array.isArray(value) ? value : [value]);
+    return Array.from(new Set(flatValues));
   }
 
   /**
@@ -141,9 +153,9 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
    * @returns The constructed query string, or an empty string if no values are provided.
    */
   protected buildQueryWithOrOperator = (fieldName: string, values: string[]): string => {
-    if (values.length === 0){
+    if (values.length === 0) {
       return '';
-    } 
+    }
     return values.map(item => `${fieldName} = "${item}"`).join(' || ');
   };
 
@@ -161,5 +173,20 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
   testDatasource(): Promise<TestDataSourceResponse> {
     throw new Error("Method not implemented.");
+  }
+
+  private handleQueryValuesError(error: unknown): void {
+    const errorDetails = extractErrorInfo((error as Error).message);
+    let detailedMessage = '';
+    try {
+      const parsed = JSON.parse(errorDetails.message);
+      detailedMessage = parsed?.message || errorDetails.message;
+    } catch {
+      detailedMessage = errorDetails.message;
+    }
+    this.errorTitle = 'Warning during result value query';
+    this.errorDescription = errorDetails.message
+      ? `Some values may not be available in the query builder lookups due to the following error:${detailedMessage}.`
+      : 'Some values may not be available in the query builder lookups due to an unknown error.';
   }
 }

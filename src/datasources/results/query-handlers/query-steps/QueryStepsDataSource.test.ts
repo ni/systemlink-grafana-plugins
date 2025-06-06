@@ -1,7 +1,7 @@
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
-import { Field } from '@grafana/data';
+import { DataQueryRequest, Field } from '@grafana/data';
 import { QuerySteps, QueryStepsResponse, StepsProperties, StepsPropertiesOptions } from 'datasources/results/types/QuerySteps.types';
 import { OutputType, QueryType } from 'datasources/results/types/types';
 import { QueryStepsDataSource } from './QueryStepsDataSource';
@@ -40,11 +40,25 @@ jest.mock('../../constants/QueryStepPath.constants', () => ({
 
 describe('QueryStepsDataSource', () => {
   beforeEach(() => {
+    (ResultsDataSourceBase as any).queryResultsValues = jest.fn().mockResolvedValue(['value1', 'value2']);
+
     [datastore, backendServer, templateSrv] = setupDataSource(QueryStepsDataSource);
 
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
       .mockReturnValue(createFetchResponse(mockQueryStepsResponse));
+
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
+      .mockReturnValue(createFetchResponse(['name1','name2']));
+    
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
+      .mockReturnValue(createFetchResponse({
+        paths: ['path1', 'path2'],
+        continuationToken: null,
+        totalCount: 2
+      }));
   })
 
   afterEach(() => {
@@ -278,6 +292,7 @@ describe('QueryStepsDataSource', () => {
         })
       ]
       backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
         .mockImplementationOnce(() => mockResponses[0])
         .mockImplementationOnce(() => mockResponses[1])
       const query = buildQuery(
@@ -299,7 +314,10 @@ describe('QueryStepsDataSource', () => {
       expect(fields).toEqual([
         { name: 'Total count', values: [5000] },
       ]);
-      expect(backendServer.fetch).toHaveBeenCalledTimes(1);
+      const callsToQuerySteps = backendServer.fetch.mock.calls.filter(
+        ([request]) => request.url === '/nitestmonitor/v2/query-steps'
+      );
+      expect(callsToQuerySteps).toHaveLength(1);
     });
   });
 
@@ -338,12 +356,11 @@ describe('QueryStepsDataSource', () => {
       (ResultsDataSourceBase as any)._workspacesCache = null;
       const error = new Error('API failed');
       jest.spyOn(QueryStepsDataSource.prototype, 'getWorkspaces').mockRejectedValue(error);
-      jest.spyOn(console, 'error').mockImplementation(() => {});
 
       await datastore.loadWorkspaces();
 
-      expect(console.error).toHaveBeenCalledTimes(1);
-      expect(console.error).toHaveBeenCalledWith('Error in loading workspaces:', error);
+      expect(datastore.errorTitle).toBe('Warning during result value query');
+      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error');
     });
   });
 
@@ -874,6 +891,114 @@ describe('QueryStepsDataSource', () => {
       expect(spyDelay).toHaveBeenCalledWith(expect.any(Function), 800); // delay for 1000 - 200 = 800ms
     });
   });
+
+  describe('load step paths', () => {
+    it('should call loadStepPaths when resultsQuery is changed', async () => {
+      const query = {
+        refId: 'A',
+        partNumberQuery: ['PN1'],
+        resultsQuery: 'new-query',
+      } as QuerySteps;
+      const spy = jest.spyOn(datastore as any, 'loadStepPaths')
+
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('should not call loadStepPaths when resultsQuery is not changed', async () => {
+      const query = {
+        refId: 'A',
+        partNumberQuery: ['PN1'],
+        resultsQuery: 'ProgramName = "same-query"',
+      } as QuerySteps;
+      (datastore as any).previousResultsQuery = "(PartNumber = \"PN1\") && ProgramName = \"same-query\"";
+      const spy = jest.spyOn(datastore as any, 'loadStepPaths')
+
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should return unique step paths', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
+        .mockReturnValue(
+          createFetchResponse({
+            paths: [
+              { path: 'path1' },
+              { path: 'path2' },
+              { path: 'path1' },
+              { path: 'path3' },
+              { path: 'path2' },
+            ],
+            continuationToken: null,
+            totalCount: 5,
+          })
+        );
+      const query = {
+        refId: 'A',
+        partNumberQuery: ['PN1'],
+        resultsQuery: 'ProgramName = "Test"',
+        outputType: OutputType.Data,
+      } as QuerySteps;
+
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+      const result = datastore.getStepPaths();
+
+      expect(result).toEqual(['path1', 'path2', 'path3']);
+    });
+
+    it('should not call queryStepPathInBatches when no program names are returned', async () => {
+      const spy = jest.spyOn(datastore as any, 'queryStepPathInBatches');
+      jest.spyOn(datastore as any, 'queryResultsValues').mockResolvedValue([]);
+      const query = {
+        refId: 'A',
+        partNumberQuery: ['PN1'],
+        resultsQuery: 'ProgramName = "Test"',
+      } as QuerySteps;
+
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+     
+    it('should handle error in query-paths API when loading step path', async () => {
+      const error = new Error('API failed');
+      jest.spyOn(datastore as any, 'loadStepPaths').mockRejectedValue(error);
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+      const query = {
+        refId: 'A',
+        partNumberQuery: ['PN1'],
+        resultsQuery: 'ProgramName = "Test"',
+        outputType: OutputType.Data,
+      } as QuerySteps;
+
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+      const stepsPathLookupValues = datastore.getStepPaths();
+
+      expect(stepsPathLookupValues).toEqual([]);
+      expect(console.error).toHaveBeenCalledWith('Error in loading step paths:', error);
+    });
+
+    it('should handle error in query-result-values when loading step path', async () => {
+      const error = new Error('API failed');
+      jest.spyOn(datastore as any, 'queryResultsValues').mockRejectedValue(error);
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+      const query = {
+        refId: 'A',
+        partNumberQuery: ['PN1'],
+        resultsQuery: 'ProgramName = "Test"',
+        outputType: OutputType.Data,
+      } as QuerySteps;
+
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+      const stepsPathLookupValues = datastore.getStepPaths();
+
+      expect(stepsPathLookupValues).toEqual([]);
+      expect(console.error).toHaveBeenCalledWith('Error in loading step paths:', error);
+    });
+  })
 
   test('should handle multiple part numbers and query variables', async () => {
     const resultsQuery = `${ResultsQueryBuilderFieldNames.PROGRAM_NAME} = "{name1,name2}"`;

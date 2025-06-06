@@ -57,43 +57,15 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
         )).testPlans;
 
       if (testPlans.length > 0) {
-        let fixtureNames: Asset[] = [];
-        if (projectionAndFields?.find(property => property === PropertiesProjectionMap.FIXTURE_NAMES)) {
-          const fixtureIds = testPlans
-            .map(data => data['fixtureIds'] as string[])
-            .filter(data => data.length > 0)
-            .flat();
-          fixtureNames = await this.assetUtils.queryAssetsInBatches(fixtureIds);
-        }
-
-        let dutNames: Asset[] = [];
-        if (projectionAndFields?.find(property => property === PropertiesProjectionMap.DUT_ID)) {
-          const dutIds = testPlans
-            .map(data => data['dutId'] as string)
-            .filter(data => data != null);
-          dutNames = await this.assetUtils.queryAssetsInBatches(dutIds);
-        }
-
-        let workOrderIdAndName: Array<{ id: string, name: string }> = [];
-        if (projectionAndFields?.find(property => property === PropertiesProjectionMap.WORK_ORDER)) {
-          workOrderIdAndName = testPlans
-            .map(data => ({
-              id: data['workOrderId'] as string,
-              name: data['workOrderName'] as string
-            }));
-        }
-
-        let templatesName: TemplateResponseProperties[] = [];
-        if (query.properties?.find(property => property === Properties.TEMPLATE)) {
-          const templateIds = testPlans
-            .map(data => data['templateId'] as string)
-            .filter(id => id != null);
-          templatesName = await this.queryTestPlanTemplatesInBatches(templateIds);
-        }
+        const labels = projectionAndFields?.map(data => data.label) ?? [];
+        const fixtureNames = await this.getFixtureNames(labels, testPlans);
+        const dutNames = await this.getDutNames(labels, testPlans);
+        const workOrderIdAndName = this.getWorkOrderIdAndName(labels, testPlans);
+        const templatesName = await this.getTemplateNames(labels, testPlans);
 
         const fields = projectionAndFields?.map((data) => {
           const label = data.label;
-          const field = data.field;
+          const field = data.field[0];
           const fieldType = isTimeField(field)
             ? FieldType.time
             : FieldType.string;
@@ -161,6 +133,49 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
   shouldRunQuery(query: TestPlansQuery): boolean {
     return true;
+  }
+
+  private async getFixtureNames(labels: string[], testPlans: TestPlanResponseProperties[]): Promise<Asset[]> {
+    if (labels.find(label => label === PropertiesProjectionMap.FIXTURE_NAMES.label)) {
+      const fixtureIds = testPlans
+        .map(data => data['fixtureIds'] as string[])
+        .filter(data => data.length > 0)
+        .flat();
+      return await this.assetUtils.queryAssetsInBatches(fixtureIds);
+    }
+    return [];
+  }
+
+  private async getDutNames(labels: string[], testPlans: TestPlanResponseProperties[]): Promise<Asset[]> {
+    if (labels.find(label => label === PropertiesProjectionMap.DUT_ID.label)) {
+      const dutIds = testPlans
+        .map(data => data['dutId'] as string)
+        .filter(data => data != null);
+      return await this.assetUtils.queryAssetsInBatches(dutIds);
+    }
+    return [];
+  }
+
+  private getWorkOrderIdAndName(labels: string[], testPlans: TestPlanResponseProperties[]): { id: string; name: string }[] {
+    if (labels.find(label => label === PropertiesProjectionMap.WORK_ORDER.label)) {
+      return testPlans
+        .map(data => ({
+          id: data['workOrderId'] as string,
+          name: data['workOrderName'] as string
+        }))
+        .filter(data => data.id != null);
+    }
+    return [];
+  }
+
+  private async getTemplateNames(labels: string[], testPlans: TestPlanResponseProperties[]): Promise<TemplateResponseProperties[]> {
+    if (labels.find(label => label === PropertiesProjectionMap.TEMPLATE.label)) {
+      const templateIds = testPlans
+        .map(data => data['templateId'] as string)
+        .filter(id => id != null);
+      return await this.queryTestPlanTemplatesInBatches(templateIds);
+    }
+    return [];
   }
 
   async metricFindQuery(query: TestPlansVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
