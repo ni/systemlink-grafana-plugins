@@ -1,3 +1,9 @@
+## [3.107.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.106.0...v3.107.0) (2025-06-06)
+
+### Features
+
+* **test-plan:** show fixture and dut name for ids ([#242](https://github.com/ni/systemlink-grafana-plugins/issues/242)) ([960f954](https://github.com/ni/systemlink-grafana-plugins/commit/960f954f5656351d9ab1ead136001331939fa113))
+
 ## [3.106.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.105.1...v3.106.0) (2025-06-06)
 
 ### Features
