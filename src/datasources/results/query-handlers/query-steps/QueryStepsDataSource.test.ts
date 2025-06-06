@@ -1207,25 +1207,25 @@ describe('QueryStepsDataSource', () => {
         expect(result).toEqual([]);
       });
 
-       it('should return undefined if API throws error', async () => {
-      const error = new Error('API failed');
-      backendServer.fetch.calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
-        .mockImplementationOnce(() => { throw error; });
+      it('should return undefined if API throws error', async () => {
+        const error = new Error('API failed');
+        backendServer.fetch.calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
+          .mockImplementationOnce(() => { throw error; });
 
-      const query = { queryByResults: 'programName = "name1"', stepsTake: 1000, partNumberQueryInSteps: ['PartNumber1'] } as StepsVariableQuery;
+        const query = { queryByResults: 'programName = "name1"', stepsTake: 1000, partNumberQueryInSteps: ['PartNumber1'] } as StepsVariableQuery;
 
-      let result;
-      let caughtError;
+        let result;
+        let caughtError;
 
-      try {
-        result = await datastore.metricFindQuery(query);
-      } catch (error) {
-        caughtError = (error as Error).message;
-      }
+        try {
+          result = await datastore.metricFindQuery(query);
+        } catch (error) {
+          caughtError = (error as Error).message;
+        }
 
-      expect(caughtError).toBe(`The query failed due to an unknown error.`);
-      expect(result).toEqual(undefined);
-    });
+        expect(caughtError).toBe(`The query failed due to an unknown error.`);
+        expect(result).toEqual(undefined);
+      });
 
       it('should use templateSrv.replace for queryByResults and queryBySteps', async () => {
         let resultsQuery = 'programName = "${name}"'
