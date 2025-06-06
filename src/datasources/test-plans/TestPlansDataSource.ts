@@ -58,6 +58,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
       const testPlans = (
         await this.queryTestPlansInBatches(
+          query.queryBy,
           query.orderBy,
           projection,
           query.recordCount,
@@ -113,6 +114,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       };
     } else {
       const responseData = await this.queryTestPlans(
+        query.queryBy,
         query.orderBy,
         undefined,
         0,
@@ -162,6 +164,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       );
     }
     const metadata = (await this.queryTestPlansInBatches(
+      query.queryBy,
       query.orderBy,
       [Projections.ID, Projections.NAME],
       query.recordCount,
@@ -215,6 +218,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   async queryTestPlansInBatches(
+    filter?: string,
     orderBy?: string,
     projection?: Projections[],
     take?: number,
@@ -223,6 +227,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   ): Promise<QueryTestPlansResponse> {
     const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<TestPlanResponseProperties>> => {
       const response = await this.queryTestPlans(
+        filter,
         orderBy,
         projection,
         currentTake,
@@ -253,6 +258,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   async queryTestPlans(
+    filter?: string,
     orderBy?: string,
     projection?: Projections[],
     take?: number,
@@ -262,6 +268,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   ): Promise<QueryTestPlansResponse> {
     try {
       const response = await this.post<QueryTestPlansResponse>(this.queryTestPlansUrl, {
+        filter,
         orderBy,
         descending,
         projection,
