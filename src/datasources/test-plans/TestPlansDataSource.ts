@@ -55,23 +55,11 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
           true
         )).testPlans;
 
+      const labels = projectionAndFields?.map(data => data.label) ?? [];
       if (testPlans.length > 0) {
-        let fixtureNames: Asset[] = [];
-        if (projectionAndFields?.find(property => property === PropertiesProjectionMap.FIXTURE_NAMES)) {
-          const fixtureIds = testPlans
-            .map(data => data['fixtureIds'] as string[])
-            .filter(data => data.length > 0)
-            .flat();
-          fixtureNames = await this.assetUtils.queryAssetsInBatches(fixtureIds);
-        }
+        let fixtureNames: Asset[] = await this.getFixtureNames(labels, testPlans);
 
-        let dutNames: Asset[] = [];
-        if (projectionAndFields?.find(property => property === PropertiesProjectionMap.DUT_ID)) {
-          const dutIds = testPlans
-            .map(data => data['dutId'] as string)
-            .filter(data => data != null);
-          dutNames = await this.assetUtils.queryAssetsInBatches(dutIds);
-        }
+        let dutNames: Asset[] = await this.getDutNames(labels, testPlans);
 
         const fields = projectionAndFields?.map((data) => {
           const label = data.label;
@@ -133,6 +121,27 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
   shouldRunQuery(query: TestPlansQuery): boolean {
     return true;
+  }
+
+  private async getFixtureNames(labels: string[], testPlans: TestPlanResponseProperties[]): Promise<Asset[]> {
+    if (labels?.find(label => label === PropertiesProjectionMap.FIXTURE_NAMES.label)) {
+      const fixtureIds = testPlans
+        .map(data => data['fixtureIds'] as string[])
+        .filter(data => data.length > 0)
+        .flat();
+      return await this.assetUtils.queryAssetsInBatches(fixtureIds);
+    }
+    return [];
+  }
+
+  private async getDutNames(labels: string[], testPlans: TestPlanResponseProperties[]): Promise<Asset[]> {
+    if (labels?.find(label => label === PropertiesProjectionMap.DUT_ID.label)) {
+      const dutIds = testPlans
+        .map(data => data['dutId'] as string)
+        .filter(data => data != null);
+      return await this.assetUtils.queryAssetsInBatches(dutIds);
+    }
+    return [];
   }
 
   async metricFindQuery(query: TestPlansVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
