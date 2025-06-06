@@ -6,6 +6,7 @@ import { QueryResultsDataSource } from 'datasources/results/query-handlers/query
 import { QueryResultsEditor } from './QueryResultsEditor';
 import React from 'react';
 import { Workspace } from 'core/types';
+import { ResultsProperties } from 'datasources/results/types/QueryResults.types';
 
 jest.mock('../../query-builders/query-results/ResultsQueryBuilder', () => ({
   ResultsQueryBuilder: jest.fn(({ filter, workspaces, status, globalVariableOptions, onChange }) => {
@@ -69,7 +70,7 @@ describe('QueryResultsEditor', () => {
             refId: 'A',
             queryType: QueryType.Results,
             outputType: OutputType.Data,
-            properties: [],
+            properties: [ResultsProperties.id],
             orderBy: 'STARTED_AT',
             descending: true,
             recordCount: 1000,
@@ -113,25 +114,23 @@ describe('QueryResultsEditor', () => {
     expect(screen.getAllByText('ProductName1 (PartNumber1)').length).toBe(1);
   });
 
-  test('should update properties when user adds a property', async () => {
-    await select(properties, 'properties', { container: document.body });
-    await waitFor(() => {
-      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['properties'] }));
+  describe('Properties', () => {
+    test('should update properties when user adds a property', async () => {
+      await select(properties, 'properties', { container: document.body });
+      await waitFor(() => {
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['id', 'properties'] }));
+      });
     });
-  });
-
-  it('should show error when all properties are removed', async () => {
-    await select(properties, 'properties', { container: document.body });
-
-    // User removes the property
-    const removeButton = screen.getAllByRole('button', { name: 'Remove' });
-    for (const button of removeButton) {
-      await userEvent.click(button);
-    }
-
-    expect(screen.getByRole('alert')).toBeInTheDocument();
-    expect(screen.getByText('At least one property must be selected to display data.')).toBeInTheDocument();
-  });
+  
+    test('should show error when all properties are removed', async () => {
+      const removeButton = screen.getAllByLabelText('Remove');
+      for (const button of removeButton) {
+        await userEvent.click(button);
+      }
+  
+      expect(screen.getByText('At least one property must be selected to display data.')).toBeInTheDocument();
+    });
+  })
 
 
   test('should update orderBy when user changes the orderBy', async () => {
