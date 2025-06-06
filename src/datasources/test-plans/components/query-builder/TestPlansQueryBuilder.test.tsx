@@ -28,7 +28,7 @@ describe('TestPlansQueryBuilder', () => {
         expect(renderResult.findByLabelText('Empty condition row')).toBeTruthy();
     });
 
-    it('should select system alis in query builder', () => {
+    it('should select system alias in query builder', () => {
         const { conditionsContainer } = renderElement('systemAliasName = "1"', [systemAlias]);
 
         expect(conditionsContainer?.length).toBe(1);

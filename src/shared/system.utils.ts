@@ -13,9 +13,7 @@ export class SystemUtils {
     constructor(
         readonly instanceSettings: DataSourceInstanceSettings,
         readonly backendSrv: BackendSrv
-    ) {
-        this.loadSystems();
-    }
+    ) {}
 
     async getSystemAliases(): Promise<Map<string, SystemAlias>> {
         if (!SystemUtils._systemAliasCache) {

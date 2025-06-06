@@ -54,17 +54,13 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    switch (true) {
-      case isNaN(value) || value < 0:
-        setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
-        break;
-      case value > TAKE_LIMIT:
-        setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTenThousand);
-        break;
-      default:
-        setRecordCountInvalidMessage('');
-        handleQueryChange({ ...query, recordCount: value });
-        break;
+    if (isNaN(value) || value < 0) {
+      setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
+    } else if (value > TAKE_LIMIT) {
+      setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTenThousand);
+    } else {
+      setRecordCountInvalidMessage('');
+      handleQueryChange({ ...query, recordCount: value });
     }
   };
 
