@@ -141,12 +141,12 @@ describe('QueryResultsEditor', () => {
     });
   });
 
-  test('should update part number query when user selects a variable in product name field', async () => {
+    test('should update part number query when user selects a variable in product name field', async () => {
     await select(productName, '$var1', { container: document.body });
     await waitFor(() => {
       expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "$var1"] }));
     });
-  })
+  });
 
   describe('recordCount', () => {
     test('should update record count when user enters numeric values in the take', async () => {
