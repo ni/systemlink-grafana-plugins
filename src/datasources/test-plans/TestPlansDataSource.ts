@@ -2,11 +2,13 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, 
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { Asset, OrderByOptions, OutputType, Projections, Properties, PropertiesProjectionMap, QueryTestPlansResponse, TestPlanResponseProperties, TestPlansQuery, TestPlansVariableQuery } from './types';
-import { queryInBatches } from 'core/utils';
-import { QueryResponse } from 'core/types';
+import { getVariableOptions, queryInBatches } from 'core/utils';
+import { QueryBuilderOption, QueryResponse } from 'core/types';
 import { isTimeField } from './utils';
 import { QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
 import { AssetUtils } from './asset.utils';
+import { QueryBuilderOperations } from 'core/query-builder.constants';
+import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(
@@ -40,7 +42,15 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     recordCount: 1000
   };
 
-  async runQuery(query: TestPlansQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
+  readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
+
+  async runQuery(query: TestPlansQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    if (query.queryBy) {
+      query.queryBy = transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.testPlansComputedDataFields
+      );
+    }
 
     if (query.outputType === OutputType.Properties) {
       const projectionAndFields = query.properties?.map(property => PropertiesProjectionMap[property]);
@@ -145,6 +155,12 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   async metricFindQuery(query: TestPlansVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    if (query.queryBy) {
+      query.queryBy = transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.testPlansComputedDataFields
+      );
+    }
     const metadata = (await this.queryTestPlansInBatches(
       query.orderBy,
       [Projections.ID, Projections.NAME],
@@ -152,6 +168,45 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       query.descending
     )).testPlans;
     return metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.id})`, value: frame.id })) : [];
+  }
+
+  readonly testPlansComputedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(PropertiesProjectionMap).map(({ field, projection }) => {
+      const fieldName = field[0];
+      const isTime = isTimeField(projection[0]);
+      return [fieldName, isTime ? this.timeFieldsQuery(fieldName) : this.multipleValuesQuery(fieldName)];
+    })
+  );
+
+  protected multipleValuesQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string, _options?: any) => {
+      const isMultiSelect = this.isMultiSelectValue(value);
+      const valuesArray = this.getMultipleValuesArray(value);
+      const logicalOperator = this.getLogicalOperator(operation);
+
+      return isMultiSelect
+        ? `(${valuesArray.map(val => `${field} ${operation} "${val}"`).join(` ${logicalOperator} `)})`
+        : `${field} ${operation} "${value}"`;
+    };
+  }
+
+  protected timeFieldsQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string): string => {
+      const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
+      return `${field} ${operation} "${formattedValue}"`;
+    };
+  }
+
+  private isMultiSelectValue(value: string): boolean {
+    return value.startsWith('{') && value.endsWith('}');
+  }
+
+  private getMultipleValuesArray(value: string): string[] {
+    return value.replace(/({|})/g, '').split(',');
+  }
+
+  private getLogicalOperator(operation: string): string {
+    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

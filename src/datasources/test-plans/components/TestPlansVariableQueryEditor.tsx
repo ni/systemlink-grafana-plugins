@@ -56,7 +56,7 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
       <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
         <TestPlansQueryBuilder
           filter={query.queryBy}
-          globalVariableOptions={[]}
+          globalVariableOptions={datasource.globalVariableOptions()}
           onChange={(event: any) => onQueryByChange(event.detail.linq)}
         ></TestPlansQueryBuilder>
       </InlineField>
