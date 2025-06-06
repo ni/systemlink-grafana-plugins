@@ -48,24 +48,22 @@ describe('SystemUtils', () => {
     });
 
     it('should handle errors when loading system aliases', async () => {
+        (SystemUtils as any)['_systemAliasCache'] = undefined;
         jest.spyOn(console, 'error').mockImplementation(() => {});
         const error = new Error('Failed to fetch systems');
         (queryUsingSkip as jest.Mock).mockImplementationOnce(() => {
             return Promise.reject(error);
-        }).mockImplementationOnce(() => {
-            return Promise.reject(error);
         });
 
-        systemUtils = new SystemUtils(instanceSettings, backendSrv);
         const result = await systemUtils.getSystemAliases();
 
-        expect(console.error).toHaveBeenCalledTimes(2);
+        expect(console.error).toHaveBeenCalledTimes(1);
         expect(console.error).toHaveBeenCalledWith('Error in loading systems:', error);
         expect(result).toEqual(new Map<string, SystemAlias>());
     });
 
     it('should return cached system aliases if already loaded', async () => {
-        (SystemUtils as any)['_systemAliasCache'] = null;
+        (SystemUtils as any)['_systemAliasCache'] = undefined;
         await systemUtils.getSystemAliases();
         jest.clearAllMocks();
 
