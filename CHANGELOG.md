@@ -1,3 +1,9 @@
+## [3.117.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.116.0...v3.117.0) (2025-06-09)
+
+### Features
+
+* **system-utils:** create system reusable to remove duplicate methods of loading system alias in data sources ([#234](https://github.com/ni/systemlink-grafana-plugins/issues/234)) ([11c0562](https://github.com/ni/systemlink-grafana-plugins/commit/11c05627628fab15cf8612b02aea99694c17de63))
+
 ## [3.116.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.115.0...v3.116.0) (2025-06-09)
 
 ### Features
