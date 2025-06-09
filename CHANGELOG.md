@@ -1,3 +1,9 @@
+## [3.115.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.114.0...v3.115.0) (2025-06-09)
+
+### Features
+
+* **testplans:** Stringify properties dispayed ([#254](https://github.com/ni/systemlink-grafana-plugins/issues/254)) ([4e64263](https://github.com/ni/systemlink-grafana-plugins/commit/4e642637e7cc78184bbb85724340b589ca51dd3b))
+
 ## [3.114.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.113.0...v3.114.0) (2025-06-09)
 
 ### Features
