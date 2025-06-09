@@ -28,12 +28,20 @@ export const StepsQueryBuilderWrapper = (
     disableStepsQueryBuilder
   }: Props) => {
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
+  const [stepsPath, setStepsPath] = useState<string[]>([]);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
       const workspaces = await datasource.workspacesCache;
       setWorkspaces(Array.from(workspaces.values()));
     };
+    const loadStepsPath = () => {
+      setStepsPath(datasource.getStepPaths());
+      datasource.setStepsPathChangeCallback(() => {
+        setStepsPath(datasource.getStepPaths());
+      });
+    };
+    loadStepsPath();
     loadWorkspaces();
   }, [datasource]);
   
@@ -53,7 +61,7 @@ export const StepsQueryBuilderWrapper = (
           filter={stepsQuery}
           workspaces={workspaces}
           stepStatus={enumToOptions(TestMeasurementStatus).map(option => option.value?.toString() || '')}
-          stepsPath={[]}
+          stepsPath={stepsPath}
           globalVariableOptions={datasource.globalVariableOptions()}
           disableQueryBuilder={disableStepsQueryBuilder}
           onFilterChange={(filter) => onStepsQueryChange(filter)}

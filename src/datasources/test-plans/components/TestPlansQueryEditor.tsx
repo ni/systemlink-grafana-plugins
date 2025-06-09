@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { TestPlansDataSource } from '../TestPlansDataSource';
 import { OrderBy, OutputType, Properties, PropertiesProjectionMap, TestPlansQuery } from '../types';
@@ -6,12 +6,36 @@ import { AutoSizeInput, HorizontalGroup, InlineField, InlineSwitch, MultiSelect,
 import { validateNumericInput } from 'core/utils';
 import { TestPlansQueryBuilder } from './query-builder/TestPlansQueryBuilder';
 import { recordCountErrorMessages, TAKE_LIMIT } from '../constants/QueryEditor.constants';
+import { Workspace } from 'core/types';
+import { SystemAlias } from 'shared/types/QuerySystems.types';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansQuery>;
 
 export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
+
+  const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
+
+  useEffect(() => {
+    const loadWorkspaces = async () => {
+      const workspaces = await datasource.workspaceUtils.getWorkspaces();
+      setWorkspaces(Array.from(workspaces.values()));
+    };
+
+    loadWorkspaces();
+  }, [datasource]);
+
+  const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
+
+  useEffect(() => {
+    const loadSystemAliases = async () => {
+      const systemAliases = await datasource.systemUtils.getSystemAliases();
+      setSystemAliases(Array.from(systemAliases.values()));
+    };
+
+    loadSystemAliases();
+  }, [datasource]);
 
   const handleQueryChange = useCallback(
     (query: TestPlansQuery, runQuery = true): void => {
@@ -41,20 +65,16 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
   };
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
-      const value = parseInt((event.target as HTMLInputElement).value, 10);
-      switch (true) {
-        case isNaN(value) || value < 0:
-          setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
-          break;
-        case value > TAKE_LIMIT:
-          setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTenThousand);
-          break;
-        default:
-          setRecordCountInvalidMessage('');
-          handleQueryChange({ ...query, recordCount: value });
-          break;
-      }
-    };
+    const value = parseInt((event.target as HTMLInputElement).value, 10);
+    if (isNaN(value) || value < 0) {
+      setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
+    } else if (value > TAKE_LIMIT) {
+      setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTenThousand);
+    } else {
+      setRecordCountInvalidMessage('');
+      handleQueryChange({ ...query, recordCount: value });
+    }
+  };
 
   const onQueryByChange = (queryBy: string) => {
     if (query.queryBy !== queryBy) {
@@ -93,6 +113,8 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
           <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
             <TestPlansQueryBuilder
               filter={query.queryBy}
+              workspaces={workspaces}
+              systemAliases={systemAliases}
               globalVariableOptions={[]}
               onChange={(event: any) => onQueryByChange(event.detail.linq)}
             ></TestPlansQueryBuilder>

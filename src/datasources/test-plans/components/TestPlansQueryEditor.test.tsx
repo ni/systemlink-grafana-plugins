@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, RenderResult, waitFor } from '@testing-library/react';
+import { act, render, RenderResult, waitFor } from '@testing-library/react';
 import { TestPlansQueryEditor } from './TestPlansQueryEditor';
 import { QueryEditorProps } from '@grafana/data';
 import { TestPlansDataSource } from '../TestPlansDataSource';
@@ -11,6 +11,22 @@ const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
     prepareQuery: jest.fn((query: TestPlansQuery) => query),
+    workspaceUtils: {
+        getWorkspaces: jest.fn().mockResolvedValue(
+            new Map([
+                ['1', { id: '1', name: 'WorkspaceName' }],
+                ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+            ])
+        )
+    },
+    systemUtils: {
+        getSystemAliases: jest.fn().mockResolvedValue(
+            new Map([
+                ['1', { id: '1', alias: 'System 1' }],
+                ['2', { id: '2', alias: 'System 2' }],
+            ])
+        ),
+    }
 } as unknown as TestPlansDataSource;
 
 const defaultProps: QueryEditorProps<TestPlansDataSource, TestPlansQuery> = {
@@ -28,13 +44,15 @@ describe('TestPlansQueryEditor', () => {
         jest.clearAllMocks();
     });
 
-    function renderElement(query: TestPlansQuery = { refId: 'A', outputType: OutputType.Properties }) {
-        const reactNode = React.createElement(TestPlansQueryEditor, { ...defaultProps, query });
-        return render(reactNode);
+    async function renderElement(query: TestPlansQuery = { refId: 'A', outputType: OutputType.Properties }) {
+        return await act(async () => {
+            const reactNode = React.createElement(TestPlansQueryEditor, { ...defaultProps, query });
+            return render(reactNode);
+        });
     }
 
     it('should render default query', async () => {
-        const container = renderElement();
+        const container = await renderElement();
 
         expect(container.getByRole('radio', { name: OutputType.Properties })).toBeInTheDocument();
         expect(container.getByRole('radio', { name: OutputType.Properties })).toBeChecked();
@@ -68,12 +86,12 @@ describe('TestPlansQueryEditor', () => {
         let container: RenderResult;
         let propertiesSelect: HTMLElement;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             const query = {
                 refId: 'A',
                 outputType: OutputType.Properties,
             };
-            container = renderElement(query);
+            container = await renderElement(query);
             propertiesSelect = container.getAllByRole('combobox')[0];
         });
 
@@ -115,12 +133,12 @@ describe('TestPlansQueryEditor', () => {
     describe('when output type is total count', () => {
         let container: RenderResult;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             const query = {
                 refId: 'A',
                 outputType: OutputType.TotalCount,
             };
-            container = renderElement(query);
+            container = await renderElement(query);
         });
 
         it('should not render properties', async () => {
@@ -157,7 +175,7 @@ describe('TestPlansQueryEditor', () => {
             refId: 'A',
             outputType: OutputType.TotalCount,
         };
-        const container = renderElement(query);
+        const container = await renderElement(query);
 
         await waitFor(() => {
             const properties = container.queryByRole('combobox', { name: 'Properties' });
@@ -170,7 +188,7 @@ describe('TestPlansQueryEditor', () => {
             refId: 'A',
             outputType: OutputType.Properties,
         };
-        const container = renderElement(query);
+        const container = await renderElement(query);
 
         await waitFor(() => {
             const properties = container.getAllByRole('combobox')[0];
@@ -185,7 +203,7 @@ describe('TestPlansQueryEditor', () => {
             refId: 'A',
             outputType: OutputType.Properties,
         };
-        const container = renderElement(query);
+        const container = await renderElement(query);
 
         const propertiesSelect = container.getAllByRole('combobox')[0];
         userEvent.click(propertiesSelect);
@@ -197,13 +215,38 @@ describe('TestPlansQueryEditor', () => {
         });
     });
 
+    it('should load workspaces and set them in state', async () => {
+        await renderElement();
+
+        const workspaces = await mockDatasource.workspaceUtils.getWorkspaces();
+        expect(workspaces).toBeDefined();
+        expect(workspaces).toEqual(
+            new Map([
+                ['1', { id: '1', name: 'WorkspaceName' }],
+                ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+            ])
+        );
+    });
+
+    it('should load system names', async () => {
+        await renderElement();
+        const result = await mockDatasource.systemUtils.getSystemAliases();
+        expect(result).toBeDefined();
+        expect(result).toEqual(
+            new Map([
+                ['1', { id: '1', alias: 'System 1' }],
+                ['2', { id: '2', alias: 'System 2' }],
+            ])
+        );
+    });
+
     describe('onChange', () => {
         it('should call onChange with properties output type when switching from total count', async () => {
             const query = {
                 refId: 'A',
                 outputType: OutputType.TotalCount
             };
-            const container = renderElement(query);
+            const container = await renderElement(query);
 
             const propertiesRadio = container.getByRole('radio', { name: OutputType.Properties });
             userEvent.click(propertiesRadio);
@@ -215,7 +258,7 @@ describe('TestPlansQueryEditor', () => {
         });
 
         it('should call onChange with total count output type when switching from properties', async () => {
-            const container = renderElement();
+            const container = await renderElement();
 
             const totalCountRadio = container.getByRole('radio', { name: OutputType.TotalCount });
             userEvent.click(totalCountRadio);
@@ -227,7 +270,7 @@ describe('TestPlansQueryEditor', () => {
         });
 
         it('should call onChange with order by when user selects order by', async () => {
-            const container = renderElement();
+            const container = await renderElement();
             const orderBySelect = container.getAllByRole('combobox')[1];
 
             userEvent.click(orderBySelect);
@@ -240,7 +283,7 @@ describe('TestPlansQueryEditor', () => {
         });
 
         it('should call onChange with descending when user toggles descending', async () => {
-            const container = renderElement();
+            const container = await renderElement();
             const descendingCheckbox = container.getByRole('checkbox');
 
             userEvent.click(descendingCheckbox);
@@ -252,7 +295,7 @@ describe('TestPlansQueryEditor', () => {
         });
 
         it('should call onChange with record count when user enters record count', async () => {
-            const container = renderElement();
+            const container = await renderElement();
             const recordCountInput = container.getByRole('spinbutton');
 
             await userEvent.clear(recordCountInput);
@@ -266,7 +309,7 @@ describe('TestPlansQueryEditor', () => {
         });
 
         it('should call onChange when query by changes', async () => {
-            const container = renderElement();
+            const container = await renderElement();
 
             const queryBuilder = container.getByRole('dialog');
             expect(queryBuilder).toBeInTheDocument();
@@ -282,7 +325,7 @@ describe('TestPlansQueryEditor', () => {
         });
 
         it('should show error message when when user changes take to number greater than max take', async () => {
-            const container = renderElement();
+            const container = await renderElement();
             const takeInput = container.getByRole('spinbutton');
             mockOnChange.mockClear();
             mockOnRunQuery.mockClear();
@@ -292,14 +335,14 @@ describe('TestPlansQueryEditor', () => {
             await userEvent.tab();
 
             await waitFor(() => {
-            expect(container.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
-            expect(mockOnChange).not.toHaveBeenCalled();
-            expect(mockOnRunQuery).not.toHaveBeenCalled();
+                expect(container.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
+                expect(mockOnChange).not.toHaveBeenCalled();
+                expect(mockOnRunQuery).not.toHaveBeenCalled();
             });
         });
 
         it('should show error message when when user changes take to number less than min take', async () => {
-            const container = renderElement();
+            const container = await renderElement();
             const takeInput = container.getByRole('spinbutton');
             mockOnChange.mockClear();
             mockOnRunQuery.mockClear();
@@ -308,14 +351,14 @@ describe('TestPlansQueryEditor', () => {
             await userEvent.tab();
 
             await waitFor(() => {
-            expect(container.getByText('Enter a value greater than or equal to 0')).toBeInTheDocument();
-            expect(mockOnChange).not.toHaveBeenCalled();
-            expect(mockOnRunQuery).not.toHaveBeenCalled();
+                expect(container.getByText('Enter a value greater than or equal to 0')).toBeInTheDocument();
+                expect(mockOnChange).not.toHaveBeenCalled();
+                expect(mockOnRunQuery).not.toHaveBeenCalled();
             });
         });
 
         it('should not show error message when when user changes take to number between min and max take', async () => {
-            const container = renderElement();
+            const container = await renderElement();
             const takeInput = container.getByRole('spinbutton');
 
             // User enters a value greater than max take
@@ -323,7 +366,7 @@ describe('TestPlansQueryEditor', () => {
             await userEvent.type(takeInput, '1000000');
             await userEvent.tab();
             await waitFor(() => {
-            expect(container.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
+                expect(container.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
             });
 
             // User enters a valid value
@@ -332,8 +375,8 @@ describe('TestPlansQueryEditor', () => {
             await userEvent.tab();
 
             await waitFor(() => {
-            expect(container.queryByText('Enter a value greater than or equal to 0')).not.toBeInTheDocument();
-            expect(container.queryByText('Enter a value less than or equal to 10,000')).not.toBeInTheDocument();
+                expect(container.queryByText('Enter a value greater than or equal to 0')).not.toBeInTheDocument();
+                expect(container.queryByText('Enter a value less than or equal to 10,000')).not.toBeInTheDocument();
             });
         });
     });
