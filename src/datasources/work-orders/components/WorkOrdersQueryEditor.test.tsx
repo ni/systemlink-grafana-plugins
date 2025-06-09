@@ -11,6 +11,7 @@ const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: WorkOrdersQuery) => query),
+  globalVariableOptions: jest.fn(() => []),
   usersObj: jest.fn().mockImplementation(() => ({
     usersCache: Promise.resolve(
       [{ id: '1', name: 'User 1' },
@@ -71,6 +72,10 @@ describe('WorkOrdersQueryEditor', () => {
     expect(descending).toBeInTheDocument();
     expect(descending).not.toBeChecked();
 
+    const take = container.getByRole('spinbutton');
+    expect(take).toBeInTheDocument();
+    expect(take).toHaveDisplayValue('');
+
     expect(mockOnChange).toHaveBeenCalledWith(
       expect.objectContaining({
         outputType: OutputType.Properties,
@@ -115,6 +120,11 @@ describe('WorkOrdersQueryEditor', () => {
         expect(descending).not.toBeInTheDocument();
       });
     });
+
+    it('should not render take', async () => {
+      const take = container.queryByRole('spinbutton', { name: 'Take' });
+      expect(take).not.toBeInTheDocument();
+    });
   });
 
   describe('output type is properties', () => {
@@ -157,6 +167,30 @@ describe('WorkOrdersQueryEditor', () => {
     it('should render descending', async () => {
       const descending = container.getByRole('checkbox');
       expect(descending).toBeInTheDocument();
+    });
+
+    it('should render take', async () => {
+      const take = container.getByRole('spinbutton');
+      expect(take).toBeInTheDocument();
+    });
+  });
+
+  it('only allows numbers in Take field', async () => {
+    const container = renderElement();
+    const recordCountInput = container.getByRole('spinbutton');
+
+    // User tries to enter a non-numeric value
+    await userEvent.clear(recordCountInput);
+    await userEvent.type(recordCountInput, 'abc');
+    await waitFor(() => {
+      expect(recordCountInput).toHaveValue(null);
+    });
+
+    // User enters a valid numeric value
+    await userEvent.clear(recordCountInput);
+    await userEvent.type(recordCountInput, '500');
+    await waitFor(() => {
+      expect(recordCountInput).toHaveValue(500);
     });
   });
 
@@ -268,6 +302,75 @@ describe('WorkOrdersQueryEditor', () => {
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledTimes(1);
         expect(mockOnRunQuery).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('should call onChange with take when user changes take', async () => {
+      const container = renderElement();
+      const takeInput = container.getByRole('spinbutton');
+
+      await userEvent.type(takeInput, '10');
+      await userEvent.tab(); // Trigger onCommitChange
+
+      await waitFor(() => {
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ take: 10 }));
+        expect(mockOnRunQuery).toHaveBeenCalled();
+      });
+    });
+
+    it('should show error message when when user changes take to number greater than max take', async () => {
+      const container = renderElement();
+      const takeInput = container.getByRole('spinbutton');
+      mockOnChange.mockClear();
+      mockOnRunQuery.mockClear();
+
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, '1000000');
+      await userEvent.tab();
+
+      await waitFor(() => {
+        expect(container.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
+        expect(mockOnChange).not.toHaveBeenCalled();
+        expect(mockOnRunQuery).not.toHaveBeenCalled();
+      });
+    });
+
+    it('should show error message when when user changes take to number less than min take', async () => {
+      const container = renderElement();
+      const takeInput = container.getByRole('spinbutton');
+      mockOnChange.mockClear();
+      mockOnRunQuery.mockClear();
+
+      await userEvent.clear(takeInput);
+      await userEvent.tab();
+
+      await waitFor(() => {
+        expect(container.getByText('Enter a value greater than or equal to 0')).toBeInTheDocument();
+        expect(mockOnChange).not.toHaveBeenCalled();
+        expect(mockOnRunQuery).not.toHaveBeenCalled();
+      });
+    });
+
+    it('should not show error message when when user changes take to number between min and max take', async () => {
+      const container = renderElement();
+      const takeInput = container.getByRole('spinbutton');
+
+      // User enters a value greater than max take
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, '1000000');
+      await userEvent.tab();
+      await waitFor(() => {
+        expect(container.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
+      });
+
+      // User enters a valid value
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, '100');
+      await userEvent.tab();
+
+      await waitFor(() => {
+        expect(container.queryByText('Enter a value greater than or equal to 0')).not.toBeInTheDocument();
+        expect(container.queryByText('Enter a value less than or equal to 10,000')).not.toBeInTheDocument();
       });
     });
   });

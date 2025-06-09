@@ -17,6 +17,9 @@ import { TimeRangeControls } from '../time-range/TimeRangeControls';
 import { Workspace } from 'core/types';
 import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
 import { ResultsQueryBuilder } from '../../query-builders/query-results/ResultsQueryBuilder';
+import { FloatingError } from 'core/errors';
+import { TAKE_LIMIT } from 'datasources/test-plans/constants/QueryEditor.constants';
+import { recordCountErrorMessages } from 'datasources/results/constants/ResultsQueryEditor.constants';
 
 type Props = {
   query: QueryResults;
@@ -26,19 +29,29 @@ type Props = {
 
 export function QueryResultsEditor({ query, handleQueryChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
-  const [partNumbers, setPartNumbers] = useState<string[]>([]);
+  const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
+  const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
+  const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);
+
+  useEffect(() => {
+    handleQueryChange(query);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
 
   useEffect(() => {
     const loadWorkspaces = async () => {
       const workspaces = await datasource.workspacesCache;
       setWorkspaces(Array.from(workspaces.values()));
     };
-    const loadPartNumbers = async () => {
-      const partNumbers = await datasource.partNumbersCache;
-      setPartNumbers(partNumbers);
-    };
-
-    loadPartNumbers();
+    const loadProductNameOptions = async () => {
+      const response = await datasource.productCache;
+      const productOptions = response.products.map(product => ({
+        label: `${product.name} (${product.partNumber})`,
+        value: product.partNumber,
+      }));
+      setProductNameOptions([...datasource.globalVariableOptions(), ...productOptions]);
+    }
+    loadProductNameOptions();
     loadWorkspaces();
   }, [datasource]);
 
@@ -47,6 +60,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
   };
 
   const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
+    setIsPropertiesValid(items.length > 0);
     if (items !== undefined) {
       handleQueryChange({ ...query, properties: items.map(i => i.value as ResultsProperties) });
     }
@@ -62,14 +76,39 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    handleQueryChange({ ...query, recordCount: value });
+    if (isRecordCountValid(value, TAKE_LIMIT)) {
+      handleQueryChange({ ...query, recordCount: value });
+    }
   };
+
+  function isRecordCountValid(value: number, takeLimit: number): boolean {
+    if (Number.isNaN(value) || value < 0) {
+      setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
+      return false;
+    }
+    if (value > takeLimit) {
+      setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTakeLimit);
+      return false;
+    }
+    setRecordCountInvalidMessage('');
+    return true;
+  }
 
   const onParameterChange = (value: string) => {
     if (query.queryBy !== value) {
       handleQueryChange({ ...query, queryBy: value });
     }
   }
+
+  const onProductNameChange = (productNames: Array<SelectableValue<string>>) => {
+    handleQueryChange({ ...query, partNumberQuery: productNames.map(product => product.value as string) });
+  }
+
+  const formatOptionLabel = (option: SelectableValue<string>) => (
+    <div style={{ maxWidth: 500, whiteSpace: 'normal' }}>
+      {option.label}
+    </div>
+  );
 
   return (
     <>
@@ -82,7 +121,12 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
           />
         </InlineField>
         {query.outputType === OutputType.Data && (
-          <InlineField label="Properties" labelWidth={26} tooltip={tooltips.properties}>
+          <InlineField
+            label="Properties"
+            labelWidth={26}
+            tooltip={tooltips.properties}
+            invalid={!isPropertiesValid}
+            error='You must select at least one property.'>
             <MultiSelect
               placeholder="Select properties to fetch"
               options={enumToOptions(ResultsProperties)}
@@ -105,16 +149,30 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
           }}
         />
         <div className="horizontal-control-group">
-          <InlineField label="Query By" labelWidth={26} tooltip={tooltips.queryBy}>
-            <ResultsQueryBuilder
-              filter={query.queryBy}
-              workspaces={workspaces}
-              partNumbers={partNumbers}
-              status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
-              globalVariableOptions={datasource.globalVariableOptions()}
-              onChange={(event: any) => onParameterChange(event.detail.linq)}>
-            </ResultsQueryBuilder>
-          </InlineField>
+          <div>
+            <InlineField label="Product (part number)" labelWidth={26} tooltip={tooltips.productName}>
+              <MultiSelect
+                maxVisibleValues={5}
+                width={65}
+                onChange={onProductNameChange}
+                placeholder='Select part numbers to use in a query'
+                noMultiValueWrap={true}
+                closeMenuOnSelect={false}
+                value={query.partNumberQuery}
+                formatOptionLabel={formatOptionLabel}
+                options={productNameOptions}
+              />
+            </InlineField>
+            <InlineField label="Query By" labelWidth={26} tooltip={tooltips.queryBy}>
+              <ResultsQueryBuilder
+                filter={query.queryBy}
+                workspaces={workspaces}
+                status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
+                globalVariableOptions={datasource.globalVariableOptions()}
+                onChange={(event: any) => onParameterChange(event.detail.linq)}>
+              </ResultsQueryBuilder>
+            </InlineField>
+          </div>
           {query.outputType === OutputType.Data && (
             <div className="right-query-controls">
               <InlineField label="OrderBy" labelWidth={26} tooltip={tooltips.orderBy}>
@@ -133,7 +191,12 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
                   value={query.descending}
                 />
               </InlineField>
-              <InlineField label="Take" labelWidth={26} tooltip={tooltips.recordCount}>
+              <InlineField 
+                  label="Take" 
+                  labelWidth={26} 
+                  tooltip={tooltips.recordCount}
+                  invalid={!!recordCountInvalidMessage}
+                  error={recordCountInvalidMessage}>
                 <AutoSizeInput
                   minWidth={25}
                   maxWidth={25}
@@ -149,6 +212,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
         </div>
         </div>
       </VerticalGroup>
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity='warning'/>
     </>
   );
 }
@@ -160,4 +224,5 @@ const tooltips = {
   orderBy: 'This field orders the query results by field.',
   descending: 'This field returns the query results in descending order.',
   queryBy: 'This optional field applies a filter to the query results.',
+  productName: 'This field filters results by part number.',
 };

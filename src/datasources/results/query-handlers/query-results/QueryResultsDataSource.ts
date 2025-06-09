@@ -1,11 +1,12 @@
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties, ResultsVariableQuery } from "datasources/results/types/QueryResults.types";
 import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase";
-import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from "@grafana/data";
+import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, AppEvents } from "@grafana/data";
 import { OutputType } from "datasources/results/types/types";
 import { defaultResultsQuery } from "datasources/results/defaultQueries";
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
 import { TAKE_LIMIT } from "datasources/results/constants/QuerySteps.constants";
+import { extractErrorInfo } from "core/errors";
 
 export class QueryResultsDataSource extends ResultsDataSourceBase {
   queryResultsUrl = this.baseUrl + '/v2/query-results';
@@ -30,18 +31,26 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
         returnCount,
       });
     } catch (error) {
-      throw new Error(`An error occurred while querying results: ${error}`);
+      const errorDetails = extractErrorInfo((error as Error).message);
+      let errorMessage: string;
+
+      if (!errorDetails.statusCode) {
+        errorMessage = 'The query failed due to an unknown error.';
+      } else {
+        errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+      }
+
+      this.appEvents?.publish?.({
+        type: AppEvents.alertError.name,
+        payload: ['Error during result query', errorMessage],
+      });
+
+      throw new Error(errorMessage);
     }
   }
 
   async runQuery(query: QueryResults, options: DataQueryRequest): Promise<DataFrameDTO> {
-    if (query.queryBy) {
-      query.queryBy = transformComputedFieldsQuery(
-        this.templateSrv.replace(query.queryBy, options.scopedVars),
-        this.resultsComputedDataFields,
-      );
-    }
-
+    query.queryBy = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.queryBy);
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
 
     const responseData = await this.queryResults(
@@ -90,6 +99,24 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     }
   }
 
+  private buildResultsQuery( scopedVars: ScopedVars, partNumberQuery?: string[], resultsQuery?: string): string | undefined {
+    const partNumberFilter =
+      partNumberQuery && partNumberQuery.length > 0
+        ? `(${this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery)})`
+        : '';
+
+    const combinedQuery = this.buildQueryFilter(partNumberFilter, resultsQuery);
+
+    if (!combinedQuery) {
+      return undefined;
+    }
+
+    return transformComputedFieldsQuery(
+      this.templateSrv.replace(combinedQuery, scopedVars), 
+      this.resultsComputedDataFields
+    );
+  }
+
   /**
    * A map linking each field name to its corresponding query transformation function.
    * It dynamically processes and formats query expressions based on the field type.
@@ -105,10 +132,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
 
   async metricFindQuery(query: ResultsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     if (query.properties !== undefined && this.isTakeValidValid(query.resultsTake!)) {
-      const filter = query.queryBy ? transformComputedFieldsQuery(
-        this.templateSrv.replace(query.queryBy, options?.scopedVars),
-        this.resultsComputedDataFields
-      ) : undefined;
+      const filter = this.buildResultsQuery( options?.scopedVars!, query.partNumberQuery, query.queryBy );
 
       const metadata = (await this.queryResults(
         filter,
@@ -125,19 +149,6 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       }
     }
     return [];
-  }
-
-  /**
-   * Flattens an array of strings, where each element may be a string or an array of strings,
-   * into a single-level array and removes duplicate values.
-   *
-   * @param values - An array containing strings or arrays of strings to be flattened and deduplicated.
-   * @returns A new array containing unique string values from the input, flattened to a single level.
-   */
-  private flattenAndDeduplicate(values: string[]): string[] {
-    const flatValues = values.flatMap(
-      (value) => Array.isArray(value) ? value : [value]);
-    return Array.from(new Set(flatValues));
   }
 
   private isTakeValidValid(value: number): boolean {

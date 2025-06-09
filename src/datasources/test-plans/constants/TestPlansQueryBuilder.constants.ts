@@ -170,7 +170,10 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
             QueryBuilderOperations.DOES_NOT_EQUAL.name,
             QueryBuilderOperations.IS_BLANK.name,
             QueryBuilderOperations.IS_NOT_BLANK.name
-        ]
+        ],
+        lookup: {
+            dataSource: []
+        }
     },
     TEST_PLAN_ID: {
         label: 'Test plan ID',
@@ -224,7 +227,10 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name
-        ]
+        ],
+        lookup: {
+            dataSource: []
+        }
     }
 }
 
@@ -243,11 +249,9 @@ export const TestPlansQueryBuilderStaticFields = [
     TestPlansQueryBuilderFields.PRODUCT,
     TestPlansQueryBuilderFields.PROPERTIES,
     TestPlansQueryBuilderFields.STATE,
-    TestPlansQueryBuilderFields.SYSTEM_ALIAS_NAME,
     TestPlansQueryBuilderFields.TEST_PLAN_ID,
     TestPlansQueryBuilderFields.TEST_PROGRAM,
     TestPlansQueryBuilderFields.UPDATED_AT,
     TestPlansQueryBuilderFields.UPDATED_BY,
-    TestPlansQueryBuilderFields.WORK_ORDER_ID,
-    TestPlansQueryBuilderFields.WORKSPACE
+    TestPlansQueryBuilderFields.WORK_ORDER_ID
 ];

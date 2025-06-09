@@ -2,16 +2,10 @@ import { BackendSrv } from '@grafana/runtime';
 import { MockProxy } from 'jest-mock-extended';
 import { setupDataSource, requestMatching, createFetchResponse, createFetchError } from 'test/fixtures';
 import { WorkOrdersDataSource } from './WorkOrdersDataSource';
-import {
-  OrderByOptions,
-  OutputType,
-  State,
-  Type,
-  WorkOrder,
-  WorkOrderPropertiesOptions,
-  WorkOrdersResponse,
-} from './types';
-import { DataQueryRequest } from '@grafana/data';
+import { OrderByOptions, OutputType, State, Type, WorkOrder, WorkOrderPropertiesOptions, WorkOrdersVariableQuery } from './types';
+import { DataQueryRequest, Field, LegacyMetricFindQueryOptions } from '@grafana/data';
+import { QUERY_WORK_ORDERS_MAX_TAKE, QUERY_WORK_ORDERS_REQUEST_PER_SECOND } from './constants/QueryWorkOrders.constants';
+import { queryInBatches } from 'core/utils';
 
 let datastore: WorkOrdersDataSource, backendServer: MockProxy<BackendSrv>;
 jest.mock('shared/Users', () => {
@@ -28,41 +22,71 @@ jest.mock('shared/Users', () => {
     })),
   };
 });
+const mockWorkOrders = {
+  workOrders: [
+    {
+      name: 'WorkOrder1',
+      id: '1',
+      state: State.Closed,
+      type: Type.TestRequest,
+      workspace: 'Workspace1',
+      earliestStartDate: '2023-01-04T00:00:00Z',
+      dueDate: '2023-01-03T00:00:00Z',
+      createdAt: '2023-01-01T00:00:00Z',
+      updatedAt: '2023-01-02T00:00:00Z',
+      assignedTo: 'User1',
+      requestedBy: 'User2',
+      createdBy: 'User3',
+      updatedBy: 'User4',
+      description: 'Test description',
+      properties: {
+        'customProperty1': 'value1',
+        'customProperty2': 'value2'
+      },
+    },
+  ],
+  continuationToken: '',
+  totalCount: 2,
+};
+jest.mock('core/utils', () => ({
+  queryInBatches: jest.fn(() => {
+    return Promise.resolve({
+      data: mockWorkOrders.workOrders,
+      continuationToken: mockWorkOrders.continuationToken,
+      totalCount: mockWorkOrders.totalCount,
+    });
+  }),
+}));
 
 describe('WorkOrdersDataSource', () => {
-  const mockWorkOrders: WorkOrdersResponse = {
-    workOrders: [
-      {
-        name: 'WorkOrder1',
-        id: '1',
-        state: State.Closed,
-        type: Type.TestRequest,
-        workspace: 'Workspace1',
-        earliestStartDate: '2023-01-04T00:00:00Z',
-        dueDate: '2023-01-03T00:00:00Z',
-        createdAt: '2023-01-01T00:00:00Z',
-        updatedAt: '2023-01-02T00:00:00Z',
-        assignedTo: 'User1',
-        requestedBy: 'User2',
-        createdBy: 'User3',
-        updatedBy: 'User4',
-        description: 'Test description',
-        properties: {},
-      },
-    ],
-    continuationToken: '',
-    totalCount: 2,
-  };
-
   beforeEach(() => {
     [datastore, backendServer] = setupDataSource(WorkOrdersDataSource);
 
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niworkorder/v1/query-workorders', method: 'POST' }))
       .mockReturnValue(createFetchResponse(mockWorkOrders));
+
+    jest.spyOn(datastore, 'queryWorkordersData');
   });
 
   describe('runQuery', () => {
+    test('should return empty field when no work orders are found', async () => {
+      const mockQuery = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+        queryBy: 'filter',
+      };
+
+      jest.spyOn(datastore, 'queryWorkordersData').mockResolvedValue([]);
+
+      const response = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+      expect(response.fields).toHaveLength(0);
+      expect(response.refId).toEqual('A');
+      expect(response.name).toEqual('A');
+      expect(datastore.queryWorkordersData).toHaveBeenCalledWith('filter', undefined, undefined, undefined, undefined);
+    });
+
     test('processes work orders query when outputType is Properties', async () => {
       const mockQuery = {
         refId: 'A',
@@ -88,6 +112,81 @@ describe('WorkOrdersDataSource', () => {
 
       expect(result.fields).toEqual([{ name: 'Total count', values: [42] }]);
       expect(result.refId).toEqual('B');
+    });
+
+    test('should convert properties to Grafana fields', async () => {
+      const query = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+      };
+
+      const response = await datastore.runQuery(query, {} as DataQueryRequest);
+
+      const fields = response.fields as Field[];
+      expect(fields).toMatchSnapshot();
+    });
+
+    test('should replace variables', async () => {
+      const mockQuery = {
+        refId: 'C',
+        outputType: OutputType.Properties,
+        queryBy: 'workspace = "${var}"'
+      };
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "testWorkspace"');
+
+      const options = { scopedVars: { var: { value: 'testWorkspace' } } };
+      await datastore.runQuery(mockQuery, options as unknown as DataQueryRequest);
+
+      expect(datastore.templateSrv.replace).toHaveBeenCalledWith('workspace = "${var}"', options.scopedVars);
+      expect(datastore.queryWorkordersData).toHaveBeenCalledWith(
+        'workspace = "testWorkspace"',
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
+    });
+
+    test('should transform fields with multiple values', async () => {
+      const mockQuery = {
+        refId: 'C',
+        outputType: OutputType.Properties,
+        queryBy: 'workspace = "${var}"'
+      };
+      const options = { scopedVars: { var: { value: '{testWorkspace1,testWorkspace2}' } } };
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "{testWorkspace1,testWorkspace2}"');
+
+      await datastore.runQuery(mockQuery, options as unknown as DataQueryRequest);
+
+      expect(datastore.queryWorkordersData).toHaveBeenCalledWith(
+        '(workspace = "testWorkspace1" || workspace = "testWorkspace2")',
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
+    });
+
+    test('should transform fields when queryBy contains a date', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
+
+      const mockQuery = {
+        refId: 'C',
+        outputType: OutputType.Properties,
+        queryBy: 'updatedAt = "${__now:date}"'
+      };
+
+      await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+      expect(datastore.queryWorkordersData).toHaveBeenCalledWith(
+        'updatedAt = "2025-01-01T00:00:00.000Z"',
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
+
+      jest.useRealTimers();
     });
 
     it('should convert user Ids to user names for assigned to field', async () => {
@@ -195,6 +294,28 @@ describe('WorkOrdersDataSource', () => {
 
       expect(result).toMatchSnapshot();
     });
+
+    test('queries work orders in batches and returns aggregated response', async () => {
+      jest.spyOn(datastore, 'queryWorkOrders').mockResolvedValue(mockWorkOrders);
+
+      const result = await datastore.queryWorkordersData(
+        '',
+        [WorkOrderPropertiesOptions.NAME, WorkOrderPropertiesOptions.STATE],
+        OrderByOptions.UPDATED_AT,
+        true,
+        1000
+      );
+
+      expect(queryInBatches).toHaveBeenCalledWith(
+        expect.any(Function),
+        {
+          maxTakePerRequest: QUERY_WORK_ORDERS_MAX_TAKE,
+          requestsPerSecond: QUERY_WORK_ORDERS_REQUEST_PER_SECOND,
+        },
+        1000
+      );
+      expect(result).toMatchSnapshot();
+    });
   });
 
   describe('queryWorkordersCount', () => {
@@ -250,6 +371,105 @@ describe('WorkOrdersDataSource', () => {
         WorkOrderPropertiesOptions.DUE_DATE,
         WorkOrderPropertiesOptions.UPDATED_AT,
       ]);
+    });
+
+    test('default query should have default take value', async () => {
+      const defaultQuery = datastore.defaultQuery;
+      expect(defaultQuery.take).toEqual(1000);
+    });
+  });
+
+  describe('metricFindQuery', () => {
+    let options: LegacyMetricFindQueryOptions;
+    beforeEach(() => {
+      options = {}
+    });
+
+    it('should return work orders name with id when query properties are not provided', async () => {
+      const query: WorkOrdersVariableQuery = {
+        refId: '',
+        take: 1000,
+      };
+
+      const results = await datastore.metricFindQuery(query, options);
+
+      expect(results).toMatchSnapshot();
+    });
+
+    it('should return work orders name with id when query properties are provided', async () => {
+      const query: WorkOrdersVariableQuery = {
+        refId: '',
+        queryBy: 'filter = "test"',
+        orderBy: OrderByOptions.ID,
+        descending: true,
+        take: 1000,
+      };
+
+      const results = await datastore.metricFindQuery(query, options);
+
+      expect(results).toMatchSnapshot();
+    });
+
+    test('should replace variables', async () => {
+      const mockQuery = {
+        refId: 'C',
+        queryBy: 'workspace = "${var}"',
+      };
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "testWorkspace"');
+
+      const options = { scopedVars: { var: { value: 'testWorkspace' } } };
+      await datastore.metricFindQuery(mockQuery, options);
+
+      expect(datastore.templateSrv.replace).toHaveBeenCalledWith('workspace = "${var}"', options.scopedVars);
+      expect(datastore.queryWorkordersData).toHaveBeenCalledWith(
+        'workspace = "testWorkspace"',
+        ["ID", "NAME"],
+        undefined,
+        undefined,
+        undefined
+      );
+    });
+
+    test('should transform fields with multiple values', async () => {
+      const mockQuery = {
+        refId: 'C',
+        outputType: OutputType.Properties,
+        queryBy: 'workspace = "${var}"',
+      };
+      const options = { scopedVars: { var: { value: '{testWorkspace1,testWorkspace2}' } } };
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "{testWorkspace1,testWorkspace2}"');
+
+      await datastore.metricFindQuery(mockQuery, options);
+
+      expect(datastore.queryWorkordersData).toHaveBeenCalledWith(
+        '(workspace = "testWorkspace1" || workspace = "testWorkspace2")',
+        ["ID", "NAME"],
+        undefined,
+        undefined,
+        undefined
+      );
+    });
+
+    test('should transform fields when queryBy contains a date', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
+
+      const mockQuery = {
+        refId: 'C',
+        outputType: OutputType.Properties,
+        queryBy: 'updatedAt = "${__now:date}"',
+      };
+
+      await datastore.metricFindQuery(mockQuery, {});
+
+      expect(datastore.queryWorkordersData).toHaveBeenCalledWith(
+        'updatedAt = "2025-01-01T00:00:00.000Z"',
+        ["ID", "NAME"],
+        undefined,
+        undefined,
+        undefined
+      );
+
+      jest.useRealTimers();
     });
   });
 

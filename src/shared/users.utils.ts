@@ -8,49 +8,30 @@ import { QUERY_USERS_MAX_TAKE, QUERY_USERS_REQUEST_PER_SECOND } from './constant
 /**
  * Represents a utility class for managing and querying user data.
  */
-export class Users {
+export class UsersUtils {
   /**
-   * A cached promise that resolves to an array of users.
+   * A cached promise that resolves to an map of users.
    * This cache is used to avoid redundant user data fetches.
    */
-  private static _usersCache: Promise<User[]> | null = null;
-
-  /**
-   * A cached promise that resolves to a map of user IDs to their full names.
-   * This cache is used to optimize user name lookups.
-   */
-  private static _usersMapCache: Promise<Map<string, string>> | null = null;
+  private static _usersCache?: Promise<Map<string, User>>;
 
   
   /**
    * Retrieves the cached promise for the list of users.
    * If the cache is not initialized, it triggers the loading of users.
+   * 
+   * Note: This implementation corresponds to the SLE users service implementation.
+   * Ensure that any changes made here are kept in sync with the SLE service implementation:
+   * [Link to SLE service implementation] (https://dev.azure.com/ni/DevCentral/_git/Skyline?path=/Web/Workspaces/SystemLinkShared/projects/systemlink-lib-angular/src/services/sl-users-service.ts&version=GBusers/jmeyer/grafana-app-update&_a=contents)
    */
-  get usersCache(): Promise<User[]> {
-    return this.loadUsers();
-  }
-
-  /**
-   * Retrieves the cached promise for the map of user IDs to full names.
-   * If the cache is not initialized, it generates the map from the user list.
-   */
-  get usersMapCache(): Promise<Map<string, string>> {
-    if (Users._usersMapCache) {
-      return Users._usersMapCache;
+  public async getUsers(): Promise<Map<string, User>> {
+    if (!UsersUtils._usersCache) {
+      UsersUtils._usersCache = this.loadUsers();
     }
-    return this.usersCache.then(users => {
-      const userMap = new Map<string, string>();
-      users.forEach(user => {
-        const fullName = Users.getUserFullName(user);
-        userMap.set(user.id, fullName);
-      });
-      return userMap;
-    });
+    return UsersUtils._usersCache;
   }
 
-  constructor(readonly instanceSettings: DataSourceInstanceSettings, readonly backendSrv: BackendSrv) {
-    this.loadUsers();
-  }
+  constructor(readonly instanceSettings: DataSourceInstanceSettings, readonly backendSrv: BackendSrv) {}
 
   /**
    * Generates the full name of a user by combining their first and last names.
@@ -71,16 +52,22 @@ export class Users {
   }
 
   /**
-   * Loads the list of users from the backend or returns the cached users if available.
-   * This method ensures that user data is fetched only once and reused across the application.
-   * @returns A promise that resolves to an array of users.
+   * Loads the list of users, utilizing a cache to avoid redundant queries.
+   * In case of an error during the query, an empty map is returned, and the cache is cleared.
    */
-  private async loadUsers(): Promise<User[]> {
-    if (Users._usersCache) {
-      return Users._usersCache;
+  private async loadUsers(): Promise<Map<string, User>> {
+    try {
+      const users = await this.queryUsersInBatches()
+      const usersMap = new Map<string, User>();
+      users.users.forEach((user) => {
+        usersMap.set(user.id, user);
+      });
+      return usersMap;
+    } catch (error) {
+        console.error('An error occurred while querying users:', error);
+        UsersUtils._usersCache = undefined; // Clear the cache on error
+        return new Map<string, User>();
     }
-    Users._usersCache = this.queryUsersInBatches().then(response => response.users);
-    return Users._usersCache;
   }
 
   /**
@@ -107,7 +94,6 @@ export class Users {
     };
 
     const response = await queryUntilComplete(queryRecord, batchQueryConfig);
-
     return {
       users: response.data,
       continuationToken: response.continuationToken ?? undefined,

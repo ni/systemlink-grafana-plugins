@@ -21,6 +21,45 @@ const mockVariableQueryTestPlansResponse: QueryTestPlansResponse = {
   totalCount: 2
 };
 
+jest.mock('shared/system.utils', () => {
+  return {
+    SystemUtils: jest.fn().mockImplementation(() => ({
+      getSystemAliases: jest.fn().mockResolvedValue(
+        new Map([
+          ['1', { id: '1', alias: 'System 1' }],
+          ['2', { id: '2', alias: 'System 2' }],
+        ])
+      )
+    }))
+  };
+});
+
+jest.mock('shared/workspace.utils', () => {
+  return {
+    WorkspaceUtils: jest.fn().mockImplementation(() => ({
+      getWorkspaces: jest.fn().mockResolvedValue(
+        new Map([
+          ['1', { id: '1', name: 'WorkspaceName' }],
+          ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+        ])
+      )
+    }))
+  };
+});
+
+jest.mock('./asset.utils', () => {
+  return {
+    AssetUtils: jest.fn().mockImplementation(() => ({
+      queryAssetsInBatches: jest.fn().mockResolvedValue(
+        [
+          { id: '1', name: 'Asset 1' },
+          { id: '2', name: 'Asset 2' }
+        ]
+      )
+    }))
+  };
+});
+
 beforeEach(() => {
   [datastore, backendServer] = setupDataSource(TestPlansDataSource);
 });
@@ -158,6 +197,334 @@ describe('runQuery', () => {
     expect(result.fields).toHaveLength(1);
     expect(result.fields[0].name).toEqual('Total count');
     expect(result.fields[0].values).toEqual([0]);
+  });
+
+  it('should convert fixtureIds to fixture names', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.FIXTURE_NAMES],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', fixtureIds: ['1'] },
+        { id: '2', fixtureIds: ['1', '2'] }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Fixture names');
+    expect(result.fields[0].values).toEqual(['Asset 1', 'Asset 1, Asset 2']);
+  });
+
+  it('should convert dutIds to dut names', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.DUT_ID],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', dutId: '1' },
+        { id: '2', dutId: '2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('DUT');
+    expect(result.fields[0].values).toEqual(['Asset 1', 'Asset 2']);
+  });
+
+  it('should show work order name & id for work order property', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.WORK_ORDER],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', workOrderId: 'WO-1', workOrderName: 'Work Order 1' },
+        { id: '2', workOrderId: 'WO-2', workOrderName: 'Work Order 2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Work order');
+    expect(result.fields[0].values).toEqual(['Work Order 1 (WO-1)', 'Work Order 2 (WO-2)']);
+  });
+
+  it('should handle empty work order name', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.WORK_ORDER],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', workOrderId: 'WO-1', workOrderName: '' },
+        { id: '2', workOrderId: 'WO-2', workOrderName: 'Work Order 2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Work order');
+    expect(result.fields[0].values).toEqual([' (WO-1)', 'Work Order 2 (WO-2)']);
+  });
+
+  it('should handle empty work order id', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.WORK_ORDER],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', workOrderId: '', workOrderName: 'Work Order 1' },
+        { id: '2', workOrderId: 'WO-2', workOrderName: 'Work Order 2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Work order');
+    expect(result.fields[0].values).toEqual(['Work Order 1 ', 'Work Order 2 (WO-2)']);
+  });
+
+  it('should handle empty work order name and id', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.WORK_ORDER],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', workOrderId: '', workOrderName: '' },
+        { id: '2', workOrderId: 'WO-2', workOrderName: 'Work Order 2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Work order');
+    expect(result.fields[0].values).toEqual([' ', 'Work Order 2 (WO-2)']);
+  });
+
+  it('should show template name and id for test plan template property', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.TEMPLATE],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const templateResponse = [
+      { id: 'TPL-1', name: 'Template 1' },
+      { id: 'TPL-2', name: 'Template 2' }
+    ];
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', templateId: 'TPL-1' },
+        { id: '2', templateId: 'TPL-2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlanTemplatesInBatches').mockResolvedValue(templateResponse);
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Test plan template');
+    expect(result.fields[0].values).toEqual(['Template 1 (TPL-1)', 'Template 2 (TPL-2)']);
+  });
+
+  it('should handle empty template name', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.TEMPLATE],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const templateResponse = [
+      { id: 'TPL-1', name: '' },
+      { id: 'TPL-2', name: 'Template 2' }
+    ];
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', templateId: 'TPL-1' },
+        { id: '2', templateId: 'TPL-2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlanTemplatesInBatches').mockResolvedValue(templateResponse);
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Test plan template');
+    expect(result.fields[0].values).toEqual([' (TPL-1)', 'Template 2 (TPL-2)']);
+  });
+
+  it('should handle empty template id', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.TEMPLATE],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const templateResponse = [
+      { id: 'TPL-2', name: 'Template 2' }
+    ];
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', templateId: '' },
+        { id: '2', templateId: 'TPL-2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlanTemplatesInBatches').mockResolvedValue(templateResponse);
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Test plan template');
+    expect(result.fields[0].values).toEqual(['', 'Template 2 (TPL-2)']);
+  });
+
+  it('should convert workspaceIds to workspace names for workspace field', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.WORKSPACE],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', workspace: '1' },
+        { id: '2', workspace: '2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Workspace');
+    expect(result.fields[0].values).toEqual(['WorkspaceName', 'AnotherWorkspaceName']);
+  });
+
+  it('should handle test plan custom properties', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.PROPERTIES],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', properties: { customProp1: 'value1', customProp2: 'value2' } },
+        { id: '2', properties: { customProp1: 'value3' } }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Properties');
+    expect(result.fields[0].values).toEqual([
+      JSON.stringify({ customProp1: 'value1', customProp2: 'value2' }),
+      JSON.stringify({ customProp1: 'value3' })
+    ]);
+  });
+
+  it('should convert systemIds to system names for system name property', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.SYSTEM_NAME],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', systemId: '1' },
+        { id: '2', systemId: '2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('System name');
+    expect(result.fields[0].values).toEqual(['System 1', 'System 2']);
   });
 });
 

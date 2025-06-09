@@ -2,10 +2,17 @@ import { DataQuery } from '@grafana/schema';
 
 export interface WorkOrdersQuery extends DataQuery {
   queryBy?: string;
-  outputType: OutputType;
+  outputType?: OutputType;
   properties?: WorkOrderPropertiesOptions[];
   orderBy?: string;
   descending?: boolean;
+  take?: number;
+}
+
+export interface WorkOrdersVariableQuery extends DataQuery {
+  orderBy?: string;
+  descending?: boolean;
+  queryBy?: string;
   take?: number;
 }
 
@@ -32,7 +39,11 @@ export enum WorkOrderPropertiesOptions {
   PROPERTIES = 'PROPERTIES',
 }
 
-export const WorkOrderProperties = {
+export const WorkOrderProperties: Record<WorkOrderPropertiesOptions, {
+  label: string;
+  value: WorkOrderPropertiesOptions;
+  field: keyof WorkOrder;
+}> = {
   [WorkOrderPropertiesOptions.ID]: {
     label: 'Work order ID',
     value: WorkOrderPropertiesOptions.ID,

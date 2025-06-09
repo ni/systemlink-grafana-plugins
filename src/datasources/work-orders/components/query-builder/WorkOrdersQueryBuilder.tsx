@@ -3,10 +3,7 @@ import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder
 import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
 import { QBField, QueryBuilderOption } from 'core/types';
 import { filterXSSField } from 'core/utils';
-import {
-  WorkOrdersQueryBuilderFields,
-  WorkOrdersQueryBuilderStaticFields,
-} from 'datasources/work-orders/constants/WorkOrdersQueryBuilder.constants';
+import { WorkOrdersQueryBuilderFields, WorkOrdersQueryBuilderStaticFields } from 'datasources/work-orders/constants/WorkOrdersQueryBuilder.constants';
 import React, { useState, useEffect, useMemo } from 'react';
 import { User } from 'shared/types/QueryUsers.types';
 import { Users } from 'shared/Users';
@@ -27,6 +24,35 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
 }) => {
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
+
+    
+  const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]) => {
+    return {
+      ...field,
+      lookup: {
+        ...field.lookup,
+        dataSource: [
+          ...(field.lookup?.dataSource || []),
+          ...options,
+        ],
+      },
+    };
+  };
+
+  const timeFields = useMemo(() => {
+    const timeOptions = [
+      { label: 'From', value: '${__from:date}' },
+      { label: 'To', value: '${__to:date}' },
+      { label: 'Now', value: '${__now:date}' },
+    ]
+
+    return [
+      addOptionsToLookup(WorkOrdersQueryBuilderFields.EARLIEST_START_DATE, timeOptions),
+      addOptionsToLookup(WorkOrdersQueryBuilderFields.DUE_DATE, timeOptions),
+      addOptionsToLookup(WorkOrdersQueryBuilderFields.CREATED_AT, timeOptions),
+      addOptionsToLookup(WorkOrdersQueryBuilderFields.UPDATED_AT, timeOptions),
+    ];
+  }, []);
 
   const usersField = useMemo(() => {
     if (!users) {
@@ -72,17 +98,12 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
   }, [users]);
 
   useEffect(() => {
-    const updatedFields = WorkOrdersQueryBuilderStaticFields;
-    if(usersField) {
-      updatedFields.push(...usersField);
-    }
-
-    updatedFields.map(field => {
+    const updatedFields = [...WorkOrdersQueryBuilderStaticFields, ...timeFields].map(field => {
       if (field.lookup?.dataSource) {
         return {
           ...field,
           lookup: {
-            dataSource: [...globalVariableOptions, ...field.lookup!.dataSource].map(filterXSSField),
+            dataSource: [...globalVariableOptions, ...field.lookup?.dataSource].map(filterXSSField),
           },
         };
       }
@@ -124,8 +145,15 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
       };
     });
 
-    setOperations(customOperations);
-  }, [globalVariableOptions, usersField]);
+    const keyValueOperations = [
+      QueryBuilderOperations.KEY_VALUE_MATCH,
+      QueryBuilderOperations.KEY_VALUE_DOES_NOT_MATCH,
+      QueryBuilderOperations.KEY_VALUE_CONTAINS,
+      QueryBuilderOperations.KEY_VALUE_DOES_NOT_CONTAINS,
+    ];
+
+    setOperations([...customOperations, ...keyValueOperations]);
+  }, [globalVariableOptions, timeFields]);
 
   return (
     <SlQueryBuilder

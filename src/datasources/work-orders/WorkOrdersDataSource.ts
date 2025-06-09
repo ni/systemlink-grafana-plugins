@@ -1,7 +1,12 @@
-import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, TestDataSourceResponse } from '@grafana/data';
+import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, TestDataSourceResponse, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse } from './types';
+import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
+import { QueryBuilderOption, QueryResponse } from 'core/types';
+import { transformComputedFieldsQuery, ExpressionTransformFunction } from 'core/query-builder.utils';
+import { QueryBuilderOperations } from 'core/query-builder.constants';
+import { getVariableOptions, queryInBatches } from 'core/utils';
+import { QUERY_WORK_ORDERS_MAX_TAKE, QUERY_WORK_ORDERS_REQUEST_PER_SECOND } from './constants/QueryWorkOrders.constants';
 import { Users } from 'shared/Users';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
@@ -33,7 +38,16 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     take: 1000,
   };
 
+  readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
+
   async runQuery(query: WorkOrdersQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    if (query.queryBy) {
+      query.queryBy = transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.workordersComputedDataFields
+      );
+    }
+
     if (query.outputType === OutputType.Properties) {
       return this.processWorkOrdersQuery(query);
     } else {
@@ -50,39 +64,80 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     return true;
   }
 
+  readonly workordersComputedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(WorkOrderProperties).map(field => [
+      field.field,
+      this.isTimeField(field.value) ? this.timeFieldsQuery(field.field) : this.multipleValuesQuery(field.field),
+    ])
+  );
+
+  async metricFindQuery(
+    query: WorkOrdersVariableQuery,
+    options: LegacyMetricFindQueryOptions
+  ): Promise<MetricFindValue[]> {
+    if (query.queryBy) {
+      query.queryBy = transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.workordersComputedDataFields
+      );
+    }
+
+    const metadata = await this.queryWorkordersData(
+      query.queryBy,
+      [WorkOrderPropertiesOptions.ID, WorkOrderPropertiesOptions.NAME],
+      query.orderBy,
+      query.descending,
+      query.take
+    );
+
+    return metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.id})`, value: frame.id })) : [];
+  }
+
   async processWorkOrdersQuery(query: WorkOrdersQuery): Promise<DataFrameDTO> {
     const workOrders: WorkOrder[] = await this.queryWorkordersData(
       query.queryBy,
       query.properties,
       query.orderBy,
-      query.take,
-      query.descending
+      query.descending,
+      query.take
     );
 
-    const mappedFields = await Promise.all(query.properties?.map(async property => {
-      const field = WorkOrderProperties[property];
-      const fieldType = this.isTimeField(field.value) ? FieldType.time : FieldType.string;
-      const fieldName = field.label;
+    if (workOrders.length > 0) {
+      const mappedFields = query.properties?.map(property => {
+        const field = WorkOrderProperties[property];
+        const fieldType = this.isTimeField(field.value) ? FieldType.time : FieldType.string;
+        const fieldName = field.label;
 
-      const fieldValues = await Promise.all(workOrders.map(async workOrder => {
-          // TODO: Add mapping for other field types
+        // TODO: Add mapping for other field types
+        const fieldValue = workOrders.map(workOrder => {
           switch (field.value) {
-            case WorkOrderPropertiesOptions.ASSIGNED_TO:
-            case WorkOrderPropertiesOptions.CREATED_BY:
-            case WorkOrderPropertiesOptions.REQUESTED_BY:
-            case WorkOrderPropertiesOptions.UPDATED_BY:
-              return await this.getUserName(workOrder[field.field] as string).then(name => name || workOrder[field.field] || '');
+            switch (field.value) {
+              case WorkOrderPropertiesOptions.ASSIGNED_TO:
+              case WorkOrderPropertiesOptions.CREATED_BY:
+              case WorkOrderPropertiesOptions.REQUESTED_BY:
+              case WorkOrderPropertiesOptions.UPDATED_BY:
+                return await this.getUserName(workOrder[field.field] as string).then(name => name || workOrder[field.field] || '');
+            case WorkOrderPropertiesOptions.PROPERTIES:
+              const properties = workOrder.properties || {};
+              return JSON.stringify(properties);
             default:
               return workOrder[field.field] ?? '';
           }
-        })
-      )
-      return { name: fieldName, values: fieldValues, type: fieldType };
-    }) ?? [])
+        });
+
+        return { name: fieldName, values: fieldValue, type: fieldType };
+      });
+
+      return {
+        refId: query.refId,
+        name: query.refId,
+        fields: mappedFields ?? [],
+      };
+    }
     return {
       refId: query.refId,
       name: query.refId,
-      fields: mappedFields ?? [],
+      fields: [],
     };
   }
 
@@ -90,20 +145,35 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     filter?: string,
     projection?: string[],
     orderBy?: string,
-    take?: number,
-    descending?: boolean
+    descending?: boolean,
+    take?: number
   ): Promise<WorkOrder[]> {
-    const body = {
-      filter,
-      projection,
-      orderBy,
-      take,
-      descending,
+    const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<WorkOrder>> => {
+      const body = {
+        filter,
+        projection,
+        orderBy,
+        descending,
+        take: currentTake,
+        continationToken: token,
+        returnCount: true,
+      };
+      const response = await this.queryWorkOrders(body);
+
+      return {
+        data: response.workOrders,
+        continuationToken: response.continuationToken,
+        totalCount: response.totalCount,
+      };
     };
 
-    // TODO: query work orders in batches
-    const response = await this.queryWorkOrders(body);
-    return response.workOrders;
+    const batchQueryConfig = {
+      maxTakePerRequest: QUERY_WORK_ORDERS_MAX_TAKE,
+      requestsPerSecond: QUERY_WORK_ORDERS_REQUEST_PER_SECOND,
+    };
+    const response = await queryInBatches(queryRecord, batchQueryConfig, take);
+
+    return response.data;
   }
 
   async queryWorkordersCount(filter = ''): Promise<number> {
@@ -126,6 +196,46 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     }
   }
 
+  protected multipleValuesQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string, _options?: any) => {
+      const isMultiSelect = this.isMultiSelectValue(value);
+      const valuesArray = this.getMultipleValuesArray(value);
+      const logicalOperator = this.getLogicalOperator(operation);
+
+      return isMultiSelect
+        ? `(${valuesArray.map(val => `${field} ${operation} "${val}"`).join(` ${logicalOperator} `)})`
+        : `${field} ${operation} "${value}"`;
+    };
+  }
+
+  protected timeFieldsQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string): string => {
+      const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
+      return `${field} ${operation} "${formattedValue}"`;
+    };
+  }
+
+  /**
+   * Combines two filter strings into a single query filter using the '&&' operator.
+   * Filters that are undefined or empty are excluded from the final query.
+   */
+  protected buildQueryFilter(filterA?: string, filterB?: string): string | undefined {
+    const filters = [filterA, filterB].filter(Boolean);
+    return filters.length > 0 ? filters.join(' && ') : undefined;
+  }
+
+  private isMultiSelectValue(value: string): boolean {
+    return value.startsWith('{') && value.endsWith('}');
+  }
+
+  private getMultipleValuesArray(value: string): string[] {
+    return value.replace(/({|})/g, '').split(',');
+  }
+
+  private getLogicalOperator(operation: string): string {
+    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
+  }
+
   async testDatasource(): Promise<TestDataSourceResponse> {
     await this.post(this.queryWorkOrdersUrl, { take: 1 });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
@@ -136,20 +246,9 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       WorkOrderPropertiesOptions.UPDATED_AT,
       WorkOrderPropertiesOptions.CREATED_AT,
       WorkOrderPropertiesOptions.EARLIEST_START_DATE,
-      WorkOrderPropertiesOptions.DUE_DATE,
+      WorkOrderPropertiesOptions.DUE_DATE
     ];
-  
+
     return timeFields.includes(field);
   }
-
-  private async getUserName(userId: string): Promise<string> {
-    if (!userId) {
-      return '';
-    }
-    const usersMap = await this.usersObj.usersMapCache;
-    const userName = usersMap.get(userId);
-    return userName ?? userId;
-  }
-
 }
-

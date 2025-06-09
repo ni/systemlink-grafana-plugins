@@ -46,3 +46,28 @@ export const parseErrorMessage = (error: Error): string | undefined => {
 
   return error.message;
 };
+
+export const extractErrorInfo = (errorMessage: string): { url: string; statusCode: string; message: string } => {
+  const urlMatch = errorMessage.match(/url "([^"]+)"/);
+  const statusCodeMatch = errorMessage.match(/status code: (\d+)/);
+  const messageMatch = errorMessage.match(/Error message: (.+)$/);
+
+  const url = urlMatch ? urlMatch[1] : '';
+  const statusCode = statusCodeMatch ? statusCodeMatch[1] : '';
+  //Try to parse the inner message from the error message
+  let message = '';
+  if (messageMatch) {
+    try {
+      const parsed = JSON.parse(messageMatch[1]);
+      message = parsed?.message || messageMatch[1];
+    } catch {
+      message = messageMatch[1];
+    }
+  }
+
+  return {
+    url,
+    statusCode,
+    message,
+  };
+};
