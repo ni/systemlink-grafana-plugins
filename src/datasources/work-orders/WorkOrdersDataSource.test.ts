@@ -51,11 +51,28 @@ describe('WorkOrdersDataSource', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/niworkorder/v1/query-workorders', method: 'POST' }))
       .mockReturnValue(createFetchResponse(mockWorkOrders));
-    
+
     jest.spyOn(datastore, 'queryWorkordersData');
   });
 
   describe('runQuery', () => {
+    test('should return empty field when no work orders are found', async () => {
+      const mockQuery = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+        queryBy: 'filter',
+      };
+
+      jest.spyOn(datastore, 'queryWorkordersData').mockResolvedValue([]);
+
+      const response = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+      expect(response.fields).toHaveLength(0);
+      expect(response.refId).toEqual('A');
+      expect(response.name).toEqual('A');
+      expect(datastore.queryWorkordersData).toHaveBeenCalledWith('filter', undefined, undefined, undefined, undefined);
+    });
+
     test('processes work orders query when outputType is Properties', async () => {
       const mockQuery = {
         refId: 'A',
@@ -257,15 +274,15 @@ describe('WorkOrdersDataSource', () => {
     beforeEach(() => {
       options = {}
     });
-  
+
     it('should return work orders name with id when query properties are not provided', async () => {
       const query: WorkOrdersVariableQuery = {
         refId: '',
         take: 1000,
       };
-  
+
       const results = await datastore.metricFindQuery(query, options);
-  
+
       expect(results).toMatchSnapshot();
     });
 
@@ -277,9 +294,9 @@ describe('WorkOrdersDataSource', () => {
         descending: true,
         take: 1000,
       };
-  
+
       const results = await datastore.metricFindQuery(query, options);
-  
+
       expect(results).toMatchSnapshot();
     });
 
