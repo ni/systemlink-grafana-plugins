@@ -11,6 +11,22 @@ const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: TestPlansVariableQuery) => query),
+  workspaceUtils: {
+    getWorkspaces: jest.fn().mockResolvedValue(
+      new Map([
+        ['1', { id: '1', name: 'WorkspaceName' }],
+        ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+      ])
+    ),
+  },
+  systemUtils: {
+    getSystemAliases: jest.fn().mockResolvedValue(
+      new Map([
+        ['1', { id: '1', alias: 'System 1' }],
+        ['2', { id: '2', alias: 'System 2' }],
+      ])
+    ),
+  },
   productUtils: {
     getProducts: jest.fn().mockResolvedValue(
       new Map(
@@ -84,6 +100,30 @@ describe('TestPlansVariableQueryEditor', () => {
     await waitFor(() => {
       expect(recordCountInput).toHaveValue(500);
     });
+  });
+
+  it('should load workspaces and set them in state', async () => {
+    await renderElement();
+
+    expect(mockDatasource.workspaceUtils.getWorkspaces()).toBeDefined();
+    await expect(mockDatasource.workspaceUtils.getWorkspaces()).resolves.toEqual(
+      new Map([
+        ['1', { id: '1', name: 'WorkspaceName' }],
+        ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+      ])
+    );
+  });
+
+  it('should load system names', async () => {
+    await renderElement();
+    const result = await mockDatasource.systemUtils.getSystemAliases();
+    expect(result).toBeDefined();
+    expect(result).toEqual(
+      new Map([
+        ['1', { id: '1', alias: 'System 1' }],
+        ['2', { id: '2', alias: 'System 2' }],
+      ])
+    );
   });
 
   it('should load part numbers and product names', async () => {

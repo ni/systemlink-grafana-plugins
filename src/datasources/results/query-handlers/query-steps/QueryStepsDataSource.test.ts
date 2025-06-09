@@ -1,7 +1,7 @@
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
-import { Field } from '@grafana/data';
+import { DataQueryRequest, Field } from '@grafana/data';
 import { QuerySteps, QueryStepsResponse, StepsProperties, StepsPropertiesOptions } from 'datasources/results/types/QuerySteps.types';
 import { OutputType, QueryType } from 'datasources/results/types/types';
 import { QueryStepsDataSource } from './QueryStepsDataSource';
@@ -40,11 +40,25 @@ jest.mock('../../constants/QueryStepPath.constants', () => ({
 
 describe('QueryStepsDataSource', () => {
   beforeEach(() => {
+    (ResultsDataSourceBase as any).queryResultsValues = jest.fn().mockResolvedValue(['value1', 'value2']);
+
     [datastore, backendServer, templateSrv] = setupDataSource(QueryStepsDataSource);
 
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
       .mockReturnValue(createFetchResponse(mockQueryStepsResponse));
+
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
+      .mockReturnValue(createFetchResponse(['name1','name2']));
+    
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
+      .mockReturnValue(createFetchResponse({
+        paths: ['path1', 'path2'],
+        continuationToken: null,
+        totalCount: 2
+      }));
   })
 
   afterEach(() => {
@@ -65,7 +79,24 @@ describe('QueryStepsDataSource', () => {
 
       await expect(datastore.querySteps())
         .rejects
-        .toThrow('Request to url "/nitestmonitor/v2/query-steps" failed with status code: 400. Error message: "Error"');
+        .toThrow('The query failed due to the following error: (status 400) \"Error"\.');
+    });
+
+    test('should publish alertError event when error occurs', async () => {
+      const publishMock = jest.fn();
+      (datastore as any).appEvents = { publish: publishMock };
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps' }))
+        .mockReturnValue(createFetchError(400));
+
+      await expect(datastore.querySteps())
+        .rejects
+        .toThrow('The query failed due to the following error: (status 400) "Error".');
+
+      expect(publishMock).toHaveBeenCalledWith({
+        type: 'alert-error',
+        payload: ['Error during step query', expect.stringContaining('The query failed due to the following error: (status 400) "Error".')],
+      });
     });
   });
 
@@ -127,7 +158,7 @@ describe('QueryStepsDataSource', () => {
 
       await expect(datastore.query(query))
         .rejects
-        .toThrow('Request to url "/nitestmonitor/v2/query-steps" failed with status code: 400. Error message: "Error"');
+        .toThrow('The query failed due to the following error: (status 400) \"Error\".');
     });
 
     test('should convert properties to Grafana fields', async () => {
@@ -278,6 +309,7 @@ describe('QueryStepsDataSource', () => {
         })
       ]
       backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
         .mockImplementationOnce(() => mockResponses[0])
         .mockImplementationOnce(() => mockResponses[1])
       const query = buildQuery(
@@ -299,7 +331,10 @@ describe('QueryStepsDataSource', () => {
       expect(fields).toEqual([
         { name: 'Total count', values: [5000] },
       ]);
-      expect(backendServer.fetch).toHaveBeenCalledTimes(1);
+      const callsToQuerySteps = backendServer.fetch.mock.calls.filter(
+        ([request]) => request.url === '/nitestmonitor/v2/query-steps'
+      );
+      expect(callsToQuerySteps).toHaveLength(1);
     });
   });
 
@@ -342,7 +377,18 @@ describe('QueryStepsDataSource', () => {
       await datastore.loadWorkspaces();
 
       expect(datastore.errorTitle).toBe('Warning during result value query');
-      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error');
+      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
+    });
+
+    it('should contain error details when error contains additional information', async () => {
+      (ResultsDataSourceBase as any)._workspacesCache = null;
+      const error = new Error(`API failed Error message: ${JSON.stringify({ message: 'Detailed error message', statusCode: 500 })}`);
+      jest.spyOn(QueryStepsDataSource.prototype, 'getWorkspaces').mockRejectedValue(error);
+
+      await datastore.loadWorkspaces();
+
+      expect(datastore.errorTitle).toBe('Warning during result value query');
+      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
     });
   });
 
@@ -565,7 +611,7 @@ describe('QueryStepsDataSource', () => {
         
         await expect(batchPromise)
           .rejects
-          .toThrow('Request to url "/nitestmonitor/v2/query-steps" failed with status code: 400. Error message: "Error"');
+          .toThrow('The query failed due to the following error: (status 400) \"Error\".');
         expect(backendServer.fetch).toHaveBeenCalledTimes(2);
       });
 
@@ -817,7 +863,7 @@ describe('QueryStepsDataSource', () => {
       
       await expect(batchPromise)
         .rejects
-        .toThrow('Request to url "/nitestmonitor/v2/query-paths" failed with status code: 400. Error message: "Error"');
+        .toThrow('Request to url \"/nitestmonitor/v2/query-paths\" failed with status code: 400. Error message: "Error"');
       expect(backendServer.fetch).toHaveBeenCalledTimes(2);
     });
 
@@ -873,6 +919,146 @@ describe('QueryStepsDataSource', () => {
       expect(spyDelay).toHaveBeenCalledWith(expect.any(Function), 800); // delay for 1000 - 200 = 800ms
     });
   });
+
+  describe('load step paths', () => {
+    it('should call loadStepPaths when resultsQuery is changed', async () => {
+      const query = {
+        refId: 'A',
+        partNumberQuery: ['PN1'],
+        resultsQuery: 'new-query',
+      } as QuerySteps;
+      const spy = jest.spyOn(datastore as any, 'loadStepPaths')
+
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('should not call loadStepPaths when resultsQuery is not changed', async () => {
+      const query = {
+        refId: 'A',
+        partNumberQuery: ['PN1'],
+        resultsQuery: 'ProgramName = "same-query"',
+      } as QuerySteps;
+      (datastore as any).previousResultsQuery = "(PartNumber = \"PN1\") && ProgramName = \"same-query\"";
+      const spy = jest.spyOn(datastore as any, 'loadStepPaths')
+
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should return unique step paths', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
+        .mockReturnValue(
+          createFetchResponse({
+            paths: [
+              { path: 'path1' },
+              { path: 'path2' },
+              { path: 'path1' },
+              { path: 'path3' },
+              { path: 'path2' },
+            ],
+            continuationToken: null,
+            totalCount: 5,
+          })
+        );
+      const query = {
+        refId: 'A',
+        partNumberQuery: ['PN1'],
+        resultsQuery: 'ProgramName = "Test"',
+        outputType: OutputType.Data,
+      } as QuerySteps;
+
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+      const result = datastore.getStepPaths();
+
+      expect(result).toEqual(['path1', 'path2', 'path3']);
+    });
+
+    it('should not call queryStepPathInBatches when no program names are returned', async () => {
+      const spy = jest.spyOn(datastore as any, 'queryStepPathInBatches');
+      jest.spyOn(datastore as any, 'queryResultsValues').mockResolvedValue([]);
+      const query = {
+        refId: 'A',
+        partNumberQuery: ['PN1'],
+        resultsQuery: 'ProgramName = "Test"',
+      } as QuerySteps;
+
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+     
+    it('should handle error in query-paths API when loading step path', async () => {
+      const error = new Error('API failed');
+      jest.spyOn(datastore as any, 'loadStepPaths').mockRejectedValue(error);
+      const query = {
+        refId: 'A',
+        partNumberQuery: ['PN1'],
+        resultsQuery: 'ProgramName = "Test"',
+        outputType: OutputType.Data,
+      } as QuerySteps;
+
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+      const stepsPathLookupValues = datastore.getStepPaths();
+
+      expect(stepsPathLookupValues).toEqual([]);
+      expect(datastore.errorTitle).toBe('Warning during step paths value query');
+      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
+    });
+
+    it('should handle error in query-result-values when loading step path', async () => {
+      const error = new Error('API failed');
+      jest.spyOn(datastore as any, 'queryResultsValues').mockRejectedValue(error);
+      const query = {
+        refId: 'A',
+        partNumberQuery: ['PN1'],
+        resultsQuery: 'ProgramName = "Test"',
+        outputType: OutputType.Data,
+      } as QuerySteps;
+
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+      const stepsPathLookupValues = datastore.getStepPaths();
+
+      expect(stepsPathLookupValues).toEqual([]);
+      expect(datastore.errorTitle).toBe('Warning during step paths value query');
+      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
+    });
+
+    it('should contain error details when query results values error contains additional information', async () => {
+      const error = new Error(`API failed Error message: ${JSON.stringify({ message: 'Detailed error message', statusCode: 500 })}`);
+      jest.spyOn(datastore as any, 'queryResultsValues').mockRejectedValue(error);
+      const query = {
+        refId: 'A',
+        partNumberQuery: ['PN1'],
+        resultsQuery: 'ProgramName = "Test"',
+        outputType: OutputType.Data,
+      } as QuerySteps;
+
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+      expect(datastore.errorTitle).toBe('Warning during step paths value query');
+      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
+    });
+
+    it('should contain error details when query-path error contains additional information', async () => {
+      const error = new Error(`API failed Error message: ${JSON.stringify({ message: 'Detailed error message', statusCode: 500 })}`);
+      jest.spyOn(datastore as any, 'queryStepPaths').mockRejectedValue(error);
+      const query = {
+        refId: 'A',
+        partNumberQuery: ['PN1'],
+        resultsQuery: 'ProgramName = "Test"',
+        outputType: OutputType.Data,
+      } as QuerySteps;
+      
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+      expect(datastore.errorTitle).toBe('Warning during step paths value query');
+      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
+    });
+  })
 
   test('should handle multiple part numbers and query variables', async () => {
     const resultsQuery = `${ResultsQueryBuilderFieldNames.PROGRAM_NAME} = "{name1,name2}"`;
@@ -1053,17 +1239,25 @@ describe('QueryStepsDataSource', () => {
         expect(result).toEqual([]);
       });
 
-      it('should return empty array if API throws error', async () => {
+      it('should return undefined if API throws error', async () => {
         const error = new Error('API failed');
-        backendServer.fetch.mockImplementationOnce(() => { throw error; });
-        jest.spyOn(console, 'error').mockImplementation(() => {});
+        backendServer.fetch.calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
+          .mockImplementationOnce(() => { throw error; });
 
         const query = { queryByResults: 'programName = "name1"', stepsTake: 1000, partNumberQueryInSteps: ['PartNumber1'] } as StepsVariableQuery;
-        const result = await datastore.metricFindQuery(query);
 
-        expect(result).toEqual([]);
-        expect(console.error).toHaveBeenCalledTimes(1);
-        expect(console.error).toHaveBeenCalledWith('Error in querying steps:', error)});
+        let result;
+        let caughtError;
+
+        try {
+          result = await datastore.metricFindQuery(query);
+        } catch (error) {
+          caughtError = (error as Error).message;
+        }
+
+        expect(caughtError).toBe(`The query failed due to an unknown error.`);
+        expect(result).toEqual(undefined);
+      });
 
       it('should use templateSrv.replace for queryByResults and queryBySteps', async () => {
         let resultsQuery = 'programName = "${name}"'
@@ -1143,6 +1337,141 @@ describe('QueryStepsDataSource', () => {
           })
         );
       });
+
+      describe('load step paths', () => {
+        it('should call loadStepPaths when resultsQuery is changed', async () => {
+          const query = {
+            queryByResults: 'ProgramName = "new-query"',
+            stepsTake: 1000,
+            partNumberQueryInSteps: ['PN1'],
+          } as StepsVariableQuery;
+          const spy = jest.spyOn(datastore as any, 'loadStepPaths')
+
+          await datastore.metricFindQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+          expect(spy).toHaveBeenCalled();
+        });
+
+        it('should not call loadStepPaths when resultsQuery is not changed', async () => {
+          const query = {
+            queryByResults: 'ProgramName = "same-query"',
+            stepsTake: 1000,
+            partNumberQueryInSteps: ['PN1'],
+          } as StepsVariableQuery;
+          (datastore as any).previousResultsQuery = "(PartNumber = \"PN1\") && ProgramName = \"same-query\"";
+          const spy = jest.spyOn(datastore as any, 'loadStepPaths')
+
+          await datastore.metricFindQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+          expect(spy).not.toHaveBeenCalled();
+        });
+
+        it('should return unique step paths', async () => {
+          backendServer.fetch
+            .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
+            .mockReturnValue(
+              createFetchResponse({
+                paths: [
+                  { path: 'path1' },
+                  { path: 'path2' },
+                  { path: 'path1' },
+                  { path: 'path3' },
+                  { path: 'path2' },
+                ],
+                continuationToken: null,
+                totalCount: 5,
+              })
+            );
+          const query = {
+            queryByResults: 'ProgramName = "new-query"',
+            stepsTake: 1000,
+            partNumberQueryInSteps: ['PN1'],
+          } as StepsVariableQuery;
+
+          await datastore.metricFindQuery(query, { scopedVars: {} } as DataQueryRequest);
+          const result = datastore.getStepPaths();
+
+          expect(result).toEqual(['path1', 'path2', 'path3']);
+        });
+
+        it('should not call queryStepPathInBatches when no program names are returned', async () => {
+          const spy = jest.spyOn(datastore as any, 'queryStepPathInBatches');
+          jest.spyOn(datastore as any, 'queryResultsValues').mockResolvedValue([]);
+          const query = {
+            queryByResults: 'ProgramName = "new-query"',
+            stepsTake: 1000,
+            partNumberQueryInSteps: ['PN1'],
+          } as StepsVariableQuery;
+
+          await datastore.metricFindQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+          expect(spy).not.toHaveBeenCalled();
+        });
+        
+        it('should handle error in query-paths API when loading step path', async () => {
+          const error = new Error('API failed');
+          jest.spyOn(datastore as any, 'loadStepPaths').mockRejectedValue(error);
+          const query = {
+            queryByResults: 'ProgramName = "new-query"',
+            stepsTake: 1000,
+            partNumberQueryInSteps: ['PN1'],
+          } as StepsVariableQuery;
+
+          await datastore.metricFindQuery(query, { scopedVars: {} } as DataQueryRequest);
+          const stepsPathLookupValues = datastore.getStepPaths();
+
+          expect(stepsPathLookupValues).toEqual([]);
+          expect(datastore.errorTitle).toBe('Warning during step paths value query');
+          expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
+        });
+
+        it('should handle error in query-result-values when loading step path', async () => {
+          const error = new Error('API failed');
+          jest.spyOn(datastore as any, 'queryResultsValues').mockRejectedValue(error);
+          const query = {
+            queryByResults: 'ProgramName = "new-query"',
+            stepsTake: 1000,
+            partNumberQueryInSteps: ['PN1'],
+          } as StepsVariableQuery;
+
+          await datastore.metricFindQuery(query, { scopedVars: {} } as DataQueryRequest);
+          const stepsPathLookupValues = datastore.getStepPaths();
+
+          expect(stepsPathLookupValues).toEqual([]);
+          expect(datastore.errorTitle).toBe('Warning during step paths value query');
+          expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
+        });
+
+        it('should contain error details when query results values error contains additional information', async () => {
+          const error = new Error(`API failed Error message: ${JSON.stringify({ message: 'Detailed error message', statusCode: 500 })}`);
+          jest.spyOn(datastore as any, 'queryResultsValues').mockRejectedValue(error);
+          const query = {
+            queryByResults: 'ProgramName = "new-query"',
+            stepsTake: 1000,
+            partNumberQueryInSteps: ['PN1'],
+          } as StepsVariableQuery;
+
+          await datastore.metricFindQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+          expect(datastore.errorTitle).toBe('Warning during step paths value query');
+          expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
+        });
+
+        it('should contain error details when query-path error contains additional information', async () => {
+          const error = new Error(`API failed Error message: ${JSON.stringify({ message: 'Detailed error message', statusCode: 500 })}`);
+          jest.spyOn(datastore as any, 'queryStepPaths').mockRejectedValue(error);
+          const query = {
+            queryByResults: 'ProgramName = "new-query"',
+            stepsTake: 1000,
+            partNumberQueryInSteps: ['PN1'],
+          } as StepsVariableQuery;
+
+          await datastore.metricFindQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+          expect(datastore.errorTitle).toBe('Warning during step paths value query');
+          expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
+        });
+      })
     });
 
   const buildQuery = getQueryBuilder<QuerySteps>()({

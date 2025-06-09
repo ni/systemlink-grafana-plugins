@@ -1,14 +1,17 @@
 import { SlQueryBuilder } from "core/components/SlQueryBuilder/SlQueryBuilder";
 import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder.constants";
 import { expressionBuilderCallback, expressionReaderCallback } from "core/query-builder.utils";
-import { QBField, QueryBuilderOption } from "core/types";
+import { QBField, QueryBuilderOption, Workspace } from "core/types";
 import { TestPlansQueryBuilderFields, TestPlansQueryBuilderStaticFields } from "datasources/test-plans/constants/TestPlansQueryBuilder.constants";
 import React, { useState, useEffect, useMemo } from "react";
+import { SystemAlias } from "shared/types/QuerySystems.types";
 import { ProductPartNumberAndName } from "shared/types/QueryProducts.types";
 import { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
 
 type TestPlansQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
     filter?: string;
+    workspaces: Workspace[] | null;
+    systemAliases: SystemAlias[] | null;
     products: ProductPartNumberAndName[] | null;
     globalVariableOptions: QueryBuilderOption[];
 };
@@ -16,11 +19,49 @@ type TestPlansQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Eleme
 export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
     filter,
     onChange,
+    workspaces,
+    systemAliases,
     products,
     globalVariableOptions,
 }) => {
     const [fields, setFields] = useState<QBField[]>([]);
     const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
+
+    const workspaceField = useMemo(() => {
+        const workspaceField = TestPlansQueryBuilderFields.WORKSPACE;
+        if (!workspaces) {
+            return null;
+        }
+
+        return {
+            ...workspaceField,
+            lookup: {
+                ...workspaceField.lookup,
+                dataSource: [
+                    ...(workspaceField.lookup?.dataSource || []),
+                    ...workspaces.map(({ id, name }) => ({ label: name, value: id })),
+                ],
+            },
+        };
+    }, [workspaces])
+
+    const systemAliasField = useMemo(() => {
+        const systemAliasField = TestPlansQueryBuilderFields.SYSTEM_ALIAS_NAME;
+        if (!systemAliases) {
+            return null;
+        }
+
+        return {
+            ...systemAliasField,
+            lookup: {
+                ...systemAliasField.lookup,
+                dataSource: [
+                    ...(systemAliasField.lookup?.dataSource || []),
+                    ...systemAliases.map(({ id, alias }) => ({ label: alias ?? '', value: id })),
+                ],
+            },
+        };
+    }, [systemAliases])
 
     const productsField = useMemo(() => {
         const productsField = TestPlansQueryBuilderFields.PRODUCT;
@@ -46,11 +87,11 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
     }, [products])
 
     useEffect(() => {
-        if (!productsField) {
+        if (!workspaceField || !systemAliasField || !productsField) {
             return;
         }
 
-        const updatedFields = [...TestPlansQueryBuilderStaticFields, productsField];
+        const updatedFields = [...TestPlansQueryBuilderStaticFields, workspaceField, systemAliasField, productsField];
 
         setFields(updatedFields);
 
@@ -102,7 +143,7 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
 
         setOperations([...customOperations, ...keyValueOperations]);
 
-    }, [globalVariableOptions, productsField]);
+    }, [workspaceField, systemAliasField, productsField]);
 
     return (
         <SlQueryBuilder

@@ -65,7 +65,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       })
       .catch(error => {
         if (!this.errorTitle) {
-          this.handleQueryValuesError(error);
+          this.handleQueryValuesError(error, 'result');
         }
         return new Map<string, Workspace>();
       });
@@ -96,7 +96,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     ResultsDataSourceBase._productCache = this.queryProducts([ProductProperties.name, ProductProperties.partNumber])
       .catch(error => {
         if (!this.errorTitle) {
-          this.handleQueryValuesError(error);
+          this.handleQueryValuesError(error, 'product');
         }
         return { products: [] };
       });
@@ -120,6 +120,19 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
       return `${field} ${operation} "${formattedValue}"`;
     };
+  }
+
+  /**
+   * Flattens an array of strings, where each element may be a string or an array of strings,
+   * into a single-level array and removes duplicate values.
+   *
+   * @param values - An array containing strings or arrays of strings to be flattened and deduplicated.
+   * @returns A new array containing unique string values from the input, flattened to a single level.
+   */
+  protected flattenAndDeduplicate(values: string[]): string[] {
+    const flatValues = values.flatMap(
+      (value) => Array.isArray(value) ? value : [value]);
+    return Array.from(new Set(flatValues));
   }
 
   /**
@@ -162,7 +175,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     throw new Error("Method not implemented.");
   }
 
-  private handleQueryValuesError(error: unknown): void {
+  handleQueryValuesError(error: unknown, errorContext: string): void {
     const errorDetails = extractErrorInfo((error as Error).message);
     let detailedMessage = '';
     try {
@@ -171,7 +184,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     } catch {
       detailedMessage = errorDetails.message;
     }
-    this.errorTitle = 'Warning during result value query';
+    this.errorTitle = `Warning during ${errorContext} value query`;
     this.errorDescription = errorDetails.message
       ? `Some values may not be available in the query builder lookups due to the following error:${detailedMessage}.`
       : 'Some values may not be available in the query builder lookups due to an unknown error.';

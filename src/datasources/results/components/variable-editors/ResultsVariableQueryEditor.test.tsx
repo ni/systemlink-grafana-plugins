@@ -77,6 +77,26 @@ jest.mock('../query-builders/query-results/ResultsQueryBuilder', () => ({
   }),
 }));
 
+jest.mock('../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper', () => ({
+  StepsQueryBuilderWrapper: jest.fn(({ resultsQuery, stepsQuery, onResultsQueryChange, onStepsQueryChange, disableStepsQueryBuilder }) => {
+    return (
+      <div data-testid="steps-query-builder-container">
+        <input 
+          data-testid="Query by results properties"
+          value={resultsQuery}
+          onChange={(e) => onResultsQueryChange(e.target.value)}
+        />
+        <input 
+          data-testid="Query by steps properties"
+          value={stepsQuery}
+          onChange={(e) => onStepsQueryChange(e.target.value)}
+          disabled={disableStepsQueryBuilder} 
+        />
+      </div>
+    );
+  }),
+}));
+
 const renderEditor = setupRenderer(ResultsVariableQueryEditor, FakeResultsDataSource, () => {});
 let propertiesSelect: HTMLElement;
 let queryBy: HTMLElement;
@@ -181,11 +201,58 @@ describe('Steps Query Type', () => {
       queryBySteps: '',
     } as unknown as ResultsQuery);
 
-    queryByResults = screen.getByText('Query by results properties');
-    queryBySteps = screen.getByText('Query by steps properties');
+    const stepsQueryBuilderWrapper = screen.getByTestId('steps-query-builder-container');
+    queryByResults = screen.getByTestId('Query by results properties');
+    queryBySteps = screen.getByTestId('Query by steps properties');
 
+    expect(stepsQueryBuilderWrapper).toBeInTheDocument();
     expect(queryByResults).toBeInTheDocument();
     expect(queryBySteps).toBeInTheDocument();
+  });
+
+  it('should disable the steps query builder when product name is empty', async () => {
+    await act(async () => {
+      renderEditor({
+        refId: '',
+        queryType: QueryType.Steps,
+        queryByResults: 'resultsQuery',
+        queryBySteps: '',
+        partNumberQueryInSteps: []
+      } as unknown as ResultsQuery);
+    });
+    const stepsQueryInput = screen.getByTestId('Query by steps properties');
+    expect(stepsQueryInput).toBeInTheDocument();
+    expect(stepsQueryInput).toBeDisabled();
+  });
+
+  it('should disable the steps query builder when product name is undefined', async () => {
+    await act(async () => {
+      renderEditor({
+        refId: '',
+        queryType: QueryType.Steps,
+        queryByResults: 'resultsQuery',
+        queryBySteps: '',
+        partNumberQueryInSteps: undefined
+      } as unknown as ResultsQuery);
+    });
+    const stepsQueryInput = screen.getByTestId('Query by steps properties');
+    expect(stepsQueryInput).toBeInTheDocument();
+    expect(stepsQueryInput).toBeDisabled();
+  });
+
+  it('should enable the steps query builder when product name has value', async () => {
+    await act(async () => {
+      renderEditor({
+        refId: '',
+        queryType: QueryType.Steps,
+        queryByResults: 'resultsQuery',
+        queryBySteps: '',
+        partNumberQueryInSteps: ['PN1']
+      } as unknown as ResultsQuery);
+    });
+    const stepsQueryInput = screen.getByTestId('Query by steps properties');
+    expect(stepsQueryInput).toBeInTheDocument();
+    expect(stepsQueryInput).not.toBeDisabled();
   });
 
   it('should select the product name from the product name dropdown', async () => {
@@ -208,6 +275,30 @@ describe('Steps Query Type', () => {
 
     expect(screen.getByText("Product (part1)")).toBeInTheDocument();
   });
+
+  it('should show error when no product partNumber is selected', async () => {
+    await act(async () => {
+      renderEditor({
+        refId: '',
+        queryType: QueryType.Steps,
+        queryByResults: 'resultsQuery',
+        queryBySteps: '',
+      } as unknown as ResultsQuery);
+    });
+
+    const productNameSelectInSteps = screen.getAllByRole('combobox')[0];
+    fireEvent.keyDown(productNameSelectInSteps, { key: 'ArrowDown' });
+    const option = await screen.findByText("Product (part1)");
+    fireEvent.click(option);
+    expect(screen.getByText("Product (part1)")).toBeInTheDocument();
+
+    // Remove the selected product using the remove button (if present)
+    const removeButtons = screen.queryAllByRole('button', { name: 'Remove' });
+    expect(removeButtons.length).toBeGreaterThan(0);
+    fireEvent.click(removeButtons[0]);
+
+    expect(screen.getByText('You must select at least one product in this field.')).toBeInTheDocument();
+  })
 
   it('should select variable from product name dropdown', async () => {
     await act(async () => {
