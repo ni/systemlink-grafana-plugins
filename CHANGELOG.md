@@ -1,3 +1,9 @@
+## [3.111.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.110.0...v3.111.0) (2025-06-09)
+
+### Features
+
+* **products, results:** add validation for record count input with error ([#244](https://github.com/ni/systemlink-grafana-plugins/issues/244)) ([15260d4](https://github.com/ni/systemlink-grafana-plugins/commit/15260d4c7c5f05b18a3917b0b987d73298582477))
+
 ## [3.110.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.109.0...v3.110.0) (2025-06-09)
 
 ### Features
