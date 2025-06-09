@@ -54,7 +54,6 @@ describe('TestPlansQueryBuilder', () => {
         expect(conditionsContainer?.length).toBe(1);
         expect(conditionsContainer.item(0)?.textContent).toContain(product.partNumber);
         expect(conditionsContainer.item(0)?.textContent).toContain(product.name);
-
     });
 
     [['${__from:date}', 'From'], ['${__to:date}', 'To'], ['${__now:date}', 'Now']].forEach(([value, label]) => {
