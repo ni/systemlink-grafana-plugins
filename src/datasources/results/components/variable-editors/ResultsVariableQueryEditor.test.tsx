@@ -276,6 +276,30 @@ describe('Steps Query Type', () => {
     expect(screen.getByText("Product (part1)")).toBeInTheDocument();
   });
 
+  it('should show error when no product partNumber is selected', async () => {
+    await act(async () => {
+      renderEditor({
+        refId: '',
+        queryType: QueryType.Steps,
+        queryByResults: 'resultsQuery',
+        queryBySteps: '',
+      } as unknown as ResultsQuery);
+    });
+
+    const productNameSelectInSteps = screen.getAllByRole('combobox')[0];
+    fireEvent.keyDown(productNameSelectInSteps, { key: 'ArrowDown' });
+    const option = await screen.findByText("Product (part1)");
+    fireEvent.click(option);
+    expect(screen.getByText("Product (part1)")).toBeInTheDocument();
+
+    // Remove the selected product using the remove button (if present)
+    const removeButtons = screen.queryAllByRole('button', { name: 'Remove' });
+    expect(removeButtons.length).toBeGreaterThan(0);
+    fireEvent.click(removeButtons[0]);
+
+    expect(screen.getByText('You must select at least one product in this field.')).toBeInTheDocument();
+  })
+
   it('should select variable from product name dropdown', async () => {
     await act(async () => {
       renderEditor({

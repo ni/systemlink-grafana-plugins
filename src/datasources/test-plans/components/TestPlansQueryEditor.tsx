@@ -6,6 +6,7 @@ import { AutoSizeInput, HorizontalGroup, InlineField, InlineSwitch, MultiSelect,
 import { validateNumericInput } from 'core/utils';
 import { TestPlansQueryBuilder } from './query-builder/TestPlansQueryBuilder';
 import { recordCountErrorMessages, TAKE_LIMIT } from '../constants/QueryEditor.constants';
+import { Workspace } from 'core/types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansQuery>;
@@ -13,6 +14,17 @@ type Props = QueryEditorProps<TestPlansDataSource, TestPlansQuery>;
 export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
+
+  const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
+
+  useEffect(() => {
+    const loadWorkspaces = async () => {
+      const workspaces = await datasource.workspaceUtils.getWorkspaces();
+      setWorkspaces(Array.from(workspaces.values()));
+    };
+
+    loadWorkspaces();
+  }, [datasource]);
 
   const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
 
@@ -101,6 +113,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
           <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
             <TestPlansQueryBuilder
               filter={query.queryBy}
+              workspaces={workspaces}
               systemAliases={systemAliases}
               globalVariableOptions={[]}
               onChange={(event: any) => onQueryByChange(event.detail.linq)}

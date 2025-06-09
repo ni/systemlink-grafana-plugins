@@ -11,6 +11,14 @@ const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
     prepareQuery: jest.fn((query: TestPlansQuery) => query),
+    workspaceUtils: {
+        getWorkspaces: jest.fn().mockResolvedValue(
+            new Map([
+                ['1', { id: '1', name: 'WorkspaceName' }],
+                ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+            ])
+        )
+    },
     systemUtils: {
         getSystemAliases: jest.fn().mockResolvedValue(
             new Map([
@@ -18,7 +26,7 @@ const mockDatasource = {
                 ['2', { id: '2', alias: 'System 2' }],
             ])
         ),
-    },
+    }
 } as unknown as TestPlansDataSource;
 
 const defaultProps: QueryEditorProps<TestPlansDataSource, TestPlansQuery> = {
@@ -205,6 +213,19 @@ describe('TestPlansQueryEditor', () => {
             expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['ASSIGNED_TO'] }));
             expect(mockOnRunQuery).toHaveBeenCalled();
         });
+    });
+
+    it('should load workspaces and set them in state', async () => {
+        await renderElement();
+
+        const workspaces = await mockDatasource.workspaceUtils.getWorkspaces();
+        expect(workspaces).toBeDefined();
+        expect(workspaces).toEqual(
+            new Map([
+                ['1', { id: '1', name: 'WorkspaceName' }],
+                ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+            ])
+        );
     });
 
     it('should load system names', async () => {

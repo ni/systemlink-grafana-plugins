@@ -2,13 +2,13 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, 
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { Asset, OrderByOptions, OutputType, Projections, Properties, PropertiesProjectionMap, QueryTemplatesResponse, QueryTestPlansResponse, TemplateResponseProperties, TestPlanResponseProperties, TestPlansQuery, TestPlansVariableQuery } from './types';
-import { queryInBatches } from 'core/utils';
+import { getWorkspaceName, queryInBatches } from 'core/utils';
 import { QueryResponse } from 'core/types';
 import { isTimeField, transformDuration } from './utils';
 import { QUERY_TEMPLATES_BATCH_SIZE, QUERY_TEMPLATES_REQUEST_PER_SECOND, QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
 import { AssetUtils } from './asset.utils';
+import { WorkspaceUtils } from 'shared/workspace.utils';
 import { SystemUtils } from 'shared/system.utils';
-
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(
@@ -18,6 +18,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   ) {
     super(instanceSettings, backendSrv, templateSrv);
     this.assetUtils = new AssetUtils(instanceSettings, backendSrv);
+    this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
     this.systemUtils = new SystemUtils(instanceSettings, backendSrv);
   }
 
@@ -25,6 +26,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   queryTestPlansUrl = `${this.baseUrl}/query-testplans`;
   queryTemplatesUrl = `${this.baseUrl}/query-testplan-templates`;
   assetUtils: AssetUtils;
+  workspaceUtils: WorkspaceUtils;
   systemUtils: SystemUtils;
 
   defaultQuery = {
@@ -46,6 +48,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   };
 
   async runQuery(query: TestPlansQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
+    const workspaces = await this.workspaceUtils.getWorkspaces();
     const systemAliases = await this.systemUtils.getSystemAliases();
 
     if (query.outputType === OutputType.Properties) {
@@ -86,6 +89,9 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
               case PropertiesProjectionMap.DUT_ID.label:
                 const dut = dutNames.find(data => data.id === value);
                 return dut ? dut.name : value;
+              case PropertiesProjectionMap.WORKSPACE.label:
+                const workspace = workspaces.get(value);
+                return workspace ? getWorkspaceName([workspace], value) : value;
               case PropertiesProjectionMap.WORK_ORDER.label:
                 const workOrder = workOrderIdAndName.find(data => data.id === value);
                 const workOrderId = value ? `(${value})` : '';

@@ -7,6 +7,7 @@ import { select } from 'react-select-event';
 import userEvent from '@testing-library/user-event';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 import { StepsQueryBuilderWrapper } from '../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
+import { recordCountErrorMessages } from 'datasources/results/constants/StepsQueryEditor.constants';
 
 jest.mock('../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper', () => ({
   StepsQueryBuilderWrapper: jest.fn(({ resultsQuery, stepsQuery, onResultsQueryChange, onStepsQueryChange, disableStepsQueryBuilder }) => {
@@ -144,6 +145,16 @@ describe('QueryStepsEditor', () => {
       });
     });
 
+    it('should show error when all properties are removed', async () => {
+      // User removes the property
+      const removeButton = screen.getAllByRole('button', { name: 'Remove' });
+      for (const button of removeButton) {
+        await userEvent.click(button);
+      }
+
+      expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
+    });
+
     test('should update orderBy when user changes the orderBy', async () => {
       await select(orderBy, 'Started at', { container: document.body });
       await waitFor(() => {
@@ -157,35 +168,62 @@ describe('QueryStepsEditor', () => {
       });
     });
 
-    test('should update part number query when user selects a variable in product name dropdown', async () => {
-      await select(productName, '$var1', { container: document.body });
-      await waitFor(() => {
-        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "$var1"] }));
+    describe('Product Part Number', () => {
+      test('should update part number query when user selects a variable in product name dropdown', async () => {
+        await select(productName, '$var1', { container: document.body });
+        await waitFor(() => {
+          expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ['PartNumber1', '$var1'] }));
+        });
       });
-    });
 
-    test('should update part number query when user selects a product in product name dropdown', async () => {
-      await select(productName, 'ProductName2 (PartNumber2)', { container: document.body });
-      await waitFor(() => {
-        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "PartNumber2"] }));
+      test('should update part number query when user selects a product in product name dropdown', async () => {
+        await select(productName, 'ProductName2 (PartNumber2)', { container: document.body });	        await select(productName, 'ProductName2 (PartNumber2)', { container: document.body });
+        await waitFor(() => {
+          expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "PartNumber2"] }));
+        });
+      });
+
+      test('should show error when no product is selected', async () => {    
+        //Click remove button to remove all the selected product    
+        const removeButton = screen.getAllByRole('button', { name: 'Remove' });
+        for (const button of removeButton) {
+          await userEvent.click(button);
+        }
+
+        expect(screen.getByText('You must select at least one product in this field.')).toBeInTheDocument();
       });
     });
 
     describe('recordCount', () => {
-      test('should update record count when user enters numeric values in the take', async () => {
+      it('should not show error and call onChange when Take is valid', async () => {
         await userEvent.clear(recordCount);
         await userEvent.type(recordCount, '500');
-        await waitFor(() => {
-          expect(recordCount).toHaveValue(500);
-        });
+        await userEvent.click(document.body);
+      
+        expect(recordCount).toHaveValue(500);
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: 500 }));
       });
-
-      test('should not update record count when user enters non-numeric values in the take', async () => {
+    
+      it('should show error and not call onChange when Take is greater than Take limit', async () => {
+        mockHandleQueryChange.mockClear();
+      
         await userEvent.clear(recordCount);
-        await userEvent.type(recordCount, 'Test');
-        await waitFor(() => {
-          expect(recordCount).toHaveValue(null);
-        });
+        await userEvent.type(recordCount, '10001');
+        await userEvent.click(document.body);
+      
+        expect(mockHandleQueryChange).not.toHaveBeenCalled();
+        expect(screen.getByText(recordCountErrorMessages.lessOrEqualToTakeLimit)).toBeInTheDocument();
+      });
+    
+      it('should show error and not call onChange when Take is not a number', async () => {
+        mockHandleQueryChange.mockClear();
+      
+        await userEvent.clear(recordCount);
+        await userEvent.type(recordCount, 'abc');
+        await userEvent.click(document.body);
+      
+        expect(mockHandleQueryChange).not.toHaveBeenCalled();
+        expect(screen.getByText(recordCountErrorMessages.greaterOrEqualToZero)).toBeInTheDocument();
       });
     });
 
