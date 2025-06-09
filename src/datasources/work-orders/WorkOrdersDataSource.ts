@@ -118,7 +118,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
             case WorkOrderPropertiesOptions.UPDATED_BY:
               const userId = workOrder[field.field] as string ?? '';
               const user = users.get(userId);
-              return user? UsersUtils.getUserFullName(user) : '';
+              return user? UsersUtils.getUserFullName(user) : userId;
             case WorkOrderPropertiesOptions.PROPERTIES:
               const properties = workOrder.properties || {};
               return JSON.stringify(properties);

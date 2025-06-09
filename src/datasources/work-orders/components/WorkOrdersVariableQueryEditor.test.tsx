@@ -12,6 +12,14 @@ const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: WorkOrdersVariableQuery) => query),
   globalVariableOptions: jest.fn(() => []),
+  usersUtils: {
+    getUsers: jest.fn().mockResolvedValue(
+      new Map([
+        ['1', { id: '1', firstName: 'User', lastName: '1' }],
+        ['2', { id: '2', firstName: 'User', lastName: '2' }],
+      ])
+    ),
+  },
 } as unknown as WorkOrdersDataSource;
 
 const defaultProps: QueryEditorProps<WorkOrdersDataSource, WorkOrdersVariableQuery> = {
@@ -82,6 +90,19 @@ describe('WorkOrdersVariableQueryEditor', () => {
     await waitFor(() => {
       expect(recordCountInput).toHaveValue(500);
     });
+  });
+
+  it('should load users and set them in state', async () => {
+    renderElement();
+
+    const workspaces = await mockDatasource.usersUtils.getUsers();
+    expect(workspaces).toBeDefined();
+    expect(workspaces).toEqual(
+        new Map([
+            ['1', { id: '1', firstName: 'User', lastName: '1' }],
+            ['2', { id: '2', firstName: 'User', lastName: '2' }]
+        ])
+    );
   });
 
   describe('onChange', () => {
