@@ -843,6 +843,7 @@ describe('QueryStepsDataSource', () => {
 
     test('should stop subsequent API calls after error occurs', async () => {
       backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
         .mockImplementationOnce(() => createFetchResponse({
           paths: Array(1000).fill({ path: 'path1' }),
           continuationToken: 'token1',
@@ -864,7 +865,7 @@ describe('QueryStepsDataSource', () => {
       
       await expect(batchPromise)
         .rejects
-        .toThrow('The query failed due to the following error: (status 400) \"Error\".');
+        .toThrow('Request to url \"/nitestmonitor/v2/query-paths\" failed with status code: 400. Error message: "Error"');
       expect(backendServer.fetch).toHaveBeenCalledTimes(2);
     });
 
