@@ -1,4 +1,4 @@
-import { QueryBuilderOption } from 'core/types';
+import { QueryBuilderOption, Workspace } from 'core/types';
 import React, { ReactNode } from 'react';
 import { render } from '@testing-library/react';
 import { WorkOrdersQueryBuilder } from './WorkOrdersQueryBuilder';
@@ -6,9 +6,10 @@ import { WorkOrdersQueryBuilder } from './WorkOrdersQueryBuilder';
 describe('WorkOrdersQueryBuilder', () => {
   let reactNode: ReactNode;
   const containerClass = 'smart-filter-group-condition-container';
+  const workspace = { id: '1', name: 'Workspace Name' } as Workspace;
 
-  function renderElement(filter: string, globalVariableOptions: QueryBuilderOption[] = []) {
-    reactNode = React.createElement(WorkOrdersQueryBuilder, { filter, globalVariableOptions, onChange: jest.fn() });
+  function renderElement(filter: string, workspaces: Workspace[] | null = [], globalVariableOptions: QueryBuilderOption[] = []) {
+    reactNode = React.createElement(WorkOrdersQueryBuilder, { filter, workspaces, globalVariableOptions, onChange: jest.fn() });
     const renderResult = render(reactNode);
     return {
       renderResult,
@@ -41,7 +42,7 @@ describe('WorkOrdersQueryBuilder', () => {
 
   it('should select global variable option', () => {
     const globalVariableOption = { label: 'Global variable', value: '$global_variable' };
-    const { conditionsContainer } = renderElement('state = \"$global_variable\"', [globalVariableOption]);
+    const { conditionsContainer } = renderElement('state = \"$global_variable\"', [], [globalVariableOption]);
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain(globalVariableOption.label);
@@ -65,4 +66,12 @@ describe('WorkOrdersQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain(label);
     });
   });
+
+  
+  it('should select workspace in query builder', () => {
+    const { conditionsContainer } = renderElement('workspace = "1"', [workspace]);
+
+    expect(conditionsContainer?.length).toBe(1);
+    expect(conditionsContainer.item(0)?.textContent).toContain(workspace.name);
+});
 });
