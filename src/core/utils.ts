@@ -177,6 +177,50 @@ export async function queryInBatches<T>(
 }
 
 /**
+ * Executes a query function repeatedly until continuation token is null i.e. all data is retrieved, adhering to the specified
+ * batch query configuration for maximum requests per second and items per request.
+ *
+ * @template T - The type of the data being queried.
+ * @param queryRecord - A function that performs the query. It takes the maximum number of items
+ *                      to retrieve (`take`) and an optional continuation token, and returns a
+ *                      promise that resolves to a `QueryResponse<T>`.
+ * @param config - The batch query configuration, including:
+ *   - `maxTakePerRequest`: The maximum number of items to retrieve per request.
+ *   - `requestsPerSecond`: The maximum number of requests to make per second.
+ * @returns A promise that containing all retrieved data
+ */
+export async function queryUntilComplete<T>(
+  queryRecord: (take: number, continuationToken?: string) => Promise<QueryResponse<T>>,
+  { maxTakePerRequest, requestsPerSecond }: BatchQueryConfig
+): Promise<QueryResponse<T>> {
+  const data: T[] = [];
+  let continuationToken: string | undefined;
+
+  do {
+    const start = Date.now();
+    for (let i = 0; i < requestsPerSecond; i++) {
+      try {
+        const response: QueryResponse<T> = await queryRecord(maxTakePerRequest, continuationToken);
+        data.push(...response.data);
+        continuationToken = response.continuationToken;
+
+        if (!continuationToken) {
+          break;
+        }
+      } catch (error) {
+        throw error; // Re-throw the error to be handled by the caller
+      }
+    }
+    const elapsed = Date.now() - start;
+    if (continuationToken && elapsed < 1000) {
+      await delay(1000 - elapsed);
+    }
+  } while (continuationToken);
+
+  return { data };
+}
+
+/**
  * Executes a query function repeatedly until the response length < maxTakePerRequest i.e. all data is retrieved, adhering to the specified
  * batch query configuration for maximum requests per second and items per request.
  * 
