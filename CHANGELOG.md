@@ -1,3 +1,21 @@
+## [3.118.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.117.1...v3.118.0) (2025-06-09)
+
+### Features
+
+* **shared:** Add users class with utility methods to load users ([#227](https://github.com/ni/systemlink-grafana-plugins/issues/227)) ([9e2326d](https://github.com/ni/systemlink-grafana-plugins/commit/9e2326d020a355909f60add097d389c659618507))
+
+## [3.117.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.117.0...v3.117.1) (2025-06-09)
+
+### Bug Fixes
+
+* **utils:** set take value to 0 when it is defined in `queryInBatches` method ([#251](https://github.com/ni/systemlink-grafana-plugins/issues/251)) ([a01b80f](https://github.com/ni/systemlink-grafana-plugins/commit/a01b80f05dd77fefd385b937c2351a87dd677a06))
+
+## [3.117.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.116.0...v3.117.0) (2025-06-09)
+
+### Features
+
+* **system-utils:** create system reusable to remove duplicate methods of loading system alias in data sources ([#234](https://github.com/ni/systemlink-grafana-plugins/issues/234)) ([11c0562](https://github.com/ni/systemlink-grafana-plugins/commit/11c05627628fab15cf8612b02aea99694c17de63))
+
 ## [3.116.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.115.0...v3.116.0) (2025-06-09)
 
 ### Features
