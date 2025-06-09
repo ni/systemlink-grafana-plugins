@@ -1,3 +1,9 @@
+## [3.117.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.117.0...v3.117.1) (2025-06-09)
+
+### Bug Fixes
+
+* **utils:** set take value to 0 when it is defined in `queryInBatches` method ([#251](https://github.com/ni/systemlink-grafana-plugins/issues/251)) ([a01b80f](https://github.com/ni/systemlink-grafana-plugins/commit/a01b80f05dd77fefd385b937c2351a87dd677a06))
+
 ## [3.117.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.116.0...v3.117.0) (2025-06-09)
 
 ### Features
