@@ -60,8 +60,40 @@ jest.mock('./asset.utils', () => {
   };
 });
 
+const mockUsers = [
+  {
+    id: '1',
+    firstName: 'User',
+    lastName: '1',
+    email: 'user1@123.com',
+    properties: {},
+    keywords: [],
+    created: '',
+    updated: '',
+    orgId: '',
+  },
+  {
+    id: '2',
+    firstName: 'User',
+    lastName: '2',
+    email: 'user2@123.com',
+    properties: {},
+    keywords: [],
+    created: '',
+    updated: '',
+    orgId: '',
+  }
+];
+
 beforeEach(() => {
   [datastore, backendServer] = setupDataSource(TestPlansDataSource);
+
+  jest.spyOn(datastore.usersUtils, 'getUsers').mockResolvedValue(
+    new Map([
+      ['1', mockUsers[0]],
+      ['2', mockUsers[1]]
+    ])
+  );
 });
 
 describe('testDatasource', () => {
@@ -527,6 +559,84 @@ describe('runQuery', () => {
     expect(result.fields[0].values).toEqual(['System 1', 'System 2']);
   });
 
+  test('should show user name for assigned to property', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.ASSIGNED_TO],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', assignedTo: '1' },
+        { id: '2', assignedTo: '2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Assigned to');
+    expect(result.fields[0].values).toEqual(['User 1', 'User 2']);
+  });
+
+  test('should show user name for created by property', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.CREATED_BY],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', createdBy: '1' },
+        { id: '2', createdBy: '2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Created by');
+    expect(result.fields[0].values).toEqual(['User 1', 'User 2']);
+  });
+
+  test('should show user name for updated by property', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.UPDATED_BY],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', updatedBy: '1' },
+        { id: '2', updatedBy: '2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Updated by');
+    expect(result.fields[0].values).toEqual(['User 1', 'User 2']);
+  });
+
   test('should replace variables', async () => {
     const mockQuery = {
       refId: 'C',
@@ -610,7 +720,7 @@ describe('queryTestPlansInBatches', () => {
 
     jest.spyOn(datastore, 'queryTestPlans').mockResolvedValue(mockQueryResponse);
 
-    const result = await datastore.queryTestPlansInBatches('',OrderByOptions.UPDATED_AT, [Projections.NAME], 2, true);
+    const result = await datastore.queryTestPlansInBatches('', OrderByOptions.UPDATED_AT, [Projections.NAME], 2, true);
 
     expect(result.testPlans).toEqual(mockQueryResponse.testPlans);
     expect(result.totalCount).toEqual(2);
@@ -619,7 +729,7 @@ describe('queryTestPlansInBatches', () => {
   test('handles errors during batch querying', async () => {
     jest.spyOn(datastore, 'queryTestPlans').mockRejectedValue(new Error('Query failed'));
 
-    await expect(datastore.queryTestPlansInBatches('',OrderByOptions.UPDATED_AT, [Projections.NAME], 2, true))
+    await expect(datastore.queryTestPlansInBatches('', OrderByOptions.UPDATED_AT, [Projections.NAME], 2, true))
       .rejects
       .toThrow('Query failed');
   });
@@ -630,20 +740,20 @@ describe('queryTestPlans', () => {
     const mockResponse = { testPlans: [{ name: 'Test Plan 1' }], continuationToken: null, totalCount: 1 };
 
     backendServer.fetch
-      .calledWith(requestMatching({ url: '/niworkorder/v1/query-testplans', data: { filter:'filter',orderBy: OrderByOptions.UPDATED_AT, take: 1 } }))
+      .calledWith(requestMatching({ url: '/niworkorder/v1/query-testplans', data: { filter: 'filter', orderBy: OrderByOptions.UPDATED_AT, take: 1 } }))
       .mockReturnValue(createFetchResponse(mockResponse));
 
-    const result = await datastore.queryTestPlans('filter',OrderByOptions.UPDATED_AT, [Projections.NAME], 1, true);
+    const result = await datastore.queryTestPlans('filter', OrderByOptions.UPDATED_AT, [Projections.NAME], 1, true);
 
     expect(result).toEqual(mockResponse);
   });
 
   test('throws error on failed request', async () => {
     backendServer.fetch
-      .calledWith(requestMatching({ url: '/niworkorder/v1/query-testplans', data: { filter:'',orderBy: OrderByOptions.UPDATED_AT, take: 1 } }))
+      .calledWith(requestMatching({ url: '/niworkorder/v1/query-testplans', data: { filter: '', orderBy: OrderByOptions.UPDATED_AT, take: 1 } }))
       .mockReturnValue(createFetchError(500));
 
-    await expect(datastore.queryTestPlans('',OrderByOptions.UPDATED_AT, [Projections.NAME], 1, true))
+    await expect(datastore.queryTestPlans('', OrderByOptions.UPDATED_AT, [Projections.NAME], 1, true))
       .rejects
       .toThrow('An error occurred while querying test plans: Error: Request to url "/niworkorder/v1/query-testplans" failed with status code: 500. Error message: "Error"');
   });

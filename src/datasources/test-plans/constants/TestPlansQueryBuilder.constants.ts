@@ -235,8 +235,6 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
 }
 
 export const TestPlansQueryBuilderStaticFields = [
-    TestPlansQueryBuilderFields.ASSIGNED_TO,
-    TestPlansQueryBuilderFields.CREATED_BY,
     TestPlansQueryBuilderFields.DESCRIPTION,
     TestPlansQueryBuilderFields.DUT_IDENTIFIER,
     TestPlansQueryBuilderFields.ESTIMATED_DURATION_IN_DAYS,
@@ -248,6 +246,5 @@ export const TestPlansQueryBuilderStaticFields = [
     TestPlansQueryBuilderFields.STATE,
     TestPlansQueryBuilderFields.TEST_PLAN_ID,
     TestPlansQueryBuilderFields.TEST_PROGRAM,
-    TestPlansQueryBuilderFields.UPDATED_BY,
     TestPlansQueryBuilderFields.WORK_ORDER_ID
 ];
