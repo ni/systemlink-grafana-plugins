@@ -4,11 +4,13 @@ import { expressionBuilderCallback, expressionReaderCallback } from "core/query-
 import { QBField, QueryBuilderOption, Workspace } from "core/types";
 import { TestPlansQueryBuilderFields, TestPlansQueryBuilderStaticFields } from "datasources/test-plans/constants/TestPlansQueryBuilder.constants";
 import React, { useState, useEffect, useMemo } from "react";
+import { SystemAlias } from "shared/types/QuerySystems.types";
 import { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
 
 type TestPlansQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
     filter?: string;
     workspaces: Workspace[] | null;
+    systemAliases: SystemAlias[] | null;
     globalVariableOptions: QueryBuilderOption[];
 };
 
@@ -16,6 +18,7 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
     filter,
     onChange,
     workspaces,
+    systemAliases = [],
     globalVariableOptions,
 }) => {
     const [fields, setFields] = useState<QBField[]>([]);
@@ -39,12 +42,34 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
         };
     }, [workspaces])
 
+    const systemAliasField = useMemo(() => {
+        const systemAliasField = TestPlansQueryBuilderFields.SYSTEM_ALIAS_NAME;
+        if (!systemAliases) {
+            return null;
+        }
+
+        return {
+            ...systemAliasField,
+            lookup: {
+                ...systemAliasField.lookup,
+                dataSource: [
+                    ...(systemAliasField.lookup?.dataSource || []),
+                    ...systemAliases.map(({ id, alias }) => ({ label: alias ?? '', value: id })),
+                ],
+            },
+        };
+    }, [systemAliases])
+
     useEffect(() => {
         if (!workspaceField) {
             return;
         }
 
-        const updatedFields = [...TestPlansQueryBuilderStaticFields, workspaceField]
+        if (!systemAliasField) {
+            return;
+        }
+
+        const updatedFields = [...TestPlansQueryBuilderStaticFields, workspaceField, systemAliasField];
 
         setFields(updatedFields);
 
@@ -96,7 +121,7 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
 
         setOperations([...customOperations, ...keyValueOperations]);
 
-    }, [workspaceField]);
+    }, [workspaceField, systemAliasField]);
 
     return (
         <SlQueryBuilder

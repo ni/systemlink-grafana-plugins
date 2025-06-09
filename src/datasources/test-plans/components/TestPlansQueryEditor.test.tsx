@@ -18,6 +18,14 @@ const mockDatasource = {
                 ['2', { id: '2', name: 'AnotherWorkspaceName' }],
             ])
         )
+    },
+    systemUtils: {
+        getSystemAliases: jest.fn().mockResolvedValue(
+            new Map([
+                ['1', { id: '1', alias: 'System 1' }],
+                ['2', { id: '2', alias: 'System 2' }],
+            ])
+        ),
     }
 } as unknown as TestPlansDataSource;
 
@@ -216,6 +224,18 @@ describe('TestPlansQueryEditor', () => {
             new Map([
                 ['1', { id: '1', name: 'WorkspaceName' }],
                 ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+            ])
+        );
+    });
+
+    it('should load system names', async () => {
+        await renderElement();
+        const result = await mockDatasource.systemUtils.getSystemAliases();
+        expect(result).toBeDefined();
+        expect(result).toEqual(
+            new Map([
+                ['1', { id: '1', alias: 'System 1' }],
+                ['2', { id: '2', alias: 'System 2' }],
             ])
         );
     });

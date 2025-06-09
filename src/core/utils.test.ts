@@ -1,5 +1,5 @@
 import { TemplateSrv } from "@grafana/runtime";
-import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches } from "./utils";
+import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip } from "./utils";
 import { BatchQueryConfig } from "./types";
 
 test('enumToOptions', () => {
@@ -258,6 +258,111 @@ describe('queryInBatches', () => {
     await promise;
 
     expect(mockQueryRecord).toHaveBeenCalledTimes(3);
+    jest.useRealTimers();
+  });
+});
+
+
+describe('queryUsingSkip', () => {
+  const mockQueryRecord = jest.fn();
+  const queryConfig: BatchQueryConfig = {
+    maxTakePerRequest: 100,
+    requestsPerSecond: 2,
+  };
+
+  beforeEach(() => {
+    mockQueryRecord.mockReset();
+  });
+
+  test('should fetch all records in a single request when total records are less than maxTakePerRequest', async () => {
+    mockQueryRecord.mockResolvedValue({
+      data: [{ id: 1 }, { id: 2 }],
+      totalCount: 2,
+    });
+
+    const result = await queryUsingSkip(mockQueryRecord, queryConfig);
+
+    expect(mockQueryRecord).toHaveBeenCalledTimes(1);
+    expect(mockQueryRecord).toHaveBeenCalledWith(100, 0);
+    expect(result).toEqual({
+      data: [{ id: 1 }, { id: 2 }],
+      totalCount: 2,
+    });
+  });
+
+  test('should fetch records in multiple requests when total records exceed maxTakePerRequest', async () => {
+    mockQueryRecord
+      .mockResolvedValueOnce({
+        data: Array(100).fill({ id: 1 }),
+        totalCount: 100,
+      })
+      .mockResolvedValueOnce({
+        data: Array(100).fill({ id: 2 }),
+        totalCount: 100,
+      })
+      .mockResolvedValueOnce({
+        data: Array(99).fill({ id: 3 }),
+        totalCount: 99,
+      });
+    jest.clearAllMocks();
+
+    const result = await queryUsingSkip(mockQueryRecord, queryConfig);
+
+    expect(mockQueryRecord).toHaveBeenCalledTimes(3);
+    expect(mockQueryRecord).toHaveBeenNthCalledWith(1, 100, 0);
+    expect(mockQueryRecord).toHaveBeenNthCalledWith(2, 100, 100);
+    expect(mockQueryRecord).toHaveBeenNthCalledWith(3, 100, 200);
+    expect(result.data.length).toBe(299);
+  });
+
+  test('should stop fetching when fewer records are returned than maxTakePerRequest', async () => {
+    mockQueryRecord
+      .mockResolvedValueOnce({
+        data: Array(100).fill({ id: 1 }),
+        totalCount: 150,
+      })
+      .mockResolvedValueOnce({
+        data: Array(50).fill({ id: 2 }),
+        totalCount: 150,
+      });
+
+    const result = await queryUsingSkip(mockQueryRecord, queryConfig);
+
+    expect(mockQueryRecord).toHaveBeenCalledTimes(2);
+    expect(result.data.length).toBe(150);
+  });
+
+  test('should handle errors during batch fetch and stop further requests', async () => {
+    mockQueryRecord
+      .mockResolvedValueOnce({
+        data: Array(100).fill({ id: 1 }),
+        totalCount: 300,
+      })
+      .mockRejectedValueOnce(new Error('Test error'));
+
+    const result = await queryUsingSkip(mockQueryRecord, queryConfig);
+
+    expect(mockQueryRecord).toHaveBeenCalledTimes(2);
+    expect(result.data.length).toBe(100);
+  });
+
+  test('should delay between requests if requests exceed requestsPerSecond', async () => {
+    jest.useFakeTimers();
+    mockQueryRecord
+      .mockResolvedValueOnce({
+        data: Array(100).fill({ id: 1 }),
+        totalCount: 100,
+      })
+      .mockResolvedValueOnce({
+        data: Array(99).fill({ id: 2 }),
+        totalCount: 99,
+      });
+
+    const promise = queryUsingSkip(mockQueryRecord, queryConfig);
+    jest.advanceTimersByTime(1000);
+    await promise;
+
+    expect(mockQueryRecord).toHaveBeenCalledTimes(2);
     jest.useRealTimers();
   });
 });

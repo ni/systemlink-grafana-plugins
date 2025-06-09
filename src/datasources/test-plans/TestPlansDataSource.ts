@@ -8,6 +8,7 @@ import { isTimeField, transformDuration } from './utils';
 import { QUERY_TEMPLATES_BATCH_SIZE, QUERY_TEMPLATES_REQUEST_PER_SECOND, QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
 import { AssetUtils } from './asset.utils';
 import { WorkspaceUtils } from 'shared/workspace.utils';
+import { SystemUtils } from 'shared/system.utils';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(
@@ -18,6 +19,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     super(instanceSettings, backendSrv, templateSrv);
     this.assetUtils = new AssetUtils(instanceSettings, backendSrv);
     this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
+    this.systemUtils = new SystemUtils(instanceSettings, backendSrv);
   }
 
   baseUrl = `${this.instanceSettings.url}/niworkorder/v1`;
@@ -25,6 +27,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   queryTemplatesUrl = `${this.baseUrl}/query-testplan-templates`;
   assetUtils: AssetUtils;
   workspaceUtils: WorkspaceUtils;
+  systemUtils: SystemUtils;
 
   defaultQuery = {
     outputType: OutputType.Properties,
@@ -46,6 +49,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
   async runQuery(query: TestPlansQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
     const workspaces = await this.workspaceUtils.getWorkspaces();
+    const systemAliases = await this.systemUtils.getSystemAliases();
 
     if (query.outputType === OutputType.Properties) {
       const projectionAndFields = query.properties?.map(property => PropertiesProjectionMap[property]);
@@ -98,6 +102,9 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
                 return template ? `${template.name} (${template.id})` : value;
               case PropertiesProjectionMap.ESTIMATED_DURATION_IN_SECONDS.label:
                 return value ? transformDuration(value) : '';
+              case PropertiesProjectionMap.SYSTEM_NAME.label:
+                const system = systemAliases.get(value);
+                return system ? system.alias : value;
               case PropertiesProjectionMap.PROPERTIES.label:
                 return value == null ? '' : JSON.stringify(value);
               default:
