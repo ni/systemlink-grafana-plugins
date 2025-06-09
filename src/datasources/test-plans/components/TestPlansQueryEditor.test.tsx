@@ -11,6 +11,7 @@ const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
     prepareQuery: jest.fn((query: TestPlansQuery) => query),
+    globalVariableOptions: jest.fn(() => []),
     workspaceUtils: {
         getWorkspaces: jest.fn().mockResolvedValue(
             new Map([
@@ -19,7 +20,6 @@ const mockDatasource = {
             ])
         )
     }
-    globalVariableOptions: jest.fn(() => []),
 } as unknown as TestPlansDataSource;
 
 const defaultProps: QueryEditorProps<TestPlansDataSource, TestPlansQuery> = {
