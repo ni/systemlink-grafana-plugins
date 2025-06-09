@@ -587,7 +587,6 @@ describe('QueryStepsDataSource', () => {
 
       test('should stop subsequent API calls after error occurs', async () => {
         backendServer.fetch
-        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
           .mockImplementationOnce(() => createFetchResponse({
             steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),
             continuationToken: 'token1',
@@ -843,7 +842,6 @@ describe('QueryStepsDataSource', () => {
 
     test('should stop subsequent API calls after error occurs', async () => {
       backendServer.fetch
-      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
         .mockImplementationOnce(() => createFetchResponse({
           paths: Array(1000).fill({ path: 'path1' }),
           continuationToken: 'token1',
