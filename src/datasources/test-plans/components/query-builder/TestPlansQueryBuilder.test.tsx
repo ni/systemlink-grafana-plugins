@@ -52,5 +52,26 @@ describe('TestPlansQueryBuilder', () => {
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain(label);
     });
+
+    it(`should select user friendly value for created date`, () => {
+        const { conditionsContainer } = renderElement(`created > \"${value}\"`, [], []);
+  
+        expect(conditionsContainer?.length).toBe(1);
+        expect(conditionsContainer.item(0)?.textContent).toContain(label);
+    });
+
+    it(`should select user friendly value for estimated end date`, () => {
+        const { conditionsContainer } = renderElement(`estimatedEndDate > \"${value}\"`, [], []);
+  
+        expect(conditionsContainer?.length).toBe(1);
+        expect(conditionsContainer.item(0)?.textContent).toContain(label);
+    });
+
+    it(`should select user friendly value for planned start date date`, () => {
+        const { conditionsContainer } = renderElement(`plannedStartDate > \"${value}\"`, [], []);
+  
+        expect(conditionsContainer?.length).toBe(1);
+        expect(conditionsContainer.item(0)?.textContent).toContain(label);
+    });
   });
 });
