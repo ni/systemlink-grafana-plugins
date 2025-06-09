@@ -200,14 +200,15 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   async metricFindQuery(query: TestPlansVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    if (query.queryBy) {
-      query.queryBy = transformComputedFieldsQuery(
+    const filter = query.queryBy? 
+      transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
         this.testPlansComputedDataFields
-      );
-    }
+      )
+      : undefined;
+
     const metadata = (await this.queryTestPlansInBatches(
-      query.queryBy,
+      filter,
       query.orderBy,
       [Projections.ID, Projections.NAME],
       query.recordCount,
