@@ -158,17 +158,29 @@ describe('QueryStepsEditor', () => {
       });
     });
 
-    test('should update part number query when user selects a variable in product name dropdown', async () => {
-      await select(productName, '$var1', { container: document.body });
-      await waitFor(() => {
-        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "$var1"] }));
+    describe('Product Part Number', () => {
+      test('should update part number query when user selects a variable in product name dropdown', async () => {
+        await select(productName, '$var1', { container: document.body });
+        await waitFor(() => {
+          expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ['PartNumber1', '$var1'] }));
+        });
       });
-    });
 
-    test('should update part number query when user selects a product in product name dropdown', async () => {
-      await select(productName, 'ProductName2 (PartNumber2)', { container: document.body });
-      await waitFor(() => {
-        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "PartNumber2"] }));
+      test('should update part number query when user selects a product in product name dropdown', async () => {
+        await select(productName, 'ProductName2 (PartNumber2)', { container: document.body });	        await select(productName, 'ProductName2 (PartNumber2)', { container: document.body });
+        await waitFor(() => {
+          expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "PartNumber2"] }));
+        });
+      });
+
+      test('should show error when no product is selected', async () => {    
+        //Click remove button to remove all the selected product    
+        const removeButton = screen.getAllByRole('button', { name: 'Remove' });
+        for (const button of removeButton) {
+          await userEvent.click(button);
+        }
+
+        expect(screen.getByText('You must select at least one product in this field.')).toBeInTheDocument();
       });
     });
 
