@@ -16,6 +16,8 @@ import { TimeRangeControls } from '../time-range/TimeRangeControls';
 import { OrderBy, QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 import { StepsQueryBuilderWrapper } from '../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
+import { FloatingError } from 'core/errors';
+import { recordCountErrorMessages, TAKE_LIMIT } from 'datasources/results/constants/StepsQueryEditor.constants';
 
 type Props = {
   query: QuerySteps;
@@ -26,6 +28,13 @@ type Props = {
 export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props) {
   const [disableStepsQueryBuilder, setDisableStepsQueryBuilder] = useState(false);
   const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
+  const [isProductSelectionValid, setIsProductSelectionValid] = useState(true);
+  const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
+  
+  useEffect(() => {
+    handleQueryChange(query);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
 
   useEffect(() => {
     setDisableStepsQueryBuilder(!query.partNumberQuery || query.partNumberQuery.length === 0);
@@ -64,8 +73,23 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    handleQueryChange({ ...query, recordCount: value });
+    if (isRecordCountValid(value, TAKE_LIMIT)) {
+      handleQueryChange({ ...query, recordCount: value });
+    }
   };
+  
+  function isRecordCountValid(value: number, takeLimit: number): boolean {
+    if (Number.isNaN(value) || value < 0) {
+      setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
+      return false;
+    }
+    if (value > takeLimit) {
+      setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTakeLimit);
+      return false;
+    }
+    setRecordCountInvalidMessage('');
+    return true;
+  }
 
   const onShowMeasurementChange = (isShowMeasurementChecked: boolean) => {
     handleQueryChange({ ...query, showMeasurements: isShowMeasurementChecked });
@@ -84,6 +108,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   };
 
   const onProductNameChange = (productNames: Array<SelectableValue<string>>) => {
+    setIsProductSelectionValid(productNames.length > 0);
     handleQueryChange({ ...query, partNumberQuery: productNames.map(product => product.value as string) });
   }
 
@@ -135,7 +160,12 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
             }}
           />
         </div>
-        <InlineField label="Product (part number)" labelWidth={26} tooltip={tooltips.productName}>
+        <InlineField
+          label="Product (part number)"
+          labelWidth={26}
+          tooltip={tooltips.productName}
+          invalid={!isProductSelectionValid}
+          error="You must select at least one product in this field.">
           <MultiSelect
             maxVisibleValues={5}
             width={65}
@@ -175,7 +205,12 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
                 value={query.descending}
               />
             </InlineField>
-            <InlineField label="Take" labelWidth={26} tooltip={tooltips.recordCount}>
+            <InlineField
+                label="Take"
+                labelWidth={26}
+                tooltip={tooltips.recordCount}
+                invalid={!!recordCountInvalidMessage}
+                error={recordCountInvalidMessage}>
               <AutoSizeInput
                 minWidth={25}
                 maxWidth={25}
@@ -192,6 +227,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
           )}
         </div>
       </VerticalGroup>
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity='warning'/>
     </>
   );
 }
