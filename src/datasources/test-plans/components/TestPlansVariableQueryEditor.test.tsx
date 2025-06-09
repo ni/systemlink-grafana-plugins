@@ -11,6 +11,7 @@ const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: TestPlansVariableQuery) => query),
+  globalVariableOptions: jest.fn(() => []),
   workspaceUtils: {
     getWorkspaces: jest.fn().mockResolvedValue(
       new Map([

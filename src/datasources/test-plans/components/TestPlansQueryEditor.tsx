@@ -115,7 +115,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
               filter={query.queryBy}
               workspaces={workspaces}
               systemAliases={systemAliases}
-              globalVariableOptions={[]}
+              globalVariableOptions={datasource.globalVariableOptions()}
               onChange={(event: any) => onQueryByChange(event.detail.linq)}
             ></TestPlansQueryBuilder>
           </InlineField>

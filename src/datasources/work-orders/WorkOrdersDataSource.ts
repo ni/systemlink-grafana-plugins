@@ -72,16 +72,16 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   async metricFindQuery(
     query: WorkOrdersVariableQuery,
     options: LegacyMetricFindQueryOptions
-  ): Promise<MetricFindValue[]> {
-    if (query.queryBy) {
-      query.queryBy = transformComputedFieldsQuery(
+  ): Promise<MetricFindValue[]> {    
+    const filter = query.queryBy? 
+      transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
         this.workordersComputedDataFields
-      );
-    }
+      )
+      : undefined;
 
     const metadata = await this.queryWorkordersData(
-      query.queryBy,
+      filter,
       [WorkOrderPropertiesOptions.ID, WorkOrderPropertiesOptions.NAME],
       query.orderBy,
       query.descending,

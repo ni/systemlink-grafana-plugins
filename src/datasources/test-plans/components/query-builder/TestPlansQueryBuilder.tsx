@@ -2,6 +2,7 @@ import { SlQueryBuilder } from "core/components/SlQueryBuilder/SlQueryBuilder";
 import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder.constants";
 import { expressionBuilderCallback, expressionReaderCallback } from "core/query-builder.utils";
 import { QBField, QueryBuilderOption, Workspace } from "core/types";
+import { filterXSSField } from "core/utils";
 import { TestPlansQueryBuilderFields, TestPlansQueryBuilderStaticFields } from "datasources/test-plans/constants/TestPlansQueryBuilder.constants";
 import React, { useState, useEffect, useMemo } from "react";
 import { SystemAlias } from "shared/types/QuerySystems.types";
@@ -22,7 +23,20 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
     globalVariableOptions,
 }) => {
     const [fields, setFields] = useState<QBField[]>([]);
-    const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
+    const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]); 
+    
+    const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]) => {
+        return {
+        ...field,
+        lookup: {
+            ...field.lookup,
+            dataSource: [
+            ...(field.lookup?.dataSource || []),
+            ...options,
+            ],
+        },
+        };
+    };
 
     const workspaceField = useMemo(() => {
         const workspaceField = TestPlansQueryBuilderFields.WORKSPACE;
@@ -30,16 +44,8 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
             return null;
         }
 
-        return {
-            ...workspaceField,
-            lookup: {
-                ...workspaceField.lookup,
-                dataSource: [
-                    ...(workspaceField.lookup?.dataSource || []),
-                    ...workspaces.map(({ id, name }) => ({ label: name, value: id })),
-                ],
-            },
-        };
+        const options = workspaces.map(({ id, name }) => ({ label: name, value: id }))
+        return addOptionsToLookup(workspaceField, options);
     }, [workspaces])
 
     const systemAliasField = useMemo(() => {
@@ -60,6 +66,21 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
         };
     }, [systemAliases])
 
+    const timeFields = useMemo(() => {
+        const timeOptions = [
+        { label: 'From', value: '${__from:date}' },
+        { label: 'To', value: '${__to:date}' },
+        { label: 'Now', value: '${__now:date}' },
+        ]
+
+        return [
+        addOptionsToLookup(TestPlansQueryBuilderFields.CREATED_AT, timeOptions),
+        addOptionsToLookup(TestPlansQueryBuilderFields.ESTIMATED_END_DATE, timeOptions),
+        addOptionsToLookup(TestPlansQueryBuilderFields.PLANNED_START_DATE, timeOptions),
+        addOptionsToLookup(TestPlansQueryBuilderFields.UPDATED_AT, timeOptions)
+        ]
+    }, []);
+
     useEffect(() => {
         if (!workspaceField) {
             return;
@@ -69,7 +90,17 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
             return;
         }
 
-        const updatedFields = [...TestPlansQueryBuilderStaticFields, workspaceField, systemAliasField];
+        const updatedFields = [...TestPlansQueryBuilderStaticFields, ...timeFields, systemAliasField, workspaceField].map(field => {
+            if (field.lookup?.dataSource) {
+              return {
+                ...field,
+                lookup: {
+                  dataSource: [...globalVariableOptions, ...field.lookup?.dataSource].map(filterXSSField),
+                },
+              };
+            }
+            return field;
+        });
 
         setFields(updatedFields);
 
@@ -121,7 +152,7 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
 
         setOperations([...customOperations, ...keyValueOperations]);
 
-    }, [workspaceField, systemAliasField]);
+    }, [workspaceField, systemAliasField, timeFields, globalVariableOptions]);
 
     return (
         <SlQueryBuilder

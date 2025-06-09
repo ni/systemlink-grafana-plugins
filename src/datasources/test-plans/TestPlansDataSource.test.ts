@@ -526,6 +526,75 @@ describe('runQuery', () => {
     expect(result.fields[0].name).toEqual('System name');
     expect(result.fields[0].values).toEqual(['System 1', 'System 2']);
   });
+
+  test('should replace variables', async () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: 'workspace = "${var}"',
+    };
+    jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "testWorkspace"');
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    const options = { scopedVars: { var: { value: 'testWorkspace' } } };
+    await datastore.runQuery(mockQuery, options as unknown as DataQueryRequest);
+
+    expect(datastore.templateSrv.replace).toHaveBeenCalledWith('workspace = "${var}"', options.scopedVars);
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      'workspace = "testWorkspace"',
+      undefined,
+      ["ID"],
+      undefined,
+      undefined,
+      true,
+    );
+  });
+
+  test('should transform fields with multiple values', async () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: 'workspace = "${var}"',
+    };
+    const options = { scopedVars: { var: { value: '{testWorkspace1,testWorkspace2}' } } };
+    jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "{testWorkspace1,testWorkspace2}"');
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.runQuery(mockQuery, options as unknown as DataQueryRequest);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      '(workspace = "testWorkspace1" || workspace = "testWorkspace2")',
+      undefined,
+      ["ID"],
+      undefined,
+      undefined,
+      true,
+    );
+  });
+
+  test('should transform fields when queryBy contains a date', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: 'updatedAt = "${__now:date}"',
+    };
+
+    await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      'updatedAt = "2025-01-01T00:00:00.000Z"',
+      undefined,
+      ["ID"],
+      undefined,
+      undefined,
+      true,
+    );
+
+    jest.useRealTimers();
+  });
 });
 
 describe('queryTestPlansInBatches', () => {
@@ -541,7 +610,7 @@ describe('queryTestPlansInBatches', () => {
 
     jest.spyOn(datastore, 'queryTestPlans').mockResolvedValue(mockQueryResponse);
 
-    const result = await datastore.queryTestPlansInBatches(OrderByOptions.UPDATED_AT, [Projections.NAME], 2, true);
+    const result = await datastore.queryTestPlansInBatches('',OrderByOptions.UPDATED_AT, [Projections.NAME], 2, true);
 
     expect(result.testPlans).toEqual(mockQueryResponse.testPlans);
     expect(result.totalCount).toEqual(2);
@@ -550,7 +619,7 @@ describe('queryTestPlansInBatches', () => {
   test('handles errors during batch querying', async () => {
     jest.spyOn(datastore, 'queryTestPlans').mockRejectedValue(new Error('Query failed'));
 
-    await expect(datastore.queryTestPlansInBatches(OrderByOptions.UPDATED_AT, [Projections.NAME], 2, true))
+    await expect(datastore.queryTestPlansInBatches('',OrderByOptions.UPDATED_AT, [Projections.NAME], 2, true))
       .rejects
       .toThrow('Query failed');
   });
@@ -561,20 +630,20 @@ describe('queryTestPlans', () => {
     const mockResponse = { testPlans: [{ name: 'Test Plan 1' }], continuationToken: null, totalCount: 1 };
 
     backendServer.fetch
-      .calledWith(requestMatching({ url: '/niworkorder/v1/query-testplans', data: { orderBy: OrderByOptions.UPDATED_AT, take: 1 } }))
+      .calledWith(requestMatching({ url: '/niworkorder/v1/query-testplans', data: { filter:'filter',orderBy: OrderByOptions.UPDATED_AT, take: 1 } }))
       .mockReturnValue(createFetchResponse(mockResponse));
 
-    const result = await datastore.queryTestPlans(OrderByOptions.UPDATED_AT, [Projections.NAME], 1, true);
+    const result = await datastore.queryTestPlans('filter',OrderByOptions.UPDATED_AT, [Projections.NAME], 1, true);
 
     expect(result).toEqual(mockResponse);
   });
 
   test('throws error on failed request', async () => {
     backendServer.fetch
-      .calledWith(requestMatching({ url: '/niworkorder/v1/query-testplans', data: { orderBy: OrderByOptions.UPDATED_AT, take: 1 } }))
+      .calledWith(requestMatching({ url: '/niworkorder/v1/query-testplans', data: { filter:'',orderBy: OrderByOptions.UPDATED_AT, take: 1 } }))
       .mockReturnValue(createFetchError(500));
 
-    await expect(datastore.queryTestPlans(OrderByOptions.UPDATED_AT, [Projections.NAME], 1, true))
+    await expect(datastore.queryTestPlans('',OrderByOptions.UPDATED_AT, [Projections.NAME], 1, true))
       .rejects
       .toThrow('An error occurred while querying test plans: Error: Request to url "/niworkorder/v1/query-testplans" failed with status code: 500. Error message: "Error"');
   });
@@ -632,5 +701,70 @@ describe('metricFindQuery', () => {
         }
       })
     );
+  });
+
+  test('should replace variables', async () => {
+    const mockQuery = {
+      refId: 'C',
+      queryBy: 'workspace = "${var}"',
+    };
+    jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "testWorkspace"');
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    const options = { scopedVars: { var: { value: 'testWorkspace' } } };
+    await datastore.metricFindQuery(mockQuery, options);
+
+    expect(datastore.templateSrv.replace).toHaveBeenCalledWith('workspace = "${var}"', options.scopedVars);
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      'workspace = "testWorkspace"',
+      undefined,
+      ["ID", "NAME"],
+      undefined,
+      undefined
+    );
+  });
+
+  test('should transform fields with multiple values', async () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: 'workspace = "${var}"',
+    };
+    const options = { scopedVars: { var: { value: '{testWorkspace1,testWorkspace2}' } } };
+    jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "{testWorkspace1,testWorkspace2}"');
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.metricFindQuery(mockQuery, options);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      '(workspace = "testWorkspace1" || workspace = "testWorkspace2")',
+      undefined,
+      ["ID", "NAME"],
+      undefined,
+      undefined
+    );
+  });
+
+  test('should transform fields when queryBy contains a date', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: 'updatedAt = "${__now:date}"',
+    };
+
+    await datastore.metricFindQuery(mockQuery, {});
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      'updatedAt = "2025-01-01T00:00:00.000Z"',
+      undefined,
+      ["ID", "NAME"],
+      undefined,
+      undefined
+    );
+
+    jest.useRealTimers();
   });
 });

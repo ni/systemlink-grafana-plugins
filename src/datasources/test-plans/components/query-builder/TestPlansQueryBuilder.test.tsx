@@ -43,4 +43,35 @@ describe('TestPlansQueryBuilder', () => {
         expect(conditionsContainer.item(0)?.textContent).toContain(systemAlias.alias);
     });
 
+
+    
+  [['${__from:date}', 'From'], ['${__to:date}', 'To'], ['${__now:date}', 'Now']].forEach(([value, label]) => {
+    it(`should select user friendly value for updated date`, () => {
+      const { conditionsContainer } = renderElement(`updatedAt > \"${value}\"`, [], []);
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain(label);
+    });
+
+    it(`should select user friendly value for created date`, () => {
+        const { conditionsContainer } = renderElement(`created > \"${value}\"`, [], []);
+  
+        expect(conditionsContainer?.length).toBe(1);
+        expect(conditionsContainer.item(0)?.textContent).toContain(label);
+    });
+
+    it(`should select user friendly value for estimated end date`, () => {
+        const { conditionsContainer } = renderElement(`estimatedEndDate > \"${value}\"`, [], []);
+  
+        expect(conditionsContainer?.length).toBe(1);
+        expect(conditionsContainer.item(0)?.textContent).toContain(label);
+    });
+
+    it(`should select user friendly value for planned start date date`, () => {
+        const { conditionsContainer } = renderElement(`plannedStartDate > \"${value}\"`, [], []);
+  
+        expect(conditionsContainer?.length).toBe(1);
+        expect(conditionsContainer.item(0)?.textContent).toContain(label);
+    });
+  });
 });
