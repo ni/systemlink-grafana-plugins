@@ -20,26 +20,7 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
     globalVariableOptions,
 }) => {
     const [fields, setFields] = useState<QBField[]>([]);
-    const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
-
-    const workspaceField = useMemo(() => {
-        const workspaceField = TestPlansQueryBuilderFields.WORKSPACE;
-        if (!workspaces) {
-            return null;
-        }
-
-        return {
-            ...workspaceField,
-            lookup: {
-                ...workspaceField.lookup,
-                dataSource: [
-                    ...(workspaceField.lookup?.dataSource || []),
-                    ...workspaces.map(({ id, name }) => ({ label: name, value: id })),
-                ],
-            },
-        };
-    }, [workspaces])
-
+    const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]); 
     
     const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]) => {
         return {
@@ -53,6 +34,16 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
         },
         };
     };
+
+    const workspaceField = useMemo(() => {
+        const workspaceField = TestPlansQueryBuilderFields.WORKSPACE;
+        if (!workspaces) {
+            return null;
+        }
+
+        const options = workspaces.map(({ id, name }) => ({ label: name, value: id }))
+        return addOptionsToLookup(workspaceField, options);
+    }, [workspaces])
 
     const timeFields = useMemo(() => {
         const timeOptions = [
@@ -136,7 +127,7 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
 
         setOperations([...customOperations, ...keyValueOperations]);
 
-    }, [workspaceField, timeFields]);
+    }, [workspaceField, timeFields, globalVariableOptions]);
 
     return (
         <SlQueryBuilder
