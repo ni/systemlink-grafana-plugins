@@ -1,3 +1,9 @@
+## [3.116.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.115.0...v3.116.0) (2025-06-09)
+
+### Features
+
+* **results:** Error handling for query-paths ([#253](https://github.com/ni/systemlink-grafana-plugins/issues/253)) ([3ea6867](https://github.com/ni/systemlink-grafana-plugins/commit/3ea686722af89bc1451ef5cfee497ee94ac33ab9))
+
 ## [3.115.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.114.0...v3.115.0) (2025-06-09)
 
 ### Features
