@@ -370,6 +370,8 @@ describe('queryUntilComplete', () => {
   });
 });
 
+
+
 describe('queryUsingSkip', () => {
   const mockQueryRecord = jest.fn();
   const queryConfig: BatchQueryConfig = {
