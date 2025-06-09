@@ -1,3 +1,9 @@
+## [3.112.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.111.0...v3.112.0) (2025-06-09)
+
+### Features
+
+* **query-editor:** add validation and error handling for product selection  ([#247](https://github.com/ni/systemlink-grafana-plugins/issues/247)) ([d2b3083](https://github.com/ni/systemlink-grafana-plugins/commit/d2b3083906a41d7548652b0a5c6dd30c1f464dde))
+
 ## [3.111.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.110.0...v3.111.0) (2025-06-09)
 
 ### Features
