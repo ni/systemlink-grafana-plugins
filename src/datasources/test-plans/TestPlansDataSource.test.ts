@@ -459,6 +459,34 @@ describe('runQuery', () => {
     expect(result.fields[0].name).toEqual('Workspace');
     expect(result.fields[0].values).toEqual(['WorkspaceName', 'AnotherWorkspaceName']);
   });
+
+  it('should handle test plan custom properties', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.PROPERTIES],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', properties: { customProp1: 'value1', customProp2: 'value2' } },
+        { id: '2', properties: { customProp1: 'value3' } }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Properties');
+    expect(result.fields[0].values).toEqual([
+      JSON.stringify({ customProp1: 'value1', customProp2: 'value2' }),
+      JSON.stringify({ customProp1: 'value3' })
+    ]);
+  });
 });
 
 describe('queryTestPlansInBatches', () => {

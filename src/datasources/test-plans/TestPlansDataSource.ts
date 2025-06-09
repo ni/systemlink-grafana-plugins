@@ -98,6 +98,8 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
                 return template ? `${template.name} (${template.id})` : value;
               case PropertiesProjectionMap.ESTIMATED_DURATION_IN_SECONDS.label:
                 return value ? transformDuration(value) : '';
+              case PropertiesProjectionMap.PROPERTIES.label:
+                return value == null ? '' : JSON.stringify(value);
               default:
                 return value == null ? '' : value;
             }
