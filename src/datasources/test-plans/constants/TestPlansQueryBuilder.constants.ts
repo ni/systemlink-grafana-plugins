@@ -224,7 +224,10 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name
-        ]
+        ],
+        lookup: {
+            dataSource: []
+        }
     }
 }
 
@@ -248,6 +251,5 @@ export const TestPlansQueryBuilderStaticFields = [
     TestPlansQueryBuilderFields.TEST_PROGRAM,
     TestPlansQueryBuilderFields.UPDATED_AT,
     TestPlansQueryBuilderFields.UPDATED_BY,
-    TestPlansQueryBuilderFields.WORK_ORDER_ID,
-    TestPlansQueryBuilderFields.WORKSPACE
+    TestPlansQueryBuilderFields.WORK_ORDER_ID
 ];
