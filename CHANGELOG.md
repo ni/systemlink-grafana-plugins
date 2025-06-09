@@ -1,3 +1,21 @@
+## [3.110.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.109.0...v3.110.0) (2025-06-09)
+
+### Features
+
+* **results:** update error handling for steps  query ([#243](https://github.com/ni/systemlink-grafana-plugins/issues/243)) ([e2905aa](https://github.com/ni/systemlink-grafana-plugins/commit/e2905aa832830c303d404593b8dc0d33b073ec94))
+
+## [3.109.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.108.0...v3.109.0) (2025-06-06)
+
+### Features
+
+* **results:** Add step path lookup in steps variable editor ([#248](https://github.com/ni/systemlink-grafana-plugins/issues/248)) ([1349bca](https://github.com/ni/systemlink-grafana-plugins/commit/1349bcab5ab7e690dc3fb325a3e77caa1f00547f))
+
+## [3.108.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.107.0...v3.108.0) (2025-06-06)
+
+### Features
+
+* **test-plans:** show workorder name, template name and estimated duration ([#249](https://github.com/ni/systemlink-grafana-plugins/issues/249)) ([4404b0e](https://github.com/ni/systemlink-grafana-plugins/commit/4404b0e67846392c6e37d9cfaceef6d5bc55f43f))
+
 ## [3.107.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.106.0...v3.107.0) (2025-06-06)
 
 ### Features

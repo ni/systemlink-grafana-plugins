@@ -297,7 +297,7 @@ describe('Steps Query Type', () => {
     expect(removeButtons.length).toBeGreaterThan(0);
     fireEvent.click(removeButtons[0]);
 
-    expect(screen.getByText('This field requires at least one product to be selected.')).toBeInTheDocument();
+    expect(screen.getByText('You must select at least one product in this field.')).toBeInTheDocument();
   })
 
   it('should select variable from product name dropdown', async () => {
