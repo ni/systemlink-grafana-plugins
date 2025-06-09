@@ -25,8 +25,8 @@ describe('AssetUtils', () => {
         it('should query all assets in a single request when ids length is less than QUERY_ASSETS_BATCH_SIZE', async () => {
             const mockResponse: QueryAssetNameResponse = {
                 assets: [
-                    { id: '1', name: 'Asset 1' },
-                    { id: '2', name: 'Asset 2' }
+                    { id: '1', name: 'Asset 1', serialNumber: 'SN1' },
+                    { id: '2', name: 'Asset 2', serialNumber: 'SN2' }
                 ],
                 totalCount: 2
             };
@@ -37,8 +37,8 @@ describe('AssetUtils', () => {
             const result = await assetUtils.queryAssetsInBatches(ids);
 
             expect(result).toEqual([
-                { id: '1', name: 'Asset 1' },
-                { id: '2', name: 'Asset 2' },
+                { id: '1', name: 'Asset 1', serialNumber: 'SN1' },
+                { id: '2', name: 'Asset 2', serialNumber: 'SN2' }
             ]);
         });
 

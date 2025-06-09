@@ -78,7 +78,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       if (testPlans.length > 0) {
         const labels = projectionAndFields?.map(data => data.label) ?? [];
         const fixtureNames = await this.getFixtureNames(labels, testPlans);
-        const dutNames = await this.getDutNames(labels, testPlans);
+        const duts = await this.getDuts(labels, testPlans);
         const workOrderIdAndName = this.getWorkOrderIdAndName(labels, testPlans);
         const templatesName = await this.getTemplateNames(labels, testPlans);
 
@@ -98,8 +98,11 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
                 const names = value.map((id: string) => fixtureNames.find(data => data.id === id)?.name);
                 return names ? names.filter((name: string) => name !== '').join(', ') : value;
               case PropertiesProjectionMap.DUT_ID.label:
-                const dut = dutNames.find(data => data.id === value);
-                return dut ? dut.name : value;
+                const dutName = duts.find(data => data.id === value);
+                return dutName ? dutName.name : value;
+              case PropertiesProjectionMap.DUT_SERIAL_NUMBER.label:
+                const dutSerial = duts.find(data => data.id === value);
+                return dutSerial ? dutSerial.serialNumber : value;
               case PropertiesProjectionMap.WORKSPACE.label:
                 const workspace = workspaces.get(value);
                 return workspace ? getWorkspaceName([workspace], value) : value;
@@ -174,8 +177,11 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     return [];
   }
 
-  private async getDutNames(labels: string[], testPlans: TestPlanResponseProperties[]): Promise<Asset[]> {
-    if (labels.find(label => label === PropertiesProjectionMap.DUT_ID.label)) {
+  private async getDuts(labels: string[], testPlans: TestPlanResponseProperties[]): Promise<Asset[]> {
+    if (labels.find(label =>
+      label === PropertiesProjectionMap.DUT_ID.label
+      || label === PropertiesProjectionMap.DUT_SERIAL_NUMBER.label
+    )) {
       const dutIds = testPlans
         .map(data => data['dutId'] as string)
         .filter(data => data != null);
@@ -207,7 +213,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   async metricFindQuery(query: TestPlansVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    const filter = query.queryBy? 
+    const filter = query.queryBy ?
       transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
         this.testPlansComputedDataFields
