@@ -7,6 +7,7 @@ import { transformComputedFieldsQuery, ExpressionTransformFunction } from 'core/
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { getVariableOptions, queryInBatches } from 'core/utils';
 import { QUERY_WORK_ORDERS_MAX_TAKE, QUERY_WORK_ORDERS_REQUEST_PER_SECOND } from './constants/QueryWorkOrders.constants';
+import { WorkspaceUtils } from 'shared/workspace.utils';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
@@ -15,10 +16,12 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
   }
 
   baseUrl = `${this.instanceSettings.url}/niworkorder/v1`;
   queryWorkOrdersUrl = `${this.baseUrl}/query-workorders`;
+  workspaceUtils: WorkspaceUtils;
 
   defaultQuery = {
     outputType: OutputType.Properties,
@@ -92,6 +95,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   }
 
   async processWorkOrdersQuery(query: WorkOrdersQuery): Promise<DataFrameDTO> {
+    const workspaces = await this.workspaceUtils.getWorkspaces();
     const workOrders: WorkOrder[] = await this.queryWorkordersData(
       query.queryBy,
       query.properties,
@@ -108,6 +112,9 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       // TODO: Add mapping for other field types
       const fieldValue = workOrders.map(workOrder => {
         switch (field.value) {
+          case WorkOrderPropertiesOptions.WORKSPACE:
+                const workspace = workspaces.get(workOrder.workspace);
+                return workspace ? workspace.name : workOrder.workspace;
           case WorkOrderPropertiesOptions.PROPERTIES:
             const properties = workOrder.properties || {};
             return JSON.stringify(properties);
