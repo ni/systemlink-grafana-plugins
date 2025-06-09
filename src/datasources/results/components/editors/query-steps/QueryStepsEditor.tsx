@@ -16,6 +16,7 @@ import { TimeRangeControls } from '../time-range/TimeRangeControls';
 import { OrderBy, QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 import { StepsQueryBuilderWrapper } from '../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
+import { FloatingError } from 'core/errors';
 import { recordCountErrorMessages, TAKE_LIMIT } from 'datasources/results/constants/StepsQueryEditor.constants';
 
 type Props = {
@@ -29,6 +30,11 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
   
+  useEffect(() => {
+    handleQueryChange(query);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
+
   useEffect(() => {
     setDisableStepsQueryBuilder(!query.partNumberQuery || query.partNumberQuery.length === 0);
   }, [query.partNumberQuery]);
@@ -214,6 +220,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
           )}
         </div>
       </VerticalGroup>
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity='warning'/>
     </>
   );
 }

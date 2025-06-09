@@ -85,132 +85,132 @@ export enum Projections {
 export const PropertiesProjectionMap: Record<Properties, {
     label: string,
     projection: readonly Projections[],
-    field: ReadonlyArray<keyof TestPlanResponseProperties>
+    field: keyof TestPlanResponseProperties
 }> = {
     [Properties.ASSIGNED_TO]: {
         label: 'Assigned to',
         projection: [Projections.ASSIGNED_TO],
-        field: ['assignedTo'],
+        field: 'assignedTo',
     },
     [Properties.CREATED_AT]: {
         label: 'Created at',
         projection: [Projections.CREATED_AT],
-        field: ['createdAt'],
+        field: 'createdAt',
     },
     [Properties.CREATED_BY]: {
         label: 'Created by',
         projection: [Projections.CREATED_BY],
-        field: ['createdBy'],
+        field: 'createdBy',
     },
     [Properties.DESCRIPTION]: {
         label: 'Description',
         projection: [Projections.DESCRIPTION],
-        field: ['description'],
+        field: 'description',
     },
     [Properties.ID]: {
         label: 'ID',
         projection: [Projections.ID],
-        field: ['id'],
+        field: 'id',
     },
     [Properties.NAME]: {
         label: 'Name',
         projection: [Projections.NAME],
-        field: ['name'],
+        field: 'name',
     },
     [Properties.PROPERTIES]: {
         label: 'Properties',
         projection: [Projections.PROPERTIES],
-        field: ['properties'],
+        field: 'properties',
     },
     [Properties.STATE]: {
         label: 'State',
         projection: [Projections.STATE],
-        field: ['state'],
+        field: 'state',
     },
     [Properties.UPDATED_AT]: {
         label: 'Updated at',
         projection: [Projections.UPDATED_AT],
-        field: ['updatedAt'],
+        field: 'updatedAt',
     },
     [Properties.UPDATED_BY]: {
         label: 'Updated by',
         projection: [Projections.UPDATED_BY],
-        field: ['updatedBy'],
+        field: 'updatedBy',
     },
     [Properties.WORKSPACE]: {
         label: 'Workspace',
         projection: [Projections.WORKSPACE],
-        field: ['workspace'],
+        field: 'workspace',
     },
     [Properties.WORK_ORDER]: {
         label: 'Work order',
         projection: [Projections.WORK_ORDER_NAME, Projections.WORK_ORDER_ID],
-        field: ['workOrderName', 'workOrderId']
+        field: 'workOrderId',
     },
     [Properties.WORK_ORDER_ID]: {
         label: 'Work order ID',
         projection: [Projections.WORK_ORDER_ID],
-        field: ['workOrderId'],
+        field: 'workOrderId',
     },
     [Properties.PRODUCT]: {
         label: 'Product (Part number)',
         projection: [Projections.PART_NUMBER],
-        field: ['partNumber'],
+        field: 'partNumber',
     },
     [Properties.PLANNED_START_DATE_TIME]: {
         label: 'Planned start date/time',
         projection: [Projections.PLANNED_START_DATE_TIME],
-        field: ['plannedStartDateTime'],
+        field: 'plannedStartDateTime',
     },
     [Properties.ESTIMATED_END_DATE_TIME]: {
         label: 'Estimated end date/time',
         projection: [Projections.ESTIMATED_END_DATE_TIME],
-        field: ['estimatedEndDateTime'],
+        field: 'estimatedEndDateTime',
     },
     [Properties.ESTIMATED_DURATION_IN_SECONDS]: {
         label: 'Estimated duration',
         projection: [Projections.ESTIMATED_DURATION_IN_SECONDS],
-        field: ['estimatedDurationInSeconds'],
+        field: 'estimatedDurationInSeconds',
     },
     [Properties.SYSTEM_NAME]: {
         label: 'System name',
         projection: [Projections.SYSTEM_ID],
-        field: ['systemId'],
+        field: 'systemId',
     },
     [Properties.SYSTEM_ID]: {
         label: 'System ID',
         projection: [Projections.SYSTEM_ID],
-        field: ['systemId'],
+        field: 'systemId',
     },
     [Properties.TEMPLATE]: {
         label: 'Test plan template',
         projection: [Projections.TEMPLATE_ID],
-        field: ['templateId'],
+        field: 'templateId',
     },
     [Properties.TEMPLATE_ID]: {
         label: 'Template ID',
         projection: [Projections.TEMPLATE_ID],
-        field: ['templateId'],
+        field: 'templateId',
     },
     [Properties.TEST_PROGRAM]: {
         label: 'Test program name',
         projection: [Projections.TEST_PROGRAM],
-        field: ['testProgram'],
+        field: 'testProgram',
     },
     [Properties.SUBSTATE]: {
         label: 'Substate',
         projection: [Projections.SUBSTATE],
-        field: ['substate'],
+        field: 'substate',
     },
     [Properties.FIXTURE_NAMES]: {
         label: 'Fixture names',
         projection: [Projections.FIXTURE_IDS],
-        field: ['fixtureIds'],
+        field: 'fixtureIds',
     },
     [Properties.DUT_ID]: {
         label: 'DUT',
         projection: [Projections.DUT_ID],
-        field: ['dutId'],
+        field: 'dutId',
     },
 } as const;
 
@@ -265,4 +265,24 @@ export interface TestPlanResponseProperties {
     fileIdsFromTemplate?: string[];
     dashboard?: Object;
     workOrderName?: string;
+}
+
+export interface QueryAssetNameResponse {
+    assets: Asset[],
+    totalCount: number
+}
+
+export interface Asset {
+    id: string;
+    name: string;
+}
+
+export interface QueryTemplatesResponse {
+    testPlanTemplates: TemplateResponseProperties[],
+    continuationToken: string,
+}
+
+export interface TemplateResponseProperties {
+    id?: string;
+    name?: string;
 }

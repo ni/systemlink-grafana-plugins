@@ -50,6 +50,20 @@ const mockDatasource = {
   globalVariableOptions: jest.fn(() => mockGlobalVars),
 } as unknown as QueryResultsDataSource;
 
+const defaultQuery = {
+  refId: 'A',
+  queryType: QueryType.Results,
+  outputType: OutputType.Data,
+  properties: [],
+  orderBy: 'STARTED_AT',
+  descending: true,
+  recordCount: 1000,
+  useTimeRange: true,
+  useTimeRangeFor: 'Updated',
+  partNumberQuery: ['PartNumber1'],
+  queryBy: 'programName = "name1"',
+}
+
 const mockHandleQueryChange = jest.fn();
 let properties: HTMLElement;
 let orderBy: HTMLElement;
@@ -66,19 +80,7 @@ describe('QueryResultsEditor', () => {
     await act(async () => {
       render(
         <QueryResultsEditor
-          query={{
-            refId: 'A',
-            queryType: QueryType.Results,
-            outputType: OutputType.Data,
-            properties: [],
-            orderBy: 'STARTED_AT',
-            descending: true,
-            recordCount: 1000,
-            useTimeRange: true,
-            useTimeRangeFor: 'Updated',
-            partNumberQuery: ['PartNumber1'],
-            queryBy: 'programName = "name1"',
-          }}
+          query={defaultQuery}
           handleQueryChange={mockHandleQueryChange}
           datasource={mockDatasource}
         />
@@ -112,6 +114,7 @@ describe('QueryResultsEditor', () => {
     expect(screen.getAllByText('Updated').length).toBe(1);
     expect(productName).toBeInTheDocument();
     expect(screen.getAllByText('ProductName1 (PartNumber1)').length).toBe(1);
+    expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining(defaultQuery));
   });
 
   test('should update properties when user adds a property', async () => {

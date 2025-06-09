@@ -19,6 +19,7 @@ import {
 import { ResultsDataSource } from 'datasources/results/ResultsDataSource';
 import { StepsQueryBuilderWrapper } from '../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
 import { TAKE_LIMIT } from 'datasources/results/constants/QuerySteps.constants';
+import { FloatingError } from 'core/errors';
 
 type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSourceOptions>;
 
@@ -64,6 +65,10 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
     loadProductNameOptions();
     loadWorkspaces();
   }, [datasource]);
+
+  useEffect(() => {
+    disableStepsQueryBuilder(!stepsVariableQuery.partNumberQueryInSteps || stepsVariableQuery.partNumberQueryInSteps.length === 0);
+  }, [stepsVariableQuery.partNumberQueryInSteps]);
 
   const onQueryTypeChange = (queryType: QueryType) => {
     if (queryType === QueryType.Results) {
@@ -116,7 +121,6 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
   }
 
   const onProductNameChangesinSteps = (productNames: Array<SelectableValue<string>>) => {
-    disableStepsQueryBuilder(productNames.length === 0);
     onChange({ ...stepsVariableQuery, partNumberQueryInSteps: productNames.map(product => product.value as string) } as StepsVariableQuery );
   }
 
@@ -237,6 +241,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
           </InlineField>
         </>
       )}
+      <FloatingError message={queryResultsDataSource.current.errorTitle} innerMessage={queryResultsDataSource.current.errorDescription} severity='warning'/>
     </>
   );
 }
