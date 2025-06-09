@@ -1,3 +1,9 @@
+## [3.110.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.109.0...v3.110.0) (2025-06-09)
+
+### Features
+
+* **results:** update error handling for steps  query ([#243](https://github.com/ni/systemlink-grafana-plugins/issues/243)) ([e2905aa](https://github.com/ni/systemlink-grafana-plugins/commit/e2905aa832830c303d404593b8dc0d33b073ec94))
+
 ## [3.109.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.108.0...v3.109.0) (2025-06-06)
 
 ### Features

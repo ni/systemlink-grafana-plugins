@@ -864,7 +864,7 @@ describe('QueryStepsDataSource', () => {
       
       await expect(batchPromise)
         .rejects
-        .toThrow('Request to url "/nitestmonitor/v2/query-paths" failed with status code: 400. Error message: "Error"');
+        .toThrow('The query failed due to the following error: (status 400) \"Error\".');
       expect(backendServer.fetch).toHaveBeenCalledTimes(2);
     });
 
