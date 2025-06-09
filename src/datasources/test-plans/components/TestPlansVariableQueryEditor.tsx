@@ -7,6 +7,7 @@ import { TestPlansDataSource } from '../TestPlansDataSource';
 import { TestPlansQueryBuilder } from './query-builder/TestPlansQueryBuilder';
 import { recordCountErrorMessages, TAKE_LIMIT } from '../constants/QueryEditor.constants';
 import { Workspace } from 'core/types';
+import { SystemAlias } from 'shared/types/QuerySystems.types';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansVariableQuery>;
 
@@ -14,8 +15,8 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
   query = datasource.prepareQuery(query);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
 
-
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
+  const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -24,6 +25,13 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
     };
 
     loadWorkspaces();
+
+    const loadSystemAliases = async () => {
+      const systemAliases = await datasource.systemUtils.getSystemAliases();
+      setSystemAliases(Array.from(systemAliases.values()));
+    };
+
+    loadSystemAliases();
   }, [datasource]);
 
   const handleQueryChange = useCallback(
@@ -42,17 +50,13 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    switch (true) {
-      case isNaN(value) || value < 0:
-        setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
-        break;
-      case value > TAKE_LIMIT:
-        setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTenThousand);
-        break;
-      default:
-        setRecordCountInvalidMessage('');
-        handleQueryChange({ ...query, recordCount: value });
-        break;
+    if (isNaN(value) || value < 0) {
+      setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
+    } else if (value > TAKE_LIMIT) {
+      setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTenThousand);
+    } else {
+      setRecordCountInvalidMessage('');
+      handleQueryChange({ ...query, recordCount: value });
     }
   };
 
@@ -69,7 +73,8 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
         <TestPlansQueryBuilder
           filter={query.queryBy}
           workspaces={workspaces}
-          globalVariableOptions={[]}
+          systemAliases={systemAliases}
+          globalVariableOptions={datasource.globalVariableOptions()}
           onChange={(event: any) => onQueryByChange(event.detail.linq)}
         ></TestPlansQueryBuilder>
       </InlineField>

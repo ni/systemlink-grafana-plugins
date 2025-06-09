@@ -75,16 +75,16 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   async metricFindQuery(
     query: WorkOrdersVariableQuery,
     options: LegacyMetricFindQueryOptions
-  ): Promise<MetricFindValue[]> {
-    if (query.queryBy) {
-      query.queryBy = transformComputedFieldsQuery(
+  ): Promise<MetricFindValue[]> {    
+    const filter = query.queryBy? 
+      transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
         this.workordersComputedDataFields
-      );
-    }
+      )
+      : undefined;
 
     const metadata = await this.queryWorkordersData(
-      query.queryBy,
+      filter,
       [WorkOrderPropertiesOptions.ID, WorkOrderPropertiesOptions.NAME],
       query.orderBy,
       query.descending,
@@ -104,32 +104,39 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       query.take
     );
 
-    const mappedFields = query.properties?.map(property => {
-      const field = WorkOrderProperties[property];
-      const fieldType = this.isTimeField(field.value) ? FieldType.time : FieldType.string;
-      const fieldName = field.label;
+    if (workOrders.length > 0) {
+      const mappedFields = query.properties?.map(property => {
+        const field = WorkOrderProperties[property];
+        const fieldType = this.isTimeField(field.value) ? FieldType.time : FieldType.string;
+        const fieldName = field.label;
 
-      // TODO: Add mapping for other field types
-      const fieldValue = workOrders.map(workOrder => {
-        switch (field.value) {
-          case WorkOrderPropertiesOptions.WORKSPACE:
+        // TODO: Add mapping for other field types
+        const fieldValue = workOrders.map(workOrder => {
+          switch (field.value) {
+            case WorkOrderPropertiesOptions.WORKSPACE:
                 const workspace = workspaces.get(workOrder.workspace);
                 return workspace ? workspace.name : workOrder.workspace;
-          case WorkOrderPropertiesOptions.PROPERTIES:
-            const properties = workOrder.properties || {};
-            return JSON.stringify(properties);
-          default:
-            return workOrder[field.field] ?? '';
-        }
+            case WorkOrderPropertiesOptions.PROPERTIES:
+                const properties = workOrder.properties || {};
+                return JSON.stringify(properties);
+            default:
+              return workOrder[field.field] ?? '';
+          }
+        });
+
+        return { name: fieldName, values: fieldValue, type: fieldType };
       });
 
-      return { name: fieldName, values: fieldValue, type: fieldType };
-    });
-
+      return {
+        refId: query.refId,
+        name: query.refId,
+        fields: mappedFields ?? [],
+      };
+    }
     return {
       refId: query.refId,
       name: query.refId,
-      fields: mappedFields ?? [],
+      fields: [],
     };
   }
 

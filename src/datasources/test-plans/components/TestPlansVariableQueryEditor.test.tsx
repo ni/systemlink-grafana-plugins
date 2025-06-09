@@ -11,11 +11,20 @@ const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: TestPlansVariableQuery) => query),
+  globalVariableOptions: jest.fn(() => []),
   workspaceUtils: {
     getWorkspaces: jest.fn().mockResolvedValue(
       new Map([
         ['1', { id: '1', name: 'WorkspaceName' }],
         ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+      ])
+    ),
+  },
+  systemUtils: {
+    getSystemAliases: jest.fn().mockResolvedValue(
+      new Map([
+        ['1', { id: '1', alias: 'System 1' }],
+        ['2', { id: '2', alias: 'System 2' }],
       ])
     ),
   }
@@ -92,6 +101,18 @@ describe('TestPlansVariableQueryEditor', () => {
       new Map([
         ['1', { id: '1', name: 'WorkspaceName' }],
         ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+      ])
+    );
+  });
+
+  it('should load system names', async () => {
+    await renderElement();
+    const result = await mockDatasource.systemUtils.getSystemAliases();
+    expect(result).toBeDefined();
+    expect(result).toEqual(
+      new Map([
+        ['1', { id: '1', alias: 'System 1' }],
+        ['2', { id: '2', alias: 'System 2' }],
       ])
     );
   });
