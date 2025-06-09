@@ -19,6 +19,7 @@ import {
 import { ResultsDataSource } from 'datasources/results/ResultsDataSource';
 import { StepsQueryBuilderWrapper } from '../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
 import { TAKE_LIMIT } from 'datasources/results/constants/QuerySteps.constants';
+import { FloatingError } from 'core/errors';
 
 type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSourceOptions>;
 
@@ -240,6 +241,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
           </InlineField>
         </>
       )}
+      <FloatingError message={queryResultsDataSource.current.errorTitle} innerMessage={queryResultsDataSource.current.errorDescription} severity='warning'/>
     </>
   );
 }
