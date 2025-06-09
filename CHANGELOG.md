@@ -1,3 +1,9 @@
+## [3.118.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.117.1...v3.118.0) (2025-06-09)
+
+### Features
+
+* **shared:** Add users class with utility methods to load users ([#227](https://github.com/ni/systemlink-grafana-plugins/issues/227)) ([9e2326d](https://github.com/ni/systemlink-grafana-plugins/commit/9e2326d020a355909f60add097d389c659618507))
+
 ## [3.117.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.117.0...v3.117.1) (2025-06-09)
 
 ### Bug Fixes
