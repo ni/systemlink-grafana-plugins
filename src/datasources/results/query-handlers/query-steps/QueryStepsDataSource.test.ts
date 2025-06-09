@@ -1026,6 +1026,38 @@ describe('QueryStepsDataSource', () => {
       expect(datastore.errorTitle).toBe('Warning during step paths value query');
       expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
     });
+
+    it('should contain error details when query results values error contains additional information', async () => {
+      const error = new Error(`API failed Error message: ${JSON.stringify({ message: 'Detailed error message', statusCode: 500 })}`);
+      jest.spyOn(datastore as any, 'queryResultsValues').mockRejectedValue(error);
+      const query = {
+        refId: 'A',
+        partNumberQuery: ['PN1'],
+        resultsQuery: 'ProgramName = "Test"',
+        outputType: OutputType.Data,
+      } as QuerySteps;
+
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+      expect(datastore.errorTitle).toBe('Warning during step paths value query');
+      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
+    });
+
+    it('should contain error details when query-path error contains additional information', async () => {
+      const error = new Error(`API failed Error message: ${JSON.stringify({ message: 'Detailed error message', statusCode: 500 })}`);
+      jest.spyOn(datastore as any, 'queryStepPaths').mockRejectedValue(error);
+      const query = {
+        refId: 'A',
+        partNumberQuery: ['PN1'],
+        resultsQuery: 'ProgramName = "Test"',
+        outputType: OutputType.Data,
+      } as QuerySteps;
+      
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+      expect(datastore.errorTitle).toBe('Warning during step paths value query');
+      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
+    });
   })
 
   test('should handle multiple part numbers and query variables', async () => {
@@ -1408,6 +1440,36 @@ describe('QueryStepsDataSource', () => {
           expect(stepsPathLookupValues).toEqual([]);
           expect(datastore.errorTitle).toBe('Warning during step paths value query');
           expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
+        });
+
+        it('should contain error details when query results values error contains additional information', async () => {
+          const error = new Error(`API failed Error message: ${JSON.stringify({ message: 'Detailed error message', statusCode: 500 })}`);
+          jest.spyOn(datastore as any, 'queryResultsValues').mockRejectedValue(error);
+          const query = {
+            queryByResults: 'ProgramName = "new-query"',
+            stepsTake: 1000,
+            partNumberQueryInSteps: ['PN1'],
+          } as StepsVariableQuery;
+
+          await datastore.metricFindQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+          expect(datastore.errorTitle).toBe('Warning during step paths value query');
+          expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
+        });
+
+        it('should contain error details when query-path error contains additional information', async () => {
+          const error = new Error(`API failed Error message: ${JSON.stringify({ message: 'Detailed error message', statusCode: 500 })}`);
+          jest.spyOn(datastore as any, 'queryStepPaths').mockRejectedValue(error);
+          const query = {
+            queryByResults: 'ProgramName = "new-query"',
+            stepsTake: 1000,
+            partNumberQueryInSteps: ['PN1'],
+          } as StepsVariableQuery;
+
+          await datastore.metricFindQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+          expect(datastore.errorTitle).toBe('Warning during step paths value query');
+          expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
         });
       })
     });
