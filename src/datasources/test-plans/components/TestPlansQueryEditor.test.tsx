@@ -27,7 +27,7 @@ const mockDatasource = {
                 ['2', { id: '2', alias: 'System 2' }],
             ])
         ),
-    }
+    },
     productUtils: {
         getProducts: jest.fn().mockResolvedValue(
             new Map(
