@@ -1,3 +1,9 @@
+## [3.113.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.112.0...v3.113.0) (2025-06-09)
+
+### Features
+
+* **products, results:** add validation for property selection ([#252](https://github.com/ni/systemlink-grafana-plugins/issues/252)) ([8d321ef](https://github.com/ni/systemlink-grafana-plugins/commit/8d321eff0d78153cc7ee65b39e9dcc3189723233))
+
 ## [3.112.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.111.0...v3.112.0) (2025-06-09)
 
 ### Features
