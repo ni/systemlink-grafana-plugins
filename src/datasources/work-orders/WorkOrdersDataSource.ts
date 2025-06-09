@@ -7,6 +7,7 @@ import { transformComputedFieldsQuery, ExpressionTransformFunction } from 'core/
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { getVariableOptions, queryInBatches } from 'core/utils';
 import { QUERY_WORK_ORDERS_MAX_TAKE, QUERY_WORK_ORDERS_REQUEST_PER_SECOND } from './constants/QueryWorkOrders.constants';
+import { UsersUtils } from 'shared/users.utils';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
@@ -15,11 +16,12 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    this.usersUtils = new UsersUtils(this.instanceSettings, this.backendSrv);
   }
 
   baseUrl = `${this.instanceSettings.url}/niworkorder/v1`;
   queryWorkOrdersUrl = `${this.baseUrl}/query-workorders`;
-
+  usersUtils: UsersUtils;
   defaultQuery = {
     outputType: OutputType.Properties,
     properties: [
@@ -92,6 +94,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   }
 
   async processWorkOrdersQuery(query: WorkOrdersQuery): Promise<DataFrameDTO> {
+    const users = await this.usersUtils.getUsers();
     const workOrders: WorkOrder[] = await this.queryWorkordersData(
       query.queryBy,
       query.properties,
@@ -109,6 +112,13 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
         // TODO: Add mapping for other field types
         const fieldValue = workOrders.map(workOrder => {
           switch (field.value) {
+            case WorkOrderPropertiesOptions.ASSIGNED_TO:
+            case WorkOrderPropertiesOptions.CREATED_BY:
+            case WorkOrderPropertiesOptions.REQUESTED_BY:
+            case WorkOrderPropertiesOptions.UPDATED_BY:
+              const userId = workOrder[field.field] as string ?? '';
+              const user = users.get(userId);
+              return user? UsersUtils.getUserFullName(user) : '';
             case WorkOrderPropertiesOptions.PROPERTIES:
               const properties = workOrder.properties || {};
               return JSON.stringify(properties);

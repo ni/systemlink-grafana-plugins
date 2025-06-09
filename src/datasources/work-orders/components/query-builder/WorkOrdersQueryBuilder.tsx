@@ -5,15 +5,19 @@ import { QBField, QueryBuilderOption } from 'core/types';
 import { filterXSSField } from 'core/utils';
 import { WorkOrdersQueryBuilderFields, WorkOrdersQueryBuilderStaticFields } from 'datasources/work-orders/constants/WorkOrdersQueryBuilder.constants';
 import React, { useState, useEffect, useMemo } from 'react';
+import { User } from 'shared/types/QueryUsers.types';
+import { UsersUtils } from 'shared/users.utils';
 import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 
 type WorkOrdersQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
   filter?: string;
+  users: User[] | null;
   globalVariableOptions: QueryBuilderOption[];
 };
 
 export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
   filter,
+  users,
   onChange,
   globalVariableOptions,
 }) => {
@@ -49,8 +53,26 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
     ];
   }, []);
 
+  const usersField = useMemo(() => {
+    if (!users) {
+      return;
+    }    
+    const usersMap = users.map(user => ({ label: UsersUtils.getUserNameAndEmail(user), value: user.id }));
+
+    return [
+      addOptionsToLookup(WorkOrdersQueryBuilderFields.ASSIGNED_TO, usersMap),
+      addOptionsToLookup(WorkOrdersQueryBuilderFields.CREATED_BY, usersMap),
+      addOptionsToLookup(WorkOrdersQueryBuilderFields.REQUESTED_BY, usersMap),
+      addOptionsToLookup(WorkOrdersQueryBuilderFields.UPDATED_BY, usersMap),
+    ];
+  }, [users]);
+
   useEffect(() => {
-    const updatedFields = [...WorkOrdersQueryBuilderStaticFields, ...timeFields].map(field => {
+    if (!usersField) {
+      return;
+    }
+
+    const updatedFields = [...WorkOrdersQueryBuilderStaticFields, ...timeFields, ...usersField].map(field => {
       if (field.lookup?.dataSource) {
         return {
           ...field,
@@ -105,7 +127,7 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
     ];
 
     setOperations([...customOperations, ...keyValueOperations]);
-  }, [globalVariableOptions, timeFields]);
+  }, [globalVariableOptions, timeFields, usersField]);
 
   return (
     <SlQueryBuilder

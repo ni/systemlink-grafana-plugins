@@ -14,12 +14,23 @@ import {
 import './WorkOrdersQueryEditor.scss';
 import { TAKE_LIMIT, takeErrorMessages, tooltips } from '../constants/QueryEditor.constants';
 import { validateNumericInput } from 'core/utils';
+import { User } from 'shared/types/QueryUsers.types';
 
 type Props = QueryEditorProps<WorkOrdersDataSource, WorkOrdersQuery>;
 
 export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
+
+  const [users, setUsers] = useState<User[]|null>(null);
+  useEffect(() => {
+    const loadUsers = async () => {
+      const users = await datasource.usersUtils.getUsers();
+      setUsers(Array.from(users.values()));
+    };
+
+    loadUsers();
+  }, [datasource]);
 
   useEffect(() => {
     handleQueryChange(query, true);
@@ -112,6 +123,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
         <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
             <WorkOrdersQueryBuilder
               filter={query.queryBy} 
+              users={users}
               globalVariableOptions={datasource.globalVariableOptions()}
               onChange={(event: any) => onQueryByChange(event.detail.linq)}
             ></WorkOrdersQueryBuilder>
