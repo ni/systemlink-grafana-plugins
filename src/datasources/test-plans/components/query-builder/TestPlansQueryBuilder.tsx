@@ -1,7 +1,7 @@
 import { SlQueryBuilder } from "core/components/SlQueryBuilder/SlQueryBuilder";
 import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder.constants";
 import { expressionBuilderCallback, expressionReaderCallback } from "core/query-builder.utils";
-import { QBField, QueryBuilderOption } from "core/types";
+import { QBField, QueryBuilderOption, Workspace } from "core/types";
 import { filterXSSField } from "core/utils";
 import { TestPlansQueryBuilderFields, TestPlansQueryBuilderStaticFields } from "datasources/test-plans/constants/TestPlansQueryBuilder.constants";
 import React, { useState, useEffect, useMemo } from "react";
@@ -9,16 +9,36 @@ import { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcompone
 
 type TestPlansQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
     filter?: string;
+    workspaces: Workspace[] | null;
     globalVariableOptions: QueryBuilderOption[];
 };
 
 export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
     filter,
     onChange,
+    workspaces,
     globalVariableOptions,
 }) => {
     const [fields, setFields] = useState<QBField[]>([]);
     const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
+
+    const workspaceField = useMemo(() => {
+        const workspaceField = TestPlansQueryBuilderFields.WORKSPACE;
+        if (!workspaces) {
+            return null;
+        }
+
+        return {
+            ...workspaceField,
+            lookup: {
+                ...workspaceField.lookup,
+                dataSource: [
+                    ...(workspaceField.lookup?.dataSource || []),
+                    ...workspaces.map(({ id, name }) => ({ label: name, value: id })),
+                ],
+            },
+        };
+    }, [workspaces])
 
     
     const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]) => {
@@ -50,7 +70,11 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
     }, []);
 
     useEffect(() => {
-        const updatedFields = [...TestPlansQueryBuilderStaticFields, ...timeFields].map(field => {
+        if (!workspaceField) {
+            return;
+        }
+
+        const updatedFields = [...TestPlansQueryBuilderStaticFields, ...timeFields, workspaceField,].map(field => {
             if (field.lookup?.dataSource) {
               return {
                 ...field,
@@ -112,7 +136,7 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
 
         setOperations([...customOperations, ...keyValueOperations]);
 
-    }, [globalVariableOptions, timeFields]);
+    }, [workspaceField, timeFields]);
 
     return (
         <SlQueryBuilder
