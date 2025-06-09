@@ -31,7 +31,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
-  
+  const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);
 
   useEffect(() => {
     handleQueryChange(query);
@@ -60,6 +60,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
   };
 
   const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
+    setIsPropertiesValid(items.length > 0);
     if (items !== undefined) {
       handleQueryChange({ ...query, properties: items.map(i => i.value as ResultsProperties) });
     }
@@ -120,7 +121,12 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
           />
         </InlineField>
         {query.outputType === OutputType.Data && (
-          <InlineField label="Properties" labelWidth={26} tooltip={tooltips.properties}>
+          <InlineField
+            label="Properties"
+            labelWidth={26}
+            tooltip={tooltips.properties}
+            invalid={!isPropertiesValid}
+            error='You must select at least one property.'>
             <MultiSelect
               placeholder="Select properties to fetch"
               options={enumToOptions(ResultsProperties)}

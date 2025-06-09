@@ -145,6 +145,16 @@ describe('QueryStepsEditor', () => {
       });
     });
 
+    it('should show error when all properties are removed', async () => {
+      // User removes the property
+      const removeButton = screen.getAllByRole('button', { name: 'Remove' });
+      for (const button of removeButton) {
+        await userEvent.click(button);
+      }
+
+      expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
+    });
+
     test('should update orderBy when user changes the orderBy', async () => {
       await select(orderBy, 'Started at', { container: document.body });
       await waitFor(() => {

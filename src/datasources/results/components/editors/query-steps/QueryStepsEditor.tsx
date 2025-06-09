@@ -30,7 +30,8 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
   const [isProductSelectionValid, setIsProductSelectionValid] = useState(true);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
-  
+  const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);
+
   useEffect(() => {
     handleQueryChange(query);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -58,6 +59,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   };
 
   const onPropertiesChange = (properties: Array<SelectableValue<string>>) => {
+    setIsPropertiesValid(properties.length > 0);
     if (properties !== undefined) {
       handleQueryChange({ ...query, properties: properties.map(property => property.value as StepsProperties) });
     }
@@ -129,7 +131,12 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
           />
         </InlineField>
         {query.outputType === OutputType.Data && (
-          <InlineField label="Properties" labelWidth={26} tooltip={tooltips.properties}>
+          <InlineField
+            label="Properties"
+            labelWidth={26}
+            tooltip={tooltips.properties}
+            invalid={!isPropertiesValid}
+            error='You must select at least one property.'>
             <MultiSelect
               placeholder="Select properties to fetch"
               options={enumToOptions(StepsProperties)}

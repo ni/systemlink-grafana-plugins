@@ -20,7 +20,8 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const [familyNames, setFamilyNames] = useState<string[]>([]);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
-  
+  const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);
+
   useEffect(() => {
       handleQueryChange(query, true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -53,7 +54,8 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
   }, [onChange, onRunQuery]);
 
   const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
-    if (items !== undefined) {
+    setIsPropertiesValid(items.length > 0);
+    if (items !== undefined ) {
       handleQueryChange({ ...query, properties: items.map(i => i.value as Properties) });
     }
   };
@@ -97,7 +99,12 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
     <>
       <HorizontalGroup align="flex-start">
         <VerticalGroup>
-          <InlineField label="Properties" labelWidth={18} tooltip={tooltips.properties}>
+          <InlineField 
+            label="Properties"
+            labelWidth={18}
+            tooltip={tooltips.properties}
+            invalid={!isPropertiesValid}
+            error='You must select at least one property.'>
             <MultiSelect
               placeholder="Select properties to fetch"
               options={Object.keys(Properties)
