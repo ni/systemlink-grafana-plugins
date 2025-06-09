@@ -18,6 +18,8 @@ import { Workspace } from 'core/types';
 import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
 import { ResultsQueryBuilder } from '../../query-builders/query-results/ResultsQueryBuilder';
 import { FloatingError } from 'core/errors';
+import { TAKE_LIMIT } from 'datasources/test-plans/constants/QueryEditor.constants';
+import { recordCountErrorMessages } from 'datasources/results/constants/ResultsQueryEditor.constants';
 
 type Props = {
   query: QueryResults;
@@ -28,6 +30,7 @@ type Props = {
 export function QueryResultsEditor({ query, handleQueryChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
+  const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
   const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);
 
   useEffect(() => {
@@ -73,8 +76,23 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    handleQueryChange({ ...query, recordCount: value });
+    if (isRecordCountValid(value, TAKE_LIMIT)) {
+      handleQueryChange({ ...query, recordCount: value });
+    }
   };
+
+  function isRecordCountValid(value: number, takeLimit: number): boolean {
+    if (Number.isNaN(value) || value < 0) {
+      setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
+      return false;
+    }
+    if (value > takeLimit) {
+      setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTakeLimit);
+      return false;
+    }
+    setRecordCountInvalidMessage('');
+    return true;
+  }
 
   const onParameterChange = (value: string) => {
     if (query.queryBy !== value) {
@@ -108,7 +126,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
             labelWidth={26}
             tooltip={tooltips.properties}
             invalid={!isPropertiesValid}
-            error='At least one property must be selected to display data.'>
+            error='You must select at least one property.'>
             <MultiSelect
               placeholder="Select properties to fetch"
               options={enumToOptions(ResultsProperties)}
@@ -173,7 +191,12 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
                   value={query.descending}
                 />
               </InlineField>
-              <InlineField label="Take" labelWidth={26} tooltip={tooltips.recordCount}>
+              <InlineField 
+                  label="Take" 
+                  labelWidth={26} 
+                  tooltip={tooltips.recordCount}
+                  invalid={!!recordCountInvalidMessage}
+                  error={recordCountInvalidMessage}>
                 <AutoSizeInput
                   minWidth={25}
                   maxWidth={25}
