@@ -105,6 +105,8 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
               case PropertiesProjectionMap.SYSTEM_NAME.label:
                 const system = systemAliases.get(value);
                 return system ? system.alias : value;
+              case PropertiesProjectionMap.PROPERTIES.label:
+                return value == null ? '' : JSON.stringify(value);
               default:
                 return value == null ? '' : value;
             }
