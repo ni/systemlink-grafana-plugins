@@ -1,3 +1,10 @@
+## [3.125.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.124.1...v3.125.0) (2025-06-10)
+
+### Features
+
+* **results:** rename resultsFilter to resultFilter ([#264](https://github.com/ni/systemlink-grafana-plugins/issues/264)) ([782025f](https://github.com/ni/systemlink-grafana-plugins/commit/782025f8c0cf2dc36a50fa8e85f63f532f3bc5f8))
+* **test-plans:** Add state property lookup in the query builder ([#263](https://github.com/ni/systemlink-grafana-plugins/issues/263)) ([c7dacd8](https://github.com/ni/systemlink-grafana-plugins/commit/c7dacd822159775a91f4517e1750cf230d364789))
+
 ## [3.124.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.124.0...v3.124.1) (2025-06-10)
 
 ### Bug Fixes
