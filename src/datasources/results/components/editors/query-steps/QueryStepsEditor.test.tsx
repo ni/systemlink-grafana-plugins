@@ -292,6 +292,7 @@ describe('QueryStepsEditor', () => {
 
     test('should not update results query when filter doesnt change', () => {
       const resultsQueryInput = screen.getByTestId('results-query');
+      fireEvent.change(resultsQueryInput, { target: { value: 'partNumber = "PN1"' } });// ensure initial value is set
       mockHandleQueryChange.mockClear();
 
       fireEvent.change(resultsQueryInput, { target: { value: 'partNumber = "PN1"' } });
@@ -313,6 +314,7 @@ describe('QueryStepsEditor', () => {
 
     test('should not update steps query when filter doesnt change', () => {
       const stepsQueryInput = screen.getByTestId('steps-query');
+      fireEvent.change(stepsQueryInput, { target: { value: 'stepName = "Step1"' } });// ensure initial value is set
       mockHandleQueryChange.mockClear();
 
       fireEvent.change(stepsQueryInput, { target: { value: 'stepName = "Step1"' } });
