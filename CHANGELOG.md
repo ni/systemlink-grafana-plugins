@@ -1,3 +1,9 @@
+## [3.124.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.124.0...v3.124.1) (2025-06-10)
+
+### Bug Fixes
+
+* **testplans:** Update filter fields in test plans ([#260](https://github.com/ni/systemlink-grafana-plugins/issues/260)) ([d73b005](https://github.com/ni/systemlink-grafana-plugins/commit/d73b005e5c774e75152309d21de13f0530cb4a39))
+
 ## [3.124.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.123.0...v3.124.0) (2025-06-10)
 
 ### Features
