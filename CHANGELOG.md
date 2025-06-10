@@ -1,3 +1,9 @@
+## [3.122.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.121.0...v3.122.0) (2025-06-10)
+
+### Features
+
+* **results:** Handle null values for product names ([#262](https://github.com/ni/systemlink-grafana-plugins/issues/262)) ([a397fc3](https://github.com/ni/systemlink-grafana-plugins/commit/a397fc37e115b2dfead0ffe12a586425921784df))
+
 ## [3.121.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.120.0...v3.121.0) (2025-06-10)
 
 ### Features
