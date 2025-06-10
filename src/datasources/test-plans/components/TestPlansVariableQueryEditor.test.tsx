@@ -35,6 +35,16 @@ const mockDatasource = {
         ['2', { id: '2', firstName: 'User', lastName: '2' }],
       ])
     ),
+  },
+  productUtils: {
+    getProducts: jest.fn().mockResolvedValue(
+      new Map(
+        [
+          ['part-number-1', { partNumber: 'part-number-1', name: 'Product 1' }],
+          ['part-number-2', { partNumber: 'part-number-2', name: 'Product 2' }]
+        ]
+      )
+    )
   }
 } as unknown as TestPlansDataSource;
 
@@ -134,6 +144,21 @@ describe('TestPlansVariableQueryEditor', () => {
       new Map([
         ['1', { id: '1', firstName: 'User', lastName: '1' }],
         ['2', { id: '2', firstName: 'User', lastName: '2' }]
+      ])
+    );
+  });
+
+  it('should load part numbers and product names', async () => {
+    await act(async () => {
+      renderElement();
+    });
+
+    const result = await mockDatasource.productUtils.getProducts();
+    expect(result).toBeDefined();
+    expect(result).toEqual(
+      new Map([
+        ['part-number-1', { partNumber: 'part-number-1', name: 'Product 1' }],
+        ['part-number-2', { partNumber: 'part-number-2', name: 'Product 2' }]
       ])
     );
   });
