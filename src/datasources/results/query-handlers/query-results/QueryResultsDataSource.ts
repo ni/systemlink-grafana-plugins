@@ -63,43 +63,50 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     );
 
     if (query.outputType === OutputType.Data) {
+      if (responseData.results.length === 0) {
+        return {
+          refId: query.refId,
+          fields: [{ name: 'No results found', values: [] }],
+        };
+      }
+      
       const results = responseData.results;
       const availableFields = Object.keys(results[0]);
       const selectedFields = query.properties?.filter((field) =>
-      availableFields.includes(field)
+        availableFields.includes(field)
       ) ?? [];
 
       const fields = selectedFields.map((field) => {
-      const isTimeField =
-        field === ResultsPropertiesOptions.UPDATED_AT ||
-        field === ResultsPropertiesOptions.STARTED_AT;
-      const fieldType = isTimeField ? FieldType.time : FieldType.string;
-      const values = results.map(
-        (result) => result[field as keyof ResultsResponseProperties]
-      );
+        const isTimeField =
+          field === ResultsPropertiesOptions.UPDATED_AT ||
+          field === ResultsPropertiesOptions.STARTED_AT;
+        const fieldType = isTimeField ? FieldType.time : FieldType.string;
+        const values = results.map(
+          (result) => result[field as keyof ResultsResponseProperties]
+        );
 
-      switch (field) {
-        case ResultsPropertiesOptions.PROPERTIES:
-        case ResultsPropertiesOptions.STATUS_TYPE_SUMMARY:
-        return {
-          name: field,
-          values: values.map((v) => (v != null ? JSON.stringify(v) : '')),
-          type: fieldType,
-        };
-        case ResultsPropertiesOptions.STATUS:
-        return {
-          name: field,
-          values: values.map((v: any) => v?.statusType),
-          type: fieldType,
-        };
-        default:
-        return { name: field, values, type: fieldType };
-      }
+        switch (field) {
+          case ResultsPropertiesOptions.PROPERTIES:
+          case ResultsPropertiesOptions.STATUS_TYPE_SUMMARY:
+            return {
+              name: field,
+              values: values.map((v) => (v != null ? JSON.stringify(v) : '')),
+              type: fieldType,
+            };
+          case ResultsPropertiesOptions.STATUS:
+            return {
+              name: field,
+              values: values.map((v: any) => v?.statusType),
+              type: fieldType,
+            };
+          default:
+            return { name: field, values, type: fieldType };
+        }
       });
 
       return {
-      refId: query.refId,
-      fields,
+        refId: query.refId,
+        fields,
       };
     }
 
