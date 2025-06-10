@@ -66,7 +66,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       if (responseData.results.length === 0) {
         return {
           refId: query.refId,
-          fields: [{ name: 'No results found', values: [] }],
+          fields: [],
         };
       }
       
