@@ -28,6 +28,7 @@ export const StepsQueryBuilderWrapper = (
     disableStepsQueryBuilder
   }: Props) => {
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
+  const [resultIds, setResultIds] = useState<string[] | null>(null);
   const [stepsPath, setStepsPath] = useState<string[]>([]);
 
   useEffect(() => {
@@ -35,6 +36,10 @@ export const StepsQueryBuilderWrapper = (
       const workspaces = await datasource.workspacesCache;
       setWorkspaces(Array.from(workspaces.values()));
     };
+    const loadResultIds = async () => {
+      const resultIds = await datasource.resultIdsCache;
+      setResultIds(Array.from(resultIds.values()));
+    }
     const loadStepsPath = () => {
       setStepsPath(datasource.getStepPaths());
       datasource.setStepsPathChangeCallback(() => {
@@ -42,6 +47,7 @@ export const StepsQueryBuilderWrapper = (
       });
     };
     loadStepsPath();
+    loadResultIds();
     loadWorkspaces();
   }, [datasource]);
   
@@ -52,6 +58,7 @@ export const StepsQueryBuilderWrapper = (
           filter={resultsQuery}
           onChange={(event) => onResultsQueryChange((event as CustomEvent<{ linq: string }>).detail.linq)}
           workspaces={workspaces}
+          resultIds={resultIds}
           status={enumToOptions(TestMeasurementStatus).map(option => option.value?.toString() || '')}
           globalVariableOptions={datasource.globalVariableOptions()}>
         </ResultsQueryBuilder>

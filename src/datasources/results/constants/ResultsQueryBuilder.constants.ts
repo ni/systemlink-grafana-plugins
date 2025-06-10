@@ -2,6 +2,7 @@ import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { QBField } from 'core/types';
 
 export enum ResultsQueryBuilderFieldNames {
+  RESULT_ID = 'Id',
   HOSTNAME = 'HostName',
   KEYWORDS = 'Keywords',
   OPERATOR = 'Operator',
@@ -17,6 +18,14 @@ export enum ResultsQueryBuilderFieldNames {
 }
 
 export const ResultsQueryBuilderFields: Record<string, QBField> = {
+  RESULTID: {
+    label: 'Result ID',
+    dataField: ResultsQueryBuilderFieldNames.RESULT_ID,
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+    ],
+  },
   HOSTNAME: {
     label: 'Host name',
     dataField: ResultsQueryBuilderFieldNames.HOSTNAME,

@@ -21,6 +21,7 @@ type ResultsQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     filter?: string;
     workspaces: Workspace[] | null;
+    resultIds: string[] | null;
     status: string[];
     globalVariableOptions: QueryBuilderOption[];
   };
@@ -29,6 +30,7 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
   filter,
   onChange,
   workspaces,
+  resultIds,
   status,
   globalVariableOptions,
 }) => {
@@ -41,6 +43,23 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
   const sanitizedFilter = useMemo(() => {
     return filterXSSLINQExpression(filter);
   }, [filter]);
+
+  const resultIDField = useMemo(() => {
+    const resultIDField = ResultsQueryBuilderFields.RESULTID;
+    if (!resultIds) {
+      return null;
+    }
+
+    return {
+      ...resultIDField,
+      lookup: {
+        ...resultIDField.lookup,
+        dataSource: [
+          ...(resultIDField.lookup?.dataSource || []),
+          ...resultIds.map((value) => ({ label: value, value: value })),        ],
+      },
+    };
+  }, [resultIds])
 
   const workspaceField = useMemo(() => {
     const workspaceField = ResultsQueryBuilderFields.WORKSPACE;
@@ -107,12 +126,13 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
   }, []);
 
   useEffect(() => {
-    if(!workspaceField) {
+    if(!workspaceField || !resultIDField) {
       return;
     }
 
     const updatedFields = [
       ...ResultsQueryBuilderStaticFields!,
+      resultIDField,
       updatedAtField,
       workspaceField,
       startedAtField,
@@ -186,7 +206,7 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
     ];
 
     setOperations([...customOperations, ...keyValueOperations]);
-  }, [workspaceField, startedAtField, updatedAtField, globalVariableOptions, statusField]);
+  }, [resultIDField, workspaceField, startedAtField, updatedAtField, globalVariableOptions, statusField]);
 
   return (
     <QueryBuilder

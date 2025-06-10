@@ -6,6 +6,7 @@ import { getVariableOptions } from "core/utils";
 import { ExpressionTransformFunction } from "core/query-builder.utils";
 import { QueryBuilderOperations } from "core/query-builder.constants";
 import { extractErrorInfo } from "core/errors";
+import { ResultsQueryBuilderFieldNames } from "./constants/ResultsQueryBuilder.constants";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
   errorTitle = '';
@@ -22,6 +23,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   private fromDateString = '${__from:date}';
   private toDateString = '${__to:date}';
   private static _workspacesCache: Promise<Map<string, Workspace>> | null = null;
+  private static _resultIdsCache: Promise<string[]> | null = null;
   private static _productCache: Promise<QueryProductResponse> | null = null;
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
@@ -44,6 +46,10 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
   get workspacesCache(): Promise<Map<string, Workspace>> {
     return this.loadWorkspaces();
+  }
+
+  get resultIdsCache(): Promise<string[]> {
+    return this.loadResultIds();
   }
 
   get productCache(): Promise<QueryProductResponse> {
@@ -71,6 +77,23 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       });
 
     return ResultsDataSourceBase._workspacesCache;
+  }
+
+  async loadResultIds(): Promise<string[]> {
+    if (ResultsDataSourceBase._resultIdsCache) {
+      return ResultsDataSourceBase._resultIdsCache;
+    }
+
+    ResultsDataSourceBase._resultIdsCache = this.queryResultsValues(ResultsQueryBuilderFieldNames.RESULT_ID)
+      .then(resultIds => resultIds.map(result => result))
+      .catch(error => {
+        if (!this.errorTitle) {
+          this.handleQueryValuesError(error, 'result ID');
+        }
+        return [];
+      });
+
+    return ResultsDataSourceBase._resultIdsCache;
   }
 
   async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {
