@@ -160,7 +160,19 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name
-        ]
+        ],
+        lookup: {
+            dataSource: [
+                { label: 'New', value: 'New' },
+                { label: 'Defined', value: 'Defined' },
+                { label: 'Reviewed', value: 'Reviewed' },
+                { label: 'Scheduled', value: 'Scheduled' },
+                { label: 'In progress', value: 'InProgress' },
+                { label: 'Pending approval', value: 'PendingApproval' },
+                { label: 'Closed', value: 'Closed' },
+                { label: 'Canceled', value: 'Canceled' }
+            ]
+        }
     },
     SYSTEM_ALIAS_NAME: {
         label: 'System alias name',
