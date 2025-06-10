@@ -1,3 +1,9 @@
+## [3.124.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.123.0...v3.124.0) (2025-06-10)
+
+### Features
+
+* **workorders:** Add users lookup and map users in workorders data ([#256](https://github.com/ni/systemlink-grafana-plugins/issues/256)) ([1d74091](https://github.com/ni/systemlink-grafana-plugins/commit/1d74091fb3b7d9631d13a2529a8679fba94d8fdf))
+
 ## [3.123.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.122.0...v3.123.0) (2025-06-10)
 
 ### Features
