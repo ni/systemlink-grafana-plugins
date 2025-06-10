@@ -49,6 +49,8 @@ const mockDatasource = {
   workspacesCache: Promise.resolve(new Map(mockWorkspaces.map(workspace => [workspace.id, workspace]))),
   productCache: Promise.resolve(mockProducts),
   globalVariableOptions: jest.fn(() => mockGlobalVars),
+  getResultIds: jest.fn(() => Promise.resolve(['id1', 'id2', 'id3'])),
+  setResultIdChangeCallback: jest.fn(),
 } as unknown as QueryResultsDataSource;
 
 const defaultQuery = {
@@ -235,6 +237,9 @@ describe('QueryResultsEditor', () => {
         workspacesCache: Promise.resolve(new Map()),
         productCache: Promise.resolve({ products: [] }),
         globalVariableOptions: jest.fn(() => []),
+        getResultIds: jest.fn(() => Promise.resolve(['id1', 'id2', 'id3'])),
+        setResultIdChangeCallback: jest.fn(),
+
       } as unknown as QueryResultsDataSource;
 
       await act(async () => {
