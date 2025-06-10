@@ -42,6 +42,7 @@ const mockProducts = {
   products: [
     { partNumber: 'PartNumber1', name: 'ProductName1' },
     { partNumber: 'PartNumber2', name: 'ProductName2' },
+    { partNumber: 'PartNumber3', name: null },
   ],
 };
 
@@ -114,7 +115,10 @@ describe('QueryResultsEditor', () => {
     expect(useTimeRangeFor).toBeInTheDocument();
     expect(screen.getAllByText('Updated').length).toBe(1);
     expect(productName).toBeInTheDocument();
+    // Check if product names are rendered correctly
     expect(screen.getAllByText('ProductName1 (PartNumber1)').length).toBe(1);
+    expect(screen.getAllByText('ProductName2 (PartNumber2)').length).toBe(1);
+    expect(screen.getAllByText('PartNumber3').length).toBe(1);
     expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining(defaultQuery));
   });
 
