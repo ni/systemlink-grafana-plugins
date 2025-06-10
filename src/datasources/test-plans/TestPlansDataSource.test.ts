@@ -52,29 +52,48 @@ jest.mock('./asset.utils', () => {
     AssetUtils: jest.fn().mockImplementation(() => ({
       queryAssetsInBatches: jest.fn().mockResolvedValue(
         [
-          { id: '1', name: 'Asset 1' },
-          { id: '2', name: 'Asset 2' }
+          { id: '1', name: 'Asset 1', serialNumber: 'SN-1' },
+          { id: '2', name: 'Asset 2', serialNumber: 'SN-2' }
         ]
       )
     }))
   };
 });
 
-jest.mock('shared/product.utils', () => {
-  return {
-    ProductUtils: jest.fn().mockImplementation(() => ({
-      getProducts: jest.fn().mockResolvedValue(
-        new Map([
-          ['part-number-1', { partNumber: 'part-number-1', name: 'Product 1' }],
-          ['part-number-2', { partNumber: 'part-number-2', name: 'Product 2' }],
-        ])
-      )
-    }))
-  };
-});
+const mockUsers = [
+  {
+    id: '1',
+    firstName: 'User',
+    lastName: '1',
+    email: 'user1@123.com',
+    properties: {},
+    keywords: [],
+    created: '',
+    updated: '',
+    orgId: '',
+  },
+  {
+    id: '2',
+    firstName: 'User',
+    lastName: '2',
+    email: 'user2@123.com',
+    properties: {},
+    keywords: [],
+    created: '',
+    updated: '',
+    orgId: '',
+  }
+];
 
 beforeEach(() => {
   [datastore, backendServer] = setupDataSource(TestPlansDataSource);
+
+  jest.spyOn(datastore.usersUtils, 'getUsers').mockResolvedValue(
+    new Map([
+      ['1', mockUsers[0]],
+      ['2', mockUsers[1]]
+    ])
+  );
 });
 
 describe('testDatasource', () => {
@@ -262,6 +281,32 @@ describe('runQuery', () => {
     expect(result.fields).toHaveLength(1);
     expect(result.fields[0].name).toEqual('DUT');
     expect(result.fields[0].values).toEqual(['Asset 1', 'Asset 2']);
+  });
+
+  it('should show dut serial numbers for dut serial number property', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.DUT_SERIAL_NUMBER],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', dutId: '1', serialNumber: 'SN-1' },
+        { id: '2', dutId: '2', serialNumber: 'SN-2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('DUT serial number');
+    expect(result.fields[0].values).toEqual(['SN-1', 'SN-2']);
   });
 
   it('should show work order name & id for work order property', async () => {
@@ -540,11 +585,11 @@ describe('runQuery', () => {
     expect(result.fields[0].values).toEqual(['System 1', 'System 2']);
   });
 
-  it('should convert part numbers to product names', async () => {
+  test('should show user name for assigned to property', async () => {
     const query = {
       refId: 'A',
       outputType: OutputType.Properties,
-      properties: [Properties.PRODUCT],
+      properties: [Properties.ASSIGNED_TO],
       orderBy: OrderByOptions.UPDATED_AT,
       recordCount: 10,
       descending: true,
@@ -552,8 +597,8 @@ describe('runQuery', () => {
 
     const testPlansResponse = {
       testPlans: [
-        { id: '1', partNumber: 'part-number-1' },
-        { id: '2', partNumber: 'part-number-2' }
+        { id: '1', assignedTo: '1' },
+        { id: '2', assignedTo: '2' }
       ],
     };
 
@@ -562,8 +607,60 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Product (Part number)');
-    expect(result.fields[0].values).toEqual(['Product 1 (part-number-1)', 'Product 2 (part-number-2)']);
+    expect(result.fields[0].name).toEqual('Assigned to');
+    expect(result.fields[0].values).toEqual(['User 1', 'User 2']);
+  });
+
+  test('should show user name for created by property', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.CREATED_BY],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', createdBy: '1' },
+        { id: '2', createdBy: '2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Created by');
+    expect(result.fields[0].values).toEqual(['User 1', 'User 2']);
+  });
+
+  test('should show user name for updated by property', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.UPDATED_BY],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', updatedBy: '1' },
+        { id: '2', updatedBy: '2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Updated by');
+    expect(result.fields[0].values).toEqual(['User 1', 'User 2']);
   });
 
   test('should replace variables', async () => {

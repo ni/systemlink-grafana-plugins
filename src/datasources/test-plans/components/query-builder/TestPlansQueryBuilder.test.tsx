@@ -3,7 +3,7 @@ import React, { ReactNode } from 'react';
 import { render } from '@testing-library/react';
 import { TestPlansQueryBuilder } from './TestPlansQueryBuilder';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
-import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
+import { User } from 'shared/types/QueryUsers.types';
 
 describe('TestPlansQueryBuilder', () => {
     let reactNode: ReactNode;
@@ -13,13 +13,42 @@ describe('TestPlansQueryBuilder', () => {
         id: '1',
         alias: 'System 1'
     };
-    const product: ProductPartNumberAndName = {
-        partNumber: 'part-number',
-        name: 'Product name'
-    };
+    const mockUsers = [
+        {
+            id: '1',
+            firstName: 'User',
+            lastName: '1',
+            email: 'user1@123.com',
+            properties: {},
+            keywords: [],
+            created: '',
+            updated: '',
+            orgId: '',
+        },
+        {
+            id: '2',
+            firstName: 'User',
+            lastName: '2',
+            email: 'user2@123.com',
+            properties: {},
+            keywords: [],
+            created: '',
+            updated: '',
+            orgId: '',
+        }
+    ];
 
-    function renderElement(filter: string, workspaces: Workspace[] | null, systemAliases: SystemAlias[] | null, products: ProductPartNumberAndName[] | null, globalVariableOptions: QueryBuilderOption[] = []) {
-        reactNode = React.createElement(TestPlansQueryBuilder, { filter, workspaces, systemAliases, products, globalVariableOptions, onChange: jest.fn() });
+    function renderElement(
+        filter: string,
+        workspaces: Workspace[] | null,
+        systemAliases: SystemAlias[] | null,
+        users: User[] | null,
+        globalVariableOptions: QueryBuilderOption[] = []
+    ) {
+        reactNode = React.createElement(
+            TestPlansQueryBuilder,
+            { filter, workspaces, systemAliases, users, globalVariableOptions, onChange: jest.fn() }
+        );
         const renderResult = render(reactNode);
         return {
             renderResult,
@@ -48,12 +77,25 @@ describe('TestPlansQueryBuilder', () => {
         expect(conditionsContainer.item(0)?.textContent).toContain(systemAlias.alias);
     });
 
-    it('should select product name and part number in query builder', () => {
-        const { conditionsContainer } = renderElement('product = "part-number"', [], [], [product]);
+    it('should select assigned to in query builder', () => {
+        const { conditionsContainer } = renderElement('assignedTo = "1"', [], [], mockUsers);
 
         expect(conditionsContainer?.length).toBe(1);
-        expect(conditionsContainer.item(0)?.textContent).toContain(product.partNumber);
-        expect(conditionsContainer.item(0)?.textContent).toContain(product.name);
+        expect(conditionsContainer.item(0)?.textContent).toContain("User 1");
+    });
+
+    it('should select created by in query builder', () => {
+        const { conditionsContainer } = renderElement('createdBy = "2"', [], [], mockUsers);
+
+        expect(conditionsContainer?.length).toBe(1);
+        expect(conditionsContainer.item(0)?.textContent).toContain("User 2");
+    });
+
+    it('should select updated by in query builder', () => {
+        const { conditionsContainer } = renderElement('updatedBy = "2"', [], [], mockUsers);
+
+        expect(conditionsContainer?.length).toBe(1);
+        expect(conditionsContainer.item(0)?.textContent).toContain("User 2");
     });
 
     [['${__from:date}', 'From'], ['${__to:date}', 'To'], ['${__now:date}', 'Now']].forEach(([value, label]) => {

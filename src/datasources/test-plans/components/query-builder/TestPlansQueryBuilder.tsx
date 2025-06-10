@@ -6,14 +6,15 @@ import { filterXSSField } from "core/utils";
 import { TestPlansQueryBuilderFields, TestPlansQueryBuilderStaticFields } from "datasources/test-plans/constants/TestPlansQueryBuilder.constants";
 import React, { useState, useEffect, useMemo } from "react";
 import { SystemAlias } from "shared/types/QuerySystems.types";
-import { ProductPartNumberAndName } from "shared/types/QueryProducts.types";
+import { User } from "shared/types/QueryUsers.types";
+import { UsersUtils } from "shared/users.utils";
 import { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
 
 type TestPlansQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
     filter?: string;
     workspaces: Workspace[] | null;
     systemAliases: SystemAlias[] | null;
-    products: ProductPartNumberAndName[] | null;
+    users: User[] | null;
     globalVariableOptions: QueryBuilderOption[];
 };
 
@@ -22,7 +23,7 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
     onChange,
     workspaces,
     systemAliases,
-    products,
+    users,
     globalVariableOptions,
 }) => {
     const [fields, setFields] = useState<QBField[]>([]);
@@ -107,12 +108,25 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
         ]
     }, []);
 
+    const usersFields = useMemo(() => {
+        if (!users) {
+            return;
+        }
+        const usersMap = users.map(user => ({ label: UsersUtils.getUserNameAndEmail(user), value: user.id }));
+
+        return [
+            addOptionsToLookup(TestPlansQueryBuilderFields.ASSIGNED_TO, usersMap),
+            addOptionsToLookup(TestPlansQueryBuilderFields.CREATED_BY, usersMap),
+            addOptionsToLookup(TestPlansQueryBuilderFields.UPDATED_BY, usersMap),
+        ];
+    }, [users]);
+
     useEffect(() => {
-        if (!workspaceField || !systemAliasField || !productsField || !timeFields) {
+        if (!workspaceField || !systemAliasField || !timeFields || !usersFields) {
             return;
         }
 
-        const updatedFields = [...TestPlansQueryBuilderStaticFields, ...timeFields, systemAliasField, workspaceField, productsField].map(field => {
+        const updatedFields = [...TestPlansQueryBuilderStaticFields, ...timeFields, ...usersFields, systemAliasField, workspaceField].map(field => {
             if (field.lookup?.dataSource) {
                 return {
                     ...field,
@@ -173,7 +187,8 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
         ];
 
         setOperations([...customOperations, ...keyValueOperations]);
-    }, [workspaceField, systemAliasField, timeFields, productsField, globalVariableOptions]);
+
+    }, [workspaceField, systemAliasField, timeFields, usersFields, globalVariableOptions]);
 
     return (
         <SlQueryBuilder

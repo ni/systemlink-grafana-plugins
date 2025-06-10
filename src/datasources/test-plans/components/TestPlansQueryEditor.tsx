@@ -8,7 +8,7 @@ import { TestPlansQueryBuilder } from './query-builder/TestPlansQueryBuilder';
 import { recordCountErrorMessages, TAKE_LIMIT } from '../constants/QueryEditor.constants';
 import { Workspace } from 'core/types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
-import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
+import { User } from 'shared/types/QueryUsers.types';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansQuery>;
 
@@ -17,8 +17,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
 
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
-  const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
-  const [products, setProducts] = useState<ProductPartNumberAndName[] | null>(null);
+  const [users, setUsers] = useState<User[] | null>(null);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -28,147 +27,157 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
 
     loadWorkspaces();
 
-    const loadSystemAliases = async () => {
-      const systemAliases = await datasource.systemUtils.getSystemAliases();
-      setSystemAliases(Array.from(systemAliases.values()));
+    const loadUsers = async () => {
+      const users = await datasource.usersUtils.getUsers();
+      setUsers(Array.from(users.values()));
     };
 
-    loadSystemAliases();
-
-    const loadProducts = async () => {
-      const products = await datasource.productUtils.getProducts();
-      setProducts(Array.from(products.values()));
-    };
-
-    loadProducts();
+    loadUsers();
   }, [datasource]);
 
-  const handleQueryChange = useCallback(
-    (query: TestPlansQuery, runQuery = true): void => {
-      onChange(query);
-      if (runQuery) {
-        onRunQuery();
-      }
-    }, [onChange, onRunQuery]
-  );
+  const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
 
-  const onOutputTypeChange = (value: OutputType) => {
-    handleQueryChange({ ...query, outputType: value });
+  const loadSystemAliases = async () => {
+    const systemAliases = await datasource.systemUtils.getSystemAliases();
+    setSystemAliases(Array.from(systemAliases.values()));
   };
 
-  const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
-    if (items !== undefined) {
-      handleQueryChange({ ...query, properties: items.map(i => i.value as Properties) });
+  loadSystemAliases();
+
+  const loadProducts = async () => {
+    const products = await datasource.productUtils.getProducts();
+    setProducts(Array.from(products.values()));
+  };
+
+  loadProducts();
+}, [datasource]);
+
+const handleQueryChange = useCallback(
+  (query: TestPlansQuery, runQuery = true): void => {
+    onChange(query);
+    if (runQuery) {
+      onRunQuery();
     }
-  };
+  }, [onChange, onRunQuery]
+);
 
-  const onOrderByChange = (item: SelectableValue<string>) => {
-    handleQueryChange({ ...query, orderBy: item.value });
-  };
+const onOutputTypeChange = (value: OutputType) => {
+  handleQueryChange({ ...query, outputType: value });
+};
 
-  const onDescendingChange = (isDescendingChecked: boolean) => {
-    handleQueryChange({ ...query, descending: isDescendingChecked });
-  };
+const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
+  if (items !== undefined) {
+    handleQueryChange({ ...query, properties: items.map(i => i.value as Properties) });
+  }
+};
 
-  const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
-    const value = parseInt((event.target as HTMLInputElement).value, 10);
-    if (isNaN(value) || value < 0) {
-      setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
-    } else if (value > TAKE_LIMIT) {
-      setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTenThousand);
-    } else {
-      setRecordCountInvalidMessage('');
-      handleQueryChange({ ...query, recordCount: value });
-    }
-  };
+const onOrderByChange = (item: SelectableValue<string>) => {
+  handleQueryChange({ ...query, orderBy: item.value });
+};
 
-  const onQueryByChange = (queryBy: string) => {
-    if (query.queryBy !== queryBy) {
-      query.queryBy = queryBy;
-      handleQueryChange({ ...query, queryBy });
-    }
-  };
+const onDescendingChange = (isDescendingChecked: boolean) => {
+  handleQueryChange({ ...query, descending: isDescendingChecked });
+};
 
-  return (
-    <>
-      <VerticalGroup>
-        <InlineField label="Output" labelWidth={25} tooltip={tooltips.outputType}>
-          <RadioButtonGroup
-            options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
-            onChange={onOutputTypeChange}
-            value={query.outputType}
+const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
+  const value = parseInt((event.target as HTMLInputElement).value, 10);
+  if (isNaN(value) || value < 0) {
+    setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
+  } else if (value > TAKE_LIMIT) {
+    setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTenThousand);
+  } else {
+    setRecordCountInvalidMessage('');
+    handleQueryChange({ ...query, recordCount: value });
+  }
+};
+
+const onQueryByChange = (queryBy: string) => {
+  if (query.queryBy !== queryBy) {
+    query.queryBy = queryBy;
+    handleQueryChange({ ...query, queryBy });
+  }
+};
+
+return (
+  <>
+    <VerticalGroup>
+      <InlineField label="Output" labelWidth={25} tooltip={tooltips.outputType}>
+        <RadioButtonGroup
+          options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
+          onChange={onOutputTypeChange}
+          value={query.outputType}
+        />
+      </InlineField>
+      {query.outputType === OutputType.Properties && (
+        <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
+          <MultiSelect
+            placeholder="Select the properties to query"
+            options={Object.entries(PropertiesProjectionMap).map(([key, value]) => ({ label: value.label, value: key })) as SelectableValue[]}
+            onChange={onPropertiesChange}
+            value={query.properties}
+            defaultValue={query.properties}
+            noMultiValueWrap={true}
+            maxVisibleValues={5}
+            width={60}
+            allowCustomValue={false}
+            closeMenuOnSelect={false}
           />
         </InlineField>
+      )}
+      <HorizontalGroup align="flex-start">
+        <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
+          <TestPlansQueryBuilder
+            filter={query.queryBy}
+            workspaces={workspaces}
+            systemAliases={systemAliases}
+            users={users}
+            globalVariableOptions={datasource.globalVariableOptions()}
+            onChange={(event: any) => onQueryByChange(event.detail.linq)}
+          ></TestPlansQueryBuilder>
+        </InlineField>
         {query.outputType === OutputType.Properties && (
-          <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
-            <MultiSelect
-              placeholder="Select the properties to query"
-              options={Object.entries(PropertiesProjectionMap).map(([key, value]) => ({ label: value.label, value: key })) as SelectableValue[]}
-              onChange={onPropertiesChange}
-              value={query.properties}
-              defaultValue={query.properties}
-              noMultiValueWrap={true}
-              maxVisibleValues={5}
-              width={60}
-              allowCustomValue={false}
-              closeMenuOnSelect={false}
-            />
-          </InlineField>
-        )}
-        <HorizontalGroup align="flex-start">
-          <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
-            <TestPlansQueryBuilder
-              filter={query.queryBy}
-              workspaces={workspaces}
-              systemAliases={systemAliases}
-              products={products}
-              globalVariableOptions={datasource.globalVariableOptions()}
-              onChange={(event: any) => onQueryByChange(event.detail.linq)}
-            ></TestPlansQueryBuilder>
-          </InlineField>
-          {query.outputType === OutputType.Properties && (
-            <VerticalGroup>
-              <div>
-                <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
-                  <Select
-                    options={[...OrderBy] as SelectableValue[]}
-                    placeholder="Select a field to set the query order"
-                    onChange={onOrderByChange}
-                    value={query.orderBy}
-                    defaultValue={query.orderBy}
-                    width={26}
-                  />
-                </InlineField>
-                <InlineField label="Descending" labelWidth={18} tooltip={tooltips.descending}>
-                  <InlineSwitch
-                    onChange={event => onDescendingChange(event.currentTarget.checked)}
-                    value={query.descending}
-                  />
-                </InlineField>
-              </div>
-              <InlineField
-                label="Take"
-                labelWidth={18}
-                tooltip={tooltips.recordCount}
-                invalid={!!recordCountInvalidMessage}
-                error={recordCountInvalidMessage}
-              >
-                <AutoSizeInput
-                  minWidth={26}
-                  maxWidth={26}
-                  type='number'
-                  defaultValue={query.recordCount}
-                  onCommitChange={recordCountChange}
-                  placeholder="Enter record count"
-                  onKeyDown={(event) => { validateNumericInput(event) }}
+          <VerticalGroup>
+            <div>
+              <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
+                <Select
+                  options={[...OrderBy] as SelectableValue[]}
+                  placeholder="Select a field to set the query order"
+                  onChange={onOrderByChange}
+                  value={query.orderBy}
+                  defaultValue={query.orderBy}
+                  width={26}
                 />
               </InlineField>
-            </VerticalGroup>
-          )}
-        </HorizontalGroup >
-      </VerticalGroup>
-    </>
-  );
+              <InlineField label="Descending" labelWidth={18} tooltip={tooltips.descending}>
+                <InlineSwitch
+                  onChange={event => onDescendingChange(event.currentTarget.checked)}
+                  value={query.descending}
+                />
+              </InlineField>
+            </div>
+            <InlineField
+              label="Take"
+              labelWidth={18}
+              tooltip={tooltips.recordCount}
+              invalid={!!recordCountInvalidMessage}
+              error={recordCountInvalidMessage}
+            >
+              <AutoSizeInput
+                minWidth={26}
+                maxWidth={26}
+                type='number'
+                defaultValue={query.recordCount}
+                onCommitChange={recordCountChange}
+                placeholder="Enter record count"
+                onKeyDown={(event) => { validateNumericInput(event) }}
+              />
+            </InlineField>
+          </VerticalGroup>
+        )}
+      </HorizontalGroup >
+    </VerticalGroup>
+  </>
+);
 }
 
 const tooltips = {
