@@ -29,12 +29,19 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   defaultQuery = defaultStepsQuery;
 
   private stepsPath: string[] = [];
+  private resultId: string[] = [];
   private previousResultsQuery: string | undefined;
+  private previousPartNumberQuery: string[] = [];
 
   private stepsPathChangeCallback?: () => void;
+  private resultIdChangeCallback?: () => void;
 
   setStepsPathChangeCallback(callback: () => void) {
     this.stepsPathChangeCallback = callback;
+  }
+
+  setResultIdChangeCallback(callback: () => void) {
+    this.resultIdChangeCallback = callback;
   }
 
   async querySteps(
@@ -184,6 +191,12 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       };
     }
     query.resultsQuery = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.resultsQuery);
+
+    if (this.previousPartNumberQuery !== query.partNumberQuery) {
+      this.resultId = await this.loadResultIds(this.buildPartNumbersQuery(options.scopedVars, query.partNumberQuery));
+      this.resultIdChangeCallback?.();
+    }
+    this.previousPartNumberQuery = query.partNumberQuery;
     
     if(this.previousResultsQuery !== query.resultsQuery) {
       this.stepsPath = await this.getStepPathsLookupValues(options.scopedVars, query.partNumberQuery, query.resultsQuery)
@@ -288,6 +301,13 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   getStepPaths(): string[] {
     if (this.stepsPath?.length > 0) {
       return this.flattenAndDeduplicate(this.stepsPath);
+    }
+    return [];
+  }
+
+  getResultIds(): string[] {
+    if (this.resultId?.length > 0) {
+      return this.resultId;
     }
     return [];
   }

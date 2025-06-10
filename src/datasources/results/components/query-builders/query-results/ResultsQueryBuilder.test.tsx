@@ -10,9 +10,10 @@ describe('ResultsQueryBuilder', () => {
     const containerClass = 'smart-filter-group-condition-container';
     const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
     const status = ['PASSED', 'FAILED'];
+    const resultIds = ['result1', 'result2'];
 
     function renderElement(workspaces: Workspace[] | null, status: string[], filter: string, globalVariableOptions: QueryBuilderOption[] = []) {
-      reactNode = React.createElement(ResultsQueryBuilder, { filter, workspaces, status, globalVariableOptions, onChange: jest.fn(), });
+      reactNode = React.createElement(ResultsQueryBuilder, { filter, workspaces, resultIds, status, globalVariableOptions, onChange: jest.fn(), });
       const renderResult = render(reactNode);
       return {
         renderResult,

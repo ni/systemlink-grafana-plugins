@@ -12,6 +12,9 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   queryResultsUrl = this.baseUrl + '/v2/query-results';
 
   defaultQuery = defaultResultsQuery;
+  resultId: string[] = [];
+  resultIdChangeCallback?: () => void;
+  previousPartNumberQuery: string[] | undefined = [];
 
   async queryResults(
     filter?: string,
@@ -52,6 +55,13 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   async runQuery(query: QueryResults, options: DataQueryRequest): Promise<DataFrameDTO> {
     query.queryBy = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.queryBy);
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
+
+    if (this.previousPartNumberQuery !== query.partNumberQuery) {
+      this.resultId = await this.loadResultIds(this.buildPartNumbersQuery(options.scopedVars, query.partNumberQuery || []));
+      this.resultIdChangeCallback?.();
+    }
+    this.previousPartNumberQuery = query.partNumberQuery;
+
 
     const responseData = await this.queryResults(
       this.buildQueryFilter(query.queryBy, useTimeRangeFilter),
@@ -99,11 +109,29 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     }
   }
 
+  getResultIds(): string[] {
+    if (this.resultId?.length > 0) {
+      return this.resultId;
+    }
+    return [];
+  }
+
+  setResultIdChangeCallback(callback: () => void) {
+    this.resultIdChangeCallback = callback;
+  }
+
+  private buildPartNumbersQuery(scopedVars: ScopedVars, partNumberQuery: string[]): string {
+    const partNumberFilter = partNumberQuery.length > 0
+      ? `(${this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery)})`
+      : '';
+    return transformComputedFieldsQuery(
+      this.templateSrv.replace(partNumberFilter, scopedVars),
+      this.resultsComputedDataFields
+    );
+  }
+
   private buildResultsQuery( scopedVars: ScopedVars, partNumberQuery?: string[], resultsQuery?: string): string | undefined {
-    const partNumberFilter =
-      partNumberQuery && partNumberQuery.length > 0
-        ? `(${this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery)})`
-        : '';
+    const partNumberFilter = this.buildPartNumbersQuery(scopedVars, partNumberQuery || []);
 
     const combinedQuery = this.buildQueryFilter(partNumberFilter, resultsQuery);
 

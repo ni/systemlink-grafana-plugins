@@ -172,6 +172,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
                   filter={queryResultsquery.queryBy}
                   onChange={(event: any) => onQueryByChange(event.detail.linq)}
                   workspaces={workspaces}
+                  resultIds={queryResultsDataSource.current.getResultIds()}
                   status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
                   globalVariableOptions={queryResultsDataSource.current.globalVariableOptions()}
                 ></ResultsQueryBuilder>

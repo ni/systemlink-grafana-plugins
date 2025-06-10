@@ -37,8 +37,10 @@ export const StepsQueryBuilderWrapper = (
       setWorkspaces(Array.from(workspaces.values()));
     };
     const loadResultIds = async () => {
-      const resultIds = await datasource.resultIdsCache;
-      setResultIds(Array.from(resultIds.values()));
+      setResultIds(datasource.getResultIds());
+      datasource.setResultIdChangeCallback(() => {
+        setResultIds(datasource.getResultIds());
+      });
     }
     const loadStepsPath = () => {
       setStepsPath(datasource.getStepPaths());
