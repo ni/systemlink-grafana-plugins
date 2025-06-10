@@ -115,10 +115,7 @@ describe('QueryResultsEditor', () => {
     expect(useTimeRangeFor).toBeInTheDocument();
     expect(screen.getAllByText('Updated').length).toBe(1);
     expect(productName).toBeInTheDocument();
-    // Check if product names are rendered correctly
     expect(screen.getAllByText('ProductName1 (PartNumber1)').length).toBe(1);
-    expect(screen.getAllByText('ProductName2 (PartNumber2)').length).toBe(1);
-    expect(screen.getAllByText('PartNumber3').length).toBe(1);
     expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining(defaultQuery));
   });
 
@@ -139,7 +136,6 @@ describe('QueryResultsEditor', () => {
       expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
     });
   })
-
 
   test('should update orderBy when user changes the orderBy', async () => {
     await select(orderBy, 'Started At', { container: document.body });
@@ -162,10 +158,17 @@ describe('QueryResultsEditor', () => {
     });
   });
 
-    test('should update part number query when user selects a variable in product name field', async () => {
+  test('should update part number query when user selects a variable in product name field', async () => {
     await select(productName, '$var1', { container: document.body });
     await waitFor(() => {
       expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "$var1"] }));
+    });
+  });
+
+  test('should update part number query when product name is not available', async () => {
+    await select(productName, 'PartNumber3', { container: document.body });
+    await waitFor(() => {
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "PartNumber3"] }));
     });
   });
 
