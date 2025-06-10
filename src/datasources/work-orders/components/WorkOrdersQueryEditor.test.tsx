@@ -19,7 +19,15 @@ const mockDatasource = {
             ['2', { id: '2', name: 'AnotherWorkspaceName' }],
         ])
     )
-}
+  },
+  usersUtils: {
+    getUsers: jest.fn().mockResolvedValue(
+      new Map([
+        ['1', { id: '1', firstName: 'User', lastName: '1' }],
+        ['2', { id: '2', firstName: 'User', lastName: '2' }],
+      ])
+    ),
+  },
 } as unknown as WorkOrdersDataSource;
 
 const defaultProps: QueryEditorProps<WorkOrdersDataSource, WorkOrdersQuery> = {
@@ -208,6 +216,19 @@ describe('WorkOrdersQueryEditor', () => {
             ['1', { id: '1', name: 'WorkspaceName' }],
             ['2', { id: '2', name: 'AnotherWorkspaceName' }],
         ])
+    );
+  });
+
+  it('should load users and set them in state', async () => {
+    await renderElement();
+
+    const users = await mockDatasource.usersUtils.getUsers();
+    expect(users).toBeDefined();
+    expect(users).toEqual(
+      new Map([
+        ['1', { id: '1', firstName: 'User', lastName: '1' }],
+        ['2', { id: '2', firstName: 'User', lastName: '2' }],
+      ])
     );
   });
 

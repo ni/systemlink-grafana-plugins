@@ -7,14 +7,15 @@ import { WorkOrdersQueryBuilder } from './query-builder/WorkOrdersQueryBuilder';
 import { TAKE_LIMIT, takeErrorMessages, tooltips } from '../constants/QueryEditor.constants';
 import { validateNumericInput } from 'core/utils';
 import { Workspace } from 'core/types';
+import { User } from 'shared/types/QueryUsers.types';
 
 type Props = QueryEditorProps<WorkOrdersDataSource, WorkOrdersVariableQuery>;
 
 export function WorkOrdersVariableQueryEditor({ query, onChange, datasource }: Props) {
   query = datasource.prepareQuery(query);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
-  const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
 
+  const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   useEffect(() => {
     const loadWorkspaces = async () => {
       const workspaces = await datasource.workspaceUtils.getWorkspaces();
@@ -22,6 +23,16 @@ export function WorkOrdersVariableQueryEditor({ query, onChange, datasource }: P
     };
 
     loadWorkspaces();
+  }, [datasource]);
+
+  const [users, setUsers] = useState<User[] | null>(null);
+  useEffect(() => {
+    const loadUsers = async () => {
+      const users = await datasource.usersUtils.getUsers();
+      setUsers(Array.from(users.values()));
+    };
+
+    loadUsers();
   }, [datasource]);
 
   const handleQueryChange = useCallback(
@@ -67,6 +78,7 @@ export function WorkOrdersVariableQueryEditor({ query, onChange, datasource }: P
         <WorkOrdersQueryBuilder
           filter={query.queryBy}
           workspaces={workspaces}
+          users={users}
           globalVariableOptions={datasource.globalVariableOptions()}
           onChange={(event: any) => onQueryByChange(event.detail.linq)}
         ></WorkOrdersQueryBuilder>

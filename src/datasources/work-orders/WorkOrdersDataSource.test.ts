@@ -2,7 +2,7 @@ import { BackendSrv } from '@grafana/runtime';
 import { MockProxy } from 'jest-mock-extended';
 import { setupDataSource, requestMatching, createFetchResponse, createFetchError } from 'test/fixtures';
 import { WorkOrdersDataSource } from './WorkOrdersDataSource';
-import { OrderByOptions, OutputType, State, Type, WorkOrderPropertiesOptions, WorkOrdersVariableQuery } from './types';
+import { OrderByOptions, OutputType, State, Type, WorkOrder, WorkOrderPropertiesOptions, WorkOrdersVariableQuery } from './types';
 import { DataQueryRequest, Field, LegacyMetricFindQueryOptions } from '@grafana/data';
 import { QUERY_WORK_ORDERS_MAX_TAKE, QUERY_WORK_ORDERS_REQUEST_PER_SECOND } from './constants/QueryWorkOrders.constants';
 import { queryInBatches } from 'core/utils';
@@ -34,6 +34,7 @@ const mockWorkOrders = {
   continuationToken: '',
   totalCount: 2,
 };
+
 jest.mock('core/utils', () => ({
   queryInBatches: jest.fn(() => {
     return Promise.resolve({
@@ -66,6 +67,37 @@ describe('WorkOrdersDataSource', () => {
       .mockReturnValue(createFetchResponse(mockWorkOrders));
 
     jest.spyOn(datastore, 'queryWorkordersData');
+
+    const mockUsers = [
+      {
+        id: '1',
+        firstName: 'User',
+        lastName: '1',
+        email: 'user1@123.com',
+        properties: {},
+        keywords: [],
+        created: '',
+        updated: '',
+        orgId: '',
+      },
+      {
+        id: '2',
+        firstName: 'User',
+        lastName: '2',
+        email: 'user2@123.com',
+        properties: {},
+        keywords: [],
+        created: '',
+        updated: '',
+        orgId: '',
+      }
+    ];
+    jest.spyOn(datastore.usersUtils, 'getUsers').mockResolvedValue(
+      new Map([
+        ['1', mockUsers[0]],
+        ['2', mockUsers[1]]
+      ])
+    );
   });
 
   describe('runQuery', () => {
@@ -123,6 +155,102 @@ describe('WorkOrdersDataSource', () => {
 
       const fields = response.fields as Field[];
       expect(fields).toMatchSnapshot();
+    });
+    
+    it('should convert user Ids to user names for assigned to field', async () => {
+      const query = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+        properties: [WorkOrderPropertiesOptions.ASSIGNED_TO],
+        orderBy: OrderByOptions.UPDATED_AT,
+        recordCount: 10,
+        descending: true,
+      };
+
+      const workOrdersResponse = [
+        { id: '1', assignedTo: '0' },
+        { id: '2', assignedTo: '2' },
+      ];
+
+      jest.spyOn(datastore, 'queryWorkordersData').mockResolvedValue(workOrdersResponse as WorkOrder[]);
+
+      const result = await datastore.runQuery(query, {} as DataQueryRequest);
+
+      expect(result.fields).toHaveLength(1);
+      expect(result.fields[0].name).toEqual('Assigned to');
+      expect(result.fields[0].values).toEqual(['0', 'User 2']);
+    });
+
+    it('should convert user Ids to user names for created by field', async () => {
+      const query = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+        properties: [WorkOrderPropertiesOptions.CREATED_BY],
+        orderBy: OrderByOptions.UPDATED_AT,
+        recordCount: 10,
+        descending: true,
+      };
+
+      const workOrdersResponse = [
+        { id: '1', createdBy: '2' },
+        { id: '2', createdBy: '3' },
+      ];
+
+      jest.spyOn(datastore, 'queryWorkordersData').mockResolvedValue(workOrdersResponse as WorkOrder[]);
+
+      const result = await datastore.runQuery(query, {} as DataQueryRequest);
+
+      expect(result.fields).toHaveLength(1);
+      expect(result.fields[0].name).toEqual('Created by');
+      expect(result.fields[0].values).toEqual(['User 2', '3']);
+    });
+
+    it('should convert user Ids to user names for requested by field', async () => {
+      const query = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+        properties: [WorkOrderPropertiesOptions.REQUESTED_BY],
+        orderBy: OrderByOptions.UPDATED_AT,
+        recordCount: 10,
+        descending: true,
+      };
+
+      const workOrdersResponse = [
+        { id: '1', requestedBy: '1' },
+        { id: '2', requestedBy: '4' },
+      ];
+
+      jest.spyOn(datastore, 'queryWorkordersData').mockResolvedValue(workOrdersResponse as WorkOrder[]);
+
+      const result = await datastore.runQuery(query, {} as DataQueryRequest);
+
+      expect(result.fields).toHaveLength(1);
+      expect(result.fields[0].name).toEqual('Requested by');
+      expect(result.fields[0].values).toEqual(['User 1', '4']);
+    });
+
+    it('should convert user Ids to user names for updated by field', async () => {
+      const query = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+        properties: [WorkOrderPropertiesOptions.UPDATED_BY],
+        orderBy: OrderByOptions.UPDATED_AT,
+        recordCount: 10,
+        descending: true,
+      };
+
+      const workOrdersResponse = [
+        { id: '1', updatedBy: '4' },
+        { id: '2', updatedBy: '1' },
+      ];
+
+      jest.spyOn(datastore, 'queryWorkordersData').mockResolvedValue(workOrdersResponse as WorkOrder[]);
+
+      const result = await datastore.runQuery(query, {} as DataQueryRequest);
+
+      expect(result.fields).toHaveLength(1);
+      expect(result.fields[0].name).toEqual('Updated by');
+      expect(result.fields[0].values).toEqual(['4', 'User 1']);
     });
 
     it('should convert workspaceIds to workspace names for workspace field', async () => {
