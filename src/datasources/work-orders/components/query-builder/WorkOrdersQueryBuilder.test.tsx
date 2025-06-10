@@ -66,12 +66,11 @@ describe('WorkOrdersQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain(label);
     });
   });
-
   
   it('should select workspace in query builder', () => {
     const { conditionsContainer } = renderElement('workspace = "1"', [workspace]);
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain(workspace.name);
-});
+  });
 });

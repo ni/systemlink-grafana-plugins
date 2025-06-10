@@ -58,10 +58,10 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
     const workspaceOptions = workspaces.map(({ id, name }) => ({ label: name, value: id }));
 
     return addOptionsToLookup(WorkOrdersQueryBuilderFields.WORKSPACE, workspaceOptions);
-}, [workspaces])
+  }, [workspaces]);
 
   useEffect(() => {
-    if (!workspaceField) {
+    if (!workspaceField || !timeFields) {
       return;
     }
 
