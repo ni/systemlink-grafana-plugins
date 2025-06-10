@@ -47,6 +47,7 @@ export enum Properties {
     SUBSTATE = 'SUBSTATE',
     FIXTURE_NAMES = 'FIXTURE_NAMES',
     DUT_ID = 'DUT_ID',
+    DUT_SERIAL_NUMBER = 'DUT_SERIAL_NUMBER',
 };
 
 export enum TimeFields {
@@ -212,6 +213,11 @@ export const PropertiesProjectionMap: Record<Properties, {
         projection: [Projections.DUT_ID],
         field: 'dutId',
     },
+    [Properties.DUT_SERIAL_NUMBER]: {
+        label: 'DUT serial number',
+        projection: [Projections.DUT_ID],
+        field: 'dutId',
+    }
 } as const;
 
 export const OrderBy = [
@@ -275,6 +281,7 @@ export interface QueryAssetNameResponse {
 export interface Asset {
     id: string;
     name: string;
+    serialNumber: string;
 }
 
 export interface QueryTemplatesResponse {
