@@ -22,7 +22,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
   query = datasource.prepareQuery(query);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
 
-  const [users, setUsers] = useState<User[]|null>(null);
+  const [users, setUsers] = useState<User[] | null>(null);
   useEffect(() => {
     const loadUsers = async () => {
       const users = await datasource.usersUtils.getUsers();

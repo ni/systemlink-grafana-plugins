@@ -199,13 +199,13 @@ describe('WorkOrdersQueryEditor', () => {
   it('should load users and set them in state', async () => {
     renderElement();
 
-    const workspaces = await mockDatasource.usersUtils.getUsers();
-    expect(workspaces).toBeDefined();
-    expect(workspaces).toEqual(
-        new Map([
-            ['1', { id: '1', firstName: 'User', lastName: '1' }],
-            ['2', { id: '2', firstName: 'User', lastName: '2' }]
-        ])
+    const users = await mockDatasource.usersUtils.getUsers();
+    expect(users).toBeDefined();
+    expect(users).toEqual(
+      new Map([
+        ['1', { id: '1', firstName: 'User', lastName: '1' }],
+        ['2', { id: '2', firstName: 'User', lastName: '2' }],
+      ])
     );
   });
 

@@ -143,7 +143,6 @@ describe('WorkOrdersDataSource', () => {
       const fields = response.fields as Field[];
       expect(fields).toMatchSnapshot();
     });
-
     
     it('should convert user Ids to user names for assigned to field', async () => {
       const query = {
