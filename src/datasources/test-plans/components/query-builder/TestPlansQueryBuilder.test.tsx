@@ -123,6 +123,38 @@ describe('TestPlansQueryBuilder', () => {
         expect(conditionsContainer.item(0)?.textContent).toContain('value');
     });
 
+    it('should support is blank operation for Estimated end date', () => {
+      const { conditionsContainer } = renderElement('estimatedEndDateTime == null || estimatedEndDateTime == ""', [], [], []);
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain('Estimated end date');
+      expect(conditionsContainer.item(0)?.textContent).toContain('is blank');
+    });
+
+    it('should support is not blank operation for Estimated end date', () => {
+      const { conditionsContainer } = renderElement('estimatedEndDateTime != null && estimatedEndDateTime != ""', [], [], []);
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain('Estimated end date');
+      expect(conditionsContainer.item(0)?.textContent).toContain('is not blank');
+    });
+
+    it('should support is blank operation for Planned start date', () => {
+      const { conditionsContainer } = renderElement('plannedStartDateTime == null || plannedStartDateTime == ""', [], [], []);
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain('Planned start date');
+      expect(conditionsContainer.item(0)?.textContent).toContain('is blank');
+    });
+
+    it('should support is not blank operation for Planned start date', () => {
+        const { conditionsContainer } = renderElement('plannedStartDateTime != null && plannedStartDateTime != ""', [], [], []);
+  
+        expect(conditionsContainer?.length).toBe(1);
+        expect(conditionsContainer.item(0)?.textContent).toContain('Planned start date');
+        expect(conditionsContainer.item(0)?.textContent).toContain('is not blank');
+      });
+
     [['${__from:date}', 'From'], ['${__to:date}', 'To'], ['${__now:date}', 'Now']].forEach(([value, label]) => {
         it(`should select user friendly value for updated date`, () => {
             const { conditionsContainer } = renderElement(`updatedAt > \"${value}\"`, [], [], []);

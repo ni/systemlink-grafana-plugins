@@ -123,12 +123,19 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
       QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO,
       QueryBuilderOperations.IS_BLANK,
       QueryBuilderOperations.IS_NOT_BLANK,
+      QueryBuilderOperations.DATE_TIME_IS_AFTER,
+      QueryBuilderOperations.DATE_TIME_IS_BEFORE,
     ].map(operation => {
       return {
         ...operation,
         ...callbacks,
       };
     });
+
+    const customDateTimeOperations = [
+      QueryBuilderOperations.DATE_TIME_IS_BLANK,
+      QueryBuilderOperations.DATE_TIME_IS_NOT_BLANK
+    ];
 
     const keyValueOperations = [
       QueryBuilderOperations.KEY_VALUE_MATCH,
@@ -137,7 +144,7 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
       QueryBuilderOperations.KEY_VALUE_DOES_NOT_CONTAINS,
     ];
 
-    setOperations([...customOperations, ...keyValueOperations]);
+    setOperations([...customOperations,...customDateTimeOperations, ...keyValueOperations]);
   }, [globalVariableOptions, timeFields, workspaceField, usersField]);
 
   return (
