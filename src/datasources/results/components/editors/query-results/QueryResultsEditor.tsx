@@ -96,6 +96,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
 
   const onParameterChange = (value: string) => {
     if (query.queryBy !== value) {
+      query.queryBy = value;
       handleQueryChange({ ...query, queryBy: value });
     }
   }
