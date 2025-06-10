@@ -271,5 +271,17 @@ describe('QueryResultsEditor', () => {
         expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ queryBy: 'workspace = "Workspace1"' }));
       });
     });
+
+    test('should not update queryBy when filter is not changed', async () => {
+      const initialQueryBy = defaultQuery.queryBy;
+      const triggerChangeButton = screen.getByTestId('trigger-change');
+
+      mockHandleQueryChange.mockClear();
+      await userEvent.click(triggerChangeButton);
+      
+      await waitFor(() => {
+        expect(mockHandleQueryChange).not.toHaveBeenCalledWith(expect.objectContaining({ queryBy: initialQueryBy }));
+      });
+    });
   });
 });
