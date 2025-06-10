@@ -2,13 +2,16 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, 
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { Asset, OrderByOptions, OutputType, Projections, Properties, PropertiesProjectionMap, QueryTemplatesResponse, QueryTestPlansResponse, TemplateResponseProperties, TestPlanResponseProperties, TestPlansQuery, TestPlansVariableQuery } from './types';
-import { getWorkspaceName, queryInBatches } from 'core/utils';
-import { QueryResponse } from 'core/types';
+import { getWorkspaceName, getVariableOptions, queryInBatches } from 'core/utils';
+import { QueryBuilderOption, QueryResponse } from 'core/types';
 import { isTimeField, transformDuration } from './utils';
 import { QUERY_TEMPLATES_BATCH_SIZE, QUERY_TEMPLATES_REQUEST_PER_SECOND, QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
 import { AssetUtils } from './asset.utils';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { SystemUtils } from 'shared/system.utils';
+import { QueryBuilderOperations } from 'core/query-builder.constants';
+import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { UsersUtils } from 'shared/users.utils';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(
@@ -20,6 +23,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     this.assetUtils = new AssetUtils(instanceSettings, backendSrv);
     this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
     this.systemUtils = new SystemUtils(instanceSettings, backendSrv);
+    this.usersUtils = new UsersUtils(instanceSettings, backendSrv);
   }
 
   baseUrl = `${this.instanceSettings.url}/niworkorder/v1`;
@@ -28,6 +32,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   assetUtils: AssetUtils;
   workspaceUtils: WorkspaceUtils;
   systemUtils: SystemUtils;
+  usersUtils: UsersUtils;
 
   defaultQuery = {
     outputType: OutputType.Properties,
@@ -47,9 +52,19 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     recordCount: 1000
   };
 
-  async runQuery(query: TestPlansQuery, { range }: DataQueryRequest): Promise<DataFrameDTO> {
+  readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
+
+  async runQuery(query: TestPlansQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     const workspaces = await this.workspaceUtils.getWorkspaces();
     const systemAliases = await this.systemUtils.getSystemAliases();
+    const users = await this.usersUtils.getUsers();
+
+    if (query.queryBy) {
+      query.queryBy = transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.testPlansComputedDataFields
+      );
+    }
 
     if (query.outputType === OutputType.Properties) {
       const projectionAndFields = query.properties?.map(property => PropertiesProjectionMap[property]);
@@ -57,6 +72,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
       const testPlans = (
         await this.queryTestPlansInBatches(
+          query.queryBy,
           query.orderBy,
           projection,
           query.recordCount,
@@ -67,7 +83,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       if (testPlans.length > 0) {
         const labels = projectionAndFields?.map(data => data.label) ?? [];
         const fixtureNames = await this.getFixtureNames(labels, testPlans);
-        const dutNames = await this.getDutNames(labels, testPlans);
+        const duts = await this.getDuts(labels, testPlans);
         const workOrderIdAndName = this.getWorkOrderIdAndName(labels, testPlans);
         const templatesName = await this.getTemplateNames(labels, testPlans);
 
@@ -87,8 +103,11 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
                 const names = value.map((id: string) => fixtureNames.find(data => data.id === id)?.name);
                 return names ? names.filter((name: string) => name !== '').join(', ') : value;
               case PropertiesProjectionMap.DUT_ID.label:
-                const dut = dutNames.find(data => data.id === value);
-                return dut ? dut.name : value;
+                const dutName = duts.find(data => data.id === value);
+                return dutName ? dutName.name : value;
+              case PropertiesProjectionMap.DUT_SERIAL_NUMBER.label:
+                const dutSerial = duts.find(data => data.id === value);
+                return dutSerial ? dutSerial.serialNumber : value;
               case PropertiesProjectionMap.WORKSPACE.label:
                 const workspace = workspaces.get(value);
                 return workspace ? getWorkspaceName([workspace], value) : value;
@@ -105,6 +124,11 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
               case PropertiesProjectionMap.SYSTEM_NAME.label:
                 const system = systemAliases.get(value);
                 return system ? system.alias : value;
+              case PropertiesProjectionMap.ASSIGNED_TO.label:
+              case PropertiesProjectionMap.CREATED_BY.label:
+              case PropertiesProjectionMap.UPDATED_BY.label:
+                const user = users.get(value);
+                return user ? UsersUtils.getUserFullName(user) : '';
               case PropertiesProjectionMap.PROPERTIES.label:
                 return value == null ? '' : JSON.stringify(value);
               default:
@@ -131,6 +155,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       };
     } else {
       const responseData = await this.queryTestPlans(
+        query.queryBy,
         query.orderBy,
         undefined,
         0,
@@ -162,8 +187,11 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     return [];
   }
 
-  private async getDutNames(labels: string[], testPlans: TestPlanResponseProperties[]): Promise<Asset[]> {
-    if (labels.find(label => label === PropertiesProjectionMap.DUT_ID.label)) {
+  private async getDuts(labels: string[], testPlans: TestPlanResponseProperties[]): Promise<Asset[]> {
+    if (labels.find(label =>
+      label === PropertiesProjectionMap.DUT_ID.label
+      || label === PropertiesProjectionMap.DUT_SERIAL_NUMBER.label
+    )) {
       const dutIds = testPlans
         .map(data => data['dutId'] as string)
         .filter(data => data != null);
@@ -195,7 +223,15 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   async metricFindQuery(query: TestPlansVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    const filter = query.queryBy ?
+      transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.testPlansComputedDataFields
+      )
+      : undefined;
+
     const metadata = (await this.queryTestPlansInBatches(
+      filter,
       query.orderBy,
       [Projections.ID, Projections.NAME],
       query.recordCount,
@@ -204,12 +240,52 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     return metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.id})`, value: frame.id })) : [];
   }
 
+  readonly testPlansComputedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(PropertiesProjectionMap).map(({ field, projection }) => {
+      const fieldName = field;
+      const isTime = isTimeField(projection[0]);
+      return [fieldName, isTime ? this.timeFieldsQuery(fieldName) : this.multipleValuesQuery(fieldName)];
+    })
+  );
+
+  protected multipleValuesQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string, _options?: any) => {
+      const isMultiSelect = this.isMultiSelectValue(value);
+      const valuesArray = this.getMultipleValuesArray(value);
+      const logicalOperator = this.getLogicalOperator(operation);
+
+      return isMultiSelect
+        ? `(${valuesArray.map(val => `${field} ${operation} "${val}"`).join(` ${logicalOperator} `)})`
+        : `${field} ${operation} "${value}"`;
+    };
+  }
+
+  protected timeFieldsQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string): string => {
+      const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
+      return `${field} ${operation} "${formattedValue}"`;
+    };
+  }
+
+  private isMultiSelectValue(value: string): boolean {
+    return value.startsWith('{') && value.endsWith('}');
+  }
+
+  private getMultipleValuesArray(value: string): string[] {
+    return value.replace(/({|})/g, '').split(',');
+  }
+
+  private getLogicalOperator(operation: string): string {
+    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
+  }
+
   async testDatasource(): Promise<TestDataSourceResponse> {
     await this.post(this.queryTestPlansUrl, { take: 1 });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 
   async queryTestPlansInBatches(
+    filter?: string,
     orderBy?: string,
     projection?: Projections[],
     take?: number,
@@ -218,6 +294,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   ): Promise<QueryTestPlansResponse> {
     const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<TestPlanResponseProperties>> => {
       const response = await this.queryTestPlans(
+        filter,
         orderBy,
         projection,
         currentTake,
@@ -248,6 +325,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   async queryTestPlans(
+    filter?: string,
     orderBy?: string,
     projection?: Projections[],
     take?: number,
@@ -257,6 +335,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   ): Promise<QueryTestPlansResponse> {
     try {
       const response = await this.post<QueryTestPlansResponse>(this.queryTestPlansUrl, {
+        filter,
         orderBy,
         descending,
         projection,

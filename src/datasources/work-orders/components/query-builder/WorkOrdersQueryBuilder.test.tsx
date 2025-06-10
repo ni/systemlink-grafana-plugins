@@ -1,4 +1,4 @@
-import { QueryBuilderOption } from 'core/types';
+import { QueryBuilderOption, Workspace } from 'core/types';
 import React, { ReactNode } from 'react';
 import { render } from '@testing-library/react';
 import { WorkOrdersQueryBuilder } from './WorkOrdersQueryBuilder';
@@ -7,6 +7,7 @@ import { User } from 'shared/types/QueryUsers.types';
 describe('WorkOrdersQueryBuilder', () => {
   let reactNode: ReactNode;
   const containerClass = 'smart-filter-group-condition-container';
+  const workspace = { id: '1', name: 'Workspace Name' } as Workspace;
   const mockUsers = [
     {
       id: '1',
@@ -32,8 +33,8 @@ describe('WorkOrdersQueryBuilder', () => {
     }
   ];
 
-  function renderElement(filter: string, users: User[]=[], globalVariableOptions: QueryBuilderOption[] = []) {
-    reactNode = React.createElement(WorkOrdersQueryBuilder, { filter, users, globalVariableOptions, onChange: jest.fn() });
+  function renderElement(filter: string, workspaces: Workspace[] | null = [], users: User[]=[], globalVariableOptions: QueryBuilderOption[] = []) {
+    reactNode = React.createElement(WorkOrdersQueryBuilder, { filter, workspaces, users, globalVariableOptions, onChange: jest.fn() });
     const renderResult = render(reactNode);
     return {
       renderResult,
@@ -66,7 +67,7 @@ describe('WorkOrdersQueryBuilder', () => {
 
   it('should select global variable option', () => {
     const globalVariableOption = { label: 'Global variable', value: '$global_variable' };
-    const { conditionsContainer } = renderElement('state = \"$global_variable\"', [], [globalVariableOption]);
+    const { conditionsContainer } = renderElement('state = \"$global_variable\"', [], [], [globalVariableOption]);
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain(globalVariableOption.label);
@@ -90,31 +91,37 @@ describe('WorkOrdersQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain(label);
     });
   });
+  
+  it('should select workspace in query builder', () => {
+    const { conditionsContainer } = renderElement('workspace = "1"', [workspace]);
 
+    expect(conditionsContainer?.length).toBe(1);
+    expect(conditionsContainer.item(0)?.textContent).toContain(workspace.name);
+  });
   
   it('should select assigned to in query builder', () => {
-    const { conditionsContainer } = renderElement('assignedTo = "1"', mockUsers);
+    const { conditionsContainer } = renderElement('assignedTo = "1"', [],  mockUsers);
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain("User 1");
   });
 
   it('should select created by in query builder', () => {
-    const { conditionsContainer } = renderElement('createdBy = "2"', mockUsers);
+    const { conditionsContainer } = renderElement('createdBy = "2"', [],  mockUsers);
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain("User 2");
   });
 
   it('should select requested by in query builder', () => {
-    const { conditionsContainer } = renderElement('requestedBy = "1"', mockUsers);
+    const { conditionsContainer } = renderElement('requestedBy = "1"', [], mockUsers);
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain("User 1");
   });
 
   it('should select updated by in query builder', () => {
-    const { conditionsContainer } = renderElement('updatedBy = "2"', mockUsers);
+    const { conditionsContainer } = renderElement('updatedBy = "2"', [],  mockUsers);
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain("User 2");

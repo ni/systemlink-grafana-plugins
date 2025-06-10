@@ -1,4 +1,4 @@
-import { render, RenderResult, screen, waitFor } from '@testing-library/react';
+import { act, render, RenderResult, screen, waitFor } from '@testing-library/react';
 import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
 import { WorkOrdersVariableQuery } from '../types';
 import { QueryEditorProps } from '@grafana/data';
@@ -12,6 +12,14 @@ const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: WorkOrdersVariableQuery) => query),
   globalVariableOptions: jest.fn(() => []),
+  workspaceUtils: {
+    getWorkspaces: jest.fn().mockResolvedValue(
+        new Map([
+            ['1', { id: '1', name: 'WorkspaceName' }],
+            ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+        ])
+    )
+  },
   usersUtils: {
     getUsers: jest.fn().mockResolvedValue(
       new Map([
@@ -33,14 +41,16 @@ const defaultProps: QueryEditorProps<WorkOrdersDataSource, WorkOrdersVariableQue
 
 describe('WorkOrdersVariableQueryEditor', () => {
   let container: RenderResult;
-  beforeEach(() => {
+  beforeEach(async() => {
     jest.clearAllMocks();
-    container = renderElement();
+    container = await renderElement();
   });
 
-  function renderElement(query: WorkOrdersVariableQuery = { refId: 'A' }) {
-    const reactNode = React.createElement(WorkOrdersVariableQueryEditor, { ...defaultProps, query });
-    return render(reactNode);
+  async function renderElement(query: WorkOrdersVariableQuery = { refId: 'A' }) {
+    return await act(async () => {
+      const reactNode = React.createElement(WorkOrdersVariableQueryEditor, { ...defaultProps, query });
+      return render(reactNode);
+    });
   }
 
   it('renders the query builder', async () => {
@@ -90,6 +100,19 @@ describe('WorkOrdersVariableQueryEditor', () => {
     await waitFor(() => {
       expect(recordCountInput).toHaveValue(500);
     });
+  });
+
+  it('should load workspaces and set them in state', async () => {
+    await renderElement();
+
+    const workspaces = await mockDatasource.workspaceUtils.getWorkspaces();
+    expect(workspaces).toBeDefined();
+    expect(workspaces).toEqual(
+        new Map([
+            ['1', { id: '1', name: 'WorkspaceName' }],
+            ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+        ])
+    );
   });
 
   it('should load users and set them in state', async () => {

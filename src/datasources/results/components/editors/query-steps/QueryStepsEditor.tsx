@@ -99,12 +99,14 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
 
   const onResultsFilterChange = (resultsQuery: string) => {
     if (query.resultsQuery !== resultsQuery) {
+      query.resultsQuery = resultsQuery;
       handleQueryChange({ ...query, resultsQuery: resultsQuery });
     }
   };
 
   const onStepsFilterChange = (stepsQuery: string) => {
     if (query.stepsQuery !== stepsQuery) {
+      query.stepsQuery = stepsQuery;
       handleQueryChange({ ...query, stepsQuery: stepsQuery });
     }
   };

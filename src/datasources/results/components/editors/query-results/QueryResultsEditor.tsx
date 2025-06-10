@@ -46,7 +46,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
     const loadProductNameOptions = async () => {
       const response = await datasource.productCache;
       const productOptions = response.products.map(product => ({
-        label: `${product.name} (${product.partNumber})`,
+        label: product.name ? `${product.name} (${product.partNumber})`: product.partNumber,
         value: product.partNumber,
       }));
       setProductNameOptions([...datasource.globalVariableOptions(), ...productOptions]);
@@ -96,6 +96,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
 
   const onParameterChange = (value: string) => {
     if (query.queryBy !== value) {
+      query.queryBy = value;
       handleQueryChange({ ...query, queryBy: value });
     }
   }

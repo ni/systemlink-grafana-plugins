@@ -103,7 +103,7 @@ exports[`WorkOrdersDataSource runQuery processes work orders query when outputTy
     "name": "Workspace",
     "type": "string",
     "values": [
-      "Workspace1",
+      "Workspace Name",
     ],
   },
 ]

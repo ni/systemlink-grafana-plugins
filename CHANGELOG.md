@@ -1,3 +1,28 @@
+## [3.122.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.121.0...v3.122.0) (2025-06-10)
+
+### Features
+
+* **results:** Handle null values for product names ([#262](https://github.com/ni/systemlink-grafana-plugins/issues/262)) ([a397fc3](https://github.com/ni/systemlink-grafana-plugins/commit/a397fc37e115b2dfead0ffe12a586425921784df))
+
+## [3.121.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.120.0...v3.121.0) (2025-06-10)
+
+### Features
+
+* **results:** prevent duplicate API call  ([#259](https://github.com/ni/systemlink-grafana-plugins/issues/259)) ([373da70](https://github.com/ni/systemlink-grafana-plugins/commit/373da70efa07aa8bc0e903b27e6b51bfbc1c62b1))
+
+## [3.120.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.119.0...v3.120.0) (2025-06-10)
+
+### Features
+
+* **test-plans:** Add users lookup and map users in test plans data source & query builder ([#257](https://github.com/ni/systemlink-grafana-plugins/issues/257)) ([4eb5e3e](https://github.com/ni/systemlink-grafana-plugins/commit/4eb5e3e8756e5a7efaba1b2f813ffc0077f91033))
+* **test-plans:** Show Dut serial number in the properties ([#258](https://github.com/ni/systemlink-grafana-plugins/issues/258)) ([8934fe5](https://github.com/ni/systemlink-grafana-plugins/commit/8934fe5faec9350d293e787745c8de92c2410bb0))
+
+## [3.119.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.118.0...v3.119.0) (2025-06-09)
+
+### Features
+
+* **testplans:** Add support for time fields & global variables ([#250](https://github.com/ni/systemlink-grafana-plugins/issues/250)) ([2294f1a](https://github.com/ni/systemlink-grafana-plugins/commit/2294f1a3a3aead8bc0245bfea8be0435388e9a45))
+
 ## [3.118.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.117.1...v3.118.0) (2025-06-09)
 
 ### Features

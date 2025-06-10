@@ -42,6 +42,7 @@ const mockProducts = {
   products: [
     { partNumber: 'PartNumber1', name: 'ProductName1' },
     { partNumber: 'PartNumber2', name: 'ProductName2' },
+    { partNumber: 'PartNumber3', name: null },
   ],
 };
 
@@ -136,7 +137,6 @@ describe('QueryResultsEditor', () => {
     });
   })
 
-
   test('should update orderBy when user changes the orderBy', async () => {
     await select(orderBy, 'Started At', { container: document.body });
     await waitFor(() => {
@@ -158,10 +158,17 @@ describe('QueryResultsEditor', () => {
     });
   });
 
-    test('should update part number query when user selects a variable in product name field', async () => {
+  test('should update part number query when user selects a variable in product name field', async () => {
     await select(productName, '$var1', { container: document.body });
     await waitFor(() => {
       expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "$var1"] }));
+    });
+  });
+
+  test('should update part number query when product name is not available', async () => {
+    await select(productName, 'PartNumber3', { container: document.body });
+    await waitFor(() => {
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "PartNumber3"] }));
     });
   });
 
@@ -269,6 +276,18 @@ describe('QueryResultsEditor', () => {
       await userEvent.click(triggerChangeButton);
       await waitFor(() => {
         expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ queryBy: 'workspace = "Workspace1"' }));
+      });
+    });
+
+    test('should not update queryBy when filter is not changed', async () => {
+      const initialQueryBy = defaultQuery.queryBy;
+      const triggerChangeButton = screen.getByTestId('trigger-change');
+
+      mockHandleQueryChange.mockClear();
+      await userEvent.click(triggerChangeButton);
+      
+      await waitFor(() => {
+        expect(mockHandleQueryChange).not.toHaveBeenCalledWith(expect.objectContaining({ queryBy: initialQueryBy }));
       });
     });
   });

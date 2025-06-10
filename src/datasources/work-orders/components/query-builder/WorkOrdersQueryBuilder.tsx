@@ -1,7 +1,7 @@
 import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
-import { QBField, QueryBuilderOption } from 'core/types';
+import { QBField, QueryBuilderOption, Workspace } from 'core/types';
 import { filterXSSField } from 'core/utils';
 import { WorkOrdersQueryBuilderFields, WorkOrdersQueryBuilderStaticFields } from 'datasources/work-orders/constants/WorkOrdersQueryBuilder.constants';
 import React, { useState, useEffect, useMemo } from 'react';
@@ -11,12 +11,14 @@ import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcompone
 
 type WorkOrdersQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
   filter?: string;
+  workspaces: Workspace[] | null;
   users: User[] | null;
   globalVariableOptions: QueryBuilderOption[];
 };
 
 export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
   filter,
+  workspaces,
   users,
   onChange,
   globalVariableOptions,
@@ -53,6 +55,15 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
     ];
   }, []);
 
+  const workspaceField = useMemo(() => {
+    if (!workspaces) {
+        return null;
+    }
+    const workspaceOptions = workspaces.map(({ id, name }) => ({ label: name, value: id }));
+
+    return addOptionsToLookup(WorkOrdersQueryBuilderFields.WORKSPACE, workspaceOptions);
+  }, [workspaces]);
+
   const usersField = useMemo(() => {
     if (!users) {
       return;
@@ -68,11 +79,11 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
   }, [users]);
 
   useEffect(() => {
-    if (!usersField) {
+    if (!workspaceField || !timeFields || !usersField) {
       return;
     }
 
-    const updatedFields = [...WorkOrdersQueryBuilderStaticFields, ...timeFields, ...usersField].map(field => {
+    const updatedFields = [...WorkOrdersQueryBuilderStaticFields, ...timeFields, workspaceField, ...usersField].map(field => {
       if (field.lookup?.dataSource) {
         return {
           ...field,
@@ -127,7 +138,7 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
     ];
 
     setOperations([...customOperations, ...keyValueOperations]);
-  }, [globalVariableOptions, timeFields, usersField]);
+  }, [globalVariableOptions, timeFields, workspaceField, usersField]);
 
   return (
     <SlQueryBuilder

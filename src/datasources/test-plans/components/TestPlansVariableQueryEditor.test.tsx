@@ -11,6 +11,7 @@ const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: TestPlansVariableQuery) => query),
+  globalVariableOptions: jest.fn(() => []),
   workspaceUtils: {
     getWorkspaces: jest.fn().mockResolvedValue(
       new Map([
@@ -24,6 +25,14 @@ const mockDatasource = {
       new Map([
         ['1', { id: '1', alias: 'System 1' }],
         ['2', { id: '2', alias: 'System 2' }],
+      ])
+    ),
+  },
+  usersUtils: {
+    getUsers: jest.fn().mockResolvedValue(
+      new Map([
+        ['1', { id: '1', firstName: 'User', lastName: '1' }],
+        ['2', { id: '2', firstName: 'User', lastName: '2' }],
       ])
     ),
   }
@@ -112,6 +121,19 @@ describe('TestPlansVariableQueryEditor', () => {
       new Map([
         ['1', { id: '1', alias: 'System 1' }],
         ['2', { id: '2', alias: 'System 2' }],
+      ])
+    );
+  });
+
+  it('should load users', async () => {
+    renderElement();
+
+    const users = await mockDatasource.usersUtils.getUsers();
+    expect(users).toBeDefined();
+    expect(users).toEqual(
+      new Map([
+        ['1', { id: '1', firstName: 'User', lastName: '1' }],
+        ['2', { id: '2', firstName: 'User', lastName: '2' }]
       ])
     );
   });

@@ -8,6 +8,7 @@ import { TestPlansQueryBuilder } from './query-builder/TestPlansQueryBuilder';
 import { recordCountErrorMessages, TAKE_LIMIT } from '../constants/QueryEditor.constants';
 import { Workspace } from 'core/types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
+import { User } from 'shared/types/QueryUsers.types';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansVariableQuery>;
 
@@ -17,6 +18,7 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
 
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
+  const [users, setUsers] = useState<User[] | null>(null);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -32,6 +34,13 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
     };
 
     loadSystemAliases();
+
+    const loadUsers = async () => {
+      const users = await datasource.usersUtils.getUsers();
+      setUsers(Array.from(users.values()));
+    };
+
+    loadUsers();
   }, [datasource]);
 
   const handleQueryChange = useCallback(
@@ -74,7 +83,8 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
           filter={query.queryBy}
           workspaces={workspaces}
           systemAliases={systemAliases}
-          globalVariableOptions={[]}
+          users={users}
+          globalVariableOptions={datasource.globalVariableOptions()}
           onChange={(event: any) => onQueryByChange(event.detail.linq)}
         ></TestPlansQueryBuilder>
       </InlineField>

@@ -14,6 +14,7 @@ import {
 import './WorkOrdersQueryEditor.scss';
 import { TAKE_LIMIT, takeErrorMessages, tooltips } from '../constants/QueryEditor.constants';
 import { validateNumericInput } from 'core/utils';
+import { Workspace } from 'core/types';
 import { User } from 'shared/types/QueryUsers.types';
 
 type Props = QueryEditorProps<WorkOrdersDataSource, WorkOrdersQuery>;
@@ -21,6 +22,17 @@ type Props = QueryEditorProps<WorkOrdersDataSource, WorkOrdersQuery>;
 export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
+
+  const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
+  useEffect(() => {
+    const loadWorkspaces = async () => {
+      const workspaces = await datasource.workspaceUtils.getWorkspaces();
+      setWorkspaces(Array.from(workspaces.values()));
+    };
+
+    loadWorkspaces();
+  }, [datasource]);
+
 
   const [users, setUsers] = useState<User[] | null>(null);
   useEffect(() => {
@@ -122,7 +134,8 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
           <div className="workorders-horizontal-control-group">
         <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
             <WorkOrdersQueryBuilder
-              filter={query.queryBy} 
+              filter={query.queryBy}
+              workspaces={workspaces} 
               users={users}
               globalVariableOptions={datasource.globalVariableOptions()}
               onChange={(event: any) => onQueryByChange(event.detail.linq)}
