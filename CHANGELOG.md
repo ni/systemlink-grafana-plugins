@@ -1,3 +1,10 @@
+## [3.120.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.119.0...v3.120.0) (2025-06-10)
+
+### Features
+
+* **test-plans:** Add users lookup and map users in test plans data source & query builder ([#257](https://github.com/ni/systemlink-grafana-plugins/issues/257)) ([4eb5e3e](https://github.com/ni/systemlink-grafana-plugins/commit/4eb5e3e8756e5a7efaba1b2f813ffc0077f91033))
+* **test-plans:** Show Dut serial number in the properties ([#258](https://github.com/ni/systemlink-grafana-plugins/issues/258)) ([8934fe5](https://github.com/ni/systemlink-grafana-plugins/commit/8934fe5faec9350d293e787745c8de92c2410bb0))
+
 ## [3.119.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.118.0...v3.119.0) (2025-06-09)
 
 ### Features
