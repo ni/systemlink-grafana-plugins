@@ -70,29 +70,6 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
         };
     }, [systemAliases])
 
-    const productsField = useMemo(() => {
-        const productsField = TestPlansQueryBuilderFields.PRODUCT;
-        if (!products) {
-            return null;
-        }
-
-        return {
-            ...productsField,
-            lookup: {
-                ...productsField.lookup,
-                dataSource: [
-                    ...(productsField.lookup?.dataSource || []),
-                    ...products.map(({ partNumber, name }) => (
-                        {
-                            label: name ? `${name} (${partNumber})` : partNumber,
-                            value: partNumber
-                        }
-                    )),
-                ],
-            },
-        };
-    }, [products])
-
     const timeFields = useMemo(() => {
         const timeOptions = [
             { label: 'From', value: '${__from:date}' },
