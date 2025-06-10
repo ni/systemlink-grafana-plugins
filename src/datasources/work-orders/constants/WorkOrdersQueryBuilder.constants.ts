@@ -159,7 +159,6 @@ export const WorkOrdersQueryBuilderStaticFields = [
   WorkOrdersQueryBuilderFields.WORK_ORDER_ID,
   WorkOrdersQueryBuilderFields.STATE,
   WorkOrdersQueryBuilderFields.TYPE,
-  WorkOrdersQueryBuilderFields.WORKSPACE,
   WorkOrdersQueryBuilderFields.ASSIGNED_TO,
   WorkOrdersQueryBuilderFields.REQUESTED_BY,
   WorkOrdersQueryBuilderFields.CREATED_BY,

@@ -44,6 +44,19 @@ jest.mock('core/utils', () => ({
   }),
 }));
 
+jest.mock('shared/workspace.utils', () => {
+  return {
+    WorkspaceUtils: jest.fn().mockImplementation(() => ({
+      getWorkspaces: jest.fn().mockResolvedValue(
+        new Map([
+          ['Workspace1', { id: 'Workspace1', name: 'Workspace Name' }],
+          ['Workspace2', { id: 'Workspace2', name: 'Another Workspace Name' }],
+        ])
+      )
+    }))
+  };
+});
+
 describe('WorkOrdersDataSource', () => {
   beforeEach(() => {
     [datastore, backendServer] = setupDataSource(WorkOrdersDataSource);
@@ -110,6 +123,23 @@ describe('WorkOrdersDataSource', () => {
 
       const fields = response.fields as Field[];
       expect(fields).toMatchSnapshot();
+    });
+
+    it('should convert workspaceIds to workspace names for workspace field', async () => {
+      const query = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+        properties: [WorkOrderPropertiesOptions.WORKSPACE],
+        orderBy: OrderByOptions.UPDATED_AT,
+        recordCount: 10,
+        descending: true,
+      };
+    
+      const result = await datastore.runQuery(query, {} as DataQueryRequest);
+  
+      expect(result.fields).toHaveLength(1);
+      expect(result.fields[0].name).toEqual('Workspace');
+      expect(result.fields[0].values).toEqual(['Workspace Name']);
     });
 
     test('should replace variables', async () => {
