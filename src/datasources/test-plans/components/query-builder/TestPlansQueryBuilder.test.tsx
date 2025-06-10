@@ -71,7 +71,7 @@ describe('TestPlansQueryBuilder', () => {
     });
 
     it('should select system alias in query builder', () => {
-        const { conditionsContainer } = renderElement('systemAliasName = "1"', [], [systemAlias], []);
+        const { conditionsContainer } = renderElement('systemId = "1"', [], [systemAlias], []);
 
         expect(conditionsContainer?.length).toBe(1);
         expect(conditionsContainer.item(0)?.textContent).toContain(systemAlias.alias);
@@ -107,21 +107,21 @@ describe('TestPlansQueryBuilder', () => {
         });
 
         it(`should select user friendly value for created date`, () => {
-            const { conditionsContainer } = renderElement(`created > \"${value}\"`, [], [], []);
+            const { conditionsContainer } = renderElement(`createdAt > \"${value}\"`, [], [], []);
 
             expect(conditionsContainer?.length).toBe(1);
             expect(conditionsContainer.item(0)?.textContent).toContain(label);
         });
 
         it(`should select user friendly value for estimated end date`, () => {
-            const { conditionsContainer } = renderElement(`estimatedEndDate > \"${value}\"`, [], [], []);
+            const { conditionsContainer } = renderElement(`estimatedEndDateTime > \"${value}\"`, [], [], []);
 
             expect(conditionsContainer?.length).toBe(1);
             expect(conditionsContainer.item(0)?.textContent).toContain(label);
         });
 
         it(`should select user friendly value for planned start date date`, () => {
-            const { conditionsContainer } = renderElement(`plannedStartDate > \"${value}\"`, [], [], []);
+            const { conditionsContainer } = renderElement(`plannedStartDateTime > \"${value}\"`, [], [], []);
 
             expect(conditionsContainer?.length).toBe(1);
             expect(conditionsContainer.item(0)?.textContent).toContain(label);
