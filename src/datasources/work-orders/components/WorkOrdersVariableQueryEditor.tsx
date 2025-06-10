@@ -16,7 +16,6 @@ export function WorkOrdersVariableQueryEditor({ query, onChange, datasource }: P
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
 
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
-
   useEffect(() => {
     const loadWorkspaces = async () => {
       const workspaces = await datasource.workspaceUtils.getWorkspaces();
