@@ -1,3 +1,9 @@
+## [3.123.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.122.0...v3.123.0) (2025-06-10)
+
+### Features
+
+* **workorders:** Map workspace name in workorders QB and datasource ([#255](https://github.com/ni/systemlink-grafana-plugins/issues/255)) ([f76916b](https://github.com/ni/systemlink-grafana-plugins/commit/f76916b9647adf19eecb7426b1d2a194a92bef57))
+
 ## [3.122.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.121.0...v3.122.0) (2025-06-10)
 
 ### Features
