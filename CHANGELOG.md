@@ -1,3 +1,9 @@
+## [3.125.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.125.0...v3.125.1) (2025-06-10)
+
+### Bug Fixes
+
+* **results:** `totalCount` is not returned when there are no results matching the query ([#266](https://github.com/ni/systemlink-grafana-plugins/issues/266)) ([f7095ec](https://github.com/ni/systemlink-grafana-plugins/commit/f7095ec51091ebc01e4dc1c51cf95b49216afce2))
+
 ## [3.125.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.124.1...v3.125.0) (2025-06-10)
 
 ### Features
