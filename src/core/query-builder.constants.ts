@@ -1,5 +1,6 @@
 import { editorTemplate, handleNumberValue, handleStringValue, keyValueExpressionBuilderCallback, numericKeyValueExpressionReaderCallback, stringKeyValueExpressionReaderCallback, valueTemplate } from "core/custom-query-builder-operations/key-value-operations";
 import { QueryBuilderCustomOperation } from "smart-webcomponents-react";
+import { dateTimeExpressionBuilderCallback } from "./custom-query-builder-operations/date-time-operations";
 
 export const queryBuilderMessages = {
   en: {
@@ -52,6 +53,8 @@ export enum FilterOperations {
   KeyValueIsLessThanOrEqual = 'key_value_<=',
   KeyValueIsNumericallyEqual = 'key_value_===',
   KeyValueIsNumericallyNotEqual = 'key_value_!==',
+  DateTimeIsBlank = 'date_time_is_blank',
+  DateTimeIsNotBlank = 'date_time_is_not_blank',
 }
 
 export enum FilterExpressions {
@@ -65,6 +68,8 @@ export enum FilterExpressions {
   KeyValueIsLessThanOrEqual = 'SafeConvert.ToDecimal({0}["{1}"]) <= {2}',
   KeyValueIsNumericallyEqual = 'SafeConvert.ToDecimal({0}["{1}"]) = {2}',
   KeyValueIsNumericallyNotEqual = 'SafeConvert.ToDecimal({0}["{1}"]) != {2}',
+  DateTimeIsBlank = '{0} == null || {0} == ""',
+  DateTimeIsNotBlank = '{0} != null && {0} != ""',
 }
 
 export const QueryBuilderOperations = {
@@ -316,8 +321,21 @@ export const QueryBuilderOperations = {
     label: 'is before',
     name: 'isbefore',
     expressionTemplate: '{0} < "{1}"',
-  }
-
+  },
+  DATE_TIME_IS_BLANK: {
+    label: 'is blank',
+    name: FilterOperations.DateTimeIsBlank,
+    expressionTemplate: FilterExpressions.DateTimeIsBlank,
+    expressionBuilderCallback: dateTimeExpressionBuilderCallback,
+    hideValue: true,
+  },
+  DATE_TIME_IS_NOT_BLANK: {
+    label: 'is not blank',
+    name: FilterOperations.DateTimeIsNotBlank,
+    expressionTemplate: FilterExpressions.DateTimeIsNotBlank,
+    expressionBuilderCallback: dateTimeExpressionBuilderCallback,
+    hideValue: true,
+  },
 };
 
 export const customOperations: QueryBuilderCustomOperation[] = [
