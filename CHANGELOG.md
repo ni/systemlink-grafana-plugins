@@ -1,3 +1,9 @@
+## [3.121.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.120.0...v3.121.0) (2025-06-10)
+
+### Features
+
+* **results:** prevent duplicate API call  ([#259](https://github.com/ni/systemlink-grafana-plugins/issues/259)) ([373da70](https://github.com/ni/systemlink-grafana-plugins/commit/373da70efa07aa8bc0e903b27e6b51bfbc1c62b1))
+
 ## [3.120.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.119.0...v3.120.0) (2025-06-10)
 
 ### Features
