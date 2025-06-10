@@ -40,7 +40,7 @@ describe('ProductUtils', () => {
     });
 
     it('should load products and cache them', async () => {
-        const result = await productUtils.getProducts();
+        const result = await productUtils.getProductNameAndPartNumber();
 
         expect(result.size).toEqual(products.length);
         expect(result.get('part-number-1')).toEqual(products[0]);
@@ -56,7 +56,7 @@ describe('ProductUtils', () => {
                 return Promise.reject(error);
             });
 
-        const result = await productUtils.getProducts();
+        const result = await productUtils.getProductNameAndPartNumber();
 
         expect(console.error).toHaveBeenCalledTimes(1);
         expect(console.error).toHaveBeenCalledWith('Error in loading products:', error);
@@ -65,10 +65,10 @@ describe('ProductUtils', () => {
 
     it('should return cached products if already loaded', async () => {
         (ProductUtils as any)['_productCache'] = undefined;
-        await productUtils.getProducts();
+        await productUtils.getProductNameAndPartNumber();
         jest.clearAllMocks();
 
-        const cachedResult = await productUtils.getProducts();
+        const cachedResult = await productUtils.getProductNameAndPartNumber();
 
         expect(queryUntilComplete).not.toHaveBeenCalled();
         expect(cachedResult.size).toEqual(products.length);
