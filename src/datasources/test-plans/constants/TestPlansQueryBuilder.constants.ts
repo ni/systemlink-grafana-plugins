@@ -14,7 +14,7 @@ export enum TestPlansQueryBuilderFieldNames {
     FixtureIdentifier = 'fixtureIdentifier',
     Name = 'name',
     PlannedStartDate = 'plannedStartDate',
-    Product = 'product',
+    Product = 'partNumber',
     Properties = 'properties',
     State = 'state',
     SystemAliasName = 'systemAliasName',
