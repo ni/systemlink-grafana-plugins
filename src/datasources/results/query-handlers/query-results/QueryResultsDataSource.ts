@@ -62,41 +62,51 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       true
     );
 
-    if(responseData.results.length === 0) {
-      return {
-        refId: query.refId,
-        fields: [],
-      };
-    }
-
     if (query.outputType === OutputType.Data) {
-      const testResultsResponse = responseData.results;
-      const selectedFields = query.properties?.filter((field: ResultsProperties) => Object.keys(testResultsResponse[0]).includes(field)) || [];
-      const fields = selectedFields.map(field => {
-        const isTimeField = field === ResultsPropertiesOptions.UPDATED_AT || field === ResultsPropertiesOptions.STARTED_AT;
-        const fieldType = isTimeField ? FieldType.time : FieldType.string;
-        const values = testResultsResponse.map(data => data[field as unknown as keyof ResultsResponseProperties]);
+      const results = responseData.results;
+      const availableFields = Object.keys(results[0]);
+      const selectedFields = query.properties?.filter((field) =>
+      availableFields.includes(field)
+      ) ?? [];
 
-        switch (field) {
-          case ResultsPropertiesOptions.PROPERTIES:
-          case ResultsPropertiesOptions.STATUS_TYPE_SUMMARY:
-            return { name: field, values: values.map(value => value !== null ? JSON.stringify(value) : ''), type: fieldType };
-          case ResultsPropertiesOptions.STATUS:
-            return { name: field, values: values.map((value: any) => value?.statusType), type: fieldType };
-          default:
-            return { name: field, values, type: fieldType };
-        }
+      const fields = selectedFields.map((field) => {
+      const isTimeField =
+        field === ResultsPropertiesOptions.UPDATED_AT ||
+        field === ResultsPropertiesOptions.STARTED_AT;
+      const fieldType = isTimeField ? FieldType.time : FieldType.string;
+      const values = results.map(
+        (result) => result[field as keyof ResultsResponseProperties]
+      );
+
+      switch (field) {
+        case ResultsPropertiesOptions.PROPERTIES:
+        case ResultsPropertiesOptions.STATUS_TYPE_SUMMARY:
+        return {
+          name: field,
+          values: values.map((v) => (v != null ? JSON.stringify(v) : '')),
+          type: fieldType,
+        };
+        case ResultsPropertiesOptions.STATUS:
+        return {
+          name: field,
+          values: values.map((v: any) => v?.statusType),
+          type: fieldType,
+        };
+        default:
+        return { name: field, values, type: fieldType };
+      }
       });
+
       return {
-        refId: query.refId,
-        fields: fields,
-      };
-    } else {
-      return {
-        refId: query.refId,
-        fields: [{ name: 'Total count', values: [responseData.totalCount] }],
+      refId: query.refId,
+      fields,
       };
     }
+
+    return {
+      refId: query.refId,
+      fields: [{ name: 'Total count', values: [responseData.totalCount] }],
+    };
   }
 
   private buildResultsQuery( scopedVars: ScopedVars, partNumberQuery?: string[], resultsQuery?: string): string | undefined {
