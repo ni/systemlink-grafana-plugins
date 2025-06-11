@@ -60,6 +60,19 @@ jest.mock('./asset.utils', () => {
   };
 });
 
+jest.mock('shared/product.utils', () => {
+  return {
+    ProductUtils: jest.fn().mockImplementation(() => ({
+      getProductNamesAndPartNumbers: jest.fn().mockResolvedValue(
+        new Map([
+          ['part-number-1', { partNumber: 'part-number-1', name: 'Product 1' }],
+          ['part-number-2', { partNumber: 'part-number-2', name: 'Product 2' }],
+        ])
+      )
+    }))
+  };
+});
+
 const mockUsers = [
   {
     id: '1',
@@ -730,6 +743,32 @@ describe('runQuery', () => {
     );
 
     jest.useRealTimers();
+  });
+
+  it('should convert part numbers to product names', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.PRODUCT],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', partNumber: 'part-number-1' },
+        { id: '2', partNumber: 'part-number-2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Product (Part number)');
+    expect(result.fields[0].values).toEqual(['Product 1 (part-number-1)', 'Product 2 (part-number-2)']);
   });
 
   test('should transform field when queryBy contains duration fields', async () => {

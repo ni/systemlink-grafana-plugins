@@ -12,6 +12,7 @@ import { SystemUtils } from 'shared/system.utils';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { computedFieldsupportedOperations, ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { UsersUtils } from 'shared/users.utils';
+import { ProductUtils } from 'shared/product.utils';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(
@@ -24,6 +25,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
     this.systemUtils = new SystemUtils(instanceSettings, backendSrv);
     this.usersUtils = new UsersUtils(instanceSettings, backendSrv);
+    this.productUtils = new ProductUtils(instanceSettings, backendSrv);
   }
 
   baseUrl = `${this.instanceSettings.url}/niworkorder/v1`;
@@ -33,6 +35,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   workspaceUtils: WorkspaceUtils;
   systemUtils: SystemUtils;
   usersUtils: UsersUtils;
+  productUtils: ProductUtils;
 
   defaultQuery = {
     outputType: OutputType.Properties,
@@ -58,6 +61,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     const workspaces = await this.workspaceUtils.getWorkspaces();
     const systemAliases = await this.systemUtils.getSystemAliases();
     const users = await this.usersUtils.getUsers();
+    const products = await this.productUtils.getProductNamesAndPartNumbers();
 
     if (query.queryBy) {
       query.queryBy = transformComputedFieldsQuery(
@@ -125,6 +129,9 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
               case PropertiesProjectionMap.SYSTEM_NAME.label:
                 const system = systemAliases.get(value);
                 return system ? system.alias : value;
+              case PropertiesProjectionMap.PRODUCT.label:
+                const product = products.get(value);
+                return (product && product.name) ? `${product.name} (${product.partNumber})` : value;
               case PropertiesProjectionMap.ASSIGNED_TO.label:
               case PropertiesProjectionMap.CREATED_BY.label:
               case PropertiesProjectionMap.UPDATED_BY.label:
