@@ -17,7 +17,7 @@ export class ProductUtils {
         readonly backendSrv: BackendSrv
     ) {}
 
-    async getProductNameAndPartNumber(): Promise<Map<string, ProductPartNumberAndName>> {
+    async getProductNamesAndPartNumbers(): Promise<Map<string, ProductPartNumberAndName>> {
         if (!ProductUtils._productCache) {
             ProductUtils._productCache = this.loadProducts();
         }
