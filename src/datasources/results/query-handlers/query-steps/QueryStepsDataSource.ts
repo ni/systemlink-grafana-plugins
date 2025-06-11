@@ -455,7 +455,11 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   private async loadResultIdLookupValues(partNumbersQuery: string[], scopedVars: ScopedVars): Promise<void> {
     const currentPartNumberQuery = this.buildPartNumbersQuery(scopedVars, partNumbersQuery);
     
-    if (this.previousPartNumberQuery !== currentPartNumberQuery) {
+    const partNumbersChanged =
+      !this.previousPartNumberQuery ||
+      (this.previousPartNumberQuery !== currentPartNumberQuery);
+
+    if (partNumbersChanged) {
         this.resultId = await this.loadResultIds(currentPartNumberQuery);
         this.resultIdChangeCallback?.();
       }

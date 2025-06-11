@@ -1083,7 +1083,7 @@ describe('QueryStepsDataSource', () => {
   })
 
   describe('load result ids', () => {
-    it('should not call loadResultIds when partNumberQuery is undefined', async () => {
+    it('should call loadResultIds when partNumberQuery is undefined', async () => {
       const query = {
         refId: 'A',
         resultsQuery: 'ProgramName = "Test"',
