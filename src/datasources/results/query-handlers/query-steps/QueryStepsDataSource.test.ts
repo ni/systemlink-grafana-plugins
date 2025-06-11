@@ -1114,7 +1114,7 @@ describe('QueryStepsDataSource', () => {
         partNumberQuery: ['PN1'],
         resultsQuery: 'ProgramName = "same-query"',
       } as QuerySteps;
-      (datastore as any).previousPartNumberQuery = ['PN1'];
+      (datastore as any).previousPartNumberQuery = 'PartNumber = "PN1"';
       const spy = jest.spyOn(datastore as any, 'loadResultIds')
 
       await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);

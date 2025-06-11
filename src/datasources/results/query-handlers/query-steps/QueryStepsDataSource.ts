@@ -31,7 +31,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   private stepsPath: string[] = [];
   private resultId: string[] = [];
   private previousResultsQuery: string | undefined;
-  private previousPartNumberQuery: string[] | undefined = undefined;
+  private previousPartNumberQuery: string | undefined = undefined;
 
   private stepsPathChangeCallback?: () => void;
   private resultIdChangeCallback?: () => void;
@@ -453,12 +453,13 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   private async loadResultIdLookupValues(partNumbersQuery: string[], scopedVars: ScopedVars): Promise<void> {
-    if (this.previousPartNumberQuery?.join(',') !== partNumbersQuery.join(',')) {
-        const partNumberQuery = this.buildPartNumbersQuery(scopedVars, partNumbersQuery);
-        this.resultId = await this.loadResultIds(partNumberQuery);
+    const currentPartNumberQuery = this.buildPartNumbersQuery(scopedVars, partNumbersQuery);
+    
+    if (this.previousPartNumberQuery !== currentPartNumberQuery) {
+        this.resultId = await this.loadResultIds(currentPartNumberQuery);
         this.resultIdChangeCallback?.();
       }
-      this.previousPartNumberQuery = partNumbersQuery;
+      this.previousPartNumberQuery = currentPartNumberQuery;
   }
 
   private isTakeValid(value: number): boolean {

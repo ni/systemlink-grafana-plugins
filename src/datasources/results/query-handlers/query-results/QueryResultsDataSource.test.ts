@@ -85,6 +85,7 @@ describe('QueryResultsDataSource', () => {
         refId: 'A',
         outputType: OutputType.Data
       });
+      jest.spyOn(datastore, 'loadResultIds').mockResolvedValue(['id1', 'id2', 'id3']);
 
       await datastore.query(query);
 
@@ -461,7 +462,7 @@ describe('QueryResultsDataSource', () => {
     });
 
     it('should not load result ids when previousPartNumberQuery is not changed', async () => {
-      (datastore as any).previousPartNumberQuery = ['partNumber1','partNumber2'];
+      (datastore as any).previousPartNumberQuery = '(PartNumber = "partNumber1" || PartNumber = "partNumber2")';
       jest.spyOn(datastore, 'loadResultIds').mockResolvedValue(['id1', 'id2']);
       const query = buildQuery(
         {
@@ -478,7 +479,7 @@ describe('QueryResultsDataSource', () => {
     });
 
     it('should load result ids when previousPartNumberQuery is  changed', async () => {
-      (datastore as any).previousPartNumberQuery = ['partNumber1','partNumber2'];
+      (datastore as any).previousPartNumberQuery = '(PartNumber = "partNumber1" || PartNumber = "partNumber2")';
       jest.spyOn(datastore, 'loadResultIds').mockResolvedValue(['id1', 'id2', 'id3']);
       const query = buildQuery(
         {
@@ -495,7 +496,7 @@ describe('QueryResultsDataSource', () => {
     });
 
     it('should handle errors in loadResultIds', async () => {
-      (datastore as any).previousPartNumberQuery = ['partNumber1', 'partNumber2'];
+      (datastore as any).previousPartNumberQuery = '(PartNumber = "partNumber1" || PartNumber = "partNumber2")';
       const error = new Error('API failed');
       jest.spyOn(datastore, 'queryResultsValues').mockRejectedValue(error);
       const query = buildQuery(
@@ -693,6 +694,7 @@ describe('QueryResultsDataSource', () => {
     });
 
     test('should set the default order by to "started at" and descending to true', async () =>{
+      jest.spyOn(datastore, 'loadResultIds').mockResolvedValue(['id1', 'id2', 'id3']);
       const query = { properties: ResultsPropertiesOptions.PART_NUMBER, queryBy: '', resultsTake: 1000 } as ResultsVariableQuery;
 
       await datastore.metricFindQuery(query, {});
@@ -888,11 +890,11 @@ describe('QueryResultsDataSource', () => {
       });
 
       it('should not call loadResultIds when partNumberQuery is not changed', async () => {
-        (datastore as any).previousPartNumberQuery = ['PartNumber1'];
+        (datastore as any).previousPartNumberQuery = '(PartNumber = "partNumber1")';
         const query = {
           properties: 'PART_NUMBER',
           queryBy: '',
-          partNumberQuery: ['PartNumber1'],
+          partNumberQuery: ['partNumber1'],
           resultsTake: 1000
         } as ResultsVariableQuery;
         const spy = jest.spyOn(datastore as any, 'loadResultIds')

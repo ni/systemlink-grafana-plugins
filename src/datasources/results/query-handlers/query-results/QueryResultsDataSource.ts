@@ -14,7 +14,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   defaultQuery = defaultResultsQuery;
   resultId: string[] = [];
   resultIdChangeCallback?: () => void;
-  previousPartNumberQuery: string[] | undefined = undefined;
+  previousPartNumberQuery: string | undefined = undefined;
 
   async queryResults(
     filter?: string,
@@ -195,9 +195,11 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   }
 
   private async loadResultIdsLookupValues(partNumberQuery: string[] | undefined, scopedVars: ScopedVars): Promise<void> {
+    const currentPartNumberQuery = this.buildPartNumbersQuery(scopedVars, partNumberQuery ?? []);
+  
     const partNumbersChanged =
       !this.previousPartNumberQuery ||
-      ((this.previousPartNumberQuery ?? [])?.join(',') !== (partNumberQuery ?? []).join(','));
+      (this.previousPartNumberQuery !== currentPartNumberQuery);
 
     if (partNumbersChanged) {
       this.resultId = await this.loadResultIds(
@@ -205,7 +207,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       );
       this.resultIdChangeCallback?.();
     }
-    this.previousPartNumberQuery = partNumberQuery;
+    this.previousPartNumberQuery = currentPartNumberQuery;
   }
 
   private isTakeValidValid(value: number): boolean {
