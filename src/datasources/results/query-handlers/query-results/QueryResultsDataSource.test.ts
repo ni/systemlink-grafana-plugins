@@ -806,7 +806,7 @@ describe('QueryResultsDataSource', () => {
     });
 
     describe('load result ids', () => {
-      it('should not call loadResultIds when partNumberQuery is undefined', async () => {
+      it('should call loadResultIds when partNumberQuery is undefined', async () => {
         const query = {
           properties: 'PART_NUMBER',
           queryBy: '',
@@ -816,7 +816,7 @@ describe('QueryResultsDataSource', () => {
 
         await datastore.metricFindQuery(query, { scopedVars: {} });
 
-        expect(spy).not.toHaveBeenCalled();
+        expect(spy).toHaveBeenCalled();
       })
 
       it('should call loadResultIds when partNumberQueryInSteps is changed', async () => {
