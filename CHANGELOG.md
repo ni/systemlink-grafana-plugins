@@ -1,3 +1,9 @@
+## [3.127.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.127.2...v3.127.3) (2025-06-11)
+
+### Bug Fixes
+
+* **results:** Set "STARTED_AT" as the default option for the order by field ([#270](https://github.com/ni/systemlink-grafana-plugins/issues/270)) ([291f74e](https://github.com/ni/systemlink-grafana-plugins/commit/291f74e73d510c5a8d90d8ec87868e3dfea3baca))
+
 ## [3.127.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.127.1...v3.127.2) (2025-06-11)
 
 ### Bug Fixes
