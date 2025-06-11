@@ -1,3 +1,9 @@
+## [3.127.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.127.0...v3.127.1) (2025-06-11)
+
+### Bug Fixes
+
+* **results:** Align orderby and take controls in query editor ([#269](https://github.com/ni/systemlink-grafana-plugins/issues/269)) ([66ecc6b](https://github.com/ni/systemlink-grafana-plugins/commit/66ecc6b3e8e2e122fae4aca94a4efc37743800f6))
+
 ## [3.127.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.126.0...v3.127.0) (2025-06-11)
 
 ### Features
