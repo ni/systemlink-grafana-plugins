@@ -1,3 +1,9 @@
+## [3.127.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.126.0...v3.127.0) (2025-06-11)
+
+### Features
+
+* **test-plans:** Use product part number and name in the query builder & response ([#261](https://github.com/ni/systemlink-grafana-plugins/issues/261)) ([48d31ab](https://github.com/ni/systemlink-grafana-plugins/commit/48d31ab1c4d2370bc56435befe4bc7fb77e3399d))
+
 ## [3.126.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.125.1...v3.126.0) (2025-06-11)
 
 ### Features
