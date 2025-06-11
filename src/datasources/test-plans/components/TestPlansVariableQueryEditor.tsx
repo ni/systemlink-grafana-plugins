@@ -45,7 +45,7 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
     loadUsers();
 
     const loadProducts = async () => {
-      const products = await datasource.productUtils.getProducts();
+      const products = await datasource.productUtils.getProductNamesAndPartNumbers();
       setProducts(Array.from(products.values()));
     };
 

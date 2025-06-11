@@ -63,7 +63,7 @@ jest.mock('./asset.utils', () => {
 jest.mock('shared/product.utils', () => {
   return {
     ProductUtils: jest.fn().mockImplementation(() => ({
-      getProducts: jest.fn().mockResolvedValue(
+      getProductNamesAndPartNumbers: jest.fn().mockResolvedValue(
         new Map([
           ['part-number-1', { partNumber: 'part-number-1', name: 'Product 1' }],
           ['part-number-2', { partNumber: 'part-number-2', name: 'Product 2' }],

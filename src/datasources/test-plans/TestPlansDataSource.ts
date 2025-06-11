@@ -61,7 +61,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     const workspaces = await this.workspaceUtils.getWorkspaces();
     const systemAliases = await this.systemUtils.getSystemAliases();
     const users = await this.usersUtils.getUsers();
-    const products = await this.productUtils.getProducts();
+    const products = await this.productUtils.getProductNamesAndPartNumbers();
 
     if (query.queryBy) {
       query.queryBy = transformComputedFieldsQuery(

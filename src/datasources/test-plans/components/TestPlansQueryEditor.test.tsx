@@ -37,7 +37,7 @@ const mockDatasource = {
         ),
     },
     productUtils: {
-        getProducts: jest.fn().mockResolvedValue(
+        getProductNamesAndPartNumbers: jest.fn().mockResolvedValue(
             new Map(
                 [
                     ['part-number-1', { partNumber: 'part-number-1', name: 'Product 1' }],
@@ -278,7 +278,7 @@ describe('TestPlansQueryEditor', () => {
             renderElement();
         });
 
-        const result = await mockDatasource.productUtils.getProducts();
+        const result = await mockDatasource.productUtils.getProductNamesAndPartNumbers();
         expect(result).toBeDefined();
         expect(result).toEqual(
             new Map([
