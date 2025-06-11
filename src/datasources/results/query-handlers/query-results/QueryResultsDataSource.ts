@@ -14,7 +14,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   defaultQuery = defaultResultsQuery;
   resultId: string[] = [];
   resultIdChangeCallback?: () => void;
-  previousPartNumberQuery: string[] | undefined = [];
+  previousPartNumberQuery: string[] | undefined = undefined;
 
   async queryResults(
     filter?: string,
@@ -56,8 +56,14 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     query.queryBy = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.queryBy);
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
 
-    if (this.previousPartNumberQuery !== query.partNumberQuery) {
-      this.resultId = await this.loadResultIds(this.buildPartNumbersQuery(options.scopedVars, query.partNumberQuery || []));
+    const partNumbersChanged =
+      !!query.partNumberQuery &&
+      (this.previousPartNumberQuery?.join(',') !== query.partNumberQuery.join(','));
+
+    if (partNumbersChanged) {
+      this.resultId = await this.loadResultIds(
+        this.buildPartNumbersQuery(options.scopedVars, query.partNumberQuery ?? []),
+      );
       this.resultIdChangeCallback?.();
     }
     this.previousPartNumberQuery = query.partNumberQuery;

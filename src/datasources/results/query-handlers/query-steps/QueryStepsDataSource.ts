@@ -31,7 +31,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   private stepsPath: string[] = [];
   private resultId: string[] = [];
   private previousResultsQuery: string | undefined;
-  private previousPartNumberQuery: string[] = [];
+  private previousPartNumberQuery: string[] | undefined = undefined;
 
   private stepsPathChangeCallback?: () => void;
   private resultIdChangeCallback?: () => void;
@@ -192,8 +192,9 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
     query.resultsQuery = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.resultsQuery);
 
-    if (this.previousPartNumberQuery !== query.partNumberQuery) {
-      this.resultId = await this.loadResultIds(this.buildPartNumbersQuery(options.scopedVars, query.partNumberQuery));
+    if (this.previousPartNumberQuery?.join(',') !== query.partNumberQuery.join(',')) {
+      const partNumbersQuery = this.buildPartNumbersQuery(options.scopedVars, query.partNumberQuery);
+      this.resultId = await this.loadResultIds(partNumbersQuery);
       this.resultIdChangeCallback?.();
     }
     this.previousPartNumberQuery = query.partNumberQuery;

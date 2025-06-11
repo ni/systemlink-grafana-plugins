@@ -993,6 +993,7 @@ describe('QueryStepsDataSource', () => {
      
     it('should handle error in query-paths API when loading step path', async () => {
       const error = new Error('API failed');
+      jest.spyOn(datastore as any, 'loadResultIds').mockReturnValue(Promise.resolve(['id1', 'id2']));
       jest.spyOn(datastore as any, 'loadStepPaths').mockRejectedValue(error);
       const query = {
         refId: 'A',
@@ -1029,6 +1030,7 @@ describe('QueryStepsDataSource', () => {
 
     it('should contain error details when query results values error contains additional information', async () => {
       const error = new Error(`API failed Error message: ${JSON.stringify({ message: 'Detailed error message', statusCode: 500 })}`);
+      jest.spyOn(datastore as any, 'loadResultIds').mockReturnValue(Promise.resolve(['id1', 'id2']));
       jest.spyOn(datastore as any, 'queryResultsValues').mockRejectedValue(error);
       const query = {
         refId: 'A',
@@ -1057,6 +1059,65 @@ describe('QueryStepsDataSource', () => {
 
       expect(datastore.errorTitle).toBe('Warning during step paths value query');
       expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
+    });
+  })
+
+  describe('load result ids', () => {
+    it('should not call loadResultIds when partNumberQuery is undefined', async () => {
+      const query = {
+        refId: 'A',
+        resultsQuery: 'ProgramName = "Test"',
+      } as QuerySteps;
+      const spy = jest.spyOn(datastore as any, 'loadResultIds')
+
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+      expect(spy).not.toHaveBeenCalled();
+    })
+
+     it('should call loadResultIds when partNumber is changed', async () => {
+      const query = {
+        refId: 'A',
+        partNumberQuery: ['PN1'],
+        resultsQuery: '',
+      } as QuerySteps;
+      const spy = jest.spyOn(datastore as any, 'loadResultIds')
+
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('should not call loadResultIds when resultsQuery is not changed', async () => {
+      const query = {
+        refId: 'A',
+        partNumberQuery: ['PN1'],
+        resultsQuery: 'ProgramName = "same-query"',
+      } as QuerySteps;
+      (datastore as any).previousPartNumberQuery = ['PN1'];
+      const spy = jest.spyOn(datastore as any, 'loadResultIds')
+
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should handle error in query-result-values when loading result id', async () => {
+      const error = new Error('API failed');
+      jest.spyOn(datastore as any, 'queryResultsValues').mockRejectedValue(error);
+      const query = {
+        refId: 'A',
+        partNumberQuery: ['PN1'],
+        resultsQuery: 'ProgramName = "Test"',
+        outputType: OutputType.Data,
+      } as QuerySteps;
+
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+      const stepsPathLookupValues = datastore.getResultIds();
+
+      expect(stepsPathLookupValues).toEqual([]);
+      expect(datastore.errorTitle).toBe('Warning during result value query');
+      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
     });
   })
 

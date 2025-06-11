@@ -405,6 +405,75 @@ describe('QueryResultsDataSource', () => {
       expect(datastore.errorTitle).toBe('Warning during result value query');
       expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
     });
+
+    it('should load result ids when previousPartNumberQuery is undefined', async () => {
+      (datastore as any).previousPartNumberQuery = undefined;
+      jest.spyOn(datastore, 'loadResultIds').mockResolvedValue(['id1', 'id2']);
+      const query = buildQuery(
+        {
+          refId: 'A',
+          outputType: OutputType.Data,
+          queryBy: '',
+        },
+      );
+
+      await datastore.query(query);
+
+      expect(datastore.resultId).toEqual(['id1', 'id2']);
+    });
+
+    it('should not load result ids when previousPartNumberQuery is not changed', async () => {
+      (datastore as any).previousPartNumberQuery = ['partNumber1','partNumber2'];
+      jest.spyOn(datastore, 'loadResultIds').mockResolvedValue(['id1', 'id2']);
+      const query = buildQuery(
+        {
+          refId: 'A',
+          outputType: OutputType.Data,
+          partNumberQuery: ['partNumber1', 'partNumber2'],
+          queryBy: '',
+        },
+      );
+
+      await datastore.query(query);
+
+      expect(datastore.loadResultIds).not.toHaveBeenCalled();
+    });
+
+    it('should load result ids when previousPartNumberQuery is  changed', async () => {
+      (datastore as any).previousPartNumberQuery = ['partNumber1','partNumber2'];
+      jest.spyOn(datastore, 'loadResultIds').mockResolvedValue(['id1', 'id2', 'id3']);
+      const query = buildQuery(
+        {
+          refId: 'A',
+          outputType: OutputType.Data,
+          partNumberQuery: ['partNumber1', 'partNumber2', 'partNumber3'],
+          queryBy: '',
+        },
+      );
+
+      await datastore.query(query);
+
+      expect(datastore.resultId).toEqual(['id1', 'id2', 'id3']);
+    });
+
+    it('should handle errors in loadResultIds', async () => {
+      (datastore as any).previousPartNumberQuery = ['partNumber1', 'partNumber2'];
+      const error = new Error('API failed');
+      jest.spyOn(datastore, 'queryResultsValues').mockRejectedValue(error);
+      const query = buildQuery(
+        {
+          refId: 'A',
+          outputType: OutputType.Data,
+          partNumberQuery: ['partNumber1', 'partNumber2', 'partNumber3'],
+          queryBy: '',
+        },
+      );
+
+      await datastore.query(query);
+
+      expect(datastore.errorTitle).toBe('Warning during result value query');
+      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
+    });
   });
   
     describe('query builder queries', () => {
