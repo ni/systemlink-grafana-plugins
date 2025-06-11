@@ -16,7 +16,7 @@ export const defaultResultsQuery: Omit<QueryResults, 'refId'> = {
     ResultsPropertiesOptions.WORKSPACE
   ] as ResultsProperties[],
   orderBy: "STARTED_AT",
-  descending: false,
+  descending: true,
   recordCount: 1000,
   useTimeRange: false,
   useTimeRangeFor: undefined,
@@ -33,7 +33,7 @@ export const defaultStepsQuery: Omit<QuerySteps, 'refId'> = {
     StepsProperties.totalTimeInSeconds
   ] as StepsProperties[],
   orderBy: "STARTED_AT",
-  descending: true,
+  descending: false,
   recordCount: 10_000,
   useTimeRange: false,
   useTimeRangeFor: undefined,

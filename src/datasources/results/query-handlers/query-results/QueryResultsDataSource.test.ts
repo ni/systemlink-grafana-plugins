@@ -80,6 +80,25 @@ describe('QueryResultsDataSource', () => {
       expect(response.data).toMatchSnapshot();
     });
 
+    test('should set the default order by to "STARTED_AT" and descending to "true"', async () => {
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data
+      });
+
+      await datastore.query(query);
+
+      expect(backendServer.fetch).toHaveBeenCalledTimes(1);
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            orderBy: 'STARTED_AT',
+            descending: true,
+          }),
+        })
+      )
+    });
+
     test('returns total count for valid total count output type queries', async () => {
       const query = buildQuery({
         refId: 'A',
@@ -603,6 +622,22 @@ describe('QueryResultsDataSource', () => {
 
       expect(result).toEqual([]);
     });
+
+    test('should set the default order by to "started at" and descending to true', async () =>{
+      const query = { properties: ResultsPropertiesOptions.PART_NUMBER, queryBy: '', resultsTake: 1000 } as ResultsVariableQuery;
+
+      await datastore.metricFindQuery(query, {});
+
+      expect(backendServer.fetch).toHaveBeenCalledTimes(1);
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            orderBy: 'STARTED_AT',
+            descending: true,
+          }),
+        })
+      );
+    })
 
      it.each([-1, NaN, 10001])('should return empty array if resultsTake value is invalid (%p)', async (invalidResultsTake) => {
             const query = {
