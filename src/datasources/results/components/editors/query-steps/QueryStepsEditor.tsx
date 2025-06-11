@@ -172,11 +172,11 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
         <div className="results-horizontal-control-group">
           <div>
             <InlineField
-          label="Product (part number)"
-          labelWidth={26}
-          tooltip={tooltips.productName}
-          invalid={!isProductSelectionValid}
-          error="You must select at least one product in this field.">
+              label="Product (part number)"
+              labelWidth={26}
+              tooltip={tooltips.productName}
+              invalid={!isProductSelectionValid}
+              error="You must select at least one product in this field.">
               <MultiSelect
                 maxVisibleValues={5}
                 width={65}
