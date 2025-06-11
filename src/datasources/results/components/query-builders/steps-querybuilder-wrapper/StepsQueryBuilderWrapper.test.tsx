@@ -6,12 +6,13 @@ import userEvent from '@testing-library/user-event';
 import { Workspace } from 'core/types';
 
 jest.mock('../query-results/ResultsQueryBuilder', () => ({
-  ResultsQueryBuilder: jest.fn(({ filter, workspaces, status, globalVariableOptions, onChange }) => {
+  ResultsQueryBuilder: jest.fn(({ filter, workspaces, status, resultIds, globalVariableOptions, onChange }) => {
     return (
       <div data-testid="results-query-builder">
         <div data-testid="results-filter">{filter}</div>
         <div data-testid="results-workspaces">{JSON.stringify(workspaces)}</div>
         <div data-testid="results-status">{JSON.stringify(status)}</div>
+        <div data-testid="results-result-ids">{JSON.stringify(resultIds)}</div>
         <div data-testid="results-global-vars">{JSON.stringify(globalVariableOptions)}</div>
         <button
           data-testid="results-trigger-change"
@@ -63,6 +64,8 @@ const mockDatasource = {
   globalVariableOptions: jest.fn().mockReturnValue(['var1', 'var2']),
   setStepsPathChangeCallback: jest.fn(),
   getStepPaths: jest.fn().mockReturnValue([]),
+  getResultIds: jest.fn().mockReturnValue(['result1', 'result2']),
+  setResultIdChangeCallback: jest.fn(),
   workspacesCache: Promise.resolve(new Map(mockWorkspaces.map(ws => [ws.id, ws]))),
 } as unknown as QueryStepsDataSource;
 
@@ -103,6 +106,8 @@ describe('StepsQueryBuilderWrapper', () => {
       workspacesCache: Promise.resolve(new Map()),
       setStepsPathChangeCallback: jest.fn(),
       getStepPaths: jest.fn().mockReturnValue([]),
+      getResultIds: jest.fn().mockReturnValue([]),
+      setResultIdChangeCallback: jest.fn(),
     } as unknown as QueryStepsDataSource;
 
     jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -145,6 +150,8 @@ describe('StepsQueryBuilderWrapper', () => {
     const mockDatasource = {
       setStepsPathChangeCallback: jest.fn(cb => { callback = cb; }),
       getStepPaths: jest.fn().mockReturnValue(['pathA', 'pathB']),
+      getResultIds: jest.fn().mockReturnValue(['result1', 'result2']),
+      setResultIdChangeCallback: jest.fn(),
       workspacesCache: Promise.resolve(new Map()),
       globalVariableOptions: jest.fn().mockReturnValue([]),
     } as any;
@@ -171,6 +178,8 @@ describe('StepsQueryBuilderWrapper', () => {
     const mockDatasource = {
       setStepsPathChangeCallback: jest.fn(),
       getStepPaths: jest.fn().mockReturnValue(['initPath1', 'initPath2']),
+      getResultIds: jest.fn().mockReturnValue([]),
+      setResultIdChangeCallback: jest.fn(),
       workspacesCache: Promise.resolve(new Map()),
       globalVariableOptions: jest.fn().mockReturnValue([]),
     } as any;
@@ -186,6 +195,10 @@ describe('StepsQueryBuilderWrapper', () => {
 
     expect(mockDatasource.getStepPaths).toHaveBeenCalled();
     expect(screen.getByTestId('steps-path').textContent).toEqual(JSON.stringify(['initPath1', 'initPath2']));
+  });
+
+  test('should load resultIds', async () => {
+    expect(screen.getByTestId('results-result-ids').textContent).toEqual(JSON.stringify(['result1', 'result2']));
   });
 
   test('should disable StepsQueryBuilder when disableStepsQueryBuilder property is true', async () => {

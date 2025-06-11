@@ -396,6 +396,8 @@ describe('Dependencies', () => {
     cleanup();
     const emptyDatasource = {
       globalVariableOptions: jest.fn().mockReturnValue([]),
+      getResultIds: jest.fn().mockReturnValue([]),
+      setResultIdChangeCallback: jest.fn(),
       get workspacesCache() {
         return Promise.resolve(new Map());
       },
