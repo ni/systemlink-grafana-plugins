@@ -1012,6 +1012,7 @@ describe('QueryStepsDataSource', () => {
 
     it('should handle error in query-result-values when loading step path', async () => {
       const error = new Error('API failed');
+      jest.spyOn(datastore as any, 'loadResultIds').mockReturnValue([]);
       jest.spyOn(datastore as any, 'queryResultsValues').mockRejectedValue(error);
       const query = {
         refId: 'A',
@@ -1333,9 +1334,10 @@ describe('QueryStepsDataSource', () => {
         const query = { queryByResults: resultsQuery, queryBySteps: stepsQuery, stepsTake: 1000, partNumberQueryInSteps: partNumberQuery } as StepsVariableQuery;
         await datastore.metricFindQuery(query, { scopedVars: { var: { value: 'replaced' } } } as any);
 
-        expect(templateSrv.replace).toHaveBeenCalledTimes(2);
+        expect(templateSrv.replace).toHaveBeenCalledTimes(3);
         expect(templateSrv.replace.mock.calls[0][0]).toBe("(PartNumber = \"PartNumber1\" || PartNumber = \"PartNumber2\") && programName = \"${name}\"");
-        expect(templateSrv.replace.mock.calls[1][0]).toBe(stepsQuery);
+        expect(templateSrv.replace.mock.calls[1][0]).toBe("PartNumber = \"PartNumber1\" || PartNumber = \"PartNumber2\"")
+        expect(templateSrv.replace.mock.calls[2][0]).toBe(stepsQuery);
       });
 
       it('should merge partnumber and resultsQuery filters', async () => {
@@ -1488,6 +1490,7 @@ describe('QueryStepsDataSource', () => {
 
         it('should handle error in query-result-values when loading step path', async () => {
           const error = new Error('API failed');
+          jest.spyOn(datastore as any, 'loadResultIds').mockReturnValue([]);
           jest.spyOn(datastore as any, 'queryResultsValues').mockRejectedValue(error);
           const query = {
             queryByResults: 'ProgramName = "new-query"',
@@ -1505,6 +1508,7 @@ describe('QueryStepsDataSource', () => {
 
         it('should contain error details when query results values error contains additional information', async () => {
           const error = new Error(`API failed Error message: ${JSON.stringify({ message: 'Detailed error message', statusCode: 500 })}`);
+          jest.spyOn(datastore as any, 'loadResultIds').mockReturnValue([]);
           jest.spyOn(datastore as any, 'queryResultsValues').mockRejectedValue(error);
           const query = {
             queryByResults: 'ProgramName = "new-query"',
