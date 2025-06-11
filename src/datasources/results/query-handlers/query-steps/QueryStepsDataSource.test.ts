@@ -113,6 +113,25 @@ describe('QueryStepsDataSource', () => {
       expect(response.data).toMatchSnapshot();
     });
 
+    test('should set default orderby to "STARTED_AT" and descending to "false"', async () => {
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+      });
+
+      await datastore.query(query);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: '/nitestmonitor/v2/query-steps',
+          data: expect.objectContaining({
+            orderBy: "STARTED_AT",
+            descending: false,
+          }),
+        })
+      );
+    });
+
     test('should return total count for valid total count output type queries', async () => {
       const query = buildQuery({
         refId: 'A',
@@ -420,9 +439,7 @@ describe('QueryStepsDataSource', () => {
         const responsePromise = datastore.queryStepsInBatches(
           undefined,
           undefined,
-          undefined,
           100,
-          undefined,
           undefined,
           true
         );
@@ -457,9 +474,7 @@ describe('QueryStepsDataSource', () => {
           const responsePromise = datastore.queryStepsInBatches(
             'name = \"test\"',
             undefined,
-            undefined,
             10000,
-            undefined,
             undefined,
             true
           );
@@ -517,9 +532,7 @@ describe('QueryStepsDataSource', () => {
         const responsePromise = datastore.queryStepsInBatches(
           undefined,
           undefined,
-          undefined,
           2000,
-          undefined,
           undefined,
           true
         );
@@ -569,9 +582,7 @@ describe('QueryStepsDataSource', () => {
         const response = await datastore.queryStepsInBatches(
           undefined,
           undefined,
-          undefined,
           3000,
-          undefined,
           undefined,
           true
         );
@@ -601,10 +612,8 @@ describe('QueryStepsDataSource', () => {
         
         const batchPromise = datastore.queryStepsInBatches(
           'filter',
-          'orderBy',
           undefined,
           1500,
-          false,
           undefined,
           true
         );
@@ -655,9 +664,7 @@ describe('QueryStepsDataSource', () => {
         const responsePromise = datastore.queryStepsInBatches(
           undefined,
           undefined,
-          undefined,
           2000,
-          undefined,
           undefined,
           true
         );
@@ -1192,6 +1199,22 @@ describe('QueryStepsDataSource', () => {
         const result = await datastore.metricFindQuery(query);
 
         expect(result).toEqual([]);
+      });
+
+      it('should set default orderby to "STARTED_AT" and descending to "false"', async () => {
+        const query = { queryByResults: 'programName = "name"', stepsTake: 1000, partNumberQueryInSteps: ['PartNumber1'] } as StepsVariableQuery;
+
+        await datastore.metricFindQuery(query);
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-steps',
+            data: expect.objectContaining({
+              orderBy: "STARTED_AT",
+              descending: false,
+            }),
+          })
+        );
       });
 
       it.each([-1, NaN, 10001])('should return empty array if stepsTake value is invalid (%p)', async (invalidStepsTake) => {

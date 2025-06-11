@@ -5,7 +5,6 @@ import {
   InlineSwitch,
   MultiSelect,
   RadioButtonGroup,
-  Select,
   VerticalGroup,
 } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
@@ -13,7 +12,7 @@ import React, { useEffect, useState } from 'react';
 import '../../ResultsQueryEditor.scss';
 import { OutputType } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
-import { OrderBy, QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
+import { QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 import { StepsQueryBuilderWrapper } from '../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
 import { FloatingError } from 'core/errors';
@@ -63,14 +62,6 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
     if (properties !== undefined) {
       handleQueryChange({ ...query, properties: properties.map(property => property.value as StepsProperties) });
     }
-  };
-
-  const onOrderByChange = (orderBy: SelectableValue<string>) => {
-    handleQueryChange({ ...query, orderBy: orderBy.value });
-  };
-
-  const onDescendingChange = (isDescendingChecked: boolean) => {
-    handleQueryChange({ ...query, descending: isDescendingChecked });
   };
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -198,22 +189,6 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
           />
           {query.outputType === OutputType.Data && (
           <div className="right-query-controls">
-            <InlineField label="OrderBy" labelWidth={26} tooltip={tooltips.orderBy}>
-              <Select
-                options={OrderBy as SelectableValue[]}
-                width={25}
-                placeholder="Select field to order by"
-                onChange={onOrderByChange}
-                value={query.orderBy}
-                defaultValue={query.orderBy}
-              />
-            </InlineField>
-            <InlineField label="Descending" labelWidth={26} tooltip={tooltips.descending}>
-              <InlineSwitch
-                onChange={event => onDescendingChange(event.currentTarget.checked)}
-                value={query.descending}
-              />
-            </InlineField>
             <InlineField
                 label="Take"
                 labelWidth={26}

@@ -4,8 +4,6 @@ export interface QuerySteps extends ResultsQuery {
   outputType: OutputType;
   properties?: StepsProperties[];
   partNumberQuery: string[];
-  orderBy?: string;
-  descending?: boolean;
   useTimeRange?: boolean;
   useTimeRangeFor?: string;
   recordCount?: number;
@@ -14,53 +12,8 @@ export interface QuerySteps extends ResultsQuery {
   stepsQuery?: string;
 }
 
-export const OrderBy = [
-  {
-    value: 'NAME',
-    label: 'Step name',
-    description: 'Name of the step',
-  },
-  {
-    value: 'STEP_TYPE',
-    label: 'Step type',
-    description: 'Type of the step',
-  },
-  {
-    value: 'STEP_ID',
-    label: 'Step ID',
-    description: 'ID of the step',
-  },
-  {
-    value: 'PARENT_ID',
-    label: 'Parent ID',
-    description: 'ID of the parent step',
-  },
-  {
-    value: 'RESULT_ID',
-    label: 'Result ID',
-    description: 'ID of the associated result',
-  },
-  {
-    value: 'TOTAL_TIME_IN_SECONDS',
-    label: 'Total time in seconds',
-    description: 'Total time taken to run the step in seconds',
-  },
-  {
-    value: 'STARTED_AT',
-    label: 'Started at',
-    description: 'Timestamp when the step started',
-  },
-  {
-    value: 'UPDATED_AT',
-    label: 'Updated at',
-    description: 'Timestamp when the step was last updated',
-  },
-  {
-    value: 'DATA_MODEL',
-    label: 'Data model',
-    description: 'Data model of the step',
-  },
-];
+export const DefaultOrderBy = 'STARTED_AT';
+export const DefaultDescending = false;
 
 export const StepsPropertiesOptions = {
   STEP_ID: 'stepId',
