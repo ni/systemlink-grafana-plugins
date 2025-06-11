@@ -4,7 +4,6 @@ export interface QueryResults extends ResultsQuery {
   outputType: OutputType;
   properties?: ResultsProperties[];
   useTimeRange?: boolean;
-  useTimeRangeFor?: string;
   recordCount?: number;
   queryBy?: string;
   partNumberQuery?: string[];

@@ -1,6 +1,6 @@
 import { DataSourceBase } from "core/DataSourceBase";
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse } from "@grafana/data";
-import { ProductProperties, QueryProductResponse, ResultsQuery } from "./types/types";
+import { defaultUseTimeRangeFilter, ProductProperties, QueryProductResponse, ResultsQuery } from "./types/types";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { getVariableOptions } from "core/utils";
 import { ExpressionTransformFunction } from "core/query-builder.utils";
@@ -14,11 +14,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   queryResultsValuesUrl = this.baseUrl + '/v2/query-result-values';
   queryProductsUrl = this.baseUrl + '/v2/query-products';
 
-  private timeRange: { [key: string]: string } = {
-    Started: 'startedAt',
-    Updated: 'updatedAt',
-  };
-
   private fromDateString = '${__from:date}';
   private toDateString = '${__to:date}';
   private static _workspacesCache: Promise<Map<string, Workspace>> | null = null;
@@ -31,13 +26,11 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
   abstract shouldRunQuery(query: ResultsQuery): boolean;
 
-  getTimeRangeFilter(options: DataQueryRequest, useTimeRange?: boolean, useTimeRangeFor?: string): string | undefined {
-    if (!useTimeRange || useTimeRangeFor === undefined) {
+  getTimeRangeFilter(options: DataQueryRequest, useTimeRange?: boolean): string | undefined {
+    if (!useTimeRange) {
       return undefined;
     }
-
-    const timeRangeField = this.timeRange[useTimeRangeFor];
-    const timeRangeFilter = `(${timeRangeField} > "${this.fromDateString}" && ${timeRangeField} < "${this.toDateString}")`;
+    const timeRangeFilter = `(${defaultUseTimeRangeFilter} > "${this.fromDateString}" && ${defaultUseTimeRangeFilter} < "${this.toDateString}")`;
 
     return this.templateSrv.replace(timeRangeFilter, options.scopedVars);
   }

@@ -4,7 +4,7 @@ import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching
 import { Field } from '@grafana/data';
 import { QueryResultsDataSource } from './QueryResultsDataSource';
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsVariableQuery } from 'datasources/results/types/QueryResults.types';
-import { OutputType, QueryType, UseTimeRangeFor } from 'datasources/results/types/types';
+import { OutputType, QueryType } from 'datasources/results/types/types';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { Workspace } from 'core/types';
@@ -194,7 +194,6 @@ describe('QueryResultsDataSource', () => {
             refId: 'A',
             outputType: OutputType.Data,
             useTimeRange: true,
-            useTimeRangeFor: selectedUseTimeRangeFor
           },
         );
 
@@ -551,7 +550,6 @@ describe('QueryResultsDataSource', () => {
           refId: 'A',
           queryBy,
           useTimeRange: true,
-          useTimeRangeFor: UseTimeRangeFor.Started,
         });
         const expectedFilter = `${queryBy} && ${replacedFilter}`;
 
@@ -596,7 +594,6 @@ describe('QueryResultsDataSource', () => {
         refId: 'A',
         queryBy: '',
         useTimeRange: true,
-        useTimeRangeFor: UseTimeRangeFor.Started,
       });
 
       await datastore.query(query);

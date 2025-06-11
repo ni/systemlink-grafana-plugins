@@ -59,7 +59,6 @@ const defaultQuery = {
   properties: [ResultsProperties.id],
   recordCount: 1000,
   useTimeRange: true,
-  useTimeRangeFor: 'Updated',
   partNumberQuery: ['PartNumber1'],
   queryBy: 'programName = "name1"',
 }
@@ -70,7 +69,6 @@ let recordCount: HTMLElement;
 let dataOutput: HTMLElement;
 let totalCountOutput: HTMLElement;
 let useTimeRange: HTMLElement;
-let useTimeRangeFor: HTMLElement;
 let productName: HTMLElement;
 
 describe('QueryResultsEditor', () => {
@@ -89,8 +87,7 @@ describe('QueryResultsEditor', () => {
     totalCountOutput = screen.getByRole('radio', { name: 'Total Count' });
     recordCount = screen.getByDisplayValue(1000);
     useTimeRange = screen.getAllByRole('checkbox')[0];
-    useTimeRangeFor = screen.getAllByRole('combobox')[1];
-    productName = screen.getAllByRole('combobox')[2];
+    productName = screen.getAllByRole('combobox')[1];
   });
 
   test('should render with default query when default values are provided', async () => {
@@ -102,8 +99,6 @@ describe('QueryResultsEditor', () => {
     expect(recordCount).toHaveValue(1000);
     expect(useTimeRange).toBeInTheDocument();
     expect(useTimeRange).toBeChecked();
-    expect(useTimeRangeFor).toBeInTheDocument();
-    expect(screen.getAllByText('Updated').length).toBe(1);
     expect(productName).toBeInTheDocument();
     expect(screen.getAllByText('ProductName1 (PartNumber1)').length).toBe(1);
     expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining(defaultQuery));
