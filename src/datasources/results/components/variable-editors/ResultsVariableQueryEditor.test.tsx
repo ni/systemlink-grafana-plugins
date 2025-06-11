@@ -68,10 +68,11 @@ class FakeResultsDataSource extends ResultsDataSource {
 }
 
 jest.mock('../query-builders/query-results/ResultsQueryBuilder', () => ({
-  ResultsQueryBuilder: jest.fn(({ workspaces }) => {
+  ResultsQueryBuilder: jest.fn(({ workspaces, resultIds }) => {
     return (
       <div data-testid="results-query-builder">
         <div data-testid="results-workspaces">{JSON.stringify(workspaces)}</div>
+        <div data-testid="results-result-ids">{JSON.stringify(resultIds)}</div>
       </div>
     );
   }),
@@ -420,5 +421,34 @@ describe('Dependencies', () => {
     fireEvent.click(option);
 
     expect(screen.getByTestId('results-workspaces').textContent).toBe('[]');
+  });
+
+  it('should render result ids from the datasource', async () => {
+    cleanup();
+    const emptyDatasource = {
+      globalVariableOptions: jest.fn().mockReturnValue([]),
+      getResultIds: jest.fn().mockReturnValue(['id1', 'id2']),
+      setResultIdChangeCallback: jest.fn(),
+      get workspacesCache() {
+        return Promise.resolve(new Map());
+      },
+      get productCache() {
+        return Promise.resolve({ products: [] });
+      },
+    } as unknown as QueryResultsDataSource;
+
+    Object.defineProperty(FakeResultsDataSource.prototype, 'queryResultsDataSource', {
+      get: () => emptyDatasource,
+    });
+
+    await act(async () => {
+      renderEditor({ refId: '', properties: '', queryBy: '' } as unknown as ResultsQuery);
+    });
+
+    fireEvent.keyDown(screen.getAllByRole('combobox')[0], { key: 'ArrowDown' });
+    const option = await screen.findByText(ResultsVariableProperties[0].label);
+    fireEvent.click(option);
+
+    expect(screen.getByTestId('results-result-ids').textContent).toEqual( "[\"id1\",\"id2\"]");
   });
 });

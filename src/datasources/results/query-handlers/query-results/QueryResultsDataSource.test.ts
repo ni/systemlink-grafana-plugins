@@ -804,6 +804,67 @@ describe('QueryResultsDataSource', () => {
         })
       );
     });
+
+    describe('load result ids', () => {
+      it('should not call loadResultIds when partNumberQuery is undefined', async () => {
+        const query = {
+          properties: 'PART_NUMBER',
+          queryBy: '',
+          resultsTake: 1000
+        } as ResultsVariableQuery;
+        const spy = jest.spyOn(datastore as any, 'loadResultIds')
+
+        await datastore.metricFindQuery(query, { scopedVars: {} });
+
+        expect(spy).not.toHaveBeenCalled();
+      })
+
+      it('should call loadResultIds when partNumberQueryInSteps is changed', async () => {
+        const query = {
+          properties: 'PART_NUMBER',
+          queryBy: '',
+          partNumberQuery: ['PartNumber1'],
+          resultsTake: 1000
+        } as ResultsVariableQuery;
+        const spy = jest.spyOn(datastore as any, 'loadResultIds')
+
+        await datastore.metricFindQuery(query, { scopedVars: {} });
+
+        expect(spy).toHaveBeenCalled();
+      });
+
+      it('should not call loadResultIds when partNumberQuery is not changed', async () => {
+        (datastore as any).previousPartNumberQuery = ['PartNumber1'];
+        const query = {
+          properties: 'PART_NUMBER',
+          queryBy: '',
+          partNumberQuery: ['PartNumber1'],
+          resultsTake: 1000
+        } as ResultsVariableQuery;
+        const spy = jest.spyOn(datastore as any, 'loadResultIds')
+
+        await datastore.metricFindQuery(query, { scopedVars: {} });
+
+        expect(spy).not.toHaveBeenCalled();
+      });
+
+      it('should handle error in query-result-values when loading result ids', async () => {
+        const error = new Error('API failed');
+        jest.spyOn(datastore as any, 'queryResultsValues').mockRejectedValue(error);
+        const query = {
+        properties: 'PART_NUMBER',
+        queryBy: '',
+        resultsTake: 1000
+      } as ResultsVariableQuery;
+
+        await datastore.metricFindQuery(query, { scopedVars: {} });
+
+        expect(datastore.resultId).toEqual([]);
+        expect(datastore.errorTitle).toBe('Warning during result value query');
+        expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
+      });
+
+      });
   });
 
   const buildQuery = getQueryBuilder<QueryResults>()({

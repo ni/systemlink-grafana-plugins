@@ -1533,6 +1533,53 @@ describe('QueryStepsDataSource', () => {
           expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
         });
       })
+
+      describe('load result ids', () => {
+        it('should not call loadResultIds when partNumberQueryInSteps is undefined', async () => {
+          const query = {
+            refId: 'A',
+            queryByResults: 'ProgramName = "Test"',
+            stepsTake: 1000,
+          } as StepsVariableQuery;
+          const spy = jest.spyOn(datastore as any, 'loadResultIds')
+
+          await datastore.metricFindQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+          expect(spy).not.toHaveBeenCalled();
+        })
+
+        it('should call loadResultIds when partNumberQueryInSteps is changed', async () => {
+          const query = {
+            refId: 'A',
+            queryByResults: 'ProgramName = "Test"',
+            stepsTake: 1000,
+            partNumberQueryInSteps: ['PN1'],
+          } as StepsVariableQuery;
+          const spy = jest.spyOn(datastore as any, 'loadResultIds')
+
+          await datastore.metricFindQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+          expect(spy).toHaveBeenCalled();
+        });
+
+        it('should handle error in query-result-values when loading step path', async () => {
+          const error = new Error('API failed');
+          jest.spyOn(datastore as any, 'queryResultsValues').mockRejectedValue(error);
+          const query = {
+            queryByResults: 'ProgramName = "new-query"',
+            stepsTake: 1000,
+            partNumberQueryInSteps: ['PN1'],
+          } as StepsVariableQuery;
+
+          await datastore.metricFindQuery(query, { scopedVars: {} } as DataQueryRequest);
+          const resultIdLookupValues = datastore.getResultIds();
+
+          expect(resultIdLookupValues).toEqual([]);
+          expect(datastore.errorTitle).toBe('Warning during result value query');
+          expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
+        });
+
+      });
     });
 
   const buildQuery = getQueryBuilder<QuerySteps>()({

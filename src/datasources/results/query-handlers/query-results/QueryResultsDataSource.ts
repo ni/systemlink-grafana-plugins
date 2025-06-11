@@ -56,18 +56,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     query.queryBy = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.queryBy);
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
 
-    const partNumbersChanged =
-      !!query.partNumberQuery &&
-      (this.previousPartNumberQuery?.join(',') !== query.partNumberQuery.join(','));
-
-    if (partNumbersChanged) {
-      this.resultId = await this.loadResultIds(
-        this.buildPartNumbersQuery(options.scopedVars, query.partNumberQuery ?? []),
-      );
-      this.resultIdChangeCallback?.();
-    }
-    this.previousPartNumberQuery = query.partNumberQuery;
-
+    await this.loadResultIdsLookupValues(query.partNumberQuery, options.scopedVars);
 
     const responseData = await this.queryResults(
       this.buildQueryFilter(query.queryBy, useTimeRangeFilter),
@@ -168,6 +157,8 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     if (query.properties !== undefined && this.isTakeValidValid(query.resultsTake!)) {
       const filter = this.buildResultsQuery( options?.scopedVars!, query.partNumberQuery, query.queryBy );
 
+      await this.loadResultIdsLookupValues(query.partNumberQuery, options?.scopedVars!);
+
       const metadata = (await this.queryResults(
         filter,
         'UPDATED_AT',
@@ -183,6 +174,20 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       }
     }
     return [];
+  }
+
+  private async loadResultIdsLookupValues(partNumberQuery: string[] | undefined, scopedVars: ScopedVars): Promise<void> {
+    const partNumbersChanged =
+      !this.previousPartNumberQuery ||
+      ((this.previousPartNumberQuery ?? [])?.join(',') !== (partNumberQuery ?? []).join(','));
+
+    if (partNumbersChanged) {
+      this.resultId = await this.loadResultIds(
+        this.buildPartNumbersQuery(scopedVars, partNumberQuery ?? []),
+      );
+      this.resultIdChangeCallback?.();
+    }
+    this.previousPartNumberQuery = partNumberQuery;
   }
 
   private isTakeValidValid(value: number): boolean {

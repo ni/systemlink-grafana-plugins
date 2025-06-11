@@ -192,12 +192,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
     query.resultsQuery = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.resultsQuery);
 
-    if (this.previousPartNumberQuery?.join(',') !== query.partNumberQuery.join(',')) {
-      const partNumbersQuery = this.buildPartNumbersQuery(options.scopedVars, query.partNumberQuery);
-      this.resultId = await this.loadResultIds(partNumbersQuery);
-      this.resultIdChangeCallback?.();
-    }
-    this.previousPartNumberQuery = query.partNumberQuery;
+    await this.loadResultIdLookupValues(query.partNumberQuery, options.scopedVars);
     
     if(this.previousResultsQuery !== query.resultsQuery) {
       this.stepsPath = await this.getStepPathsLookupValues(options.scopedVars, query.partNumberQuery, query.resultsQuery)
@@ -425,6 +420,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     if (query.partNumberQueryInSteps !== undefined && query.partNumberQueryInSteps.length > 0 && this.isTakeValid(query.stepsTake!)) {
       const resultsQuery = this.buildResultsQuery(options?.scopedVars!, query.partNumberQueryInSteps, query.queryByResults);
 
+      await this.loadResultIdLookupValues(query.partNumberQueryInSteps, options?.scopedVars!);
+
       if (this.previousResultsQuery !== resultsQuery) {
         this.stepsPath = await this.getStepPathsLookupValues(options?.scopedVars!, query.partNumberQueryInSteps, resultsQuery)
         this.stepsPathChangeCallback?.();
@@ -453,6 +450,15 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       }
     }
     return [];
+  }
+
+  private async loadResultIdLookupValues(partNumbersQuery: string[], scopedVars: ScopedVars): Promise<void> {
+    if (this.previousPartNumberQuery?.join(',') !== partNumbersQuery.join(',')) {
+        const partNumberQuery = this.buildPartNumbersQuery(scopedVars, partNumbersQuery);
+        this.resultId = await this.loadResultIds(partNumberQuery);
+        this.resultIdChangeCallback?.();
+      }
+      this.previousPartNumberQuery = partNumbersQuery;
   }
 
   private isTakeValid(value: number): boolean {
