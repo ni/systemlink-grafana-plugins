@@ -1086,7 +1086,7 @@ describe('QueryStepsDataSource', () => {
       expect.objectContaining({
         url: '/nitestmonitor/v2/query-steps',
         data: expect.objectContaining({
-          resultsFilter: '(PartNumber = \"PartNumber1\" || (PartNumber = \"partNumber2\" || PartNumber = \"partNumber3\")) && (ProgramName = \"name1\" || ProgramName = \"name2\")'
+          resultFilter: '(PartNumber = \"PartNumber1\" || (PartNumber = \"partNumber2\" || PartNumber = \"partNumber3\")) && (ProgramName = \"name1\" || ProgramName = \"name2\")'
         }),
       })
     );
@@ -1106,7 +1106,7 @@ describe('QueryStepsDataSource', () => {
           expect.objectContaining({
             url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({
-              resultsFilter: "(PartNumber = \"partNumber1\") && ProgramName = \"name1\"",
+              resultFilter: "(PartNumber = \"partNumber1\") && ProgramName = \"name1\"",
               filter: "stepType = \"Type1\""
             }),
           })
@@ -1126,7 +1126,7 @@ describe('QueryStepsDataSource', () => {
           expect.objectContaining({
             url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({
-              resultsFilter: "(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\") && (ProgramName = \"name1\" || ProgramName = \"name2\")"
+              resultFilter: "(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\") && (ProgramName = \"name1\" || ProgramName = \"name2\")"
             }),
           })
         );
@@ -1148,7 +1148,7 @@ describe('QueryStepsDataSource', () => {
           expect.objectContaining({
             url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({
-              resultsFilter: "(PartNumber = \"partNumber1\") && UpdatedAt = \"2025-01-01T00:00:00.000Z\""
+              resultFilter: "(PartNumber = \"partNumber1\") && UpdatedAt = \"2025-01-01T00:00:00.000Z\""
             }),
           })
         );
@@ -1171,7 +1171,7 @@ describe('QueryStepsDataSource', () => {
           expect.objectContaining({
             url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({
-              resultsFilter:  "(PartNumber = \"partNumber1\") && (PartNumber = \"123\" || Keywords != \"456\") && HostName contains \"Test\"",
+              resultFilter:  "(PartNumber = \"partNumber1\") && (PartNumber = \"123\" || Keywords != \"456\") && HostName contains \"Test\"",
               filter: "(stepType = \"123\" || keywords != \"456\") && name contains \"Test\""
             }),
           })
@@ -1294,7 +1294,7 @@ describe('QueryStepsDataSource', () => {
           expect.objectContaining({
             url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({
-              resultsFilter: "(PartNumber = \"PartNumber1\") && ProgramName = \"name1\""
+              resultFilter: "(PartNumber = \"PartNumber1\") && ProgramName = \"name1\""
             }),
           })
         );
@@ -1332,7 +1332,7 @@ describe('QueryStepsDataSource', () => {
           expect.objectContaining({
             url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({
-              resultsFilter: '(PartNumber = "PartNumber1" || PartNumber = "partNumber2") && ProgramName = "name1"'
+              resultFilter: '(PartNumber = "PartNumber1" || PartNumber = "partNumber2") && ProgramName = "name1"'
             }),
           })
         );

@@ -1,17 +1,39 @@
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { VerticalGroup, InlineField, Select, InlineSwitch, AutoSizeInput } from '@grafana/ui';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { OrderBy, WorkOrdersVariableQuery } from '../types';
 import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
 import { WorkOrdersQueryBuilder } from './query-builder/WorkOrdersQueryBuilder';
 import { TAKE_LIMIT, takeErrorMessages, tooltips } from '../constants/QueryEditor.constants';
 import { validateNumericInput } from 'core/utils';
+import { Workspace } from 'core/types';
+import { User } from 'shared/types/QueryUsers.types';
 
 type Props = QueryEditorProps<WorkOrdersDataSource, WorkOrdersVariableQuery>;
 
 export function WorkOrdersVariableQueryEditor({ query, onChange, datasource }: Props) {
   query = datasource.prepareQuery(query);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
+
+  const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
+  useEffect(() => {
+    const loadWorkspaces = async () => {
+      const workspaces = await datasource.workspaceUtils.getWorkspaces();
+      setWorkspaces(Array.from(workspaces.values()));
+    };
+
+    loadWorkspaces();
+  }, [datasource]);
+
+  const [users, setUsers] = useState<User[] | null>(null);
+  useEffect(() => {
+    const loadUsers = async () => {
+      const users = await datasource.usersUtils.getUsers();
+      setUsers(Array.from(users.values()));
+    };
+
+    loadUsers();
+  }, [datasource]);
 
   const handleQueryChange = useCallback(
     (query: WorkOrdersVariableQuery): void => {
@@ -55,6 +77,8 @@ export function WorkOrdersVariableQueryEditor({ query, onChange, datasource }: P
       <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
         <WorkOrdersQueryBuilder
           filter={query.queryBy}
+          workspaces={workspaces}
+          users={users}
           globalVariableOptions={datasource.globalVariableOptions()}
           onChange={(event: any) => onQueryByChange(event.detail.linq)}
         ></WorkOrdersQueryBuilder>

@@ -1,4 +1,4 @@
-import { render, RenderResult, screen, waitFor } from '@testing-library/react';
+import { act, render, RenderResult, screen, waitFor } from '@testing-library/react';
 import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
 import { WorkOrdersQueryEditor } from './WorkOrdersQueryEditor';
 import { OutputType, WorkOrderProperties, WorkOrderPropertiesOptions, WorkOrdersQuery } from '../types';
@@ -12,6 +12,22 @@ const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: WorkOrdersQuery) => query),
   globalVariableOptions: jest.fn(() => []),
+  workspaceUtils: {
+    getWorkspaces: jest.fn().mockResolvedValue(
+        new Map([
+            ['1', { id: '1', name: 'WorkspaceName' }],
+            ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+        ])
+    )
+  },
+  usersUtils: {
+    getUsers: jest.fn().mockResolvedValue(
+      new Map([
+        ['1', { id: '1', firstName: 'User', lastName: '1' }],
+        ['2', { id: '2', firstName: 'User', lastName: '2' }],
+      ])
+    ),
+  },
 } as unknown as WorkOrdersDataSource;
 
 const defaultProps: QueryEditorProps<WorkOrdersDataSource, WorkOrdersQuery> = {
@@ -29,13 +45,15 @@ describe('WorkOrdersQueryEditor', () => {
     jest.clearAllMocks();
   });
 
-  function renderElement(query: WorkOrdersQuery = { refId: 'A', outputType: OutputType.Properties }) {
-    const reactNode = React.createElement(WorkOrdersQueryEditor, { ...defaultProps, query });
-    return render(reactNode);
+  async function renderElement(query: WorkOrdersQuery = { refId: 'A', outputType: OutputType.Properties }) {
+    return await act(async () => {
+      const reactNode = React.createElement(WorkOrdersQueryEditor, { ...defaultProps, query });
+      return render(reactNode);
+    });
   }
 
   it('renders the query builder', async () => {
-    renderElement();
+    await renderElement();
 
     await waitFor(() => expect(screen.getAllByText('Property').length).toBe(1));
     await waitFor(() => expect(screen.getAllByText('Operator').length).toBe(1));
@@ -43,7 +61,7 @@ describe('WorkOrdersQueryEditor', () => {
   });
 
   it('should render default query', async () => {
-    const container = renderElement();
+    const container = await renderElement();
 
     expect(container.getByRole('radio', { name: OutputType.Properties })).toBeInTheDocument();
     expect(container.getByRole('radio', { name: OutputType.Properties })).toBeChecked();
@@ -80,12 +98,12 @@ describe('WorkOrdersQueryEditor', () => {
 
   describe('output type is total count', () => {
     let container: RenderResult;
-    beforeEach(() => {
+    beforeEach(async() => {
       const query = {
         refId: 'A',
         outputType: OutputType.TotalCount,
       };
-      container = renderElement(query);
+      container = await renderElement(query);
     });
 
     it('should not render properties', async () => {
@@ -93,7 +111,7 @@ describe('WorkOrdersQueryEditor', () => {
         refId: 'A',
         outputType: OutputType.TotalCount,
       };
-      const container = renderElement(query);
+      const container = await renderElement(query);
 
       await waitFor(() => {
         const properties = container.queryByRole('combobox', { name: 'Properties' });
@@ -123,12 +141,12 @@ describe('WorkOrdersQueryEditor', () => {
 
   describe('output type is properties', () => {
     let container: RenderResult;
-    beforeEach(() => {
+    beforeEach(async() => {
       const query = {
         refId: 'A',
         outputType: OutputType.Properties,
       };
-      container = renderElement(query);
+      container = await renderElement(query);
     });
 
     it('should render properties', async () => {
@@ -136,7 +154,7 @@ describe('WorkOrdersQueryEditor', () => {
         refId: 'A',
         outputType: OutputType.Properties,
       };
-      const container = renderElement(query);
+      const container = await renderElement(query);
 
       await waitFor(() => {
         const properties = container.getAllByRole('combobox')[0];
@@ -170,7 +188,7 @@ describe('WorkOrdersQueryEditor', () => {
   });
 
   it('only allows numbers in Take field', async () => {
-    const container = renderElement();
+    const container = await renderElement();
     const recordCountInput = container.getByRole('spinbutton');
 
     // User tries to enter a non-numeric value
@@ -188,13 +206,39 @@ describe('WorkOrdersQueryEditor', () => {
     });
   });
 
+  it('should load workspaces and set them in state', async () => {
+    await renderElement();
+
+    const workspaces = await mockDatasource.workspaceUtils.getWorkspaces();
+    expect(workspaces).toBeDefined();
+    expect(workspaces).toEqual(
+        new Map([
+            ['1', { id: '1', name: 'WorkspaceName' }],
+            ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+        ])
+    );
+  });
+
+  it('should load users and set them in state', async () => {
+    await renderElement();
+
+    const users = await mockDatasource.usersUtils.getUsers();
+    expect(users).toBeDefined();
+    expect(users).toEqual(
+      new Map([
+        ['1', { id: '1', firstName: 'User', lastName: '1' }],
+        ['2', { id: '2', firstName: 'User', lastName: '2' }],
+      ])
+    );
+  });
+
   describe('onChange', () => {
     it('should call onChange with properties output type when switching from total count', async () => {
       const query = {
         refId: 'A',
         outputType: OutputType.TotalCount,
       };
-      const container = renderElement(query);
+      const container = await renderElement(query);
 
       const propertiesRadio = container.getByRole('radio', { name: OutputType.Properties });
       userEvent.click(propertiesRadio);
@@ -206,7 +250,7 @@ describe('WorkOrdersQueryEditor', () => {
     });
 
     it('should call onChange with total count output type when switching from properties', async () => {
-      const container = renderElement();
+      const container = await renderElement();
 
       const totalCountRadio = container.getByRole('radio', { name: OutputType.TotalCount });
       userEvent.click(totalCountRadio);
@@ -222,7 +266,7 @@ describe('WorkOrdersQueryEditor', () => {
         refId: 'A',
         outputType: OutputType.Properties,
       };
-      const container = renderElement(query);
+      const container = await renderElement(query);
 
       const propertiesSelect = container.getAllByRole('combobox')[0];
       userEvent.click(propertiesSelect);
@@ -237,7 +281,7 @@ describe('WorkOrdersQueryEditor', () => {
     });
 
     it('should call onChange with order by when user changes order by', async () => {
-      const container = renderElement();
+      const container = await renderElement();
       const orderBySelect = container.getAllByRole('combobox')[1];
 
       userEvent.click(orderBySelect);
@@ -250,7 +294,7 @@ describe('WorkOrdersQueryEditor', () => {
     });
 
     it('should call onChange with descending when user toggles descending', async () => {
-      const container = renderElement();
+      const container = await renderElement();
       const descendingCheckbox = container.getByRole('checkbox');
 
       userEvent.click(descendingCheckbox);
@@ -262,7 +306,7 @@ describe('WorkOrdersQueryEditor', () => {
     });
 
     it('should call onChange when query by changes', async () => {
-      const container = renderElement();
+      const container = await renderElement();
 
       const queryBuilder = container.getByRole('dialog');
       expect(queryBuilder).toBeInTheDocument();
@@ -278,7 +322,7 @@ describe('WorkOrdersQueryEditor', () => {
     });
 
     it('should not call onChange when query by changes with same value', async () => {
-      const container = renderElement();
+      const container = await renderElement();
       mockOnChange.mockClear();
       mockOnRunQuery.mockClear();
 
@@ -300,7 +344,7 @@ describe('WorkOrdersQueryEditor', () => {
     });
 
     it('should call onChange with take when user changes take', async () => {
-      const container = renderElement();
+      const container = await renderElement();
       const takeInput = container.getByRole('spinbutton');
 
       await userEvent.type(takeInput, '10');
@@ -313,7 +357,7 @@ describe('WorkOrdersQueryEditor', () => {
     });
 
     it('should show error message when when user changes take to number greater than max take', async () => {
-      const container = renderElement();
+      const container = await renderElement();
       const takeInput = container.getByRole('spinbutton');
       mockOnChange.mockClear();
       mockOnRunQuery.mockClear();
@@ -330,7 +374,7 @@ describe('WorkOrdersQueryEditor', () => {
     });
 
     it('should show error message when when user changes take to number less than min take', async () => {
-      const container = renderElement();
+      const container = await renderElement();
       const takeInput = container.getByRole('spinbutton');
       mockOnChange.mockClear();
       mockOnRunQuery.mockClear();
@@ -346,7 +390,7 @@ describe('WorkOrdersQueryEditor', () => {
     });
 
     it('should not show error message when when user changes take to number between min and max take', async () => {
-      const container = renderElement();
+      const container = await renderElement();
       const takeInput = container.getByRole('spinbutton');
 
       // User enters a value greater than max take

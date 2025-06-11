@@ -17,7 +17,7 @@ export class ProductUtils {
         readonly backendSrv: BackendSrv
     ) {}
 
-    async getProducts(): Promise<Map<string, ProductPartNumberAndName>> {
+    async getProductNamesAndPartNumbers(): Promise<Map<string, ProductPartNumberAndName>> {
         if (!ProductUtils._productCache) {
             ProductUtils._productCache = this.loadProducts();
         }
@@ -59,13 +59,14 @@ export class ProductUtils {
     async queryProducts(
         take?: number,
         continuationToken?: string,
+        projection = [Properties.partNumber, Properties.name],
         descending = false,
         returnCount = true
     ): Promise<QueryProductResponse> {
         try {
             const response = await this.backendSrv.post<QueryProductResponse>(this.queryProductsUrl, {
                 descending,
-                projection: [Properties.partNumber, Properties.name],
+                projection,
                 take,
                 continuationToken,
                 returnCount

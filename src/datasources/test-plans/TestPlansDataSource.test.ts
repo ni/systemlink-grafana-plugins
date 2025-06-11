@@ -770,6 +770,27 @@ describe('runQuery', () => {
     expect(result.fields[0].name).toEqual('Product (Part number)');
     expect(result.fields[0].values).toEqual(['Product 1 (part-number-1)', 'Product 2 (part-number-2)']);
   });
+
+  test('should transform field when queryBy contains duration fields', async () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: '(estimatedDurationInDays > "2" && estimatedDurationInHours != "2")',
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      '(estimatedDurationInSeconds > \"172800\" && estimatedDurationInSeconds != \"7200\")',
+      undefined,
+      ["ID"],
+      undefined,
+      undefined,
+      true
+    );
+  });
 });
 
 describe('queryTestPlansInBatches', () => {
@@ -941,5 +962,24 @@ describe('metricFindQuery', () => {
     );
 
     jest.useRealTimers();
+  });
+
+  test('should transform field when queryBy contains duration fields', async () => {
+    const mockQuery = {
+      refId: 'C',
+      queryBy: '(estimatedDurationInDays > "2" && estimatedDurationInHours != "2")',
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.metricFindQuery(mockQuery, {});
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      '(estimatedDurationInSeconds > \"172800\" && estimatedDurationInSeconds != \"7200\")',
+      undefined,
+      ["ID", "NAME"],
+      undefined,
+      undefined
+    );
   });
 });

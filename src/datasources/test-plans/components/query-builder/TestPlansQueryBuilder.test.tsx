@@ -77,7 +77,7 @@ describe('TestPlansQueryBuilder', () => {
     });
 
     it('should select system alias in query builder', () => {
-        const { conditionsContainer } = renderElement('systemAliasName = "1"', [], [systemAlias], [], []);
+        const { conditionsContainer } = renderElement('systemId = "1"', [], [systemAlias], [], []);
 
         expect(conditionsContainer?.length).toBe(1);
         expect(conditionsContainer.item(0)?.textContent).toContain(systemAlias.alias);
@@ -110,6 +110,32 @@ describe('TestPlansQueryBuilder', () => {
         expect(conditionsContainer?.length).toBe(1);
         expect(conditionsContainer.item(0)?.textContent).toContain(product.partNumber);
         expect(conditionsContainer.item(0)?.textContent).toContain(product.name);
+
+    });
+
+    it('should select state option', () => {
+        const { conditionsContainer } = renderElement('state = "PendingApproval"', [], [], [], []);
+        expect(conditionsContainer?.length).toBe(1);
+        expect(conditionsContainer.item(0)?.textContent).toContain('State');
+        expect(conditionsContainer.item(0)?.textContent).toContain('Equals');
+        expect(conditionsContainer.item(0)?.textContent).toContain('Pending approval');
+    });
+    it('should select global variable option', () => {
+        const globalVariableOption = { label: 'Global variable', value: '$global_variable' };
+        const { conditionsContainer } = renderElement('state = \"$global_variable\"', [], [], [], [], [globalVariableOption]);
+
+        expect(conditionsContainer?.length).toBe(1);
+        expect(conditionsContainer.item(0)?.textContent).toContain(globalVariableOption.label);
+    });
+
+    it('should support key value operations', () => {
+        const { conditionsContainer } = renderElement("properties[\"key\"] = \"value\"", [], [], [], []);
+
+        expect(conditionsContainer?.length).toBe(1);
+        expect(conditionsContainer.item(0)?.textContent).toContain('Properties');
+        expect(conditionsContainer.item(0)?.textContent).toContain('matches');
+        expect(conditionsContainer.item(0)?.textContent).toContain('key');
+        expect(conditionsContainer.item(0)?.textContent).toContain('value');
     });
 
     [['${__from:date}', 'From'], ['${__to:date}', 'To'], ['${__now:date}', 'Now']].forEach(([value, label]) => {
@@ -121,21 +147,21 @@ describe('TestPlansQueryBuilder', () => {
         });
 
         it(`should select user friendly value for created date`, () => {
-            const { conditionsContainer } = renderElement(`created > \"${value}\"`, [], [], [], []);
+            const { conditionsContainer } = renderElement(`createdAt > \"${value}\"`, [], [], [], []);
 
             expect(conditionsContainer?.length).toBe(1);
             expect(conditionsContainer.item(0)?.textContent).toContain(label);
         });
 
         it(`should select user friendly value for estimated end date`, () => {
-            const { conditionsContainer } = renderElement(`estimatedEndDate > \"${value}\"`, [], [], [], []);
+            const { conditionsContainer } = renderElement(`estimatedEndDateTime > \"${value}\"`, [], [], [], []);
 
             expect(conditionsContainer?.length).toBe(1);
             expect(conditionsContainer.item(0)?.textContent).toContain(label);
         });
 
         it(`should select user friendly value for planned start date date`, () => {
-            const { conditionsContainer } = renderElement(`plannedStartDate > \"${value}\"`, [], [], [], []);
+            const { conditionsContainer } = renderElement(`plannedStartDateTime > \"${value}\"`, [], [], [], []);
 
             expect(conditionsContainer?.length).toBe(1);
             expect(conditionsContainer.item(0)?.textContent).toContain(label);
