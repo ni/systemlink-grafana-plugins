@@ -118,7 +118,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   private buildPartNumbersQuery(scopedVars: ScopedVars, partNumberQuery: string[]): string {
     const partNumberFilter = partNumberQuery.length > 0
       ? `(${this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery)})`
-      : '';
+      : undefined;
     return transformComputedFieldsQuery(
       this.templateSrv.replace(partNumberFilter, scopedVars),
       this.resultsComputedDataFields

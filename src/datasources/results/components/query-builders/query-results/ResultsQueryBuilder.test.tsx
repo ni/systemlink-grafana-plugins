@@ -10,9 +10,9 @@ describe('ResultsQueryBuilder', () => {
     const containerClass = 'smart-filter-group-condition-container';
     const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
     const status = ['PASSED', 'FAILED'];
-    const resultIds = ['result1', 'result2'];
+    const resultId = ['result1', 'result2'];
 
-    function renderElement(workspaces: Workspace[] | null, status: string[], filter: string, globalVariableOptions: QueryBuilderOption[] = []) {
+    function renderElement(workspaces: Workspace[] | null, status: string[], filter: string, globalVariableOptions: QueryBuilderOption[] = [], resultIds: string[] | null = resultId) {
       reactNode = React.createElement(ResultsQueryBuilder, { filter, workspaces, resultIds, status, globalVariableOptions, onChange: jest.fn(), });
       const renderResult = render(reactNode);
       return {
@@ -44,6 +44,15 @@ describe('ResultsQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain("Status"); //label
       expect(conditionsContainer.item(0)?.textContent).toContain("Equals"); //operator
       expect(conditionsContainer.item(0)?.textContent).toContain("PASSED"); //value
+    });
+
+    it('should select result ID in query builder', () => {
+      const { conditionsContainer } = renderElement([workspace], status, 'Id = "result1"');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("Result ID"); //label
+      expect(conditionsContainer.item(0)?.textContent).toContain("Equals"); //operator
+      expect(conditionsContainer.item(0)?.textContent).toContain("result1"); //value
     });
 
     it('should select keyword in query builder', () => {
@@ -109,6 +118,15 @@ describe('ResultsQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain("Operator"); //operator
       expect(conditionsContainer.item(0)?.textContent).toContain("Value"); //value
     })
+
+    it('should not set result ID field when result IDs are null', () => {
+      const { conditionsContainer } = renderElement([workspace], status, 'Id = "result1"', [], null);
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("Property"); //label
+      expect(conditionsContainer.item(0)?.textContent).toContain("Operator"); //operator
+      expect(conditionsContainer.item(0)?.textContent).toContain("Value"); //value
+    });
 
     describe('theme', () => {  
       const mockUseTheme = jest.spyOn(require('@grafana/ui'), 'useTheme2');
