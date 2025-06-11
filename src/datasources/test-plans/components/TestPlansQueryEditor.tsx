@@ -45,7 +45,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
     loadSystemAliases();
 
     const loadProducts = async () => {
-      const products = await datasource.productUtils.getProducts();
+      const products = await datasource.productUtils.getProductNamesAndPartNumbers();
       setProducts(Array.from(products.values()));
     };
 
