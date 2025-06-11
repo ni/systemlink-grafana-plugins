@@ -196,8 +196,6 @@ const tooltips = {
   output: 'This field specifies the output type for the query result.',
   properties: 'This field specifies the properties to use in the query.',
   recordCount: 'This field sets the maximum number of results.',
-  orderBy: 'This field orders the query results by field.',
-  descending: 'This field returns the query results in descending order.',
   queryBy: 'This optional field applies a filter to the query results.',
   productName: 'This field filters results by part number.',
 };

@@ -221,8 +221,6 @@ const tooltips = {
   output: 'This field specifies the output type for the query steps.',
   properties: 'This field specifies the properties to use in the query.',
   recordCount: 'This field sets the maximum number of steps.',
-  orderBy: 'This field orders the query steps by field.',
-  descending: 'This field returns the query steps in descending order.',
   showMeasurements: 'This toggle enables the display of step measurement data.',
   productName: 'This field filters results by part number.',
 };
