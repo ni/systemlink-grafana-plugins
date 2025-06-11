@@ -53,11 +53,18 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     query.queryBy = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.queryBy);
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
 
+    let properties = query.properties;
+    let recordCount = query.recordCount;
+    if(query.outputType === OutputType.TotalCount) {
+      properties = [];
+      recordCount = 0;
+    }
+
     const responseData = await this.queryResults(
       this.buildQueryFilter(query.queryBy, useTimeRangeFilter),
       query.orderBy,
-      query.properties,
-      query.recordCount,
+      properties,
+      recordCount,
       query.descending,
       true
     );

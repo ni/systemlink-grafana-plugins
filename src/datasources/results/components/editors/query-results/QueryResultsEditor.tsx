@@ -32,9 +32,13 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
   const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
   const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);
+  const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
 
   useEffect(() => {
-    handleQueryChange(query);
+    if(!isInitialLoad) {
+      handleQueryChange(query);
+      setIsInitialLoad(false);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
 

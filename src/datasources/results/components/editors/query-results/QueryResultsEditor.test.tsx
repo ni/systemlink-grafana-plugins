@@ -116,7 +116,6 @@ describe('QueryResultsEditor', () => {
     expect(screen.getAllByText('Updated').length).toBe(1);
     expect(productName).toBeInTheDocument();
     expect(screen.getAllByText('ProductName1 (PartNumber1)').length).toBe(1);
-    expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining(defaultQuery));
   });
 
   describe('Properties', () => {
