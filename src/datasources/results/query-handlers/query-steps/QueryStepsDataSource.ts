@@ -418,10 +418,10 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       let responseData: QueryStepsResponse;
       responseData = await this.queryStepsInBatches(
         stepsQuery,
-        'UPDATED_AT',
+        defaultStepsQuery.orderBy,
         [StepsPropertiesOptions.NAME as StepsProperties],
         query.stepsTake,
-        true,
+        defaultStepsQuery.descending,
         resultsQuery,
       );
 
