@@ -1,3 +1,9 @@
+## [3.127.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.127.1...v3.127.2) (2025-06-11)
+
+### Bug Fixes
+
+* **workorders:** Remove user fields from WorkOrdersQueryBuilderStaticFields ([#272](https://github.com/ni/systemlink-grafana-plugins/issues/272)) ([30b6e0b](https://github.com/ni/systemlink-grafana-plugins/commit/30b6e0b877e325f27c4852c6382a17b71993b8d5))
+
 ## [3.127.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.127.0...v3.127.1) (2025-06-11)
 
 ### Bug Fixes
