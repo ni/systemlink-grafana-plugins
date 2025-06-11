@@ -6,6 +6,8 @@ import { QueryResultsDataSource } from 'datasources/results/query-handlers/query
 import { QueryResultsEditor } from './QueryResultsEditor';
 import React from 'react';
 import { Workspace } from 'core/types';
+import { recordCountErrorMessages } from 'datasources/results/constants/ResultsQueryEditor.constants';
+import { ResultsProperties } from 'datasources/results/types/QueryResults.types';
 
 jest.mock('../../query-builders/query-results/ResultsQueryBuilder', () => ({
   ResultsQueryBuilder: jest.fn(({ filter, workspaces, status, globalVariableOptions, onChange }) => {
@@ -34,14 +36,15 @@ jest.mock('../../../types/types', () => ({
 const mockWorkspaces: Workspace[] = [
   { id: '1', name: 'Workspace1', default: false, enabled: true },
   { id: '2', name: 'Workspace2', default: false, enabled: true },
-]
+];
 const mockGlobalVars = [{ label: '$var1', value: '$var1' }];
 const mockProducts = {
   products: [
-    {partNumber: 'PartNumber1', name: 'ProductName1'},
-    {partNumber: 'PartNumber2', name: 'ProductName2'}
-  ]
-}
+    { partNumber: 'PartNumber1', name: 'ProductName1' },
+    { partNumber: 'PartNumber2', name: 'ProductName2' },
+    { partNumber: 'PartNumber3', name: null },
+  ],
+};
 
 const mockDatasource = {
   workspacesCache: Promise.resolve(new Map(mockWorkspaces.map(workspace => [workspace.id, workspace]))),
@@ -53,7 +56,7 @@ const defaultQuery = {
   refId: 'A',
   queryType: QueryType.Results,
   outputType: OutputType.Data,
-  properties: [],
+  properties: [ResultsProperties.id],
   orderBy: 'STARTED_AT',
   descending: true,
   recordCount: 1000,
@@ -116,12 +119,23 @@ describe('QueryResultsEditor', () => {
     expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining(defaultQuery));
   });
 
-  test('should update properties when user adds a property', async () => {
-    await select(properties, 'properties', { container: document.body });
-    await waitFor(() => {
-      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['properties'] }));
+  describe('Properties', () => {
+    test('should update properties when user adds a property', async () => {
+      await select(properties, 'properties', { container: document.body });
+      await waitFor(() => {
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['id', 'properties'] }));
+      });
     });
-  });
+  
+    test('should show error when all properties are removed', async () => {
+      const removeButton = screen.getAllByLabelText('Remove');
+      for (const button of removeButton) {
+        await userEvent.click(button);
+      }
+  
+      expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
+    });
+  })
 
   test('should update orderBy when user changes the orderBy', async () => {
     await select(orderBy, 'Started At', { container: document.body });
@@ -144,28 +158,50 @@ describe('QueryResultsEditor', () => {
     });
   });
 
-    test('should update part number query when user selects a variable in product name field', async () => {
+  test('should update part number query when user selects a variable in product name field', async () => {
     await select(productName, '$var1', { container: document.body });
     await waitFor(() => {
       expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "$var1"] }));
     });
   });
 
+  test('should update part number query when product name is not available', async () => {
+    await select(productName, 'PartNumber3', { container: document.body });
+    await waitFor(() => {
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "PartNumber3"] }));
+    });
+  });
+
   describe('recordCount', () => {
-    test('should update record count when user enters numeric values in the take', async () => {
+    it('should not show error and call onChange when Take is valid', async () => {
       await userEvent.clear(recordCount);
       await userEvent.type(recordCount, '500');
-      await waitFor(() => {
-        expect(recordCount).toHaveValue(500);
-      });
+      await userEvent.click(document.body);
+
+      expect(recordCount).toHaveValue(500);
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: 500 }));
     });
 
-    test('should not update record count when user enters non-numeric values in the take', async () => {
+    it('should show error and not call onChange when Take is greater than Take limit', async () => {
+      mockHandleQueryChange.mockClear();
+
       await userEvent.clear(recordCount);
-      await userEvent.type(recordCount, 'Test');
-      await waitFor(() => {
-        expect(recordCount).toHaveValue(null);
-      });
+      await userEvent.type(recordCount, '10001');
+      await userEvent.click(document.body);
+
+      expect(mockHandleQueryChange).not.toHaveBeenCalled();
+      expect(screen.getByText(recordCountErrorMessages.lessOrEqualToTakeLimit)).toBeInTheDocument();
+    });
+
+    it('should show error and not call onChange when Take is not a number', async () => {
+      mockHandleQueryChange.mockClear();
+
+      await userEvent.clear(recordCount);
+      await userEvent.type(recordCount, 'abc');
+      await userEvent.click(document.body);
+
+      expect(mockHandleQueryChange).not.toHaveBeenCalled();
+      expect(screen.getByText(recordCountErrorMessages.greaterOrEqualToZero)).toBeInTheDocument();
     });
   });
 
@@ -240,6 +276,18 @@ describe('QueryResultsEditor', () => {
       await userEvent.click(triggerChangeButton);
       await waitFor(() => {
         expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ queryBy: 'workspace = "Workspace1"' }));
+      });
+    });
+
+    test('should not update queryBy when filter is not changed', async () => {
+      const initialQueryBy = defaultQuery.queryBy;
+      const triggerChangeButton = screen.getByTestId('trigger-change');
+
+      mockHandleQueryChange.mockClear();
+      await userEvent.click(triggerChangeButton);
+      
+      await waitFor(() => {
+        expect(mockHandleQueryChange).not.toHaveBeenCalledWith(expect.objectContaining({ queryBy: initialQueryBy }));
       });
     });
   });

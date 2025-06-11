@@ -1,3 +1,129 @@
+## [3.126.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.125.1...v3.126.0) (2025-06-11)
+
+### Features
+
+* **products-util:** create product reusable to remove duplicate method of query part number & name ([#238](https://github.com/ni/systemlink-grafana-plugins/issues/238)) ([2b9880d](https://github.com/ni/systemlink-grafana-plugins/commit/2b9880dafe122f39057b7146c48ef9550ba33977))
+
+### Bug Fixes
+
+* **test-plans:** transform duration filters in the request body ([#268](https://github.com/ni/systemlink-grafana-plugins/issues/268)) ([7397d58](https://github.com/ni/systemlink-grafana-plugins/commit/7397d580a986bb2151a664e91a2cff0ad95884e1))
+
+## [3.125.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.125.0...v3.125.1) (2025-06-10)
+
+### Bug Fixes
+
+* **results:** `totalCount` is not returned when there are no results matching the query ([#266](https://github.com/ni/systemlink-grafana-plugins/issues/266)) ([f7095ec](https://github.com/ni/systemlink-grafana-plugins/commit/f7095ec51091ebc01e4dc1c51cf95b49216afce2))
+
+## [3.125.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.124.1...v3.125.0) (2025-06-10)
+
+### Features
+
+* **results:** rename resultsFilter to resultFilter ([#264](https://github.com/ni/systemlink-grafana-plugins/issues/264)) ([782025f](https://github.com/ni/systemlink-grafana-plugins/commit/782025f8c0cf2dc36a50fa8e85f63f532f3bc5f8))
+* **test-plans:** Add state property lookup in the query builder ([#263](https://github.com/ni/systemlink-grafana-plugins/issues/263)) ([c7dacd8](https://github.com/ni/systemlink-grafana-plugins/commit/c7dacd822159775a91f4517e1750cf230d364789))
+
+## [3.124.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.124.0...v3.124.1) (2025-06-10)
+
+### Bug Fixes
+
+* **testplans:** Update filter fields in test plans ([#260](https://github.com/ni/systemlink-grafana-plugins/issues/260)) ([d73b005](https://github.com/ni/systemlink-grafana-plugins/commit/d73b005e5c774e75152309d21de13f0530cb4a39))
+
+## [3.124.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.123.0...v3.124.0) (2025-06-10)
+
+### Features
+
+* **workorders:** Add users lookup and map users in workorders data ([#256](https://github.com/ni/systemlink-grafana-plugins/issues/256)) ([1d74091](https://github.com/ni/systemlink-grafana-plugins/commit/1d74091fb3b7d9631d13a2529a8679fba94d8fdf))
+
+## [3.123.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.122.0...v3.123.0) (2025-06-10)
+
+### Features
+
+* **workorders:** Map workspace name in workorders QB and datasource ([#255](https://github.com/ni/systemlink-grafana-plugins/issues/255)) ([f76916b](https://github.com/ni/systemlink-grafana-plugins/commit/f76916b9647adf19eecb7426b1d2a194a92bef57))
+
+## [3.122.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.121.0...v3.122.0) (2025-06-10)
+
+### Features
+
+* **results:** Handle null values for product names ([#262](https://github.com/ni/systemlink-grafana-plugins/issues/262)) ([a397fc3](https://github.com/ni/systemlink-grafana-plugins/commit/a397fc37e115b2dfead0ffe12a586425921784df))
+
+## [3.121.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.120.0...v3.121.0) (2025-06-10)
+
+### Features
+
+* **results:** prevent duplicate API call  ([#259](https://github.com/ni/systemlink-grafana-plugins/issues/259)) ([373da70](https://github.com/ni/systemlink-grafana-plugins/commit/373da70efa07aa8bc0e903b27e6b51bfbc1c62b1))
+
+## [3.120.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.119.0...v3.120.0) (2025-06-10)
+
+### Features
+
+* **test-plans:** Add users lookup and map users in test plans data source & query builder ([#257](https://github.com/ni/systemlink-grafana-plugins/issues/257)) ([4eb5e3e](https://github.com/ni/systemlink-grafana-plugins/commit/4eb5e3e8756e5a7efaba1b2f813ffc0077f91033))
+* **test-plans:** Show Dut serial number in the properties ([#258](https://github.com/ni/systemlink-grafana-plugins/issues/258)) ([8934fe5](https://github.com/ni/systemlink-grafana-plugins/commit/8934fe5faec9350d293e787745c8de92c2410bb0))
+
+## [3.119.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.118.0...v3.119.0) (2025-06-09)
+
+### Features
+
+* **testplans:** Add support for time fields & global variables ([#250](https://github.com/ni/systemlink-grafana-plugins/issues/250)) ([2294f1a](https://github.com/ni/systemlink-grafana-plugins/commit/2294f1a3a3aead8bc0245bfea8be0435388e9a45))
+
+## [3.118.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.117.1...v3.118.0) (2025-06-09)
+
+### Features
+
+* **shared:** Add users class with utility methods to load users ([#227](https://github.com/ni/systemlink-grafana-plugins/issues/227)) ([9e2326d](https://github.com/ni/systemlink-grafana-plugins/commit/9e2326d020a355909f60add097d389c659618507))
+
+## [3.117.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.117.0...v3.117.1) (2025-06-09)
+
+### Bug Fixes
+
+* **utils:** set take value to 0 when it is defined in `queryInBatches` method ([#251](https://github.com/ni/systemlink-grafana-plugins/issues/251)) ([a01b80f](https://github.com/ni/systemlink-grafana-plugins/commit/a01b80f05dd77fefd385b937c2351a87dd677a06))
+
+## [3.117.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.116.0...v3.117.0) (2025-06-09)
+
+### Features
+
+* **system-utils:** create system reusable to remove duplicate methods of loading system alias in data sources ([#234](https://github.com/ni/systemlink-grafana-plugins/issues/234)) ([11c0562](https://github.com/ni/systemlink-grafana-plugins/commit/11c05627628fab15cf8612b02aea99694c17de63))
+
+## [3.116.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.115.0...v3.116.0) (2025-06-09)
+
+### Features
+
+* **results:** Error handling for query-paths ([#253](https://github.com/ni/systemlink-grafana-plugins/issues/253)) ([3ea6867](https://github.com/ni/systemlink-grafana-plugins/commit/3ea686722af89bc1451ef5cfee497ee94ac33ab9))
+
+## [3.115.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.114.0...v3.115.0) (2025-06-09)
+
+### Features
+
+* **testplans:** Stringify properties dispayed ([#254](https://github.com/ni/systemlink-grafana-plugins/issues/254)) ([4e64263](https://github.com/ni/systemlink-grafana-plugins/commit/4e642637e7cc78184bbb85724340b589ca51dd3b))
+
+## [3.114.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.113.0...v3.114.0) (2025-06-09)
+
+### Features
+
+* **workspace-util:** create workspace reusable to remove duplicate methods of loading workspace in data sources ([#226](https://github.com/ni/systemlink-grafana-plugins/issues/226)) ([3afdaff](https://github.com/ni/systemlink-grafana-plugins/commit/3afdaff27c0b50e62702b7992d2d38f1e740483e))
+
+## [3.113.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.112.0...v3.113.0) (2025-06-09)
+
+### Features
+
+* **products, results:** add validation for property selection ([#252](https://github.com/ni/systemlink-grafana-plugins/issues/252)) ([8d321ef](https://github.com/ni/systemlink-grafana-plugins/commit/8d321eff0d78153cc7ee65b39e9dcc3189723233))
+
+## [3.112.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.111.0...v3.112.0) (2025-06-09)
+
+### Features
+
+* **query-editor:** add validation and error handling for product selection  ([#247](https://github.com/ni/systemlink-grafana-plugins/issues/247)) ([d2b3083](https://github.com/ni/systemlink-grafana-plugins/commit/d2b3083906a41d7548652b0a5c6dd30c1f464dde))
+
+## [3.111.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.110.0...v3.111.0) (2025-06-09)
+
+### Features
+
+* **products, results:** add validation for record count input with error ([#244](https://github.com/ni/systemlink-grafana-plugins/issues/244)) ([15260d4](https://github.com/ni/systemlink-grafana-plugins/commit/15260d4c7c5f05b18a3917b0b987d73298582477))
+
+## [3.110.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.109.0...v3.110.0) (2025-06-09)
+
+### Features
+
+* **results:** update error handling for steps  query ([#243](https://github.com/ni/systemlink-grafana-plugins/issues/243)) ([e2905aa](https://github.com/ni/systemlink-grafana-plugins/commit/e2905aa832830c303d404593b8dc0d33b073ec94))
+
 ## [3.109.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.108.0...v3.109.0) (2025-06-06)
 
 ### Features

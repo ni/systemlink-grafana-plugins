@@ -92,6 +92,25 @@ describe('QueryResultsDataSource', () => {
       expect(response.data).toMatchSnapshot();
     });
 
+    test('returns totalCount as 0 in query() when OutputType is TotalCount and no results', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({
+          results: [],
+          totalCount: 0
+        } as QueryResultsResponse));
+
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.TotalCount
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([{ name: 'Total count', values: [0] }]);
+      expect(response.data[0].refId).toBe('A');
+    });
+
     test('returns no data when QueryResults API returns empty array', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
@@ -354,7 +373,7 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.loadProducts();
 
-      expect(datastore.errorTitle).toBe('Warning during result value query');
+      expect(datastore.errorTitle).toBe('Warning during product value query');
       expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
     });
 

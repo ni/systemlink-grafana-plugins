@@ -1,4 +1,4 @@
-import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars } from '@grafana/data';
+import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, AppEvents } from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
   QueryStepPathsResponse,
@@ -20,6 +20,7 @@ import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types
 import { QueryResponse } from 'core/types';
 import { queryInBatches } from 'core/utils';
 import { MAX_PATH_TAKE_PER_REQUEST, QUERY_PATH_REQUEST_PER_SECOND } from 'datasources/results/constants/QueryStepPath.constants';
+import { extractErrorInfo } from 'core/errors';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
@@ -42,27 +43,41 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     projection?: StepsProperties[],
     take?: number,
     descending?: boolean,
-    resultsFilter?: string,
+    resultFilter?: string,
     continuationToken?: string,
     returnCount = false
   ): Promise<QueryStepsResponse> {
 
-    const response = await this.post<QueryStepsResponse>(`${this.queryStepsUrl}`, {
-      filter,
-      orderBy,
-      descending,
-      projection,
-      take,
-      resultsFilter,
-      continuationToken,
-      returnCount,
-    });
+    try {
+      const response = await this.post<QueryStepsResponse>(`${this.queryStepsUrl}`, {
+        filter,
+        orderBy,
+        descending,
+        projection,
+        take,
+        resultFilter,
+        continuationToken,
+        returnCount,
+      });
+      return response;
+    } catch (error) {
+      const errorDetails = extractErrorInfo((error as Error).message);
 
-    if (response.error) {
-      throw new Error(`An error occurred while querying steps: ${response.error}`);
+      let errorMessage: string;
+      if (!errorDetails.statusCode) {
+        errorMessage = 'The query failed due to an unknown error.';
+      } else {
+        errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+      }
+
+      this.appEvents?.publish?.({
+        type: AppEvents.alertError.name,
+        payload: ['Error during step query', errorMessage],
+      });
+
+      throw new Error(errorMessage);
     }
 
-    return response;
   }
 
   private async queryStepPaths(
@@ -73,19 +88,14 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     returnCount = false
   ): Promise<QueryStepPathsResponse> {
     const defaultOrderBy = StepsPathProperties.path
-    const response = await this.post<QueryStepPathsResponse>(this.queryPathsUrl, {
+    return await this.post<QueryStepPathsResponse>(this.queryPathsUrl, {
       filter,
       projection,
       take,
       orderBy: defaultOrderBy,
       continuationToken,
       returnCount,
-    })
-    if (response.error) {
-      throw new Error(`An error occurred while querying steps: ${response.error}`);
-    }
-
-    return response;
+    });
   }
 
   async queryStepsInBatches(
@@ -94,7 +104,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     projection?: StepsProperties[],
     take?: number,
     descending?: boolean,
-    resultsFilter?: string,
+    resultFilter?: string,
     returnCount = false,
   ): Promise<QueryStepsResponse> {
     const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<StepsResponseProperties>> => {
@@ -104,7 +114,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         projection,
         currentTake,
         descending,
-        resultsFilter,
+        resultFilter,
         token,
         returnCount
       );
@@ -246,7 +256,9 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       const stepPathResponse = await this.loadStepPaths(scopedVars, partNumberQuery, transformedResultsQuery);
       stepPathValues = stepPathResponse.paths.map(pathObj => pathObj.path);
     } catch (error) {
-      console.error('Error in loading step paths:', error);
+        if (!this.errorTitle) {
+          this.handleQueryValuesError(error, 'step paths');
+        }
       stepPathValues = [];
     }
     return stepPathValues;
@@ -404,19 +416,14 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       ) : undefined;
 
       let responseData: QueryStepsResponse;
-      try {
-        responseData = await this.queryStepsInBatches(
-          stepsQuery,
-          'UPDATED_AT',
-          [StepsPropertiesOptions.NAME as StepsProperties],
-          query.stepsTake,
-          true,
-          resultsQuery,
-        );
-      } catch (error) {
-        console.error('Error in querying steps:', error);
-        return [];
-      }
+      responseData = await this.queryStepsInBatches(
+        stepsQuery,
+        'UPDATED_AT',
+        [StepsPropertiesOptions.NAME as StepsProperties],
+        query.stepsTake,
+        true,
+        resultsQuery,
+      );
 
       if (responseData.steps.length > 0) {
         return responseData.steps
