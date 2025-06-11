@@ -1,3 +1,13 @@
+## [3.126.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.125.1...v3.126.0) (2025-06-11)
+
+### Features
+
+* **products-util:** create product reusable to remove duplicate method of query part number & name ([#238](https://github.com/ni/systemlink-grafana-plugins/issues/238)) ([2b9880d](https://github.com/ni/systemlink-grafana-plugins/commit/2b9880dafe122f39057b7146c48ef9550ba33977))
+
+### Bug Fixes
+
+* **test-plans:** transform duration filters in the request body ([#268](https://github.com/ni/systemlink-grafana-plugins/issues/268)) ([7397d58](https://github.com/ni/systemlink-grafana-plugins/commit/7397d580a986bb2151a664e91a2cff0ad95884e1))
+
 ## [3.125.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.125.0...v3.125.1) (2025-06-10)
 
 ### Bug Fixes
