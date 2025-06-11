@@ -36,9 +36,6 @@ export const ResultsVariableProperties = [
   }
 ]
 
-export const DefaultOrderBy = 'STARTED_AT';
-export const DefaultDescending = true;
-
 export const ResultsPropertiesOptions = {
   ID: 'id',
   PROGRAM_NAME: 'programName',

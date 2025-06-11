@@ -12,9 +12,6 @@ export interface QuerySteps extends ResultsQuery {
   stepsQuery?: string;
 }
 
-export const DefaultOrderBy = 'STARTED_AT';
-export const DefaultDescending = false;
-
 export const StepsPropertiesOptions = {
   STEP_ID: 'stepId',
   NAME: 'name',
