@@ -1,4 +1,4 @@
-import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties, ResultsVariableQuery } from "datasources/results/types/QueryResults.types";
+import { DefaultDescending, DefaultOrderBy, QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties, ResultsVariableQuery } from "datasources/results/types/QueryResults.types";
 import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase";
 import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, AppEvents } from "@grafana/data";
 import { OutputType } from "datasources/results/types/types";
@@ -15,17 +15,15 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
 
   async queryResults(
     filter?: string,
-    orderBy?: string,
     projection?: ResultsProperties[],
     take?: number,
-    descending?: boolean,
     returnCount = false
   ): Promise<QueryResultsResponse> {
     try {
       return await this.post<QueryResultsResponse>(`${this.queryResultsUrl}`, {
         filter,
-        orderBy,
-        descending,
+        orderBy: DefaultOrderBy,
+        descending: DefaultDescending,
         projection,
         take,
         returnCount,
@@ -55,10 +53,8 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
 
     const responseData = await this.queryResults(
       this.buildQueryFilter(query.queryBy, useTimeRangeFilter),
-      query.orderBy,
       query.properties,
       query.recordCount,
-      query.descending,
       true
     );
 
@@ -153,7 +149,6 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
 
       const metadata = (await this.queryResults(
         filter,
-        'UPDATED_AT',
         [query.properties as ResultsProperties],
         query.resultsTake,
       )).results;
