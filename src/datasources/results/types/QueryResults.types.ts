@@ -3,6 +3,8 @@ import { OutputType, ResultsQuery } from './types';
 export interface QueryResults extends ResultsQuery {
   outputType: OutputType;
   properties?: ResultsProperties[];
+  orderBy?: string;
+  descending?: boolean;
   useTimeRange?: boolean;
   useTimeRangeFor?: string;
   recordCount?: number;
@@ -36,9 +38,6 @@ export const ResultsVariableProperties = [
     description: 'Test Program Name of the result',
   }
 ]
-
-export const DefaultOrderBy = 'STARTED_AT';
-export const DefaultDescending = true;
 
 export const ResultsPropertiesOptions = {
   ID: 'id',

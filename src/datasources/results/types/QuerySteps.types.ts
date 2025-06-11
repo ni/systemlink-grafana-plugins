@@ -4,6 +4,8 @@ export interface QuerySteps extends ResultsQuery {
   outputType: OutputType;
   properties?: StepsProperties[];
   partNumberQuery: string[];
+  orderBy?: string;
+  descending?: boolean;
   useTimeRange?: boolean;
   useTimeRangeFor?: string;
   recordCount?: number;
@@ -11,9 +13,6 @@ export interface QuerySteps extends ResultsQuery {
   resultsQuery?: string;
   stepsQuery?: string;
 }
-
-export const DefaultOrderBy = 'STARTED_AT';
-export const DefaultDescending = false;
 
 export const StepsPropertiesOptions = {
   STEP_ID: 'stepId',
