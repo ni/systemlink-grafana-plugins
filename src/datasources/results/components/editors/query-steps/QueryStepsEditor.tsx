@@ -5,7 +5,6 @@ import {
   InlineSwitch,
   MultiSelect,
   RadioButtonGroup,
-  Select,
   VerticalGroup,
 } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
@@ -13,7 +12,7 @@ import React, { useEffect, useState } from 'react';
 import '../../ResultsQueryEditor.scss';
 import { OutputType } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
-import { OrderBy, QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
+import { QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 import { StepsQueryBuilderWrapper } from '../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
 import { FloatingError } from 'core/errors';
@@ -65,14 +64,6 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
     }
   };
 
-  const onOrderByChange = (orderBy: SelectableValue<string>) => {
-    handleQueryChange({ ...query, orderBy: orderBy.value });
-  };
-
-  const onDescendingChange = (isDescendingChecked: boolean) => {
-    handleQueryChange({ ...query, descending: isDescendingChecked });
-  };
-
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
     if (isRecordCountValid(value, TAKE_LIMIT)) {
@@ -99,12 +90,14 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
 
   const onResultsFilterChange = (resultsQuery: string) => {
     if (query.resultsQuery !== resultsQuery) {
+      query.resultsQuery = resultsQuery;
       handleQueryChange({ ...query, resultsQuery: resultsQuery });
     }
   };
 
   const onStepsFilterChange = (stepsQuery: string) => {
     if (query.stepsQuery !== stepsQuery) {
+      query.stepsQuery = stepsQuery;
       handleQueryChange({ ...query, stepsQuery: stepsQuery });
     }
   };
@@ -167,51 +160,36 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
             }}
           />
         </div>
-        <InlineField
-          label="Product (part number)"
-          labelWidth={26}
-          tooltip={tooltips.productName}
-          invalid={!isProductSelectionValid}
-          error="You must select at least one product in this field.">
-          <MultiSelect
-            maxVisibleValues={5}
-            width={65}
-            onChange={onProductNameChange}
-            placeholder='Select part numbers to use in a query'
-            noMultiValueWrap={true}
-            closeMenuOnSelect={false}
-            value={query.partNumberQuery}
-            formatOptionLabel={formatOptionLabel}
-            options={productNameOptions}
-          />
-        </InlineField>
-        <div className="horizontal-control-group">
-          <StepsQueryBuilderWrapper
-            datasource={datasource}
-            resultsQuery={query.resultsQuery}
-            stepsQuery={query.stepsQuery}
-            onResultsQueryChange={(value: string) => onResultsFilterChange(value)}
-            onStepsQueryChange={(value: string) => onStepsFilterChange(value)}
-            disableStepsQueryBuilder={disableStepsQueryBuilder}
-          />
+        <div className="results-horizontal-control-group">
+          <div>
+            <InlineField
+              label="Product (part number)"
+              labelWidth={26}
+              tooltip={tooltips.productName}
+              invalid={!isProductSelectionValid}
+              error="You must select at least one product in this field.">
+              <MultiSelect
+                maxVisibleValues={5}
+                width={65}
+                onChange={onProductNameChange}
+                placeholder='Select part numbers to use in a query'
+                noMultiValueWrap={true}
+                closeMenuOnSelect={false}
+                value={query.partNumberQuery}
+                formatOptionLabel={formatOptionLabel}
+                options={productNameOptions}/>
+            </InlineField>
+            <StepsQueryBuilderWrapper
+              datasource={datasource}
+              resultsQuery={query.resultsQuery}
+              stepsQuery={query.stepsQuery}
+              onResultsQueryChange={(value: string) => onResultsFilterChange(value)}
+              onStepsQueryChange={(value: string) => onStepsFilterChange(value)}
+              disableStepsQueryBuilder={disableStepsQueryBuilder}
+            />
+          </div>
           {query.outputType === OutputType.Data && (
-          <div className="right-query-controls">
-            <InlineField label="OrderBy" labelWidth={26} tooltip={tooltips.orderBy}>
-              <Select
-                options={OrderBy as SelectableValue[]}
-                width={25}
-                placeholder="Select field to order by"
-                onChange={onOrderByChange}
-                value={query.orderBy}
-                defaultValue={query.orderBy}
-              />
-            </InlineField>
-            <InlineField label="Descending" labelWidth={26} tooltip={tooltips.descending}>
-              <InlineSwitch
-                onChange={event => onDescendingChange(event.currentTarget.checked)}
-                value={query.descending}
-              />
-            </InlineField>
+          <div className="results-right-query-controls">
             <InlineField
                 label="Take"
                 labelWidth={26}
@@ -243,8 +221,6 @@ const tooltips = {
   output: 'This field specifies the output type for the query steps.',
   properties: 'This field specifies the properties to use in the query.',
   recordCount: 'This field sets the maximum number of steps.',
-  orderBy: 'This field orders the query steps by field.',
-  descending: 'This field returns the query steps in descending order.',
   showMeasurements: 'This toggle enables the display of step measurement data.',
   productName: 'This field filters results by part number.',
 };

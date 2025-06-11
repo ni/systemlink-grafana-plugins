@@ -4,21 +4,21 @@ import { QBField } from "core/types";
 
 export enum TestPlansQueryBuilderFieldNames {
     AssignedTo = 'assignedTo',
-    CreatedAt = 'created',
+    CreatedAt = 'createdAt',
     CreatedBy = 'createdBy',
     Description = 'description',
-    DUTIdentifier = 'DUTIdentifier',
+    DUTIdentifier = 'DUTId',
     EstimatedDurationInDays = 'estimatedDurationInDays',
     EstimatedDurationInHours = 'estimatedDurationInHours',
-    EstimatedEndDate = 'estimatedEndDate',
-    FixtureIdentifier = 'fixtureIdentifier',
+    EstimatedEndDate = 'estimatedEndDateTime',
+    FixtureIdentifier = 'fixtureIds',
     Name = 'name',
-    PlannedStartDate = 'plannedStartDate',
-    Product = 'product',
+    PlannedStartDate = 'plannedStartDateTime',
+    Product = 'partNumber',
     Properties = 'properties',
     State = 'state',
-    SystemAliasName = 'systemAliasName',
-    TestPlanID = 'testPlanID',
+    SystemAliasName = 'systemId',
+    TestPlanID = 'id',
     TestProgram = 'testProgram',
     UpdatedAt = 'updatedAt',
     UpdatedBy = 'updatedBy',
@@ -141,7 +141,10 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name
-        ]
+        ],
+        lookup: {
+            dataSource: []
+        }
     },
     PROPERTIES: {
         label: 'Properties',
@@ -160,7 +163,19 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name
-        ]
+        ],
+        lookup: {
+            dataSource: [
+                { label: 'New', value: 'New' },
+                { label: 'Defined', value: 'Defined' },
+                { label: 'Reviewed', value: 'Reviewed' },
+                { label: 'Scheduled', value: 'Scheduled' },
+                { label: 'In progress', value: 'InProgress' },
+                { label: 'Pending approval', value: 'PendingApproval' },
+                { label: 'Closed', value: 'Closed' },
+                { label: 'Canceled', value: 'Canceled' }
+            ]
+        }
     },
     SYSTEM_ALIAS_NAME: {
         label: 'System alias name',
@@ -235,19 +250,15 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
 }
 
 export const TestPlansQueryBuilderStaticFields = [
-    TestPlansQueryBuilderFields.ASSIGNED_TO,
-    TestPlansQueryBuilderFields.CREATED_BY,
     TestPlansQueryBuilderFields.DESCRIPTION,
     TestPlansQueryBuilderFields.DUT_IDENTIFIER,
     TestPlansQueryBuilderFields.ESTIMATED_DURATION_IN_DAYS,
     TestPlansQueryBuilderFields.ESTIMATED_DURATION_IN_HOURS,
     TestPlansQueryBuilderFields.FIXTURE_IDENTIFIER,
     TestPlansQueryBuilderFields.NAME,
-    TestPlansQueryBuilderFields.PRODUCT,
     TestPlansQueryBuilderFields.PROPERTIES,
     TestPlansQueryBuilderFields.STATE,
     TestPlansQueryBuilderFields.TEST_PLAN_ID,
     TestPlansQueryBuilderFields.TEST_PROGRAM,
-    TestPlansQueryBuilderFields.UPDATED_BY,
     TestPlansQueryBuilderFields.WORK_ORDER_ID
 ];

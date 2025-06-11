@@ -27,6 +27,25 @@ const mockDatasource = {
                 ['2', { id: '2', alias: 'System 2' }],
             ])
         ),
+    },
+    usersUtils: {
+        getUsers: jest.fn().mockResolvedValue(
+            new Map([
+                ['1', { id: '1', firstName: 'User', lastName: '1' }],
+                ['2', { id: '2', firstName: 'User', lastName: '2' }],
+            ])
+        ),
+    },
+    productUtils: {
+        getProductNamesAndPartNumbers: jest.fn().mockResolvedValue(
+            new Map(
+                [
+                    ['part-number-1', { partNumber: 'part-number-1', name: 'Product 1' }],
+                    ['part-number-2', { partNumber: 'part-number-2', name: 'Product 2' }]
+
+                ]
+            )
+        )
     }
 } as unknown as TestPlansDataSource;
 
@@ -237,6 +256,34 @@ describe('TestPlansQueryEditor', () => {
             new Map([
                 ['1', { id: '1', alias: 'System 1' }],
                 ['2', { id: '2', alias: 'System 2' }],
+            ])
+        );
+    });
+
+    it('should load users', async () => {
+        renderElement();
+
+        const users = await mockDatasource.usersUtils.getUsers();
+        expect(users).toBeDefined();
+        expect(users).toEqual(
+            new Map([
+                ['1', { id: '1', firstName: 'User', lastName: '1' }],
+                ['2', { id: '2', firstName: 'User', lastName: '2' }]
+            ])
+        );
+    });
+
+    it('should load part numbers and product names', async () => {
+        await act(async () => {
+            renderElement();
+        });
+
+        const result = await mockDatasource.productUtils.getProductNamesAndPartNumbers();
+        expect(result).toBeDefined();
+        expect(result).toEqual(
+            new Map([
+                ['part-number-1', { partNumber: 'part-number-1', name: 'Product 1' }],
+                ['part-number-2', { partNumber: 'part-number-2', name: 'Product 2' }]
             ])
         );
     });

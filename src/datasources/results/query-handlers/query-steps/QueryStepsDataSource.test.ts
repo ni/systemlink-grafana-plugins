@@ -113,6 +113,25 @@ describe('QueryStepsDataSource', () => {
       expect(response.data).toMatchSnapshot();
     });
 
+    test('should set default orderby to "STARTED_AT" and descending to "false"', async () => {
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+      });
+
+      await datastore.query(query);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: '/nitestmonitor/v2/query-steps',
+          data: expect.objectContaining({
+            orderBy: "STARTED_AT",
+            descending: false,
+          }),
+        })
+      );
+    });
+
     test('should return total count for valid total count output type queries', async () => {
       const query = buildQuery({
         refId: 'A',
@@ -1148,7 +1167,7 @@ describe('QueryStepsDataSource', () => {
       expect.objectContaining({
         url: '/nitestmonitor/v2/query-steps',
         data: expect.objectContaining({
-          resultsFilter: '(PartNumber = \"PartNumber1\" || (PartNumber = \"partNumber2\" || PartNumber = \"partNumber3\")) && (ProgramName = \"name1\" || ProgramName = \"name2\")'
+          resultFilter: '(PartNumber = \"PartNumber1\" || (PartNumber = \"partNumber2\" || PartNumber = \"partNumber3\")) && (ProgramName = \"name1\" || ProgramName = \"name2\")'
         }),
       })
     );
@@ -1168,7 +1187,7 @@ describe('QueryStepsDataSource', () => {
           expect.objectContaining({
             url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({
-              resultsFilter: "(PartNumber = \"partNumber1\") && ProgramName = \"name1\"",
+              resultFilter: "(PartNumber = \"partNumber1\") && ProgramName = \"name1\"",
               filter: "stepType = \"Type1\""
             }),
           })
@@ -1188,7 +1207,7 @@ describe('QueryStepsDataSource', () => {
           expect.objectContaining({
             url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({
-              resultsFilter: "(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\") && (ProgramName = \"name1\" || ProgramName = \"name2\")"
+              resultFilter: "(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\") && (ProgramName = \"name1\" || ProgramName = \"name2\")"
             }),
           })
         );
@@ -1210,7 +1229,7 @@ describe('QueryStepsDataSource', () => {
           expect.objectContaining({
             url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({
-              resultsFilter: "(PartNumber = \"partNumber1\") && UpdatedAt = \"2025-01-01T00:00:00.000Z\""
+              resultFilter: "(PartNumber = \"partNumber1\") && UpdatedAt = \"2025-01-01T00:00:00.000Z\""
             }),
           })
         );
@@ -1233,7 +1252,7 @@ describe('QueryStepsDataSource', () => {
           expect.objectContaining({
             url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({
-              resultsFilter:  "(PartNumber = \"partNumber1\") && (PartNumber = \"123\" || Keywords != \"456\") && HostName contains \"Test\"",
+              resultFilter:  "(PartNumber = \"partNumber1\") && (PartNumber = \"123\" || Keywords != \"456\") && HostName contains \"Test\"",
               filter: "(stepType = \"123\" || keywords != \"456\") && name contains \"Test\""
             }),
           })
@@ -1254,6 +1273,22 @@ describe('QueryStepsDataSource', () => {
         const result = await datastore.metricFindQuery(query);
 
         expect(result).toEqual([]);
+      });
+
+      it('should set default orderby to "STARTED_AT" and descending to "false"', async () => {
+        const query = { queryByResults: 'programName = "name"', stepsTake: 1000, partNumberQueryInSteps: ['PartNumber1'] } as StepsVariableQuery;
+
+        await datastore.metricFindQuery(query);
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-steps',
+            data: expect.objectContaining({
+              orderBy: "STARTED_AT",
+              descending: false,
+            }),
+          })
+        );
       });
 
       it.each([-1, NaN, 10001])('should return empty array if stepsTake value is invalid (%p)', async (invalidStepsTake) => {
@@ -1357,7 +1392,7 @@ describe('QueryStepsDataSource', () => {
           expect.objectContaining({
             url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({
-              resultsFilter: "(PartNumber = \"PartNumber1\") && ProgramName = \"name1\""
+              resultFilter: "(PartNumber = \"PartNumber1\") && ProgramName = \"name1\""
             }),
           })
         );
@@ -1395,7 +1430,7 @@ describe('QueryStepsDataSource', () => {
           expect.objectContaining({
             url: '/nitestmonitor/v2/query-steps',
             data: expect.objectContaining({
-              resultsFilter: '(PartNumber = "PartNumber1" || PartNumber = "partNumber2") && ProgramName = "name1"'
+              resultFilter: '(PartNumber = "PartNumber1" || PartNumber = "partNumber2") && ProgramName = "name1"'
             }),
           })
         );

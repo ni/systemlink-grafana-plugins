@@ -42,6 +42,7 @@ const mockProducts = {
   products: [
     { partNumber: 'PartNumber1', name: 'ProductName1' },
     { partNumber: 'PartNumber2', name: 'ProductName2' },
+    { partNumber: 'PartNumber3', name: null },
   ],
 };
 
@@ -58,8 +59,6 @@ const defaultQuery = {
   queryType: QueryType.Results,
   outputType: OutputType.Data,
   properties: [ResultsProperties.id],
-  orderBy: 'STARTED_AT',
-  descending: true,
   recordCount: 1000,
   useTimeRange: true,
   useTimeRangeFor: 'Updated',
@@ -69,8 +68,6 @@ const defaultQuery = {
 
 const mockHandleQueryChange = jest.fn();
 let properties: HTMLElement;
-let orderBy: HTMLElement;
-let descending: HTMLElement;
 let recordCount: HTMLElement;
 let dataOutput: HTMLElement;
 let totalCountOutput: HTMLElement;
@@ -90,8 +87,6 @@ describe('QueryResultsEditor', () => {
       );
     });
     properties = screen.getAllByRole('combobox')[0];
-    orderBy = screen.getAllByRole('combobox')[3];
-    descending = screen.getAllByRole('checkbox')[1];
     dataOutput = screen.getByRole('radio', { name: 'Data' });
     totalCountOutput = screen.getByRole('radio', { name: 'Total Count' });
     recordCount = screen.getByDisplayValue(1000);
@@ -105,10 +100,6 @@ describe('QueryResultsEditor', () => {
     expect(properties).toHaveDisplayValue('');
     expect(dataOutput).toBeInTheDocument();
     expect(dataOutput).toBeChecked();
-    expect(orderBy).toBeInTheDocument();
-    expect(screen.getAllByText('Started At').length).toBe(1);
-    expect(descending).toBeInTheDocument();
-    expect(descending).toBeChecked();
     expect(recordCount).toBeInTheDocument();
     expect(recordCount).toHaveValue(1000);
     expect(useTimeRange).toBeInTheDocument();
@@ -136,21 +127,6 @@ describe('QueryResultsEditor', () => {
   
       expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
     });
-  })
-
-
-  test('should update orderBy when user changes the orderBy', async () => {
-    await select(orderBy, 'Started At', { container: document.body });
-    await waitFor(() => {
-      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ orderBy: 'STARTED_AT' }));
-    });
-  });
-
-  test('should update descending when user clicks on the descending checkbox', async () => {
-    await userEvent.click(descending);
-    await waitFor(() => {
-      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ descending: false }));
-    });
   });
 
   test('should update part number query when user changes a product name', async () => {
@@ -160,10 +136,17 @@ describe('QueryResultsEditor', () => {
     });
   });
 
-    test('should update part number query when user selects a variable in product name field', async () => {
+  test('should update part number query when user selects a variable in product name field', async () => {
     await select(productName, '$var1', { container: document.body });
     await waitFor(() => {
       expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "$var1"] }));
+    });
+  });
+
+  test('should update part number query when product name is not available', async () => {
+    await select(productName, 'PartNumber3', { container: document.body });
+    await waitFor(() => {
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "PartNumber3"] }));
     });
   });
 
@@ -274,6 +257,18 @@ describe('QueryResultsEditor', () => {
       await userEvent.click(triggerChangeButton);
       await waitFor(() => {
         expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ queryBy: 'workspace = "Workspace1"' }));
+      });
+    });
+
+    test('should not update queryBy when filter is not changed', async () => {
+      const initialQueryBy = defaultQuery.queryBy;
+      const triggerChangeButton = screen.getByTestId('trigger-change');
+
+      mockHandleQueryChange.mockClear();
+      await userEvent.click(triggerChangeButton);
+      
+      await waitFor(() => {
+        expect(mockHandleQueryChange).not.toHaveBeenCalledWith(expect.objectContaining({ queryBy: initialQueryBy }));
       });
     });
   });

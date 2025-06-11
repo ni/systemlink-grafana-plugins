@@ -5,13 +5,18 @@ import { QBField, QueryBuilderOption, Workspace } from "core/types";
 import { filterXSSField } from "core/utils";
 import { TestPlansQueryBuilderFields, TestPlansQueryBuilderStaticFields } from "datasources/test-plans/constants/TestPlansQueryBuilder.constants";
 import React, { useState, useEffect, useMemo } from "react";
+import { ProductPartNumberAndName } from "shared/types/QueryProducts.types";
 import { SystemAlias } from "shared/types/QuerySystems.types";
+import { User } from "shared/types/QueryUsers.types";
+import { UsersUtils } from "shared/users.utils";
 import { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
 
 type TestPlansQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
     filter?: string;
     workspaces: Workspace[] | null;
     systemAliases: SystemAlias[] | null;
+    users: User[] | null;
+    products: ProductPartNumberAndName[] | null;
     globalVariableOptions: QueryBuilderOption[];
 };
 
@@ -19,22 +24,24 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
     filter,
     onChange,
     workspaces,
-    systemAliases = [],
+    systemAliases,
+    users,
+    products,
     globalVariableOptions,
 }) => {
     const [fields, setFields] = useState<QBField[]>([]);
-    const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]); 
-    
+    const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
+
     const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]) => {
         return {
-        ...field,
-        lookup: {
-            ...field.lookup,
-            dataSource: [
-            ...(field.lookup?.dataSource || []),
-            ...options,
-            ],
-        },
+            ...field,
+            lookup: {
+                ...field.lookup,
+                dataSource: [
+                    ...(field.lookup?.dataSource || []),
+                    ...options,
+                ],
+            },
         };
     };
 
@@ -66,38 +73,70 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
         };
     }, [systemAliases])
 
+    const productsField = useMemo(() => {
+        const productsField = TestPlansQueryBuilderFields.PRODUCT;
+        if (!products) {
+            return null;
+        }
+
+        return {
+            ...productsField,
+            lookup: {
+                ...productsField.lookup,
+                dataSource: [
+                    ...(productsField.lookup?.dataSource || []),
+                    ...products.map(({ partNumber, name }) => (
+                        {
+                            label: name ? `${name} (${partNumber})` : partNumber,
+                            value: partNumber
+                        }
+                    )),
+                ],
+            },
+        };
+    }, [products]);
+
     const timeFields = useMemo(() => {
         const timeOptions = [
-        { label: 'From', value: '${__from:date}' },
-        { label: 'To', value: '${__to:date}' },
-        { label: 'Now', value: '${__now:date}' },
+            { label: 'From', value: '${__from:date}' },
+            { label: 'To', value: '${__to:date}' },
+            { label: 'Now', value: '${__now:date}' },
         ]
 
         return [
-        addOptionsToLookup(TestPlansQueryBuilderFields.CREATED_AT, timeOptions),
-        addOptionsToLookup(TestPlansQueryBuilderFields.ESTIMATED_END_DATE, timeOptions),
-        addOptionsToLookup(TestPlansQueryBuilderFields.PLANNED_START_DATE, timeOptions),
-        addOptionsToLookup(TestPlansQueryBuilderFields.UPDATED_AT, timeOptions)
+            addOptionsToLookup(TestPlansQueryBuilderFields.CREATED_AT, timeOptions),
+            addOptionsToLookup(TestPlansQueryBuilderFields.ESTIMATED_END_DATE, timeOptions),
+            addOptionsToLookup(TestPlansQueryBuilderFields.PLANNED_START_DATE, timeOptions),
+            addOptionsToLookup(TestPlansQueryBuilderFields.UPDATED_AT, timeOptions)
         ]
     }, []);
 
+    const usersFields = useMemo(() => {
+        if (!users) {
+            return;
+        }
+        const usersMap = users.map(user => ({ label: UsersUtils.getUserNameAndEmail(user), value: user.id }));
+
+        return [
+            addOptionsToLookup(TestPlansQueryBuilderFields.ASSIGNED_TO, usersMap),
+            addOptionsToLookup(TestPlansQueryBuilderFields.CREATED_BY, usersMap),
+            addOptionsToLookup(TestPlansQueryBuilderFields.UPDATED_BY, usersMap),
+        ];
+    }, [users]);
+
     useEffect(() => {
-        if (!workspaceField) {
+        if (!workspaceField || !systemAliasField || !timeFields || !usersFields || !productsField) {
             return;
         }
 
-        if (!systemAliasField) {
-            return;
-        }
-
-        const updatedFields = [...TestPlansQueryBuilderStaticFields, ...timeFields, systemAliasField, workspaceField].map(field => {
+        const updatedFields = [...TestPlansQueryBuilderStaticFields, ...timeFields, ...usersFields, systemAliasField, workspaceField, productsField].map(field => {
             if (field.lookup?.dataSource) {
-              return {
-                ...field,
-                lookup: {
-                  dataSource: [...globalVariableOptions, ...field.lookup?.dataSource].map(filterXSSField),
-                },
-              };
+                return {
+                    ...field,
+                    lookup: {
+                        dataSource: [...globalVariableOptions, ...field.lookup?.dataSource].map(filterXSSField),
+                    },
+                };
             }
             return field;
         });
@@ -152,7 +191,7 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
 
         setOperations([...customOperations, ...keyValueOperations]);
 
-    }, [workspaceField, systemAliasField, timeFields, globalVariableOptions]);
+    }, [workspaceField, systemAliasField, timeFields, usersFields, productsField, globalVariableOptions]);
 
     return (
         <SlQueryBuilder

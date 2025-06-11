@@ -50,7 +50,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     projection?: StepsProperties[],
     take?: number,
     descending?: boolean,
-    resultsFilter?: string,
+    resultFilter?: string,
     continuationToken?: string,
     returnCount = false
   ): Promise<QueryStepsResponse> {
@@ -62,7 +62,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         descending,
         projection,
         take,
-        resultsFilter,
+        resultFilter,
         continuationToken,
         returnCount,
       });
@@ -111,7 +111,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     projection?: StepsProperties[],
     take?: number,
     descending?: boolean,
-    resultsFilter?: string,
+    resultFilter?: string,
     returnCount = false,
   ): Promise<QueryStepsResponse> {
     const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<StepsResponseProperties>> => {
@@ -121,7 +121,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         projection,
         currentTake,
         descending,
-        resultsFilter,
+        resultFilter,
         token,
         returnCount
       );
@@ -436,10 +436,10 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       let responseData: QueryStepsResponse;
       responseData = await this.queryStepsInBatches(
         stepsQuery,
-        'UPDATED_AT',
+        defaultStepsQuery.orderBy,
         [StepsPropertiesOptions.NAME as StepsProperties],
         query.stepsTake,
-        true,
+        defaultStepsQuery.descending,
         resultsQuery,
       );
 

@@ -2,16 +2,14 @@ import { SelectableValue } from '@grafana/data';
 import {
   AutoSizeInput,
   InlineField,
-  InlineSwitch,
   MultiSelect,
   RadioButtonGroup,
-  Select,
   VerticalGroup,
 } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
 import React, { useEffect, useState } from 'react';
 import '../../ResultsQueryEditor.scss';
-import { OrderBy, QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
+import { QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
 import { OutputType, TestMeasurementStatus } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
 import { Workspace } from 'core/types';
@@ -53,7 +51,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
     const loadProductNameOptions = async () => {
       const response = await datasource.productCache;
       const productOptions = response.products.map(product => ({
-        label: `${product.name} (${product.partNumber})`,
+        label: product.name ? `${product.name} (${product.partNumber})`: product.partNumber,
         value: product.partNumber,
       }));
       setProductNameOptions([...datasource.globalVariableOptions(), ...productOptions]);
@@ -72,14 +70,6 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
     if (items !== undefined) {
       handleQueryChange({ ...query, properties: items.map(i => i.value as ResultsProperties) });
     }
-  };
-
-  const onOrderByChange = (item: SelectableValue<string>) => {
-    handleQueryChange({ ...query, orderBy: item.value });
-  };
-
-  const onDescendingChange = (isDescendingChecked: boolean) => {
-    handleQueryChange({ ...query, descending: isDescendingChecked });
   };
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -104,6 +94,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
 
   const onParameterChange = (value: string) => {
     if (query.queryBy !== value) {
+      query.queryBy = value;
       handleQueryChange({ ...query, queryBy: value });
     }
   }
@@ -156,7 +147,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
             handleQueryChange(updatedQuery as QueryResults, runQuery);
           }}
         />
-        <div className="horizontal-control-group">
+        <div className="results-horizontal-control-group">
           <div>
             <InlineField label="Product (part number)" labelWidth={26} tooltip={tooltips.productName}>
               <MultiSelect
@@ -183,23 +174,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
             </InlineField>
           </div>
           {query.outputType === OutputType.Data && (
-            <div className="right-query-controls">
-              <InlineField label="OrderBy" labelWidth={26} tooltip={tooltips.orderBy}>
-                <Select
-                  width={25}
-                  options={OrderBy as SelectableValue[]}
-                  placeholder="Select field to order by"
-                  onChange={onOrderByChange}
-                  value={query.orderBy}
-                  defaultValue={query.orderBy}
-                />
-              </InlineField>
-              <InlineField label="Descending" labelWidth={26} tooltip={tooltips.descending}>
-                <InlineSwitch
-                  onChange={event => onDescendingChange(event.currentTarget.checked)}
-                  value={query.descending}
-                />
-              </InlineField>
+            <div className="results-right-query-controls">
               <InlineField 
                   label="Take" 
                   labelWidth={26} 
@@ -230,8 +205,6 @@ const tooltips = {
   output: 'This field specifies the output type for the query result.',
   properties: 'This field specifies the properties to use in the query.',
   recordCount: 'This field sets the maximum number of results.',
-  orderBy: 'This field orders the query results by field.',
-  descending: 'This field returns the query results in descending order.',
   queryBy: 'This optional field applies a filter to the query results.',
   productName: 'This field filters results by part number.',
 };

@@ -25,7 +25,7 @@ export function TimeRangeControls({query, handleQueryChange}: Props) {
   };
 
   return (
-    <div className="horizontal-control-group">
+    <div className="results-horizontal-control-group">
       <InlineField label="Use time range" tooltip={tooltips.useTimeRange} labelWidth={26}>
         <InlineSwitch
           onChange={event => onUseTimeRangeChecked(event.currentTarget.checked)}
