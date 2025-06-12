@@ -10,6 +10,7 @@ export enum StepsQueryBuilderFieldNames {
   TYPE = 'stepType',
   UPDATED_AT = 'updatedAt',
   WORKSPACE = 'workspace',
+  HASCHILDREN = 'hasChildren',
 }
 
 export const StepsQueryBuilderFields: Record<string, QBField> = {
@@ -102,6 +103,20 @@ export const StepsQueryBuilderFields: Record<string, QBField> = {
       dataSource: [],
     },
   },
+  HASCHILDREN: {
+    label: 'Has children',
+    dataField: StepsQueryBuilderFieldNames.HASCHILDREN,
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+    ],
+    lookup: {
+      dataSource: [
+        { label: 'True', value: 'True' },
+        { label: 'False', value: 'False' },
+      ],
+    },
+  },
 };
 
 export const StepsQueryBuilderStaticFields = [
@@ -109,4 +124,5 @@ export const StepsQueryBuilderStaticFields = [
   StepsQueryBuilderFields.KEYWORDS,
   StepsQueryBuilderFields.PROPERTIES,
   StepsQueryBuilderFields.TYPE,
+  StepsQueryBuilderFields.HASCHILDREN,
 ];

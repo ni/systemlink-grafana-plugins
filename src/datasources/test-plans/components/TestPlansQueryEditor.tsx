@@ -9,6 +9,7 @@ import { recordCountErrorMessages, TAKE_LIMIT } from '../constants/QueryEditor.c
 import { Workspace } from 'core/types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { User } from 'shared/types/QueryUsers.types';
+import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansQuery>;
 
@@ -18,6 +19,8 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   const [users, setUsers] = useState<User[] | null>(null);
+  const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
+  const [products, setProducts] = useState<ProductPartNumberAndName[] | null>(null);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -33,17 +36,20 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
     };
 
     loadUsers();
-  }, [datasource]);
 
-  const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
-
-  useEffect(() => {
     const loadSystemAliases = async () => {
       const systemAliases = await datasource.systemUtils.getSystemAliases();
       setSystemAliases(Array.from(systemAliases.values()));
     };
 
     loadSystemAliases();
+
+    const loadProducts = async () => {
+      const products = await datasource.productUtils.getProductNamesAndPartNumbers();
+      setProducts(Array.from(products.values()));
+    };
+
+    loadProducts();
   }, [datasource]);
 
   const handleQueryChange = useCallback(
@@ -125,6 +131,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
               workspaces={workspaces}
               systemAliases={systemAliases}
               users={users}
+              products={products}
               globalVariableOptions={datasource.globalVariableOptions()}
               onChange={(event: any) => onQueryByChange(event.detail.linq)}
             ></TestPlansQueryBuilder>

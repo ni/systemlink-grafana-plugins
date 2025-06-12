@@ -1,3 +1,61 @@
+## [3.128.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.128.0...v3.128.1) (2025-06-12)
+
+### Bug Fixes
+
+* **workorders:** multiple API calls when editing panels ([#277](https://github.com/ni/systemlink-grafana-plugins/issues/277)) ([b6c2afe](https://github.com/ni/systemlink-grafana-plugins/commit/b6c2afe1813b7e113f1eb9c6b964e7bcddf93b05))
+
+## [3.128.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.127.4...v3.128.0) (2025-06-12)
+
+### Features
+
+* **results:** Add "has children" property in steps query builder ([#278](https://github.com/ni/systemlink-grafana-plugins/issues/278)) ([beefaee](https://github.com/ni/systemlink-grafana-plugins/commit/beefaee162d5bdd4a1d0f1eb863d46b9b2904037))
+
+## [3.127.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.127.3...v3.127.4) (2025-06-12)
+
+### Bug Fixes
+
+* **results,products:** multiple API calls when editing panels ([#274](https://github.com/ni/systemlink-grafana-plugins/issues/274)) ([64b1145](https://github.com/ni/systemlink-grafana-plugins/commit/64b1145cf03b53536aed2b42036c08255a0c76e3))
+
+## [3.127.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.127.2...v3.127.3) (2025-06-11)
+
+### Bug Fixes
+
+* **results:** Set "STARTED_AT" as the default option for the order by field ([#270](https://github.com/ni/systemlink-grafana-plugins/issues/270)) ([291f74e](https://github.com/ni/systemlink-grafana-plugins/commit/291f74e73d510c5a8d90d8ec87868e3dfea3baca))
+
+## [3.127.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.127.1...v3.127.2) (2025-06-11)
+
+### Bug Fixes
+
+* **workorders:** Remove user fields from WorkOrdersQueryBuilderStaticFields ([#272](https://github.com/ni/systemlink-grafana-plugins/issues/272)) ([30b6e0b](https://github.com/ni/systemlink-grafana-plugins/commit/30b6e0b877e325f27c4852c6382a17b71993b8d5))
+
+## [3.127.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.127.0...v3.127.1) (2025-06-11)
+
+### Bug Fixes
+
+* **results:** Align orderby and take controls in query editor ([#269](https://github.com/ni/systemlink-grafana-plugins/issues/269)) ([66ecc6b](https://github.com/ni/systemlink-grafana-plugins/commit/66ecc6b3e8e2e122fae4aca94a4efc37743800f6))
+
+## [3.127.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.126.0...v3.127.0) (2025-06-11)
+
+### Features
+
+* **test-plans:** Use product part number and name in the query builder & response ([#261](https://github.com/ni/systemlink-grafana-plugins/issues/261)) ([48d31ab](https://github.com/ni/systemlink-grafana-plugins/commit/48d31ab1c4d2370bc56435befe4bc7fb77e3399d))
+
+## [3.126.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.125.1...v3.126.0) (2025-06-11)
+
+### Features
+
+* **products-util:** create product reusable to remove duplicate method of query part number & name ([#238](https://github.com/ni/systemlink-grafana-plugins/issues/238)) ([2b9880d](https://github.com/ni/systemlink-grafana-plugins/commit/2b9880dafe122f39057b7146c48ef9550ba33977))
+
+### Bug Fixes
+
+* **test-plans:** transform duration filters in the request body ([#268](https://github.com/ni/systemlink-grafana-plugins/issues/268)) ([7397d58](https://github.com/ni/systemlink-grafana-plugins/commit/7397d580a986bb2151a664e91a2cff0ad95884e1))
+
+## [3.125.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.125.0...v3.125.1) (2025-06-10)
+
+### Bug Fixes
+
+* **results:** `totalCount` is not returned when there are no results matching the query ([#266](https://github.com/ni/systemlink-grafana-plugins/issues/266)) ([f7095ec](https://github.com/ni/systemlink-grafana-plugins/commit/f7095ec51091ebc01e4dc1c51cf95b49216afce2))
+
 ## [3.125.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.124.1...v3.125.0) (2025-06-10)
 
 ### Features

@@ -10,8 +10,9 @@ import { AssetUtils } from './asset.utils';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { SystemUtils } from 'shared/system.utils';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
-import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { computedFieldsupportedOperations, ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { UsersUtils } from 'shared/users.utils';
+import { ProductUtils } from 'shared/product.utils';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(
@@ -24,6 +25,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
     this.systemUtils = new SystemUtils(instanceSettings, backendSrv);
     this.usersUtils = new UsersUtils(instanceSettings, backendSrv);
+    this.productUtils = new ProductUtils(instanceSettings, backendSrv);
   }
 
   baseUrl = `${this.instanceSettings.url}/niworkorder/v1`;
@@ -33,6 +35,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   workspaceUtils: WorkspaceUtils;
   systemUtils: SystemUtils;
   usersUtils: UsersUtils;
+  productUtils: ProductUtils;
 
   defaultQuery = {
     outputType: OutputType.Properties,
@@ -58,12 +61,14 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     const workspaces = await this.workspaceUtils.getWorkspaces();
     const systemAliases = await this.systemUtils.getSystemAliases();
     const users = await this.usersUtils.getUsers();
+    const products = await this.productUtils.getProductNamesAndPartNumbers();
 
     if (query.queryBy) {
       query.queryBy = transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
         this.testPlansComputedDataFields
       );
+      query.queryBy = this.transformDurationFilters(query.queryBy);
     }
 
     if (query.outputType === OutputType.Properties) {
@@ -124,6 +129,9 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
               case PropertiesProjectionMap.SYSTEM_NAME.label:
                 const system = systemAliases.get(value);
                 return system ? system.alias : value;
+              case PropertiesProjectionMap.PRODUCT.label:
+                const product = products.get(value);
+                return (product && product.name) ? `${product.name} (${product.partNumber})` : value;
               case PropertiesProjectionMap.ASSIGNED_TO.label:
               case PropertiesProjectionMap.CREATED_BY.label:
               case PropertiesProjectionMap.UPDATED_BY.label:
@@ -176,6 +184,21 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     return true;
   }
 
+  private transformDurationFilters(query: string): string {
+    const daysRegex = new RegExp(`estimatedDurationInDays\\s*(${computedFieldsupportedOperations.join('|')})\\s*"(\\d+)"`, 'g');
+    const hoursRegex = new RegExp(`estimatedDurationInHours\\s*(${computedFieldsupportedOperations.join('|')})\\s*"(\\d+)"`, 'g');
+
+    return query
+      .replace(
+        daysRegex,
+        (_, operator, value) => `estimatedDurationInSeconds ${operator} "${parseInt(value, 10) * 86400}"`
+      )
+      .replace(
+        hoursRegex,
+        (_, operator, value) => `estimatedDurationInSeconds ${operator} "${parseInt(value, 10) * 3600}"`
+      );
+  }
+
   private async getFixtureNames(labels: string[], testPlans: TestPlanResponseProperties[]): Promise<Asset[]> {
     if (labels.find(label => label === PropertiesProjectionMap.FIXTURE_NAMES.label)) {
       const fixtureIds = testPlans
@@ -223,12 +246,14 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   async metricFindQuery(query: TestPlansVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    const filter = query.queryBy ?
-      transformComputedFieldsQuery(
+    let filter;
+    if (query.queryBy) {
+      filter = transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
         this.testPlansComputedDataFields
-      )
-      : undefined;
+      );
+      filter = this.transformDurationFilters(filter);
+    }
 
     const metadata = (await this.queryTestPlansInBatches(
       filter,

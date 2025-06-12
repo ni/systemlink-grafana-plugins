@@ -5,6 +5,7 @@ import { QBField, QueryBuilderOption, Workspace } from "core/types";
 import { filterXSSField } from "core/utils";
 import { TestPlansQueryBuilderFields, TestPlansQueryBuilderStaticFields } from "datasources/test-plans/constants/TestPlansQueryBuilder.constants";
 import React, { useState, useEffect, useMemo } from "react";
+import { ProductPartNumberAndName } from "shared/types/QueryProducts.types";
 import { SystemAlias } from "shared/types/QuerySystems.types";
 import { User } from "shared/types/QueryUsers.types";
 import { UsersUtils } from "shared/users.utils";
@@ -15,6 +16,7 @@ type TestPlansQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Eleme
     workspaces: Workspace[] | null;
     systemAliases: SystemAlias[] | null;
     users: User[] | null;
+    products: ProductPartNumberAndName[] | null;
     globalVariableOptions: QueryBuilderOption[];
 };
 
@@ -24,6 +26,7 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
     workspaces,
     systemAliases,
     users,
+    products,
     globalVariableOptions,
 }) => {
     const [fields, setFields] = useState<QBField[]>([]);
@@ -70,6 +73,29 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
         };
     }, [systemAliases])
 
+    const productsField = useMemo(() => {
+        const productsField = TestPlansQueryBuilderFields.PRODUCT;
+        if (!products) {
+            return null;
+        }
+
+        return {
+            ...productsField,
+            lookup: {
+                ...productsField.lookup,
+                dataSource: [
+                    ...(productsField.lookup?.dataSource || []),
+                    ...products.map(({ partNumber, name }) => (
+                        {
+                            label: name ? `${name} (${partNumber})` : partNumber,
+                            value: partNumber
+                        }
+                    )),
+                ],
+            },
+        };
+    }, [products]);
+
     const timeFields = useMemo(() => {
         const timeOptions = [
             { label: 'From', value: '${__from:date}' },
@@ -99,11 +125,11 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
     }, [users]);
 
     useEffect(() => {
-        if (!workspaceField || !systemAliasField || !timeFields || !usersFields) {
+        if (!workspaceField || !systemAliasField || !timeFields || !usersFields || !productsField) {
             return;
         }
 
-        const updatedFields = [...TestPlansQueryBuilderStaticFields, ...timeFields, ...usersFields, systemAliasField, workspaceField].map(field => {
+        const updatedFields = [...TestPlansQueryBuilderStaticFields, ...timeFields, ...usersFields, systemAliasField, workspaceField, productsField].map(field => {
             if (field.lookup?.dataSource) {
                 return {
                     ...field,
@@ -170,7 +196,7 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
 
         setOperations([...customOperations, ...customDateTimeOperations, ...keyValueOperations]);
 
-    }, [workspaceField, systemAliasField, timeFields, usersFields, globalVariableOptions]);
+    }, [workspaceField, systemAliasField, timeFields, usersFields, productsField, globalVariableOptions]);
 
     return (
         <SlQueryBuilder
