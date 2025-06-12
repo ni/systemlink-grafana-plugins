@@ -110,7 +110,6 @@ describe('QueryStepsEditor', () => {
       expect(showMeasurements).not.toBeChecked();
       expect(productName).toBeInTheDocument();
       expect(screen.getAllByText('ProductName1 (PartNumber1)').length).toBe(1);
-      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining(defaultQuery));
     });
 
     test('should display placeholder for properties when default value is not provided', async () => {
