@@ -10,7 +10,7 @@ import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/Steps
 import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { Workspace } from 'core/types';
-import { defaultResultsQuery } from 'datasources/results/defaultQueries';
+import { defaultStepsQuery } from 'datasources/results/defaultQueries';
 
 const mockQueryStepsResponse: QueryStepsResponse = {
   steps: [
@@ -359,7 +359,7 @@ describe('QueryStepsDataSource', () => {
           ] as StepsProperties[],
           orderBy: undefined,
           useTimeRange: true,
-          useTimeRangeFor: defaultResultsQuery.useTimeRangeFor
+          useTimeRangeFor: defaultStepsQuery.useTimeRangeFor
         },
       );
 
