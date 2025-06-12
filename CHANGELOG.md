@@ -1,3 +1,9 @@
+## [3.129.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.128.1...v3.129.0) (2025-06-12)
+
+### Features
+
+* **core:** Add support for custom date time operations ([#267](https://github.com/ni/systemlink-grafana-plugins/issues/267)) ([0873fb2](https://github.com/ni/systemlink-grafana-plugins/commit/0873fb2dd98dab31a72b1c5b208a894ecece05b4))
+
 ## [3.128.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.128.0...v3.128.1) (2025-06-12)
 
 ### Bug Fixes
