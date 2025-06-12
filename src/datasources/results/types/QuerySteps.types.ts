@@ -4,8 +4,6 @@ export interface QuerySteps extends ResultsQuery {
   outputType: OutputType;
   properties?: StepsProperties[];
   partNumberQuery: string[];
-  orderBy?: string;
-  descending?: boolean;
   useTimeRange?: boolean;
   recordCount?: number;
   showMeasurements?: boolean;
@@ -14,6 +12,8 @@ export interface QuerySteps extends ResultsQuery {
 }
 
 export interface QueryStepsDefaultValues extends QuerySteps {
+  orderBy: string;
+  descending: boolean;
   useTimeRangeFor: string;
 }
 
