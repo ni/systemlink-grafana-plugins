@@ -115,7 +115,11 @@ export enum QueryOperationEnum {
   DATE_TIME_IS_NOT_BLANK = 'DATE_TIME_IS_NOT_BLANK',
 }
 
-export const QueryBuilderOperations: Record<QueryOperationEnum, QueryBuilderCustomOperation> = {
+export const QueryBuilderOperations: Record<QueryOperationEnum, QueryBuilderCustomOperation & {
+  name: string,
+  label: string,
+  expressionTemplate: string,
+}> = {
   EQUALS: {
     label: 'Equals',
     name: '=',
