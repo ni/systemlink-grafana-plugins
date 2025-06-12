@@ -27,7 +27,7 @@ type Props = {
 
 export function QueryResultsEditor({ query, handleQueryChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
-  const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
+  const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
   const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);
 
@@ -36,15 +36,11 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
       const workspaces = await datasource.workspacesCache;
       setWorkspaces(Array.from(workspaces.values()));
     };
-    const loadProductNameOptions = async () => {
-      const response = await datasource.productCache;
-      const productOptions = response.products.map(product => ({
-        label: product.name ? `${product.name} (${product.partNumber})`: product.partNumber,
-        value: product.partNumber,
-      }));
-      setProductNameOptions([...datasource.globalVariableOptions(), ...productOptions]);
-    }
-    loadProductNameOptions();
+    const loadPartNumbers = async () => {
+      const partNumbers = await datasource.partNumbersCache;
+      setPartNumbers(partNumbers);
+    };
+    loadPartNumbers();
     loadWorkspaces();
   }, [datasource]);
 
@@ -86,16 +82,6 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
     }
   }
 
-  const onProductNameChange = (productNames: Array<SelectableValue<string>>) => {
-    handleQueryChange({ ...query, partNumberQuery: productNames.map(product => product.value as string) });
-  }
-
-  const formatOptionLabel = (option: SelectableValue<string>) => (
-    <div style={{ maxWidth: 500, whiteSpace: 'normal' }}>
-      {option.label}
-    </div>
-  );
-
   return (
     <>
       <VerticalGroup>
@@ -135,30 +121,16 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
           }}
         />
         <div className="results-horizontal-control-group">
-          <div>
-            <InlineField label="Product (part number)" labelWidth={26} tooltip={tooltips.productName}>
-              <MultiSelect
-                maxVisibleValues={5}
-                width={65}
-                onChange={onProductNameChange}
-                placeholder='Select part numbers to use in a query'
-                noMultiValueWrap={true}
-                closeMenuOnSelect={false}
-                value={query.partNumberQuery}
-                formatOptionLabel={formatOptionLabel}
-                options={productNameOptions}
-              />
-            </InlineField>
-            <InlineField label="Query By" labelWidth={26} tooltip={tooltips.queryBy}>
-              <ResultsQueryBuilder
-                filter={query.queryBy}
-                workspaces={workspaces}
-                status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
-                globalVariableOptions={datasource.globalVariableOptions()}
-                onChange={(event: any) => onParameterChange(event.detail.linq)}>
-              </ResultsQueryBuilder>
-            </InlineField>
-          </div>
+          <InlineField label="Query By" labelWidth={26} tooltip={tooltips.queryBy}>
+            <ResultsQueryBuilder
+              filter={query.queryBy}
+              workspaces={workspaces}
+              status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
+              partNumbers={partNumbers}
+              globalVariableOptions={datasource.globalVariableOptions()}
+              onChange={(event: any) => onParameterChange(event.detail.linq)}>
+            </ResultsQueryBuilder>
+          </InlineField>
           {query.outputType === OutputType.Data && (
             <div className="results-right-query-controls">
               <InlineField 
