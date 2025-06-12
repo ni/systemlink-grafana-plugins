@@ -178,16 +178,18 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
   
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
-    if (!query.partNumberQuery || query.partNumberQuery.length === 0) {
+    if (!query.resultsQuery) {
       return {
         refId: query.refId,
         fields: [],
       };
     }
-    query.resultsQuery = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.resultsQuery);
     
+    query.stepsQuery = this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options.scopedVars) || '';
+    query.resultsQuery = this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options.scopedVars) || '';
+
     if(this.previousResultsQuery !== query.resultsQuery) {
-      this.stepsPath = await this.getStepPathsLookupValues(options.scopedVars, query.partNumberQuery, query.resultsQuery)
+      this.stepsPath = await this.getStepPathsLookupValues(options.scopedVars, query.resultsQuery)
       this.stepsPathChangeCallback?.();
     }
     this.previousResultsQuery = query.resultsQuery;
@@ -246,10 +248,10 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  private async getStepPathsLookupValues(scopedVars: ScopedVars, partNumberQuery: string[], transformedResultsQuery: string): Promise<string[]> {
+  private async getStepPathsLookupValues(scopedVars: ScopedVars, transformedResultsQuery: string): Promise<string[]> {
     let stepPathValues: string[];
     try {
-      const stepPathResponse = await this.loadStepPaths(scopedVars, partNumberQuery, transformedResultsQuery);
+      const stepPathResponse = await this.loadStepPaths(scopedVars, transformedResultsQuery);
       stepPathValues = stepPathResponse.paths.map(pathObj => pathObj.path);
     } catch (error) {
         if (!this.errorTitle) {
@@ -262,7 +264,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
   private async loadStepPaths(
     options: ScopedVars,
-    partNumberQuery: string[],
     transformedResultsQuery?: string
   ): Promise<QueryStepPathsResponse> {
     const programNames = await this.queryResultsValues(ResultsQueryBuilderFieldNames.PROGRAM_NAME, transformedResultsQuery);
@@ -270,11 +271,9 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       return { paths: [] };
     }
 
-    const buildProgramNameQuery = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PROGRAM_NAME, programNames);
-    const partNumberString = this.buildPartNumbersQuery(options, partNumberQuery);
-    const buildStepPathFilter = this.buildQueryFilter(`(${buildProgramNameQuery})`, `(${partNumberString})`);
+    const programNameQuery = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PROGRAM_NAME, programNames);
     return await this.queryStepPathInBatches(
-      buildStepPathFilter,
+      programNameQuery,
       [StepsPathProperties.path],
       MAX_PATH_TAKE_PER_REQUEST,
       true
@@ -286,17 +285,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       return this.flattenAndDeduplicate(this.stepsPath);
     }
     return [];
-  }
-
-  private buildResultsQuery(scopedVars: ScopedVars, partNumberQuery: string[], resultsQuery?: string): string {
-    const partNumberFilter = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery);
-    const combinedResultsQuery = this.buildQueryFilter(`(${partNumberFilter})`, resultsQuery);
-    return this.transformQuery(combinedResultsQuery, this.resultsComputedDataFields, scopedVars)!;
-  }
-
-  private buildPartNumbersQuery(scopedVars: ScopedVars, partNumberQuery: string[]): string {
-    const partNumberFilter = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery);
-    return this.transformQuery(partNumberFilter, this.resultsComputedDataFields, scopedVars)!;
   }
 
   private processFields(
@@ -471,19 +459,16 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   async metricFindQuery(query: StepsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    if (query.partNumberQueryInSteps !== undefined && query.partNumberQueryInSteps.length > 0 && this.isTakeValid(query.stepsTake!)) {
-      const resultsQuery = this.buildResultsQuery(options?.scopedVars!, query.partNumberQueryInSteps, query.queryByResults);
+    if (query.queryByResults && this.isTakeValid(query.stepsTake!)) {
+      const resultsQuery = this.transformQuery(query.queryByResults, this.resultsComputedDataFields, options?.scopedVars!) || '';
 
       if (this.previousResultsQuery !== resultsQuery) {
-        this.stepsPath = await this.getStepPathsLookupValues(options?.scopedVars!, query.partNumberQueryInSteps, resultsQuery)
+        this.stepsPath = await this.getStepPathsLookupValues(options?.scopedVars!, resultsQuery)
         this.stepsPathChangeCallback?.();
       }
       this.previousResultsQuery = resultsQuery;
 
-      const stepsQuery = query.queryBySteps ? transformComputedFieldsQuery(
-        this.templateSrv.replace(query.queryBySteps, options?.scopedVars),
-        this.resultsComputedDataFields
-      ) : undefined;
+      const stepsQuery = this.transformQuery(query.queryBySteps, this.resultsComputedDataFields, options?.scopedVars!);
 
       let responseData: QueryStepsResponse;
       responseData = await this.queryStepsInBatches(
