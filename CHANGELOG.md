@@ -1,3 +1,9 @@
+## [3.129.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.129.0...v3.129.1) (2025-06-12)
+
+### Bug Fixes
+
+* **results:** outputs are not shown as query name ([#275](https://github.com/ni/systemlink-grafana-plugins/issues/275)) ([9925329](https://github.com/ni/systemlink-grafana-plugins/commit/9925329e1079949510648d64615d84f09b2dace7))
+
 ## [3.129.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.128.1...v3.129.0) (2025-06-12)
 
 ### Features
