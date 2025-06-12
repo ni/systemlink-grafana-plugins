@@ -1,6 +1,7 @@
 import { editorTemplate, handleNumberValue, handleStringValue, keyValueExpressionBuilderCallback, numericKeyValueExpressionReaderCallback, stringKeyValueExpressionReaderCallback, valueTemplate } from "core/custom-query-builder-operations/key-value-operations";
 import { QueryBuilderCustomOperation } from "smart-webcomponents-react";
 import { dateTimeExpressionBuilderCallback } from "./custom-query-builder-operations/date-time-operations";
+import { QueryOperation } from "./types";
 
 export const queryBuilderMessages = {
   en: {
@@ -115,11 +116,7 @@ export enum QueryOperationEnum {
   DATE_TIME_IS_NOT_BLANK = 'DATE_TIME_IS_NOT_BLANK',
 }
 
-export const QueryBuilderOperations: Record<QueryOperationEnum, QueryBuilderCustomOperation & {
-  name: string,
-  label: string,
-  expressionTemplate: string,
-}> = {
+export const QueryBuilderOperations: Record<QueryOperationEnum, QueryOperation> = {
   EQUALS: {
     label: 'Equals',
     name: '=',
