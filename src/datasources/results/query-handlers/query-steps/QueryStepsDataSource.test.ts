@@ -10,7 +10,6 @@ import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/Steps
 import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { Workspace } from 'core/types';
-import { defaultStepsQuery } from 'datasources/results/defaultQueries';
 
 const mockQueryStepsResponse: QueryStepsResponse = {
   steps: [
