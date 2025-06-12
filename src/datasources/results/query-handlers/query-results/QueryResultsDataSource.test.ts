@@ -126,7 +126,7 @@ describe('QueryResultsDataSource', () => {
 
       const response = await datastore.query(query);
 
-      expect(response.data[0].fields).toEqual([{ name: 'Total count', values: [0] }]);
+      expect(response.data[0].fields).toEqual([{ name: 'A', values: [0] }]);
       expect(response.data[0].refId).toBe('A');
     });
 

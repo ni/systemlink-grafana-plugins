@@ -335,9 +335,7 @@ describe('QueryStepsDataSource', () => {
         {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          properties: [
-            StepsPropertiesOptions.PROPERTIES
-          ] as StepsProperties[],
+          properties: [],
           orderBy: undefined,
           useTimeRange: true,
           useTimeRangeFor: 'Updated'
@@ -348,7 +346,7 @@ describe('QueryStepsDataSource', () => {
 
       const fields = response.data[0].fields as Field[];
       expect(fields).toEqual([
-        { name: 'Total count', values: [5000] },
+        { name: 'A', values: [5000] },
       ]);
       const callsToQuerySteps = backendServer.fetch.mock.calls.filter(
         ([request]) => request.url === '/nitestmonitor/v2/query-steps'

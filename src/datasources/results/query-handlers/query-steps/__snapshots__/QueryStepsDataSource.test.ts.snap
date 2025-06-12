@@ -107,7 +107,7 @@ exports[`QueryStepsDataSource query should return total count for valid total co
   {
     "fields": [
       {
-        "name": "Total count",
+        "name": "A",
         "values": [
           1,
         ],
