@@ -1,3 +1,9 @@
+## [3.130.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.129.1...v3.130.0) (2025-06-12)
+
+### Features
+
+* **results:** update measurements to be listed as separate columns ([#281](https://github.com/ni/systemlink-grafana-plugins/issues/281)) ([3da8a68](https://github.com/ni/systemlink-grafana-plugins/commit/3da8a68db244ab8890f775066ea97f18f88f11bb))
+
 ## [3.129.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.129.0...v3.129.1) (2025-06-12)
 
 ### Bug Fixes
