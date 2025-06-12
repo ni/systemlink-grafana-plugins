@@ -1,8 +1,6 @@
 import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, AppEvents } from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
-  DefaultDescending,
-  DefaultOrderBy,
   QueryStepPathsResponse,
   QuerySteps,
   QueryStepsResponse,
@@ -41,17 +39,20 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
   async querySteps(
     filter?: string,
+    orderBy?: string,
     projection?: StepsProperties[],
     take?: number,
+    descending?: boolean,
     resultFilter?: string,
     continuationToken?: string,
     returnCount = false
   ): Promise<QueryStepsResponse> {
+
     try {
       const response = await this.post<QueryStepsResponse>(`${this.queryStepsUrl}`, {
         filter,
-        orderBy: DefaultOrderBy,
-        descending: DefaultDescending,
+        orderBy,
+        descending,
         projection,
         take,
         resultFilter,
@@ -99,16 +100,20 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
   async queryStepsInBatches(
     filter?: string,
+    orderBy?: string,
     projection?: StepsProperties[],
     take?: number,
+    descending?: boolean,
     resultFilter?: string,
     returnCount = false,
   ): Promise<QueryStepsResponse> {
     const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<StepsResponseProperties>> => {
       const response = await this.querySteps(
         filter,
+        orderBy,
         projection,
         currentTake,
+        descending,
         resultFilter,
         token,
         returnCount
@@ -189,7 +194,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     const transformStepsQuery = query.stepsQuery
       ? this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options.scopedVars)
       : undefined;
-    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange);
+    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
     query.stepsQuery = this.buildQueryFilter(transformStepsQuery, useTimeRangeFilter);
 
     const projection = query.showMeasurements
@@ -199,8 +204,10 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     if (query.outputType === OutputType.Data) {
       const responseData = await this.queryStepsInBatches(
         query.stepsQuery,
+        query.orderBy,
         projection as StepsProperties[],
         query.recordCount,
+        query.descending,
         query.resultsQuery,
         true
       );
@@ -227,6 +234,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     } else {
       const responseData = await this.querySteps(
         query.stepsQuery,
+        undefined,
+        undefined,
         undefined,
         undefined,
         query.resultsQuery,
@@ -414,7 +423,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         query.stepsTake,
         defaultStepsQuery.descending,
         resultsQuery,
-        true
       );
 
       if (responseData.steps.length > 0) {

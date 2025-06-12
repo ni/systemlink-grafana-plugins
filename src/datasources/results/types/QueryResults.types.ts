@@ -3,7 +3,10 @@ import { OutputType, ResultsQuery } from './types';
 export interface QueryResults extends ResultsQuery {
   outputType: OutputType;
   properties?: ResultsProperties[];
+  orderBy?: string;
+  descending?: boolean;
   useTimeRange?: boolean;
+  useTimeRangeFor?: string;
   recordCount?: number;
   queryBy?: string;
   partNumberQuery?: string[];

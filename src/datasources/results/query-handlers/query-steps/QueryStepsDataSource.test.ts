@@ -303,6 +303,7 @@ describe('QueryStepsDataSource', () => {
           properties: [
             StepsPropertiesOptions.PROPERTIES
           ] as StepsProperties[],
+          orderBy: undefined
         },
       );
 
@@ -337,6 +338,7 @@ describe('QueryStepsDataSource', () => {
           properties: [
             StepsPropertiesOptions.PROPERTIES
           ] as StepsProperties[],
+          orderBy: undefined,
           useTimeRange: true,
           useTimeRangeFor: 'Updated'
         },
@@ -437,7 +439,9 @@ describe('QueryStepsDataSource', () => {
         const responsePromise = datastore.queryStepsInBatches(
           undefined,
           undefined,
+          undefined,
           100,
+          undefined,
           undefined,
           true
         );
@@ -472,7 +476,9 @@ describe('QueryStepsDataSource', () => {
           const responsePromise = datastore.queryStepsInBatches(
             'name = \"test\"',
             undefined,
+            undefined,
             10000,
+            undefined,
             undefined,
             true
           );
@@ -530,7 +536,9 @@ describe('QueryStepsDataSource', () => {
         const responsePromise = datastore.queryStepsInBatches(
           undefined,
           undefined,
+          undefined,
           2000,
+          undefined,
           undefined,
           true
         );
@@ -580,7 +588,9 @@ describe('QueryStepsDataSource', () => {
         const response = await datastore.queryStepsInBatches(
           undefined,
           undefined,
+          undefined,
           3000,
+          undefined,
           undefined,
           true
         );
@@ -610,8 +620,10 @@ describe('QueryStepsDataSource', () => {
         
         const batchPromise = datastore.queryStepsInBatches(
           'filter',
+          'orderBy',
           undefined,
           1500,
+          false,
           undefined,
           true
         );
@@ -662,7 +674,9 @@ describe('QueryStepsDataSource', () => {
         const responsePromise = datastore.queryStepsInBatches(
           undefined,
           undefined,
+          undefined,
           2000,
+          undefined,
           undefined,
           true
         );

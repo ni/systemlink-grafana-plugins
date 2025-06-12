@@ -19,7 +19,7 @@ export const defaultResultsQuery: Omit<QueryResults, 'refId'> = {
   descending: true,
   recordCount: 1000,
   useTimeRange: false,
-  useTimeRangeFor: undefined,
+  useTimeRangeFor: "startedAt",
   partNumberQuery: [],
   queryBy: '',
 };
@@ -36,7 +36,7 @@ export const defaultStepsQuery: Omit<QuerySteps, 'refId'> = {
   descending: false,
   recordCount: 10_000,
   useTimeRange: false,
-  useTimeRangeFor: undefined,
+  useTimeRangeFor: "startedAt",
   partNumberQuery: [],
   resultsQuery: '',
   stepsQuery: '',

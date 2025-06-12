@@ -1,4 +1,4 @@
-import { DefaultDescending, DefaultOrderBy, QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties, ResultsVariableQuery } from "datasources/results/types/QueryResults.types";
+import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties, ResultsVariableQuery } from "datasources/results/types/QueryResults.types";
 import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase";
 import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, AppEvents } from "@grafana/data";
 import { OutputType } from "datasources/results/types/types";
@@ -15,15 +15,17 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
 
   async queryResults(
     filter?: string,
+    orderBy?: string,
     projection?: ResultsProperties[],
     take?: number,
+    descending?: boolean,
     returnCount = false
   ): Promise<QueryResultsResponse> {
     try {
       return await this.post<QueryResultsResponse>(`${this.queryResultsUrl}`, {
         filter,
-        orderBy: DefaultOrderBy,
-        descending: DefaultDescending,
+        orderBy,
+        descending,
         projection,
         take,
         returnCount,
@@ -49,12 +51,14 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
 
   async runQuery(query: QueryResults, options: DataQueryRequest): Promise<DataFrameDTO> {
     query.queryBy = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.queryBy);
-    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange);
+    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
 
     const responseData = await this.queryResults(
       this.buildQueryFilter(query.queryBy, useTimeRangeFilter),
+      query.orderBy,
       query.properties,
       query.recordCount,
+      query.descending,
       true
     );
 
