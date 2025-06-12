@@ -139,7 +139,7 @@ describe('TestPlansQueryBuilder', () => {
     });
 
     it('should support is blank operation for Estimated end date', () => {
-      const { conditionsContainer } = renderElement('estimatedEndDateTime == null || estimatedEndDateTime == ""', [], [], []);
+      const { conditionsContainer } = renderElement('estimatedEndDateTime == null || estimatedEndDateTime == ""', [], [], [], []);
 
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain('Estimated end date');
@@ -147,7 +147,7 @@ describe('TestPlansQueryBuilder', () => {
     });
 
     it('should support is not blank operation for Estimated end date', () => {
-      const { conditionsContainer } = renderElement('estimatedEndDateTime != null && estimatedEndDateTime != ""', [], [], []);
+      const { conditionsContainer } = renderElement('estimatedEndDateTime != null && estimatedEndDateTime != ""', [], [], [], []);
 
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain('Estimated end date');
@@ -155,7 +155,7 @@ describe('TestPlansQueryBuilder', () => {
     });
 
     it('should support is blank operation for Planned start date', () => {
-      const { conditionsContainer } = renderElement('plannedStartDateTime == null || plannedStartDateTime == ""', [], [], []);
+      const { conditionsContainer } = renderElement('plannedStartDateTime == null || plannedStartDateTime == ""', [], [], [], []);
 
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain('Planned start date');
@@ -163,7 +163,7 @@ describe('TestPlansQueryBuilder', () => {
     });
 
     it('should support is not blank operation for Planned start date', () => {
-        const { conditionsContainer } = renderElement('plannedStartDateTime != null && plannedStartDateTime != ""', [], [], []);
+        const { conditionsContainer } = renderElement('plannedStartDateTime != null && plannedStartDateTime != ""', [], [], [], []);
   
         expect(conditionsContainer?.length).toBe(1);
         expect(conditionsContainer.item(0)?.textContent).toContain('Planned start date');
