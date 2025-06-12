@@ -164,5 +164,4 @@ const tooltips = {
   properties: 'This field specifies the properties to use in the query.',
   recordCount: 'This field sets the maximum number of results.',
   queryBy: 'This optional field applies a filter to the query results.',
-  productName: 'This field filters results by part number.',
 };
