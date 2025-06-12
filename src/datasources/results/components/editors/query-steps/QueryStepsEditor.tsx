@@ -88,6 +88,10 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
     handleQueryChange({ ...query, showMeasurements: isShowMeasurementChecked });
   };
 
+  const onHasChildrenToggleChange = (hasChildrenChecked: boolean) => {
+    handleQueryChange({ ...query, hasChildren: hasChildrenChecked });
+  };
+
   const onResultsFilterChange = (resultsQuery: string) => {
     if (query.resultsQuery !== resultsQuery) {
       query.resultsQuery = resultsQuery;
@@ -146,12 +150,20 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
         )}
         <div>
           {query.outputType === OutputType.Data && (
+            <>
             <InlineField label="Show Measurements" labelWidth={26} tooltip={tooltips.showMeasurements}>
               <InlineSwitch
                 onChange={event => onShowMeasurementChange(event.currentTarget.checked)}
                 value={query.showMeasurements}
               />
             </InlineField>
+            <InlineField label="Step has children" labelWidth={26}>
+              <InlineSwitch
+                onChange={event => onHasChildrenToggleChange(event.currentTarget.checked)}
+                value={query.hasChildren}
+              />
+            </InlineField>
+            </>
           )}
           <TimeRangeControls
             query={query}

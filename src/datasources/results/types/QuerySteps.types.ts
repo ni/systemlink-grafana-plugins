@@ -10,6 +10,7 @@ export interface QuerySteps extends ResultsQuery {
   useTimeRangeFor?: string;
   recordCount?: number;
   showMeasurements?: boolean;
+  hasChildren?: boolean;
   resultsQuery?: string;
   stepsQuery?: string;
 }
