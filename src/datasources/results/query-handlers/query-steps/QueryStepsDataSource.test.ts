@@ -195,65 +195,108 @@ describe('QueryStepsDataSource', () => {
       expect(fields).toMatchSnapshot();
     });
 
-    test('should convert step measurements to Grafana fields when show measurments is enabled', async () => {
-      const mockQueryStepsMeasurementResponse: QueryStepsResponse = {
-        steps: [
+    describe('show measurements is enabled', ()=>{
+      test('should convert step measurements to Grafana fields as a column', async () => {
+        const mockQueryStepsMeasurementResponse: QueryStepsResponse = {
+          steps: [
+            {
+              stepId: '1',
+              data: {
+                text: 'Step 1',
+                parameters: [
+                  {
+                    name: 'Voltage',
+                    measurement: '3.7',
+                    status: 'Passed',
+                    units: 'V',
+                    lowLimit: '3.5',
+                    highLimit: '4.0',
+                    value: ''
+                  },
+                  {
+                    name: 'Voltage',
+                    measurement: '3.7',
+                    status: 'Passed',
+                    units: 'V',
+                    lowLimit: '3.5',
+                    highLimit: '4.0',
+                    value: ''
+                  },//duplicate measurement
+                  {
+                    name: 'Current',
+                    measurement: '1.2',
+                    status: 'Failed',
+                    units: 'A',
+                    lowLimit: '1.0',
+                    highLimit: '1.5',
+                    miscellaneous: 'Misc'
+                  },
+                ]
+              }
+            },
+          ],
+          totalCount: 1
+        };
+  
+        backendServer.fetch
+          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
+          .mockReturnValue(createFetchResponse(mockQueryStepsMeasurementResponse));
+  
+        const query = buildQuery(
           {
-            stepId: '1',
-            data: {
-              text: 'Step 1',
-              parameters: [
-                {
-                  name: 'Voltage',
-                  measurement: '3.7',
-                  status: 'Passed',
-                  units: 'V',
-                  lowLimit: '3.5',
-                  highLimit: '4.0',
-                  value: ''
-                },
-                {
-                  name: 'Voltage',
-                  measurement: '3.7',
-                  status: 'Passed',
-                  units: 'V',
-                  lowLimit: '3.5',
-                  highLimit: '4.0',
-                  value: ''
-                },//duplicate measurement
-                {
-                  name: 'Current',
-                  measurement: '1.2',
-                  status: 'Failed',
-                  units: 'A',
-                  lowLimit: '1.0',
-                  highLimit: '1.5',
-                  miscellaneous: 'Misc'
-                },
-              ]
-            }
+            refId: 'A',
+            outputType: OutputType.Data,
+            showMeasurements: true
           },
-        ],
-        totalCount: 1
-      };
+        );
+  
+        const response = await datastore.query(query);
+  
+        const fields = response.data[0].fields as Field[];
+        expect(fields).toMatchSnapshot();
+      });
 
-      backendServer.fetch
-        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
-        .mockReturnValue(createFetchResponse(mockQueryStepsMeasurementResponse));
+      test('should create empty cells when measurements are not available', async () => {
+        const mockQueryStepsMeasurementResponse: QueryStepsResponse = {
+          steps: [
+            {
+              stepId: '1',
+              data: {
+                text: 'Step 1',
+                parameters: [{ name: 'Current', measurement: '1.2'}]
+              }
+            },
+             {
+              stepId: '2',
+              data: {
+                text: 'Step 1',
+                parameters: [{ name: 'Voltage', measurement: '3.7'}]
+              }
+            },
+          ],
+          totalCount: 1
+        };
+  
+        backendServer.fetch
+          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
+          .mockReturnValue(createFetchResponse(mockQueryStepsMeasurementResponse));
+  
+        const query = buildQuery(
+          {
+            refId: 'A',
+            outputType: OutputType.Data,
+            showMeasurements: true
+          },
+        );
+  
+        const response = await datastore.query(query);
+  
+        const fields = response.data[0].fields as Field[];
+        expect(fields).toMatchSnapshot();
+      });
+    })
 
-      const query = buildQuery(
-        {
-          refId: 'A',
-          outputType: OutputType.Data,
-          showMeasurements: true
-        },
-      );
 
-      const response = await datastore.query(query);
-
-      const fields = response.data[0].fields as Field[];
-      expect(fields).toMatchSnapshot();
-    });
 
     test('should include templateSrv replaced values in the filter', async () => {
       const timeRange = {
