@@ -47,8 +47,6 @@ describe('QueryStepsEditor', () => {
     queryType: QueryType.Steps,
     outputType: OutputType.Data,
     properties: [StepsProperties.data],
-    orderBy: 'STARTED_AT',
-    descending: true,
     useTimeRange: true,
     useTimeRangeFor: 'Updated',
     recordCount: 1000,
@@ -70,8 +68,6 @@ describe('QueryStepsEditor', () => {
   } as unknown as QueryStepsDataSource;
 
   let properties: HTMLElement;
-  let orderBy: HTMLElement;
-  let descending: HTMLElement;
   let recordCount: HTMLElement;
   let dataOutput: HTMLElement;
   let totalCountOutput: HTMLElement;
@@ -83,8 +79,6 @@ describe('QueryStepsEditor', () => {
       render(<QueryStepsEditor query={defaultQuery} handleQueryChange={mockHandleQueryChange} datasource={mockDatasource}/>);
     });
     properties = screen.getAllByRole('combobox')[0];
-    orderBy = screen.getAllByRole('combobox')[3];
-    descending = screen.getAllByRole('checkbox')[2];
     dataOutput = screen.getByRole('radio', { name: 'Data' });
     totalCountOutput = screen.getByRole('radio', { name: 'Total Count' });
     recordCount = screen.getByDisplayValue(1000);
@@ -106,10 +100,6 @@ describe('QueryStepsEditor', () => {
       expect(screen.getAllByText('data').length).toBe(1);
       expect(dataOutput).toBeInTheDocument();
       expect(dataOutput).toBeChecked();
-      expect(orderBy).toBeInTheDocument();
-      expect(screen.getAllByText('Started at').length).toBe(1);
-      expect(descending).toBeInTheDocument();
-      expect(descending).toBeChecked();
       expect(recordCount).toBeInTheDocument();
       expect(recordCount).toHaveValue(1000);
       expect(useTimeRange).toBeInTheDocument();
@@ -122,7 +112,7 @@ describe('QueryStepsEditor', () => {
       expect(screen.getAllByText('ProductName1 (PartNumber1)').length).toBe(1);
     });
 
-    test('should display placeholders for properties and orderBy when default values are not provided', async () => {
+    test('should display placeholder for properties when default value is not provided', async () => {
       render(
       <QueryStepsEditor
         query={{outputType: OutputType.Data } as QuerySteps}
@@ -132,7 +122,6 @@ describe('QueryStepsEditor', () => {
       );
 
       expect(screen.getByText('Select properties to fetch')).toBeInTheDocument();
-      expect(screen.getByText('Select field to order by')).toBeInTheDocument();
     });
 
     test('should update properties when user adds a property', async () => {
@@ -152,19 +141,6 @@ describe('QueryStepsEditor', () => {
       }
 
       expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
-    });
-
-    test('should update orderBy when user changes the orderBy', async () => {
-      await select(orderBy, 'Started at', { container: document.body });
-      await waitFor(() => {
-        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ orderBy: 'STARTED_AT' }));
-      });
-    });
-    test('should update descending when user clicks on the descending checkbox', async () => {
-      await userEvent.click(descending);
-      await waitFor(() => {
-        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ descending: false }));
-      });
     });
 
     describe('Product Part Number', () => {

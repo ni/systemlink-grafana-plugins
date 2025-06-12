@@ -160,9 +160,10 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
 
       const metadata = (await this.queryResults(
         filter,
-        'UPDATED_AT',
+        defaultResultsQuery.orderBy,
         [query.properties as ResultsProperties],
         query.resultsTake,
+        defaultResultsQuery.descending
       )).results;
 
       if (metadata.length > 0) {
