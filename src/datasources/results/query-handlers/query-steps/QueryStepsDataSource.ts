@@ -194,7 +194,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     const transformStepsQuery = query.stepsQuery
       ? this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options.scopedVars)
       : undefined;
-    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
+    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, defaultStepsQuery.useTimeRangeFor);
     query.stepsQuery = this.buildQueryFilter(transformStepsQuery, useTimeRangeFilter);
 
     const projection = query.showMeasurements

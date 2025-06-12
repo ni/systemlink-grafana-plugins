@@ -1,8 +1,8 @@
-import { QueryResults, ResultsProperties, ResultsPropertiesOptions } from "./types/QueryResults.types";
-import { QuerySteps, StepsProperties } from "./types/QuerySteps.types";
+import { QueryResultsDefaultValues, ResultsProperties, ResultsPropertiesOptions } from "./types/QueryResults.types";
+import { QueryStepsDefaultValues, StepsProperties } from "./types/QuerySteps.types";
 import { OutputType, QueryType } from "./types/types";
 
-export const defaultResultsQuery: Omit<QueryResults, 'refId'> = {
+export const defaultResultsQuery: Omit<QueryResultsDefaultValues, 'refId'> = {
   queryType: QueryType.Results,
   outputType: OutputType.Data,
   properties: [
@@ -19,12 +19,12 @@ export const defaultResultsQuery: Omit<QueryResults, 'refId'> = {
   descending: true,
   recordCount: 1000,
   useTimeRange: false,
-  useTimeRangeFor: "Started",
+  useTimeRangeFor: "startedAt",
   partNumberQuery: [],
   queryBy: '',
 };
 
-export const defaultStepsQuery: Omit<QuerySteps, 'refId'> = {
+export const defaultStepsQuery: Omit<QueryStepsDefaultValues, 'refId'> = {
   queryType: QueryType.Steps,
   outputType: OutputType.Data,
   properties: [
@@ -36,7 +36,7 @@ export const defaultStepsQuery: Omit<QuerySteps, 'refId'> = {
   descending: false,
   recordCount: 10_000,
   useTimeRange: false,
-  useTimeRangeFor: "Started",
+  useTimeRangeFor: "startedAt",
   partNumberQuery: [],
   resultsQuery: '',
   stepsQuery: '',

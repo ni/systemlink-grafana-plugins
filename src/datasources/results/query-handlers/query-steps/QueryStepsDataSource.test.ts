@@ -289,7 +289,6 @@ describe('QueryStepsDataSource', () => {
           refId: 'A',
           outputType: OutputType.Data,
           useTimeRange: true,
-          useTimeRangeFor: selectedUseTimeRangeFor
         },
       );
 
@@ -359,7 +358,6 @@ describe('QueryStepsDataSource', () => {
           ] as StepsProperties[],
           orderBy: undefined,
           useTimeRange: true,
-          useTimeRangeFor: defaultStepsQuery.useTimeRangeFor
         },
       );
 

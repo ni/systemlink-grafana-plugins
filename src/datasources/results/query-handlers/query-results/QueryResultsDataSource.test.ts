@@ -8,7 +8,6 @@ import { OutputType, QueryType } from 'datasources/results/types/types';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { Workspace } from 'core/types';
-import { defaultResultsQuery } from 'datasources/results/defaultQueries';
 
 const mockQueryResultsResponse: QueryResultsResponse = {
   results: [
@@ -213,7 +212,6 @@ describe('QueryResultsDataSource', () => {
             refId: 'A',
             outputType: OutputType.Data,
             useTimeRange: true,
-            useTimeRangeFor: selectedUseTimeRangeFor
           },
         );
 
@@ -574,7 +572,6 @@ describe('QueryResultsDataSource', () => {
           refId: 'A',
           queryBy,
           useTimeRange: true,
-          useTimeRangeFor: defaultResultsQuery.useTimeRangeFor,
         });
         const expectedFilter = `${queryBy} && ${replacedFilter}`;
 
@@ -619,7 +616,6 @@ describe('QueryResultsDataSource', () => {
         refId: 'A',
         queryBy: '',
         useTimeRange: true,
-        useTimeRangeFor: defaultResultsQuery.useTimeRangeFor,
       });
 
       await datastore.query(query);

@@ -6,10 +6,13 @@ export interface QueryResults extends ResultsQuery {
   orderBy?: string;
   descending?: boolean;
   useTimeRange?: boolean;
-  useTimeRangeFor?: string;
   recordCount?: number;
   queryBy?: string;
   partNumberQuery?: string[];
+}
+
+export interface QueryResultsDefaultValues extends QueryResults {
+  useTimeRangeFor: string;
 }
 
 export interface ResultsVariableQuery extends ResultsQuery {
