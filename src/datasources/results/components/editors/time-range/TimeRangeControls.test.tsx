@@ -10,7 +10,6 @@ describe('TimeRangeControls', () => {
   const defaultProps = {
     query: {
       useTimeRange: true,
-      useTimeRangeFor: undefined,
       outputType: OutputType.Data,
       queryType: QueryType.Results,
       refId: 'A',
@@ -35,9 +34,7 @@ describe('TimeRangeControls', () => {
     expect(mockHandleQueryChange).toHaveBeenCalledWith(
       expect.objectContaining({
         useTimeRange: false,
-        useTimeRangeFor: undefined,
       }),
-      false
     );
   });
 });
