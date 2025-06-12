@@ -236,7 +236,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         query.stepsQuery,
         undefined,
         [],
-        undefined,
+        0,
         undefined,
         query.resultsQuery,
         undefined,
