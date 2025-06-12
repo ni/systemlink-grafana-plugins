@@ -29,18 +29,6 @@ jest.mock('../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrap
   }),
 }));
 
-const mockProducts = {
-  products: [
-    {partNumber: 'PartNumber1', name: 'ProductName1'},
-    {partNumber: 'PartNumber2', name: 'ProductName2'}
-  ]
-}
-
-const mockGlobalVars = [
-  { label: '$var1', value: '$var1' },
-  { label: '$var2', value: '$var2' }
-];
-
 describe('QueryStepsEditor', () => {
   const defaultQuery: QuerySteps = {
     refId: 'A',
@@ -51,7 +39,6 @@ describe('QueryStepsEditor', () => {
     useTimeRangeFor: 'Updated',
     recordCount: 1000,
     showMeasurements: false,
-    partNumberQuery: ['PartNumber1'],
     resultsQuery: 'partNumber = "PN1"',
     stepsQuery: 'stepName = "Step1"',
   };
@@ -61,9 +48,8 @@ describe('QueryStepsEditor', () => {
   const mockDatasource = {
     loadWorkspaces: jest.fn(),
     getPartNumbers: jest.fn(),
-    productCache: Promise.resolve(mockProducts),
     workspacesCache: new Map(),
-    globalVariableOptions: jest.fn(() => mockGlobalVars),
+    globalVariableOptions: jest.fn(() => []),
     disableStepsQueryBuilder: false
   } as unknown as QueryStepsDataSource;
 
@@ -72,7 +58,6 @@ describe('QueryStepsEditor', () => {
   let dataOutput: HTMLElement;
   let totalCountOutput: HTMLElement;
   let showMeasurements: HTMLElement;
-  let productName: HTMLElement;
 
   beforeEach(async () => {
     await act(async () => {
@@ -83,7 +68,6 @@ describe('QueryStepsEditor', () => {
     totalCountOutput = screen.getByRole('radio', { name: 'Total Count' });
     recordCount = screen.getByDisplayValue(1000);
     showMeasurements = screen.getAllByRole('checkbox')[0];
-    productName = screen.getAllByRole('combobox')[2];
   });
 
   describe('Data outputType', () => {
@@ -108,8 +92,6 @@ describe('QueryStepsEditor', () => {
       expect(screen.getAllByText('Updated').length).toBe(1);
       expect(showMeasurements).toBeInTheDocument();
       expect(showMeasurements).not.toBeChecked();
-      expect(productName).toBeInTheDocument();
-      expect(screen.getAllByText('ProductName1 (PartNumber1)').length).toBe(1);
     });
 
     test('should display placeholder for properties when default value is not provided', async () => {
@@ -122,6 +104,16 @@ describe('QueryStepsEditor', () => {
       );
 
       expect(screen.getByText('Select properties to fetch')).toBeInTheDocument();
+    });
+
+    test('should not call handleQueryChange when resultsQuery is not changed', () => {
+      const resultsQueryInput = screen.getByTestId('results-query');
+      fireEvent.change(resultsQueryInput, { target: { value: 'partNumber = "PN1"' } });
+      mockHandleQueryChange.mockClear();
+
+      fireEvent.change(resultsQueryInput, { target: { value: 'partNumber = "PN1"' } });
+
+      expect(mockHandleQueryChange).not.toHaveBeenCalled();
     });
 
     test('should update properties when user adds a property', async () => {
@@ -141,32 +133,6 @@ describe('QueryStepsEditor', () => {
       }
 
       expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
-    });
-
-    describe('Product Part Number', () => {
-      test('should update part number query when user selects a variable in product name dropdown', async () => {
-        await select(productName, '$var1', { container: document.body });
-        await waitFor(() => {
-          expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ['PartNumber1', '$var1'] }));
-        });
-      });
-
-      test('should update part number query when user selects a product in product name dropdown', async () => {
-        await select(productName, 'ProductName2 (PartNumber2)', { container: document.body });	        await select(productName, 'ProductName2 (PartNumber2)', { container: document.body });
-        await waitFor(() => {
-          expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "PartNumber2"] }));
-        });
-      });
-
-      test('should show error when no product is selected', async () => {    
-        //Click remove button to remove all the selected product    
-        const removeButton = screen.getAllByRole('button', { name: 'Remove' });
-        for (const button of removeButton) {
-          await userEvent.click(button);
-        }
-
-        expect(screen.getByText('You must select at least one product in this field.')).toBeInTheDocument();
-      });
     });
 
     describe('recordCount', () => {
@@ -228,7 +194,6 @@ describe('QueryStepsEditor', () => {
                 refId: 'A',
                 queryType: QueryType.Steps,
                 outputType: outputType,
-                partNumberQuery: ['partNumber1'],
                 resultsQuery: 'PartNumber = "partNumber1"'
               }}
               handleQueryChange={mockHandleQueryChange}
@@ -299,7 +264,7 @@ describe('QueryStepsEditor', () => {
       );
     })
 
-    test('should disable steps query builder when partnumber is empty', async () => {
+    test('should disable steps query builder when results query is empty', async () => {
       cleanup();
         await act(async () => {
           render(
@@ -308,7 +273,7 @@ describe('QueryStepsEditor', () => {
                 refId: 'A',
                 queryType: QueryType.Steps,
                 outputType: OutputType.Data,
-                partNumberQuery: [],
+                resultsQuery: '',
                 stepsQuery: 'stepName = "Step1"',
               }}
               handleQueryChange={mockHandleQueryChange}
@@ -321,7 +286,7 @@ describe('QueryStepsEditor', () => {
         expect(stepsQueryInput).toBeDisabled();
     });
 
-    test('should not disable steps query builder when partnumber is not empty', async () => {
+    test('should not disable steps query builder when results query is not empty', async () => {
       cleanup();
       await act(async () => {
         render(
@@ -330,7 +295,7 @@ describe('QueryStepsEditor', () => {
               refId: 'A',
               queryType: QueryType.Steps,
               outputType: OutputType.Data,
-              partNumberQuery: ['PartNumber1'],
+              resultsQuery: 'partNumber = "PN1"',
               stepsQuery: 'stepName = "Step1"',
             }}
             handleQueryChange={mockHandleQueryChange}
