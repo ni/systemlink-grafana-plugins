@@ -1,3 +1,37 @@
+## [3.131.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.130.0...v3.131.0) (2025-06-12)
+
+### Features
+
+* **results:** revert partNumber field for results query ([#280](https://github.com/ni/systemlink-grafana-plugins/issues/280)) ([fa2638d](https://github.com/ni/systemlink-grafana-plugins/commit/fa2638d7df83092255b71a27201e53458e85a220))
+
+### Bug Fixes
+
+* **results:** update default limit of take to 1000 ([#282](https://github.com/ni/systemlink-grafana-plugins/issues/282)) ([404b630](https://github.com/ni/systemlink-grafana-plugins/commit/404b6309b50898cc4f251ea771f0008e84561ccf))
+
+## [3.130.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.129.1...v3.130.0) (2025-06-12)
+
+### Features
+
+* **results:** update measurements to be listed as separate columns ([#281](https://github.com/ni/systemlink-grafana-plugins/issues/281)) ([3da8a68](https://github.com/ni/systemlink-grafana-plugins/commit/3da8a68db244ab8890f775066ea97f18f88f11bb))
+
+## [3.129.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.129.0...v3.129.1) (2025-06-12)
+
+### Bug Fixes
+
+* **results:** outputs are not shown as query name ([#275](https://github.com/ni/systemlink-grafana-plugins/issues/275)) ([9925329](https://github.com/ni/systemlink-grafana-plugins/commit/9925329e1079949510648d64615d84f09b2dace7))
+
+## [3.129.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.128.1...v3.129.0) (2025-06-12)
+
+### Features
+
+* **core:** Add support for custom date time operations ([#267](https://github.com/ni/systemlink-grafana-plugins/issues/267)) ([0873fb2](https://github.com/ni/systemlink-grafana-plugins/commit/0873fb2dd98dab31a72b1c5b208a894ecece05b4))
+
+## [3.128.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.128.0...v3.128.1) (2025-06-12)
+
+### Bug Fixes
+
+* **workorders:** multiple API calls when editing panels ([#277](https://github.com/ni/systemlink-grafana-plugins/issues/277)) ([b6c2afe](https://github.com/ni/systemlink-grafana-plugins/commit/b6c2afe1813b7e113f1eb9c6b964e7bcddf93b05))
+
 ## [3.128.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.127.4...v3.128.0) (2025-06-12)
 
 ### Features
