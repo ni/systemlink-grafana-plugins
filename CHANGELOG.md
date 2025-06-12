@@ -1,3 +1,9 @@
+## [3.128.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.128.0...v3.128.1) (2025-06-12)
+
+### Bug Fixes
+
+* **workorders:** multiple API calls when editing panels ([#277](https://github.com/ni/systemlink-grafana-plugins/issues/277)) ([b6c2afe](https://github.com/ni/systemlink-grafana-plugins/commit/b6c2afe1813b7e113f1eb9c6b964e7bcddf93b05))
+
 ## [3.128.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.127.4...v3.128.0) (2025-06-12)
 
 ### Features
