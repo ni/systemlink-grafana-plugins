@@ -1,4 +1,4 @@
-import { InlineField, InlineSwitch, Select } from '@grafana/ui';
+import { InlineField, InlineSwitch } from '@grafana/ui';
 import { QueryResults } from 'datasources/results/types/QueryResults.types';
 import { QuerySteps } from 'datasources/results/types/QuerySteps.types';
 import React from 'react';
