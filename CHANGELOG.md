@@ -1,3 +1,9 @@
+## [3.128.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.127.4...v3.128.0) (2025-06-12)
+
+### Features
+
+* **results:** Add "has children" property in steps query builder ([#278](https://github.com/ni/systemlink-grafana-plugins/issues/278)) ([beefaee](https://github.com/ni/systemlink-grafana-plugins/commit/beefaee162d5bdd4a1d0f1eb863d46b9b2904037))
+
 ## [3.127.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.127.3...v3.127.4) (2025-06-12)
 
 ### Bug Fixes
