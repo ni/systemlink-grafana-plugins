@@ -21,7 +21,7 @@ type ResultsQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     filter?: string;
     workspaces: Workspace[] | null;
-    partNumbers: string[];
+    partNumbers: string[] | null;
     status: string[];
     globalVariableOptions: QueryBuilderOption[];
   };
@@ -109,6 +109,10 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
   }, []);
 
   const partNumberField = useMemo(() => {
+    if (!partNumbers) {
+      return null;
+    }
+
     const partNumberField = ResultsQueryBuilderFields.PARTNUMBER;
     return {
       ...partNumberField,
@@ -123,7 +127,7 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
   }, [partNumbers]);
 
   useEffect(() => {
-    if(!workspaceField) {
+    if(!workspaceField || !partNumberField) {
       return;
     }
 
