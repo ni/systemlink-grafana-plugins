@@ -53,7 +53,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     return this.loadProducts();
   }
 
-   get partNumbersCache(): Promise<string[]> {
+  get partNumbersCache(): Promise<string[]> {
     return this.getPartNumbers();
   }
 
@@ -87,8 +87,10 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
     ResultsDataSourceBase._partNumbersCache = this.queryResultsValues(ResultsPropertiesOptions.PART_NUMBER, undefined)
     .catch(error => {
-      console.error('Error in loading part numbers:', error);
-      return [];
+       if (!this.errorTitle) {
+          this.handleQueryValuesError(error, 'result');
+        }
+        return [];
     });
 
     return ResultsDataSourceBase._partNumbersCache;

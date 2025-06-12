@@ -306,6 +306,17 @@ describe('QueryResultsDataSource', () => {
       expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
     });
 
+    it('should handle errors in getPartNumbers', async () => {
+      (ResultsDataSourceBase as any)._partNumbersCache = null;
+      const error = new Error('API failed');
+      jest.spyOn(QueryResultsDataSource.prototype, 'queryResultsValues').mockRejectedValue(error);
+
+      await datastore.getPartNumbers();
+
+      expect(datastore.errorTitle).toBe('Warning during result value query');
+      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
+    });
+
     it('should contain error details when error contains additional information', async () => {
       (ResultsDataSourceBase as any)._workspacesCache = null;
       const error = new Error(`API failed Error message: ${JSON.stringify({ message: 'Detailed error message', statusCode: 500 })}`);
