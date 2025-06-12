@@ -36,7 +36,6 @@ export const defaultStepsQuery: Omit<QuerySteps, 'refId'> = {
   recordCount: 10_000,
   useTimeRange: false,
   useTimeRangeFor: undefined,
-  partNumberQuery: [],
   resultsQuery: '',
   stepsQuery: '',
 };
