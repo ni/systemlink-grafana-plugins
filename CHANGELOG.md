@@ -1,3 +1,9 @@
+## [3.132.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.131.0...v3.132.0) (2025-06-12)
+
+### Features
+
+* **results:** revert Partnumber field from Steps Query ([#283](https://github.com/ni/systemlink-grafana-plugins/issues/283)) ([efbf378](https://github.com/ni/systemlink-grafana-plugins/commit/efbf3789180ef30969f946472403b88ca5d79e89))
+
 ## [3.131.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.130.0...v3.131.0) (2025-06-12)
 
 ### Features
