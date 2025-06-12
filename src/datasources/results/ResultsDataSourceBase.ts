@@ -26,7 +26,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   private static _productCache: Promise<QueryProductResponse> | null = null;
   private static _partNumbersCache: Promise<string[]> | null = null;
 
-
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
 
@@ -92,10 +91,8 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
         }
         return [];
     });
-
     return ResultsDataSourceBase._partNumbersCache;
   }
-
 
   async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {
     return await this.post<string[]>(this.queryResultsValuesUrl, {
