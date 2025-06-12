@@ -235,7 +235,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       const responseData = await this.querySteps(
         query.stepsQuery,
         undefined,
-        undefined,
+        [],
         undefined,
         undefined,
         query.resultsQuery,
@@ -245,7 +245,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
       return {
         refId: query.refId,
-        fields: [{ name: 'Total count', values: [responseData.totalCount] }],
+        fields: [{ name: query.refId, values: [responseData.totalCount] }],
       };
     }
   }
