@@ -20,7 +20,6 @@ export const defaultResultsQuery: Omit<QueryResults, 'refId'> = {
   recordCount: 1000,
   useTimeRange: false,
   useTimeRangeFor: undefined,
-  partNumberQuery: [],
   queryBy: '',
 };
 
