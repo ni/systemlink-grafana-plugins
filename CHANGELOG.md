@@ -1,3 +1,13 @@
+## [3.131.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.130.0...v3.131.0) (2025-06-12)
+
+### Features
+
+* **results:** revert partNumber field for results query ([#280](https://github.com/ni/systemlink-grafana-plugins/issues/280)) ([fa2638d](https://github.com/ni/systemlink-grafana-plugins/commit/fa2638d7df83092255b71a27201e53458e85a220))
+
+### Bug Fixes
+
+* **results:** update default limit of take to 1000 ([#282](https://github.com/ni/systemlink-grafana-plugins/issues/282)) ([404b630](https://github.com/ni/systemlink-grafana-plugins/commit/404b6309b50898cc4f251ea771f0008e84561ccf))
+
 ## [3.130.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.129.1...v3.130.0) (2025-06-12)
 
 ### Features
