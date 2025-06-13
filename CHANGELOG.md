@@ -1,3 +1,9 @@
+## [3.135.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.135.1...v3.135.2) (2025-06-13)
+
+### Bug Fixes
+
+* **results:** Persist query changes between query type switches ([#290](https://github.com/ni/systemlink-grafana-plugins/issues/290)) ([8c8b58c](https://github.com/ni/systemlink-grafana-plugins/commit/8c8b58c7421cbcddf0a080ffbda70168d5f3ab95))
+
 ## [3.135.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.135.0...v3.135.1) (2025-06-13)
 
 ### Bug Fixes
