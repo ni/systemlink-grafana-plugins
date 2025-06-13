@@ -1,3 +1,9 @@
+## [3.133.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.133.0...v3.133.1) (2025-06-13)
+
+### Bug Fixes
+
+* **workorders,testplans:** Show column names when there is no data and show refID in output's column name ([#288](https://github.com/ni/systemlink-grafana-plugins/issues/288)) ([ac4c973](https://github.com/ni/systemlink-grafana-plugins/commit/ac4c973a03a6725c6716283c4b1d9e7a2e90bd91))
+
 ## [3.133.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.132.2...v3.133.0) (2025-06-13)
 
 ### Features
