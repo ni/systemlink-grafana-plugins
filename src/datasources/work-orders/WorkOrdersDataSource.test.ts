@@ -101,9 +101,10 @@ describe('WorkOrdersDataSource', () => {
   });
 
   describe('runQuery', () => {
-    test('should return empty field when no work orders are found', async () => {
+    test('should return field with no data when no work orders are found', async () => {
       const mockQuery = {
         refId: 'A',
+        properties: [WorkOrderPropertiesOptions.NAME],
         outputType: OutputType.Properties,
         queryBy: 'filter',
       };
@@ -112,10 +113,11 @@ describe('WorkOrdersDataSource', () => {
 
       const response = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
 
-      expect(response.fields).toHaveLength(0);
+      expect(response.fields).toHaveLength(1);
+      expect(response.fields).toEqual([{"name": "Work order name", "type": "string", "values": []}]);
       expect(response.refId).toEqual('A');
       expect(response.name).toEqual('A');
-      expect(datastore.queryWorkordersData).toHaveBeenCalledWith('filter', undefined, undefined, undefined, undefined);
+      expect(datastore.queryWorkordersData).toHaveBeenCalledWith('filter', ["NAME"], undefined, undefined, undefined);
     });
 
     test('processes work orders query when outputType is Properties', async () => {
@@ -141,7 +143,7 @@ describe('WorkOrdersDataSource', () => {
 
       const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
 
-      expect(result.fields).toEqual([{ name: 'Total count', values: [42] }]);
+      expect(result.fields).toEqual([{ name: 'B', values: [42] }]);
       expect(result.refId).toEqual('B');
     });
 
