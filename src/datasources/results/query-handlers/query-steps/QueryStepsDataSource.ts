@@ -207,10 +207,10 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     if (query.outputType === OutputType.Data) {
       const responseData = await this.queryStepsInBatches(
         query.stepsQuery,
-        query.orderBy,
+        defaultStepsQuery.orderBy,
         projection as StepsProperties[],
         query.recordCount,
-        query.descending,
+        defaultStepsQuery.descending,
         query.resultsQuery,
         true
       );

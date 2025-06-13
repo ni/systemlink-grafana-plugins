@@ -246,7 +246,6 @@ describe('QueryResultsDataSource', () => {
             properties: [
               ResultsPropertiesOptions.PROPERTIES
             ] as ResultsProperties[],
-            orderBy: undefined
           },
         );
 
@@ -354,7 +353,6 @@ describe('QueryResultsDataSource', () => {
             properties: [
               ResultsPropertiesOptions.PART_NUMBER
             ] as ResultsProperties[],
-            orderBy: undefined,
             queryBy: `${ResultsPropertiesOptions.PART_NUMBER} = '123'`
           },
         );
@@ -378,7 +376,6 @@ describe('QueryResultsDataSource', () => {
             properties: [
               ResultsPropertiesOptions.PART_NUMBER
             ] as ResultsProperties[],
-            orderBy: undefined,
             queryBy: `${ResultsQueryBuilderFieldNames.PART_NUMBER} = "{partNumber1,partNumber2}"`
           },
         );
@@ -404,7 +401,6 @@ describe('QueryResultsDataSource', () => {
             properties: [
               ResultsPropertiesOptions.UPDATED_AT
             ] as ResultsProperties[],
-            orderBy: undefined,
             queryBy: 'UpdatedAt = "${__now:date}"'
           },
         );

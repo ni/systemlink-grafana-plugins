@@ -13,6 +13,8 @@ export interface QuerySteps extends ResultsQuery {
 }
 
 export interface QueryStepsDefaultValues extends QuerySteps {
+  orderBy: string;
+  descending: boolean;
   useTimeRangeFor: string;
 }
 

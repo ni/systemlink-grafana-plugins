@@ -68,10 +68,10 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
 
     const responseData = await this.queryResults(
       this.buildQueryFilter(query.queryBy, useTimeRangeFilter),
-      query.orderBy,
+      defaultResultsQuery.orderBy,
       properties,
       recordCount,
-      query.descending,
+      defaultResultsQuery.descending,
       true
     );
 

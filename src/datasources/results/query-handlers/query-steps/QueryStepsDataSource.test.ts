@@ -363,7 +363,6 @@ describe('QueryStepsDataSource', () => {
           properties: [
             StepsPropertiesOptions.PROPERTIES
           ] as StepsProperties[],
-          orderBy: undefined
         },
       );
 
