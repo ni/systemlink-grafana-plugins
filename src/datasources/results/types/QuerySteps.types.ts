@@ -56,6 +56,25 @@ export enum StepsProperties {
   properties = 'properties',
 }
 
+export const StepPropertiesProjectionMap = {
+  'Step Name': StepsProperties.name,
+  'Step Type': StepsProperties.stepType,
+  'Step ID': StepsProperties.stepId,
+  'Parent ID': StepsProperties.parentId,
+  'Result ID': StepsProperties.resultId,
+  'Status': StepsProperties.status,
+  'Total Time (s)': StepsProperties.totalTimeInSeconds,
+  'Started At': StepsProperties.startedAt,
+  'Updated At': StepsProperties.updatedAt,
+  'Inputs': StepsProperties.inputs,
+  'Outputs': StepsProperties.outputs,
+  'Data Model': StepsProperties.dataModel,
+  'Data': StepsProperties.data,
+  'Workspace': StepsProperties.workspace,
+  'Keywords': StepsProperties.keywords,
+  'Properties': StepsProperties.properties,
+}
+
 export interface StatusHttp {
   statusType: string;
   statusName?: string;

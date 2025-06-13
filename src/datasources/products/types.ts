@@ -37,6 +37,18 @@ export const PropertiesOptions = {
   FILE_IDS: 'fileIds',
 };
 
+export const ProductPropertiesProjectionMap = {
+  'Product ID': Properties.id,
+  'Part Number': Properties.partNumber,
+  'Product Name': Properties.name,
+  'Family': Properties.family,
+  'Updated At': Properties.updatedAt,
+  'Workspace': Properties.workspace,
+  'Keywords': Properties.keywords,
+  'Properties': Properties.properties,
+  'File IDs': Properties.fileIds,
+}
+
 export const OrderBy = [
   {
     value: 'ID',

@@ -80,6 +80,26 @@ export enum ResultsProperties {
   workspace = 'workspace',
 }
 
+export const ResultPropertiesProjectionMap = {
+    'Result Id': ResultsProperties.id,
+    'Test Program Name': ResultsProperties.programName,
+    'Serial Number': ResultsProperties.serialNumber,
+    'System Id': ResultsProperties.systemId,
+    'Status': ResultsProperties.status,
+    'Total Time in Seconds': ResultsProperties.totalTimeInSeconds,
+    'Started At': ResultsProperties.startedAt,
+    'Updated At': ResultsProperties.updatedAt,
+    'Part Number': ResultsProperties.partNumber,
+    'Data Table IDs': ResultsProperties.dataTableIds,
+    'File IDs': ResultsProperties.fileIds,
+    'Host Name': ResultsProperties.hostName,
+    'Operator': ResultsProperties.operator,
+    'Keywords': ResultsProperties.keywords,
+    'Properties': ResultsProperties.properties,
+    'Status Type Summary': ResultsProperties.statusTypeSummary,
+    'Workspace': ResultsProperties.workspace
+} as const;
+
 export interface StatusHttp {
   statusType: string;
   statusName: string;
