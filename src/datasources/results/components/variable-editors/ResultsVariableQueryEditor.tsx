@@ -144,11 +144,11 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
                 ></ResultsQueryBuilder>
               </InlineField>
               <InlineField
-                label={labels.resultsTake}
+                label={labels.take}
                 labelWidth={26}
                 tooltip={tooltips.resultsTake}
                 invalid={!!resultsRecordCountInvalidMessage}
-                error={errorMessages.resultsRecordCountInvalid}
+                error={resultsRecordCountInvalidMessage}
               >
                 <AutoSizeInput
                   minWidth={25}
@@ -156,7 +156,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
                   type="number"
                   defaultValue={queryResultsquery.resultsTake ? queryResultsquery.resultsTake : 1000}
                   onCommitChange={onResultsRecordCountChange}
-                  placeholder={placeholders.resultsTake}
+                  placeholder={placeholders.take}
                   onKeyDown={event => {
                     validateNumericInput(event);
                   }}
@@ -177,11 +177,11 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
             disableStepsQueryBuilder={isQueryBuilderDisabled}
           />
           <InlineField
-            label={labels.stepsTake}
+            label={labels.take}
             labelWidth={26}
             tooltip={tooltips.stepsTake}
             invalid={!!stepsRecordCountInvalidMessage}
-            error={errorMessages.stepsRecordCountInvalid}
+            error={stepsRecordCountInvalidMessage}
           >
             <AutoSizeInput
               minWidth={25}
@@ -189,7 +189,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
               type="number"
               defaultValue={stepsVariableQuery.stepsTake ? stepsVariableQuery.stepsTake : 1000}
               onCommitChange={onStepsRecordCountChange}
-              placeholder={placeholders.stepsTake}
+              placeholder={placeholders.take}
               onKeyDown={event => {
                 validateNumericInput(event);
               }}
@@ -212,26 +212,15 @@ const tooltips = {
   resultsTake: 'This field sets the maximum number of results to return.',
   queryBy: 'This field applies a filter to the query results.',
   properties: 'This field specifies the property to return from the query.',
-  productName: 'This field filters results by part number.',
 };
 
 const labels = {
   queryType: 'Query type',
   properties: 'Properties',
-  productName: 'Product (part number)',
   queryByResults: 'Query by results properties',
-  stepsTake: 'Steps take',
-  resultsTake: 'Results take',
+  take: 'Take',
 };
 
 const placeholders = {
-  productName: 'Select part numbers to use in a query',
-  stepsTake: 'Enter record count',
-  resultsTake: 'Enter record count',
-};
-
-const errorMessages = {
-  stepsRecordCountInvalid: 'Enter a value greater than 0 and less than or equal to 100,000',
-  resultsRecordCountInvalid: 'Enter a value greater than 0 and less than or equal to 100,000',
-  partNumberQueryInStepsInvalid: 'Select at least one part number to use in a query',
+  take: 'Enter record count',
 };

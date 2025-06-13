@@ -129,7 +129,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
           {query.outputType === OutputType.Data && (
             <div className="results-right-query-controls">
               <InlineField 
-                  label="Take" 
+                  label={labels.take}
                   labelWidth={26} 
                   tooltip={tooltips.recordCount}
                   invalid={!!recordCountInvalidMessage}
@@ -167,7 +167,6 @@ const tooltips = {
 const labels = {
   output: 'Output',
   properties: 'Properties',
-  product: 'Product (part number)',
   queryBy: 'Query by',
   take: 'Take',
 };
@@ -178,6 +177,5 @@ const errors = {
 
 const placeholders = {
   properties: 'Select properties to fetch',
-  product: 'Select part numbers to use in a query',
   take: 'Enter record count',
 };

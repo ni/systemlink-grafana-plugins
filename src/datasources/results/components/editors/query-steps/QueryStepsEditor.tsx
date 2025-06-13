@@ -176,17 +176,14 @@ const labels = {
   output: 'Output',
   properties: 'Properties',
   showMeasurements: 'Show measurements',
-  product: 'Product (part number)',
   take: 'Take',
 };
 
 const errors = {
   properties: 'You must select at least one property.',
-  product: 'You must select at least one product in this field.',
 };
 
 const placeholders = {
   properties: 'Select properties to fetch',
-  product: 'Select part numbers to use in a query',
   take: 'Enter record count',
 };
