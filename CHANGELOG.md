@@ -1,3 +1,9 @@
+## [3.133.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.132.2...v3.133.0) (2025-06-13)
+
+### Features
+
+* **results:** add Result ID field to Results Query Builder ([#286](https://github.com/ni/systemlink-grafana-plugins/issues/286)) ([5b3ad7f](https://github.com/ni/systemlink-grafana-plugins/commit/5b3ad7f015ecc2e950fc96112fe178ab2d7d4aa6))
+
 ## [3.132.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.132.1...v3.132.2) (2025-06-13)
 
 ### Bug Fixes
