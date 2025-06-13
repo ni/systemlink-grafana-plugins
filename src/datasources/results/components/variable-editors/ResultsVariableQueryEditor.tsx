@@ -113,7 +113,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
 
   return (
     <>
-      <InlineField label="Query Type" labelWidth={26} tooltip={tooltips.queryType}>
+      <InlineField label={labels.queryType} labelWidth={26} tooltip={tooltips.queryType}>
         <RadioButtonGroup
           options={Object.values(QueryType).map(value => ({ label: value, value })) as SelectableValue[]}
           value={query.queryType}
@@ -122,7 +122,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
       </InlineField>
       {query.queryType === QueryType.Results && (
         <>
-          <InlineField label="Properties" labelWidth={26} tooltip={tooltips.properties}>
+          <InlineField label={labels.properties} labelWidth={26} tooltip={tooltips.properties}>
             <Select
               onChange={onPropertiesChange}
               options={ResultsVariableProperties as SelectableValue[]}
@@ -133,7 +133,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
           {(queryResultsquery.properties! === ResultsVariableProperties[0].value ||
             queryResultsquery.properties === ResultsVariableProperties[1].value) && (
             <>
-              <InlineField label="Query by results properties" labelWidth={26} tooltip={tooltips.queryBy}>
+              <InlineField label={labels.queryByResults} labelWidth={26} tooltip={tooltips.queryBy}>
                 <ResultsQueryBuilder
                   filter={queryResultsquery.queryBy}
                   onChange={(event: any) => onQueryByChange(event.detail.linq)}
@@ -144,7 +144,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
                 ></ResultsQueryBuilder>
               </InlineField>
               <InlineField
-                label="Take"
+                label={labels.take}
                 labelWidth={26}
                 tooltip={tooltips.resultsTake}
                 invalid={!!resultsRecordCountInvalidMessage}
@@ -156,7 +156,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
                   type="number"
                   defaultValue={queryResultsquery.resultsTake ? queryResultsquery.resultsTake : 1000}
                   onCommitChange={onResultsRecordCountChange}
-                  placeholder="Enter record count"
+                  placeholder={placeholders.take}
                   onKeyDown={event => {
                     validateNumericInput(event);
                   }}
@@ -177,7 +177,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
             disableStepsQueryBuilder={isQueryBuilderDisabled}
           />
           <InlineField
-            label="Take"
+            label={labels.take}
             labelWidth={26}
             tooltip={tooltips.stepsTake}
             invalid={!!stepsRecordCountInvalidMessage}
@@ -189,7 +189,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
               type="number"
               defaultValue={stepsVariableQuery.stepsTake ? stepsVariableQuery.stepsTake : 1000}
               onCommitChange={onStepsRecordCountChange}
-              placeholder="Enter record count"
+              placeholder={placeholders.take}
               onKeyDown={event => {
                 validateNumericInput(event);
               }}
@@ -197,7 +197,11 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
           </InlineField>
         </>
       )}
-      <FloatingError message={queryResultsDataSource.current.errorTitle} innerMessage={queryResultsDataSource.current.errorDescription} severity='warning'/>
+      <FloatingError
+        message={queryResultsDataSource.current.errorTitle}
+        innerMessage={queryResultsDataSource.current.errorDescription}
+        severity="warning"
+      />
     </>
   );
 }
@@ -208,5 +212,15 @@ const tooltips = {
   resultsTake: 'This field sets the maximum number of results to return.',
   queryBy: 'This field applies a filter to the query results.',
   properties: 'This field specifies the property to return from the query.',
-  productName: 'This field filters results by part number.',
+};
+
+const labels = {
+  queryType: 'Query type',
+  properties: 'Properties',
+  queryByResults: 'Query by results properties',
+  take: 'Take',
+};
+
+const placeholders = {
+  take: 'Enter record count',
 };

@@ -1,11 +1,5 @@
 import { SelectableValue } from '@grafana/data';
-import {
-  AutoSizeInput,
-  InlineField,
-  MultiSelect,
-  RadioButtonGroup,
-  VerticalGroup,
-} from '@grafana/ui';
+import { AutoSizeInput, InlineField, MultiSelect, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
 import React, { useEffect, useState } from 'react';
 import '../../ResultsQueryEditor.scss';
@@ -85,7 +79,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
   return (
     <>
       <VerticalGroup>
-        <InlineField label="Output" labelWidth={26} tooltip={tooltips.output}>
+        <InlineField label={labels.output} labelWidth={26} tooltip={tooltips.output}>
           <RadioButtonGroup
             options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
             value={query.outputType}
@@ -94,13 +88,14 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
         </InlineField>
         {query.outputType === OutputType.Data && (
           <InlineField
-            label="Properties"
+            label={labels.properties}
             labelWidth={26}
             tooltip={tooltips.properties}
             invalid={!isPropertiesValid}
-            error='You must select at least one property.'>
+            error={errors.properties}
+          >
             <MultiSelect
-              placeholder="Select properties to fetch"
+              placeholder={placeholders.properties}
               options={enumToOptions(ResultsProperties)}
               onChange={onPropertiesChange}
               value={query.properties}
@@ -121,7 +116,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
           }}
         />
         <div className="results-horizontal-control-group">
-          <InlineField label="Query By" labelWidth={26} tooltip={tooltips.queryBy}>
+          <InlineField label={labels.queryBy} labelWidth={26} tooltip={tooltips.queryBy}>
             <ResultsQueryBuilder
               filter={query.queryBy}
               workspaces={workspaces}
@@ -134,27 +129,30 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
           {query.outputType === OutputType.Data && (
             <div className="results-right-query-controls">
               <InlineField 
-                  label="Take" 
+                  label={labels.take}
                   labelWidth={26} 
                   tooltip={tooltips.recordCount}
                   invalid={!!recordCountInvalidMessage}
-                  error={recordCountInvalidMessage}>
-                <AutoSizeInput
-                  minWidth={25}
-                  maxWidth={25}
-                  type="number"
-                  defaultValue={query.recordCount}
-                  onCommitChange={recordCountChange}
-                  placeholder="Enter record count"
-                  onKeyDown={(event) => {validateNumericInput(event)}}
-                />
-              </InlineField>
-            </div>
-          )}
-        </div>
+                  error={recordCountInvalidMessage}
+                >
+                  <AutoSizeInput
+                    minWidth={25}
+                    maxWidth={25}
+                    type="number"
+                    defaultValue={query.recordCount}
+                    onCommitChange={recordCountChange}
+                    placeholder={placeholders.take}
+                    onKeyDown={event => {
+                      validateNumericInput(event);
+                    }}
+                  />
+                </InlineField>
+              </div>
+            )}
+          </div>
         </div>
       </VerticalGroup>
-      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity='warning'/>
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
     </>
   );
 }
@@ -164,4 +162,20 @@ const tooltips = {
   properties: 'This field specifies the properties to use in the query.',
   recordCount: 'This field sets the maximum number of results.',
   queryBy: 'This optional field applies a filter to the query results.',
+};
+
+const labels = {
+  output: 'Output',
+  properties: 'Properties',
+  queryBy: 'Query by',
+  take: 'Take',
+};
+
+const errors = {
+  properties: 'You must select at least one property.',
+};
+
+const placeholders = {
+  properties: 'Select properties to fetch',
+  take: 'Enter record count',
 };
