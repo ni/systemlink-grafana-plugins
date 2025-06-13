@@ -26,7 +26,6 @@ export const measurementColumnLabelSuffix: Record<MeasurementProperties, string>
 export const MEASUREMENT_NAME_COLUMN = MeasurementProperties.NAME;
 export const MEASUREMENT_UNITS_COLUMN = MeasurementProperties.UNITS;
 
-
 const MEASUREMENT_COLUMN_NAME_FORMAT = '{name} ({unit})';
 
 export function formatMeasurementValueColumnName(measurementName: string, unit: string): string {
