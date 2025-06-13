@@ -5,6 +5,8 @@ main](https://github.com/ni/systemlink-grafana-plugins/actions/workflows/push.ym
 Grafana plugins for visualizing data from [SystemLink
 Enterprise](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/systemlink-enterprise.html).
 
+Test
+
 ## Description
 
 This project contains a set of data sources and panel plugins bundled as an [app
