@@ -15,7 +15,7 @@ export function TimeRangeControls({query, handleQueryChange}: Props) {
 
   return (
     <div className="results-horizontal-control-group">
-      <InlineField label="Use time range" tooltip={tooltips.useTimeRange} labelWidth={26}>
+      <InlineField label={labels.useTimeRange} tooltip={tooltips.useTimeRange} labelWidth={26}>
         <InlineSwitch
           onChange={event => onUseTimeRangeChecked(event.currentTarget.checked)}
           value={query.useTimeRange}
@@ -27,4 +27,8 @@ export function TimeRangeControls({query, handleQueryChange}: Props) {
 
 const tooltips = {
   useTimeRange: 'This toggle enables querying within the dashboard time range.',
+};
+
+const labels = {
+  useTimeRange: 'Use time range',
 };
