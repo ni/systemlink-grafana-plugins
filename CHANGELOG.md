@@ -1,3 +1,9 @@
+## [3.135.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.135.0...v3.135.1) (2025-06-13)
+
+### Bug Fixes
+
+* **results:** change Take field layout in Query Editor ([#293](https://github.com/ni/systemlink-grafana-plugins/issues/293)) ([2338458](https://github.com/ni/systemlink-grafana-plugins/commit/233845869c713502a678c0c317b65268b48cfd20))
+
 ## [3.135.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.134.0...v3.135.0) (2025-06-13)
 
 ### Features
