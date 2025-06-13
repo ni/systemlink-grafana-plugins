@@ -12,6 +12,9 @@ import { QuerySteps } from '../types/QuerySteps.types';
 type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSourceOptions>;
 
 export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
+  const [resultsQuery, setResultsQuery] = React.useState<QueryResults>();
+  const [stepsQuery, setStepsQuery] = React.useState<QuerySteps>();
+
   query = datasource.prepareQuery(query);
 
   const handleQueryChange = useCallback(
@@ -24,23 +27,24 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
     [onChange, onRunQuery]
   );
 
-  const handleQueryTypeChange = useCallback(
-    (queryType: QueryType): void => {
-      if (queryType === QueryType.Results) {
-        handleQueryChange({
-          ...query,
-          ...defaultResultsQuery,
-        });
-      }
-      if (queryType === QueryType.Steps) {
-        handleQueryChange({
-          ...query,
-          ...defaultStepsQuery,
-        });
-      }
-    },
-    [query, handleQueryChange]
-  );
+  const handleQueryTypeChange = useCallback((queryType: QueryType): void => {
+    if (queryType === QueryType.Results) {
+      setStepsQuery(query as QuerySteps);
+      handleQueryChange({
+        ...defaultResultsQuery,
+        ...resultsQuery,
+        refId: query.refId
+      });
+    }
+    if (queryType === QueryType.Steps) {
+      setResultsQuery(query as QueryResults);
+      handleQueryChange({
+        ...defaultStepsQuery,
+        ...stepsQuery,
+        refId: query.refId
+      });
+    }
+  }, [query, resultsQuery, stepsQuery, handleQueryChange]);
 
   return (
     <>
