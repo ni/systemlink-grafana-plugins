@@ -1,6 +1,6 @@
 import { SelectableValue } from '@grafana/data';
 import { AutoSizeInput, InlineField, InlineSwitch, MultiSelect, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
-import { enumToOptions, validateNumericInput } from 'core/utils';
+import { validateNumericInput } from 'core/utils';
 import React, { useEffect, useState } from 'react';
 import { OutputType } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
