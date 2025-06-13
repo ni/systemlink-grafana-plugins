@@ -55,6 +55,7 @@ const defaultQuery = {
   properties: [ResultsProperties.id],
   recordCount: 1000,
   useTimeRange: true,
+  partNumberQuery: ['PartNumber1'],
   queryBy: 'programName = "name1"',
 }
 
