@@ -85,81 +85,71 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
           true
         )).testPlans;
 
-      if (testPlans.length > 0) {
-        const labels = projectionAndFields?.map(data => data.label) ?? [];
-        const fixtureNames = await this.getFixtureNames(labels, testPlans);
-        const duts = await this.getDuts(labels, testPlans);
-        const workOrderIdAndName = this.getWorkOrderIdAndName(labels, testPlans);
-        const templatesName = await this.getTemplateNames(labels, testPlans);
+      const labels = projectionAndFields?.map(data => data.label) ?? [];
+      const fixtureNames = await this.getFixtureNames(labels, testPlans);
+      const duts = await this.getDuts(labels, testPlans);
+      const workOrderIdAndName = this.getWorkOrderIdAndName(labels, testPlans);
+      const templatesName = await this.getTemplateNames(labels, testPlans);
 
-        const fields = projectionAndFields?.map((data) => {
-          const label = data.label;
-          const field = data.field;
-          const fieldType = isTimeField(field)
-            ? FieldType.time
-            : FieldType.string;
-          const values = testPlans
-            .map(data => data[field as unknown as keyof TestPlanResponseProperties] as any);
+      const fields = projectionAndFields?.map(data => {
+        const label = data.label;
+        const field = data.field;
+        const fieldType = isTimeField(field) ? FieldType.time : FieldType.string;
+        const values = testPlans.map(data => data[field as unknown as keyof TestPlanResponseProperties] as any);
 
-          // TODO: AB#3133188 Add support for other field mapping
-          const fieldValues = values.map(value => {
-            switch (label) {
-              case PropertiesProjectionMap.FIXTURE_NAMES.label:
-                const names = value.map((id: string) => fixtureNames.find(data => data.id === id)?.name);
-                return names ? names.filter((name: string) => name !== '').join(', ') : value;
-              case PropertiesProjectionMap.DUT_ID.label:
-                const dutName = duts.find(data => data.id === value);
-                return dutName ? dutName.name : value;
-              case PropertiesProjectionMap.DUT_SERIAL_NUMBER.label:
-                const dutSerial = duts.find(data => data.id === value);
-                return dutSerial ? dutSerial.serialNumber : value;
-              case PropertiesProjectionMap.WORKSPACE.label:
-                const workspace = workspaces.get(value);
-                return workspace ? getWorkspaceName([workspace], value) : value;
-              case PropertiesProjectionMap.WORK_ORDER.label:
-                const workOrder = workOrderIdAndName.find(data => data.id === value);
-                const workOrderId = value ? `(${value})` : '';
-                const workOrderName = (workOrder && workOrder?.name) ? workOrder.name : '';
-                return `${workOrderName} ${workOrderId}`;
-              case PropertiesProjectionMap.TEMPLATE.label:
-                const template = templatesName.find(data => data.id === value);
-                return template ? `${template.name} (${template.id})` : value;
-              case PropertiesProjectionMap.ESTIMATED_DURATION_IN_SECONDS.label:
-                return value ? transformDuration(value) : '';
-              case PropertiesProjectionMap.SYSTEM_NAME.label:
-                const system = systemAliases.get(value);
-                return system ? system.alias : value;
-              case PropertiesProjectionMap.PRODUCT.label:
-                const product = products.get(value);
-                return (product && product.name) ? `${product.name} (${product.partNumber})` : value;
-              case PropertiesProjectionMap.ASSIGNED_TO.label:
-              case PropertiesProjectionMap.CREATED_BY.label:
-              case PropertiesProjectionMap.UPDATED_BY.label:
-                const user = users.get(value);
-                return user ? UsersUtils.getUserFullName(user) : '';
-              case PropertiesProjectionMap.PROPERTIES.label:
-                return value == null ? '' : JSON.stringify(value);
-              default:
-                return value == null ? '' : value;
-            }
-          });
-
-          return {
-            name: label,
-            values: fieldValues,
-            type: fieldType
-          };
+        // TODO: AB#3133188 Add support for other field mapping
+        const fieldValues = values.map(value => {
+          switch (label) {
+            case PropertiesProjectionMap.FIXTURE_NAMES.label:
+              const names = value.map((id: string) => fixtureNames.find(data => data.id === id)?.name);
+              return names ? names.filter((name: string) => name !== '').join(', ') : value;
+            case PropertiesProjectionMap.DUT_ID.label:
+              const dutName = duts.find(data => data.id === value);
+              return dutName ? dutName.name : value;
+            case PropertiesProjectionMap.DUT_SERIAL_NUMBER.label:
+              const dutSerial = duts.find(data => data.id === value);
+              return dutSerial ? dutSerial.serialNumber : value;
+            case PropertiesProjectionMap.WORKSPACE.label:
+              const workspace = workspaces.get(value);
+              return workspace ? getWorkspaceName([workspace], value) : value;
+            case PropertiesProjectionMap.WORK_ORDER.label:
+              const workOrder = workOrderIdAndName.find(data => data.id === value);
+              const workOrderId = value ? `(${value})` : '';
+              const workOrderName = workOrder && workOrder?.name ? workOrder.name : '';
+              return `${workOrderName} ${workOrderId}`;
+            case PropertiesProjectionMap.TEMPLATE.label:
+              const template = templatesName.find(data => data.id === value);
+              return template ? `${template.name} (${template.id})` : value;
+            case PropertiesProjectionMap.ESTIMATED_DURATION_IN_SECONDS.label:
+              return value ? transformDuration(value) : '';
+            case PropertiesProjectionMap.SYSTEM_NAME.label:
+              const system = systemAliases.get(value);
+              return system ? system.alias : value;
+            case PropertiesProjectionMap.PRODUCT.label:
+              const product = products.get(value);
+              return product && product.name ? `${product.name} (${product.partNumber})` : value;
+            case PropertiesProjectionMap.ASSIGNED_TO.label:
+            case PropertiesProjectionMap.CREATED_BY.label:
+            case PropertiesProjectionMap.UPDATED_BY.label:
+              const user = users.get(value);
+              return user ? UsersUtils.getUserFullName(user) : '';
+            case PropertiesProjectionMap.PROPERTIES.label:
+              return value == null ? '' : JSON.stringify(value);
+            default:
+              return value == null ? '' : value;
+          }
         });
+
         return {
-          refId: query.refId,
-          name: query.refId,
-          fields: fields ?? [],
+          name: label,
+          values: fieldValues,
+          type: fieldType,
         };
-      }
+      });
       return {
         refId: query.refId,
         name: query.refId,
-        fields: [],
+        fields: fields ?? [],
       };
     } else {
       const responseData = await this.queryTestPlans(
@@ -175,10 +165,11 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       return {
         refId: query.refId,
         name: query.refId,
-        fields: [{ name: 'Total count', values: [responseData.totalCount] }],
+        fields: [{ name: query.refId, values: [responseData.totalCount] }],
       };
     }
   }
+
 
   shouldRunQuery(query: TestPlansQuery): boolean {
     return true;
