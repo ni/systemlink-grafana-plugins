@@ -133,7 +133,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
           {(queryResultsquery.properties! === ResultsVariableProperties[0].value ||
             queryResultsquery.properties === ResultsVariableProperties[1].value) && (
             <>
-              <InlineField label="Query by results properties" labelWidth={26} tooltip={tooltips.queryBy}>
+              <InlineField label={labels.queryByResults} labelWidth={26} tooltip={tooltips.queryBy}>
                 <ResultsQueryBuilder
                   filter={queryResultsquery.queryBy}
                   onChange={(event: any) => onQueryByChange(event.detail.linq)}
