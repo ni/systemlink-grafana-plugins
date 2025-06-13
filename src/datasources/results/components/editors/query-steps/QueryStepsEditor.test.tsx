@@ -34,7 +34,7 @@ describe('QueryStepsEditor', () => {
     refId: 'A',
     queryType: QueryType.Steps,
     outputType: OutputType.Data,
-    properties: [StepsProperties.data],
+    properties: [StepsProperties.name],
     useTimeRange: true,
     recordCount: 1000,
     showMeasurements: false,
@@ -78,7 +78,7 @@ describe('QueryStepsEditor', () => {
 
     test('should render with default query when default values are provided', async () => {
       expect(properties).toBeInTheDocument();
-      expect(screen.getAllByText('data').length).toBe(1);
+      expect(screen.getAllByText('Step Name').length).toBe(1);
       expect(dataOutput).toBeInTheDocument();
       expect(dataOutput).toBeChecked();
       expect(recordCount).toBeInTheDocument();
@@ -112,10 +112,10 @@ describe('QueryStepsEditor', () => {
     });
 
     test('should update properties when user adds a property', async () => {
-      await select(properties, 'properties', { container: document.body });
+      await select(properties, 'Properties', { container: document.body });
       await waitFor(() => {
         expect(mockHandleQueryChange).toHaveBeenCalledWith(
-          expect.objectContaining({ properties: ['data', 'properties'] })
+          expect.objectContaining({ properties: ['name', 'properties'] })
         );
       });
     });
