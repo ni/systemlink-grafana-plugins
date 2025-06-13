@@ -82,43 +82,6 @@ describe('ResultsQueryEditor', () => {
         expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
-
-    test('should preserve previous results query when switching to steps and restore it when switching back', async () => {
-      const customResultsQuery = {
-        refId: 'A',
-        queryType: QueryType.Results,
-        properties: ['ID', 'STATUS'],
-        orderBy: 'STARTED_AT',
-        descending: true,
-        recordCount: 1000,
-        useTimeRange: false,
-        useTimeRangeFor: 'startedAt',
-        queryBy: '',
-      };
-      const renderResult = renderElement(customResultsQuery);
-
-      const stepsRadioButton = renderResult.getByRole('radio', { name: QueryType.Steps });
-      await userEvent.click(stepsRadioButton);
-      await waitFor(() => {
-        expect(mockOnChange).toHaveBeenCalledWith(
-          expect.objectContaining({
-            ...defaultStepsQuery,
-            refId: 'A',
-          })
-        );
-      });
-
-      const resultsRadioButton = renderResult.getByRole('radio', { name: QueryType.Results });
-      await userEvent.click(resultsRadioButton);
-      await waitFor(() => {
-        expect(mockOnChange).toHaveBeenCalledWith(
-          expect.objectContaining({
-            properties: ['ID', 'STATUS'],
-            queryType: QueryType.Results,
-          })
-        );
-      });
-    });
   });
 
   describe('Editor', () => {

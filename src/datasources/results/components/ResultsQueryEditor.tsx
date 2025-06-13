@@ -16,7 +16,6 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
   const [stepsQuery, setStepsQuery] = React.useState<QuerySteps>();
 
   query = datasource.prepareQuery(query);
-  console.log('query', query);
 
   const handleQueryChange = useCallback(
     (query: ResultsQuery, runQuery = true): void => {
