@@ -1,4 +1,4 @@
-import { QueryResults, ResultsProperties, ResultsPropertiesOptions } from "./types/QueryResults.types";
+import { QueryResults, ResultsProperties } from "./types/QueryResults.types";
 import { QuerySteps, StepsProperties } from "./types/QuerySteps.types";
 import { OutputType, QueryType } from "./types/types";
 
@@ -6,14 +6,14 @@ export const defaultResultsQuery: Omit<QueryResults, 'refId'> = {
   queryType: QueryType.Results,
   outputType: OutputType.Data,
   properties: [
-    ResultsPropertiesOptions.PROGRAM_NAME,
-    ResultsPropertiesOptions.PART_NUMBER,
-    ResultsPropertiesOptions.SERIAL_NUMBER,
-    ResultsPropertiesOptions.STATUS,
-    ResultsPropertiesOptions.HOST_NAME,
-    ResultsPropertiesOptions.STARTED_AT,
-    ResultsPropertiesOptions.UPDATED_AT,
-    ResultsPropertiesOptions.WORKSPACE
+    ResultsProperties.programName,
+    ResultsProperties.partNumber,
+    ResultsProperties.serialNumber,
+    ResultsProperties.status,
+    ResultsProperties.hostName,
+    ResultsProperties.startedAt,
+    ResultsProperties.updatedAt,
+    ResultsProperties.workspace,
   ] as ResultsProperties[],
   orderBy: "STARTED_AT",
   descending: true,

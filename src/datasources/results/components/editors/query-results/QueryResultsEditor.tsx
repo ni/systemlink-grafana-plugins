@@ -9,7 +9,7 @@ import {
 import { enumToOptions, validateNumericInput } from 'core/utils';
 import React, { useEffect, useState } from 'react';
 import '../../ResultsQueryEditor.scss';
-import { QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
+import { QueryResults, ResultsProperties, ResultsPropertiesOptions } from 'datasources/results/types/QueryResults.types';
 import { OutputType, TestMeasurementStatus } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
 import { Workspace } from 'core/types';
@@ -101,7 +101,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
             error='You must select at least one property.'>
             <MultiSelect
               placeholder="Select properties to fetch"
-              options={enumToOptions(ResultsProperties)}
+              options={ResultsPropertiesOptions}
               onChange={onPropertiesChange}
               value={query.properties}
               defaultValue={query.properties!}

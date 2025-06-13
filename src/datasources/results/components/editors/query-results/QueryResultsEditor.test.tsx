@@ -102,7 +102,7 @@ describe('QueryResultsEditor', () => {
 
   describe('Properties', () => {
     test('should update properties when user adds a property', async () => {
-      await select(properties, 'properties', { container: document.body });
+      await select(properties, 'Properties', { container: document.body });
       await waitFor(() => {
         expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ properties: ['id', 'properties'] }));
       });

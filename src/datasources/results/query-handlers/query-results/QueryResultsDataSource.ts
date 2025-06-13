@@ -91,22 +91,22 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
 
       const fields = selectedFields.map((field) => {
         const isTimeField =
-          field === ResultsPropertiesOptions.UPDATED_AT ||
-          field === ResultsPropertiesOptions.STARTED_AT;
+          field === ResultsProperties.UPDATED_AT ||
+          field === ResultsProperties.STARTED_AT;
         const fieldType = isTimeField ? FieldType.time : FieldType.string;
         const values = results.map(
-          (result) => result[field as keyof ResultsResponseProperties]
+          (result) => result[field as unknown as keyof ResultsResponseProperties]
         );
 
         switch (field) {
-          case ResultsPropertiesOptions.PROPERTIES:
-          case ResultsPropertiesOptions.STATUS_TYPE_SUMMARY:
+          case ResultsProperties.PROPERTIES:
+          case ResultsProperties.STATUS_TYPE_SUMMARY:
             return {
               name: field,
               values: values.map((v) => (v != null ? JSON.stringify(v) : '')),
               type: fieldType,
             };
-          case ResultsPropertiesOptions.STATUS:
+          case ResultsProperties.STATUS:
             return {
               name: field,
               values: values.map((v: any) => v?.statusType),
