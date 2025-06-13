@@ -44,11 +44,6 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
     loadUsers();
   }, [datasource]);
 
-  useEffect(() => {
-    handleQueryChange(query, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount
-
   const handleQueryChange = useCallback(
     (query: WorkOrdersQuery, runQuery = true): void => {
       onChange(query);

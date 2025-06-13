@@ -3,13 +3,13 @@
 @import url('smart-webcomponents-react/source/styles/components/smart.querybuilder.css');
 @import url('@ni/nimble-tokens/dist/styledictionary/css/variables.css');
 
-body[theme="ni-grafana"] .smart-query-builder, body[theme="ni-grafana"] .smart-scroll-viewer{
+.smart-query-builder[theme=ni-grafana], .smart-scroll-viewer[theme=ni-grafana]{
     /* Tokens from grafana */
     --smart-background: var(--ni-grafana-input-background);
     --smart-border: var(--ni-grafana-border-medium);
 }
 
-body[theme="ni-grafana"] .smart-query-builder {
+.smart-query-builder[theme=ni-grafana] {
     /* Tokens from nimble tokens */
     --smart-primary: var(--ni-nimble-base-digital-green-light);
 
@@ -18,9 +18,10 @@ body[theme="ni-grafana"] .smart-query-builder {
     --smart-border-top-left-radius: var(--ni-grafana-border-radius-default);
     --smart-border-bottom-right-radius: var(--ni-grafana-border-radius-default);
     --smart-border-bottom-left-radius: var(--ni-grafana-border-radius-default);
+    --smart-ui-state-active: var(--smart-primary);
 }
 
-body[theme="ni-grafana"] .smart-scroll-viewer{
+.smart-scroll-viewer[theme=ni-grafana]{
     --smart-scroll-bar-button-border: transparent;
 
     /* Tokens from grafana */

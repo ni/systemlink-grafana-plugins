@@ -7,7 +7,7 @@ export interface QuerySteps extends ResultsQuery {
   stepsUseTimeRange?: boolean;
   stepsRecordCount?: number;
   showMeasurements?: boolean;
-  resultsQuery?: string;
+  resultsQuery: string;
   stepsQuery?: string;
 }
 

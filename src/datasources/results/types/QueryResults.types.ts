@@ -6,7 +6,12 @@ export interface QueryResults extends ResultsQuery {
   useTimeRange?: boolean;
   recordCount?: number;
   queryBy?: string;
-  partNumberQuery?: string[];
+}
+
+export interface QueryResultsDefaultValues extends QueryResults {
+  orderBy: string;
+  descending: boolean;
+  useTimeRangeFor: string;
 }
 
 export interface QueryResultsDefaultValues extends QueryResults {
@@ -23,7 +28,6 @@ export interface ResultsVariableQuery extends ResultsQuery {
 }
 
 export interface StepsVariableQuery extends ResultsQuery {
-  partNumberQueryInSteps: string[];
   queryByResults: string;
   queryBySteps?: string;
   stepsTake?: number;
