@@ -1,3 +1,9 @@
+## [3.134.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.133.1...v3.134.0) (2025-06-13)
+
+### Features
+
+* **results:** update measurement columns to include units ([#291](https://github.com/ni/systemlink-grafana-plugins/issues/291)) ([b2a4983](https://github.com/ni/systemlink-grafana-plugins/commit/b2a498303ffe313a118a783ea23126156dec2a0e))
+
 ## [3.133.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.133.0...v3.133.1) (2025-06-13)
 
 ### Bug Fixes
