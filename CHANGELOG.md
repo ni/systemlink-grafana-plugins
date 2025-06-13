@@ -1,3 +1,9 @@
+## [3.135.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.135.2...v3.135.3) (2025-06-13)
+
+### Bug Fixes
+
+* **testplans, workorders:** Update field name and operators ([#294](https://github.com/ni/systemlink-grafana-plugins/issues/294)) ([9f0e170](https://github.com/ni/systemlink-grafana-plugins/commit/9f0e170a7ca9a657c7b8a5596b0a959c2bfd4381))
+
 ## [3.135.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.135.1...v3.135.2) (2025-06-13)
 
 ### Bug Fixes
