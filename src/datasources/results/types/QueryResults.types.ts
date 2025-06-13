@@ -9,10 +9,6 @@ export interface QueryResults extends ResultsQuery {
 }
 
 export interface QueryResultsDefaultValues extends QueryResults {
-  useTimeRangeFor: string;
-}
-
-export interface QueryResultsDefaultValues extends QueryResults {
   orderBy: string;
   descending: boolean;
   useTimeRangeFor: string;
