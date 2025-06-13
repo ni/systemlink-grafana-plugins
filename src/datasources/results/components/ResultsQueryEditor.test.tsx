@@ -83,7 +83,44 @@ describe('ResultsQueryEditor', () => {
       });
     });
   });
+  test('should save resultsQuery value when switching to steps and back to results', async () => {
+    // Start with Results query type and set a custom value for resultsQuery
+    const customResultsQuery = {
+      refId: 'A',
+      queryType: QueryType.Results,
+      customField: 'customValue',
+    } as ResultsQuery;
 
+    let currentQuery = { ...customResultsQuery };
+    const onChange = jest.fn((query) => {
+      currentQuery = { ...currentQuery, ...query };
+      renderResult.rerender(
+        React.createElement(ResultsQueryEditor, { ...defaultProps, query: currentQuery, onChange })
+      );
+    });
+
+    const renderResult = render(
+      React.createElement(ResultsQueryEditor, { ...defaultProps, query: currentQuery, onChange })
+    );
+
+    // Switch to Steps
+    userEvent.click(renderResult.getByRole('radio', { name: QueryType.Steps }));
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith(expect.objectContaining(defaultStepsQuery));
+    });
+
+    // Switch back to Results
+    userEvent.click(renderResult.getByRole('radio', { name: QueryType.Results }));
+    await waitFor(() => {
+      // The customField should be preserved in resultsQuery state and merged back in
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ...defaultResultsQuery,
+          customField: 'customValue',
+        })
+      );
+    });
+  });
   describe('Editor', () => {
     test('should render QueryResultsEditor when query type is results', () => {
       const renderResult = renderElement();
