@@ -67,7 +67,7 @@ export const StepsQueryBuilderWrapper = (
           tooltip={tooltips.resultsQueryBuilder}
           invalid={isResultsQueryInvalid}
           error={'This is a required field.'}>
-        <div style={{ border: isResultsQueryInvalid ? `1px solid ${theme.colors.error.border}` : 'none', borderRadius: '6px'}}>
+        <div style={{ border: isResultsQueryInvalid ? `1px solid ${theme.colors.error.border}` : 'none', borderRadius: '4px' }}>
           <ResultsQueryBuilder
             filter={resultsQuery}
             onChange={(event) => onResultsQueryByChange((event as CustomEvent<{ linq: string }>).detail.linq)}
