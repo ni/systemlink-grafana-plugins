@@ -197,7 +197,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     const transformStepsQuery = query.stepsQuery
       ? this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options.scopedVars)
       : undefined;
-    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, defaultStepsQuery.useTimeRangeFor);
+    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.stepsUseTimeRange, defaultStepsQuery.useTimeRangeFor);
     query.stepsQuery = this.buildQueryFilter(transformStepsQuery, useTimeRangeFilter);
 
     const projection = query.showMeasurements
@@ -209,7 +209,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         query.stepsQuery,
         defaultStepsQuery.orderBy,
         projection as StepsProperties[],
-        query.recordCount,
+        query.stepsRecordCount,
         defaultStepsQuery.descending,
         query.resultsQuery,
         true
@@ -223,7 +223,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       }
       const stepsResponse = responseData.steps;
       const stepResponseKeys = new Set(Object.keys(stepsResponse[0]));
-      const selectedFields = (query.properties || []).filter(field => stepResponseKeys.has(field));
+      const selectedFields = (query.stepsProperties || []).filter(field => stepResponseKeys.has(field));
       const fields = this.processFields(selectedFields, stepsResponse, query.showMeasurements || false);
       return {
         refId: query.refId,

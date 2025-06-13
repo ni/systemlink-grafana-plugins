@@ -141,7 +141,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
             onStepsQueryChange={(value: string) => onStepsFilterChange(value)}
             disableStepsQueryBuilder={disableStepsQueryBuilder}
           />
-          {query.outputType === OutputType.Data && (
+          {query.stepsOutputType === OutputType.Data && (
           <div className="results-right-query-controls">
             <InlineField
                 label="Take"

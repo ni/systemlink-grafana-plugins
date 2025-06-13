@@ -14,12 +14,6 @@ export interface QueryResultsDefaultValues extends QueryResults {
   useTimeRangeFor: string;
 }
 
-export interface QueryResultsDefaultValues extends QueryResults {
-  orderBy: string;
-  descending: boolean;
-  useTimeRangeFor: string;
-}
-
 export interface ResultsVariableQuery extends ResultsQuery {
   properties?: string;
   partNumberQuery?: string[];
