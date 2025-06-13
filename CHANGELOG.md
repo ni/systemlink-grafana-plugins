@@ -1,3 +1,9 @@
+## [3.135.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.134.0...v3.135.0) (2025-06-13)
+
+### Features
+
+* **results:** update labels to sentence case ([#289](https://github.com/ni/systemlink-grafana-plugins/issues/289)) ([ba0f8b7](https://github.com/ni/systemlink-grafana-plugins/commit/ba0f8b7d5e4e88b103024e630f7ac9693c557f0d))
+
 ## [3.134.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.133.1...v3.134.0) (2025-06-13)
 
 ### Features
