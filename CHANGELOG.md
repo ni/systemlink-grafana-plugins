@@ -1,3 +1,10 @@
+## [3.132.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.132.1...v3.132.2) (2025-06-13)
+
+### Bug Fixes
+
+* **core:** Stylings of shared query builder ([#276](https://github.com/ni/systemlink-grafana-plugins/issues/276)) ([02e85bf](https://github.com/ni/systemlink-grafana-plugins/commit/02e85bfa87d968c25a39cd1cabcd443a7a7a7427))
+* **results:** Remove orderby and descending properties from Query Types interfaces ([#279](https://github.com/ni/systemlink-grafana-plugins/issues/279)) ([e10f8fc](https://github.com/ni/systemlink-grafana-plugins/commit/e10f8fcb7d6d2db484b53662d4a0dafdbd8bc3c5))
+
 ## [3.132.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.132.0...v3.132.1) (2025-06-13)
 
 ### Bug Fixes
