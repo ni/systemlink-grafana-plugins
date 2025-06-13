@@ -313,6 +313,45 @@ describe('QueryStepsDataSource', () => {
         const fields = response.data[0].fields as Field[];
         expect(fields).toMatchSnapshot();
       });
+
+      test('should create new columns when units are different in the same measurement', async () => {
+        const mockQueryStepsMeasurementResponse: QueryStepsResponse = {
+          steps: [
+            {
+              stepId: '1',
+              data: {
+                text: 'Step 1',
+                parameters: [{ name: 'Current', measurement: '1.2', units: 'A'}]
+              }
+            },
+             {
+              stepId: '2',
+              data: {
+                text: 'Step 1',
+                parameters: [{ name: 'Current', measurement: '370', units: 'mA'}]
+              }
+            },
+          ],
+          totalCount: 1
+        };
+  
+        backendServer.fetch
+          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
+          .mockReturnValue(createFetchResponse(mockQueryStepsMeasurementResponse));
+  
+        const query = buildQuery(
+          {
+            refId: 'A',
+            outputType: OutputType.Data,
+            showMeasurements: true
+          },
+        );
+  
+        const response = await datastore.query(query);
+  
+        const fields = response.data[0].fields as Field[];
+        expect(fields).toMatchSnapshot();
+      });
     })
 
 
