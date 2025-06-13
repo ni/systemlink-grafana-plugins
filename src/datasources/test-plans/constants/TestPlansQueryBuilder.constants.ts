@@ -211,7 +211,7 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
         ]
     },
     UPDATED_AT: {
-        label: 'Updated at',
+        label: 'Updated',
         dataField: TestPlansQueryBuilderFieldNames.UpdatedAt,
         filterOperations: [
             QueryBuilderOperations.DATE_TIME_IS_AFTER.name,
