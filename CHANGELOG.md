@@ -1,3 +1,9 @@
+## [3.132.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.132.0...v3.132.1) (2025-06-13)
+
+### Bug Fixes
+
+* **results:** Set "STARTED_AT" as the default option for the useTimeRange field ([#273](https://github.com/ni/systemlink-grafana-plugins/issues/273)) ([acaf696](https://github.com/ni/systemlink-grafana-plugins/commit/acaf69640d10582b570d4c10c7b2a2a8e3274b26))
+
 ## [3.132.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.131.0...v3.132.0) (2025-06-12)
 
 ### Features
