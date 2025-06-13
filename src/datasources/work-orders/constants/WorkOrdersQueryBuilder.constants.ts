@@ -33,7 +33,7 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
   DESCRIPTION: {
     label: 'Description',
     dataField: WorkOrdersQueryBuilderFieldNames.Description,
-    filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
+    filterOperations: [QueryBuilderOperations.CONTAINS.name, QueryBuilderOperations.DOES_NOT_CONTAIN.name],
   },
   WORK_ORDER_ID: {
     label: 'Work order ID',
@@ -111,12 +111,22 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
   ASSIGNED_TO: {
     label: 'Assigned to',
     dataField: WorkOrdersQueryBuilderFieldNames.AssignedTo,
-    filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name, 
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.IS_BLANK.name,
+      QueryBuilderOperations.IS_NOT_BLANK.name,
+    ],
   },
   REQUESTED_BY: {
     label: 'Requested by',
     dataField: WorkOrdersQueryBuilderFieldNames.RequestedBy,
-    filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name, 
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.IS_BLANK.name,
+      QueryBuilderOperations.IS_NOT_BLANK.name,
+    ],
   },
   CREATED_BY: {
     label: 'Created by',
@@ -148,5 +158,4 @@ export const WorkOrdersQueryBuilderStaticFields = [
   WorkOrdersQueryBuilderFields.STATE,
   WorkOrdersQueryBuilderFields.TYPE,
   WorkOrdersQueryBuilderFields.PROPERTIES,
-  WorkOrdersQueryBuilderFields.DUE_DATE,
 ];
