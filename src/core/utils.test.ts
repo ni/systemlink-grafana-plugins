@@ -197,6 +197,22 @@ describe('queryInBatches', () => {
     });
   });
 
+  test('should fetch all records in a single request when totalCount is not provided', async () => {
+    mockQueryRecord.mockResolvedValue({
+      data: [{ id: 1 }, { id: 2 }],
+      continuationToken: null,
+    });
+
+    const result = await queryInBatches(mockQueryRecord, queryConfig, 2);
+
+    expect(mockQueryRecord).toHaveBeenCalledTimes(1);
+    expect(mockQueryRecord).toHaveBeenCalledWith(2);
+    expect(result).toEqual({
+      data: [{ id: 1 }, { id: 2 }],
+      continuationToken: null,
+    });
+  });
+
   test('should fetch records in multiple requests when take is greater than maxTakePerRequest', async () => {
     mockQueryRecord
       .mockResolvedValueOnce({
