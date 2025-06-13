@@ -2,7 +2,6 @@ import { SelectableValue } from '@grafana/data';
 import { AutoSizeInput, InlineField, InlineSwitch, MultiSelect, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
 import React, { useEffect, useState } from 'react';
-import '../../ResultsQueryEditor.scss';
 import { OutputType } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
 import { QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
@@ -25,7 +24,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   useEffect(() => {
     setDisableStepsQueryBuilder(!query.resultsQuery);
   }, [query.resultsQuery]);
-  
+
   const onOutputChange = (outputType: OutputType) => {
     handleQueryChange({ ...query, outputType: outputType });
   };
@@ -62,10 +61,9 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   };
 
   const onResultsFilterChange = (resultsQuery: string) => {
-    if (resultsQuery === ''){
+    if (resultsQuery === '') {
       handleQueryChange({ ...query, resultsQuery: resultsQuery }, false);
-    }
-    else if (query.resultsQuery !== resultsQuery) {
+    } else if (query.resultsQuery !== resultsQuery) {
       query.resultsQuery = resultsQuery;
       handleQueryChange({ ...query, resultsQuery: resultsQuery });
     }
@@ -125,8 +123,6 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
               handleQueryChange(updatedQuery as QuerySteps, runQuery);
             }}
           />
-        </div>
-        <div className="results-horizontal-control-group">
           <StepsQueryBuilderWrapper
             datasource={datasource}
             resultsQuery={query.resultsQuery}
@@ -136,27 +132,25 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
             disableStepsQueryBuilder={disableStepsQueryBuilder}
           />
           {query.outputType === OutputType.Data && (
-            <div className="results-right-query-controls">
-              <InlineField
-                label={labels.take}
-                labelWidth={26}
-                tooltip={tooltips.recordCount}
-                invalid={!!recordCountInvalidMessage}
-                error={recordCountInvalidMessage}
-              >
-                <AutoSizeInput
-                  minWidth={25}
-                  maxWidth={25}
-                  type="number"
-                  defaultValue={query.recordCount}
-                  onCommitChange={recordCountChange}
-                  placeholder={placeholders.take}
-                  onKeyDown={event => {
-                    validateNumericInput(event);
-                  }}
-                />
-              </InlineField>
-            </div>
+            <InlineField
+              label={labels.take}
+              labelWidth={26}
+              tooltip={tooltips.recordCount}
+              invalid={!!recordCountInvalidMessage}
+              error={recordCountInvalidMessage}
+            >
+              <AutoSizeInput
+                minWidth={25}
+                maxWidth={25}
+                type="number"
+                defaultValue={query.recordCount}
+                onCommitChange={recordCountChange}
+                placeholder={placeholders.take}
+                onKeyDown={event => {
+                  validateNumericInput(event);
+                }}
+              />
+            </InlineField>
           )}
         </div>
       </VerticalGroup>
