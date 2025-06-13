@@ -62,7 +62,7 @@ export const StepsQueryBuilderWrapper = (
   return (
     <div>
         <InlineField
-          label="Query by results properties"
+          label={labels.resultsQueryBuilder}
           labelWidth={26}
           tooltip={tooltips.resultsQueryBuilder}
           invalid={isResultsQueryInvalid}
@@ -78,7 +78,7 @@ export const StepsQueryBuilderWrapper = (
           </ResultsQueryBuilder>
         </div>
         </InlineField>
-      <InlineField label="Query by steps properties" labelWidth={26} tooltip={tooltips.stepsQueryBuilder}>
+      <InlineField label={labels.stepsQueryBuilder} labelWidth={26} tooltip={tooltips.stepsQueryBuilder}>
         <StepsQueryBuilder
           filter={stepsQuery}
           workspaces={workspaces}
@@ -96,6 +96,11 @@ export const StepsQueryBuilderWrapper = (
 const tooltips = {
   resultsQueryBuilder: 'This field applies a filter to the query results.',
   stepsQueryBuilder: 'This optional field applies a filter to the query steps.',
+};
+
+const labels = {
+  resultsQueryBuilder: 'Query by results properties',
+  stepsQueryBuilder: 'Query by steps properties',
 };
 
 const errorMessages = {

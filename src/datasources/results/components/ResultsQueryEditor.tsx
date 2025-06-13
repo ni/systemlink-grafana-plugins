@@ -20,29 +20,31 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
       if (runQuery) {
         onRunQuery();
       }
-    },[onChange, onRunQuery]
+    },
+    [onChange, onRunQuery]
   );
 
-  const handleQueryTypeChange = useCallback((queryType: QueryType): void => {
-    if (queryType === QueryType.Results) {
-      handleQueryChange({
-        ...query,
-          ...defaultResultsQuery
-        }
-      );
-    }
-    if (queryType === QueryType.Steps) {
-      handleQueryChange({
-        ...query,
-        ...defaultStepsQuery
+  const handleQueryTypeChange = useCallback(
+    (queryType: QueryType): void => {
+      if (queryType === QueryType.Results) {
+        handleQueryChange({
+          ...query,
+          ...defaultResultsQuery,
+        });
       }
-    );
-    }
-  }, [query, handleQueryChange]);
+      if (queryType === QueryType.Steps) {
+        handleQueryChange({
+          ...query,
+          ...defaultStepsQuery,
+        });
+      }
+    },
+    [query, handleQueryChange]
+  );
 
   return (
     <>
-      <InlineField label="Query Type" labelWidth={26} tooltip={tooltips.queryType}>
+      <InlineField label={labels.queryType} labelWidth={26} tooltip={tooltips.queryType}>
         <RadioButtonGroup
           options={Object.values(QueryType).map(value => ({ label: value, value })) as SelectableValue[]}
           value={query.queryType}
@@ -51,14 +53,14 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
       </InlineField>
       {query.queryType === QueryType.Results && (
         <QueryResultsEditor
-          query={query as QueryResults} 
+          query={query as QueryResults}
           handleQueryChange={handleQueryChange}
           datasource={datasource.queryResultsDataSource}
         />
       )}
       {query.queryType === QueryType.Steps && (
         <QueryStepsEditor
-          query={query as QuerySteps} 
+          query={query as QuerySteps}
           handleQueryChange={handleQueryChange}
           datasource={datasource.queryStepsDataSource}
         />
@@ -68,5 +70,9 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
 }
 
 const tooltips = {
-  queryType: 'This field specifies the query type to fetch results or steps data'
+  queryType: 'This field specifies the query type to fetch results or steps data',
+};
+
+const labels = {
+  queryType: 'Query type',
 };
