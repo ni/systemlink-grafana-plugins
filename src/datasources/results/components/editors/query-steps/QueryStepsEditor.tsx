@@ -26,32 +26,12 @@ type Props = {
 
 export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props) {
   const [disableStepsQueryBuilder, setDisableStepsQueryBuilder] = useState(false);
-  const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
-  const [isProductSelectionValid, setIsProductSelectionValid] = useState(true);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
   const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);
 
   useEffect(() => {
-    handleQueryChange(query);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount
-
-  useEffect(() => {
-    setDisableStepsQueryBuilder(!query.partNumberQuery || query.partNumberQuery.length === 0);
-  }, [query.partNumberQuery]);
-
-  useEffect(() => {
-    const loadProductNameOptions = async () => {
-      const response = await datasource.productCache;
-      const productOptions = response.products.map(product => ({
-        label: `${product.name} (${product.partNumber})`,
-        value: product.partNumber,
-      }));
-      const globalVariableOptions = datasource.globalVariableOptions();
-      setProductNameOptions([...globalVariableOptions, ...productOptions]);
-    }
-    loadProductNameOptions();
-  }, [datasource]);
+    setDisableStepsQueryBuilder(!query.resultsQuery);
+  }, [query.resultsQuery]);
   
   const onOutputChange = (outputType: OutputType) => {
     handleQueryChange({ ...query, outputType: outputType });
@@ -89,7 +69,10 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   };
 
   const onResultsFilterChange = (resultsQuery: string) => {
-    if (query.resultsQuery !== resultsQuery) {
+    if (resultsQuery === ''){
+      handleQueryChange({ ...query, resultsQuery: resultsQuery }, false);
+    }
+    else if (query.resultsQuery !== resultsQuery) {
       query.resultsQuery = resultsQuery;
       handleQueryChange({ ...query, resultsQuery: resultsQuery });
     }
@@ -101,17 +84,6 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
       handleQueryChange({ ...query, stepsQuery: stepsQuery });
     }
   };
-
-  const onProductNameChange = (productNames: Array<SelectableValue<string>>) => {
-    setIsProductSelectionValid(productNames.length > 0);
-    handleQueryChange({ ...query, partNumberQuery: productNames.map(product => product.value as string) });
-  }
-
-  const formatOptionLabel = (option: SelectableValue<string>) => (
-    <div style={{ maxWidth: 500, whiteSpace: 'normal' }}>
-      {option.label}
-    </div>
-  );
 
   return (
     <>
@@ -161,33 +133,14 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
           />
         </div>
         <div className="results-horizontal-control-group">
-          <div>
-            <InlineField
-              label="Product (part number)"
-              labelWidth={26}
-              tooltip={tooltips.productName}
-              invalid={!isProductSelectionValid}
-              error="You must select at least one product in this field.">
-              <MultiSelect
-                maxVisibleValues={5}
-                width={65}
-                onChange={onProductNameChange}
-                placeholder='Select part numbers to use in a query'
-                noMultiValueWrap={true}
-                closeMenuOnSelect={false}
-                value={query.partNumberQuery}
-                formatOptionLabel={formatOptionLabel}
-                options={productNameOptions}/>
-            </InlineField>
-            <StepsQueryBuilderWrapper
-              datasource={datasource}
-              resultsQuery={query.resultsQuery}
-              stepsQuery={query.stepsQuery}
-              onResultsQueryChange={(value: string) => onResultsFilterChange(value)}
-              onStepsQueryChange={(value: string) => onStepsFilterChange(value)}
-              disableStepsQueryBuilder={disableStepsQueryBuilder}
-            />
-          </div>
+          <StepsQueryBuilderWrapper
+            datasource={datasource}
+            resultsQuery={query.resultsQuery}
+            stepsQuery={query.stepsQuery}
+            onResultsQueryChange={(value: string) => onResultsFilterChange(value)}
+            onStepsQueryChange={(value: string) => onStepsFilterChange(value)}
+            disableStepsQueryBuilder={disableStepsQueryBuilder}
+          />
           {query.outputType === OutputType.Data && (
           <div className="results-right-query-controls">
             <InlineField
@@ -222,5 +175,4 @@ const tooltips = {
   properties: 'This field specifies the properties to use in the query.',
   recordCount: 'This field sets the maximum number of steps.',
   showMeasurements: 'This toggle enables the display of step measurement data.',
-  productName: 'This field filters results by part number.',
 };

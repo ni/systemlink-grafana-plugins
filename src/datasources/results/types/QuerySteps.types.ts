@@ -3,13 +3,12 @@ import { OutputType, ResultsQuery } from './types';
 export interface QuerySteps extends ResultsQuery {
   outputType: OutputType;
   properties?: StepsProperties[];
-  partNumberQuery: string[];
   orderBy?: string;
   descending?: boolean;
   useTimeRange?: boolean;
   recordCount?: number;
   showMeasurements?: boolean;
-  resultsQuery?: string;
+  resultsQuery: string;
   stepsQuery?: string;
 }
 

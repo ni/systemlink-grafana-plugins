@@ -90,6 +90,16 @@ describe('StepsQueryBuilder', () => {
       expect(filterContainer.item(0)?.textContent).toContain("keyword1"); //value
     });
 
+    it('should select "has children" property in query builder', () => {
+      const { renderResult } = renderElement('hasChildren = "True"', [], [], [], [], false);
+      const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
+
+      expect(filterContainer?.length).toBe(1);
+      expect(filterContainer.item(0)?.textContent).toContain('Has children'); //label
+      expect(filterContainer.item(0)?.textContent).toContain('Equals'); //operator
+      expect(filterContainer.item(0)?.textContent).toContain('True'); //value
+    })
+
     it('should select global variable option', () => {
       const globalVariableOption = { label: 'Global variable', value: 'global_variable' };
       const { renderResult } = renderElement('path = "global_variable"', [], [], [], [globalVariableOption], false);

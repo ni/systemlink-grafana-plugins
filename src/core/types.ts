@@ -1,4 +1,4 @@
-import { QueryBuilderField } from "smart-webcomponents-react";
+import { QueryBuilderCustomOperation, QueryBuilderField } from "smart-webcomponents-react";
 import { SystemProperties } from "../datasources/system/types";
 
 export const LEGACY_METADATA_TYPE = 'Metadata';
@@ -65,4 +65,10 @@ export interface QueryResponse<T> {
 export interface BatchQueryConfig {
   maxTakePerRequest: number;
   requestsPerSecond: number;
+};
+
+export interface QueryOperation extends QueryBuilderCustomOperation {
+  name: string,
+  label: string,
+  expressionTemplate: string,
 };

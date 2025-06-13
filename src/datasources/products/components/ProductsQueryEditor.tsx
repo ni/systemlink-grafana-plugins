@@ -21,11 +21,6 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
   const [familyNames, setFamilyNames] = useState<string[]>([]);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
   const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);
-
-  useEffect(() => {
-      handleQueryChange(query, true);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount
   
   useEffect(() => {
     const loadWorkspaces = async () => {

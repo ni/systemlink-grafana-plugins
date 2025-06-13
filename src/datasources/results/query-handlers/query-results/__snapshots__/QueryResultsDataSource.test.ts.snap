@@ -24,7 +24,7 @@ exports[`QueryResultsDataSource query returns total count for valid total count 
   {
     "fields": [
       {
-        "name": "Total count",
+        "name": "A",
         "values": [
           1,
         ],

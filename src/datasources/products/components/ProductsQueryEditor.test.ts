@@ -33,17 +33,6 @@ describe('ProductsQueryEditor', () => {
     expect(descending).toBeChecked();
     expect(recordCount).toBeInTheDocument();
     expect(recordCount).toHaveValue(1000);
-
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        refId: 'A',
-        properties: [],
-        orderBy: undefined,
-        descending: true,
-        recordCount: 1000,
-        queryBy: ''
-      }));
-    expect(onRunQuery).toHaveBeenCalledTimes(1);
   });
 
   it('renders the query builder', async () => {
@@ -53,8 +42,8 @@ describe('ProductsQueryEditor', () => {
   });
 
   it('should not call `onChange` when queryBy filter is not changed', async () => {
-    expect(onChange).toHaveBeenCalledTimes(1);
-    expect(onRunQuery).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledTimes(0);
+    expect(onRunQuery).toHaveBeenCalledTimes(0);
     onChange.mockClear();
     onRunQuery.mockClear();
 
