@@ -21,7 +21,7 @@ import { QueryResponse } from 'core/types';
 import { queryInBatches } from 'core/utils';
 import { MAX_PATH_TAKE_PER_REQUEST, QUERY_PATH_REQUEST_PER_SECOND } from 'datasources/results/constants/QueryStepPath.constants';
 import { extractErrorInfo } from 'core/errors';
-import { formatMeasurementColumnName, MEASUREMENT_NAME_COLUMN, measurementColumnLabelSuffix, MeasurementProperties, measurementProperties } from 'datasources/results/constants/stepMeasurements.constants';
+import { formatMeasurementColumnName, formatMeasurementValueColumnName, MEASUREMENT_NAME_COLUMN, MEASUREMENT_UNITS_COLUMN, measurementColumnLabelSuffix, MeasurementProperties, measurementProperties } from 'datasources/results/constants/stepMeasurements.constants';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
@@ -315,7 +315,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
           measurementProperties.forEach(property => {
             const suffix = measurementColumnLabelSuffix[property];
-            const columnName = formatMeasurementColumnName(measurementName, suffix);
+            let columnName = formatMeasurementColumnName(measurementName, suffix);
             let value = measurement[property] ?? '';
             if(!value) {
               // If the value is empty, skip adding it to the column this is considering
@@ -324,6 +324,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
             }
 
             if (property === MEASUREMENT_NAME_COLUMN) {
+              // For the measurement name column, format the column name with units if available
+              columnName = formatMeasurementValueColumnName(measurementName, measurement[MEASUREMENT_UNITS_COLUMN] || '');
               // For the measurement name column, use the measurement values if available
               value = measurement[MeasurementProperties.MEASUREMENT] ?? '';
             }
