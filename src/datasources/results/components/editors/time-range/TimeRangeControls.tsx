@@ -14,14 +14,12 @@ export function TimeRangeControls({query, handleQueryChange}: Props) {
   };
 
   return (
-    <div className="results-horizontal-control-group">
-      <InlineField label={labels.useTimeRange} tooltip={tooltips.useTimeRange} labelWidth={26}>
-        <InlineSwitch
-          onChange={event => onUseTimeRangeChecked(event.currentTarget.checked)}
-          value={query.useTimeRange}
-        />
-      </InlineField>
-    </div>
+    <InlineField label={labels.useTimeRange} tooltip={tooltips.useTimeRange} labelWidth={26}>
+      <InlineSwitch
+        onChange={event => onUseTimeRangeChecked(event.currentTarget.checked)}
+        value={query.useTimeRange}
+      />
+    </InlineField>
   );
 }
 

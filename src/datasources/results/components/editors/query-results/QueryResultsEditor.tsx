@@ -2,7 +2,6 @@ import { SelectableValue } from '@grafana/data';
 import { AutoSizeInput, InlineField, MultiSelect, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
 import React, { useEffect, useState } from 'react';
-import '../../ResultsQueryEditor.scss';
 import { QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
 import { OutputType, TestMeasurementStatus } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
@@ -109,13 +108,12 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
           </InlineField>
         )}
         <div>
-        <TimeRangeControls
-          query={query}
-          handleQueryChange={(updatedQuery, runQuery) => {
-            handleQueryChange(updatedQuery as QueryResults, runQuery);
-          }}
-        />
-        <div className="results-horizontal-control-group">
+          <TimeRangeControls
+            query={query}
+            handleQueryChange={(updatedQuery, runQuery) => {
+              handleQueryChange(updatedQuery as QueryResults, runQuery);
+            }}
+          />
           <InlineField label={labels.queryBy} labelWidth={26} tooltip={tooltips.queryBy}>
             <ResultsQueryBuilder
               filter={query.queryBy}
@@ -123,33 +121,30 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
               status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
               partNumbers={partNumbers}
               globalVariableOptions={datasource.globalVariableOptions()}
-              onChange={(event: any) => onParameterChange(event.detail.linq)}>
-            </ResultsQueryBuilder>
+              onChange={(event: any) => onParameterChange(event.detail.linq)}
+            ></ResultsQueryBuilder>
           </InlineField>
           {query.outputType === OutputType.Data && (
-            <div className="results-right-query-controls">
-              <InlineField 
-                  label={labels.take}
-                  labelWidth={26} 
-                  tooltip={tooltips.recordCount}
-                  invalid={!!recordCountInvalidMessage}
-                  error={recordCountInvalidMessage}
-                >
-                  <AutoSizeInput
-                    minWidth={25}
-                    maxWidth={25}
-                    type="number"
-                    defaultValue={query.recordCount}
-                    onCommitChange={recordCountChange}
-                    placeholder={placeholders.take}
-                    onKeyDown={event => {
-                      validateNumericInput(event);
-                    }}
-                  />
-                </InlineField>
-              </div>
-            )}
-          </div>
+            <InlineField
+              label={labels.take}
+              labelWidth={26}
+              tooltip={tooltips.recordCount}
+              invalid={!!recordCountInvalidMessage}
+              error={recordCountInvalidMessage}
+            >
+              <AutoSizeInput
+                minWidth={25}
+                maxWidth={25}
+                type="number"
+                defaultValue={query.recordCount}
+                onCommitChange={recordCountChange}
+                placeholder={placeholders.take}
+                onKeyDown={event => {
+                  validateNumericInput(event);
+                }}
+              />
+            </InlineField>
+          )}
         </div>
       </VerticalGroup>
       <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
