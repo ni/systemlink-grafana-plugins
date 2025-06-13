@@ -50,8 +50,6 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   }
 
   async runQuery(query: QueryResults, options: DataQueryRequest): Promise<DataFrameDTO> {
-    query.queryBy = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.queryBy);
-    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, defaultResultsQuery.useTimeRangeFor);
     if (query.queryBy) {
       query.queryBy = transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
