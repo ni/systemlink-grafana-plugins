@@ -40,6 +40,8 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
     const value = parseInt((event.target as HTMLInputElement).value, 10);
     if (isRecordCountValid(value, TAKE_LIMIT)) {
       handleQueryChange({ ...query, recordCount: value });
+    } else {
+      handleQueryChange({ ...query, recordCount: undefined });
     }
   };
 
@@ -62,7 +64,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
 
   const onResultsFilterChange = (resultsQuery: string) => {
     if (resultsQuery === '') {
-      handleQueryChange({ ...query, resultsQuery: resultsQuery }, false);
+      handleQueryChange({ ...query, resultsQuery: resultsQuery });
     } else if (query.resultsQuery !== resultsQuery) {
       query.resultsQuery = resultsQuery;
       handleQueryChange({ ...query, resultsQuery: resultsQuery });

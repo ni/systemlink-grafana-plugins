@@ -82,6 +82,18 @@ describe('QueryResultsDataSource', () => {
       expect(response.data).toMatchSnapshot();
     });
 
+    test('returns empty data for invalid query', async () => {
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: []
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data).toMatchSnapshot();
+    });
+
     test('should set the default order by to "STARTED_AT" and descending to "true"', async () => {
       const query = buildQuery({
         refId: 'A',
