@@ -91,13 +91,23 @@ describe('QueryStepsDataSource', () => {
 
       await expect(datastore.querySteps())
         .rejects
-        .toThrow('The query failed due to the following error: (status 400) "Error".');
+        .toThrow('The query to fetch steps failed due to the following error: (status 400) "Error".');
 
       expect(publishMock).toHaveBeenCalledWith({
         type: 'alert-error',
         payload: ['Error during step query', expect.stringContaining('The query failed due to the following error: (status 400) "Error".')],
       });
     });
+
+    it('should throw timeOut error when API returns 504 status', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps' }))
+      .mockReturnValue(createFetchError(504));
+
+    await expect(datastore.querySteps())
+      .rejects
+      .toThrow('The query timed out. Please try again with a smaller record count or a more specific filter.');
+  })
   });
 
   describe('query', () => {
@@ -1063,6 +1073,23 @@ describe('QueryStepsDataSource', () => {
       expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
     });
 
+    it('should handle 504 errors in query-paths API when loading step path', async () => {
+      const error = new Error(`API failed Error message: status code: 504 ${JSON.stringify({ message: 'Detailed error message'})}`);
+      jest.spyOn(datastore as any, 'loadStepPaths').mockRejectedValue(error);
+      const query = {
+        refId: 'A',
+        resultsQuery: 'ProgramName = "Test"',
+        outputType: OutputType.Data,
+      } as QuerySteps;
+
+      await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+      const stepsPathLookupValues = datastore.getStepPaths();
+
+      expect(stepsPathLookupValues).toEqual([]);
+      expect(datastore.errorTitle).toBe('Warning during step paths value query');
+      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to a timeout error. Please try again with a more specific filter.');
+    })
+
     it('should handle error in query-result-values when loading step path', async () => {
       const error = new Error('API failed');
       jest.spyOn(datastore as any, 'queryResultsValues').mockRejectedValue(error);
@@ -1417,6 +1444,23 @@ describe('QueryStepsDataSource', () => {
           expect(datastore.errorTitle).toBe('Warning during step paths value query');
           expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
         });
+
+        it('should handle 504 errors in query-paths API when loading step path', async () => {
+          const error = new Error(`API failed Error message: status code: 504 ${JSON.stringify({ message: 'Detailed error message' })}`);
+          jest.spyOn(datastore as any, 'loadStepPaths').mockRejectedValue(error);
+          const query = {
+            refId: 'A',
+            resultsQuery: 'ProgramName = "Test"',
+            outputType: OutputType.Data,
+          } as QuerySteps;
+
+          await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+          const stepsPathLookupValues = datastore.getStepPaths();
+
+          expect(stepsPathLookupValues).toEqual([]);
+          expect(datastore.errorTitle).toBe('Warning during step paths value query');
+          expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to a timeout error. Please try again with a more specific filter.');
+        })
 
         it('should handle error in query-result-values when loading step path', async () => {
           const error = new Error('API failed');

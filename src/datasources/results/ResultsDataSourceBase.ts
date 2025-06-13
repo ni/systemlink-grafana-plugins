@@ -198,16 +198,21 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
   handleQueryValuesError(error: unknown, errorContext: string): void {
     const errorDetails = extractErrorInfo((error as Error).message);
-    let detailedMessage = '';
-    try {
-      const parsed = JSON.parse(errorDetails.message);
-      detailedMessage = parsed?.message || errorDetails.message;
-    } catch {
-      detailedMessage = errorDetails.message;
-    }
     this.errorTitle = `Warning during ${errorContext} value query`;
-    this.errorDescription = errorDetails.message
-      ? `Some values may not be available in the query builder lookups due to the following error:${detailedMessage}.`
-      : 'Some values may not be available in the query builder lookups due to an unknown error.';
+
+    if (errorDetails.statusCode === '504') {
+      this.errorDescription = `Some values may not be available in the query builder lookups due to a timeout error. Please try again with a more specific filter.`;
+    } else {
+      let detailedMessage = '';
+      try {
+        const parsed = JSON.parse(errorDetails.message);
+        detailedMessage = parsed?.message || errorDetails.message;
+      } catch {
+        detailedMessage = errorDetails.message;
+      }
+      this.errorDescription = errorDetails.message
+        ? `Some values may not be available in the query builder lookups due to the following error:${detailedMessage}.`
+        : 'Some values may not be available in the query builder lookups due to an unknown error.';
+    }
   }
 }

@@ -67,6 +67,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       let errorMessage: string;
       if (!errorDetails.statusCode) {
         errorMessage = 'The query failed due to an unknown error.';
+      } else if (errorDetails.statusCode === '504') {
+        errorMessage = 'The query to fetch steps timed out. Please try again with a smaller record count or a more specific filter.';
       } else {
         errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
       }

@@ -67,6 +67,16 @@ describe('QueryResultsDataSource', () => {
           payload: ['Error during result query', expect.stringContaining('The query failed due to the following error: (status 400) "Error".')],
         });
       });
+
+    test('should throw timeOut error when API returns 504 status', async () => {
+        backendServer.fetch
+          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results' }))
+          .mockReturnValue(createFetchError(504));
+    
+        await expect(datastore.queryResults())
+          .rejects
+          .toThrow('The query to fetch results timed out. Please try again with a smaller record count or a more specific filter.');
+      })
   });
 
   describe('query', () => {
@@ -327,6 +337,17 @@ describe('QueryResultsDataSource', () => {
       expect(datastore.errorTitle).toBe('Warning during result value query');
       expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
     });
+
+    it('should handle 504 error in getPartNumbers', async () => {
+      (ResultsDataSourceBase as any)._partNumbersCache = null;
+      const error = new Error(`API failed Error message: status code: 504 ${JSON.stringify({ message: 'Detailed error message'})}`);
+      jest.spyOn(QueryResultsDataSource.prototype, 'queryResultsValues').mockRejectedValue(error);
+
+      await datastore.getPartNumbers();
+
+      expect(datastore.errorTitle).toBe('Warning during result value query');
+      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to a timeout error. Please try again with a more specific filter.');
+    })
   });
   
     describe('query builder queries', () => {
