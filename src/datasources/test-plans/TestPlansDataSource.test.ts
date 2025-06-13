@@ -181,7 +181,7 @@ describe('runQuery', () => {
     expect(result.fields[1].values).toEqual(['Active', 'Completed']);
   });
 
-  test('returns empty data frame when no test plans are available', async () => {
+  test('should return field without values when no test plans are available', async () => {
     const query = {
       refId: 'A',
       outputType: OutputType.Properties,
@@ -195,7 +195,9 @@ describe('runQuery', () => {
 
     const result = await datastore.runQuery(query, mockOptions);
 
-    expect(result.fields).toHaveLength(0);
+    expect(result.fields).toHaveLength(2);
+    expect(result.fields[0]).toEqual({"name": "Name", "type": "string", "values": []});
+    expect(result.fields[1]).toEqual({"name": "State", "type": "string", "values": []});
   });
 
   test('returns total count when output type is TotalCount', async () => {
@@ -217,7 +219,7 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Total count');
+    expect(result.fields[0].name).toEqual('A');
     expect(result.fields[0].values).toEqual([42]);
   });
 
@@ -240,7 +242,7 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Total count');
+    expect(result.fields[0].name).toEqual('A');
     expect(result.fields[0].values).toEqual([0]);
   });
 
