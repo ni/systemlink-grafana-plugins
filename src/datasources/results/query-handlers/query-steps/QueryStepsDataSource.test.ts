@@ -132,6 +132,25 @@ describe('QueryStepsDataSource', () => {
       );
     });
 
+    test('should set the default time range filter to "Started" when useTimerange is true', async () => {
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        useTimeRange: true,
+      });
+
+      await datastore.query(query);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: '/nitestmonitor/v2/query-steps',
+          data: expect.objectContaining({
+            filter: "(startedAt > \"${__from:date}\" && startedAt < \"${__to:date}\")"
+          }),
+        })
+      )
+    });
+
     test('should return total count for valid total count output type queries', async () => {
       const query = buildQuery({
         refId: 'A',
@@ -301,7 +320,6 @@ describe('QueryStepsDataSource', () => {
     test('should include templateSrv replaced values in the filter', async () => {
       const timeRange = {
         Started: 'startedAt',
-        Updated: 'updatedAt',
       }
       const selectedUseTimeRangeFor = 'Started';
       const filter = `(${timeRange[selectedUseTimeRangeFor]} > "\${__from:date}" && ${timeRange[selectedUseTimeRangeFor]} < "\${__to:date}")`;
@@ -313,7 +331,6 @@ describe('QueryStepsDataSource', () => {
           refId: 'A',
           outputType: OutputType.Data,
           useTimeRange: true,
-          useTimeRangeFor: selectedUseTimeRangeFor
         },
       );
 
@@ -381,7 +398,6 @@ describe('QueryStepsDataSource', () => {
           properties: [],
           orderBy: undefined,
           useTimeRange: true,
-          useTimeRangeFor: 'Updated'
         },
       );
 

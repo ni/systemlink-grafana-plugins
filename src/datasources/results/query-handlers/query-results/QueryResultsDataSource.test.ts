@@ -4,7 +4,7 @@ import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching
 import { Field } from '@grafana/data';
 import { QueryResultsDataSource } from './QueryResultsDataSource';
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsVariableQuery } from 'datasources/results/types/QueryResults.types';
-import { OutputType, QueryType, UseTimeRangeFor } from 'datasources/results/types/types';
+import { OutputType, QueryType } from 'datasources/results/types/types';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { Workspace } from 'core/types';
@@ -101,6 +101,25 @@ describe('QueryResultsDataSource', () => {
       )
     });
 
+    test('should set the default time range filter to "Started" when useTimerange is true', async () => {
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        useTimeRange: true,
+      });
+
+      await datastore.query(query);
+
+      expect(backendServer.fetch).toHaveBeenCalledTimes(1);
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            filter: "(startedAt > \"${__from:date}\" && startedAt < \"${__to:date}\")"
+          }),
+        })
+      )
+    });
+
     test('returns total count for valid total count output type queries', async () => {
       const query = buildQuery({
         refId: 'A',
@@ -185,7 +204,6 @@ describe('QueryResultsDataSource', () => {
     test('includes templateSrv replaced values in the filter', async () => {
       const timeRange = {
         Started: 'startedAt',
-        Updated: 'updatedAt',
       }
       const selectedUseTimeRangeFor = 'Started';
       const filter = `(${timeRange[selectedUseTimeRangeFor]} > "\${__from:date}" && ${timeRange[selectedUseTimeRangeFor]} < "\${__to:date}")`;
@@ -196,7 +214,6 @@ describe('QueryResultsDataSource', () => {
             refId: 'A',
             outputType: OutputType.Data,
             useTimeRange: true,
-            useTimeRangeFor: selectedUseTimeRangeFor
           },
         );
 
@@ -439,7 +456,6 @@ describe('QueryResultsDataSource', () => {
           refId: 'A',
           queryBy,
           useTimeRange: true,
-          useTimeRangeFor: UseTimeRangeFor.Started,
         });
         const expectedFilter = `${queryBy} && ${replacedFilter}`;
 
@@ -484,7 +500,6 @@ describe('QueryResultsDataSource', () => {
         refId: 'A',
         queryBy: '',
         useTimeRange: true,
-        useTimeRangeFor: UseTimeRangeFor.Started,
       });
 
       await datastore.query(query);

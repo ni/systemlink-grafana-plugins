@@ -57,7 +57,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       );
     }
 
-    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
+    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, defaultResultsQuery.useTimeRangeFor);
 
     let properties = query.properties;
     let recordCount = query.recordCount;

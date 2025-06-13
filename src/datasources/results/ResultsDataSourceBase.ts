@@ -15,11 +15,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   queryResultsValuesUrl = this.baseUrl + '/v2/query-result-values';
   queryProductsUrl = this.baseUrl + '/v2/query-products';
 
-  private timeRange: { [key: string]: string } = {
-    Started: 'startedAt',
-    Updated: 'updatedAt',
-  };
-
   private fromDateString = '${__from:date}';
   private toDateString = '${__to:date}';
   private static _workspacesCache: Promise<Map<string, Workspace>> | null = null;
@@ -38,8 +33,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       return undefined;
     }
 
-    const timeRangeField = this.timeRange[useTimeRangeFor];
-    const timeRangeFilter = `(${timeRangeField} > "${this.fromDateString}" && ${timeRangeField} < "${this.toDateString}")`;
+    const timeRangeFilter = `(${useTimeRangeFor} > "${this.fromDateString}" && ${useTimeRangeFor} < "${this.toDateString}")`;
 
     return this.templateSrv.replace(timeRangeFilter, options.scopedVars);
   }
