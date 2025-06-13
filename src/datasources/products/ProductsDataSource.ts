@@ -280,12 +280,13 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
   private handleQueryProductValuesError(error: unknown): void {
     const errorDetails = extractErrorInfo((error as Error).message);
-    if (errorDetails.statusCode === '504') {
-      errorDetails.message = 'The query to fetch product values timed out. Please try again with a more specific filter.';
-    }
     this.errorTitle = 'Warning during product value query';
-    this.errorDescription = errorDetails.message
-      ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
-      : 'Some values may not be available in the query builder lookups due to an unknown error.';
+    if (errorDetails.statusCode === '504') {
+      this.errorDescription = `Some values may not be available in the query builder lookups due to a timeout error. Please try again with a more specific filter.`;
+    } else {
+      this.errorDescription = errorDetails.message
+        ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+        : 'Some values may not be available in the query builder lookups due to an unknown error.';
+    }
   }
 }

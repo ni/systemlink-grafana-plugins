@@ -207,7 +207,7 @@ describe('getFamilyNames', () => {
     await datastore.getFamilyNames();
 
     expect(datastore.errorTitle).toBe('Warning during product value query');
-    expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error: The query to fetch product values timed out. Please try again with a more specific filter.');
+    expect(datastore.errorDescription).toContain(`Some values may not be available in the query builder lookups due to a timeout error. Please try again with a more specific filter.`);
   })
 
 });
