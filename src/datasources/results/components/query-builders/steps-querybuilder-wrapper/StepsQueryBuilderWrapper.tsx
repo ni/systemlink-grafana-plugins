@@ -66,7 +66,7 @@ export const StepsQueryBuilderWrapper = (
           labelWidth={26}
           tooltip={tooltips.resultsQueryBuilder}
           invalid={isResultsQueryInvalid}
-          error={'This is a required field.'}>
+          error={'You must provide atleast one result filter.'}>
         <div style={{ border: isResultsQueryInvalid ? `1px solid ${theme.colors.error.border}` : 'none', borderRadius: '4px' }}>
           <ResultsQueryBuilder
             filter={resultsQuery}
