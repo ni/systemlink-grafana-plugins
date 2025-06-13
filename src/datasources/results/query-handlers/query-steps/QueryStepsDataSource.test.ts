@@ -91,7 +91,7 @@ describe('QueryStepsDataSource', () => {
 
       await expect(datastore.querySteps())
         .rejects
-        .toThrow('The query to fetch steps failed due to the following error: (status 400) "Error".');
+        .toThrow('The query failed due to the following error: (status 400) "Error".');
 
       expect(publishMock).toHaveBeenCalledWith({
         type: 'alert-error',
@@ -106,7 +106,7 @@ describe('QueryStepsDataSource', () => {
 
     await expect(datastore.querySteps())
       .rejects
-      .toThrow('The query timed out. Please try again with a smaller record count or a more specific filter.');
+      .toThrow('The query to fetch steps timed out. Please try again with a smaller record count or a more specific filter.');
   })
   });
 
