@@ -58,7 +58,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       return {
         refId: query.refId,
         name: query.refId,
-        fields: [{ name: 'Total count', values: [totalCount] }],
+        fields: [{ name: query.refId, values: [totalCount] }],
       };
     }
   }
@@ -107,46 +107,39 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       query.take
     );
 
-    if (workOrders.length > 0) {
-      const mappedFields = query.properties?.map(property => {
-        const field = WorkOrderProperties[property];
-        const fieldType = this.isTimeField(field.value) ? FieldType.time : FieldType.string;
-        const fieldName = field.label;
+    const mappedFields = query.properties?.map(property => {
+      const field = WorkOrderProperties[property];
+      const fieldType = this.isTimeField(field.value) ? FieldType.time : FieldType.string;
+      const fieldName = field.label;
 
-        // TODO: Add mapping for other field types
-        const fieldValue = workOrders.map(workOrder => {
-          switch (field.value) {
-            case WorkOrderPropertiesOptions.WORKSPACE:
-                const workspace = workspaces.get(workOrder.workspace);
-                return workspace ? workspace.name : workOrder.workspace;
-            case WorkOrderPropertiesOptions.ASSIGNED_TO:
-            case WorkOrderPropertiesOptions.CREATED_BY:
-            case WorkOrderPropertiesOptions.REQUESTED_BY:
-            case WorkOrderPropertiesOptions.UPDATED_BY:
-              const userId = workOrder[field.field] as string ?? '';
-              const user = users.get(userId);
-              return user ? UsersUtils.getUserFullName(user) : userId;
-            case WorkOrderPropertiesOptions.PROPERTIES:
-                const properties = workOrder.properties || {};
-                return JSON.stringify(properties);
-            default:
-              return workOrder[field.field] ?? '';
-          }
-        });
-
-        return { name: fieldName, values: fieldValue, type: fieldType };
+      // TODO: Add mapping for other field types
+      const fieldValue = workOrders.map(workOrder => {
+        switch (field.value) {
+          case WorkOrderPropertiesOptions.WORKSPACE:
+              const workspace = workspaces.get(workOrder.workspace);
+              return workspace ? workspace.name : workOrder.workspace;
+          case WorkOrderPropertiesOptions.ASSIGNED_TO:
+          case WorkOrderPropertiesOptions.CREATED_BY:
+          case WorkOrderPropertiesOptions.REQUESTED_BY:
+          case WorkOrderPropertiesOptions.UPDATED_BY:
+            const userId = workOrder[field.field] as string ?? '';
+            const user = users.get(userId);
+            return user ? UsersUtils.getUserFullName(user) : userId;
+          case WorkOrderPropertiesOptions.PROPERTIES:
+              const properties = workOrder.properties || {};
+              return JSON.stringify(properties);
+          default:
+            return workOrder[field.field] ?? '';
+        }
       });
 
-      return {
-        refId: query.refId,
-        name: query.refId,
-        fields: mappedFields ?? [],
-      };
-    }
+      return { name: fieldName, values: fieldValue, type: fieldType };
+    });
+
     return {
       refId: query.refId,
       name: query.refId,
-      fields: [],
+      fields: mappedFields ?? [],
     };
   }
 

@@ -6,11 +6,16 @@ export interface QuerySteps extends ResultsQuery {
   orderBy?: string;
   descending?: boolean;
   useTimeRange?: boolean;
-  useTimeRangeFor?: string;
   recordCount?: number;
   showMeasurements?: boolean;
   resultsQuery: string;
   stepsQuery?: string;
+}
+
+export interface QueryStepsDefaultValues extends QuerySteps {
+  orderBy: string;
+  descending: boolean;
+  useTimeRangeFor: string;
 }
 
 export const StepsPropertiesOptions = {

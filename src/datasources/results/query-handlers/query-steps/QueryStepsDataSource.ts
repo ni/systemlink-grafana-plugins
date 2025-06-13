@@ -197,7 +197,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     const transformStepsQuery = query.stepsQuery
       ? this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options.scopedVars)
       : undefined;
-    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
+    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, defaultStepsQuery.useTimeRangeFor);
     query.stepsQuery = this.buildQueryFilter(transformStepsQuery, useTimeRangeFilter);
 
     const projection = query.showMeasurements
@@ -207,10 +207,10 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     if (query.outputType === OutputType.Data) {
       const responseData = await this.queryStepsInBatches(
         query.stepsQuery,
-        query.orderBy,
+        defaultStepsQuery.orderBy,
         projection as StepsProperties[],
         query.recordCount,
-        query.descending,
+        defaultStepsQuery.descending,
         query.resultsQuery,
         true
       );

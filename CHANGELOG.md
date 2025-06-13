@@ -1,3 +1,28 @@
+## [3.133.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.132.2...v3.133.0) (2025-06-13)
+
+### Features
+
+* **results:** add Result ID field to Results Query Builder ([#286](https://github.com/ni/systemlink-grafana-plugins/issues/286)) ([5b3ad7f](https://github.com/ni/systemlink-grafana-plugins/commit/5b3ad7f015ecc2e950fc96112fe178ab2d7d4aa6))
+
+## [3.132.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.132.1...v3.132.2) (2025-06-13)
+
+### Bug Fixes
+
+* **core:** Stylings of shared query builder ([#276](https://github.com/ni/systemlink-grafana-plugins/issues/276)) ([02e85bf](https://github.com/ni/systemlink-grafana-plugins/commit/02e85bfa87d968c25a39cd1cabcd443a7a7a7427))
+* **results:** Remove orderby and descending properties from Query Types interfaces ([#279](https://github.com/ni/systemlink-grafana-plugins/issues/279)) ([e10f8fc](https://github.com/ni/systemlink-grafana-plugins/commit/e10f8fcb7d6d2db484b53662d4a0dafdbd8bc3c5))
+
+## [3.132.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.132.0...v3.132.1) (2025-06-13)
+
+### Bug Fixes
+
+* **results:** Set "STARTED_AT" as the default option for the useTimeRange field ([#273](https://github.com/ni/systemlink-grafana-plugins/issues/273)) ([acaf696](https://github.com/ni/systemlink-grafana-plugins/commit/acaf69640d10582b570d4c10c7b2a2a8e3274b26))
+
+## [3.132.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.131.0...v3.132.0) (2025-06-12)
+
+### Features
+
+* **results:** revert Partnumber field from Steps Query ([#283](https://github.com/ni/systemlink-grafana-plugins/issues/283)) ([efbf378](https://github.com/ni/systemlink-grafana-plugins/commit/efbf3789180ef30969f946472403b88ca5d79e89))
+
 ## [3.131.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.130.0...v3.131.0) (2025-06-12)
 
 ### Features

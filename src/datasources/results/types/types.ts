@@ -14,11 +14,6 @@ export enum OutputType {
   TotalCount = 'Total Count'
 }
 
-export enum UseTimeRangeFor {
-  Started = 'Started',
-  Updated = 'Updated'
-}
-
 export interface ResultsFeatureToggles {
   queryByResults: boolean;
   queryBySteps: boolean;

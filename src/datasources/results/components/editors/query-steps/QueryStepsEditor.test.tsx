@@ -36,7 +36,6 @@ describe('QueryStepsEditor', () => {
     outputType: OutputType.Data,
     properties: [StepsProperties.data],
     useTimeRange: true,
-    useTimeRangeFor: 'Updated',
     recordCount: 1000,
     showMeasurements: false,
     resultsQuery: 'partNumber = "PN1"',
@@ -72,11 +71,9 @@ describe('QueryStepsEditor', () => {
 
   describe('Data outputType', () => {
     let useTimeRange: HTMLElement;
-    let useTimeRangeFor: HTMLElement;
 
     beforeEach(() => {
       useTimeRange = screen.getAllByRole('checkbox')[1];
-      useTimeRangeFor = screen.getAllByRole('combobox')[1];
     });
 
     test('should render with default query when default values are provided', async () => {
@@ -88,8 +85,6 @@ describe('QueryStepsEditor', () => {
       expect(recordCount).toHaveValue(1000);
       expect(useTimeRange).toBeInTheDocument();
       expect(useTimeRange).toBeChecked();
-      expect(useTimeRangeFor).toBeInTheDocument();
-      expect(screen.getAllByText('Updated').length).toBe(1);
       expect(showMeasurements).toBeInTheDocument();
       expect(showMeasurements).not.toBeChecked();
     });
@@ -336,7 +331,6 @@ describe('QueryStepsEditor', () => {
       );
 
       expect(screen.queryByText('Use time range')).toBeInTheDocument();
-      expect(screen.queryByText('to filter by')).toBeInTheDocument();
     });
   });
 });
