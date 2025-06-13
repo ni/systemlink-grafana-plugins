@@ -177,16 +177,16 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
   
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
-    if (!query.partNumberQuery || query.partNumberQuery.length === 0) {
+    if (!query.stepsPartNumberQuery || query.stepsPartNumberQuery.length === 0) {
       return {
         refId: query.refId,
         fields: [],
       };
     }
-    query.resultsQuery = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.resultsQuery);
+    query.resultsQuery = this.buildResultsQuery(options.scopedVars, query.stepsPartNumberQuery, query.resultsQuery);
     
     if(this.previousResultsQuery !== query.resultsQuery) {
-      this.stepsPath = await this.getStepPathsLookupValues(options.scopedVars, query.partNumberQuery, query.resultsQuery)
+      this.stepsPath = await this.getStepPathsLookupValues(options.scopedVars, query.stepsPartNumberQuery, query.resultsQuery)
       this.stepsPathChangeCallback?.();
     }
     this.previousResultsQuery = query.resultsQuery;
@@ -194,19 +194,19 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     const transformStepsQuery = query.stepsQuery
       ? this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options.scopedVars)
       : undefined;
-    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, defaultStepsQuery.useTimeRangeFor);
+    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.stepsUseTimeRange, defaultStepsQuery.useTimeRangeFor);
     query.stepsQuery = this.buildQueryFilter(transformStepsQuery, useTimeRangeFilter);
 
     const projection = query.showMeasurements
-      ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
-      : query.properties;
+      ? [...new Set([...(query.stepsProperties || []), StepsPropertiesOptions.DATA])]
+      : query.stepsProperties;
 
-    if (query.outputType === OutputType.Data) {
+    if (query.stepsOutputType === OutputType.Data) {
       const responseData = await this.queryStepsInBatches(
         query.stepsQuery,
         defaultStepsQuery.orderBy,
         projection as StepsProperties[],
-        query.recordCount,
+        query.stepsRecordCount,
         defaultStepsQuery.descending,
         query.resultsQuery,
         true
@@ -220,7 +220,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       }
       const stepsResponse = responseData.steps;
       const stepResponseKeys = new Set(Object.keys(stepsResponse[0]));
-      const selectedFields = (query.properties || []).filter(field => stepResponseKeys.has(field));
+      const selectedFields = (query.stepsProperties || []).filter(field => stepResponseKeys.has(field));
       const fields = this.processFields(selectedFields, stepsResponse);
 
       if (query.showMeasurements) {

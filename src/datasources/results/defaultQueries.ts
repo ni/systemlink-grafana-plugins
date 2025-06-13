@@ -26,18 +26,18 @@ export const defaultResultsQuery: Omit<QueryResultsDefaultValues, 'refId'> = {
 
 export const defaultStepsQuery: Omit<QueryStepsDefaultValues, 'refId'> = {
   queryType: QueryType.Steps,
-  outputType: OutputType.Data,
-  properties: [
+  stepsOutputType: OutputType.Data,
+  stepsProperties: [
     StepsProperties.name,
     StepsProperties.status,
     StepsProperties.totalTimeInSeconds
   ] as StepsProperties[],
   orderBy: "STARTED_AT",
   descending: false,
-  recordCount: 10_000,
-  useTimeRange: false,
+  stepsRecordCount: 10_000,
+  stepsUseTimeRange: false,
   useTimeRangeFor: "startedAt",
-  partNumberQuery: [],
+  stepsPartNumberQuery: [],
   resultsQuery: '',
   stepsQuery: '',
 };

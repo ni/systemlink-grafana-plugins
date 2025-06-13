@@ -37,8 +37,8 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   }, []); // Only run on mount
 
   useEffect(() => {
-    setDisableStepsQueryBuilder(!query.partNumberQuery || query.partNumberQuery.length === 0);
-  }, [query.partNumberQuery]);
+    setDisableStepsQueryBuilder(!query.stepsPartNumberQuery || query.stepsPartNumberQuery.length === 0);
+  }, [query.stepsPartNumberQuery]);
 
   useEffect(() => {
     const loadProductNameOptions = async () => {
@@ -54,20 +54,20 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   }, [datasource]);
   
   const onOutputChange = (outputType: OutputType) => {
-    handleQueryChange({ ...query, outputType: outputType });
+    handleQueryChange({ ...query, stepsOutputType: outputType });
   };
 
   const onPropertiesChange = (properties: Array<SelectableValue<string>>) => {
     setIsPropertiesValid(properties.length > 0);
     if (properties !== undefined) {
-      handleQueryChange({ ...query, properties: properties.map(property => property.value as StepsProperties) });
+      handleQueryChange({ ...query, stepsProperties: properties.map(property => property.value as StepsProperties) });
     }
   };
 
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
     if (isRecordCountValid(value, TAKE_LIMIT)) {
-      handleQueryChange({ ...query, recordCount: value });
+      handleQueryChange({ ...query, stepsRecordCount: value });
     }
   };
   
@@ -104,7 +104,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
 
   const onProductNameChange = (productNames: Array<SelectableValue<string>>) => {
     setIsProductSelectionValid(productNames.length > 0);
-    handleQueryChange({ ...query, partNumberQuery: productNames.map(product => product.value as string) });
+    handleQueryChange({ ...query, stepsPartNumberQuery: productNames.map(product => product.value as string) });
   }
 
   const formatOptionLabel = (option: SelectableValue<string>) => (
@@ -119,11 +119,11 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
         <InlineField label="Output" labelWidth={26} tooltip={tooltips.output}>
           <RadioButtonGroup
             options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
-            value={query.outputType}
+            value={query.stepsOutputType}
             onChange={onOutputChange}
           />
         </InlineField>
-        {query.outputType === OutputType.Data && (
+        {query.stepsOutputType === OutputType.Data && (
           <InlineField
             label="Properties"
             labelWidth={26}
@@ -134,8 +134,8 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
               placeholder="Select properties to fetch"
               options={enumToOptions(StepsProperties)}
               onChange={onPropertiesChange}
-              value={query.properties}
-              defaultValue={query.properties!}
+              value={query.stepsProperties}
+              defaultValue={query.stepsProperties!}
               noMultiValueWrap={true}
               maxVisibleValues={5}
               width={65}
@@ -145,7 +145,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
           </InlineField>
         )}
         <div>
-          {query.outputType === OutputType.Data && (
+          {query.stepsOutputType === OutputType.Data && (
             <InlineField label="Show Measurements" labelWidth={26} tooltip={tooltips.showMeasurements}>
               <InlineSwitch
                 onChange={event => onShowMeasurementChange(event.currentTarget.checked)}
@@ -175,7 +175,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
                 placeholder='Select part numbers to use in a query'
                 noMultiValueWrap={true}
                 closeMenuOnSelect={false}
-                value={query.partNumberQuery}
+                value={query.stepsPartNumberQuery}
                 formatOptionLabel={formatOptionLabel}
                 options={productNameOptions}/>
             </InlineField>
@@ -188,7 +188,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
               disableStepsQueryBuilder={disableStepsQueryBuilder}
             />
           </div>
-          {query.outputType === OutputType.Data && (
+          {query.stepsOutputType === OutputType.Data && (
           <div className="results-right-query-controls">
             <InlineField
                 label="Take"
@@ -200,7 +200,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
                 minWidth={25}
                 maxWidth={25}
                 type="number"
-                defaultValue={query.recordCount}
+                defaultValue={query.stepsRecordCount}
                 onCommitChange={recordCountChange}
                 placeholder="Enter record count"
                 onKeyDown={event => {

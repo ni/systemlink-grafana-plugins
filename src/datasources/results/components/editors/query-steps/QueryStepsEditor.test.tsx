@@ -45,12 +45,12 @@ describe('QueryStepsEditor', () => {
   const defaultQuery: QuerySteps = {
     refId: 'A',
     queryType: QueryType.Steps,
-    outputType: OutputType.Data,
-    properties: [StepsProperties.data],
-    useTimeRange: true,
-    recordCount: 1000,
+    stepsOutputType: OutputType.Data,
+    stepsProperties: [StepsProperties.data],
+    stepsUseTimeRange: true,
+    stepsRecordCount: 1000,
     showMeasurements: false,
-    partNumberQuery: ['PartNumber1'],
+    stepsPartNumberQuery: ['PartNumber1'],
     resultsQuery: 'partNumber = "PN1"',
     stepsQuery: 'stepName = "Step1"',
   };
@@ -111,7 +111,7 @@ describe('QueryStepsEditor', () => {
     test('should display placeholder for properties when default value is not provided', async () => {
       render(
       <QueryStepsEditor
-        query={{outputType: OutputType.Data } as QuerySteps}
+        query={{stepsOutputType: OutputType.Data } as QuerySteps}
         handleQueryChange={mockHandleQueryChange}
         datasource={mockDatasource}
       />
@@ -172,7 +172,7 @@ describe('QueryStepsEditor', () => {
         await userEvent.click(document.body);
       
         expect(recordCount).toHaveValue(500);
-        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: 500 }));
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ stepsRecordCount: 500 }));
       });
     
       it('should show error and not call onChange when Take is greater than Take limit', async () => {
@@ -208,7 +208,7 @@ describe('QueryStepsEditor', () => {
     test('should call handle query change with total count outputType when user changes the output type to Total Count', async () => {
       await userEvent.click(totalCountOutput);
       await waitFor(() => {
-        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ outputType: 'Total Count' }));
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ stepsOutputType: 'Total Count' }));
       });
     });
   });
@@ -223,8 +223,8 @@ describe('QueryStepsEditor', () => {
               query={{
                 refId: 'A',
                 queryType: QueryType.Steps,
-                outputType: outputType,
-                partNumberQuery: ['partNumber1'],
+                stepsOutputType: outputType,
+                stepsPartNumberQuery: ['partNumber1'],
                 resultsQuery: 'PartNumber = "partNumber1"'
               }}
               handleQueryChange={mockHandleQueryChange}

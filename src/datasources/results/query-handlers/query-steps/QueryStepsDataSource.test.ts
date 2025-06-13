@@ -104,7 +104,7 @@ describe('QueryStepsDataSource', () => {
     test('should return data for valid data-output-type query', async () => {
       const query = buildQuery({
         refId: 'A',
-        outputType: OutputType.Data
+        stepsOutputType: OutputType.Data
       });
 
       const response = await datastore.query(query);
@@ -116,7 +116,7 @@ describe('QueryStepsDataSource', () => {
     test('should set default orderby to "STARTED_AT" and descending to "false"', async () => {
       const query = buildQuery({
         refId: 'A',
-        outputType: OutputType.Data,
+        stepsOutputType: OutputType.Data,
       });
 
       await datastore.query(query);
@@ -135,8 +135,8 @@ describe('QueryStepsDataSource', () => {
     test('should set the default time range filter to "Started" when useTimerange is true', async () => {
       const query = buildQuery({
         refId: 'A',
-        outputType: OutputType.Data,
-        useTimeRange: true,
+        stepsOutputType: OutputType.Data,
+        stepsUseTimeRange: true,
       });
 
       await datastore.query(query);
@@ -154,7 +154,7 @@ describe('QueryStepsDataSource', () => {
     test('should return total count for valid total count output type queries', async () => {
       const query = buildQuery({
         refId: 'A',
-        outputType: OutputType.TotalCount,
+        stepsOutputType: OutputType.TotalCount,
       });
 
       const response = await datastore.query(query);
@@ -190,7 +190,7 @@ describe('QueryStepsDataSource', () => {
       const query = buildQuery(
         {
           refId: 'A',
-          outputType: OutputType.Data
+          stepsOutputType: OutputType.Data
         },
       );
 
@@ -203,8 +203,8 @@ describe('QueryStepsDataSource', () => {
       const query = buildQuery(
         {
           refId: 'A',
-          outputType: OutputType.Data,
-          properties: [StepsPropertiesOptions.PROPERTIES as StepsProperties]
+          stepsOutputType: OutputType.Data,
+          stepsProperties: [StepsPropertiesOptions.PROPERTIES as StepsProperties]
         },
       );
 
@@ -263,7 +263,7 @@ describe('QueryStepsDataSource', () => {
       const query = buildQuery(
         {
           refId: 'A',
-          outputType: OutputType.Data,
+          stepsOutputType: OutputType.Data,
           showMeasurements: true
         },
       );
@@ -286,8 +286,8 @@ describe('QueryStepsDataSource', () => {
       const query = buildQuery(
         {
           refId: 'A',
-          outputType: OutputType.Data,
-          useTimeRange: true,
+          stepsOutputType: OutputType.Data,
+          stepsUseTimeRange: true,
         },
       );
 
@@ -316,8 +316,8 @@ describe('QueryStepsDataSource', () => {
       const query = buildQuery(
         {
           refId: 'A',
-          outputType: OutputType.Data,
-          properties: [
+          stepsOutputType: OutputType.Data,
+          stepsProperties: [
             StepsPropertiesOptions.PROPERTIES
           ] as StepsProperties[],
         },
@@ -350,11 +350,11 @@ describe('QueryStepsDataSource', () => {
       const query = buildQuery(
         {
           refId: 'A',
-          outputType: OutputType.TotalCount,
-          properties: [
+          stepsOutputType: OutputType.TotalCount,
+          stepsProperties: [
             StepsPropertiesOptions.PROPERTIES
           ] as StepsProperties[],
-          useTimeRange: true,
+          stepsUseTimeRange: true,
         },
       );
 
@@ -428,9 +428,9 @@ describe('QueryStepsDataSource', () => {
   it('should not call query-steps when partNumberQuery is empty',async () => {
     const query = buildQuery({
       refId: 'A',
-      outputType: OutputType.Data,
+      stepsOutputType: OutputType.Data,
       resultsQuery: '',
-      partNumberQuery: []
+      stepsPartNumberQuery: []
     });
 
     const response = await datastore.query(query);
@@ -957,7 +957,7 @@ describe('QueryStepsDataSource', () => {
     it('should call loadStepPaths when resultsQuery is changed', async () => {
       const query = {
         refId: 'A',
-        partNumberQuery: ['PN1'],
+        stepsPartNumberQuery: ['PN1'],
         resultsQuery: 'new-query',
       } as QuerySteps;
       const spy = jest.spyOn(datastore as any, 'loadStepPaths')
@@ -970,7 +970,7 @@ describe('QueryStepsDataSource', () => {
     it('should not call loadStepPaths when resultsQuery is not changed', async () => {
       const query = {
         refId: 'A',
-        partNumberQuery: ['PN1'],
+        stepsPartNumberQuery: ['PN1'],
         resultsQuery: 'ProgramName = "same-query"',
       } as QuerySteps;
       (datastore as any).previousResultsQuery = "(PartNumber = \"PN1\") && ProgramName = \"same-query\"";
@@ -999,9 +999,9 @@ describe('QueryStepsDataSource', () => {
         );
       const query = {
         refId: 'A',
-        partNumberQuery: ['PN1'],
+        stepsPartNumberQuery: ['PN1'],
         resultsQuery: 'ProgramName = "Test"',
-        outputType: OutputType.Data,
+        stepsOutputType: OutputType.Data,
       } as QuerySteps;
 
       await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
@@ -1015,7 +1015,7 @@ describe('QueryStepsDataSource', () => {
       jest.spyOn(datastore as any, 'queryResultsValues').mockResolvedValue([]);
       const query = {
         refId: 'A',
-        partNumberQuery: ['PN1'],
+        stepsPartNumberQuery: ['PN1'],
         resultsQuery: 'ProgramName = "Test"',
       } as QuerySteps;
 
@@ -1029,9 +1029,9 @@ describe('QueryStepsDataSource', () => {
       jest.spyOn(datastore as any, 'loadStepPaths').mockRejectedValue(error);
       const query = {
         refId: 'A',
-        partNumberQuery: ['PN1'],
+        stepsPartNumberQuery: ['PN1'],
         resultsQuery: 'ProgramName = "Test"',
-        outputType: OutputType.Data,
+        stepsOutputType: OutputType.Data,
       } as QuerySteps;
 
       await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
@@ -1047,9 +1047,9 @@ describe('QueryStepsDataSource', () => {
       jest.spyOn(datastore as any, 'queryResultsValues').mockRejectedValue(error);
       const query = {
         refId: 'A',
-        partNumberQuery: ['PN1'],
+        stepsPartNumberQuery: ['PN1'],
         resultsQuery: 'ProgramName = "Test"',
-        outputType: OutputType.Data,
+        stepsOutputType: OutputType.Data,
       } as QuerySteps;
 
       await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
@@ -1065,9 +1065,9 @@ describe('QueryStepsDataSource', () => {
       jest.spyOn(datastore as any, 'queryResultsValues').mockRejectedValue(error);
       const query = {
         refId: 'A',
-        partNumberQuery: ['PN1'],
+        stepsPartNumberQuery: ['PN1'],
         resultsQuery: 'ProgramName = "Test"',
-        outputType: OutputType.Data,
+        stepsOutputType: OutputType.Data,
       } as QuerySteps;
 
       await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
@@ -1129,7 +1129,7 @@ describe('QueryStepsDataSource', () => {
       test('should transform the resultsfilter and stepsfilter contains single query', async () => {
         const query = buildQuery({
           refId: 'A',
-          outputType: OutputType.Data,
+          stepsOutputType: OutputType.Data,
           resultsQuery: `${ResultsQueryBuilderFieldNames.PROGRAM_NAME} = "name1"`,
           stepsQuery: `${StepsQueryBuilderFieldNames.TYPE} = "Type1"`
         })
@@ -1149,7 +1149,7 @@ describe('QueryStepsDataSource', () => {
       test('should transform fields when contains multiple queries', async () => {
         const query = buildQuery({
           refId: 'A',
-          outputType: OutputType.Data,
+          stepsOutputType: OutputType.Data,
           resultsQuery: `${ResultsQueryBuilderFieldNames.PROGRAM_NAME} = "{name1,name2}"`,
           partNumberQuery: ['partNumber1', 'partNumber2'],
         })
@@ -1526,8 +1526,8 @@ describe('QueryStepsDataSource', () => {
   const buildQuery = getQueryBuilder<QuerySteps>()({
     refId: 'A',
     queryType: QueryType.Steps,
-    outputType: OutputType.Data,
+    stepsOutputType: OutputType.Data,
     resultsQuery: 'ProgramName = "name1"',
-    partNumberQuery: ['partNumber1'],
+    stepsPartNumberQuery: ['partNumber1'],
   });
 });
