@@ -181,7 +181,7 @@ describe('runQuery', () => {
     expect(result.fields[1].values).toEqual(['Active', 'Completed']);
   });
 
-  test('returns empty data frame when no test plans are available', async () => {
+  test('should return field without values when no test plans are available', async () => {
     const query = {
       refId: 'A',
       outputType: OutputType.Properties,

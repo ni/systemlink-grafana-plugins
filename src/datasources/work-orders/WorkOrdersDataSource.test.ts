@@ -101,7 +101,7 @@ describe('WorkOrdersDataSource', () => {
   });
 
   describe('runQuery', () => {
-    test('should return field with no data when no work orders are found', async () => {
+    test('should return field without values when no work orders are found', async () => {
       const mockQuery = {
         refId: 'A',
         properties: [WorkOrderPropertiesOptions.NAME],
