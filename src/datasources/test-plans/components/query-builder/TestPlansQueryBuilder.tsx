@@ -182,6 +182,11 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
             };
         });
 
+        const customDateTimeOperations = [
+            QueryBuilderOperations.DATE_TIME_IS_BLANK,
+            QueryBuilderOperations.DATE_TIME_IS_NOT_BLANK
+        ];
+
         const keyValueOperations = [
             QueryBuilderOperations.KEY_VALUE_MATCH,
             QueryBuilderOperations.KEY_VALUE_DOES_NOT_MATCH,
@@ -189,7 +194,7 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
             QueryBuilderOperations.KEY_VALUE_DOES_NOT_CONTAINS
         ];
 
-        setOperations([...customOperations, ...keyValueOperations]);
+        setOperations([...customOperations, ...customDateTimeOperations, ...keyValueOperations]);
 
     }, [workspaceField, systemAliasField, timeFields, usersFields, productsField, globalVariableOptions]);
 

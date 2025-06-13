@@ -6,6 +6,7 @@ import { getVariableOptions } from "core/utils";
 import { ExpressionTransformFunction } from "core/query-builder.utils";
 import { QueryBuilderOperations } from "core/query-builder.constants";
 import { extractErrorInfo } from "core/errors";
+import { ResultsPropertiesOptions } from "./types/QueryResults.types";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
   errorTitle = '';
@@ -18,6 +19,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   private toDateString = '${__to:date}';
   private static _workspacesCache: Promise<Map<string, Workspace>> | null = null;
   private static _productCache: Promise<QueryProductResponse> | null = null;
+  private static _partNumbersCache: Promise<string[]> | null = null;
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
@@ -44,6 +46,10 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     return this.loadProducts();
   }
 
+  get partNumbersCache(): Promise<string[]> {
+    return this.getPartNumbers();
+  }
+
   async loadWorkspaces(): Promise<Map<string, Workspace>> {
     if (ResultsDataSourceBase._workspacesCache) {
       return ResultsDataSourceBase._workspacesCache;
@@ -65,6 +71,21 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       });
 
     return ResultsDataSourceBase._workspacesCache;
+  }
+
+   async getPartNumbers(): Promise<string[]> {
+    if (ResultsDataSourceBase._partNumbersCache) {
+      return ResultsDataSourceBase._partNumbersCache;
+    }
+
+    ResultsDataSourceBase._partNumbersCache = this.queryResultsValues(ResultsPropertiesOptions.PART_NUMBER, undefined)
+    .catch(error => {
+       if (!this.errorTitle) {
+          this.handleQueryValuesError(error, 'result');
+        }
+        return [];
+    });
+    return ResultsDataSourceBase._partNumbersCache;
   }
 
   async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {

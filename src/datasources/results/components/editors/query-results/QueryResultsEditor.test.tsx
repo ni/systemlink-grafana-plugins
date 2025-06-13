@@ -10,10 +10,11 @@ import { recordCountErrorMessages } from 'datasources/results/constants/ResultsQ
 import { ResultsProperties } from 'datasources/results/types/QueryResults.types';
 
 jest.mock('../../query-builders/query-results/ResultsQueryBuilder', () => ({
-  ResultsQueryBuilder: jest.fn(({ filter, workspaces, status, globalVariableOptions, onChange }) => {
+  ResultsQueryBuilder: jest.fn(({ filter, partNumbers, workspaces, status, globalVariableOptions, onChange }) => {
     return (
       <div data-testid="results-query-builder">
         <div data-testid="filter">{filter}</div>
+        <div data-testid="part-numbers">{JSON.stringify(partNumbers)}</div>
         <div data-testid="workspaces">{JSON.stringify(workspaces)}</div>
         <div data-testid="status">{JSON.stringify(status)}</div>
         <div data-testid="global-vars">{JSON.stringify(globalVariableOptions)}</div>
@@ -38,17 +39,12 @@ const mockWorkspaces: Workspace[] = [
   { id: '2', name: 'Workspace2', default: false, enabled: true },
 ];
 const mockGlobalVars = [{ label: '$var1', value: '$var1' }];
-const mockProducts = {
-  products: [
-    { partNumber: 'PartNumber1', name: 'ProductName1' },
-    { partNumber: 'PartNumber2', name: 'ProductName2' },
-    { partNumber: 'PartNumber3', name: null },
-  ],
-};
+const mockPartNumbers = ['PN1', 'PN2', 'PN3'];
+
 
 const mockDatasource = {
   workspacesCache: Promise.resolve(new Map(mockWorkspaces.map(workspace => [workspace.id, workspace]))),
-  productCache: Promise.resolve(mockProducts),
+  partNumbersCache: Promise.resolve(mockPartNumbers),
   globalVariableOptions: jest.fn(() => mockGlobalVars),
 } as unknown as QueryResultsDataSource;
 
@@ -69,7 +65,6 @@ let recordCount: HTMLElement;
 let dataOutput: HTMLElement;
 let totalCountOutput: HTMLElement;
 let useTimeRange: HTMLElement;
-let productName: HTMLElement;
 
 describe('QueryResultsEditor', () => {
   beforeEach(async () => {
@@ -87,7 +82,6 @@ describe('QueryResultsEditor', () => {
     totalCountOutput = screen.getByRole('radio', { name: 'Total Count' });
     recordCount = screen.getByDisplayValue(1000);
     useTimeRange = screen.getAllByRole('checkbox')[0];
-    productName = screen.getAllByRole('combobox')[1];
   });
 
   test('should render with default query when default values are provided', async () => {
@@ -99,9 +93,6 @@ describe('QueryResultsEditor', () => {
     expect(recordCount).toHaveValue(1000);
     expect(useTimeRange).toBeInTheDocument();
     expect(useTimeRange).toBeChecked();
-    expect(productName).toBeInTheDocument();
-    expect(screen.getAllByText('ProductName1 (PartNumber1)').length).toBe(1);
-    expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining(defaultQuery));
   });
 
   describe('Properties', () => {
@@ -119,27 +110,6 @@ describe('QueryResultsEditor', () => {
       }
   
       expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
-    });
-  });
-
-  test('should update part number query when user changes a product name', async () => {
-    await select(productName, 'ProductName2 (PartNumber2)', { container: document.body });
-    await waitFor(() => {
-      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "PartNumber2"] }));
-    });
-  });
-
-  test('should update part number query when user selects a variable in product name field', async () => {
-    await select(productName, '$var1', { container: document.body });
-    await waitFor(() => {
-      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "$var1"] }));
-    });
-  });
-
-  test('should update part number query when product name is not available', async () => {
-    await select(productName, 'PartNumber3', { container: document.body });
-    await waitFor(() => {
-      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ partNumberQuery: ["PartNumber1", "PartNumber3"] }));
     });
   });
 
@@ -211,7 +181,7 @@ describe('QueryResultsEditor', () => {
 
       const emptyDatasource = {
         workspacesCache: Promise.resolve(new Map()),
-        productCache: Promise.resolve({ products: [] }),
+        partNumbersCache: Promise.resolve(mockPartNumbers),
         globalVariableOptions: jest.fn(() => []),
       } as unknown as QueryResultsDataSource;
 
@@ -233,12 +203,40 @@ describe('QueryResultsEditor', () => {
       expect(screen.getByTestId('workspaces')).toHaveTextContent('[]');
     })
 
+    test('should render empty part numbers when cache is empty', async () => {
+      cleanup();
+
+      const emptyDatasource = {
+        workspacesCache: Promise.resolve(new Map(mockWorkspaces.map(workspace => [workspace.id, workspace]))),
+        partNumbersCache: Promise.resolve([]),
+        globalVariableOptions: jest.fn(() => mockGlobalVars),
+      } as unknown as QueryResultsDataSource;
+
+      await act(async () => {
+        render(
+          <QueryResultsEditor
+            query={{
+              refId: 'A',
+              queryType: QueryType.Results,
+              outputType: OutputType.Data,
+            }}
+            handleQueryChange={mockHandleQueryChange}
+            datasource={emptyDatasource}
+          />
+        );
+      });
+
+      expect(screen.getByTestId('results-query-builder')).toBeInTheDocument();
+      expect(screen.getByTestId('part-numbers')).toHaveTextContent('[]');
+    });
+
     test('should render ResultsQueryBuilder with default props when component is loaded', () => {
       const resultsQueryBuilder = screen.getByTestId('results-query-builder');
       expect(resultsQueryBuilder).toBeInTheDocument();
       expect(screen.getByTestId('filter')).toHaveTextContent('programName = "name1"');
       expect(screen.getByTestId('workspaces')).toHaveTextContent(JSON.stringify(mockWorkspaces));
       expect(screen.getByTestId('status')).toHaveTextContent(JSON.stringify(['PASSED', 'FAILED']));
+      expect(screen.getByTestId('part-numbers')).toHaveTextContent(JSON.stringify(mockPartNumbers));
       expect(screen.getByTestId('global-vars')).toHaveTextContent(JSON.stringify(mockGlobalVars));
     });
 

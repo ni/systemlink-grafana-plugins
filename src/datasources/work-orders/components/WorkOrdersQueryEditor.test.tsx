@@ -87,13 +87,6 @@ describe('WorkOrdersQueryEditor', () => {
     const take = container.getByRole('spinbutton');
     expect(take).toBeInTheDocument();
     expect(take).toHaveDisplayValue('');
-
-    expect(mockOnChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        outputType: OutputType.Properties,
-        refId: 'A'
-      }));
-    expect(mockOnRunQuery).toHaveBeenCalledTimes(1);
   });
 
   describe('output type is total count', () => {

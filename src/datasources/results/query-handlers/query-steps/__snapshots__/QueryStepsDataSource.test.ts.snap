@@ -12,77 +12,6 @@ exports[`QueryStepsDataSource query should convert properties to Grafana fields 
 ]
 `;
 
-exports[`QueryStepsDataSource query should convert step measurements to Grafana fields when show measurments is enabled 1`] = `
-[
-  {
-    "name": "Measurement Name",
-    "type": "string",
-    "values": [
-      [
-        "Voltage",
-        "Voltage",
-        "Current",
-      ],
-    ],
-  },
-  {
-    "name": "Measurement Value",
-    "type": "string",
-    "values": [
-      [
-        "3.7",
-        "3.7",
-        "1.2",
-      ],
-    ],
-  },
-  {
-    "name": "Status",
-    "type": "string",
-    "values": [
-      [
-        "Passed",
-        "Passed",
-        "Failed",
-      ],
-    ],
-  },
-  {
-    "name": "Unit",
-    "type": "string",
-    "values": [
-      [
-        "V",
-        "V",
-        "A",
-      ],
-    ],
-  },
-  {
-    "name": "Low Limit",
-    "type": "string",
-    "values": [
-      [
-        "3.5",
-        "3.5",
-        "1.0",
-      ],
-    ],
-  },
-  {
-    "name": "High Limit",
-    "type": "string",
-    "values": [
-      [
-        "4.0",
-        "4.0",
-        "1.5",
-      ],
-    ],
-  },
-]
-`;
-
 exports[`QueryStepsDataSource query should return data for valid data-output-type query 1`] = `
 [
   {
@@ -107,13 +36,117 @@ exports[`QueryStepsDataSource query should return total count for valid total co
   {
     "fields": [
       {
-        "name": "Total count",
+        "name": "A",
         "values": [
           1,
         ],
       },
     ],
     "refId": "A",
+  },
+]
+`;
+
+exports[`QueryStepsDataSource query show measurements is enabled should convert step measurements to Grafana fields as a column 1`] = `
+[
+  {
+    "name": "Voltage",
+    "type": "number",
+    "values": [
+      "3.7",
+      "3.7",
+    ],
+  },
+  {
+    "name": "Voltage-Status",
+    "type": "string",
+    "values": [
+      "Passed",
+      "Passed",
+    ],
+  },
+  {
+    "name": "Voltage-Unit",
+    "type": "string",
+    "values": [
+      "V",
+      "V",
+    ],
+  },
+  {
+    "name": "Voltage-Low Limit",
+    "type": "number",
+    "values": [
+      "3.5",
+      "3.5",
+    ],
+  },
+  {
+    "name": "Voltage-High Limit",
+    "type": "number",
+    "values": [
+      "4.0",
+      "4.0",
+    ],
+  },
+  {
+    "name": "Current",
+    "type": "number",
+    "values": [
+      "",
+      "1.2",
+    ],
+  },
+  {
+    "name": "Current-Status",
+    "type": "string",
+    "values": [
+      "",
+      "Failed",
+    ],
+  },
+  {
+    "name": "Current-Unit",
+    "type": "string",
+    "values": [
+      "",
+      "A",
+    ],
+  },
+  {
+    "name": "Current-Low Limit",
+    "type": "number",
+    "values": [
+      "",
+      "1.0",
+    ],
+  },
+  {
+    "name": "Current-High Limit",
+    "type": "number",
+    "values": [
+      "",
+      "1.5",
+    ],
+  },
+]
+`;
+
+exports[`QueryStepsDataSource query show measurements is enabled should create empty cells when measurements are not available 1`] = `
+[
+  {
+    "name": "Current",
+    "type": "number",
+    "values": [
+      "1.2",
+    ],
+  },
+  {
+    "name": "Voltage",
+    "type": "number",
+    "values": [
+      "3.7",
+    ],
   },
 ]
 `;
