@@ -30,6 +30,7 @@ export const StepsQueryBuilderWrapper = (
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const [stepsPath, setStepsPath] = useState<string[]>([]);
+  const [isResultsQueryInvalid, setIsResultsQueryInvalid] = useState(false);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -50,13 +51,23 @@ export const StepsQueryBuilderWrapper = (
     loadStepsPath();
     loadWorkspaces();
   }, [datasource]);
+
+  const onResultsQueryByChange = (query: string) => {
+    onResultsQueryChange(query);
+    setIsResultsQueryInvalid(!query || query.trim() === '');
+  }
   
   return (
     <div>
-      <InlineField label="Query by results properties" labelWidth={26} tooltip={tooltips.resultsQueryBuilder}>
+      <InlineField
+        label="Query by results properties"
+        labelWidth={26}
+        tooltip={tooltips.resultsQueryBuilder}
+        invalid={isResultsQueryInvalid}
+        error={'This is a required field.'}>
         <ResultsQueryBuilder
           filter={resultsQuery}
-          onChange={(event) => onResultsQueryChange((event as CustomEvent<{ linq: string }>).detail.linq)}
+          onChange={(event) => onResultsQueryByChange((event as CustomEvent<{ linq: string }>).detail.linq)}
           workspaces={workspaces}
           status={enumToOptions(TestMeasurementStatus).map(option => option.value?.toString() || '')}
           partNumbers={partNumbers}
