@@ -106,7 +106,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     take?: number,
     descending?: boolean,
     resultFilter?: string,
-    returnCount = false,
   ): Promise<QueryStepsResponse> {
     const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<StepsResponseProperties>> => {
       const response = await this.querySteps(
@@ -117,7 +116,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         descending,
         resultFilter,
         token,
-        returnCount
+        true
       );
 
       return {
@@ -212,7 +211,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         query.recordCount,
         query.descending,
         query.resultsQuery,
-        true
       );
 
       if (responseData.steps.length === 0) {
