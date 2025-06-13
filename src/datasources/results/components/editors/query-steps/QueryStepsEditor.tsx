@@ -1,12 +1,5 @@
 import { SelectableValue } from '@grafana/data';
-import {
-  AutoSizeInput,
-  InlineField,
-  InlineSwitch,
-  MultiSelect,
-  RadioButtonGroup,
-  VerticalGroup,
-} from '@grafana/ui';
+import { AutoSizeInput, InlineField, InlineSwitch, MultiSelect, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
 import React, { useEffect, useState } from 'react';
 import '../../ResultsQueryEditor.scss';
@@ -50,7 +43,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
       handleQueryChange({ ...query, recordCount: value });
     }
   };
-  
+
   function isRecordCountValid(value: number, takeLimit: number): boolean {
     if (Number.isNaN(value) || value < 0) {
       setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
@@ -88,7 +81,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   return (
     <>
       <VerticalGroup>
-        <InlineField label="Output" labelWidth={26} tooltip={tooltips.output}>
+        <InlineField label={labels.output} labelWidth={26} tooltip={tooltips.output}>
           <RadioButtonGroup
             options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
             value={query.outputType}
@@ -97,13 +90,14 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
         </InlineField>
         {query.outputType === OutputType.Data && (
           <InlineField
-            label="Properties"
+            label={labels.properties}
             labelWidth={26}
             tooltip={tooltips.properties}
             invalid={!isPropertiesValid}
-            error='You must select at least one property.'>
+            error={errors.properties}
+          >
             <MultiSelect
-              placeholder="Select properties to fetch"
+              placeholder={placeholders.properties}
               options={enumToOptions(StepsProperties)}
               onChange={onPropertiesChange}
               value={query.properties}
@@ -118,7 +112,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
         )}
         <div>
           {query.outputType === OutputType.Data && (
-            <InlineField label="Show Measurements" labelWidth={26} tooltip={tooltips.showMeasurements}>
+            <InlineField label={labels.showMeasurements} labelWidth={26} tooltip={tooltips.showMeasurements}>
               <InlineSwitch
                 onChange={event => onShowMeasurementChange(event.currentTarget.checked)}
                 value={query.showMeasurements}
@@ -142,30 +136,31 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
             disableStepsQueryBuilder={disableStepsQueryBuilder}
           />
           {query.outputType === OutputType.Data && (
-          <div className="results-right-query-controls">
-            <InlineField
-                label="Take"
+            <div className="results-right-query-controls">
+              <InlineField
+                label={labels.take}
                 labelWidth={26}
                 tooltip={tooltips.recordCount}
                 invalid={!!recordCountInvalidMessage}
-                error={recordCountInvalidMessage}>
-              <AutoSizeInput
-                minWidth={25}
-                maxWidth={25}
-                type="number"
-                defaultValue={query.recordCount}
-                onCommitChange={recordCountChange}
-                placeholder="Enter record count"
-                onKeyDown={event => {
-                  validateNumericInput(event);
-                }}
-              />
-            </InlineField>
-          </div>
+                error={recordCountInvalidMessage}
+              >
+                <AutoSizeInput
+                  minWidth={25}
+                  maxWidth={25}
+                  type="number"
+                  defaultValue={query.recordCount}
+                  onCommitChange={recordCountChange}
+                  placeholder={placeholders.take}
+                  onKeyDown={event => {
+                    validateNumericInput(event);
+                  }}
+                />
+              </InlineField>
+            </div>
           )}
         </div>
       </VerticalGroup>
-      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity='warning'/>
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
     </>
   );
 }
@@ -175,4 +170,23 @@ const tooltips = {
   properties: 'This field specifies the properties to use in the query.',
   recordCount: 'This field sets the maximum number of steps.',
   showMeasurements: 'This toggle enables the display of step measurement data.',
+};
+
+const labels = {
+  output: 'Output',
+  properties: 'Properties',
+  showMeasurements: 'Show measurements',
+  product: 'Product (part number)',
+  take: 'Take',
+};
+
+const errors = {
+  properties: 'You must select at least one property.',
+  product: 'You must select at least one product in this field.',
+};
+
+const placeholders = {
+  properties: 'Select properties to fetch',
+  product: 'Select part numbers to use in a query',
+  take: 'Enter record count',
 };

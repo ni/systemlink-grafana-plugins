@@ -113,7 +113,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
 
   return (
     <>
-      <InlineField label="Query Type" labelWidth={26} tooltip={tooltips.queryType}>
+      <InlineField label={labels.queryType} labelWidth={26} tooltip={tooltips.queryType}>
         <RadioButtonGroup
           options={Object.values(QueryType).map(value => ({ label: value, value })) as SelectableValue[]}
           value={query.queryType}
@@ -122,7 +122,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
       </InlineField>
       {query.queryType === QueryType.Results && (
         <>
-          <InlineField label="Properties" labelWidth={26} tooltip={tooltips.properties}>
+          <InlineField label={labels.properties} labelWidth={26} tooltip={tooltips.properties}>
             <Select
               onChange={onPropertiesChange}
               options={ResultsVariableProperties as SelectableValue[]}
@@ -144,11 +144,11 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
                 ></ResultsQueryBuilder>
               </InlineField>
               <InlineField
-                label="Take"
+                label={labels.resultsTake}
                 labelWidth={26}
                 tooltip={tooltips.resultsTake}
                 invalid={!!resultsRecordCountInvalidMessage}
-                error={resultsRecordCountInvalidMessage}
+                error={errorMessages.resultsRecordCountInvalid}
               >
                 <AutoSizeInput
                   minWidth={25}
@@ -156,7 +156,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
                   type="number"
                   defaultValue={queryResultsquery.resultsTake ? queryResultsquery.resultsTake : 1000}
                   onCommitChange={onResultsRecordCountChange}
-                  placeholder="Enter record count"
+                  placeholder={placeholders.resultsTake}
                   onKeyDown={event => {
                     validateNumericInput(event);
                   }}
@@ -177,11 +177,11 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
             disableStepsQueryBuilder={isQueryBuilderDisabled}
           />
           <InlineField
-            label="Take"
+            label={labels.stepsTake}
             labelWidth={26}
             tooltip={tooltips.stepsTake}
             invalid={!!stepsRecordCountInvalidMessage}
-            error={stepsRecordCountInvalidMessage}
+            error={errorMessages.stepsRecordCountInvalid}
           >
             <AutoSizeInput
               minWidth={25}
@@ -189,7 +189,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
               type="number"
               defaultValue={stepsVariableQuery.stepsTake ? stepsVariableQuery.stepsTake : 1000}
               onCommitChange={onStepsRecordCountChange}
-              placeholder="Enter record count"
+              placeholder={placeholders.stepsTake}
               onKeyDown={event => {
                 validateNumericInput(event);
               }}
@@ -197,7 +197,11 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
           </InlineField>
         </>
       )}
-      <FloatingError message={queryResultsDataSource.current.errorTitle} innerMessage={queryResultsDataSource.current.errorDescription} severity='warning'/>
+      <FloatingError
+        message={queryResultsDataSource.current.errorTitle}
+        innerMessage={queryResultsDataSource.current.errorDescription}
+        severity="warning"
+      />
     </>
   );
 }
@@ -209,4 +213,25 @@ const tooltips = {
   queryBy: 'This field applies a filter to the query results.',
   properties: 'This field specifies the property to return from the query.',
   productName: 'This field filters results by part number.',
+};
+
+const labels = {
+  queryType: 'Query type',
+  properties: 'Properties',
+  productName: 'Product (part number)',
+  queryByResults: 'Query by results properties',
+  stepsTake: 'Steps take',
+  resultsTake: 'Results take',
+};
+
+const placeholders = {
+  productName: 'Select part numbers to use in a query',
+  stepsTake: 'Enter record count',
+  resultsTake: 'Enter record count',
+};
+
+const errorMessages = {
+  stepsRecordCountInvalid: 'Enter a value greater than 0 and less than or equal to 100,000',
+  resultsRecordCountInvalid: 'Enter a value greater than 0 and less than or equal to 100,000',
+  partNumberQueryInStepsInvalid: 'Select at least one part number to use in a query',
 };
