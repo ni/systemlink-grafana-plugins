@@ -61,6 +61,11 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
     }, [onChange, onRunQuery]
   );
 
+  useEffect(() => {
+    handleQueryChange(query, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
+
   const onOutputTypeChange = (value: OutputType) => {
     handleQueryChange({ ...query, outputType: value });
   };

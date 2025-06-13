@@ -100,6 +100,14 @@ describe('TestPlansQueryEditor', () => {
             const queryBuilder = container.getByRole('dialog');
             expect(queryBuilder).toBeInTheDocument();
         });
+
+        expect(mockOnChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            outputType: OutputType.Properties,
+            refId: 'A',
+          })
+        );
+        expect(mockOnRunQuery).toHaveBeenCalledTimes(1);
     });
 
     describe('when output type is properties', () => {
