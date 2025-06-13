@@ -38,15 +38,15 @@ export const PropertiesOptions = {
 };
 
 export const ProductPropertiesProjectionMap = {
-  'Product ID': Properties.id,
-  'Part Number': Properties.partNumber,
-  'Product Name': Properties.name,
-  'Family': Properties.family,
-  'Updated At': Properties.updatedAt,
-  'Workspace': Properties.workspace,
-  'Keywords': Properties.keywords,
-  'Properties': Properties.properties,
-  'File IDs': Properties.fileIds,
+  'Product ID': PropertiesOptions.ID,
+  'Part Number': PropertiesOptions.PART_NUMBER,
+  'Product Name': PropertiesOptions.NAME,
+  'Family': PropertiesOptions.FAMILY,
+  'Updated At': PropertiesOptions.UPDATEDAT,
+  'Workspace': PropertiesOptions.WORKSPACE,
+  'Keywords': PropertiesOptions.KEYWORDS,
+  'Properties': PropertiesOptions.PROPERTIES,
+  'File IDs': PropertiesOptions.FILE_IDS
 }
 
 export const OrderBy = [

@@ -96,7 +96,8 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
           >
             <MultiSelect
               placeholder={placeholders.properties}
-              options={Object.entries(StepPropertiesProjectionMap).map(([key, value]) => ({ label: key, value: value })) as SelectableValue[]}
+              options={Object.entries(StepPropertiesProjectionMap)
+                .map(([key, value]) => ({ label: key, value: value })) as SelectableValue[]}
               onChange={onPropertiesChange}
               value={query.properties}
               defaultValue={query.properties!}

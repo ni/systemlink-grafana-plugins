@@ -102,8 +102,8 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
             error='You must select at least one property.'>
             <MultiSelect
               placeholder="Select properties to fetch"
-              options={Object.keys(ProductPropertiesProjectionMap)
-                .map(value => ({ label: value, value })) as SelectableValue[]}
+              options={Object.entries(ProductPropertiesProjectionMap)
+                .map(([key, value]) => ({ label: key, value })) as SelectableValue[]}
               onChange={onPropertiesChange}
               value={query.properties}
               defaultValue={query.properties!}

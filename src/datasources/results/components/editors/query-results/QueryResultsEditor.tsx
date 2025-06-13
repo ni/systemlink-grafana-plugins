@@ -95,7 +95,8 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
           >
             <MultiSelect
               placeholder={placeholders.properties}
-              options={Object.entries(ResultPropertiesProjectionMap).map(([key, value]) => ({ label: key, value })) as SelectableValue[]}
+              options={Object.entries(ResultPropertiesProjectionMap)
+                .map(([key, value]) => ({ label: key, value })) as SelectableValue[]}
               onChange={onPropertiesChange}
               value={query.properties}
               defaultValue={query.properties!}
