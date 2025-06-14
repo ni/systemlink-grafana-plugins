@@ -2,7 +2,7 @@ import { SelectableValue } from '@grafana/data';
 import { AutoSizeInput, InlineField, MultiSelect, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
 import React, { useEffect, useState } from 'react';
-import { QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
+import { QueryResults, ResultPropertiesProjectionMap, ResultsProperties } from 'datasources/results/types/QueryResults.types';
 import { OutputType, TestMeasurementStatus } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
 import { Workspace } from 'core/types';
@@ -95,7 +95,8 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
           >
             <MultiSelect
               placeholder={placeholders.properties}
-              options={enumToOptions(ResultsProperties)}
+              options={Object.entries(ResultPropertiesProjectionMap)
+                .map(([key, value]) => ({ label: key, value })) as SelectableValue[]}
               onChange={onPropertiesChange}
               value={query.properties}
               defaultValue={query.properties!}

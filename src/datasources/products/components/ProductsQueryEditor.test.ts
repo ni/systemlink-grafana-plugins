@@ -54,7 +54,7 @@ describe('ProductsQueryEditor', () => {
 
   it('updates when user makes changes', async () => {
     //User adds a properties       
-    await select(properties, "id", { container: document.body });
+    await select(properties, "Product ID", { container: document.body });
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({ properties: ["id"] })
@@ -113,7 +113,7 @@ describe('ProductsQueryEditor', () => {
 
   it('should show error when all properties are removed', async () => {
     // User adds a property
-    await select(properties, "id", { container: document.body });
+    await select(properties, "Product ID", { container: document.body });
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({ properties: ["id"] })
