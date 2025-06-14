@@ -1,3 +1,9 @@
+## [3.135.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.135.3...v3.135.4) (2025-06-14)
+
+### Bug Fixes
+
+* **core:** infinite api calls with `queryInBatch` method ([#296](https://github.com/ni/systemlink-grafana-plugins/issues/296)) ([76beff6](https://github.com/ni/systemlink-grafana-plugins/commit/76beff6b67a082f509b451b9ffa029f9ac80db32))
+
 ## [3.135.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.135.2...v3.135.3) (2025-06-13)
 
 ### Bug Fixes
