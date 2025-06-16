@@ -120,7 +120,6 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
         query.descending
       )).products;
 
-    // Determine which fields to include based on the properties in the query and the actual product data
     const selectedFields = (products && products.length > 0)
       ? (query.properties?.filter(
         (field: Properties) => field in products[0]
