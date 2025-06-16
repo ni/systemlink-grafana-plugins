@@ -297,7 +297,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
 
   private handleDependenciesError(error: unknown): void {
     const errorDetails = extractErrorInfo((error as Error).message);
-    this.errorTitle = 'Warning during product value query';
+    this.errorTitle = 'Warning during workorders query';
     if (errorDetails.statusCode === '504') {
       this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
     } else {

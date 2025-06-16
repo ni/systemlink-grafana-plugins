@@ -336,6 +336,106 @@ describe('WorkOrdersDataSource', () => {
     });
   });
 
+  describe('loadWorkspaces', () => {
+    test('returns workspaces', async () => {
+      const result = await datastore.loadWorkspaces();
+
+      expect(result.get('Workspace1')?.name).toBe('Workspace Name');
+      expect(result.get('Workspace2')?.name).toBe('Another Workspace Name');
+    });
+
+    it('should handle errors and set error and innerError fields', async () => {
+      jest.spyOn(datastore.workspaceUtils, 'getWorkspaces').mockRejectedValue(new Error('Error'));
+
+      await datastore.loadWorkspaces();
+
+      expect(datastore.errorTitle).toBe('Warning during workorders query');
+      expect(datastore.errorDescription).toContain(
+        'Some values may not be available in the query builder lookups due to an unknown error.'
+      );
+    });
+
+    it('should handle errors and set innerError fields with error message detail', async () => {
+      datastore.errorTitle = '';
+      jest
+        .spyOn(datastore.workspaceUtils, 'getWorkspaces')
+        .mockRejectedValue(
+          new Error('Request failed with status code: 500, Error message: {"message": "Internal Server Error"}')
+        );
+
+      await datastore.loadWorkspaces();
+
+      expect(datastore.errorTitle).toBe('Warning during workorders query');
+      expect(datastore.errorDescription).toContain(
+        'Some values may not be available in the query builder lookups due to the following error: Internal Server Error.'
+      );
+    });
+
+    test('should throw timeOut error when API returns 504 status', async () => {
+      datastore.errorTitle = '';
+      jest
+        .spyOn(datastore.workspaceUtils, 'getWorkspaces')
+        .mockRejectedValue(new Error('Request failed with status code: 504'));
+
+      await datastore.loadWorkspaces();
+
+      expect(datastore.errorTitle).toBe('Warning during workorders query');
+      expect(datastore.errorDescription).toContain(
+        `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`
+      );
+    });
+  });
+
+  describe('loadUsers', () => {
+    test('returns users', async () => {
+      const result = await datastore.loadUsers();
+
+      expect(result.get('1')?.lastName).toBe('1');
+      expect(result.get('2')?.lastName).toBe('2');
+    });
+
+    it('should handle errors and set error and innerError fields', async () => {
+      jest.spyOn(datastore.usersUtils, 'getUsers').mockRejectedValue(new Error('Error'));
+
+      await datastore.loadWorkspaces();
+
+      expect(datastore.errorTitle).toBe('Warning during workorders query');
+      expect(datastore.errorDescription).toContain(
+        'Some values may not be available in the query builder lookups due to an unknown error.'
+      );
+    });
+
+    it('should handle errors and set innerError fields with error message detail', async () => {
+      datastore.errorTitle = '';
+      jest
+        .spyOn(datastore.usersUtils, 'getUsers')
+        .mockRejectedValue(
+          new Error('Request failed with status code: 500, Error message: {"message": "Internal Server Error"}')
+        );
+
+      await datastore.loadWorkspaces();
+
+      expect(datastore.errorTitle).toBe('Warning during workorders query');
+      expect(datastore.errorDescription).toContain(
+        'Some values may not be available in the query builder lookups due to the following error: Internal Server Error.'
+      );
+    });
+
+    test('should throw timeOut error when API returns 504 status', async () => {
+      datastore.errorTitle = '';
+      jest
+        .spyOn(datastore.usersUtils, 'getUsers')
+        .mockRejectedValue(new Error('Request failed with status code: 504'));
+
+      await datastore.loadWorkspaces();
+
+      expect(datastore.errorTitle).toBe('Warning during workorders query');
+      expect(datastore.errorDescription).toContain(
+        `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`
+      );
+    });
+  });
+
   describe('queryWorkordersData', () => {
     test('returns work orders from API response', async () => {
       jest.spyOn(datastore, 'queryWorkOrders').mockResolvedValue(mockWorkOrders);
@@ -393,8 +493,48 @@ describe('WorkOrdersDataSource', () => {
       const body = { filter: 'filter', take: 10 };
 
       await expect(datastore.queryWorkOrders(body)).rejects.toThrow(
-        'Request to url "/niworkorder/v1/query-workorders" failed with status code: 400. Error message: "Error"'
+        'The query failed due to the following error: (status 400) "Error".'
       );
+    });
+
+    it('should throw timeOut error when API returns 504 status', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/niworkorder/v1/query-workorders' }))
+        .mockReturnValue(createFetchError(504));
+
+      await expect(datastore.queryWorkOrders({})).rejects.toThrow(
+        'The query to fetch workorders experienced a timeout error. Narrow your query with a more specific filter and try again.'
+      );
+    });
+
+    it('should throw error with unknown error when API returns error without status', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/niworkorder/v1/query-workorders' }))
+        .mockImplementation(() => {
+          throw new Error('Error');
+        });
+
+      await expect(datastore.queryWorkOrders({})).rejects.toThrow('The query failed due to an unknown error.');
+    });
+
+    it('should publish alertError event when error occurs', async () => {
+      const publishMock = jest.fn();
+      (datastore as any).appEvents = { publish: publishMock };
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/niworkorder/v1/query-workorders' }))
+        .mockReturnValue(createFetchError(400));
+
+      await expect(datastore.queryWorkOrders({})).rejects.toThrow(
+        'The query failed due to the following error: (status 400) "Error".'
+      );
+
+      expect(publishMock).toHaveBeenCalledWith({
+        type: 'alert-error',
+        payload: [
+          'Error during workorders query',
+          expect.stringContaining('The query failed due to the following error: (status 400) "Error".'),
+        ],
+      });
     });
   });
 
