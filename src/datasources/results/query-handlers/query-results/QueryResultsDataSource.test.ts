@@ -173,7 +173,7 @@ describe('QueryResultsDataSource', () => {
       expect(response.data[0].refId).toBe('A');
     });
 
-    test('returns no data when QueryResults API returns empty array', async () => {
+    test('returns column headers with no data when QueryResults API returns empty array', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
         .mockReturnValue(
@@ -186,7 +186,13 @@ describe('QueryResultsDataSource', () => {
           )
         );
 
-      const query = buildQuery();
+      const query = buildQuery(
+        {
+          refId: 'A',
+          outputType: OutputType.Data,
+          properties: [ResultsProperties.id]
+        },
+      );
       const response = await datastore.query(query);
 
       expect(response.data).toMatchSnapshot();

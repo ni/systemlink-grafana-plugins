@@ -84,18 +84,16 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     );
 
     if (query.outputType === OutputType.Data) {
-      if (responseData.results.length === 0) {
-        return {
-          refId: query.refId,
-          fields: [],
-        };
-      }
+      const results = responseData.results ;
+      
+      // Determine which fields to select based on query properties and available result fields
+      const availableFields = results && results.length > 0 ? Object.keys(results[0]) : [];
+      const selectedFields = (query.properties ?? []).filter((field) => availableFields.includes(field));
 
-      const results = responseData.results;
-      const availableFields = Object.keys(results[0]);
-      const selectedFields = query.properties?.filter((field) =>
-        availableFields.includes(field)
-      ) ?? [];
+      // If no fields are available (empty results), fall back to the requested properties
+      if (selectedFields.length === 0) {
+        selectedFields.push(...(query.properties || []));
+      }
 
       const fields = selectedFields.map((field) => {
         const isTimeField =
@@ -127,6 +125,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
 
       return {
         refId: query.refId,
+        name: query.refId,
         fields,
       };
     }
