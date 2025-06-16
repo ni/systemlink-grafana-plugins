@@ -25,28 +25,28 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
 
   useEffect(() => {
     const loadWorkspaces = async () => {
-      const workspaces = await datasource.loadWorkspaces();
+      const workspaces = await datasource.workspaceUtils.getWorkspaces();
       setWorkspaces(Array.from(workspaces.values()));
     };
 
     loadWorkspaces();
 
     const loadUsers = async () => {
-      const users = await datasource.loadUsers();
+      const users = await datasource.usersUtils.getUsers();
       setUsers(Array.from(users.values()));
     };
 
     loadUsers();
 
     const loadSystemAliases = async () => {
-      const systemAliases = await datasource.loadSystemAliases();
+      const systemAliases = await datasource.systemUtils.getSystemAliases();
       setSystemAliases(Array.from(systemAliases.values()));
     };
 
     loadSystemAliases();
 
     const loadProducts = async () => {
-      const products = await datasource.loadProductNamesAndPartNumbers();
+      const products = await datasource.productUtils.getProductNamesAndPartNumbers();
       setProducts(Array.from(products.values()));
     };
 
