@@ -1,21 +1,19 @@
 ### SystemLink Work Orders data source
 
-The _SystemLink Work Orders_ data source allows you to display workorder properties in dashboards and derive insights.
+You can use the _SystemLink Work Orders_ data source to display workorder properties in dashboards and derive insights.
 
 ### Key Features
 
-- **Display workorder properties**: Display various properties of your workorder, such as state, assigned to, due date and workspace directly in your dashboards.
-- **Custom Queries**: Create custom queries to filter and sort workorder properties based on specific query conditions, allowing you to get the most relevant workorder information.
+- **Display Workorder Properties:** Display various workorder properties in your dashboards. These properties include **State**, **Assigned to**, **Due date**, and **Workspace**.
+- **Custom Queries**: Create custom queries that filter and sort workorder properties based on specific query conditions. These queries allow you to retrieve the most relevant workorder information.
 
 ### Example Queries
 
-Here are some example queries you can create using the _SystemLink Work Orders_ data source:
+For queries that use the _SystemLink Work Orders_ data source, refer to the following examples:
 
-- **List all workorders in particualar state**: Get a list of all workorders a in particualar state(e.g New) along with their properties.
-- **Count of workorders**: Get the count of workorders filtered by various query conditions to show the count of filtered workorders.
+- **List all workorders in particular state**: Retrieve a list of all workorders in a particular state (for example, **New**) along with their properties.
+- **Count of workorders**: Retrieve and display a count of workorders filtered by various query conditions.
 
 ### Additional Resources
 
-For more information, refer to the following resources:
-
-- [Creating and managing workorders - SystemLink Enterprise](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/creating-and-managing-work-orders.html): Learn more about managing workorders using SystemLink Enterprise.
+For more information on managing workorders using SystemLink Enterprise, refer to [Creating and managing workorders - SystemLink Enterprise](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/creating-and-managing-work-orders.html).
