@@ -1,14 +1,16 @@
-import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, TestDataSourceResponse, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
+import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, TestDataSourceResponse, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
-import { QueryBuilderOption, QueryResponse } from 'core/types';
+import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { transformComputedFieldsQuery, ExpressionTransformFunction } from 'core/query-builder.utils';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { getVariableOptions, queryInBatches } from 'core/utils';
 import { QUERY_WORK_ORDERS_MAX_TAKE, QUERY_WORK_ORDERS_REQUEST_PER_SECOND } from './constants/QueryWorkOrders.constants';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { UsersUtils } from 'shared/users.utils';
+import { extractErrorInfo } from 'core/errors';
+import { User } from 'shared/types/QueryUsers.types';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
@@ -23,6 +25,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
 
   baseUrl = `${this.instanceSettings.url}/niworkorder/v1`;
   queryWorkOrdersUrl = `${this.baseUrl}/query-workorders`;
+  errorTitle = '';
+  errorDescription = '';
   workspaceUtils: WorkspaceUtils;
   usersUtils: UsersUtils;
   defaultQuery = {
@@ -97,8 +101,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   }
 
   async processWorkOrdersQuery(query: WorkOrdersQuery): Promise<DataFrameDTO> {
-    const workspaces = await this.workspaceUtils.getWorkspaces();
-    const users = await this.usersUtils.getUsers();
+    const workspaces = await this.loadWorkspaces();
+    const users = await this.loadUsers();
     const workOrders: WorkOrder[] = await this.queryWorkordersData(
       query.queryBy,
       query.properties,
@@ -141,6 +145,28 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       name: query.refId,
       fields: mappedFields ?? [],
     };
+  }
+
+  public async loadWorkspaces(): Promise<Map<string, Workspace>> {
+    try {
+      return await this.workspaceUtils.getWorkspaces();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, Workspace>();
+    }
+  }
+
+  public async loadUsers(): Promise<Map<string, User>> {
+    try {
+      return await this.usersUtils.getUsers();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, User>();
+    }
   }
 
   async queryWorkordersData(
@@ -194,7 +220,22 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       let response = await this.post<WorkOrdersResponse>(this.queryWorkOrdersUrl, body);
       return response;
     } catch (error) {
-      throw new Error(`An error occurred while querying workorders: ${error}`);
+      const errorDetails = extractErrorInfo((error as Error).message);
+      let errorMessage: string;
+      if (!errorDetails.statusCode) {
+        errorMessage = 'The query failed due to an unknown error.';
+      } else if (errorDetails.statusCode === '504') {
+        errorMessage = 'The query to fetch workorders experienced a timeout error. Narrow your query with a more specific filter and try again.';
+      } else {
+        errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+      }
+
+      this.appEvents?.publish?.({
+        type: AppEvents.alertError.name,
+        payload: ['Error during workorders query', errorMessage],
+      });
+
+      throw new Error(errorMessage);
     }
   }
 
@@ -252,5 +293,17 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     ];
 
     return timeFields.includes(field);
+  }
+
+  private handleDependenciesError(error: unknown): void {
+    const errorDetails = extractErrorInfo((error as Error).message);
+    this.errorTitle = 'Warning during product value query';
+    if (errorDetails.statusCode === '504') {
+      this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
+    } else {
+      this.errorDescription = errorDetails.message
+        ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+        : 'Some values may not be available in the query builder lookups due to an unknown error.';
+    }
   }
 }
