@@ -104,5 +104,5 @@ const labels = {
 };
 
 const errorMessages = {
-  invalidResultQuery: 'You must provide at least one result filter.',
+  invalidResultQuery: 'You must add a filter to the result query builder.',
 };
