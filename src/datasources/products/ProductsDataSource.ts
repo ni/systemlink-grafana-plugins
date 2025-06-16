@@ -79,6 +79,8 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       let errorMessage: string;
       if (!errorDetails.statusCode) {
         errorMessage = 'The query failed due to an unknown error.';
+      } else if (errorDetails.statusCode === '504') {
+        errorMessage = 'The query to fetch products experienced a timeout error. Narrow your query with a more specific filter and try again.';
       } else {
         errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
       }
@@ -279,8 +281,12 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   private handleQueryProductValuesError(error: unknown): void {
     const errorDetails = extractErrorInfo((error as Error).message);
     this.errorTitle = 'Warning during product value query';
-    this.errorDescription = errorDetails.message
-      ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
-      : 'Some values may not be available in the query builder lookups due to an unknown error.';
+    if (errorDetails.statusCode === '504') {
+      this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
+    } else {
+      this.errorDescription = errorDetails.message
+        ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+        : 'Some values may not be available in the query builder lookups due to an unknown error.';
+    }
   }
 }
