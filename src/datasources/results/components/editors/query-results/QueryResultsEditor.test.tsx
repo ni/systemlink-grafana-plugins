@@ -123,14 +123,14 @@ describe('QueryResultsEditor', () => {
       expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: 500 }));
     });
 
-    it('should show error and not call onChange when Take is greater than Take limit', async () => {
+    it('should show error and call onChange when Take is greater than Take limit', async () => {
       mockHandleQueryChange.mockClear();
 
       await userEvent.clear(recordCount);
       await userEvent.type(recordCount, '10001');
       await userEvent.click(document.body);
 
-      expect(mockHandleQueryChange).not.toHaveBeenCalled();
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: undefined }));
       expect(screen.getByText(recordCountErrorMessages.lessOrEqualToTakeLimit)).toBeInTheDocument();
     });
 
@@ -141,7 +141,7 @@ describe('QueryResultsEditor', () => {
       await userEvent.type(recordCount, 'abc');
       await userEvent.click(document.body);
 
-      expect(mockHandleQueryChange).not.toHaveBeenCalled();
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: undefined }));
       expect(screen.getByText(recordCountErrorMessages.greaterOrEqualToZero)).toBeInTheDocument();
     });
   });

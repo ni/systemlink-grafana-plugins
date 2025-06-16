@@ -52,6 +52,8 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
     const value = parseInt((event.target as HTMLInputElement).value, 10);
     if (isRecordCountValid(value, TAKE_LIMIT)) {
       handleQueryChange({ ...query, recordCount: value });
+    } else {
+      handleQueryChange({ ...query, recordCount: undefined });
     }
   };
 

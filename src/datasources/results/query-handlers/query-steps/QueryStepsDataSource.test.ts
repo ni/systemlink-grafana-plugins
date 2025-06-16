@@ -123,6 +123,18 @@ describe('QueryStepsDataSource', () => {
       expect(response.data).toMatchSnapshot();
     });
 
+    test('returns empty data for invalid query', async () => {
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: []
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data).toMatchSnapshot();
+    });
+
     test('should set default orderby to "STARTED_AT" and descending to "false"', async () => {
       const query = buildQuery({
         refId: 'A',
@@ -1048,6 +1060,8 @@ describe('QueryStepsDataSource', () => {
       const query = {
         refId: 'A',
         resultsQuery: 'new-query',
+        properties: [StepsPropertiesOptions.NAME as StepsProperties],
+        recordCount: 100,
       } as QuerySteps;
       const spy = jest.spyOn(datastore as any, 'loadStepPaths')
 
@@ -1060,6 +1074,8 @@ describe('QueryStepsDataSource', () => {
       const query = {
         refId: 'A',
         resultsQuery: 'ProgramName = "same-query"',
+        properties: [StepsPropertiesOptions.NAME as StepsProperties],
+        recordCount: 100
       } as QuerySteps;
       (datastore as any).previousResultsQuery = "ProgramName = \"same-query\"";
       const spy = jest.spyOn(datastore as any, 'loadStepPaths')
@@ -1089,6 +1105,8 @@ describe('QueryStepsDataSource', () => {
         refId: 'A',
         resultsQuery: 'ProgramName = "Test"',
         outputType: OutputType.Data,
+        properties: [StepsPropertiesOptions.NAME as StepsProperties],
+        recordCount: 100
       } as QuerySteps;
 
       await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
@@ -1103,6 +1121,8 @@ describe('QueryStepsDataSource', () => {
       const query = {
         refId: 'A',
         resultsQuery: 'ProgramName = "Test"',
+        properties: [StepsPropertiesOptions.NAME as StepsProperties],
+        recordCount: 100
       } as QuerySteps;
 
       await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
@@ -1117,6 +1137,8 @@ describe('QueryStepsDataSource', () => {
         refId: 'A',
         resultsQuery: 'ProgramName = "Test"',
         outputType: OutputType.Data,
+        properties: [StepsPropertiesOptions.NAME as StepsProperties],
+        recordCount: 100
       } as QuerySteps;
 
       await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
@@ -1151,6 +1173,8 @@ describe('QueryStepsDataSource', () => {
         refId: 'A',
         resultsQuery: 'ProgramName = "Test"',
         outputType: OutputType.Data,
+        properties: [StepsPropertiesOptions.NAME as StepsProperties],
+        recordCount: 100
       } as QuerySteps;
 
       await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
@@ -1168,6 +1192,8 @@ describe('QueryStepsDataSource', () => {
         refId: 'A',
         resultsQuery: 'ProgramName = "Test"',
         outputType: OutputType.Data,
+        properties: [StepsPropertiesOptions.NAME as StepsProperties],
+        recordCount: 100
       } as QuerySteps;
 
       await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
@@ -1183,6 +1209,8 @@ describe('QueryStepsDataSource', () => {
         refId: 'A',
         resultsQuery: 'ProgramName = "Test"',
         outputType: OutputType.Data,
+        properties: [StepsPropertiesOptions.NAME as StepsProperties],
+        recordCount: 100
       } as QuerySteps;
       
       await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
