@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { InlineField } from '@grafana/ui';
+import { useTheme2, InlineField } from '@grafana/ui';
 import { ResultsQueryBuilder } from '../query-results/ResultsQueryBuilder';
 import { StepsQueryBuilder } from '../query-steps/StepsQueryBuilder';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
@@ -27,9 +27,12 @@ export const StepsQueryBuilderWrapper = (
     onStepsQueryChange,
     disableStepsQueryBuilder
   }: Props) => {
+  const theme = useTheme2();
+  
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const [stepsPath, setStepsPath] = useState<string[]>([]);
+  const [isResultsQueryInvalid, setIsResultsQueryInvalid] = useState(false);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -50,19 +53,31 @@ export const StepsQueryBuilderWrapper = (
     loadStepsPath();
     loadWorkspaces();
   }, [datasource]);
+
+  const onResultsQueryByChange = (query: string) => {
+    onResultsQueryChange(query);
+    setIsResultsQueryInvalid(!query || query.trim() === '');
+  }
   
   return (
     <div>
-      <InlineField label={labels.resultsQueryBuilder} labelWidth={26} tooltip={tooltips.resultsQueryBuilder}>
-        <ResultsQueryBuilder
-          filter={resultsQuery}
-          onChange={(event) => onResultsQueryChange((event as CustomEvent<{ linq: string }>).detail.linq)}
-          workspaces={workspaces}
-          status={enumToOptions(TestMeasurementStatus).map(option => option.value?.toString() || '')}
-          partNumbers={partNumbers}
-          globalVariableOptions={datasource.globalVariableOptions()}>
-        </ResultsQueryBuilder>
-      </InlineField>
+        <InlineField
+          label={labels.resultsQueryBuilder}
+          labelWidth={26}
+          tooltip={tooltips.resultsQueryBuilder}
+          invalid={isResultsQueryInvalid}
+          error={errorMessages.invalidResultQuery}>
+        <div style={{ border: isResultsQueryInvalid ? `1px solid ${theme.colors.error.border}` : 'none', borderRadius: '4px' }}>
+          <ResultsQueryBuilder
+            filter={resultsQuery}
+            onChange={(event) => onResultsQueryByChange((event as CustomEvent<{ linq: string }>).detail.linq)}
+            workspaces={workspaces}
+            status={enumToOptions(TestMeasurementStatus).map(option => option.value?.toString() || '')}
+            partNumbers={partNumbers}
+            globalVariableOptions={datasource.globalVariableOptions()}>
+          </ResultsQueryBuilder>
+        </div>
+        </InlineField>
       <InlineField label={labels.stepsQueryBuilder} labelWidth={26} tooltip={tooltips.stepsQueryBuilder}>
         <StepsQueryBuilder
           filter={stepsQuery}
@@ -86,4 +101,8 @@ const tooltips = {
 const labels = {
   resultsQueryBuilder: 'Query by results properties',
   stepsQueryBuilder: 'Query by steps properties',
+};
+
+const errorMessages = {
+  invalidResultQuery: 'You must add a filter to the result query builder.',
 };
