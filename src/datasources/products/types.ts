@@ -39,10 +39,10 @@ export const PropertiesOptions = {
 
 export const ProductPropertiesProjectionMap = {
   'Product ID': PropertiesOptions.ID,
-  'Part Number': PropertiesOptions.PART_NUMBER,
-  'Product Name': PropertiesOptions.NAME,
+  'Part number': PropertiesOptions.PART_NUMBER,
+  'Product name': PropertiesOptions.NAME,
   'Family': PropertiesOptions.FAMILY,
-  'Updated At': PropertiesOptions.UPDATEDAT,
+  'Updated at': PropertiesOptions.UPDATEDAT,
   'Workspace': PropertiesOptions.WORKSPACE,
   'Keywords': PropertiesOptions.KEYWORDS,
   'Properties': PropertiesOptions.PROPERTIES,

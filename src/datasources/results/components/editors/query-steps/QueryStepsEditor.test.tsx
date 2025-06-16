@@ -78,7 +78,7 @@ describe('QueryStepsEditor', () => {
 
     test('should render with default query when default values are provided', async () => {
       expect(properties).toBeInTheDocument();
-      expect(screen.getAllByText('Step Name').length).toBe(1);
+      expect(screen.getAllByText('Step name').length).toBe(1);
       expect(dataOutput).toBeInTheDocument();
       expect(dataOutput).toBeChecked();
       expect(recordCount).toBeInTheDocument();

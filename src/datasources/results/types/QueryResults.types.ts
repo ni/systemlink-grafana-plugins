@@ -81,22 +81,22 @@ export enum ResultsProperties {
 }
 
 export const ResultPropertiesProjectionMap = {
-    'Result Id': ResultsProperties.id,
-    'Test Program Name': ResultsProperties.programName,
-    'Serial Number': ResultsProperties.serialNumber,
-    'System Id': ResultsProperties.systemId,
+    'Result ID': ResultsProperties.id,
+    'Test program name': ResultsProperties.programName,
+    'Serial number': ResultsProperties.serialNumber,
+    'System ID': ResultsProperties.systemId,
     'Status': ResultsProperties.status,
-    'Total Time in Seconds': ResultsProperties.totalTimeInSeconds,
-    'Started At': ResultsProperties.startedAt,
-    'Updated At': ResultsProperties.updatedAt,
-    'Part Number': ResultsProperties.partNumber,
-    'Data Table IDs': ResultsProperties.dataTableIds,
+    'Total time (s)': ResultsProperties.totalTimeInSeconds,
+    'Started at': ResultsProperties.startedAt,
+    'Updated at': ResultsProperties.updatedAt,
+    'Part number': ResultsProperties.partNumber,
+    'Data table IDs': ResultsProperties.dataTableIds,
     'File IDs': ResultsProperties.fileIds,
-    'Host Name': ResultsProperties.hostName,
+    'Host name': ResultsProperties.hostName,
     'Operator': ResultsProperties.operator,
     'Keywords': ResultsProperties.keywords,
     'Properties': ResultsProperties.properties,
-    'Status Type Summary': ResultsProperties.statusTypeSummary,
+    'Status type summary': ResultsProperties.statusTypeSummary,
     'Workspace': ResultsProperties.workspace
 } as const;
 
