@@ -230,7 +230,7 @@ describe('TestPlansQueryEditor', () => {
     it('should load workspaces and set them in state', async () => {
         await renderElement();
 
-        const workspaces = await mockDatasource.workspaceUtils.getWorkspaces();
+        const workspaces = await mockDatasource.loadWorkspaces();
         expect(workspaces).toBeDefined();
         expect(workspaces).toEqual(
             new Map([
@@ -242,7 +242,7 @@ describe('TestPlansQueryEditor', () => {
 
     it('should load system names', async () => {
         await renderElement();
-        const result = await mockDatasource.systemUtils.getSystemAliases();
+        const result = await mockDatasource.loadSystemAliases();
         expect(result).toBeDefined();
         expect(result).toEqual(
             new Map([
@@ -255,7 +255,7 @@ describe('TestPlansQueryEditor', () => {
     it('should load users', async () => {
         renderElement();
 
-        const users = await mockDatasource.usersUtils.getUsers();
+        const users = await mockDatasource.loadUsers();
         expect(users).toBeDefined();
         expect(users).toEqual(
             new Map([
@@ -270,7 +270,7 @@ describe('TestPlansQueryEditor', () => {
             renderElement();
         });
 
-        const result = await mockDatasource.productUtils.getProductNamesAndPartNumbers();
+        const result = await mockDatasource.loadProductNamesAndPartNumbers();
         expect(result).toBeDefined();
         expect(result).toEqual(
             new Map([
