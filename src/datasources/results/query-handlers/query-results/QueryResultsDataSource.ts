@@ -36,6 +36,8 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
 
       if (!errorDetails.statusCode) {
         errorMessage = 'The query failed due to an unknown error.';
+      } else if (errorDetails.statusCode === '504') {
+        errorMessage = 'The query to fetch results experienced a timeout error. Narrow your query with a more specific filter and try again.';
       } else {
         errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
       }
@@ -50,6 +52,12 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   }
 
   async runQuery(query: QueryResults, options: DataQueryRequest): Promise<DataFrameDTO> {
+    if (query.outputType === OutputType.Data && !this.isQueryValid(query)) {
+      return {
+        refId: query.refId,
+        fields: [],
+      };
+    }
     if (query.queryBy) {
       query.queryBy = transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
@@ -61,7 +69,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
 
     let properties = query.properties;
     let recordCount = query.recordCount;
-    if(query.outputType === OutputType.TotalCount) {
+    if (query.outputType === OutputType.TotalCount) {
       properties = [];
       recordCount = 0;
     }
@@ -82,7 +90,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
           fields: [],
         };
       }
-      
+
       const results = responseData.results;
       const availableFields = Object.keys(results[0]);
       const selectedFields = query.properties?.filter((field) =>
@@ -143,7 +151,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   );
 
   async metricFindQuery(query: ResultsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    if (query.properties !== undefined && this.isTakeValidValid(query.resultsTake!)) {
+    if (query.properties !== undefined && this.isTakeValid(query.resultsTake!)) {
       const filter = query.queryBy ? transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options?.scopedVars),
         this.resultsComputedDataFields
@@ -167,8 +175,13 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     return [];
   }
 
-  private isTakeValidValid(value: number): boolean {
+  private isTakeValid(value: number): boolean {
     return !isNaN(value) && value > 0 && value <= TAKE_LIMIT;
+  }
+
+  private isQueryValid(query: QueryResults): boolean {
+    return query.properties!.length !== 0 && query.recordCount !== undefined
+     
   }
 
   shouldRunQuery(_: QueryResults): boolean {

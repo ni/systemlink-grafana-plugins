@@ -67,6 +67,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       let errorMessage: string;
       if (!errorDetails.statusCode) {
         errorMessage = 'The query failed due to an unknown error.';
+      } else if (errorDetails.statusCode === '504') {
+        errorMessage = 'The query to fetch steps experienced a timeout error. Narrow your query with a more specific filter and try again.';
       } else {
         errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
       }
@@ -178,7 +180,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
   
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
-    if (!query.resultsQuery) {
+    if (query.outputType === OutputType.Data && !this.isQueryValid(query)) {
       return {
         refId: query.refId,
         fields: [],
@@ -493,6 +495,10 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
   private isTakeValid(value: number): boolean {
     return !isNaN(value) && value > 0 && value <= TAKE_LIMIT;
+  }
+
+  private isQueryValid(query: QuerySteps): boolean {
+    return query.resultsQuery !== '' && query.recordCount !== undefined && query.properties!.length > 0;
   }
 
   shouldRunQuery(_: QuerySteps): boolean {

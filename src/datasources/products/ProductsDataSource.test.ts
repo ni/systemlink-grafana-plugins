@@ -91,6 +91,16 @@ describe('queryProducts', () => {
       .toThrow('The query failed due to the following error: (status 400) "Error".');
   });
 
+  it('should throw timeOut error when API returns 504 status', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
+      .mockReturnValue(createFetchError(504));
+
+    await expect(datastore.queryProducts())
+      .rejects
+      .toThrow('The query to fetch products experienced a timeout error. Narrow your query with a more specific filter and try again.');
+  })
+
   it('should throw error with unknown error when API returns error without status', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
@@ -186,6 +196,18 @@ describe('getFamilyNames', () => {
 
     expect(datastore.errorTitle).toBe('Warning during product value query');
     expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error: \"Error\".');
+  })
+
+  test('should throw timeOut error when API returns 504 status', async () => {
+    datastore.errorTitle = '';
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-product-values' }))
+      .mockReturnValue(createFetchError(504));
+
+    await datastore.getFamilyNames();
+
+    expect(datastore.errorTitle).toBe('Warning during product value query');
+    expect(datastore.errorDescription).toContain(`The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`);
   })
 
 });

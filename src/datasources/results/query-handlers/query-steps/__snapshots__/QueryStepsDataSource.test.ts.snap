@@ -1,5 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`QueryStepsDataSource query returns empty data for invalid query 1`] = `
+[
+  {
+    "fields": [],
+    "refId": "A",
+  },
+]
+`;
+
 exports[`QueryStepsDataSource query should convert properties to Grafana fields 1`] = `
 [
   {

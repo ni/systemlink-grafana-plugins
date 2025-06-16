@@ -1,3 +1,10 @@
+## [3.136.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.135.5...v3.136.0) (2025-06-16)
+
+### Features
+
+* **products, results:** handle 504 timeout errors in product and result queries ([#287](https://github.com/ni/systemlink-grafana-plugins/issues/287)) ([7e3b39f](https://github.com/ni/systemlink-grafana-plugins/commit/7e3b39fa288528f3036cd4106468a8c10a553fe9))
+* **results:** Add validation to the Results query builder in Steps query ([#292](https://github.com/ni/systemlink-grafana-plugins/issues/292)) ([53f1bf7](https://github.com/ni/systemlink-grafana-plugins/commit/53f1bf722aaa7194d56c2d6d2be232f5feec1c6d))
+
 ## [3.135.5](https://github.com/ni/systemlink-grafana-plugins/compare/v3.135.4...v3.135.5) (2025-06-16)
 
 ### Bug Fixes
