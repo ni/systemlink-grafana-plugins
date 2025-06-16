@@ -15,6 +15,7 @@ describe('TestPlansQueryBuilder', () => {
         alias: 'System 1'
     };
     const product: ProductPartNumberAndName = {
+        id: '1',
         partNumber: 'part-number',
         name: 'Product name'
     };
@@ -139,36 +140,36 @@ describe('TestPlansQueryBuilder', () => {
     });
 
     it('should support is blank operation for Estimated end date', () => {
-      const { conditionsContainer } = renderElement('estimatedEndDateTime == null || estimatedEndDateTime == ""', [], [], [], []);
+        const { conditionsContainer } = renderElement('estimatedEndDateTime == null || estimatedEndDateTime == ""', [], [], [], []);
 
-      expect(conditionsContainer?.length).toBe(1);
-      expect(conditionsContainer.item(0)?.textContent).toContain('Estimated end date');
-      expect(conditionsContainer.item(0)?.textContent).toContain('is blank');
+        expect(conditionsContainer?.length).toBe(1);
+        expect(conditionsContainer.item(0)?.textContent).toContain('Estimated end date');
+        expect(conditionsContainer.item(0)?.textContent).toContain('is blank');
     });
 
     it('should support is not blank operation for Estimated end date', () => {
-      const { conditionsContainer } = renderElement('estimatedEndDateTime != null && estimatedEndDateTime != ""', [], [], [], []);
+        const { conditionsContainer } = renderElement('estimatedEndDateTime != null && estimatedEndDateTime != ""', [], [], [], []);
 
-      expect(conditionsContainer?.length).toBe(1);
-      expect(conditionsContainer.item(0)?.textContent).toContain('Estimated end date');
-      expect(conditionsContainer.item(0)?.textContent).toContain('is not blank');
+        expect(conditionsContainer?.length).toBe(1);
+        expect(conditionsContainer.item(0)?.textContent).toContain('Estimated end date');
+        expect(conditionsContainer.item(0)?.textContent).toContain('is not blank');
     });
 
     it('should support is blank operation for Planned start date', () => {
-      const { conditionsContainer } = renderElement('plannedStartDateTime == null || plannedStartDateTime == ""', [], [], [], []);
+        const { conditionsContainer } = renderElement('plannedStartDateTime == null || plannedStartDateTime == ""', [], [], [], []);
 
-      expect(conditionsContainer?.length).toBe(1);
-      expect(conditionsContainer.item(0)?.textContent).toContain('Planned start date');
-      expect(conditionsContainer.item(0)?.textContent).toContain('is blank');
+        expect(conditionsContainer?.length).toBe(1);
+        expect(conditionsContainer.item(0)?.textContent).toContain('Planned start date');
+        expect(conditionsContainer.item(0)?.textContent).toContain('is blank');
     });
 
     it('should support is not blank operation for Planned start date', () => {
         const { conditionsContainer } = renderElement('plannedStartDateTime != null && plannedStartDateTime != ""', [], [], [], []);
-  
+
         expect(conditionsContainer?.length).toBe(1);
         expect(conditionsContainer.item(0)?.textContent).toContain('Planned start date');
         expect(conditionsContainer.item(0)?.textContent).toContain('is not blank');
-      });
+    });
 
     [['${__from:date}', 'From'], ['${__to:date}', 'To'], ['${__now:date}', 'Now']].forEach(([value, label]) => {
         it(`should select user friendly value for updated date`, () => {

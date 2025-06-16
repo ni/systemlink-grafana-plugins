@@ -43,8 +43,8 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       Properties.NAME,
       Properties.STATE,
       Properties.ASSIGNED_TO,
-      Properties.PRODUCT,
-      Properties.DUT_ID,
+      Properties.PRODUCT_NAME,
+      Properties.DUT_NAME,
       Properties.PLANNED_START_DATE_TIME,
       Properties.ESTIMATED_DURATION_IN_SECONDS,
       Properties.SYSTEM_NAME,
@@ -97,13 +97,12 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
         const fieldType = isTimeField(field) ? FieldType.time : FieldType.string;
         const values = testPlans.map(data => data[field as unknown as keyof TestPlanResponseProperties] as any);
 
-        // TODO: AB#3133188 Add support for other field mapping
         const fieldValues = values.map(value => {
           switch (label) {
             case PropertiesProjectionMap.FIXTURE_NAMES.label:
               const names = value.map((id: string) => fixtureNames.find(data => data.id === id)?.name);
               return names ? names.filter((name: string) => name !== '').join(', ') : value;
-            case PropertiesProjectionMap.DUT_ID.label:
+            case PropertiesProjectionMap.DUT_NAME.label:
               const dutName = duts.find(data => data.id === value);
               return dutName ? dutName.name : value;
             case PropertiesProjectionMap.DUT_SERIAL_NUMBER.label:
@@ -125,9 +124,12 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
             case PropertiesProjectionMap.SYSTEM_NAME.label:
               const system = systemAliases.get(value);
               return system ? system.alias : value;
-            case PropertiesProjectionMap.PRODUCT.label:
+            case PropertiesProjectionMap.PRODUCT_NAME.label:
               const product = products.get(value);
-              return product && product.name ? `${product.name} (${product.partNumber})` : value;
+              return product && product.name ? product.name : value;
+            case PropertiesProjectionMap.PRODUCT_ID.label:
+              const productId = products.get(value);
+              return productId && productId.id ? productId.id : value;
             case PropertiesProjectionMap.ASSIGNED_TO.label:
             case PropertiesProjectionMap.CREATED_BY.label:
             case PropertiesProjectionMap.UPDATED_BY.label:

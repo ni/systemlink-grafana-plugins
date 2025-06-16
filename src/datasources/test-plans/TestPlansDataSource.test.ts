@@ -65,8 +65,8 @@ jest.mock('shared/product.utils', () => {
     ProductUtils: jest.fn().mockImplementation(() => ({
       getProductNamesAndPartNumbers: jest.fn().mockResolvedValue(
         new Map([
-          ['part-number-1', { partNumber: 'part-number-1', name: 'Product 1' }],
-          ['part-number-2', { partNumber: 'part-number-2', name: 'Product 2' }],
+          ['part-number-1', { id: '1', partNumber: 'part-number-1', name: 'Product 1' }],
+          ['part-number-2', { id: '2', partNumber: 'part-number-2', name: 'Product 2' }],
         ])
       )
     }))
@@ -137,8 +137,8 @@ describe('testDatasource', () => {
       Properties.NAME,
       Properties.STATE,
       Properties.ASSIGNED_TO,
-      Properties.PRODUCT,
-      Properties.DUT_ID,
+      Properties.PRODUCT_NAME,
+      Properties.DUT_NAME,
       Properties.PLANNED_START_DATE_TIME,
       Properties.ESTIMATED_DURATION_IN_SECONDS,
       Properties.SYSTEM_NAME,
@@ -196,8 +196,8 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(2);
-    expect(result.fields[0]).toEqual({"name": "Name", "type": "string", "values": []});
-    expect(result.fields[1]).toEqual({"name": "State", "type": "string", "values": []});
+    expect(result.fields[0]).toEqual({ "name": "Name", "type": "string", "values": [] });
+    expect(result.fields[1]).toEqual({ "name": "State", "type": "string", "values": [] });
   });
 
   test('returns total count when output type is TotalCount', async () => {
@@ -276,7 +276,7 @@ describe('runQuery', () => {
     const query = {
       refId: 'A',
       outputType: OutputType.Properties,
-      properties: [Properties.DUT_ID],
+      properties: [Properties.DUT_NAME],
       orderBy: OrderByOptions.UPDATED_AT,
       recordCount: 10,
       descending: true,
@@ -294,7 +294,7 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('DUT');
+    expect(result.fields[0].name).toEqual('DUT name');
     expect(result.fields[0].values).toEqual(['Asset 1', 'Asset 2']);
   });
 
@@ -747,11 +747,11 @@ describe('runQuery', () => {
     jest.useRealTimers();
   });
 
-  it('should convert part numbers to product names', async () => {
+  it('should convert part number to product name', async () => {
     const query = {
       refId: 'A',
       outputType: OutputType.Properties,
-      properties: [Properties.PRODUCT],
+      properties: [Properties.PRODUCT_NAME],
       orderBy: OrderByOptions.UPDATED_AT,
       recordCount: 10,
       descending: true,
@@ -769,8 +769,33 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Product (Part number)');
-    expect(result.fields[0].values).toEqual(['Product 1 (part-number-1)', 'Product 2 (part-number-2)']);
+    expect(result.fields[0].name).toEqual('Product name');
+    expect(result.fields[0].values).toEqual(['Product 1', 'Product 2']);
+  });
+
+  it('should convert part number to product id', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.PRODUCT_ID],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', partNumber: 'part-number-1' },
+        { id: '2', partNumber: 'part-number-2' }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Product ID');
+    expect(result.fields[0].values).toEqual(['1', '2']);
   });
 
   test('should transform field when queryBy contains duration fields', async () => {
