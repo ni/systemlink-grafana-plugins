@@ -205,7 +205,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
   private async getDuts(labels: string[], testPlans: TestPlanResponseProperties[]): Promise<Asset[]> {
     if (labels.find(label =>
-      label === PropertiesProjectionMap.DUT_ID.label
+      label === PropertiesProjectionMap.DUT_NAME.label
       || label === PropertiesProjectionMap.DUT_SERIAL_NUMBER.label
     )) {
       const dutIds = testPlans
