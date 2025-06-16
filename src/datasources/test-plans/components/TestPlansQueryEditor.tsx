@@ -10,6 +10,7 @@ import { Workspace } from 'core/types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { User } from 'shared/types/QueryUsers.types';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
+import { FloatingError } from 'core/errors';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansQuery>;
 
@@ -177,6 +178,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
           )}
         </HorizontalGroup >
       </VerticalGroup>
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
     </>
   );
 }
