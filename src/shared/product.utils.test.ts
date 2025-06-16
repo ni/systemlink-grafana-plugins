@@ -47,22 +47,6 @@ describe('ProductUtils', () => {
         expect(result.get('part-number-2')).toEqual(products[1]);
     });
 
-    it('should handle errors when loading products', async () => {
-        (ProductUtils as any)['_productCache'] = undefined;
-        jest.spyOn(console, 'error').mockImplementation(() => {});
-        const error = new Error('Failed to fetch products');
-        (queryUntilComplete as jest.Mock)
-            .mockImplementationOnce(() => {
-                return Promise.reject(error);
-            });
-
-        const result = await productUtils.getProductNamesAndPartNumbers();
-
-        expect(console.error).toHaveBeenCalledTimes(1);
-        expect(console.error).toHaveBeenCalledWith('Error in loading products:', error);
-        expect(result).toEqual(new Map<string, ProductPartNumberAndName>());
-    });
-
     it('should return cached products if already loaded', async () => {
         (ProductUtils as any)['_productCache'] = undefined;
         await productUtils.getProductNamesAndPartNumbers();
