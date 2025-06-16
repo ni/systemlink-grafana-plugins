@@ -120,45 +120,42 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
         query.descending
       )).products;
 
-    if (products.length > 0) {
-      const selectedFields = query.properties?.filter(
-        (field: Properties) => Object.keys(products[0]).includes(field)) || [];
-      const fields = selectedFields.map((field) => {
-        const isTimeField = field === PropertiesOptions.UPDATEDAT;
-        const fieldType = isTimeField
-          ? FieldType.time
-          : FieldType.string;
+    // Determine which fields to include based on the properties in the query and the actual product data
+    const selectedFields = (products && products.length > 0)
+      ? (query.properties?.filter(
+        (field: Properties) => field in products[0]
+      ) ?? [])
+      : (query.properties ?? []);
+    const fields = selectedFields.map((field) => {
+      const isTimeField = field === PropertiesOptions.UPDATEDAT;
+      const fieldType = isTimeField
+        ? FieldType.time
+        : FieldType.string;
 
-        const values = products
-          .map(data => data[field as unknown as keyof ProductResponseProperties]);
+      const values = products
+        .map(data => data[field as unknown as keyof ProductResponseProperties]);
 
-        const fieldValues = values.map(value => {
-          switch (field) {
-            case PropertiesOptions.PROPERTIES:
-              return value == null ? '' : JSON.stringify(value);
-            case PropertiesOptions.WORKSPACE:
-              const workspace = this.workspacesCache.get(value);
-              return workspace ? getWorkspaceName([workspace], value) : value;
-            default:
-              return value == null ? '' : value;
-          }
-        });
-
-        return {
-          name: field,
-          values: fieldValues,
-          type: fieldType
-        };
+      const fieldValues = values.map(value => {
+        switch (field) {
+          case PropertiesOptions.PROPERTIES:
+            return value == null ? '' : JSON.stringify(value);
+          case PropertiesOptions.WORKSPACE:
+            const workspace = this.workspacesCache.get(value);
+            return workspace ? getWorkspaceName([workspace], value) : value;
+          default:
+            return value == null ? '' : value;
+        }
       });
       return {
-        refId: query.refId,
-        fields: fields
+        name: field,
+        values: fieldValues,
+        type: fieldType
       };
-    }
+    });
     return {
       refId: query.refId,
-      fields: []
-    }
+      fields: fields,
+    };
   }
 
   shouldRunQuery(query: ProductQuery): boolean {
