@@ -19,7 +19,7 @@ export function WorkOrdersVariableQueryEditor({ query, onChange, datasource }: P
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   useEffect(() => {
     const loadWorkspaces = async () => {
-      const workspaces = await datasource.workspaceUtils.getWorkspaces();
+      const workspaces = await datasource.loadWorkspaces();
       setWorkspaces(Array.from(workspaces.values()));
     };
 
@@ -29,7 +29,7 @@ export function WorkOrdersVariableQueryEditor({ query, onChange, datasource }: P
   const [users, setUsers] = useState<User[] | null>(null);
   useEffect(() => {
     const loadUsers = async () => {
-      const users = await datasource.usersUtils.getUsers();
+      const users = await datasource.loadUsers();
       setUsers(Array.from(users.values()));
     };
 
