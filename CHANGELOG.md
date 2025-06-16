@@ -1,3 +1,9 @@
+## [3.135.5](https://github.com/ni/systemlink-grafana-plugins/compare/v3.135.4...v3.135.5) (2025-06-16)
+
+### Bug Fixes
+
+* **products, results:** Update Properties options to Sentence Case ([#295](https://github.com/ni/systemlink-grafana-plugins/issues/295)) ([8c0680c](https://github.com/ni/systemlink-grafana-plugins/commit/8c0680c7e319b36997904c12229749a7543ef886))
+
 ## [3.135.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.135.3...v3.135.4) (2025-06-14)
 
 ### Bug Fixes
