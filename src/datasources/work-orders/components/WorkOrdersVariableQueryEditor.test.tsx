@@ -12,13 +12,13 @@ const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: WorkOrdersVariableQuery) => query),
   globalVariableOptions: jest.fn(() => []),
-  getWorkspaces: jest.fn().mockResolvedValue(
+  loadWorkspaces: jest.fn().mockResolvedValue(
       new Map([
           ['1', { id: '1', name: 'WorkspaceName' }],
           ['2', { id: '2', name: 'AnotherWorkspaceName' }],
       ])
   ),
-  getUsers: jest.fn().mockResolvedValue(
+  loadUsers: jest.fn().mockResolvedValue(
     new Map([
       ['1', { id: '1', firstName: 'User', lastName: '1' }],
       ['2', { id: '2', firstName: 'User', lastName: '2' }],
