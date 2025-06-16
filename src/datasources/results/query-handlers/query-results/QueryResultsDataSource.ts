@@ -37,7 +37,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       if (!errorDetails.statusCode) {
         errorMessage = 'The query failed due to an unknown error.';
       } else if (errorDetails.statusCode === '504') {
-        errorMessage = 'The query to fetch results timed out. Please try again with a smaller record count or a more specific filter.';
+        errorMessage = 'The query to fetch results experienced a timeout error. Narrow your query with a more specific filter and try again.';
       } else {
         errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
       }

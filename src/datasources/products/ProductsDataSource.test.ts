@@ -98,7 +98,7 @@ describe('queryProducts', () => {
 
     await expect(datastore.queryProducts())
       .rejects
-      .toThrow('The query to fetch products timed out. Please try again with a smaller record count or a more specific filter.');
+      .toThrow('The query to fetch products experienced a timeout error. Narrow your query with a more specific filter and try again.');
   })
 
   it('should throw error with unknown error when API returns error without status', async () => {
@@ -207,7 +207,7 @@ describe('getFamilyNames', () => {
     await datastore.getFamilyNames();
 
     expect(datastore.errorTitle).toBe('Warning during product value query');
-    expect(datastore.errorDescription).toContain(`Some values may not be available in the query builder lookups due to a timeout error. Please try again with a more specific filter.`);
+    expect(datastore.errorDescription).toContain(`The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`);
   })
 
 });

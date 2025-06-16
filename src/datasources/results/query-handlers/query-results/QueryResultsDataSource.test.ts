@@ -75,7 +75,7 @@ describe('QueryResultsDataSource', () => {
     
         await expect(datastore.queryResults())
           .rejects
-          .toThrow('The query to fetch results timed out. Please try again with a smaller record count or a more specific filter.');
+          .toThrow('The query to fetch results experienced a timeout error. Narrow your query with a more specific filter and try again.');
       })
   });
 
@@ -346,7 +346,7 @@ describe('QueryResultsDataSource', () => {
       await datastore.getPartNumbers();
 
       expect(datastore.errorTitle).toBe('Warning during result value query');
-      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to a timeout error. Please try again with a more specific filter.');
+      expect(datastore.errorDescription).toContain('The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.');
     })
   });
   

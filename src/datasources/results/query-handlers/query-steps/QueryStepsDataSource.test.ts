@@ -106,7 +106,7 @@ describe('QueryStepsDataSource', () => {
 
     await expect(datastore.querySteps())
       .rejects
-      .toThrow('The query to fetch steps timed out. Please try again with a smaller record count or a more specific filter.');
+      .toThrow('The query to fetch steps experienced a timeout error. Narrow your query with a more specific filter and try again.');
   })
   });
 
@@ -1087,7 +1087,7 @@ describe('QueryStepsDataSource', () => {
 
       expect(stepsPathLookupValues).toEqual([]);
       expect(datastore.errorTitle).toBe('Warning during step paths value query');
-      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to a timeout error. Please try again with a more specific filter.');
+      expect(datastore.errorDescription).toContain('The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.');
     })
 
     it('should handle error in query-result-values when loading step path', async () => {
@@ -1459,7 +1459,7 @@ describe('QueryStepsDataSource', () => {
 
           expect(stepsPathLookupValues).toEqual([]);
           expect(datastore.errorTitle).toBe('Warning during step paths value query');
-          expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to a timeout error. Please try again with a more specific filter.');
+          expect(datastore.errorDescription).toContain('The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.');
         })
 
         it('should handle error in query-result-values when loading step path', async () => {

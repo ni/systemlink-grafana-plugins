@@ -201,7 +201,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     this.errorTitle = `Warning during ${errorContext} value query`;
 
     if (errorDetails.statusCode === '504') {
-      this.errorDescription = `Some values may not be available in the query builder lookups due to a timeout error. Please try again with a more specific filter.`;
+      this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
     } else {
       let detailedMessage = '';
       try {
