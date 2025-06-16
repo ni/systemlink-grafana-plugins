@@ -56,18 +56,12 @@ export class UsersUtils {
    * In case of an error during the query, an empty map is returned, and the cache is cleared.
    */
   private async loadUsers(): Promise<Map<string, User>> {
-    try {
-      const users = await this.queryUsersInBatches()
-      const usersMap = new Map<string, User>();
-      users.users.forEach((user) => {
-        usersMap.set(user.id, user);
-      });
-      return usersMap;
-    } catch (error) {
-        console.error('An error occurred while querying users:', error);
-        UsersUtils._usersCache = undefined; // Clear the cache on error
-        return new Map<string, User>();
-    }
+    const users = await this.queryUsersInBatches()
+    const usersMap = new Map<string, User>();
+    users.users.forEach((user) => {
+      usersMap.set(user.id, user);
+    });
+    return usersMap;
   }
 
   /**

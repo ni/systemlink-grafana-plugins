@@ -25,17 +25,12 @@ export class ProductUtils {
     }
 
     private async loadProducts(): Promise<Map<string, ProductPartNumberAndName>> {
-        try {
-            const products = await this.queryProductsInBatches();
-            const productMap = new Map<string, ProductPartNumberAndName>();
-            if (products) {
-                products.forEach(product => productMap.set(product.partNumber, product));
-            }
-            return productMap;
-        } catch (error) {
-            console.error('Error in loading products:', error);
-            return new Map<string, ProductPartNumberAndName>();
+        const products = await this.queryProductsInBatches();
+        const productMap = new Map<string, ProductPartNumberAndName>();
+        if (products) {
+            products.forEach(product => productMap.set(product.partNumber, product));
         }
+        return productMap;
     }
 
     private async queryProductsInBatches(): Promise<ProductPartNumberAndName[]> {
