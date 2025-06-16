@@ -397,7 +397,7 @@ describe('WorkOrdersDataSource', () => {
     it('should handle errors and set error and innerError fields', async () => {
       jest.spyOn(datastore.usersUtils, 'getUsers').mockRejectedValue(new Error('Error'));
 
-      await datastore.loadWorkspaces();
+      await datastore.loadUsers();
 
       expect(datastore.errorTitle).toBe('Warning during workorders query');
       expect(datastore.errorDescription).toContain(
@@ -413,7 +413,7 @@ describe('WorkOrdersDataSource', () => {
           new Error('Request failed with status code: 500, Error message: {"message": "Internal Server Error"}')
         );
 
-      await datastore.loadWorkspaces();
+      await datastore.loadUsers();
 
       expect(datastore.errorTitle).toBe('Warning during workorders query');
       expect(datastore.errorDescription).toContain(
@@ -427,7 +427,7 @@ describe('WorkOrdersDataSource', () => {
         .spyOn(datastore.usersUtils, 'getUsers')
         .mockRejectedValue(new Error('Request failed with status code: 504'));
 
-      await datastore.loadWorkspaces();
+      await datastore.loadUsers();
 
       expect(datastore.errorTitle).toBe('Warning during workorders query');
       expect(datastore.errorDescription).toContain(
