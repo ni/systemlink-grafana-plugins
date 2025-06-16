@@ -217,18 +217,18 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         true
       );
 
-      if (responseData.steps.length === 0) {
-        return {
-          refId: query.refId,
-          fields: [],
-        };
-      }
       const stepsResponse = responseData.steps;
-      const stepResponseKeys = new Set(Object.keys(stepsResponse[0]));
+      const stepResponseKeys = stepsResponse && stepsResponse.length > 0 ?  new Set(Object.keys(stepsResponse[0])) : new Set<string>();
       const selectedFields = (query.properties || []).filter(field => stepResponseKeys.has(field));
+      if (selectedFields.length === 0) {
+        // If no fields are available, fall back to the requested properties
+        selectedFields.push(...(query.properties || []));
+      }
+
       const fields = this.processFields(selectedFields, stepsResponse, query.showMeasurements || false);
       return {
         refId: query.refId,
+        name: query.refId,
         fields,
       };
     } else {
@@ -243,7 +243,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         true
       );
 
-      return {
+      return {  
         refId: query.refId,
         fields: [{ name: query.refId, values: [responseData.totalCount] }],
       };
@@ -295,6 +295,14 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     showMeasurements: boolean
   ): Array<{ name: string; values: string[]; type: FieldType }> {
     const columns: Array<{ name: string; values: string[]; type: FieldType }> = [];
+    if (stepsResponse.length === 0) {
+      return selectedFields.map(field => ({
+        name: field,
+        values: [],
+        type: this.findFieldType(field, '')
+      }))
+    }
+  
     stepsResponse.forEach(step => {
       // Process selected step fields
       selectedFields.forEach(field => {
