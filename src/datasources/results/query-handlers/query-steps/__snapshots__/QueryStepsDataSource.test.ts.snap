@@ -33,12 +33,27 @@ exports[`QueryStepsDataSource query should return data for valid data-output-typ
         ],
       },
     ],
+    "name": "A",
     "refId": "A",
   },
 ]
 `;
 
-exports[`QueryStepsDataSource query should return no data when QuerySteps API returns empty array 1`] = `[]`;
+exports[`QueryStepsDataSource query should show column header with no data when QuerySteps API returns empty array 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "stepId",
+        "type": "string",
+        "values": [],
+      },
+    ],
+    "name": "A",
+    "refId": "A",
+  },
+]
+`;
 
 exports[`QueryStepsDataSource query should return total count for valid total count output type queries 1`] = `
 [
@@ -58,6 +73,14 @@ exports[`QueryStepsDataSource query should return total count for valid total co
 
 exports[`QueryStepsDataSource query show measurements is enabled should convert step measurements to Grafana fields as a column 1`] = `
 [
+  {
+    "name": "stepId",
+    "type": "number",
+    "values": [
+      "1",
+      "",
+    ],
+  },
   {
     "name": "Voltage (V)",
     "type": "number",
@@ -128,16 +151,26 @@ exports[`QueryStepsDataSource query show measurements is enabled should convert 
 exports[`QueryStepsDataSource query show measurements is enabled should create empty cells when measurements are not available 1`] = `
 [
   {
+    "name": "stepId",
+    "type": "number",
+    "values": [
+      "1",
+      "2",
+    ],
+  },
+  {
     "name": "Current",
     "type": "number",
     "values": [
       "1.2",
+      "",
     ],
   },
   {
     "name": "Voltage",
     "type": "number",
     "values": [
+      "",
       "3.7",
     ],
   },
@@ -147,16 +180,26 @@ exports[`QueryStepsDataSource query show measurements is enabled should create e
 exports[`QueryStepsDataSource query show measurements is enabled should create new columns when units are different in the same measurement 1`] = `
 [
   {
+    "name": "stepId",
+    "type": "number",
+    "values": [
+      "1",
+      "2",
+    ],
+  },
+  {
     "name": "Current (A)",
     "type": "number",
     "values": [
       "1.2",
+      "",
     ],
   },
   {
     "name": "Current (mA)",
     "type": "number",
     "values": [
+      "",
       "370",
     ],
   },

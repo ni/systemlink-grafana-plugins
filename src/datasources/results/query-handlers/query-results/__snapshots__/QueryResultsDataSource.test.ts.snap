@@ -12,6 +12,7 @@ exports[`QueryResultsDataSource query returns data for valid data-output-type qu
         ],
       },
     ],
+    "name": "A",
     "refId": "A",
   },
 ]
@@ -26,7 +27,21 @@ exports[`QueryResultsDataSource query returns empty data for invalid query 1`] =
 ]
 `;
 
-exports[`QueryResultsDataSource query returns no data when QueryResults API returns empty array 1`] = `[]`;
+exports[`QueryResultsDataSource query returns column headers with no data when QueryResults API returns empty array 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "values": [],
+      },
+    ],
+    "name": "A",
+    "refId": "A",
+  },
+]
+`;
 
 exports[`QueryResultsDataSource query returns total count for valid total count output type queries 1`] = `
 [

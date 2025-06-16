@@ -236,7 +236,7 @@ describe('query', () => {
     expect(response.data).toMatchSnapshot();
   });
 
-  test('returns no data when Query Products returns no data', async () => {
+  test('returns column headers with no data when Query Products returns no data', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
       .mockReturnValue(
@@ -247,7 +247,17 @@ describe('query', () => {
             totalCount: 0
           } as unknown as QueryProductResponse));
 
-    const query = buildQuery();
+    const query = buildQuery(
+      {
+        refId: 'A',
+        properties: [
+          PropertiesOptions.PART_NUMBER,
+          PropertiesOptions.FAMILY,
+          PropertiesOptions.NAME,
+          PropertiesOptions.WORKSPACE
+        ] as Properties[], 
+      }
+    );
 
     const response = await datastore.query(query);
 
