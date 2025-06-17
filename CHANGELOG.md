@@ -1,3 +1,9 @@
+## [3.138.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.1...v3.138.2) (2025-06-17)
+
+### Bug Fixes
+
+* **workorders,testplans:** Fix field names ([#306](https://github.com/ni/systemlink-grafana-plugins/issues/306)) ([eb30508](https://github.com/ni/systemlink-grafana-plugins/commit/eb3050881c5865bf68cf524368d4d8e4a7bc6708))
+
 ## [3.138.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.0...v3.138.1) (2025-06-17)
 
 ### Bug Fixes
