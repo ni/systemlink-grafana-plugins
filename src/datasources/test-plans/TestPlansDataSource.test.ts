@@ -905,12 +905,12 @@ describe('runQuery', () => {
     expect(result.fields[15].name).toEqual('Part number');
     expect(result.fields[16].name).toEqual('Planned start date/time');
     expect(result.fields[17].name).toEqual('Estimated end date/time');
-    expect(result.fields[18].name).toEqual('Estimated duration in seconds');
+    expect(result.fields[18].name).toEqual('Estimated duration');
     expect(result.fields[19].name).toEqual('System name');
     expect(result.fields[20].name).toEqual('System ID');
     expect(result.fields[21].name).toEqual('Test plan template');
-    expect(result.fields[22].name).toEqual('Test plan template ID');
-    expect(result.fields[23].name).toEqual('Test program');
+    expect(result.fields[22].name).toEqual('Template ID');
+    expect(result.fields[23].name).toEqual('Test program name');
     expect(result.fields[24].name).toEqual('Substate');
     expect(result.fields[25].name).toEqual('Fixture names');
     expect(result.fields[26].name).toEqual('DUT ID');
