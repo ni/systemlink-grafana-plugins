@@ -1,3 +1,9 @@
+## [3.137.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.136.2...v3.137.0) (2025-06-17)
+
+### Features
+
+* **testplans:** Add error handling ([#300](https://github.com/ni/systemlink-grafana-plugins/issues/300)) ([c76b82e](https://github.com/ni/systemlink-grafana-plugins/commit/c76b82e178a5296098deed3ec47c93e78abf2d1c))
+
 ## [3.136.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.136.1...v3.136.2) (2025-06-17)
 
 ### Bug Fixes
