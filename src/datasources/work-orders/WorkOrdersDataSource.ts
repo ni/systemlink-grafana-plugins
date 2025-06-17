@@ -1,4 +1,4 @@
-import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, TestDataSourceResponse, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
+import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, TestDataSourceResponse, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
@@ -109,10 +109,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
 
     const mappedFields = query.properties?.map(property => {
       const field = WorkOrderProperties[property];
-      const fieldType = this.isTimeField(field.value) ? FieldType.time : FieldType.string;
       const fieldName = field.label;
 
-      // TODO: Add mapping for other field types
       const fieldValue = workOrders.map(workOrder => {
         switch (field.value) {
           case WorkOrderPropertiesOptions.WORKSPACE:
@@ -133,7 +131,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
         }
       });
 
-      return { name: fieldName, values: fieldValue, type: fieldType };
+      return { name: fieldName, values: fieldValue };
     });
 
     return {
