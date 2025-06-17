@@ -113,10 +113,9 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
 
     const mappedFields = query.properties?.map(property => {
       const field = WorkOrderProperties[property];
-      const fieldType = this.isTimeField(field.value) ? FieldType.time : FieldType.string;
+      const fieldType = FieldType.string;
       const fieldName = field.label;
 
-      // TODO: Add mapping for other field types
       const fieldValue = workOrders.map(workOrder => {
         switch (field.value) {
           case WorkOrderPropertiesOptions.WORKSPACE:

@@ -100,7 +100,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       const fields = projectionAndFields?.map(data => {
         const label = data.label;
         const field = data.field;
-        const fieldType = isTimeField(field) ? FieldType.time : FieldType.string;
+        const fieldType = FieldType.string;
         const values = testPlans.map(data => data[field as unknown as keyof TestPlanResponseProperties] as any);
 
         const fieldValues = values.map(value => {
