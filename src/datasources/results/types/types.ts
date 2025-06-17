@@ -9,6 +9,8 @@ export enum QueryType {
   Steps = 'Steps'
 }
 
+export const defaultResultsQueryType: QueryType = QueryType.Results;
+
 export enum OutputType {
   Data = 'Data',
   TotalCount = 'Total Count'

@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { ResultsDataSource } from '../ResultsDataSource';
-import { QueryType, ResultsDataSourceOptions, ResultsQuery } from '../types/types';
+import { defaultResultsQueryType, QueryType, ResultsDataSourceOptions, ResultsQuery } from '../types/types';
 import { QueryResultsEditor } from './editors/query-results/QueryResultsEditor';
 import { QueryResults } from '../types/QueryResults.types';
 import { defaultResultsQuery, defaultStepsQuery } from '../defaultQueries';
@@ -12,7 +12,6 @@ import { QuerySteps } from '../types/QuerySteps.types';
 type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSourceOptions>;
 
 export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
-  const [queryType, setQueryType] = React.useState(query.queryType);
   const [resultsQuery, setResultsQuery] = React.useState<QueryResults>();
   const [stepsQuery, setStepsQuery] = React.useState<QuerySteps>();
 
@@ -29,8 +28,6 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
   );
 
   const handleQueryTypeChange = useCallback((queryType: QueryType): void => {
-    setQueryType(queryType);
-  
     if (queryType === QueryType.Results) {
       setStepsQuery(query as QuerySteps);
       handleQueryChange({
@@ -52,10 +49,9 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
 
   React.useEffect(() => {
     if (!query.queryType) {
-      const firstQueryType = Object.values(QueryType)[0];
-      handleQueryTypeChange(firstQueryType);
+      handleQueryTypeChange(defaultResultsQueryType);
     }
-  }, [query.queryType, handleQueryTypeChange, query, queryType]);
+  }, [query.queryType, handleQueryTypeChange]);
 
   return (
     <>
