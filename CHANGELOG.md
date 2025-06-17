@@ -1,3 +1,9 @@
+## [3.136.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.136.1...v3.136.2) (2025-06-17)
+
+### Bug Fixes
+
+* **test-plans:** update test plans data source properties ([#299](https://github.com/ni/systemlink-grafana-plugins/issues/299)) ([7b822a6](https://github.com/ni/systemlink-grafana-plugins/commit/7b822a63b195e3775bcaa5fb2ca0cb1751c697ec))
+
 ## [3.136.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.136.0...v3.136.1) (2025-06-16)
 
 ### Bug Fixes
