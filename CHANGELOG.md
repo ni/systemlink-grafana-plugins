@@ -1,3 +1,9 @@
+## [3.138.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.137.0...v3.138.0) (2025-06-17)
+
+### Features
+
+* **workorders:** Error handling of workorders ([#301](https://github.com/ni/systemlink-grafana-plugins/issues/301)) ([61a3c6a](https://github.com/ni/systemlink-grafana-plugins/commit/61a3c6ae50aac78a49cbafb37f638158837a1829))
+
 ## [3.137.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.136.2...v3.137.0) (2025-06-17)
 
 ### Features
