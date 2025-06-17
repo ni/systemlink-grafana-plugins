@@ -45,6 +45,7 @@ describe('QueryStepsEditor', () => {
   const mockHandleQueryChange = jest.fn();
 
   const mockDatasource = {
+    previousResultsQuery: '',
     loadWorkspaces: jest.fn(),
     getPartNumbers: jest.fn(),
     workspacesCache: new Map(),
@@ -228,12 +229,25 @@ describe('QueryStepsEditor', () => {
     test('should not update results query when filter doesnt change', () => {
       const resultsQueryInput = screen.getByTestId('results-query');
       fireEvent.change(resultsQueryInput, { target: { value: 'partNumber = "PN1"' } });// ensure initial value is set
+      mockDatasource.previousResultsQuery = 'partNumber = "PN1"';
       mockHandleQueryChange.mockClear();
 
       fireEvent.change(resultsQueryInput, { target: { value: 'partNumber = "PN1"' } });
 
       expect(mockHandleQueryChange).not.toHaveBeenCalledWith(
         expect.objectContaining({ resultsQuery: 'partNumber = "PN1"' })
+      );
+    });
+
+    test('should update results query when filter is not equal to previous results query', () => {
+      const resultsQueryInput = screen.getByTestId('results-query');
+      mockDatasource.previousResultsQuery = 'partNumber = "PN1"'; // Set previous results query
+      mockHandleQueryChange.mockClear();
+
+      fireEvent.change(resultsQueryInput, { target: { value: 'partNumber = "PN2"' } });
+
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(
+        expect.objectContaining({ resultsQuery: 'partNumber = "PN2"' })
       );
     });
 
