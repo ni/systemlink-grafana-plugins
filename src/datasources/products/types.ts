@@ -51,6 +51,11 @@ export const ProductPropertiesProjectionMap = {
 
 export const OrderBy = [
   {
+    value: 'UPDATED_AT',
+    label: 'Updated At',
+    description: `Latest update at time of the product`,
+  },
+  {
     value: 'ID',
     label: 'ID',
     description: `ID of the product`,
@@ -70,11 +75,6 @@ export const OrderBy = [
     label: 'Family',
     description: `Family of the product`,
   },
-  {
-    value: 'UPDATED_AT',
-    label: 'Updated At',
-    description: `Latest update at time of the product`,
-  }
 ];
 
 export interface QueryProductResponse {
