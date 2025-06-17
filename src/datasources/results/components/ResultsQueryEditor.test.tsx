@@ -140,6 +140,17 @@ describe('ResultsQueryEditor', () => {
       expect(renderResult.queryByTestId('query-steps-editor')).toBeInTheDocument();
       expect(renderResult.queryByTestId('query-results-editor')).not.toBeInTheDocument();
     });
+
+    test('should call onRunQuery on init', () => {
+      const query = {
+        refId: 'A',
+      }
+
+      renderElement(query);
+      expect(mockOnRunQuery).toHaveBeenCalled();
+      expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining(query));
+      
+    })
   });
 
   describe('Datasource', () => {

@@ -1,7 +1,7 @@
 import { DataQuery, DataSourceJsonData } from '@grafana/schema';
 
 export interface ResultsQuery extends DataQuery {
-  queryType: QueryType;
+  queryType?: QueryType;
 }
 
 export enum QueryType {

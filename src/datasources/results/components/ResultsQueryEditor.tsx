@@ -12,6 +12,7 @@ import { QuerySteps } from '../types/QuerySteps.types';
 type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSourceOptions>;
 
 export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
+  const [queryType, setQueryType] = React.useState(query.queryType);
   const [resultsQuery, setResultsQuery] = React.useState<QueryResults>();
   const [stepsQuery, setStepsQuery] = React.useState<QuerySteps>();
 
@@ -28,11 +29,14 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
   );
 
   const handleQueryTypeChange = useCallback((queryType: QueryType): void => {
+    setQueryType(queryType);
+  
     if (queryType === QueryType.Results) {
       setStepsQuery(query as QuerySteps);
       handleQueryChange({
         ...defaultResultsQuery,
         ...resultsQuery,
+        queryType: QueryType.Results,
         refId: query.refId
       });
     }
@@ -45,6 +49,13 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
       });
     }
   }, [query, resultsQuery, stepsQuery, handleQueryChange]);
+
+  React.useEffect(() => {
+    if (!query.queryType) {
+      const firstQueryType = Object.values(QueryType)[0];
+      handleQueryTypeChange(firstQueryType);
+    }
+  }, [query.queryType, handleQueryTypeChange, query, queryType]);
 
   return (
     <>
