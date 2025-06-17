@@ -49,6 +49,16 @@ describe('ProductUtils', () => {
         expect(result.get('part-number-2')).toEqual(products[1]);
     });
 
+    it('should propagate error when loading product fails', async () => {
+        (ProductUtils as any)['_productCache'] = undefined;
+        const error = new Error('Failed to fetch products');
+        (queryUntilComplete as jest.Mock).mockImplementationOnce(() => {
+            return Promise.reject(error);
+        });
+
+        await expect(productUtils.getProductNamesAndPartNumbers()).rejects.toThrow('Failed to fetch products');
+    });
+
     it('should return cached products if already loaded', async () => {
         (ProductUtils as any)['_productCache'] = undefined;
         await productUtils.getProductNamesAndPartNumbers();
