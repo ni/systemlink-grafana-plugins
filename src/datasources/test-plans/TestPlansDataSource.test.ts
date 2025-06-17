@@ -841,6 +841,82 @@ describe('runQuery', () => {
     expect(result.fields[0].type).toEqual(FieldType.string);
     expect(result.fields[1].type).toEqual(FieldType.string);
   });
+
+  test('should set field names as expected', async () => {
+    const mockQuery = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [
+        Properties.ASSIGNED_TO,
+        Properties.CREATED_AT,
+        Properties.CREATED_BY,
+        Properties.DESCRIPTION,
+        Properties.ID,
+        Properties.NAME,
+        Properties.PROPERTIES,
+        Properties.STATE,
+        Properties.UPDATED_AT,
+        Properties.UPDATED_BY,
+        Properties.WORKSPACE,
+        Properties.WORK_ORDER,
+        Properties.WORK_ORDER_ID,
+        Properties.PRODUCT_NAME,
+        Properties.PRODUCT_ID,
+        Properties.PART_NUMBER,
+        Properties.PLANNED_START_DATE_TIME,
+        Properties.ESTIMATED_END_DATE_TIME,
+        Properties.ESTIMATED_DURATION_IN_SECONDS,
+        Properties.SYSTEM_NAME,
+        Properties.SYSTEM_ID,
+        Properties.TEMPLATE,
+        Properties.TEMPLATE_ID,
+        Properties.TEST_PROGRAM,
+        Properties.SUBSTATE,
+        Properties.FIXTURE_NAMES,
+        Properties.DUT_ID,
+        Properties.DUT_NAME,
+        Properties.DUT_SERIAL_NUMBER,
+      ],
+    };
+
+    const testPlansResponse = {
+      testPlans: [],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(result.fields[0].name).toEqual('Assigned to');
+    expect(result.fields[1].name).toEqual('Created');
+    expect(result.fields[2].name).toEqual('Created by');
+    expect(result.fields[3].name).toEqual('Description');
+    expect(result.fields[4].name).toEqual('ID');
+    expect(result.fields[5].name).toEqual('Name');
+    expect(result.fields[6].name).toEqual('Properties');
+    expect(result.fields[7].name).toEqual('State');
+    expect(result.fields[8].name).toEqual('Updated');
+    expect(result.fields[9].name).toEqual('Updated by');
+    expect(result.fields[10].name).toEqual('Workspace');
+    expect(result.fields[11].name).toEqual('Work order');
+    expect(result.fields[12].name).toEqual('Work order ID');
+    expect(result.fields[13].name).toEqual('Product name');
+    expect(result.fields[14].name).toEqual('Product ID');
+    expect(result.fields[15].name).toEqual('Part number');
+    expect(result.fields[16].name).toEqual('Planned start date/time');
+    expect(result.fields[17].name).toEqual('Estimated end date/time');
+    expect(result.fields[18].name).toEqual('Estimated duration in seconds');
+    expect(result.fields[19].name).toEqual('System name');
+    expect(result.fields[20].name).toEqual('System ID');
+    expect(result.fields[21].name).toEqual('Test plan template');
+    expect(result.fields[22].name).toEqual('Test plan template ID');
+    expect(result.fields[23].name).toEqual('Test program');
+    expect(result.fields[24].name).toEqual('Substate');
+    expect(result.fields[25].name).toEqual('Fixture names');
+    expect(result.fields[26].name).toEqual('DUT ID');
+    expect(result.fields[27].name).toEqual('DUT name');
+    expect(result.fields[28].name).toEqual('DUT serial number');
+  });
 });
 
 describe('loadWorkspaces', () => {
