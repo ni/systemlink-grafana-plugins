@@ -16,6 +16,7 @@ import { TAKE_LIMIT, takeErrorMessages, tooltips } from '../constants/QueryEdito
 import { validateNumericInput } from 'core/utils';
 import { Workspace } from 'core/types';
 import { User } from 'shared/types/QueryUsers.types';
+import { FloatingError } from 'core/errors';
 
 type Props = QueryEditorProps<WorkOrdersDataSource, WorkOrdersQuery>;
 
@@ -26,7 +27,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   useEffect(() => {
     const loadWorkspaces = async () => {
-      const workspaces = await datasource.workspaceUtils.getWorkspaces();
+      const workspaces = await datasource.loadWorkspaces();
       setWorkspaces(Array.from(workspaces.values()));
     };
 
@@ -37,7 +38,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
   const [users, setUsers] = useState<User[] | null>(null);
   useEffect(() => {
     const loadUsers = async () => {
-      const users = await datasource.usersUtils.getUsers();
+      const users = await datasource.loadUsers();
       setUsers(Array.from(users.values()));
     };
 
@@ -180,6 +181,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
           </div>
         </VerticalGroup>
       </HorizontalGroup>
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
     </>
   );
 }
