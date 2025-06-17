@@ -383,7 +383,7 @@ describe('WorkOrdersDataSource', () => {
 
       const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
 
-      expect(result.fields[0].name).toEqual('Work order ID');
+      expect(result.fields[0].name).toEqual('ID');
       expect(result.fields[1].name).toEqual('Name');
       expect(result.fields[2].name).toEqual('Type');
       expect(result.fields[3].name).toEqual('State');

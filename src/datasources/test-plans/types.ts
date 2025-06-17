@@ -112,7 +112,7 @@ export const PropertiesProjectionMap: Record<Properties, {
         field: 'description',
     },
     [Properties.ID]: {
-        label: 'Test Plan ID',
+        label: 'ID',
         projection: [Projections.ID],
         field: 'id',
     },

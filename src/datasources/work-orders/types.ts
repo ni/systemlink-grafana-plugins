@@ -45,7 +45,7 @@ export const WorkOrderProperties: Record<WorkOrderPropertiesOptions, {
   field: keyof WorkOrder;
 }> = {
   [WorkOrderPropertiesOptions.ID]: {
-    label: 'Work order ID',
+    label: 'ID',
     value: WorkOrderPropertiesOptions.ID,
     field: 'id',
   },
