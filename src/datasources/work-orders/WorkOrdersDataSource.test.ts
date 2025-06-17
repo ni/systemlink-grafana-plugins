@@ -114,7 +114,7 @@ describe('WorkOrdersDataSource', () => {
       const response = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
 
       expect(response.fields).toHaveLength(1);
-      expect(response.fields).toEqual([{"name": "Work order name", "type": "string", "values": []}]);
+      expect(response.fields).toEqual([{"name": "Name", "type": "string", "values": []}]);
       expect(response.refId).toEqual('A');
       expect(response.name).toEqual('A');
       expect(datastore.queryWorkordersData).toHaveBeenCalledWith('filter', ["NAME"], undefined, undefined, undefined);
@@ -354,6 +354,50 @@ describe('WorkOrdersDataSource', () => {
       expect(result.fields).toHaveLength(2);
       expect(result.fields[0].type).toEqual(FieldType.string);
       expect(result.fields[1].type).toEqual(FieldType.string);
+    });
+
+    it('should set field names as expected', async () => {
+      const mockQuery = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+        properties: [
+          WorkOrderPropertiesOptions.ID,
+          WorkOrderPropertiesOptions.NAME,
+          WorkOrderPropertiesOptions.TYPE,
+          WorkOrderPropertiesOptions.STATE,
+          WorkOrderPropertiesOptions.REQUESTED_BY,
+          WorkOrderPropertiesOptions.ASSIGNED_TO,
+          WorkOrderPropertiesOptions.CREATED_AT,
+          WorkOrderPropertiesOptions.UPDATED_AT,
+          WorkOrderPropertiesOptions.CREATED_BY,
+          WorkOrderPropertiesOptions.UPDATED_BY,
+          WorkOrderPropertiesOptions.DESCRIPTION,
+          WorkOrderPropertiesOptions.EARLIEST_START_DATE,
+          WorkOrderPropertiesOptions.DUE_DATE,
+          WorkOrderPropertiesOptions.WORKSPACE,
+          WorkOrderPropertiesOptions.PROPERTIES
+        ],
+      };
+
+      jest.spyOn(datastore, 'queryWorkordersData').mockResolvedValue([] as WorkOrder[]);
+
+      const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+      expect(result.fields[0].name).toEqual('ID');
+      expect(result.fields[1].name).toEqual('Name');
+      expect(result.fields[2].name).toEqual('Type');
+      expect(result.fields[3].name).toEqual('State');
+      expect(result.fields[4].name).toEqual('Requested by');
+      expect(result.fields[5].name).toEqual('Assigned to');
+      expect(result.fields[6].name).toEqual('Created');
+      expect(result.fields[7].name).toEqual('Updated');
+      expect(result.fields[8].name).toEqual('Created by');
+      expect(result.fields[9].name).toEqual('Updated by');
+      expect(result.fields[10].name).toEqual('Description');
+      expect(result.fields[11].name).toEqual('Earliest start date');
+      expect(result.fields[12].name).toEqual('Due date');
+      expect(result.fields[13].name).toEqual('Workspace');
+      expect(result.fields[14].name).toEqual('Properties');
     });
   });
 

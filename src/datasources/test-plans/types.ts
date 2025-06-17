@@ -1,4 +1,4 @@
-import { DataQuery } from '@grafana/schema'
+import { DataQuery } from '@grafana/schema';
 
 export interface TestPlansQuery extends DataQuery {
     properties?: Properties[];
@@ -97,7 +97,7 @@ export const PropertiesProjectionMap: Record<Properties, {
         field: 'assignedTo',
     },
     [Properties.CREATED_AT]: {
-        label: 'Created at',
+        label: 'Created',
         projection: [Projections.CREATED_AT],
         field: 'createdAt',
     },
@@ -132,7 +132,7 @@ export const PropertiesProjectionMap: Record<Properties, {
         field: 'state',
     },
     [Properties.UPDATED_AT]: {
-        label: 'Updated at',
+        label: 'Updated',
         projection: [Projections.UPDATED_AT],
         field: 'updatedAt',
     },
