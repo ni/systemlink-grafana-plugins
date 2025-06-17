@@ -891,7 +891,7 @@ describe('runQuery', () => {
     expect(result.fields[1].name).toEqual('Created');
     expect(result.fields[2].name).toEqual('Created by');
     expect(result.fields[3].name).toEqual('Description');
-    expect(result.fields[4].name).toEqual('ID');
+    expect(result.fields[4].name).toEqual('Work order ID');
     expect(result.fields[5].name).toEqual('Name');
     expect(result.fields[6].name).toEqual('Properties');
     expect(result.fields[7].name).toEqual('State');
