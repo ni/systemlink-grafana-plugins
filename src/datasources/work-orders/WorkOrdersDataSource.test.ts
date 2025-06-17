@@ -3,7 +3,7 @@ import { MockProxy } from 'jest-mock-extended';
 import { setupDataSource, requestMatching, createFetchResponse, createFetchError } from 'test/fixtures';
 import { WorkOrdersDataSource } from './WorkOrdersDataSource';
 import { OrderByOptions, OutputType, State, Type, WorkOrder, WorkOrderPropertiesOptions, WorkOrdersVariableQuery } from './types';
-import { DataQueryRequest, Field, LegacyMetricFindQueryOptions } from '@grafana/data';
+import { DataQueryRequest, Field, FieldType, LegacyMetricFindQueryOptions } from '@grafana/data';
 import { QUERY_WORK_ORDERS_MAX_TAKE, QUERY_WORK_ORDERS_REQUEST_PER_SECOND } from './constants/QueryWorkOrders.constants';
 import { queryInBatches } from 'core/utils';
 
@@ -333,6 +333,27 @@ describe('WorkOrdersDataSource', () => {
       );
 
       jest.useRealTimers();
+    });
+
+    test('should return type as string type', async () => {
+      const mockQuery = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+        properties: [WorkOrderPropertiesOptions.NAME, WorkOrderPropertiesOptions.UPDATED_AT],
+      };
+
+      const workOrdersResponse = [
+        {name: 'WorkOrder1', updatedAt: '2023-01-02T00:00:00Z'},
+        {name: 'WorkOrder2', updatedAt: '2023-01-05T00:00:00Z'},
+      ];
+
+      jest.spyOn(datastore, 'queryWorkordersData').mockResolvedValue(workOrdersResponse as WorkOrder[]);
+
+      const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+      expect(result.fields).toHaveLength(2);
+      expect(result.fields[0].type).toEqual(FieldType.string);
+      expect(result.fields[1].type).toEqual(FieldType.string);
     });
   });
 

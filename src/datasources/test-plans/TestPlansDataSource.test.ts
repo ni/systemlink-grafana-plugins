@@ -3,7 +3,7 @@ import { TestPlansDataSource } from "./TestPlansDataSource";
 import { BackendSrv } from "@grafana/runtime";
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from "test/fixtures";
 import { OrderByOptions, OutputType, Projections, Properties, QueryTestPlansResponse, TestPlansVariableQuery } from "./types";
-import { DataQueryRequest, LegacyMetricFindQueryOptions } from "@grafana/data";
+import { DataQueryRequest, FieldType, LegacyMetricFindQueryOptions } from "@grafana/data";
 
 let datastore: TestPlansDataSource, backendServer: MockProxy<BackendSrv>;
 
@@ -817,6 +817,29 @@ describe('runQuery', () => {
       undefined,
       true
     );
+  });
+
+  test('should return type as string type', async () => {
+    const mockQuery = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.ID, Properties.UPDATED_AT],
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', updatedAt: '2023-01-02T00:00:00Z' },
+        { id: '2', updatedAt: '2023-01-05T00:00:00Z' },
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(result.fields).toHaveLength(2);
+    expect(result.fields[0].type).toEqual(FieldType.string);
+    expect(result.fields[1].type).toEqual(FieldType.string);
   });
 });
 
