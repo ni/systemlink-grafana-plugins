@@ -1,4 +1,4 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { Asset, OrderByOptions, OutputType, Projections, Properties, PropertiesProjectionMap, QueryTemplatesResponse, QueryTestPlansResponse, TemplateResponseProperties, TestPlanResponseProperties, TestPlansQuery, TestPlansVariableQuery } from './types';
@@ -94,6 +94,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       const fields = projectionAndFields?.map(data => {
         const label = data.label;
         const field = data.field;
+        const fieldType = FieldType.string;
         const values = testPlans.map(data => data[field as unknown as keyof TestPlanResponseProperties] as any);
 
         const fieldValues = values.map(value => {
@@ -143,7 +144,8 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
         return {
           name: label,
-          values: fieldValues
+          values: fieldValues,
+          type: fieldType,
         };
       });
       return {
