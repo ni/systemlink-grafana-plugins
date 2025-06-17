@@ -148,7 +148,7 @@ describe('ResultsQueryEditor', () => {
 
       renderElement(query);
       expect(mockOnRunQuery).toHaveBeenCalled();
-      expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining(query));
+      expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ ...defaultResultsQuery, queryType: QueryType.Results, refId: 'A' }));
       
     })
   });
