@@ -1,3 +1,9 @@
+## [3.138.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.0...v3.138.1) (2025-06-17)
+
+### Bug Fixes
+
+* **workorders,testplans:** Return field type as string for all fields from datasource ([#305](https://github.com/ni/systemlink-grafana-plugins/issues/305)) ([3f1dd24](https://github.com/ni/systemlink-grafana-plugins/commit/3f1dd24489afbbec462f171091a3f02236baf954))
+
 ## [3.138.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.137.0...v3.138.0) (2025-06-17)
 
 ### Features
