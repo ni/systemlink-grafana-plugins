@@ -20,17 +20,12 @@ export class WorkspaceUtils {
     }
 
     private async loadWorkspaces(): Promise<Map<string, Workspace>> {
-        try {
-            const workspaces = await this.fetchWorkspaces();
-            const workspaceMap = new Map<string, Workspace>();
-            if (workspaces) {
-                workspaces.forEach(workspace => workspaceMap.set(workspace.id, workspace));
-            }
-            return workspaceMap;
-        } catch (error) {
-            console.error('Error in loading workspaces:', error);
-            return new Map<string, Workspace>();
+        const workspaces = await this.fetchWorkspaces();
+        const workspaceMap = new Map<string, Workspace>();
+        if (workspaces) {
+            workspaces.forEach(workspace => workspaceMap.set(workspace.id, workspace));
         }
+        return workspaceMap;
     }
 
     private async fetchWorkspaces(): Promise<Workspace[]> {

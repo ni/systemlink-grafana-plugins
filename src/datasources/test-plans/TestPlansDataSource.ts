@@ -1,9 +1,9 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
+import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { Asset, OrderByOptions, OutputType, Projections, Properties, PropertiesProjectionMap, QueryTemplatesResponse, QueryTestPlansResponse, TemplateResponseProperties, TestPlanResponseProperties, TestPlansQuery, TestPlansVariableQuery } from './types';
 import { getWorkspaceName, getVariableOptions, queryInBatches } from 'core/utils';
-import { QueryBuilderOption, QueryResponse } from 'core/types';
+import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { isTimeField, transformDuration } from './utils';
 import { QUERY_TEMPLATES_BATCH_SIZE, QUERY_TEMPLATES_REQUEST_PER_SECOND, QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
 import { AssetUtils } from './asset.utils';
@@ -13,6 +13,10 @@ import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { computedFieldsupportedOperations, ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { UsersUtils } from 'shared/users.utils';
 import { ProductUtils } from 'shared/product.utils';
+import { extractErrorInfo } from 'core/errors';
+import { User } from 'shared/types/QueryUsers.types';
+import { SystemAlias } from 'shared/types/QuerySystems.types';
+import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(
@@ -31,6 +35,8 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   baseUrl = `${this.instanceSettings.url}/niworkorder/v1`;
   queryTestPlansUrl = `${this.baseUrl}/query-testplans`;
   queryTemplatesUrl = `${this.baseUrl}/query-testplan-templates`;
+  errorTitle = '';
+  errorDescription = '';
   assetUtils: AssetUtils;
   workspaceUtils: WorkspaceUtils;
   systemUtils: SystemUtils;
@@ -58,10 +64,10 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
   async runQuery(query: TestPlansQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    const workspaces = await this.workspaceUtils.getWorkspaces();
-    const systemAliases = await this.systemUtils.getSystemAliases();
-    const users = await this.usersUtils.getUsers();
-    const products = await this.productUtils.getProductNamesAndPartNumbers();
+    const workspaces = await this.loadWorkspaces();
+    const systemAliases = await this.loadSystemAliases();
+    const users = await this.loadUsers();
+    const products = await this.loadProductNamesAndPartNumbers();
 
     if (query.queryBy) {
       query.queryBy = transformComputedFieldsQuery(
@@ -172,6 +178,49 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     }
   }
 
+  public async loadWorkspaces(): Promise<Map<string, Workspace>> {
+    try {
+      return await this.workspaceUtils.getWorkspaces();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, Workspace>();
+    }
+  }
+
+  public async loadUsers(): Promise<Map<string, User>> {
+    try {
+      return await this.usersUtils.getUsers();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, User>();
+    }
+  }
+
+  public async loadSystemAliases(): Promise<Map<string, SystemAlias>> {
+    try {
+      return await this.systemUtils.getSystemAliases();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, SystemAlias>();
+    }
+  }
+
+  public async loadProductNamesAndPartNumbers(): Promise<Map<string, ProductPartNumberAndName>> {
+    try {
+      return await this.productUtils.getProductNamesAndPartNumbers();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, ProductPartNumberAndName>();
+    }
+  }
 
   shouldRunQuery(query: TestPlansQuery): boolean {
     return true;
@@ -363,7 +412,22 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       });
       return response;
     } catch (error) {
-      throw new Error(`An error occurred while querying test plans: ${error} `);
+      const errorDetails = extractErrorInfo((error as Error).message);
+      let errorMessage: string;
+      if (!errorDetails.statusCode) {
+        errorMessage = 'The query failed due to an unknown error.';
+      } else if (errorDetails.statusCode === '504') {
+        errorMessage = 'The query to fetch testplans experienced a timeout error. Narrow your query with a more specific filter and try again.';
+      } else {
+        errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+      }
+
+      this.appEvents?.publish?.({
+        type: AppEvents.alertError.name,
+        payload: ['Error during testplans query', errorMessage],
+      });
+
+      throw new Error(errorMessage);
     }
   }
 
@@ -408,6 +472,18 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       return response.testPlanTemplates;
     } catch (error) {
       throw new Error(`An error occurred while querying test plan templates: ${error} `);
+    }
+  }
+
+  private handleDependenciesError(error: unknown): void {
+    const errorDetails = extractErrorInfo((error as Error).message);
+    this.errorTitle = 'Warning during testplans query';
+    if (errorDetails.statusCode === '504') {
+      this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
+    } else {
+      this.errorDescription = errorDetails.message
+        ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+        : 'Some values may not be available in the query builder lookups due to an unknown error.';
     }
   }
 }

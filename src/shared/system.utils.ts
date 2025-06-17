@@ -23,17 +23,12 @@ export class SystemUtils {
     }
 
     private async loadSystems(): Promise<Map<string, SystemAlias>> {
-        try {
-            const systems = await this.querySystemsInBatches();
-            const systemAliasMap = new Map<string, SystemAlias>();
-            if (systems) {
-                systems.forEach(system => systemAliasMap.set(system.id, system));
-            }
-            return systemAliasMap;
-        } catch (error) {
-            console.error('Error in loading systems:', error);
-            return new Map<string, SystemAlias>();
+        const systems = await this.querySystemsInBatches();
+        const systemAliasMap = new Map<string, SystemAlias>();
+        if (systems) {
+            systems.forEach(system => systemAliasMap.set(system.id, system));
         }
+        return systemAliasMap;
     }
 
     private async querySystemsInBatches(): Promise<SystemAlias[]> {
