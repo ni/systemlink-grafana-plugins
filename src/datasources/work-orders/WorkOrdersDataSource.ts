@@ -55,9 +55,9 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       );
     }
 
-    if (query.outputType === OutputType.Properties) {
+    if (query.outputType === OutputType.Properties && this.isQueryValid(query)) {
       return this.processWorkOrdersQuery(query);
-    } else {
+    } else if (query.outputType === OutputType.TotalCount) {
       const totalCount = await this.queryWorkordersCount(query.queryBy);
       return {
         refId: query.refId,
@@ -65,6 +65,12 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
         fields: [{ name: query.refId, values: [totalCount] }],
       };
     }
+
+    return {
+      refId: query.refId,
+      name: query.refId,
+      fields: [],
+    };
   }
 
   shouldRunQuery(query: WorkOrdersQuery): boolean {
@@ -81,7 +87,10 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   async metricFindQuery(
     query: WorkOrdersVariableQuery,
     options: LegacyMetricFindQueryOptions
-  ): Promise<MetricFindValue[]> {    
+  ): Promise<MetricFindValue[]> {
+    if (!this.isQueryValid(query)) {
+      return [];
+    }    
     const filter = query.queryBy? 
       transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
@@ -304,5 +313,9 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
         ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
         : 'Some values may not be available in the query builder lookups due to an unknown error.';
     }
+  }
+
+  private isQueryValid(query: WorkOrdersQuery): boolean {
+    return query.properties!.length !== 0 && query.take !== undefined
   }
 }

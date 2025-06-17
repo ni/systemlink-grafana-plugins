@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { OrderBy, WorkOrdersVariableQuery } from '../types';
 import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
 import { WorkOrdersQueryBuilder } from './query-builder/WorkOrdersQueryBuilder';
-import { TAKE_LIMIT, takeErrorMessages, tooltips } from '../constants/QueryEditor.constants';
+import { TAKE_LIMIT, tooltips } from '../constants/QueryEditor.constants';
 import { validateNumericInput } from 'core/utils';
 import { Workspace } from 'core/types';
 import { User } from 'shared/types/QueryUsers.types';
@@ -57,20 +57,22 @@ export function WorkOrdersVariableQueryEditor({ query, onChange, datasource }: P
     }
   };
 
+  const validateTakeValue = (value: number, TAKE_LIMIT: number) => {
+    if (isNaN(value) || value < 0) {
+      return { message: 'Value must be greater than or equal to 0', take: undefined };
+    }
+    if (value > TAKE_LIMIT) {
+      return { message: 'Value must be less than or equal to 10,000', take: undefined };
+    }
+    return {message: '', take: value };
+  };
+
   const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    switch (true) {
-      case isNaN(value) || value < 0:
-        setRecordCountInvalidMessage(takeErrorMessages.greaterOrEqualToZero);
-        break;
-      case value > TAKE_LIMIT:
-        setRecordCountInvalidMessage(takeErrorMessages.lessOrEqualToTenThousand);
-        break;
-      default:
-        setRecordCountInvalidMessage('');
-        handleQueryChange({ ...query, take: value });
-        break;
-    }
+    const { message, take } = validateTakeValue(value, TAKE_LIMIT);
+
+    setRecordCountInvalidMessage(message);
+    handleQueryChange({ ...query, take });
   };
 
   return (
