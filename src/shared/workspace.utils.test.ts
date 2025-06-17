@@ -46,4 +46,12 @@ describe('WorkspaceUtils', () => {
         expect(result.get('1')).toEqual(mockWorkspaces[0]);
         expect(result.get('2')).toEqual(mockWorkspaces[1]);
     });
+
+    it('should propagate error when loading workspaces fails', async () => {
+        (WorkspaceUtils as any)._workspacesCache = undefined;
+        const error = new Error('Failed to fetch workspaces');
+        (backendSrv.get as jest.Mock).mockRejectedValueOnce(error);
+
+        await expect(workspaceUtils.getWorkspaces()).rejects.toThrow('Failed to fetch workspaces');
+    });
 });

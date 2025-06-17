@@ -68,6 +68,16 @@ describe('UsersUtils', () => {
       expect(cachedUsers).toEqual(expectedUsersMap);
       expect(queryUntilComplete).toHaveBeenCalledTimes(1);
     });
+
+    it('should propagate error when fetching users fails', async () => {
+      (UsersUtils as any)._usersCache = undefined;
+
+      (queryUntilComplete as jest.Mock).mockImplementationOnce(() => {
+        return Promise.reject(new Error('Failed to fetch users'));
+      });
+
+      await expect(users.getUsers()).rejects.toThrow('Failed to fetch users');
+    });
   });
 
   describe('getUserFullName', () => {

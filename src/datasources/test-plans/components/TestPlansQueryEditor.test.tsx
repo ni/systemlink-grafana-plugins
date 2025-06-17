@@ -274,8 +274,8 @@ describe('TestPlansQueryEditor', () => {
         expect(result).toBeDefined();
         expect(result).toEqual(
             new Map([
-                ['part-number-1', { partNumber: 'part-number-1', name: 'Product 1' }],
-                ['part-number-2', { partNumber: 'part-number-2', name: 'Product 2' }]
+                ['part-number-1', { id: '1', partNumber: 'part-number-1', name: 'Product 1' }],
+                ['part-number-2', { id: '2', partNumber: 'part-number-2', name: 'Product 2' }]
             ])
         );
     });
