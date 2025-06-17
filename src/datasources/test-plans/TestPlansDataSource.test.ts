@@ -891,7 +891,7 @@ describe('runQuery', () => {
     expect(result.fields[1].name).toEqual('Created');
     expect(result.fields[2].name).toEqual('Created by');
     expect(result.fields[3].name).toEqual('Description');
-    expect(result.fields[4].name).toEqual('Work order ID');
+    expect(result.fields[4].name).toEqual('ID');
     expect(result.fields[5].name).toEqual('Name');
     expect(result.fields[6].name).toEqual('Properties');
     expect(result.fields[7].name).toEqual('State');
@@ -899,7 +899,7 @@ describe('runQuery', () => {
     expect(result.fields[9].name).toEqual('Updated by');
     expect(result.fields[10].name).toEqual('Workspace');
     expect(result.fields[11].name).toEqual('Work order');
-    expect(result.fields[12].name).toEqual('ID');
+    expect(result.fields[12].name).toEqual('Work order ID');
     expect(result.fields[13].name).toEqual('Product name');
     expect(result.fields[14].name).toEqual('Product ID');
     expect(result.fields[15].name).toEqual('Part number');
