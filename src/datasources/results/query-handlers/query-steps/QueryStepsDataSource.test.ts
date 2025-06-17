@@ -185,7 +185,7 @@ describe('QueryStepsDataSource', () => {
       expect(response.data).toMatchSnapshot();
     });
 
-    test('should return no data when QuerySteps API returns empty array', async () => {
+    test('should show column header with no data when QuerySteps API returns empty array', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
         .mockReturnValue(
@@ -198,7 +198,15 @@ describe('QueryStepsDataSource', () => {
           )
         );
 
-      const query = buildQuery();
+      const query = buildQuery(
+        {
+          refId: 'A',
+          outputType: OutputType.Data,
+          resultsQuery: 'PartNumber = "1234"',
+          properties: [StepsProperties.stepId],
+          recordCount: 1
+        },
+      );
       const response = await datastore.query(query);
 
       expect(response.data).toMatchSnapshot();
@@ -287,7 +295,8 @@ describe('QueryStepsDataSource', () => {
           {
             refId: 'A',
             outputType: OutputType.Data,
-            showMeasurements: true
+            showMeasurements: true,
+            properties: [StepsProperties.stepId]
           },
         );
   
@@ -326,7 +335,8 @@ describe('QueryStepsDataSource', () => {
           {
             refId: 'A',
             outputType: OutputType.Data,
-            showMeasurements: true
+            showMeasurements: true,
+            properties: [StepsProperties.stepId]
           },
         );
   
@@ -365,7 +375,8 @@ describe('QueryStepsDataSource', () => {
           {
             refId: 'A',
             outputType: OutputType.Data,
-            showMeasurements: true
+            showMeasurements: true,
+            properties: [StepsProperties.stepId]
           },
         );
   
@@ -1156,6 +1167,8 @@ describe('QueryStepsDataSource', () => {
         refId: 'A',
         resultsQuery: 'ProgramName = "Test"',
         outputType: OutputType.Data,
+        properties: [StepsPropertiesOptions.NAME as StepsProperties],
+        recordCount: 1
       } as QuerySteps;
 
       await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
@@ -1534,6 +1547,8 @@ describe('QueryStepsDataSource', () => {
             refId: 'A',
             resultsQuery: 'ProgramName = "Test"',
             outputType: OutputType.Data,
+            properties: [StepsPropertiesOptions.NAME as StepsProperties],
+            recordCount: 1
           } as QuerySteps;
 
           await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);

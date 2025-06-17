@@ -1,3 +1,10 @@
+## [3.136.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.136.0...v3.136.1) (2025-06-16)
+
+### Bug Fixes
+
+* **products, results:** Show columns headers on empty response ([#298](https://github.com/ni/systemlink-grafana-plugins/issues/298)) ([20556b2](https://github.com/ni/systemlink-grafana-plugins/commit/20556b27b9d93afcff25f1dd020b9f2443d34565))
+* **results:** Handle invalid queries to return empty data ([#297](https://github.com/ni/systemlink-grafana-plugins/issues/297)) ([36aee43](https://github.com/ni/systemlink-grafana-plugins/commit/36aee4351d7f2943815eeb5bb4834cfd53902a40))
+
 ## [3.136.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.135.5...v3.136.0) (2025-06-16)
 
 ### Features
