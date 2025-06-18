@@ -63,9 +63,11 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   };
 
   const onResultsFilterChange = (resultsQuery: string) => {
-    if (query.resultsQuery !== resultsQuery || datasource.previousResultsQuery !== resultsQuery) {
+    if (resultsQuery === '') {
+      handleQueryChange({ ...query, resultsQuery });
+    } else if (query.resultsQuery !== resultsQuery || datasource.previousResultsQuery !== resultsQuery) {
       query.resultsQuery = resultsQuery;
-      handleQueryChange({ ...query, resultsQuery: resultsQuery });
+      handleQueryChange({ ...query, resultsQuery });
     }
   };
 
