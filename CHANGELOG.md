@@ -1,3 +1,9 @@
+## [3.138.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.3...v3.138.4) (2025-06-18)
+
+### Bug Fixes
+
+* **results:** run query on initialization when switching datasources ([#304](https://github.com/ni/systemlink-grafana-plugins/issues/304)) ([6d867c3](https://github.com/ni/systemlink-grafana-plugins/commit/6d867c35ce0f00bd498b88c81b4d61ee9f292f99))
+
 ## [3.138.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.2...v3.138.3) (2025-06-18)
 
 ### Bug Fixes
