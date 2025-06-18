@@ -1119,6 +1119,10 @@ describe('QueryStepsDataSource', () => {
         properties: [StepsPropertiesOptions.NAME as StepsProperties],
         recordCount: 100
       } as QuerySteps;
+      jest.spyOn(datastore as any, 'validateAndUpdateStepPaths').mockImplementation(function (this: any) {
+        this.stepsPath = ['path1', 'path2', 'path3'];
+        return Promise.resolve();
+      });
 
       await datastore.runQuery(query, { scopedVars: {} } as DataQueryRequest);
       const result = datastore.getStepPaths();
@@ -1217,6 +1221,7 @@ describe('QueryStepsDataSource', () => {
 
     it('should contain error details when query-path error contains additional information', async () => {
       const error = new Error(`API failed Error message: ${JSON.stringify({ message: 'Detailed error message', statusCode: 500 })}`);
+      jest.spyOn(datastore as any, 'queryResultsValues').mockResolvedValue(['name1', 'name2']); 
       jest.spyOn(datastore as any, 'queryStepPaths').mockRejectedValue(error);
       const query = {
         refId: 'A',
