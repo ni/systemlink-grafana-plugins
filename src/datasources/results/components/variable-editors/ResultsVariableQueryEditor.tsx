@@ -62,7 +62,10 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
   }, [datasource]);
 
   useEffect(() => {
-    disableStepsQueryBuilder(stepsVariableQuery.queryByResults === '');
+    disableStepsQueryBuilder(
+      stepsVariableQuery.queryByResults === '' 
+      || stepsVariableQuery.queryByResults === undefined
+    );
   }, [stepsVariableQuery.queryByResults]);
 
   const onQueryTypeChange = (queryType: QueryType) => {
