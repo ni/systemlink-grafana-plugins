@@ -1,3 +1,9 @@
+## [3.138.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.2...v3.138.3) (2025-06-18)
+
+### Bug Fixes
+
+* **core:** Update text color in query builder ([#308](https://github.com/ni/systemlink-grafana-plugins/issues/308)) ([2a505bd](https://github.com/ni/systemlink-grafana-plugins/commit/2a505bd9464c0beeff2553e6e45d661655139fac))
+
 ## [3.138.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.1...v3.138.2) (2025-06-17)
 
 ### Bug Fixes
