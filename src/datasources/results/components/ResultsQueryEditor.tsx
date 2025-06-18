@@ -42,7 +42,10 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
         });
         break;
       case QueryType.Steps:
-        setResultsQuery(query as QueryResults);
+        // Preserve results query state when switching from Results to Steps
+        if (query.queryType === QueryType.Results) {
+          setResultsQuery(query as QueryResults);
+        }
         handleQueryChange({
           ...defaultStepsQuery,
           ...stepsQuery,
