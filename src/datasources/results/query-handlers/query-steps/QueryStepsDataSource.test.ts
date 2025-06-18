@@ -1101,7 +1101,13 @@ describe('QueryStepsDataSource', () => {
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
         .mockReturnValue(
           createFetchResponse({
-            paths: ['path1', 'path2', 'path1', 'path3', 'path2'],
+             paths: [
+              { path: 'path1' },
+              { path: 'path2' },
+              { path: 'path1' },
+              { path: 'path3' },
+              { path: 'path2' },
+            ],
             continuationToken: null,
             totalCount: 5,
           })
