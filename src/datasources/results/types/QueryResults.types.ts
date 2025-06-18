@@ -80,25 +80,79 @@ export enum ResultsProperties {
   workspace = 'workspace',
 }
 
-export const ResultPropertiesProjectionMap = {
-    'Result ID': ResultsProperties.id,
-    'Test program name': ResultsProperties.programName,
-    'Serial number': ResultsProperties.serialNumber,
-    'System ID': ResultsProperties.systemId,
-    'Status': ResultsProperties.status,
-    'Total time (s)': ResultsProperties.totalTimeInSeconds,
-    'Started at': ResultsProperties.startedAt,
-    'Updated at': ResultsProperties.updatedAt,
-    'Part number': ResultsProperties.partNumber,
-    'Data table IDs': ResultsProperties.dataTableIds,
-    'File IDs': ResultsProperties.fileIds,
-    'Host name': ResultsProperties.hostName,
-    'Operator': ResultsProperties.operator,
-    'Keywords': ResultsProperties.keywords,
-    'Properties': ResultsProperties.properties,
-    'Status type summary': ResultsProperties.statusTypeSummary,
-    'Workspace': ResultsProperties.workspace
-} as const;
+export const resultsProjectionLabelLookup: Record<ResultsProperties, {
+  label: string;
+  projection: ResultsProperties;
+}> = {
+  [ResultsProperties.id]: {
+    label: 'Result ID',
+    projection: ResultsProperties.id
+  },
+  [ResultsProperties.programName]: {
+    label: 'Test program name',
+    projection: ResultsProperties.programName
+  },
+  [ResultsProperties.serialNumber]: {
+    label: 'Serial number',
+    projection: ResultsProperties.serialNumber
+  },
+  [ResultsProperties.systemId]: {
+    label: 'System ID',
+    projection: ResultsProperties.systemId
+  },
+  [ResultsProperties.status]: {
+    label: 'Status',
+    projection: ResultsProperties.status
+  },
+  [ResultsProperties.totalTimeInSeconds]: {
+    label: 'Total time (s)',
+    projection: ResultsProperties.totalTimeInSeconds
+  },
+  [ResultsProperties.startedAt]: {
+    label: 'Started at',
+    projection: ResultsProperties.startedAt
+  },
+  [ResultsProperties.updatedAt]: {
+    label: 'Updated at',
+    projection: ResultsProperties.updatedAt
+  },
+  [ResultsProperties.partNumber]: {
+    label: 'Part number',
+    projection: ResultsProperties.partNumber
+  },
+  [ResultsProperties.dataTableIds]: {
+    label: 'Data table IDs',
+    projection: ResultsProperties.dataTableIds
+  },
+  [ResultsProperties.fileIds]: {
+    label: 'File IDs',
+    projection: ResultsProperties.fileIds
+  },
+  [ResultsProperties.hostName]: {
+    label: 'Host name',
+    projection: ResultsProperties.hostName
+  },
+  [ResultsProperties.operator]: {
+    label: 'Operator',
+    projection: ResultsProperties.operator
+  },
+  [ResultsProperties.keywords]: {
+    label: 'Keywords',
+    projection: ResultsProperties.keywords
+  },
+  [ResultsProperties.properties]: {
+    label: 'Properties',
+    projection: ResultsProperties.properties
+  },
+  [ResultsProperties.statusTypeSummary]: {
+    label: 'Status type summary',
+    projection: ResultsProperties.statusTypeSummary
+  },
+  [ResultsProperties.workspace]: {
+    label: 'Workspace',
+    projection: ResultsProperties.workspace
+  }
+}
 
 export interface StatusHttp {
   statusType: string;

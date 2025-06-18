@@ -4,7 +4,7 @@ import { validateNumericInput } from 'core/utils';
 import React, { useEffect, useState } from 'react';
 import { OutputType } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
-import { QuerySteps, StepPropertiesProjectionMap, StepsProperties } from 'datasources/results/types/QuerySteps.types';
+import { stepsProjectionLabelLookup, QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 import { StepsQueryBuilderWrapper } from '../../query-builders/steps-querybuilder-wrapper/StepsQueryBuilderWrapper';
 import { FloatingError } from 'core/errors';
@@ -98,8 +98,8 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
           >
             <MultiSelect
               placeholder={placeholders.properties}
-              options={Object.entries(StepPropertiesProjectionMap)
-                .map(([key, value]) => ({ label: key, value: value })) as SelectableValue[]}
+              options={Object.entries(stepsProjectionLabelLookup)
+                .map(([key, value]) => ({ label: value.label, value: key })) as SelectableValue[]}
               onChange={onPropertiesChange}
               value={query.properties}
               defaultValue={query.properties!}

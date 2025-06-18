@@ -5,7 +5,7 @@ exports[`QueryResultsDataSource query returns data for valid data-output-type qu
   {
     "fields": [
       {
-        "name": "programName",
+        "name": "Test program name",
         "type": "string",
         "values": [
           "My Program Name",
@@ -32,7 +32,7 @@ exports[`QueryResultsDataSource query returns column headers with no data when Q
   {
     "fields": [
       {
-        "name": "id",
+        "name": "Result ID",
         "type": "string",
         "values": [],
       },
@@ -62,7 +62,7 @@ exports[`QueryResultsDataSource query returns total count for valid total count 
 exports[`QueryResultsDataSource query should convert properties to Grafana fields 1`] = `
 [
   {
-    "name": "programName",
+    "name": "Test program name",
     "type": "string",
     "values": [
       "My Program Name",
