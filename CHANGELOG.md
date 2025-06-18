@@ -1,3 +1,9 @@
+## [3.139.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.3...v3.139.4) (2025-06-18)
+
+### Bug Fixes
+
+* **results:** preserve stepsQuery only when switching query types ([#313](https://github.com/ni/systemlink-grafana-plugins/issues/313)) ([9c48eab](https://github.com/ni/systemlink-grafana-plugins/commit/9c48eab2e107eba28670cd6e381f6b38f7169bce))
+
 ## [3.139.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.2...v3.139.3) (2025-06-18)
 
 ### Bug Fixes
