@@ -23,6 +23,7 @@ type Props = QueryEditorProps<WorkOrdersDataSource, WorkOrdersQuery>;
 export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
+  const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);  
 
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   useEffect(() => {
@@ -59,6 +60,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
   };
 
   const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
+    setIsPropertiesValid(items.length > 0);
     if (items !== undefined) {
       handleQueryChange({ ...query, properties: items.map(i => i.value as WorkOrderPropertiesOptions) });
     }
@@ -109,7 +111,13 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
             />
           </InlineField>
           {query.outputType === OutputType.Properties && (
-          <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
+          <InlineField 
+            label="Properties" 
+            labelWidth={25} 
+            tooltip={tooltips.properties}
+            invalid={!isPropertiesValid}
+            error='You must select at least one property.'
+          >
             <MultiSelect
               placeholder="Select the properties to query"
               options={
