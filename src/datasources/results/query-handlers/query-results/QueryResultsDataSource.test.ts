@@ -280,7 +280,7 @@ describe('QueryResultsDataSource', () => {
         const response = await datastore.query(query);
         const fields = response.data[0].fields as Field[];
         expect(fields).toEqual([
-          { name: 'properties', values: [""], type: 'string' },
+          { name: 'Properties', values: [""], type: 'string' },
         ]);
     });
 

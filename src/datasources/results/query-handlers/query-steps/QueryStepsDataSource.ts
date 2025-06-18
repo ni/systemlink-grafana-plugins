@@ -1,6 +1,7 @@
 import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, AppEvents } from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
+  PropertiesProjectionMap,
   QueryStepPathsResponse,
   QuerySteps,
   QueryStepsResponse,
@@ -22,6 +23,7 @@ import { queryInBatches } from 'core/utils';
 import { MAX_PATH_TAKE_PER_REQUEST, QUERY_PATH_REQUEST_PER_SECOND } from 'datasources/results/constants/QueryStepPath.constants';
 import { extractErrorInfo } from 'core/errors';
 import { formatMeasurementColumnName, formatMeasurementValueColumnName, MEASUREMENT_NAME_COLUMN, MEASUREMENT_UNITS_COLUMN, measurementColumnLabelSuffix, MeasurementProperties, measurementProperties } from 'datasources/results/constants/stepMeasurements.constants';
+import { property } from 'lodash';
 
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
@@ -221,7 +223,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       const selectedFields = (query.properties || []).filter(field => stepResponseKeys.has(field));
       if (selectedFields.length === 0) {
         // If no fields are available, fall back to the requested properties
-        selectedFields.push(...(query.properties || []));
+        const properties = query.properties?.map(property => PropertiesProjectionMap[property].label) as StepsProperties[];
+        selectedFields.push(...(properties || []));
       }
 
       const fields = this.processFields(selectedFields, stepsResponse, query.showMeasurements || false);
@@ -312,9 +315,10 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     stepsResponse.forEach(step => {
       // Process selected step fields
       selectedFields.forEach(field => {
+        const fieldName = PropertiesProjectionMap[field].label;
         const value = this.convertStepPropertyToString(field, step[field]);
         const fieldType = this.findFieldType(field, value);
-        this.addValueToColumn(columns, field, value, fieldType);
+        this.addValueToColumn(columns, fieldName, value, fieldType);
       });
 
       // Process measurement fields if enabled

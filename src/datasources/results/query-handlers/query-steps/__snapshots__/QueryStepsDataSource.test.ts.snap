@@ -12,7 +12,7 @@ exports[`QueryStepsDataSource query returns empty data for invalid query 1`] = `
 exports[`QueryStepsDataSource query should convert properties to Grafana fields 1`] = `
 [
   {
-    "name": "properties",
+    "name": "Properties",
     "type": "string",
     "values": [
       "{"key1":"value1","key2":"value2"}",
@@ -26,7 +26,7 @@ exports[`QueryStepsDataSource query should return data for valid data-output-typ
   {
     "fields": [
       {
-        "name": "name",
+        "name": "Step name",
         "type": "string",
         "values": [
           "Step 1",
@@ -44,7 +44,7 @@ exports[`QueryStepsDataSource query should show column header with no data when 
   {
     "fields": [
       {
-        "name": "stepId",
+        "name": "Step ID",
         "type": "string",
         "values": [],
       },
@@ -74,7 +74,7 @@ exports[`QueryStepsDataSource query should return total count for valid total co
 exports[`QueryStepsDataSource query show measurements is enabled should convert step measurements to Grafana fields as a column 1`] = `
 [
   {
-    "name": "stepId",
+    "name": "Step ID",
     "type": "number",
     "values": [
       "1",
@@ -151,7 +151,7 @@ exports[`QueryStepsDataSource query show measurements is enabled should convert 
 exports[`QueryStepsDataSource query show measurements is enabled should create empty cells when measurements are not available 1`] = `
 [
   {
-    "name": "stepId",
+    "name": "Step ID",
     "type": "number",
     "values": [
       "1",
@@ -180,7 +180,7 @@ exports[`QueryStepsDataSource query show measurements is enabled should create e
 exports[`QueryStepsDataSource query show measurements is enabled should create new columns when units are different in the same measurement 1`] = `
 [
   {
-    "name": "stepId",
+    "name": "Step ID",
     "type": "number",
     "values": [
       "1",

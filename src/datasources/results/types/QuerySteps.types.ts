@@ -56,23 +56,73 @@ export enum StepsProperties {
   properties = 'properties',
 }
 
-export const StepPropertiesProjectionMap = {
-  'Step name': StepsProperties.name,
-  'Step type': StepsProperties.stepType,
-  'Step ID': StepsProperties.stepId,
-  'Parent ID': StepsProperties.parentId,
-  'Result ID': StepsProperties.resultId,
-  'Status': StepsProperties.status,
-  'Total time (s)': StepsProperties.totalTimeInSeconds,
-  'Started at': StepsProperties.startedAt,
-  'Updated at': StepsProperties.updatedAt,
-  'Inputs': StepsProperties.inputs,
-  'Outputs': StepsProperties.outputs,
-  'Data model': StepsProperties.dataModel,
-  'Data': StepsProperties.data,
-  'Workspace': StepsProperties.workspace,
-  'Keywords': StepsProperties.keywords,
-  'Properties': StepsProperties.properties,
+export const PropertiesProjectionMap: Record<StepsProperties, {
+  label: string,
+  projection: StepsProperties
+}> = {
+  [StepsProperties.name]: {
+    label: 'Step name',
+    projection: StepsProperties.name
+  },
+  [StepsProperties.stepType]: {
+    label: 'Step type',
+    projection: StepsProperties.stepType
+  },
+  [StepsProperties.stepId]: {
+    label: 'Step ID',
+    projection: StepsProperties.stepId
+  },
+  [StepsProperties.parentId]: {
+    label: 'Parent ID',
+    projection: StepsProperties.parentId
+  },
+  [StepsProperties.resultId]: {
+    label: 'Result ID',
+    projection: StepsProperties.resultId
+  },
+  [StepsProperties.status]: {
+    label: 'Status', projection: StepsProperties.status
+  },
+  [StepsProperties.totalTimeInSeconds]: {
+    label: 'Total time (s)',
+    projection: StepsProperties.totalTimeInSeconds
+  },
+  [StepsProperties.startedAt]: {
+    label: 'Started at',
+    projection: StepsProperties.startedAt
+  },
+  [StepsProperties.updatedAt]: {
+    label: 'Updated at',
+    projection: StepsProperties.updatedAt
+  },
+  [StepsProperties.inputs]: {
+    label: 'Inputs',
+    projection: StepsProperties.inputs
+  },
+  [StepsProperties.outputs]: {
+    label: 'Outputs',
+    projection: StepsProperties.outputs
+  },
+  [StepsProperties.dataModel]: {
+    label: 'Data model',
+    projection: StepsProperties.dataModel
+  },
+  [StepsProperties.data]: {
+    label: 'Data',
+    projection: StepsProperties.data
+  },
+  [StepsProperties.workspace]: {
+    label: 'Workspace',
+    projection: StepsProperties.workspace
+  },
+  [StepsProperties.keywords]: {
+    label: 'Keywords',
+    projection: StepsProperties.keywords
+  },
+  [StepsProperties.properties]: {
+    label: 'Properties',
+    projection: StepsProperties.properties
+  },
 }
 
 export interface StatusHttp {
