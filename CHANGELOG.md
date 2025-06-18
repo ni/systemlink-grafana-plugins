@@ -1,3 +1,9 @@
+## [3.139.7](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.6...v3.139.7) (2025-06-18)
+
+### Bug Fixes
+
+* **results:** fix column headers to sentence case ([#317](https://github.com/ni/systemlink-grafana-plugins/issues/317)) ([a4c39e1](https://github.com/ni/systemlink-grafana-plugins/commit/a4c39e17273ca4f4bd84cd9a02f3efd1b0d8817d))
+
 ## [3.139.6](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.5...v3.139.6) (2025-06-18)
 
 ### Bug Fixes
