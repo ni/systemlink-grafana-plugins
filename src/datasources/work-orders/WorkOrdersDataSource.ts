@@ -55,7 +55,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       );
     }
 
-    if (query.outputType === OutputType.Properties && this.isQueryValid(query)) {
+    if (query.outputType === OutputType.Properties && this.isPropertiesValid(query) && this.isTakeValid(query)) {
       return this.processWorkOrdersQuery(query);
     } else if (query.outputType === OutputType.TotalCount) {
       const totalCount = await this.queryWorkordersCount(query.queryBy);
@@ -88,12 +88,13 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     query: WorkOrdersVariableQuery,
     options: LegacyMetricFindQueryOptions
   ): Promise<MetricFindValue[]> {
-    if (!this.isQueryValid(query)) {
+    const variableQuery = this.prepareQuery(query);
+    if (!this.isTakeValid(variableQuery)) {
       return [];
     }    
-    const filter = query.queryBy? 
+    const filter = variableQuery.queryBy? 
       transformComputedFieldsQuery(
-        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.templateSrv.replace(variableQuery.queryBy, options.scopedVars),
         this.workordersComputedDataFields
       )
       : undefined;
@@ -101,9 +102,9 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     const metadata = await this.queryWorkordersData(
       filter,
       [WorkOrderPropertiesOptions.ID, WorkOrderPropertiesOptions.NAME],
-      query.orderBy,
-      query.descending,
-      query.take
+      variableQuery.orderBy,
+      variableQuery.descending,
+      variableQuery.take
     );
 
     return metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.id})`, value: frame.id })) : [];
@@ -315,7 +316,11 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     }
   }
 
-  private isQueryValid(query: WorkOrdersQuery): boolean {
-    return query.properties!.length !== 0 && query.take !== undefined
+  private isTakeValid(query: WorkOrdersQuery): boolean {
+    return query.take !== undefined
+  }
+
+  private isPropertiesValid(query: WorkOrdersQuery): boolean {
+    return !!query.properties && query.properties.length > 0;
   }
 }

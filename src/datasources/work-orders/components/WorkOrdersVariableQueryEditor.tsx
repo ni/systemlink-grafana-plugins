@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { OrderBy, WorkOrdersVariableQuery } from '../types';
 import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
 import { WorkOrdersQueryBuilder } from './query-builder/WorkOrdersQueryBuilder';
-import { TAKE_LIMIT, tooltips } from '../constants/QueryEditor.constants';
+import { TAKE_LIMIT, takeErrorMessages, tooltips } from '../constants/QueryEditor.constants';
 import { validateNumericInput } from 'core/utils';
 import { Workspace } from 'core/types';
 import { User } from 'shared/types/QueryUsers.types';
@@ -59,10 +59,10 @@ export function WorkOrdersVariableQueryEditor({ query, onChange, datasource }: P
 
   const validateTakeValue = (value: number, TAKE_LIMIT: number) => {
     if (isNaN(value) || value < 0) {
-      return { message: 'Value must be greater than or equal to 0', take: undefined };
+      return { message: takeErrorMessages.greaterOrEqualToZero, take: undefined };
     }
     if (value > TAKE_LIMIT) {
-      return { message: 'Value must be less than or equal to 10,000', take: undefined };
+      return { message: takeErrorMessages.lessOrEqualToTenThousand, take: undefined };
     }
     return {message: '', take: value };
   };
