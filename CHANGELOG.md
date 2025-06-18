@@ -1,3 +1,9 @@
+## [3.139.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.0...v3.139.1) (2025-06-18)
+
+### Bug Fixes
+
+* **workorders:** Handle invalid queries to return empty data ([#310](https://github.com/ni/systemlink-grafana-plugins/issues/310)) ([a3bb4ae](https://github.com/ni/systemlink-grafana-plugins/commit/a3bb4ae816fea99b3b462135c6c50b262088b1b1))
+
 ## [3.139.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.4...v3.139.0) (2025-06-18)
 
 ### Features
