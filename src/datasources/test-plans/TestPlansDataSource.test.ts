@@ -683,6 +683,8 @@ describe('runQuery', () => {
       refId: 'C',
       outputType: OutputType.Properties,
       queryBy: 'workspace = "${var}"',
+      properties: [Properties.ID],
+      recordCount: 1000
     };
     jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "testWorkspace"');
     jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
@@ -695,7 +697,7 @@ describe('runQuery', () => {
       'workspace = "testWorkspace"',
       undefined,
       ["ID"],
-      undefined,
+      1000,
       undefined,
       true,
     );
@@ -706,6 +708,8 @@ describe('runQuery', () => {
       refId: 'C',
       outputType: OutputType.Properties,
       queryBy: 'workspace = "${var}"',
+      properties: [Properties.ID],
+      recordCount: 1000,
     };
     const options = { scopedVars: { var: { value: '{testWorkspace1,testWorkspace2}' } } };
     jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "{testWorkspace1,testWorkspace2}"');
@@ -717,7 +721,7 @@ describe('runQuery', () => {
       '(workspace = "testWorkspace1" || workspace = "testWorkspace2")',
       undefined,
       ["ID"],
-      undefined,
+      1000,
       undefined,
       true,
     );
@@ -731,6 +735,8 @@ describe('runQuery', () => {
       refId: 'C',
       outputType: OutputType.Properties,
       queryBy: 'updatedAt = "${__now:date}"',
+      properties: [Properties.ID],
+      recordCount: 1000,
     };
 
     await datastore.runQuery(mockQuery, {} as DataQueryRequest);
@@ -739,7 +745,7 @@ describe('runQuery', () => {
       'updatedAt = "2025-01-01T00:00:00.000Z"',
       undefined,
       ["ID"],
-      undefined,
+      1000,
       undefined,
       true,
     );
@@ -803,6 +809,8 @@ describe('runQuery', () => {
       refId: 'C',
       outputType: OutputType.Properties,
       queryBy: '(estimatedDurationInDays > "2" && estimatedDurationInHours != "2")',
+      properties: [Properties.ID],
+      recordCount: 1000,
     };
 
     jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
@@ -813,7 +821,7 @@ describe('runQuery', () => {
       '(estimatedDurationInSeconds > \"172800\" && estimatedDurationInSeconds != \"7200\")',
       undefined,
       ["ID"],
-      undefined,
+      1000,
       undefined,
       true
     );
@@ -824,6 +832,7 @@ describe('runQuery', () => {
       refId: 'A',
       outputType: OutputType.Properties,
       properties: [Properties.ID, Properties.UPDATED_AT],
+      recordCount: 1000,
     };
 
     const testPlansResponse = {
@@ -877,6 +886,7 @@ describe('runQuery', () => {
         Properties.DUT_NAME,
         Properties.DUT_SERIAL_NUMBER,
       ],
+      recordCount: 1000,
     };
 
     const testPlansResponse = {
@@ -916,6 +926,37 @@ describe('runQuery', () => {
     expect(result.fields[26].name).toEqual('DUT ID');
     expect(result.fields[27].name).toEqual('DUT name');
     expect(result.fields[28].name).toEqual('DUT serial number');
+  });
+
+  
+  it('should return empty data when properties is invalid', async () => {
+    const mockQuery = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [],
+      recordCount: 1000,
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({testPlans:[]});
+
+    const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(result.fields).toHaveLength(0);
+  });
+
+  it('should return empty data when take is invalid', async () => {
+    const mockQuery = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.NAME],
+      take: undefined,
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({testPlans:[]});
+
+    const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(result.fields).toHaveLength(0);
   });
 });
 
@@ -1223,6 +1264,7 @@ describe('metricFindQuery', () => {
   it('should return test plan name with id when queryBy is not provided', async () => {
     const query: TestPlansVariableQuery = {
       refId: '',
+      recordCount: 1000
     };
 
     const results = await datastore.metricFindQuery(query, options);
@@ -1231,7 +1273,8 @@ describe('metricFindQuery', () => {
     expect(backendServer.fetch).toHaveBeenCalledWith(
       expect.objectContaining({
         data: {
-          descending: false,
+          orderBy: OrderByOptions.UPDATED_AT,
+          descending: true,
           projection: ["ID", "NAME"],
           returnCount: false,
           take: 1000
@@ -1268,6 +1311,7 @@ describe('metricFindQuery', () => {
     const mockQuery = {
       refId: 'C',
       queryBy: 'workspace = "${var}"',
+      recordCount: 1000,
     };
     jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "testWorkspace"');
     jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
@@ -1278,10 +1322,10 @@ describe('metricFindQuery', () => {
     expect(datastore.templateSrv.replace).toHaveBeenCalledWith('workspace = "${var}"', options.scopedVars);
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'workspace = "testWorkspace"',
-      undefined,
+      "UPDATED_AT",
       ["ID", "NAME"],
-      undefined,
-      undefined
+      1000,
+      true
     );
   });
 
@@ -1290,6 +1334,7 @@ describe('metricFindQuery', () => {
       refId: 'C',
       outputType: OutputType.Properties,
       queryBy: 'workspace = "${var}"',
+      recordCount: 1000,
     };
     const options = { scopedVars: { var: { value: '{testWorkspace1,testWorkspace2}' } } };
     jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "{testWorkspace1,testWorkspace2}"');
@@ -1299,10 +1344,10 @@ describe('metricFindQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       '(workspace = "testWorkspace1" || workspace = "testWorkspace2")',
-      undefined,
+      "UPDATED_AT",
       ["ID", "NAME"],
-      undefined,
-      undefined
+      1000,
+      true
     );
   });
 
@@ -1314,16 +1359,17 @@ describe('metricFindQuery', () => {
       refId: 'C',
       outputType: OutputType.Properties,
       queryBy: 'updatedAt = "${__now:date}"',
+      recordCount: 1000
     };
 
     await datastore.metricFindQuery(mockQuery, {});
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'updatedAt = "2025-01-01T00:00:00.000Z"',
-      undefined,
+      "UPDATED_AT",
       ["ID", "NAME"],
-      undefined,
-      undefined
+      1000,
+      true
     );
 
     jest.useRealTimers();
@@ -1333,6 +1379,7 @@ describe('metricFindQuery', () => {
     const mockQuery = {
       refId: 'C',
       queryBy: '(estimatedDurationInDays > "2" && estimatedDurationInHours != "2")',
+      recordCount: 1000
     };
 
     jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
@@ -1341,10 +1388,39 @@ describe('metricFindQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       '(estimatedDurationInSeconds > \"172800\" && estimatedDurationInSeconds != \"7200\")',
-      undefined,
+      "UPDATED_AT",
       ["ID", "NAME"],
-      undefined,
-      undefined
+      1000,
+      true
     );
+  });
+
+  it('should populate default query properties', async () => {
+    const mockQuery = {
+      refId: 'C'
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.metricFindQuery(mockQuery, {});
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      undefined,
+      "UPDATED_AT",
+      ["ID", "NAME"],
+      1000,
+      true
+    );
+  });
+
+  test('should return empty array when record count is invalid', async () => {
+    const mockQuery = {
+      refId: 'A',
+      recordCount: undefined,
+    };
+
+    const result = await datastore.metricFindQuery(mockQuery, {} as LegacyMetricFindQueryOptions);
+
+    expect(result).toEqual([]);
   });
 });

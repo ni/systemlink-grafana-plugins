@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, RenderResult, waitFor } from '@testing-library/react';
+import { act, render, RenderResult, screen, waitFor } from '@testing-library/react';
 import { TestPlansQueryEditor } from './TestPlansQueryEditor';
 import { QueryEditorProps } from '@grafana/data';
 import { TestPlansDataSource } from '../TestPlansDataSource';
@@ -307,6 +307,25 @@ describe('TestPlansQueryEditor', () => {
             });
         });
 
+        it('should show error when all properties are removed', async () => {
+            const container = await renderElement();
+      
+            const properties = container.getAllByRole('combobox')[0];
+            // User adds a property
+            await select(properties, "Workspace", { container: document.body });
+            await waitFor(() => {
+              expect(mockOnChange).toHaveBeenCalledWith(
+                expect.objectContaining({ properties: ["WORKSPACE"] })
+              )
+            });
+      
+            // User removes the property
+            const removeButton = screen.getByRole('button', { name: 'Remove' });
+            await userEvent.click(removeButton);
+      
+            expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
+        })
+
         it('should call onChange with order by when user selects order by', async () => {
             const container = await renderElement();
             const orderBySelect = container.getAllByRole('combobox')[1];
@@ -374,8 +393,8 @@ describe('TestPlansQueryEditor', () => {
 
             await waitFor(() => {
                 expect(container.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
-                expect(mockOnChange).not.toHaveBeenCalled();
-                expect(mockOnRunQuery).not.toHaveBeenCalled();
+                expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: undefined }));
+                expect(mockOnRunQuery).toHaveBeenCalled();
             });
         });
 
@@ -390,8 +409,8 @@ describe('TestPlansQueryEditor', () => {
 
             await waitFor(() => {
                 expect(container.getByText('Enter a value greater than or equal to 0')).toBeInTheDocument();
-                expect(mockOnChange).not.toHaveBeenCalled();
-                expect(mockOnRunQuery).not.toHaveBeenCalled();
+                expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: undefined }));
+                expect(mockOnRunQuery).toHaveBeenCalled();
             });
         });
 
