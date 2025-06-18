@@ -65,7 +65,7 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   const onResultsFilterChange = (resultsQuery: string) => {
     if (resultsQuery === '') {
       handleQueryChange({ ...query, resultsQuery });
-    } else if (query.resultsQuery !== resultsQuery || datasource.previousResultsQuery !== resultsQuery) {
+    } else if (query.resultsQuery !== resultsQuery) {
       query.resultsQuery = resultsQuery;
       handleQueryChange({ ...query, resultsQuery });
     }

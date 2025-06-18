@@ -62,7 +62,6 @@ const mockWorkspaces: Workspace[] = [
 
 const mockDatasource = {
   globalVariableOptions: jest.fn().mockReturnValue(['var1', 'var2']),
-  setStepsPathChangeCallback: jest.fn(),
   getStepPaths: jest.fn().mockReturnValue([]),
   workspacesCache: Promise.resolve(new Map(mockWorkspaces.map(ws => [ws.id, ws]))),
   partNumbersCache: Promise.resolve(['PN1', 'PN2']),
@@ -103,7 +102,6 @@ describe('StepsQueryBuilderWrapper', () => {
     const emptyDatasource = {
       globalVariableOptions: jest.fn().mockReturnValue([]),
       workspacesCache: Promise.resolve(new Map()),
-      setStepsPathChangeCallback: jest.fn(),
       getStepPaths: jest.fn().mockReturnValue([]),
     } as unknown as QueryStepsDataSource;
 
@@ -123,7 +121,6 @@ describe('StepsQueryBuilderWrapper', () => {
       globalVariableOptions: jest.fn().mockReturnValue([]),
       workspacesCache: Promise.resolve(new Map(mockWorkspaces.map(ws => [ws.id, ws]))),
       partNumbersCache: Promise.resolve([]),
-      setStepsPathChangeCallback: jest.fn(),
       getStepPaths: jest.fn().mockReturnValue([]),
     } as unknown as QueryStepsDataSource;
 
@@ -163,7 +160,6 @@ describe('StepsQueryBuilderWrapper', () => {
     cleanup();
     let callback: (() => void) | undefined;
     const mockDatasource = {
-      setStepsPathChangeCallback: jest.fn(cb => { callback = cb; }),
       getStepPaths: jest.fn().mockReturnValue(['pathA', 'pathB']),
       workspacesCache: Promise.resolve(new Map()),
       globalVariableOptions: jest.fn().mockReturnValue([]),
@@ -189,7 +185,6 @@ describe('StepsQueryBuilderWrapper', () => {
   test('should load initial stepsPath on mount', async () => {
     cleanup();
     const mockDatasource = {
-      setStepsPathChangeCallback: jest.fn(),
       getStepPaths: jest.fn().mockReturnValue(['initPath1', 'initPath2']),
       workspacesCache: Promise.resolve(new Map()),
       globalVariableOptions: jest.fn().mockReturnValue([]),
