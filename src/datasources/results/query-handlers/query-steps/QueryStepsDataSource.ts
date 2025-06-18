@@ -28,17 +28,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryPathsUrl = this.baseUrl + '/v2/query-paths';
 
   defaultQuery = defaultStepsQuery;
-
-  private stepsPath: string[] = [];
-
-  previousResultsQuery: string | undefined;
-  private currentResultsQuery: string | undefined;
-
-  private stepsPathChangeCallback?: () => void;
-
-  setStepsPathChangeCallback(callback: () => void) {
-    this.stepsPathChangeCallback = callback;
-  }
+  scopedVars: ScopedVars = {};
 
   async querySteps(
     filter?: string,
@@ -182,6 +172,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
   
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
+    this.scopedVars = options.scopedVars || {};
+  
     if (query.outputType === OutputType.Data && !this.isQueryValid(query)) {
       return {
         refId: query.refId,
@@ -191,9 +183,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     
     query.stepsQuery = this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options.scopedVars) || '';
     query.resultsQuery = this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options.scopedVars) || '';
-    
-    this.currentResultsQuery = query.resultsQuery;
-    this.validateAndUpdateStepPaths();
     
     const transformStepsQuery = query.stepsQuery
       ? this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options.scopedVars)
@@ -249,13 +238,14 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  private async validateAndUpdateStepPaths(): Promise<void> {
-   if(this.previousResultsQuery !== this.currentResultsQuery) {
-      this.stepsPath = await this.getStepPathsLookupValues(this.currentResultsQuery!)
-      this.stepsPathChangeCallback?.();
-      this.previousResultsQuery = this.currentResultsQuery;
+  async getStepPaths(resultsQuery: string): Promise<string[]> {
+    if (resultsQuery) {
+      const query = this.transformQuery(resultsQuery, this.resultsComputedDataFields, this.scopedVars);
+      const stepPaths = await this.getStepPathsLookupValues(query!);
+      return  this.flattenAndDeduplicate(stepPaths);
     }
-   }
+    return [];
+  }
 
   private async getStepPathsLookupValues(transformedResultsQuery: string): Promise<string[]> {
     let stepPathValues: string[];
@@ -286,13 +276,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       MAX_PATH_TAKE_PER_REQUEST,
       true
     );
-  }
-
-  getStepPaths(): string[] {
-    if (this.stepsPath?.length > 0) {
-      return this.flattenAndDeduplicate(this.stepsPath);
-    }
-    return [];
   }
 
   private processFields(
@@ -467,7 +450,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
    * @param scopedVars - The scoped variables for template replacement.
    * @returns - The transformed query string, or undefined if the input queryField is undefined.
    */
-  private transformQuery(queryField: string | undefined, computedDataFields: Map<string, ExpressionTransformFunction>, scopedVars: ScopedVars): string | undefined {
+  private transformQuery(queryField: string | undefined, computedDataFields: Map<string, ExpressionTransformFunction>, scopedVars?: ScopedVars): string | undefined {
     return queryField
       ? transformComputedFieldsQuery(
         this.templateSrv.replace(queryField, scopedVars),
@@ -477,10 +460,9 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   async metricFindQuery(query: StepsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    this.scopedVars = options?.scopedVars || {};
     if (query.queryByResults && this.isTakeValid(query.stepsTake!)) {
       const resultsQuery = this.transformQuery(query.queryByResults, this.resultsComputedDataFields, options?.scopedVars!) || '';
-      this.currentResultsQuery = resultsQuery;
-      this.validateAndUpdateStepPaths();
 
       const stepsQuery = this.transformQuery(query.queryBySteps, this.resultsComputedDataFields, options?.scopedVars!);
 

@@ -43,16 +43,17 @@ export const StepsQueryBuilderWrapper = (
       const partNumbers = await datasource.partNumbersCache;
       setPartNumbers(partNumbers);
     };
-    const loadStepsPath = () => {
-      setStepsPath(datasource.getStepPaths());
-      datasource.setStepsPathChangeCallback(() => {
-        setStepsPath(datasource.getStepPaths());
-      });
-    };
     loadPartNumbers();
-    loadStepsPath();
     loadWorkspaces();
   }, [datasource]);
+
+  useEffect(() => {
+    const loadStepsPath = async () => {
+      const stepPath = await datasource.getStepPaths(resultsQuery);
+      setStepsPath(stepPath);
+    };
+    loadStepsPath();
+  },[datasource, resultsQuery] )
 
   const onResultsQueryByChange = (query: string) => {
     onResultsQueryChange(query);
