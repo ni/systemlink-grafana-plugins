@@ -1,3 +1,21 @@
+## [3.138.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.3...v3.138.4) (2025-06-18)
+
+### Bug Fixes
+
+* **results:** run query on initialization when switching datasources ([#304](https://github.com/ni/systemlink-grafana-plugins/issues/304)) ([6d867c3](https://github.com/ni/systemlink-grafana-plugins/commit/6d867c35ce0f00bd498b88c81b4d61ee9f292f99))
+
+## [3.138.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.2...v3.138.3) (2025-06-18)
+
+### Bug Fixes
+
+* **core:** Update text color in query builder ([#308](https://github.com/ni/systemlink-grafana-plugins/issues/308)) ([2a505bd](https://github.com/ni/systemlink-grafana-plugins/commit/2a505bd9464c0beeff2553e6e45d661655139fac))
+
+## [3.138.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.1...v3.138.2) (2025-06-17)
+
+### Bug Fixes
+
+* **workorders,testplans:** Fix field names ([#306](https://github.com/ni/systemlink-grafana-plugins/issues/306)) ([eb30508](https://github.com/ni/systemlink-grafana-plugins/commit/eb3050881c5865bf68cf524368d4d8e4a7bc6708))
+
 ## [3.138.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.0...v3.138.1) (2025-06-17)
 
 ### Bug Fixes

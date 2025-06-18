@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { ResultsDataSource } from '../ResultsDataSource';
-import { QueryType, ResultsDataSourceOptions, ResultsQuery } from '../types/types';
+import { defaultResultsQueryType, QueryType, ResultsDataSourceOptions, ResultsQuery } from '../types/types';
 import { QueryResultsEditor } from './editors/query-results/QueryResultsEditor';
 import { QueryResults } from '../types/QueryResults.types';
 import { defaultResultsQuery, defaultStepsQuery } from '../defaultQueries';
@@ -33,6 +33,7 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
       handleQueryChange({
         ...defaultResultsQuery,
         ...resultsQuery,
+        queryType: QueryType.Results,
         refId: query.refId
       });
     }
@@ -45,6 +46,12 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
       });
     }
   }, [query, resultsQuery, stepsQuery, handleQueryChange]);
+
+  React.useEffect(() => {
+    if (!query.queryType) {
+      handleQueryTypeChange(defaultResultsQueryType);
+    }
+  }, [query.queryType, handleQueryTypeChange]);
 
   return (
     <>
