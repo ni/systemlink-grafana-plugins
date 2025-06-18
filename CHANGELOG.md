@@ -1,3 +1,9 @@
+## [3.139.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.4...v3.139.0) (2025-06-18)
+
+### Features
+
+* **results:** Update dependencies to load on initialization ([#309](https://github.com/ni/systemlink-grafana-plugins/issues/309)) ([dfa8fe5](https://github.com/ni/systemlink-grafana-plugins/commit/dfa8fe5662d80d8e21d454652f209a1c070bede8))
+
 ## [3.138.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.3...v3.138.4) (2025-06-18)
 
 ### Bug Fixes
