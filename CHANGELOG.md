@@ -1,3 +1,9 @@
+## [3.139.6](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.5...v3.139.6) (2025-06-18)
+
+### Bug Fixes
+
+* **results:** load step path lookup in the query builder ([#315](https://github.com/ni/systemlink-grafana-plugins/issues/315)) ([5813008](https://github.com/ni/systemlink-grafana-plugins/commit/58130086a25783ad81691921931083f962cda27d))
+
 ## [3.139.5](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.4...v3.139.5) (2025-06-18)
 
 ### Bug Fixes
