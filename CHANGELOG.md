@@ -1,3 +1,9 @@
+## [3.139.5](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.4...v3.139.5) (2025-06-18)
+
+### Bug Fixes
+
+* **results:** fix steps query not disabled by default in variable editor ([#316](https://github.com/ni/systemlink-grafana-plugins/issues/316)) ([a659eee](https://github.com/ni/systemlink-grafana-plugins/commit/a659eeefac705ddba51a470fd63bebae68cbe093))
+
 ## [3.139.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.3...v3.139.4) (2025-06-18)
 
 ### Bug Fixes
