@@ -465,10 +465,8 @@ describe('queryUsingSkip', () => {
       })
       .mockRejectedValueOnce(new Error('Test error'));
 
-    const result = await queryUsingSkip(mockQueryRecord, queryConfig);
-
+    await expect(queryUsingSkip(mockQueryRecord, queryConfig)).rejects.toThrow('Test error');
     expect(mockQueryRecord).toHaveBeenCalledTimes(2);
-    expect(result.data.length).toBe(100);
   });
 
   test('should delay between requests if requests exceed requestsPerSecond', async () => {

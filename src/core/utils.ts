@@ -259,9 +259,8 @@ export async function queryUsingSkip<T>(
 
         skip += maxTakePerRequest;
       } catch (error) {
-        console.error(`Error during batch fetch at skip=${skip}:`, error);
         hasMore = false;
-        break;
+        throw error; // Re-throw the error to be handled by the caller
       }
     }
 
