@@ -62,7 +62,10 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
   }, [datasource]);
 
   useEffect(() => {
-    disableStepsQueryBuilder(stepsVariableQuery.queryByResults === '');
+    disableStepsQueryBuilder(
+      stepsVariableQuery.queryByResults === '' 
+      || stepsVariableQuery.queryByResults === undefined
+    );
   }, [stepsVariableQuery.queryByResults]);
 
   const onQueryTypeChange = (queryType: QueryType) => {
@@ -82,7 +85,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
   };
 
   const onResultsQueryChange = (resultsQuery: string) => {
-    onChange({ ...queryResultsquery, queryByResults: resultsQuery } as ResultsVariableQuery);
+    onChange({ ...stepsVariableQuery, queryByResults: resultsQuery } as StepsVariableQuery);
   };
 
   const onStepsQueryChange = (stepsQuery: string) => {

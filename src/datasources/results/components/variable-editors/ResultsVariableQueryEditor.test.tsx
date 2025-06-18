@@ -190,6 +190,20 @@ describe('Steps Query Type', () => {
     expect(stepsQueryInput).toBeDisabled();
   });
 
+  it('should disable the steps query builder when resultQuery is undefined', async () => {
+    await act(async () => {
+      renderEditor({
+        refId: '',
+        queryType: QueryType.Steps,
+        queryByResults: undefined,
+        queryBySteps: '',
+      } as unknown as ResultsQuery);
+    });
+    const stepsQueryInput = screen.getByTestId('Query by steps properties');
+    expect(stepsQueryInput).toBeInTheDocument();
+    expect(stepsQueryInput).toBeDisabled();
+  })
+
   it('should enable the steps query builder when resultQuery has value', async () => {
     await act(async () => {
       renderEditor({
