@@ -29,7 +29,10 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
 
   const handleQueryTypeChange = useCallback((queryType: QueryType): void => {
     if (queryType === QueryType.Results) {
-      setStepsQuery(query as QuerySteps);
+      if(query.queryType === QueryType.Steps) {
+        // Preserve the current steps query when switching from Steps to Results
+        setStepsQuery(query as QuerySteps);
+      }
       handleQueryChange({
         ...defaultResultsQuery,
         ...resultsQuery,
