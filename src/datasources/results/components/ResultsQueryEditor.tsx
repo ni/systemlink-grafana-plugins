@@ -28,22 +28,32 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
   );
 
   const handleQueryTypeChange = useCallback((queryType: QueryType): void => {
-    if (queryType === QueryType.Results) {
-      setStepsQuery(query as QuerySteps);
-      handleQueryChange({
-        ...defaultResultsQuery,
-        ...resultsQuery,
-        queryType: QueryType.Results,
-        refId: query.refId
-      });
-    }
-    if (queryType === QueryType.Steps) {
-      setResultsQuery(query as QueryResults);
-      handleQueryChange({
-        ...defaultStepsQuery,
-        ...stepsQuery,
-        refId: query.refId
-      });
+    switch (queryType) {
+      case QueryType.Results:
+        // Preserve the current steps query when switching from Steps to Results
+        if (query.queryType === QueryType.Steps) {
+          setStepsQuery(query as QuerySteps);
+        }
+        handleQueryChange({
+          ...defaultResultsQuery,
+          ...resultsQuery,
+          queryType: QueryType.Results,
+          refId: query.refId,
+        });
+        break;
+      case QueryType.Steps:
+        // Preserve results query state when switching from Results to Steps
+        if (query.queryType === QueryType.Results) {
+          setResultsQuery(query as QueryResults);
+        }
+        handleQueryChange({
+          ...defaultStepsQuery,
+          ...stepsQuery,
+          refId: query.refId,
+        });
+        break;
+      default:
+        break;
     }
   }, [query, resultsQuery, stepsQuery, handleQueryChange]);
 
