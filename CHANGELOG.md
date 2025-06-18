@@ -1,3 +1,9 @@
+## [3.139.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.2...v3.139.3) (2025-06-18)
+
+### Bug Fixes
+
+* **results:** allow empty results query to trigger update ([#314](https://github.com/ni/systemlink-grafana-plugins/issues/314)) ([6c045b9](https://github.com/ni/systemlink-grafana-plugins/commit/6c045b9c25da3876d5fe52946c44ebbae6f4313c))
+
 ## [3.139.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.1...v3.139.2) (2025-06-18)
 
 ### Bug Fixes
