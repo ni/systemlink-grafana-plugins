@@ -57,20 +57,22 @@ export function WorkOrdersVariableQueryEditor({ query, onChange, datasource }: P
     }
   };
 
+  const validateTakeValue = (value: number, TAKE_LIMIT: number) => {
+    if (isNaN(value) || value < 0) {
+      return { message: takeErrorMessages.greaterOrEqualToZero, take: undefined };
+    }
+    if (value > TAKE_LIMIT) {
+      return { message: takeErrorMessages.lessOrEqualToTenThousand, take: undefined };
+    }
+    return {message: '', take: value };
+  };
+
   const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    switch (true) {
-      case isNaN(value) || value < 0:
-        setRecordCountInvalidMessage(takeErrorMessages.greaterOrEqualToZero);
-        break;
-      case value > TAKE_LIMIT:
-        setRecordCountInvalidMessage(takeErrorMessages.lessOrEqualToTenThousand);
-        break;
-      default:
-        setRecordCountInvalidMessage('');
-        handleQueryChange({ ...query, take: value });
-        break;
-    }
+    const { message, take } = validateTakeValue(value, TAKE_LIMIT);
+
+    setRecordCountInvalidMessage(message);
+    handleQueryChange({ ...query, take });
   };
 
   return (
