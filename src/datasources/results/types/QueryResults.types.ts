@@ -80,7 +80,7 @@ export enum ResultsProperties {
   workspace = 'workspace',
 }
 
-export const PropertiesProjectionMap: Record<ResultsProperties, {
+export const resultsProjectionLabelLookup: Record<ResultsProperties, {
   label: string;
   projection: ResultsProperties;
 }> = {

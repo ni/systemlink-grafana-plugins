@@ -1,7 +1,7 @@
 import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, AppEvents } from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
-  PropertiesProjectionMap,
+  stepsProjectionLabelLookup,
   QueryStepPathsResponse,
   QuerySteps,
   QueryStepsResponse,
@@ -221,7 +221,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       const selectedFields = (query.properties || []).filter(field => stepResponseKeys.has(field));
       if (selectedFields.length === 0) {
         // If no fields are available, fall back to the requested properties
-        const properties = query.properties?.map(property => PropertiesProjectionMap[property].label) as StepsProperties[];
+        const properties = query.properties?.map(property => stepsProjectionLabelLookup[property].label) as StepsProperties[];
         selectedFields.push(...(properties || []));
       }
 
@@ -313,7 +313,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     stepsResponse.forEach(step => {
       // Process selected step fields
       selectedFields.forEach(field => {
-        const fieldName = PropertiesProjectionMap[field].label;
+        const fieldName = stepsProjectionLabelLookup[field].label;
         const value = this.convertStepPropertyToString(field, step[field]);
         const fieldType = this.findFieldType(field, value);
         this.addValueToColumn(columns, fieldName, value, fieldType);

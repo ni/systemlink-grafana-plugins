@@ -1,4 +1,4 @@
-import { PropertiesProjectionMap, QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties, ResultsVariableQuery } from "datasources/results/types/QueryResults.types";
+import { resultsProjectionLabelLookup, QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties, ResultsVariableQuery } from "datasources/results/types/QueryResults.types";
 import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase";
 import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents } from "@grafana/data";
 import { OutputType } from "datasources/results/types/types";
@@ -108,18 +108,18 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
           case ResultsPropertiesOptions.PROPERTIES:
           case ResultsPropertiesOptions.STATUS_TYPE_SUMMARY:
             return {
-              name: PropertiesProjectionMap[field].label,
+              name: resultsProjectionLabelLookup[field].label,
               values: values.map((v) => (v != null ? JSON.stringify(v) : '')),
               type: fieldType,
             };
           case ResultsPropertiesOptions.STATUS:
             return {
-              name: PropertiesProjectionMap[field].label,
+              name: resultsProjectionLabelLookup[field].label,
               values: values.map((v: any) => v?.statusType),
               type: fieldType,
             };
           default:
-            return { name: PropertiesProjectionMap[field].label, values, type: fieldType };
+            return { name: resultsProjectionLabelLookup[field].label, values, type: fieldType };
         }
       });
 

@@ -56,7 +56,7 @@ export enum StepsProperties {
   properties = 'properties',
 }
 
-export const PropertiesProjectionMap: Record<StepsProperties, {
+export const stepsProjectionLabelLookup: Record<StepsProperties, {
   label: string,
   projection: StepsProperties
 }> = {
