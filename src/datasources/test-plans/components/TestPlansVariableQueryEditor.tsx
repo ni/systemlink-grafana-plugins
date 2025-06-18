@@ -67,16 +67,22 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
     handleQueryChange({ ...query, descending: isDescendingChecked });
   };
 
+  const validateRecordCoundValue = (value: number, TAKE_LIMIT: number) => {
+    if (isNaN(value) || value < 0) {
+      return { message: recordCountErrorMessages.greaterOrEqualToZero, take: undefined };
+    }
+    if (value > TAKE_LIMIT) {
+      return { message: recordCountErrorMessages.lessOrEqualToTenThousand, take: undefined };
+    }
+    return {message: '', recordCount: value };
+  };
+
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    if (isNaN(value) || value < 0) {
-      setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
-    } else if (value > TAKE_LIMIT) {
-      setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTenThousand);
-    } else {
-      setRecordCountInvalidMessage('');
-      handleQueryChange({ ...query, recordCount: value });
-    }
+    const { message, recordCount } = validateRecordCoundValue(value, TAKE_LIMIT);
+
+    setRecordCountInvalidMessage(message);
+    handleQueryChange({ ...query, recordCount });
   };
 
   const onQueryByChange = (queryBy: string) => {

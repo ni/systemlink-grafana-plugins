@@ -77,9 +77,9 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       query.queryBy = this.transformDurationFilters(query.queryBy);
     }
 
-    if (query.outputType === OutputType.Properties) {
+    if (query.outputType === OutputType.Properties  && this.isPropertiesValid(query) && this.isRecordCountValid(query)) {
       const projectionAndFields = query.properties?.map(property => PropertiesProjectionMap[property]);
-      const projection = [...new Set(projectionAndFields?.map(data => data.projection).flat()), Projections.ID];
+      const projection = [...new Set(projectionAndFields?.map(data => data.projection).flat())];
 
       const testPlans = (
         await this.queryTestPlansInBatches(
@@ -159,7 +159,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
         name: query.refId,
         fields: fields ?? [],
       };
-    } else {
+    } else if (query.outputType === OutputType.TotalCount) {
       const responseData = await this.queryTestPlans(
         query.queryBy,
         query.orderBy,
@@ -176,6 +176,12 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
         fields: [{ name: query.refId, values: [responseData.totalCount] }],
       };
     }
+
+    return {
+      refId: query.refId,
+      name: query.refId,
+      fields: [],
+    };
   }
 
   public async loadWorkspaces(): Promise<Map<string, Workspace>> {
@@ -288,10 +294,15 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   async metricFindQuery(query: TestPlansVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    const variableQuery = this.prepareQuery(query);
+    if (!this.isRecordCountValid(variableQuery)) {
+      return [];
+    } 
+
     let filter;
-    if (query.queryBy) {
+    if (variableQuery.queryBy) {
       filter = transformComputedFieldsQuery(
-        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.templateSrv.replace(variableQuery.queryBy, options.scopedVars),
         this.testPlansComputedDataFields
       );
       filter = this.transformDurationFilters(filter);
@@ -299,10 +310,10 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
     const metadata = (await this.queryTestPlansInBatches(
       filter,
-      query.orderBy,
+      variableQuery.orderBy,
       [Projections.ID, Projections.NAME],
-      query.recordCount,
-      query.descending
+      variableQuery.recordCount,
+      variableQuery.descending
     )).testPlans;
     return metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.id})`, value: frame.id })) : [];
   }
@@ -485,5 +496,13 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
         ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
         : 'Some values may not be available in the query builder lookups due to an unknown error.';
     }
+  }
+
+  private isRecordCountValid(query: TestPlansQuery): boolean {
+    return query.recordCount !== undefined
+  }
+
+  private isPropertiesValid(query: TestPlansQuery): boolean {
+    return !!query.properties && query.properties.length > 0;
   }
 }

@@ -216,7 +216,7 @@ describe('TestPlansVariableQueryEditor', () => {
 
       await waitFor(() => {
         expect(container.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
-        expect(mockOnChange).not.toHaveBeenCalled();
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: undefined }));
       });
     });
 
@@ -230,7 +230,7 @@ describe('TestPlansVariableQueryEditor', () => {
 
       await waitFor(() => {
         expect(container.getByText('Enter a value greater than or equal to 0')).toBeInTheDocument();
-        expect(mockOnChange).not.toHaveBeenCalled();
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: undefined }));
       });
     });
 
