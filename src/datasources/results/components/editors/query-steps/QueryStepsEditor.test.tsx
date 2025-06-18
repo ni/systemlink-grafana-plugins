@@ -226,6 +226,17 @@ describe('QueryStepsEditor', () => {
       );
     });
 
+    test('should update results query even when filter is empty', () => {
+      const resultsQueryInput = screen.getByTestId('results-query');
+      mockHandleQueryChange.mockClear();
+
+      fireEvent.change(resultsQueryInput, { target: { value: '' } });
+
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(
+        expect.objectContaining({ resultsQuery: '' })
+      );
+    });
+
     test('should not update results query when filter doesnt change', () => {
       const resultsQueryInput = screen.getByTestId('results-query');
       fireEvent.change(resultsQueryInput, { target: { value: 'partNumber = "PN1"' } });// ensure initial value is set
