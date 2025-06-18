@@ -85,7 +85,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
   };
 
   const onResultsQueryChange = (resultsQuery: string) => {
-    onChange({ ...queryResultsquery, queryByResults: resultsQuery } as ResultsVariableQuery);
+    onChange({ ...stepsVariableQuery, queryByResults: resultsQuery } as StepsVariableQuery);
   };
 
   const onStepsQueryChange = (stepsQuery: string) => {
