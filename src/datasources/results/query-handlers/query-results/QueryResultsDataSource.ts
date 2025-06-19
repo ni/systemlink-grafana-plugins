@@ -1,18 +1,31 @@
 import { resultsProjectionLabelLookup, QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties, ResultsVariableQuery } from "datasources/results/types/QueryResults.types";
 import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase";
-import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents } from "@grafana/data";
-import { OutputType } from "datasources/results/types/types";
+import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents, DataSourceInstanceSettings } from "@grafana/data";
+import { OutputType, ResultsDataSourceOptions } from "datasources/results/types/types";
 import { defaultResultsQuery } from "datasources/results/defaultQueries";
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
 import { TAKE_LIMIT } from "datasources/results/constants/QuerySteps.constants";
 import { extractErrorInfo } from "core/errors";
 import { getWorkspaceName } from "core/utils";
+import { Workspace } from "core/types";
+import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
 
 export class QueryResultsDataSource extends ResultsDataSourceBase {
   queryResultsUrl = this.baseUrl + '/v2/query-results';
 
   defaultQuery = defaultResultsQuery;
+
+  private workspaceValues: Workspace[] = [];
+
+  constructor(
+    readonly instanceSettings: DataSourceInstanceSettings<ResultsDataSourceOptions>,
+    readonly backendSrv: BackendSrv = getBackendSrv(),
+    readonly templateSrv: TemplateSrv = getTemplateSrv()
+  ) {
+    super(instanceSettings, backendSrv, templateSrv);
+    this.initWorkspacesValues();
+  }
 
   async queryResults(
     filter?: string,
@@ -95,8 +108,6 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       if (selectedFields.length === 0) {
         selectedFields.push(...(query.properties || []));
       }
-      const workspacesCache = await this.workspacesCache;
-      const workspaceValues = Array.from(workspacesCache.values());
 
       const fields = selectedFields.map((field) => {
         const isTimeField =
@@ -124,7 +135,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
           case ResultsPropertiesOptions.WORKSPACE:
             return {
               name: field,
-              values: values.map((workspaceId) => workspaceValues.length ? getWorkspaceName(workspaceValues, workspaceId as string) : workspaceId),
+              values: values.map((workspaceId) => this.workspaceValues.length ? getWorkspaceName(this.workspaceValues, workspaceId as string) : workspaceId),
               type: fieldType,
             }
           default:
@@ -181,6 +192,11 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       }
     }
     return [];
+  }
+
+  private async initWorkspacesValues(): Promise<void> {
+    const workspaces = await this.workspacesCache;
+    this.workspaceValues = Array.from(workspaces.values());
   }
 
   private isTakeValid(value: number): boolean {
