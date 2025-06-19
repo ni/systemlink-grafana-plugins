@@ -226,7 +226,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         selectedFields.push(...(properties || []));
       }
 
-      const fields = await this.processFields(selectedFields, stepsResponse, query.showMeasurements || false);
+      const fields = this.processFields(selectedFields, stepsResponse, query.showMeasurements || false);
       return {
         refId: query.refId,
         name: query.refId,
@@ -296,11 +296,11 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     );
   }
 
-  private async processFields(
+  private processFields(
     selectedFields: StepsProperties[],
     stepsResponse: StepsResponseProperties[],
     showMeasurements: boolean
-  ): Promise<Array<{ name: string; values: string[]; type: FieldType }>> {
+  ): Array<{ name: string; values: string[]; type: FieldType }> {
     const columns: Array<{ name: string; values: string[]; type: FieldType }> = [];
     if (stepsResponse.length === 0) {
       return selectedFields.map(field => ({
