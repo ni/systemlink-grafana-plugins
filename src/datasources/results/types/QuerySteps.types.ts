@@ -132,7 +132,7 @@ export interface StatusHttp {
 
 export interface InputOutputValues {
   name: string;
-  value?: string;
+  value?: string | number | boolean | object;
 };
 
 export interface StepData {
