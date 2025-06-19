@@ -1,14 +1,61 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`QueryResultsDataSource query returns column headers with no data when QueryResults API returns empty array 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "Result ID",
+        "type": "string",
+        "values": [],
+      },
+    ],
+    "name": "A",
+    "refId": "A",
+  },
+]
+`;
+
 exports[`QueryResultsDataSource query returns data for valid data-output-type query 1`] = `
 [
   {
     "fields": [
       {
+        "name": "Result ID",
+        "type": "string",
+        "values": [
+          "000007fb-aa87-4ab9-9757-6568e7893c33",
+        ],
+      },
+      {
         "name": "Test program name",
         "type": "string",
         "values": [
           "My Program Name",
+        ],
+      },
+      {
+        "name": "Total time (s)",
+        "type": "string",
+        "values": [
+          29.9,
+        ],
+      },
+      {
+        "name": "Keywords",
+        "type": "string",
+        "values": [
+          [
+            "keyword1",
+            "keyword2",
+          ],
+        ],
+      },
+      {
+        "name": "workspace",
+        "type": "string",
+        "values": [
+          "Default workspace",
         ],
       },
     ],
@@ -22,22 +69,6 @@ exports[`QueryResultsDataSource query returns empty data for invalid query 1`] =
 [
   {
     "fields": [],
-    "refId": "A",
-  },
-]
-`;
-
-exports[`QueryResultsDataSource query returns column headers with no data when QueryResults API returns empty array 1`] = `
-[
-  {
-    "fields": [
-      {
-        "name": "Result ID",
-        "type": "string",
-        "values": [],
-      },
-    ],
-    "name": "A",
     "refId": "A",
   },
 ]
@@ -62,10 +93,34 @@ exports[`QueryResultsDataSource query returns total count for valid total count 
 exports[`QueryResultsDataSource query should convert properties to Grafana fields 1`] = `
 [
   {
-    "name": "Test program name",
+    "name": "workspace",
     "type": "string",
     "values": [
-      "My Program Name",
+      "Default workspace",
+    ],
+  },
+]
+`;
+
+exports[`QueryResultsDataSource query should return the workspace ID if the workspace cache is empty 1`] = `
+[
+  {
+    "name": "workspace",
+    "type": "string",
+    "values": [
+      "1",
+    ],
+  },
+]
+`;
+
+exports[`QueryResultsDataSource query should return the workspace ID if the workspace is not found in the cache 1`] = `
+[
+  {
+    "name": "workspace",
+    "type": "string",
+    "values": [
+      "1",
     ],
   },
 ]
@@ -82,6 +137,7 @@ exports[`QueryResultsDataSource queryResults returns data when there are valid q
       ],
       "programName": "My Program Name",
       "totalTimeInSeconds": 29.9,
+      "workspace": "1",
     },
   ],
   "totalCount": 1,

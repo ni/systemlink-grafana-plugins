@@ -16,6 +16,7 @@ const mockQueryResultsResponse: QueryResultsResponse = {
       programName: 'My Program Name',
       totalTimeInSeconds: 29.9,
       keywords: ['keyword1', 'keyword2'],
+      workspace: '1'
     },
   ],
   totalCount: 1
@@ -83,7 +84,7 @@ describe('QueryResultsDataSource', () => {
     test('returns data for valid data-output-type query', async () => {
       const query = buildQuery({
         refId: 'A',
-        outputType: OutputType.Data
+        outputType: OutputType.Data,
       });
 
       const response = await datastore.query(query);
@@ -219,7 +220,7 @@ describe('QueryResultsDataSource', () => {
         const query = buildQuery(
           {
             refId: 'A',
-            outputType: OutputType.Data
+            outputType: OutputType.Data,
           },
         );
 
@@ -228,6 +229,44 @@ describe('QueryResultsDataSource', () => {
         const fields = response.data[0].fields as Field[];
         expect(fields).toMatchSnapshot();
     });
+
+      test('should return the workspace ID if the workspace cache is empty', async () => {
+        const mockWorkspaces = new Map<string, Workspace>([]);
+        const mockPromise = Promise.resolve(mockWorkspaces);
+        (ResultsDataSourceBase as any)._workspacesCache = mockPromise;
+          const query = buildQuery(
+            {
+              refId: 'A',
+              outputType: OutputType.Data,
+              properties: [ResultsProperties.workspace]
+            },
+          );
+
+        const response = await datastore.query(query);
+
+        const fields = response.data[0].fields as Field[];
+        expect(fields).toMatchSnapshot();
+      });
+
+      test('should return the workspace ID if the workspace is not found in the cache', async () => {
+        const mockWorkspaces = new Map<string, Workspace>([
+          ['2', { id: '2', name: 'Other workspace', default: false, enabled: true }],
+        ]);
+        const mockPromise = Promise.resolve(mockWorkspaces);
+        (ResultsDataSourceBase as any)._workspacesCache = mockPromise;
+          const query = buildQuery(
+            {
+              refId: 'A',
+              outputType: OutputType.Data,
+              properties: [ResultsProperties.workspace]
+            },
+          );
+
+        const response = await datastore.query(query);
+
+        const fields = response.data[0].fields as Field[];
+        expect(fields).toMatchSnapshot();
+      });
 
     test('includes templateSrv replaced values in the filter', async () => {
       const timeRange = {
@@ -658,6 +697,7 @@ describe('QueryResultsDataSource', () => {
   const buildQuery = getQueryBuilder<QueryResults>()({
     refId: 'A',
     queryType: QueryType.Results,
-    outputType: OutputType.Data
+    outputType: OutputType.Data,
+    properties: [ResultsProperties.id, ResultsProperties.programName, ResultsProperties.totalTimeInSeconds, ResultsProperties.keywords, ResultsProperties.workspace],
   });
 });

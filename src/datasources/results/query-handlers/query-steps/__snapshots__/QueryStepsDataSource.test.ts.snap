@@ -12,10 +12,31 @@ exports[`QueryStepsDataSource query returns empty data for invalid query 1`] = `
 exports[`QueryStepsDataSource query should convert properties to Grafana fields 1`] = `
 [
   {
+    "name": "Step name",
+    "type": "string",
+    "values": [
+      "Step 1",
+    ],
+  },
+  {
+    "name": "Step ID",
+    "type": "number",
+    "values": [
+      "1",
+    ],
+  },
+  {
     "name": "Properties",
     "type": "string",
     "values": [
       "{"key1":"value1","key2":"value2"}",
+    ],
+  },
+  {
+    "name": "Workspace",
+    "type": "string",
+    "values": [
+      "Default workspace",
     ],
   },
 ]
@@ -32,8 +53,111 @@ exports[`QueryStepsDataSource query should return data for valid data-output-typ
           "Step 1",
         ],
       },
+      {
+        "name": "Step ID",
+        "type": "number",
+        "values": [
+          "1",
+        ],
+      },
+      {
+        "name": "Properties",
+        "type": "string",
+        "values": [
+          "{"key1":"value1","key2":"value2"}",
+        ],
+      },
+      {
+        "name": "Workspace",
+        "type": "string",
+        "values": [
+          "Default workspace",
+        ],
+      },
     ],
     "name": "A",
+    "refId": "A",
+  },
+]
+`;
+
+exports[`QueryStepsDataSource query should return the workspace ID if the workspace cache is empty 1`] = `
+[
+  {
+    "name": "Step name",
+    "type": "string",
+    "values": [
+      "Step 1",
+    ],
+  },
+  {
+    "name": "Step ID",
+    "type": "number",
+    "values": [
+      "1",
+    ],
+  },
+  {
+    "name": "Properties",
+    "type": "string",
+    "values": [
+      "{"key1":"value1","key2":"value2"}",
+    ],
+  },
+  {
+    "name": "Workspace",
+    "type": "number",
+    "values": [
+      "1",
+    ],
+  },
+]
+`;
+
+exports[`QueryStepsDataSource query should return the workspace ID if the workspace is not found in the cache 1`] = `
+[
+  {
+    "name": "Step name",
+    "type": "string",
+    "values": [
+      "Step 1",
+    ],
+  },
+  {
+    "name": "Step ID",
+    "type": "number",
+    "values": [
+      "1",
+    ],
+  },
+  {
+    "name": "Properties",
+    "type": "string",
+    "values": [
+      "{"key1":"value1","key2":"value2"}",
+    ],
+  },
+  {
+    "name": "Workspace",
+    "type": "number",
+    "values": [
+      "1",
+    ],
+  },
+]
+`;
+
+exports[`QueryStepsDataSource query should return total count for valid total count output type queries 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "A",
+        "values": [
+          1,
+        ],
+      },
+    ],
     "refId": "A",
   },
 ]
@@ -50,22 +174,6 @@ exports[`QueryStepsDataSource query should show column header with no data when 
       },
     ],
     "name": "A",
-    "refId": "A",
-  },
-]
-`;
-
-exports[`QueryStepsDataSource query should return total count for valid total count output type queries 1`] = `
-[
-  {
-    "fields": [
-      {
-        "name": "A",
-        "values": [
-          1,
-        ],
-      },
-    ],
     "refId": "A",
   },
 ]
@@ -217,6 +325,7 @@ exports[`QueryStepsDataSource querySteps should return data when there are valid
         "key2": "value2",
       },
       "stepId": "1",
+      "workspace": "1",
     },
   ],
   "totalCount": 1,

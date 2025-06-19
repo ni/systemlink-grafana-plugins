@@ -20,6 +20,7 @@ const mockQueryStepsResponse: QueryStepsResponse = {
         key1: 'value1',
         key2: 'value2',
       },
+      workspace: '1'
     },
   ],
   continuationToken: undefined,
@@ -234,7 +235,6 @@ describe('QueryStepsDataSource', () => {
         {
           refId: 'A',
           outputType: OutputType.Data,
-          properties: [StepsPropertiesOptions.PROPERTIES as StepsProperties]
         },
       );
 
@@ -243,6 +243,42 @@ describe('QueryStepsDataSource', () => {
       const fields = response.data[0].fields as Field[];
       expect(fields).toMatchSnapshot();
     });
+
+      test('should return the workspace ID if the workspace cache is empty', async () => {
+        const mockWorkspaces = new Map<string, Workspace>([]);
+        const mockPromise = Promise.resolve(mockWorkspaces);
+        (ResultsDataSourceBase as any)._workspacesCache = mockPromise;
+          const query = buildQuery(
+            {
+              refId: 'A',
+              outputType: OutputType.Data,
+            },
+          );
+
+        const response = await datastore.query(query);
+
+        const fields = response.data[0].fields as Field[];
+        expect(fields).toMatchSnapshot();
+      });
+
+      test('should return the workspace ID if the workspace is not found in the cache', async () => {
+        const mockWorkspaces = new Map<string, Workspace>([
+          ['2', { id: '2', name: 'Other workspace', default: false, enabled: true }],
+        ]);
+        const mockPromise = Promise.resolve(mockWorkspaces);
+        (ResultsDataSourceBase as any)._workspacesCache = mockPromise;
+        const query = buildQuery(
+          {
+            refId: 'A',
+            outputType: OutputType.Data,
+          },
+        );
+
+        const response = await datastore.query(query);
+
+        const fields = response.data[0].fields as Field[];
+        expect(fields).toMatchSnapshot();
+      });
 
     describe('show measurements is enabled', ()=>{
       test('should convert step measurements to Grafana fields as a column', async () => {
@@ -1400,5 +1436,6 @@ describe('QueryStepsDataSource', () => {
     queryType: QueryType.Steps,
     outputType: OutputType.Data,
     resultsQuery: 'ProgramName = "name1"',
+    properties: [StepsProperties.name, StepsProperties.stepId, StepsProperties.properties, StepsProperties.workspace]
   });
 });
