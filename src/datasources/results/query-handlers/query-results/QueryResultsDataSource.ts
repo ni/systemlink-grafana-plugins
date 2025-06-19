@@ -134,7 +134,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
             };
           case ResultsPropertiesOptions.WORKSPACE:
             return {
-              name: field,
+              name: resultsProjectionLabelLookup[field].label,
               values: values.map((workspaceId) => this.workspaceValues.length ? getWorkspaceName(this.workspaceValues, workspaceId as string) : workspaceId),
               type: fieldType,
             }

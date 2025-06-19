@@ -8,6 +8,7 @@ import { OutputType, QueryType } from 'datasources/results/types/types';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { Workspace } from 'core/types';
+import { DataSourceBase } from 'core/DataSourceBase';
 
 const mockQueryResultsResponse: QueryResultsResponse = {
   results: [
@@ -33,6 +34,10 @@ describe('QueryResultsDataSource', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
       .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
+  })
+
+  afterEach(()=> {
+    jest.restoreAllMocks();
   })
 
   describe('queryResults', () => {
@@ -230,10 +235,14 @@ describe('QueryResultsDataSource', () => {
         expect(fields).toMatchSnapshot();
     });
 
-      test('should return the workspace ID if the workspace cache is empty', async () => {
-        const mockWorkspaces = new Map<string, Workspace>([]);
-        const mockPromise = Promise.resolve(mockWorkspaces);
-        (ResultsDataSourceBase as any)._workspacesCache = mockPromise;
+      test('should return the workspace ID returned by API when the cache is empty', async () => {
+        (ResultsDataSourceBase as any)._workspacesCache = null;
+        jest.spyOn(DataSourceBase.prototype, 'getWorkspaces').mockResolvedValue([]);
+        const [datastore, backendServer] = setupDataSource(QueryResultsDataSource);
+        backendServer.fetch
+          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+          .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
+        
           const query = buildQuery(
             {
               refId: 'A',
@@ -248,12 +257,14 @@ describe('QueryResultsDataSource', () => {
         expect(fields).toMatchSnapshot();
       });
 
-      test('should return the workspace ID if the workspace is not found in the cache', async () => {
-        const mockWorkspaces = new Map<string, Workspace>([
-          ['2', { id: '2', name: 'Other workspace', default: false, enabled: true }],
-        ]);
-        const mockPromise = Promise.resolve(mockWorkspaces);
-        (ResultsDataSourceBase as any)._workspacesCache = mockPromise;
+      test('should return the workspace ID when no matching entry exists in the cache for the ID returned by the API', async () => {
+        const mockWorkspaces = [{ id: '2', name: 'Other workspace', default: false, enabled: true }];
+        (ResultsDataSourceBase as any)._workspacesCache = null;
+        jest.spyOn(DataSourceBase.prototype, 'getWorkspaces').mockResolvedValue(mockWorkspaces);
+        const [datastore, backendServer] = setupDataSource(QueryResultsDataSource);
+        backendServer.fetch
+          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+          .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
           const query = buildQuery(
             {
               refId: 'A',

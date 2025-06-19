@@ -52,7 +52,7 @@ exports[`QueryResultsDataSource query returns data for valid data-output-type qu
         ],
       },
       {
-        "name": "workspace",
+        "name": "Workspace",
         "type": "string",
         "values": [
           "Default workspace",
@@ -124,7 +124,7 @@ exports[`QueryResultsDataSource query should convert properties to Grafana field
     ],
   },
   {
-    "name": "workspace",
+    "name": "Workspace",
     "type": "string",
     "values": [
       "Default workspace",
@@ -133,10 +133,10 @@ exports[`QueryResultsDataSource query should convert properties to Grafana field
 ]
 `;
 
-exports[`QueryResultsDataSource query should return the workspace ID if the workspace cache is empty 1`] = `
+exports[`QueryResultsDataSource query should return the workspace ID returned by API when the cache is empty 1`] = `
 [
   {
-    "name": "workspace",
+    "name": "Workspace",
     "type": "string",
     "values": [
       "1",
@@ -145,10 +145,10 @@ exports[`QueryResultsDataSource query should return the workspace ID if the work
 ]
 `;
 
-exports[`QueryResultsDataSource query should return the workspace ID if the workspace is not found in the cache 1`] = `
+exports[`QueryResultsDataSource query should return the workspace ID when no matching entry exists in the cache for the ID returned by the API 1`] = `
 [
   {
-    "name": "workspace",
+    "name": "Workspace",
     "type": "string",
     "values": [
       "1",

@@ -81,7 +81,7 @@ exports[`QueryStepsDataSource query should return data for valid data-output-typ
 ]
 `;
 
-exports[`QueryStepsDataSource query should return the workspace ID if the workspace cache is empty 1`] = `
+exports[`QueryStepsDataSource query should return the workspace ID returned by API when the cache is empty 1`] = `
 [
   {
     "name": "Step name",
@@ -114,7 +114,7 @@ exports[`QueryStepsDataSource query should return the workspace ID if the worksp
 ]
 `;
 
-exports[`QueryStepsDataSource query should return the workspace ID if the workspace is not found in the cache 1`] = `
+exports[`QueryStepsDataSource query should return the workspace ID when no matching entry exists in the cache for the ID returned by the API 1`] = `
 [
   {
     "name": "Step name",
