@@ -283,7 +283,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     selectedFields: StepsProperties[],
     stepsResponse: StepsResponseProperties[],
     showMeasurements: boolean
-  ): Promise<Array<{ name: string; values: string[]; type: FieldType; }>> {
+  ): Promise<Array<{ name: string; values: string[]; type: FieldType }>> {
     const columns: Array<{ name: string; values: string[]; type: FieldType }> = [];
     const workspacesCache = await this.workspacesCache;
     const workspaceValues = Array.from(workspacesCache.values());
