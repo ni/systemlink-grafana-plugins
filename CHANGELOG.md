@@ -1,3 +1,9 @@
+## [3.139.8](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.7...v3.139.8) (2025-06-19)
+
+### Bug Fixes
+
+* **core:** Rethow error in queryUsingSkip ([#312](https://github.com/ni/systemlink-grafana-plugins/issues/312)) ([58bbb76](https://github.com/ni/systemlink-grafana-plugins/commit/58bbb76c6ed4681002c0d5c30f7c2c506db0a6a6))
+
 ## [3.139.7](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.6...v3.139.7) (2025-06-18)
 
 ### Bug Fixes
