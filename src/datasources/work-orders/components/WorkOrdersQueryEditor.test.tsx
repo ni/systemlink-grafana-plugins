@@ -86,7 +86,7 @@ describe('WorkOrdersQueryEditor', () => {
   });
 
   
-  test('should call onRunQuery on init', async() => {
+  it('should call onRunQuery on init', async() => {
     const query = {
       refId: 'A',
     }
@@ -97,7 +97,7 @@ describe('WorkOrdersQueryEditor', () => {
     expect(mockOnRunQuery).toHaveBeenCalled();
   });
   
-  test('should not call onRunQuery after init', async() => {
+  it('should not call onRunQuery after init', async() => {
     const query = {
       refId: 'A',
       outputType: OutputType.Properties,

@@ -91,7 +91,7 @@ describe('TestPlansQueryEditor', () => {
         });
     });
 
-    test('should call onRunQuery on init', async() => {
+    it('should call onRunQuery on init', async() => {
     const query = {
         refId: 'A',
     }
@@ -102,7 +102,7 @@ describe('TestPlansQueryEditor', () => {
     expect(mockOnRunQuery).toHaveBeenCalled();
     });
     
-    test('should not call onRunQuery after init', async() => {
+    it('should not call onRunQuery after init', async() => {
     const query = {
         refId: 'A',
         outputType: OutputType.Properties,
