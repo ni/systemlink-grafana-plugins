@@ -1,9 +1,8 @@
-import { ResultsProperties, ResultsPropertiesOptions } from "./types/QueryResults.types";
-import { StepsProperties } from "./types/QuerySteps.types";
+import { QueryResultsDefaultValues, ResultsProperties, ResultsPropertiesOptions } from "./types/QueryResults.types";
+import { QueryStepsDefaultValues, StepsProperties } from "./types/QuerySteps.types";
 import { OutputType, QueryType } from "./types/types";
 
-export const defaultResultsQuery = {
-  queryType: QueryType.Results,
+export const defaultResultsQuery: Omit<QueryResultsDefaultValues, 'refId'> = {
   outputType: OutputType.Data,
   properties: [
     ResultsPropertiesOptions.PROGRAM_NAME,
@@ -15,16 +14,15 @@ export const defaultResultsQuery = {
     ResultsPropertiesOptions.UPDATED_AT,
     ResultsPropertiesOptions.WORKSPACE
   ] as ResultsProperties[],
-  orderBy: "UPDATED_AT",
+  orderBy: "STARTED_AT",
   descending: true,
   recordCount: 1000,
   useTimeRange: false,
-  useTimeRangeFor: undefined,
-  partNumberQuery: [],
+  useTimeRangeFor: "startedAt",
   queryBy: '',
 };
 
-export const defaultStepsQuery = {
+export const defaultStepsQuery: Omit<QueryStepsDefaultValues, 'refId'> = {
   queryType: QueryType.Steps,
   outputType: OutputType.Data,
   properties: [
@@ -32,12 +30,11 @@ export const defaultStepsQuery = {
     StepsProperties.status,
     StepsProperties.totalTimeInSeconds
   ] as StepsProperties[],
-  orderBy: "UPDATED_AT",
-  descending: true,
-  recordCount: 10_000,
+  orderBy: "STARTED_AT",
+  descending: false,
+  recordCount: 1000,
   useTimeRange: false,
-  useTimeRangeFor: undefined,
-  partNumberQuery: [],
+  useTimeRangeFor: "startedAt",
   resultsQuery: '',
   stepsQuery: '',
 };

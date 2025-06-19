@@ -6,6 +6,7 @@ import { getVariableOptions } from "core/utils";
 import { ExpressionTransformFunction } from "core/query-builder.utils";
 import { QueryBuilderOperations } from "core/query-builder.constants";
 import { extractErrorInfo } from "core/errors";
+import { ResultsPropertiesOptions } from "./types/QueryResults.types";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
   errorTitle = '';
@@ -14,15 +15,11 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   queryResultsValuesUrl = this.baseUrl + '/v2/query-result-values';
   queryProductsUrl = this.baseUrl + '/v2/query-products';
 
-  private timeRange: { [key: string]: string } = {
-    Started: 'startedAt',
-    Updated: 'updatedAt',
-  };
-
   private fromDateString = '${__from:date}';
   private toDateString = '${__to:date}';
   private static _workspacesCache: Promise<Map<string, Workspace>> | null = null;
   private static _productCache: Promise<QueryProductResponse> | null = null;
+  private static _partNumbersCache: Promise<string[]> | null = null;
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
@@ -36,8 +33,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       return undefined;
     }
 
-    const timeRangeField = this.timeRange[useTimeRangeFor];
-    const timeRangeFilter = `(${timeRangeField} > "${this.fromDateString}" && ${timeRangeField} < "${this.toDateString}")`;
+    const timeRangeFilter = `(${useTimeRangeFor} > "${this.fromDateString}" && ${useTimeRangeFor} < "${this.toDateString}")`;
 
     return this.templateSrv.replace(timeRangeFilter, options.scopedVars);
   }
@@ -48,6 +44,10 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
   get productCache(): Promise<QueryProductResponse> {
     return this.loadProducts();
+  }
+
+  get partNumbersCache(): Promise<string[]> {
+    return this.getPartNumbers();
   }
 
   async loadWorkspaces(): Promise<Map<string, Workspace>> {
@@ -71,6 +71,21 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       });
 
     return ResultsDataSourceBase._workspacesCache;
+  }
+
+   async getPartNumbers(): Promise<string[]> {
+    if (ResultsDataSourceBase._partNumbersCache) {
+      return ResultsDataSourceBase._partNumbersCache;
+    }
+
+    ResultsDataSourceBase._partNumbersCache = this.queryResultsValues(ResultsPropertiesOptions.PART_NUMBER, undefined)
+    .catch(error => {
+       if (!this.errorTitle) {
+          this.handleQueryValuesError(error, 'result');
+        }
+        return [];
+    });
+    return ResultsDataSourceBase._partNumbersCache;
   }
 
   async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {
@@ -177,16 +192,21 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
 
   handleQueryValuesError(error: unknown, errorContext: string): void {
     const errorDetails = extractErrorInfo((error as Error).message);
-    let detailedMessage = '';
-    try {
-      const parsed = JSON.parse(errorDetails.message);
-      detailedMessage = parsed?.message || errorDetails.message;
-    } catch {
-      detailedMessage = errorDetails.message;
-    }
     this.errorTitle = `Warning during ${errorContext} value query`;
-    this.errorDescription = errorDetails.message
-      ? `Some values may not be available in the query builder lookups due to the following error:${detailedMessage}.`
-      : 'Some values may not be available in the query builder lookups due to an unknown error.';
+
+    if (errorDetails.statusCode === '504') {
+      this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
+    } else {
+      let detailedMessage = '';
+      try {
+        const parsed = JSON.parse(errorDetails.message);
+        detailedMessage = parsed?.message || errorDetails.message;
+      } catch {
+        detailedMessage = errorDetails.message;
+      }
+      this.errorDescription = errorDetails.message
+        ? `Some values may not be available in the query builder lookups due to the following error:${detailedMessage}.`
+        : 'Some values may not be available in the query builder lookups due to an unknown error.';
+    }
   }
 }

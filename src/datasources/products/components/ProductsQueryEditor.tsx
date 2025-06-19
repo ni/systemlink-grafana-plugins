@@ -3,7 +3,7 @@ import { AutoSizeInput, HorizontalGroup, InlineSwitch, MultiSelect, Select, Vert
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { InlineField } from 'core/components/InlineField';
 import { ProductsDataSource } from '../ProductsDataSource';
-import { OrderBy, ProductQuery, Properties } from '../types';
+import { OrderBy, ProductPropertiesProjectionMap, ProductQuery, Properties } from '../types';
 import { Workspace } from 'core/types';
 import { ProductsQueryBuilder } from 'datasources/products/components/query-builder/ProductsQueryBuilder';
 import { FloatingError } from 'core/errors';
@@ -21,11 +21,6 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
   const [familyNames, setFamilyNames] = useState<string[]>([]);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
   const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);
-
-  useEffect(() => {
-      handleQueryChange(query, true);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount
   
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -107,8 +102,8 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
             error='You must select at least one property.'>
             <MultiSelect
               placeholder="Select properties to fetch"
-              options={Object.keys(Properties)
-                .map(value => ({ label: value, value })) as SelectableValue[]}
+              options={Object.entries(ProductPropertiesProjectionMap)
+                .map(([key, value]) => ({ label: key, value })) as SelectableValue[]}
               onChange={onPropertiesChange}
               value={query.properties}
               defaultValue={query.properties!}

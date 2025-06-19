@@ -6,11 +6,12 @@ import userEvent from '@testing-library/user-event';
 import { Workspace } from 'core/types';
 
 jest.mock('../query-results/ResultsQueryBuilder', () => ({
-  ResultsQueryBuilder: jest.fn(({ filter, workspaces, status, globalVariableOptions, onChange }) => {
+  ResultsQueryBuilder: jest.fn(({ filter, workspaces, status, partNumbers, globalVariableOptions, onChange }) => {
     return (
       <div data-testid="results-query-builder">
         <div data-testid="results-filter">{filter}</div>
         <div data-testid="results-workspaces">{JSON.stringify(workspaces)}</div>
+        <div data-testid="results-part-numbers">{JSON.stringify(partNumbers)}</div>
         <div data-testid="results-status">{JSON.stringify(status)}</div>
         <div data-testid="results-global-vars">{JSON.stringify(globalVariableOptions)}</div>
         <button
@@ -61,9 +62,9 @@ const mockWorkspaces: Workspace[] = [
 
 const mockDatasource = {
   globalVariableOptions: jest.fn().mockReturnValue(['var1', 'var2']),
-  setStepsPathChangeCallback: jest.fn(),
   getStepPaths: jest.fn().mockReturnValue([]),
   workspacesCache: Promise.resolve(new Map(mockWorkspaces.map(ws => [ws.id, ws]))),
+  partNumbersCache: Promise.resolve(['PN1', 'PN2']),
 } as unknown as QueryStepsDataSource;
 
 jest.mock('core/utils', () => ({
@@ -101,7 +102,6 @@ describe('StepsQueryBuilderWrapper', () => {
     const emptyDatasource = {
       globalVariableOptions: jest.fn().mockReturnValue([]),
       workspacesCache: Promise.resolve(new Map()),
-      setStepsPathChangeCallback: jest.fn(),
       getStepPaths: jest.fn().mockReturnValue([]),
     } as unknown as QueryStepsDataSource;
 
@@ -115,6 +115,22 @@ describe('StepsQueryBuilderWrapper', () => {
     expect(screen.getByTestId('steps-workspaces').textContent).toBe('[]');
   });
 
+  test('should render empty part numbers when promise resolves to empty value', async () => {
+    cleanup();
+    const emptyDatasource = {
+      globalVariableOptions: jest.fn().mockReturnValue([]),
+      workspacesCache: Promise.resolve(new Map(mockWorkspaces.map(ws => [ws.id, ws]))),
+      partNumbersCache: Promise.resolve([]),
+      getStepPaths: jest.fn().mockReturnValue([]),
+    } as unknown as QueryStepsDataSource;
+
+    await act(async () => {
+      render(<StepsQueryBuilderWrapper {...defaultProps} datasource={emptyDatasource} />);
+    })
+
+    expect(screen.getByTestId('results-part-numbers').textContent).toBe('[]');
+  });
+
   test('should pass default properties to result and steps query builder', () => {
     expect(screen.getByTestId('results-filter').textContent).toBe('partNumber = "PN1"');
     expect(screen.getByTestId('results-workspaces').textContent).toEqual(
@@ -123,6 +139,7 @@ describe('StepsQueryBuilderWrapper', () => {
         { id: '2', name: 'workspace2', default: false, enabled: true },
       ])
     );
+    expect(screen.getByTestId('results-part-numbers').textContent).toEqual(JSON.stringify(['PN1', 'PN2']));
     expect(screen.getByTestId('results-global-vars').textContent).toEqual(JSON.stringify(['var1', 'var2']));
     expect(screen.getByTestId('results-status').textContent).toEqual(JSON.stringify(['PASS', 'FAIL']));
 
@@ -143,7 +160,6 @@ describe('StepsQueryBuilderWrapper', () => {
     cleanup();
     let callback: (() => void) | undefined;
     const mockDatasource = {
-      setStepsPathChangeCallback: jest.fn(cb => { callback = cb; }),
       getStepPaths: jest.fn().mockReturnValue(['pathA', 'pathB']),
       workspacesCache: Promise.resolve(new Map()),
       globalVariableOptions: jest.fn().mockReturnValue([]),
@@ -169,7 +185,6 @@ describe('StepsQueryBuilderWrapper', () => {
   test('should load initial stepsPath on mount', async () => {
     cleanup();
     const mockDatasource = {
-      setStepsPathChangeCallback: jest.fn(),
       getStepPaths: jest.fn().mockReturnValue(['initPath1', 'initPath2']),
       workspacesCache: Promise.resolve(new Map()),
       globalVariableOptions: jest.fn().mockReturnValue([]),

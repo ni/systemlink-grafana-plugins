@@ -35,23 +35,12 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
   const theme = useTheme2();
 
   useEffect(() => {
-    document.body.setAttribute('theme', 'ni-grafana');
-
     document.body.style.setProperty('--ni-grafana-input-background', theme.components.input.background);
     document.body.style.setProperty('--ni-grafana-text-primary', theme.colors.text.primary);
     document.body.style.setProperty('--ni-grafana-border-medium', theme.colors.border.medium);
     document.body.style.setProperty('--ni-grafana-focus-color', theme.colors.action.focus);
     document.body.style.setProperty('--ni-grafana-active-color', theme.colors.action.selected);
     document.body.style.setProperty('--ni-grafana-border-radius-default', theme.shape.radius.default);
-
-    return () => {
-      document.body.style.removeProperty('--ni-grafana-input-background');
-      document.body.style.removeProperty('--ni-grafana-text-primary');
-      document.body.style.removeProperty('--ni-grafana-border-medium');
-      document.body.style.removeProperty('--ni-grafana-focus-color');
-      document.body.style.removeProperty('--ni-grafana-active-color');
-      document.body.style.removeProperty('--ni-grafana-border-radius-default');
-    }
   }, [theme]);
 
   const sanitizedFilter = useMemo(() => {
@@ -67,6 +56,7 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
       value={sanitizedFilter}
       validateOnInput={validateOnInput}
       showIcons={showIcons}
+      theme='ni-grafana'
     />
   );
 };

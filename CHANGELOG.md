@@ -1,3 +1,244 @@
+## [3.139.8](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.7...v3.139.8) (2025-06-19)
+
+### Bug Fixes
+
+* **core:** Rethow error in queryUsingSkip ([#312](https://github.com/ni/systemlink-grafana-plugins/issues/312)) ([58bbb76](https://github.com/ni/systemlink-grafana-plugins/commit/58bbb76c6ed4681002c0d5c30f7c2c506db0a6a6))
+
+## [3.139.7](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.6...v3.139.7) (2025-06-18)
+
+### Bug Fixes
+
+* **results:** fix column headers to sentence case ([#317](https://github.com/ni/systemlink-grafana-plugins/issues/317)) ([a4c39e1](https://github.com/ni/systemlink-grafana-plugins/commit/a4c39e17273ca4f4bd84cd9a02f3efd1b0d8817d))
+
+## [3.139.6](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.5...v3.139.6) (2025-06-18)
+
+### Bug Fixes
+
+* **results:** load step path lookup in the query builder ([#315](https://github.com/ni/systemlink-grafana-plugins/issues/315)) ([5813008](https://github.com/ni/systemlink-grafana-plugins/commit/58130086a25783ad81691921931083f962cda27d))
+
+## [3.139.5](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.4...v3.139.5) (2025-06-18)
+
+### Bug Fixes
+
+* **results:** fix steps query not disabled by default in variable editor ([#316](https://github.com/ni/systemlink-grafana-plugins/issues/316)) ([a659eee](https://github.com/ni/systemlink-grafana-plugins/commit/a659eeefac705ddba51a470fd63bebae68cbe093))
+
+## [3.139.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.3...v3.139.4) (2025-06-18)
+
+### Bug Fixes
+
+* **results:** preserve stepsQuery only when switching query types ([#313](https://github.com/ni/systemlink-grafana-plugins/issues/313)) ([9c48eab](https://github.com/ni/systemlink-grafana-plugins/commit/9c48eab2e107eba28670cd6e381f6b38f7169bce))
+
+## [3.139.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.2...v3.139.3) (2025-06-18)
+
+### Bug Fixes
+
+* **results:** allow empty results query to trigger update ([#314](https://github.com/ni/systemlink-grafana-plugins/issues/314)) ([6c045b9](https://github.com/ni/systemlink-grafana-plugins/commit/6c045b9c25da3876d5fe52946c44ebbae6f4313c))
+
+## [3.139.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.1...v3.139.2) (2025-06-18)
+
+### Bug Fixes
+
+* **testplans:** Handle invalid queries to return empty data ([#311](https://github.com/ni/systemlink-grafana-plugins/issues/311)) ([0bcbaa0](https://github.com/ni/systemlink-grafana-plugins/commit/0bcbaa0271eb5ed493bbada87f633299c1f4025d))
+
+## [3.139.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.0...v3.139.1) (2025-06-18)
+
+### Bug Fixes
+
+* **workorders:** Handle invalid queries to return empty data ([#310](https://github.com/ni/systemlink-grafana-plugins/issues/310)) ([a3bb4ae](https://github.com/ni/systemlink-grafana-plugins/commit/a3bb4ae816fea99b3b462135c6c50b262088b1b1))
+
+## [3.139.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.4...v3.139.0) (2025-06-18)
+
+### Features
+
+* **results:** Update dependencies to load on initialization ([#309](https://github.com/ni/systemlink-grafana-plugins/issues/309)) ([dfa8fe5](https://github.com/ni/systemlink-grafana-plugins/commit/dfa8fe5662d80d8e21d454652f209a1c070bede8))
+
+## [3.138.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.3...v3.138.4) (2025-06-18)
+
+### Bug Fixes
+
+* **results:** run query on initialization when switching datasources ([#304](https://github.com/ni/systemlink-grafana-plugins/issues/304)) ([6d867c3](https://github.com/ni/systemlink-grafana-plugins/commit/6d867c35ce0f00bd498b88c81b4d61ee9f292f99))
+
+## [3.138.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.2...v3.138.3) (2025-06-18)
+
+### Bug Fixes
+
+* **core:** Update text color in query builder ([#308](https://github.com/ni/systemlink-grafana-plugins/issues/308)) ([2a505bd](https://github.com/ni/systemlink-grafana-plugins/commit/2a505bd9464c0beeff2553e6e45d661655139fac))
+
+## [3.138.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.1...v3.138.2) (2025-06-17)
+
+### Bug Fixes
+
+* **workorders,testplans:** Fix field names ([#306](https://github.com/ni/systemlink-grafana-plugins/issues/306)) ([eb30508](https://github.com/ni/systemlink-grafana-plugins/commit/eb3050881c5865bf68cf524368d4d8e4a7bc6708))
+
+## [3.138.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.0...v3.138.1) (2025-06-17)
+
+### Bug Fixes
+
+* **workorders,testplans:** Return field type as string for all fields from datasource ([#305](https://github.com/ni/systemlink-grafana-plugins/issues/305)) ([3f1dd24](https://github.com/ni/systemlink-grafana-plugins/commit/3f1dd24489afbbec462f171091a3f02236baf954))
+
+## [3.138.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.137.0...v3.138.0) (2025-06-17)
+
+### Features
+
+* **workorders:** Error handling of workorders ([#301](https://github.com/ni/systemlink-grafana-plugins/issues/301)) ([61a3c6a](https://github.com/ni/systemlink-grafana-plugins/commit/61a3c6ae50aac78a49cbafb37f638158837a1829))
+
+## [3.137.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.136.2...v3.137.0) (2025-06-17)
+
+### Features
+
+* **testplans:** Add error handling ([#300](https://github.com/ni/systemlink-grafana-plugins/issues/300)) ([c76b82e](https://github.com/ni/systemlink-grafana-plugins/commit/c76b82e178a5296098deed3ec47c93e78abf2d1c))
+
+## [3.136.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.136.1...v3.136.2) (2025-06-17)
+
+### Bug Fixes
+
+* **test-plans:** update test plans data source properties ([#299](https://github.com/ni/systemlink-grafana-plugins/issues/299)) ([7b822a6](https://github.com/ni/systemlink-grafana-plugins/commit/7b822a63b195e3775bcaa5fb2ca0cb1751c697ec))
+
+## [3.136.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.136.0...v3.136.1) (2025-06-16)
+
+### Bug Fixes
+
+* **products, results:** Show columns headers on empty response ([#298](https://github.com/ni/systemlink-grafana-plugins/issues/298)) ([20556b2](https://github.com/ni/systemlink-grafana-plugins/commit/20556b27b9d93afcff25f1dd020b9f2443d34565))
+* **results:** Handle invalid queries to return empty data ([#297](https://github.com/ni/systemlink-grafana-plugins/issues/297)) ([36aee43](https://github.com/ni/systemlink-grafana-plugins/commit/36aee4351d7f2943815eeb5bb4834cfd53902a40))
+
+## [3.136.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.135.5...v3.136.0) (2025-06-16)
+
+### Features
+
+* **products, results:** handle 504 timeout errors in product and result queries ([#287](https://github.com/ni/systemlink-grafana-plugins/issues/287)) ([7e3b39f](https://github.com/ni/systemlink-grafana-plugins/commit/7e3b39fa288528f3036cd4106468a8c10a553fe9))
+* **results:** Add validation to the Results query builder in Steps query ([#292](https://github.com/ni/systemlink-grafana-plugins/issues/292)) ([53f1bf7](https://github.com/ni/systemlink-grafana-plugins/commit/53f1bf722aaa7194d56c2d6d2be232f5feec1c6d))
+
+## [3.135.5](https://github.com/ni/systemlink-grafana-plugins/compare/v3.135.4...v3.135.5) (2025-06-16)
+
+### Bug Fixes
+
+* **products, results:** Update Properties options to Sentence Case ([#295](https://github.com/ni/systemlink-grafana-plugins/issues/295)) ([8c0680c](https://github.com/ni/systemlink-grafana-plugins/commit/8c0680c7e319b36997904c12229749a7543ef886))
+
+## [3.135.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.135.3...v3.135.4) (2025-06-14)
+
+### Bug Fixes
+
+* **core:** infinite api calls with `queryInBatch` method ([#296](https://github.com/ni/systemlink-grafana-plugins/issues/296)) ([76beff6](https://github.com/ni/systemlink-grafana-plugins/commit/76beff6b67a082f509b451b9ffa029f9ac80db32))
+
+## [3.135.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.135.2...v3.135.3) (2025-06-13)
+
+### Bug Fixes
+
+* **testplans, workorders:** Update field name and operators ([#294](https://github.com/ni/systemlink-grafana-plugins/issues/294)) ([9f0e170](https://github.com/ni/systemlink-grafana-plugins/commit/9f0e170a7ca9a657c7b8a5596b0a959c2bfd4381))
+
+## [3.135.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.135.1...v3.135.2) (2025-06-13)
+
+### Bug Fixes
+
+* **results:** Persist query changes between query type switches ([#290](https://github.com/ni/systemlink-grafana-plugins/issues/290)) ([8c8b58c](https://github.com/ni/systemlink-grafana-plugins/commit/8c8b58c7421cbcddf0a080ffbda70168d5f3ab95))
+
+## [3.135.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.135.0...v3.135.1) (2025-06-13)
+
+### Bug Fixes
+
+* **results:** change Take field layout in Query Editor ([#293](https://github.com/ni/systemlink-grafana-plugins/issues/293)) ([2338458](https://github.com/ni/systemlink-grafana-plugins/commit/233845869c713502a678c0c317b65268b48cfd20))
+
+## [3.135.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.134.0...v3.135.0) (2025-06-13)
+
+### Features
+
+* **results:** update labels to sentence case ([#289](https://github.com/ni/systemlink-grafana-plugins/issues/289)) ([ba0f8b7](https://github.com/ni/systemlink-grafana-plugins/commit/ba0f8b7d5e4e88b103024e630f7ac9693c557f0d))
+
+## [3.134.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.133.1...v3.134.0) (2025-06-13)
+
+### Features
+
+* **results:** update measurement columns to include units ([#291](https://github.com/ni/systemlink-grafana-plugins/issues/291)) ([b2a4983](https://github.com/ni/systemlink-grafana-plugins/commit/b2a498303ffe313a118a783ea23126156dec2a0e))
+
+## [3.133.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.133.0...v3.133.1) (2025-06-13)
+
+### Bug Fixes
+
+* **workorders,testplans:** Show column names when there is no data and show refID in output's column name ([#288](https://github.com/ni/systemlink-grafana-plugins/issues/288)) ([ac4c973](https://github.com/ni/systemlink-grafana-plugins/commit/ac4c973a03a6725c6716283c4b1d9e7a2e90bd91))
+
+## [3.133.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.132.2...v3.133.0) (2025-06-13)
+
+### Features
+
+* **results:** add Result ID field to Results Query Builder ([#286](https://github.com/ni/systemlink-grafana-plugins/issues/286)) ([5b3ad7f](https://github.com/ni/systemlink-grafana-plugins/commit/5b3ad7f015ecc2e950fc96112fe178ab2d7d4aa6))
+
+## [3.132.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.132.1...v3.132.2) (2025-06-13)
+
+### Bug Fixes
+
+* **core:** Stylings of shared query builder ([#276](https://github.com/ni/systemlink-grafana-plugins/issues/276)) ([02e85bf](https://github.com/ni/systemlink-grafana-plugins/commit/02e85bfa87d968c25a39cd1cabcd443a7a7a7427))
+* **results:** Remove orderby and descending properties from Query Types interfaces ([#279](https://github.com/ni/systemlink-grafana-plugins/issues/279)) ([e10f8fc](https://github.com/ni/systemlink-grafana-plugins/commit/e10f8fcb7d6d2db484b53662d4a0dafdbd8bc3c5))
+
+## [3.132.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.132.0...v3.132.1) (2025-06-13)
+
+### Bug Fixes
+
+* **results:** Set "STARTED_AT" as the default option for the useTimeRange field ([#273](https://github.com/ni/systemlink-grafana-plugins/issues/273)) ([acaf696](https://github.com/ni/systemlink-grafana-plugins/commit/acaf69640d10582b570d4c10c7b2a2a8e3274b26))
+
+## [3.132.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.131.0...v3.132.0) (2025-06-12)
+
+### Features
+
+* **results:** revert Partnumber field from Steps Query ([#283](https://github.com/ni/systemlink-grafana-plugins/issues/283)) ([efbf378](https://github.com/ni/systemlink-grafana-plugins/commit/efbf3789180ef30969f946472403b88ca5d79e89))
+
+## [3.131.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.130.0...v3.131.0) (2025-06-12)
+
+### Features
+
+* **results:** revert partNumber field for results query ([#280](https://github.com/ni/systemlink-grafana-plugins/issues/280)) ([fa2638d](https://github.com/ni/systemlink-grafana-plugins/commit/fa2638d7df83092255b71a27201e53458e85a220))
+
+### Bug Fixes
+
+* **results:** update default limit of take to 1000 ([#282](https://github.com/ni/systemlink-grafana-plugins/issues/282)) ([404b630](https://github.com/ni/systemlink-grafana-plugins/commit/404b6309b50898cc4f251ea771f0008e84561ccf))
+
+## [3.130.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.129.1...v3.130.0) (2025-06-12)
+
+### Features
+
+* **results:** update measurements to be listed as separate columns ([#281](https://github.com/ni/systemlink-grafana-plugins/issues/281)) ([3da8a68](https://github.com/ni/systemlink-grafana-plugins/commit/3da8a68db244ab8890f775066ea97f18f88f11bb))
+
+## [3.129.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.129.0...v3.129.1) (2025-06-12)
+
+### Bug Fixes
+
+* **results:** outputs are not shown as query name ([#275](https://github.com/ni/systemlink-grafana-plugins/issues/275)) ([9925329](https://github.com/ni/systemlink-grafana-plugins/commit/9925329e1079949510648d64615d84f09b2dace7))
+
+## [3.129.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.128.1...v3.129.0) (2025-06-12)
+
+### Features
+
+* **core:** Add support for custom date time operations ([#267](https://github.com/ni/systemlink-grafana-plugins/issues/267)) ([0873fb2](https://github.com/ni/systemlink-grafana-plugins/commit/0873fb2dd98dab31a72b1c5b208a894ecece05b4))
+
+## [3.128.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.128.0...v3.128.1) (2025-06-12)
+
+### Bug Fixes
+
+* **workorders:** multiple API calls when editing panels ([#277](https://github.com/ni/systemlink-grafana-plugins/issues/277)) ([b6c2afe](https://github.com/ni/systemlink-grafana-plugins/commit/b6c2afe1813b7e113f1eb9c6b964e7bcddf93b05))
+
+## [3.128.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.127.4...v3.128.0) (2025-06-12)
+
+### Features
+
+* **results:** Add "has children" property in steps query builder ([#278](https://github.com/ni/systemlink-grafana-plugins/issues/278)) ([beefaee](https://github.com/ni/systemlink-grafana-plugins/commit/beefaee162d5bdd4a1d0f1eb863d46b9b2904037))
+
+## [3.127.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.127.3...v3.127.4) (2025-06-12)
+
+### Bug Fixes
+
+* **results,products:** multiple API calls when editing panels ([#274](https://github.com/ni/systemlink-grafana-plugins/issues/274)) ([64b1145](https://github.com/ni/systemlink-grafana-plugins/commit/64b1145cf03b53536aed2b42036c08255a0c76e3))
+
+## [3.127.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.127.2...v3.127.3) (2025-06-11)
+
+### Bug Fixes
+
+* **results:** Set "STARTED_AT" as the default option for the order by field ([#270](https://github.com/ni/systemlink-grafana-plugins/issues/270)) ([291f74e](https://github.com/ni/systemlink-grafana-plugins/commit/291f74e73d510c5a8d90d8ec87868e3dfea3baca))
+
+## [3.127.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.127.1...v3.127.2) (2025-06-11)
+
+### Bug Fixes
+
+* **workorders:** Remove user fields from WorkOrdersQueryBuilderStaticFields ([#272](https://github.com/ni/systemlink-grafana-plugins/issues/272)) ([30b6e0b](https://github.com/ni/systemlink-grafana-plugins/commit/30b6e0b877e325f27c4852c6382a17b71993b8d5))
+
 ## [3.127.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.127.0...v3.127.1) (2025-06-11)
 
 ### Bug Fixes

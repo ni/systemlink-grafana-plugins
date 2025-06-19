@@ -83,6 +83,38 @@ describe('WorkOrdersQueryBuilder', () => {
     expect(conditionsContainer.item(0)?.textContent).toContain('value');
   });
 
+  it('should support is blank operation for due date',()=>{
+    const { conditionsContainer } = renderElement('dueDate == null || dueDate == ""');
+
+    expect(conditionsContainer?.length).toBe(1);
+    expect(conditionsContainer.item(0)?.textContent).toContain('Due date');
+    expect(conditionsContainer.item(0)?.textContent).toContain('is blank');;
+  });
+
+  it('should support is not blank operation for due date',()=>{
+    const { conditionsContainer } = renderElement('dueDate != null && dueDate != ""');
+
+    expect(conditionsContainer?.length).toBe(1);
+    expect(conditionsContainer.item(0)?.textContent).toContain('Due date');
+    expect(conditionsContainer.item(0)?.textContent).toContain('is not blank');;
+  });
+
+  it('should support is blank operation for estimatedStartDate',()=>{
+    const { conditionsContainer } = renderElement('earliestStartDate == null || earliestStartDate == ""');
+
+    expect(conditionsContainer?.length).toBe(1);
+    expect(conditionsContainer.item(0)?.textContent).toContain('Earliest start date');
+    expect(conditionsContainer.item(0)?.textContent).toContain('is blank');;
+  });
+
+  it('should support is not blank operation for estimatedStartDate',()=>{
+    const { conditionsContainer } = renderElement('earliestStartDate != null && earliestStartDate != ""');
+
+    expect(conditionsContainer?.length).toBe(1);
+    expect(conditionsContainer.item(0)?.textContent).toContain('Earliest start date');
+    expect(conditionsContainer.item(0)?.textContent).toContain('is not blank');;
+  });
+
   [['${__from:date}', 'From'], ['${__to:date}', 'To'], ['${__now:date}', 'Now']].forEach(([value, label]) => {
     it(`should select user friendly value for updated date`, () => {
       const { conditionsContainer } = renderElement(`createdAt > \"${value}\"`);

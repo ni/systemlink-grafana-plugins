@@ -16,17 +16,19 @@ import { TAKE_LIMIT, takeErrorMessages, tooltips } from '../constants/QueryEdito
 import { validateNumericInput } from 'core/utils';
 import { Workspace } from 'core/types';
 import { User } from 'shared/types/QueryUsers.types';
+import { FloatingError } from 'core/errors';
 
 type Props = QueryEditorProps<WorkOrdersDataSource, WorkOrdersQuery>;
 
 export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
+  const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);  
 
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   useEffect(() => {
     const loadWorkspaces = async () => {
-      const workspaces = await datasource.workspaceUtils.getWorkspaces();
+      const workspaces = await datasource.loadWorkspaces();
       setWorkspaces(Array.from(workspaces.values()));
     };
 
@@ -37,17 +39,12 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
   const [users, setUsers] = useState<User[] | null>(null);
   useEffect(() => {
     const loadUsers = async () => {
-      const users = await datasource.usersUtils.getUsers();
+      const users = await datasource.loadUsers();
       setUsers(Array.from(users.values()));
     };
 
     loadUsers();
   }, [datasource]);
-
-  useEffect(() => {
-    handleQueryChange(query, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount
 
   const handleQueryChange = useCallback(
     (query: WorkOrdersQuery, runQuery = true): void => {
@@ -63,6 +60,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
   };
 
   const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
+    setIsPropertiesValid(items.length > 0);
     if (items !== undefined) {
       handleQueryChange({ ...query, properties: items.map(i => i.value as WorkOrderPropertiesOptions) });
     }
@@ -83,20 +81,22 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
     }
   };
 
+  const validateTakeValue = (value: number, TAKE_LIMIT: number) => {
+    if (isNaN(value) || value < 0) {
+      return { message: takeErrorMessages.greaterOrEqualToZero, take: undefined };
+    }
+    if (value > TAKE_LIMIT) {
+      return { message: takeErrorMessages.lessOrEqualToTenThousand, take: undefined };
+    }
+    return {message: '', take: value };
+  };
+
   const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    switch (true) {
-      case isNaN(value) || value < 0:
-        setRecordCountInvalidMessage(takeErrorMessages.greaterOrEqualToZero);
-        break;
-      case value > TAKE_LIMIT:
-        setRecordCountInvalidMessage(takeErrorMessages.lessOrEqualToTenThousand);
-        break;
-      default:
-        setRecordCountInvalidMessage('');
-        handleQueryChange({ ...query, take: value });
-        break;
-    }
+    const { message, take } = validateTakeValue(value, TAKE_LIMIT);
+
+    setRecordCountInvalidMessage(message);
+    handleQueryChange({ ...query, take });
   };
 
   return (
@@ -111,7 +111,13 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
             />
           </InlineField>
           {query.outputType === OutputType.Properties && (
-          <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
+          <InlineField 
+            label="Properties" 
+            labelWidth={25} 
+            tooltip={tooltips.properties}
+            invalid={!isPropertiesValid}
+            error='You must select at least one property.'
+          >
             <MultiSelect
               placeholder="Select the properties to query"
               options={
@@ -185,6 +191,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
           </div>
         </VerticalGroup>
       </HorizontalGroup>
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
     </>
   );
 }

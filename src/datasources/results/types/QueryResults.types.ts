@@ -3,13 +3,15 @@ import { OutputType, ResultsQuery } from './types';
 export interface QueryResults extends ResultsQuery {
   outputType: OutputType;
   properties?: ResultsProperties[];
-  orderBy?: string;
-  descending?: boolean;
   useTimeRange?: boolean;
-  useTimeRangeFor?: string;
   recordCount?: number;
   queryBy?: string;
-  partNumberQuery?: string[];
+}
+
+export interface QueryResultsDefaultValues extends QueryResults {
+  orderBy: string;
+  descending: boolean;
+  useTimeRangeFor: string;
 }
 
 export interface ResultsVariableQuery extends ResultsQuery {
@@ -20,7 +22,6 @@ export interface ResultsVariableQuery extends ResultsQuery {
 }
 
 export interface StepsVariableQuery extends ResultsQuery {
-  partNumberQueryInSteps: string[];
   queryByResults: string;
   queryBySteps?: string;
   stepsTake?: number;
@@ -38,59 +39,6 @@ export const ResultsVariableProperties = [
     description: 'Test Program Name of the result',
   }
 ]
-
-export const OrderBy = [
-  {
-    value: 'ID',
-    label: 'ID',
-    description: 'ID of the result',
-  },
-  {
-    value: 'STARTED_AT',
-    label: 'Started At',
-    description: 'Timestamp when the result started',
-  },
-  {
-    value: 'UPDATED_AT',
-    label: 'Updated At',
-    description: 'Timestamp when the result was last updated',
-  },
-  {
-    value: 'PROGRAM_NAME',
-    label: 'Program Name',
-    description: 'Program Name of the product associated with the result',
-  },
-  {
-    value: 'SYSTEM_ID',
-    label: 'System ID',
-    description: 'System ID of the result',
-  },
-  {
-    value: 'HOST_NAME',
-    label: 'Host Name',
-    description: 'Host Name of the result',
-  },
-  {
-    value: 'OPERATOR',
-    label: 'Operator',
-    description: 'Operator of the result',
-  },
-  {
-    value: 'SERIAL_NUMBER',
-    label: 'Serial Number',
-    description: 'Serial Number of the result',
-  },
-  {
-    value: 'PART_NUMBER',
-    label: 'Part Number',
-    description: 'Part Number of the product associated with result',
-  },
-  {
-    value: 'TOTAL_TIME_IN_SECONDS ',
-    label: 'Total Time In Seconds',
-    description: 'Total time taken to run the result in seconds',
-  },
-];
 
 export const ResultsPropertiesOptions = {
   ID: 'id',
@@ -130,6 +78,80 @@ export enum ResultsProperties {
   properties = 'properties',
   statusTypeSummary = 'statusTypeSummary',
   workspace = 'workspace',
+}
+
+export const resultsProjectionLabelLookup: Record<ResultsProperties, {
+  label: string;
+  projection: ResultsProperties;
+}> = {
+  [ResultsProperties.id]: {
+    label: 'Result ID',
+    projection: ResultsProperties.id
+  },
+  [ResultsProperties.programName]: {
+    label: 'Test program name',
+    projection: ResultsProperties.programName
+  },
+  [ResultsProperties.serialNumber]: {
+    label: 'Serial number',
+    projection: ResultsProperties.serialNumber
+  },
+  [ResultsProperties.systemId]: {
+    label: 'System ID',
+    projection: ResultsProperties.systemId
+  },
+  [ResultsProperties.status]: {
+    label: 'Status',
+    projection: ResultsProperties.status
+  },
+  [ResultsProperties.totalTimeInSeconds]: {
+    label: 'Total time (s)',
+    projection: ResultsProperties.totalTimeInSeconds
+  },
+  [ResultsProperties.startedAt]: {
+    label: 'Started at',
+    projection: ResultsProperties.startedAt
+  },
+  [ResultsProperties.updatedAt]: {
+    label: 'Updated at',
+    projection: ResultsProperties.updatedAt
+  },
+  [ResultsProperties.partNumber]: {
+    label: 'Part number',
+    projection: ResultsProperties.partNumber
+  },
+  [ResultsProperties.dataTableIds]: {
+    label: 'Data table IDs',
+    projection: ResultsProperties.dataTableIds
+  },
+  [ResultsProperties.fileIds]: {
+    label: 'File IDs',
+    projection: ResultsProperties.fileIds
+  },
+  [ResultsProperties.hostName]: {
+    label: 'Host name',
+    projection: ResultsProperties.hostName
+  },
+  [ResultsProperties.operator]: {
+    label: 'Operator',
+    projection: ResultsProperties.operator
+  },
+  [ResultsProperties.keywords]: {
+    label: 'Keywords',
+    projection: ResultsProperties.keywords
+  },
+  [ResultsProperties.properties]: {
+    label: 'Properties',
+    projection: ResultsProperties.properties
+  },
+  [ResultsProperties.statusTypeSummary]: {
+    label: 'Status type summary',
+    projection: ResultsProperties.statusTypeSummary
+  },
+  [ResultsProperties.workspace]: {
+    label: 'Workspace',
+    projection: ResultsProperties.workspace
+  }
 }
 
 export interface StatusHttp {

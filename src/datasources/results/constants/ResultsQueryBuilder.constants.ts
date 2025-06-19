@@ -2,6 +2,7 @@ import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { QBField } from 'core/types';
 
 export enum ResultsQueryBuilderFieldNames {
+  RESULT_ID = 'Id',
   HOSTNAME = 'HostName',
   KEYWORDS = 'Keywords',
   OPERATOR = 'Operator',
@@ -17,6 +18,14 @@ export enum ResultsQueryBuilderFieldNames {
 }
 
 export const ResultsQueryBuilderFields: Record<string, QBField> = {
+   RESULTID: {
+    label: 'Result ID',
+    dataField: ResultsQueryBuilderFieldNames.RESULT_ID,
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+    ],
+  },
   HOSTNAME: {
     label: 'Host name',
     dataField: ResultsQueryBuilderFieldNames.HOSTNAME,
@@ -50,6 +59,23 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
       QueryBuilderOperations.IS_BLANK.name,
       QueryBuilderOperations.IS_NOT_BLANK.name,
     ],
+  },
+  PARTNUMBER: {
+    label: 'Part number',
+    dataField: ResultsQueryBuilderFieldNames.PART_NUMBER,
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.STARTS_WITH.name,
+      QueryBuilderOperations.ENDS_WITH.name,
+      QueryBuilderOperations.CONTAINS.name,
+      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
+      QueryBuilderOperations.IS_BLANK.name,
+      QueryBuilderOperations.IS_NOT_BLANK.name,
+    ],
+    lookup: {
+      dataSource: [],
+    },
   },
   PROPERTIES: {
     label: 'Properties',
@@ -148,6 +174,7 @@ export const ResultsQueryBuilderFields: Record<string, QBField> = {
 };
 
 export const ResultsQueryBuilderStaticFields = [
+  ResultsQueryBuilderFields.RESULTID,
   ResultsQueryBuilderFields.PROGRAMNAME,
   ResultsQueryBuilderFields.PROPERTIES,
   ResultsQueryBuilderFields.SYSTEMID,

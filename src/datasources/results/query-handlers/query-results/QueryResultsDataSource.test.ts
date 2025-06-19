@@ -4,7 +4,7 @@ import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching
 import { Field } from '@grafana/data';
 import { QueryResultsDataSource } from './QueryResultsDataSource';
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsVariableQuery } from 'datasources/results/types/QueryResults.types';
-import { OutputType, QueryType, UseTimeRangeFor } from 'datasources/results/types/types';
+import { OutputType, QueryType } from 'datasources/results/types/types';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { Workspace } from 'core/types';
@@ -20,6 +20,8 @@ const mockQueryResultsResponse: QueryResultsResponse = {
   ],
   totalCount: 1
 };
+const mockQueryResultsValuesResponse = ["partNumber1", "partNumber2"];
+
 
 let datastore: QueryResultsDataSource, backendServer: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
 
@@ -65,6 +67,16 @@ describe('QueryResultsDataSource', () => {
           payload: ['Error during result query', expect.stringContaining('The query failed due to the following error: (status 400) "Error".')],
         });
       });
+
+    test('should throw timeOut error when API returns 504 status', async () => {
+        backendServer.fetch
+          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results' }))
+          .mockReturnValue(createFetchError(504));
+    
+        await expect(datastore.queryResults())
+          .rejects
+          .toThrow('The query to fetch results experienced a timeout error. Narrow your query with a more specific filter and try again.');
+      })
   });
 
   describe('query', () => {
@@ -78,6 +90,56 @@ describe('QueryResultsDataSource', () => {
 
       expect(response.data).toHaveLength(1);
       expect(response.data).toMatchSnapshot();
+    });
+
+    test('returns empty data for invalid query', async () => {
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: []
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data).toMatchSnapshot();
+    });
+
+    test('should set the default order by to "STARTED_AT" and descending to "true"', async () => {
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data
+      });
+
+      await datastore.query(query);
+
+      expect(backendServer.fetch).toHaveBeenCalledTimes(1);
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            orderBy: 'STARTED_AT',
+            descending: true,
+          }),
+        })
+      )
+    });
+
+    test('should set the default time range filter to "Started" when useTimerange is true', async () => {
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        useTimeRange: true,
+      });
+
+      await datastore.query(query);
+
+      expect(backendServer.fetch).toHaveBeenCalledTimes(1);
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            filter: "(startedAt > \"${__from:date}\" && startedAt < \"${__to:date}\")"
+          }),
+        })
+      )
     });
 
     test('returns total count for valid total count output type queries', async () => {
@@ -107,11 +169,11 @@ describe('QueryResultsDataSource', () => {
 
       const response = await datastore.query(query);
 
-      expect(response.data[0].fields).toEqual([{ name: 'Total count', values: [0] }]);
+      expect(response.data[0].fields).toEqual([{ name: 'A', values: [0] }]);
       expect(response.data[0].refId).toBe('A');
     });
 
-    test('returns no data when QueryResults API returns empty array', async () => {
+    test('returns column headers with no data when QueryResults API returns empty array', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
         .mockReturnValue(
@@ -124,7 +186,13 @@ describe('QueryResultsDataSource', () => {
           )
         );
 
-      const query = buildQuery();
+      const query = buildQuery(
+        {
+          refId: 'A',
+          outputType: OutputType.Data,
+          properties: [ResultsProperties.id]
+        },
+      );
       const response = await datastore.query(query);
 
       expect(response.data).toMatchSnapshot();
@@ -164,7 +232,6 @@ describe('QueryResultsDataSource', () => {
     test('includes templateSrv replaced values in the filter', async () => {
       const timeRange = {
         Started: 'startedAt',
-        Updated: 'updatedAt',
       }
       const selectedUseTimeRangeFor = 'Started';
       const filter = `(${timeRange[selectedUseTimeRangeFor]} > "\${__from:date}" && ${timeRange[selectedUseTimeRangeFor]} < "\${__to:date}")`;
@@ -175,7 +242,6 @@ describe('QueryResultsDataSource', () => {
             refId: 'A',
             outputType: OutputType.Data,
             useTimeRange: true,
-            useTimeRangeFor: selectedUseTimeRangeFor
           },
         );
 
@@ -208,173 +274,43 @@ describe('QueryResultsDataSource', () => {
             properties: [
               ResultsPropertiesOptions.PROPERTIES
             ] as ResultsProperties[],
-            orderBy: undefined
           },
         );
 
         const response = await datastore.query(query);
         const fields = response.data[0].fields as Field[];
         expect(fields).toEqual([
-          { name: 'properties', values: [""], type: 'string' },
+          { name: 'Properties', values: [""], type: 'string' },
         ]);
     });
 
-    describe('part number query', () => {
-      test('should transform part number query into filter', async () => {
-        const partNumberQuery = ['PartNumber1', 'PartNumber2'];
-        const query = buildQuery(
-          {
-            refId: 'A',
-            outputType: OutputType.Data,
-            partNumberQuery,
-            queryBy: '',
-          },
-        );
-
-        await datastore.query(query);
-
-        expect(backendServer.fetch).toHaveBeenCalledWith(
-          expect.objectContaining({
-            url: '/nitestmonitor/v2/query-results',
-            data: expect.objectContaining({
-              filter: '(PartNumber = "PartNumber1" || PartNumber = "PartNumber2")'
-            }),
-          })
-        );
-      });
-
-      test('should handle empty part number query and empty query from query builder', async () => {
-        const query = buildQuery(
-          {
-            refId: 'A',
-            outputType: OutputType.Data,
-            partNumberQuery: [],
-            queryBy: '',
-          },
-        );
-
-        await datastore.query(query);
-
-        expect(backendServer.fetch).toHaveBeenCalledWith(
-          expect.objectContaining({
-            url: '/nitestmonitor/v2/query-results',
-            data: expect.objectContaining({
-              filter: undefined
-            }),
-          })
-        );
-      });
-
-      test('should handle part number query with template variables', async () => {
-        const partNumberQuery = ['PartNumber1', '${var}'];
-        const templateSrvCalledWith = '(PartNumber = "PartNumber1" || PartNumber = "${var}")';
-        const replacedPartNumberQuery = '(PartNumber = "PartNumber1" || PartNumber = "ReplacedValue")';
-        templateSrv.replace.calledWith(templateSrvCalledWith).mockReturnValue(replacedPartNumberQuery);
-
-        const query = buildQuery(
-          {
-            refId: 'A',
-            outputType: OutputType.Data,
-            partNumberQuery,
-            queryBy: '',
-          },
-        );
-
-        await datastore.query(query);
-
-        expect(templateSrv.replace).toHaveBeenCalledWith("(PartNumber = \"PartNumber1\" || PartNumber = \"${var}\")", expect.anything());
-        expect(backendServer.fetch).toHaveBeenCalledWith(
-          expect.objectContaining({
-            url: '/nitestmonitor/v2/query-results',
-            data: expect.objectContaining({
-              filter: '(PartNumber = "PartNumber1" || PartNumber = "ReplacedValue")'
-            }),
-          })
-        );
-      });
-
-      test('should handle multiple part numbers and query variables', async () => {
-        const resultsQuery = `${ResultsQueryBuilderFieldNames.PROGRAM_NAME} = "{name1,name2}"`;
-        const partNumberQuery = ['PartNumber1', '${var}'];
-
-        const templateSrvCalledWith = '(PartNumber = "PartNumber1" || PartNumber = "${var}") && ProgramName = "{name1,name2}"';
-        const replacedPartNumberQuery = '(PartNumber = "PartNumber1" || PartNumber = "{partNumber2,partNumber3}") && ProgramName = "{name1,name2}"';
-        templateSrv.replace.calledWith(templateSrvCalledWith).mockReturnValue(replacedPartNumberQuery);
-
-        const query = buildQuery(
-          {
-            refId: 'A',
-            outputType: OutputType.Data,
-            partNumberQuery,
-            queryBy: resultsQuery
-          },
-        );
-
-        await datastore.query(query);
-
-        expect(templateSrv.replace).toHaveBeenCalledWith("(PartNumber = \"PartNumber1\" || PartNumber = \"${var}\") && ProgramName = \"{name1,name2}\"", expect.anything());
-        expect(backendServer.fetch).toHaveBeenCalledWith(
-          expect.objectContaining({
-            url: '/nitestmonitor/v2/query-results',
-            data: expect.objectContaining({
-              filter: '(PartNumber = \"PartNumber1\" || (PartNumber = \"partNumber2\" || PartNumber = \"partNumber3\")) && (ProgramName = \"name1\" || ProgramName = \"name2\")'
-            }),
-          })
-        );
-      });
-    })
-
     describe('Dependencies', () => {
     afterEach(() => {
+      (ResultsDataSourceBase as any)._partNumbersCache = null;
       (ResultsDataSourceBase as any)._workspacesCache = null;
-      (ResultsDataSourceBase as any)._productCache = null;
     });
 
-    test('should return the same promise instance when product promise already exists', async () => {
-      const mockProducts = {
-        products: [
-          {partNumber: 'PartNumber1', name: 'ProductName1'},
-          {partNumber: 'PartNumber2', name: 'ProductName2'}
-        ]
-      };
-      const mockPromise = Promise.resolve(mockProducts);
-      (ResultsDataSourceBase as any)._productCache = mockPromise;
+     test('should return the same promise instance when partnumber promise already exists', async () => {
+      const mockPromise = Promise.resolve(['partNumber1', 'partNumber2']);
+      (ResultsDataSourceBase as any)._partNumbersCache = mockPromise;
       backendServer.fetch.mockClear();
-
-      const productPromise = datastore.productCache;
-
-      expect(productPromise).toEqual(mockPromise);
-      expect(await productPromise).toEqual(mockProducts);
-      expect(backendServer.fetch).not.toHaveBeenCalledWith(expect.objectContaining({ url: '/nitestmonitor/v2/query-products' }));
+      const partNumbersPromise = datastore.getPartNumbers();
+      expect(partNumbersPromise).toEqual(mockPromise);
+      expect(datastore.partNumbersCache).toEqual(mockPromise);
+      expect(backendServer.fetch).not.toHaveBeenCalledWith(expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' }));
     });
-
-    test('should create and return a new promise when product promise does not exist', async () => {
-      const mockProducts = {
-        products: [
-          {partNumber: 'PartNumber1', name: 'ProductName1'},
-          {partNumber: 'PartNumber2', name: 'ProductName2'}
-        ]
-      };
+    
+    test('should create and return a new promise when partnumber promise does not exist', async () => {
+      (ResultsDataSourceBase as any)._partNumbersCache = null;
       backendServer.fetch
-      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products', method: 'POST' }))
-      .mockReturnValue(createFetchResponse(mockProducts));
-
-      const promise = datastore.loadProducts();
-
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
+      .mockReturnValue(createFetchResponse(mockQueryResultsValuesResponse));
+      const promise = datastore.getPartNumbers();
       expect(promise).not.toBeNull();
       expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({ url: '/nitestmonitor/v2/query-products' })
-      );
-    });
+        expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' })
 
-    it('should handle errors in loadProducts', async () => {
-      const error = new Error('API failed');
-      jest.spyOn(QueryResultsDataSource.prototype, 'queryProducts').mockRejectedValue(error);
-
-      await datastore.loadProducts();
-
-      expect(datastore.errorTitle).toBe('Warning during product value query');
-      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
+        );
     });
 
     test('should return the same promise instance when workspacePromise already exists', async () => {
@@ -414,6 +350,17 @@ describe('QueryResultsDataSource', () => {
       expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
     });
 
+    it('should handle errors in getPartNumbers', async () => {
+      (ResultsDataSourceBase as any)._partNumbersCache = null;
+      const error = new Error('API failed');
+      jest.spyOn(QueryResultsDataSource.prototype, 'queryResultsValues').mockRejectedValue(error);
+
+      await datastore.getPartNumbers();
+
+      expect(datastore.errorTitle).toBe('Warning during result value query');
+      expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
+    });
+
     it('should contain error details when error contains additional information', async () => {
       (ResultsDataSourceBase as any)._workspacesCache = null;
       const error = new Error(`API failed Error message: ${JSON.stringify({ message: 'Detailed error message', statusCode: 500 })}`);
@@ -424,6 +371,17 @@ describe('QueryResultsDataSource', () => {
       expect(datastore.errorTitle).toBe('Warning during result value query');
       expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
     });
+
+    it('should handle 504 error in getPartNumbers', async () => {
+      (ResultsDataSourceBase as any)._partNumbersCache = null;
+      const error = new Error(`API failed Error message: status code: 504 ${JSON.stringify({ message: 'Detailed error message'})}`);
+      jest.spyOn(QueryResultsDataSource.prototype, 'queryResultsValues').mockRejectedValue(error);
+
+      await datastore.getPartNumbers();
+
+      expect(datastore.errorTitle).toBe('Warning during result value query');
+      expect(datastore.errorDescription).toContain('The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.');
+    })
   });
   
     describe('query builder queries', () => {
@@ -434,7 +392,6 @@ describe('QueryResultsDataSource', () => {
             properties: [
               ResultsPropertiesOptions.PART_NUMBER
             ] as ResultsProperties[],
-            orderBy: undefined,
             queryBy: `${ResultsPropertiesOptions.PART_NUMBER} = '123'`
           },
         );
@@ -458,7 +415,6 @@ describe('QueryResultsDataSource', () => {
             properties: [
               ResultsPropertiesOptions.PART_NUMBER
             ] as ResultsProperties[],
-            orderBy: undefined,
             queryBy: `${ResultsQueryBuilderFieldNames.PART_NUMBER} = "{partNumber1,partNumber2}"`
           },
         );
@@ -484,7 +440,6 @@ describe('QueryResultsDataSource', () => {
             properties: [
               ResultsPropertiesOptions.UPDATED_AT
             ] as ResultsProperties[],
-            orderBy: undefined,
             queryBy: 'UpdatedAt = "${__now:date}"'
           },
         );
@@ -536,7 +491,6 @@ describe('QueryResultsDataSource', () => {
           refId: 'A',
           queryBy,
           useTimeRange: true,
-          useTimeRangeFor: UseTimeRangeFor.Started,
         });
         const expectedFilter = `${queryBy} && ${replacedFilter}`;
 
@@ -581,7 +535,6 @@ describe('QueryResultsDataSource', () => {
         refId: 'A',
         queryBy: '',
         useTimeRange: true,
-        useTimeRangeFor: UseTimeRangeFor.Started,
       });
 
       await datastore.query(query);
@@ -603,6 +556,22 @@ describe('QueryResultsDataSource', () => {
 
       expect(result).toEqual([]);
     });
+
+    test('should set the default order by to "started at" and descending to true', async () =>{
+      const query = { properties: ResultsPropertiesOptions.PART_NUMBER, queryBy: '', resultsTake: 1000 } as ResultsVariableQuery;
+
+      await datastore.metricFindQuery(query, {});
+
+      expect(backendServer.fetch).toHaveBeenCalledTimes(1);
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            orderBy: 'STARTED_AT',
+            descending: true,
+          }),
+        })
+      );
+    })
 
      it.each([-1, NaN, 10001])('should return empty array if resultsTake value is invalid (%p)', async (invalidResultsTake) => {
             const query = {
@@ -683,76 +652,6 @@ describe('QueryResultsDataSource', () => {
 
       expect(templateSrv.replace).toHaveBeenCalledWith(queryBy, options.scopedVars);
       expect(result).toEqual([{ text: 'TestProgram', value: 'TestProgram' }]);
-    });
-
-    it('should merge partnumber and queryBy filters', async () => {
-      const partNumberQuery = ['PartNumber1', 'PartNumber2'];
-      const query = {
-        properties: 'PART_NUMBER',
-        queryBy: 'ProgramName = "Program1"',
-        partNumberQuery,
-        resultsTake: 1000
-      } as ResultsVariableQuery;
-      const options = { scopedVars: { var: { value: 'ReplacedValue' } } };
-
-      await datastore.metricFindQuery(query, options);
-
-      expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          url: '/nitestmonitor/v2/query-results',
-          data: expect.objectContaining({
-            filter: '(PartNumber = "PartNumber1" || PartNumber = "PartNumber2") && ProgramName = "Program1"'
-          }),
-        })
-      );
-    });
-
-    it('should handle empty part number query and empty query from query builder', async () => {
-      const partNumberQuery: string[] = [];
-      const query = {
-        properties: 'PART_NUMBER',
-        queryBy: '',
-        partNumberQuery,
-        resultsTake: 1000
-      } as ResultsVariableQuery;
-
-      await datastore.metricFindQuery(query, {});
-
-      expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          url: '/nitestmonitor/v2/query-results',
-          data: expect.objectContaining({
-            filter: undefined
-          }),
-        })
-      );
-    });
-
-    it('should handle part number query with template variables', async () => {
-      const partNumberQuery = ['PartNumber1', '${var}'];
-      const templateSrvCalledWith = '(PartNumber = "PartNumber1" || PartNumber = "${var}")';
-      const replacedPartNumberQuery = '(PartNumber = "PartNumber1" || PartNumber = "ReplacedValue")';
-      templateSrv.replace.calledWith(templateSrvCalledWith).mockReturnValue(replacedPartNumberQuery);
-      const options = { scopedVars: { var: { value: 'ReplacedValue' } } };
-
-      const query = {
-        properties: 'PART_NUMBER',
-        queryBy: '',
-        partNumberQuery,
-        resultsTake: 1000
-      } as ResultsVariableQuery;
-
-      await datastore.metricFindQuery(query, options);
-
-      expect(templateSrv.replace).toHaveBeenCalledWith("(PartNumber = \"PartNumber1\" || PartNumber = \"${var}\")", expect.anything());
-      expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          url: '/nitestmonitor/v2/query-results',
-          data: expect.objectContaining({
-            filter: '(PartNumber = "PartNumber1" || PartNumber = "ReplacedValue")'
-          }),
-        })
-      );
     });
   });
 

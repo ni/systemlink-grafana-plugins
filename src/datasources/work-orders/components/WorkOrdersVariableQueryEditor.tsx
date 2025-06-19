@@ -8,6 +8,7 @@ import { TAKE_LIMIT, takeErrorMessages, tooltips } from '../constants/QueryEdito
 import { validateNumericInput } from 'core/utils';
 import { Workspace } from 'core/types';
 import { User } from 'shared/types/QueryUsers.types';
+import { FloatingError } from 'core/errors';
 
 type Props = QueryEditorProps<WorkOrdersDataSource, WorkOrdersVariableQuery>;
 
@@ -18,7 +19,7 @@ export function WorkOrdersVariableQueryEditor({ query, onChange, datasource }: P
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   useEffect(() => {
     const loadWorkspaces = async () => {
-      const workspaces = await datasource.workspaceUtils.getWorkspaces();
+      const workspaces = await datasource.loadWorkspaces();
       setWorkspaces(Array.from(workspaces.values()));
     };
 
@@ -28,7 +29,7 @@ export function WorkOrdersVariableQueryEditor({ query, onChange, datasource }: P
   const [users, setUsers] = useState<User[] | null>(null);
   useEffect(() => {
     const loadUsers = async () => {
-      const users = await datasource.usersUtils.getUsers();
+      const users = await datasource.loadUsers();
       setUsers(Array.from(users.values()));
     };
 
@@ -56,70 +57,75 @@ export function WorkOrdersVariableQueryEditor({ query, onChange, datasource }: P
     }
   };
 
+  const validateTakeValue = (value: number, TAKE_LIMIT: number) => {
+    if (isNaN(value) || value < 0) {
+      return { message: takeErrorMessages.greaterOrEqualToZero, take: undefined };
+    }
+    if (value > TAKE_LIMIT) {
+      return { message: takeErrorMessages.lessOrEqualToTenThousand, take: undefined };
+    }
+    return {message: '', take: value };
+  };
+
   const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    switch (true) {
-      case isNaN(value) || value < 0:
-        setRecordCountInvalidMessage(takeErrorMessages.greaterOrEqualToZero);
-        break;
-      case value > TAKE_LIMIT:
-        setRecordCountInvalidMessage(takeErrorMessages.lessOrEqualToTenThousand);
-        break;
-      default:
-        setRecordCountInvalidMessage('');
-        handleQueryChange({ ...query, take: value });
-        break;
-    }
+    const { message, take } = validateTakeValue(value, TAKE_LIMIT);
+
+    setRecordCountInvalidMessage(message);
+    handleQueryChange({ ...query, take });
   };
 
   return (
-    <VerticalGroup>
-      <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
-        <WorkOrdersQueryBuilder
-          filter={query.queryBy}
-          workspaces={workspaces}
-          users={users}
-          globalVariableOptions={datasource.globalVariableOptions()}
-          onChange={(event: any) => onQueryByChange(event.detail.linq)}
-        ></WorkOrdersQueryBuilder>
-      </InlineField>
-      <div>
-        <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
-          <Select
-            options={[...OrderBy] as SelectableValue[]}
-            placeholder="Select a field to set the query order"
-            onChange={onOrderByChange}
-            value={query.orderBy}
-            defaultValue={query.orderBy}
-            width={26}
+    <>
+      <VerticalGroup>
+        <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
+          <WorkOrdersQueryBuilder
+            filter={query.queryBy}
+            workspaces={workspaces}
+            users={users}
+            globalVariableOptions={datasource.globalVariableOptions()}
+            onChange={(event: any) => onQueryByChange(event.detail.linq)}
+          ></WorkOrdersQueryBuilder>
+        </InlineField>
+        <div>
+          <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
+            <Select
+              options={[...OrderBy] as SelectableValue[]}
+              placeholder="Select a field to set the query order"
+              onChange={onOrderByChange}
+              value={query.orderBy}
+              defaultValue={query.orderBy}
+              width={26}
+            />
+          </InlineField>
+          <InlineField label="Descending" labelWidth={25} tooltip={tooltips.descending}>
+            <InlineSwitch
+              onChange={event => onDescendingChange(event.currentTarget.checked)}
+              value={query.descending}
+            />
+          </InlineField>
+        </div>
+        <InlineField
+          label="Take"
+          labelWidth={25}
+          tooltip={tooltips.take}
+          invalid={!!recordCountInvalidMessage}
+          error={recordCountInvalidMessage}
+        >
+          <AutoSizeInput
+            minWidth={26}
+            maxWidth={26}
+            type="number"
+            defaultValue={query.take}
+            onCommitChange={onTakeChange}
+            placeholder="Enter record count"
+            onKeyDown={event => {
+              validateNumericInput(event);
+            }}
           />
         </InlineField>
-        <InlineField label="Descending" labelWidth={25} tooltip={tooltips.descending}>
-          <InlineSwitch
-            onChange={event => onDescendingChange(event.currentTarget.checked)}
-            value={query.descending}
-          />
-        </InlineField>
-      </div>
-      <InlineField
-        label="Take"
-        labelWidth={25}
-        tooltip={tooltips.take}
-        invalid={!!recordCountInvalidMessage}
-        error={recordCountInvalidMessage}
-      >
-        <AutoSizeInput
-          minWidth={26}
-          maxWidth={26}
-          type="number"
-          defaultValue={query.take}
-          onCommitChange={onTakeChange}
-          placeholder="Enter record count"
-          onKeyDown={event => {
-            validateNumericInput(event);
-          }}
-        />
-      </InlineField>
-    </VerticalGroup>
+      </VerticalGroup>
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
+    </>
   );
 }

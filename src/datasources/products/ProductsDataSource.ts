@@ -79,6 +79,8 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       let errorMessage: string;
       if (!errorDetails.statusCode) {
         errorMessage = 'The query failed due to an unknown error.';
+      } else if (errorDetails.statusCode === '504') {
+        errorMessage = 'The query to fetch products experienced a timeout error. Narrow your query with a more specific filter and try again.';
       } else {
         errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
       }
@@ -118,45 +120,41 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
         query.descending
       )).products;
 
-    if (products.length > 0) {
-      const selectedFields = query.properties?.filter(
-        (field: Properties) => Object.keys(products[0]).includes(field)) || [];
-      const fields = selectedFields.map((field) => {
-        const isTimeField = field === PropertiesOptions.UPDATEDAT;
-        const fieldType = isTimeField
-          ? FieldType.time
-          : FieldType.string;
+    const selectedFields = (products && products.length > 0)
+      ? (query.properties?.filter(
+        (field: Properties) => field in products[0]
+      ) ?? [])
+      : (query.properties ?? []);
+    const fields = selectedFields.map((field) => {
+      const isTimeField = field === PropertiesOptions.UPDATEDAT;
+      const fieldType = isTimeField
+        ? FieldType.time
+        : FieldType.string;
 
-        const values = products
-          .map(data => data[field as unknown as keyof ProductResponseProperties]);
+      const values = products
+        .map(data => data[field as unknown as keyof ProductResponseProperties]);
 
-        const fieldValues = values.map(value => {
-          switch (field) {
-            case PropertiesOptions.PROPERTIES:
-              return value == null ? '' : JSON.stringify(value);
-            case PropertiesOptions.WORKSPACE:
-              const workspace = this.workspacesCache.get(value);
-              return workspace ? getWorkspaceName([workspace], value) : value;
-            default:
-              return value == null ? '' : value;
-          }
-        });
-
-        return {
-          name: field,
-          values: fieldValues,
-          type: fieldType
-        };
+      const fieldValues = values.map(value => {
+        switch (field) {
+          case PropertiesOptions.PROPERTIES:
+            return value == null ? '' : JSON.stringify(value);
+          case PropertiesOptions.WORKSPACE:
+            const workspace = this.workspacesCache.get(value);
+            return workspace ? getWorkspaceName([workspace], value) : value;
+          default:
+            return value == null ? '' : value;
+        }
       });
       return {
-        refId: query.refId,
-        fields: fields
+        name: field,
+        values: fieldValues,
+        type: fieldType
       };
-    }
+    });
     return {
       refId: query.refId,
-      fields: []
-    }
+      fields: fields,
+    };
   }
 
   shouldRunQuery(query: ProductQuery): boolean {
@@ -279,8 +277,12 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   private handleQueryProductValuesError(error: unknown): void {
     const errorDetails = extractErrorInfo((error as Error).message);
     this.errorTitle = 'Warning during product value query';
-    this.errorDescription = errorDetails.message
-      ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
-      : 'Some values may not be available in the query builder lookups due to an unknown error.';
+    if (errorDetails.statusCode === '504') {
+      this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
+    } else {
+      this.errorDescription = errorDetails.message
+        ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+        : 'Some values may not be available in the query builder lookups due to an unknown error.';
+    }
   }
 }

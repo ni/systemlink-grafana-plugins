@@ -1,9 +1,9 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
+import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { Asset, OrderByOptions, OutputType, Projections, Properties, PropertiesProjectionMap, QueryTemplatesResponse, QueryTestPlansResponse, TemplateResponseProperties, TestPlanResponseProperties, TestPlansQuery, TestPlansVariableQuery } from './types';
 import { getWorkspaceName, getVariableOptions, queryInBatches } from 'core/utils';
-import { QueryBuilderOption, QueryResponse } from 'core/types';
+import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { isTimeField, transformDuration } from './utils';
 import { QUERY_TEMPLATES_BATCH_SIZE, QUERY_TEMPLATES_REQUEST_PER_SECOND, QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
 import { AssetUtils } from './asset.utils';
@@ -13,6 +13,10 @@ import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { computedFieldsupportedOperations, ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { UsersUtils } from 'shared/users.utils';
 import { ProductUtils } from 'shared/product.utils';
+import { extractErrorInfo } from 'core/errors';
+import { User } from 'shared/types/QueryUsers.types';
+import { SystemAlias } from 'shared/types/QuerySystems.types';
+import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(
@@ -31,6 +35,8 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   baseUrl = `${this.instanceSettings.url}/niworkorder/v1`;
   queryTestPlansUrl = `${this.baseUrl}/query-testplans`;
   queryTemplatesUrl = `${this.baseUrl}/query-testplan-templates`;
+  errorTitle = '';
+  errorDescription = '';
   assetUtils: AssetUtils;
   workspaceUtils: WorkspaceUtils;
   systemUtils: SystemUtils;
@@ -43,8 +49,8 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       Properties.NAME,
       Properties.STATE,
       Properties.ASSIGNED_TO,
-      Properties.PRODUCT,
-      Properties.DUT_ID,
+      Properties.PRODUCT_NAME,
+      Properties.DUT_NAME,
       Properties.PLANNED_START_DATE_TIME,
       Properties.ESTIMATED_DURATION_IN_SECONDS,
       Properties.SYSTEM_NAME,
@@ -58,10 +64,10 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
   async runQuery(query: TestPlansQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    const workspaces = await this.workspaceUtils.getWorkspaces();
-    const systemAliases = await this.systemUtils.getSystemAliases();
-    const users = await this.usersUtils.getUsers();
-    const products = await this.productUtils.getProductNamesAndPartNumbers();
+    const workspaces = await this.loadWorkspaces();
+    const systemAliases = await this.loadSystemAliases();
+    const users = await this.loadUsers();
+    const products = await this.loadProductNamesAndPartNumbers();
 
     if (query.queryBy) {
       query.queryBy = transformComputedFieldsQuery(
@@ -71,9 +77,9 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       query.queryBy = this.transformDurationFilters(query.queryBy);
     }
 
-    if (query.outputType === OutputType.Properties) {
+    if (query.outputType === OutputType.Properties  && this.isPropertiesValid(query) && this.isRecordCountValid(query)) {
       const projectionAndFields = query.properties?.map(property => PropertiesProjectionMap[property]);
-      const projection = [...new Set(projectionAndFields?.map(data => data.projection).flat()), Projections.ID];
+      const projection = [...new Set(projectionAndFields?.map(data => data.projection).flat())];
 
       const testPlans = (
         await this.queryTestPlansInBatches(
@@ -85,83 +91,75 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
           true
         )).testPlans;
 
-      if (testPlans.length > 0) {
-        const labels = projectionAndFields?.map(data => data.label) ?? [];
-        const fixtureNames = await this.getFixtureNames(labels, testPlans);
-        const duts = await this.getDuts(labels, testPlans);
-        const workOrderIdAndName = this.getWorkOrderIdAndName(labels, testPlans);
-        const templatesName = await this.getTemplateNames(labels, testPlans);
+      const labels = projectionAndFields?.map(data => data.label) ?? [];
+      const fixtureNames = await this.getFixtureNames(labels, testPlans);
+      const duts = await this.getDuts(labels, testPlans);
+      const workOrderIdAndName = this.getWorkOrderIdAndName(labels, testPlans);
+      const templatesName = await this.getTemplateNames(labels, testPlans);
 
-        const fields = projectionAndFields?.map((data) => {
-          const label = data.label;
-          const field = data.field;
-          const fieldType = isTimeField(field)
-            ? FieldType.time
-            : FieldType.string;
-          const values = testPlans
-            .map(data => data[field as unknown as keyof TestPlanResponseProperties] as any);
+      const fields = projectionAndFields?.map(data => {
+        const label = data.label;
+        const field = data.field;
+        const fieldType = FieldType.string;
+        const values = testPlans.map(data => data[field as unknown as keyof TestPlanResponseProperties] as any);
 
-          // TODO: AB#3133188 Add support for other field mapping
-          const fieldValues = values.map(value => {
-            switch (label) {
-              case PropertiesProjectionMap.FIXTURE_NAMES.label:
-                const names = value.map((id: string) => fixtureNames.find(data => data.id === id)?.name);
-                return names ? names.filter((name: string) => name !== '').join(', ') : value;
-              case PropertiesProjectionMap.DUT_ID.label:
-                const dutName = duts.find(data => data.id === value);
-                return dutName ? dutName.name : value;
-              case PropertiesProjectionMap.DUT_SERIAL_NUMBER.label:
-                const dutSerial = duts.find(data => data.id === value);
-                return dutSerial ? dutSerial.serialNumber : value;
-              case PropertiesProjectionMap.WORKSPACE.label:
-                const workspace = workspaces.get(value);
-                return workspace ? getWorkspaceName([workspace], value) : value;
-              case PropertiesProjectionMap.WORK_ORDER.label:
-                const workOrder = workOrderIdAndName.find(data => data.id === value);
-                const workOrderId = value ? `(${value})` : '';
-                const workOrderName = (workOrder && workOrder?.name) ? workOrder.name : '';
-                return `${workOrderName} ${workOrderId}`;
-              case PropertiesProjectionMap.TEMPLATE.label:
-                const template = templatesName.find(data => data.id === value);
-                return template ? `${template.name} (${template.id})` : value;
-              case PropertiesProjectionMap.ESTIMATED_DURATION_IN_SECONDS.label:
-                return value ? transformDuration(value) : '';
-              case PropertiesProjectionMap.SYSTEM_NAME.label:
-                const system = systemAliases.get(value);
-                return system ? system.alias : value;
-              case PropertiesProjectionMap.PRODUCT.label:
-                const product = products.get(value);
-                return (product && product.name) ? `${product.name} (${product.partNumber})` : value;
-              case PropertiesProjectionMap.ASSIGNED_TO.label:
-              case PropertiesProjectionMap.CREATED_BY.label:
-              case PropertiesProjectionMap.UPDATED_BY.label:
-                const user = users.get(value);
-                return user ? UsersUtils.getUserFullName(user) : '';
-              case PropertiesProjectionMap.PROPERTIES.label:
-                return value == null ? '' : JSON.stringify(value);
-              default:
-                return value == null ? '' : value;
-            }
-          });
-
-          return {
-            name: label,
-            values: fieldValues,
-            type: fieldType
-          };
+        const fieldValues = values.map(value => {
+          switch (label) {
+            case PropertiesProjectionMap.FIXTURE_NAMES.label:
+              const names = value.map((id: string) => fixtureNames.find(data => data.id === id)?.name);
+              return names ? names.filter((name: string) => name !== '').join(', ') : value;
+            case PropertiesProjectionMap.DUT_NAME.label:
+              const dutName = duts.find(data => data.id === value);
+              return dutName ? dutName.name : value;
+            case PropertiesProjectionMap.DUT_SERIAL_NUMBER.label:
+              const dutSerial = duts.find(data => data.id === value);
+              return dutSerial ? dutSerial.serialNumber : value;
+            case PropertiesProjectionMap.WORKSPACE.label:
+              const workspace = workspaces.get(value);
+              return workspace ? getWorkspaceName([workspace], value) : value;
+            case PropertiesProjectionMap.WORK_ORDER.label:
+              const workOrder = workOrderIdAndName.find(data => data.id === value);
+              const workOrderId = value ? `(${value})` : '';
+              const workOrderName = workOrder && workOrder?.name ? workOrder.name : '';
+              return `${workOrderName} ${workOrderId}`;
+            case PropertiesProjectionMap.TEMPLATE.label:
+              const template = templatesName.find(data => data.id === value);
+              return template ? `${template.name} (${template.id})` : value;
+            case PropertiesProjectionMap.ESTIMATED_DURATION_IN_SECONDS.label:
+              return value ? transformDuration(value) : '';
+            case PropertiesProjectionMap.SYSTEM_NAME.label:
+              const system = systemAliases.get(value);
+              return system ? system.alias : value;
+            case PropertiesProjectionMap.PRODUCT_NAME.label:
+              const product = products.get(value);
+              return product && product.name ? product.name : value;
+            case PropertiesProjectionMap.PRODUCT_ID.label:
+              const productId = products.get(value);
+              return productId && productId.id ? productId.id : value;
+            case PropertiesProjectionMap.ASSIGNED_TO.label:
+            case PropertiesProjectionMap.CREATED_BY.label:
+            case PropertiesProjectionMap.UPDATED_BY.label:
+              const user = users.get(value);
+              return user ? UsersUtils.getUserFullName(user) : '';
+            case PropertiesProjectionMap.PROPERTIES.label:
+              return value == null ? '' : JSON.stringify(value);
+            default:
+              return value == null ? '' : value;
+          }
         });
+
         return {
-          refId: query.refId,
-          name: query.refId,
-          fields: fields ?? [],
+          name: label,
+          values: fieldValues,
+          type: fieldType,
         };
-      }
+      });
       return {
         refId: query.refId,
         name: query.refId,
-        fields: [],
+        fields: fields ?? [],
       };
-    } else {
+    } else if (query.outputType === OutputType.TotalCount) {
       const responseData = await this.queryTestPlans(
         query.queryBy,
         query.orderBy,
@@ -175,8 +173,58 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       return {
         refId: query.refId,
         name: query.refId,
-        fields: [{ name: 'Total count', values: [responseData.totalCount] }],
+        fields: [{ name: query.refId, values: [responseData.totalCount] }],
       };
+    }
+
+    return {
+      refId: query.refId,
+      name: query.refId,
+      fields: [],
+    };
+  }
+
+  public async loadWorkspaces(): Promise<Map<string, Workspace>> {
+    try {
+      return await this.workspaceUtils.getWorkspaces();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, Workspace>();
+    }
+  }
+
+  public async loadUsers(): Promise<Map<string, User>> {
+    try {
+      return await this.usersUtils.getUsers();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, User>();
+    }
+  }
+
+  public async loadSystemAliases(): Promise<Map<string, SystemAlias>> {
+    try {
+      return await this.systemUtils.getSystemAliases();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, SystemAlias>();
+    }
+  }
+
+  public async loadProductNamesAndPartNumbers(): Promise<Map<string, ProductPartNumberAndName>> {
+    try {
+      return await this.productUtils.getProductNamesAndPartNumbers();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, ProductPartNumberAndName>();
     }
   }
 
@@ -212,7 +260,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
   private async getDuts(labels: string[], testPlans: TestPlanResponseProperties[]): Promise<Asset[]> {
     if (labels.find(label =>
-      label === PropertiesProjectionMap.DUT_ID.label
+      label === PropertiesProjectionMap.DUT_NAME.label
       || label === PropertiesProjectionMap.DUT_SERIAL_NUMBER.label
     )) {
       const dutIds = testPlans
@@ -246,10 +294,15 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   async metricFindQuery(query: TestPlansVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    const variableQuery = this.prepareQuery(query);
+    if (!this.isRecordCountValid(variableQuery)) {
+      return [];
+    } 
+
     let filter;
-    if (query.queryBy) {
+    if (variableQuery.queryBy) {
       filter = transformComputedFieldsQuery(
-        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.templateSrv.replace(variableQuery.queryBy, options.scopedVars),
         this.testPlansComputedDataFields
       );
       filter = this.transformDurationFilters(filter);
@@ -257,10 +310,10 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
     const metadata = (await this.queryTestPlansInBatches(
       filter,
-      query.orderBy,
+      variableQuery.orderBy,
       [Projections.ID, Projections.NAME],
-      query.recordCount,
-      query.descending
+      variableQuery.recordCount,
+      variableQuery.descending
     )).testPlans;
     return metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.id})`, value: frame.id })) : [];
   }
@@ -370,7 +423,22 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       });
       return response;
     } catch (error) {
-      throw new Error(`An error occurred while querying test plans: ${error} `);
+      const errorDetails = extractErrorInfo((error as Error).message);
+      let errorMessage: string;
+      if (!errorDetails.statusCode) {
+        errorMessage = 'The query failed due to an unknown error.';
+      } else if (errorDetails.statusCode === '504') {
+        errorMessage = 'The query to fetch testplans experienced a timeout error. Narrow your query with a more specific filter and try again.';
+      } else {
+        errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+      }
+
+      this.appEvents?.publish?.({
+        type: AppEvents.alertError.name,
+        payload: ['Error during testplans query', errorMessage],
+      });
+
+      throw new Error(errorMessage);
     }
   }
 
@@ -416,5 +484,25 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     } catch (error) {
       throw new Error(`An error occurred while querying test plan templates: ${error} `);
     }
+  }
+
+  private handleDependenciesError(error: unknown): void {
+    const errorDetails = extractErrorInfo((error as Error).message);
+    this.errorTitle = 'Warning during testplans query';
+    if (errorDetails.statusCode === '504') {
+      this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
+    } else {
+      this.errorDescription = errorDetails.message
+        ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+        : 'Some values may not be available in the query builder lookups due to an unknown error.';
+    }
+  }
+
+  private isRecordCountValid(query: TestPlansQuery): boolean {
+    return query.recordCount !== undefined
+  }
+
+  private isPropertiesValid(query: TestPlansQuery): boolean {
+    return !!query.properties && query.properties.length > 0;
   }
 }

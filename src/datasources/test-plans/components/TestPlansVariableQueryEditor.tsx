@@ -10,6 +10,7 @@ import { Workspace } from 'core/types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { User } from 'shared/types/QueryUsers.types';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
+import { FloatingError } from 'core/errors';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansVariableQuery>;
 
@@ -24,28 +25,28 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
 
   useEffect(() => {
     const loadWorkspaces = async () => {
-      const workspaces = await datasource.workspaceUtils.getWorkspaces();
+      const workspaces = await datasource.loadWorkspaces();
       setWorkspaces(Array.from(workspaces.values()));
     };
 
     loadWorkspaces();
 
     const loadSystemAliases = async () => {
-      const systemAliases = await datasource.systemUtils.getSystemAliases();
+      const systemAliases = await datasource.loadSystemAliases();
       setSystemAliases(Array.from(systemAliases.values()));
     };
 
     loadSystemAliases();
 
     const loadUsers = async () => {
-      const users = await datasource.usersUtils.getUsers();
+      const users = await datasource.loadUsers();
       setUsers(Array.from(users.values()));
     };
 
     loadUsers();
 
     const loadProducts = async () => {
-      const products = await datasource.productUtils.getProductNamesAndPartNumbers();
+      const products = await datasource.loadProductNamesAndPartNumbers();
       setProducts(Array.from(products.values()));
     };
 
@@ -66,16 +67,22 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
     handleQueryChange({ ...query, descending: isDescendingChecked });
   };
 
+  const validateRecordCoundValue = (value: number, TAKE_LIMIT: number) => {
+    if (isNaN(value) || value < 0) {
+      return { message: recordCountErrorMessages.greaterOrEqualToZero, take: undefined };
+    }
+    if (value > TAKE_LIMIT) {
+      return { message: recordCountErrorMessages.lessOrEqualToTenThousand, take: undefined };
+    }
+    return {message: '', recordCount: value };
+  };
+
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    if (isNaN(value) || value < 0) {
-      setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
-    } else if (value > TAKE_LIMIT) {
-      setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTenThousand);
-    } else {
-      setRecordCountInvalidMessage('');
-      handleQueryChange({ ...query, recordCount: value });
-    }
+    const { message, recordCount } = validateRecordCoundValue(value, TAKE_LIMIT);
+
+    setRecordCountInvalidMessage(message);
+    handleQueryChange({ ...query, recordCount });
   };
 
   const onQueryByChange = (queryBy: string) => {
@@ -86,54 +93,57 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
   };
 
   return (
-    <VerticalGroup>
-      <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
-        <TestPlansQueryBuilder
-          filter={query.queryBy}
-          workspaces={workspaces}
-          systemAliases={systemAliases}
-          users={users}
-          products={products}
-          globalVariableOptions={datasource.globalVariableOptions()}
-          onChange={(event: any) => onQueryByChange(event.detail.linq)}
-        ></TestPlansQueryBuilder>
-      </InlineField>
-      <div>
-        <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
-          <Select
-            options={[...OrderBy] as SelectableValue[]}
-            placeholder="Select a field to set the query order"
-            onChange={onOrderByChange}
-            value={query.orderBy}
-            defaultValue={query.orderBy}
-            width={26}
+    <>
+      <VerticalGroup>
+        <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
+          <TestPlansQueryBuilder
+            filter={query.queryBy}
+            workspaces={workspaces}
+            systemAliases={systemAliases}
+            users={users}
+            products={products}
+            globalVariableOptions={datasource.globalVariableOptions()}
+            onChange={(event: any) => onQueryByChange(event.detail.linq)}
+          ></TestPlansQueryBuilder>
+        </InlineField>
+        <div>
+          <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
+            <Select
+              options={[...OrderBy] as SelectableValue[]}
+              placeholder="Select a field to set the query order"
+              onChange={onOrderByChange}
+              value={query.orderBy}
+              defaultValue={query.orderBy}
+              width={26}
+            />
+          </InlineField>
+          <InlineField label="Descending" labelWidth={25} tooltip={tooltips.descending}>
+            <InlineSwitch
+              onChange={event => onDescendingChange(event.currentTarget.checked)}
+              value={query.descending}
+            />
+          </InlineField>
+        </div>
+        <InlineField
+          label="Take"
+          labelWidth={25}
+          tooltip={tooltips.recordCount}
+          invalid={!!recordCountInvalidMessage}
+          error={recordCountInvalidMessage}
+        >
+          <AutoSizeInput
+            minWidth={26}
+            maxWidth={26}
+            type='number'
+            defaultValue={query.recordCount}
+            onCommitChange={recordCountChange}
+            placeholder="Enter record count"
+            onKeyDown={(event) => { validateNumericInput(event) }}
           />
         </InlineField>
-        <InlineField label="Descending" labelWidth={25} tooltip={tooltips.descending}>
-          <InlineSwitch
-            onChange={event => onDescendingChange(event.currentTarget.checked)}
-            value={query.descending}
-          />
-        </InlineField>
-      </div>
-      <InlineField
-        label="Take"
-        labelWidth={25}
-        tooltip={tooltips.recordCount}
-        invalid={!!recordCountInvalidMessage}
-        error={recordCountInvalidMessage}
-      >
-        <AutoSizeInput
-          minWidth={26}
-          maxWidth={26}
-          type='number'
-          defaultValue={query.recordCount}
-          onCommitChange={recordCountChange}
-          placeholder="Enter record count"
-          onKeyDown={(event) => { validateNumericInput(event) }}
-        />
-      </InlineField>
-    </VerticalGroup >
+      </VerticalGroup >
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
+    </>
   );
 }
 

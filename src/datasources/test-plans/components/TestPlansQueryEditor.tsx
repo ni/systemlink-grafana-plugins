@@ -10,12 +10,14 @@ import { Workspace } from 'core/types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { User } from 'shared/types/QueryUsers.types';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
+import { FloatingError } from 'core/errors';
 
 type Props = QueryEditorProps<TestPlansDataSource, TestPlansQuery>;
 
 export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
+  const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);  
 
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   const [users, setUsers] = useState<User[] | null>(null);
@@ -24,28 +26,28 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
 
   useEffect(() => {
     const loadWorkspaces = async () => {
-      const workspaces = await datasource.workspaceUtils.getWorkspaces();
+      const workspaces = await datasource.loadWorkspaces();
       setWorkspaces(Array.from(workspaces.values()));
     };
 
     loadWorkspaces();
 
     const loadUsers = async () => {
-      const users = await datasource.usersUtils.getUsers();
+      const users = await datasource.loadUsers();
       setUsers(Array.from(users.values()));
     };
 
     loadUsers();
 
     const loadSystemAliases = async () => {
-      const systemAliases = await datasource.systemUtils.getSystemAliases();
+      const systemAliases = await datasource.loadSystemAliases();
       setSystemAliases(Array.from(systemAliases.values()));
     };
 
     loadSystemAliases();
 
     const loadProducts = async () => {
-      const products = await datasource.productUtils.getProductNamesAndPartNumbers();
+      const products = await datasource.loadProductNamesAndPartNumbers();
       setProducts(Array.from(products.values()));
     };
 
@@ -71,6 +73,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
   };
 
   const onPropertiesChange = (items: Array<SelectableValue<string>>) => {
+    setIsPropertiesValid(items.length > 0);
     if (items !== undefined) {
       handleQueryChange({ ...query, properties: items.map(i => i.value as Properties) });
     }
@@ -84,16 +87,22 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
     handleQueryChange({ ...query, descending: isDescendingChecked });
   };
 
+  const validateRecordCoundValue = (value: number, TAKE_LIMIT: number) => {
+    if (isNaN(value) || value < 0) {
+      return { message: recordCountErrorMessages.greaterOrEqualToZero, take: undefined };
+    }
+    if (value > TAKE_LIMIT) {
+      return { message: recordCountErrorMessages.lessOrEqualToTenThousand, take: undefined };
+    }
+    return {message: '', recordCount: value };
+  };
+
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    if (isNaN(value) || value < 0) {
-      setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
-    } else if (value > TAKE_LIMIT) {
-      setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTenThousand);
-    } else {
-      setRecordCountInvalidMessage('');
-      handleQueryChange({ ...query, recordCount: value });
-    }
+    const { message, recordCount } = validateRecordCoundValue(value, TAKE_LIMIT);
+
+    setRecordCountInvalidMessage(message);
+    handleQueryChange({ ...query, recordCount });
   };
 
   const onQueryByChange = (queryBy: string) => {
@@ -114,7 +123,13 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
           />
         </InlineField>
         {query.outputType === OutputType.Properties && (
-          <InlineField label="Properties" labelWidth={25} tooltip={tooltips.properties}>
+          <InlineField
+            label="Properties" 
+            labelWidth={25} 
+            tooltip={tooltips.properties}
+            invalid={!isPropertiesValid}
+            error='You must select at least one property.'
+          >
             <MultiSelect
               placeholder="Select the properties to query"
               options={Object.entries(PropertiesProjectionMap).map(([key, value]) => ({ label: value.label, value: key })) as SelectableValue[]}
@@ -182,6 +197,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
           )}
         </HorizontalGroup >
       </VerticalGroup>
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
     </>
   );
 }

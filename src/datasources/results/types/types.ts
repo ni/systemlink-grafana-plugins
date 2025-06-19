@@ -1,7 +1,7 @@
 import { DataQuery, DataSourceJsonData } from '@grafana/schema';
 
 export interface ResultsQuery extends DataQuery {
-  queryType: QueryType;
+  queryType?: QueryType;
 }
 
 export enum QueryType {
@@ -9,14 +9,11 @@ export enum QueryType {
   Steps = 'Steps'
 }
 
+export const defaultResultsQueryType: QueryType = QueryType.Results;
+
 export enum OutputType {
   Data = 'Data',
   TotalCount = 'Total Count'
-}
-
-export enum UseTimeRangeFor {
-  Started = 'Started',
-  Updated = 'Updated'
 }
 
 export interface ResultsFeatureToggles {

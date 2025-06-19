@@ -84,6 +84,109 @@ describe('ResultsQueryEditor', () => {
     });
   });
 
+  test('should save stepsQuery value only when switched from steps query type to results', async () => {
+    const customStepsQuery = {
+      refId: 'A',
+      queryType: QueryType.Steps,
+      customField: 'customValue',
+    } as ResultsQuery;
+
+    let currentQuery = { ...customStepsQuery };
+    const onChange = jest.fn((query) => {
+      currentQuery = { ...currentQuery, ...query };
+      renderResult.rerender(
+        React.createElement(ResultsQueryEditor, { ...defaultProps, query: currentQuery, onChange })
+      );
+    });
+
+    const renderResult = render(
+      React.createElement(ResultsQueryEditor, { ...defaultProps, query: currentQuery, onChange })
+    );
+
+    // Switch to Results
+    userEvent.click(renderResult.getByRole('radio', { name: QueryType.Results }));
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith(expect.objectContaining(defaultResultsQuery));
+    });
+
+    // Switch back to Steps
+    userEvent.click(renderResult.getByRole('radio', { name: QueryType.Steps }));
+    await waitFor(() => {
+      // The customField should be preserved in stepsQuery state and merged back in
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ...defaultStepsQuery,
+          customField: 'customValue',
+        })
+      );
+    });
+  })
+
+  test('should not save stepsQuery value when switching from results to steps without previous steps query', async () => {
+   const query = {
+      refId: 'A',
+    } as ResultsQuery; // undefined queryType
+
+    const renderResult = render(
+      React.createElement(ResultsQueryEditor, {
+        query,
+        datasource: mockDatasource,
+        onRunQuery: mockOnRunQuery,
+        onChange: mockOnChange,
+      })
+    );
+
+    // Switch to Results
+    userEvent.click(renderResult.getByRole('radio', { name: QueryType.Results }));
+    await waitFor(() => {
+      expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining(defaultResultsQuery));
+    });
+
+    // Switch to Steps without any previous steps query
+    userEvent.click(renderResult.getByRole('radio', { name: QueryType.Steps }));
+    await waitFor(() => {
+      expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining(defaultStepsQuery));
+    });
+  });
+
+  test('should save resultsQuery value when switching to steps and back to results', async () => {
+    // Start with Results query type and set a custom value for resultsQuery
+    const customResultsQuery = {
+      refId: 'A',
+      queryType: QueryType.Results,
+      customField: 'customValue',
+    } as ResultsQuery;
+
+    let currentQuery = { ...customResultsQuery };
+    const onChange = jest.fn((query) => {
+      currentQuery = { ...currentQuery, ...query };
+      renderResult.rerender(
+        React.createElement(ResultsQueryEditor, { ...defaultProps, query: currentQuery, onChange })
+      );
+    });
+
+    const renderResult = render(
+      React.createElement(ResultsQueryEditor, { ...defaultProps, query: currentQuery, onChange })
+    );
+
+    // Switch to Steps
+    userEvent.click(renderResult.getByRole('radio', { name: QueryType.Steps }));
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith(expect.objectContaining(defaultStepsQuery));
+    });
+
+    // Switch back to Results
+    userEvent.click(renderResult.getByRole('radio', { name: QueryType.Results }));
+    await waitFor(() => {
+      // The customField should be preserved in resultsQuery state and merged back in
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ...defaultResultsQuery,
+          customField: 'customValue',
+        })
+      );
+    });
+  });
   describe('Editor', () => {
     test('should render QueryResultsEditor when query type is results', () => {
       const renderResult = renderElement();
@@ -103,6 +206,17 @@ describe('ResultsQueryEditor', () => {
       expect(renderResult.queryByTestId('query-steps-editor')).toBeInTheDocument();
       expect(renderResult.queryByTestId('query-results-editor')).not.toBeInTheDocument();
     });
+
+    test('should call onRunQuery on init', () => {
+      const query = {
+        refId: 'A',
+      }
+
+      renderElement(query);
+      expect(mockOnRunQuery).toHaveBeenCalled();
+      expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ ...defaultResultsQuery, queryType: QueryType.Results, refId: 'A' }));
+      
+    })
   });
 
   describe('Datasource', () => {

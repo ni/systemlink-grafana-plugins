@@ -12,22 +12,18 @@ const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: WorkOrdersVariableQuery) => query),
   globalVariableOptions: jest.fn(() => []),
-  workspaceUtils: {
-    getWorkspaces: jest.fn().mockResolvedValue(
-        new Map([
-            ['1', { id: '1', name: 'WorkspaceName' }],
-            ['2', { id: '2', name: 'AnotherWorkspaceName' }],
-        ])
-    )
-  },
-  usersUtils: {
-    getUsers: jest.fn().mockResolvedValue(
+  loadWorkspaces: jest.fn().mockResolvedValue(
       new Map([
-        ['1', { id: '1', firstName: 'User', lastName: '1' }],
-        ['2', { id: '2', firstName: 'User', lastName: '2' }],
+          ['1', { id: '1', name: 'WorkspaceName' }],
+          ['2', { id: '2', name: 'AnotherWorkspaceName' }],
       ])
-    ),
-  },
+  ),
+  loadUsers: jest.fn().mockResolvedValue(
+    new Map([
+      ['1', { id: '1', firstName: 'User', lastName: '1' }],
+      ['2', { id: '2', firstName: 'User', lastName: '2' }],
+    ])
+  ),
 } as unknown as WorkOrdersDataSource;
 
 const defaultProps: QueryEditorProps<WorkOrdersDataSource, WorkOrdersVariableQuery> = {
@@ -105,7 +101,7 @@ describe('WorkOrdersVariableQueryEditor', () => {
   it('should load workspaces and set them in state', async () => {
     await renderElement();
 
-    const workspaces = await mockDatasource.workspaceUtils.getWorkspaces();
+    const workspaces = await mockDatasource.loadWorkspaces();
     expect(workspaces).toBeDefined();
     expect(workspaces).toEqual(
         new Map([
@@ -118,7 +114,7 @@ describe('WorkOrdersVariableQueryEditor', () => {
   it('should load users and set them in state', async () => {
     renderElement();
 
-    const users = await mockDatasource.usersUtils.getUsers();
+    const users = await mockDatasource.loadUsers();
     expect(users).toBeDefined();
     expect(users).toEqual(
       new Map([
@@ -204,7 +200,7 @@ describe('WorkOrdersVariableQueryEditor', () => {
 
       await waitFor(() => {
         expect(container.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
-        expect(mockOnChange).not.toHaveBeenCalled();
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ take: undefined }));
       });
     });
 
@@ -217,7 +213,7 @@ describe('WorkOrdersVariableQueryEditor', () => {
 
       await waitFor(() => {
         expect(container.getByText('Enter a value greater than or equal to 0')).toBeInTheDocument();
-        expect(mockOnChange).not.toHaveBeenCalled();
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ take: undefined }));
       });
     });
 

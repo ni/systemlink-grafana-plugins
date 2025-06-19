@@ -1,6 +1,6 @@
-import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties, ResultsVariableQuery } from "datasources/results/types/QueryResults.types";
+import { resultsProjectionLabelLookup, QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties, ResultsVariableQuery } from "datasources/results/types/QueryResults.types";
 import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase";
-import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, AppEvents } from "@grafana/data";
+import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents } from "@grafana/data";
 import { OutputType } from "datasources/results/types/types";
 import { defaultResultsQuery } from "datasources/results/defaultQueries";
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
@@ -36,6 +36,8 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
 
       if (!errorDetails.statusCode) {
         errorMessage = 'The query failed due to an unknown error.';
+      } else if (errorDetails.statusCode === '504') {
+        errorMessage = 'The query to fetch results experienced a timeout error. Narrow your query with a more specific filter and try again.';
       } else {
         errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
       }
@@ -50,31 +52,48 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   }
 
   async runQuery(query: QueryResults, options: DataQueryRequest): Promise<DataFrameDTO> {
-    query.queryBy = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.queryBy);
-    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
+    if (query.outputType === OutputType.Data && !this.isQueryValid(query)) {
+      return {
+        refId: query.refId,
+        fields: [],
+      };
+    }
+    if (query.queryBy) {
+      query.queryBy = transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.resultsComputedDataFields,
+      );
+    }
+
+    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, defaultResultsQuery.useTimeRangeFor);
+
+    let properties = query.properties;
+    let recordCount = query.recordCount;
+    if (query.outputType === OutputType.TotalCount) {
+      properties = [];
+      recordCount = 0;
+    }
 
     const responseData = await this.queryResults(
       this.buildQueryFilter(query.queryBy, useTimeRangeFilter),
-      query.orderBy,
-      query.properties,
-      query.recordCount,
-      query.descending,
+      defaultResultsQuery.orderBy,
+      properties,
+      recordCount,
+      defaultResultsQuery.descending,
       true
     );
 
     if (query.outputType === OutputType.Data) {
-      if (responseData.results.length === 0) {
-        return {
-          refId: query.refId,
-          fields: [],
-        };
-      }
+      const results = responseData.results ;
       
-      const results = responseData.results;
-      const availableFields = Object.keys(results[0]);
-      const selectedFields = query.properties?.filter((field) =>
-        availableFields.includes(field)
-      ) ?? [];
+      // Determine which fields to select based on query properties and available result fields
+      const availableFields = results && results.length > 0 ? Object.keys(results[0]) : [];
+      const selectedFields = (query.properties ?? []).filter((field) => availableFields.includes(field));
+
+      // If no fields are available (empty results), fall back to the requested properties
+      if (selectedFields.length === 0) {
+        selectedFields.push(...(query.properties || []));
+      }
 
       const fields = selectedFields.map((field) => {
         const isTimeField =
@@ -89,49 +108,32 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
           case ResultsPropertiesOptions.PROPERTIES:
           case ResultsPropertiesOptions.STATUS_TYPE_SUMMARY:
             return {
-              name: field,
+              name: resultsProjectionLabelLookup[field].label,
               values: values.map((v) => (v != null ? JSON.stringify(v) : '')),
               type: fieldType,
             };
           case ResultsPropertiesOptions.STATUS:
             return {
-              name: field,
+              name: resultsProjectionLabelLookup[field].label,
               values: values.map((v: any) => v?.statusType),
               type: fieldType,
             };
           default:
-            return { name: field, values, type: fieldType };
+            return { name: resultsProjectionLabelLookup[field].label, values, type: fieldType };
         }
       });
 
       return {
         refId: query.refId,
+        name: query.refId,
         fields,
       };
     }
 
     return {
       refId: query.refId,
-      fields: [{ name: 'Total count', values: [responseData.totalCount] }],
+      fields: [{ name: query.refId, values: [responseData.totalCount] }],
     };
-  }
-
-  private buildResultsQuery( scopedVars: ScopedVars, partNumberQuery?: string[], resultsQuery?: string): string | undefined {
-    const partNumberFilter =
-      partNumberQuery && partNumberQuery.length > 0
-        ? `(${this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery)})`
-        : '';
-
-    const combinedQuery = this.buildQueryFilter(partNumberFilter, resultsQuery);
-
-    if (!combinedQuery) {
-      return undefined;
-    }
-
-    return transformComputedFieldsQuery(
-      this.templateSrv.replace(combinedQuery, scopedVars), 
-      this.resultsComputedDataFields
-    );
   }
 
   /**
@@ -148,14 +150,18 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   );
 
   async metricFindQuery(query: ResultsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    if (query.properties !== undefined && this.isTakeValidValid(query.resultsTake!)) {
-      const filter = this.buildResultsQuery( options?.scopedVars!, query.partNumberQuery, query.queryBy );
+    if (query.properties !== undefined && this.isTakeValid(query.resultsTake!)) {
+      const filter = query.queryBy ? transformComputedFieldsQuery(
+        this.templateSrv.replace(query.queryBy, options?.scopedVars),
+        this.resultsComputedDataFields
+      ) : undefined;
 
       const metadata = (await this.queryResults(
         filter,
-        'UPDATED_AT',
+        defaultResultsQuery.orderBy,
         [query.properties as ResultsProperties],
         query.resultsTake,
+        defaultResultsQuery.descending
       )).results;
 
       if (metadata.length > 0) {
@@ -168,8 +174,13 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     return [];
   }
 
-  private isTakeValidValid(value: number): boolean {
+  private isTakeValid(value: number): boolean {
     return !isNaN(value) && value > 0 && value <= TAKE_LIMIT;
+  }
+
+  private isQueryValid(query: QueryResults): boolean {
+    return query.properties!.length !== 0 && query.recordCount !== undefined
+     
   }
 
   shouldRunQuery(_: QueryResults): boolean {

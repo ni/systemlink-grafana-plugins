@@ -1,6 +1,7 @@
 import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, AppEvents } from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
+  stepsProjectionLabelLookup,
   QueryStepPathsResponse,
   QuerySteps,
   QueryStepsResponse,
@@ -21,21 +22,13 @@ import { QueryResponse } from 'core/types';
 import { queryInBatches } from 'core/utils';
 import { MAX_PATH_TAKE_PER_REQUEST, QUERY_PATH_REQUEST_PER_SECOND } from 'datasources/results/constants/QueryStepPath.constants';
 import { extractErrorInfo } from 'core/errors';
-
+import { formatMeasurementColumnName, formatMeasurementValueColumnName, MEASUREMENT_NAME_COLUMN, MEASUREMENT_UNITS_COLUMN, measurementColumnLabelSuffix, MeasurementProperties, measurementProperties } from 'datasources/results/constants/stepMeasurements.constants';
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
   queryPathsUrl = this.baseUrl + '/v2/query-paths';
 
   defaultQuery = defaultStepsQuery;
-
-  private stepsPath: string[] = [];
-  private previousResultsQuery: string | undefined;
-
-  private stepsPathChangeCallback?: () => void;
-
-  setStepsPathChangeCallback(callback: () => void) {
-    this.stepsPathChangeCallback = callback;
-  }
+  scopedVars: ScopedVars = {};
 
   async querySteps(
     filter?: string,
@@ -66,6 +59,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       let errorMessage: string;
       if (!errorDetails.statusCode) {
         errorMessage = 'The query failed due to an unknown error.';
+      } else if (errorDetails.statusCode === '504') {
+        errorMessage = 'The query to fetch steps experienced a timeout error. Narrow your query with a more specific filter and try again.';
       } else {
         errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
       }
@@ -177,24 +172,22 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
   
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
-    if (!query.partNumberQuery || query.partNumberQuery.length === 0) {
+    this.scopedVars = options.scopedVars || {};
+  
+    if (query.outputType === OutputType.Data && !this.isQueryValid(query)) {
       return {
         refId: query.refId,
         fields: [],
       };
     }
-    query.resultsQuery = this.buildResultsQuery(options.scopedVars, query.partNumberQuery, query.resultsQuery);
     
-    if(this.previousResultsQuery !== query.resultsQuery) {
-      this.stepsPath = await this.getStepPathsLookupValues(options.scopedVars, query.partNumberQuery, query.resultsQuery)
-      this.stepsPathChangeCallback?.();
-    }
-    this.previousResultsQuery = query.resultsQuery;
+    query.stepsQuery = this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options.scopedVars) || '';
+    query.resultsQuery = this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options.scopedVars) || '';
     
     const transformStepsQuery = query.stepsQuery
       ? this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options.scopedVars)
       : undefined;
-    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, query.useTimeRangeFor);
+    const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, defaultStepsQuery.useTimeRangeFor);
     query.stepsQuery = this.buildQueryFilter(transformStepsQuery, useTimeRangeFilter);
 
     const projection = query.showMeasurements
@@ -204,56 +197,61 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     if (query.outputType === OutputType.Data) {
       const responseData = await this.queryStepsInBatches(
         query.stepsQuery,
-        query.orderBy,
+        defaultStepsQuery.orderBy,
         projection as StepsProperties[],
         query.recordCount,
-        query.descending,
+        defaultStepsQuery.descending,
         query.resultsQuery,
         true
       );
 
-      if (responseData.steps.length === 0) {
-        return {
-          refId: query.refId,
-          fields: [],
-        };
-      }
       const stepsResponse = responseData.steps;
-      const stepResponseKeys = new Set(Object.keys(stepsResponse[0]));
+      const stepResponseKeys = stepsResponse && stepsResponse.length > 0 ?  new Set(Object.keys(stepsResponse[0])) : new Set<string>();
       const selectedFields = (query.properties || []).filter(field => stepResponseKeys.has(field));
-      const fields = this.processFields(selectedFields, stepsResponse);
-
-      if (query.showMeasurements) {
-        const measurementFields = this.processMeasurementData(stepsResponse);
-        fields.push(...measurementFields);
+      if (selectedFields.length === 0) {
+        // If no fields are available, fall back to the requested properties
+        const properties = query.properties?.map(property => stepsProjectionLabelLookup[property].label) as StepsProperties[];
+        selectedFields.push(...(properties || []));
       }
+
+      const fields = this.processFields(selectedFields, stepsResponse, query.showMeasurements || false);
       return {
         refId: query.refId,
-        fields: fields,
+        name: query.refId,
+        fields,
       };
     } else {
       const responseData = await this.querySteps(
         query.stepsQuery,
         undefined,
-        undefined,
-        undefined,
+        [],
+        0,
         undefined,
         query.resultsQuery,
         undefined,
         true
       );
 
-      return {
+      return {  
         refId: query.refId,
-        fields: [{ name: 'Total count', values: [responseData.totalCount] }],
+        fields: [{ name: query.refId, values: [responseData.totalCount] }],
       };
     }
   }
 
-  private async getStepPathsLookupValues(scopedVars: ScopedVars, partNumberQuery: string[], transformedResultsQuery: string): Promise<string[]> {
+  async getStepPaths(resultsQuery: string): Promise<string[]> {
+    if (resultsQuery) {
+      const query = this.transformQuery(resultsQuery, this.resultsComputedDataFields, this.scopedVars);
+      const stepPaths = await this.getStepPathsLookupValues(query!);
+      return  this.flattenAndDeduplicate(stepPaths);
+    }
+    return [];
+  }
+
+  private async getStepPathsLookupValues(transformedResultsQuery: string): Promise<string[]> {
     let stepPathValues: string[];
     try {
-      const stepPathResponse = await this.loadStepPaths(scopedVars, partNumberQuery, transformedResultsQuery);
+      const stepPathResponse = await this.loadStepPaths(transformedResultsQuery);
       stepPathValues = stepPathResponse.paths.map(pathObj => pathObj.path);
     } catch (error) {
         if (!this.errorTitle) {
@@ -265,8 +263,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   private async loadStepPaths(
-    options: ScopedVars,
-    partNumberQuery: string[],
     transformedResultsQuery?: string
   ): Promise<QueryStepPathsResponse> {
     const programNames = await this.queryResultsValues(ResultsQueryBuilderFieldNames.PROGRAM_NAME, transformedResultsQuery);
@@ -274,90 +270,155 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       return { paths: [] };
     }
 
-    const buildProgramNameQuery = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PROGRAM_NAME, programNames);
-    const partNumberString = this.buildPartNumbersQuery(options, partNumberQuery);
-    const buildStepPathFilter = this.buildQueryFilter(`(${buildProgramNameQuery})`, `(${partNumberString})`);
+    const programNameQuery = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PROGRAM_NAME, programNames);
     return await this.queryStepPathInBatches(
-      buildStepPathFilter,
+      programNameQuery,
       [StepsPathProperties.path],
       MAX_PATH_TAKE_PER_REQUEST,
       true
     );
   }
 
-  getStepPaths(): string[] {
-    if (this.stepsPath?.length > 0) {
-      return this.flattenAndDeduplicate(this.stepsPath);
-    }
-    return [];
-  }
-
-  private buildResultsQuery(scopedVars: ScopedVars, partNumberQuery: string[], resultsQuery?: string): string {
-    const partNumberFilter = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery);
-    const combinedResultsQuery = this.buildQueryFilter(`(${partNumberFilter})`, resultsQuery);
-    return this.transformQuery(combinedResultsQuery, this.resultsComputedDataFields, scopedVars)!;
-  }
-
-  private buildPartNumbersQuery(scopedVars: ScopedVars, partNumberQuery: string[]): string {
-    const partNumberFilter = this.buildQueryWithOrOperator(ResultsQueryBuilderFieldNames.PART_NUMBER, partNumberQuery);
-    return this.transformQuery(partNumberFilter, this.resultsComputedDataFields, scopedVars)!;
-  }
-
   private processFields(
     selectedFields: StepsProperties[],
-    stepsResponse: StepsResponseProperties[]
-  ): Array<{ name: StepsProperties; values: string[]; type: FieldType }> {
-    return selectedFields.map(field => {
-      const isTimeField = field === StepsPropertiesOptions.UPDATED_AT || field === StepsPropertiesOptions.STARTED_AT;
+    stepsResponse: StepsResponseProperties[],
+    showMeasurements: boolean
+  ): Array<{ name: string; values: string[]; type: FieldType }> {
+    const columns: Array<{ name: string; values: string[]; type: FieldType }> = [];
+    if (stepsResponse.length === 0) {
+      return selectedFields.map(field => ({
+        name: field,
+        values: [],
+        type: this.findFieldType(field, '')
+      }))
+    }
+  
+    stepsResponse.forEach(step => {
+      // Process selected step fields
+      selectedFields.forEach(field => {
+        const fieldName = stepsProjectionLabelLookup[field].label;
+        const value = this.convertStepPropertyToString(field, step[field]);
+        const fieldType = this.findFieldType(field, value);
+        this.addValueToColumn(columns, fieldName, value, fieldType);
+      });
 
-      const fieldType = isTimeField ? FieldType.time : FieldType.string;
-      const values = stepsResponse.map(data => data[field as keyof StepsResponseProperties]);
+      // Process measurement fields if enabled
+      if (showMeasurements) {
+        // Measurements are defined as the data.parameters which contains a name, else the parameter is ignored.
+        const measurements =
+          step.data?.parameters?.filter(measurement => measurement[MEASUREMENT_NAME_COLUMN]) || [];
 
-      switch (field) {
-        case StepsPropertiesOptions.PROPERTIES:
-        case StepsPropertiesOptions.INPUTS:
-        case StepsPropertiesOptions.OUTPUTS:
-        case StepsPropertiesOptions.DATA:
-          return {
-            name: field,
-            values: values.map(value => (value !== null ? JSON.stringify(value) : '')),
-            type: fieldType,
-          };
-        case StepsPropertiesOptions.STATUS:
-          return { name: field, values: values.map((value: any) => value?.statusType), type: fieldType };
-        default:
-          return { name: field, values, type: fieldType };
+        measurements.forEach(measurement => {
+          const measurementName = measurement[MEASUREMENT_NAME_COLUMN];
+          if (!measurementName) {
+            return;
+          }
+
+          measurementProperties.forEach(property => {
+            const suffix = measurementColumnLabelSuffix[property];
+            let columnName = formatMeasurementColumnName(measurementName, suffix);
+            let value = measurement[property] ?? '';
+            if(!value) {
+              // If the value is empty, skip adding it to the column this is considering
+              // that not all measurements will have high limit, low limit, etc.
+              return;
+            }
+
+            if (property === MEASUREMENT_NAME_COLUMN) {
+              // For the measurement name column, format the column name with units if available
+              columnName = formatMeasurementValueColumnName(measurementName, measurement[MEASUREMENT_UNITS_COLUMN] || '');
+              // For the measurement name column, use the measurement values if available
+              value = measurement[MeasurementProperties.MEASUREMENT] ?? '';
+            }
+            const fieldType = this.findFieldType(columnName, value);
+            // normalize the column name to match the previous steps as the current step metadata will be already added
+            this.addValueToColumn(columns, columnName, value, fieldType, true, -1);
+          });
+        });
+      }
+
+      // At the end of processing each step, ensure all columns have the same length
+      // by normalizing the columns.
+      this.normalizeColumns(columns);
+
+    });
+
+    return columns;
+  }
+
+  /**
+   * Adds a value to a column, creating the column if it doesn't exist.
+   * Optionally normalizes columns to the same length before adding.
+   */
+  private addValueToColumn(
+    columns: Array<{ name: string; values: string[]; type: FieldType }>,
+    field: string,
+    value: string,
+    type: FieldType = FieldType.string,
+    normalizeOnAdd = false,
+    relativeLengthToNormalize = 0
+  ): void {
+    let column = columns.find(c => c.name === field);
+
+    if (!column) {
+      column = { name: field, values: [], type };
+      columns.push(column);
+      if (normalizeOnAdd) {
+        this.normalizeColumns(columns, relativeLengthToNormalize);
+      }
+    }
+    column.values.push(value);
+  }
+
+  /**
+   * Ensures all columns have the same number of values by filling with empty strings.
+   * @param columns Columns to normalize.
+   * @param relativeLength Additional length to add to the maximum column length.
+   */
+  private normalizeColumns(
+    columns: Array<{ name: string; values: string[]; type: FieldType }>,
+    relativeLength = 0
+  ): void {
+    const targetLength = Math.max(0, ...columns.map(c => c.values.length)) + relativeLength;
+    columns.forEach(col => {
+      const missing = targetLength - col.values.length;
+      if (missing > 0) {
+        col.values.push(...Array(missing).fill(''));
       }
     });
   }
 
-  private processMeasurementData(stepsResponse: StepsResponseProperties[]): any[] {
-    const fieldToParameterProperty = {
-      'Measurement Name': 'name',
-      'Measurement Value': 'measurement',
-      'Status': 'status',
-      'Unit': 'units',
-      'Low Limit': 'lowLimit',
-      'High Limit': 'highLimit',
-    };
-    const measurementFields = Object.keys(fieldToParameterProperty) as Array<keyof typeof fieldToParameterProperty>;
+  private convertStepPropertyToString(field: string, value: any): string {
+    if (value === undefined || value === null) {
+        return '';
+    }
+    switch (field) {
+        case StepsPropertiesOptions.PROPERTIES:
+        case StepsPropertiesOptions.INPUTS:
+        case StepsPropertiesOptions.OUTPUTS:
+        case StepsPropertiesOptions.DATA:
+            return value !== null ? JSON.stringify(value) : '';
+        case StepsPropertiesOptions.STATUS:
+            return (value as any)?.statusType || '';
+        default:
+            return value.toString();
+    }
+}
 
-    return measurementFields.map(measurementField => {
-      const values = stepsResponse.map(step => {
-        if (!step.data?.parameters) {
-          return [];
-        }
-        return step.data.parameters.map(
-          param => param[fieldToParameterProperty[measurementField]]
-        );
-      });
-
-      return {
-        name: measurementField,
-        values,
-        type: FieldType.string,
-      };
-    });
+  private findFieldType(field: string, value: string): FieldType {
+    const isTimeField =
+      field === StepsPropertiesOptions.UPDATED_AT ||
+      field === StepsPropertiesOptions.STARTED_AT;
+    if(isTimeField) {
+      return FieldType.time;
+    }
+    
+    const isValueANumber = !isNaN(Number(value)) && value.trim() !== '';
+    if (isValueANumber) {
+      return FieldType.number;
+    }
+    
+    return FieldType.string;
   }
 
   /**
@@ -391,7 +452,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
    * @param scopedVars - The scoped variables for template replacement.
    * @returns - The transformed query string, or undefined if the input queryField is undefined.
    */
-  private transformQuery(queryField: string | undefined, computedDataFields: Map<string, ExpressionTransformFunction>, scopedVars: ScopedVars): string | undefined {
+  private transformQuery(queryField: string | undefined, computedDataFields: Map<string, ExpressionTransformFunction>, scopedVars?: ScopedVars): string | undefined {
     return queryField
       ? transformComputedFieldsQuery(
         this.templateSrv.replace(queryField, scopedVars),
@@ -401,27 +462,19 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   async metricFindQuery(query: StepsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    if (query.partNumberQueryInSteps !== undefined && query.partNumberQueryInSteps.length > 0 && this.isTakeValid(query.stepsTake!)) {
-      const resultsQuery = this.buildResultsQuery(options?.scopedVars!, query.partNumberQueryInSteps, query.queryByResults);
+    this.scopedVars = options?.scopedVars || {};
+    if (query.queryByResults && this.isTakeValid(query.stepsTake!)) {
+      const resultsQuery = this.transformQuery(query.queryByResults, this.resultsComputedDataFields, options?.scopedVars!) || '';
 
-      if (this.previousResultsQuery !== resultsQuery) {
-        this.stepsPath = await this.getStepPathsLookupValues(options?.scopedVars!, query.partNumberQueryInSteps, resultsQuery)
-        this.stepsPathChangeCallback?.();
-      }
-      this.previousResultsQuery = resultsQuery;
-
-      const stepsQuery = query.queryBySteps ? transformComputedFieldsQuery(
-        this.templateSrv.replace(query.queryBySteps, options?.scopedVars),
-        this.resultsComputedDataFields
-      ) : undefined;
+      const stepsQuery = this.transformQuery(query.queryBySteps, this.resultsComputedDataFields, options?.scopedVars!);
 
       let responseData: QueryStepsResponse;
       responseData = await this.queryStepsInBatches(
         stepsQuery,
-        'UPDATED_AT',
+        defaultStepsQuery.orderBy,
         [StepsPropertiesOptions.NAME as StepsProperties],
         query.stepsTake,
-        true,
+        defaultStepsQuery.descending,
         resultsQuery,
       );
 
@@ -436,6 +489,10 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
   private isTakeValid(value: number): boolean {
     return !isNaN(value) && value > 0 && value <= TAKE_LIMIT;
+  }
+
+  private isQueryValid(query: QuerySteps): boolean {
+    return query.resultsQuery !== '' && query.recordCount !== undefined && query.properties!.length > 0;
   }
 
   shouldRunQuery(_: QuerySteps): boolean {

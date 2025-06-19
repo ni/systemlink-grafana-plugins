@@ -6,10 +6,12 @@ import { ProductPartNumberAndName } from './types/QueryProducts.types';
 
 const products: ProductPartNumberAndName[] = [
     {
+        id: '1',
         partNumber: 'part-number-1',
         name: 'Product 1',
     },
     {
+        id: '2',
         partNumber: 'part-number-2',
         name: 'Product 2',
     }
@@ -47,20 +49,14 @@ describe('ProductUtils', () => {
         expect(result.get('part-number-2')).toEqual(products[1]);
     });
 
-    it('should handle errors when loading products', async () => {
+    it('should propagate error when loading product fails', async () => {
         (ProductUtils as any)['_productCache'] = undefined;
-        jest.spyOn(console, 'error').mockImplementation(() => {});
         const error = new Error('Failed to fetch products');
-        (queryUntilComplete as jest.Mock)
-            .mockImplementationOnce(() => {
-                return Promise.reject(error);
-            });
+        (queryUntilComplete as jest.Mock).mockImplementationOnce(() => {
+            return Promise.reject(error);
+        });
 
-        const result = await productUtils.getProductNamesAndPartNumbers();
-
-        expect(console.error).toHaveBeenCalledTimes(1);
-        expect(console.error).toHaveBeenCalledWith('Error in loading products:', error);
-        expect(result).toEqual(new Map<string, ProductPartNumberAndName>());
+        await expect(productUtils.getProductNamesAndPartNumbers()).rejects.toThrow('Failed to fetch products');
     });
 
     it('should return cached products if already loaded', async () => {

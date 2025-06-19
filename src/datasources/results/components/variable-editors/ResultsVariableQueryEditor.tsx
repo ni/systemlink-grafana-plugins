@@ -7,7 +7,7 @@ import {
   StepsVariableQuery,
 } from 'datasources/results/types/QueryResults.types';
 import { ResultsQueryBuilder } from '../query-builders/query-results/ResultsQueryBuilder';
-import { AutoSizeInput, MultiSelect, RadioButtonGroup, Select } from '@grafana/ui';
+import { AutoSizeInput, RadioButtonGroup, Select } from '@grafana/ui';
 import { Workspace } from 'core/types';
 import { enumToOptions, validateNumericInput } from 'core/utils';
 import {
@@ -25,11 +25,10 @@ type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSource
 
 export function ResultsVariableQueryEditor({ query, onChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
-  const [productNameOptions, setProductNameOptions] = useState<Array<SelectableValue<string>>>([]);
+  const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const [isQueryBuilderDisabled, disableStepsQueryBuilder] = useState<boolean>(true);
   const [stepsRecordCountInvalidMessage, setStepsRecordCountInvalidMessage] = useState<string>('');
   const [resultsRecordCountInvalidMessage, setResultsRecordCountInvalidMessage] = useState<string>('');
-  const [isProductSelectionInStepsValid, setIsProductSelectionInStepsValid] = useState(true);
   const queryResultsquery = query as ResultsVariableQuery;
   const stepsVariableQuery = query as StepsVariableQuery;
   const queryResultsDataSource = useRef(datasource.queryResultsDataSource);
@@ -54,22 +53,20 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
       const workspaces = await queryResultsDataSource.current.workspacesCache;
       setWorkspaces(Array.from(workspaces.values()));
     };
-    const loadProductNameOptions = async () => {
-      const response = await queryResultsDataSource.current.productCache;
-      const productOptions = response.products.map(product => ({
-        label: `${product.name} (${product.partNumber})`,
-        value: product.partNumber,
-      }));
-      setProductNameOptions([...queryResultsDataSource.current.globalVariableOptions(), ...productOptions]);
-    }
-
-    loadProductNameOptions();
+    const loadPartNumbers = async () => {
+      const partNumbers = await queryResultsDataSource.current.partNumbersCache;
+      setPartNumbers(partNumbers);
+    };
+    loadPartNumbers();
     loadWorkspaces();
   }, [datasource]);
 
   useEffect(() => {
-    disableStepsQueryBuilder(!stepsVariableQuery.partNumberQueryInSteps || stepsVariableQuery.partNumberQueryInSteps.length === 0);
-  }, [stepsVariableQuery.partNumberQueryInSteps]);
+    disableStepsQueryBuilder(
+      stepsVariableQuery.queryByResults === '' 
+      || stepsVariableQuery.queryByResults === undefined
+    );
+  }, [stepsVariableQuery.queryByResults]);
 
   const onQueryTypeChange = (queryType: QueryType) => {
     if (queryType === QueryType.Results) {
@@ -88,7 +85,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
   };
 
   const onResultsQueryChange = (resultsQuery: string) => {
-    onChange({ ...queryResultsquery, queryByResults: resultsQuery } as ResultsVariableQuery);
+    onChange({ ...stepsVariableQuery, queryByResults: resultsQuery } as StepsVariableQuery);
   };
 
   const onStepsQueryChange = (stepsQuery: string) => {
@@ -117,24 +114,9 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
     return '';
   }
 
-  const onProductNameChange = (productNames: Array<SelectableValue<string>>) => {
-    onChange({ ...queryResultsquery, partNumberQuery: productNames.map(product => product.value as string) } as ResultsVariableQuery );
-  }
-
-  const onProductNameChangesinSteps = (productNames: Array<SelectableValue<string>>) => {
-    setIsProductSelectionInStepsValid(productNames.length > 0);
-    onChange({ ...stepsVariableQuery, partNumberQueryInSteps: productNames.map(product => product.value as string) } as StepsVariableQuery );
-  }
-
-  const formatOptionLabel = (option: SelectableValue<string>) => (
-    <div style={{ maxWidth: 500, whiteSpace: 'normal' }}>
-      {option.label}
-    </div>
-  );
-
   return (
     <>
-      <InlineField label="Query Type" labelWidth={26} tooltip={tooltips.queryType}>
+      <InlineField label={labels.queryType} labelWidth={26} tooltip={tooltips.queryType}>
         <RadioButtonGroup
           options={Object.values(QueryType).map(value => ({ label: value, value })) as SelectableValue[]}
           value={query.queryType}
@@ -143,7 +125,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
       </InlineField>
       {query.queryType === QueryType.Results && (
         <>
-          <InlineField label="Properties" labelWidth={26} tooltip={tooltips.properties}>
+          <InlineField label={labels.properties} labelWidth={26} tooltip={tooltips.properties}>
             <Select
               onChange={onPropertiesChange}
               options={ResultsVariableProperties as SelectableValue[]}
@@ -154,30 +136,18 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
           {(queryResultsquery.properties! === ResultsVariableProperties[0].value ||
             queryResultsquery.properties === ResultsVariableProperties[1].value) && (
             <>
-              <InlineField label="Product (part number)" labelWidth={26} tooltip={tooltips.productName}>
-                <MultiSelect
-                  maxVisibleValues={5}
-                  width={65}
-                  onChange={onProductNameChange}
-                  placeholder='Select part numbers to use in a query'
-                  noMultiValueWrap={true}
-                  closeMenuOnSelect={false}
-                  value={queryResultsquery.partNumberQuery}
-                  formatOptionLabel={formatOptionLabel}
-                  options={productNameOptions}
-                />
-            </InlineField>
-              <InlineField label="Query by results properties" labelWidth={26} tooltip={tooltips.queryBy}>
+              <InlineField label={labels.queryByResults} labelWidth={26} tooltip={tooltips.queryBy}>
                 <ResultsQueryBuilder
                   filter={queryResultsquery.queryBy}
                   onChange={(event: any) => onQueryByChange(event.detail.linq)}
                   workspaces={workspaces}
                   status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
+                  partNumbers={partNumbers}
                   globalVariableOptions={queryResultsDataSource.current.globalVariableOptions()}
                 ></ResultsQueryBuilder>
               </InlineField>
               <InlineField
-                label="Take"
+                label={labels.take}
                 labelWidth={26}
                 tooltip={tooltips.resultsTake}
                 invalid={!!resultsRecordCountInvalidMessage}
@@ -189,7 +159,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
                   type="number"
                   defaultValue={queryResultsquery.resultsTake ? queryResultsquery.resultsTake : 1000}
                   onCommitChange={onResultsRecordCountChange}
-                  placeholder="Enter record count"
+                  placeholder={placeholders.take}
                   onKeyDown={event => {
                     validateNumericInput(event);
                   }}
@@ -201,24 +171,6 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
       )}
       {query.queryType === QueryType.Steps && (
         <>
-          <InlineField
-            label="Product (part number)"
-            labelWidth={26}
-            tooltip={tooltips.productName}
-            invalid={!isProductSelectionInStepsValid}
-            error="You must select at least one product in this field.">
-            <MultiSelect
-              maxVisibleValues={5}
-              width={65}
-              onChange={onProductNameChangesinSteps}
-              placeholder='Select part numbers to use in a query'
-              noMultiValueWrap={true}
-              closeMenuOnSelect={false}
-              value={stepsVariableQuery.partNumberQueryInSteps}
-              formatOptionLabel={formatOptionLabel}
-              options={productNameOptions}
-            />
-          </InlineField>
           <StepsQueryBuilderWrapper
             datasource={queryStepsDatasource.current}
             resultsQuery={stepsVariableQuery.queryByResults}
@@ -228,7 +180,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
             disableStepsQueryBuilder={isQueryBuilderDisabled}
           />
           <InlineField
-            label="Take"
+            label={labels.take}
             labelWidth={26}
             tooltip={tooltips.stepsTake}
             invalid={!!stepsRecordCountInvalidMessage}
@@ -240,7 +192,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
               type="number"
               defaultValue={stepsVariableQuery.stepsTake ? stepsVariableQuery.stepsTake : 1000}
               onCommitChange={onStepsRecordCountChange}
-              placeholder="Enter record count"
+              placeholder={placeholders.take}
               onKeyDown={event => {
                 validateNumericInput(event);
               }}
@@ -248,7 +200,11 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
           </InlineField>
         </>
       )}
-      <FloatingError message={queryResultsDataSource.current.errorTitle} innerMessage={queryResultsDataSource.current.errorDescription} severity='warning'/>
+      <FloatingError
+        message={queryResultsDataSource.current.errorTitle}
+        innerMessage={queryResultsDataSource.current.errorDescription}
+        severity="warning"
+      />
     </>
   );
 }
@@ -259,5 +215,15 @@ const tooltips = {
   resultsTake: 'This field sets the maximum number of results to return.',
   queryBy: 'This field applies a filter to the query results.',
   properties: 'This field specifies the property to return from the query.',
-  productName: 'This field filters results by part number.',
+};
+
+const labels = {
+  queryType: 'Query type',
+  properties: 'Properties',
+  queryByResults: 'Query by results properties',
+  take: 'Take',
+};
+
+const placeholders = {
+  take: 'Enter record count',
 };

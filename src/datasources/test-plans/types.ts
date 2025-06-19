@@ -1,4 +1,4 @@
-import { DataQuery } from '@grafana/schema'
+import { DataQuery } from '@grafana/schema';
 
 export interface TestPlansQuery extends DataQuery {
     properties?: Properties[];
@@ -35,7 +35,9 @@ export enum Properties {
     WORKSPACE = 'WORKSPACE',
     WORK_ORDER = 'WORK_ORDER',
     WORK_ORDER_ID = 'WORK_ORDER_ID',
-    PRODUCT = 'PRODUCT',
+    PRODUCT_NAME = 'PRODUCT_NAME',
+    PRODUCT_ID = 'PRODUCT_ID',
+    PART_NUMBER = 'PART_NUMBER',
     PLANNED_START_DATE_TIME = 'PLANNED_START_DATE_TIME',
     ESTIMATED_END_DATE_TIME = 'ESTIMATED_END_DATE_TIME',
     ESTIMATED_DURATION_IN_SECONDS = 'ESTIMATED_DURATION_IN_SECONDS',
@@ -47,6 +49,7 @@ export enum Properties {
     SUBSTATE = 'SUBSTATE',
     FIXTURE_NAMES = 'FIXTURE_NAMES',
     DUT_ID = 'DUT_ID',
+    DUT_NAME = 'DUT_NAME',
     DUT_SERIAL_NUMBER = 'DUT_SERIAL_NUMBER',
 };
 
@@ -94,7 +97,7 @@ export const PropertiesProjectionMap: Record<Properties, {
         field: 'assignedTo',
     },
     [Properties.CREATED_AT]: {
-        label: 'Created at',
+        label: 'Created',
         projection: [Projections.CREATED_AT],
         field: 'createdAt',
     },
@@ -129,7 +132,7 @@ export const PropertiesProjectionMap: Record<Properties, {
         field: 'state',
     },
     [Properties.UPDATED_AT]: {
-        label: 'Updated at',
+        label: 'Updated',
         projection: [Projections.UPDATED_AT],
         field: 'updatedAt',
     },
@@ -153,8 +156,18 @@ export const PropertiesProjectionMap: Record<Properties, {
         projection: [Projections.WORK_ORDER_ID],
         field: 'workOrderId',
     },
-    [Properties.PRODUCT]: {
-        label: 'Product (Part number)',
+    [Properties.PRODUCT_ID]: {
+        label: 'Product ID',
+        projection: [Projections.PART_NUMBER],
+        field: 'partNumber',
+    },
+    [Properties.PART_NUMBER]: {
+        label: 'Part number',
+        projection: [Projections.PART_NUMBER],
+        field: 'partNumber',
+    },
+    [Properties.PRODUCT_NAME]: {
+        label: 'Product name',
         projection: [Projections.PART_NUMBER],
         field: 'partNumber',
     },
@@ -209,7 +222,12 @@ export const PropertiesProjectionMap: Record<Properties, {
         field: 'fixtureIds',
     },
     [Properties.DUT_ID]: {
-        label: 'DUT',
+        label: 'DUT ID',
+        projection: [Projections.DUT_ID],
+        field: 'dutId',
+    },
+    [Properties.DUT_NAME]: {
+        label: 'DUT name',
         projection: [Projections.DUT_ID],
         field: 'dutId',
     },

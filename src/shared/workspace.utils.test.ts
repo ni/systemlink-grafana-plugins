@@ -47,16 +47,11 @@ describe('WorkspaceUtils', () => {
         expect(result.get('2')).toEqual(mockWorkspaces[1]);
     });
 
-    it('should handle errors when loading workspaces', async () => {
+    it('should propagate error when loading workspaces fails', async () => {
         (WorkspaceUtils as any)._workspacesCache = undefined;
-        const error = new Error('API failed');
-        backendSrv.get = jest.fn().mockRejectedValue(error);
-        jest.spyOn(console, 'error').mockImplementation(() => {});
+        const error = new Error('Failed to fetch workspaces');
+        (backendSrv.get as jest.Mock).mockRejectedValueOnce(error);
 
-        const result = await workspaceUtils.getWorkspaces();
-
-        expect(result.size).toBe(0);
-        expect(console.error).toHaveBeenCalledTimes(1);
-        expect(console.error).toHaveBeenCalledWith('Error in loading workspaces:', error);
+        await expect(workspaceUtils.getWorkspaces()).rejects.toThrow('Failed to fetch workspaces');
     });
 });

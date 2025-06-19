@@ -24,10 +24,10 @@ export const ResultsConfigEditor: React.FC<Props> = ({ options, onOptionsChange 
       />
       <>
         <div style={{ paddingBottom: '10px' }}>
-          <Text element="h6">Features</Text>
+          <Text element="h6">{labels.features}</Text>
         </div>
         <InlineSegmentGroup>
-          <InlineField label="Results Query Builder" labelWidth={25}>
+          <InlineField label={labels.resultsQueryBuilder} labelWidth={25}>
             <InlineSwitch
               value={options.jsonData?.featureToggles?.queryByResults ?? ResultsFeatureTogglesDefaults.queryByResults}
               onChange={handleFeatureChange('queryByResults')}
@@ -35,7 +35,7 @@ export const ResultsConfigEditor: React.FC<Props> = ({ options, onOptionsChange 
           </InlineField>
         </InlineSegmentGroup>
         <InlineSegmentGroup>
-          <InlineField label="Steps Query Builder" labelWidth={25}>
+          <InlineField label={labels.stepsQueryBuilder} labelWidth={25}>
             <InlineSwitch
               value={options.jsonData?.featureToggles?.queryBySteps ?? ResultsFeatureTogglesDefaults.queryBySteps}
               onChange={handleFeatureChange('queryBySteps')}
@@ -45,4 +45,10 @@ export const ResultsConfigEditor: React.FC<Props> = ({ options, onOptionsChange 
       </>
     </>
   );
+};
+
+const labels = {
+  features: 'Features',
+  resultsQueryBuilder: 'Results query builder',
+  stepsQueryBuilder: 'Steps query builder',
 };

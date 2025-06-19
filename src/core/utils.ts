@@ -143,7 +143,7 @@ export async function queryInBatches<T>(
       Math.min(take - queryResponse.length, totalCount - queryResponse.length) :
       take - queryResponse.length;
 
-    if (remainingRecordsToGet <= 0) {
+    if (remainingRecordsToGet <= 0 || continuationToken === null) {
       return;
     }
 
@@ -157,7 +157,7 @@ export async function queryInBatches<T>(
     }
   };
 
-  while (queryResponse.length < take && (totalCount === undefined || queryResponse.length < totalCount)) {
+  while (queryResponse.length < take && (totalCount === undefined || queryResponse.length < totalCount) && continuationToken !== null) {
     const remainingRequestCount = Math.ceil((take - queryResponse.length) / queryConfig.maxTakePerRequest);
     const requestsInCurrentBatch = Math.min(queryConfig.requestsPerSecond, remainingRequestCount);
 
@@ -248,7 +248,6 @@ export async function queryUsingSkip<T>(
     const start = Date.now();
 
     for (let i = 0; i < requestsPerSecond && hasMore; i++) {
-      try {
         const response = await queryRecord(maxTakePerRequest, skip);
         data.push(...response.data);
 
@@ -258,11 +257,6 @@ export async function queryUsingSkip<T>(
         }
 
         skip += maxTakePerRequest;
-      } catch (error) {
-        console.error(`Error during batch fetch at skip=${skip}:`, error);
-        hasMore = false;
-        break;
-      }
     }
 
     const elapsed = Date.now() - start;

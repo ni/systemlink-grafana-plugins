@@ -3,64 +3,20 @@ import { OutputType, ResultsQuery } from './types';
 export interface QuerySteps extends ResultsQuery {
   outputType: OutputType;
   properties?: StepsProperties[];
-  partNumberQuery: string[];
   orderBy?: string;
   descending?: boolean;
   useTimeRange?: boolean;
-  useTimeRangeFor?: string;
   recordCount?: number;
   showMeasurements?: boolean;
-  resultsQuery?: string;
+  resultsQuery: string;
   stepsQuery?: string;
 }
 
-export const OrderBy = [
-  {
-    value: 'NAME',
-    label: 'Step name',
-    description: 'Name of the step',
-  },
-  {
-    value: 'STEP_TYPE',
-    label: 'Step type',
-    description: 'Type of the step',
-  },
-  {
-    value: 'STEP_ID',
-    label: 'Step ID',
-    description: 'ID of the step',
-  },
-  {
-    value: 'PARENT_ID',
-    label: 'Parent ID',
-    description: 'ID of the parent step',
-  },
-  {
-    value: 'RESULT_ID',
-    label: 'Result ID',
-    description: 'ID of the associated result',
-  },
-  {
-    value: 'TOTAL_TIME_IN_SECONDS',
-    label: 'Total time in seconds',
-    description: 'Total time taken to run the step in seconds',
-  },
-  {
-    value: 'STARTED_AT',
-    label: 'Started at',
-    description: 'Timestamp when the step started',
-  },
-  {
-    value: 'UPDATED_AT',
-    label: 'Updated at',
-    description: 'Timestamp when the step was last updated',
-  },
-  {
-    value: 'DATA_MODEL',
-    label: 'Data model',
-    description: 'Data model of the step',
-  },
-];
+export interface QueryStepsDefaultValues extends QuerySteps {
+  orderBy: string;
+  descending: boolean;
+  useTimeRangeFor: string;
+}
 
 export const StepsPropertiesOptions = {
   STEP_ID: 'stepId',
@@ -98,6 +54,75 @@ export enum StepsProperties {
   workspace = 'workspace',
   keywords = 'keywords',
   properties = 'properties',
+}
+
+export const stepsProjectionLabelLookup: Record<StepsProperties, {
+  label: string,
+  projection: StepsProperties
+}> = {
+  [StepsProperties.name]: {
+    label: 'Step name',
+    projection: StepsProperties.name
+  },
+  [StepsProperties.stepType]: {
+    label: 'Step type',
+    projection: StepsProperties.stepType
+  },
+  [StepsProperties.stepId]: {
+    label: 'Step ID',
+    projection: StepsProperties.stepId
+  },
+  [StepsProperties.parentId]: {
+    label: 'Parent ID',
+    projection: StepsProperties.parentId
+  },
+  [StepsProperties.resultId]: {
+    label: 'Result ID',
+    projection: StepsProperties.resultId
+  },
+  [StepsProperties.status]: {
+    label: 'Status', projection: StepsProperties.status
+  },
+  [StepsProperties.totalTimeInSeconds]: {
+    label: 'Total time (s)',
+    projection: StepsProperties.totalTimeInSeconds
+  },
+  [StepsProperties.startedAt]: {
+    label: 'Started at',
+    projection: StepsProperties.startedAt
+  },
+  [StepsProperties.updatedAt]: {
+    label: 'Updated at',
+    projection: StepsProperties.updatedAt
+  },
+  [StepsProperties.inputs]: {
+    label: 'Inputs',
+    projection: StepsProperties.inputs
+  },
+  [StepsProperties.outputs]: {
+    label: 'Outputs',
+    projection: StepsProperties.outputs
+  },
+  [StepsProperties.dataModel]: {
+    label: 'Data model',
+    projection: StepsProperties.dataModel
+  },
+  [StepsProperties.data]: {
+    label: 'Data',
+    projection: StepsProperties.data
+  },
+  [StepsProperties.workspace]: {
+    label: 'Workspace',
+    projection: StepsProperties.workspace
+  },
+  [StepsProperties.keywords]: {
+    label: 'Keywords',
+    projection: StepsProperties.keywords
+  },
+  [StepsProperties.properties]: {
+    label: 'Properties',
+    projection: StepsProperties.properties
+  },
 }
 
 export interface StatusHttp {

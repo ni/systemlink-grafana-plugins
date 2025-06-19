@@ -101,8 +101,8 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
         filterOperations: [
             QueryBuilderOperations.DATE_TIME_IS_AFTER.name,
             QueryBuilderOperations.DATE_TIME_IS_BEFORE.name,
-            QueryBuilderOperations.IS_BLANK.name,
-            QueryBuilderOperations.IS_NOT_BLANK.name
+            QueryBuilderOperations.DATE_TIME_IS_BLANK.name,
+            QueryBuilderOperations.DATE_TIME_IS_NOT_BLANK.name
         ]
     },
     FIXTURE_IDENTIFIER: {
@@ -131,8 +131,8 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
         filterOperations: [
             QueryBuilderOperations.DATE_TIME_IS_AFTER.name,
             QueryBuilderOperations.DATE_TIME_IS_BEFORE.name,
-            QueryBuilderOperations.IS_BLANK.name,
-            QueryBuilderOperations.IS_NOT_BLANK.name
+            QueryBuilderOperations.DATE_TIME_IS_BLANK.name,
+            QueryBuilderOperations.DATE_TIME_IS_NOT_BLANK.name
         ]
     },
     PRODUCT: {
@@ -211,7 +211,7 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
         ]
     },
     UPDATED_AT: {
-        label: 'Updated at',
+        label: 'Updated',
         dataField: TestPlansQueryBuilderFieldNames.UpdatedAt,
         filterOperations: [
             QueryBuilderOperations.DATE_TIME_IS_AFTER.name,

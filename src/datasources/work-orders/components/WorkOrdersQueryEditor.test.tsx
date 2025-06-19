@@ -12,22 +12,18 @@ const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: WorkOrdersQuery) => query),
   globalVariableOptions: jest.fn(() => []),
-  workspaceUtils: {
-    getWorkspaces: jest.fn().mockResolvedValue(
-        new Map([
-            ['1', { id: '1', name: 'WorkspaceName' }],
-            ['2', { id: '2', name: 'AnotherWorkspaceName' }],
-        ])
-    )
-  },
-  usersUtils: {
-    getUsers: jest.fn().mockResolvedValue(
+  loadWorkspaces: jest.fn().mockResolvedValue(
       new Map([
-        ['1', { id: '1', firstName: 'User', lastName: '1' }],
-        ['2', { id: '2', firstName: 'User', lastName: '2' }],
+          ['1', { id: '1', name: 'WorkspaceName' }],
+          ['2', { id: '2', name: 'AnotherWorkspaceName' }],
       ])
-    ),
-  },
+  ),
+  loadUsers: jest.fn().mockResolvedValue(
+    new Map([
+      ['1', { id: '1', firstName: 'User', lastName: '1' }],
+      ['2', { id: '2', firstName: 'User', lastName: '2' }],
+    ])
+  ),
 } as unknown as WorkOrdersDataSource;
 
 const defaultProps: QueryEditorProps<WorkOrdersDataSource, WorkOrdersQuery> = {
@@ -87,13 +83,6 @@ describe('WorkOrdersQueryEditor', () => {
     const take = container.getByRole('spinbutton');
     expect(take).toBeInTheDocument();
     expect(take).toHaveDisplayValue('');
-
-    expect(mockOnChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        outputType: OutputType.Properties,
-        refId: 'A'
-      }));
-    expect(mockOnRunQuery).toHaveBeenCalledTimes(1);
   });
 
   describe('output type is total count', () => {
@@ -209,7 +198,7 @@ describe('WorkOrdersQueryEditor', () => {
   it('should load workspaces and set them in state', async () => {
     await renderElement();
 
-    const workspaces = await mockDatasource.workspaceUtils.getWorkspaces();
+    const workspaces = await mockDatasource.loadWorkspaces();
     expect(workspaces).toBeDefined();
     expect(workspaces).toEqual(
         new Map([
@@ -222,7 +211,7 @@ describe('WorkOrdersQueryEditor', () => {
   it('should load users and set them in state', async () => {
     await renderElement();
 
-    const users = await mockDatasource.usersUtils.getUsers();
+    const users = await mockDatasource.loadUsers();
     expect(users).toBeDefined();
     expect(users).toEqual(
       new Map([
@@ -279,6 +268,29 @@ describe('WorkOrdersQueryEditor', () => {
         expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
+
+    it('should show error when all properties are removed', async () => {
+      const query = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+      };
+      const container = await renderElement(query);
+
+      const properties = container.getAllByRole('combobox')[0];
+      // User adds a property
+      await select(properties, "Workspace", { container: document.body });
+      await waitFor(() => {
+        expect(mockOnChange).toHaveBeenCalledWith(
+          expect.objectContaining({ properties: ["WORKSPACE"] })
+        )
+      });
+      
+      // User removes the property
+      const removeButton = screen.getByRole('button', { name: 'Remove' });
+      await userEvent.click(removeButton);
+  
+      expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
+    })
 
     it('should call onChange with order by when user changes order by', async () => {
       const container = await renderElement();
@@ -368,8 +380,8 @@ describe('WorkOrdersQueryEditor', () => {
 
       await waitFor(() => {
         expect(container.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
-        expect(mockOnChange).not.toHaveBeenCalled();
-        expect(mockOnRunQuery).not.toHaveBeenCalled();
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ take: undefined }));
+        expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
 
@@ -384,8 +396,8 @@ describe('WorkOrdersQueryEditor', () => {
 
       await waitFor(() => {
         expect(container.getByText('Enter a value greater than or equal to 0')).toBeInTheDocument();
-        expect(mockOnChange).not.toHaveBeenCalled();
-        expect(mockOnRunQuery).not.toHaveBeenCalled();
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ take: undefined }));
+        expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
 
