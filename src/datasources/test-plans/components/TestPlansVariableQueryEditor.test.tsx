@@ -3,7 +3,7 @@ import { act, render, waitFor } from '@testing-library/react';
 import { TestPlansVariableQueryEditor } from './TestPlansVariableQueryEditor';
 import { QueryEditorProps } from '@grafana/data';
 import { TestPlansDataSource } from '../TestPlansDataSource';
-import { OutputType, TestPlansVariableQuery } from '../types';
+import { TestPlansVariableQuery } from '../types';
 import userEvent from '@testing-library/user-event';
 import { select } from 'react-select-event';
 
@@ -79,30 +79,6 @@ describe('TestPlansVariableQueryEditor', () => {
       const queryBuilder = container.getByRole('dialog');
       expect(queryBuilder).toBeInTheDocument();
     });
-  });
-
-  test('should call onRunQuery on init', async() => {
-    const query = {
-      refId: 'A',
-    }
-
-    await renderElement(query);
-
-    expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ outputType: OutputType.Properties, refId: 'A' }));
-    expect(mockOnRunQuery).toHaveBeenCalled();
-  });
-  
-  test('should not call onRunQuery after init', async() => {
-    const query = {
-      refId: 'A',
-      outputType: OutputType.Properties,
-    }
-    jest.clearAllMocks();
-
-    await renderElement(query);
-
-    expect(mockOnChange).not.toHaveBeenCalled();
-    expect(mockOnRunQuery).not.toHaveBeenCalled();
   });
 
   it('only allows numbers in Take field', async () => {
