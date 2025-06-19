@@ -331,11 +331,12 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         field => field !== StepsProperties.inputs && field !== StepsProperties.outputs
       );
 
-      const columnsToDuplicate: string[] = selectedStepPropertyFields;
+      const columnsToDuplicate: string[] = [];
 
       // Process selected step fields
       selectedStepPropertyFields.forEach(field => {
         const fieldName = stepsProjectionLabelLookup[field].label;
+        columnsToDuplicate.push(fieldName);
         const value = this.convertStepPropertyToString(field, step[field]);
         const fieldType = this.findFieldType(field, value);
         this.addValueToColumn(columns, fieldName, value, fieldType);
@@ -392,11 +393,25 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         // Measurements are defined as the data.parameters which contains a name, else the parameter is ignored.
         const measurements = step.data?.parameters?.filter(measurement => measurement[MEASUREMENT_NAME_COLUMN]) || [];
 
+        // Track measurement names to detect duplicates within the same step
+        const seenMeasurementNames = new Set<string>();
+
         measurements.forEach((measurement, measurementIndex) => {
           const measurementName = measurement[MEASUREMENT_NAME_COLUMN];
           if (!measurementName) {
             return;
           }
+
+          // If this measurement name has already been seen, duplicate the last value in all columnsToDuplicate columns
+          if (seenMeasurementNames.has(measurementName)) {
+            columnsToDuplicate.forEach(colName => {
+              const col = columns.find(c => c.name === colName);
+              if (col && col.values.length > 0) {
+                col.values.push(col.values[col.values.length - 1]);
+              }
+            });
+          }
+          seenMeasurementNames.add(measurementName);
 
           measurementProperties.forEach((property, measurementPropertyIndex) => {
             const suffix = measurementColumnLabelSuffix[property];

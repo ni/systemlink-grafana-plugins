@@ -423,12 +423,14 @@ describe('QueryStepsDataSource', () => {
           steps: [
             {
               ...mockQueryStepsResponse.steps[0],
+              stepId: '1',
               inputs: mockIO,
               outputs: mockIO,
               data: mockMeasurementData,
             },
             {
               ...mockQueryStepsResponse.steps[0],
+              stepId: '2',
               inputs: mockIO,
               outputs: mockIO,
               data: mockMeasurementData,
@@ -475,17 +477,17 @@ describe('QueryStepsDataSource', () => {
       beforeEach(() => {
         const mockIO = [
           { name: 'Voltage', value: 1 },
-          { name: 'Voltage', value: 1 },
           { name: 'Voltage', value: 2 },
-          { name: 'Voltage', value: 2 },
+          { name: 'Voltage', value: 3 },
+          { name: 'Voltage', value: 4 },
         ];
 
         const mockMeasurementData = {
           text: 'Step 1',
           parameters: [
-            { name: 'Voltage', measurement: '3.7', unit: 'V' },
-            { name: 'Voltage', measurement: '3.7', unit: 'V' },
-            { name: 'Voltage', measurement: '3.7', unit: 'V' },
+            { name: 'Voltage', measurement: '3.5', unit: 'V', highLimit: '4.0', lowLimit: '3.0' },
+            { name: 'Voltage', measurement: '3.6', unit: 'V', highLimit: '4.0', lowLimit: '3.0' },
+            { name: 'Voltage', measurement: '3.7', unit: 'V', highLimit: '4.0', lowLimit: '3.0' },
           ],
         };
 
@@ -557,20 +559,19 @@ describe('QueryStepsDataSource', () => {
       });
     });
 
-
     test('should return inputs as new columns with measurements when the all names are duplicates', async () => {
       const mockIO = [
         { name: 'Voltage', value: 1 },
-        { name: 'Voltage', value: 1 },
         { name: 'Voltage', value: 2 },
-        { name: 'Voltage', value: 2 },
+        { name: 'Voltage', value: 3 },
+        { name: 'Voltage', value: 4 },
       ];
 
       const mockMeasurementData = {
         text: 'Step 1',
         parameters: [
-          { name: 'Voltage', measurement: '3.7' },
-          { name: 'Voltage', measurement: '3.7' },
+          { name: 'Voltage', measurement: '3.5' },
+          { name: 'Voltage', measurement: '3.6' },
           { name: 'Voltage', measurement: '3.7' },
         ],
       };
@@ -611,7 +612,6 @@ describe('QueryStepsDataSource', () => {
       const fields = response.data[0].fields as Field[];
       expect(fields).toMatchSnapshot();
     });
-
 
     test('should include templateSrv replaced values in the filter', async () => {
       const timeRange = {
