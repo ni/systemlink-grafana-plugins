@@ -90,6 +90,12 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
     }
   }
 
+  useEffect(() => {
+    if (!query.orderBy) {
+      handleQueryChange({ ...query, orderBy: OrderBy[0].value });//set updated at as default order by
+    }
+  }, [handleQueryChange, query]);
+
   return (
     <>
       <HorizontalGroup align="flex-start">
