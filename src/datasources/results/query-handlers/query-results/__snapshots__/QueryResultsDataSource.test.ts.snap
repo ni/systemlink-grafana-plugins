@@ -93,6 +93,37 @@ exports[`QueryResultsDataSource query returns total count for valid total count 
 exports[`QueryResultsDataSource query should convert properties to Grafana fields 1`] = `
 [
   {
+    "name": "Result ID",
+    "type": "string",
+    "values": [
+      "000007fb-aa87-4ab9-9757-6568e7893c33",
+    ],
+  },
+  {
+    "name": "Test program name",
+    "type": "string",
+    "values": [
+      "My Program Name",
+    ],
+  },
+  {
+    "name": "Total time (s)",
+    "type": "string",
+    "values": [
+      29.9,
+    ],
+  },
+  {
+    "name": "Keywords",
+    "type": "string",
+    "values": [
+      [
+        "keyword1",
+        "keyword2",
+      ],
+    ],
+  },
+  {
     "name": "workspace",
     "type": "string",
     "values": [
