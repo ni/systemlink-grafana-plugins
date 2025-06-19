@@ -18,8 +18,8 @@ import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/Steps
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
-import { QueryResponse } from 'core/types';
-import { queryInBatches } from 'core/utils';
+import { QueryResponse, Workspace } from 'core/types';
+import { getWorkspaceName, queryInBatches } from 'core/utils';
 import { MAX_PATH_TAKE_PER_REQUEST, QUERY_PATH_REQUEST_PER_SECOND } from 'datasources/results/constants/QueryStepPath.constants';
 import { extractErrorInfo } from 'core/errors';
 import { formatMeasurementColumnName, formatMeasurementValueColumnName, MEASUREMENT_NAME_COLUMN, MEASUREMENT_UNITS_COLUMN, measurementColumnLabelSuffix, MeasurementProperties, measurementProperties } from 'datasources/results/constants/stepMeasurements.constants';
@@ -214,7 +214,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         selectedFields.push(...(properties || []));
       }
 
-      const fields = this.processFields(selectedFields, stepsResponse, query.showMeasurements || false);
+      const fields = await this.processFields(selectedFields, stepsResponse, query.showMeasurements || false);
       return {
         refId: query.refId,
         name: query.refId,
@@ -279,12 +279,14 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     );
   }
 
-  private processFields(
+  private async processFields(
     selectedFields: StepsProperties[],
     stepsResponse: StepsResponseProperties[],
     showMeasurements: boolean
-  ): Array<{ name: string; values: string[]; type: FieldType }> {
+  ): Promise<Array<{ name: string; values: string[]; type: FieldType; }>> {
     const columns: Array<{ name: string; values: string[]; type: FieldType }> = [];
+    const workspacesCache = await this.workspacesCache;
+    const workspaceValues = Array.from(workspacesCache.values());
     if (stepsResponse.length === 0) {
       return selectedFields.map(field => ({
         name: field,
@@ -297,7 +299,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       // Process selected step fields
       selectedFields.forEach(field => {
         const fieldName = stepsProjectionLabelLookup[field].label;
-        const value = this.convertStepPropertyToString(field, step[field]);
+        const value = this.convertStepPropertyToString(field, step[field], workspaceValues);
         const fieldType = this.findFieldType(field, value);
         this.addValueToColumn(columns, fieldName, value, fieldType);
       });
@@ -388,7 +390,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     });
   }
 
-  private convertStepPropertyToString(field: string, value: any): string {
+  private convertStepPropertyToString(field: string, value: any, workspaceCache: Workspace[]): string {
     if (value === undefined || value === null) {
         return '';
     }
@@ -400,6 +402,9 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
             return value !== null ? JSON.stringify(value) : '';
         case StepsPropertiesOptions.STATUS:
             return (value as any)?.statusType || '';
+        case StepsPropertiesOptions.WORKSPACE:
+            const workspaceId = value as string;
+            return workspaceCache.length ? getWorkspaceName(workspaceCache, workspaceId) : workspaceId;
         default:
             return value.toString();
     }

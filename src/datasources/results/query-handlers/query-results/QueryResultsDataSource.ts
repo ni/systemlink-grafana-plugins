@@ -7,6 +7,7 @@ import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/
 import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
 import { TAKE_LIMIT } from "datasources/results/constants/QuerySteps.constants";
 import { extractErrorInfo } from "core/errors";
+import { getWorkspaceName } from "core/utils";
 
 export class QueryResultsDataSource extends ResultsDataSourceBase {
   queryResultsUrl = this.baseUrl + '/v2/query-results';
@@ -94,6 +95,8 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       if (selectedFields.length === 0) {
         selectedFields.push(...(query.properties || []));
       }
+      const workspacesCache = await this.workspacesCache;
+      const workspaceValues = Array.from(workspacesCache.values());
 
       const fields = selectedFields.map((field) => {
         const isTimeField =
@@ -118,6 +121,12 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
               values: values.map((v: any) => v?.statusType),
               type: fieldType,
             };
+          case ResultsPropertiesOptions.WORKSPACE:
+            return {
+              name: field,
+              values: values.map((workspaceId) => workspaceValues.length ? getWorkspaceName(workspaceValues, workspaceId as string) : workspaceId),
+              type: fieldType,
+            }
           default:
             return { name: resultsProjectionLabelLookup[field].label, values, type: fieldType };
         }
