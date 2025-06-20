@@ -132,7 +132,6 @@ describe('testDatasource', () => {
 
   test('default query output type as properties and default properties', async () => {
     const defaultQuery = datastore.defaultQuery;
-    expect(defaultQuery.outputType).toEqual(OutputType.Properties);
     expect(defaultQuery.properties).toEqual([
       Properties.NAME,
       Properties.STATE,

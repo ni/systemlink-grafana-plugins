@@ -30,7 +30,6 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   workspaceUtils: WorkspaceUtils;
   usersUtils: UsersUtils;
   defaultQuery = {
-    outputType: OutputType.Properties,
     properties: [
       WorkOrderPropertiesOptions.NAME,
       WorkOrderPropertiesOptions.STATE,
