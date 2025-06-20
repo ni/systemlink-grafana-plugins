@@ -21,7 +21,6 @@ import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/Steps
 import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { Workspace } from 'core/types';
-import { DataSourceBase } from 'core/DataSourceBase';
 
 const mockQueryStepsResponse: QueryStepsResponse = {
   steps: [
@@ -32,7 +31,6 @@ const mockQueryStepsResponse: QueryStepsResponse = {
         key1: 'value1',
         key2: 'value2',
       },
-      workspace: '1'
     },
   ],
   continuationToken: undefined,
@@ -78,7 +76,6 @@ describe('QueryStepsDataSource', () => {
 
   afterEach(() => {
     jest.useRealTimers();
-    jest.restoreAllMocks();
   });
 
   describe('querySteps', () => {
@@ -243,59 +240,17 @@ describe('QueryStepsDataSource', () => {
     });
 
     test('should convert properties to Grafana fields', async () => {
-      const query = buildQuery(
-        {
-          refId: 'A',
-          outputType: OutputType.Data,
-        },
-      );
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [StepsPropertiesOptions.PROPERTIES as StepsProperties],
+      });
 
       const response = await datastore.query(query);
 
       const fields = response.data[0].fields as Field[];
       expect(fields).toMatchSnapshot();
     });
-
-      test('should return the workspace ID returned by API when the cache is empty', async () => {
-        (ResultsDataSourceBase as any)._workspacesCache = null;
-        jest.spyOn(DataSourceBase.prototype, 'getWorkspaces').mockResolvedValue([]);
-        const [datastore, backendServer] = setupDataSource(QueryStepsDataSource);
-        backendServer.fetch
-          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
-          .mockReturnValue(createFetchResponse(mockQueryStepsResponse));
-          const query = buildQuery(
-            {
-              refId: 'A',
-              outputType: OutputType.Data,
-            },
-          );
-
-        const response = await datastore.query(query);
-
-        const fields = response.data[0].fields as Field[];
-        // expect(fields).toMatchSnapshot();
-      });
-
-      test('should return the workspace ID when no matching entry exists in the cache for the ID returned by the API', async () => {
-        const mockWorkspaces = [{ id: '2', name: 'Other workspace', default: false, enabled: true }];
-        (ResultsDataSourceBase as any)._workspacesCache = null;
-        jest.spyOn(DataSourceBase.prototype, 'getWorkspaces').mockResolvedValue(mockWorkspaces);
-        const [datastore, backendServer] = setupDataSource(QueryStepsDataSource);
-        backendServer.fetch
-          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
-          .mockReturnValue(createFetchResponse(mockQueryStepsResponse));
-        const query = buildQuery(
-          {
-            refId: 'A',
-            outputType: OutputType.Data,
-          },
-        );
-
-        const response = await datastore.query(query);
-
-        const fields = response.data[0].fields as Field[];
-        // expect(fields).toMatchSnapshot();
-      });
 
     describe('show measurements is enabled', () => {
       describe('duplicate measurement names', () => {
@@ -1647,6 +1602,5 @@ describe('QueryStepsDataSource', () => {
     queryType: QueryType.Steps,
     outputType: OutputType.Data,
     resultsQuery: 'ProgramName = "name1"',
-    properties: [StepsProperties.name, StepsProperties.stepId, StepsProperties.properties, StepsProperties.workspace]
   });
 });
