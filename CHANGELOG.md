@@ -1,3 +1,9 @@
+## [3.140.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.9...v3.140.0) (2025-06-20)
+
+### Features
+
+* **results:** show inputs and outputs of steps as new columns ([#320](https://github.com/ni/systemlink-grafana-plugins/issues/320)) ([48b68cd](https://github.com/ni/systemlink-grafana-plugins/commit/48b68cd40013dbdd6d70a28653eee06e6bc212a9))
+
 ## [3.139.9](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.8...v3.139.9) (2025-06-20)
 
 ### Bug Fixes
