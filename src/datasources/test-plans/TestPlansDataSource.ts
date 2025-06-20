@@ -118,12 +118,11 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
               return workspace ? getWorkspaceName([workspace], value) : value;
             case PropertiesProjectionMap.WORK_ORDER.label:
               const workOrder = workOrderIdAndName.find(data => data.id === value);
-              const workOrderId = value ? `(${value})` : '';
               const workOrderName = workOrder && workOrder?.name ? workOrder.name : '';
-              return `${workOrderName} ${workOrderId}`;
+              return workOrderName;
             case PropertiesProjectionMap.TEMPLATE.label:
               const template = templatesName.find(data => data.id === value);
-              return template ? `${template.name} (${template.id})` : value;
+              return template ? template.name : value;
             case PropertiesProjectionMap.ESTIMATED_DURATION_IN_SECONDS.label:
               return value ? transformDuration(value) : '';
             case PropertiesProjectionMap.SYSTEM_NAME.label:
