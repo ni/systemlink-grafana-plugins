@@ -1192,7 +1192,7 @@ describe('metricFindQuery', () => {
         data: {
           orderBy: OrderByOptions.UPDATED_AT,
           descending: true,
-          projection: ["Test plan ID", "NAME"],
+          projection: ["ID", "NAME"],
           returnCount: false,
           take: 1000
         }
@@ -1216,7 +1216,7 @@ describe('metricFindQuery', () => {
         data: {
           descending: false,
           orderBy: OrderByOptions.UPDATED_AT,
-          projection: ["Test plan ID", "NAME"],
+          projection: ["ID", "NAME"],
           returnCount: false,
           take: 1000
         }
@@ -1240,7 +1240,7 @@ describe('metricFindQuery', () => {
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'workspace = "testWorkspace"',
       "UPDATED_AT",
-      ["Test plan ID", "NAME"],
+      ["ID", "NAME"],
       1000,
       true
     );
@@ -1262,7 +1262,7 @@ describe('metricFindQuery', () => {
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       '(workspace = "testWorkspace1" || workspace = "testWorkspace2")',
       "UPDATED_AT",
-      ["Test plan ID", "NAME"],
+      ["ID", "NAME"],
       1000,
       true
     );
@@ -1284,7 +1284,7 @@ describe('metricFindQuery', () => {
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'updatedAt = "2025-01-01T00:00:00.000Z"',
       "UPDATED_AT",
-      ["Test plan ID", "NAME"],
+      ["ID", "NAME"],
       1000,
       true
     );
@@ -1306,7 +1306,7 @@ describe('metricFindQuery', () => {
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       '(estimatedDurationInSeconds > \"172800\" && estimatedDurationInSeconds != \"7200\")',
       "UPDATED_AT",
-      ["Test plan ID", "NAME"],
+      ["ID", "NAME"],
       1000,
       true
     );
@@ -1324,7 +1324,7 @@ describe('metricFindQuery', () => {
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       undefined,
       "UPDATED_AT",
-      ["Test plan ID", "NAME"],
+      ["ID", "NAME"],
       1000,
       true
     );
