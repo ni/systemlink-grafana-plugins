@@ -1,17 +1,31 @@
 import { resultsProjectionLabelLookup, QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties, ResultsVariableQuery } from "datasources/results/types/QueryResults.types";
 import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase";
-import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents } from "@grafana/data";
-import { OutputType } from "datasources/results/types/types";
+import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents, DataSourceInstanceSettings } from "@grafana/data";
+import { OutputType, ResultsDataSourceOptions } from "datasources/results/types/types";
 import { defaultResultsQuery } from "datasources/results/defaultQueries";
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
 import { TAKE_LIMIT } from "datasources/results/constants/QuerySteps.constants";
 import { extractErrorInfo } from "core/errors";
+import { getWorkspaceName } from "core/utils";
+import { Workspace } from "core/types";
+import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
 
 export class QueryResultsDataSource extends ResultsDataSourceBase {
   queryResultsUrl = this.baseUrl + '/v2/query-results';
 
   defaultQuery = defaultResultsQuery;
+
+  private workspaceValues: Workspace[] = [];
+
+  constructor(
+    readonly instanceSettings: DataSourceInstanceSettings<ResultsDataSourceOptions>,
+    readonly backendSrv: BackendSrv = getBackendSrv(),
+    readonly templateSrv: TemplateSrv = getTemplateSrv()
+  ) {
+    super(instanceSettings, backendSrv, templateSrv);
+    this.initWorkspacesValues();
+  }
 
   async queryResults(
     filter?: string,
@@ -118,6 +132,14 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
               values: values.map((v: any) => v?.statusType),
               type: fieldType,
             };
+          case ResultsPropertiesOptions.WORKSPACE:
+            return {
+              name: resultsProjectionLabelLookup[field].label,
+              values: values.map((workspaceId) => this.workspaceValues.length
+                ? getWorkspaceName(this.workspaceValues, workspaceId as string)
+                : workspaceId),
+              type: fieldType,
+            }
           default:
             return { name: resultsProjectionLabelLookup[field].label, values, type: fieldType };
         }
@@ -172,6 +194,11 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       }
     }
     return [];
+  }
+
+  private async initWorkspacesValues(): Promise<void> {
+    const workspaces = await this.workspacesCache;
+    this.workspaceValues = Array.from(workspaces.values());
   }
 
   private isTakeValid(value: number): boolean {

@@ -8,6 +8,7 @@ import { OutputType, QueryType } from 'datasources/results/types/types';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { Workspace } from 'core/types';
+import { DataSourceBase } from 'core/DataSourceBase';
 
 const mockQueryResultsResponse: QueryResultsResponse = {
   results: [
@@ -16,6 +17,7 @@ const mockQueryResultsResponse: QueryResultsResponse = {
       programName: 'My Program Name',
       totalTimeInSeconds: 29.9,
       keywords: ['keyword1', 'keyword2'],
+      workspace: '1'
     },
   ],
   totalCount: 1
@@ -32,6 +34,10 @@ describe('QueryResultsDataSource', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
       .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
+  })
+
+  afterEach(()=> {
+    jest.restoreAllMocks();
   })
 
   describe('queryResults', () => {
@@ -83,7 +89,7 @@ describe('QueryResultsDataSource', () => {
     test('returns data for valid data-output-type query', async () => {
       const query = buildQuery({
         refId: 'A',
-        outputType: OutputType.Data
+        outputType: OutputType.Data,
       });
 
       const response = await datastore.query(query);
@@ -219,7 +225,7 @@ describe('QueryResultsDataSource', () => {
         const query = buildQuery(
           {
             refId: 'A',
-            outputType: OutputType.Data
+            outputType: OutputType.Data,
           },
         );
 
@@ -228,6 +234,50 @@ describe('QueryResultsDataSource', () => {
         const fields = response.data[0].fields as Field[];
         expect(fields).toMatchSnapshot();
     });
+
+      test('should return the workspace ID returned by API when the cache is empty', async () => {
+        (ResultsDataSourceBase as any)._workspacesCache = null;
+        jest.spyOn(DataSourceBase.prototype, 'getWorkspaces').mockResolvedValue([]);
+        const [datastore, backendServer] = setupDataSource(QueryResultsDataSource);
+        backendServer.fetch
+          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+          .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
+        
+          const query = buildQuery(
+            {
+              refId: 'A',
+              outputType: OutputType.Data,
+              properties: [ResultsProperties.workspace]
+            },
+          );
+
+        const response = await datastore.query(query);
+
+        const fields = response.data[0].fields as Field[];
+        expect(fields).toMatchSnapshot();
+      });
+
+      test('should return the workspace ID when no matching entry exists in the cache for the ID returned by the API', async () => {
+        const mockWorkspaces = [{ id: '2', name: 'Other workspace', default: false, enabled: true }];
+        (ResultsDataSourceBase as any)._workspacesCache = null;
+        jest.spyOn(DataSourceBase.prototype, 'getWorkspaces').mockResolvedValue(mockWorkspaces);
+        const [datastore, backendServer] = setupDataSource(QueryResultsDataSource);
+        backendServer.fetch
+          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+          .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
+          const query = buildQuery(
+            {
+              refId: 'A',
+              outputType: OutputType.Data,
+              properties: [ResultsProperties.workspace]
+            },
+          );
+
+        const response = await datastore.query(query);
+
+        const fields = response.data[0].fields as Field[];
+        expect(fields).toMatchSnapshot();
+      });
 
     test('includes templateSrv replaced values in the filter', async () => {
       const timeRange = {
@@ -658,6 +708,7 @@ describe('QueryResultsDataSource', () => {
   const buildQuery = getQueryBuilder<QueryResults>()({
     refId: 'A',
     queryType: QueryType.Results,
-    outputType: OutputType.Data
+    outputType: OutputType.Data,
+    properties: [ResultsProperties.id, ResultsProperties.programName, ResultsProperties.totalTimeInSeconds, ResultsProperties.keywords, ResultsProperties.workspace],
   });
 });

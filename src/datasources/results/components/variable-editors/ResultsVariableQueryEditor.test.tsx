@@ -28,6 +28,9 @@ const fakeWorkspaces: Workspace[] = [
 const fakePartNumbers = [ "PN1", "PN2", "PN3" ];
 
 class FakeQueryResultsSource extends QueryResultsDataSource {
+  get workspacesCache(): Promise<Map<string, Workspace>> {
+    return Promise.resolve(new Map(fakeWorkspaces.map(workspace => [workspace.id, workspace])));
+  }
   getWorkspaces(): Promise<Workspace[]> {
     return Promise.resolve(fakeWorkspaces);
   }

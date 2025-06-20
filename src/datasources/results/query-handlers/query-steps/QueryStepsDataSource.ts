@@ -6,8 +6,9 @@ import {
   MetricFindValue,
   ScopedVars,
   AppEvents,
+  DataSourceInstanceSettings,
 } from '@grafana/data';
-import { OutputType } from 'datasources/results/types/types';
+import { OutputType, ResultsDataSourceOptions } from 'datasources/results/types/types';
 import {
   stepsProjectionLabelLookup,
   QueryStepPathsResponse,
@@ -31,8 +32,8 @@ import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/Steps
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
-import { QueryResponse } from 'core/types';
-import { queryInBatches } from 'core/utils';
+import { QueryResponse, Workspace } from 'core/types';
+import { getWorkspaceName, queryInBatches } from 'core/utils';
 import {
   MAX_PATH_TAKE_PER_REQUEST,
   QUERY_PATH_REQUEST_PER_SECOND,
@@ -49,6 +50,7 @@ import {
   MeasurementProperties,
   measurementProperties,
 } from 'datasources/results/constants/stepMeasurements.constants';
+import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 
 type GrafanaColumns = Array<{ name: string; values: string[]; type: FieldType }>;
 export class QueryStepsDataSource extends ResultsDataSourceBase {
@@ -57,6 +59,17 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
   defaultQuery = defaultStepsQuery;
   scopedVars: ScopedVars = {};
+
+  private workspaceValues: Workspace[] = [];
+
+  constructor(
+    readonly instanceSettings: DataSourceInstanceSettings<ResultsDataSourceOptions>,
+    readonly backendSrv: BackendSrv = getBackendSrv(),
+    readonly templateSrv: TemplateSrv = getTemplateSrv()
+  ) {
+    super(instanceSettings, backendSrv, templateSrv);
+    this.initWorkspacesValues();
+  }
 
   async querySteps(
     filter?: string,
@@ -277,6 +290,11 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       return this.flattenAndDeduplicate(stepPaths);
     }
     return [];
+  }
+
+  private async initWorkspacesValues(): Promise<void> {
+    const workspaces = await this.workspacesCache;
+    this.workspaceValues = Array.from(workspaces.values());
   }
 
   private async getStepPathsLookupValues(transformedResultsQuery: string): Promise<string[]> {
@@ -541,6 +559,11 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         return value !== null ? JSON.stringify(value) : '';
       case StepsPropertiesOptions.STATUS:
         return (value as any)?.statusType || '';
+      case StepsPropertiesOptions.WORKSPACE:
+            const workspaceId = value as string;
+            return this.workspaceValues.length 
+              ? getWorkspaceName(this.workspaceValues, workspaceId)
+              : workspaceId;
       default:
         return value.toString();
     }
