@@ -721,7 +721,6 @@ describe('runQuery', () => {
       ["ID"],
       1000,
       undefined,
-      true,
     );
   });
 
@@ -745,7 +744,6 @@ describe('runQuery', () => {
       ["ID"],
       1000,
       undefined,
-      true,
     );
 
     jest.useRealTimers();
@@ -821,7 +819,6 @@ describe('runQuery', () => {
       ["ID"],
       1000,
       undefined,
-      true
     );
   });
 

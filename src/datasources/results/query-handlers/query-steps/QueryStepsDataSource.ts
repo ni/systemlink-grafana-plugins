@@ -79,6 +79,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     descending?: boolean,
     resultFilter?: string,
     continuationToken?: string,
+    returnCount = false
   ): Promise<QueryStepsResponse> {
     try {
       const response = await this.post<QueryStepsResponse>(`${this.queryStepsUrl}`, {
@@ -89,6 +90,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         take,
         resultFilter,
         continuationToken,
+        returnCount,
       });
       return response;
     } catch (error) {
@@ -268,6 +270,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         undefined,
         query.resultsQuery,
         undefined,
+        true
       );
 
       return {
