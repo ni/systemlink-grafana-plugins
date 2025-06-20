@@ -380,7 +380,6 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       return {
         data: response.testPlans,
         continuationToken: response.continuationToken,
-        totalCount: response.totalCount
       };
     };
 

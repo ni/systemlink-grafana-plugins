@@ -140,8 +140,9 @@ export async function queryInBatches<T>(
     if (continuationToken === null) {
       return;
     }
-  
-    await getRecords(queryConfig.maxTakePerRequest);
+
+    const currentRecordCount = Math.min(take - queryResponse.length, queryConfig.maxTakePerRequest);
+    await getRecords(currentRecordCount);
   };
 
   const queryCurrentBatch = async (requestsInCurrentBatch: number): Promise<void> => {
@@ -150,7 +151,7 @@ export async function queryInBatches<T>(
     }
   };
 
-  while (queryResponse.length < take &&  continuationToken !== null) {
+  while (queryResponse.length < take && continuationToken !== null) {
     const remainingRequestCount = Math.ceil((take - queryResponse.length) / queryConfig.maxTakePerRequest);
     const requestsInCurrentBatch = Math.min(queryConfig.requestsPerSecond, remainingRequestCount);
 

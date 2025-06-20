@@ -23,7 +23,7 @@ import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase
 import { Workspace } from 'core/types';
 import { DataSourceBase } from 'core/DataSourceBase';
 
-const mockQueryStepsResponse: QueryStepsResponse = {
+const mockQueryStepsResponse = {
   steps: [
     {
       stepId: '1',
@@ -35,8 +35,7 @@ const mockQueryStepsResponse: QueryStepsResponse = {
       workspace: '1'
     },
   ],
-  continuationToken: undefined,
-  totalCount: 1,
+  continuationToken: null,
 };
 
 let datastore: QueryStepsDataSource, backendServer: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
@@ -71,7 +70,6 @@ describe('QueryStepsDataSource', () => {
         createFetchResponse({
           paths: ['path1', 'path2'],
           continuationToken: null,
-          totalCount: 2,
         })
       );
   });
@@ -211,7 +209,6 @@ describe('QueryStepsDataSource', () => {
           createFetchResponse({
             steps: [],
             continuationToken: null,
-            totalCount: 0,
           } as unknown as QueryStepsResponse)
         );
 
@@ -302,7 +299,7 @@ describe('QueryStepsDataSource', () => {
     describe('show measurements is enabled', () => {
       describe('duplicate measurement names', () => {
         beforeEach(() => {
-          const mockQueryStepsMeasurementResponse: QueryStepsResponse = {
+          const mockQueryStepsMeasurementResponse = {
             steps: [
               {
                 stepId: '1',
@@ -340,7 +337,7 @@ describe('QueryStepsDataSource', () => {
                 },
               },
             ],
-            totalCount: 1,
+            continuationToken: null,
           };
 
           backendServer.fetch
@@ -378,7 +375,7 @@ describe('QueryStepsDataSource', () => {
       });
 
       test('should create empty cells when measurements are not available', async () => {
-        const mockQueryStepsMeasurementResponse: QueryStepsResponse = {
+        const mockQueryStepsMeasurementResponse = {
           steps: [
             {
               stepId: '1',
@@ -395,7 +392,7 @@ describe('QueryStepsDataSource', () => {
               },
             },
           ],
-          totalCount: 1,
+          continuationToken: null,
         };
 
         backendServer.fetch
@@ -416,7 +413,7 @@ describe('QueryStepsDataSource', () => {
       });
 
       test('should create new columns when units are different in the same measurement', async () => {
-        const mockQueryStepsMeasurementResponse: QueryStepsResponse = {
+        const mockQueryStepsMeasurementResponse = {
           steps: [
             {
               stepId: '1',
@@ -433,7 +430,7 @@ describe('QueryStepsDataSource', () => {
               },
             },
           ],
-          totalCount: 1,
+          continuationToken: null,
         };
 
         backendServer.fetch
@@ -466,7 +463,7 @@ describe('QueryStepsDataSource', () => {
           parameters: [{ name: 'Voltage', measurement: '3.7', unit: 'V' }],
         };
 
-        const mockQueryStepsConditionsResponse: QueryStepsResponse = {
+        const mockQueryStepsConditionsResponse = {
           steps: [
             {
               ...mockQueryStepsResponse.steps[0],
@@ -483,7 +480,7 @@ describe('QueryStepsDataSource', () => {
               data: mockMeasurementData,
             },
           ],
-          totalCount: 2,
+          continuationToken: null,
         };
 
         backendServer.fetch
@@ -538,7 +535,7 @@ describe('QueryStepsDataSource', () => {
           ],
         };
 
-        const mockQueryStepsConditionsResponse: QueryStepsResponse = {
+        const mockQueryStepsConditionsResponse = {
           steps: [
             {
               ...mockQueryStepsResponse.steps[0],
@@ -555,7 +552,7 @@ describe('QueryStepsDataSource', () => {
               data: mockMeasurementData,
             },
           ],
-          totalCount: 2,
+          continuationToken: null,
         };
 
         backendServer.fetch
@@ -623,7 +620,7 @@ describe('QueryStepsDataSource', () => {
         ],
       };
 
-      const mockQueryStepsConditionsResponse: QueryStepsResponse = {
+      const mockQueryStepsConditionsResponse = {
         steps: [
           {
             ...mockQueryStepsResponse.steps[0],
@@ -640,7 +637,7 @@ describe('QueryStepsDataSource', () => {
             data: mockMeasurementData,
           },
         ],
-        totalCount: 2,
+        continuationToken: null,
       };
 
       backendServer.fetch
@@ -695,7 +692,6 @@ describe('QueryStepsDataSource', () => {
             },
           ],
           continuationToken: null,
-          totalCount: 1,
         } as unknown as QueryStepsResponse)
       );
 
@@ -826,7 +822,6 @@ describe('QueryStepsDataSource', () => {
         createFetchResponse({
           steps: Array(100).fill({ stepId: '1', name: 'Step 1' }),
           continuationToken: null,
-          totalCount: 100,
         }),
       ];
       backendServer.fetch.mockImplementationOnce(() => mockResponses[0]);
@@ -850,17 +845,15 @@ describe('QueryStepsDataSource', () => {
       );
     });
 
-    test('should batch requests when total number od steps matching the filter is less than requested take', async () => {
+    test('should batch requests when total number of steps matching the filter is less than requested take', async () => {
       const mockResponses = [
         createFetchResponse({
           steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),
           continuationToken: 'token1',
-          totalCount: 900,
         }),
         createFetchResponse({
           steps: Array(400).fill({ stepId: '1', name: 'Step 1' }),
-          continuationToken: 'token2',
-          totalCount: 900,
+          continuationToken: null,
         }),
       ];
       backendServer.fetch.mockImplementationOnce(() => mockResponses[0]).mockImplementationOnce(() => mockResponses[1]);
@@ -885,7 +878,7 @@ describe('QueryStepsDataSource', () => {
       expect(backendServer.fetch).toHaveBeenNthCalledWith(
         2,
         expect.objectContaining({
-          data: expect.objectContaining({ take: 400, continuationToken: 'token1' }),
+          data: expect.objectContaining({ take: 500, continuationToken: 'token1' }),
         })
       );
     });
@@ -898,22 +891,18 @@ describe('QueryStepsDataSource', () => {
         createFetchResponse({
           steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),
           continuationToken: 'token1',
-          totalCount: 2000,
         }),
         createFetchResponse({
           steps: Array(500).fill({ stepId: '2', name: 'Step 2' }),
           continuationToken: 'token2',
-          totalCount: 2000,
         }),
         createFetchResponse({
           steps: Array(500).fill({ stepId: '3', name: 'Step 3' }),
           continuationToken: 'token3',
-          totalCount: 2000,
         }),
         createFetchResponse({
           steps: Array(500).fill({ stepId: '4', name: 'Step 4' }),
           continuationToken: null,
-          totalCount: 2000,
         }),
       ];
 
@@ -998,7 +987,6 @@ describe('QueryStepsDataSource', () => {
           createFetchResponse({
             steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),
             continuationToken: 'token1',
-            totalCount: 1500,
           })
         )
         .mockImplementationOnce(() => createFetchError(400)) //Error
@@ -1006,7 +994,6 @@ describe('QueryStepsDataSource', () => {
           createFetchResponse({
             steps: Array(500).fill({ stepId: '2', name: 'Step 2' }),
             continuationToken: 'token2',
-            totalCount: 1500,
           })
         );
 
@@ -1030,22 +1017,18 @@ describe('QueryStepsDataSource', () => {
         createFetchResponse({
           steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),
           continuationToken: 'token1',
-          totalCount: 2000,
         }),
         createFetchResponse({
           steps: Array(500).fill({ stepId: '2', name: 'Step 2' }),
           continuationToken: 'token2',
-          totalCount: 2000,
         }),
         createFetchResponse({
           steps: Array(500).fill({ stepId: '3', name: 'Step 3' }),
           continuationToken: 'token3',
-          totalCount: 2000,
         }),
         createFetchResponse({
           steps: Array(500).fill({ stepId: '4', name: 'Step 3' }),
           continuationToken: null,
-          totalCount: 2000,
         }),
       ];
       backendServer.fetch
@@ -1077,7 +1060,6 @@ describe('QueryStepsDataSource', () => {
         createFetchResponse({
           paths: Array(100).fill({ path: 'path1' }),
           continuationToken: null,
-          totalCount: 100,
         }),
       ];
       backendServer.fetch.mockImplementationOnce(() => mockResponses[0]);
@@ -1100,12 +1082,10 @@ describe('QueryStepsDataSource', () => {
         createFetchResponse({
           paths: Array(1000).fill({ path: 'path1' }),
           continuationToken: 'token1',
-          totalCount: 1500,
         }),
         createFetchResponse({
           paths: Array(500).fill({ path: 'path2' }),
-          continuationToken: 'token2',
-          totalCount: 1500,
+          continuationToken: null,
         }),
       ];
       backendServer.fetch.mockImplementationOnce(() => mockResponses[0]).mockImplementationOnce(() => mockResponses[1]);
@@ -1125,7 +1105,7 @@ describe('QueryStepsDataSource', () => {
         2,
         expect.objectContaining({
           url: '/nitestmonitor/v2/query-paths',
-          data: expect.objectContaining({ take: 500, continuationToken: 'token1' }),
+          data: expect.objectContaining({ take: 1000, continuationToken: 'token1' }),
         })
       );
     });
@@ -1138,22 +1118,18 @@ describe('QueryStepsDataSource', () => {
         createFetchResponse({
           paths: Array(1000).fill({ path: 'path1' }),
           continuationToken: 'token1',
-          totalCount: 4000,
         }),
         createFetchResponse({
           paths: Array(1000).fill({ path: 'path2' }),
           continuationToken: 'token2',
-          totalCount: 4000,
         }),
         createFetchResponse({
           paths: Array(1000).fill({ path: 'path3' }),
           continuationToken: 'token3',
-          totalCount: 4000,
         }),
         createFetchResponse({
           paths: Array(1000).fill({ path: 'path4' }),
           continuationToken: null,
-          totalCount: 4000,
         }),
       ];
 
@@ -1206,7 +1182,6 @@ describe('QueryStepsDataSource', () => {
         createFetchResponse({
           paths: Array(1000).fill({ path: 'path1' }),
           continuationToken: null,
-          totalCount: 1000,
         }),
       ];
 
@@ -1229,7 +1204,6 @@ describe('QueryStepsDataSource', () => {
           createFetchResponse({
             paths: Array(1000).fill({ path: 'path1' }),
             continuationToken: 'token1',
-            totalCount: 3000,
           })
         )
         .mockImplementationOnce(() => createFetchError(400)) //Error
@@ -1237,7 +1211,6 @@ describe('QueryStepsDataSource', () => {
           createFetchResponse({
             paths: Array(1000).fill({ path: 'path2' }),
             continuationToken: 'token2',
-            totalCount: 3000,
           })
         );
 
@@ -1263,22 +1236,18 @@ describe('QueryStepsDataSource', () => {
         createFetchResponse({
           paths: Array(1000).fill({ path: 'path1' }),
           continuationToken: 'token1',
-          totalCount: 4000,
         }),
         createFetchResponse({
           paths: Array(1000).fill({ path: 'path2' }),
           continuationToken: 'token2',
-          totalCount: 4000,
         }),
         createFetchResponse({
           paths: Array(1000).fill({ path: 'path3' }),
           continuationToken: 'token3',
-          totalCount: 4000,
         }),
         createFetchResponse({
           paths: Array(1000).fill({ path: 'path4' }),
           continuationToken: null,
-          totalCount: 4000,
         }),
       ];
       backendServer.fetch
@@ -1321,7 +1290,6 @@ describe('QueryStepsDataSource', () => {
           createFetchResponse({
             paths: [{ path: 'path1' }, { path: 'path2' }, { path: 'path1' }, { path: 'path3' }, { path: 'path2' }],
             continuationToken: null,
-            totalCount: 5,
           })
         );
 
@@ -1536,8 +1504,8 @@ describe('QueryStepsDataSource', () => {
       backendServer.fetch.mockReturnValue(
         createFetchResponse({
           steps: [{ name: 'StepA' }, { name: 'StepB' }],
-          totalCount: 2,
-        } as QueryStepsResponse)
+          continuationToken: null,
+        } as unknown as QueryStepsResponse)
       );
 
       const query = { queryByResults: 'programName = "name"', stepsTake: 1000 } as StepsVariableQuery;
@@ -1553,8 +1521,8 @@ describe('QueryStepsDataSource', () => {
       backendServer.fetch.mockReturnValue(
         createFetchResponse({
           steps: [],
-          totalCount: 0,
-        } as QueryStepsResponse)
+          continuationToken: null,
+        } as unknown as QueryStepsResponse)
       );
 
       const query = { queryByResults: 'programName = "name"', stepsTake: 1000 } as StepsVariableQuery;
@@ -1593,8 +1561,8 @@ describe('QueryStepsDataSource', () => {
       backendServer.fetch.mockReturnValue(
         createFetchResponse({
           steps: [{ name: 'Step1' }],
-          totalCount: 1,
-        } as QueryStepsResponse)
+          continuationToken: null,
+        } as unknown as QueryStepsResponse)
       );
 
       const query = { queryByResults: resultsQuery, queryBySteps: stepsQuery, stepsTake: 1000 } as StepsVariableQuery;

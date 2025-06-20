@@ -1162,7 +1162,6 @@ describe('queryTestPlansInBatches', () => {
         { id: '2', name: 'Test Plan 2' }
       ],
       continuationToken: undefined,
-      totalCount: 2,
     };
 
     jest.spyOn(datastore, 'queryTestPlans').mockResolvedValue(mockQueryResponse);
@@ -1170,7 +1169,6 @@ describe('queryTestPlansInBatches', () => {
     const result = await datastore.queryTestPlansInBatches('', OrderByOptions.UPDATED_AT, [Projections.NAME], 2, true);
 
     expect(result.testPlans).toEqual(mockQueryResponse.testPlans);
-    expect(result.totalCount).toEqual(2);
   });
 
   test('handles errors during batch querying', async () => {
