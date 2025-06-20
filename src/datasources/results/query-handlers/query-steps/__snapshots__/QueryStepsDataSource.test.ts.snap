@@ -411,10 +411,31 @@ exports[`QueryStepsDataSource query should return data for valid data-output-typ
   {
     "fields": [
       {
+        "name": "Step ID",
+        "type": "number",
+        "values": [
+          "1",
+        ],
+      },
+      {
         "name": "Step name",
         "type": "string",
         "values": [
           "Step 1",
+        ],
+      },
+      {
+        "name": "Properties",
+        "type": "string",
+        "values": [
+          "{"key1":"value1","key2":"value2"}",
+        ],
+      },
+      {
+        "name": "Workspace",
+        "type": "string",
+        "values": [
+          "Default workspace",
         ],
       },
     ],

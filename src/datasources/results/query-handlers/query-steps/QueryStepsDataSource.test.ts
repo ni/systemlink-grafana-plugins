@@ -1649,5 +1649,6 @@ describe('QueryStepsDataSource', () => {
     queryType: QueryType.Steps,
     outputType: OutputType.Data,
     resultsQuery: 'ProgramName = "name1"',
+    properties: [StepsProperties.stepId, StepsProperties.name, StepsProperties.properties, StepsProperties.workspace],
   });
 });
