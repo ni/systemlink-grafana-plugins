@@ -698,7 +698,6 @@ describe('runQuery', () => {
       ["ID"],
       1000,
       undefined,
-      true,
     );
   });
 

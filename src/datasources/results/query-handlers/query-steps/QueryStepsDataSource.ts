@@ -79,7 +79,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     descending?: boolean,
     resultFilter?: string,
     continuationToken?: string,
-    returnCount = false
   ): Promise<QueryStepsResponse> {
     try {
       const response = await this.post<QueryStepsResponse>(`${this.queryStepsUrl}`, {
@@ -90,7 +89,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         take,
         resultFilter,
         continuationToken,
-        returnCount,
       });
       return response;
     } catch (error) {
@@ -140,7 +138,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     take?: number,
     descending?: boolean,
     resultFilter?: string,
-    returnCount = false
   ): Promise<QueryStepsResponse> {
     const queryRecord = async (
       currentTake: number,
@@ -154,7 +151,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         descending,
         resultFilter,
         token,
-        returnCount
       );
 
       return {
@@ -243,7 +239,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         query.recordCount,
         defaultStepsQuery.descending,
         query.resultsQuery,
-        true
       );
 
       const stepsResponse = responseData.steps;
@@ -273,7 +268,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         undefined,
         query.resultsQuery,
         undefined,
-        true
       );
 
       return {

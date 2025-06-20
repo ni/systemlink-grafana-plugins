@@ -166,7 +166,6 @@ describe('queryInBatches', () => {
   test('should fetch records when take is 0', async () => {
     mockQueryRecord.mockResolvedValue({
       data: [],
-      totalCount: 1000,
       continuationToken: null,
     });
     const result = await queryInBatches(mockQueryRecord, queryConfig, 0);
@@ -174,30 +173,11 @@ describe('queryInBatches', () => {
     expect(mockQueryRecord).toHaveBeenCalledWith(0);
     expect(result).toEqual({
       data: [],
-      totalCount: 1000,
       continuationToken: null,
     });
   });
 
   test('should fetch all records in a single request when take is less than maxTakePerRequest', async () => {
-    mockQueryRecord.mockResolvedValue({
-      data: [{ id: 1 }, { id: 2 }],
-      totalCount: 2,
-      continuationToken: null,
-    });
-
-    const result = await queryInBatches(mockQueryRecord, queryConfig, 2);
-
-    expect(mockQueryRecord).toHaveBeenCalledTimes(1);
-    expect(mockQueryRecord).toHaveBeenCalledWith(2);
-    expect(result).toEqual({
-      data: [{ id: 1 }, { id: 2 }],
-      totalCount: 2,
-      continuationToken: null,
-    });
-  });
-
-  test('should fetch all records in a single request when totalCount is not provided', async () => {
     mockQueryRecord.mockResolvedValue({
       data: [{ id: 1 }, { id: 2 }],
       continuationToken: null,
@@ -218,12 +198,10 @@ describe('queryInBatches', () => {
       .mockResolvedValueOnce({
         data: Array(100).fill({ id: 1 }),
         continuationToken: 'token1',
-        totalCount: 200,
       })
       .mockResolvedValueOnce({
         data: Array(100).fill({ id: 2 }),
         continuationToken: undefined,
-        totalCount: 200,
       });
 
     const result = await queryInBatches(mockQueryRecord, queryConfig, 200);
@@ -234,30 +212,10 @@ describe('queryInBatches', () => {
     expect(result.data.length).toBe(200);
   });
 
-  test('should stop fetching when totalCount is reached', async () => {
-    mockQueryRecord
-      .mockResolvedValueOnce({
-        data: Array(100).fill({ id: 1 }),
-        continuationToken: 'token1',
-        totalCount: 150,
-      })
-      .mockResolvedValueOnce({
-        data: Array(50).fill({ id: 2 }),
-        continuationToken: undefined,
-        totalCount: 150,
-      });
-
-    const result = await queryInBatches(mockQueryRecord, queryConfig, 200);
-
-    expect(mockQueryRecord).toHaveBeenCalledTimes(2);
-    expect(result.data.length).toBe(150);
-  });
-
   test('should handle no continuationToken and return all data', async () => {
     mockQueryRecord.mockResolvedValue({
       data: Array(50).fill({ id: 1 }),
       continuationToken: undefined,
-      totalCount: 50,
     });
 
     const result = await queryInBatches(mockQueryRecord, queryConfig, 50);
@@ -272,17 +230,14 @@ describe('queryInBatches', () => {
       .mockResolvedValueOnce({
         data: Array(100).fill({ id: 1 }),
         continuationToken: 'token1',
-        totalCount: 300,
       })
       .mockResolvedValueOnce({
         data: Array(100).fill({ id: 2 }),
         continuationToken: 'token2',
-        totalCount: 300,
       })
       .mockResolvedValueOnce({
         data: Array(100).fill({ id: 3 }),
         continuationToken: undefined,
-        totalCount: 300,
       });
 
     const promise = queryInBatches(mockQueryRecord, queryConfig, 300);
@@ -385,8 +340,6 @@ describe('queryUntilComplete', () => {
     expect(mockQueryRecord).toHaveBeenCalledTimes(1);
   });
 });
-
-
 
 describe('queryUsingSkip', () => {
   const mockQueryRecord = jest.fn();

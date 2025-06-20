@@ -837,7 +837,6 @@ describe('QueryStepsDataSource', () => {
         100,
         undefined,
         undefined,
-        true
       );
       const response = await responsePromise;
 
@@ -872,7 +871,6 @@ describe('QueryStepsDataSource', () => {
         10000,
         undefined,
         undefined,
-        true
       );
       const response = await responsePromise;
 
@@ -932,7 +930,6 @@ describe('QueryStepsDataSource', () => {
         2000,
         undefined,
         undefined,
-        true
       );
 
       await jest.advanceTimersByTimeAsync(0);
@@ -984,7 +981,6 @@ describe('QueryStepsDataSource', () => {
         3000,
         undefined,
         undefined,
-        true
       );
 
       expect(response.steps).toHaveLength(500);
@@ -1014,7 +1010,7 @@ describe('QueryStepsDataSource', () => {
           })
         );
 
-      const batchPromise = datastore.queryStepsInBatches('filter', 'orderBy', undefined, 1500, false, undefined, true);
+      const batchPromise = datastore.queryStepsInBatches('filter', 'orderBy', undefined, 1500, false, undefined);
 
       await expect(batchPromise).rejects.toThrow('The query failed due to the following error: (status 400) "Error".');
       expect(backendServer.fetch).toHaveBeenCalledTimes(2);
@@ -1064,7 +1060,6 @@ describe('QueryStepsDataSource', () => {
         2000,
         undefined,
         undefined,
-        true
       );
 
       const response = await responsePromise;

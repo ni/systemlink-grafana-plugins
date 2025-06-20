@@ -129,26 +129,19 @@ export async function queryInBatches<T>(
 
   let queryResponse: T[] = [];
   let continuationToken: string | undefined;
-  let totalCount: number | undefined;
 
   const getRecords = async (currentRecordCount: number): Promise<void> => {
     const response = await queryRecord(currentRecordCount, continuationToken);
     queryResponse.push(...response.data);
     continuationToken = response.continuationToken;
-    totalCount = response.totalCount ?? totalCount;
   };
 
   const queryRecordsInCurrentBatch = async (): Promise<void> => {
-    const remainingRecordsToGet = totalCount !== undefined ?
-      Math.min(take - queryResponse.length, totalCount - queryResponse.length) :
-      take - queryResponse.length;
-
-    if (remainingRecordsToGet <= 0 || continuationToken === null) {
+    if (continuationToken === null) {
       return;
     }
-
-    const currentRecordCount = Math.min(queryConfig.maxTakePerRequest, remainingRecordsToGet);
-    await getRecords(currentRecordCount);
+  
+    await getRecords(queryConfig.maxTakePerRequest);
   };
 
   const queryCurrentBatch = async (requestsInCurrentBatch: number): Promise<void> => {
@@ -157,7 +150,7 @@ export async function queryInBatches<T>(
     }
   };
 
-  while (queryResponse.length < take && (totalCount === undefined || queryResponse.length < totalCount) && continuationToken !== null) {
+  while (queryResponse.length < take &&  continuationToken !== null) {
     const remainingRequestCount = Math.ceil((take - queryResponse.length) / queryConfig.maxTakePerRequest);
     const requestsInCurrentBatch = Math.min(queryConfig.requestsPerSecond, remainingRequestCount);
 
@@ -171,8 +164,7 @@ export async function queryInBatches<T>(
   }
 
   return {
-    data: queryResponse,
-    totalCount,
+    data: queryResponse
   };
 }
 
