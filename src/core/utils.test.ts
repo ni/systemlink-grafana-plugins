@@ -1,5 +1,5 @@
 import { TemplateSrv } from "@grafana/runtime";
-import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete } from "./utils";
+import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, getVariableOptions } from "./utils";
 import { BatchQueryConfig } from "./types";
 
 test('enumToOptions', () => {
@@ -14,6 +14,20 @@ test('enumToOptions', () => {
     { label: 'Label1', value: 'Value1' },
     { label: 'Label2', value: 'Value2' }
   ]);
+});
+
+describe('getVariableOptions', () => {
+  it('returns variables as SelectableValue array', () => {
+    const ds: any = {
+      templateSrv: {
+        getVariables: () => [{ name: 'var1' }, { name: 'var2' }]
+      }
+    };
+    expect(getVariableOptions(ds)).toEqual([
+      { label: '$var1', value: '$var1' },
+      { label: '$var2', value: '$var2' }
+    ]);
+  });
 });
 
 describe("filterXSSLINQExpression", () => {
