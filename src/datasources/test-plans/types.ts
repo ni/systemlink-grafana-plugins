@@ -112,12 +112,12 @@ export const PropertiesProjectionMap: Record<Properties, {
         field: 'description',
     },
     [Properties.ID]: {
-        label: 'ID',
+        label: 'Test plan ID',
         projection: [Projections.ID],
         field: 'id',
     },
     [Properties.NAME]: {
-        label: 'Name',
+        label: 'Test plan name',
         projection: [Projections.NAME],
         field: 'name',
     },
@@ -147,7 +147,7 @@ export const PropertiesProjectionMap: Record<Properties, {
         field: 'workspace',
     },
     [Properties.WORK_ORDER]: {
-        label: 'Work order',
+        label: 'Work order name',
         projection: [Projections.WORK_ORDER_NAME, Projections.WORK_ORDER_ID],
         field: 'workOrderId',
     },
@@ -197,7 +197,7 @@ export const PropertiesProjectionMap: Record<Properties, {
         field: 'systemId',
     },
     [Properties.TEMPLATE]: {
-        label: 'Test plan template',
+        label: 'Test plan template name',
         projection: [Projections.TEMPLATE_ID],
         field: 'templateId',
     },
