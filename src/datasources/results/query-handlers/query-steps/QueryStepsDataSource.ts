@@ -559,7 +559,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         return value !== null ? JSON.stringify(value) : '';
       case StepsPropertiesOptions.STATUS:
         return (value as any)?.statusType || '';
-        case StepsPropertiesOptions.WORKSPACE:
+      case StepsPropertiesOptions.WORKSPACE:
             const workspaceId = value as string;
             return this.workspaceValues.length 
               ? getWorkspaceName(this.workspaceValues, workspaceId)

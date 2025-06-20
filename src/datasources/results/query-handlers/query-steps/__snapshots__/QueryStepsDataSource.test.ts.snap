@@ -489,6 +489,30 @@ exports[`QueryStepsDataSource query should return inputs as new columns with mea
 ]
 `;
 
+exports[`QueryStepsDataSource query should return the workspace ID returned by API when the cache is empty 1`] = `
+[
+  {
+    "name": "Workspace",
+    "type": "number",
+    "values": [
+      "1",
+    ],
+  },
+]
+`;
+
+exports[`QueryStepsDataSource query should return the workspace ID when no matching entry exists in the cache for the ID returned by the API 1`] = `
+[
+  {
+    "name": "Workspace",
+    "type": "number",
+    "values": [
+      "1",
+    ],
+  },
+]
+`;
+
 exports[`QueryStepsDataSource query should return total count for valid total count output type queries 1`] = `
 [
   {
@@ -744,6 +768,7 @@ exports[`QueryStepsDataSource querySteps should return data when there are valid
         "key2": "value2",
       },
       "stepId": "1",
+      "workspace": "1",
     },
   ],
   "totalCount": 1,
