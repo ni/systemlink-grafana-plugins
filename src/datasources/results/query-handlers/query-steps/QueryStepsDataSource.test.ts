@@ -36,6 +36,7 @@ const mockQueryStepsResponse = {
     },
   ],
   continuationToken: null,
+  totalCount: 1,
 };
 
 let datastore: QueryStepsDataSource, backendServer: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
