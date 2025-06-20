@@ -87,7 +87,6 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
           projection,
           query.recordCount,
           query.descending,
-          true
         )).testPlans;
 
       const labels = projectionAndFields?.map(data => data.label) ?? [];
@@ -367,7 +366,6 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     projection?: Projections[],
     take?: number,
     descending = false,
-    returnCount = false
   ): Promise<QueryTestPlansResponse> {
     const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<TestPlanResponseProperties>> => {
       const response = await this.queryTestPlans(
@@ -377,13 +375,11 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
         currentTake,
         descending,
         token,
-        returnCount
       );
 
       return {
         data: response.testPlans,
         continuationToken: response.continuationToken,
-        totalCount: response.totalCount
       };
     };
 
