@@ -1,3 +1,15 @@
+## [3.139.9](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.8...v3.139.9) (2025-06-20)
+
+### Bug Fixes
+
+* **workorders,testplans:** Run query on initialization ([#271](https://github.com/ni/systemlink-grafana-plugins/issues/271)) ([95dbc5a](https://github.com/ni/systemlink-grafana-plugins/commit/95dbc5aaa3ff311c013f27b676744e3c3561bc89))
+
+## [3.139.8](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.7...v3.139.8) (2025-06-19)
+
+### Bug Fixes
+
+* **core:** Rethow error in queryUsingSkip ([#312](https://github.com/ni/systemlink-grafana-plugins/issues/312)) ([58bbb76](https://github.com/ni/systemlink-grafana-plugins/commit/58bbb76c6ed4681002c0d5c30f7c2c506db0a6a6))
+
 ## [3.139.7](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.6...v3.139.7) (2025-06-18)
 
 ### Bug Fixes

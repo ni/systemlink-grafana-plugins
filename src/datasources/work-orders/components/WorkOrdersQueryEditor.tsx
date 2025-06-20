@@ -99,6 +99,13 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
     handleQueryChange({ ...query, take });
   };
 
+  useEffect(() => {
+      if (!query.outputType) {
+        handleQueryChange({...query, outputType: OutputType.Properties});
+      }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <>
       <HorizontalGroup align="flex-start">

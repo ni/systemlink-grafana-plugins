@@ -91,6 +91,30 @@ describe('TestPlansQueryEditor', () => {
         });
     });
 
+    it('should call onRunQuery on init', async() => {
+    const query = {
+        refId: 'A',
+    }
+
+    await renderElement(query);
+
+    expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ outputType: OutputType.Properties, refId: 'A' }));
+    expect(mockOnRunQuery).toHaveBeenCalled();
+    });
+    
+    it('should not call onRunQuery after init', async() => {
+    const query = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+    }
+    jest.clearAllMocks();
+
+    await renderElement(query);
+
+    expect(mockOnChange).not.toHaveBeenCalled();
+    expect(mockOnRunQuery).not.toHaveBeenCalled();
+    });
+
     describe('when output type is properties', () => {
         let container: RenderResult;
         let propertiesSelect: HTMLElement;

@@ -44,7 +44,6 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   productUtils: ProductUtils;
 
   defaultQuery = {
-    outputType: OutputType.Properties,
     properties: [
       Properties.NAME,
       Properties.STATE,

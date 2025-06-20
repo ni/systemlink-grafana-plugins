@@ -248,7 +248,6 @@ export async function queryUsingSkip<T>(
     const start = Date.now();
 
     for (let i = 0; i < requestsPerSecond && hasMore; i++) {
-      try {
         const response = await queryRecord(maxTakePerRequest, skip);
         data.push(...response.data);
 
@@ -258,11 +257,6 @@ export async function queryUsingSkip<T>(
         }
 
         skip += maxTakePerRequest;
-      } catch (error) {
-        console.error(`Error during batch fetch at skip=${skip}:`, error);
-        hasMore = false;
-        break;
-      }
     }
 
     const elapsed = Date.now() - start;

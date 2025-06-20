@@ -646,11 +646,6 @@ describe('WorkOrdersDataSource', () => {
   });
 
   describe('default query', () => {
-    test('default query output type should be properties', async () => {
-      const defaultQuery = datastore.defaultQuery;
-      expect(defaultQuery.outputType).toEqual(OutputType.Properties);
-    });
-
     test('default query should have default order by value and order by direction', async () => {
       const defaultQuery = datastore.defaultQuery;
       expect(defaultQuery.orderBy).toEqual(OrderByOptions.UPDATED_AT);
