@@ -1,3 +1,9 @@
+## [3.140.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.140.0...v3.140.1) (2025-06-20)
+
+### Bug Fixes
+
+* **results:** Display workspace name instead of ID in visualization table ([#318](https://github.com/ni/systemlink-grafana-plugins/issues/318)) ([f49b651](https://github.com/ni/systemlink-grafana-plugins/commit/f49b65199edc6b5d07d93550fa4dbbffd4d70557))
+
 ## [3.140.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.9...v3.140.0) (2025-06-20)
 
 ### Features
