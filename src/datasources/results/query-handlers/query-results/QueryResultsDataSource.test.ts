@@ -176,6 +176,36 @@ describe('QueryResultsDataSource', () => {
       ]);
     });
 
+    test('should display an empty cell when properties of type array are returned as empty', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({
+          results: [
+            {
+              id: '1',
+              keywords: [],
+              fileIds: [],
+              dataTableIds: []
+            }
+          ],
+          continuationToken: null,
+          totalCount: 1
+        } as unknown as QueryResultsResponse));
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [ResultsProperties.keywords, ResultsProperties.fileIds, ResultsProperties.dataTableIds]
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([
+        { name: 'Keywords', values: [[]], type: 'string' },
+        { name: 'File IDs', values: [[]], type: 'string' },
+        { name: 'Data table IDs', values: [[]], type: 'string' }
+      ]);
+    });
+
     test('returns total count for valid total count output type queries', async () => {
       const query = buildQuery({
         refId: 'A',

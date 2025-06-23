@@ -222,6 +222,32 @@ describe('QueryStepsDataSource', () => {
       ]);
     });
 
+    test('should display an empty cell when properties of type array are returned as empty array', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
+        .mockReturnValue(
+          createFetchResponse({
+            steps: [
+              {
+                keywords: []
+              },
+            ],
+            continuationToken: null,
+            totalCount: 1,
+          } as unknown as QueryStepsResponse)
+        );
+
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [StepsProperties.keywords],
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([{ name: 'Keywords', values: [''], type: 'string' }]);
+    });
+
     test('should return total count for valid total count output type queries', async () => {
       const query = buildQuery({
         refId: 'A',
@@ -547,6 +573,33 @@ describe('QueryStepsDataSource', () => {
 
         const fields = response.data[0].fields as Field[];
         expect(fields).toMatchSnapshot();
+      });
+
+      test('should not create input or output columns when they are returned as empty arrays', async () => {
+        backendServer.fetch
+          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
+          .mockReturnValue(
+            createFetchResponse({
+              steps: [
+                {
+                  inputs: [],
+                  outputs: [],
+                },
+              ],
+              continuationToken: null,
+              totalCount: 1,
+            } as unknown as QueryStepsResponse)
+          );
+
+        const query = buildQuery({
+          refId: 'A',
+          outputType: OutputType.Data,
+          properties: [StepsProperties.inputs, StepsProperties.outputs],
+        });
+
+        const response = await datastore.query(query);
+
+        expect(response.data[0].fields).toEqual([]);
       });
     });
 
