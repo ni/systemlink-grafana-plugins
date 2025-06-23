@@ -222,6 +222,34 @@ describe('QueryStepsDataSource', () => {
       ]);
     });
 
+    test('should display as comma separated values when properties of type array are returned as non-empty array', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
+        .mockReturnValue(
+          createFetchResponse({
+            steps: [
+              {
+                keywords: ['keyword1', 'keyword2']
+              },
+            ],
+            continuationToken: null,
+            totalCount: 1,
+          } as unknown as QueryStepsResponse)
+        );
+
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [StepsProperties.keywords],
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([
+        { name: 'Keywords', values: ['keyword1,keyword2'], type: 'string' }
+      ]);
+    });
+
     test('should display an empty cell when properties of type array are returned as empty array', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))

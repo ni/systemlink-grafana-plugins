@@ -145,7 +145,11 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
               type: fieldType,
             }
           default:
-            return { name: resultsProjectionLabelLookup[field].label, values, type: fieldType };
+            return {
+              name: resultsProjectionLabelLookup[field].label, 
+              values: values.map(value => value?.toString()), 
+              type: fieldType
+            };
         }
       });
 

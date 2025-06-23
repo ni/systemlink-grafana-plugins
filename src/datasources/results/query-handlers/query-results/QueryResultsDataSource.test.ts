@@ -176,6 +176,36 @@ describe('QueryResultsDataSource', () => {
       ]);
     });
 
+    test('should display as comma separated list when properties of type array are returned', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({
+          results: [
+            {
+              id: '1',
+              keywords: ['keyword1', 'keyword2'],
+              fileIds: ['file1', 'file2'],
+              dataTableIds: ['dataTable1', 'dataTable2']
+            }
+          ],
+          continuationToken: null,
+          totalCount: 1
+        } as unknown as QueryResultsResponse));
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [ResultsProperties.keywords, ResultsProperties.fileIds, ResultsProperties.dataTableIds]
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([
+        { name: 'Keywords', values: ['keyword1,keyword2'], type: 'string' },
+        { name: 'File IDs', values: ['file1,file2'], type: 'string' },
+        { name: 'Data table IDs', values: ['dataTable1,dataTable2'], type: 'string' }
+      ]);
+    });
+
     test('should display an empty cell when properties of type array are returned as empty', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
@@ -200,9 +230,9 @@ describe('QueryResultsDataSource', () => {
       const response = await datastore.query(query);
 
       expect(response.data[0].fields).toEqual([
-        { name: 'Keywords', values: [[]], type: 'string' },
-        { name: 'File IDs', values: [[]], type: 'string' },
-        { name: 'Data table IDs', values: [[]], type: 'string' }
+        { name: 'Keywords', values: [''], type: 'string' },
+        { name: 'File IDs', values: [''], type: 'string' },
+        { name: 'Data table IDs', values: [''], type: 'string' }
       ]);
     });
 
