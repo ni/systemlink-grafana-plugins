@@ -148,6 +148,118 @@ describe('QueryResultsDataSource', () => {
       )
     });
 
+    test('should display an empty cell when properties of type pbject are returned as empty objects', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({
+          results: [
+            {
+              properties: {},
+              statusTypeSummary: {}
+            }
+          ],
+          continuationToken: null,
+          totalCount: 1
+        } as unknown as QueryResultsResponse));
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [ResultsProperties.properties, ResultsProperties.statusTypeSummary]
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([
+        { name: 'Properties', values: [''], type: 'string' },
+        { name: 'Status type summary', values: [''], type: 'string' },
+      ]);
+    });
+
+    test('should display the JSON stringified value when properties of type object are returned as non-empty objects', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({
+          results: [
+            {
+              properties: { key1: 'value1', key2: 'value2' },
+              statusTypeSummary: { status1: 5, status2: 10 }
+            }
+          ],
+          continuationToken: null,
+          totalCount: 1
+        } as unknown as QueryResultsResponse));
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [ResultsProperties.properties, ResultsProperties.statusTypeSummary]
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([
+        { name: 'Properties', values: ['{"key1":"value1","key2":"value2"}'], type: 'string' },
+        { name: 'Status type summary', values: ['{"status1":5,"status2":10}'], type: 'string' },
+      ]);
+    });
+
+    test('should display an empty cell when properties of type array are returned as empty array', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({
+          results: [
+            {
+              keywords: [],
+              fileIds: [],
+              dataTableIds: []
+            }
+          ],
+          continuationToken: null,
+          totalCount: 1
+        } as unknown as QueryResultsResponse));
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [ResultsProperties.keywords, ResultsProperties.fileIds, ResultsProperties.dataTableIds]
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([
+        { name: 'Keywords', values: [''], type: 'string' },
+        { name: 'File IDs', values: [''], type: 'string' },
+        { name: 'Data table IDs', values: [''], type: 'string' }
+      ]);
+    });
+
+    test('should display as comma separated list when properties of type array are returned as non-empty arrays', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({
+          results: [
+            {
+              keywords: ['keyword1', 'keyword2'],
+              fileIds: ['file1', 'file2'],
+              dataTableIds: ['dataTable1', 'dataTable2']
+            }
+          ],
+          continuationToken: null,
+          totalCount: 1
+        } as unknown as QueryResultsResponse));
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [ResultsProperties.keywords, ResultsProperties.fileIds, ResultsProperties.dataTableIds]
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([
+        { name: 'Keywords', values: ['keyword1,keyword2'], type: 'string' },
+        { name: 'File IDs', values: ['file1,file2'], type: 'string' },
+        { name: 'Data table IDs', values: ['dataTable1,dataTable2'], type: 'string' }
+      ]);
+    });
+
     test('returns total count for valid total count output type queries', async () => {
       const query = buildQuery({
         refId: 'A',

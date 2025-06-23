@@ -195,6 +195,118 @@ describe('QueryStepsDataSource', () => {
       );
     });
 
+    test('should display an empty cell when properties of type objects are returned as empty objects', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
+        .mockReturnValue(
+          createFetchResponse({
+            steps: [
+              {
+                properties: {},
+              },
+            ],
+            continuationToken: null,
+            totalCount: 1,
+          } as unknown as QueryStepsResponse)
+        );
+
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [StepsProperties.properties],
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([
+        { name: 'Properties', values: [''], type: 'string' }
+      ]);
+    });
+
+    test('should display the JSON stringified value when properties of type object are returned as non-empty objects', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
+        .mockReturnValue(
+          createFetchResponse({
+            steps: [
+              {
+                properties: { key1: 'value1', key2: 'value2' },
+                data: {parameters: [{ name: 'param1', value: 'value1' }] } as StepData,
+              },
+            ],
+            continuationToken: null,
+            totalCount: 1,
+          } as unknown as QueryStepsResponse)
+        );
+
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [StepsProperties.properties, StepsProperties.data],
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([
+        { name: 'Properties', values: ['{"key1":"value1","key2":"value2"}'], type: 'string' },
+        { name: 'Data', values: ['{"parameters":[{"name":"param1","value":"value1"}]}'], type: 'string' }
+      ]);
+    });
+
+    test('should display an empty cell when properties of type array are returned as empty array', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
+        .mockReturnValue(
+          createFetchResponse({
+            steps: [
+              {
+                keywords: []
+              },
+            ],
+            continuationToken: null,
+            totalCount: 1,
+          } as unknown as QueryStepsResponse)
+        );
+
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [StepsProperties.keywords],
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([{ name: 'Keywords', values: [''], type: 'string' }]);
+    });
+
+    test('should display comma separated values when properties of type array are returned as a non-empty array', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
+        .mockReturnValue(
+          createFetchResponse({
+            steps: [
+              {
+                keywords: ['keyword1', 'keyword2']
+              },
+            ],
+            continuationToken: null,
+            totalCount: 1,
+          } as unknown as QueryStepsResponse)
+        );
+
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [StepsProperties.keywords],
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([
+        { name: 'Keywords', values: ['keyword1,keyword2'], type: 'string' }
+      ]);
+    });
+
     test('should return total count for valid total count output type queries', async () => {
       const query = buildQuery({
         refId: 'A',
@@ -514,6 +626,33 @@ describe('QueryStepsDataSource', () => {
 
         const fields = response.data[0].fields as Field[];
         expect(fields).toMatchSnapshot();
+      });
+
+      test('should not create input or output columns when they are returned as empty arrays', async () => {
+        backendServer.fetch
+          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
+          .mockReturnValue(
+            createFetchResponse({
+              steps: [
+                {
+                  inputs: [],
+                  outputs: [],
+                },
+              ],
+              continuationToken: null,
+              totalCount: 1,
+            } as unknown as QueryStepsResponse)
+          );
+
+        const query = buildQuery({
+          refId: 'A',
+          outputType: OutputType.Data,
+          properties: [StepsProperties.inputs, StepsProperties.outputs],
+        });
+
+        const response = await datastore.query(query);
+
+        expect(response.data[0].fields).toEqual([]);
       });
     });
 
