@@ -148,7 +148,7 @@ describe('QueryResultsDataSource', () => {
       )
     });
 
-    test('should display an empty cell when properties of type pbject are returned as empty objects', async () => {
+    test('should display an empty cell when properties of type object are returned as empty objects', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
         .mockReturnValue(createFetchResponse({
@@ -508,6 +508,7 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.loadWorkspaces();
 
+      expect(await datastore.workspacesCache).toEqual(new Map<string, Workspace>());
       expect(datastore.errorTitle).toBe('Warning during result value query');
       expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
     });
@@ -519,6 +520,7 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.getPartNumbers();
 
+      expect(await datastore.partNumbersCache).toEqual([]);
       expect(datastore.errorTitle).toBe('Warning during result value query');
       expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
     });
@@ -530,6 +532,7 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.loadWorkspaces();
 
+      expect(await datastore.workspacesCache).toEqual(new Map<string, Workspace>());
       expect(datastore.errorTitle).toBe('Warning during result value query');
       expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
     });
@@ -541,6 +544,7 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.getPartNumbers();
 
+      expect(await datastore.partNumbersCache).toEqual([]);
       expect(datastore.errorTitle).toBe('Warning during result value query');
       expect(datastore.errorDescription).toContain('The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.');
     })

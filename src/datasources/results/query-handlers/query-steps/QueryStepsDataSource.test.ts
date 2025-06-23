@@ -923,6 +923,7 @@ describe('QueryStepsDataSource', () => {
       expect(datastore.errorDescription).toContain(
         'Some values may not be available in the query builder lookups due to an unknown error.'
       );
+      expect(await datastore.workspacesCache).toEqual(new Map());
     });
 
     it('should contain error details when error contains additional information', async () => {
@@ -938,6 +939,7 @@ describe('QueryStepsDataSource', () => {
       expect(datastore.errorDescription).toContain(
         'Some values may not be available in the query builder lookups due to the following error:Detailed error message.'
       );
+      expect(await datastore.workspacesCache).toEqual(new Map());
     });
   });
 

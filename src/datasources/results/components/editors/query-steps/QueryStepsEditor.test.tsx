@@ -327,7 +327,7 @@ describe('QueryStepsEditor', () => {
   })
 
   describe('Total Count outputType', () => {
-    test('should not render orderBy, descending, take when outputType is Total Count', () => {
+    test('should not render properties and take when outputType is Total Count', () => {
       cleanup();
       render(
         <QueryStepsEditor
@@ -337,12 +337,11 @@ describe('QueryStepsEditor', () => {
         />
       );
 
-      expect(screen.queryByText('OrderBy')).not.toBeInTheDocument();
-      expect(screen.queryByText('Descending')).not.toBeInTheDocument();
+      expect(screen.queryByText('Properties')).not.toBeInTheDocument();
       expect(screen.queryByText('Take')).not.toBeInTheDocument();
     });
 
-    test('should render useTimeRange and useTimeRangeFor when outputType is Total Count', () => {
+    test('should render useTimeRange when outputType is Total Count', () => {
       cleanup();
       render(
         <QueryStepsEditor
