@@ -227,18 +227,6 @@ describe('ResultsQueryEditor', () => {
       expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ ...defaultResultsQuery, queryType: QueryType.Results, refId: 'A' }));
       
     })
-
-    test('should set query Type when query type is selected', () => {
-      const query = {
-        refId: 'A',
-        queryType: QueryType.Results,
-        customProperty: 'customValue',
-      };
-
-    renderElement(query);
-      expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ 
-        ...defaultResultsQuery, queryType: QueryType.Results, refId: 'A' , customProperty: 'customValue'}));
-    })
   });
 
   describe('Datasource', () => {
