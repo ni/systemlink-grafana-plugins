@@ -556,7 +556,9 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     switch (field) {
       case StepsPropertiesOptions.PROPERTIES:
       case StepsPropertiesOptions.DATA:
-        return value !== null ? JSON.stringify(value) : '';
+        return Object.keys(value).length > 0
+            ? JSON.stringify(value)
+            : '';
       case StepsPropertiesOptions.STATUS:
         return (value as any)?.statusType || '';
       case StepsPropertiesOptions.WORKSPACE:

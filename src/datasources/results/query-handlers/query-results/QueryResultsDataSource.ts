@@ -123,7 +123,11 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
           case ResultsPropertiesOptions.STATUS_TYPE_SUMMARY:
             return {
               name: resultsProjectionLabelLookup[field].label,
-              values: values.map((v) => (v != null ? JSON.stringify(v) : '')),
+              values: values.map((value) =>
+                value && (Object.keys(value).length > 0)
+                  ? JSON.stringify(value)
+                  : ''
+              ),
               type: fieldType,
             };
           case ResultsPropertiesOptions.STATUS:

@@ -148,6 +148,34 @@ describe('QueryResultsDataSource', () => {
       )
     });
 
+    test('should display an empty cell when properties annd status type summary are returned as empty objects', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({
+          results: [
+            {
+              id: '1',
+              properties: {},
+              statusTypeSummary: {}
+            }
+          ],
+          continuationToken: null,
+          totalCount: 1
+        } as unknown as QueryResultsResponse));
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [ResultsProperties.properties, ResultsProperties.statusTypeSummary]
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([
+        { name: 'Properties', values: [''], type: 'string' },
+        { name: 'Status type summary', values: [''], type: 'string' },
+      ]);
+    });
+
     test('returns total count for valid total count output type queries', async () => {
       const query = buildQuery({
         refId: 'A',
