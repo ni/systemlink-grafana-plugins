@@ -1,5 +1,5 @@
 import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
-import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
+import { BackendSrv, BackendSrvRequest, FetchError, TemplateSrv, getBackendSrv, getTemplateSrv, isFetchError } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { ProductQuery, ProductResponseProperties, ProductVariableQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
 import { QueryBuilderOption, Workspace } from 'core/types';
@@ -7,7 +7,8 @@ import { extractErrorInfo } from 'core/errors';
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
-import { getWorkspaceName } from 'core/utils';
+import { getWorkspaceName, sleep } from 'core/utils';
+import { lastValueFrom } from 'rxjs';
 
 export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   constructor(
@@ -65,13 +66,17 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     returnCount = false
   ): Promise<QueryProductResponse> {
     try {
-      const response = await this.post<QueryProductResponse>(this.queryProductsUrl, {
+      const requestBody = {
         filter,
         orderBy,
         descending,
-        projection,
+        projection: projection,
         take,
         returnCount
+      }
+
+      const response = await this.fetchProducts<QueryProductResponse>({
+        method: 'POST', url: this.queryProductsUrl, data: requestBody
       });
       return response;
     } catch (error) {
@@ -227,6 +232,26 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   private updatedAtQuery(value: string, operation: string): string {
     const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
     return `${ProductsQueryBuilderFieldNames.UPDATED_AT} ${operation} "${formattedValue}"`;
+  }
+
+  private async fetchProducts<T>(options: BackendSrvRequest, retries = 0): Promise<T> {
+    try {
+      return (await lastValueFrom(this.backendSrv.fetch<T>(options))).data;
+    } catch (error) {
+      if (isFetchError(error) && error.status === 429 && retries < 3) {
+        await sleep(Math.random() * 1000 * 2 ** retries);
+        options.url = this.instanceSettings.url + options.url;
+        return this.fetchProducts(options, retries + 1);
+      }
+      if (isFetchError(error)) {
+        const fetchError = error as FetchError;
+        const statusCode = fetchError.status;
+        const data = fetchError.data;
+        const errorMessage = data.error?.message || JSON.stringify(data);
+        throw new Error(`Request to url "${options.url}" failed with status code: ${statusCode}. Error message: ${errorMessage}`);
+      }
+      throw error;
+    }
   }
 
   private isMultiSelectValue(value: string): boolean {
