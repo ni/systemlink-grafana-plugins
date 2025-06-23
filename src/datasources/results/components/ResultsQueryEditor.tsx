@@ -35,8 +35,8 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
         handleQueryChange({
           ...query,
           queryType,
-          ...resultsQuery,
           ...defaultResultsQuery,
+          ...resultsQuery,
           refId: query.refId,
         });
         break;
@@ -48,8 +48,8 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
         handleQueryChange({
           ...query,
           queryType,
-          ...stepsQuery,
           ...defaultStepsQuery,
+          ...stepsQuery,
           refId: query.refId,
         });
         break;
