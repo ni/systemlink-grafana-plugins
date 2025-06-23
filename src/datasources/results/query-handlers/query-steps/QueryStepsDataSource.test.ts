@@ -27,7 +27,7 @@ import { DataSourceBase } from 'core/DataSourceBase';
 const mockSteps = Array(1000).fill({ stepId: '1', name: 'Step 1' });
 const mockPaths = Array(1000).fill({ path: 'path1' });
 
-const mockQueryStepsResponse: QueryStepsResponse = {
+const mockQueryStepsResponse = {
   steps: [
     {
       stepId: '1',
@@ -825,14 +825,7 @@ describe('QueryStepsDataSource', () => {
         }),
       ];
       backendServer.fetch.mockImplementationOnce(() => mockResponses[0]);
-      const responsePromise = datastore.queryStepsInBatches(
-        undefined,
-        undefined,
-        undefined,
-        100,
-        undefined,
-        undefined,
-      );
+      const responsePromise = datastore.queryStepsInBatches(undefined, undefined, undefined, 100, undefined, undefined);
       const response = await responsePromise;
 
       expect(response.steps).toHaveLength(100);
@@ -863,7 +856,7 @@ describe('QueryStepsDataSource', () => {
         undefined,
         10000,
         undefined,
-        undefined,
+        undefined
       );
       const response = await responsePromise;
 
@@ -878,7 +871,7 @@ describe('QueryStepsDataSource', () => {
       expect(backendServer.fetch).toHaveBeenNthCalledWith(
         2,
         expect.objectContaining({
-          data: expect.objectContaining({ take: 500, continuationToken: 'token1' }),
+          data: expect.objectContaining({ take: 1000, continuationToken: 'token1' }),
         })
       );
     });
@@ -913,7 +906,7 @@ describe('QueryStepsDataSource', () => {
         undefined,
         2000,
         undefined,
-        undefined,
+        undefined
       );
 
       await jest.advanceTimersByTimeAsync(0);
@@ -1021,14 +1014,7 @@ describe('QueryStepsDataSource', () => {
       ];
 
       backendServer.fetch.mockImplementationOnce(() => mockResponses[0]);
-      const response = await datastore.queryStepsInBatches(
-        undefined,
-        undefined,
-        undefined,
-        3000,
-        undefined,
-        undefined,
-      );
+      const response = await datastore.queryStepsInBatches(undefined, undefined, undefined, 3000, undefined, undefined);
 
       expect(response.steps).toHaveLength(500);
       expect(backendServer.fetch).toHaveBeenCalledTimes(1);
@@ -1095,7 +1081,7 @@ describe('QueryStepsDataSource', () => {
         undefined,
         2000,
         undefined,
-        undefined,
+        undefined
       );
 
       const response = await responsePromise;
