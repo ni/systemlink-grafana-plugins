@@ -154,7 +154,6 @@ describe('QueryResultsDataSource', () => {
         .mockReturnValue(createFetchResponse({
           results: [
             {
-              id: '1',
               properties: {},
               statusTypeSummary: {}
             }
@@ -176,13 +175,39 @@ describe('QueryResultsDataSource', () => {
       ]);
     });
 
+    test('should display the JSON stringified value when properties of type object are returned as non-empty objects', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({
+          results: [
+            {
+              properties: { key1: 'value1', key2: 'value2' },
+              statusTypeSummary: { status1: 5, status2: 10 }
+            }
+          ],
+          continuationToken: null,
+          totalCount: 1
+        } as unknown as QueryResultsResponse));
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [ResultsProperties.properties, ResultsProperties.statusTypeSummary]
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([
+        { name: 'Properties', values: ['{"key1":"value1","key2":"value2"}'], type: 'string' },
+        { name: 'Status type summary', values: ['{"status1":5,"status2":10}'], type: 'string' },
+      ]);
+    });
+
     test('should display an empty cell when properties of type array are returned as empty array', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
         .mockReturnValue(createFetchResponse({
           results: [
             {
-              id: '1',
               keywords: [],
               fileIds: [],
               dataTableIds: []
@@ -212,7 +237,6 @@ describe('QueryResultsDataSource', () => {
         .mockReturnValue(createFetchResponse({
           results: [
             {
-              id: '1',
               keywords: ['keyword1', 'keyword2'],
               fileIds: ['file1', 'file2'],
               dataTableIds: ['dataTable1', 'dataTable2']

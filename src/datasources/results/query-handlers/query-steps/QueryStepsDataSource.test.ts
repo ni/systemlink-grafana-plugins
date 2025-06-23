@@ -203,7 +203,35 @@ describe('QueryStepsDataSource', () => {
             steps: [
               {
                 properties: {},
-                data: {}
+              },
+            ],
+            continuationToken: null,
+            totalCount: 1,
+          } as unknown as QueryStepsResponse)
+        );
+
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [StepsProperties.properties],
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([
+        { name: 'Properties', values: [''], type: 'string' }
+      ]);
+    });
+
+    test('should display the JSON stringified value when properties of type object are returned as non-empty objects', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
+        .mockReturnValue(
+          createFetchResponse({
+            steps: [
+              {
+                properties: { key1: 'value1', key2: 'value2' },
+                data: {parameters: [{ name: 'param1', value: 'value1' }] } as StepData,
               },
             ],
             continuationToken: null,
@@ -220,8 +248,8 @@ describe('QueryStepsDataSource', () => {
       const response = await datastore.query(query);
 
       expect(response.data[0].fields).toEqual([
-        { name: 'Properties', values: [''], type: 'string' },
-        { name: 'Data', values: [''], type: 'string' },
+        { name: 'Properties', values: ['{"key1":"value1","key2":"value2"}'], type: 'string' },
+        { name: 'Data', values: ['{"parameters":[{"name":"param1","value":"value1"}]}'], type: 'string' }
       ]);
     });
 
