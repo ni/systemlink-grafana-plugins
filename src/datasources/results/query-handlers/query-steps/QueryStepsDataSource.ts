@@ -164,10 +164,10 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       );
 
       // Check if the first step has more than 25 measurements and reduce the max take per request accordingly
-      const {steps} = response;
+      const { steps } = response;
       const firstStep = steps[0];
-      const {data} = firstStep || {data: {parameters: []}};
-      const {parameters} = data || { parameters: [] };
+      const { data } = firstStep || { data: { parameters: [] } };
+      const { parameters } = data || { parameters: [] };
       const maxTakePerRequest = parameters.length >= 25 ? MIN_TAKE_PER_REQUEST : MAX_TAKE_PER_REQUEST;
 
       batchQueryConfig.maxTakePerRequest = maxTakePerRequest;
@@ -570,10 +570,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       case StepsPropertiesOptions.STATUS:
         return (value as any)?.statusType || '';
       case StepsPropertiesOptions.WORKSPACE:
-            const workspaceId = value as string;
-            return this.workspaceValues.length 
-              ? getWorkspaceName(this.workspaceValues, workspaceId)
-              : workspaceId;
+        const workspaceId = value as string;
+        return this.workspaceValues.length ? getWorkspaceName(this.workspaceValues, workspaceId) : workspaceId;
       default:
         return value.toString();
     }

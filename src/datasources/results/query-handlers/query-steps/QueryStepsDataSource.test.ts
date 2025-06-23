@@ -25,7 +25,7 @@ import { Workspace } from 'core/types';
 import { DataSourceBase } from 'core/DataSourceBase';
 
 const mockSteps = Array(1000).fill({ stepId: '1', name: 'Step 1' });
-const mockPaths = Array(1000).fill({ path: 'path1'});
+const mockPaths = Array(1000).fill({ path: 'path1' });
 
 const mockQueryStepsResponse: QueryStepsResponse = {
   steps: [
@@ -36,7 +36,7 @@ const mockQueryStepsResponse: QueryStepsResponse = {
         key1: 'value1',
         key2: 'value2',
       },
-      workspace: '1'
+      workspace: '1',
     },
   ],
   continuationToken: undefined,
@@ -266,13 +266,11 @@ describe('QueryStepsDataSource', () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
         .mockReturnValue(createFetchResponse(mockQueryStepsResponse));
-        const query = buildQuery(
-          {
-            refId: 'A',
-            outputType: OutputType.Data,
-            properties: [StepsProperties.workspace]
-          },
-        );
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [StepsProperties.workspace],
+      });
 
       const response = await datastore.query(query);
 
@@ -288,20 +286,17 @@ describe('QueryStepsDataSource', () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
         .mockReturnValue(createFetchResponse(mockQueryStepsResponse));
-      const query = buildQuery(
-        {
-          refId: 'A',
-          outputType: OutputType.Data,
-          properties: [StepsProperties.workspace]
-        },
-      );
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [StepsProperties.workspace],
+      });
 
       const response = await datastore.query(query);
 
       const fields = response.data[0].fields as Field[];
       expect(fields).toMatchSnapshot();
     });
-
 
     describe('show measurements is enabled', () => {
       describe('duplicate measurement names', () => {
@@ -912,7 +907,7 @@ describe('QueryStepsDataSource', () => {
           totalCount: 2000,
         }),
         createFetchResponse({
-          steps:mockSteps.slice(0, 500),
+          steps: mockSteps.slice(0, 500),
           continuationToken: null,
           totalCount: 2000,
         }),
@@ -965,7 +960,7 @@ describe('QueryStepsDataSource', () => {
 
       const measurements: StepData = {
         text: 'Step with many measurements',
-        parameters: Array(30).fill({ name: `Measurement`, measurement: '1.0' })
+        parameters: Array(30).fill({ name: `Measurement`, measurement: '1.0' }),
       };
 
       const stepsWithManyMeasurements = mockSteps.map(step => ({
@@ -983,7 +978,7 @@ describe('QueryStepsDataSource', () => {
           continuationToken: 'token2',
         }),
         createFetchResponse({
-          steps:stepsWithManyMeasurements.slice(0, 500),
+          steps: stepsWithManyMeasurements.slice(0, 500),
           continuationToken: null,
         }),
       ];
@@ -999,7 +994,7 @@ describe('QueryStepsDataSource', () => {
         undefined,
         1500,
         undefined,
-        undefined,
+        undefined
       );
 
       await jest.advanceTimersByTimeAsync(0);
@@ -1126,7 +1121,7 @@ describe('QueryStepsDataSource', () => {
 
       expect(response.steps).toHaveLength(2000);
       expect(backendServer.fetch).toHaveBeenCalledTimes(3);
-      expect(spyDelay).toHaveBeenCalledTimes(2); 
+      expect(spyDelay).toHaveBeenCalledTimes(2);
       expect(spyDelay).toHaveBeenCalledWith(expect.any(Function), 800); // delay for 1000 - 200 = 800ms
     });
   });
