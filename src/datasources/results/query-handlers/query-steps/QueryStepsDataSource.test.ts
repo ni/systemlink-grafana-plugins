@@ -192,7 +192,7 @@ describe('QueryStepsDataSource', () => {
       );
     });
 
-    test('should display an empty cell when properties annd data are returned as empty objects', async () => {
+    test('should display an empty cell when properties of type objects are returned as empty objects', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
         .mockReturnValue(
@@ -222,7 +222,33 @@ describe('QueryStepsDataSource', () => {
       ]);
     });
 
-    test('should display as comma separated values when properties of type array are returned as non-empty array', async () => {
+    test('should display an empty cell when properties of type array are returned as empty array', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
+        .mockReturnValue(
+          createFetchResponse({
+            steps: [
+              {
+                keywords: []
+              },
+            ],
+            continuationToken: null,
+            totalCount: 1,
+          } as unknown as QueryStepsResponse)
+        );
+
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [StepsProperties.keywords],
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([{ name: 'Keywords', values: [''], type: 'string' }]);
+    });
+
+    test('should display comma separated values when properties of type array are returned as a non-empty array', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
         .mockReturnValue(
@@ -248,32 +274,6 @@ describe('QueryStepsDataSource', () => {
       expect(response.data[0].fields).toEqual([
         { name: 'Keywords', values: ['keyword1,keyword2'], type: 'string' }
       ]);
-    });
-
-    test('should display an empty cell when properties of type array are returned as empty array', async () => {
-      backendServer.fetch
-        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
-        .mockReturnValue(
-          createFetchResponse({
-            steps: [
-              {
-                keywords: []
-              },
-            ],
-            continuationToken: null,
-            totalCount: 1,
-          } as unknown as QueryStepsResponse)
-        );
-
-      const query = buildQuery({
-        refId: 'A',
-        outputType: OutputType.Data,
-        properties: [StepsProperties.keywords],
-      });
-
-      const response = await datastore.query(query);
-
-      expect(response.data[0].fields).toEqual([{ name: 'Keywords', values: [''], type: 'string' }]);
     });
 
     test('should return total count for valid total count output type queries', async () => {
