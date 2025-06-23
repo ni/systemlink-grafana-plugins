@@ -573,6 +573,30 @@ describe('runQuery', () => {
     ]);
   });
 
+  it('should display empty cell when properties is empty', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.PROPERTIES],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', properties: {} }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Properties');
+    expect(result.fields[0].values).toEqual(['']);
+  });
+
   it('should convert systemIds to system names for system name property', async () => {
     const query = {
       refId: 'A',

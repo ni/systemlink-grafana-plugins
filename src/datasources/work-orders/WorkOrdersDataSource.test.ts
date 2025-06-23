@@ -162,6 +162,46 @@ describe('WorkOrdersDataSource', () => {
       const fields = response.fields as Field[];
       expect(fields).toMatchSnapshot();
     });
+
+    it('should handle test plan custom properties', async () => {
+      const query = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+        properties: [WorkOrderPropertiesOptions.PROPERTIES],
+        take: 1000,
+      };
+      const workordersResponse = [
+        { id: '1', properties: { customProp1: 'value1', customProp2: 'value2' } },
+        { id: '2', properties: { customProp1: 'value3' } },
+      ];
+      jest.spyOn(datastore, 'queryWorkordersData').mockResolvedValue(workordersResponse as unknown as WorkOrder[]);
+
+      const result = await datastore.runQuery(query, {} as DataQueryRequest);
+
+      expect(result.fields).toHaveLength(1);
+      expect(result.fields[0].name).toEqual('Properties');
+      expect(result.fields[0].values).toEqual([
+        JSON.stringify({ customProp1: 'value1', customProp2: 'value2' }),
+        JSON.stringify({ customProp1: 'value3' }),
+      ]);
+    });
+
+    it('should display empty cell when properties is empty', async () => {
+      const query = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+        properties: [WorkOrderPropertiesOptions.PROPERTIES],
+        take: 1000,
+      };
+      const workordersResponse = [{ id: '1', properties: {} }];
+      jest.spyOn(datastore, 'queryWorkordersData').mockResolvedValue(workordersResponse as unknown as WorkOrder[]);
+
+      const result = await datastore.runQuery(query, {} as DataQueryRequest);
+
+      expect(result.fields).toHaveLength(1);
+      expect(result.fields[0].name).toEqual('Properties');
+      expect(result.fields[0].values).toEqual(['']);
+    });    
     
     it('should convert user Ids to user names for assigned to field', async () => {
       const query = {
