@@ -1,3 +1,9 @@
+## [3.140.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.140.2...v3.140.3) (2025-06-23)
+
+### Bug Fixes
+
+* removed dependency on returnCount to query in batches ([#321](https://github.com/ni/systemlink-grafana-plugins/issues/321)) ([183cc74](https://github.com/ni/systemlink-grafana-plugins/commit/183cc7490b6f297dfc54858aa1ee927de0fb5179))
+
 ## [3.140.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.140.1...v3.140.2) (2025-06-23)
 
 ### Bug Fixes
