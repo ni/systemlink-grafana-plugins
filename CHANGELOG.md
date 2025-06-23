@@ -1,3 +1,9 @@
+## [3.140.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.140.1...v3.140.2) (2025-06-23)
+
+### Bug Fixes
+
+* **core:** remove filtering of variable with datasource ([#322](https://github.com/ni/systemlink-grafana-plugins/issues/322)) ([77f3477](https://github.com/ni/systemlink-grafana-plugins/commit/77f3477d754fe386e48730cc7f333f6e309465e0))
+
 ## [3.140.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.140.0...v3.140.1) (2025-06-20)
 
 ### Bug Fixes

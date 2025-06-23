@@ -121,7 +121,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     filter?: string,
     take?: number,
     continuationToken?: string,
-    returnCount = false
   ): Promise<QueryStepPathsResponse> {
     const defaultOrderBy = StepsPathProperties.path;
     return await this.post<QueryStepPathsResponse>(this.queryPathsUrl, {
@@ -130,7 +129,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       take,
       orderBy: defaultOrderBy,
       continuationToken,
-      returnCount,
     });
   }
 
@@ -141,7 +139,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     take?: number,
     descending?: boolean,
     resultFilter?: string,
-    returnCount = false
   ): Promise<QueryStepsResponse> {
     const batchQueryConfig = {
       maxTakePerRequest: MIN_TAKE_PER_REQUEST,
@@ -159,8 +156,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         currentTake,
         descending,
         resultFilter,
-        continuationToken,
-        returnCount
+        continuationToken
       );
 
       // Check if the first step has more than 25 measurements and reduce the max take per request accordingly
@@ -175,7 +171,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       return {
         data: response.steps,
         continuationToken: response.continuationToken,
-        totalCount: response.totalCount,
       };
     };
 
@@ -184,7 +179,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     return {
       steps: response.data,
       continuationToken: response.continuationToken,
-      totalCount: response.totalCount,
     };
   }
 
@@ -198,12 +192,11 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       currentTake: number,
       token?: string
     ): Promise<QueryResponse<StepPathResponseProperties>> => {
-      const response = await this.queryStepPaths(projection, filter, currentTake, token, returnCount);
+      const response = await this.queryStepPaths(projection, filter, currentTake, token);
 
       return {
         data: response.paths,
         continuationToken: response.continuationToken,
-        totalCount: response.totalCount,
       };
     };
 
@@ -217,7 +210,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     return {
       paths: response.data,
       continuationToken: response.continuationToken,
-      totalCount: response.totalCount,
     };
   }
 
@@ -253,7 +245,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         query.recordCount,
         defaultStepsQuery.descending,
         query.resultsQuery,
-        true
       );
 
       const stepsResponse = responseData.steps;
@@ -335,7 +326,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       programNameQuery,
       [StepsPathProperties.path],
       MAX_PATH_TAKE_PER_REQUEST,
-      true
     );
   }
 
