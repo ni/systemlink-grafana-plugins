@@ -25,6 +25,7 @@ import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase
 import { defaultStepsQuery } from 'datasources/results/defaultQueries';
 import {
   MAX_TAKE_PER_REQUEST,
+  MIN_TAKE_PER_REQUEST,
   QUERY_STEPS_REQUEST_PER_SECOND,
   TAKE_LIMIT,
 } from 'datasources/results/constants/QuerySteps.constants';
@@ -139,9 +140,14 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     descending?: boolean,
     resultFilter?: string,
   ): Promise<QueryStepsResponse> {
+    const batchQueryConfig = {
+      maxTakePerRequest: MIN_TAKE_PER_REQUEST,
+      requestsPerSecond: QUERY_STEPS_REQUEST_PER_SECOND,
+    };
+
     const queryRecord = async (
       currentTake: number,
-      token?: string
+      continuationToken?: string
     ): Promise<QueryResponse<StepsResponseProperties>> => {
       const response = await this.querySteps(
         filter,
@@ -150,18 +156,22 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         currentTake,
         descending,
         resultFilter,
-        token,
+        continuationToken
       );
+
+      // Check if the first step has more than 25 measurements and reduce the max take per request accordingly
+      const { steps } = response;
+      const firstStep = steps[0];
+      const { data } = firstStep || { data: { parameters: [] } };
+      const { parameters } = data || { parameters: [] };
+      const maxTakePerRequest = parameters.length >= 25 ? MIN_TAKE_PER_REQUEST : MAX_TAKE_PER_REQUEST;
+
+      batchQueryConfig.maxTakePerRequest = maxTakePerRequest;
 
       return {
         data: response.steps,
         continuationToken: response.continuationToken,
       };
-    };
-
-    const batchQueryConfig = {
-      maxTakePerRequest: MAX_TAKE_PER_REQUEST,
-      requestsPerSecond: QUERY_STEPS_REQUEST_PER_SECOND,
     };
 
     const response = await queryInBatches(queryRecord, batchQueryConfig, take);
@@ -550,10 +560,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       case StepsPropertiesOptions.STATUS:
         return (value as any)?.statusType || '';
       case StepsPropertiesOptions.WORKSPACE:
-            const workspaceId = value as string;
-            return this.workspaceValues.length 
-              ? getWorkspaceName(this.workspaceValues, workspaceId)
-              : workspaceId;
+        const workspaceId = value as string;
+        return this.workspaceValues.length ? getWorkspaceName(this.workspaceValues, workspaceId) : workspaceId;
       default:
         return value.toString();
     }

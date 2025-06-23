@@ -11,6 +11,7 @@ import { Field } from '@grafana/data';
 import {
   QuerySteps,
   QueryStepsResponse,
+  StepData,
   StepsProperties,
   StepsPropertiesOptions,
 } from 'datasources/results/types/QuerySteps.types';
@@ -23,6 +24,9 @@ import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase
 import { Workspace } from 'core/types';
 import { DataSourceBase } from 'core/DataSourceBase';
 
+const mockSteps = Array(1000).fill({ stepId: '1', name: 'Step 1' });
+const mockPaths = Array(1000).fill({ path: 'path1' });
+
 const mockQueryStepsResponse = {
   steps: [
     {
@@ -32,7 +36,7 @@ const mockQueryStepsResponse = {
         key1: 'value1',
         key2: 'value2',
       },
-      workspace: '1'
+      workspace: '1',
     },
   ],
   continuationToken: null,
@@ -260,13 +264,11 @@ describe('QueryStepsDataSource', () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
         .mockReturnValue(createFetchResponse(mockQueryStepsResponse));
-        const query = buildQuery(
-          {
-            refId: 'A',
-            outputType: OutputType.Data,
-            properties: [StepsProperties.workspace]
-          },
-        );
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [StepsProperties.workspace],
+      });
 
       const response = await datastore.query(query);
 
@@ -282,20 +284,17 @@ describe('QueryStepsDataSource', () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
         .mockReturnValue(createFetchResponse(mockQueryStepsResponse));
-      const query = buildQuery(
-        {
-          refId: 'A',
-          outputType: OutputType.Data,
-          properties: [StepsProperties.workspace]
-        },
-      );
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [StepsProperties.workspace],
+      });
 
       const response = await datastore.query(query);
 
       const fields = response.data[0].fields as Field[];
       expect(fields).toMatchSnapshot();
     });
-
 
     describe('show measurements is enabled', () => {
       describe('duplicate measurement names', () => {
@@ -710,12 +709,12 @@ describe('QueryStepsDataSource', () => {
     test('should call query steps API once when output type is total count', async () => {
       const mockResponses = [
         createFetchResponse({
-          steps: Array(100).fill({ stepId: '1', name: 'Step 1' }),
+          steps: mockSteps.slice(0, 100),
           continuationToken: null,
           totalCount: 5000,
         }),
         createFetchResponse({
-          steps: Array(100).fill({ stepId: '2', name: 'Step 2' }),
+          steps: mockSteps.slice(0, 100),
           continuationToken: null,
           totalCount: 5000,
         }),
@@ -821,19 +820,12 @@ describe('QueryStepsDataSource', () => {
     it('should make a single request when take is less than MAX_TAKE_PER_REQUEST', async () => {
       const mockResponses = [
         createFetchResponse({
-          steps: Array(100).fill({ stepId: '1', name: 'Step 1' }),
+          steps: mockSteps.slice(0, 100),
           continuationToken: null,
         }),
       ];
       backendServer.fetch.mockImplementationOnce(() => mockResponses[0]);
-      const responsePromise = datastore.queryStepsInBatches(
-        undefined,
-        undefined,
-        undefined,
-        100,
-        undefined,
-        undefined,
-      );
+      const responsePromise = datastore.queryStepsInBatches(undefined, undefined, undefined, 100, undefined, undefined);
       const response = await responsePromise;
 
       expect(response.steps).toHaveLength(100);
@@ -849,11 +841,11 @@ describe('QueryStepsDataSource', () => {
     test('should batch requests when total number of steps matching the filter is less than requested take', async () => {
       const mockResponses = [
         createFetchResponse({
-          steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),
+          steps: mockSteps.slice(0, 500),
           continuationToken: 'token1',
         }),
         createFetchResponse({
-          steps: Array(400).fill({ stepId: '1', name: 'Step 1' }),
+          steps: mockSteps.slice(0, 400),
           continuationToken: null,
         }),
       ];
@@ -864,7 +856,7 @@ describe('QueryStepsDataSource', () => {
         undefined,
         10000,
         undefined,
-        undefined,
+        undefined
       );
       const response = await responsePromise;
 
@@ -879,30 +871,26 @@ describe('QueryStepsDataSource', () => {
       expect(backendServer.fetch).toHaveBeenNthCalledWith(
         2,
         expect.objectContaining({
-          data: expect.objectContaining({ take: 500, continuationToken: 'token1' }),
+          data: expect.objectContaining({ take: 1000, continuationToken: 'token1' }),
         })
       );
     });
 
-    test('should batch requests with RequestPerSecond', async () => {
+    test('should batch requests and expand max take from 500 to 1000', async () => {
       jest.useFakeTimers();
       const fetchSpy = jest.spyOn(backendServer, 'fetch');
 
       const mockResponses = [
         createFetchResponse({
-          steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),
+          steps: mockSteps.slice(0, 500),
           continuationToken: 'token1',
         }),
         createFetchResponse({
-          steps: Array(500).fill({ stepId: '2', name: 'Step 2' }),
+          steps: mockSteps,
           continuationToken: 'token2',
         }),
         createFetchResponse({
-          steps: Array(500).fill({ stepId: '3', name: 'Step 3' }),
-          continuationToken: 'token3',
-        }),
-        createFetchResponse({
-          steps: Array(500).fill({ stepId: '4', name: 'Step 4' }),
+          steps: mockSteps.slice(0, 500),
           continuationToken: null,
         }),
       ];
@@ -910,8 +898,7 @@ describe('QueryStepsDataSource', () => {
       backendServer.fetch
         .mockImplementationOnce(() => mockResponses[0])
         .mockImplementationOnce(() => mockResponses[1])
-        .mockImplementationOnce(() => mockResponses[2])
-        .mockImplementationOnce(() => mockResponses[3]);
+        .mockImplementationOnce(() => mockResponses[2]);
 
       const responsePromise = datastore.queryStepsInBatches(
         undefined,
@@ -919,13 +906,82 @@ describe('QueryStepsDataSource', () => {
         undefined,
         2000,
         undefined,
-        undefined,
+        undefined
       );
 
       await jest.advanceTimersByTimeAsync(0);
       expect(fetchSpy).toHaveBeenCalledTimes(2);
       await jest.advanceTimersByTimeAsync(1000);
-      expect(fetchSpy).toHaveBeenCalledTimes(4);
+      expect(fetchSpy).toHaveBeenCalledTimes(3);
+      await responsePromise;
+
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          data: expect.objectContaining({ take: 500, continuationToken: undefined }),
+        })
+      );
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          data: expect.objectContaining({ take: 1000, continuationToken: 'token1' }),
+        })
+      );
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        3,
+        expect.objectContaining({
+          data: expect.objectContaining({ take: 500, continuationToken: 'token2' }),
+        })
+      );
+    });
+
+    test('should batch requests and continue with take of 500 when number of measurements is greater than 25', async () => {
+      jest.useFakeTimers();
+      const fetchSpy = jest.spyOn(backendServer, 'fetch');
+
+      const measurements: StepData = {
+        text: 'Step with many measurements',
+        parameters: Array(30).fill({ name: `Measurement`, measurement: '1.0' }),
+      };
+
+      const stepsWithManyMeasurements = mockSteps.map(step => ({
+        ...step,
+        data: measurements,
+      }));
+
+      const mockResponses = [
+        createFetchResponse({
+          steps: stepsWithManyMeasurements.slice(0, 500),
+          continuationToken: 'token1',
+        }),
+        createFetchResponse({
+          steps: stepsWithManyMeasurements.slice(0, 500),
+          continuationToken: 'token2',
+        }),
+        createFetchResponse({
+          steps: stepsWithManyMeasurements.slice(0, 500),
+          continuationToken: null,
+        }),
+      ];
+
+      backendServer.fetch
+        .mockImplementationOnce(() => mockResponses[0])
+        .mockImplementationOnce(() => mockResponses[1])
+        .mockImplementationOnce(() => mockResponses[2]);
+
+      const responsePromise = datastore.queryStepsInBatches(
+        undefined,
+        undefined,
+        undefined,
+        1500,
+        undefined,
+        undefined
+      );
+
+      await jest.advanceTimersByTimeAsync(0);
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+      await jest.advanceTimersByTimeAsync(1000);
+      expect(fetchSpy).toHaveBeenCalledTimes(3);
       await responsePromise;
 
       expect(fetchSpy).toHaveBeenNthCalledWith(
@@ -946,32 +1002,19 @@ describe('QueryStepsDataSource', () => {
           data: expect.objectContaining({ take: 500, continuationToken: 'token2' }),
         })
       );
-      expect(fetchSpy).toHaveBeenNthCalledWith(
-        4,
-        expect.objectContaining({
-          data: expect.objectContaining({ take: 500, continuationToken: 'token3' }),
-        })
-      );
     });
 
     test('should stop fetching when continuationToken is null', async () => {
       const mockResponses = [
         createFetchResponse({
-          steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),
+          steps: mockSteps.slice(0, 500),
           continuationToken: null,
           totalCount: 500,
         }),
       ];
 
       backendServer.fetch.mockImplementationOnce(() => mockResponses[0]);
-      const response = await datastore.queryStepsInBatches(
-        undefined,
-        undefined,
-        undefined,
-        3000,
-        undefined,
-        undefined,
-      );
+      const response = await datastore.queryStepsInBatches(undefined, undefined, undefined, 3000, undefined, undefined);
 
       expect(response.steps).toHaveLength(500);
       expect(backendServer.fetch).toHaveBeenCalledTimes(1);
@@ -986,14 +1029,14 @@ describe('QueryStepsDataSource', () => {
       backendServer.fetch
         .mockImplementationOnce(() =>
           createFetchResponse({
-            steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),
+            steps: mockSteps.slice(0, 500),
             continuationToken: 'token1',
           })
         )
         .mockImplementationOnce(() => createFetchError(400)) //Error
         .mockImplementationOnce(() =>
           createFetchResponse({
-            steps: Array(500).fill({ stepId: '2', name: 'Step 2' }),
+            steps: mockSteps.slice(0, 500),
             continuationToken: 'token2',
           })
         );
@@ -1016,41 +1059,36 @@ describe('QueryStepsDataSource', () => {
 
       const mockResponses = [
         createFetchResponse({
-          steps: Array(500).fill({ stepId: '1', name: 'Step 1' }),
+          steps: mockSteps.slice(0, 500),
           continuationToken: 'token1',
         }),
         createFetchResponse({
-          steps: Array(500).fill({ stepId: '2', name: 'Step 2' }),
+          steps: mockSteps,
           continuationToken: 'token2',
         }),
         createFetchResponse({
-          steps: Array(500).fill({ stepId: '3', name: 'Step 3' }),
+          steps: mockSteps.slice(0, 500),
           continuationToken: 'token3',
-        }),
-        createFetchResponse({
-          steps: Array(500).fill({ stepId: '4', name: 'Step 3' }),
-          continuationToken: null,
         }),
       ];
       backendServer.fetch
         .mockImplementationOnce(() => mockResponses[0])
         .mockImplementationOnce(() => mockResponses[1])
-        .mockImplementationOnce(() => mockResponses[2])
-        .mockImplementationOnce(() => mockResponses[3]);
+        .mockImplementationOnce(() => mockResponses[2]);
       const responsePromise = datastore.queryStepsInBatches(
         undefined,
         undefined,
         undefined,
         2000,
         undefined,
-        undefined,
+        undefined
       );
 
       const response = await responsePromise;
 
       expect(response.steps).toHaveLength(2000);
-      expect(backendServer.fetch).toHaveBeenCalledTimes(4);
-      expect(spyDelay).toHaveBeenCalledTimes(1);
+      expect(backendServer.fetch).toHaveBeenCalledTimes(3);
+      expect(spyDelay).toHaveBeenCalledTimes(2);
       expect(spyDelay).toHaveBeenCalledWith(expect.any(Function), 800); // delay for 1000 - 200 = 800ms
     });
   });
@@ -1059,7 +1097,7 @@ describe('QueryStepsDataSource', () => {
     it('should make a single request when take is less than MAX_PATH_TAKE_PER_REQUEST', async () => {
       const mockResponses = [
         createFetchResponse({
-          paths: Array(100).fill({ path: 'path1' }),
+          paths: mockPaths.slice(0, 100),
           continuationToken: null,
         }),
       ];
@@ -1081,11 +1119,11 @@ describe('QueryStepsDataSource', () => {
     test('should batch requests when total number of paths matching the filter is less than requested take', async () => {
       const mockResponses = [
         createFetchResponse({
-          paths: Array(1000).fill({ path: 'path1' }),
+          paths: mockPaths,
           continuationToken: 'token1',
         }),
         createFetchResponse({
-          paths: Array(500).fill({ path: 'path2' }),
+          paths: mockPaths.slice(0, 500),
           continuationToken: null,
         }),
       ];
@@ -1117,19 +1155,19 @@ describe('QueryStepsDataSource', () => {
 
       const mockResponses = [
         createFetchResponse({
-          paths: Array(1000).fill({ path: 'path1' }),
+          paths: mockPaths,
           continuationToken: 'token1',
         }),
         createFetchResponse({
-          paths: Array(1000).fill({ path: 'path2' }),
+          paths: mockPaths,
           continuationToken: 'token2',
         }),
         createFetchResponse({
-          paths: Array(1000).fill({ path: 'path3' }),
+          paths: mockPaths,
           continuationToken: 'token3',
         }),
         createFetchResponse({
-          paths: Array(1000).fill({ path: 'path4' }),
+          paths: mockPaths,
           continuationToken: null,
         }),
       ];
@@ -1181,7 +1219,7 @@ describe('QueryStepsDataSource', () => {
     test('should stop fetching when continuationToken is null', async () => {
       const mockResponses = [
         createFetchResponse({
-          paths: Array(1000).fill({ path: 'path1' }),
+          paths: mockPaths,
           continuationToken: null,
         }),
       ];
@@ -1203,14 +1241,14 @@ describe('QueryStepsDataSource', () => {
       backendServer.fetch
         .mockImplementationOnce(() =>
           createFetchResponse({
-            paths: Array(1000).fill({ path: 'path1' }),
+            paths: mockPaths,
             continuationToken: 'token1',
           })
         )
         .mockImplementationOnce(() => createFetchError(400)) //Error
         .mockImplementationOnce(() =>
           createFetchResponse({
-            paths: Array(1000).fill({ path: 'path2' }),
+            paths: mockPaths,
             continuationToken: 'token2',
           })
         );
@@ -1235,19 +1273,19 @@ describe('QueryStepsDataSource', () => {
 
       const mockResponses = [
         createFetchResponse({
-          paths: Array(1000).fill({ path: 'path1' }),
+          paths: mockPaths,
           continuationToken: 'token1',
         }),
         createFetchResponse({
-          paths: Array(1000).fill({ path: 'path2' }),
+          paths: mockPaths,
           continuationToken: 'token2',
         }),
         createFetchResponse({
-          paths: Array(1000).fill({ path: 'path3' }),
+          paths: mockPaths,
           continuationToken: 'token3',
         }),
         createFetchResponse({
-          paths: Array(1000).fill({ path: 'path4' }),
+          paths: mockPaths,
           continuationToken: null,
         }),
       ];
