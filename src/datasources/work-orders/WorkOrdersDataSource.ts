@@ -192,7 +192,6 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
         descending,
         take: currentTake,
         continationToken: token,
-        returnCount: true,
       };
       const response = await this.queryWorkOrders(body);
 
