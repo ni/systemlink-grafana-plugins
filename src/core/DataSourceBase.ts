@@ -55,9 +55,14 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
       if (isFetchError(error)) {
         const fetchError = error as FetchError;
         const statusCode = fetchError.status;
-        const data = fetchError.data;
-        const errorMessage = data.error?.message || JSON.stringify(data);
-        throw new Error(`Request to url "${options.url}" failed with status code: ${statusCode}. Error message: ${errorMessage}`);
+        const genericErrorMessage = `Request to url "${options.url}" failed with status code: ${statusCode}.`;
+        if (statusCode === 504) {
+          throw new Error(genericErrorMessage);
+        } else {
+          const data = fetchError.data;
+          const errorMessage = data.error?.message || JSON.stringify(data);
+          throw new Error(`${genericErrorMessage} Error message: ${errorMessage}`);
+        }
       }
       throw error;
     }
