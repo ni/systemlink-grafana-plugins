@@ -1,3 +1,9 @@
+## [3.141.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.2...v3.141.3) (2025-06-23)
+
+### Bug Fixes
+
+* **core:** remove error message on 504 status code ([#319](https://github.com/ni/systemlink-grafana-plugins/issues/319)) ([7f753b6](https://github.com/ni/systemlink-grafana-plugins/commit/7f753b6b9964371a73be06a1a9fd3a738cd310a9))
+
 ## [3.141.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.1...v3.141.2) (2025-06-23)
 
 ### Bug Fixes
