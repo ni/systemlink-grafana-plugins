@@ -1,3 +1,9 @@
+## [3.141.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.1...v3.141.2) (2025-06-23)
+
+### Bug Fixes
+
+* **results:** Display empty cell for properties of type object in the table ([#325](https://github.com/ni/systemlink-grafana-plugins/issues/325)) ([99a166b](https://github.com/ni/systemlink-grafana-plugins/commit/99a166b45bcad60ede26585cfd7eb8e638a68385))
+
 ## [3.141.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.0...v3.141.1) (2025-06-23)
 
 ### Bug Fixes
