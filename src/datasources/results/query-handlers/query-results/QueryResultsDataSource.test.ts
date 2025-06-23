@@ -57,6 +57,27 @@ describe('QueryResultsDataSource', () => {
         .toThrow('The query failed due to the following error: (status 400) \"Error\"');
     });
 
+    test('should return undefined if API throws unknown status code error', async () => {
+      const error = new Error('API failed');
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results' }))
+        .mockImplementationOnce(() => {
+          throw error;
+        });
+
+      let result;
+      let caughtError;
+
+      try {
+        result = await datastore.queryResults();
+      } catch (error) {
+        caughtError = (error as Error).message;
+      }
+
+      expect(caughtError).toBe(`The query failed due to an unknown error.`);
+      expect(result).toEqual(undefined);
+    });
+
     test('should publish alertError event when error occurs', async () => {
         const publishMock = jest.fn();
         (datastore as any).appEvents = { publish: publishMock };
@@ -545,6 +566,18 @@ describe('QueryResultsDataSource', () => {
       await datastore.getPartNumbers();
 
       expect(await datastore.partNumbersCache).toEqual([]);
+      expect(datastore.errorTitle).toBe('Warning during result value query');
+      expect(datastore.errorDescription).toContain('The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.');
+    })
+
+    it('should handle 504 error in loadWorkspaces', async () => {
+      (ResultsDataSourceBase as any)._workspacesCache = null;
+      const error = new Error(`API failed Error message: status code: 504 ${JSON.stringify({ message: 'Detailed error message'})}`);
+      jest.spyOn(QueryResultsDataSource.prototype, 'getWorkspaces').mockRejectedValue(error);
+
+      await datastore.loadWorkspaces();
+
+      expect(await datastore.workspacesCache).toEqual(new Map<string, Workspace>());
       expect(datastore.errorTitle).toBe('Warning during result value query');
       expect(datastore.errorDescription).toContain('The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.');
     })

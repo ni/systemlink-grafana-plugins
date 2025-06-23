@@ -91,6 +91,27 @@ describe('QueryStepsDataSource', () => {
       expect(response).toMatchSnapshot();
     });
 
+    it('should return undefined if API throws unknown status code error', async () => {
+      const error = new Error('API failed');
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
+        .mockImplementationOnce(() => {
+          throw error;
+        });
+
+      let result;
+      let caughtError;
+
+      try {
+        result = await datastore.querySteps()
+      } catch (error) {
+        caughtError = (error as Error).message;
+      }
+
+      expect(caughtError).toBe(`The query failed due to an unknown error.`);
+      expect(result).toEqual(undefined);
+    });
+
     test('should raise an error when API fails', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps' }))
