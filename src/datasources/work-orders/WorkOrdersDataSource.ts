@@ -139,7 +139,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
             return user ? UsersUtils.getUserFullName(user) : userId;
           case WorkOrderPropertiesOptions.PROPERTIES:
               const properties = workOrder.properties || {};
-              return JSON.stringify(properties);
+              return Object.keys(properties).length > 0 ? JSON.stringify(properties) : '';
           default:
             return workOrder[field.field] ?? '';
         }

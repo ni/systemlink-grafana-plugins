@@ -140,7 +140,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
               const user = users.get(value);
               return user ? UsersUtils.getUserFullName(user) : '';
             case PropertiesProjectionMap.PROPERTIES.label:
-              return value == null ? '' : JSON.stringify(value);
+              return !!value && Object.keys(value).length > 0 ? JSON.stringify(value) : '';
             default:
               return value == null ? '' : value;
           }
