@@ -25,6 +25,7 @@ import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase
 import { defaultStepsQuery } from 'datasources/results/defaultQueries';
 import {
   MAX_TAKE_PER_REQUEST,
+  MIN_TAKE_PER_REQUEST,
   QUERY_STEPS_REQUEST_PER_SECOND,
   TAKE_LIMIT,
 } from 'datasources/results/constants/QuerySteps.constants';
@@ -120,7 +121,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     filter?: string,
     take?: number,
     continuationToken?: string,
-    returnCount = false
   ): Promise<QueryStepPathsResponse> {
     const defaultOrderBy = StepsPathProperties.path;
     return await this.post<QueryStepPathsResponse>(this.queryPathsUrl, {
@@ -129,7 +129,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       take,
       orderBy: defaultOrderBy,
       continuationToken,
-      returnCount,
     });
   }
 
@@ -140,11 +139,15 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     take?: number,
     descending?: boolean,
     resultFilter?: string,
-    returnCount = false
   ): Promise<QueryStepsResponse> {
+    const batchQueryConfig = {
+      maxTakePerRequest: MIN_TAKE_PER_REQUEST,
+      requestsPerSecond: QUERY_STEPS_REQUEST_PER_SECOND,
+    };
+
     const queryRecord = async (
       currentTake: number,
-      token?: string
+      continuationToken?: string
     ): Promise<QueryResponse<StepsResponseProperties>> => {
       const response = await this.querySteps(
         filter,
@@ -153,20 +156,22 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         currentTake,
         descending,
         resultFilter,
-        token,
-        returnCount
+        continuationToken
       );
+
+      // Check if the first step has more than 25 measurements and reduce the max take per request accordingly
+      const { steps } = response;
+      const firstStep = steps[0];
+      const { data } = firstStep || { data: { parameters: [] } };
+      const { parameters } = data || { parameters: [] };
+      const maxTakePerRequest = parameters.length >= 25 ? MIN_TAKE_PER_REQUEST : MAX_TAKE_PER_REQUEST;
+
+      batchQueryConfig.maxTakePerRequest = maxTakePerRequest;
 
       return {
         data: response.steps,
         continuationToken: response.continuationToken,
-        totalCount: response.totalCount,
       };
-    };
-
-    const batchQueryConfig = {
-      maxTakePerRequest: MAX_TAKE_PER_REQUEST,
-      requestsPerSecond: QUERY_STEPS_REQUEST_PER_SECOND,
     };
 
     const response = await queryInBatches(queryRecord, batchQueryConfig, take);
@@ -174,7 +179,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     return {
       steps: response.data,
       continuationToken: response.continuationToken,
-      totalCount: response.totalCount,
     };
   }
 
@@ -188,12 +192,11 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       currentTake: number,
       token?: string
     ): Promise<QueryResponse<StepPathResponseProperties>> => {
-      const response = await this.queryStepPaths(projection, filter, currentTake, token, returnCount);
+      const response = await this.queryStepPaths(projection, filter, currentTake, token);
 
       return {
         data: response.paths,
         continuationToken: response.continuationToken,
-        totalCount: response.totalCount,
       };
     };
 
@@ -207,7 +210,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     return {
       paths: response.data,
       continuationToken: response.continuationToken,
-      totalCount: response.totalCount,
     };
   }
 
@@ -243,7 +245,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         query.recordCount,
         defaultStepsQuery.descending,
         query.resultsQuery,
-        true
       );
 
       const stepsResponse = responseData.steps;
@@ -325,7 +326,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       programNameQuery,
       [StepsPathProperties.path],
       MAX_PATH_TAKE_PER_REQUEST,
-      true
     );
   }
 
@@ -562,10 +562,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       case StepsPropertiesOptions.STATUS:
         return (value as any)?.statusType || '';
       case StepsPropertiesOptions.WORKSPACE:
-            const workspaceId = value as string;
-            return this.workspaceValues.length 
-              ? getWorkspaceName(this.workspaceValues, workspaceId)
-              : workspaceId;
+        const workspaceId = value as string;
+        return this.workspaceValues.length ? getWorkspaceName(this.workspaceValues, workspaceId) : workspaceId;
       default:
         return value.toString();
     }

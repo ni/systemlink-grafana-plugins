@@ -1,3 +1,21 @@
+## [3.141.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.140.3...v3.141.0) (2025-06-23)
+
+### Features
+
+* **results:** extend the take from 500 to 1000 when number of measurements < 25 ([#324](https://github.com/ni/systemlink-grafana-plugins/issues/324)) ([2446ec8](https://github.com/ni/systemlink-grafana-plugins/commit/2446ec89648292d6827bd02f5395e167f26ffea7))
+
+## [3.140.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.140.2...v3.140.3) (2025-06-23)
+
+### Bug Fixes
+
+* removed dependency on returnCount to query in batches ([#321](https://github.com/ni/systemlink-grafana-plugins/issues/321)) ([183cc74](https://github.com/ni/systemlink-grafana-plugins/commit/183cc7490b6f297dfc54858aa1ee927de0fb5179))
+
+## [3.140.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.140.1...v3.140.2) (2025-06-23)
+
+### Bug Fixes
+
+* **core:** remove filtering of variable with datasource ([#322](https://github.com/ni/systemlink-grafana-plugins/issues/322)) ([77f3477](https://github.com/ni/systemlink-grafana-plugins/commit/77f3477d754fe386e48730cc7f333f6e309465e0))
+
 ## [3.140.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.140.0...v3.140.1) (2025-06-20)
 
 ### Bug Fixes
