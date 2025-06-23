@@ -1,3 +1,9 @@
+## [3.141.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.0...v3.141.1) (2025-06-23)
+
+### Bug Fixes
+
+* **workorders,testplans:** Display empty cell for empty properties ([#326](https://github.com/ni/systemlink-grafana-plugins/issues/326)) ([b6b0754](https://github.com/ni/systemlink-grafana-plugins/commit/b6b07542bd8e7a36f550450bb2052d994a0948e8))
+
 ## [3.141.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.140.3...v3.141.0) (2025-06-23)
 
 ### Features
