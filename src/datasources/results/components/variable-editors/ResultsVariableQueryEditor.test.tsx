@@ -250,6 +250,7 @@ describe('Steps Query Type', () => {
     });
 
     it('should not set default take when user saves with an invalid take', () => {
+      cleanup();
       renderEditor({
         refId: '',
         queryType: QueryType.Steps,
