@@ -1,3 +1,9 @@
+## [3.141.6](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.5...v3.141.6) (2025-06-24)
+
+### Bug Fixes
+
+* **results:** do not fallback to default 'take' when input is invalid - ResultsVariableEditor ([#329](https://github.com/ni/systemlink-grafana-plugins/issues/329)) ([ac0324f](https://github.com/ni/systemlink-grafana-plugins/commit/ac0324f9a8a16deb723cdfa7ae0d42e280187545))
+
 ## [3.141.5](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.4...v3.141.5) (2025-06-24)
 
 ### Bug Fixes
