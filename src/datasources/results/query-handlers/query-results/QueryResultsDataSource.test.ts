@@ -1,7 +1,7 @@
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
-import { Field } from '@grafana/data';
+import { DataQueryRequest, Field } from '@grafana/data';
 import { QueryResultsDataSource } from './QueryResultsDataSource';
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsVariableQuery } from 'datasources/results/types/QueryResults.types';
 import { OutputType, QueryType } from 'datasources/results/types/types';
@@ -55,6 +55,27 @@ describe('QueryResultsDataSource', () => {
       await expect(datastore.queryResults())
         .rejects
         .toThrow('The query failed due to the following error: (status 400) \"Error\"');
+    });
+
+    test('should return undefined if API throws unknown status code error', async () => {
+      const error = new Error('API failed');
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results' }))
+        .mockImplementationOnce(() => {
+          throw error;
+        });
+
+      let result;
+      let caughtError;
+
+      try {
+        result = await datastore.queryResults();
+      } catch (error) {
+        caughtError = (error as Error).message;
+      }
+
+      expect(caughtError).toBe(`The query failed due to an unknown error.`);
+      expect(result).toEqual(undefined);
     });
 
     test('should publish alertError event when error occurs', async () => {
@@ -148,7 +169,7 @@ describe('QueryResultsDataSource', () => {
       )
     });
 
-    test('should display an empty cell when properties of type pbject are returned as empty objects', async () => {
+    test('should display an empty cell when properties of type object are returned as empty objects', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
         .mockReturnValue(createFetchResponse({
@@ -391,6 +412,58 @@ describe('QueryResultsDataSource', () => {
         expect(fields).toMatchSnapshot();
       });
 
+    test('should replace variables', async () => {
+      const query = {
+        refId: 'A',
+        queryType: QueryType.Results,
+        properties: [ResultsProperties.partNumber],
+        outputType: OutputType.Data,
+        queryBy: 'PartNumber = "${var}"',
+        recordCount: 10
+      };
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('PartNumber = "ReplacedValue"');
+      jest.spyOn(datastore, 'queryResults').mockResolvedValue({ results: [] });
+      const options = { scopedVars: { var: { value: 'ReplacedValue' } } };
+
+      await datastore.runQuery(query, options as unknown as DataQueryRequest);
+
+      expect(templateSrv.replace).toHaveBeenCalledWith("PartNumber = \"${var}\"", options.scopedVars);
+      expect(datastore.queryResults).toHaveBeenCalledWith(
+        'PartNumber = "ReplacedValue"',
+        'STARTED_AT',
+        [ResultsProperties.partNumber],
+        10,
+        true,
+        true
+      );
+    });
+
+    test('should transform fields with multiple values', async () => {
+      const query = {
+        refId: 'A',
+        queryType: QueryType.Results,
+        properties: [ResultsProperties.partNumber],
+        outputType: OutputType.Data,
+        queryBy: 'PartNumber = "${var}"',
+        recordCount: 10
+      };
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('PartNumber = "{1,2}"');
+      jest.spyOn(datastore, 'queryResults').mockResolvedValue({ results: [] });
+      const options = { scopedVars: { var: { value: '{1,2}' } } };
+
+      await datastore.runQuery(query, options as unknown as DataQueryRequest);
+
+      expect(templateSrv.replace).toHaveBeenCalledWith("PartNumber = \"${var}\"", options.scopedVars);
+      expect(datastore.queryResults).toHaveBeenCalledWith(
+        "(PartNumber = \"1\" || PartNumber = \"2\")",
+        'STARTED_AT',
+        [ResultsProperties.partNumber],
+        10,
+        true,
+        true
+      );
+    });
+
     test('includes templateSrv replaced values in the filter', async () => {
       const timeRange = {
         Started: 'startedAt',
@@ -508,6 +581,7 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.loadWorkspaces();
 
+      expect(await datastore.workspacesCache).toEqual(new Map<string, Workspace>());
       expect(datastore.errorTitle).toBe('Warning during result value query');
       expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
     });
@@ -519,6 +593,7 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.getPartNumbers();
 
+      expect(await datastore.partNumbersCache).toEqual([]);
       expect(datastore.errorTitle).toBe('Warning during result value query');
       expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
     });
@@ -530,6 +605,7 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.loadWorkspaces();
 
+      expect(await datastore.workspacesCache).toEqual(new Map<string, Workspace>());
       expect(datastore.errorTitle).toBe('Warning during result value query');
       expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
     });
@@ -541,6 +617,19 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.getPartNumbers();
 
+      expect(await datastore.partNumbersCache).toEqual([]);
+      expect(datastore.errorTitle).toBe('Warning during result value query');
+      expect(datastore.errorDescription).toContain('The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.');
+    })
+
+    it('should handle 504 error in loadWorkspaces', async () => {
+      (ResultsDataSourceBase as any)._workspacesCache = null;
+      const error = new Error(`API failed Error message: status code: 504 ${JSON.stringify({ message: 'Detailed error message'})}`);
+      jest.spyOn(QueryResultsDataSource.prototype, 'getWorkspaces').mockRejectedValue(error);
+
+      await datastore.loadWorkspaces();
+
+      expect(await datastore.workspacesCache).toEqual(new Map<string, Workspace>());
       expect(datastore.errorTitle).toBe('Warning during result value query');
       expect(datastore.errorDescription).toContain('The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.');
     })

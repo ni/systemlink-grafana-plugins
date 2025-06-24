@@ -202,7 +202,7 @@ describe('ResultsQueryEditor', () => {
       expect(renderResult.queryByTestId('query-steps-editor')).not.toBeInTheDocument();
     });
 
-    test('should render QueryResultsEditor when query type is steps', () => {
+    test('should render QueryStepsEditor when query type is steps', () => {
       const query = {
         refId: 'A',
         queryType: QueryType.Steps,

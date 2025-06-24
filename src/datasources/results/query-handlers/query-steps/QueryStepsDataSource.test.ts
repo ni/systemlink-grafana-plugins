@@ -7,7 +7,7 @@ import {
   requestMatching,
   setupDataSource,
 } from 'test/fixtures';
-import { Field } from '@grafana/data';
+import { DataQueryRequest, Field } from '@grafana/data';
 import {
   QuerySteps,
   QueryStepsResponse,
@@ -89,6 +89,27 @@ describe('QueryStepsDataSource', () => {
       const response = await datastore.querySteps();
 
       expect(response).toMatchSnapshot();
+    });
+
+    it('should return undefined if API throws unknown status code error', async () => {
+      const error = new Error('API failed');
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
+        .mockImplementationOnce(() => {
+          throw error;
+        });
+
+      let result;
+      let caughtError;
+
+      try {
+        result = await datastore.querySteps()
+      } catch (error) {
+        caughtError = (error as Error).message;
+      }
+
+      expect(caughtError).toBe(`The query failed due to an unknown error.`);
+      expect(result).toEqual(undefined);
     });
 
     test('should raise an error when API fails', async () => {
@@ -796,6 +817,58 @@ describe('QueryStepsDataSource', () => {
       expect(fields).toMatchSnapshot();
     });
 
+    test('should replace variables', async () => {
+      const query = {
+        refId: 'A',
+        queryType: QueryType.Steps,
+        properties: [StepsProperties.data],
+        outputType: OutputType.Data,
+        resultsQuery: 'PartNumber = "${var}"',
+        recordCount: 10
+      } as QuerySteps;
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('PartNumber = "ReplacedValue"');
+      jest.spyOn(datastore, 'queryStepsInBatches').mockResolvedValue({ steps: [] });
+      const options = { scopedVars: { var: { value: 'ReplacedValue' } } };
+
+      await datastore.runQuery(query, options as unknown as DataQueryRequest);
+
+      expect(templateSrv.replace).toHaveBeenCalledWith("PartNumber = \"${var}\"", options.scopedVars);
+      expect(datastore.queryStepsInBatches).toHaveBeenCalledWith(
+        undefined,
+        'STARTED_AT',
+        [StepsProperties.data],
+        10,
+        false,
+        'PartNumber = "ReplacedValue"',
+      );
+    });
+
+    test('should transform fields with multiple values', async () => {
+      const query = {
+        refId: 'A',
+        queryType: QueryType.Steps,
+        properties: [StepsProperties.data],
+        outputType: OutputType.Data,
+        resultsQuery: 'PartNumber = "${var}"',
+        recordCount: 10
+      } as QuerySteps;
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('PartNumber = "{1,2}"');
+      jest.spyOn(datastore, 'queryStepsInBatches').mockResolvedValue({ steps: [] });
+      const options = { scopedVars: { var: { value: '{1,2}' } } };
+
+      await datastore.runQuery(query, options as unknown as DataQueryRequest);
+
+      expect(templateSrv.replace).toHaveBeenCalledWith("PartNumber = \"${var}\"", options.scopedVars);
+      expect(datastore.queryStepsInBatches).toHaveBeenCalledWith(
+        undefined,
+        'STARTED_AT',
+        [StepsProperties.data],
+        10,
+        false,
+        "(PartNumber = \"1\" || PartNumber = \"2\")"
+      );
+    });
+
     test('should include templateSrv replaced values in the filter', async () => {
       const timeRange = {
         Started: 'startedAt',
@@ -923,6 +996,7 @@ describe('QueryStepsDataSource', () => {
       expect(datastore.errorDescription).toContain(
         'Some values may not be available in the query builder lookups due to an unknown error.'
       );
+      expect(await datastore.workspacesCache).toEqual(new Map());
     });
 
     it('should contain error details when error contains additional information', async () => {
@@ -938,6 +1012,7 @@ describe('QueryStepsDataSource', () => {
       expect(datastore.errorDescription).toContain(
         'Some values may not be available in the query builder lookups due to the following error:Detailed error message.'
       );
+      expect(await datastore.workspacesCache).toEqual(new Map());
     });
   });
 
