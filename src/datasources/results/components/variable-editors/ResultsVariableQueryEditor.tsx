@@ -157,7 +157,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
                   minWidth={25}
                   maxWidth={25}
                   type="number"
-                  defaultValue={queryResultsquery.resultsTake ? queryResultsquery.resultsTake : 1000}
+                  defaultValue={queryResultsquery.resultsTake}
                   onCommitChange={onResultsRecordCountChange}
                   placeholder={placeholders.take}
                   onKeyDown={event => {
@@ -190,7 +190,7 @@ export function ResultsVariableQueryEditor({ query, onChange, datasource }: Prop
               minWidth={25}
               maxWidth={25}
               type="number"
-              defaultValue={stepsVariableQuery.stepsTake ? stepsVariableQuery.stepsTake : 1000}
+              defaultValue={stepsVariableQuery.stepsTake}
               onCommitChange={onStepsRecordCountChange}
               placeholder={placeholders.take}
               onKeyDown={event => {

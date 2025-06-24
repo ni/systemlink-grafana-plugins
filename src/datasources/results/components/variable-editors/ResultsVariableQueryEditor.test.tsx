@@ -141,6 +141,19 @@ describe('Results Query Type', () => {
       expect(takeInput).toHaveValue(1000);
     });
 
+    it('should not set default take when user saves with an invalid take', () => {
+      renderEditor({
+        refId: '',
+        queryType: QueryType.Results,
+        resultsTake: 0,
+        properties: ResultsVariableProperties[0].value,
+        queryBy: '',
+      } as unknown as ResultsQuery);
+
+      const resultsTakeInput = screen.getAllByPlaceholderText('Enter record count')[1];
+      expect(resultsTakeInput).toHaveValue(0);
+    });
+
     it('should only allows numbers in Take field', async () => {
       const takeInput = screen.getByPlaceholderText('Enter record count');
 
@@ -233,6 +246,19 @@ describe('Steps Query Type', () => {
       const takeInput = screen.getByPlaceholderText('Enter record count');
       expect(takeInput).toBeInTheDocument();
       expect(takeInput).toHaveValue(1000);
+    });
+
+    it('should not set default take when user saves with an invalid take', () => {
+      renderEditor({
+        refId: '',
+        queryType: QueryType.Steps,
+        stepsTake: 0,
+        queryByResults: 'resultsQuery',
+        queryBySteps: '',
+      } as unknown as ResultsQuery);
+
+      const takeInput = screen.getByPlaceholderText('Enter record count');
+      expect(takeInput).toHaveValue(0);
     });
 
     it('should render with existing stepsTake when take is already set', () => {
