@@ -1,3 +1,9 @@
+## [3.141.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.3...v3.141.4) (2025-06-24)
+
+### Bug Fixes
+
+* **results:** fix ResultsQueryEditor to handle undefined queryType in Explore mode ([#328](https://github.com/ni/systemlink-grafana-plugins/issues/328)) ([8330560](https://github.com/ni/systemlink-grafana-plugins/commit/8330560251d0bad257f26814615c6166a37d6004))
+
 ## [3.141.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.2...v3.141.3) (2025-06-23)
 
 ### Bug Fixes
