@@ -1,3 +1,9 @@
+## [3.141.5](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.4...v3.141.5) (2025-06-24)
+
+### Bug Fixes
+
+* **results:** enhance error handling for 429 and 404 API responses  ([#330](https://github.com/ni/systemlink-grafana-plugins/issues/330)) ([83b0dc9](https://github.com/ni/systemlink-grafana-plugins/commit/83b0dc94aa68bdb33a6803a0711a0e08c7f46175))
+
 ## [3.141.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.3...v3.141.4) (2025-06-24)
 
 ### Bug Fixes
