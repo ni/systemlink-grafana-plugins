@@ -15,8 +15,6 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
   const [resultsQuery, setResultsQuery] = React.useState<QueryResults>();
   const [stepsQuery, setStepsQuery] = React.useState<QuerySteps>();
 
-  query = datasource.prepareQuery(query);
-
   const handleQueryChange = useCallback(
     (query: ResultsQuery, runQuery = true): void => {
       onChange(query);
@@ -35,9 +33,10 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
           setStepsQuery(query as QuerySteps);
         }
         handleQueryChange({
+          ...query,
+          queryType,
           ...defaultResultsQuery,
           ...resultsQuery,
-          queryType: QueryType.Results,
           refId: query.refId,
         });
         break;
@@ -47,6 +46,8 @@ export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: 
           setResultsQuery(query as QueryResults);
         }
         handleQueryChange({
+          ...query,
+          queryType,
           ...defaultStepsQuery,
           ...stepsQuery,
           refId: query.refId,
