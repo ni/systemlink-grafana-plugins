@@ -9,7 +9,6 @@ import { ResultsVariableProperties } from 'datasources/results/types/QueryResult
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 import React from 'react';
 import userEvent from '@testing-library/user-event';
-import { result } from 'lodash';
 
 const fakeWorkspaces: Workspace[] = [
   {
