@@ -142,6 +142,26 @@ describe('QueryStepsDataSource', () => {
       });
     });
 
+    it('should throw too many requests error when API returns 429 status', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps' }))
+        .mockReturnValue(createFetchError(429));
+
+      await expect(datastore.querySteps()).rejects.toThrow(
+        'The query to fetch steps failed due to too many requests. Please try again later.'
+      );
+    });
+
+    it('should throw not found error when API returns 404 status', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps' }))
+        .mockReturnValue(createFetchError(404));
+
+      await expect(datastore.querySteps()).rejects.toThrow(
+        'The query to fetch steps failed because the requested resource was not found. Please check the query parameters and try again.'
+      );
+    })
+
     it('should throw timeOut error when API returns 504 status', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps' }))
