@@ -7,7 +7,7 @@ import {
   requestMatching,
   setupDataSource,
 } from 'test/fixtures';
-import { Field } from '@grafana/data';
+import { DataQueryRequest, Field } from '@grafana/data';
 import {
   QuerySteps,
   QueryStepsResponse,
@@ -815,6 +815,58 @@ describe('QueryStepsDataSource', () => {
 
       const fields = response.data[0].fields as Field[];
       expect(fields).toMatchSnapshot();
+    });
+
+    test('should replace variables', async () => {
+      const query = {
+        refId: 'A',
+        queryType: QueryType.Steps,
+        properties: [StepsProperties.data],
+        outputType: OutputType.Data,
+        resultsQuery: 'PartNumber = "${var}"',
+        recordCount: 10
+      } as QuerySteps;
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('PartNumber = "ReplacedValue"');
+      jest.spyOn(datastore, 'queryStepsInBatches').mockResolvedValue({ steps: [] });
+      const options = { scopedVars: { var: { value: 'ReplacedValue' } } };
+
+      await datastore.runQuery(query, options as unknown as DataQueryRequest);
+
+      expect(templateSrv.replace).toHaveBeenCalledWith("PartNumber = \"${var}\"", options.scopedVars);
+      expect(datastore.queryStepsInBatches).toHaveBeenCalledWith(
+        undefined,
+        'STARTED_AT',
+        [StepsProperties.data],
+        10,
+        false,
+        'PartNumber = "ReplacedValue"',
+      );
+    });
+
+    test('should transform fields with multiple values', async () => {
+      const query = {
+        refId: 'A',
+        queryType: QueryType.Steps,
+        properties: [StepsProperties.data],
+        outputType: OutputType.Data,
+        resultsQuery: 'PartNumber = "${var}"',
+        recordCount: 10
+      } as QuerySteps;
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('PartNumber = "{1,2}"');
+      jest.spyOn(datastore, 'queryStepsInBatches').mockResolvedValue({ steps: [] });
+      const options = { scopedVars: { var: { value: '{1,2}' } } };
+
+      await datastore.runQuery(query, options as unknown as DataQueryRequest);
+
+      expect(templateSrv.replace).toHaveBeenCalledWith("PartNumber = \"${var}\"", options.scopedVars);
+      expect(datastore.queryStepsInBatches).toHaveBeenCalledWith(
+        undefined,
+        'STARTED_AT',
+        [StepsProperties.data],
+        10,
+        false,
+        "(PartNumber = \"1\" || PartNumber = \"2\")"
+      );
     });
 
     test('should include templateSrv replaced values in the filter', async () => {

@@ -1,7 +1,7 @@
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
-import { Field } from '@grafana/data';
+import { DataQueryRequest, Field } from '@grafana/data';
 import { QueryResultsDataSource } from './QueryResultsDataSource';
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsVariableQuery } from 'datasources/results/types/QueryResults.types';
 import { OutputType, QueryType } from 'datasources/results/types/types';
@@ -411,6 +411,58 @@ describe('QueryResultsDataSource', () => {
         const fields = response.data[0].fields as Field[];
         expect(fields).toMatchSnapshot();
       });
+
+    test('should replace variables', async () => {
+      const query = {
+        refId: 'A',
+        queryType: QueryType.Results,
+        properties: [ResultsProperties.partNumber],
+        outputType: OutputType.Data,
+        queryBy: 'PartNumber = "${var}"',
+        recordCount: 10
+      };
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('PartNumber = "ReplacedValue"');
+      jest.spyOn(datastore, 'queryResults').mockResolvedValue({ results: [] });
+      const options = { scopedVars: { var: { value: 'ReplacedValue' } } };
+
+      await datastore.runQuery(query, options as unknown as DataQueryRequest);
+
+      expect(templateSrv.replace).toHaveBeenCalledWith("PartNumber = \"${var}\"", options.scopedVars);
+      expect(datastore.queryResults).toHaveBeenCalledWith(
+        'PartNumber = "ReplacedValue"',
+        'STARTED_AT',
+        [ResultsProperties.partNumber],
+        10,
+        true,
+        true
+      );
+    });
+
+    test('should transform fields with multiple values', async () => {
+      const query = {
+        refId: 'A',
+        queryType: QueryType.Results,
+        properties: [ResultsProperties.partNumber],
+        outputType: OutputType.Data,
+        queryBy: 'PartNumber = "${var}"',
+        recordCount: 10
+      };
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('PartNumber = "{1,2}"');
+      jest.spyOn(datastore, 'queryResults').mockResolvedValue({ results: [] });
+      const options = { scopedVars: { var: { value: '{1,2}' } } };
+
+      await datastore.runQuery(query, options as unknown as DataQueryRequest);
+
+      expect(templateSrv.replace).toHaveBeenCalledWith("PartNumber = \"${var}\"", options.scopedVars);
+      expect(datastore.queryResults).toHaveBeenCalledWith(
+        "(PartNumber = \"1\" || PartNumber = \"2\")",
+        'STARTED_AT',
+        [ResultsProperties.partNumber],
+        10,
+        true,
+        true
+      );
+    });
 
     test('includes templateSrv replaced values in the filter', async () => {
       const timeRange = {
