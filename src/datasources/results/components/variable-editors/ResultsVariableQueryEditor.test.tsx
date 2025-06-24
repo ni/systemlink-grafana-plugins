@@ -9,6 +9,7 @@ import { ResultsVariableProperties } from 'datasources/results/types/QueryResult
 import { QueryStepsDataSource } from 'datasources/results/query-handlers/query-steps/QueryStepsDataSource';
 import React from 'react';
 import userEvent from '@testing-library/user-event';
+import { result } from 'lodash';
 
 const fakeWorkspaces: Workspace[] = [
   {
@@ -160,7 +161,7 @@ describe('Results Query Type', () => {
       // User tries to enter a non-numeric value
       await userEvent.clear(takeInput);
       await userEvent.type(takeInput, 'abc');
-      await waitFor(() => {
+      await waitFor(() => { 
         expect(takeInput).toHaveValue(null);
       });
 
@@ -239,6 +240,7 @@ describe('Steps Query Type', () => {
       renderEditor({
         refId: '',
         queryType: QueryType.Steps,
+        stepsTake: 1000,
         queryByResults: 'resultsQuery',
         queryBySteps: '',
       } as unknown as ResultsQuery);
@@ -257,7 +259,7 @@ describe('Steps Query Type', () => {
         queryBySteps: '',
       } as unknown as ResultsQuery);
 
-      const takeInput = screen.getByPlaceholderText('Enter record count');
+      const takeInput = screen.getAllByPlaceholderText('Enter record count')[0];
       expect(takeInput).toHaveValue(0);
     });
 
