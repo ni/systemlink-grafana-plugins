@@ -158,6 +158,51 @@ describe('Results Query Type', () => {
         expect(takeInput).toHaveValue(500);
       });
     });
+
+    it('should show error message when when user changes take to number greater than max take', async () => {
+      const takeInput = screen.getByPlaceholderText('Enter record count');
+
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, '1000000');
+      await userEvent.tab();
+
+      await waitFor(() => {
+        expect(screen.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
+      });
+    });
+
+    it('should show error message when when user changes take to number less than min take', async () => {
+      const takeInput = screen.getByPlaceholderText('Enter record count');
+
+      await userEvent.clear(takeInput);
+      await userEvent.tab();
+
+      await waitFor(() => {
+        expect(screen.getByText('Enter a value greater than 0')).toBeInTheDocument();
+      });
+    });
+
+    it('should not show error message when when user changes take to number between min and max take', async () => {
+      const takeInput = screen.getByPlaceholderText('Enter record count');
+
+      // User enters a value greater than max take
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, '1000000');
+      await userEvent.tab();
+      await waitFor(() => {
+        expect(screen.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
+      });
+
+      // User enters a valid value
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, '100');
+      await userEvent.tab();
+
+      await waitFor(() => {
+        expect(screen.queryByText('Enter a value greater than 0')).not.toBeInTheDocument();
+        expect(screen.queryByText('Enter a value less than or equal to 10,000')).not.toBeInTheDocument();
+      });
+    });
   });
 });
 
@@ -222,20 +267,27 @@ describe('Steps Query Type', () => {
   });
 
   describe('Take input field', () => {
-    it('should render take input field with 1000 as value by default', () => {
+    let takeInput: HTMLInputElement;
+    
+    beforeEach(() => {
+      cleanup();
       renderEditor({
         refId: '',
         queryType: QueryType.Steps,
         queryByResults: 'resultsQuery',
         queryBySteps: '',
       } as unknown as ResultsQuery);
+      
+      takeInput = screen.getByPlaceholderText('Enter record count');
+    });
 
-      const takeInput = screen.getByPlaceholderText('Enter record count');
+    it('should render take input field with 1000 as value by default', () => {
       expect(takeInput).toBeInTheDocument();
       expect(takeInput).toHaveValue(1000);
     });
 
     it('should render with existing stepsTake when take is already set', () => {
+      cleanup();
       renderEditor({
         refId: '',
         queryType: QueryType.Steps,
@@ -249,15 +301,6 @@ describe('Steps Query Type', () => {
     });
 
     it('should only allows numbers in Take field', async () => {
-      renderEditor({
-        refId: '',
-        queryType: QueryType.Steps,
-        queryByResults: 'resultsQuery',
-        queryBySteps: '',
-        stepsTake: 2000,
-      } as unknown as ResultsQuery);
-      const takeInput = screen.getByPlaceholderText('Enter record count');
-
       // User tries to enter a non-numeric value
       await userEvent.clear(takeInput);
       await userEvent.type(takeInput, 'abc');
@@ -270,6 +313,45 @@ describe('Steps Query Type', () => {
       await userEvent.type(takeInput, '500');
       await waitFor(() => {
         expect(takeInput).toHaveValue(500);
+      });
+    });
+
+    it('should show error message when when user changes take to number greater than max take', async () => {
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, '1000000');
+      await userEvent.tab();
+
+      await waitFor(() => {
+        expect(screen.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
+      });
+    });
+
+    it('should show error message when when user changes take to number less than min take', async () => {
+      await userEvent.clear(takeInput);
+      await userEvent.tab();
+
+      await waitFor(() => {
+        expect(screen.getByText('Enter a value greater than 0')).toBeInTheDocument();
+      });
+    });
+
+    it('should not show error message when when user changes take to number between min and max take', async () => {
+      // User enters a value greater than max take
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, '1000000');
+      await userEvent.tab();
+      await waitFor(() => {
+        expect(screen.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
+      });
+
+      // User enters a valid value
+      await userEvent.clear(takeInput);
+      await userEvent.type(takeInput, '100');
+      await userEvent.tab();
+
+      await waitFor(() => {
+        expect(screen.queryByText('Enter a value greater than 0')).not.toBeInTheDocument();
+        expect(screen.queryByText('Enter a value less than or equal to 10,000')).not.toBeInTheDocument();
       });
     });
   });
