@@ -99,7 +99,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
       let errorMessage: string;
       switch (errorDetails.statusCode) {
-        case undefined:
+        case '':
           errorMessage = 'The query failed due to an unknown error.';
           break;
         case '404':
