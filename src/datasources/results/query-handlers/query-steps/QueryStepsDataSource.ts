@@ -34,7 +34,7 @@ import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
 import { QueryResponse, Workspace } from 'core/types';
-import { getWorkspaceName, queryInBatches } from 'core/utils';
+import { getWorkspaceName, queryInBatches, sleep } from 'core/utils';
 import {
   MAX_PATH_TAKE_PER_REQUEST,
   QUERY_PATH_REQUEST_PER_SECOND,
@@ -51,7 +51,8 @@ import {
   MeasurementProperties,
   measurementProperties,
 } from 'datasources/results/constants/stepMeasurements.constants';
-import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
+import { BackendSrv, BackendSrvRequest, FetchError, getBackendSrv, getTemplateSrv, isFetchError, TemplateSrv } from '@grafana/runtime';
+import { lastValueFrom } from 'rxjs';
 
 type GrafanaColumns = Array<{ name: string; values: string[]; type: FieldType }>;
 export class QueryStepsDataSource extends ResultsDataSourceBase {
@@ -83,16 +84,21 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     returnCount = false
   ): Promise<QueryStepsResponse> {
     try {
-      const response = await this.post<QueryStepsResponse>(`${this.queryStepsUrl}`, {
-        filter,
-        orderBy,
-        descending,
-        projection,
-        take,
-        resultFilter,
-        continuationToken,
-        returnCount,
-      });
+      const response = await this.fetchSteps<QueryStepsResponse>({
+        url: `${this.queryStepsUrl}`, 
+        data: {
+          filter,
+          orderBy,
+          descending,
+          projection,
+          take,
+          resultFilter,
+          continuationToken,
+          returnCount,
+        },
+        method: 'POST',
+        showErrorAlert: false,        
+    });
       return response;
     } catch (error) {
       const errorDetails = extractErrorInfo((error as Error).message);
@@ -124,6 +130,32 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       throw new Error(errorMessage);
     }
   }
+
+  private async fetchSteps<T>(options: BackendSrvRequest, retries = 0): Promise<T> {
+    const url = options.url;
+    try {
+      return (await lastValueFrom(this.backendSrv.fetch<T>(options))).data;
+    } catch (error) {
+      if (isFetchError(error) && error.status === 429 && retries < 3) {
+        await sleep(Math.random() * 1000 * 2 ** retries);
+        return this.fetchSteps({...options, url}, retries + 1);
+      }
+      if (isFetchError(error)) {
+        const fetchError = error as FetchError;
+        const statusCode = fetchError.status;
+        const genericErrorMessage = `Request to url "${options.url}" failed with status code: ${statusCode}.`;
+        if (statusCode === 504) {
+          throw new Error(genericErrorMessage);
+        } else {
+          const data = fetchError.data;
+          const errorMessage = data.error?.message || JSON.stringify(data);
+          throw new Error(`${genericErrorMessage} Error message: ${errorMessage}`);
+        }
+      }
+      throw error;
+    }
+  }
+
 
   private async queryStepPaths(
     projection?: StepsPathProperties[],
