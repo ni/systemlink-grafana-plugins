@@ -1027,6 +1027,34 @@ describe('loadWorkspaces', () => {
       `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`
     );
   });
+
+  it('should throw too many requests error when API returns 429 status', async () => {
+    datastore.errorTitle = '';
+    jest
+      .spyOn(datastore.workspaceUtils, 'getWorkspaces')
+      .mockRejectedValue(new Error('Request failed with status code: 429'));
+
+    await datastore.loadWorkspaces();
+
+    expect(datastore.errorTitle).toBe('Warning during testplans query');
+    expect(datastore.errorDescription).toContain(
+      `The query builder lookups failed due to too many requests. Please try again later.`
+    );
+  });
+
+  it('should throw not found error when API returns 404 status', async () => {
+    datastore.errorTitle = '';
+    jest
+      .spyOn(datastore.workspaceUtils, 'getWorkspaces')
+      .mockRejectedValue(new Error('Request failed with status code: 404'));
+
+    await datastore.loadWorkspaces();
+
+    expect(datastore.errorTitle).toBe('Warning during testplans query');
+    expect(datastore.errorDescription).toContain(
+      `The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.`
+    );
+  });
 });
 
 describe('loadUsers', () => {
@@ -1075,6 +1103,34 @@ describe('loadUsers', () => {
     expect(datastore.errorTitle).toBe('Warning during testplans query');
     expect(datastore.errorDescription).toContain(
       `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`
+    );
+  });
+
+  it('should throw too many requests error when API returns 429 status', async () => {
+    datastore.errorTitle = '';
+    jest
+      .spyOn(datastore.usersUtils, 'getUsers')
+      .mockRejectedValue(new Error('Request failed with status code: 429'));
+
+    await datastore.loadUsers();
+
+    expect(datastore.errorTitle).toBe('Warning during testplans query');
+    expect(datastore.errorDescription).toContain(
+      `The query builder lookups failed due to too many requests. Please try again later.`
+    );
+  });
+
+  it('should throw not found error when API returns 404 status', async () => {
+    datastore.errorTitle = '';
+    jest
+      .spyOn(datastore.usersUtils, 'getUsers')
+      .mockRejectedValue(new Error('Request failed with status code: 404'));
+
+    await datastore.loadUsers();
+
+    expect(datastore.errorTitle).toBe('Warning during testplans query');
+    expect(datastore.errorDescription).toContain(
+      `The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.`
     );
   });
 });
@@ -1126,6 +1182,34 @@ describe('loadSystemAliases', () => {
       `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`
     );
   });
+
+  it('should throw too many requests error when API returns 429 status', async () => {
+    datastore.errorTitle = '';
+    jest
+      .spyOn(datastore.systemUtils, 'getSystemAliases')
+      .mockRejectedValue(new Error('Request failed with status code: 429'));
+
+    await datastore.loadSystemAliases();
+
+    expect(datastore.errorTitle).toBe('Warning during testplans query');
+    expect(datastore.errorDescription).toContain(
+      `The query builder lookups failed due to too many requests. Please try again later.`
+    );
+  });
+
+  it('should throw not found error when API returns 404 status', async () => {
+    datastore.errorTitle = '';
+    jest
+      .spyOn(datastore.systemUtils, 'getSystemAliases')
+      .mockRejectedValue(new Error('Request failed with status code: 404'));
+
+    await datastore.loadSystemAliases();
+
+    expect(datastore.errorTitle).toBe('Warning during testplans query');
+    expect(datastore.errorDescription).toContain(
+      `The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.`
+    );
+  });
 });
 
 describe('loadProductNamesAndPartNumbers', ()=>{
@@ -1174,6 +1258,34 @@ describe('loadProductNamesAndPartNumbers', ()=>{
     expect(datastore.errorTitle).toBe('Warning during testplans query');
     expect(datastore.errorDescription).toContain(
       `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`
+    );
+  });
+
+  it('should throw too many requests error when API returns 429 status', async () => {
+    datastore.errorTitle = '';
+    jest
+      .spyOn(datastore.productUtils, 'getProductNamesAndPartNumbers')
+      .mockRejectedValue(new Error('Request failed with status code: 429'));
+
+    await datastore.loadProductNamesAndPartNumbers();
+
+    expect(datastore.errorTitle).toBe('Warning during testplans query');
+    expect(datastore.errorDescription).toContain(
+      `The query builder lookups failed due to too many requests. Please try again later.`
+    );
+  });
+
+  it('should throw not found error when API returns 404 status', async () => {
+    datastore.errorTitle = '';
+    jest
+      .spyOn(datastore.productUtils, 'getProductNamesAndPartNumbers')
+      .mockRejectedValue(new Error('Request failed with status code: 404'));
+
+    await datastore.loadProductNamesAndPartNumbers();
+
+    expect(datastore.errorTitle).toBe('Warning during testplans query');
+    expect(datastore.errorDescription).toContain(
+      `The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.`
     );
   });
 })
@@ -1236,6 +1348,26 @@ describe('queryTestPlans', () => {
         'The query to fetch testplans experienced a timeout error. Narrow your query with a more specific filter and try again.'
       );
     });
+
+    it('should throw too many requests error when API returns 429 status', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/niworkorder/v1/query-testplans' }))
+        .mockReturnValue(createFetchError(429));
+
+      await expect(datastore.queryTestPlans()).rejects.toThrow(
+        'The query to fetch testplans failed due to too many requests. Please try again later.'
+      );
+    });
+
+    it('should throw not found error when API returns 404 status', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/niworkorder/v1/query-testplans' }))
+        .mockReturnValue(createFetchError(404));
+
+      await expect(datastore.queryTestPlans()).rejects.toThrow(
+        'The query to fetch testplans failed because the requested resource was not found. Please check the query parameters and try again.'
+      );
+    })
 
     it('should throw error with unknown error when API returns error without status', async () => {
       backendServer.fetch
