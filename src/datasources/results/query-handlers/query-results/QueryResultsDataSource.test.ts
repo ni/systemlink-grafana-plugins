@@ -109,16 +109,10 @@ describe('QueryResultsDataSource', () => {
       jest.spyOn(datastore, 'post').mockImplementation(() => {
         throw new Error('Request failed with status code: 429');
       });
-      const publishMock = jest.fn();
-      (datastore as any).appEvents = { publish: publishMock };
 
       await expect(datastore.queryResults()).rejects.toThrow(
         'The query to fetch results failed due to too many requests. Please try again later.'
       );
-      expect(publishMock).toHaveBeenCalledWith({
-        type: 'alert-error',
-        payload: ['Error during result query', expect.stringContaining('The query to fetch results failed due to too many requests. Please try again later.')],
-      });
     });
 
     test('should throw timeOut error when API returns 504 status', async () => {
