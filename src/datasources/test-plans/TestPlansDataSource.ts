@@ -513,7 +513,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   private isRecordCountValid(query: TestPlansQuery): boolean {
-    return query.recordCount !== undefined
+    return query.recordCount !== undefined && query.recordCount >= 0 && query.recordCount <= QUERY_TEST_PLANS_MAX_TAKE;
   }
 
   private isPropertiesValid(query: TestPlansQuery): boolean {

@@ -1572,4 +1572,26 @@ describe('metricFindQuery', () => {
 
     expect(result).toEqual([]);
   });
+
+  test('should return empty array when record count is less than 0', async () => {
+    const mockQuery = {
+      refId: 'A',
+      recordCount: -1,
+    };
+
+    const result = await datastore.metricFindQuery(mockQuery, {} as LegacyMetricFindQueryOptions);
+
+    expect(result).toEqual([]);
+  });
+
+  test('should return empty array when record count is greater than max take', async () => {
+    const mockQuery = {
+      refId: 'A',
+      recordCount: 1000000,
+    };
+
+    const result = await datastore.metricFindQuery(mockQuery, {} as LegacyMetricFindQueryOptions);
+
+    expect(result).toEqual([]);
+  });
 });

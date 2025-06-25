@@ -216,7 +216,7 @@ describe('TestPlansVariableQueryEditor', () => {
 
       await waitFor(() => {
         expect(container.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
-        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: undefined }));
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: 1000000 }));
       });
     });
 
