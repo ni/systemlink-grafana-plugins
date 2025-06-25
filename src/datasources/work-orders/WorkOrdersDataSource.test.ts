@@ -711,9 +711,9 @@ describe('WorkOrdersDataSource', () => {
     });
 
     it('should throw too many requests error when API returns 429 status', async () => {
-      backendServer.fetch
-        .calledWith(requestMatching({ url: '/niworkorder/v1/query-workorders' }))
-        .mockReturnValue(createFetchError(429));
+      jest.spyOn(datastore, 'post').mockImplementation(() => {
+        throw new Error('Request failed with status code: 429');
+      });
 
       await expect(datastore.queryWorkOrders({})).rejects.toThrow(
         'The query to fetch workorders failed due to too many requests. Please try again later.'
