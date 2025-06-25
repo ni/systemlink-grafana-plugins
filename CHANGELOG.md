@@ -1,3 +1,9 @@
+## [3.141.7](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.6...v3.141.7) (2025-06-25)
+
+### Bug Fixes
+
+* **results:** Fix duplicate error toasts in steps ([#333](https://github.com/ni/systemlink-grafana-plugins/issues/333)) ([6307093](https://github.com/ni/systemlink-grafana-plugins/commit/63070938b29731f9f57a117c48b589928b4f5d31))
+
 ## [3.141.6](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.5...v3.141.6) (2025-06-24)
 
 ### Bug Fixes
