@@ -54,7 +54,11 @@ export class AssetUtils {
             returnCount: true
         };
         try {
-            let response = await this.backendSrv.post<QueryAssetNameResponse>(this.queryAssetsUrl, body);
+            let response = await this.backendSrv.post<QueryAssetNameResponse>(
+                this.queryAssetsUrl,
+                body,
+                { showErrorAlert: false }
+            );
             return response;
         } catch (error) {
             throw new Error(`An error occurred while querying assets: ${error}`);

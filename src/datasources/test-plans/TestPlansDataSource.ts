@@ -407,15 +407,19 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     returnCount = false
   ): Promise<QueryTestPlansResponse> {
     try {
-      const response = await this.post<QueryTestPlansResponse>(this.queryTestPlansUrl, {
-        filter,
-        orderBy,
-        descending,
-        projection,
-        take,
-        continuationToken,
-        returnCount
-      });
+      const response = await this.post<QueryTestPlansResponse>(
+        this.queryTestPlansUrl,
+        {
+          filter,
+          orderBy,
+          descending,
+          projection,
+          take,
+          continuationToken,
+          returnCount
+        },
+        false
+      );
       return response;
     } catch (error) {
       const errorDetails = extractErrorInfo((error as Error).message);
@@ -472,9 +476,11 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   async queryTestPlanTemplates(templateIds: string[]): Promise<TemplateResponseProperties[]> {
     try {
       const filter = templateIds.map(id => `id = "${id}"`).join(' || ');
-      const response = await this.post<QueryTemplatesResponse>(this.queryTemplatesUrl, {
-        filter
-      });
+      const response = await this.post<QueryTemplatesResponse>(
+        this.queryTemplatesUrl,
+        { filter },
+        false
+      );
       return response.testPlanTemplates;
     } catch (error) {
       throw new Error(`An error occurred while querying test plan templates: ${error} `);

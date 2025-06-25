@@ -100,6 +100,10 @@ export class UsersUtils {
    * @returns A promise that resolves to the user query response.
    */
   private queryUsers(body: QueryUsersRequest): Promise<QueryUsersResponse> {
-    return this.backendSrv.post<QueryUsersResponse>(`${this.instanceSettings.url}/niuser/v1/users/query`, body);
+    return this.backendSrv.post<QueryUsersResponse>(
+      `${this.instanceSettings.url}/niuser/v1/users/query`,
+      body,
+      { showErrorAlert: false }
+    );
   }
 }

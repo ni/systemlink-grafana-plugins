@@ -72,8 +72,8 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     return this.fetch<T>({ method: 'GET', url, params });
   }
 
-  post<T>(url: string, body: Record<string, any>) {
-    return this.fetch<T>({ method: 'POST', url, data: body });
+  post<T>(url: string, body: Record<string, any>, showErrorAlert = true) {
+    return this.fetch<T>({ method: 'POST', url, data: body, showErrorAlert });
   }
 
   static Workspaces: Workspace[];

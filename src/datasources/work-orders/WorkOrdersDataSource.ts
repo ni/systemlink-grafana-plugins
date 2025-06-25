@@ -224,7 +224,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
 
   async queryWorkOrders(body: QueryWorkOrdersRequestBody): Promise<WorkOrdersResponse> {
     try {
-      let response = await this.post<WorkOrdersResponse>(this.queryWorkOrdersUrl, body);
+      let response = await this.post<WorkOrdersResponse>(this.queryWorkOrdersUrl, body, false);
       return response;
     } catch (error) {
       const errorDetails = extractErrorInfo((error as Error).message);
@@ -287,7 +287,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
-    await this.post(this.queryWorkOrdersUrl, { take: 1 });
+    await this.post(this.queryWorkOrdersUrl, { take: 1 }, false);
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 

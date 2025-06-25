@@ -59,14 +59,18 @@ export class ProductUtils {
         returnCount = true
     ): Promise<QueryProductResponse> {
         try {
-            const response = await this.backendSrv.post<QueryProductResponse>(this.queryProductsUrl, {
+        const response = await this.backendSrv.post<QueryProductResponse>(
+            this.queryProductsUrl,
+            {
                 descending,
                 projection,
                 take,
                 continuationToken,
                 returnCount
-            });
-            return response;
+            },
+            { showErrorAlert: false }
+        );
+        return response;
         } catch (error) {
             throw new Error(`An error occurred while querying products: ${error} `);
         }
