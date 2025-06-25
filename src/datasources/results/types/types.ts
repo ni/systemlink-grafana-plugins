@@ -1,4 +1,4 @@
-import { DataQuery, DataSourceJsonData } from '@grafana/schema';
+import { DataQuery } from '@grafana/schema';
 
 export interface ResultsQuery extends DataQuery {
   queryType?: QueryType;
@@ -14,20 +14,6 @@ export const defaultResultsQueryType: QueryType = QueryType.Results;
 export enum OutputType {
   Data = 'Data',
   TotalCount = 'Total Count'
-}
-
-export interface ResultsFeatureToggles {
-  queryByResults: boolean;
-  queryBySteps: boolean;
-}
-
-export interface ResultsDataSourceOptions extends DataSourceJsonData {
-  featureToggles: ResultsFeatureToggles;
-}
-
-export const ResultsFeatureTogglesDefaults: ResultsFeatureToggles = {
-  queryByResults: true,
-  queryBySteps: true
 }
 
 export enum TestMeasurementStatus {

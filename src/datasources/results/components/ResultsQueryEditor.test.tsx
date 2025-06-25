@@ -3,7 +3,7 @@ import { render, waitFor } from '@testing-library/react';
 import { ResultsQueryEditor } from './ResultsQueryEditor';
 import { QueryEditorProps } from '@grafana/data';
 import { ResultsDataSource } from '../ResultsDataSource';
-import { QueryType, ResultsDataSourceOptions, ResultsQuery } from '../types/types';
+import { QueryType, ResultsQuery } from '../types/types';
 import userEvent from '@testing-library/user-event';
 import { defaultResultsQuery, defaultStepsQuery } from '../defaultQueries';
 
@@ -18,7 +18,7 @@ Object.defineProperty(mockDatasource, 'queryResultsDataSource', {
   get: queryResultsDataSourceMock,
 });
 
-const defaultProps: QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSourceOptions> = {
+const defaultProps: QueryEditorProps<ResultsDataSource, ResultsQuery> = {
   query: {
     refId: 'A',
     queryType: QueryType.Results,

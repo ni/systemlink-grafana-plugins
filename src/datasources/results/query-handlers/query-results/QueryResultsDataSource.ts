@@ -1,7 +1,7 @@
 import { resultsProjectionLabelLookup, QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties, ResultsVariableQuery } from "datasources/results/types/QueryResults.types";
 import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase";
 import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents, DataSourceInstanceSettings } from "@grafana/data";
-import { OutputType, ResultsDataSourceOptions } from "datasources/results/types/types";
+import { OutputType } from "datasources/results/types/types";
 import { defaultResultsQuery } from "datasources/results/defaultQueries";
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
@@ -19,7 +19,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   private workspaceValues: Workspace[] = [];
 
   constructor(
-    readonly instanceSettings: DataSourceInstanceSettings<ResultsDataSourceOptions>,
+    readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
