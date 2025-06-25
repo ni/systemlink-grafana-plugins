@@ -143,13 +143,19 @@ describe('QueryStepsDataSource', () => {
     });
 
     it('should throw too many requests error when API returns 429 status', async () => {
-      backendServer.fetch
-        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps' }))
-        .mockReturnValue(createFetchError(429));
+      jest.spyOn(datastore, 'post').mockImplementation(() => {
+        throw new Error('Request failed with status code: 429');
+      });
+      const publishMock = jest.fn();
+      (datastore as any).appEvents = { publish: publishMock };
 
       await expect(datastore.querySteps()).rejects.toThrow(
         'The query to fetch steps failed due to too many requests. Please try again later.'
       );
+      expect(publishMock).toHaveBeenCalledWith({
+        type: 'alert-error',
+        payload: ['Error during step query', expect.stringContaining('The query to fetch steps failed due to too many requests. Please try again later.')],
+      });
     });
 
     it('should throw not found error when API returns 404 status', async () => {
