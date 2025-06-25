@@ -910,6 +910,28 @@ describe('WorkOrdersDataSource', () => {
 
       expect(result).toEqual([]);
     });
+
+    test('should return empty array when take is less than 0', async () => {
+      const mockQuery = {
+        refId: 'A',
+        take: -1,
+      };
+
+      const result = await datastore.metricFindQuery(mockQuery, {} as LegacyMetricFindQueryOptions);
+
+      expect(result).toEqual([]);
+    });
+
+    test('should return empty array when take is greater than max take', async () => {
+      const mockQuery = {
+        refId: 'A',
+        take: 100000,
+      };
+
+      const result = await datastore.metricFindQuery(mockQuery, {} as LegacyMetricFindQueryOptions);
+
+      expect(result).toEqual([]);
+    });
   });
 
   describe('testDataSource', () => {

@@ -334,7 +334,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   }
 
   private isTakeValid(query: WorkOrdersQuery): boolean {
-    return query.take !== undefined
+    return query.take !== undefined && query.take >= 0 && query.take <= QUERY_WORK_ORDERS_MAX_TAKE;
   }
 
   private isPropertiesValid(query: WorkOrdersQuery): boolean {
