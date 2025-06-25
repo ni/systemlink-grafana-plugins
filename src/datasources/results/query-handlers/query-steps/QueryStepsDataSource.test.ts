@@ -23,6 +23,7 @@ import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { Workspace } from 'core/types';
 import { DataSourceBase } from 'core/DataSourceBase';
+import { cleanup } from '@testing-library/react';
 
 const mockSteps = Array(1000).fill({ stepId: '1', name: 'Step 1' });
 const mockPaths = Array(1000).fill({ path: 'path1' });
@@ -143,6 +144,8 @@ describe('QueryStepsDataSource', () => {
     });
 
     it('should throw too many requests error when API returns 429 status', async () => {
+      cleanup();
+
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps' }))
         .mockReturnValue(createFetchError(429));

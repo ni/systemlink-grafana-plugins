@@ -6,6 +6,7 @@ import { OrderByOptions, OutputType, State, Type, WorkOrder, WorkOrderProperties
 import { DataQueryRequest, Field, FieldType, LegacyMetricFindQueryOptions } from '@grafana/data';
 import { QUERY_WORK_ORDERS_MAX_TAKE, QUERY_WORK_ORDERS_REQUEST_PER_SECOND } from './constants/QueryWorkOrders.constants';
 import { queryInBatches } from 'core/utils';
+import { cleanup } from '@testing-library/react';
 
 let datastore: WorkOrdersDataSource, backendServer: MockProxy<BackendSrv>;
 const mockWorkOrders = {
@@ -533,6 +534,8 @@ describe('WorkOrdersDataSource', () => {
     });
 
     it('should throw too many requests error when API returns 429 status', async () => {
+      cleanup();
+      
       datastore.errorTitle = '';
       jest
         .spyOn(datastore.workspaceUtils, 'getWorkspaces')
