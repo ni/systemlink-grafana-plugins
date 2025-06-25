@@ -29,7 +29,7 @@ describe('WorkspaceUtils', () => {
     it('should load workspaces and cache them', async () => {
         const result = await workspaceUtils.getWorkspaces();
 
-        expect(backendSrv.get).toHaveBeenCalledWith(`${instanceSettings.url}/niauth/v1/auth`);
+        expect(backendSrv.get).toHaveBeenCalledWith(`${instanceSettings.url}/niauth/v1/auth`, undefined, undefined, { showErrorAlert: false });
         expect(result.size).toBe(2);
         expect(result.get('1')).toEqual(mockWorkspaces[0]);
         expect(result.get('2')).toEqual(mockWorkspaces[1]);
