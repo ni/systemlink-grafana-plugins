@@ -84,7 +84,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   ): Promise<QueryStepsResponse> {
     try {
       const response = await this.post<QueryStepsResponse>(
-        `${this.queryStepsUrl}`,
+        this.queryStepsUrl,
         {
           filter,
           orderBy,
