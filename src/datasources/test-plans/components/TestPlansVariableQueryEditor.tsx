@@ -69,10 +69,10 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
 
   const validateRecordCoundValue = (value: number, TAKE_LIMIT: number) => {
     if (isNaN(value) || value < 0) {
-      return { message: recordCountErrorMessages.greaterOrEqualToZero, take: value };
+      return { message: recordCountErrorMessages.greaterOrEqualToZero, recordCount: value };
     }
     if (value > TAKE_LIMIT) {
-      return { message: recordCountErrorMessages.lessOrEqualToTenThousand, take: value };
+      return { message: recordCountErrorMessages.lessOrEqualToTenThousand, recordCount: value };
     }
     return {message: '', recordCount: value };
   };
