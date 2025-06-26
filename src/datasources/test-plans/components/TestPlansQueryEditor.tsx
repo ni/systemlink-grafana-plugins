@@ -138,7 +138,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
               onChange={onPropertiesChange}
               value={query.properties}
               defaultValue={query.properties}
-              width={60}
+              width={65}
               allowCustomValue={false}
               closeMenuOnSelect={false}
             />
