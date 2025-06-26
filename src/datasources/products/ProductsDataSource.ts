@@ -65,14 +65,18 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     returnCount = false
   ): Promise<QueryProductResponse> {
     try {
-      const response = await this.post<QueryProductResponse>(this.queryProductsUrl, {
-        filter,
-        orderBy,
-        descending,
-        projection,
-        take,
-        returnCount
-      });
+      const response = await this.post<QueryProductResponse>(
+        this.queryProductsUrl,
+        {
+          filter,
+          orderBy,
+          descending,
+          projection,
+          take,
+          returnCount
+        },
+        { showErrorAlert: false },// suppress default error alert since we handle errors manually
+      );
       return response;
     } catch (error) {
       const errorDetails = extractErrorInfo((error as Error).message);
@@ -95,9 +99,13 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   }
 
   async queryProductValues(fieldName: string): Promise<string[]> {
-    return await this.post<string[]>(this.queryProductValuesUrl, {
-      field: fieldName
-    });
+    return await this.post<string[]>(
+      this.queryProductValuesUrl,
+      {
+        field: fieldName
+      },
+      { showErrorAlert: false },// suppress default error alert since we handle errors manually
+    );
   }
 
   async runQuery(query: ProductQuery, options: DataQueryRequest): Promise<DataFrameDTO> {

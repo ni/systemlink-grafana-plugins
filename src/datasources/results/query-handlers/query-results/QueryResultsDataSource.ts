@@ -36,14 +36,18 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     returnCount = false
   ): Promise<QueryResultsResponse> {
     try {
-      return await this.post<QueryResultsResponse>(`${this.queryResultsUrl}`, {
-        filter,
-        orderBy,
-        descending,
-        projection,
-        take,
-        returnCount,
-      });
+      return await this.post<QueryResultsResponse>(
+        `${this.queryResultsUrl}`,
+        {
+          filter,
+          orderBy,
+          descending,
+          projection,
+          take,
+          returnCount,
+        },
+        { showErrorAlert: false },// suppress default error alert since we handle errors manually
+      );
     } catch (error) {
       const errorDetails = extractErrorInfo((error as Error).message);
       let errorMessage: string;
@@ -156,8 +160,8 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
             }
           default:
             return {
-              name: resultsProjectionLabelLookup[field].label, 
-              values: values.map(value => value?.toString()), 
+              name: resultsProjectionLabelLookup[field].label,
+              values: values.map(value => value?.toString()),
               type: fieldType
             };
         }

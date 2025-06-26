@@ -68,8 +68,8 @@ describe('AssetUtils', () => {
                 take: 10,
                 returnCount: true
             }
-            expect(backendSrv.post).toHaveBeenNthCalledWith(1, `${instanceSettings.url}/niapm/v1/query-assets`, mockRequest1);
-            expect(backendSrv.post).toHaveBeenNthCalledWith(2, `${instanceSettings.url}/niapm/v1/query-assets`, mockRequest2);
+            expect(backendSrv.post).toHaveBeenNthCalledWith(1, `${instanceSettings.url}/niapm/v1/query-assets`, mockRequest1, { showErrorAlert: false });
+            expect(backendSrv.post).toHaveBeenNthCalledWith(2, `${instanceSettings.url}/niapm/v1/query-assets`, mockRequest2, { showErrorAlert: false });
 
             expect(result).toEqual([]);
         });

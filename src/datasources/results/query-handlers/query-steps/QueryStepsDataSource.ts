@@ -83,16 +83,20 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     returnCount = false
   ): Promise<QueryStepsResponse> {
     try {
-      const response = await this.post<QueryStepsResponse>(`${this.queryStepsUrl}`, {
-        filter,
-        orderBy,
-        descending,
-        projection,
-        take,
-        resultFilter,
-        continuationToken,
-        returnCount,
-      });
+      const response = await this.post<QueryStepsResponse>(
+        this.queryStepsUrl,
+        {
+          filter,
+          orderBy,
+          descending,
+          projection,
+          take,
+          resultFilter,
+          continuationToken,
+          returnCount,
+        },
+        { showErrorAlert: false }, // suppress default error alert since we handle errors manually
+      );
       return response;
     } catch (error) {
       const errorDetails = extractErrorInfo((error as Error).message);
@@ -132,13 +136,17 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     continuationToken?: string,
   ): Promise<QueryStepPathsResponse> {
     const defaultOrderBy = StepsPathProperties.path;
-    return await this.post<QueryStepPathsResponse>(this.queryPathsUrl, {
-      filter,
-      projection,
-      take,
-      orderBy: defaultOrderBy,
-      continuationToken,
-    });
+    return await this.post<QueryStepPathsResponse>(
+      this.queryPathsUrl,
+      {
+        filter,
+        projection,
+        take,
+        orderBy: defaultOrderBy,
+        continuationToken,
+      },
+      { showErrorAlert: false },// suppress default error alert since we handle errors manually
+    );
   }
 
   async queryStepsInBatches(

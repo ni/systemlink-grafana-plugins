@@ -72,8 +72,20 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     return this.fetch<T>({ method: 'GET', url, params });
   }
 
-  post<T>(url: string, body: Record<string, any>) {
-    return this.fetch<T>({ method: 'POST', url, data: body });
+  
+  /**
+   * Sends a POST request to the specified URL with the provided request body and options.
+   *
+   * @template T - The expected response type.
+   * @param url - The endpoint URL to which the POST request is sent.
+   * @param body - The request payload as a key-value map.
+   * @param options - Optional configuration for the request. This can include:
+   *   - `showingErrorAlert` (boolean): If true, displays an error alert on request failure.
+   *   - Any other properties supported by {@link BackendSrvRequest}, such as headers, credentials, etc.
+   * @returns A promise resolving to the response of type `T`.
+   */
+  post<T>(url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}) {
+    return this.fetch<T>({ method: 'POST', url, data: body, ...options });
   }
 
   static Workspaces: Workspace[];
