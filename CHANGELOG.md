@@ -1,3 +1,63 @@
+## [3.141.7](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.6...v3.141.7) (2025-06-25)
+
+### Bug Fixes
+
+* **results:** Fix duplicate error toasts in steps ([#333](https://github.com/ni/systemlink-grafana-plugins/issues/333)) ([6307093](https://github.com/ni/systemlink-grafana-plugins/commit/63070938b29731f9f57a117c48b589928b4f5d31))
+
+## [3.141.6](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.5...v3.141.6) (2025-06-24)
+
+### Bug Fixes
+
+* **results:** do not fallback to default 'take' when input is invalid - ResultsVariableEditor ([#329](https://github.com/ni/systemlink-grafana-plugins/issues/329)) ([ac0324f](https://github.com/ni/systemlink-grafana-plugins/commit/ac0324f9a8a16deb723cdfa7ae0d42e280187545))
+
+## [3.141.5](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.4...v3.141.5) (2025-06-24)
+
+### Bug Fixes
+
+* **results:** enhance error handling for 429 and 404 API responses  ([#330](https://github.com/ni/systemlink-grafana-plugins/issues/330)) ([83b0dc9](https://github.com/ni/systemlink-grafana-plugins/commit/83b0dc94aa68bdb33a6803a0711a0e08c7f46175))
+
+## [3.141.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.3...v3.141.4) (2025-06-24)
+
+### Bug Fixes
+
+* **results:** fix ResultsQueryEditor to handle undefined queryType in Explore mode ([#328](https://github.com/ni/systemlink-grafana-plugins/issues/328)) ([8330560](https://github.com/ni/systemlink-grafana-plugins/commit/8330560251d0bad257f26814615c6166a37d6004))
+
+## [3.141.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.2...v3.141.3) (2025-06-23)
+
+### Bug Fixes
+
+* **core:** remove error message on 504 status code ([#319](https://github.com/ni/systemlink-grafana-plugins/issues/319)) ([7f753b6](https://github.com/ni/systemlink-grafana-plugins/commit/7f753b6b9964371a73be06a1a9fd3a738cd310a9))
+
+## [3.141.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.1...v3.141.2) (2025-06-23)
+
+### Bug Fixes
+
+* **results:** Display empty cell for properties of type object in the table ([#325](https://github.com/ni/systemlink-grafana-plugins/issues/325)) ([99a166b](https://github.com/ni/systemlink-grafana-plugins/commit/99a166b45bcad60ede26585cfd7eb8e638a68385))
+
+## [3.141.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.0...v3.141.1) (2025-06-23)
+
+### Bug Fixes
+
+* **workorders,testplans:** Display empty cell for empty properties ([#326](https://github.com/ni/systemlink-grafana-plugins/issues/326)) ([b6b0754](https://github.com/ni/systemlink-grafana-plugins/commit/b6b07542bd8e7a36f550450bb2052d994a0948e8))
+
+## [3.141.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.140.3...v3.141.0) (2025-06-23)
+
+### Features
+
+* **results:** extend the take from 500 to 1000 when number of measurements < 25 ([#324](https://github.com/ni/systemlink-grafana-plugins/issues/324)) ([2446ec8](https://github.com/ni/systemlink-grafana-plugins/commit/2446ec89648292d6827bd02f5395e167f26ffea7))
+
+## [3.140.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.140.2...v3.140.3) (2025-06-23)
+
+### Bug Fixes
+
+* removed dependency on returnCount to query in batches ([#321](https://github.com/ni/systemlink-grafana-plugins/issues/321)) ([183cc74](https://github.com/ni/systemlink-grafana-plugins/commit/183cc7490b6f297dfc54858aa1ee927de0fb5179))
+
+## [3.140.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.140.1...v3.140.2) (2025-06-23)
+
+### Bug Fixes
+
+* **core:** remove filtering of variable with datasource ([#322](https://github.com/ni/systemlink-grafana-plugins/issues/322)) ([77f3477](https://github.com/ni/systemlink-grafana-plugins/commit/77f3477d754fe386e48730cc7f333f6e309465e0))
+
 ## [3.140.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.140.0...v3.140.1) (2025-06-20)
 
 ### Bug Fixes

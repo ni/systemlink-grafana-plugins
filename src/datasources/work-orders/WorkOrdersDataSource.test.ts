@@ -162,6 +162,46 @@ describe('WorkOrdersDataSource', () => {
       const fields = response.fields as Field[];
       expect(fields).toMatchSnapshot();
     });
+
+    it('should handle test plan custom properties', async () => {
+      const query = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+        properties: [WorkOrderPropertiesOptions.PROPERTIES],
+        take: 1000,
+      };
+      const workordersResponse = [
+        { id: '1', properties: { customProp1: 'value1', customProp2: 'value2' } },
+        { id: '2', properties: { customProp1: 'value3' } },
+      ];
+      jest.spyOn(datastore, 'queryWorkordersData').mockResolvedValue(workordersResponse as unknown as WorkOrder[]);
+
+      const result = await datastore.runQuery(query, {} as DataQueryRequest);
+
+      expect(result.fields).toHaveLength(1);
+      expect(result.fields[0].name).toEqual('Properties');
+      expect(result.fields[0].values).toEqual([
+        JSON.stringify({ customProp1: 'value1', customProp2: 'value2' }),
+        JSON.stringify({ customProp1: 'value3' }),
+      ]);
+    });
+
+    it('should display empty cell when properties is empty', async () => {
+      const query = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+        properties: [WorkOrderPropertiesOptions.PROPERTIES],
+        take: 1000,
+      };
+      const workordersResponse = [{ id: '1', properties: {} }];
+      jest.spyOn(datastore, 'queryWorkordersData').mockResolvedValue(workordersResponse as unknown as WorkOrder[]);
+
+      const result = await datastore.runQuery(query, {} as DataQueryRequest);
+
+      expect(result.fields).toHaveLength(1);
+      expect(result.fields[0].name).toEqual('Properties');
+      expect(result.fields[0].values).toEqual(['']);
+    });    
     
     it('should convert user Ids to user names for assigned to field', async () => {
       const query = {
@@ -491,6 +531,34 @@ describe('WorkOrdersDataSource', () => {
         `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`
       );
     });
+
+    it('should throw too many requests error when API returns 429 status', async () => {
+      datastore.errorTitle = '';
+      jest
+        .spyOn(datastore.workspaceUtils, 'getWorkspaces')
+        .mockRejectedValue(new Error('Request failed with status code: 429'));
+
+      await datastore.loadWorkspaces();
+
+      expect(datastore.errorTitle).toBe('Warning during workorders query');
+      expect(datastore.errorDescription).toContain(
+        `The query builder lookups failed due to too many requests. Please try again later.`
+      );
+    });
+
+    it('should throw not found error when API returns 404 status', async () => {
+      datastore.errorTitle = '';
+      jest
+        .spyOn(datastore.workspaceUtils, 'getWorkspaces')
+        .mockRejectedValue(new Error('Request failed with status code: 404'));
+
+      await datastore.loadWorkspaces();
+
+      expect(datastore.errorTitle).toBe('Warning during workorders query');
+      expect(datastore.errorDescription).toContain(
+        `The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.`
+      );
+    });
   });
 
   describe('loadUsers', () => {
@@ -539,6 +607,34 @@ describe('WorkOrdersDataSource', () => {
       expect(datastore.errorTitle).toBe('Warning during workorders query');
       expect(datastore.errorDescription).toContain(
         `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`
+      );
+    });
+
+    it('should throw too many requests error when API returns 429 status', async () => {
+      datastore.errorTitle = '';
+      jest
+        .spyOn(datastore.usersUtils, 'getUsers')
+        .mockRejectedValue(new Error('Request failed with status code: 429'));
+
+      await datastore.loadUsers();
+
+      expect(datastore.errorTitle).toBe('Warning during workorders query');
+      expect(datastore.errorDescription).toContain(
+        `The query builder lookups failed due to too many requests. Please try again later.`
+      );
+    });
+
+    it('should throw not found error when API returns 404 status', async () => {
+      datastore.errorTitle = '';
+      jest
+        .spyOn(datastore.usersUtils, 'getUsers')
+        .mockRejectedValue(new Error('Request failed with status code: 404'));
+
+      await datastore.loadUsers();
+
+      expect(datastore.errorTitle).toBe('Warning during workorders query');
+      expect(datastore.errorDescription).toContain(
+        `The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.`
       );
     });
   });
@@ -613,6 +709,26 @@ describe('WorkOrdersDataSource', () => {
         'The query to fetch workorders experienced a timeout error. Narrow your query with a more specific filter and try again.'
       );
     });
+
+    it('should throw too many requests error when API returns 429 status', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/niworkorder/v1/query-workorders' }))
+        .mockReturnValue(createFetchError(429));
+
+      await expect(datastore.queryWorkOrders({})).rejects.toThrow(
+        'The query to fetch workorders failed due to too many requests. Please try again later.'
+      );
+    });
+
+    it('should throw not found error when API returns 404 status', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/niworkorder/v1/query-workorders' }))
+        .mockReturnValue(createFetchError(404));
+
+      await expect(datastore.queryWorkOrders({})).rejects.toThrow(
+        'The query to fetch workorders failed because the requested resource was not found. Please check the query parameters and try again.'
+      );
+    })
 
     it('should throw error with unknown error when API returns error without status', async () => {
       backendServer.fetch

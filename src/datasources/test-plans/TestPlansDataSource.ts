@@ -87,7 +87,6 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
           projection,
           query.recordCount,
           query.descending,
-          true
         )).testPlans;
 
       const labels = projectionAndFields?.map(data => data.label) ?? [];
@@ -140,7 +139,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
               const user = users.get(value);
               return user ? UsersUtils.getUserFullName(user) : '';
             case PropertiesProjectionMap.PROPERTIES.label:
-              return value == null ? '' : JSON.stringify(value);
+              return !!value && Object.keys(value).length > 0 ? JSON.stringify(value) : '';
             default:
               return value == null ? '' : value;
           }
@@ -366,7 +365,6 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     projection?: Projections[],
     take?: number,
     descending = false,
-    returnCount = false
   ): Promise<QueryTestPlansResponse> {
     const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<TestPlanResponseProperties>> => {
       const response = await this.queryTestPlans(
@@ -376,13 +374,11 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
         currentTake,
         descending,
         token,
-        returnCount
       );
 
       return {
         data: response.testPlans,
         continuationToken: response.continuationToken,
-        totalCount: response.totalCount
       };
     };
 
@@ -423,12 +419,22 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     } catch (error) {
       const errorDetails = extractErrorInfo((error as Error).message);
       let errorMessage: string;
-      if (!errorDetails.statusCode) {
-        errorMessage = 'The query failed due to an unknown error.';
-      } else if (errorDetails.statusCode === '504') {
-        errorMessage = 'The query to fetch testplans experienced a timeout error. Narrow your query with a more specific filter and try again.';
-      } else {
-        errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+      switch (errorDetails.statusCode) {
+        case '':
+          errorMessage = 'The query failed due to an unknown error.';
+          break;
+        case '404':
+          errorMessage = 'The query to fetch testplans failed because the requested resource was not found. Please check the query parameters and try again.';
+          break;
+        case '429':
+          errorMessage = 'The query to fetch testplans failed due to too many requests. Please try again later.';
+          break;
+        case '504':
+          errorMessage = 'The query to fetch testplans experienced a timeout error. Narrow your query with a more specific filter and try again.';
+          break;
+        default:
+          errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+          break;
       }
 
       this.appEvents?.publish?.({
@@ -487,12 +493,21 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   private handleDependenciesError(error: unknown): void {
     const errorDetails = extractErrorInfo((error as Error).message);
     this.errorTitle = 'Warning during testplans query';
-    if (errorDetails.statusCode === '504') {
-      this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
-    } else {
-      this.errorDescription = errorDetails.message
-        ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
-        : 'Some values may not be available in the query builder lookups due to an unknown error.';
+    switch (errorDetails.statusCode) {
+      case '404':
+        this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
+        break;
+      case '429':
+        this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
+        break;
+      case '504':
+        this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
+        break;
+      default:
+        this.errorDescription = errorDetails.message
+          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+          : 'Some values may not be available in the query builder lookups due to an unknown error.';
+        break;
     }
   }
 

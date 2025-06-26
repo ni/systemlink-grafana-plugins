@@ -82,6 +82,13 @@ describe('ResultsQueryEditor', () => {
         expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
+
+    test('should call onChange with defaultResultsQuery and queryType Results when queryType is undefined', () => {
+      render(<ResultsQueryEditor {...defaultProps} query={{ refId: 'A' } as ResultsQuery} />);
+      expect(mockOnChange).toHaveBeenCalledWith(
+        expect.objectContaining({ ...defaultResultsQuery, queryType: QueryType.Results, refId: 'A' })
+      );
+    });
   });
 
   test('should save stepsQuery value only when switched from steps query type to results', async () => {
@@ -195,7 +202,7 @@ describe('ResultsQueryEditor', () => {
       expect(renderResult.queryByTestId('query-steps-editor')).not.toBeInTheDocument();
     });
 
-    test('should render QueryResultsEditor when query type is steps', () => {
+    test('should render QueryStepsEditor when query type is steps', () => {
       const query = {
         refId: 'A',
         queryType: QueryType.Steps,

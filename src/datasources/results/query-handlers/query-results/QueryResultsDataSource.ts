@@ -48,12 +48,22 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       const errorDetails = extractErrorInfo((error as Error).message);
       let errorMessage: string;
 
-      if (!errorDetails.statusCode) {
-        errorMessage = 'The query failed due to an unknown error.';
-      } else if (errorDetails.statusCode === '504') {
-        errorMessage = 'The query to fetch results experienced a timeout error. Narrow your query with a more specific filter and try again.';
-      } else {
-        errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+      switch (errorDetails.statusCode) {
+        case '':
+          errorMessage = 'The query failed due to an unknown error.';
+          break;
+        case '404':
+          errorMessage = 'The query to fetch results failed because the requested resource was not found. Please check the query parameters and try again.';
+          break;
+        case '429':
+          errorMessage = 'The query to fetch results failed due to too many requests. Please try again later.';
+          break;
+        case '504':
+          errorMessage = 'The query to fetch results experienced a timeout error. Narrow your query with a more specific filter and try again.';
+          break;
+        default:
+          errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+          break;
       }
 
       this.appEvents?.publish?.({
@@ -123,7 +133,11 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
           case ResultsPropertiesOptions.STATUS_TYPE_SUMMARY:
             return {
               name: resultsProjectionLabelLookup[field].label,
-              values: values.map((v) => (v != null ? JSON.stringify(v) : '')),
+              values: values.map((value) =>
+                value && (Object.keys(value).length > 0)
+                  ? JSON.stringify(value)
+                  : ''
+              ),
               type: fieldType,
             };
           case ResultsPropertiesOptions.STATUS:
@@ -141,7 +155,11 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
               type: fieldType,
             }
           default:
-            return { name: resultsProjectionLabelLookup[field].label, values, type: fieldType };
+            return {
+              name: resultsProjectionLabelLookup[field].label, 
+              values: values.map(value => value?.toString()), 
+              type: fieldType
+            };
         }
       });
 

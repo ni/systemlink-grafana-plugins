@@ -38,17 +38,14 @@ exports[`QueryResultsDataSource query returns data for valid data-output-type qu
         "name": "Total time (s)",
         "type": "string",
         "values": [
-          29.9,
+          "29.9",
         ],
       },
       {
         "name": "Keywords",
         "type": "string",
         "values": [
-          [
-            "keyword1",
-            "keyword2",
-          ],
+          "keyword1,keyword2",
         ],
       },
       {
@@ -110,17 +107,14 @@ exports[`QueryResultsDataSource query should convert properties to Grafana field
     "name": "Total time (s)",
     "type": "string",
     "values": [
-      29.9,
+      "29.9",
     ],
   },
   {
     "name": "Keywords",
     "type": "string",
     "values": [
-      [
-        "keyword1",
-        "keyword2",
-      ],
+      "keyword1,keyword2",
     ],
   },
   {

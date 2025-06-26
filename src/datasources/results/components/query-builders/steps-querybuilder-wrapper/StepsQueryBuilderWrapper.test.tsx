@@ -115,7 +115,7 @@ describe('StepsQueryBuilderWrapper', () => {
     expect(screen.getByTestId('steps-workspaces').textContent).toBe('[]');
   });
 
-  test('should render empty part numbers when promise resolves to empty value', async () => {
+  test('should render empty part numbers and step path when promise resolves to empty value', async () => {
     cleanup();
     const emptyDatasource = {
       globalVariableOptions: jest.fn().mockReturnValue([]),
@@ -129,6 +129,7 @@ describe('StepsQueryBuilderWrapper', () => {
     })
 
     expect(screen.getByTestId('results-part-numbers').textContent).toBe('[]');
+    expect(screen.getByTestId('steps-path').textContent).toBe('[]');
   });
 
   test('should pass default properties to result and steps query builder', () => {
