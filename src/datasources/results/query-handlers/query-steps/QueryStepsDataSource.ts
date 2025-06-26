@@ -8,7 +8,7 @@ import {
   AppEvents,
   DataSourceInstanceSettings,
 } from '@grafana/data';
-import { OutputType, ResultsDataSourceOptions } from 'datasources/results/types/types';
+import { OutputType } from 'datasources/results/types/types';
 import {
   stepsProjectionLabelLookup,
   QueryStepPathsResponse,
@@ -64,7 +64,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   private workspaceValues: Workspace[] = [];
 
   constructor(
-    readonly instanceSettings: DataSourceInstanceSettings<ResultsDataSourceOptions>,
+    readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {

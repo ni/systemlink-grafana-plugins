@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { ResultsDataSource } from '../ResultsDataSource';
-import { defaultResultsQueryType, QueryType, ResultsDataSourceOptions, ResultsQuery } from '../types/types';
+import { defaultResultsQueryType, QueryType, ResultsQuery } from '../types/types';
 import { QueryResultsEditor } from './editors/query-results/QueryResultsEditor';
 import { QueryResults } from '../types/QueryResults.types';
 import { defaultResultsQuery, defaultStepsQuery } from '../defaultQueries';
@@ -9,7 +9,7 @@ import { InlineField, RadioButtonGroup } from '@grafana/ui';
 import { QueryStepsEditor } from './editors/query-steps/QueryStepsEditor';
 import { QuerySteps } from '../types/QuerySteps.types';
 
-type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSourceOptions>;
+type Props = QueryEditorProps<ResultsDataSource, ResultsQuery>;
 
 export function ResultsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   const [resultsQuery, setResultsQuery] = React.useState<QueryResults>();

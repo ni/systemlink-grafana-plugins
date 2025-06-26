@@ -12,7 +12,6 @@ import { Workspace } from 'core/types';
 import { enumToOptions, validateNumericInput } from 'core/utils';
 import {
   QueryType,
-  ResultsDataSourceOptions,
   ResultsQuery,
   TestMeasurementStatus,
 } from 'datasources/results/types/types';
@@ -21,7 +20,7 @@ import { StepsQueryBuilderWrapper } from '../query-builders/steps-querybuilder-w
 import { TAKE_LIMIT } from 'datasources/results/constants/QuerySteps.constants';
 import { FloatingError } from 'core/errors';
 
-type Props = QueryEditorProps<ResultsDataSource, ResultsQuery, ResultsDataSourceOptions>;
+type Props = QueryEditorProps<ResultsDataSource, ResultsQuery>;
 
 export function ResultsVariableQueryEditor({ query, onChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
