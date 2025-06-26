@@ -1,3 +1,9 @@
+## [3.141.10](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.9...v3.141.10) (2025-06-26)
+
+### Bug Fixes
+
+* **results:** Remove feature flag configuration ([#331](https://github.com/ni/systemlink-grafana-plugins/issues/331)) ([8b92722](https://github.com/ni/systemlink-grafana-plugins/commit/8b927222a435a29dec8ccb123c3e31ba5d37d61d))
+
 ## [3.141.9](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.8...v3.141.9) (2025-06-26)
 
 ### Bug Fixes
