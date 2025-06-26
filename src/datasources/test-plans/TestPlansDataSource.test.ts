@@ -375,7 +375,7 @@ describe('runQuery', () => {
     expect(result.fields[0].values).toEqual(['', 'Work Order 2']);
   });
 
-  it('should show template name for test plan template name property', async () => {
+  it('should show template name for Template name property', async () => {
     const query = {
       refId: 'A',
       outputType: OutputType.Properties,
@@ -402,7 +402,7 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Test plan template name');
+    expect(result.fields[0].name).toEqual('Template name');
     expect(result.fields[0].values).toEqual(['Template 1', 'Template 2']);
   });
 
@@ -433,7 +433,7 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Test plan template name');
+    expect(result.fields[0].name).toEqual('Template name');
     expect(result.fields[0].values).toEqual(['', 'Template 2']);
   });
 
@@ -855,7 +855,7 @@ describe('runQuery', () => {
     expect(result.fields[18].name).toEqual('Estimated duration');
     expect(result.fields[19].name).toEqual('System name');
     expect(result.fields[20].name).toEqual('System ID');
-    expect(result.fields[21].name).toEqual('Test plan template name');
+    expect(result.fields[21].name).toEqual('Template name');
     expect(result.fields[22].name).toEqual('Template ID');
     expect(result.fields[23].name).toEqual('Test program name');
     expect(result.fields[24].name).toEqual('Substate');

@@ -197,7 +197,7 @@ export const PropertiesProjectionMap: Record<Properties, {
         field: 'systemId',
     },
     [Properties.TEMPLATE]: {
-        label: 'Test plan template name',
+        label: 'Template name',
         projection: [Projections.TEMPLATE_ID],
         field: 'templateId',
     },
