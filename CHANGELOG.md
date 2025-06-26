@@ -1,3 +1,9 @@
+## [3.141.11](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.10...v3.141.11) (2025-06-26)
+
+### Bug Fixes
+
+* **workorders,testplans:** Don't clear take in variable editor when take is invalid ([#337](https://github.com/ni/systemlink-grafana-plugins/issues/337)) ([ac5c2c9](https://github.com/ni/systemlink-grafana-plugins/commit/ac5c2c9ab292527e9c49493d498f4b1bbe7dc5d3))
+
 ## [3.141.10](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.9...v3.141.10) (2025-06-26)
 
 ### Bug Fixes
