@@ -1,3 +1,9 @@
+## [3.141.15](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.14...v3.141.15) (2025-06-26)
+
+### Bug Fixes
+
+* **workorders:** Fix typo in state 'Canceled' ([#340](https://github.com/ni/systemlink-grafana-plugins/issues/340)) ([3141b41](https://github.com/ni/systemlink-grafana-plugins/commit/3141b4193e32b095c16bb14b1c4229f0cdcf9178))
+
 ## [3.141.14](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.13...v3.141.14) (2025-06-26)
 
 ### Bug Fixes
