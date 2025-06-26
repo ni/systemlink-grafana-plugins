@@ -1,3 +1,9 @@
+## [3.141.14](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.13...v3.141.14) (2025-06-26)
+
+### Bug Fixes
+
+* **DataSourceBase:** ensure URL is preserved during fetch retries ([#336](https://github.com/ni/systemlink-grafana-plugins/issues/336)) ([01240ca](https://github.com/ni/systemlink-grafana-plugins/commit/01240caaf5d9d67a6242a914eea5c033d677319e))
+
 ## [3.141.13](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.12...v3.141.13) (2025-06-26)
 
 ### Bug Fixes
