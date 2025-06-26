@@ -213,7 +213,7 @@ describe('WorkOrdersVariableQueryEditor', () => {
 
       await waitFor(() => {
         expect(container.getByText('Enter a value greater than or equal to 0')).toBeInTheDocument();
-        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ take: undefined }));
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ take: NaN }));
       });
     });
 

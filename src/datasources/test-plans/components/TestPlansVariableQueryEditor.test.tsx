@@ -230,7 +230,7 @@ describe('TestPlansVariableQueryEditor', () => {
 
       await waitFor(() => {
         expect(container.getByText('Enter a value greater than or equal to 0')).toBeInTheDocument();
-        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: undefined }));
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ recordCount: NaN }));
       });
     });
 
