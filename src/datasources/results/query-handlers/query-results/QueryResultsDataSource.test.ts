@@ -106,14 +106,14 @@ describe('QueryResultsDataSource', () => {
       });
 
     test('should throw error when API returns 429 status', async () => {
-        backendServer.fetch
-          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results' }))
-          .mockReturnValue(createFetchError(429));
-    
-        await expect(datastore.queryResults())
-          .rejects
-          .toThrow('The query to fetch results failed due to too many requests. Please try again later.');
+      jest.spyOn(datastore, 'post').mockImplementation(() => {
+        throw new Error('Request failed with status code: 429');
       });
+
+      await expect(datastore.queryResults()).rejects.toThrow(
+        'The query to fetch results failed due to too many requests. Please try again later.'
+      );
+    });
 
     test('should throw timeOut error when API returns 504 status', async () => {
         backendServer.fetch
