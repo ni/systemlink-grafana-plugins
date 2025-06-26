@@ -9,7 +9,6 @@ import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/Res
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { Workspace } from 'core/types';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { cleanup } from '@testing-library/react';
 
 const mockQueryResultsResponse: QueryResultsResponse = {
   results: [
@@ -106,9 +105,7 @@ describe('QueryResultsDataSource', () => {
           .toThrow('The query to fetch results failed because the requested resource was not found. Please check the query parameters and try again.');
       });
 
-    test('should throw error when API returns 429 status', async () => {
-        cleanup();
-        
+    test('should throw error when API returns 429 status', async () => {        
         backendServer.fetch
           .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results' }))
           .mockReturnValue(createFetchError(429));
