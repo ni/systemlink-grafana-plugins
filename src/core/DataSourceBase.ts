@@ -45,12 +45,16 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
   }
 
   private async fetch<T>(options: BackendSrvRequest, retries = 0): Promise<T> {
+    // URL is stored and reused for each retry to ensure consistency
+    // and prevent accidental URL changes during retries
+    const url = options.url;
+
     try {
       return (await lastValueFrom(this.backendSrv.fetch<T>(options))).data;
     } catch (error) {
       if (isFetchError(error) && error.status === 429 && retries < 3) {
         await sleep(Math.random() * 1000 * 2 ** retries);
-        return this.fetch(options, retries + 1);
+        return this.fetch({...options, url}, retries + 1);
       }
       if (isFetchError(error)) {
         const fetchError = error as FetchError;
