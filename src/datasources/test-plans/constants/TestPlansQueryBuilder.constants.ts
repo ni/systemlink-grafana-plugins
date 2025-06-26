@@ -116,7 +116,7 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
         ]
     },
     NAME: {
-        label: 'Name',
+        label: 'Test plan name',
         dataField: TestPlansQueryBuilderFieldNames.Name,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
