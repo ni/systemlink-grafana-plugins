@@ -102,8 +102,6 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
               onChange={onPropertiesChange}
               value={query.properties}
               defaultValue={query.properties!}
-              noMultiValueWrap={true}
-              maxVisibleValues={5}
               width={65}
               allowCustomValue={false}
               closeMenuOnSelect={false}
