@@ -68,7 +68,7 @@ export class ProductUtils {
                 continuationToken,
                 returnCount
             },
-            { showErrorAlert: false }
+            { showErrorAlert: false } // suppress default error alert since we handle errors manually
         );
         return response;
         } catch (error) {

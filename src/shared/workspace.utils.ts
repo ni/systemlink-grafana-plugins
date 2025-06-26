@@ -33,7 +33,7 @@ export class WorkspaceUtils {
             this.queryWorkspacesUrl,
             undefined,
             undefined,
-            { showErrorAlert: false }
+            { showErrorAlert: false } // suppress default error alert since we handle errors manually
         );
         return response.workspaces;
     }

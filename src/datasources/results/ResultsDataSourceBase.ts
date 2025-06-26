@@ -95,7 +95,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
         field: fieldName,
         filter
       },
-      false
+      { showErrorAlert: false } // suppress default error alert since we handle errors manually
     );
   }
 
@@ -107,7 +107,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       {
         projection,
       },
-      false
+      { showErrorAlert: false } // suppress default error alert since we handle errors manually
     );
     return response;
   }

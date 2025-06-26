@@ -57,7 +57,7 @@ export class AssetUtils {
             let response = await this.backendSrv.post<QueryAssetNameResponse>(
                 this.queryAssetsUrl,
                 body,
-                { showErrorAlert: false }
+                { showErrorAlert: false } // suppress default error alert since we handle errors manually
             );
             return response;
         } catch (error) {

@@ -75,7 +75,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
           take,
           returnCount
         },
-        false
+        { showErrorAlert: false },// suppress default error alert since we handle errors manually
       );
       return response;
     } catch (error) {
@@ -104,7 +104,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       {
         field: fieldName
       },
-      false
+      { showErrorAlert: false },// suppress default error alert since we handle errors manually
     );
   }
 

@@ -46,7 +46,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
           take,
           returnCount,
         },
-        false,
+        { showErrorAlert: false },// suppress default error alert since we handle errors manually
       );
     } catch (error) {
       const errorDetails = extractErrorInfo((error as Error).message);

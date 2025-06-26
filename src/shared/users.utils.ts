@@ -103,7 +103,7 @@ export class UsersUtils {
     return this.backendSrv.post<QueryUsersResponse>(
       `${this.instanceSettings.url}/niuser/v1/users/query`,
       body,
-      { showErrorAlert: false }
+      { showErrorAlert: false } // suppress default error alert since we handle errors manually
     );
   }
 }

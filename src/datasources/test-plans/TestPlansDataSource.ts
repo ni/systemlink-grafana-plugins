@@ -418,7 +418,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
           continuationToken,
           returnCount
         },
-        false
+        { showErrorAlert: false }  // suppress default error alert since we handle errors manually
       );
       return response;
     } catch (error) {
@@ -479,7 +479,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       const response = await this.post<QueryTemplatesResponse>(
         this.queryTemplatesUrl,
         { filter },
-        false
+        { showErrorAlert: false },// suppress default error alert since we handle errors manually
       );
       return response.testPlanTemplates;
     } catch (error) {

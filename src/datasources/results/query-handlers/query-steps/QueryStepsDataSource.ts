@@ -95,7 +95,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
           continuationToken,
           returnCount,
         },
-        false
+        { showErrorAlert: false }, // suppress default error alert since we handle errors manually
       );
       return response;
     } catch (error) {
@@ -145,7 +145,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         orderBy: defaultOrderBy,
         continuationToken,
       },
-      false
+      { showErrorAlert: false },// suppress default error alert since we handle errors manually
     );
   }
 
