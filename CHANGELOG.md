@@ -1,3 +1,9 @@
+## [3.141.13](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.12...v3.141.13) (2025-06-26)
+
+### Bug Fixes
+
+* Duplicate error toasts when Fetch fails ([#334](https://github.com/ni/systemlink-grafana-plugins/issues/334)) ([a2dea3f](https://github.com/ni/systemlink-grafana-plugins/commit/a2dea3f801d6f3034a61dd770422fd94f7fc511e))
+
 ## [3.141.12](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.11...v3.141.12) (2025-06-26)
 
 ### Bug Fixes
