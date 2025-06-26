@@ -53,7 +53,7 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
         {label: 'In progress', value: 'InProgress'},
         {label: 'Pending approval', value: 'PendingApproval'},
         {label: 'Closed', value: 'Closed'},
-        {label: 'Cancelled', value: 'Cancelled'}
+        {label: 'Canceled', value: 'Canceled'}
       ]
     }
   },
