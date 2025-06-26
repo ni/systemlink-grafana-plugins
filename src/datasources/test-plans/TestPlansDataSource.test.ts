@@ -174,7 +174,7 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(2);
-    expect(result.fields[0].name).toEqual('Name');
+    expect(result.fields[0].name).toEqual('Test plan name');
     expect(result.fields[0].values).toEqual(['Test Plan 1', 'Test Plan 2']);
     expect(result.fields[1].name).toEqual('State');
     expect(result.fields[1].values).toEqual(['Active', 'Completed']);
@@ -195,7 +195,7 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(2);
-    expect(result.fields[0]).toEqual({ "name": "Name", "type": "string", "values": [] });
+    expect(result.fields[0]).toEqual({ "name": "Test plan name", "type": "string", "values": [] });
     expect(result.fields[1]).toEqual({ "name": "State", "type": "string", "values": [] });
   });
 
@@ -323,7 +323,7 @@ describe('runQuery', () => {
     expect(result.fields[0].values).toEqual(['SN-1', 'SN-2']);
   });
 
-  it('should show work order name & id for work order property', async () => {
+  it('should show work order name work order name property', async () => {
     const query = {
       refId: 'A',
       outputType: OutputType.Properties,
@@ -345,8 +345,8 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Work order');
-    expect(result.fields[0].values).toEqual(['Work Order 1 (WO-1)', 'Work Order 2 (WO-2)']);
+    expect(result.fields[0].name).toEqual('Work order name');
+    expect(result.fields[0].values).toEqual(['Work Order 1', 'Work Order 2']);
   });
 
   it('should handle empty work order name', async () => {
@@ -371,63 +371,11 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Work order');
-    expect(result.fields[0].values).toEqual([' (WO-1)', 'Work Order 2 (WO-2)']);
+    expect(result.fields[0].name).toEqual('Work order name');
+    expect(result.fields[0].values).toEqual(['', 'Work Order 2']);
   });
 
-  it('should handle empty work order id', async () => {
-    const query = {
-      refId: 'A',
-      outputType: OutputType.Properties,
-      properties: [Properties.WORK_ORDER],
-      orderBy: OrderByOptions.UPDATED_AT,
-      recordCount: 10,
-      descending: true,
-    };
-
-    const testPlansResponse = {
-      testPlans: [
-        { id: '1', workOrderId: '', workOrderName: 'Work Order 1' },
-        { id: '2', workOrderId: 'WO-2', workOrderName: 'Work Order 2' }
-      ],
-    };
-
-    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
-
-    const result = await datastore.runQuery(query, mockOptions);
-
-    expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Work order');
-    expect(result.fields[0].values).toEqual(['Work Order 1 ', 'Work Order 2 (WO-2)']);
-  });
-
-  it('should handle empty work order name and id', async () => {
-    const query = {
-      refId: 'A',
-      outputType: OutputType.Properties,
-      properties: [Properties.WORK_ORDER],
-      orderBy: OrderByOptions.UPDATED_AT,
-      recordCount: 10,
-      descending: true,
-    };
-
-    const testPlansResponse = {
-      testPlans: [
-        { id: '1', workOrderId: '', workOrderName: '' },
-        { id: '2', workOrderId: 'WO-2', workOrderName: 'Work Order 2' }
-      ],
-    };
-
-    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
-
-    const result = await datastore.runQuery(query, mockOptions);
-
-    expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Work order');
-    expect(result.fields[0].values).toEqual([' ', 'Work Order 2 (WO-2)']);
-  });
-
-  it('should show template name and id for test plan template property', async () => {
+  it('should show template name for Template name property', async () => {
     const query = {
       refId: 'A',
       outputType: OutputType.Properties,
@@ -454,8 +402,8 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Test plan template');
-    expect(result.fields[0].values).toEqual(['Template 1 (TPL-1)', 'Template 2 (TPL-2)']);
+    expect(result.fields[0].name).toEqual('Template name');
+    expect(result.fields[0].values).toEqual(['Template 1', 'Template 2']);
   });
 
   it('should handle empty template name', async () => {
@@ -485,38 +433,8 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Test plan template');
-    expect(result.fields[0].values).toEqual([' (TPL-1)', 'Template 2 (TPL-2)']);
-  });
-
-  it('should handle empty template id', async () => {
-    const query = {
-      refId: 'A',
-      outputType: OutputType.Properties,
-      properties: [Properties.TEMPLATE],
-      orderBy: OrderByOptions.UPDATED_AT,
-      recordCount: 10,
-      descending: true,
-    };
-
-    const templateResponse = [
-      { id: 'TPL-2', name: 'Template 2' }
-    ];
-    const testPlansResponse = {
-      testPlans: [
-        { id: '1', templateId: '' },
-        { id: '2', templateId: 'TPL-2' }
-      ],
-    };
-
-    jest.spyOn(datastore, 'queryTestPlanTemplatesInBatches').mockResolvedValue(templateResponse);
-    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
-
-    const result = await datastore.runQuery(query, mockOptions);
-
-    expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Test plan template');
-    expect(result.fields[0].values).toEqual(['', 'Template 2 (TPL-2)']);
+    expect(result.fields[0].name).toEqual('Template name');
+    expect(result.fields[0].values).toEqual(['', 'Template 2']);
   });
 
   it('should convert workspaceIds to workspace names for workspace field', async () => {
@@ -920,14 +838,14 @@ describe('runQuery', () => {
     expect(result.fields[1].name).toEqual('Created');
     expect(result.fields[2].name).toEqual('Created by');
     expect(result.fields[3].name).toEqual('Description');
-    expect(result.fields[4].name).toEqual('ID');
-    expect(result.fields[5].name).toEqual('Name');
+    expect(result.fields[4].name).toEqual('Test plan ID');
+    expect(result.fields[5].name).toEqual('Test plan name');
     expect(result.fields[6].name).toEqual('Properties');
     expect(result.fields[7].name).toEqual('State');
     expect(result.fields[8].name).toEqual('Updated');
     expect(result.fields[9].name).toEqual('Updated by');
     expect(result.fields[10].name).toEqual('Workspace');
-    expect(result.fields[11].name).toEqual('Work order');
+    expect(result.fields[11].name).toEqual('Work order name');
     expect(result.fields[12].name).toEqual('Work order ID');
     expect(result.fields[13].name).toEqual('Product name');
     expect(result.fields[14].name).toEqual('Product ID');
@@ -937,7 +855,7 @@ describe('runQuery', () => {
     expect(result.fields[18].name).toEqual('Estimated duration');
     expect(result.fields[19].name).toEqual('System name');
     expect(result.fields[20].name).toEqual('System ID');
-    expect(result.fields[21].name).toEqual('Test plan template');
+    expect(result.fields[21].name).toEqual('Template name');
     expect(result.fields[22].name).toEqual('Template ID');
     expect(result.fields[23].name).toEqual('Test program name');
     expect(result.fields[24].name).toEqual('Substate');
@@ -1350,9 +1268,9 @@ describe('queryTestPlans', () => {
     });
 
     it('should throw too many requests error when API returns 429 status', async () => {
-      backendServer.fetch
-        .calledWith(requestMatching({ url: '/niworkorder/v1/query-testplans' }))
-        .mockReturnValue(createFetchError(429));
+      jest.spyOn(datastore, 'post').mockImplementation(() => {
+        throw new Error('Request failed with status code: 429');
+      });
 
       await expect(datastore.queryTestPlans()).rejects.toThrow(
         'The query to fetch testplans failed due to too many requests. Please try again later.'

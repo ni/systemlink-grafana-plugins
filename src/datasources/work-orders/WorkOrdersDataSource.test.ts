@@ -115,7 +115,7 @@ describe('WorkOrdersDataSource', () => {
       const response = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
 
       expect(response.fields).toHaveLength(1);
-      expect(response.fields).toEqual([{"name": "Name", "type": "string", "values": []}]);
+      expect(response.fields).toEqual([{"name": "Work order name", "type": "string", "values": []}]);
       expect(response.refId).toEqual('A');
       expect(response.name).toEqual('A');
       expect(datastore.queryWorkordersData).toHaveBeenCalledWith('filter', ["NAME"], undefined, undefined, 1000);
@@ -435,9 +435,9 @@ describe('WorkOrdersDataSource', () => {
 
       const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
 
-      expect(result.fields[0].name).toEqual('ID');
-      expect(result.fields[1].name).toEqual('Name');
-      expect(result.fields[2].name).toEqual('Type');
+      expect(result.fields[0].name).toEqual('Work order ID');
+      expect(result.fields[1].name).toEqual('Work order name');
+      expect(result.fields[2].name).toEqual('Work order type');
       expect(result.fields[3].name).toEqual('State');
       expect(result.fields[4].name).toEqual('Requested by');
       expect(result.fields[5].name).toEqual('Assigned to');
@@ -711,9 +711,9 @@ describe('WorkOrdersDataSource', () => {
     });
 
     it('should throw too many requests error when API returns 429 status', async () => {
-      backendServer.fetch
-        .calledWith(requestMatching({ url: '/niworkorder/v1/query-workorders' }))
-        .mockReturnValue(createFetchError(429));
+      jest.spyOn(datastore, 'post').mockImplementation(() => {
+        throw new Error('Request failed with status code: 429');
+      });
 
       await expect(datastore.queryWorkOrders({})).rejects.toThrow(
         'The query to fetch workorders failed due to too many requests. Please try again later.'

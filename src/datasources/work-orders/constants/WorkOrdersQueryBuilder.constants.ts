@@ -21,7 +21,7 @@ export enum WorkOrdersQueryBuilderFieldNames {
 
 export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
   NAME: {
-    label: 'Name',
+    label: 'Work order name',
     dataField: WorkOrdersQueryBuilderFieldNames.Name,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
@@ -58,7 +58,7 @@ export const WorkOrdersQueryBuilderFields: Record<string, QBField> = {
     }
   },
   TYPE: {
-    label: 'Type',
+    label: 'Work order type',
     dataField: WorkOrdersQueryBuilderFieldNames.Type,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
     lookup: {
