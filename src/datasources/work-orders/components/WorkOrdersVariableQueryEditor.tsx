@@ -59,10 +59,10 @@ export function WorkOrdersVariableQueryEditor({ query, onChange, datasource }: P
 
   const validateTakeValue = (value: number, TAKE_LIMIT: number) => {
     if (isNaN(value) || value < 0) {
-      return { message: takeErrorMessages.greaterOrEqualToZero, take: undefined };
+      return { message: takeErrorMessages.greaterOrEqualToZero, take: value };
     }
     if (value > TAKE_LIMIT) {
-      return { message: takeErrorMessages.lessOrEqualToTenThousand, take: undefined };
+      return { message: takeErrorMessages.lessOrEqualToTenThousand, take: value };
     }
     return {message: '', take: value };
   };
