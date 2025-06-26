@@ -1,3 +1,10 @@
+## [3.141.8](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.7...v3.141.8) (2025-06-26)
+
+### Bug Fixes
+
+* **results:** Revert changes to fix duplicate error in steps ([#335](https://github.com/ni/systemlink-grafana-plugins/issues/335)) ([814813b](https://github.com/ni/systemlink-grafana-plugins/commit/814813b54d023ce87d35ba05b49d13c924ef21f2))
+* **workorders,testplans:** enhance error handling for 429 and 404 API responses ([#332](https://github.com/ni/systemlink-grafana-plugins/issues/332)) ([eaadbd8](https://github.com/ni/systemlink-grafana-plugins/commit/eaadbd885c90918c3744bb5767a166bb83f45984))
+
 ## [3.141.7](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.6...v3.141.7) (2025-06-25)
 
 ### Bug Fixes
