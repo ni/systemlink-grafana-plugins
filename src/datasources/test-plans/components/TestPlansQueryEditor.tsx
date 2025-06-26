@@ -138,8 +138,6 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
               onChange={onPropertiesChange}
               value={query.properties}
               defaultValue={query.properties}
-              noMultiValueWrap={true}
-              maxVisibleValues={5}
               width={60}
               allowCustomValue={false}
               closeMenuOnSelect={false}
