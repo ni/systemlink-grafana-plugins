@@ -1,3 +1,9 @@
+## [3.141.12](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.11...v3.141.12) (2025-06-26)
+
+### Bug Fixes
+
+* **products,results,workorders,testplans:** Expand properties dropdown height on adding property ([#339](https://github.com/ni/systemlink-grafana-plugins/issues/339)) ([a36d956](https://github.com/ni/systemlink-grafana-plugins/commit/a36d95605399f0736f3b1f3bd28e6f09faaddffc))
+
 ## [3.141.11](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.10...v3.141.11) (2025-06-26)
 
 ### Bug Fixes
