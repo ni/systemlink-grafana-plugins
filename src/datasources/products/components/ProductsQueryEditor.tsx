@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { AutoSizeInput, HorizontalGroup, InlineSwitch, MultiSelect, Select, VerticalGroup } from '@grafana/ui';
+import { AutoSizeInput, HorizontalGroup, InlineField, InlineSwitch, MultiSelect, Select, VerticalGroup } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
-import { InlineField } from 'core/components/InlineField';
 import { ProductsDataSource } from '../ProductsDataSource';
 import { OrderBy, ProductPropertiesProjectionMap, ProductQuery, Properties } from '../types';
 import { Workspace } from 'core/types';
