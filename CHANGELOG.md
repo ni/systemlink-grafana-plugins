@@ -1,3 +1,9 @@
+## [3.142.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.142.0...v3.142.1) (2025-06-27)
+
+### Bug Fixes
+
+* **products:** Clicking on info toggling descending ([#345](https://github.com/ni/systemlink-grafana-plugins/issues/345)) ([054d8f9](https://github.com/ni/systemlink-grafana-plugins/commit/054d8f9f6ebe2af153c981f31313bc4d3550e62e))
+
 ## [3.142.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.17...v3.142.0) (2025-06-27)
 
 ### Features
