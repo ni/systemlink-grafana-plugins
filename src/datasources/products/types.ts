@@ -77,7 +77,7 @@ export const OrderBy = [
   },
 ];
 
-export const DefaultOrderBy = OrderBy[0].value; // Default to 'UPDATED_AT'
+export const DefaultProductsOrderBy = 'UPDATED_AT';
 
 export interface QueryProductResponse {
   products: ProductResponseProperties[],
