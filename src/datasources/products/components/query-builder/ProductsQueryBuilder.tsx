@@ -175,7 +175,7 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
       fields={fields}
       messages={queryBuilderMessages}
       onChange={onChange}
-      value={sanitizedFilter}      
+      value={sanitizedFilter}
     />
   );
 }
