@@ -230,8 +230,8 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   private transformDurationFilters(query: string): string {
-    const daysRegex = new RegExp(`estimatedDurationInDays\\s*(${computedFieldsupportedOperations.join('|')})\\s*"(\\d+)"`, 'g');
-    const hoursRegex = new RegExp(`estimatedDurationInHours\\s*(${computedFieldsupportedOperations.join('|')})\\s*"(\\d+)"`, 'g');
+    const daysRegex = new RegExp(`estimatedDurationInDays\\s*(${computedFieldsupportedOperations.join('|')})\\s*"(-?\\d+)"`, 'g');
+    const hoursRegex = new RegExp(`estimatedDurationInHours\\s*(${computedFieldsupportedOperations.join('|')})\\s*"(-?\\d+)"`, 'g');
 
     return query
       .replace(
