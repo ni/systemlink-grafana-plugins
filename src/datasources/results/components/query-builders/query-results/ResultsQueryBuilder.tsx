@@ -217,6 +217,7 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
       onChange={onChange}
       value={sanitizedFilter}
       fieldsMode="static"
+      showIcons
     />
   );
 };
