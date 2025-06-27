@@ -1,5 +1,31 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`metricFindQuery should return expected data when record count is 0 1`] = `
+[
+  {
+    "text": "testPlan 1 (1)",
+    "value": "1",
+  },
+  {
+    "text": "testPlan 2 (2)",
+    "value": "2",
+  },
+]
+`;
+
+exports[`metricFindQuery should return expected data when record count is 10000 1`] = `
+[
+  {
+    "text": "testPlan 1 (1)",
+    "value": "1",
+  },
+  {
+    "text": "testPlan 2 (2)",
+    "value": "2",
+  },
+]
+`;
+
 exports[`metricFindQuery should return test plan name with id when orderBy is provided 1`] = `
 [
   {
@@ -24,4 +50,32 @@ exports[`metricFindQuery should return test plan name with id when queryBy is no
     "value": "2",
   },
 ]
+`;
+
+exports[`runQuery should return expected data when record count is 0 1`] = `
+{
+  "fields": [
+    {
+      "name": "Test plan name",
+      "type": "string",
+      "values": [],
+    },
+  ],
+  "name": "A",
+  "refId": "A",
+}
+`;
+
+exports[`runQuery should return expected data when record count is 10000 1`] = `
+{
+  "fields": [
+    {
+      "name": "Test plan name",
+      "type": "string",
+      "values": [],
+    },
+  ],
+  "name": "A",
+  "refId": "A",
+}
 `;

@@ -11,6 +11,7 @@ import { WorkspaceUtils } from 'shared/workspace.utils';
 import { UsersUtils } from 'shared/users.utils';
 import { extractErrorInfo } from 'core/errors';
 import { User } from 'shared/types/QueryUsers.types';
+import { TAKE_LIMIT } from './constants/QueryEditor.constants';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
@@ -342,7 +343,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   }
 
   private isTakeValid(query: WorkOrdersQuery): boolean {
-    return query.take !== undefined && query.take >= 0 && query.take <= QUERY_WORK_ORDERS_MAX_TAKE;
+    return query.take !== undefined && query.take >= 0 && query.take <= TAKE_LIMIT;
   }
 
   private isPropertiesValid(query: WorkOrdersQuery): boolean {

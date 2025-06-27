@@ -886,7 +886,7 @@ describe('runQuery', () => {
       refId: 'A',
       outputType: OutputType.Properties,
       properties: [Properties.NAME],
-      take: undefined,
+      recordCount: undefined,
     };
 
     jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({testPlans:[]});
@@ -894,6 +894,62 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
 
     expect(result.fields).toHaveLength(0);
+  });
+
+  it('should return empty data when record count is less than 0', async()=> {
+    const mockQuery = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.NAME],
+      recordCount: -1,
+    };
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({testPlans:[]});
+
+    const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(result.fields).toHaveLength(0);
+  })
+  
+  it('should return empty data when record count is greater than max take', async()=> {
+    const mockQuery = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.NAME],
+      recordCount: 1000000,
+    };
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({testPlans:[]});
+
+    const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(result.fields).toHaveLength(0);
+  })
+
+  it('should return expected data when record count is 0', async () => {
+    const mockQuery = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.NAME],
+      recordCount: 0,
+    };
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({testPlans:[]});
+
+    const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(result).toMatchSnapshot();
+  });
+
+  test('should return expected data when record count is 10000', async () => {
+    const mockQuery = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.NAME],
+      recordCount: 10000,
+    };
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({testPlans:[]});
+
+    const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(result).toMatchSnapshot();
   });
 });
 
@@ -1511,5 +1567,27 @@ describe('metricFindQuery', () => {
     const result = await datastore.metricFindQuery(mockQuery, {} as LegacyMetricFindQueryOptions);
 
     expect(result).toEqual([]);
+  });
+
+  test('should return expected data when record count is 0', async () => {
+    const mockQuery = {
+      refId: 'A',
+      recordCount: 0,
+    };
+
+    const result = await datastore.metricFindQuery(mockQuery, {} as LegacyMetricFindQueryOptions);
+
+    expect(result).toMatchSnapshot();
+  });
+
+  test('should return expected data when record count is 10000', async () => {
+    const mockQuery = {
+      refId: 'A',
+      recordCount: 10000,
+    };
+
+    const result = await datastore.metricFindQuery(mockQuery, {} as LegacyMetricFindQueryOptions);
+
+    expect(result).toMatchSnapshot();
   });
 });

@@ -481,6 +481,62 @@ describe('WorkOrdersDataSource', () => {
 
       expect(result.fields).toHaveLength(0);
     });
+
+    test('should return expected data when take is 0', async () => {
+      const mockQuery = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+        properties: [WorkOrderPropertiesOptions.NAME],
+        take: 0,
+      };
+
+      const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+      expect(result).toMatchSnapshot();
+    });
+
+    test('should return expected data when take is 10000', async () => {
+      const mockQuery = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+        properties: [WorkOrderPropertiesOptions.NAME],
+        take: 10000,
+      };
+
+      const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+      expect(result).toMatchSnapshot();
+    });
+
+    it('should return empty data when take is less than 0', async () => {
+      const mockQuery = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+        properties: [WorkOrderPropertiesOptions.NAME],
+        take: -1,
+      };
+
+      jest.spyOn(datastore, 'queryWorkordersData').mockResolvedValue([] as WorkOrder[]);
+
+      const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+      expect(result.fields).toHaveLength(0);
+    });
+
+    it('should return empty data when take is greater than max take', async () => {
+      const mockQuery = {
+        refId: 'A',
+        outputType: OutputType.Properties,
+        properties: [WorkOrderPropertiesOptions.NAME],
+        take: 100000,
+      };
+
+      jest.spyOn(datastore, 'queryWorkordersData').mockResolvedValue([] as WorkOrder[]);
+
+      const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+      expect(result.fields).toHaveLength(0);
+    });
   });
 
   describe('loadWorkspaces', () => {
@@ -898,6 +954,28 @@ describe('WorkOrdersDataSource', () => {
       );
 
       jest.useRealTimers();
+    });
+
+    test('should return expected data when take is 0', async () => {
+      const mockQuery = {
+        refId: 'A',
+        take: 0,
+      };
+
+      const result = await datastore.metricFindQuery(mockQuery, {} as LegacyMetricFindQueryOptions);
+
+      expect(result).toMatchSnapshot();
+    });
+
+    test('should return expected data when take is 10000', async () => {
+      const mockQuery = {
+        refId: 'A',
+        take: 10000,
+      };
+
+      const result = await datastore.metricFindQuery(mockQuery, {} as LegacyMetricFindQueryOptions);
+
+      expect(result).toMatchSnapshot();
     });
 
     test('should return empty array when take is invalid', async () => {

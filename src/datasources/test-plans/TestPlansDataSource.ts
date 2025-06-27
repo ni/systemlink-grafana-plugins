@@ -17,6 +17,7 @@ import { extractErrorInfo } from 'core/errors';
 import { User } from 'shared/types/QueryUsers.types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
+import { TAKE_LIMIT } from './constants/QueryEditor.constants';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(
@@ -518,7 +519,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   private isRecordCountValid(query: TestPlansQuery): boolean {
-    return query.recordCount !== undefined && query.recordCount >= 0 && query.recordCount <= QUERY_TEST_PLANS_MAX_TAKE;
+    return query.recordCount !== undefined && query.recordCount >= 0 && query.recordCount <= TAKE_LIMIT;
   }
 
   private isPropertiesValid(query: TestPlansQuery): boolean {
