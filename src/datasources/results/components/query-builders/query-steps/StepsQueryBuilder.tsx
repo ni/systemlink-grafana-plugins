@@ -195,7 +195,6 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
       value={sanitizedFilter}
       fieldsMode="static"
       disabled={disableQueryBuilder}
-      showIcons
     />
   );
 };

@@ -216,8 +216,7 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
       messages={queryBuilderMessages}
       onChange={onChange}
       value={sanitizedFilter}
-      fieldsMode="static"
-      showIcons
+      fieldsMode="static"      
     />
   );
 };
