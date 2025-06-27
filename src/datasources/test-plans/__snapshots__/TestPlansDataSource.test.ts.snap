@@ -65,3 +65,17 @@ exports[`runQuery should return expected data when record count is 0 1`] = `
   "refId": "A",
 }
 `;
+
+exports[`runQuery should return expected data when record count is 10000 1`] = `
+{
+  "fields": [
+    {
+      "name": "Test plan name",
+      "type": "string",
+      "values": [],
+    },
+  ],
+  "name": "A",
+  "refId": "A",
+}
+`;
