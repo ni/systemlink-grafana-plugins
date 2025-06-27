@@ -1,3 +1,10 @@
+## [3.141.17](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.16...v3.141.17) (2025-06-27)
+
+### Bug Fixes
+
+* **results:** Remove showIcons from query builder ([#343](https://github.com/ni/systemlink-grafana-plugins/issues/343)) ([6ac1a56](https://github.com/ni/systemlink-grafana-plugins/commit/6ac1a56b2f095fa43df05dd9ffc7b6128f00128e))
+* **testplans:** Restrict numeric input to only numeric ([#342](https://github.com/ni/systemlink-grafana-plugins/issues/342)) ([07ea69a](https://github.com/ni/systemlink-grafana-plugins/commit/07ea69a4ec70f05e223b0575b0352e0185775e25))
+
 ## [3.141.16](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.15...v3.141.16) (2025-06-27)
 
 ### Bug Fixes
