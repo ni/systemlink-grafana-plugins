@@ -1,7 +1,7 @@
 import { QueryEditorProps } from "@grafana/data";
 import { ProductsDataSource } from "../ProductsDataSource";
 import { ProductVariableQuery } from "../types";
-import { InlineField } from 'core/components/InlineField';
+import { InlineField } from "@grafana/ui";
 import { ProductsQueryBuilder } from "./query-builder/ProductsQueryBuilder";
 import { Workspace } from "core/types";
 import React, { useState, useEffect } from "react";

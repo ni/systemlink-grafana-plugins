@@ -1,5 +1,4 @@
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
-import { InlineField } from 'core/components/InlineField';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ResultsVariableProperties,
@@ -7,7 +6,7 @@ import {
   StepsVariableQuery,
 } from 'datasources/results/types/QueryResults.types';
 import { ResultsQueryBuilder } from '../query-builders/query-results/ResultsQueryBuilder';
-import { AutoSizeInput, RadioButtonGroup, Select } from '@grafana/ui';
+import { AutoSizeInput, InlineField, RadioButtonGroup, Select } from '@grafana/ui';
 import { Workspace } from 'core/types';
 import { enumToOptions, validateNumericInput } from 'core/utils';
 import {
