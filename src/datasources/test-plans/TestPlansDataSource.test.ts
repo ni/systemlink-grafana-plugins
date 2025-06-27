@@ -764,6 +764,28 @@ describe('runQuery', () => {
     );
   });
 
+  test('should transform field when queryBy contains duration fields with negative values', async () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: '(estimatedDurationInDays > "-2" && estimatedDurationInHours != "-2")',
+      properties: [Properties.ID],
+      recordCount: 1000,
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      '(estimatedDurationInSeconds > \"-172800\" && estimatedDurationInSeconds != \"-7200\")',
+      undefined,
+      ["ID"],
+      1000,
+      undefined,
+    );
+  });
+
   test('should return type as string type', async () => {
     const mockQuery = {
       refId: 'A',
@@ -1511,6 +1533,26 @@ describe('metricFindQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       '(estimatedDurationInSeconds > \"172800\" && estimatedDurationInSeconds != \"7200\")',
+      "UPDATED_AT",
+      ["ID", "NAME"],
+      1000,
+      true
+    );
+  });
+
+  test('should transform field when queryBy contains duration fields with negative values', async () => {
+    const mockQuery = {
+      refId: 'C',
+      queryBy: '(estimatedDurationInDays > "-2" && estimatedDurationInHours != "-2")',
+      recordCount: 1000
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.metricFindQuery(mockQuery, {});
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      '(estimatedDurationInSeconds > \"-172800\" && estimatedDurationInSeconds != \"-7200\")',
       "UPDATED_AT",
       ["ID", "NAME"],
       1000,

@@ -74,6 +74,7 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
     ESTIMATED_DURATION_IN_DAYS: {
         label: 'Estimated duration (days)',
         dataField: TestPlansQueryBuilderFieldNames.EstimatedDurationInDays,
+        dataType: 'number',
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -86,6 +87,7 @@ export const TestPlansQueryBuilderFields: Record<string, QBField> = {
     ESTIMATED_DURATION_IN_HOURS: {
         label: 'Estimated duration (hours)',
         dataField: TestPlansQueryBuilderFieldNames.EstimatedDurationInHours,
+        dataType: 'number',
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name,
