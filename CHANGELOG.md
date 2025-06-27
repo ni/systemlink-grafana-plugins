@@ -1,3 +1,9 @@
+## [3.143.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.142.1...v3.143.0) (2025-06-27)
+
+### Features
+
+* **products:** run query on initialization when switching to product datasource ([#307](https://github.com/ni/systemlink-grafana-plugins/issues/307)) ([38ca464](https://github.com/ni/systemlink-grafana-plugins/commit/38ca4645aa875818089d881c68422c511c6f530d))
+
 ## [3.142.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.142.0...v3.142.1) (2025-06-27)
 
 ### Bug Fixes
