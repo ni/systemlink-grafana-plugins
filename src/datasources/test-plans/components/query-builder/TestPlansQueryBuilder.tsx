@@ -205,7 +205,6 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
             messages={queryBuilderMessages}
             onChange={onChange}
             value={filter}
-            showIcons
         />
     );
 }
