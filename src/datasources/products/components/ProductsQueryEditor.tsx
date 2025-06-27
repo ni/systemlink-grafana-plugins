@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { AutoSizeInput, HorizontalGroup, InlineField, InlineSwitch, MultiSelect, Select, VerticalGroup } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { ProductsDataSource } from '../ProductsDataSource';
-import { OrderBy, ProductPropertiesProjectionMap, ProductQuery, Properties } from '../types';
+import { DefaultProductsOrderBy, OrderBy, ProductPropertiesProjectionMap, ProductQuery, Properties } from '../types';
 import { Workspace } from 'core/types';
 import { ProductsQueryBuilder } from 'datasources/products/components/query-builder/ProductsQueryBuilder';
 import { FloatingError } from 'core/errors';
@@ -88,6 +88,13 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
       handleQueryChange({ ...query, queryBy: value });
     }
   }
+
+  useEffect(() => {
+    if (!query.orderBy) {
+      handleQueryChange({ ...query, orderBy: DefaultProductsOrderBy});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>

@@ -24,6 +24,19 @@ describe('ProductsQueryEditor', () => {
     recordCount = screen.getByDisplayValue('1000');
   });
 
+  it('should call onChange and onRunQuery on mount with UPDATED_AT as OrderBy', () => {
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: [],
+        orderBy: 'UPDATED_AT',
+        descending: true,
+        recordCount: 1000,
+        queryBy: ''
+      })
+    );
+    expect(onRunQuery).toHaveBeenCalled();
+  });
+
   it('should render with default query and call onRunQuery on mount', async () => {
     expect(properties).toBeInTheDocument();
     expect(properties).toHaveDisplayValue('');
@@ -42,8 +55,6 @@ describe('ProductsQueryEditor', () => {
   });
 
   it('should not call `onChange` when queryBy filter is not changed', async () => {
-    expect(onChange).toHaveBeenCalledTimes(0);
-    expect(onRunQuery).toHaveBeenCalledTimes(0);
     onChange.mockClear();
     onRunQuery.mockClear();
 
