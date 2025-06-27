@@ -1,0 +1,32 @@
+.smart-input-drop-down-menu[theme=custom-theme] {
+    overflow: auto;
+    max-block-size: 197px;
+    max-width: 333px;
+    scrollbar-width: auto;
+    scrollbar-color: #b3b3b3 #f5f5f5;
+
+    .smart-container {
+        inline-size: max-content;
+        max-inline-size: max-content;
+        max-block-size: max-content;
+        
+        .smart-scroll-viewer-container {
+            inline-size: max-content;
+            max-inline-size: max-content;
+
+            .smart-scroll-viewer-content-container{
+                inline-size: max-content;
+                max-inline-size: max-content;
+
+                ul {
+                    display: grid;
+                    grid-auto-columns: max-content;
+                    li {
+                        min-inline-size: calc(var(--smart-input-drop-down-menu-width));
+                    }
+                }
+            }
+        }
+
+    }
+}
