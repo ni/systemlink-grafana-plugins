@@ -1,17 +1,31 @@
-import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties, ResultsVariableQuery } from "datasources/results/types/QueryResults.types";
+import { resultsProjectionLabelLookup, QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties, ResultsVariableQuery } from "datasources/results/types/QueryResults.types";
 import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase";
-import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents } from "@grafana/data";
+import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents, DataSourceInstanceSettings } from "@grafana/data";
 import { OutputType } from "datasources/results/types/types";
 import { defaultResultsQuery } from "datasources/results/defaultQueries";
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
 import { TAKE_LIMIT } from "datasources/results/constants/QuerySteps.constants";
 import { extractErrorInfo } from "core/errors";
+import { getWorkspaceName } from "core/utils";
+import { Workspace } from "core/types";
+import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
 
 export class QueryResultsDataSource extends ResultsDataSourceBase {
   queryResultsUrl = this.baseUrl + '/v2/query-results';
 
   defaultQuery = defaultResultsQuery;
+
+  private workspaceValues: Workspace[] = [];
+
+  constructor(
+    readonly instanceSettings: DataSourceInstanceSettings,
+    readonly backendSrv: BackendSrv = getBackendSrv(),
+    readonly templateSrv: TemplateSrv = getTemplateSrv()
+  ) {
+    super(instanceSettings, backendSrv, templateSrv);
+    this.initWorkspacesValues();
+  }
 
   async queryResults(
     filter?: string,
@@ -22,24 +36,38 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     returnCount = false
   ): Promise<QueryResultsResponse> {
     try {
-      return await this.post<QueryResultsResponse>(`${this.queryResultsUrl}`, {
-        filter,
-        orderBy,
-        descending,
-        projection,
-        take,
-        returnCount,
-      });
+      return await this.post<QueryResultsResponse>(
+        `${this.queryResultsUrl}`,
+        {
+          filter,
+          orderBy,
+          descending,
+          projection,
+          take,
+          returnCount,
+        },
+        { showErrorAlert: false },// suppress default error alert since we handle errors manually
+      );
     } catch (error) {
       const errorDetails = extractErrorInfo((error as Error).message);
       let errorMessage: string;
 
-      if (!errorDetails.statusCode) {
-        errorMessage = 'The query failed due to an unknown error.';
-      } else if (errorDetails.statusCode === '504') {
-        errorMessage = 'The query to fetch results experienced a timeout error. Narrow your query with a more specific filter and try again.';
-      } else {
-        errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+      switch (errorDetails.statusCode) {
+        case '':
+          errorMessage = 'The query failed due to an unknown error.';
+          break;
+        case '404':
+          errorMessage = 'The query to fetch results failed because the requested resource was not found. Please check the query parameters and try again.';
+          break;
+        case '429':
+          errorMessage = 'The query to fetch results failed due to too many requests. Please try again later.';
+          break;
+        case '504':
+          errorMessage = 'The query to fetch results experienced a timeout error. Narrow your query with a more specific filter and try again.';
+          break;
+        default:
+          errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+          break;
       }
 
       this.appEvents?.publish?.({
@@ -108,18 +136,34 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
           case ResultsPropertiesOptions.PROPERTIES:
           case ResultsPropertiesOptions.STATUS_TYPE_SUMMARY:
             return {
-              name: field,
-              values: values.map((v) => (v != null ? JSON.stringify(v) : '')),
+              name: resultsProjectionLabelLookup[field].label,
+              values: values.map((value) =>
+                value && (Object.keys(value).length > 0)
+                  ? JSON.stringify(value)
+                  : ''
+              ),
               type: fieldType,
             };
           case ResultsPropertiesOptions.STATUS:
             return {
-              name: field,
+              name: resultsProjectionLabelLookup[field].label,
               values: values.map((v: any) => v?.statusType),
               type: fieldType,
             };
+          case ResultsPropertiesOptions.WORKSPACE:
+            return {
+              name: resultsProjectionLabelLookup[field].label,
+              values: values.map((workspaceId) => this.workspaceValues.length
+                ? getWorkspaceName(this.workspaceValues, workspaceId as string)
+                : workspaceId),
+              type: fieldType,
+            }
           default:
-            return { name: field, values, type: fieldType };
+            return {
+              name: resultsProjectionLabelLookup[field].label,
+              values: values.map(value => value?.toString()),
+              type: fieldType
+            };
         }
       });
 
@@ -172,6 +216,11 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       }
     }
     return [];
+  }
+
+  private async initWorkspacesValues(): Promise<void> {
+    const workspaces = await this.workspacesCache;
+    this.workspaceValues = Array.from(workspaces.values());
   }
 
   private isTakeValid(value: number): boolean {

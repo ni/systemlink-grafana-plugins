@@ -3,7 +3,6 @@ import { QueryStepsDefaultValues, StepsProperties } from "./types/QuerySteps.typ
 import { OutputType, QueryType } from "./types/types";
 
 export const defaultResultsQuery: Omit<QueryResultsDefaultValues, 'refId'> = {
-  queryType: QueryType.Results,
   outputType: OutputType.Data,
   properties: [
     ResultsPropertiesOptions.PROGRAM_NAME,

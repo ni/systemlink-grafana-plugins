@@ -29,7 +29,12 @@ export class WorkspaceUtils {
     }
 
     private async fetchWorkspaces(): Promise<Workspace[]> {
-        const response = await this.backendSrv.get<{ workspaces: Workspace[] }>(this.queryWorkspacesUrl);
+        const response = await this.backendSrv.get<{ workspaces: Workspace[] }>(
+            this.queryWorkspacesUrl,
+            undefined,
+            undefined,
+            { showErrorAlert: false } // suppress default error alert since we handle errors manually
+        );
         return response.workspaces;
     }
 }

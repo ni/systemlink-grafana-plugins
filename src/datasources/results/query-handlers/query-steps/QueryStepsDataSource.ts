@@ -1,6 +1,16 @@
-import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, AppEvents } from '@grafana/data';
+import {
+  DataQueryRequest,
+  DataFrameDTO,
+  FieldType,
+  LegacyMetricFindQueryOptions,
+  MetricFindValue,
+  ScopedVars,
+  AppEvents,
+  DataSourceInstanceSettings,
+} from '@grafana/data';
 import { OutputType } from 'datasources/results/types/types';
 import {
+  stepsProjectionLabelLookup,
   QueryStepPathsResponse,
   QuerySteps,
   QueryStepsResponse,
@@ -9,33 +19,57 @@ import {
   StepsProperties,
   StepsPropertiesOptions,
   StepsResponseProperties,
+  InputOutputValues,
 } from 'datasources/results/types/QuerySteps.types';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { defaultStepsQuery } from 'datasources/results/defaultQueries';
-import { MAX_TAKE_PER_REQUEST, QUERY_STEPS_REQUEST_PER_SECOND, TAKE_LIMIT } from 'datasources/results/constants/QuerySteps.constants';
+import {
+  MAX_TAKE_PER_REQUEST,
+  MIN_TAKE_PER_REQUEST,
+  QUERY_STEPS_REQUEST_PER_SECOND,
+  TAKE_LIMIT,
+} from 'datasources/results/constants/QuerySteps.constants';
 import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/StepsQueryBuilder.constants';
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
-import { QueryResponse } from 'core/types';
-import { queryInBatches } from 'core/utils';
-import { MAX_PATH_TAKE_PER_REQUEST, QUERY_PATH_REQUEST_PER_SECOND } from 'datasources/results/constants/QueryStepPath.constants';
+import { QueryResponse, Workspace } from 'core/types';
+import { getWorkspaceName, queryInBatches } from 'core/utils';
+import {
+  MAX_PATH_TAKE_PER_REQUEST,
+  QUERY_PATH_REQUEST_PER_SECOND,
+} from 'datasources/results/constants/QueryStepPath.constants';
 import { extractErrorInfo } from 'core/errors';
-import { formatMeasurementColumnName, formatMeasurementValueColumnName, MEASUREMENT_NAME_COLUMN, MEASUREMENT_UNITS_COLUMN, measurementColumnLabelSuffix, MeasurementProperties, measurementProperties } from 'datasources/results/constants/stepMeasurements.constants';
+import {
+  DUPLICATE_INPUT_SUFFIX,
+  DUPLICATE_OUTPUT_SUFFIX,
+  formatMeasurementColumnName,
+  formatMeasurementValueColumnName,
+  MEASUREMENT_NAME_COLUMN,
+  MEASUREMENT_UNITS_COLUMN,
+  measurementColumnLabelSuffix,
+  MeasurementProperties,
+  measurementProperties,
+} from 'datasources/results/constants/stepMeasurements.constants';
+import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 
+type GrafanaColumns = Array<{ name: string; values: string[]; type: FieldType }>;
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
   queryPathsUrl = this.baseUrl + '/v2/query-paths';
 
   defaultQuery = defaultStepsQuery;
+  scopedVars: ScopedVars = {};
 
-  private stepsPath: string[] = [];
-  private previousResultsQuery: string | undefined;
+  private workspaceValues: Workspace[] = [];
 
-  private stepsPathChangeCallback?: () => void;
-
-  setStepsPathChangeCallback(callback: () => void) {
-    this.stepsPathChangeCallback = callback;
+  constructor(
+    readonly instanceSettings: DataSourceInstanceSettings,
+    readonly backendSrv: BackendSrv = getBackendSrv(),
+    readonly templateSrv: TemplateSrv = getTemplateSrv()
+  ) {
+    super(instanceSettings, backendSrv, templateSrv);
+    this.initWorkspacesValues();
   }
 
   async querySteps(
@@ -48,29 +82,42 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     continuationToken?: string,
     returnCount = false
   ): Promise<QueryStepsResponse> {
-
     try {
-      const response = await this.post<QueryStepsResponse>(`${this.queryStepsUrl}`, {
-        filter,
-        orderBy,
-        descending,
-        projection,
-        take,
-        resultFilter,
-        continuationToken,
-        returnCount,
-      });
+      const response = await this.post<QueryStepsResponse>(
+        this.queryStepsUrl,
+        {
+          filter,
+          orderBy,
+          descending,
+          projection,
+          take,
+          resultFilter,
+          continuationToken,
+          returnCount,
+        },
+        { showErrorAlert: false }, // suppress default error alert since we handle errors manually
+      );
       return response;
     } catch (error) {
       const errorDetails = extractErrorInfo((error as Error).message);
 
       let errorMessage: string;
-      if (!errorDetails.statusCode) {
-        errorMessage = 'The query failed due to an unknown error.';
-      } else if (errorDetails.statusCode === '504') {
-        errorMessage = 'The query to fetch steps experienced a timeout error. Narrow your query with a more specific filter and try again.';
-      } else {
-        errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+      switch (errorDetails.statusCode) {
+        case '':
+          errorMessage = 'The query failed due to an unknown error.';
+          break;
+        case '404':
+          errorMessage = 'The query to fetch steps failed because the requested resource was not found. Please check the query parameters and try again.';
+          break;
+        case '429':
+          errorMessage = 'The query to fetch steps failed due to too many requests. Please try again later.';
+          break;
+        case '504':
+          errorMessage = 'The query to fetch steps experienced a timeout error. Narrow your query with a more specific filter and try again.';
+          break;
+        default:
+          errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+          break;
       }
 
       this.appEvents?.publish?.({
@@ -80,7 +127,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
       throw new Error(errorMessage);
     }
-
   }
 
   private async queryStepPaths(
@@ -88,17 +134,19 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     filter?: string,
     take?: number,
     continuationToken?: string,
-    returnCount = false
   ): Promise<QueryStepPathsResponse> {
-    const defaultOrderBy = StepsPathProperties.path
-    return await this.post<QueryStepPathsResponse>(this.queryPathsUrl, {
-      filter,
-      projection,
-      take,
-      orderBy: defaultOrderBy,
-      continuationToken,
-      returnCount,
-    });
+    const defaultOrderBy = StepsPathProperties.path;
+    return await this.post<QueryStepPathsResponse>(
+      this.queryPathsUrl,
+      {
+        filter,
+        projection,
+        take,
+        orderBy: defaultOrderBy,
+        continuationToken,
+      },
+      { showErrorAlert: false },// suppress default error alert since we handle errors manually
+    );
   }
 
   async queryStepsInBatches(
@@ -108,9 +156,16 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     take?: number,
     descending?: boolean,
     resultFilter?: string,
-    returnCount = false,
   ): Promise<QueryStepsResponse> {
-    const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<StepsResponseProperties>> => {
+    const batchQueryConfig = {
+      maxTakePerRequest: MIN_TAKE_PER_REQUEST,
+      requestsPerSecond: QUERY_STEPS_REQUEST_PER_SECOND,
+    };
+
+    const queryRecord = async (
+      currentTake: number,
+      continuationToken?: string
+    ): Promise<QueryResponse<StepsResponseProperties>> => {
       const response = await this.querySteps(
         filter,
         orderBy,
@@ -118,20 +173,22 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         currentTake,
         descending,
         resultFilter,
-        token,
-        returnCount
+        continuationToken
       );
+
+      // Check if the first step has more than 25 measurements and reduce the max take per request accordingly
+      const { steps } = response;
+      const firstStep = steps[0];
+      const { data } = firstStep || { data: { parameters: [] } };
+      const { parameters } = data || { parameters: [] };
+      const maxTakePerRequest = parameters.length >= 25 ? MIN_TAKE_PER_REQUEST : MAX_TAKE_PER_REQUEST;
+
+      batchQueryConfig.maxTakePerRequest = maxTakePerRequest;
 
       return {
         data: response.steps,
         continuationToken: response.continuationToken,
-        totalCount: response.totalCount
       };
-    };
-
-    const batchQueryConfig = {
-      maxTakePerRequest: MAX_TAKE_PER_REQUEST,
-      requestsPerSecond: QUERY_STEPS_REQUEST_PER_SECOND
     };
 
     const response = await queryInBatches(queryRecord, batchQueryConfig, take);
@@ -139,7 +196,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     return {
       steps: response.data,
       continuationToken: response.continuationToken,
-      totalCount: response.totalCount
     };
   }
 
@@ -147,27 +203,23 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     filter?: string,
     projection?: StepsPathProperties[],
     take?: number,
-    returnCount = false,
+    returnCount = false
   ): Promise<QueryStepPathsResponse> {
-    const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<StepPathResponseProperties>> => {
-      const response = await this.queryStepPaths(
-        projection,
-        filter,
-        currentTake,
-        token,
-        returnCount
-      );
+    const queryRecord = async (
+      currentTake: number,
+      token?: string
+    ): Promise<QueryResponse<StepPathResponseProperties>> => {
+      const response = await this.queryStepPaths(projection, filter, currentTake, token);
 
       return {
         data: response.paths,
         continuationToken: response.continuationToken,
-        totalCount: response.totalCount
       };
     };
 
     const batchQueryConfig = {
       maxTakePerRequest: MAX_PATH_TAKE_PER_REQUEST,
-      requestsPerSecond: QUERY_PATH_REQUEST_PER_SECOND
+      requestsPerSecond: QUERY_PATH_REQUEST_PER_SECOND,
     };
 
     const response = await queryInBatches(queryRecord, batchQueryConfig, take);
@@ -175,27 +227,23 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     return {
       paths: response.data,
       continuationToken: response.continuationToken,
-      totalCount: response.totalCount
     };
   }
-  
+
   async runQuery(query: QuerySteps, options: DataQueryRequest): Promise<DataFrameDTO> {
+    this.scopedVars = options.scopedVars || {};
+
     if (query.outputType === OutputType.Data && !this.isQueryValid(query)) {
       return {
         refId: query.refId,
         fields: [],
       };
     }
-    
-    query.stepsQuery = this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options.scopedVars) || '';
-    query.resultsQuery = this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options.scopedVars) || '';
 
-    if(this.previousResultsQuery !== query.resultsQuery) {
-      this.stepsPath = await this.getStepPathsLookupValues(options.scopedVars, query.resultsQuery)
-      this.stepsPathChangeCallback?.();
-    }
-    this.previousResultsQuery = query.resultsQuery;
-    
+    query.stepsQuery = this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options.scopedVars) || '';
+    query.resultsQuery =
+      this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options.scopedVars) || '';
+
     const transformStepsQuery = query.stepsQuery
       ? this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options.scopedVars)
       : undefined;
@@ -214,15 +262,18 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         query.recordCount,
         defaultStepsQuery.descending,
         query.resultsQuery,
-        true
       );
 
       const stepsResponse = responseData.steps;
-      const stepResponseKeys = stepsResponse && stepsResponse.length > 0 ?  new Set(Object.keys(stepsResponse[0])) : new Set<string>();
+      const stepResponseKeys =
+        stepsResponse && stepsResponse.length > 0 ? new Set(Object.keys(stepsResponse[0])) : new Set<string>();
       const selectedFields = (query.properties || []).filter(field => stepResponseKeys.has(field));
       if (selectedFields.length === 0) {
         // If no fields are available, fall back to the requested properties
-        selectedFields.push(...(query.properties || []));
+        const properties = query.properties?.map(
+          property => stepsProjectionLabelLookup[property].label
+        ) as StepsProperties[];
+        selectedFields.push(...(properties || []));
       }
 
       const fields = this.processFields(selectedFields, stepsResponse, query.showMeasurements || false);
@@ -243,33 +294,47 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         true
       );
 
-      return {  
+      return {
         refId: query.refId,
         fields: [{ name: query.refId, values: [responseData.totalCount] }],
       };
     }
   }
 
-  private async getStepPathsLookupValues(scopedVars: ScopedVars, transformedResultsQuery: string): Promise<string[]> {
+  async getStepPaths(resultsQuery: string): Promise<string[]> {
+    if (resultsQuery) {
+      const query = this.transformQuery(resultsQuery, this.resultsComputedDataFields, this.scopedVars);
+      const stepPaths = await this.getStepPathsLookupValues(query!);
+      return this.flattenAndDeduplicate(stepPaths);
+    }
+    return [];
+  }
+
+  private async initWorkspacesValues(): Promise<void> {
+    const workspaces = await this.workspacesCache;
+    this.workspaceValues = Array.from(workspaces.values());
+  }
+
+  private async getStepPathsLookupValues(transformedResultsQuery: string): Promise<string[]> {
     let stepPathValues: string[];
     try {
-      const stepPathResponse = await this.loadStepPaths(scopedVars, transformedResultsQuery);
+      const stepPathResponse = await this.loadStepPaths(transformedResultsQuery);
       stepPathValues = stepPathResponse.paths.map(pathObj => pathObj.path);
     } catch (error) {
-        if (!this.errorTitle) {
-          this.handleQueryValuesError(error, 'step paths');
-        }
+      if (!this.errorTitle) {
+        this.handleQueryValuesError(error, 'step paths');
+      }
       stepPathValues = [];
     }
     return stepPathValues;
   }
 
-  private async loadStepPaths(
-    options: ScopedVars,
-    transformedResultsQuery?: string
-  ): Promise<QueryStepPathsResponse> {
-    const programNames = await this.queryResultsValues(ResultsQueryBuilderFieldNames.PROGRAM_NAME, transformedResultsQuery);
-    if(programNames.length === 0) {
+  private async loadStepPaths(transformedResultsQuery?: string): Promise<QueryStepPathsResponse> {
+    const programNames = await this.queryResultsValues(
+      ResultsQueryBuilderFieldNames.PROGRAM_NAME,
+      transformedResultsQuery
+    );
+    if (programNames.length === 0) {
       return { paths: [] };
     }
 
@@ -278,56 +343,116 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       programNameQuery,
       [StepsPathProperties.path],
       MAX_PATH_TAKE_PER_REQUEST,
-      true
     );
-  }
-
-  getStepPaths(): string[] {
-    if (this.stepsPath?.length > 0) {
-      return this.flattenAndDeduplicate(this.stepsPath);
-    }
-    return [];
   }
 
   private processFields(
     selectedFields: StepsProperties[],
     stepsResponse: StepsResponseProperties[],
     showMeasurements: boolean
-  ): Array<{ name: string; values: string[]; type: FieldType }> {
-    const columns: Array<{ name: string; values: string[]; type: FieldType }> = [];
+  ): GrafanaColumns {
+    const columns: GrafanaColumns = [];
     if (stepsResponse.length === 0) {
       return selectedFields.map(field => ({
         name: field,
         values: [],
-        type: this.findFieldType(field, '')
-      }))
+        type: this.findFieldType(field, ''),
+      }));
     }
-  
+
     stepsResponse.forEach(step => {
+      // Remove input, output from the selected fields as they will be processed separately
+      const selectedStepPropertyFields = selectedFields.filter(
+        field => field !== StepsProperties.inputs && field !== StepsProperties.outputs
+      );
+
+      const columnsToDuplicate: string[] = [];
+
       // Process selected step fields
-      selectedFields.forEach(field => {
+      selectedStepPropertyFields.forEach(field => {
+        const fieldName = stepsProjectionLabelLookup[field].label;
+        columnsToDuplicate.push(fieldName);
         const value = this.convertStepPropertyToString(field, step[field]);
         const fieldType = this.findFieldType(field, value);
-        this.addValueToColumn(columns, field, value, fieldType);
+        this.addValueToColumn(columns, fieldName, value, fieldType);
       });
+
+      // If there are duplicate names between inputs and outputs, add a suffix to the name
+      const duplicateConditionNames = new Set<string>();
+
+      // Assuming the respective properties will only be present if selected
+      const inputNames = new Set(step.inputs?.map(input => input.name));
+      const outputNames = new Set(step.outputs?.map(output => output.name));
+      const measurementNames = new Set(
+        step.data?.parameters?.map(measurement => measurement[MEASUREMENT_NAME_COLUMN]) || []
+      );
+
+      const addedConditions = new Set<string>();
+
+      if (selectedFields.includes(StepsProperties.inputs) && selectedFields.includes(StepsProperties.outputs)) {
+        inputNames.forEach(name => {
+          if (outputNames.has(name)) {
+            duplicateConditionNames.add(name);
+          }
+        });
+      }
+
+      // Process inputs if they are part of the selected fields
+      if (selectedFields.includes(StepsProperties.inputs) && step.inputs && step.inputs.length) {
+        const addedInputNames = this.parseConditions(
+          columns,
+          step.inputs,
+          measurementNames,
+          duplicateConditionNames,
+          DUPLICATE_INPUT_SUFFIX
+        );
+        addedInputNames.forEach(name => addedConditions.add(name));
+        columnsToDuplicate.push(...addedInputNames);
+      }
+
+      // Process outputs if they are part of the selected fields
+      if (selectedFields.includes(StepsProperties.outputs) && step.outputs && step.outputs.length) {
+        const addedOutputNames = this.parseConditions(
+          columns,
+          step.outputs,
+          measurementNames,
+          duplicateConditionNames,
+          DUPLICATE_OUTPUT_SUFFIX
+        );
+        addedOutputNames.forEach(name => addedConditions.add(name));
+        columnsToDuplicate.push(...addedOutputNames);
+      }
 
       // Process measurement fields if enabled
       if (showMeasurements) {
         // Measurements are defined as the data.parameters which contains a name, else the parameter is ignored.
-        const measurements =
-          step.data?.parameters?.filter(measurement => measurement[MEASUREMENT_NAME_COLUMN]) || [];
+        const measurements = step.data?.parameters?.filter(measurement => measurement[MEASUREMENT_NAME_COLUMN]) || [];
 
-        measurements.forEach(measurement => {
+        // Track measurement names to detect duplicates within the same step
+        const seenMeasurementNames = new Set<string>();
+
+        measurements.forEach((measurement, measurementIndex) => {
           const measurementName = measurement[MEASUREMENT_NAME_COLUMN];
           if (!measurementName) {
             return;
           }
 
-          measurementProperties.forEach(property => {
+          // If this measurement name has already been seen, duplicate the last value in all columnsToDuplicate columns
+          if (seenMeasurementNames.has(measurementName)) {
+            columnsToDuplicate.forEach(colName => {
+              const col = columns.find(c => c.name === colName);
+              if (col && col.values.length > 0) {
+                col.values.push(col.values[col.values.length - 1]);
+              }
+            });
+          }
+          seenMeasurementNames.add(measurementName);
+
+          measurementProperties.forEach((property, measurementPropertyIndex) => {
             const suffix = measurementColumnLabelSuffix[property];
             let columnName = formatMeasurementColumnName(measurementName, suffix);
             let value = measurement[property] ?? '';
-            if(!value) {
+            if (!value) {
               // If the value is empty, skip adding it to the column this is considering
               // that not all measurements will have high limit, low limit, etc.
               return;
@@ -335,7 +460,10 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
 
             if (property === MEASUREMENT_NAME_COLUMN) {
               // For the measurement name column, format the column name with units if available
-              columnName = formatMeasurementValueColumnName(measurementName, measurement[MEASUREMENT_UNITS_COLUMN] || '');
+              columnName = formatMeasurementValueColumnName(
+                measurementName,
+                measurement[MEASUREMENT_UNITS_COLUMN] || ''
+              );
               // For the measurement name column, use the measurement values if available
               value = measurement[MeasurementProperties.MEASUREMENT] ?? '';
             }
@@ -349,7 +477,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       // At the end of processing each step, ensure all columns have the same length
       // by normalizing the columns.
       this.normalizeColumns(columns);
-
     });
 
     return columns;
@@ -360,7 +487,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
    * Optionally normalizes columns to the same length before adding.
    */
   private addValueToColumn(
-    columns: Array<{ name: string; values: string[]; type: FieldType }>,
+    columns: GrafanaColumns,
     field: string,
     value: string,
     type: FieldType = FieldType.string,
@@ -397,36 +524,79 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     });
   }
 
+  private parseConditions(
+    columns: GrafanaColumns,
+    conditions: InputOutputValues[],
+    measurementNames: Set<string>,
+    globalConditionNames: Set<string>,
+    duplicateSuffix: string
+  ): string[] {
+    const addedConditionNames: string[] = [];
+    const conditionNames = conditions.map(input => input.name);
+
+    // Check if there are any duplicate condition names within the inputs/outputs
+    const duplicateConditionNames = new Set(
+      conditionNames.filter((name, index) => conditionNames.indexOf(name) !== index)
+    );
+    const duplicateSuffixes = new Map<string, number>();
+    duplicateConditionNames.forEach(name => {
+      duplicateSuffixes.set(name, 0);
+    });
+    conditions.forEach(input => {
+      const showSuffix = measurementNames.has(input.name) || globalConditionNames.has(input.name);
+
+      let inputName = showSuffix ? `${input.name} ${duplicateSuffix}` : input.name;
+
+      if (duplicateConditionNames.has(input.name)) {
+        // If the input name is duplicated within inputs, add a suffix to the name
+        const currentCount = duplicateSuffixes.get(input.name) || 0;
+        inputName = showSuffix
+          ? `${input.name} ${duplicateSuffix} ${currentCount + 1}`
+          : `${input.name} ${currentCount + 1}`;
+        duplicateSuffixes.set(input.name, currentCount + 1);
+      }
+      const inputValue = input.value?.toString() ? input.value.toString() : '';
+      const fieldType = this.findFieldType(input.name, inputValue.toString());
+      // Within inputs, if the name is duplicated, add them in a new column
+      this.addValueToColumn(columns, inputName, inputValue, fieldType);
+      // Add the input name to the addedConditions set
+      addedConditionNames.push(inputName);
+    });
+
+    return addedConditionNames;
+  }
+
   private convertStepPropertyToString(field: string, value: any): string {
     if (value === undefined || value === null) {
-        return '';
+      return '';
     }
     switch (field) {
-        case StepsPropertiesOptions.PROPERTIES:
-        case StepsPropertiesOptions.INPUTS:
-        case StepsPropertiesOptions.OUTPUTS:
-        case StepsPropertiesOptions.DATA:
-            return value !== null ? JSON.stringify(value) : '';
-        case StepsPropertiesOptions.STATUS:
-            return (value as any)?.statusType || '';
-        default:
-            return value.toString();
+      case StepsPropertiesOptions.PROPERTIES:
+      case StepsPropertiesOptions.DATA:
+        return Object.keys(value).length > 0
+            ? JSON.stringify(value)
+            : '';
+      case StepsPropertiesOptions.STATUS:
+        return (value as any)?.statusType || '';
+      case StepsPropertiesOptions.WORKSPACE:
+        const workspaceId = value as string;
+        return this.workspaceValues.length ? getWorkspaceName(this.workspaceValues, workspaceId) : workspaceId;
+      default:
+        return value.toString();
     }
-}
+  }
 
   private findFieldType(field: string, value: string): FieldType {
-    const isTimeField =
-      field === StepsPropertiesOptions.UPDATED_AT ||
-      field === StepsPropertiesOptions.STARTED_AT;
-    if(isTimeField) {
+    const isTimeField = field === StepsPropertiesOptions.UPDATED_AT || field === StepsPropertiesOptions.STARTED_AT;
+    if (isTimeField) {
       return FieldType.time;
     }
-    
+
     const isValueANumber = !isNaN(Number(value)) && value.trim() !== '';
     if (isValueANumber) {
       return FieldType.number;
     }
-    
+
     return FieldType.string;
   }
 
@@ -436,9 +606,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   private readonly stepsComputedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(StepsQueryBuilderFieldNames).map(field => [
       field,
-      field === (StepsQueryBuilderFieldNames.UPDATED_AT)
-        ? this.timeFieldsQuery(field)
-        : this.multipleValuesQuery(field),
+      field === StepsQueryBuilderFieldNames.UPDATED_AT ? this.timeFieldsQuery(field) : this.multipleValuesQuery(field),
     ])
   );
 
@@ -448,7 +616,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   private readonly resultsComputedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(ResultsQueryBuilderFieldNames).map(field => [
       field,
-      field === (ResultsQueryBuilderFieldNames.UPDATED_AT) || field === (ResultsQueryBuilderFieldNames.STARTED_AT)
+      field === ResultsQueryBuilderFieldNames.UPDATED_AT || field === ResultsQueryBuilderFieldNames.STARTED_AT
         ? this.timeFieldsQuery(field)
         : this.multipleValuesQuery(field),
     ])
@@ -461,24 +629,21 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
    * @param scopedVars - The scoped variables for template replacement.
    * @returns - The transformed query string, or undefined if the input queryField is undefined.
    */
-  private transformQuery(queryField: string | undefined, computedDataFields: Map<string, ExpressionTransformFunction>, scopedVars: ScopedVars): string | undefined {
+  private transformQuery(
+    queryField: string | undefined,
+    computedDataFields: Map<string, ExpressionTransformFunction>,
+    scopedVars?: ScopedVars
+  ): string | undefined {
     return queryField
-      ? transformComputedFieldsQuery(
-        this.templateSrv.replace(queryField, scopedVars),
-        computedDataFields
-      )
+      ? transformComputedFieldsQuery(this.templateSrv.replace(queryField, scopedVars), computedDataFields)
       : undefined;
   }
 
   async metricFindQuery(query: StepsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    this.scopedVars = options?.scopedVars || {};
     if (query.queryByResults && this.isTakeValid(query.stepsTake!)) {
-      const resultsQuery = this.transformQuery(query.queryByResults, this.resultsComputedDataFields, options?.scopedVars!) || '';
-
-      if (this.previousResultsQuery !== resultsQuery) {
-        this.stepsPath = await this.getStepPathsLookupValues(options?.scopedVars!, resultsQuery)
-        this.stepsPathChangeCallback?.();
-      }
-      this.previousResultsQuery = resultsQuery;
+      const resultsQuery =
+        this.transformQuery(query.queryByResults, this.resultsComputedDataFields, options?.scopedVars!) || '';
 
       const stepsQuery = this.transformQuery(query.queryBySteps, this.resultsComputedDataFields, options?.scopedVars!);
 
@@ -489,7 +654,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         [StepsPropertiesOptions.NAME as StepsProperties],
         query.stepsTake,
         defaultStepsQuery.descending,
-        resultsQuery,
+        resultsQuery
       );
 
       if (responseData.steps.length > 0) {

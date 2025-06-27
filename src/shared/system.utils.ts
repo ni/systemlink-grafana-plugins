@@ -54,11 +54,15 @@ export class SystemUtils {
         skip?: number
     ): Promise<QuerySystemsResponse> {
         try {
-            const response = await this.backendSrv.post<QuerySystemsResponse>(this.querySystemsUrl, {
-                projection: QUERY_SYSTEMS_ALIAS_PROJECTION,
-                skip,
-                take
-            });
+            const response = await this.backendSrv.post<QuerySystemsResponse>(
+                this.querySystemsUrl,
+                {
+                    projection: QUERY_SYSTEMS_ALIAS_PROJECTION,
+                    skip,
+                    take
+                },
+                { showErrorAlert: false } // suppress default error alert since we handle errors manually
+            );
             return response;
         } catch (error) {
             throw new Error(`An error occurred while querying systems: ${error}`);

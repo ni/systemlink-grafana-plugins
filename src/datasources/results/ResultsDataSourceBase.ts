@@ -89,18 +89,26 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   }
 
   async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {
-    return await this.post<string[]>(this.queryResultsValuesUrl, {
-      field: fieldName,
-      filter
-    });
+    return await this.post<string[]>(
+      this.queryResultsValuesUrl,
+      {
+        field: fieldName,
+        filter
+      },
+      { showErrorAlert: false } // suppress default error alert since we handle errors manually
+    );
   }
 
   async queryProducts(
     projection?: ProductProperties[],
   ): Promise<QueryProductResponse> {
-    const response = await this.post<QueryProductResponse>(this.queryProductsUrl, {
-      projection,
-    });
+    const response = await this.post<QueryProductResponse>(
+      this.queryProductsUrl,
+      {
+        projection,
+      },
+      { showErrorAlert: false } // suppress default error alert since we handle errors manually
+    );
     return response;
   }
 

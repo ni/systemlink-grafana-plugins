@@ -3,7 +3,7 @@ import { TestPlansDataSource } from "./TestPlansDataSource";
 import { BackendSrv } from "@grafana/runtime";
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from "test/fixtures";
 import { OrderByOptions, OutputType, Projections, Properties, QueryTestPlansResponse, TestPlansVariableQuery } from "./types";
-import { DataQueryRequest, LegacyMetricFindQueryOptions } from "@grafana/data";
+import { DataQueryRequest, FieldType, LegacyMetricFindQueryOptions } from "@grafana/data";
 
 let datastore: TestPlansDataSource, backendServer: MockProxy<BackendSrv>;
 
@@ -132,7 +132,6 @@ describe('testDatasource', () => {
 
   test('default query output type as properties and default properties', async () => {
     const defaultQuery = datastore.defaultQuery;
-    expect(defaultQuery.outputType).toEqual(OutputType.Properties);
     expect(defaultQuery.properties).toEqual([
       Properties.NAME,
       Properties.STATE,
@@ -175,7 +174,7 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(2);
-    expect(result.fields[0].name).toEqual('Name');
+    expect(result.fields[0].name).toEqual('Test plan name');
     expect(result.fields[0].values).toEqual(['Test Plan 1', 'Test Plan 2']);
     expect(result.fields[1].name).toEqual('State');
     expect(result.fields[1].values).toEqual(['Active', 'Completed']);
@@ -196,7 +195,7 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(2);
-    expect(result.fields[0]).toEqual({ "name": "Name", "type": "string", "values": [] });
+    expect(result.fields[0]).toEqual({ "name": "Test plan name", "type": "string", "values": [] });
     expect(result.fields[1]).toEqual({ "name": "State", "type": "string", "values": [] });
   });
 
@@ -324,7 +323,7 @@ describe('runQuery', () => {
     expect(result.fields[0].values).toEqual(['SN-1', 'SN-2']);
   });
 
-  it('should show work order name & id for work order property', async () => {
+  it('should show work order name work order name property', async () => {
     const query = {
       refId: 'A',
       outputType: OutputType.Properties,
@@ -346,8 +345,8 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Work order');
-    expect(result.fields[0].values).toEqual(['Work Order 1 (WO-1)', 'Work Order 2 (WO-2)']);
+    expect(result.fields[0].name).toEqual('Work order name');
+    expect(result.fields[0].values).toEqual(['Work Order 1', 'Work Order 2']);
   });
 
   it('should handle empty work order name', async () => {
@@ -372,63 +371,11 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Work order');
-    expect(result.fields[0].values).toEqual([' (WO-1)', 'Work Order 2 (WO-2)']);
+    expect(result.fields[0].name).toEqual('Work order name');
+    expect(result.fields[0].values).toEqual(['', 'Work Order 2']);
   });
 
-  it('should handle empty work order id', async () => {
-    const query = {
-      refId: 'A',
-      outputType: OutputType.Properties,
-      properties: [Properties.WORK_ORDER],
-      orderBy: OrderByOptions.UPDATED_AT,
-      recordCount: 10,
-      descending: true,
-    };
-
-    const testPlansResponse = {
-      testPlans: [
-        { id: '1', workOrderId: '', workOrderName: 'Work Order 1' },
-        { id: '2', workOrderId: 'WO-2', workOrderName: 'Work Order 2' }
-      ],
-    };
-
-    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
-
-    const result = await datastore.runQuery(query, mockOptions);
-
-    expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Work order');
-    expect(result.fields[0].values).toEqual(['Work Order 1 ', 'Work Order 2 (WO-2)']);
-  });
-
-  it('should handle empty work order name and id', async () => {
-    const query = {
-      refId: 'A',
-      outputType: OutputType.Properties,
-      properties: [Properties.WORK_ORDER],
-      orderBy: OrderByOptions.UPDATED_AT,
-      recordCount: 10,
-      descending: true,
-    };
-
-    const testPlansResponse = {
-      testPlans: [
-        { id: '1', workOrderId: '', workOrderName: '' },
-        { id: '2', workOrderId: 'WO-2', workOrderName: 'Work Order 2' }
-      ],
-    };
-
-    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
-
-    const result = await datastore.runQuery(query, mockOptions);
-
-    expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Work order');
-    expect(result.fields[0].values).toEqual([' ', 'Work Order 2 (WO-2)']);
-  });
-
-  it('should show template name and id for test plan template property', async () => {
+  it('should show template name for Template name property', async () => {
     const query = {
       refId: 'A',
       outputType: OutputType.Properties,
@@ -455,8 +402,8 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Test plan template');
-    expect(result.fields[0].values).toEqual(['Template 1 (TPL-1)', 'Template 2 (TPL-2)']);
+    expect(result.fields[0].name).toEqual('Template name');
+    expect(result.fields[0].values).toEqual(['Template 1', 'Template 2']);
   });
 
   it('should handle empty template name', async () => {
@@ -486,38 +433,8 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(query, mockOptions);
 
     expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Test plan template');
-    expect(result.fields[0].values).toEqual([' (TPL-1)', 'Template 2 (TPL-2)']);
-  });
-
-  it('should handle empty template id', async () => {
-    const query = {
-      refId: 'A',
-      outputType: OutputType.Properties,
-      properties: [Properties.TEMPLATE],
-      orderBy: OrderByOptions.UPDATED_AT,
-      recordCount: 10,
-      descending: true,
-    };
-
-    const templateResponse = [
-      { id: 'TPL-2', name: 'Template 2' }
-    ];
-    const testPlansResponse = {
-      testPlans: [
-        { id: '1', templateId: '' },
-        { id: '2', templateId: 'TPL-2' }
-      ],
-    };
-
-    jest.spyOn(datastore, 'queryTestPlanTemplatesInBatches').mockResolvedValue(templateResponse);
-    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
-
-    const result = await datastore.runQuery(query, mockOptions);
-
-    expect(result.fields).toHaveLength(1);
-    expect(result.fields[0].name).toEqual('Test plan template');
-    expect(result.fields[0].values).toEqual(['', 'Template 2 (TPL-2)']);
+    expect(result.fields[0].name).toEqual('Template name');
+    expect(result.fields[0].values).toEqual(['', 'Template 2']);
   });
 
   it('should convert workspaceIds to workspace names for workspace field', async () => {
@@ -572,6 +489,30 @@ describe('runQuery', () => {
       JSON.stringify({ customProp1: 'value1', customProp2: 'value2' }),
       JSON.stringify({ customProp1: 'value3' })
     ]);
+  });
+
+  it('should display empty cell when properties is empty', async () => {
+    const query = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.PROPERTIES],
+      orderBy: OrderByOptions.UPDATED_AT,
+      recordCount: 10,
+      descending: true,
+    };
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', properties: {} }
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(query, mockOptions);
+
+    expect(result.fields).toHaveLength(1);
+    expect(result.fields[0].name).toEqual('Properties');
+    expect(result.fields[0].values).toEqual(['']);
   });
 
   it('should convert systemIds to system names for system name property', async () => {
@@ -683,6 +624,8 @@ describe('runQuery', () => {
       refId: 'C',
       outputType: OutputType.Properties,
       queryBy: 'workspace = "${var}"',
+      properties: [Properties.ID],
+      recordCount: 1000
     };
     jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "testWorkspace"');
     jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
@@ -695,9 +638,8 @@ describe('runQuery', () => {
       'workspace = "testWorkspace"',
       undefined,
       ["ID"],
+      1000,
       undefined,
-      undefined,
-      true,
     );
   });
 
@@ -706,6 +648,8 @@ describe('runQuery', () => {
       refId: 'C',
       outputType: OutputType.Properties,
       queryBy: 'workspace = "${var}"',
+      properties: [Properties.ID],
+      recordCount: 1000,
     };
     const options = { scopedVars: { var: { value: '{testWorkspace1,testWorkspace2}' } } };
     jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "{testWorkspace1,testWorkspace2}"');
@@ -717,9 +661,8 @@ describe('runQuery', () => {
       '(workspace = "testWorkspace1" || workspace = "testWorkspace2")',
       undefined,
       ["ID"],
+      1000,
       undefined,
-      undefined,
-      true,
     );
   });
 
@@ -731,6 +674,8 @@ describe('runQuery', () => {
       refId: 'C',
       outputType: OutputType.Properties,
       queryBy: 'updatedAt = "${__now:date}"',
+      properties: [Properties.ID],
+      recordCount: 1000,
     };
 
     await datastore.runQuery(mockQuery, {} as DataQueryRequest);
@@ -739,9 +684,8 @@ describe('runQuery', () => {
       'updatedAt = "2025-01-01T00:00:00.000Z"',
       undefined,
       ["ID"],
+      1000,
       undefined,
-      undefined,
-      true,
     );
 
     jest.useRealTimers();
@@ -803,6 +747,8 @@ describe('runQuery', () => {
       refId: 'C',
       outputType: OutputType.Properties,
       queryBy: '(estimatedDurationInDays > "2" && estimatedDurationInHours != "2")',
+      properties: [Properties.ID],
+      recordCount: 1000,
     };
 
     jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
@@ -813,10 +759,219 @@ describe('runQuery', () => {
       '(estimatedDurationInSeconds > \"172800\" && estimatedDurationInSeconds != \"7200\")',
       undefined,
       ["ID"],
+      1000,
       undefined,
-      undefined,
-      true
     );
+  });
+
+  test('should transform field when queryBy contains duration fields with negative values', async () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: '(estimatedDurationInDays > "-2" && estimatedDurationInHours != "-2")',
+      properties: [Properties.ID],
+      recordCount: 1000,
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      '(estimatedDurationInSeconds > \"-172800\" && estimatedDurationInSeconds != \"-7200\")',
+      undefined,
+      ["ID"],
+      1000,
+      undefined,
+    );
+  });
+
+  test('should return type as string type', async () => {
+    const mockQuery = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.ID, Properties.UPDATED_AT],
+      recordCount: 1000,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', updatedAt: '2023-01-02T00:00:00Z' },
+        { id: '2', updatedAt: '2023-01-05T00:00:00Z' },
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(result.fields).toHaveLength(2);
+    expect(result.fields[0].type).toEqual(FieldType.string);
+    expect(result.fields[1].type).toEqual(FieldType.string);
+  });
+
+  test('should set field names as expected', async () => {
+    const mockQuery = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [
+        Properties.ASSIGNED_TO,
+        Properties.CREATED_AT,
+        Properties.CREATED_BY,
+        Properties.DESCRIPTION,
+        Properties.ID,
+        Properties.NAME,
+        Properties.PROPERTIES,
+        Properties.STATE,
+        Properties.UPDATED_AT,
+        Properties.UPDATED_BY,
+        Properties.WORKSPACE,
+        Properties.WORK_ORDER,
+        Properties.WORK_ORDER_ID,
+        Properties.PRODUCT_NAME,
+        Properties.PRODUCT_ID,
+        Properties.PART_NUMBER,
+        Properties.PLANNED_START_DATE_TIME,
+        Properties.ESTIMATED_END_DATE_TIME,
+        Properties.ESTIMATED_DURATION_IN_SECONDS,
+        Properties.SYSTEM_NAME,
+        Properties.SYSTEM_ID,
+        Properties.TEMPLATE,
+        Properties.TEMPLATE_ID,
+        Properties.TEST_PROGRAM,
+        Properties.SUBSTATE,
+        Properties.FIXTURE_NAMES,
+        Properties.DUT_ID,
+        Properties.DUT_NAME,
+        Properties.DUT_SERIAL_NUMBER,
+      ],
+      recordCount: 1000,
+    };
+
+    const testPlansResponse = {
+      testPlans: [],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(result.fields[0].name).toEqual('Assigned to');
+    expect(result.fields[1].name).toEqual('Created');
+    expect(result.fields[2].name).toEqual('Created by');
+    expect(result.fields[3].name).toEqual('Description');
+    expect(result.fields[4].name).toEqual('Test plan ID');
+    expect(result.fields[5].name).toEqual('Test plan name');
+    expect(result.fields[6].name).toEqual('Properties');
+    expect(result.fields[7].name).toEqual('State');
+    expect(result.fields[8].name).toEqual('Updated');
+    expect(result.fields[9].name).toEqual('Updated by');
+    expect(result.fields[10].name).toEqual('Workspace');
+    expect(result.fields[11].name).toEqual('Work order name');
+    expect(result.fields[12].name).toEqual('Work order ID');
+    expect(result.fields[13].name).toEqual('Product name');
+    expect(result.fields[14].name).toEqual('Product ID');
+    expect(result.fields[15].name).toEqual('Part number');
+    expect(result.fields[16].name).toEqual('Planned start date/time');
+    expect(result.fields[17].name).toEqual('Estimated end date/time');
+    expect(result.fields[18].name).toEqual('Estimated duration');
+    expect(result.fields[19].name).toEqual('System name');
+    expect(result.fields[20].name).toEqual('System ID');
+    expect(result.fields[21].name).toEqual('Template name');
+    expect(result.fields[22].name).toEqual('Template ID');
+    expect(result.fields[23].name).toEqual('Test program name');
+    expect(result.fields[24].name).toEqual('Substate');
+    expect(result.fields[25].name).toEqual('Fixture names');
+    expect(result.fields[26].name).toEqual('DUT ID');
+    expect(result.fields[27].name).toEqual('DUT name');
+    expect(result.fields[28].name).toEqual('DUT serial number');
+  });
+
+  
+  it('should return empty data when properties is invalid', async () => {
+    const mockQuery = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [],
+      recordCount: 1000,
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({testPlans:[]});
+
+    const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(result.fields).toHaveLength(0);
+  });
+
+  it('should return empty data when take is invalid', async () => {
+    const mockQuery = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.NAME],
+      recordCount: undefined,
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({testPlans:[]});
+
+    const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(result.fields).toHaveLength(0);
+  });
+
+  it('should return empty data when record count is less than 0', async()=> {
+    const mockQuery = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.NAME],
+      recordCount: -1,
+    };
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({testPlans:[]});
+
+    const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(result.fields).toHaveLength(0);
+  })
+  
+  it('should return empty data when record count is greater than max take', async()=> {
+    const mockQuery = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.NAME],
+      recordCount: 1000000,
+    };
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({testPlans:[]});
+
+    const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(result.fields).toHaveLength(0);
+  })
+
+  it('should return expected data when record count is 0', async () => {
+    const mockQuery = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.NAME],
+      recordCount: 0,
+    };
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({testPlans:[]});
+
+    const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(result).toMatchSnapshot();
+  });
+
+  test('should return expected data when record count is 10000', async () => {
+    const mockQuery = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.NAME],
+      recordCount: 10000,
+    };
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({testPlans:[]});
+
+    const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(result).toMatchSnapshot();
   });
 });
 
@@ -866,6 +1021,34 @@ describe('loadWorkspaces', () => {
     expect(datastore.errorTitle).toBe('Warning during testplans query');
     expect(datastore.errorDescription).toContain(
       `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`
+    );
+  });
+
+  it('should throw too many requests error when API returns 429 status', async () => {
+    datastore.errorTitle = '';
+    jest
+      .spyOn(datastore.workspaceUtils, 'getWorkspaces')
+      .mockRejectedValue(new Error('Request failed with status code: 429'));
+
+    await datastore.loadWorkspaces();
+
+    expect(datastore.errorTitle).toBe('Warning during testplans query');
+    expect(datastore.errorDescription).toContain(
+      `The query builder lookups failed due to too many requests. Please try again later.`
+    );
+  });
+
+  it('should throw not found error when API returns 404 status', async () => {
+    datastore.errorTitle = '';
+    jest
+      .spyOn(datastore.workspaceUtils, 'getWorkspaces')
+      .mockRejectedValue(new Error('Request failed with status code: 404'));
+
+    await datastore.loadWorkspaces();
+
+    expect(datastore.errorTitle).toBe('Warning during testplans query');
+    expect(datastore.errorDescription).toContain(
+      `The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.`
     );
   });
 });
@@ -918,6 +1101,34 @@ describe('loadUsers', () => {
       `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`
     );
   });
+
+  it('should throw too many requests error when API returns 429 status', async () => {
+    datastore.errorTitle = '';
+    jest
+      .spyOn(datastore.usersUtils, 'getUsers')
+      .mockRejectedValue(new Error('Request failed with status code: 429'));
+
+    await datastore.loadUsers();
+
+    expect(datastore.errorTitle).toBe('Warning during testplans query');
+    expect(datastore.errorDescription).toContain(
+      `The query builder lookups failed due to too many requests. Please try again later.`
+    );
+  });
+
+  it('should throw not found error when API returns 404 status', async () => {
+    datastore.errorTitle = '';
+    jest
+      .spyOn(datastore.usersUtils, 'getUsers')
+      .mockRejectedValue(new Error('Request failed with status code: 404'));
+
+    await datastore.loadUsers();
+
+    expect(datastore.errorTitle).toBe('Warning during testplans query');
+    expect(datastore.errorDescription).toContain(
+      `The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.`
+    );
+  });
 });
 
 describe('loadSystemAliases', () => {
@@ -965,6 +1176,34 @@ describe('loadSystemAliases', () => {
     expect(datastore.errorTitle).toBe('Warning during testplans query');
     expect(datastore.errorDescription).toContain(
       `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`
+    );
+  });
+
+  it('should throw too many requests error when API returns 429 status', async () => {
+    datastore.errorTitle = '';
+    jest
+      .spyOn(datastore.systemUtils, 'getSystemAliases')
+      .mockRejectedValue(new Error('Request failed with status code: 429'));
+
+    await datastore.loadSystemAliases();
+
+    expect(datastore.errorTitle).toBe('Warning during testplans query');
+    expect(datastore.errorDescription).toContain(
+      `The query builder lookups failed due to too many requests. Please try again later.`
+    );
+  });
+
+  it('should throw not found error when API returns 404 status', async () => {
+    datastore.errorTitle = '';
+    jest
+      .spyOn(datastore.systemUtils, 'getSystemAliases')
+      .mockRejectedValue(new Error('Request failed with status code: 404'));
+
+    await datastore.loadSystemAliases();
+
+    expect(datastore.errorTitle).toBe('Warning during testplans query');
+    expect(datastore.errorDescription).toContain(
+      `The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.`
     );
   });
 });
@@ -1017,6 +1256,34 @@ describe('loadProductNamesAndPartNumbers', ()=>{
       `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`
     );
   });
+
+  it('should throw too many requests error when API returns 429 status', async () => {
+    datastore.errorTitle = '';
+    jest
+      .spyOn(datastore.productUtils, 'getProductNamesAndPartNumbers')
+      .mockRejectedValue(new Error('Request failed with status code: 429'));
+
+    await datastore.loadProductNamesAndPartNumbers();
+
+    expect(datastore.errorTitle).toBe('Warning during testplans query');
+    expect(datastore.errorDescription).toContain(
+      `The query builder lookups failed due to too many requests. Please try again later.`
+    );
+  });
+
+  it('should throw not found error when API returns 404 status', async () => {
+    datastore.errorTitle = '';
+    jest
+      .spyOn(datastore.productUtils, 'getProductNamesAndPartNumbers')
+      .mockRejectedValue(new Error('Request failed with status code: 404'));
+
+    await datastore.loadProductNamesAndPartNumbers();
+
+    expect(datastore.errorTitle).toBe('Warning during testplans query');
+    expect(datastore.errorDescription).toContain(
+      `The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.`
+    );
+  });
 })
 
 describe('queryTestPlansInBatches', () => {
@@ -1027,7 +1294,6 @@ describe('queryTestPlansInBatches', () => {
         { id: '2', name: 'Test Plan 2' }
       ],
       continuationToken: undefined,
-      totalCount: 2,
     };
 
     jest.spyOn(datastore, 'queryTestPlans').mockResolvedValue(mockQueryResponse);
@@ -1035,7 +1301,6 @@ describe('queryTestPlansInBatches', () => {
     const result = await datastore.queryTestPlansInBatches('', OrderByOptions.UPDATED_AT, [Projections.NAME], 2, true);
 
     expect(result.testPlans).toEqual(mockQueryResponse.testPlans);
-    expect(result.totalCount).toEqual(2);
   });
 
   test('handles errors during batch querying', async () => {
@@ -1079,6 +1344,26 @@ describe('queryTestPlans', () => {
         'The query to fetch testplans experienced a timeout error. Narrow your query with a more specific filter and try again.'
       );
     });
+
+    it('should throw too many requests error when API returns 429 status', async () => {
+      jest.spyOn(datastore, 'post').mockImplementation(() => {
+        throw new Error('Request failed with status code: 429');
+      });
+
+      await expect(datastore.queryTestPlans()).rejects.toThrow(
+        'The query to fetch testplans failed due to too many requests. Please try again later.'
+      );
+    });
+
+    it('should throw not found error when API returns 404 status', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/niworkorder/v1/query-testplans' }))
+        .mockReturnValue(createFetchError(404));
+
+      await expect(datastore.queryTestPlans()).rejects.toThrow(
+        'The query to fetch testplans failed because the requested resource was not found. Please check the query parameters and try again.'
+      );
+    })
 
     it('should throw error with unknown error when API returns error without status', async () => {
       backendServer.fetch
@@ -1124,6 +1409,7 @@ describe('metricFindQuery', () => {
   it('should return test plan name with id when queryBy is not provided', async () => {
     const query: TestPlansVariableQuery = {
       refId: '',
+      recordCount: 1000
     };
 
     const results = await datastore.metricFindQuery(query, options);
@@ -1132,7 +1418,8 @@ describe('metricFindQuery', () => {
     expect(backendServer.fetch).toHaveBeenCalledWith(
       expect.objectContaining({
         data: {
-          descending: false,
+          orderBy: OrderByOptions.UPDATED_AT,
+          descending: true,
           projection: ["ID", "NAME"],
           returnCount: false,
           take: 1000
@@ -1169,6 +1456,7 @@ describe('metricFindQuery', () => {
     const mockQuery = {
       refId: 'C',
       queryBy: 'workspace = "${var}"',
+      recordCount: 1000,
     };
     jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "testWorkspace"');
     jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
@@ -1179,10 +1467,10 @@ describe('metricFindQuery', () => {
     expect(datastore.templateSrv.replace).toHaveBeenCalledWith('workspace = "${var}"', options.scopedVars);
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'workspace = "testWorkspace"',
-      undefined,
+      "UPDATED_AT",
       ["ID", "NAME"],
-      undefined,
-      undefined
+      1000,
+      true
     );
   });
 
@@ -1191,6 +1479,7 @@ describe('metricFindQuery', () => {
       refId: 'C',
       outputType: OutputType.Properties,
       queryBy: 'workspace = "${var}"',
+      recordCount: 1000,
     };
     const options = { scopedVars: { var: { value: '{testWorkspace1,testWorkspace2}' } } };
     jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "{testWorkspace1,testWorkspace2}"');
@@ -1200,10 +1489,10 @@ describe('metricFindQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       '(workspace = "testWorkspace1" || workspace = "testWorkspace2")',
-      undefined,
+      "UPDATED_AT",
       ["ID", "NAME"],
-      undefined,
-      undefined
+      1000,
+      true
     );
   });
 
@@ -1215,16 +1504,17 @@ describe('metricFindQuery', () => {
       refId: 'C',
       outputType: OutputType.Properties,
       queryBy: 'updatedAt = "${__now:date}"',
+      recordCount: 1000
     };
 
     await datastore.metricFindQuery(mockQuery, {});
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'updatedAt = "2025-01-01T00:00:00.000Z"',
-      undefined,
+      "UPDATED_AT",
       ["ID", "NAME"],
-      undefined,
-      undefined
+      1000,
+      true
     );
 
     jest.useRealTimers();
@@ -1234,6 +1524,7 @@ describe('metricFindQuery', () => {
     const mockQuery = {
       refId: 'C',
       queryBy: '(estimatedDurationInDays > "2" && estimatedDurationInHours != "2")',
+      recordCount: 1000
     };
 
     jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
@@ -1242,10 +1533,103 @@ describe('metricFindQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       '(estimatedDurationInSeconds > \"172800\" && estimatedDurationInSeconds != \"7200\")',
-      undefined,
+      "UPDATED_AT",
       ["ID", "NAME"],
-      undefined,
-      undefined
+      1000,
+      true
     );
+  });
+
+  test('should transform field when queryBy contains duration fields with negative values', async () => {
+    const mockQuery = {
+      refId: 'C',
+      queryBy: '(estimatedDurationInDays > "-2" && estimatedDurationInHours != "-2")',
+      recordCount: 1000
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.metricFindQuery(mockQuery, {});
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      '(estimatedDurationInSeconds > \"-172800\" && estimatedDurationInSeconds != \"-7200\")',
+      "UPDATED_AT",
+      ["ID", "NAME"],
+      1000,
+      true
+    );
+  });
+
+  it('should populate default query properties', async () => {
+    const mockQuery = {
+      refId: 'C'
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.metricFindQuery(mockQuery, {});
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      undefined,
+      "UPDATED_AT",
+      ["ID", "NAME"],
+      1000,
+      true
+    );
+  });
+
+  test('should return empty array when record count is invalid', async () => {
+    const mockQuery = {
+      refId: 'A',
+      recordCount: undefined,
+    };
+
+    const result = await datastore.metricFindQuery(mockQuery, {} as LegacyMetricFindQueryOptions);
+
+    expect(result).toEqual([]);
+  });
+
+  test('should return empty array when record count is less than 0', async () => {
+    const mockQuery = {
+      refId: 'A',
+      recordCount: -1,
+    };
+
+    const result = await datastore.metricFindQuery(mockQuery, {} as LegacyMetricFindQueryOptions);
+
+    expect(result).toEqual([]);
+  });
+
+  test('should return empty array when record count is greater than max take', async () => {
+    const mockQuery = {
+      refId: 'A',
+      recordCount: 1000000,
+    };
+
+    const result = await datastore.metricFindQuery(mockQuery, {} as LegacyMetricFindQueryOptions);
+
+    expect(result).toEqual([]);
+  });
+
+  test('should return expected data when record count is 0', async () => {
+    const mockQuery = {
+      refId: 'A',
+      recordCount: 0,
+    };
+
+    const result = await datastore.metricFindQuery(mockQuery, {} as LegacyMetricFindQueryOptions);
+
+    expect(result).toMatchSnapshot();
+  });
+
+  test('should return expected data when record count is 10000', async () => {
+    const mockQuery = {
+      refId: 'A',
+      recordCount: 10000,
+    };
+
+    const result = await datastore.metricFindQuery(mockQuery, {} as LegacyMetricFindQueryOptions);
+
+    expect(result).toMatchSnapshot();
   });
 });

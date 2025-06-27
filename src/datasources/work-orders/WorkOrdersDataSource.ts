@@ -1,14 +1,17 @@
-import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, TestDataSourceResponse, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
+import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, TestDataSourceResponse, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
-import { QueryBuilderOption, QueryResponse } from 'core/types';
+import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { transformComputedFieldsQuery, ExpressionTransformFunction } from 'core/query-builder.utils';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { getVariableOptions, queryInBatches } from 'core/utils';
 import { QUERY_WORK_ORDERS_MAX_TAKE, QUERY_WORK_ORDERS_REQUEST_PER_SECOND } from './constants/QueryWorkOrders.constants';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { UsersUtils } from 'shared/users.utils';
+import { extractErrorInfo } from 'core/errors';
+import { User } from 'shared/types/QueryUsers.types';
+import { TAKE_LIMIT } from './constants/QueryEditor.constants';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
@@ -23,10 +26,11 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
 
   baseUrl = `${this.instanceSettings.url}/niworkorder/v1`;
   queryWorkOrdersUrl = `${this.baseUrl}/query-workorders`;
+  errorTitle = '';
+  errorDescription = '';
   workspaceUtils: WorkspaceUtils;
   usersUtils: UsersUtils;
   defaultQuery = {
-    outputType: OutputType.Properties,
     properties: [
       WorkOrderPropertiesOptions.NAME,
       WorkOrderPropertiesOptions.STATE,
@@ -51,9 +55,9 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       );
     }
 
-    if (query.outputType === OutputType.Properties) {
+    if (query.outputType === OutputType.Properties && this.isPropertiesValid(query) && this.isTakeValid(query)) {
       return this.processWorkOrdersQuery(query);
-    } else {
+    } else if (query.outputType === OutputType.TotalCount) {
       const totalCount = await this.queryWorkordersCount(query.queryBy);
       return {
         refId: query.refId,
@@ -61,6 +65,12 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
         fields: [{ name: query.refId, values: [totalCount] }],
       };
     }
+
+    return {
+      refId: query.refId,
+      name: query.refId,
+      fields: [],
+    };
   }
 
   shouldRunQuery(query: WorkOrdersQuery): boolean {
@@ -77,10 +87,14 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   async metricFindQuery(
     query: WorkOrdersVariableQuery,
     options: LegacyMetricFindQueryOptions
-  ): Promise<MetricFindValue[]> {    
-    const filter = query.queryBy? 
+  ): Promise<MetricFindValue[]> {
+    const variableQuery = this.prepareQuery(query);
+    if (!this.isTakeValid(variableQuery)) {
+      return [];
+    }    
+    const filter = variableQuery.queryBy? 
       transformComputedFieldsQuery(
-        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.templateSrv.replace(variableQuery.queryBy, options.scopedVars),
         this.workordersComputedDataFields
       )
       : undefined;
@@ -88,17 +102,17 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     const metadata = await this.queryWorkordersData(
       filter,
       [WorkOrderPropertiesOptions.ID, WorkOrderPropertiesOptions.NAME],
-      query.orderBy,
-      query.descending,
-      query.take
+      variableQuery.orderBy,
+      variableQuery.descending,
+      variableQuery.take
     );
 
     return metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.id})`, value: frame.id })) : [];
   }
 
   async processWorkOrdersQuery(query: WorkOrdersQuery): Promise<DataFrameDTO> {
-    const workspaces = await this.workspaceUtils.getWorkspaces();
-    const users = await this.usersUtils.getUsers();
+    const workspaces = await this.loadWorkspaces();
+    const users = await this.loadUsers();
     const workOrders: WorkOrder[] = await this.queryWorkordersData(
       query.queryBy,
       query.properties,
@@ -109,10 +123,9 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
 
     const mappedFields = query.properties?.map(property => {
       const field = WorkOrderProperties[property];
-      const fieldType = this.isTimeField(field.value) ? FieldType.time : FieldType.string;
+      const fieldType = FieldType.string;
       const fieldName = field.label;
 
-      // TODO: Add mapping for other field types
       const fieldValue = workOrders.map(workOrder => {
         switch (field.value) {
           case WorkOrderPropertiesOptions.WORKSPACE:
@@ -127,7 +140,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
             return user ? UsersUtils.getUserFullName(user) : userId;
           case WorkOrderPropertiesOptions.PROPERTIES:
               const properties = workOrder.properties || {};
-              return JSON.stringify(properties);
+              return Object.keys(properties).length > 0 ? JSON.stringify(properties) : '';
           default:
             return workOrder[field.field] ?? '';
         }
@@ -141,6 +154,28 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       name: query.refId,
       fields: mappedFields ?? [],
     };
+  }
+
+  public async loadWorkspaces(): Promise<Map<string, Workspace>> {
+    try {
+      return await this.workspaceUtils.getWorkspaces();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, Workspace>();
+    }
+  }
+
+  public async loadUsers(): Promise<Map<string, User>> {
+    try {
+      return await this.usersUtils.getUsers();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, User>();
+    }
   }
 
   async queryWorkordersData(
@@ -158,7 +193,6 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
         descending,
         take: currentTake,
         continationToken: token,
-        returnCount: true,
       };
       const response = await this.queryWorkOrders(body);
 
@@ -191,10 +225,39 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
 
   async queryWorkOrders(body: QueryWorkOrdersRequestBody): Promise<WorkOrdersResponse> {
     try {
-      let response = await this.post<WorkOrdersResponse>(this.queryWorkOrdersUrl, body);
+      let response = await this.post<WorkOrdersResponse>(
+        this.queryWorkOrdersUrl,
+        body,
+        { showErrorAlert: false } // suppress default error alert since we handle errors manually
+      );
       return response;
     } catch (error) {
-      throw new Error(`An error occurred while querying workorders: ${error}`);
+      const errorDetails = extractErrorInfo((error as Error).message);
+      let errorMessage: string;
+      switch (errorDetails.statusCode) {
+        case '':
+          errorMessage = 'The query failed due to an unknown error.';
+          break;
+        case '404':
+          errorMessage = 'The query to fetch workorders failed because the requested resource was not found. Please check the query parameters and try again.';
+          break;
+        case '429':
+          errorMessage = 'The query to fetch workorders failed due to too many requests. Please try again later.';
+          break;
+        case '504':
+          errorMessage = 'The query to fetch workorders experienced a timeout error. Narrow your query with a more specific filter and try again.';
+          break;
+        default:
+          errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+          break;
+      }
+
+      this.appEvents?.publish?.({
+        type: AppEvents.alertError.name,
+        payload: ['Error during workorders query', errorMessage],
+      });
+
+      throw new Error(errorMessage);
     }
   }
 
@@ -239,7 +302,11 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
-    await this.post(this.queryWorkOrdersUrl, { take: 1 });
+    await this.post(
+      this.queryWorkOrdersUrl,
+      { take: 1 },
+      { showErrorAlert: false } // suppress default error alert since we handle errors manually
+    );
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 
@@ -252,5 +319,34 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     ];
 
     return timeFields.includes(field);
+  }
+
+  private handleDependenciesError(error: unknown): void {
+    const errorDetails = extractErrorInfo((error as Error).message);
+    this.errorTitle = 'Warning during workorders query';
+    switch (errorDetails.statusCode) {
+      case '404':
+        this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
+        break;
+      case '429':
+        this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
+        break;
+      case '504':
+        this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
+        break;
+      default:
+        this.errorDescription = errorDetails.message
+          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+          : 'Some values may not be available in the query builder lookups due to an unknown error.';
+        break;
+    }
+  }
+
+  private isTakeValid(query: WorkOrdersQuery): boolean {
+    return query.take !== undefined && query.take >= 0 && query.take <= TAKE_LIMIT;
+  }
+
+  private isPropertiesValid(query: WorkOrdersQuery): boolean {
+    return !!query.properties && query.properties.length > 0;
   }
 }

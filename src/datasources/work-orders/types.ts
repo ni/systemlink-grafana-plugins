@@ -75,12 +75,12 @@ export const WorkOrderProperties: Record<WorkOrderPropertiesOptions, {
     field: 'assignedTo',
   },
   [WorkOrderPropertiesOptions.CREATED_AT]: {
-    label: 'Created at',
+    label: 'Created',
     value: WorkOrderPropertiesOptions.CREATED_AT,
     field: 'createdAt',
   },
   [WorkOrderPropertiesOptions.UPDATED_AT]: {
-    label: 'Updated at',
+    label: 'Updated',
     value: WorkOrderPropertiesOptions.UPDATED_AT,
     field: 'updatedAt',
   },

@@ -1,3 +1,233 @@
+## [3.142.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.17...v3.142.0) (2025-06-27)
+
+### Features
+
+* **results:** add custom theme support for horizontal scrollbar in query-builder ([#344](https://github.com/ni/systemlink-grafana-plugins/issues/344)) ([4edab21](https://github.com/ni/systemlink-grafana-plugins/commit/4edab217d0e028e14522a5f203bffae024e4ffd1))
+
+## [3.141.17](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.16...v3.141.17) (2025-06-27)
+
+### Bug Fixes
+
+* **results:** Remove showIcons from query builder ([#343](https://github.com/ni/systemlink-grafana-plugins/issues/343)) ([6ac1a56](https://github.com/ni/systemlink-grafana-plugins/commit/6ac1a56b2f095fa43df05dd9ffc7b6128f00128e))
+* **testplans:** Restrict numeric input to only numeric ([#342](https://github.com/ni/systemlink-grafana-plugins/issues/342)) ([07ea69a](https://github.com/ni/systemlink-grafana-plugins/commit/07ea69a4ec70f05e223b0575b0352e0185775e25))
+
+## [3.141.16](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.15...v3.141.16) (2025-06-27)
+
+### Bug Fixes
+
+* **workorders,testplans:** Fix take limit ([#341](https://github.com/ni/systemlink-grafana-plugins/issues/341)) ([0dbc9df](https://github.com/ni/systemlink-grafana-plugins/commit/0dbc9df15cd590da12e7963bc5f4bf9796f2ebd8))
+
+## [3.141.15](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.14...v3.141.15) (2025-06-26)
+
+### Bug Fixes
+
+* **workorders:** Fix typo in state 'Canceled' ([#340](https://github.com/ni/systemlink-grafana-plugins/issues/340)) ([3141b41](https://github.com/ni/systemlink-grafana-plugins/commit/3141b4193e32b095c16bb14b1c4229f0cdcf9178))
+
+## [3.141.14](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.13...v3.141.14) (2025-06-26)
+
+### Bug Fixes
+
+* **DataSourceBase:** ensure URL is preserved during fetch retries ([#336](https://github.com/ni/systemlink-grafana-plugins/issues/336)) ([01240ca](https://github.com/ni/systemlink-grafana-plugins/commit/01240caaf5d9d67a6242a914eea5c033d677319e))
+
+## [3.141.13](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.12...v3.141.13) (2025-06-26)
+
+### Bug Fixes
+
+* Duplicate error toasts when Fetch fails ([#334](https://github.com/ni/systemlink-grafana-plugins/issues/334)) ([a2dea3f](https://github.com/ni/systemlink-grafana-plugins/commit/a2dea3f801d6f3034a61dd770422fd94f7fc511e))
+
+## [3.141.12](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.11...v3.141.12) (2025-06-26)
+
+### Bug Fixes
+
+* **products,results,workorders,testplans:** Expand properties dropdown height on adding property ([#339](https://github.com/ni/systemlink-grafana-plugins/issues/339)) ([a36d956](https://github.com/ni/systemlink-grafana-plugins/commit/a36d95605399f0736f3b1f3bd28e6f09faaddffc))
+
+## [3.141.11](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.10...v3.141.11) (2025-06-26)
+
+### Bug Fixes
+
+* **workorders,testplans:** Don't clear take in variable editor when take is invalid ([#337](https://github.com/ni/systemlink-grafana-plugins/issues/337)) ([ac5c2c9](https://github.com/ni/systemlink-grafana-plugins/commit/ac5c2c9ab292527e9c49493d498f4b1bbe7dc5d3))
+
+## [3.141.10](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.9...v3.141.10) (2025-06-26)
+
+### Bug Fixes
+
+* **results:** Remove feature flag configuration ([#331](https://github.com/ni/systemlink-grafana-plugins/issues/331)) ([8b92722](https://github.com/ni/systemlink-grafana-plugins/commit/8b927222a435a29dec8ccb123c3e31ba5d37d61d))
+
+## [3.141.9](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.8...v3.141.9) (2025-06-26)
+
+### Bug Fixes
+
+* **workorders,testplans:** rename fields and update value mappings ([#323](https://github.com/ni/systemlink-grafana-plugins/issues/323)) ([0bbb632](https://github.com/ni/systemlink-grafana-plugins/commit/0bbb632037494bb73bd413fac8f75ccb980c2c99))
+
+## [3.141.8](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.7...v3.141.8) (2025-06-26)
+
+### Bug Fixes
+
+* **results:** Revert changes to fix duplicate error in steps ([#335](https://github.com/ni/systemlink-grafana-plugins/issues/335)) ([814813b](https://github.com/ni/systemlink-grafana-plugins/commit/814813b54d023ce87d35ba05b49d13c924ef21f2))
+* **workorders,testplans:** enhance error handling for 429 and 404 API responses ([#332](https://github.com/ni/systemlink-grafana-plugins/issues/332)) ([eaadbd8](https://github.com/ni/systemlink-grafana-plugins/commit/eaadbd885c90918c3744bb5767a166bb83f45984))
+
+## [3.141.7](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.6...v3.141.7) (2025-06-25)
+
+### Bug Fixes
+
+* **results:** Fix duplicate error toasts in steps ([#333](https://github.com/ni/systemlink-grafana-plugins/issues/333)) ([6307093](https://github.com/ni/systemlink-grafana-plugins/commit/63070938b29731f9f57a117c48b589928b4f5d31))
+
+## [3.141.6](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.5...v3.141.6) (2025-06-24)
+
+### Bug Fixes
+
+* **results:** do not fallback to default 'take' when input is invalid - ResultsVariableEditor ([#329](https://github.com/ni/systemlink-grafana-plugins/issues/329)) ([ac0324f](https://github.com/ni/systemlink-grafana-plugins/commit/ac0324f9a8a16deb723cdfa7ae0d42e280187545))
+
+## [3.141.5](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.4...v3.141.5) (2025-06-24)
+
+### Bug Fixes
+
+* **results:** enhance error handling for 429 and 404 API responses  ([#330](https://github.com/ni/systemlink-grafana-plugins/issues/330)) ([83b0dc9](https://github.com/ni/systemlink-grafana-plugins/commit/83b0dc94aa68bdb33a6803a0711a0e08c7f46175))
+
+## [3.141.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.3...v3.141.4) (2025-06-24)
+
+### Bug Fixes
+
+* **results:** fix ResultsQueryEditor to handle undefined queryType in Explore mode ([#328](https://github.com/ni/systemlink-grafana-plugins/issues/328)) ([8330560](https://github.com/ni/systemlink-grafana-plugins/commit/8330560251d0bad257f26814615c6166a37d6004))
+
+## [3.141.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.2...v3.141.3) (2025-06-23)
+
+### Bug Fixes
+
+* **core:** remove error message on 504 status code ([#319](https://github.com/ni/systemlink-grafana-plugins/issues/319)) ([7f753b6](https://github.com/ni/systemlink-grafana-plugins/commit/7f753b6b9964371a73be06a1a9fd3a738cd310a9))
+
+## [3.141.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.1...v3.141.2) (2025-06-23)
+
+### Bug Fixes
+
+* **results:** Display empty cell for properties of type object in the table ([#325](https://github.com/ni/systemlink-grafana-plugins/issues/325)) ([99a166b](https://github.com/ni/systemlink-grafana-plugins/commit/99a166b45bcad60ede26585cfd7eb8e638a68385))
+
+## [3.141.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.0...v3.141.1) (2025-06-23)
+
+### Bug Fixes
+
+* **workorders,testplans:** Display empty cell for empty properties ([#326](https://github.com/ni/systemlink-grafana-plugins/issues/326)) ([b6b0754](https://github.com/ni/systemlink-grafana-plugins/commit/b6b07542bd8e7a36f550450bb2052d994a0948e8))
+
+## [3.141.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.140.3...v3.141.0) (2025-06-23)
+
+### Features
+
+* **results:** extend the take from 500 to 1000 when number of measurements < 25 ([#324](https://github.com/ni/systemlink-grafana-plugins/issues/324)) ([2446ec8](https://github.com/ni/systemlink-grafana-plugins/commit/2446ec89648292d6827bd02f5395e167f26ffea7))
+
+## [3.140.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.140.2...v3.140.3) (2025-06-23)
+
+### Bug Fixes
+
+* removed dependency on returnCount to query in batches ([#321](https://github.com/ni/systemlink-grafana-plugins/issues/321)) ([183cc74](https://github.com/ni/systemlink-grafana-plugins/commit/183cc7490b6f297dfc54858aa1ee927de0fb5179))
+
+## [3.140.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.140.1...v3.140.2) (2025-06-23)
+
+### Bug Fixes
+
+* **core:** remove filtering of variable with datasource ([#322](https://github.com/ni/systemlink-grafana-plugins/issues/322)) ([77f3477](https://github.com/ni/systemlink-grafana-plugins/commit/77f3477d754fe386e48730cc7f333f6e309465e0))
+
+## [3.140.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.140.0...v3.140.1) (2025-06-20)
+
+### Bug Fixes
+
+* **results:** Display workspace name instead of ID in visualization table ([#318](https://github.com/ni/systemlink-grafana-plugins/issues/318)) ([f49b651](https://github.com/ni/systemlink-grafana-plugins/commit/f49b65199edc6b5d07d93550fa4dbbffd4d70557))
+
+## [3.140.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.9...v3.140.0) (2025-06-20)
+
+### Features
+
+* **results:** show inputs and outputs of steps as new columns ([#320](https://github.com/ni/systemlink-grafana-plugins/issues/320)) ([48b68cd](https://github.com/ni/systemlink-grafana-plugins/commit/48b68cd40013dbdd6d70a28653eee06e6bc212a9))
+
+## [3.139.9](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.8...v3.139.9) (2025-06-20)
+
+### Bug Fixes
+
+* **workorders,testplans:** Run query on initialization ([#271](https://github.com/ni/systemlink-grafana-plugins/issues/271)) ([95dbc5a](https://github.com/ni/systemlink-grafana-plugins/commit/95dbc5aaa3ff311c013f27b676744e3c3561bc89))
+
+## [3.139.8](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.7...v3.139.8) (2025-06-19)
+
+### Bug Fixes
+
+* **core:** Rethow error in queryUsingSkip ([#312](https://github.com/ni/systemlink-grafana-plugins/issues/312)) ([58bbb76](https://github.com/ni/systemlink-grafana-plugins/commit/58bbb76c6ed4681002c0d5c30f7c2c506db0a6a6))
+
+## [3.139.7](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.6...v3.139.7) (2025-06-18)
+
+### Bug Fixes
+
+* **results:** fix column headers to sentence case ([#317](https://github.com/ni/systemlink-grafana-plugins/issues/317)) ([a4c39e1](https://github.com/ni/systemlink-grafana-plugins/commit/a4c39e17273ca4f4bd84cd9a02f3efd1b0d8817d))
+
+## [3.139.6](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.5...v3.139.6) (2025-06-18)
+
+### Bug Fixes
+
+* **results:** load step path lookup in the query builder ([#315](https://github.com/ni/systemlink-grafana-plugins/issues/315)) ([5813008](https://github.com/ni/systemlink-grafana-plugins/commit/58130086a25783ad81691921931083f962cda27d))
+
+## [3.139.5](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.4...v3.139.5) (2025-06-18)
+
+### Bug Fixes
+
+* **results:** fix steps query not disabled by default in variable editor ([#316](https://github.com/ni/systemlink-grafana-plugins/issues/316)) ([a659eee](https://github.com/ni/systemlink-grafana-plugins/commit/a659eeefac705ddba51a470fd63bebae68cbe093))
+
+## [3.139.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.3...v3.139.4) (2025-06-18)
+
+### Bug Fixes
+
+* **results:** preserve stepsQuery only when switching query types ([#313](https://github.com/ni/systemlink-grafana-plugins/issues/313)) ([9c48eab](https://github.com/ni/systemlink-grafana-plugins/commit/9c48eab2e107eba28670cd6e381f6b38f7169bce))
+
+## [3.139.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.2...v3.139.3) (2025-06-18)
+
+### Bug Fixes
+
+* **results:** allow empty results query to trigger update ([#314](https://github.com/ni/systemlink-grafana-plugins/issues/314)) ([6c045b9](https://github.com/ni/systemlink-grafana-plugins/commit/6c045b9c25da3876d5fe52946c44ebbae6f4313c))
+
+## [3.139.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.1...v3.139.2) (2025-06-18)
+
+### Bug Fixes
+
+* **testplans:** Handle invalid queries to return empty data ([#311](https://github.com/ni/systemlink-grafana-plugins/issues/311)) ([0bcbaa0](https://github.com/ni/systemlink-grafana-plugins/commit/0bcbaa0271eb5ed493bbada87f633299c1f4025d))
+
+## [3.139.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.139.0...v3.139.1) (2025-06-18)
+
+### Bug Fixes
+
+* **workorders:** Handle invalid queries to return empty data ([#310](https://github.com/ni/systemlink-grafana-plugins/issues/310)) ([a3bb4ae](https://github.com/ni/systemlink-grafana-plugins/commit/a3bb4ae816fea99b3b462135c6c50b262088b1b1))
+
+## [3.139.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.4...v3.139.0) (2025-06-18)
+
+### Features
+
+* **results:** Update dependencies to load on initialization ([#309](https://github.com/ni/systemlink-grafana-plugins/issues/309)) ([dfa8fe5](https://github.com/ni/systemlink-grafana-plugins/commit/dfa8fe5662d80d8e21d454652f209a1c070bede8))
+
+## [3.138.4](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.3...v3.138.4) (2025-06-18)
+
+### Bug Fixes
+
+* **results:** run query on initialization when switching datasources ([#304](https://github.com/ni/systemlink-grafana-plugins/issues/304)) ([6d867c3](https://github.com/ni/systemlink-grafana-plugins/commit/6d867c35ce0f00bd498b88c81b4d61ee9f292f99))
+
+## [3.138.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.2...v3.138.3) (2025-06-18)
+
+### Bug Fixes
+
+* **core:** Update text color in query builder ([#308](https://github.com/ni/systemlink-grafana-plugins/issues/308)) ([2a505bd](https://github.com/ni/systemlink-grafana-plugins/commit/2a505bd9464c0beeff2553e6e45d661655139fac))
+
+## [3.138.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.1...v3.138.2) (2025-06-17)
+
+### Bug Fixes
+
+* **workorders,testplans:** Fix field names ([#306](https://github.com/ni/systemlink-grafana-plugins/issues/306)) ([eb30508](https://github.com/ni/systemlink-grafana-plugins/commit/eb3050881c5865bf68cf524368d4d8e4a7bc6708))
+
+## [3.138.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.138.0...v3.138.1) (2025-06-17)
+
+### Bug Fixes
+
+* **workorders,testplans:** Return field type as string for all fields from datasource ([#305](https://github.com/ni/systemlink-grafana-plugins/issues/305)) ([3f1dd24](https://github.com/ni/systemlink-grafana-plugins/commit/3f1dd24489afbbec462f171091a3f02236baf954))
+
+## [3.138.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.137.0...v3.138.0) (2025-06-17)
+
+### Features
+
+* **workorders:** Error handling of workorders ([#301](https://github.com/ni/systemlink-grafana-plugins/issues/301)) ([61a3c6a](https://github.com/ni/systemlink-grafana-plugins/commit/61a3c6ae50aac78a49cbafb37f638158837a1829))
+
 ## [3.137.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.136.2...v3.137.0) (2025-06-17)
 
 ### Features

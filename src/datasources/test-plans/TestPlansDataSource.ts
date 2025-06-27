@@ -17,6 +17,7 @@ import { extractErrorInfo } from 'core/errors';
 import { User } from 'shared/types/QueryUsers.types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
+import { TAKE_LIMIT } from './constants/QueryEditor.constants';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(
@@ -44,7 +45,6 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   productUtils: ProductUtils;
 
   defaultQuery = {
-    outputType: OutputType.Properties,
     properties: [
       Properties.NAME,
       Properties.STATE,
@@ -77,9 +77,9 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       query.queryBy = this.transformDurationFilters(query.queryBy);
     }
 
-    if (query.outputType === OutputType.Properties) {
+    if (query.outputType === OutputType.Properties  && this.isPropertiesValid(query) && this.isRecordCountValid(query)) {
       const projectionAndFields = query.properties?.map(property => PropertiesProjectionMap[property]);
-      const projection = [...new Set(projectionAndFields?.map(data => data.projection).flat()), Projections.ID];
+      const projection = [...new Set(projectionAndFields?.map(data => data.projection).flat())];
 
       const testPlans = (
         await this.queryTestPlansInBatches(
@@ -88,7 +88,6 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
           projection,
           query.recordCount,
           query.descending,
-          true
         )).testPlans;
 
       const labels = projectionAndFields?.map(data => data.label) ?? [];
@@ -100,7 +99,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       const fields = projectionAndFields?.map(data => {
         const label = data.label;
         const field = data.field;
-        const fieldType = isTimeField(field) ? FieldType.time : FieldType.string;
+        const fieldType = FieldType.string;
         const values = testPlans.map(data => data[field as unknown as keyof TestPlanResponseProperties] as any);
 
         const fieldValues = values.map(value => {
@@ -119,12 +118,11 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
               return workspace ? getWorkspaceName([workspace], value) : value;
             case PropertiesProjectionMap.WORK_ORDER.label:
               const workOrder = workOrderIdAndName.find(data => data.id === value);
-              const workOrderId = value ? `(${value})` : '';
               const workOrderName = workOrder && workOrder?.name ? workOrder.name : '';
-              return `${workOrderName} ${workOrderId}`;
+              return workOrderName;
             case PropertiesProjectionMap.TEMPLATE.label:
               const template = templatesName.find(data => data.id === value);
-              return template ? `${template.name} (${template.id})` : value;
+              return template ? template.name : value;
             case PropertiesProjectionMap.ESTIMATED_DURATION_IN_SECONDS.label:
               return value ? transformDuration(value) : '';
             case PropertiesProjectionMap.SYSTEM_NAME.label:
@@ -142,7 +140,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
               const user = users.get(value);
               return user ? UsersUtils.getUserFullName(user) : '';
             case PropertiesProjectionMap.PROPERTIES.label:
-              return value == null ? '' : JSON.stringify(value);
+              return !!value && Object.keys(value).length > 0 ? JSON.stringify(value) : '';
             default:
               return value == null ? '' : value;
           }
@@ -159,7 +157,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
         name: query.refId,
         fields: fields ?? [],
       };
-    } else {
+    } else if (query.outputType === OutputType.TotalCount) {
       const responseData = await this.queryTestPlans(
         query.queryBy,
         query.orderBy,
@@ -176,6 +174,12 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
         fields: [{ name: query.refId, values: [responseData.totalCount] }],
       };
     }
+
+    return {
+      refId: query.refId,
+      name: query.refId,
+      fields: [],
+    };
   }
 
   public async loadWorkspaces(): Promise<Map<string, Workspace>> {
@@ -227,8 +231,8 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   private transformDurationFilters(query: string): string {
-    const daysRegex = new RegExp(`estimatedDurationInDays\\s*(${computedFieldsupportedOperations.join('|')})\\s*"(\\d+)"`, 'g');
-    const hoursRegex = new RegExp(`estimatedDurationInHours\\s*(${computedFieldsupportedOperations.join('|')})\\s*"(\\d+)"`, 'g');
+    const daysRegex = new RegExp(`estimatedDurationInDays\\s*(${computedFieldsupportedOperations.join('|')})\\s*"(-?\\d+)"`, 'g');
+    const hoursRegex = new RegExp(`estimatedDurationInHours\\s*(${computedFieldsupportedOperations.join('|')})\\s*"(-?\\d+)"`, 'g');
 
     return query
       .replace(
@@ -288,10 +292,15 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   async metricFindQuery(query: TestPlansVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    const variableQuery = this.prepareQuery(query);
+    if (!this.isRecordCountValid(variableQuery)) {
+      return [];
+    } 
+
     let filter;
-    if (query.queryBy) {
+    if (variableQuery.queryBy) {
       filter = transformComputedFieldsQuery(
-        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.templateSrv.replace(variableQuery.queryBy, options.scopedVars),
         this.testPlansComputedDataFields
       );
       filter = this.transformDurationFilters(filter);
@@ -299,10 +308,10 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
     const metadata = (await this.queryTestPlansInBatches(
       filter,
-      query.orderBy,
+      variableQuery.orderBy,
       [Projections.ID, Projections.NAME],
-      query.recordCount,
-      query.descending
+      variableQuery.recordCount,
+      variableQuery.descending
     )).testPlans;
     return metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.id})`, value: frame.id })) : [];
   }
@@ -357,7 +366,6 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     projection?: Projections[],
     take?: number,
     descending = false,
-    returnCount = false
   ): Promise<QueryTestPlansResponse> {
     const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<TestPlanResponseProperties>> => {
       const response = await this.queryTestPlans(
@@ -367,13 +375,11 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
         currentTake,
         descending,
         token,
-        returnCount
       );
 
       return {
         data: response.testPlans,
         continuationToken: response.continuationToken,
-        totalCount: response.totalCount
       };
     };
 
@@ -401,25 +407,39 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     returnCount = false
   ): Promise<QueryTestPlansResponse> {
     try {
-      const response = await this.post<QueryTestPlansResponse>(this.queryTestPlansUrl, {
-        filter,
-        orderBy,
-        descending,
-        projection,
-        take,
-        continuationToken,
-        returnCount
-      });
+      const response = await this.post<QueryTestPlansResponse>(
+        this.queryTestPlansUrl,
+        {
+          filter,
+          orderBy,
+          descending,
+          projection,
+          take,
+          continuationToken,
+          returnCount
+        },
+        { showErrorAlert: false }  // suppress default error alert since we handle errors manually
+      );
       return response;
     } catch (error) {
       const errorDetails = extractErrorInfo((error as Error).message);
       let errorMessage: string;
-      if (!errorDetails.statusCode) {
-        errorMessage = 'The query failed due to an unknown error.';
-      } else if (errorDetails.statusCode === '504') {
-        errorMessage = 'The query to fetch testplans experienced a timeout error. Narrow your query with a more specific filter and try again.';
-      } else {
-        errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+      switch (errorDetails.statusCode) {
+        case '':
+          errorMessage = 'The query failed due to an unknown error.';
+          break;
+        case '404':
+          errorMessage = 'The query to fetch testplans failed because the requested resource was not found. Please check the query parameters and try again.';
+          break;
+        case '429':
+          errorMessage = 'The query to fetch testplans failed due to too many requests. Please try again later.';
+          break;
+        case '504':
+          errorMessage = 'The query to fetch testplans experienced a timeout error. Narrow your query with a more specific filter and try again.';
+          break;
+        default:
+          errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+          break;
       }
 
       this.appEvents?.publish?.({
@@ -466,9 +486,11 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   async queryTestPlanTemplates(templateIds: string[]): Promise<TemplateResponseProperties[]> {
     try {
       const filter = templateIds.map(id => `id = "${id}"`).join(' || ');
-      const response = await this.post<QueryTemplatesResponse>(this.queryTemplatesUrl, {
-        filter
-      });
+      const response = await this.post<QueryTemplatesResponse>(
+        this.queryTemplatesUrl,
+        { filter },
+        { showErrorAlert: false },// suppress default error alert since we handle errors manually
+      );
       return response.testPlanTemplates;
     } catch (error) {
       throw new Error(`An error occurred while querying test plan templates: ${error} `);
@@ -478,12 +500,29 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   private handleDependenciesError(error: unknown): void {
     const errorDetails = extractErrorInfo((error as Error).message);
     this.errorTitle = 'Warning during testplans query';
-    if (errorDetails.statusCode === '504') {
-      this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
-    } else {
-      this.errorDescription = errorDetails.message
-        ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
-        : 'Some values may not be available in the query builder lookups due to an unknown error.';
+    switch (errorDetails.statusCode) {
+      case '404':
+        this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
+        break;
+      case '429':
+        this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
+        break;
+      case '504':
+        this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
+        break;
+      default:
+        this.errorDescription = errorDetails.message
+          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+          : 'Some values may not be available in the query builder lookups due to an unknown error.';
+        break;
     }
+  }
+
+  private isRecordCountValid(query: TestPlansQuery): boolean {
+    return query.recordCount !== undefined && query.recordCount >= 0 && query.recordCount <= TAKE_LIMIT;
+  }
+
+  private isPropertiesValid(query: TestPlansQuery): boolean {
+    return !!query.properties && query.properties.length > 0;
   }
 }

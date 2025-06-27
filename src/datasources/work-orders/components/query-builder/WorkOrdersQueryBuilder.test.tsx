@@ -60,7 +60,7 @@ describe('WorkOrdersQueryBuilder', () => {
   it('should select type option', () => {
     const { conditionsContainer } = renderElement('type = "TestRequest"');
     expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain('Type');
+    expect(conditionsContainer.item(0)?.textContent).toContain('Work order type');
     expect(conditionsContainer.item(0)?.textContent).toContain('Equals');
     expect(conditionsContainer.item(0)?.textContent).toContain('Test request');
   });

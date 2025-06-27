@@ -1,20 +1,20 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { QueryType, ResultsDataSourceOptions, ResultsQuery } from './types/types';
+import { QueryType, ResultsQuery } from './types/types';
 import { QueryResultsDataSource } from './query-handlers/query-results/QueryResultsDataSource';
 import { QueryResults, ResultsVariableQuery, StepsVariableQuery } from './types/QueryResults.types';
 import { QuerySteps } from './types/QuerySteps.types';
 import { QueryStepsDataSource } from './query-handlers/query-steps/QueryStepsDataSource';
 
-export class ResultsDataSource extends DataSourceBase<ResultsQuery, ResultsDataSourceOptions> {
+export class ResultsDataSource extends DataSourceBase<ResultsQuery> {
   public defaultQuery: Partial<ResultsQuery> & Omit<ResultsQuery, 'refId'>;
 
   private _queryResultsDataSource: QueryResultsDataSource;
   private _queryStepsDataSource: QueryStepsDataSource;
 
   constructor(
-    readonly instanceSettings: DataSourceInstanceSettings<ResultsDataSourceOptions>,
+    readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {

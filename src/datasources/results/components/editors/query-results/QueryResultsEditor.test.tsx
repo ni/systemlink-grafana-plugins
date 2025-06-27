@@ -260,4 +260,46 @@ describe('QueryResultsEditor', () => {
       });
     });
   });
+
+  describe('Total Count Output', () => {
+    test('should not render properties and take when output type is Total Count', async () => {
+      cleanup();
+      await act(async () => {
+        render(
+          <QueryResultsEditor
+            query={{
+              refId: 'A',
+              queryType: QueryType.Results,
+              outputType: OutputType.TotalCount,
+            }}
+            handleQueryChange={mockHandleQueryChange}
+            datasource={mockDatasource}
+          />
+        );
+      });
+
+      expect(screen.queryByText('Properties')).not.toBeInTheDocument();
+      expect(screen.queryByText('Take')).not.toBeInTheDocument();
+    });
+
+    test('should render use time range and query builder when output type is Total Count', async () => {
+      cleanup();
+      await act(async () => {
+        render(
+          <QueryResultsEditor
+            query={{
+              refId: 'A',
+              queryType: QueryType.Results,
+              outputType: OutputType.TotalCount,
+            }}
+            handleQueryChange={mockHandleQueryChange}
+            datasource={mockDatasource}
+          />
+        );
+      });
+
+      expect(screen.queryByText('Use time range')).toBeInTheDocument();
+      expect(screen.getByTestId('results-query-builder')).toBeInTheDocument();
+    });
+  });
 });

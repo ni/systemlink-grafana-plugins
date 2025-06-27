@@ -225,6 +225,17 @@ describe('QueryStepsEditor', () => {
       );
     });
 
+    test('should update results query even when filter is empty', () => {
+      const resultsQueryInput = screen.getByTestId('results-query');
+      mockHandleQueryChange.mockClear();
+
+      fireEvent.change(resultsQueryInput, { target: { value: '' } });
+
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(
+        expect.objectContaining({ resultsQuery: '' })
+      );
+    });
+
     test('should not update results query when filter doesnt change', () => {
       const resultsQueryInput = screen.getByTestId('results-query');
       fireEvent.change(resultsQueryInput, { target: { value: 'partNumber = "PN1"' } });// ensure initial value is set
@@ -234,6 +245,17 @@ describe('QueryStepsEditor', () => {
 
       expect(mockHandleQueryChange).not.toHaveBeenCalledWith(
         expect.objectContaining({ resultsQuery: 'partNumber = "PN1"' })
+      );
+    });
+
+    test('should update results query when filter is not equal to previous results query', () => {
+      const resultsQueryInput = screen.getByTestId('results-query');
+      mockHandleQueryChange.mockClear();
+
+      fireEvent.change(resultsQueryInput, { target: { value: 'partNumber = "PN2"' } });
+
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(
+        expect.objectContaining({ resultsQuery: 'partNumber = "PN2"' })
       );
     });
 
@@ -305,7 +327,7 @@ describe('QueryStepsEditor', () => {
   })
 
   describe('Total Count outputType', () => {
-    test('should not render orderBy, descending, take when outputType is Total Count', () => {
+    test('should not render properties and take when outputType is Total Count', () => {
       cleanup();
       render(
         <QueryStepsEditor
@@ -315,12 +337,11 @@ describe('QueryStepsEditor', () => {
         />
       );
 
-      expect(screen.queryByText('OrderBy')).not.toBeInTheDocument();
-      expect(screen.queryByText('Descending')).not.toBeInTheDocument();
+      expect(screen.queryByText('Properties')).not.toBeInTheDocument();
       expect(screen.queryByText('Take')).not.toBeInTheDocument();
     });
 
-    test('should render useTimeRange and useTimeRangeFor when outputType is Total Count', () => {
+    test('should render useTimeRange when outputType is Total Count', () => {
       cleanup();
       render(
         <QueryStepsEditor

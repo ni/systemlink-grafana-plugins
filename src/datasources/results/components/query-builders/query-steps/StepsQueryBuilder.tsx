@@ -13,6 +13,7 @@ import 'smart-webcomponents-react/source/styles/components/smart.base.css';
 import 'smart-webcomponents-react/source/styles/components/smart.common.css';
 import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
 import { StepsQueryBuilderFields, StepsQueryBuilderStaticFields } from 'datasources/results/constants/StepsQueryBuilder.constants';
+import '../QueryBuilder.scss';
 
 type StepsQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
@@ -195,6 +196,7 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
       value={sanitizedFilter}
       fieldsMode="static"
       disabled={disableQueryBuilder}
+      theme='custom-theme'
     />
   );
 };

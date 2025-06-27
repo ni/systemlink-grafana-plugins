@@ -48,7 +48,6 @@ export function useWorkspaceOptions<DSType extends DataSourceBase<any, any>>(dat
 export function getVariableOptions<DSType extends DataSourceBase<any, any>>(datasource: DSType) {
   return datasource.templateSrv
     .getVariables()
-    .filter((variable: any) => !variable.datasource || variable.datasource.uid !== datasource.uid)
     .map(variable => ({ label: '$' + variable.name, value: '$' + variable.name }));
 }
 
@@ -129,26 +128,23 @@ export async function queryInBatches<T>(
 
   let queryResponse: T[] = [];
   let continuationToken: string | undefined;
-  let totalCount: number | undefined;
+  let responseLength = 0;
+  let recordCount = 0;
 
   const getRecords = async (currentRecordCount: number): Promise<void> => {
     const response = await queryRecord(currentRecordCount, continuationToken);
+    responseLength = response.data.length;
     queryResponse.push(...response.data);
     continuationToken = response.continuationToken;
-    totalCount = response.totalCount ?? totalCount;
   };
 
   const queryRecordsInCurrentBatch = async (): Promise<void> => {
-    const remainingRecordsToGet = totalCount !== undefined ?
-      Math.min(take - queryResponse.length, totalCount - queryResponse.length) :
-      take - queryResponse.length;
-
-    if (remainingRecordsToGet <= 0 || continuationToken === null) {
+    if (responseLength < recordCount || continuationToken === null) {
       return;
     }
-
-    const currentRecordCount = Math.min(queryConfig.maxTakePerRequest, remainingRecordsToGet);
-    await getRecords(currentRecordCount);
+    
+    recordCount = Math.min(take - queryResponse.length, queryConfig.maxTakePerRequest);
+    await getRecords(recordCount);
   };
 
   const queryCurrentBatch = async (requestsInCurrentBatch: number): Promise<void> => {
@@ -157,7 +153,7 @@ export async function queryInBatches<T>(
     }
   };
 
-  while (queryResponse.length < take && (totalCount === undefined || queryResponse.length < totalCount) && continuationToken !== null) {
+  while (queryResponse.length < take && responseLength === recordCount && continuationToken !== null) {
     const remainingRequestCount = Math.ceil((take - queryResponse.length) / queryConfig.maxTakePerRequest);
     const requestsInCurrentBatch = Math.min(queryConfig.requestsPerSecond, remainingRequestCount);
 
@@ -171,8 +167,7 @@ export async function queryInBatches<T>(
   }
 
   return {
-    data: queryResponse,
-    totalCount,
+    data: queryResponse
   };
 }
 
@@ -248,7 +243,6 @@ export async function queryUsingSkip<T>(
     const start = Date.now();
 
     for (let i = 0; i < requestsPerSecond && hasMore; i++) {
-      try {
         const response = await queryRecord(maxTakePerRequest, skip);
         data.push(...response.data);
 
@@ -258,11 +252,6 @@ export async function queryUsingSkip<T>(
         }
 
         skip += maxTakePerRequest;
-      } catch (error) {
-        console.error(`Error during batch fetch at skip=${skip}:`, error);
-        hasMore = false;
-        break;
-      }
     }
 
     const elapsed = Date.now() - start;

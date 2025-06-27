@@ -154,7 +154,6 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
       messages={queryBuilderMessages}
       onChange={onChange}
       value={filter}
-      showIcons
     />
   );
 };

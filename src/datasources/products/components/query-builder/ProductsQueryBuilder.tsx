@@ -176,7 +176,6 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
       messages={queryBuilderMessages}
       onChange={onChange}
       value={sanitizedFilter}
-      showIcons
     />
   );
 }

@@ -25,28 +25,28 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
 
   useEffect(() => {
     const loadWorkspaces = async () => {
-      const workspaces = await datasource.workspaceUtils.getWorkspaces();
+      const workspaces = await datasource.loadWorkspaces();
       setWorkspaces(Array.from(workspaces.values()));
     };
 
     loadWorkspaces();
 
     const loadSystemAliases = async () => {
-      const systemAliases = await datasource.systemUtils.getSystemAliases();
+      const systemAliases = await datasource.loadSystemAliases();
       setSystemAliases(Array.from(systemAliases.values()));
     };
 
     loadSystemAliases();
 
     const loadUsers = async () => {
-      const users = await datasource.usersUtils.getUsers();
+      const users = await datasource.loadUsers();
       setUsers(Array.from(users.values()));
     };
 
     loadUsers();
 
     const loadProducts = async () => {
-      const products = await datasource.productUtils.getProductNamesAndPartNumbers();
+      const products = await datasource.loadProductNamesAndPartNumbers();
       setProducts(Array.from(products.values()));
     };
 
@@ -67,16 +67,22 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
     handleQueryChange({ ...query, descending: isDescendingChecked });
   };
 
+  const validateRecordCoundValue = (value: number, TAKE_LIMIT: number) => {
+    if (isNaN(value) || value < 0) {
+      return { message: recordCountErrorMessages.greaterOrEqualToZero, recordCount: value };
+    }
+    if (value > TAKE_LIMIT) {
+      return { message: recordCountErrorMessages.lessOrEqualToTenThousand, recordCount: value };
+    }
+    return {message: '', recordCount: value };
+  };
+
   const recordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    if (isNaN(value) || value < 0) {
-      setRecordCountInvalidMessage(recordCountErrorMessages.greaterOrEqualToZero);
-    } else if (value > TAKE_LIMIT) {
-      setRecordCountInvalidMessage(recordCountErrorMessages.lessOrEqualToTenThousand);
-    } else {
-      setRecordCountInvalidMessage('');
-      handleQueryChange({ ...query, recordCount: value });
-    }
+    const { message, recordCount } = validateRecordCoundValue(value, TAKE_LIMIT);
+
+    setRecordCountInvalidMessage(message);
+    handleQueryChange({ ...query, recordCount });
   };
 
   const onQueryByChange = (queryBy: string) => {

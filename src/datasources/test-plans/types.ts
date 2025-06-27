@@ -1,4 +1,4 @@
-import { DataQuery } from '@grafana/schema'
+import { DataQuery } from '@grafana/schema';
 
 export interface TestPlansQuery extends DataQuery {
     properties?: Properties[];
@@ -97,7 +97,7 @@ export const PropertiesProjectionMap: Record<Properties, {
         field: 'assignedTo',
     },
     [Properties.CREATED_AT]: {
-        label: 'Created at',
+        label: 'Created',
         projection: [Projections.CREATED_AT],
         field: 'createdAt',
     },
@@ -112,12 +112,12 @@ export const PropertiesProjectionMap: Record<Properties, {
         field: 'description',
     },
     [Properties.ID]: {
-        label: 'ID',
+        label: 'Test plan ID',
         projection: [Projections.ID],
         field: 'id',
     },
     [Properties.NAME]: {
-        label: 'Name',
+        label: 'Test plan name',
         projection: [Projections.NAME],
         field: 'name',
     },
@@ -132,7 +132,7 @@ export const PropertiesProjectionMap: Record<Properties, {
         field: 'state',
     },
     [Properties.UPDATED_AT]: {
-        label: 'Updated at',
+        label: 'Updated',
         projection: [Projections.UPDATED_AT],
         field: 'updatedAt',
     },
@@ -147,7 +147,7 @@ export const PropertiesProjectionMap: Record<Properties, {
         field: 'workspace',
     },
     [Properties.WORK_ORDER]: {
-        label: 'Work order',
+        label: 'Work order name',
         projection: [Projections.WORK_ORDER_NAME, Projections.WORK_ORDER_ID],
         field: 'workOrderId',
     },
@@ -197,7 +197,7 @@ export const PropertiesProjectionMap: Record<Properties, {
         field: 'systemId',
     },
     [Properties.TEMPLATE]: {
-        label: 'Test plan template',
+        label: 'Template name',
         projection: [Projections.TEMPLATE_ID],
         field: 'templateId',
     },

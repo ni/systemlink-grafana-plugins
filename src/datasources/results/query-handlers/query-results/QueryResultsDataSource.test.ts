@@ -1,13 +1,14 @@
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
-import { Field } from '@grafana/data';
+import { DataQueryRequest, Field } from '@grafana/data';
 import { QueryResultsDataSource } from './QueryResultsDataSource';
 import { QueryResults, QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsVariableQuery } from 'datasources/results/types/QueryResults.types';
 import { OutputType, QueryType } from 'datasources/results/types/types';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { Workspace } from 'core/types';
+import { DataSourceBase } from 'core/DataSourceBase';
 
 const mockQueryResultsResponse: QueryResultsResponse = {
   results: [
@@ -16,6 +17,7 @@ const mockQueryResultsResponse: QueryResultsResponse = {
       programName: 'My Program Name',
       totalTimeInSeconds: 29.9,
       keywords: ['keyword1', 'keyword2'],
+      workspace: '1'
     },
   ],
   totalCount: 1
@@ -32,6 +34,10 @@ describe('QueryResultsDataSource', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
       .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
+  })
+
+  afterEach(()=> {
+    jest.restoreAllMocks();
   })
 
   describe('queryResults', () => {
@@ -51,6 +57,27 @@ describe('QueryResultsDataSource', () => {
         .toThrow('The query failed due to the following error: (status 400) \"Error\"');
     });
 
+    test('should return undefined if API throws unknown status code error', async () => {
+      const error = new Error('API failed');
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results' }))
+        .mockImplementationOnce(() => {
+          throw error;
+        });
+
+      let result;
+      let caughtError;
+
+      try {
+        result = await datastore.queryResults();
+      } catch (error) {
+        caughtError = (error as Error).message;
+      }
+
+      expect(caughtError).toBe(`The query failed due to an unknown error.`);
+      expect(result).toEqual(undefined);
+    });
+
     test('should publish alertError event when error occurs', async () => {
         const publishMock = jest.fn();
         (datastore as any).appEvents = { publish: publishMock };
@@ -68,6 +95,26 @@ describe('QueryResultsDataSource', () => {
         });
       });
 
+    test('should throw error when API returns 404 status', async () => {
+        backendServer.fetch
+          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results' }))
+          .mockReturnValue(createFetchError(404));
+    
+        await expect(datastore.queryResults())
+          .rejects
+          .toThrow('The query to fetch results failed because the requested resource was not found. Please check the query parameters and try again.');
+      });
+
+    test('should throw error when API returns 429 status', async () => {
+      jest.spyOn(datastore, 'post').mockImplementation(() => {
+        throw new Error('Request failed with status code: 429');
+      });
+
+      await expect(datastore.queryResults()).rejects.toThrow(
+        'The query to fetch results failed due to too many requests. Please try again later.'
+      );
+    });
+
     test('should throw timeOut error when API returns 504 status', async () => {
         backendServer.fetch
           .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results' }))
@@ -83,7 +130,7 @@ describe('QueryResultsDataSource', () => {
     test('returns data for valid data-output-type query', async () => {
       const query = buildQuery({
         refId: 'A',
-        outputType: OutputType.Data
+        outputType: OutputType.Data,
       });
 
       const response = await datastore.query(query);
@@ -140,6 +187,118 @@ describe('QueryResultsDataSource', () => {
           }),
         })
       )
+    });
+
+    test('should display an empty cell when properties of type object are returned as empty objects', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({
+          results: [
+            {
+              properties: {},
+              statusTypeSummary: {}
+            }
+          ],
+          continuationToken: null,
+          totalCount: 1
+        } as unknown as QueryResultsResponse));
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [ResultsProperties.properties, ResultsProperties.statusTypeSummary]
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([
+        { name: 'Properties', values: [''], type: 'string' },
+        { name: 'Status type summary', values: [''], type: 'string' },
+      ]);
+    });
+
+    test('should display the JSON stringified value when properties of type object are returned as non-empty objects', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({
+          results: [
+            {
+              properties: { key1: 'value1', key2: 'value2' },
+              statusTypeSummary: { status1: 5, status2: 10 }
+            }
+          ],
+          continuationToken: null,
+          totalCount: 1
+        } as unknown as QueryResultsResponse));
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [ResultsProperties.properties, ResultsProperties.statusTypeSummary]
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([
+        { name: 'Properties', values: ['{"key1":"value1","key2":"value2"}'], type: 'string' },
+        { name: 'Status type summary', values: ['{"status1":5,"status2":10}'], type: 'string' },
+      ]);
+    });
+
+    test('should display an empty cell when properties of type array are returned as empty array', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({
+          results: [
+            {
+              keywords: [],
+              fileIds: [],
+              dataTableIds: []
+            }
+          ],
+          continuationToken: null,
+          totalCount: 1
+        } as unknown as QueryResultsResponse));
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [ResultsProperties.keywords, ResultsProperties.fileIds, ResultsProperties.dataTableIds]
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([
+        { name: 'Keywords', values: [''], type: 'string' },
+        { name: 'File IDs', values: [''], type: 'string' },
+        { name: 'Data table IDs', values: [''], type: 'string' }
+      ]);
+    });
+
+    test('should display as comma separated list when properties of type array are returned as non-empty arrays', async () => {
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({
+          results: [
+            {
+              keywords: ['keyword1', 'keyword2'],
+              fileIds: ['file1', 'file2'],
+              dataTableIds: ['dataTable1', 'dataTable2']
+            }
+          ],
+          continuationToken: null,
+          totalCount: 1
+        } as unknown as QueryResultsResponse));
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        properties: [ResultsProperties.keywords, ResultsProperties.fileIds, ResultsProperties.dataTableIds]
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data[0].fields).toEqual([
+        { name: 'Keywords', values: ['keyword1,keyword2'], type: 'string' },
+        { name: 'File IDs', values: ['file1,file2'], type: 'string' },
+        { name: 'Data table IDs', values: ['dataTable1,dataTable2'], type: 'string' }
+      ]);
     });
 
     test('returns total count for valid total count output type queries', async () => {
@@ -219,7 +378,7 @@ describe('QueryResultsDataSource', () => {
         const query = buildQuery(
           {
             refId: 'A',
-            outputType: OutputType.Data
+            outputType: OutputType.Data,
           },
         );
 
@@ -227,6 +386,102 @@ describe('QueryResultsDataSource', () => {
 
         const fields = response.data[0].fields as Field[];
         expect(fields).toMatchSnapshot();
+    });
+
+      test('should return the workspace ID returned by API when the cache is empty', async () => {
+        (ResultsDataSourceBase as any)._workspacesCache = null;
+        jest.spyOn(DataSourceBase.prototype, 'getWorkspaces').mockResolvedValue([]);
+        const [datastore, backendServer] = setupDataSource(QueryResultsDataSource);
+        backendServer.fetch
+          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+          .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
+        
+          const query = buildQuery(
+            {
+              refId: 'A',
+              outputType: OutputType.Data,
+              properties: [ResultsProperties.workspace]
+            },
+          );
+
+        const response = await datastore.query(query);
+
+        const fields = response.data[0].fields as Field[];
+        expect(fields).toMatchSnapshot();
+      });
+
+      test('should return the workspace ID when no matching entry exists in the cache for the ID returned by the API', async () => {
+        const mockWorkspaces = [{ id: '2', name: 'Other workspace', default: false, enabled: true }];
+        (ResultsDataSourceBase as any)._workspacesCache = null;
+        jest.spyOn(DataSourceBase.prototype, 'getWorkspaces').mockResolvedValue(mockWorkspaces);
+        const [datastore, backendServer] = setupDataSource(QueryResultsDataSource);
+        backendServer.fetch
+          .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+          .mockReturnValue(createFetchResponse(mockQueryResultsResponse));
+          const query = buildQuery(
+            {
+              refId: 'A',
+              outputType: OutputType.Data,
+              properties: [ResultsProperties.workspace]
+            },
+          );
+
+        const response = await datastore.query(query);
+
+        const fields = response.data[0].fields as Field[];
+        expect(fields).toMatchSnapshot();
+      });
+
+    test('should replace variables', async () => {
+      const query = {
+        refId: 'A',
+        queryType: QueryType.Results,
+        properties: [ResultsProperties.partNumber],
+        outputType: OutputType.Data,
+        queryBy: 'PartNumber = "${var}"',
+        recordCount: 10
+      };
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('PartNumber = "ReplacedValue"');
+      jest.spyOn(datastore, 'queryResults').mockResolvedValue({ results: [] });
+      const options = { scopedVars: { var: { value: 'ReplacedValue' } } };
+
+      await datastore.runQuery(query, options as unknown as DataQueryRequest);
+
+      expect(templateSrv.replace).toHaveBeenCalledWith("PartNumber = \"${var}\"", options.scopedVars);
+      expect(datastore.queryResults).toHaveBeenCalledWith(
+        'PartNumber = "ReplacedValue"',
+        'STARTED_AT',
+        [ResultsProperties.partNumber],
+        10,
+        true,
+        true
+      );
+    });
+
+    test('should transform fields with multiple values', async () => {
+      const query = {
+        refId: 'A',
+        queryType: QueryType.Results,
+        properties: [ResultsProperties.partNumber],
+        outputType: OutputType.Data,
+        queryBy: 'PartNumber = "${var}"',
+        recordCount: 10
+      };
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('PartNumber = "{1,2}"');
+      jest.spyOn(datastore, 'queryResults').mockResolvedValue({ results: [] });
+      const options = { scopedVars: { var: { value: '{1,2}' } } };
+
+      await datastore.runQuery(query, options as unknown as DataQueryRequest);
+
+      expect(templateSrv.replace).toHaveBeenCalledWith("PartNumber = \"${var}\"", options.scopedVars);
+      expect(datastore.queryResults).toHaveBeenCalledWith(
+        "(PartNumber = \"1\" || PartNumber = \"2\")",
+        'STARTED_AT',
+        [ResultsProperties.partNumber],
+        10,
+        true,
+        true
+      );
     });
 
     test('includes templateSrv replaced values in the filter', async () => {
@@ -280,7 +535,7 @@ describe('QueryResultsDataSource', () => {
         const response = await datastore.query(query);
         const fields = response.data[0].fields as Field[];
         expect(fields).toEqual([
-          { name: 'properties', values: [""], type: 'string' },
+          { name: 'Properties', values: [""], type: 'string' },
         ]);
     });
 
@@ -346,6 +601,7 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.loadWorkspaces();
 
+      expect(await datastore.workspacesCache).toEqual(new Map<string, Workspace>());
       expect(datastore.errorTitle).toBe('Warning during result value query');
       expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
     });
@@ -357,6 +613,7 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.getPartNumbers();
 
+      expect(await datastore.partNumbersCache).toEqual([]);
       expect(datastore.errorTitle).toBe('Warning during result value query');
       expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to an unknown error.');
     });
@@ -368,6 +625,7 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.loadWorkspaces();
 
+      expect(await datastore.workspacesCache).toEqual(new Map<string, Workspace>());
       expect(datastore.errorTitle).toBe('Warning during result value query');
       expect(datastore.errorDescription).toContain('Some values may not be available in the query builder lookups due to the following error:Detailed error message.');
     });
@@ -379,6 +637,19 @@ describe('QueryResultsDataSource', () => {
 
       await datastore.getPartNumbers();
 
+      expect(await datastore.partNumbersCache).toEqual([]);
+      expect(datastore.errorTitle).toBe('Warning during result value query');
+      expect(datastore.errorDescription).toContain('The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.');
+    })
+
+    it('should handle 504 error in loadWorkspaces', async () => {
+      (ResultsDataSourceBase as any)._workspacesCache = null;
+      const error = new Error(`API failed Error message: status code: 504 ${JSON.stringify({ message: 'Detailed error message'})}`);
+      jest.spyOn(QueryResultsDataSource.prototype, 'getWorkspaces').mockRejectedValue(error);
+
+      await datastore.loadWorkspaces();
+
+      expect(await datastore.workspacesCache).toEqual(new Map<string, Workspace>());
       expect(datastore.errorTitle).toBe('Warning during result value query');
       expect(datastore.errorDescription).toContain('The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.');
     })
@@ -658,6 +929,7 @@ describe('QueryResultsDataSource', () => {
   const buildQuery = getQueryBuilder<QueryResults>()({
     refId: 'A',
     queryType: QueryType.Results,
-    outputType: OutputType.Data
+    outputType: OutputType.Data,
+    properties: [ResultsProperties.id, ResultsProperties.programName, ResultsProperties.totalTimeInSeconds, ResultsProperties.keywords, ResultsProperties.workspace],
   });
 });
