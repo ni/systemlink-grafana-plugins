@@ -16,6 +16,7 @@ import {
   ResultsQueryBuilderFields,
   ResultsQueryBuilderStaticFields,
 } from 'datasources/results/constants/ResultsQueryBuilder.constants';
+import '../QueryBuilder.scss'
 
 type ResultsQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
@@ -217,6 +218,7 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
       onChange={onChange}
       value={sanitizedFilter}
       fieldsMode="static"
+      theme='custom-theme'
     />
   );
 };
