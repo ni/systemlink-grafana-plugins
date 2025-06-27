@@ -49,3 +49,11 @@ datasources:
     type: ni-sltestresults-datasource
     uid: testresults
     <<: *config
+  - name: SystemLink Test Plans
+    type: ni-sltestplans-datasource
+    uid: ni-sltestplans-datasource
+    <<: *config
+  - name: SystemLink Work Orders
+    type: ni-slworkorders-datasource
+    uid: ni-slworkorders-datasource
+    <<: *config
