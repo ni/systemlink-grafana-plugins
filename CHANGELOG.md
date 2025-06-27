@@ -1,3 +1,9 @@
+## [3.141.16](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.15...v3.141.16) (2025-06-27)
+
+### Bug Fixes
+
+* **workorders,testplans:** Fix take limit ([#341](https://github.com/ni/systemlink-grafana-plugins/issues/341)) ([0dbc9df](https://github.com/ni/systemlink-grafana-plugins/commit/0dbc9df15cd590da12e7963bc5f4bf9796f2ebd8))
+
 ## [3.141.15](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.14...v3.141.15) (2025-06-26)
 
 ### Bug Fixes
