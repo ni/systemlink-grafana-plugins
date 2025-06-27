@@ -1,5 +1,23 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`WorkOrdersDataSource metricFindQuery should return expected data when take is 0 1`] = `
+[
+  {
+    "text": "WorkOrder1 (1)",
+    "value": "1",
+  },
+]
+`;
+
+exports[`WorkOrdersDataSource metricFindQuery should return expected data when take is 10000 1`] = `
+[
+  {
+    "text": "WorkOrder1 (1)",
+    "value": "1",
+  },
+]
+`;
+
 exports[`WorkOrdersDataSource metricFindQuery should return work orders name with id when query properties are not provided 1`] = `
 [
   {
@@ -126,4 +144,36 @@ exports[`WorkOrdersDataSource runQuery should convert properties to Grafana fiel
     ],
   },
 ]
+`;
+
+exports[`WorkOrdersDataSource runQuery should return expected data when take is 0 1`] = `
+{
+  "fields": [
+    {
+      "name": "Work order name",
+      "type": "string",
+      "values": [
+        "WorkOrder1",
+      ],
+    },
+  ],
+  "name": "A",
+  "refId": "A",
+}
+`;
+
+exports[`WorkOrdersDataSource runQuery should return expected data when take is 10000 1`] = `
+{
+  "fields": [
+    {
+      "name": "Work order name",
+      "type": "string",
+      "values": [
+        "WorkOrder1",
+      ],
+    },
+  ],
+  "name": "A",
+  "refId": "A",
+}
 `;
