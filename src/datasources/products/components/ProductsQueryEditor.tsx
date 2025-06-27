@@ -3,7 +3,7 @@ import { AutoSizeInput, HorizontalGroup, InlineSwitch, MultiSelect, Select, Vert
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { InlineField } from 'core/components/InlineField';
 import { ProductsDataSource } from '../ProductsDataSource';
-import { OrderBy, ProductPropertiesProjectionMap, ProductQuery, Properties } from '../types';
+import { DefaultOrderBy, OrderBy, ProductPropertiesProjectionMap, ProductQuery, Properties } from '../types';
 import { Workspace } from 'core/types';
 import { ProductsQueryBuilder } from 'datasources/products/components/query-builder/ProductsQueryBuilder';
 import { FloatingError } from 'core/errors';
@@ -92,7 +92,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
 
   useEffect(() => {
     if (!query.orderBy) {
-      handleQueryChange({ ...query, orderBy: OrderBy[0].value });//set updated at as default order by
+      handleQueryChange({ ...query, orderBy: DefaultOrderBy});
     }
   }, [handleQueryChange, query]);
 
