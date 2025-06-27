@@ -1,3 +1,9 @@
+## [3.142.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.17...v3.142.0) (2025-06-27)
+
+### Features
+
+* **results:** add custom theme support for horizontal scrollbar in query-builder ([#344](https://github.com/ni/systemlink-grafana-plugins/issues/344)) ([4edab21](https://github.com/ni/systemlink-grafana-plugins/commit/4edab217d0e028e14522a5f203bffae024e4ffd1))
+
 ## [3.141.17](https://github.com/ni/systemlink-grafana-plugins/compare/v3.141.16...v3.141.17) (2025-06-27)
 
 ### Bug Fixes
