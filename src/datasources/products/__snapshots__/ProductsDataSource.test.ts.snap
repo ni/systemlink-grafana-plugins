@@ -107,7 +107,16 @@ exports[`query returns data when there are valid queries 1`] = `
 ]
 `;
 
-exports[`query returns empty data for invalid query 1`] = `
+exports[`query returns empty data for invalid properties query 1`] = `
+[
+  {
+    "fields": [],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`query returns empty data for invalid take query 1`] = `
 [
   {
     "fields": [],
