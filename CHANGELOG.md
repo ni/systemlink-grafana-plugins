@@ -1,3 +1,9 @@
+## [3.144.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.144.0...v3.144.1) (2025-06-30)
+
+### Bug Fixes
+
+* **products:** Add query name as the refIds for queries  ([#348](https://github.com/ni/systemlink-grafana-plugins/issues/348)) ([2ac712d](https://github.com/ni/systemlink-grafana-plugins/commit/2ac712d5a4e93a903228c768a4e78995c2bba172))
+
 ## [3.144.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.143.0...v3.144.0) (2025-06-30)
 
 ### Features
