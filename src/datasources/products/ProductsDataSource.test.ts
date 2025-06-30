@@ -236,6 +236,34 @@ describe('query', () => {
     expect(response.data).toMatchSnapshot();
   });
 
+  test('returns empty data for invalid properties query', async () => {
+    const query = buildQuery({
+      refId: 'A',
+      properties: []
+    });
+
+    const response = await datastore.query(query);
+
+    expect(response.data).toMatchSnapshot();
+  });
+  
+  test('returns empty data for invalid take query', async () => {
+    const query = buildQuery({
+      refId: 'A',
+      properties: [
+          PropertiesOptions.PART_NUMBER,
+          PropertiesOptions.FAMILY,
+          PropertiesOptions.NAME,
+          PropertiesOptions.WORKSPACE
+        ] as Properties[],
+      recordCount: undefined
+    });
+
+    const response = await datastore.query(query);
+
+    expect(response.data).toMatchSnapshot();
+  });
+
   test('returns column headers with no data when Query Products returns no data', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
