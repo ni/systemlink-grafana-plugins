@@ -39,6 +39,36 @@ exports[`query metricFindQuery should return partNumber with family Name when qu
 ]
 `;
 
+exports[`query returns column headers with no data when Query Products returns no data 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "partNumber",
+        "type": "string",
+        "values": [],
+      },
+      {
+        "name": "family",
+        "type": "string",
+        "values": [],
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "values": [],
+      },
+      {
+        "name": "workspace",
+        "type": "string",
+        "values": [],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
 exports[`query returns data when there are valid queries 1`] = `
 [
   {
@@ -77,31 +107,10 @@ exports[`query returns data when there are valid queries 1`] = `
 ]
 `;
 
-exports[`query returns column headers with no data when Query Products returns no data 1`] = `
+exports[`query returns empty data for invalid query 1`] = `
 [
   {
-    "fields": [
-      {
-        "name": "partNumber",
-        "type": "string",
-        "values": [],
-      },
-      {
-        "name": "family",
-        "type": "string",
-        "values": [],
-      },
-      {
-        "name": "name",
-        "type": "string",
-        "values": [],
-      },
-      {
-        "name": "workspace",
-        "type": "string",
-        "values": [],
-      },
-    ],
+    "fields": [],
     "refId": "A",
   },
 ]

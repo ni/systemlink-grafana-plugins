@@ -236,6 +236,17 @@ describe('query', () => {
     expect(response.data).toMatchSnapshot();
   });
 
+  test('returns empty data for invalid query', async () => {
+      const query = buildQuery({
+        refId: 'A',
+        properties: []
+      });
+
+      const response = await datastore.query(query);
+
+      expect(response.data).toMatchSnapshot();
+    });
+
   test('returns column headers with no data when Query Products returns no data', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))

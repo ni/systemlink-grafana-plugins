@@ -111,6 +111,13 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     await this.workspaceLoadedPromise;
     await this.partNumberLoadedPromise;
 
+    if( query.properties?.length === 0 || query.recordCount === undefined ) {
+      return {
+        refId: query.refId,
+        fields: [],
+      }
+    }
+
     if (query.queryBy) {
       query.queryBy = transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
