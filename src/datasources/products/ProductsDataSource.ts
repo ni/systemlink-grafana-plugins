@@ -114,6 +114,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     if( query.properties?.length === 0 || query.recordCount === undefined ) {
       return {
         refId: query.refId,
+        name: query.refId,
         fields: [],
       }
     }
@@ -167,6 +168,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     });
     return {
       refId: query.refId,
+      name: query.refId,
       fields: fields,
     };
   }
