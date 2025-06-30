@@ -1,3 +1,9 @@
+## [3.144.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.143.0...v3.144.0) (2025-06-30)
+
+### Features
+
+* **products:** handle invalid queries in Products Query Editor ([#347](https://github.com/ni/systemlink-grafana-plugins/issues/347)) ([bb92537](https://github.com/ni/systemlink-grafana-plugins/commit/bb9253701da5af78c1cf48777d9fa5a0c3dd24c1))
+
 ## [3.143.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.142.1...v3.143.0) (2025-06-27)
 
 ### Features
