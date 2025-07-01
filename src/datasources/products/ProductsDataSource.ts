@@ -1,7 +1,7 @@
 import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { ProductQuery, ProductResponseProperties, ProductVariableQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
+import { ProductQuery, ProductResponseProperties, productsProjectionLabelLookup, ProductVariableQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { extractErrorInfo } from 'core/errors';
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
@@ -160,7 +160,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
         }
       });
       return {
-        name: field,
+        name: productsProjectionLabelLookup[field].label,
         values: fieldValues,
         type: fieldType
       };

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { AutoSizeInput, HorizontalGroup, InlineField, InlineSwitch, MultiSelect, Select, VerticalGroup } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { ProductsDataSource } from '../ProductsDataSource';
-import { DefaultProductsOrderBy, OrderBy, ProductPropertiesProjectionMap, ProductQuery, Properties } from '../types';
+import { DefaultProductsOrderBy, OrderBy, ProductQuery, productsProjectionLabelLookup, Properties } from '../types';
 import { Workspace } from 'core/types';
 import { ProductsQueryBuilder } from 'datasources/products/components/query-builder/ProductsQueryBuilder';
 import { FloatingError } from 'core/errors';
@@ -110,8 +110,8 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
             error='You must select at least one property.'>
             <MultiSelect
               placeholder="Select properties to fetch"
-              options={Object.entries(ProductPropertiesProjectionMap)
-                .map(([key, value]) => ({ label: key, value })) as SelectableValue[]}
+              options={Object.entries(productsProjectionLabelLookup)
+                .map(([_, value]) => ({ label: value.label, value: value.projection })) as SelectableValue[]}
               onChange={onPropertiesChange}
               value={query.properties}
               defaultValue={query.properties!}
