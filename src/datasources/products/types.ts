@@ -14,15 +14,15 @@ export interface ProductVariableQuery extends DataQuery {
 }
 
 export enum Properties {
-  id = 'ID',
-  partNumber = 'PART_NUMBER',
-  name = 'NAME',
-  family = 'FAMILY',
-  updatedAt = 'UPDATED_AT',
-  workspace = 'WORKSPACE',
-  keywords = 'KEYWORDS',
-  properties = 'PROPERTIES',
-  fileIds = 'FILE_IDS',
+  id = 'id',
+  partNumber = 'partNumber',
+  name = 'name',
+  family = 'family',
+  updatedAt = 'updatedAt',
+  workspace = 'workspace',
+  keywords = 'keywords',
+  properties = 'properties',
+  fileIds = 'fileIds',
 }
 
 export const PropertiesOptions = {
@@ -37,16 +37,18 @@ export const PropertiesOptions = {
   FILE_IDS: 'fileIds',
 };
 
-export const ProductPropertiesProjectionMap = {
-  'Product ID': PropertiesOptions.ID,
-  'Part number': PropertiesOptions.PART_NUMBER,
-  'Product name': PropertiesOptions.NAME,
-  'Family': PropertiesOptions.FAMILY,
-  'Updated at': PropertiesOptions.UPDATEDAT,
-  'Workspace': PropertiesOptions.WORKSPACE,
-  'Keywords': PropertiesOptions.KEYWORDS,
-  'Properties': PropertiesOptions.PROPERTIES,
-  'File IDs': PropertiesOptions.FILE_IDS
+export const productsProjectionLabelLookup: Record<Properties, {
+  label: string;
+  projection: string;}> = {
+  [Properties.id]: { label: 'Product ID', projection: PropertiesOptions.ID},
+  [Properties.partNumber]: { label: 'Part number', projection: PropertiesOptions.PART_NUMBER },
+  [Properties.name]: { label: 'Product name', projection:  PropertiesOptions.NAME },
+  [Properties.family]: { label: 'Family', projection:  PropertiesOptions.FAMILY },
+  [Properties.updatedAt]: { label: 'Updated at', projection: PropertiesOptions.UPDATEDAT },
+  [Properties.workspace]: { label: 'Workspace', projection: PropertiesOptions.WORKSPACE },
+  [Properties.keywords]: { label: 'Keywords', projection: PropertiesOptions.KEYWORDS },
+  [Properties.properties]: { label: 'Properties', projection: PropertiesOptions.PROPERTIES },
+  [Properties.fileIds]: { label: 'File IDs', projection: PropertiesOptions.FILE_IDS },
 }
 
 export const OrderBy = [

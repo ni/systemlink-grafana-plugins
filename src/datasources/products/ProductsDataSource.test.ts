@@ -333,12 +333,12 @@ describe('query', () => {
 
     const fields = response.data[0].fields as Field[];
     expect(fields).toEqual([
-      { name: 'partNumber', values: ['123'], type: 'string' },
-      { name: 'family', values: ['Family 1'], type: 'string' },
-      { name: 'name', values: ['Product 1'], type: 'string' },
-      { name: 'workspace', values: ['Workspace 1'], type: 'string' },
-      { name: 'updatedAt', values: ['2021-08-01T00:00:00Z'], type: 'time' },
-      { name: 'properties', values: ['{"prop1":"value1"}'], type: 'string' },
+      { name: 'Part number', values: ['123'], type: 'string' },
+      { name: 'Family', values: ['Family 1'], type: 'string' },
+      { name: 'Product name', values: ['Product 1'], type: 'string' },
+      { name: 'Workspace', values: ['Workspace 1'], type: 'string' },
+      { name: 'Updated at', values: ['2021-08-01T00:00:00Z'], type: 'time' },
+      { name: 'Properties', values: ['{"prop1":"value1"}'], type: 'string' },
     ]);
   });
 
@@ -358,7 +358,7 @@ describe('query', () => {
 
     const fields = response.data[0].fields as Field[];
     expect(fields).toEqual([
-      { name: 'workspace', values: ['WorkspaceName'], type: 'string' },
+      { name: 'Workspace', values: ['WorkspaceName'], type: 'string' },
     ]);
   });
 
@@ -387,7 +387,7 @@ describe('query', () => {
     const response = await datastore.query(query);
     const fields = response.data[0].fields as Field[];
     expect(fields).toEqual([
-      { name: 'properties', values: [''], type: 'string' },
+      { name: 'Properties', values: [''], type: 'string' },
     ]);
   });
 
@@ -498,7 +498,7 @@ describe('query', () => {
           data: {
             descending: false,
             orderBy: "partNumber",
-            projection: ["PART_NUMBER", "NAME"],
+            projection: [PropertiesOptions.PART_NUMBER, PropertiesOptions.NAME],
             returnCount: false,
           }
         })
@@ -520,7 +520,7 @@ describe('query', () => {
             descending: false,
             filter: "partNumber = \"123\"",
             orderBy: "partNumber",
-            projection: ["PART_NUMBER", "NAME"],
+            projection: [PropertiesOptions.PART_NUMBER, PropertiesOptions.NAME],
             returnCount: false,
           }
         })
@@ -575,7 +575,7 @@ describe('query', () => {
             descending: false,
             filter:"(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\")",
             orderBy: "partNumber",
-            projection: ["PART_NUMBER", "NAME"],
+            projection: [PropertiesOptions.PART_NUMBER, PropertiesOptions.NAME],
             returnCount: false,
           }
         })

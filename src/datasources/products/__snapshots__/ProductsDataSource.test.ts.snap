@@ -44,22 +44,22 @@ exports[`query returns column headers with no data when Query Products returns n
   {
     "fields": [
       {
-        "name": "partNumber",
+        "name": "Part number",
         "type": "string",
         "values": [],
       },
       {
-        "name": "family",
+        "name": "Family",
         "type": "string",
         "values": [],
       },
       {
-        "name": "name",
+        "name": "Product name",
         "type": "string",
         "values": [],
       },
       {
-        "name": "workspace",
+        "name": "Workspace",
         "type": "string",
         "values": [],
       },
@@ -75,28 +75,28 @@ exports[`query returns data when there are valid queries 1`] = `
   {
     "fields": [
       {
-        "name": "partNumber",
+        "name": "Part number",
         "type": "string",
         "values": [
           "123",
         ],
       },
       {
-        "name": "family",
+        "name": "Family",
         "type": "string",
         "values": [
           "Family 1",
         ],
       },
       {
-        "name": "name",
+        "name": "Product name",
         "type": "string",
         "values": [
           "Product 1",
         ],
       },
       {
-        "name": "workspace",
+        "name": "Workspace",
         "type": "string",
         "values": [
           "Workspace 1",
