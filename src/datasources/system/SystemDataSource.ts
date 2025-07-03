@@ -86,8 +86,8 @@ export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJson
     return properties.map(frame => ({ text: frame.alias ?? frame.id, value: frame.id }));
   }
 
-  shouldRunQuery(_: SystemQuery): boolean {
-    return true;
+  shouldRunQuery(query: SystemQuery): boolean {
+    return !query.hide;
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
