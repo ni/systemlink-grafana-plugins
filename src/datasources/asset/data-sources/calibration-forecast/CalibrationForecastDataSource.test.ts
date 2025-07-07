@@ -713,3 +713,38 @@ describe('Time based data links', () => {
     expect(builtUrl).toMatchSnapshot();
   });
 });
+
+describe('shouldRunQuery', () => {
+  test('returns true for visible calibration forecast query', () => {
+    const query: CalibrationForecastQuery = {
+      refId: 'A',
+      type: AssetQueryType.CalibrationForecast,
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+      hide: false
+    };
+
+    expect(datastore.shouldRunQuery(query)).toBe(true);
+  });
+
+  test('returns false for hidden forecast query', () => {
+    const query = {
+      refId: 'A',
+      type: AssetQueryType.CalibrationForecast,
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+      hide: true
+    };
+
+    expect(datastore.shouldRunQuery(query)).toBe(false);
+  });
+
+  test('returns false for empty grouping query', () => {
+    const query = {
+      refId: 'A',
+      type: AssetQueryType.CalibrationForecast,
+      groupBy: [],
+      hide: false
+    };
+
+    expect(datastore.shouldRunQuery(query)).toBe(false);
+  })
+});
