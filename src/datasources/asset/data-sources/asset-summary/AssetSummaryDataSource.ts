@@ -1,4 +1,4 @@
-import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings, DataQueryErrorType } from '@grafana/data';
+import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 
 import { AssetSummaryResponse } from 'datasources/asset/types/AssetSummaryQuery.types';
