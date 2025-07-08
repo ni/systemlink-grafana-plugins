@@ -55,7 +55,7 @@ export class DataSource extends DataSourceApi<NotebookQuery, NotebookDataSourceO
     for (const target of options.targets) {
       const query = defaults(target, defaultQuery);
 
-      if (!query.id || !query.workspace) {
+      if (!query.id || !query.workspace || query.hide) {
         continue;
       }
 

@@ -72,6 +72,22 @@ describe('queries', () => {
     expect(result.data).toMatchSnapshot();
   });
 
+  test('should process query if query is not hidden', async () => {
+    backendSrv.fetch.mockReturnValue(createQueryTagsResponse());
+
+    await ds.query({ ...defaultQueryOptions, targets: [{ path: 'my.tag', refId: 'A', hide: false } as TagQuery], });
+
+    expect(backendSrv.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  test('should not process query if query is hidden', async () => {
+    backendSrv.fetch.mockReturnValue(createQueryTagsResponse());
+
+    await ds.query({ ...defaultQueryOptions, targets: [{ path: 'my.tag', refId: 'A', hide: true } as TagQuery], });
+
+    expect(backendSrv.fetch).toHaveBeenCalledTimes(0);
+  });
+
   test('uses displayName property', async () => {
     backendSrv.fetch.mockReturnValue(createQueryTagsResponse([{ tag: { properties: { displayName: 'My cool tag' } } }]));
 

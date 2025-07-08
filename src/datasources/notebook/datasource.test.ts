@@ -226,6 +226,45 @@ describe('Notebook data source', () => {
       expect(result.data.length).toBe(0);
     });
 
+    it('does not execute when query is hidden', async () => {
+      const options = {
+        targets: [
+          {
+            id: successfulNotebookPath,
+            workspace: '1234',
+            parameters: [],
+            output: 'test',
+            hide: true
+          },
+        ],
+      } as unknown as DataQueryRequest<NotebookQuery>;
+
+
+      let result = await ds.query(options);
+
+      expect(result.data.length).toBe(0);
+      expect(executeMock).not.toHaveBeenCalled();
+    });
+
+    it('executes when query is not hidden', async () => {
+      const options = {
+        targets: [
+          {
+            id: successfulNotebookPath,
+            workspace: '1234',
+            parameters: [],
+            output: 'test',
+            hide: false
+          },
+        ],
+      } as unknown as DataQueryRequest<NotebookQuery>;
+
+      let result = await ds.query(options);
+
+      expect(result.data.length).not.toBe(0);
+      expect(executeMock).toHaveBeenCalled();
+    });
+
     it('returns frame for successful notebook execution', async () => {
       const options = {
         targets: [
