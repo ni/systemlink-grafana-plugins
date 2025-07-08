@@ -1,3 +1,9 @@
+## [3.145.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.144.1...v3.145.0) (2025-07-08)
+
+### Features
+
+* **tags:** update tag datasource with new endpoint to fetch tag data ([#352](https://github.com/ni/systemlink-grafana-plugins/issues/352)) ([dfa4fb0](https://github.com/ni/systemlink-grafana-plugins/commit/dfa4fb0fe87bbdf2b1f7d2088c7435ba4c81cfa4))
+
 ## [3.144.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.144.0...v3.144.1) (2025-06-30)
 
 ### Bug Fixes
