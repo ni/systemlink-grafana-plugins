@@ -77,3 +77,38 @@ describe('List assets location queries', () => {
         );
     });
 });
+
+describe('shouldRunQuery', () => {
+    let processlistAssetsQuerySpy: jest.SpyInstance;
+
+    beforeEach(() => {
+        processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery').mockImplementation();
+
+    });
+
+    test('should not process query for hidden queries', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: `${ListAssetsFieldNames.LOCATION} = "Location1"`,
+            hide: true
+        });
+
+        await datastore.query(query);
+
+        expect(processlistAssetsQuerySpy).not.toHaveBeenCalled();
+    });
+
+    test('should process query for non-hidden queries', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: `${ListAssetsFieldNames.LOCATION} = "Location1"`,
+            hide: false
+        });
+
+        await datastore.query(query);
+
+        expect(processlistAssetsQuerySpy).toHaveBeenCalled();
+    });
+});

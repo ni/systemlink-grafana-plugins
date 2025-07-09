@@ -24,8 +24,8 @@ export class AssetSummaryDataSource extends AssetDataSourceBase {
         return this.processSummaryQuery(query as AssetQuery);
     }
 
-    shouldRunQuery(_: AssetQuery): boolean {
-        return true;
+    shouldRunQuery(query: AssetQuery): boolean {
+        return !query?.hide;
     }
 
     async processSummaryQuery(query: AssetQuery) {
