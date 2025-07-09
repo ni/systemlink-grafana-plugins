@@ -1,2 +1,2 @@
 export const QUERY_USERS_MAX_TAKE = 100;
-export const QUERY_USERS_REQUEST_PER_SECOND = 20;
+export const QUERY_USERS_REQUEST_PER_SECOND = 8;
