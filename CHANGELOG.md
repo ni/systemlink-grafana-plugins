@@ -1,3 +1,9 @@
+## [3.145.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.145.0...v3.145.1) (2025-07-09)
+
+### Bug Fixes
+
+* **asset,tags,notebook:** hide query options from table combo box when query is hidden ([#351](https://github.com/ni/systemlink-grafana-plugins/issues/351)) ([71bf387](https://github.com/ni/systemlink-grafana-plugins/commit/71bf387a4a020556a592b7f314e17c9546a31ad3))
+
 ## [3.145.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.144.1...v3.145.0) (2025-07-08)
 
 ### Features
