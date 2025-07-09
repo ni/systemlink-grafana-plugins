@@ -136,6 +136,17 @@ test('attempts to replace variables in metricFindQuery', async () => {
   expect(templateSrv.replace.mock.calls[0][0]).toBe(workspaceVariable);
 });
 
+test('should not run query if hidden', () => {
+  const query: SystemQuery = {
+      hide: true,
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      refId: ''
+  };
+  expect(ds.shouldRunQuery(query)).toBe(false);
+});
+
 const fakeSystems: SystemProperties[] = [
   {
     id: 'system-1',
