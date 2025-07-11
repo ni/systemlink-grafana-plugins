@@ -165,7 +165,11 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
       QueryBuilderOperations.KEY_VALUE_IS_NUMERICAL_NOT_EQUAL
     ]
 
-    setOperations([...customOperations, ...keyValueOperations]);
+    const sourceOptions = [
+      QueryBuilderOperations.SOURCE_EQUALS
+    ]
+
+    setOperations([...sourceOptions, ...customOperations, ...keyValueOperations]);
 
   }, [workspaceField, updatedAtField, partNumberField, familyField, globalVariableOptions]);
 

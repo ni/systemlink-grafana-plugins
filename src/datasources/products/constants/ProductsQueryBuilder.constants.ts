@@ -15,7 +15,7 @@ export const ProductsQueryBuilderFields: Record<string, QBField> = {
         label: 'Part Number',
         dataField: ProductsQueryBuilderFieldNames.PART_NUMBER,
         filterOperations: [
-            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.SOURCE_EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name,
             QueryBuilderOperations.STARTS_WITH.name,
             QueryBuilderOperations.ENDS_WITH.name,
