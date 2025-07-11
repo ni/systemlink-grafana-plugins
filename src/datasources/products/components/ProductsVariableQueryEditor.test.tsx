@@ -1,6 +1,6 @@
 import { Workspace } from "core/types";
 import { ProductsDataSource } from "../ProductsDataSource";
-import { ProductVariableQuery, PropertiesOptions } from "../types";
+import { ProductVariableQuery, Properties } from "../types";
 import { setupRenderer } from "test/fixtures";
 import { ProductsVariableQueryEditor } from "./ProductsVariableQueryEditor";
 import { screen, waitFor } from "@testing-library/react";
@@ -29,7 +29,7 @@ class FakeProductsDataSource extends ProductsDataSource {
     }
 
     queryProductValues(fieldName: string): Promise<string[]> {
-        if (fieldName === PropertiesOptions.PART_NUMBER) {
+        if (fieldName === Properties.partNumber) {
             return Promise.resolve(fakePartNumbers);
         }
         return Promise.resolve(fakeFamilyNames);
@@ -51,7 +51,7 @@ it('fetches the product values on mount', async () => {
     render({ refId: '', queryBy: '' } as ProductVariableQuery);
 
     expect(queryProductValuesSpy).toHaveBeenCalledTimes(2);
-    expect(queryProductValuesSpy).toHaveBeenCalledWith(PropertiesOptions.PART_NUMBER);
-    expect(queryProductValuesSpy).toHaveBeenCalledWith(PropertiesOptions.FAMILY);
+    expect(queryProductValuesSpy).toHaveBeenCalledWith(Properties.partNumber);
+    expect(queryProductValuesSpy).toHaveBeenCalledWith(Properties.family);
 });
 

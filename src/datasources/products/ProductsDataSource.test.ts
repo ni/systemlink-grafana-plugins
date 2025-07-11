@@ -1,6 +1,6 @@
 import { BackendSrv } from '@grafana/runtime';
 import { ProductsDataSource } from './ProductsDataSource';
-import { ProductQuery, ProductVariableQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
+import { ProductQuery, ProductVariableQuery, Properties, QueryProductResponse } from './types';
 import { Field, LegacyMetricFindQueryOptions } from '@grafana/data';
 import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
 import { MockProxy } from 'jest-mock-extended';
@@ -218,13 +218,13 @@ describe('query', () => {
       {
         refId: 'A',
         properties: [
-          PropertiesOptions.PART_NUMBER,
-          PropertiesOptions.FAMILY,
-          PropertiesOptions.NAME,
-          PropertiesOptions.WORKSPACE
-        ] as Properties[],
+          Properties.partNumber,
+          Properties.family,
+          Properties.name,
+          Properties.workspace
+        ],
         queryBy: `${ProductsQueryBuilderFieldNames.PART_NUMBER} = "123"`,
-        orderBy: PropertiesOptions.ID,
+        orderBy: Properties.id,
         descending: false,
         recordCount: 1
       },
@@ -251,10 +251,10 @@ describe('query', () => {
     const query = buildQuery({
       refId: 'A',
       properties: [
-          PropertiesOptions.PART_NUMBER,
-          PropertiesOptions.FAMILY,
-          PropertiesOptions.NAME,
-          PropertiesOptions.WORKSPACE
+          Properties.partNumber,
+          Properties.family,
+          Properties.name,
+          Properties.workspace
         ] as Properties[],
       recordCount: undefined
     });
@@ -279,11 +279,11 @@ describe('query', () => {
       {
         refId: 'A',
         properties: [
-          PropertiesOptions.PART_NUMBER,
-          PropertiesOptions.FAMILY,
-          PropertiesOptions.NAME,
-          PropertiesOptions.WORKSPACE
-        ] as Properties[], 
+          Properties.partNumber,
+          Properties.family,
+          Properties.name,
+          Properties.workspace
+        ], 
       }
     );
 
@@ -301,10 +301,10 @@ describe('query', () => {
       {
         refId: 'A',
         properties: [
-          PropertiesOptions.PART_NUMBER,
-          PropertiesOptions.FAMILY,
-          PropertiesOptions.NAME,
-          PropertiesOptions.WORKSPACE
+          Properties.partNumber,
+          Properties.family,
+          Properties.name,
+          Properties.workspace
         ] as Properties[], orderBy: undefined
       },
     );
@@ -319,12 +319,12 @@ describe('query', () => {
       {
         refId: 'A',
         properties: [
-          PropertiesOptions.PART_NUMBER,
-          PropertiesOptions.FAMILY,
-          PropertiesOptions.NAME,
-          PropertiesOptions.WORKSPACE,
-          PropertiesOptions.UPDATEDAT,
-          PropertiesOptions.PROPERTIES
+          Properties.partNumber,
+          Properties.family,
+          Properties.name,
+          Properties.workspace,
+          Properties.updatedAt,
+          Properties.properties
         ] as Properties[], orderBy: undefined
       },
     );
@@ -349,7 +349,7 @@ describe('query', () => {
       {
         refId: 'A',
         properties: [
-          PropertiesOptions.WORKSPACE
+          Properties.workspace
         ] as Properties[], orderBy: undefined
       },
     );
@@ -379,7 +379,7 @@ describe('query', () => {
       {
         refId: 'A',
         properties: [
-          PropertiesOptions.PROPERTIES
+          Properties.properties
         ] as Properties[], orderBy: undefined
       },
     );
@@ -421,9 +421,9 @@ describe('query', () => {
         {
           refId: 'A',
           properties: [
-            PropertiesOptions.PART_NUMBER
+            Properties.partNumber
           ] as Properties[],
-          queryBy: `${PropertiesOptions.PART_NUMBER} = '123'`,
+          queryBy: `${Properties.partNumber} = '123'`,
           descending: false
         },
       );
@@ -448,7 +448,7 @@ describe('query', () => {
         {
           refId: 'A',
           properties: [
-            PropertiesOptions.PART_NUMBER
+            Properties.partNumber
           ] as Properties[],
           queryBy: `${ProductsQueryBuilderFieldNames.PART_NUMBER} = "{partNumber1,partNumber2}"`,
           descending: false
@@ -498,7 +498,7 @@ describe('query', () => {
           data: {
             descending: false,
             orderBy: "partNumber",
-            projection: [PropertiesOptions.PART_NUMBER, PropertiesOptions.NAME],
+            projection: [Properties.partNumber, Properties.name],
             returnCount: false,
           }
         })
@@ -520,7 +520,7 @@ describe('query', () => {
             descending: false,
             filter: "partNumber = \"123\"",
             orderBy: "partNumber",
-            projection: [PropertiesOptions.PART_NUMBER, PropertiesOptions.NAME],
+            projection: [Properties.partNumber, Properties.name],
             returnCount: false,
           }
         })
@@ -575,7 +575,7 @@ describe('query', () => {
             descending: false,
             filter:"(PartNumber = \"partNumber1\" || PartNumber = \"partNumber2\")",
             orderBy: "partNumber",
-            projection: [PropertiesOptions.PART_NUMBER, PropertiesOptions.NAME],
+            projection: [Properties.partNumber, Properties.name],
             returnCount: false,
           }
         })
@@ -587,10 +587,10 @@ describe('query', () => {
 const buildQuery = getQueryBuilder<ProductQuery>()({
   refId: 'A',
   properties: [
-    PropertiesOptions.PART_NUMBER,
-    PropertiesOptions.FAMILY,
-    PropertiesOptions.NAME,
-    PropertiesOptions.WORKSPACE
+    Properties.partNumber,
+    Properties.family,
+    Properties.name,
+    Properties.workspace
   ] as Properties[],
   orderBy: undefined
 });
