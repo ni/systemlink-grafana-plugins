@@ -1,7 +1,7 @@
 import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { ProductQuery, ProductResponseProperties, productsProjectionLabelLookup, ProductVariableQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
+import { ProductQuery, ProductResponseProperties, productsProjectionLabelLookup, ProductVariableQuery, Properties, QueryProductResponse } from './types';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { extractErrorInfo } from 'core/errors';
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
@@ -33,11 +33,11 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
   defaultQuery = {
     properties: [
-      PropertiesOptions.PART_NUMBER,
-      PropertiesOptions.NAME,
-      PropertiesOptions.FAMILY,
-      PropertiesOptions.WORKSPACE
-    ] as Properties[],
+      Properties.partNumber,
+      Properties.name,
+      Properties.family,
+      Properties.workspace
+    ],
     descending: true,
     recordCount: 1000,
     queryBy: ''
@@ -140,7 +140,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       ) ?? [])
       : (query.properties ?? []);
     const fields = selectedFields.map((field) => {
-      const isTimeField = field === PropertiesOptions.UPDATEDAT;
+      const isTimeField = field === Properties.updatedAt;
       const fieldType = isTimeField
         ? FieldType.time
         : FieldType.string;
@@ -150,9 +150,9 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
       const fieldValues = values.map(value => {
         switch (field) {
-          case PropertiesOptions.PROPERTIES:
+          case Properties.properties:
             return value == null ? '' : JSON.stringify(value);
-          case PropertiesOptions.WORKSPACE:
+          case Properties.workspace:
             const workspace = this.workspacesCache.get(value);
             return workspace ? getWorkspaceName([workspace], value) : value;
           default:
@@ -185,7 +185,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       return;
     }
 
-    const familyNames = await this.queryProductValues(PropertiesOptions.FAMILY)
+    const familyNames = await this.queryProductValues(Properties.family)
       .catch(error => {
         if (!this.errorTitle) {
           this.handleQueryProductValuesError(error);
@@ -204,7 +204,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       : undefined;
 
     const metadata = (await this.queryProducts(
-      PropertiesOptions.PART_NUMBER,
+      Properties.partNumber,
       [Properties.partNumber, Properties.name],
       filter
     )).products;
@@ -276,7 +276,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     if (this.partNumbersCache.size > 0) {
       return;
     }
-    const partNumbers = await this.queryProductValues(PropertiesOptions.PART_NUMBER)
+    const partNumbers = await this.queryProductValues(Properties.partNumber)
       .catch(error => {
         if (!this.errorTitle) {
           this.handleQueryProductValuesError(error);

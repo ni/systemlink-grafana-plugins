@@ -25,22 +25,10 @@ export enum Properties {
   fileIds = 'fileIds',
 }
 
-export const PropertiesOptions = {
-  ID: Properties.id,
-  PART_NUMBER: Properties.partNumber,
-  NAME: Properties.name,
-  FAMILY: Properties.family,
-  UPDATEDAT: Properties.updatedAt,
-  WORKSPACE: Properties.workspace,
-  KEYWORDS: Properties.keywords,
-  PROPERTIES: Properties.properties,
-  FILE_IDS: Properties.fileIds,
-};
-
 export const productsProjectionLabelLookup: Record<Properties, {
   label: string;
   projection: Properties;}> = {
-  [Properties.id]: { label: 'Product ID', projection: Properties.id},
+  [Properties.id]: { label: 'Product ID', projection: Properties.id },
   [Properties.partNumber]: { label: 'Part number', projection: Properties.partNumber },
   [Properties.name]: { label: 'Product name', projection: Properties.name },
   [Properties.family]: { label: 'Family', projection: Properties.family },
