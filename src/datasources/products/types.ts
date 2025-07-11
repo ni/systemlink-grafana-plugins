@@ -26,29 +26,29 @@ export enum Properties {
 }
 
 export const PropertiesOptions = {
-  ID: 'id',
-  PART_NUMBER: 'partNumber',
-  NAME: 'name',
-  FAMILY: 'family',
-  UPDATEDAT: 'updatedAt',
-  WORKSPACE: 'workspace',
-  KEYWORDS: 'keywords',
-  PROPERTIES: 'properties',
-  FILE_IDS: 'fileIds',
+  ID: Properties.id,
+  PART_NUMBER: Properties.partNumber,
+  NAME: Properties.name,
+  FAMILY: Properties.family,
+  UPDATEDAT: Properties.updatedAt,
+  WORKSPACE: Properties.workspace,
+  KEYWORDS: Properties.keywords,
+  PROPERTIES: Properties.properties,
+  FILE_IDS: Properties.fileIds,
 };
 
 export const productsProjectionLabelLookup: Record<Properties, {
   label: string;
-  projection: string;}> = {
-  [Properties.id]: { label: 'Product ID', projection: PropertiesOptions.ID},
-  [Properties.partNumber]: { label: 'Part number', projection: PropertiesOptions.PART_NUMBER },
-  [Properties.name]: { label: 'Product name', projection:  PropertiesOptions.NAME },
-  [Properties.family]: { label: 'Family', projection:  PropertiesOptions.FAMILY },
-  [Properties.updatedAt]: { label: 'Updated at', projection: PropertiesOptions.UPDATEDAT },
-  [Properties.workspace]: { label: 'Workspace', projection: PropertiesOptions.WORKSPACE },
-  [Properties.keywords]: { label: 'Keywords', projection: PropertiesOptions.KEYWORDS },
-  [Properties.properties]: { label: 'Properties', projection: PropertiesOptions.PROPERTIES },
-  [Properties.fileIds]: { label: 'File IDs', projection: PropertiesOptions.FILE_IDS },
+  projection: Properties;}> = {
+  [Properties.id]: { label: 'Product ID', projection: Properties.id},
+  [Properties.partNumber]: { label: 'Part number', projection: Properties.partNumber },
+  [Properties.name]: { label: 'Product name', projection: Properties.name },
+  [Properties.family]: { label: 'Family', projection: Properties.family },
+  [Properties.updatedAt]: { label: 'Updated at', projection: Properties.updatedAt },
+  [Properties.workspace]: { label: 'Workspace', projection: Properties.workspace },
+  [Properties.keywords]: { label: 'Keywords', projection: Properties.keywords },
+  [Properties.properties]: { label: 'Properties', projection: Properties.properties },
+  [Properties.fileIds]: { label: 'File IDs', projection: Properties.fileIds },
 }
 
 export const OrderBy = [
