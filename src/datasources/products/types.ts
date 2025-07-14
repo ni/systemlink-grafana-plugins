@@ -14,39 +14,41 @@ export interface ProductVariableQuery extends DataQuery {
 }
 
 export enum Properties {
-  id = 'ID',
-  partNumber = 'PART_NUMBER',
-  name = 'NAME',
-  family = 'FAMILY',
-  updatedAt = 'UPDATED_AT',
-  workspace = 'WORKSPACE',
-  keywords = 'KEYWORDS',
-  properties = 'PROPERTIES',
-  fileIds = 'FILE_IDS',
+  id = 'id',
+  partNumber = 'partNumber',
+  name = 'name',
+  family = 'family',
+  updatedAt = 'updatedAt',
+  workspace = 'workspace',
+  keywords = 'keywords',
+  properties = 'properties',
+  fileIds = 'fileIds',
 }
 
 export const PropertiesOptions = {
-  ID: 'id',
-  PART_NUMBER: 'partNumber',
-  NAME: 'name',
-  FAMILY: 'family',
-  UPDATEDAT: 'updatedAt',
-  WORKSPACE: 'workspace',
-  KEYWORDS: 'keywords',
-  PROPERTIES: 'properties',
-  FILE_IDS: 'fileIds',
+  ID: Properties.id,
+  PART_NUMBER: Properties.partNumber,
+  NAME: Properties.name,
+  FAMILY: Properties.family,
+  UPDATEDAT: Properties.updatedAt,
+  WORKSPACE: Properties.workspace,
+  KEYWORDS: Properties.keywords,
+  PROPERTIES: Properties.properties,
+  FILE_IDS: Properties.fileIds,
 };
 
-export const ProductPropertiesProjectionMap = {
-  'Product ID': PropertiesOptions.ID,
-  'Part number': PropertiesOptions.PART_NUMBER,
-  'Product name': PropertiesOptions.NAME,
-  'Family': PropertiesOptions.FAMILY,
-  'Updated at': PropertiesOptions.UPDATEDAT,
-  'Workspace': PropertiesOptions.WORKSPACE,
-  'Keywords': PropertiesOptions.KEYWORDS,
-  'Properties': PropertiesOptions.PROPERTIES,
-  'File IDs': PropertiesOptions.FILE_IDS
+export const productsProjectionLabelLookup: Record<Properties, {
+  label: string;
+  projection: Properties;}> = {
+  [Properties.id]: { label: 'Product ID', projection: Properties.id},
+  [Properties.partNumber]: { label: 'Part number', projection: Properties.partNumber },
+  [Properties.name]: { label: 'Product name', projection: Properties.name },
+  [Properties.family]: { label: 'Family', projection: Properties.family },
+  [Properties.updatedAt]: { label: 'Updated at', projection: Properties.updatedAt },
+  [Properties.workspace]: { label: 'Workspace', projection: Properties.workspace },
+  [Properties.keywords]: { label: 'Keywords', projection: Properties.keywords },
+  [Properties.properties]: { label: 'Properties', projection: Properties.properties },
+  [Properties.fileIds]: { label: 'File IDs', projection: Properties.fileIds },
 }
 
 export const OrderBy = [
