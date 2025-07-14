@@ -9,9 +9,11 @@ export function sourceExpressionBuilderCallback(_: string, operation: string, va
     if (!expressionTemplate) {
         return '';
     }
+    console.log(expressionTemplate.replace(/\{0\}/g, value));
     return expressionTemplate.replace(/\{0\}/g, value);
 }
 
-export function sourceExpressionReaderCallback(_expression: string, bindings: string[]): { fieldName: string, value: string} {
+export function sourceExpressionReaderCallback(expression: string, bindings: string[]): { fieldName: string, value: string} {
+    console.log(expression);
     return { fieldName: 'PartNumber', value: bindings[0] }
 }

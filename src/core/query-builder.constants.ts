@@ -1,6 +1,6 @@
 import { editorTemplate, handleNumberValue, handleStringValue, keyValueExpressionBuilderCallback, numericKeyValueExpressionReaderCallback, stringKeyValueExpressionReaderCallback, valueTemplate } from "core/custom-query-builder-operations/key-value-operations";
 import { QueryBuilderCustomOperation } from "smart-webcomponents-react";
-import { dateTimeExpressionBuilderCallback } from "./custom-query-builder-operations/date-time-operations";
+import { dateTimeExpressionBuilderCallback, dateTimeExpressionReaderCallback } from "./custom-query-builder-operations/date-time-operations";
 import { QueryOperation } from "./types";
 import { sourceExpressionBuilderCallback, sourceExpressionReaderCallback } from "./custom-query-builder-operations/source-operation";
 
@@ -73,7 +73,7 @@ export enum FilterExpressions {
   KeyValueIsNumericallyNotEqual = 'SafeConvert.ToDecimal({0}["{1}"]) != {2}',
   DateTimeIsBlank = '{0} == null || {0} == ""',
   DateTimeIsNotBlank = '{0} != null && {0} != ""',
-  SourceEquals = 'properties.system = "{0}" || properties.minionId = "{0}"',
+  SourceEquals = '(properties.system = "{0}" || properties.minionId = "{0}")',
 }
 
 export enum QueryOperationEnum {
@@ -375,7 +375,7 @@ export const QueryBuilderOperations: Record<QueryOperationEnum, QueryOperation> 
     name: FilterOperations.DateTimeIsBlank,
     expressionTemplate: FilterExpressions.DateTimeIsBlank,
     expressionBuilderCallback: dateTimeExpressionBuilderCallback,
-    hideValue: true,
+    expressionReaderCallback: dateTimeExpressionReaderCallback,
   },
   DATE_TIME_IS_NOT_BLANK: {
     label: 'is not blank',
