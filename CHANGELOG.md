@@ -1,3 +1,9 @@
+## [3.146.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.145.1...v3.146.0) (2025-07-14)
+
+### Features
+
+* **products:** update field labels and refactor projection mapping  ([#349](https://github.com/ni/systemlink-grafana-plugins/issues/349)) ([3ee42f4](https://github.com/ni/systemlink-grafana-plugins/commit/3ee42f4b1de73afbc55f823e802a798c418ac900))
+
 ## [3.145.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.145.0...v3.145.1) (2025-07-09)
 
 ### Bug Fixes
