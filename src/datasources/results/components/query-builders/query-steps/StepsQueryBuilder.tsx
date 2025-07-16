@@ -20,7 +20,7 @@ type StepsQueryBuilderProps = QueryBuilderProps &
     filter?: string;
     workspaces: Workspace[] | null;
     stepStatus: string[];
-    stepsPath: string[];
+    stepsPath: Array<{ label: string; value: string; }>;
     globalVariableOptions: QueryBuilderOption[];
     onFilterChange: (filter: string) => void;
     disableQueryBuilder?: boolean;
@@ -101,7 +101,7 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
         ...stepsPathField.lookup,
         dataSource: [
           ...(stepsPathField.lookup?.dataSource || []),
-          ...stepsPath.map(path => ({ label: path, value: path })),
+          ...stepsPath.map(path => ({ label: path.label, value: path.value })),
         ],
       },
     };

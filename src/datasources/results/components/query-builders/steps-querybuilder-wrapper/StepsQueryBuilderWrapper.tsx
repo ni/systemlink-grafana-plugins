@@ -31,7 +31,7 @@ export const StepsQueryBuilderWrapper = (
   
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
-  const [stepsPath, setStepsPath] = useState<string[]>([]);
+  const [stepsPath, setStepsPath] = useState<Array<{ label: string; value: string; }>>([]);
   const [isResultsQueryInvalid, setIsResultsQueryInvalid] = useState(false);
 
   useEffect(() => {

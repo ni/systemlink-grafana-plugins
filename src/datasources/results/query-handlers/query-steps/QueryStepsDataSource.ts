@@ -301,11 +301,15 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  async getStepPaths(resultsQuery: string): Promise<string[]> {
+  async getStepPaths(resultsQuery: string): Promise<Array<{ label: string; value: string; }>> {
     if (resultsQuery) {
       const query = this.transformQuery(resultsQuery, this.resultsComputedDataFields, this.scopedVars);
       const stepPaths = await this.getStepPathsLookupValues(query!);
-      return this.flattenAndDeduplicate(stepPaths);
+      const flattenAndUniqueStepPaths = this.flattenAndDeduplicate(stepPaths);
+      return flattenAndUniqueStepPaths.map(path => ({
+        label: path.replace(/\n/g, '\\'),
+        value: path
+      }));
     }
     return [];
   }
