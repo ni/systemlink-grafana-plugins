@@ -1,3 +1,9 @@
+## [3.147.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.146.0...v3.147.0) (2025-07-16)
+
+### Features
+
+* **asset:** add missing fields from asset model ([#359](https://github.com/ni/systemlink-grafana-plugins/issues/359)) ([ea320a4](https://github.com/ni/systemlink-grafana-plugins/commit/ea320a47e3e34d2c4a29635ea0c4651a8fb45121))
+
 ## [3.146.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.145.1...v3.146.0) (2025-07-14)
 
 ### Features
