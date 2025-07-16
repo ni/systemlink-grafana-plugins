@@ -69,7 +69,6 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
       { name: 'minionId', values: assets.map(a => a.location.minionId) },
       { name: 'parent name', values: assets.map(a => a.location.parent) },
       { name: 'workspace', values: assets.map( a => getWorkspaceName( workspaces, a.workspace ) ) },
-      { name: 'is system controller', values: assets.map(a => a.isSystemController) },
       { name: 'supports self calibration', values: assets.map(a => a.supportsSelfCalibration) },
       { name: 'supports external calibration', values: assets.map(a => a.supportsExternalCalibration) },
       { name: 'visa resource name', values: assets.map(a => a.visaResourceName) },

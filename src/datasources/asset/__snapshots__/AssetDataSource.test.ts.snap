@@ -201,15 +201,6 @@ exports[`queries run metadata query 1`] = `
         ],
       },
       {
-        "name": "is system controller",
-        "values": [
-          true,
-          false,
-          false,
-          false,
-        ],
-      },
-      {
         "name": "supports self calibration",
         "values": [
           true,
