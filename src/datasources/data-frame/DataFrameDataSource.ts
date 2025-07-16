@@ -17,8 +17,10 @@ import {
 import { propertiesCacheTTL } from './constants';
 import _ from 'lodash';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { replaceVariables } from 'core/utils';
-import { LEGACY_METADATA_TYPE } from 'core/types';
+import { getVariableOptions, replaceVariables } from 'core/utils';
+import { LEGACY_METADATA_TYPE, QueryBuilderOption, Workspace } from 'core/types';
+import { WorkspaceUtils } from 'shared/workspace.utils';
+import { ResultsPropertiesOptions } from 'datasources/results/types/QueryResults.types';
 
 export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSourceJsonData> {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
@@ -29,11 +31,21 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
+
   }
 
   baseUrl = this.instanceSettings.url + '/nidataframe/v1';
 
   defaultQuery = defaultQuery;
+  workspaceUtils: WorkspaceUtils;
+  queryResultsValuesUrl = this.instanceSettings.url + '/nitestmonitor/v2/query-result-values';
+
+
+  readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
+  private static _partNumbersCache: Promise<string[]> | null = null;
+
+
 
   async runQuery(query: DataFrameQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
     const processedQuery = this.processQuery(query);
@@ -115,6 +127,10 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
       migratedQuery.type = DataFrameQueryType.Properties;
     }
 
+    if((migratedQuery.tableId !== '' )) {
+      migratedQuery.queryBy = 'Id = "8123kj8123kkjbeonk"';
+    }
+
     // Migration for 1.6.0: DataFrameQuery.columns changed to string[]
     if (_.isObject(migratedQuery.columns[0])) {
       migratedQuery.columns = (migratedQuery.columns as any[]).map(c => c.name);
@@ -127,6 +143,41 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
   async metricFindQuery(tableQuery: DataFrameQuery): Promise<MetricFindValue[]> {
     const tableProperties = await this.getTableProperties(tableQuery.tableId);
     return tableProperties.columns.map(col => ({ text: col.name, value: col.name }));
+  }
+
+  get partNumbersCache(): Promise<string[]> {
+    return this.getPartNumbers();
+  }
+
+  async getPartNumbers(): Promise<string[]> {
+    if (DataFrameDataSource._partNumbersCache) {
+      return DataFrameDataSource._partNumbersCache;
+    }
+
+    DataFrameDataSource._partNumbersCache = this.queryResultsValues(ResultsPropertiesOptions.PART_NUMBER, undefined)
+      .catch(error => {
+        return [];
+      });
+    return DataFrameDataSource._partNumbersCache;
+  }
+
+  async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {
+    return await this.post<string[]>(
+      this.queryResultsValuesUrl,
+      {
+        field: fieldName,
+        filter
+      },
+      { showErrorAlert: false } // suppress default error alert since we handle errors manually
+    );
+  }
+
+  public async loadWorkspaces(): Promise<Map<string, Workspace>> {
+    try {
+      return await this.workspaceUtils.getWorkspaces();
+    } catch (error) {
+      return new Map<string, Workspace>();
+    }
   }
 
   private getColumnTypes(columnNames: string[], tableProperties: Column[]): Column[] {

@@ -5,7 +5,7 @@ import { Workspace, QueryBuilderOption, QBField } from 'core/types';
 import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import QueryBuilder, { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
+import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 
 import 'smart-webcomponents-react/source/styles/smart.dark-orange.css';
 import 'smart-webcomponents-react/source/styles/smart.orange.css';
@@ -16,7 +16,8 @@ import {
   ResultsQueryBuilderFields,
   ResultsQueryBuilderStaticFields,
 } from 'datasources/results/constants/ResultsQueryBuilder.constants';
-import '../QueryBuilder.scss'
+import '../QueryBuilder.scss';
+import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
 
 type ResultsQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
@@ -128,7 +129,7 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
   }, [partNumbers]);
 
   useEffect(() => {
-    if(!workspaceField || !partNumberField) {
+    if (!workspaceField || !partNumberField) {
       return;
     }
 
@@ -138,20 +139,18 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
       updatedAtField,
       workspaceField,
       startedAtField,
-      statusField
-    ].map(
-      field => {
-        if (field.lookup?.dataSource) {
-          return {
-            ...field,
-            lookup: {
-              dataSource: [...globalVariableOptions, ...field.lookup!.dataSource].map(filterXSSField),
-            },
-          };
-        }
-        return field;
+      statusField,
+    ].map(field => {
+      if (field.lookup?.dataSource) {
+        return {
+          ...field,
+          lookup: {
+            dataSource: [...globalVariableOptions, ...field.lookup!.dataSource].map(filterXSSField),
+          },
+        };
       }
-    );
+      return field;
+    });
 
     setFields(updatedFields);
 
@@ -211,14 +210,14 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
   }, [workspaceField, startedAtField, updatedAtField, partNumberField, globalVariableOptions, statusField]);
 
   return (
-    <QueryBuilder
+    <SlQueryBuilder
       customOperations={operations}
       fields={fields}
       messages={queryBuilderMessages}
       onChange={onChange}
       value={sanitizedFilter}
       fieldsMode="static"
-      theme='custom-theme'
+      theme="custom-theme"
     />
   );
 };

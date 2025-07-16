@@ -10,18 +10,38 @@ export interface DataFrameQuery extends DataQuery {
   type: DataFrameQueryType;
   tableId?: string;
   columns?: string[];
+  queryBy?: string;
+  queryByColumn?: string;
+  queryByResults?: string;
+  useDecimation?: boolean;
   decimationMethod?: string;
   filterNulls?: boolean;
   applyTimeFilters?: boolean;
+  XAxisColumn?: string;
+  recordCount?: number;
+  YAxisColumn?: string;
+  useIndexColumn?: boolean;
+  orderBy?: string;
+  descending?: boolean;
 }
 
 export const defaultQuery: Omit<ValidDataFrameQuery, 'refId'> = {
   type: DataFrameQueryType.Data,
   tableId: '',
   columns: [],
+  useDecimation: false,
   decimationMethod: 'LOSSY',
   filterNulls: false,
-  applyTimeFilters: false
+  applyTimeFilters: false,
+  XAxisColumn: '',
+  YAxisColumn: '',
+  recordCount: 100,
+  useIndexColumn: false,
+  queryBy: '',
+  queryByColumn: '',
+  queryByResults: '',
+  orderBy: 'DataTable ID',
+  descending: false,
 };
 
 export type ValidDataFrameQuery = DataFrameQuery & Required<Omit<DataFrameQuery, keyof DataQuery>>;
@@ -48,6 +68,29 @@ export interface ColumnFilter {
     | 'NOT_CONTAINS';
   value: string | null;
 }
+
+export enum DataTablesProperties{
+  columns = 'COLUMNS',
+  id = 'ID',
+  name = 'NAME',
+  properties = 'PROPERTIES',
+  rowCount = 'ROW_COUNT',
+  workspace = 'WORKSPACE',
+  createdAt = 'CREATED_AT',
+}
+
+export const OrderBy = [
+  {
+    value: 'COLUMNS',
+    label: 'columns',
+    description: 'Column of the dataframe'
+  },
+  {
+    value: 'ID',
+    label: 'id',
+    description: 'Id of the dataframe'
+  }
+]
 
 export interface TableProperties {
   columns: Column[];
