@@ -85,6 +85,16 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
       filters.push(...this.constructNullFilters(columns));
     }
 
+    if (columns.length > 0) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const xField = columns[0].name;
+      const xMin = urlParams.get(`${xField}-min`);
+      const xMax = urlParams.get(`${xField}-max`);
+      if (xMin !== undefined && xMax !== undefined && typeof xMin === 'number' && typeof xMax === 'number') {
+        filters.push(...this.constructXAxisNumberFilters(xField, Math.floor(Number(xMin)), Math.floor(Number(xMax))));
+      }
+    }
+
     return await this.post<TableDataRows>(`${this.baseUrl}/tables/${query.tableId}/query-decimated-data`, {
       columns: query.columns,
       filters,
@@ -176,6 +186,13 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
     return [
       { column: timeIndex.name, operation: 'GREATER_THAN_EQUALS', value: timeRange.from.toISOString() },
       { column: timeIndex.name, operation: 'LESS_THAN_EQUALS', value: timeRange.to.toISOString() },
+    ];
+  }
+
+  private constructXAxisNumberFilters(xField: string, xMin: number, xMax: number): ColumnFilter[] {
+    return [
+      { column: xField, operation: 'GREATER_THAN_EQUALS', value: xMin.toString() },
+      { column: xField, operation: 'LESS_THAN_EQUALS', value: xMax.toString() },
     ];
   }
 

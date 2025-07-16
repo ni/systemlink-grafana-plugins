@@ -12,7 +12,7 @@ import {
 } from '@grafana/data';
 import { AxisLabels, PanelOptions } from './types';
 import { useTheme2, ContextMenu, MenuItemsGroup, linkModelToContextMenuItems } from '@grafana/ui';
-import { getTemplateSrv, PanelDataErrorView } from '@grafana/runtime';
+import { getTemplateSrv, PanelDataErrorView, locationService } from '@grafana/runtime';
 import { getFieldsByName, notEmpty, Plot, renderMenuItems, useTraceColors } from './utils';
 import { AxisType, Legend, PlotData, PlotType, toImage, Icons, PlotlyHTMLElement } from 'plotly.js-basic-dist-min';
 import { saveAs } from 'file-saver';
@@ -153,6 +153,11 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
         props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: from.valueOf(), max: to.valueOf() } });
       }
     } else {
+      locationService.partial({
+        [`${options.xAxis.field}-min`]: xAxisMin,
+        [`${options.xAxis.field}-max`]: xAxisMax
+      }, true);
+      locationService.reload();
       props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
     }
   };
