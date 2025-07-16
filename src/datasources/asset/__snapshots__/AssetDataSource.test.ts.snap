@@ -57,12 +57,39 @@ exports[`queries run metadata query 1`] = `
         ],
       },
       {
+        "name": "vendor name",
+        "values": [
+          "National Instruments",
+          "National Instruments",
+          "National Instruments",
+          "National Instruments",
+        ],
+      },
+      {
+        "name": "vendor number",
+        "values": [
+          0,
+          4243,
+          4243,
+          4243,
+        ],
+      },
+      {
         "name": "model name",
         "values": [
           "sbRIO-9629",
           "AI 0-15",
           "AO 0-3",
           "DIO 0-3",
+        ],
+      },
+      {
+        "name": "model number",
+        "values": [
+          31299,
+          31303,
+          31304,
+          31305,
         ],
       },
       {
@@ -171,6 +198,96 @@ exports[`queries run metadata query 1`] = `
           "e73fcd94-649b-4d0a-b164-bf647a5d0946",
           "e73fcd94-649b-4d0a-b164-bf647a5d0946",
           "e73fcd94-649b-4d0a-b164-bf647a5d0946",
+        ],
+      },
+      {
+        "name": "supports self calibration",
+        "values": [
+          true,
+          false,
+          false,
+          false,
+        ],
+      },
+      {
+        "name": "supports external calibration",
+        "values": [
+          false,
+          true,
+          true,
+          false,
+        ],
+      },
+      {
+        "name": "visa resource name",
+        "values": [
+          "",
+          "PXI::203.0::INSTR",
+          "",
+          "",
+        ],
+      },
+      {
+        "name": "firmware version",
+        "values": [
+          "8.8.0f0",
+          "",
+          "",
+          "",
+        ],
+      },
+      {
+        "name": "discovery type",
+        "values": [
+          "AUTOMATIC",
+          "AUTOMATIC",
+          "AUTOMATIC",
+          "AUTOMATIC",
+        ],
+      },
+      {
+        "name": "supports self test",
+        "values": [
+          false,
+          false,
+          false,
+          true,
+        ],
+      },
+      {
+        "name": "supports reset",
+        "values": [
+          false,
+          false,
+          false,
+          true,
+        ],
+      },
+      {
+        "name": "properties",
+        "values": [
+          "{"Property1":"Test1","Property2":"Test2"}",
+          "{}",
+          "{}",
+          "{}",
+        ],
+      },
+      {
+        "name": "keywords",
+        "values": [
+          "TestKeyword1, TestKeyword2",
+          "Kw1, Kw2",
+          "",
+          "",
+        ],
+      },
+      {
+        "name": "self calibration",
+        "values": [
+          "2024-02-21T12:54:20.069Z",
+          "",
+          "",
+          "",
         ],
       },
       {

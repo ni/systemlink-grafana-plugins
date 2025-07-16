@@ -53,7 +53,10 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
     result.fields = [
       { name: 'id', values: assets.map(a => a.id) },
       { name: 'name', values: assets.map(a => a.name) },
+      { name: 'vendor name', values: assets.map(a => a.vendorName) },
+      { name: 'vendor number', values: assets.map(a => a.vendorNumber) },
       { name: 'model name', values: assets.map(a => a.modelName) },
+      { name: 'model number', values: assets.map(a => a.modelNumber) },
       { name: 'serial number', values: assets.map(a => a.serialNumber) },
       { name: 'bus type', values: assets.map(a => a.busType) },
       { name: 'asset type', values: assets.map(a => a.assetType) },
@@ -66,6 +69,16 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
       { name: 'minionId', values: assets.map(a => a.location.minionId) },
       { name: 'parent name', values: assets.map(a => a.location.parent) },
       { name: 'workspace', values: assets.map( a => getWorkspaceName( workspaces, a.workspace ) ) },
+      { name: 'supports self calibration', values: assets.map(a => a.supportsSelfCalibration) },
+      { name: 'supports external calibration', values: assets.map(a => a.supportsExternalCalibration) },
+      { name: 'visa resource name', values: assets.map(a => a.visaResourceName) },
+      { name: 'firmware version', values: assets.map(a => a.firmwareVersion) },
+      { name: 'discovery type', values: assets.map(a => a.discoveryType) },
+      { name: 'supports self test', values: assets.map(a => a.supportsSelfTest) },
+      { name: 'supports reset', values: assets.map(a => a.supportsReset) },
+      { name: 'properties', values: assets.map(a => JSON.stringify(a.properties)) },
+      { name: 'keywords', values: assets.map(a => a.keywords.join(', ')) },
+      { name: 'self calibration', values: assets.map(a => a.selfCalibration?.date ?? '') },
       { name: 'calibration due date', values: assets.map(a => a.externalCalibration?.resolvedDueDate) }
     ];
     return result;
