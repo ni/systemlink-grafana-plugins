@@ -1328,6 +1328,47 @@ describe('QueryStepsDataSource', () => {
   });
 
   describe('fetch Step path', () => {
+    it('should map step paths with newline to labels with backslashes', async () => {
+      const mockPaths = [
+        {path: 'Parent path1\n Child path1\n Child path2'},
+        {path: 'No child paths'},
+      ]
+      backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
+      .mockReturnValue(
+        createFetchResponse({
+          paths: mockPaths,
+          continuationToken: null,
+        })
+      );
+      const response = await datastore.getStepPaths('name = "MockResultsQuery"');
+
+      expect(response).toEqual([
+        {
+          label: 'Parent path1\\ Child path1\\ Child path2',
+          value: 'Parent path1\n Child path1\n Child path2'
+        },
+        {
+          label: 'No child paths',
+          value: 'No child paths'
+        }
+      ]);
+    })
+
+    it('should return an empty array when no step paths are returned', async () => {
+      backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
+      .mockReturnValue(
+        createFetchResponse({
+          paths: [],
+          continuationToken: null,
+        })
+      );
+      const response = await datastore.getStepPaths('name = "MockResultsQuery"');
+
+      expect(response).toEqual([]);
+    })
+
     it('should make a single request when take is less than MAX_PATH_TAKE_PER_REQUEST', async () => {
       const mockResponses = [
         createFetchResponse({

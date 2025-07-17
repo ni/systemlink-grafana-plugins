@@ -9,14 +9,17 @@ describe('StepsQueryBuilder', () => {
 
     const containerClass = 'smart-element smart-query-builder';
     const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
-    const stepsPath = ['path1', 'path2'];
+    const stepsPath = [
+      {label: 'Parent Path \Child Path', value: 'Parent Path \n Child Path'},
+      {label: 'Another Path', value: 'Another Path'},
+    ]
     const status = ['PASSED', 'FAILED'];
 
     function renderElement(
       filter: string,
       workspaces: Workspace[] | null,
       stepStatus: string[],
-      stepsPath: string[],
+      stepsPath: Array<{ label: string; value: string }>,
       globalVariableOptions: QueryBuilderOption[] = [],
       disableQueryBuilder: boolean,
     ) {
@@ -61,17 +64,17 @@ describe('StepsQueryBuilder', () => {
     });
 
     it('should select steps path in query builder', () => {
-      const { renderResult } = renderElement('path = "path1"',[], [], stepsPath, [], false);
+      const { renderResult } = renderElement('path = "Parent Path \Child Path"',[], [], stepsPath, [], false);
       const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
 
       expect(filterContainer?.length).toBe(1);
       expect(filterContainer.item(0)?.textContent).toContain('Step path'); //label
       expect(filterContainer.item(0)?.textContent).toContain('Equals'); //operator
-      expect(filterContainer.item(0)?.textContent).toContain('path1'); //value
+      expect(filterContainer.item(0)?.textContent).toContain('Parent Path \Child Path'); //value
     });
 
     it('should select status in query builder', () => {
-      const { renderResult } = renderElement('status.statusType = "PASSED"', [], [], status, [], false);
+      const { renderResult } = renderElement('status.statusType = "PASSED"', [], status, [], [], false);
       const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
 
       expect(filterContainer?.length).toBe(1);
