@@ -162,7 +162,7 @@ describe('StepsQueryBuilderWrapper', () => {
     let callback: (() => void) | undefined;
     const mockDatasource = {
       getStepPaths: jest.fn().mockReturnValue([
-        { label: 'Parent \n Child path', value: 'Parent \\ Child path' },
+        { label: 'Parent\nChild path', value: 'Parent\\Child path' },
         { label: 'Only parent path', value: 'Only parent path' },
       ]),
       workspacesCache: Promise.resolve(new Map()),
@@ -184,7 +184,7 @@ describe('StepsQueryBuilderWrapper', () => {
     await waitFor(() => {
       expect(screen.getByTestId('steps-path').textContent).toEqual(
         JSON.stringify([
-          { label: 'Parent \n Child path', value: 'Parent \\ Child path' },
+          { label: 'Parent\nChild path', value: 'Parent\\Child path' },
           { label: 'Only parent path', value: 'Only parent path' },
         ])
       );

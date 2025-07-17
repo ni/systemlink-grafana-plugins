@@ -1330,7 +1330,7 @@ describe('QueryStepsDataSource', () => {
   describe('fetch Step path', () => {
     it('should map step paths with newline to labels with backslashes', async () => {
       const mockPaths = [
-        {path: 'Parent path1\n Child path1\n Child path2'},
+        {path: 'Parent path1\nChild path1\nChild path2'},
         {path: 'No child paths'},
       ]
       backendServer.fetch
@@ -1345,8 +1345,8 @@ describe('QueryStepsDataSource', () => {
 
       expect(response).toEqual([
         {
-          label: 'Parent path1\\ Child path1\\ Child path2',
-          value: 'Parent path1\n Child path1\n Child path2'
+          label: 'Parent path1\\Child path1\\Child path2',
+          value: 'Parent path1\nChild path1\nChild path2'
         },
         {
           label: 'No child paths',
