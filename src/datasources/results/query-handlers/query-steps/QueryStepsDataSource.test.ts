@@ -73,7 +73,7 @@ describe('QueryStepsDataSource', () => {
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
       .mockReturnValue(
         createFetchResponse({
-          paths: ['path1', 'path2'],
+          paths: [{ path: 'path1' }, { path: 'path2' }],
           continuationToken: null,
         })
       );
@@ -1609,7 +1609,11 @@ describe('QueryStepsDataSource', () => {
 
       const result = await datastore.getStepPaths('ProgramName = "Test"');
 
-      expect(result).toEqual(['path1', 'path2', 'path3']);
+      expect(result).toEqual([
+        { label: 'path1', value: 'path1' },
+        { label: 'path2', value: 'path2' },
+        { label: 'path3', value: 'path3' },
+      ]);
     });
 
     it('should not call queryStepPathInBatches when no program names are returned', async () => {

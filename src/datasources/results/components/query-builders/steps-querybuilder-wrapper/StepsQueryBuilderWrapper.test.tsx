@@ -161,7 +161,10 @@ describe('StepsQueryBuilderWrapper', () => {
     cleanup();
     let callback: (() => void) | undefined;
     const mockDatasource = {
-      getStepPaths: jest.fn().mockReturnValue(['pathA', 'pathB']),
+      getStepPaths: jest.fn().mockReturnValue([
+        { label: 'Parent \n Child path', value: 'Parent \\ Child path' },
+        { label: 'Only parent path', value: 'Only parent path' },
+      ]),
       workspacesCache: Promise.resolve(new Map()),
       globalVariableOptions: jest.fn().mockReturnValue([]),
     } as any;
@@ -179,14 +182,22 @@ describe('StepsQueryBuilderWrapper', () => {
 
     expect(mockDatasource.getStepPaths).toHaveBeenCalled();
     await waitFor(() => {
-      expect(screen.getByTestId('steps-path').textContent).toEqual(JSON.stringify(['pathA', 'pathB']));
+      expect(screen.getByTestId('steps-path').textContent).toEqual(
+        JSON.stringify([
+          { label: 'Parent \n Child path', value: 'Parent \\ Child path' },
+          { label: 'Only parent path', value: 'Only parent path' },
+        ])
+      );
     });
   });
 
   test('should load initial stepsPath on mount', async () => {
     cleanup();
     const mockDatasource = {
-      getStepPaths: jest.fn().mockReturnValue(['initPath1', 'initPath2']),
+      getStepPaths: jest.fn().mockReturnValue([
+        { label: 'initPath1', value: 'initPath1' },
+        { label: 'initPath2', value: 'initPath2' },
+      ]),
       workspacesCache: Promise.resolve(new Map()),
       globalVariableOptions: jest.fn().mockReturnValue([]),
     } as any;
@@ -201,7 +212,12 @@ describe('StepsQueryBuilderWrapper', () => {
     });
 
     expect(mockDatasource.getStepPaths).toHaveBeenCalled();
-    expect(screen.getByTestId('steps-path').textContent).toEqual(JSON.stringify(['initPath1', 'initPath2']));
+    expect(screen.getByTestId('steps-path').textContent).toEqual(
+      JSON.stringify([
+        { label: 'initPath1', value: 'initPath1' },
+        { label: 'initPath2', value: 'initPath2' },
+      ])
+    );
   });
 
   test('should disable StepsQueryBuilder when disableStepsQueryBuilder property is true', async () => {
