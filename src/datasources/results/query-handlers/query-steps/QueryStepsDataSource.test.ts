@@ -1342,6 +1342,7 @@ describe('QueryStepsDataSource', () => {
           continuationToken: null,
         })
       );
+
       const response = await datastore.getStepPaths('name = "MockResultsQuery"');
 
       expect(response).toEqual([
@@ -1369,6 +1370,7 @@ describe('QueryStepsDataSource', () => {
           continuationToken: null,
         })
       );
+      
       const response = await datastore.getStepPaths('name = "MockResultsQuery"');
 
       expect(response).toEqual([]);

@@ -30,7 +30,7 @@ describe('StepsQueryBuilder', () => {
         stepsPath,
         globalVariableOptions,
         disableQueryBuilder,
-        onFilterChange : jest.fn(),
+        onFilterChange: jest.fn(),
       });
       const renderResult = render(reactNode);
       return {
