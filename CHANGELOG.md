@@ -1,3 +1,9 @@
+## [3.147.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.147.0...v3.147.1) (2025-07-17)
+
+### Bug Fixes
+
+* **system:** prevent hidden system queries to run ([#350](https://github.com/ni/systemlink-grafana-plugins/issues/350)) ([bc02654](https://github.com/ni/systemlink-grafana-plugins/commit/bc026545cad7c30d561f57ef5d1ff7e77c61ffc1))
+
 ## [3.147.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.146.0...v3.147.0) (2025-07-16)
 
 ### Features

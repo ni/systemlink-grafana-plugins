@@ -1,6 +1,6 @@
 {
   "name": "systemlink-grafana-plugins",
-  "version": "3.147.0",
+  "version": "3.147.1",
   "description": "Plugins for visualizing data from SystemLink services",
   "private": true,
   "scripts": {
