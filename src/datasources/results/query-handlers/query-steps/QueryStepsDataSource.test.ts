@@ -1332,6 +1332,7 @@ describe('QueryStepsDataSource', () => {
       const mockPaths = [
         {path: 'Parent path1\nChild path1\nChild path2'},
         {path: 'No child paths'},
+        {path: 'Path having newline\\nin between words\nChild path2'},
       ]
       backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
@@ -1351,6 +1352,10 @@ describe('QueryStepsDataSource', () => {
         {
           label: 'No child paths',
           value: 'No child paths'
+        },
+        {
+          label: 'Path having newline\\nin between words\\Child path2',
+          value: 'Path having newline\\nin between words\nChild path2'
         }
       ]);
     })
