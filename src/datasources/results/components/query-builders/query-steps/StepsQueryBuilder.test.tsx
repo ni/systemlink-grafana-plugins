@@ -66,7 +66,7 @@ describe('StepsQueryBuilder', () => {
 
     it('should select steps path in query builder', () => {
       const onFilterChange = jest.fn();
-      const { renderResult } = renderElement('path = "Parent Path\Child Path"',[], [], stepsPath, [], false, onFilterChange);
+      const { renderResult } = renderElement('path = "Parent Path\nChild Path"',[], [], stepsPath, [], false, onFilterChange);
       const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
 
       expect(filterContainer?.length).toBe(1);
@@ -75,7 +75,7 @@ describe('StepsQueryBuilder', () => {
       expect(filterContainer.item(0)?.textContent).toContain('Parent Path\Child Path'); //value in the dropdown
       expect(onFilterChange).toHaveBeenCalled();
       const filterArg = onFilterChange.mock.calls[0][0];
-      expect(filterArg).toContain('Parent Path\nChild Path'); // Ensure the newline is preserved in the filter
+      expect(filterArg).toEqual('path = "Parent Path\nChild Path"'); // Ensure the newline is preserved in the filter
     });
 
     it('should select status in query builder', () => {
