@@ -10,7 +10,7 @@ describe('StepsQueryBuilder', () => {
     const containerClass = 'smart-element smart-query-builder';
     const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
     const stepsPath = [
-      {label: 'Parent Path \Child Path', value: 'Parent Path \n Child Path'},
+      {label: 'Parent Path\Child Path', value: 'Parent Path\nChild Path'},
       {label: 'Another Path', value: 'Another Path'},
     ]
     const status = ['PASSED', 'FAILED'];
@@ -22,6 +22,7 @@ describe('StepsQueryBuilder', () => {
       stepsPath: Array<{ label: string; value: string }>,
       globalVariableOptions: QueryBuilderOption[] = [],
       disableQueryBuilder: boolean,
+      onFilterChange: (filter: string) => void = jest.fn()
     ) {
       reactNode = React.createElement(StepsQueryBuilder, {
         filter,
@@ -30,7 +31,7 @@ describe('StepsQueryBuilder', () => {
         stepsPath,
         globalVariableOptions,
         disableQueryBuilder,
-        onFilterChange: jest.fn(),
+        onFilterChange
       });
       const renderResult = render(reactNode);
       return {
@@ -64,13 +65,17 @@ describe('StepsQueryBuilder', () => {
     });
 
     it('should select steps path in query builder', () => {
-      const { renderResult } = renderElement('path = "Parent Path \Child Path"',[], [], stepsPath, [], false);
+      const onFilterChange = jest.fn();
+      const { renderResult } = renderElement('path = "Parent Path\Child Path"',[], [], stepsPath, [], false, onFilterChange);
       const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
 
       expect(filterContainer?.length).toBe(1);
       expect(filterContainer.item(0)?.textContent).toContain('Step path'); //label
       expect(filterContainer.item(0)?.textContent).toContain('Equals'); //operator
-      expect(filterContainer.item(0)?.textContent).toContain('Parent Path \Child Path'); //value
+      expect(filterContainer.item(0)?.textContent).toContain('Parent Path\Child Path'); //value in the dropdown
+      expect(onFilterChange).toHaveBeenCalled();
+      const filterArg = onFilterChange.mock.calls[0][0];
+      expect(filterArg).toContain('Parent Path\nChild Path'); // Ensure the newline is preserved in the filter
     });
 
     it('should select status in query builder', () => {
