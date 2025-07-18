@@ -113,17 +113,14 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     // Extract timeline data from alarm transitions
     const timeline: Array<{ time: number; severity: number; alarmId: string }> = [];
     const occurredAtCount: Map<number, number> = new Map();
-    const occurredAtCount2: Map<number, number> = new Map();
 
     alarms.forEach(alarmInstance => {
       const occurredAtDate = new Date(alarmInstance.occurredAt);
       // Remove milliseconds by setting them to zero
       occurredAtDate.setMilliseconds(0);
       const occurredAtTime = occurredAtDate.getTime();
-      occurredAtCount.set(occurredAtTime, (occurredAtCount.get(occurredAtTime) || 0) + 1);
       occurredAtDate.setSeconds(Math.floor(Math.random() * 60)); // Randomize seconds for uniqueness
-      const occurredAtTimeWithoutSeconds = occurredAtDate.getTime();
-      occurredAtCount2.set(occurredAtTimeWithoutSeconds, (occurredAtCount2.get(occurredAtTimeWithoutSeconds) || 0) + 1);
+      occurredAtCount.set(occurredAtTime, (occurredAtCount.get(occurredAtTime) || 0) + 1);
     });
 
     const times = Array.from(occurredAtCount.keys());
@@ -142,11 +139,6 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
           name: 'count',
           type: 'number',
           values: counts,
-        },
-        {
-          name: 'occurredAtCount',
-          type: 'number',
-          values: Array.from(occurredAtCount.values()),
         },
         // {
         //   name: 'time',
