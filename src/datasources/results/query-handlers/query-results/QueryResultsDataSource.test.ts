@@ -924,6 +924,26 @@ describe('QueryResultsDataSource', () => {
       expect(templateSrv.replace).toHaveBeenCalledWith(queryBy, options.scopedVars);
       expect(result).toEqual([{ text: 'TestProgram', value: 'TestProgram' }]);
     });
+
+    test('should sort result options', async () => {
+      const mockResults = [
+        { programName: 'Program B' },
+        { programName: 'Program C' },
+        { programName: 'Program A' },
+      ];
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-results', method: 'POST' }))
+        .mockReturnValue(createFetchResponse({ results: mockResults, totalCount: 3 }));
+
+      const query = { properties: 'PROGRAM_NAME', queryBy: '', resultsTake: 1000 } as ResultsVariableQuery;
+      const result = await datastore.metricFindQuery(query, {});
+
+      expect(result).toEqual([
+        { text: 'Program A', value: 'Program A' },
+        { text: 'Program B', value: 'Program B' },
+        { text: 'Program C', value: 'Program C' },
+      ]);
+    });
   });
 
   const buildQuery = getQueryBuilder<QueryResults>()({

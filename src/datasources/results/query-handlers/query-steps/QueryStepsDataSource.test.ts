@@ -1878,6 +1878,23 @@ describe('QueryStepsDataSource', () => {
 
       expect(backendServer.fetch).not.toHaveBeenCalled();
     });
+
+    it('should sort steps options', async () => {
+      backendServer.fetch.mockReturnValue(
+        createFetchResponse({
+          steps: [{ name: 'StepB' }, { name: 'StepA' }],
+          continuationToken: null,
+        } as unknown as QueryStepsResponse)
+      );
+
+      const query = { queryByResults: 'programName = "name"', stepsTake: 1000 } as StepsVariableQuery;
+      const result = await datastore.metricFindQuery(query);
+
+      expect(result).toEqual([
+        { text: 'StepA', value: 'StepA' },
+        { text: 'StepB', value: 'StepB' },
+      ]);
+    });
   });
 
   const buildQuery = getQueryBuilder<QuerySteps>()({
