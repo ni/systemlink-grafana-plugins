@@ -7,7 +7,7 @@ import { extractErrorInfo } from 'core/errors';
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
-import { alarmData } from './constants/alarms';
+import * as alarmData from './constants/alarms.json';
 
 export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   constructor(
@@ -154,10 +154,30 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     return result;
   }
 
+  transformIntoRequiredFormat(){
+    const occurredAtList: number[] = alarmData.alarms.flatMap(alarm =>
+      alarm.transitions.map(t => Date.parse(t.occurredAt))
+    );
+    
+    const countMap = occurredAtList.reduce((acc, time) => {
+      acc[time] = (acc[time] || 0) + 1;
+      return acc;
+    }, {} as Record<number, number>);
+    
+    const result: Array<{ occurredAt: number; count: number }> = Object.entries(countMap).map(([occurredAt, count]) => ({
+      occurredAt: Number(occurredAt),
+      count,
+    }));
+    return result;
+  }
+
+
+
   async runQuery(query: ProductQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     let intervalMsInDashboard = options.intervalMs;
-    const grouped = this.groupAlarmsByInterval(alarmData, intervalMsInDashboard, query.descending!);
+    const grouped = this.groupAlarmsByInterval(this.transformIntoRequiredFormat(), intervalMsInDashboard, query.descending!);
 
+    console.log('Grouped Data:', grouped);
     return {
       refId: query.refId,
       name: 'Alarm Data',
