@@ -1,3 +1,9 @@
+## [3.147.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.147.1...v3.147.2) (2025-07-18)
+
+### Bug Fixes
+
+* **products, results:** Sort variable options in dropdown ([#360](https://github.com/ni/systemlink-grafana-plugins/issues/360)) ([4a5a6a8](https://github.com/ni/systemlink-grafana-plugins/commit/4a5a6a83e5ee05f7d55771f58789ad0f29eeb26d))
+
 ## [3.147.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.147.0...v3.147.1) (2025-07-17)
 
 ### Bug Fixes
