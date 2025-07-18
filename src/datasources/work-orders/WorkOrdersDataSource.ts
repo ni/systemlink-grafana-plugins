@@ -107,7 +107,10 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       variableQuery.take
     );
 
-    return metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.id})`, value: frame.id })) : [];
+    const workOrderOptions = metadata
+      ? metadata.map(frame => ({ text: `${frame.name} (${frame.id})`, value: frame.id }))
+      : [];
+    return workOrderOptions.sort((a, b) => a.text.localeCompare(b.text));
   }
 
   async processWorkOrdersQuery(query: WorkOrdersQuery): Promise<DataFrameDTO> {

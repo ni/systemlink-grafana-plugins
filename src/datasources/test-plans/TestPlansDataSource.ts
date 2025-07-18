@@ -313,7 +313,8 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       variableQuery.recordCount,
       variableQuery.descending
     )).testPlans;
-    return metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.id})`, value: frame.id })) : [];
+    const testPlansOptions = metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.id})`, value: frame.id })) : [];
+    return testPlansOptions.sort((a, b) => a.text.localeCompare(b.text));
   }
 
   readonly testPlansComputedDataFields = new Map<string, ExpressionTransformFunction>(

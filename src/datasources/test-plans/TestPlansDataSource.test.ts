@@ -1632,4 +1632,31 @@ describe('metricFindQuery', () => {
 
     expect(result).toMatchSnapshot();
   });
+
+  it('should sort testplan options by name', async () => {
+    const mockQuery = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.NAME],
+      recordCount: 1000,
+    };
+
+    const testPlansResponse = {
+      testPlans: [
+        { id: '1', name: 'Test Plan B' },
+        { id: '3', name: 'Test Plan C' },
+        { id: '2', name: 'Test Plan A' },
+      ],
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue(testPlansResponse);
+
+    const result = await datastore.metricFindQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(result).toEqual([
+      { text: 'Test Plan A (2)', value: '2' },
+      { text: 'Test Plan B (1)', value: '1' },
+      { text: 'Test Plan C (3)', value: '3' }
+    ]);
+  });
 });
