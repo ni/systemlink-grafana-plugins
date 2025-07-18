@@ -1010,6 +1010,26 @@ describe('WorkOrdersDataSource', () => {
 
       expect(result).toEqual([]);
     });
+
+    test('should sort work order options by name', async () => {
+      const mockQuery = {
+        refId: 'A',
+        take: 1000,
+      };
+      jest.spyOn(datastore, 'queryWorkordersData').mockResolvedValue([
+        { id: '2', name: 'WorkOrder B' },
+        { id: '1', name: 'WorkOrder C' },
+        { id: '3', name: 'WorkOrder A' },
+      ] as WorkOrder[]);
+
+      const results = await datastore.metricFindQuery(mockQuery, {} as LegacyMetricFindQueryOptions);
+
+      expect(results).toEqual([
+        { text: 'WorkOrder A (3)', value: '3' },
+        { text: 'WorkOrder B (2)', value: '2' },
+        { text: 'WorkOrder C (1)', value: '1' },
+      ]);
+    });
   });
 
   describe('testDataSource', () => {
