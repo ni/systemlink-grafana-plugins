@@ -658,9 +658,10 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       );
 
       if (responseData.steps.length > 0) {
-        return responseData.steps
+        const stepsOptions = responseData.steps
           ? responseData.steps.map((data: StepsResponseProperties) => ({ text: data.name!, value: data.name! }))
           : [];
+        return stepsOptions.sort((a, b) => a.text.localeCompare(b.text));
       }
     }
     return [];
