@@ -7,7 +7,7 @@ import { extractErrorInfo } from 'core/errors';
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
-import { getWorkspaceName } from 'core/utils';
+import { alarmData } from './constants/alarms';
 
 export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   constructor(
@@ -173,46 +173,49 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   //   };
   // }
 
+  groupAlarmsByInterval(alarmData: Array<{ occurredAt: number; count: number }>, intervalMs: number, descending: boolean) {
+    if (alarmData.length === 0) {return [];}
+    const sortedAlarms = [...alarmData].sort((a, b) => a.occurredAt - b.occurredAt);
+
+    const result: Array<{ intervalStart: number; totalCount: number }> = [];
+    let startIdx = 0;
+
+    while (startIdx < sortedAlarms.length) {
+      const intervalStart = sortedAlarms[startIdx].occurredAt;
+      const intervalEnd = intervalStart + intervalMs;
+      let totalCount = 0;
+      let endIdx = startIdx;
+      while (
+        endIdx < sortedAlarms.length &&
+        sortedAlarms[endIdx].occurredAt >= intervalStart &&
+        sortedAlarms[endIdx].occurredAt < intervalEnd
+      ) {
+        totalCount += sortedAlarms[endIdx].count;
+        endIdx++;
+      }
+      result.push({ intervalStart, totalCount });
+      startIdx = endIdx;
+    }
+    return result;
+  }
+
   async runQuery(query: ProductQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    let intervalMsInDashboard = options.intervalMs;
+    const grouped = this.groupAlarmsByInterval(alarmData, intervalMsInDashboard, query.descending);
+
     return {
       refId: query.refId,
-      name: 'Static Data',
+      name: 'Alarm Data',
       fields: [
         {
           name: 'occurredAtTime',
           type: FieldType.time,
-          values: [
-            Date.parse('2025-07-17T00:00:00.000Z'),
-            Date.parse('2025-07-17T00:00:00.100Z'),
-            Date.parse('2025-07-17T00:00:00.200Z'),
-            Date.parse('2025-07-17T00:00:00.300Z'),
-            Date.parse('2025-07-17T00:00:00.400Z'),
-            Date.parse('2025-07-17T00:00:00.500Z'),
-            Date.parse('2025-07-17T00:00:00.600Z'),
-            Date.parse('2025-07-17T00:00:00.700Z'),
-            Date.parse('2025-07-17T00:00:00.800Z'),
-            Date.parse('2025-07-17T00:00:00.900Z'),
-            Date.parse('2025-07-17T00:00:01.000Z'),
-            Date.parse('2025-07-17T00:00:01.100Z'),
-            Date.parse('2025-07-17T00:00:01.200Z'),
-            Date.parse('2025-07-17T00:00:01.300Z'),
-            Date.parse('2025-07-17T00:00:01.400Z'),
-            Date.parse('2025-07-17T00:00:01.500Z'),
-            Date.parse('2025-07-17T00:00:01.600Z'),
-            Date.parse('2025-07-17T00:00:01.700Z'),
-            Date.parse('2025-07-17T00:00:01.800Z'),
-            Date.parse('2025-07-17T00:00:01.900Z')
-          ]
+          values: grouped.map(g => g.intervalStart)
         },
         {
           name: 'count',
           type: FieldType.number,
-          values: [
-            1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1
-          ]
+          values: grouped.map(g => g.totalCount)
         }
       ]
     };
