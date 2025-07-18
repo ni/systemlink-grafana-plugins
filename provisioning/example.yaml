@@ -57,3 +57,7 @@ datasources:
     type: ni-slworkorders-datasource
     uid: ni-slworkorders-datasource
     <<: *config
+  - name: SystemLink Alarms
+    type: ni-slalarms-datasource
+    uid: ni-slalarms-datasource
+    <<: *config

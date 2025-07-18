@@ -1,0 +1,2 @@
+export const QUERY_ALARMS_MAX_TAKE = 1000;
+export const QUERY_ALARMS_REQUEST_PER_SECOND = 5;
