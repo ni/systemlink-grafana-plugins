@@ -96,6 +96,46 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     take: 1000,
   };
 
+// Helper to floor date to nearest interval (in ms)
+floorDateToInterval(date: Date, intervalMs: number): Date {
+  return new Date(Math.floor(date.getTime() / intervalMs) * intervalMs);
+}
+
+// Count alarms per interval function
+countAlarmsPerInterval(
+  alarms: Alarm[],
+  intervalMs: number
+): Map<Date, number> {
+  // Convert timestamps to Date
+  const alarmDates = alarms.map(a => new Date(a.occurredAt)).sort((a, b) => a.getTime() - b.getTime());
+
+  if (alarmDates.length === 0) {return new Map();}
+
+  const startTime = this.floorDateToInterval(alarmDates[0], intervalMs);
+  const endTime = alarmDates[alarmDates.length - 1];
+
+  const counts: { [key: number]: number } = {};
+
+  // Initialize intervals from startTime to endTime
+  for (let time = startTime.getTime(); time <= endTime.getTime(); time += intervalMs) {
+    counts[time] = 0;
+  }
+
+  // Count alarms in respective intervals
+  for (const alarmDate of alarmDates) {
+    const bucket = this.floorDateToInterval(alarmDate, intervalMs).getTime();
+    counts[bucket] = (counts[bucket] || 0) + 1;
+  }
+
+  // Convert counts object to array with Date keys
+  return new Map(
+    Object.entries(counts).map(([time, count]) => [
+      new Date(Number(time)),
+      count,
+    ])
+  );
+}
+
   async runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     const now = new Date();
 
@@ -111,17 +151,21 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
       }
     });
     // Extract timeline data from alarm transitions
-    const timeline: Array<{ time: number; severity: number; alarmId: string }> = [];
-    const occurredAtCount: Map<number, number> = new Map();
+    // const timeline: Array<{ time: number; severity: number; alarmId: string }> = [];
+    // const occurredAtCount: Map<number, number> = new Map();
 
-    alarms.forEach(alarmInstance => {
-      const occurredAtDate = new Date(alarmInstance.occurredAt);
-      // Remove milliseconds by setting them to zero
-      occurredAtDate.setMilliseconds(0);
-      const occurredAtTime = occurredAtDate.getTime();
-      occurredAtDate.setSeconds(Math.floor(Math.random() * 60)); // Randomize seconds for uniqueness
-      occurredAtCount.set(occurredAtTime, (occurredAtCount.get(occurredAtTime) || 0) + 1);
-    });
+    // alarms.forEach(alarmInstance => {
+    //   const occurredAtDate = new Date(alarmInstance.occurredAt);
+    //   // Remove milliseconds by setting them to zero
+    //   occurredAtDate.setMilliseconds(0);
+    //   const occurredAtTime = occurredAtDate.getTime();
+    //   occurredAtDate.setSeconds(Math.floor(Math.random() * 60)); // Randomize seconds for uniqueness
+    //   occurredAtCount.set(occurredAtTime, (occurredAtCount.get(occurredAtTime) || 0) + 1);
+    // });
+
+    const occurredAtCount = this.countAlarmsPerInterval(alarms, options.intervalMs);
+    console.log('occurredAtCount', occurredAtCount);
+
 
     const times = Array.from(occurredAtCount.keys());
     const counts = Array.from(occurredAtCount.values());
