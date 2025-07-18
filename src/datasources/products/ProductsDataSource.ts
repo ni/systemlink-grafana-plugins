@@ -107,69 +107,145 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     );
   }
 
+  // async runQuery(query: ProductQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+  //   await this.workspaceLoadedPromise;
+  //   await this.partNumberLoadedPromise;
+
+  //   if( query.properties?.length === 0 || query.recordCount === undefined ) {
+  //     return {
+  //       refId: query.refId,
+  //       name: query.refId,
+  //       fields: [],
+  //     }
+  //   }
+
+  //   if (query.queryBy) {
+  //     query.queryBy = transformComputedFieldsQuery(
+  //       this.templateSrv.replace(query.queryBy, options.scopedVars),
+  //       this.productsComputedDataFields,
+  //     );
+  //   }
+
+  //   const products = (
+  //     await this.queryProducts(
+  //       query.orderBy,
+  //       query.properties,
+  //       query.queryBy,
+  //       query.recordCount,
+  //       query.descending
+  //     )).products;
+
+  //   const selectedFields = (products && products.length > 0)
+  //     ? (query.properties?.filter(
+  //       (field: Properties) => field in products[0]
+  //     ) ?? [])
+  //     : (query.properties ?? []);
+  //   const fields = selectedFields.map((field) => {
+  //     const isTimeField = field === PropertiesOptions.UPDATEDAT;
+  //     const fieldType = isTimeField
+  //       ? FieldType.time
+  //       : FieldType.string;
+
+  //     const values = products
+  //       .map(data => data[field as unknown as keyof ProductResponseProperties]);
+
+  //     const fieldValues = values.map(value => {
+  //       switch (field) {
+  //         case PropertiesOptions.PROPERTIES:
+  //           return value == null ? '' : JSON.stringify(value);
+  //         case PropertiesOptions.WORKSPACE:
+  //           const workspace = this.workspacesCache.get(value);
+  //           return workspace ? getWorkspaceName([workspace], value) : value;
+  //         default:
+  //           return value == null ? '' : value;
+  //       }
+  //     });
+  //     return {
+  //       name: productsProjectionLabelLookup[field].label,
+  //       values: fieldValues,
+  //       type: fieldType
+  //     };
+  //   });
+  //   return {
+  //     refId: query.refId,
+  //     name: query.refId,
+  //     fields: fields,
+  //   };
+  // }
+
   async runQuery(query: ProductQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    await this.workspaceLoadedPromise;
-    await this.partNumberLoadedPromise;
-
-    if( query.properties?.length === 0 || query.recordCount === undefined ) {
-      return {
-        refId: query.refId,
-        name: query.refId,
-        fields: [],
-      }
-    }
-
-    if (query.queryBy) {
-      query.queryBy = transformComputedFieldsQuery(
-        this.templateSrv.replace(query.queryBy, options.scopedVars),
-        this.productsComputedDataFields,
-      );
-    }
-
-    const products = (
-      await this.queryProducts(
-        query.orderBy,
-        query.properties,
-        query.queryBy,
-        query.recordCount,
-        query.descending
-      )).products;
-
-    const selectedFields = (products && products.length > 0)
-      ? (query.properties?.filter(
-        (field: Properties) => field in products[0]
-      ) ?? [])
-      : (query.properties ?? []);
-    const fields = selectedFields.map((field) => {
-      const isTimeField = field === PropertiesOptions.UPDATEDAT;
-      const fieldType = isTimeField
-        ? FieldType.time
-        : FieldType.string;
-
-      const values = products
-        .map(data => data[field as unknown as keyof ProductResponseProperties]);
-
-      const fieldValues = values.map(value => {
-        switch (field) {
-          case PropertiesOptions.PROPERTIES:
-            return value == null ? '' : JSON.stringify(value);
-          case PropertiesOptions.WORKSPACE:
-            const workspace = this.workspacesCache.get(value);
-            return workspace ? getWorkspaceName([workspace], value) : value;
-          default:
-            return value == null ? '' : value;
-        }
-      });
-      return {
-        name: productsProjectionLabelLookup[field].label,
-        values: fieldValues,
-        type: fieldType
-      };
-    });
     return {
       refId: query.refId,
-      name: query.refId,
-      fields: fields,
+      name: 'Static Data',
+      fields: [
+        {
+          name: 'occurredAtTime',
+          type: FieldType.time,
+          values: [
+            Date.parse('2025-07-17T00:00:00Z'),
+            Date.parse('2025-07-17T00:01:00Z'),
+            Date.parse('2025-07-17T00:02:00Z'),
+            Date.parse('2025-07-17T00:03:00Z'),
+            Date.parse('2025-07-17T00:04:00Z'),
+            Date.parse('2025-07-17T00:05:00Z'),
+            Date.parse('2025-07-17T00:06:00Z'),
+            Date.parse('2025-07-17T00:07:00Z'),
+            Date.parse('2025-07-17T00:08:00Z'),
+            Date.parse('2025-07-17T00:09:00Z'),
+            Date.parse('2025-07-17T00:10:00Z'),
+            Date.parse('2025-07-17T00:11:00Z'),
+            Date.parse('2025-07-17T00:12:00Z'),
+            Date.parse('2025-07-17T00:13:00Z'),
+            Date.parse('2025-07-17T00:14:00Z'),
+            Date.parse('2025-07-17T00:15:00Z'),
+            Date.parse('2025-07-17T00:16:00Z'),
+            Date.parse('2025-07-17T00:17:00Z'),
+            Date.parse('2025-07-17T00:18:00Z'),
+            Date.parse('2025-07-17T00:19:00Z'),
+            Date.parse('2025-07-17T00:20:00Z'),
+            Date.parse('2025-07-17T00:21:00Z'),
+            Date.parse('2025-07-17T00:22:00Z'),
+            Date.parse('2025-07-17T00:23:00Z'),
+            Date.parse('2025-07-17T00:24:00Z'),
+            Date.parse('2025-07-17T00:25:00Z'),
+            Date.parse('2025-07-17T00:26:00Z'),
+            Date.parse('2025-07-17T00:27:00Z'),
+            Date.parse('2025-07-17T00:28:00Z'),
+            Date.parse('2025-07-17T00:29:00Z'),
+            Date.parse('2025-07-17T00:30:00Z'),
+            Date.parse('2025-07-17T00:31:00Z'),
+            Date.parse('2025-07-17T00:32:00Z'),
+            Date.parse('2025-07-17T00:33:00Z'),
+            Date.parse('2025-07-17T00:34:00Z'),
+            Date.parse('2025-07-17T00:35:00Z'),
+            Date.parse('2025-07-17T00:36:00Z'),
+            Date.parse('2025-07-17T00:37:00Z'),
+            Date.parse('2025-07-17T00:38:00Z'),
+            Date.parse('2025-07-17T00:39:00Z'),
+            Date.parse('2025-07-17T00:40:00Z'),
+            Date.parse('2025-07-17T00:41:00Z'),
+            Date.parse('2025-07-17T00:42:00Z'),
+            Date.parse('2025-07-17T00:43:00Z'),
+            Date.parse('2025-07-17T00:44:00Z'),
+            Date.parse('2025-07-17T00:45:00Z'),
+            Date.parse('2025-07-17T00:46:00Z'),
+            Date.parse('2025-07-17T00:47:00Z'),
+            Date.parse('2025-07-17T00:48:00Z'),
+            Date.parse('2025-07-17T00:49:00Z')
+          ]
+        },
+        {
+          name: 'count',
+          type: FieldType.number,
+          values: [
+            14, 7, 11, 3, 16, 6, 19, 9, 12, 1,
+            17, 5, 2, 20, 13, 8, 4, 18, 10, 15,
+            7, 6, 9, 12, 14, 3, 16, 8, 11, 5,
+            2, 19, 0, 13, 1, 10, 6, 17, 4, 15,
+            7, 18, 9, 13, 3, 12, 20, 5, 8, 11
+          ]
+        }
+      ]
     };
   }
 
