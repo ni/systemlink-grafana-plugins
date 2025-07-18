@@ -1331,6 +1331,7 @@ describe('QueryStepsDataSource', () => {
     it('should map step paths with newline to labels with backslashes', async () => {
       const mockPaths = [
         {path: 'Parent path1\nChild path1\nChild path2'},
+        {path: 'Parent path1\\ExistingSlash\nChild path2'},
         {path: 'No child paths'},
         {path: 'Path having newline\\nin between words\nChild path2'},
       ]
@@ -1349,6 +1350,10 @@ describe('QueryStepsDataSource', () => {
         {
           label: 'Parent path1\\Child path1\\Child path2',
           value: 'Parent path1\nChild path1\nChild path2'
+        },
+        {
+          label: 'Parent path1\\ExistingSlash\\Child path2',
+          value: 'Parent path1\\ExistingSlash\nChild path2'
         },
         {
           label: 'No child paths',
@@ -1370,7 +1375,7 @@ describe('QueryStepsDataSource', () => {
           continuationToken: null,
         })
       );
-      
+
       const response = await datastore.getStepPaths('name = "MockResultsQuery"');
 
       expect(response).toEqual([]);

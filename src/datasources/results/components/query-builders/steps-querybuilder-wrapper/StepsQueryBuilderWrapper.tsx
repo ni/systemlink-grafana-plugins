@@ -7,6 +7,7 @@ import { Workspace } from 'core/types';
 import { enumToOptions } from 'core/utils';
 import { TestMeasurementStatus } from 'datasources/results/types/types';
 import { QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
+import { StepPaths } from 'datasources/results/types/QuerySteps.types';
 
 type Props = QueryBuilderProps &
 React.HTMLAttributes<Element> & {
@@ -31,7 +32,7 @@ export const StepsQueryBuilderWrapper = (
   
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
-  const [stepsPath, setStepsPath] = useState<Array<{ label: string; value: string; }>>([]);
+  const [stepsPath, setStepsPath] = useState<StepPaths[]>([]);
   const [isResultsQueryInvalid, setIsResultsQueryInvalid] = useState(false);
 
   useEffect(() => {

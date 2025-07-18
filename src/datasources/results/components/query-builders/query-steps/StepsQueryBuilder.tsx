@@ -14,13 +14,14 @@ import 'smart-webcomponents-react/source/styles/components/smart.common.css';
 import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
 import { StepsQueryBuilderFields, StepsQueryBuilderStaticFields } from 'datasources/results/constants/StepsQueryBuilder.constants';
 import '../QueryBuilder.scss';
+import { StepPaths } from 'datasources/results/types/QuerySteps.types';
 
 type StepsQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     filter?: string;
     workspaces: Workspace[] | null;
     stepStatus: string[];
-    stepsPath: Array<{ label: string; value: string; }>;
+    stepsPath: StepPaths[];
     globalVariableOptions: QueryBuilderOption[];
     onFilterChange: (filter: string) => void;
     disableQueryBuilder?: boolean;
