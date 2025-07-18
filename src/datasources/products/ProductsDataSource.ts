@@ -107,101 +107,56 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     );
   }
 
-  // async runQuery(query: ProductQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-  //   await this.workspaceLoadedPromise;
-  //   await this.partNumberLoadedPromise;
-
-  //   if( query.properties?.length === 0 || query.recordCount === undefined ) {
-  //     return {
-  //       refId: query.refId,
-  //       name: query.refId,
-  //       fields: [],
-  //     }
-  //   }
-
-  //   if (query.queryBy) {
-  //     query.queryBy = transformComputedFieldsQuery(
-  //       this.templateSrv.replace(query.queryBy, options.scopedVars),
-  //       this.productsComputedDataFields,
-  //     );
-  //   }
-
-  //   const products = (
-  //     await this.queryProducts(
-  //       query.orderBy,
-  //       query.properties,
-  //       query.queryBy,
-  //       query.recordCount,
-  //       query.descending
-  //     )).products;
-
-  //   const selectedFields = (products && products.length > 0)
-  //     ? (query.properties?.filter(
-  //       (field: Properties) => field in products[0]
-  //     ) ?? [])
-  //     : (query.properties ?? []);
-  //   const fields = selectedFields.map((field) => {
-  //     const isTimeField = field === PropertiesOptions.UPDATEDAT;
-  //     const fieldType = isTimeField
-  //       ? FieldType.time
-  //       : FieldType.string;
-
-  //     const values = products
-  //       .map(data => data[field as unknown as keyof ProductResponseProperties]);
-
-  //     const fieldValues = values.map(value => {
-  //       switch (field) {
-  //         case PropertiesOptions.PROPERTIES:
-  //           return value == null ? '' : JSON.stringify(value);
-  //         case PropertiesOptions.WORKSPACE:
-  //           const workspace = this.workspacesCache.get(value);
-  //           return workspace ? getWorkspaceName([workspace], value) : value;
-  //         default:
-  //           return value == null ? '' : value;
-  //       }
-  //     });
-  //     return {
-  //       name: productsProjectionLabelLookup[field].label,
-  //       values: fieldValues,
-  //       type: fieldType
-  //     };
-  //   });
-  //   return {
-  //     refId: query.refId,
-  //     name: query.refId,
-  //     fields: fields,
-  //   };
-  // }
-
-  groupAlarmsByInterval(alarmData: Array<{ occurredAt: number; count: number }>, intervalMs: number, descending: boolean) {
+  groupAlarmsByInterval(
+    alarmData: Array<{ occurredAt: number; count: number }>,
+    intervalMs: number,
+    descending: boolean
+  ) {
     if (alarmData.length === 0) {return [];}
+
     const sortedAlarms = [...alarmData].sort((a, b) => a.occurredAt - b.occurredAt);
-
     const result: Array<{ intervalStart: number; totalCount: number }> = [];
-    let startIdx = 0;
 
-    while (startIdx < sortedAlarms.length) {
-      const intervalStart = sortedAlarms[startIdx].occurredAt;
-      const intervalEnd = intervalStart + intervalMs;
-      let totalCount = 0;
-      let endIdx = startIdx;
-      while (
-        endIdx < sortedAlarms.length &&
-        sortedAlarms[endIdx].occurredAt >= intervalStart &&
-        sortedAlarms[endIdx].occurredAt < intervalEnd
-      ) {
-        totalCount += sortedAlarms[endIdx].count;
-        endIdx++;
+    if (descending) {
+      let startIdx = 0;
+      while (startIdx < sortedAlarms.length) {
+        const intervalStart = sortedAlarms[startIdx].occurredAt;
+        const intervalEnd = intervalStart + intervalMs;
+        let totalCount = 0;
+        let endIdx = startIdx;
+        while (
+          endIdx < sortedAlarms.length &&
+          sortedAlarms[endIdx].occurredAt >= intervalStart &&
+          sortedAlarms[endIdx].occurredAt < intervalEnd
+        ) {
+          totalCount += sortedAlarms[endIdx].count;
+          endIdx++;
+        }
+        result.push({ intervalStart, totalCount });
+        startIdx = endIdx;
       }
-      result.push({ intervalStart, totalCount });
-      startIdx = endIdx;
+    } else {
+      const minTime = sortedAlarms[0].occurredAt;
+      const maxTime = sortedAlarms[sortedAlarms.length - 1].occurredAt;
+      for (
+        let intervalStart = minTime;
+        intervalStart <= maxTime;
+        intervalStart += intervalMs
+      ) {
+        const intervalEnd = intervalStart + intervalMs;
+        const totalCount = sortedAlarms
+          .filter(a => a.occurredAt >= intervalStart && a.occurredAt < intervalEnd)
+          .reduce((sum, a) => sum + a.count, 0);
+        result.push({ intervalStart, totalCount });
+      }
     }
+
     return result;
   }
 
   async runQuery(query: ProductQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     let intervalMsInDashboard = options.intervalMs;
-    const grouped = this.groupAlarmsByInterval(alarmData, intervalMsInDashboard, query.descending);
+    const grouped = this.groupAlarmsByInterval(alarmData, intervalMsInDashboard, query.descending!);
 
     return {
       refId: query.refId,
