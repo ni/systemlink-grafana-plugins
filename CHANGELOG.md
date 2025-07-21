@@ -1,3 +1,9 @@
+## [3.147.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.147.2...v3.147.3) (2025-07-21)
+
+### Bug Fixes
+
+* **workorders,testplans:** Sort variable options by their label ([#361](https://github.com/ni/systemlink-grafana-plugins/issues/361)) ([cc446b9](https://github.com/ni/systemlink-grafana-plugins/commit/cc446b91720ca29d03f64f7e573ef52dbe427519))
+
 ## [3.147.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.147.1...v3.147.2) (2025-07-18)
 
 ### Bug Fixes
