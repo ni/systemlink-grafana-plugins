@@ -13,13 +13,11 @@ export interface DataFrameQuery extends DataQuery {
   queryBy?: string;
   queryByColumn?: string;
   queryByResults?: string;
-  useDecimation?: boolean;
   decimationMethod?: string;
   filterNulls?: boolean;
   applyTimeFilters?: boolean;
   XAxisColumn?: string;
   recordCount?: number;
-  YAxisColumn?: string;
   useIndexColumn?: boolean;
   orderBy?: string;
   descending?: boolean;
@@ -29,12 +27,10 @@ export const defaultQuery: Omit<ValidDataFrameQuery, 'refId'> = {
   type: DataFrameQueryType.Data,
   tableId: '',
   columns: [],
-  useDecimation: false,
   decimationMethod: 'LOSSY',
   filterNulls: false,
   applyTimeFilters: false,
   XAxisColumn: '',
-  YAxisColumn: '',
   recordCount: 100,
   useIndexColumn: false,
   queryBy: '',

@@ -49,29 +49,59 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
 
   async runQuery(query: DataFrameQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
     const processedQuery = this.processQuery(query);
-    processedQuery.tableId = this.templateSrv.replace(processedQuery.tableId, scopedVars);
-    processedQuery.columns = replaceVariables(processedQuery.columns, this.templateSrv);
-    const properties = await this.getTableProperties(processedQuery.tableId);
+    if (processedQuery.type === DataFrameQueryType.Data && processedQuery.queryBy !== '') {
+      const tableData = await this.queryTables(processedQuery.queryBy);
+      if (!tableData || tableData.length === 0) {
+        return {
+          refId: processedQuery.refId,
+          fields: [],
+        };
+      }
 
-    if (processedQuery.type === DataFrameQueryType.Properties) {
-      return {
-        refId: processedQuery.refId,
-        name: properties.name,
-        fields: Object.entries(properties.properties).map(([name, value]) => ({ name, values: [value] })),
-      };
-    } else {
-      const columns = this.getColumnTypes(processedQuery.columns, properties?.columns ?? []);
-      const tableData = await this.getDecimatedTableData(processedQuery, columns, range, maxDataPoints);
-      return {
-        refId: processedQuery.refId,
-        name: properties.name,
-        fields: this.dataFrameToFields(tableData.frame.data, columns),
-      };
+      if (processedQuery.decimationMethod !== 'NONE') {
+        for (const table of tableData) {
+          const id = table.id;
+          const properties = await this.getTableProperties(id);
+          const columns = this.getColumnTypes(table.columns.map(col => col.name), properties?.columns ?? []);
+          processedQuery.columns = columns.map(c => c.name);
+          const tableData = await this.getDecimatedTableData(processedQuery, id,  columns, range, maxDataPoints);
+          return {
+            refId: processedQuery.refId,
+            // name: properties.name,
+            fields: this.dataFrameToFields(tableData.frame.data, columns),
+          };
+        }
+      } else {
+        for (const table of tableData) {
+          const id = table.id;
+          const properties = await this.getTableProperties(id);
+          const tableRows = await this.post<TableDataRows>(`${this.baseUrl}/tables/${id}/query-data`, {
+            columns: properties?.columns.map(col => col.name) ?? [],
+            filters: [],
+          });
+          if (tableRows && tableRows.frame && tableRows.frame.data) {
+            return {
+              refId: processedQuery.refId,
+              fields: this.dataFrameToFields(
+                tableRows.frame.data,
+                this.getColumnTypes(table.columns.map(col => col.name), properties?.columns ?? [])
+              ),
+            };
+          }
+        }
+
+      }
     }
+
+    return {
+      refId: processedQuery.refId,
+      fields: [],
+    }
+
   }
 
   shouldRunQuery(query: ValidDataFrameQuery): boolean {
-    return Boolean(query.tableId) && (query.type === DataFrameQueryType.Properties || Boolean(query.columns.length));
+    return true;
   }
 
   async getTableProperties(id?: string): Promise<TableProperties> {
@@ -86,7 +116,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
     return properties;
   }
 
-  async getDecimatedTableData(query: DataFrameQuery, columns: Column[], timeRange: TimeRange, intervals = 1000): Promise<TableDataRows> {
+  async getDecimatedTableData(query: DataFrameQuery, id: string, columns: Column[], timeRange: TimeRange, intervals = 1000): Promise<TableDataRows> {
     const filters: ColumnFilter[] = [];
 
     if (query.applyTimeFilters) {
@@ -97,7 +127,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
       filters.push(...this.constructNullFilters(columns));
     }
 
-    return await this.post<TableDataRows>(`${this.baseUrl}/tables/${query.tableId}/query-decimated-data`, {
+    return await this.post<TableDataRows>(`${this.baseUrl}/tables/${id}/query-decimated-data`, {
       columns: query.columns,
       filters,
       decimation: {
@@ -108,10 +138,12 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
     });
   }
 
-  async queryTables(query: string): Promise<TableProperties[]> {
-    const filter = `name.Contains("${query}")`;
+  // async getUndecimatedTableData(query: DataFrameQuery)
 
-    return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take: 5 })).tables;
+  async queryTables(query: string): Promise<TableProperties[]> {
+    const filter = query;
+
+    return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take: 1000 })).tables;
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
@@ -127,7 +159,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
       migratedQuery.type = DataFrameQueryType.Properties;
     }
 
-    if((migratedQuery.tableId !== '' )) {
+    if ((migratedQuery.tableId !== '')) {
       migratedQuery.queryBy = 'Id = "8123kj8123kkjbeonk"';
     }
 

@@ -27,7 +27,7 @@ import { TestMeasurementStatus } from 'datasources/results/types/types';
 export const DataFrameQueryEditor = (props: Props) => {
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | undefined>('');
-  const [isDataTablesFilterValid, setDataTablesFilterValid] = useState<boolean>(false);
+  // const [isDataTablesFilterValid, setDataTablesFilterValid] = useState<boolean>(false);
   const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
   const common = new DataFrameQueryEditorCommon(props, handleError);
   const tableProperties = useAsync(
@@ -60,11 +60,11 @@ export const DataFrameQueryEditor = (props: Props) => {
   };
 
   const onQueryByChange = (queryBy: string) => {
-    if (queryBy !== '') {
-      setDataTablesFilterValid(true);
-    } else {
-      setDataTablesFilterValid(false);
-    }
+    // if (queryBy !== '') {
+    //   setDataTablesFilterValid(true);
+    // } else {
+    //   setDataTablesFilterValid(false);
+    // }
     common.query.queryBy = queryBy;
     common.handleQueryChange({ ...common.query, queryBy: queryBy }, true);
   };
@@ -137,18 +137,22 @@ export const DataFrameQueryEditor = (props: Props) => {
                 onChange={(event: any) => onQueryByChange(event.detail.linq)}
               ></DataframeQueryBuilder>
             </InlineField>
-            {isDataTablesFilterValid && (
-              <InlineField label="Query by column names" labelWidth={30} tooltip={tooltips.queryType} required={false}>
-                <ResultsQueryBuilder
-                  filter={common.query.queryBy}
-                  workspaces={workspaces}
-                  status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
-                  partNumbers={partNumbers}
-                  globalVariableOptions={common.datasource.globalVariableOptions()}
-                  onChange={(event: any) => onParameterChange(event.detail.linq)}
-                ></ResultsQueryBuilder>
-              </InlineField>
-            )}
+            <InlineField
+              label="Query by column names"
+              labelWidth={30}
+              tooltip={'Development in progress'}
+              required={false}
+            >
+              <ResultsQueryBuilder
+                filter={common.query.queryBy}
+                disabled={true}
+                workspaces={workspaces}
+                status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
+                partNumbers={partNumbers}
+                globalVariableOptions={common.datasource.globalVariableOptions()}
+                onChange={(event: any) => onParameterChange(event.detail.linq)}
+              ></ResultsQueryBuilder>
+            </InlineField>
             {common.query.type === DataFrameQueryType.Data && (
               <InlineField label="Columns" labelWidth={30} tooltip={tooltips.columns} required>
                 <MultiSelect
@@ -168,48 +172,26 @@ export const DataFrameQueryEditor = (props: Props) => {
             <>
               <VerticalGroup>
                 <div>
-                  <InlineField label="Use decimation " labelWidth={25} tooltip={tooltips.decimation}>
-                    <InlineSwitch
-                      value={common.query.useDecimation}
-                      onChange={event =>
-                        common.handleQueryChange({ ...common.query, useDecimation: event.currentTarget.checked }, true)
-                      }
-                    />
-                  </InlineField>
-                  {common.query.useDecimation && (
-                    <div style={{ marginBottom: '15px' }}>
-                      <InlineField label="Decimation Method" labelWidth={25} tooltip={tooltips.decimation}>
-                        <Select
-                          options={decimationMethods}
-                          onChange={item =>
-                            common.handleQueryChange({ ...common.query, decimationMethod: item.value! }, true)
-                          }
-                          value={common.query.decimationMethod}
-                          width={20}
-                        />
-                      </InlineField>
-                      <InlineField label="X axis column" labelWidth={25} tooltip={tooltips.columns}>
-                        <Select
-                          options={[]}
-                          onChange={item =>
-                            common.handleQueryChange({ ...common.query, XAxisColumn: item.value! }, true)
-                          }
-                          value={common.query.XAxisColumn}
-                          width={20}
-                        />
-                      </InlineField>
-                      <InlineField label="Y axis column" labelWidth={25} tooltip={tooltips.columns}>
-                        <Select
-                          options={[]}
-                          onChange={item =>
-                            common.handleQueryChange({ ...common.query, YAxisColumn: item.value! }, true)
-                          }
-                          value={common.query.YAxisColumn}
-                          width={20}
-                        />
-                      </InlineField>
-                    </div>
-                  )}
+                  <div style={{ marginBottom: '15px' }}>
+                    <InlineField label="Decimation Method" labelWidth={25} tooltip={tooltips.decimation}>
+                      <Select
+                        options={decimationMethods}
+                        onChange={item =>
+                          common.handleQueryChange({ ...common.query, decimationMethod: item.value! }, true)
+                        }
+                        value={common.query.decimationMethod}
+                        width={20}
+                      />
+                    </InlineField>
+                    <InlineField label="X axis column" labelWidth={25} tooltip={tooltips.columns}>
+                      <Select
+                        options={[]}
+                        onChange={item => common.handleQueryChange({ ...common.query, XAxisColumn: item.value! }, true)}
+                        value={common.query.XAxisColumn}
+                        width={20}
+                      />
+                    </InlineField>
+                  </div>
                 </div>
               </VerticalGroup>
               <InlineField label="Include index columns" labelWidth={25} tooltip={tooltips.filterNulls}>
@@ -236,29 +218,27 @@ export const DataFrameQueryEditor = (props: Props) => {
                   }
                 ></InlineSwitch>
               </InlineField>
-              {!common.query.useDecimation && (
-                <InlineField label="Take" labelWidth={25} tooltip={tooltips.decimation}>
-                  <AutoSizeInput
-                    minWidth={20}
-                    maxWidth={20}
-                    type="number"
-                    defaultValue={common.query.recordCount}
-                    onCommitChange={event =>
-                      common.handleQueryChange(
-                        {
-                          ...common.query,
-                          recordCount: parseInt((event.target as HTMLInputElement).value, 10),
-                        },
-                        true
-                      )
-                    }
-                    placeholder="Enter record count"
-                    onKeyDown={event => {
-                      validateNumericInput(event);
-                    }}
-                  />
-                </InlineField>
-              )}
+              <InlineField label="Take" labelWidth={25} tooltip={tooltips.decimation}>
+                <AutoSizeInput
+                  minWidth={20}
+                  maxWidth={20}
+                  type="number"
+                  defaultValue={common.query.recordCount}
+                  onCommitChange={event =>
+                    common.handleQueryChange(
+                      {
+                        ...common.query,
+                        recordCount: parseInt((event.target as HTMLInputElement).value, 10),
+                      },
+                      true
+                    )
+                  }
+                  placeholder="Enter record count"
+                  onKeyDown={event => {
+                    validateNumericInput(event);
+                  }}
+                />
+              </InlineField>
             </>
           )}
           {common.query.type === DataFrameQueryType.Properties && (

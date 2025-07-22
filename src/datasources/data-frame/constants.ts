@@ -2,6 +2,11 @@ import { nbsp } from "./utils";
 
 export const decimationMethods = [
   {
+    value: 'NONE',
+    label: 'None',
+    description: nbsp`No decimation, returns all data points`,
+  },
+  {
     value: 'LOSSY',
     label: 'Lossy',
     description: nbsp`Completes faster but is less accurate`,
