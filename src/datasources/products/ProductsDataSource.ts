@@ -1,4 +1,4 @@
-import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
+import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { ProductQuery, ProductResponseProperties, productsProjectionLabelLookup, ProductVariableQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
@@ -108,13 +108,12 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   }
 
   groupAlarmsByInterval(
-    alarmData: Array<{ occurredAt: number; count: number }>,
+    sortedAlarms: Array<{ occurredAt: number; count: number }>,
     intervalMs: number,
     descending: boolean
   ) {
-    if (alarmData.length === 0) {return [];}
+    if (sortedAlarms.length === 0) {return [];}
 
-    const sortedAlarms = [...alarmData].sort((a, b) => a.occurredAt - b.occurredAt);
     const result: Array<{ intervalStart: number; totalCount: number }> = [];
 
     if (descending) {
@@ -154,7 +153,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     return result;
   }
 
-  transformIntoRequiredFormat(){
+  transformIntoRequiredFormat(start: number, end: number){
     const occurredAtList: number[] = alarmData.alarms.flatMap(alarm =>
       alarm.transitions.map(t => Date.parse(t.occurredAt))
     );
@@ -168,16 +167,27 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       occurredAt: Number(occurredAt),
       count,
     }));
-    return result;
+    const sortedAlarms = [...result].sort((a, b) => a.occurredAt - b.occurredAt);
+    const filteredAlarms = sortedAlarms.filter(a => a.occurredAt >= start && a.occurredAt <= end);
+    return filteredAlarms;
   }
 
-
+  getDashboardTimeRangeFilter(scopedVars: ScopedVars): { start: number; end: number } {
+    const fromDateString = '${__from:date}';
+    const toDateString = '${__to:date}';
+    const start = new Date(this.templateSrv.replace(fromDateString, scopedVars)).getTime();
+    const end = new Date(this.templateSrv.replace(toDateString, scopedVars)).getTime();
+    return { start, end };
+  }
 
   async runQuery(query: ProductQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    console.log('options', options);
     let intervalMsInDashboard = options.intervalMs;
-    const grouped = this.groupAlarmsByInterval(this.transformIntoRequiredFormat(), intervalMsInDashboard, query.descending!);
+    const { start, end } = this.getDashboardTimeRangeFilter(options.scopedVars);
+    console.log('startTimeInDashboard', start);
+    console.log('endTimeInDashboard', end);
+    const grouped = this.groupAlarmsByInterval(this.transformIntoRequiredFormat(start, end), intervalMsInDashboard, query.descending!);
 
-    console.log('Grouped Data:', grouped);
     return {
       refId: query.refId,
       name: 'Alarm Data',
