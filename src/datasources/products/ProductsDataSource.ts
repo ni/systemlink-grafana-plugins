@@ -181,11 +181,8 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   }
 
   async runQuery(query: ProductQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    console.log('options', options);
     let intervalMsInDashboard = options.intervalMs;
     const { start, end } = this.getDashboardTimeRangeFilter(options.scopedVars);
-    console.log('startTimeInDashboard', start);
-    console.log('endTimeInDashboard', end);
     const grouped = this.groupAlarmsByInterval(this.transformIntoRequiredFormat(start, end), intervalMsInDashboard, query.descending!);
 
     return {
