@@ -47,6 +47,7 @@ export function transformComputedFieldsQuery(
 export function expressionBuilderCallback(options: Record<string, QueryBuilderOption[]>) {
   return function (this: QueryBuilderCustomOperation, fieldName: string, _operation: string, value: string) {
     const buildExpression = (field: string, value: string) => {
+      value = value.replace(/\\n/g, '\n');
       const fieldOptions = options[fieldName];
       if (fieldOptions?.length) {
         const labelValue = fieldOptions.find(option => option.label === value);
