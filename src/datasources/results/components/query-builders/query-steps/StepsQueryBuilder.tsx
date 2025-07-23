@@ -21,7 +21,7 @@ type StepsQueryBuilderProps = QueryBuilderProps &
     filter?: string;
     workspaces: Workspace[] | null;
     stepStatus: string[];
-    stepsPath: StepPaths[];
+    stepsPath: StepPaths[] | null;
     globalVariableOptions: QueryBuilderOption[];
     onFilterChange: (filter: string) => void;
     disableQueryBuilder?: boolean;
@@ -63,7 +63,7 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
       },
     };
   }, [workspaces]);
-
+  
   const stepStatusField = useMemo(() => {
     const statusField = StepsQueryBuilderFields.STATUS;
     return {
@@ -77,7 +77,7 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
       },
     };
   }, [stepStatus]);
-
+  
   const updatedAtField = useMemo(() => {
     const updatedField = StepsQueryBuilderFields.UPDATEDAT;
     return {
@@ -95,6 +95,9 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
   }, []);
 
   const stepsPathField = useMemo(() => {
+    if(!stepsPath) {
+      return null;
+    }
     const stepsPathField = StepsQueryBuilderFields.PATH;
     return {
       ...stepsPathField,
@@ -109,7 +112,7 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
   }, [stepsPath]);
 
   useEffect(() => {
-    if(!workspaceField) {
+    if(!workspaceField || !stepsPathField) {
       return;
     }
 
