@@ -31,7 +31,7 @@ export const defaultQuery: Omit<ValidDataFrameQuery, 'refId'> = {
   filterNulls: false,
   applyTimeFilters: false,
   XAxisColumn: '',
-  recordCount: 100,
+  recordCount: 1000,
   useIndexColumn: false,
   queryBy: '',
   queryByColumn: '',

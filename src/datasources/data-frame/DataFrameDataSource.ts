@@ -36,6 +36,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
   }
 
   baseUrl = this.instanceSettings.url + '/nidataframe/v1';
+  filteredTableColumns: string[] = [];
 
   defaultQuery = defaultQuery;
   workspaceUtils: WorkspaceUtils;
@@ -51,13 +52,13 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
     const processedQuery = this.processQuery(query);
     if (processedQuery.type === DataFrameQueryType.Data && processedQuery.queryBy !== '') {
       const tableData = await this.queryTables(processedQuery.queryBy);
+      this.setFilteredColumns(tableData)
       if (!tableData || tableData.length === 0) {
         return {
           refId: processedQuery.refId,
           fields: [],
         };
       }
-
       if (processedQuery.decimationMethod !== 'NONE') {
         for (const table of tableData) {
           const id = table.id;
@@ -67,7 +68,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
           const tableData = await this.getDecimatedTableData(processedQuery, id,  columns, range, maxDataPoints);
           return {
             refId: processedQuery.refId,
-            // name: properties.name,
+            name: properties.name,
             fields: this.dataFrameToFields(tableData.frame.data, columns),
           };
         }
@@ -82,6 +83,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
           if (tableRows && tableRows.frame && tableRows.frame.data) {
             return {
               refId: processedQuery.refId,
+              name: properties.name,
               fields: this.dataFrameToFields(
                 tableRows.frame.data,
                 this.getColumnTypes(table.columns.map(col => col.name), properties?.columns ?? [])
@@ -92,7 +94,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
 
       }
     }
-
+  
     return {
       refId: processedQuery.refId,
       fields: [],
@@ -116,6 +118,10 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
     return properties;
   }
 
+  getTableColumns(): string[] {
+    return this.filteredTableColumns;
+  }
+
   async getDecimatedTableData(query: DataFrameQuery, id: string, columns: Column[], timeRange: TimeRange, intervals = 1000): Promise<TableDataRows> {
     const filters: ColumnFilter[] = [];
 
@@ -137,8 +143,6 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
       },
     });
   }
-
-  // async getUndecimatedTableData(query: DataFrameQuery)
 
   async queryTables(query: string): Promise<TableProperties[]> {
     const filter = query;
@@ -210,6 +214,11 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
     } catch (error) {
       return new Map<string, Workspace>();
     }
+  }
+
+  private setFilteredColumns(tableData: TableProperties[]): void {
+    const columns = tableData.flatMap(table => table.columns.map(col => col.name));
+    this.filteredTableColumns = _.uniq(columns).sort((a, b) => a.localeCompare(b));
   }
 
   private getColumnTypes(columnNames: string[], tableProperties: Column[]): Column[] {

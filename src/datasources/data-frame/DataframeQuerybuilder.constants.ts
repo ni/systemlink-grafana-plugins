@@ -94,13 +94,24 @@ export const DataframesQueryBuilderFields: Record<string, QBField> = {
   },
 };
 
+export const DataframesColumnsQueryBuilderFields: Record<string, QBField> = {
+  COLUMN_NAMES: {
+    label: 'Column names',
+    dataField: 'columnNames',
+    dataType: 'string',
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.CONTAINS.name,
+      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
+    ],
+  }
+}
+
 export const DataframesQueryBuilderStaticFields = [
-  DataframesQueryBuilderFields.CREATED_AT,
   DataframesQueryBuilderFields.ID,
-  DataframesQueryBuilderFields.METADATA_MODIFIED,
   DataframesQueryBuilderFields.NAME,
   DataframesQueryBuilderFields.PROPERTIES,
   DataframesQueryBuilderFields.ROWS,
-  DataframesQueryBuilderFields.ROWS_MODIFIED,
   DataframesQueryBuilderFields.SUPPORT_APPEND,
 ];

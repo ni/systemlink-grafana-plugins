@@ -7,11 +7,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 import { DataframesQueryBuilderFields, DataframesQueryBuilderStaticFields } from '../DataframeQuerybuilder.constants';
 
-type DataframeQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
-  filter?: string;
-  workspaces: Workspace[] | null;
-  globalVariableOptions: QueryBuilderOption[];
-};
+type DataframeQueryBuilderProps = QueryBuilderProps &
+  React.HTMLAttributes<Element> & {
+    filter?: string;
+    workspaces: Workspace[] | null;
+    globalVariableOptions: QueryBuilderOption[];
+  };
 
 export const DataframeQueryBuilder: React.FC<DataframeQueryBuilderProps> = ({
   filter,
@@ -22,31 +23,78 @@ export const DataframeQueryBuilder: React.FC<DataframeQueryBuilderProps> = ({
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
 
-  const workspaceField = useMemo(() => {
-      const workspaceField = DataframesQueryBuilderFields.WORKSPACE;
-      if (!workspaces) {
-        return null;
-      }
-  
-      return {
-        ...workspaceField,
-        lookup: {
-          ...workspaceField.lookup,
-          dataSource: [
-            ...(workspaceField.lookup?.dataSource || []),
-            ...workspaces.map(({ id, name }) => ({ label: name, value: id })),
-          ],
-        },
-      };
-    }, [workspaces]);
+  const createdAtField = useMemo(() => {
+    const createdAtField = DataframesQueryBuilderFields.CREATED_AT;
+    return {
+      ...createdAtField,
+      lookup: {
+        ...createdAtField.lookup,
+        dataSource: [
+          ...(createdAtField.lookup?.dataSource || []),
+          { label: 'From', value: '${__from:date}' },
+          { label: 'To', value: '${__to:date}' },
+          { label: 'Now', value: '${__now:date}' },
+        ],
+      },
+    };
+  }, []);
 
+  const metaDataModifiedField = useMemo(() => {
+    const metaDataModifiedField = DataframesQueryBuilderFields.METADATA_MODIFIED;
+    return {
+      ...metaDataModifiedField,
+      lookup: {
+        ...metaDataModifiedField.lookup,
+        dataSource: [
+          ...(metaDataModifiedField.lookup?.dataSource || []),
+          { label: 'From', value: '${__from:date}' },
+          { label: 'To', value: '${__to:date}' },
+          { label: 'Now', value: '${__now:date}' },
+        ],
+      },
+    };
+  }, []);
+
+  const rowsModifiedField = useMemo(() => {
+    const rowsModifiedField = DataframesQueryBuilderFields.ROWS_MODIFIED;
+    return {
+      ...rowsModifiedField,
+      lookup: {
+        ...rowsModifiedField.lookup,
+        dataSource: [
+          ...(rowsModifiedField.lookup?.dataSource || []),
+          { label: 'From', value: '${__from:date}' },
+          { label: 'To', value: '${__to:date}' },
+          { label: 'Now', value: '${__now:date}' },
+        ],
+      },
+    };
+  }, []);
+
+  const workspaceField = useMemo(() => {
+    const workspaceField = DataframesQueryBuilderFields.WORKSPACE;
+    if (!workspaces) {
+      return null;
+    }
+
+    return {
+      ...workspaceField,
+      lookup: {
+        ...workspaceField.lookup,
+        dataSource: [
+          ...(workspaceField.lookup?.dataSource || []),
+          ...workspaces.map(({ id, name }) => ({ label: name, value: id })),
+        ],
+      },
+    };
+  }, [workspaces]);
 
   useEffect(() => {
     if (!workspaceField) {
       return;
     }
 
-    const updatedFields = [...DataframesQueryBuilderStaticFields, workspaceField].map(field => {
+    const updatedFields = [createdAtField, ...DataframesQueryBuilderStaticFields, metaDataModifiedField, rowsModifiedField, workspaceField].map(field => {
       if (field.lookup?.dataSource) {
         return {
           ...field,
@@ -103,7 +151,7 @@ export const DataframeQueryBuilder: React.FC<DataframeQueryBuilderProps> = ({
     ];
 
     setOperations([...customOperations, ...keyValueOperations]);
-  }, [globalVariableOptions, workspaceField]);
+  }, [globalVariableOptions, workspaceField, createdAtField, metaDataModifiedField, rowsModifiedField]);
 
   return (
     <SlQueryBuilder
