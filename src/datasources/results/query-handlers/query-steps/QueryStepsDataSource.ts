@@ -302,7 +302,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  async getStepPaths(resultsQuery: string): Promise<StepPaths[]> {
+  async getStepPaths(resultsQuery: string): Promise<StepPaths[] | null> {
     if (resultsQuery) {
       const query = this.transformQuery(resultsQuery, this.resultsComputedDataFields, this.scopedVars);
       const stepPaths = await this.getStepPathsLookupValues(query!);
@@ -311,7 +311,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         value: path
       }));
     }
-    return [];
+    return null;
   }
 
   private async initWorkspacesValues(): Promise<void> {
