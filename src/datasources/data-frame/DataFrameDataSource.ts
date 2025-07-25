@@ -112,7 +112,12 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
       const xField = columns[0].name;
       const xMin = queryParams[`${xField}-min`];
       const xMax = queryParams[`${xField}-max`];
-      if ( xMin !== '' && xMax !== '') {
+      if (
+        xMin !== ''
+        && xMax !== ''
+        && xMin !== undefined
+        && xMax !== undefined
+      ) {
         filters.push(...this.constructXAxisNumberFilters(xField, Math.floor(Number(xMin)), Math.floor(Number(xMax))));
       }
     }
