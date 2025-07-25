@@ -1,7 +1,7 @@
 import TTLCache from '@isaacs/ttlcache';
 import deepEqual from 'fast-deep-equal';
 import { DataQueryRequest, DataSourceInstanceSettings, FieldType, TimeRange, FieldDTO, dateTime, DataFrameDTO, MetricFindValue, TestDataSourceResponse, DataSourceJsonData } from '@grafana/data';
-import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
+import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv, locationService } from '@grafana/runtime';
 import {
   ColumnDataType,
   DataFrameQuery,
@@ -35,11 +35,20 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
 
   defaultQuery = defaultQuery;
 
-  async runQuery(query: DataFrameQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
+  async runQuery(
+    query: DataFrameQuery,
+    request: DataQueryRequest
+  ): Promise<DataFrameDTO> {
+    const { range, scopedVars, maxDataPoints } = request;
     const processedQuery = this.processQuery(query);
     processedQuery.tableId = this.templateSrv.replace(processedQuery.tableId, scopedVars);
     processedQuery.columns = replaceVariables(processedQuery.columns, this.templateSrv);
     const properties = await this.getTableProperties(processedQuery.tableId);
+
+    this.initializeFetchHighResolutionData(
+      processedQuery.fetchHighResolutionData,
+      request.panelId?.toString()
+    );
 
     if (processedQuery.type === DataFrameQueryType.Properties) {
       return {
@@ -49,7 +58,13 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
       };
     } else {
       const columns = this.getColumnTypes(processedQuery.columns, properties?.columns ?? []);
-      const tableData = await this.getDecimatedTableData(processedQuery, columns, range, maxDataPoints);
+      const tableData = await this.getDecimatedTableData(
+        processedQuery,
+        columns,
+        range,
+        maxDataPoints,
+        request.panelId?.toString()
+      );
       return {
         refId: processedQuery.refId,
         name: properties.name,
@@ -74,25 +89,36 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
     return properties;
   }
 
-  async getDecimatedTableData(query: DataFrameQuery, columns: Column[], timeRange: TimeRange, intervals = 1000): Promise<TableDataRows> {
+  async getDecimatedTableData(
+    query: DataFrameQuery,
+    columns: Column[],
+    timeRange: TimeRange,
+    intervals = 1000,
+    panelId = ''
+  ): Promise<TableDataRows> {
     const filters: ColumnFilter[] = [];
 
-    if (query.applyTimeFilters) {
-      filters.push(...this.constructTimeFilters(columns, timeRange));
+    let enabledPanelIds: string[] = this.getEnabledPanelIds();
+    const isHighResolutionEnabled = enabledPanelIds.includes(panelId) && columns.length > 0;
+    if (isHighResolutionEnabled) {
+      /**
+       * If `x-axis` selection is of type "TIMESTAMP", the below filters should be applied.
+       * Only after data source migration, we'll get those details here as a part of `columns`. Hence just handled numerical values for now.
+       * filters.push(...this.constructTimeFilters(columns, timeRange));
+       */
+
+      const queryParams = locationService.getSearchObject();
+      // Once we have a seprate control to select x-axis, we can use that value directly instead of assuming the first column as the x-axis.
+      const xField = columns[0].name;
+      const xMin = queryParams[`${xField}-min`];
+      const xMax = queryParams[`${xField}-max`];
+      if ( xMin !== '' && xMax !== '') {
+        filters.push(...this.constructXAxisNumberFilters(xField, Math.floor(Number(xMin)), Math.floor(Number(xMax))));
+      }
     }
 
     if (query.filterNulls) {
       filters.push(...this.constructNullFilters(columns));
-    }
-
-    if (columns.length > 0) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const xField = columns[0].name;
-      const xMin = urlParams.get(`${xField}-min`);
-      const xMax = urlParams.get(`${xField}-max`);
-      if (xMin !== undefined && xMax !== undefined && typeof xMin === 'number' && typeof xMax === 'number') {
-        filters.push(...this.constructXAxisNumberFilters(xField, Math.floor(Number(xMin)), Math.floor(Number(xMax))));
-      }
     }
 
     return await this.post<TableDataRows>(`${this.baseUrl}/tables/${query.tableId}/query-decimated-data`, {
@@ -132,6 +158,45 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
 
     // If we didn't make any changes to the query, then return the original object
     return deepEqual(migratedQuery, query) ? (query as ValidDataFrameQuery) : migratedQuery;
+  }
+
+  initializeFetchHighResolutionData(
+    enableHighResolutionZoom: boolean,
+    panelId = ''
+  ): void {
+    if (panelId === '' || this.isInEditPanelMode()) {
+      return;
+    }
+
+    let enabledPanelIds: string[] = this.getEnabledPanelIds();
+    if (enableHighResolutionZoom && !enabledPanelIds.includes(panelId)) {
+      enabledPanelIds.push(panelId);
+    }
+
+    locationService.partial({
+      [`fetchHighResolutionData`]: enabledPanelIds.join(','),
+    }, true);
+  }
+
+  getEnabledPanelIds(): string[] {
+    const queryParams = locationService.getSearchObject();
+    const fetchHighResolutionDataOnZoom = queryParams['fetchHighResolutionData'];
+    let enabledPanelIds: string[] = [];
+
+    if (
+      fetchHighResolutionDataOnZoom !== undefined
+      && typeof fetchHighResolutionDataOnZoom === 'string'
+      && fetchHighResolutionDataOnZoom !== ''
+    ) {
+      enabledPanelIds = fetchHighResolutionDataOnZoom.split(',');
+    }
+
+    return enabledPanelIds;
+  }
+
+  isInEditPanelMode(): boolean {
+    const queryParams = locationService.getSearchObject();
+    return queryParams['editPanel'] !== undefined;
   }
 
   async metricFindQuery(tableQuery: DataFrameQuery): Promise<MetricFindValue[]> {

@@ -28,7 +28,7 @@ interface MenuState {
 interface Props extends PanelProps<PanelOptions> {}
 
 export const PlotlyPanel: React.FC<Props> = (props) => {
-  const { data, width, height, options } = props;
+  const { data, width, height, options, id } = props;
   const [menu, setMenu] = useState<MenuState>({ x: 0, y: 0, show: false, items: [] });
   const theme = useTheme2();
 
@@ -153,12 +153,23 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
         props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: from.valueOf(), max: to.valueOf() } });
       }
     } else {
-      locationService.partial({
-        [`${options.xAxis.field}-min`]: xAxisMin,
-        [`${options.xAxis.field}-max`]: xAxisMax
-      }, true);
-      locationService.reload();
-      props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
+      const queryParams = locationService.getSearchObject();
+      const fetchHighResolutionDataOnZoom = queryParams['fetchHighResolutionData'];
+
+      if (
+        fetchHighResolutionDataOnZoom !== undefined
+        && typeof fetchHighResolutionDataOnZoom === 'string'
+        && fetchHighResolutionDataOnZoom !== ''
+        && fetchHighResolutionDataOnZoom.split(',').includes(id.toString())
+      ) {
+        locationService.partial({
+          [`${options.xAxis.field}-min`]: xAxisMin,
+          [`${options.xAxis.field}-max`]: xAxisMax
+        }, true);
+        locationService.reload();
+      } else {
+        props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
+      }
     }
   };
 

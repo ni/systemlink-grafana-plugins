@@ -12,7 +12,7 @@ export interface DataFrameQuery extends DataQuery {
   columns?: string[];
   decimationMethod?: string;
   filterNulls?: boolean;
-  applyTimeFilters?: boolean;
+  fetchHighResolutionData?: boolean;
 }
 
 export const defaultQuery: Omit<ValidDataFrameQuery, 'refId'> = {
@@ -21,7 +21,7 @@ export const defaultQuery: Omit<ValidDataFrameQuery, 'refId'> = {
   columns: [],
   decimationMethod: 'LOSSY',
   filterNulls: false,
-  applyTimeFilters: false
+  fetchHighResolutionData: false
 };
 
 export type ValidDataFrameQuery = DataFrameQuery & Required<Omit<DataFrameQuery, keyof DataQuery>>;
