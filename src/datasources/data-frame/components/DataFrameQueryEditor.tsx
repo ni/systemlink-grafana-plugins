@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAsync } from 'react-use';
 import { SelectableValue, toOption } from '@grafana/data';
-import { InlineField, InlineSwitch, MultiSelect, Select, AsyncSelect, RadioButtonGroup } from '@grafana/ui';
+import { InlineField, InlineSwitch, MultiSelect, Select, AsyncSelect, RadioButtonGroup, MultiCombobox } from '@grafana/ui';
 import { decimationMethods } from '../constants';
 import _ from 'lodash';
 import { getTemplateSrv } from '@grafana/runtime';
@@ -17,13 +17,29 @@ export const DataFrameQueryEditor = (props: Props) => {
   const common = new DataFrameQueryEditorCommon(props, handleError);
   const tableProperties = useAsync(() => common.datasource.getTableProperties(common.query.tableId).catch(handleError), [common.query.tableId]);
 
-  const handleColumnChange = (items: Array<SelectableValue<string>>) => {
-    common.handleQueryChange({ ...common.query, columns: items.map(i => i.value!) }, false);
+  const handleColumnChange = (items: Array<{ label: string; value: string | number }>) => {
+    common.handleQueryChange(
+      {
+        ...common.query,
+        columns: items
+          .map(i => typeof i.value === 'string' ? i.value : String(i.value))
+      },
+      false
+    );
   };
 
-  const loadColumnOptions = () => {
-    const columnOptions = (tableProperties.value?.columns ?? []).map(c => toOption(c.name));
-    columnOptions.unshift(...getVariableOptions());
+  const loadColumnOptions = (): Array<{ label: string; value: string }> => {
+    const columns = tableProperties.value && 'columns' in tableProperties.value ? tableProperties.value.columns : [];
+    const columnOptions = columns.map((c: any) => ({
+      label: c.name,
+      value: c.name,
+      group: c.name
+    }));
+    columnOptions.unshift(...getVariableOptions().map(opt => ({
+      label: opt.label ?? opt.value ?? '',
+      value: opt.value ?? '',
+      group: opt.label ?? opt.value ?? ''
+    })));
     return columnOptions;
   }
 
@@ -52,15 +68,16 @@ export const DataFrameQueryEditor = (props: Props) => {
       </InlineField>
       {common.query.type === DataFrameQueryType.Data && (
         <>
-          <InlineField label="Columns" shrink={true} tooltip={tooltips.columns}>
-            <MultiSelect
-              isLoading={tableProperties.loading}
+            <InlineField label="Columns" shrink={true} tooltip={tooltips.columns}>
+            <MultiCombobox
               options={loadColumnOptions()}
               onChange={handleColumnChange}
               onBlur={common.onRunQuery}
-              value={common.query.columns.map(toOption)}
+              value={common.query.columns.map(col => ({ label: col, value: col }))}
+              width='auto'
+              minWidth={20}
             />
-          </InlineField>
+            </InlineField>
           <InlineField label="Decimation" tooltip={tooltips.decimation}>
             <Select
               options={decimationMethods}
