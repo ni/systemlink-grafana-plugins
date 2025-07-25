@@ -4,7 +4,7 @@ import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-
 import { Workspace, QueryBuilderOption, QBField } from 'core/types';
 import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import QueryBuilder, { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 
 import 'smart-webcomponents-react/source/styles/smart.dark-orange.css';
@@ -41,7 +41,6 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
 
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
-  const optionsRef = useRef<Record<string, QueryBuilderOption[]>>({});
 
   const sanitizedFilter = useMemo(() => {
     return filterXSSLINQExpression(filter);
@@ -96,7 +95,6 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
   }, []);
 
   const stepsPathField = useMemo(() => {
-    console.log('stepspath', stepsPath);
     if(!stepsPath) {
       return null;
     }
