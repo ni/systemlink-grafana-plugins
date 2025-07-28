@@ -120,21 +120,25 @@ optional.
 
 `<type>` must be one of the following:
 
-- **build**: Changes that affect the build system or external dependencies
-- **ci**: Changes to our CI configuration files and scripts
-- **docs**: Documentation only changes
-- **feat**: A new feature
-- **fix**: A bug fix
-- **perf**: A code change that improves performance
-- **refactor**: A code change that neither fixes a bug nor adds a feature
-- **test**: Adding missing tests or correcting existing tests
-- **chore** Changes that don't fit into the above categories
+| Type | When to use | Automatic version bump |
+| --- | --- | --- |
+| `build` | Changes that affect the build system or external dependencies | None |
+| `ci` | Changes to our CI configuration files and scripts | None |
+| `docs` | Documentation only changes | None |
+| `feat` | A new feature | Minor |
+| `fix` | A bug fix | Maintenance |
+| `perf`| A code change that improves performance | None |
+| `refactor`| A code change that neither fixes a bug nor adds a feature | None |
+| `test`| Adding missing tests or correcting existing tests | None |
+| `chore` | Changes that don't fit into the above categories | None |
 
 For example, if you're making a bug fix to the [Data
 frame](src/datasources/data-frame/) plugin, your PR title (and therefore the
 commit message when merging into `main`) would be something like:
 
 `fix(data-frame): prevent crash when user hits their head on the keyboard`
+
+Note that none of the `<type>` values will automatically trigger a major version bump. To force a new major version bump, you must put `BREAKING CHANGE: <breaking change summary>` in the footer of the commit. Follow the [commit message format](https://github.com/angular/angular/blob/main/contributing-docs/commit-message-guidelines.md#commit-message-footer) outlined in the Angular docs.
 
 ### WSL setup
 
