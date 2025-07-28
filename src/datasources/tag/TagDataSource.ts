@@ -66,22 +66,18 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
   }
 
   private async getMostRecentTagsByMultiplePaths(paths: string[], workspace: string) {
-    let filter = `(${paths.map(path => `path = "${path}"`).join(' or ')})`;
-    if (workspace) {
-      filter += ` && workspace = "${workspace}"`;
-    }
-    const response = await this.post<TagsWithValues>(this.tagUrl + '/query-tags-with-values', {
-      filter,
+    const workspaceQuery = [workspace || "*"];
+    const response = await this.post<TagsWithValues>(`${this.tagUrl}/fetch-tags-with-values`, {
+      paths: paths,
+      workspaces: workspaceQuery,
       take: 100,
-      orderBy: 'TIMESTAMP',
-      descending: true,
     });
 
     return response.tagsWithValues.length ? response.tagsWithValues : Throw(`No tags matched the path '${paths}'`)
   }
 
   shouldRunQuery(query: TagQuery): boolean {
-    return Boolean(query.path);
+    return Boolean(query.path) && !query.hide;
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

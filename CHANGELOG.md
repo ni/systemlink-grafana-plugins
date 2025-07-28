@@ -1,3 +1,51 @@
+## [3.147.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.147.2...v3.147.3) (2025-07-21)
+
+### Bug Fixes
+
+* **workorders,testplans:** Sort variable options by their label ([#361](https://github.com/ni/systemlink-grafana-plugins/issues/361)) ([cc446b9](https://github.com/ni/systemlink-grafana-plugins/commit/cc446b91720ca29d03f64f7e573ef52dbe427519))
+
+## [3.147.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.147.1...v3.147.2) (2025-07-18)
+
+### Bug Fixes
+
+* **products, results:** Sort variable options in dropdown ([#360](https://github.com/ni/systemlink-grafana-plugins/issues/360)) ([4a5a6a8](https://github.com/ni/systemlink-grafana-plugins/commit/4a5a6a83e5ee05f7d55771f58789ad0f29eeb26d))
+
+## [3.147.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.147.0...v3.147.1) (2025-07-17)
+
+### Bug Fixes
+
+* **system:** prevent hidden system queries to run ([#350](https://github.com/ni/systemlink-grafana-plugins/issues/350)) ([bc02654](https://github.com/ni/systemlink-grafana-plugins/commit/bc026545cad7c30d561f57ef5d1ff7e77c61ffc1))
+
+## [3.147.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.146.0...v3.147.0) (2025-07-16)
+
+### Features
+
+* **asset:** add missing fields from asset model ([#359](https://github.com/ni/systemlink-grafana-plugins/issues/359)) ([ea320a4](https://github.com/ni/systemlink-grafana-plugins/commit/ea320a47e3e34d2c4a29635ea0c4651a8fb45121))
+
+## [3.146.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.145.1...v3.146.0) (2025-07-14)
+
+### Features
+
+* **products:** update field labels and refactor projection mapping  ([#349](https://github.com/ni/systemlink-grafana-plugins/issues/349)) ([3ee42f4](https://github.com/ni/systemlink-grafana-plugins/commit/3ee42f4b1de73afbc55f823e802a798c418ac900))
+
+## [3.145.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.145.0...v3.145.1) (2025-07-09)
+
+### Bug Fixes
+
+* **asset,tags,notebook:** hide query options from table combo box when query is hidden ([#351](https://github.com/ni/systemlink-grafana-plugins/issues/351)) ([71bf387](https://github.com/ni/systemlink-grafana-plugins/commit/71bf387a4a020556a592b7f314e17c9546a31ad3))
+
+## [3.145.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.144.1...v3.145.0) (2025-07-08)
+
+### Features
+
+* **tags:** update tag datasource with new endpoint to fetch tag data ([#352](https://github.com/ni/systemlink-grafana-plugins/issues/352)) ([dfa4fb0](https://github.com/ni/systemlink-grafana-plugins/commit/dfa4fb0fe87bbdf2b1f7d2088c7435ba4c81cfa4))
+
+## [3.144.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.144.0...v3.144.1) (2025-06-30)
+
+### Bug Fixes
+
+* **products:** Add query name as the refIds for queries  ([#348](https://github.com/ni/systemlink-grafana-plugins/issues/348)) ([2ac712d](https://github.com/ni/systemlink-grafana-plugins/commit/2ac712d5a4e93a903228c768a4e78995c2bba172))
+
 ## [3.144.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.143.0...v3.144.0) (2025-06-30)
 
 ### Features

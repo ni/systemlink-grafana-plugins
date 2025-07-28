@@ -64,6 +64,7 @@ exports[`query returns column headers with no data when Query Products returns n
         "values": [],
       },
     ],
+    "name": "A",
     "refId": "A",
   },
 ]
@@ -102,6 +103,7 @@ exports[`query returns data when there are valid queries 1`] = `
         ],
       },
     ],
+    "name": "A",
     "refId": "A",
   },
 ]
@@ -111,6 +113,7 @@ exports[`query returns empty data for invalid properties query 1`] = `
 [
   {
     "fields": [],
+    "name": "A",
     "refId": "A",
   },
 ]
@@ -120,6 +123,7 @@ exports[`query returns empty data for invalid take query 1`] = `
 [
   {
     "fields": [],
+    "name": "A",
     "refId": "A",
   },
 ]
