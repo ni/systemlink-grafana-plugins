@@ -1,3 +1,13 @@
+## [4.0.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.147.3...v4.0.0) (2025-07-28)
+
+### ⚠ BREAKING CHANGES
+
+* clients must upgrade to Grafana v11.6.4+
+
+### Documentation
+
+* Update README and force major release ([#367](https://github.com/ni/systemlink-grafana-plugins/issues/367)) ([7b7c945](https://github.com/ni/systemlink-grafana-plugins/commit/7b7c945d73f6478ba10c30ea56727b1882e76c3e))
+
 ## [3.147.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.147.2...v3.147.3) (2025-07-21)
 
 ### Bug Fixes
