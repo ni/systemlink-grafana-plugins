@@ -391,7 +391,7 @@ describe('query', () => {
     ]);
   });
 
-  test('should display an empty cell when properties is returned as empty objects', async () => {
+  test('should display an empty cell when properties is returned as empty object', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
       .mockReturnValue(createFetchResponse({
