@@ -66,14 +66,14 @@ describe('QueryStepsEditor', () => {
     dataOutput = screen.getByRole('radio', { name: 'Data' });
     totalCountOutput = screen.getByRole('radio', { name: 'Total Count' });
     recordCount = screen.getByDisplayValue(1000);
-    showMeasurements = screen.getAllByRole('checkbox')[0];
+    showMeasurements = screen.getAllByRole('switch')[0];
   });
 
   describe('Data outputType', () => {
     let useTimeRange: HTMLElement;
 
     beforeEach(() => {
-      useTimeRange = screen.getAllByRole('checkbox')[1];
+      useTimeRange = screen.getAllByRole('switch')[1];
     });
 
     test('should render with default query when default values are provided', async () => {

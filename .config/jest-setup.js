@@ -7,6 +7,7 @@
 
 import '@testing-library/jest-dom';
 import { TextEncoder } from 'util';
+import { mockIntersectionObserver } from 'jsdom-testing-mocks'
 
 // Fix missing globals when `jsdom` is used in a test environment.
 // See https://github.com/jsdom/jsdom/issues/2524
@@ -26,5 +27,7 @@ Object.defineProperty(global, 'matchMedia', {
     dispatchEvent: jest.fn(),
   })),
 });
+
+mockIntersectionObserver();
 
 HTMLCanvasElement.prototype.getContext = () => {};

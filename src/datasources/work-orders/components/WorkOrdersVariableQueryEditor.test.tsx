@@ -70,7 +70,7 @@ describe('WorkOrdersVariableQueryEditor', () => {
   });
 
   it('should render descending', async () => {
-    const descending = container.getByRole('checkbox');
+    const descending = container.getByRole('switch');
     expect(descending).toBeInTheDocument();
     expect(descending).not.toBeChecked();
   });
@@ -137,7 +137,7 @@ describe('WorkOrdersVariableQueryEditor', () => {
     });
 
     it('should call onChange with descending when user toggles descending', async () => {
-      const descendingCheckbox = container.getByRole('checkbox');
+      const descendingCheckbox = container.getByRole('switch');
 
       userEvent.click(descendingCheckbox);
 

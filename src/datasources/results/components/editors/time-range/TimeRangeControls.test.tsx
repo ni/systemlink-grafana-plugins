@@ -21,7 +21,7 @@ describe('TimeRangeControls', () => {
 
   beforeEach(() => {
     render(<TimeRangeControls {...defaultProps} />);
-    useTimeRange = screen.getAllByRole('checkbox')[0];
+    useTimeRange = screen.getAllByRole('switch')[0];
   });
 
   it('renders the component with default props', () => {

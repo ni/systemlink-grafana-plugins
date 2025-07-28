@@ -29,7 +29,7 @@ test.each(severityCases)('renders with severity %s', (severity: AlertVariant) =>
   render(<FloatingError message='error msg' severity={severity} />);
 
   expect(screen.getByText('error msg')).toBeInTheDocument();
-  expect(screen.getByRole('alert')).toHaveAttribute('data-testid', `data-testid Alert ${severity}`);
+  expect(screen.getByRole('alert').children.item(0)).toHaveAttribute('data-testid', `data-testid Alert ${severity}`);
 });
 
 test('does not render without error message', () => {

@@ -78,7 +78,7 @@ describe('TestPlansQueryEditor', () => {
             expect(orderBy).toHaveAccessibleDescription('Select a field to set the query order');
             expect(orderBy).toHaveDisplayValue('');
 
-            const descending = container.getByRole('checkbox');
+            const descending = container.getByRole('switch');
             expect(descending).toBeInTheDocument();
             expect(descending).not.toBeChecked();
 
@@ -365,7 +365,7 @@ describe('TestPlansQueryEditor', () => {
 
         it('should call onChange with descending when user toggles descending', async () => {
             const container = await renderElement();
-            const descendingCheckbox = container.getByRole('checkbox');
+            const descendingCheckbox = container.getByRole('switch');
 
             userEvent.click(descendingCheckbox);
 
