@@ -20,7 +20,7 @@ describe('ProductsQueryEditor', () => {
     [onChange, onRunQuery] = render({ refId: '', properties: [], orderBy: undefined, queryBy: '' } as ProductQuery);
     await waitFor(() => properties = screen.getAllByRole('combobox')[0]);
     orderBy = screen.getAllByRole('combobox')[1];
-    descending = screen.getByRole('checkbox');
+    descending = screen.getByRole('switch');
     recordCount = screen.getByDisplayValue('1000');
   });
 

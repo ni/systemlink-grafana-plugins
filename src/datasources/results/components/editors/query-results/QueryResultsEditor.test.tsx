@@ -81,7 +81,7 @@ describe('QueryResultsEditor', () => {
     dataOutput = screen.getByRole('radio', { name: 'Data' });
     totalCountOutput = screen.getByRole('radio', { name: 'Total Count' });
     recordCount = screen.getByDisplayValue(1000);
-    useTimeRange = screen.getAllByRole('checkbox')[0];
+    useTimeRange = screen.getAllByRole('switch')[0];
   });
 
   test('should render with default query when default values are provided', async () => {
