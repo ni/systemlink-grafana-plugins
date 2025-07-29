@@ -1334,6 +1334,8 @@ describe('QueryStepsDataSource', () => {
         {path: 'Parent path1\\ExistingSlash\nChild path2'},
         {path: 'No child paths'},
         {path: 'Path having newline\\nin between words\nChild path2'},
+        {path: ''},
+        {path: null},
       ]
       backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
@@ -1362,6 +1364,14 @@ describe('QueryStepsDataSource', () => {
         {
           label: 'Path having newline\\nin between words\\Child path2',
           value: 'Path having newline\\nin between words\nChild path2'
+        },
+        {
+          label: '',
+          value: ''
+        },
+        {
+          label: '',
+          value: ''
         }
       ]);
     })
