@@ -36,7 +36,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
   }
 
   baseUrl = this.instanceSettings.url + '/nidataframe/v1';
-  filteredTableColumns: string[] = [];
+  filteredTableColumns: TableProperties[] = [];
 
   defaultQuery = defaultQuery;
   workspaceUtils: WorkspaceUtils;
@@ -50,7 +50,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
 
   async runQuery(query: DataFrameQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
     const processedQuery = this.processQuery(query);
-    if (processedQuery.type === DataFrameQueryType.Data && processedQuery.queryBy !== '') {
+    if (processedQuery.type === DataFrameQueryType.Data) {
       const tableData = await this.queryTables(processedQuery.queryBy);
       this.setFilteredColumns(tableData)
       if (!tableData || tableData.length === 0) {
@@ -118,7 +118,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
     return properties;
   }
 
-  getTableColumns(): string[] {
+  getTableColumns(): TableProperties[] {
     return this.filteredTableColumns;
   }
 
@@ -217,8 +217,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
   }
 
   private setFilteredColumns(tableData: TableProperties[]): void {
-    const columns = tableData.flatMap(table => table.columns.map(col => col.name));
-    this.filteredTableColumns = _.uniq(columns).sort((a, b) => a.localeCompare(b));
+    this.filteredTableColumns = tableData;
   }
 
   private getColumnTypes(columnNames: string[], tableProperties: Column[]): Column[] {

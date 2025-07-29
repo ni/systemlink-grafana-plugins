@@ -21,7 +21,7 @@ import { getTemplateSrv } from '@grafana/runtime';
 import { FloatingError, parseErrorMessage } from '../../../core/errors';
 import { DataFrameQueryEditorCommon, Props } from './DataFrameQueryEditorCommon';
 import { enumToOptions, validateNumericInput } from 'core/utils';
-import { DataFrameQueryType } from '../types';
+import { DataFrameQueryType, TableProperties } from '../types';
 import { DataframeQueryBuilder } from './DataframeQuerybuilder';
 import { Workspace } from 'core/types';
 import { ResultsQueryBuilder } from 'datasources/results/components/query-builders/query-results/ResultsQueryBuilder';
@@ -36,9 +36,10 @@ export const DataFrameQueryEditor = (props: Props) => {
   const common = new DataFrameQueryEditorCommon(props, handleError);
   const [isOpen, setIsOpen] = useState(true);
   const [isDecimationOpen, setIsDecimationOpen] = useState(false);
+  let columnNameMap: Record<string, string[]> = {};
 
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
-  const [tableColumns, setTableColumns] = useState<string[] | null>(null);
+  const [tableProperties, setTableProperties] = useState<TableProperties[] | null>(null);
   useEffect(() => {
     const loadWorkspaces = async () => {
       const workspaces = await common.datasource.loadWorkspaces();
@@ -54,29 +55,78 @@ export const DataFrameQueryEditor = (props: Props) => {
 
   useEffect(() => {
     const loadTableColumns = async () => {
-      const columns = common.datasource.filteredTableColumns;
-      if (columns !== tableColumns) {
-        setTableColumns(columns);
-      }
+      const tableProperties = common.datasource.filteredTableColumns;
+      setTableProperties(tableProperties);
     };
     loadTableColumns();
-  }, [common.datasource.filteredTableColumns, tableColumns]);
+  }, [common.datasource.filteredTableColumns, tableProperties]);
 
-  const handleColumnChange = (items: Array<ComboboxOption<string | number>>) => {
-    common.handleQueryChange({ ...common.query, columns: items.map(i => String(i.value)) }, false);
+  const handleColumnChange = (items: Array<ComboboxOption<string>>) => {
+    // const selectedColumnNames = items.map(item => item.value as string);
+    // const columnTableMap: Record<string, string[]> = {};
+
+    // selectedColumnNames.forEach(colName => {
+    //   Object.entries(columnNameMap).forEach(([tableId, columns]) => {
+    //     if (columns.includes(colName)) {
+    //       if (!columnTableMap[colName]) {
+    //         columnTableMap[colName] = [];
+    //       }
+    //       columnTableMap[colName].push(tableId);
+    //     }
+    //   });
+    // });
+
+    // Update query columns and optionally use the map as needed
+    common.handleQueryChange(
+      {
+      ...common.query,
+      columns: items.map(item => item.value as string),
+      // columnTableMap, // Add this to query if you want to use it elsewhere
+      },
+      false
+    );
   };
 
-  const loadColumnOptions = (): Array<ComboboxOption<string | number>> => {
-    const columnOptions: Array<ComboboxOption<string | number>> = (tableColumns ?? []).map(c => ({
-      label: c,
-      value: c,
-    }));
-    columnOptions.unshift(
-      ...getVariableOptions().map(opt => ({
-        label: opt.label ?? String(opt.value),
-        value: opt.value!,
-      }))
-    );
+  // const loadColumnOptions = (): Array<ComboboxOption<string>> => {
+  //   const columnOptions: Array<ComboboxOption<string>> = [];
+  //   if (tableProperties) {
+  //     tableProperties.forEach(table => {
+  //       table.columns.forEach(col => {
+  //         columnOptions.push({
+  //           label: col.name,
+  //           value: String(col.name),
+  //           group: table.name,
+  //         });
+  //       });
+  //     });
+  //   }
+  //   columnOptions.unshift(
+  //     ...getVariableOptions().map(opt => ({
+  //       label: opt.label ?? String(opt.value),
+  //       value: String(opt.value!),
+  //     }))
+  //   );
+  //   return columnOptions;
+  // };
+
+  const loadColumnOptions = (): Array<ComboboxOption<string>> => {
+    if (tableProperties) {
+      tableProperties.forEach(table => {
+        columnNameMap[table.id] = table.columns.map(col => col.name);
+      });
+    }
+    const columnOptions =
+      Array.from(
+      new Map(
+        (tableProperties?.flatMap(table => table.columns) ?? []).map(col => [
+        col.name,
+        {
+          label: col.name,
+          value: String(col.name),
+        },
+        ])
+      ).values()
+      );
     return columnOptions;
   };
 
@@ -126,7 +176,7 @@ export const DataFrameQueryEditor = (props: Props) => {
       {common.query.type === DataFrameQueryType.Properties && (
         <>
           <InlineField label="Properties" labelWidth={25} tooltip={tooltips.columns}>
-            <MultiSelect
+            <MultiCombobox
               options={loadColumnOptions()}
               onChange={handleColumnChange}
               onBlur={common.onRunQuery}
