@@ -186,7 +186,12 @@ export const DataFrameQueryEditor = (props: Props) => {
         </>
       )}
 
-      <ControlledCollapse label="Query configurations" collapsible={true} isOpen={isOpen} onToggle={() => setIsOpen(!isOpen)}>
+      <ControlledCollapse
+        label="Query configurations"
+        collapsible={true}
+        isOpen={isOpen}
+        onToggle={() => setIsOpen(!isOpen)}
+      >
         <Stack direction="row" justifyContent={'flex-start'} gap={1} wrap={'wrap'}>
           <Stack direction={'column'} justifyContent={'flex-start'} gap={1}>
             <div style={{ width: '544px' }}>
@@ -341,27 +346,29 @@ export const DataFrameQueryEditor = (props: Props) => {
                   }
                 ></InlineSwitch>
               </InlineField>
-              <InlineField label="Take" labelWidth={30} tooltip={tooltips.decimation}>
-                <AutoSizeInput
-                  minWidth={20}
-                  maxWidth={20}
-                  type="number"
-                  defaultValue={common.query.recordCount}
-                  onCommitChange={event =>
-                    common.handleQueryChange(
-                      {
-                        ...common.query,
-                        recordCount: parseInt((event.target as HTMLInputElement).value, 10),
-                      },
-                      true
-                    )
-                  }
-                  placeholder="Enter record count"
-                  onKeyDown={event => {
-                    validateNumericInput(event);
-                  }}
-                />
-              </InlineField>
+              {decimationMethodSelected === 'NONE' && (
+                <InlineField label="Take" labelWidth={30} tooltip={tooltips.decimation}>
+                  <AutoSizeInput
+                    minWidth={20}
+                    maxWidth={20}
+                    type="number"
+                    defaultValue={common.query.recordCount}
+                    onCommitChange={event =>
+                      common.handleQueryChange(
+                        {
+                          ...common.query,
+                          recordCount: parseInt((event.target as HTMLInputElement).value, 10),
+                        },
+                        true
+                      )
+                    }
+                    placeholder="Enter record count"
+                    onKeyDown={event => {
+                      validateNumericInput(event);
+                    }}
+                  />
+                </InlineField>
+              )}
             </div>
           </Collapse>
         </>
