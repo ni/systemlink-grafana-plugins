@@ -95,7 +95,7 @@ export interface ProductResponseProperties {
   updatedAt?: string;
   workspace?: string;
   keywords?: any;
-  properties?: Object;
+  properties?: Record<string, string>;
   fileIds?: string[];
   returnCount?: number;
 }
