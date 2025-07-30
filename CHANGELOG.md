@@ -1,3 +1,9 @@
+## [4.0.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.0.0...v4.0.1) (2025-07-30)
+
+### Bug Fixes
+
+* **products:** Display empty cell for properties when API returns empty object ([#365](https://github.com/ni/systemlink-grafana-plugins/issues/365)) ([5268e25](https://github.com/ni/systemlink-grafana-plugins/commit/5268e25ede639198b28d0dc345ceafc27c1927cb))
+
 ## [4.0.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.147.3...v4.0.0) (2025-07-28)
 
 ### ⚠ BREAKING CHANGES
