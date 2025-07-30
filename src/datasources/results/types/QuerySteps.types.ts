@@ -178,6 +178,11 @@ export enum StepsPathProperties {
   path = 'path'
 };
 
+export type StepPaths = {
+  label: string;
+  value: string;
+};
+
 export interface QueryStepPathsResponse {
   paths: StepPathResponseProperties[];
   continuationToken?: string;
