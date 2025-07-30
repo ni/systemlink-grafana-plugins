@@ -35,7 +35,7 @@ export const DataFrameQueryEditor = (props: Props) => {
   const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
   const common = new DataFrameQueryEditorCommon(props, handleError);
   const [isOpen, setIsOpen] = useState(true);
-  const [isDecimationOpen, setIsDecimationOpen] = useState(false);
+  const [isDecimationOpen, setIsDecimationOpen] = useState(true);
   let columnNameMap: Record<string, string[]> = {};
 
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
@@ -79,9 +79,9 @@ export const DataFrameQueryEditor = (props: Props) => {
     // Update query columns and optionally use the map as needed
     common.handleQueryChange(
       {
-      ...common.query,
-      columns: items.map(item => item.value as string),
-      // columnTableMap, // Add this to query if you want to use it elsewhere
+        ...common.query,
+        columns: items.map(item => item.value as string),
+        // columnTableMap, // Add this to query if you want to use it elsewhere
       },
       false
     );
@@ -115,18 +115,17 @@ export const DataFrameQueryEditor = (props: Props) => {
         columnNameMap[table.id] = table.columns.map(col => col.name);
       });
     }
-    const columnOptions =
-      Array.from(
+    const columnOptions = Array.from(
       new Map(
         (tableProperties?.flatMap(table => table.columns) ?? []).map(col => [
-        col.name,
-        {
-          label: col.name,
-          value: String(col.name),
-        },
+          col.name,
+          {
+            label: col.name,
+            value: String(col.name),
+          },
         ])
       ).values()
-      );
+    );
     return columnOptions;
   };
 
@@ -186,40 +185,8 @@ export const DataFrameQueryEditor = (props: Props) => {
           </InlineField>
         </>
       )}
-      {common.query.type === DataFrameQueryType.Data && (
-        <Collapse label="Column configurations" isOpen={isOpen} onToggle={() => setIsOpen(!isOpen)} collapsible={true}>
-          <InlineField label="Columns" labelWidth={25} tooltip={tooltips.columns} required>
-            <MultiCombobox
-              options={loadColumnOptions()}
-              onChange={handleColumnChange}
-              onBlur={common.onRunQuery}
-              width={'auto'}
-              minWidth={22}
-              maxWidth={125}
-              value={common.query.columns.map(c => ({ label: c, value: c }))}
-              placeholder="Select columns"
-              enableAllOption={true}
-            />
-          </InlineField>
-          <InlineField label="Include index columns" labelWidth={25} tooltip={tooltips.filterNulls}>
-            <InlineSwitch
-              value={common.query.useIndexColumn}
-              onChange={event =>
-                common.handleQueryChange({ ...common.query, useIndexColumn: event.currentTarget.checked }, true)
-              }
-            ></InlineSwitch>
-          </InlineField>
-          <InlineField label="Filter nulls" labelWidth={25} tooltip={tooltips.filterNulls}>
-            <InlineSwitch
-              value={common.query.filterNulls}
-              onChange={event =>
-                common.handleQueryChange({ ...common.query, filterNulls: event.currentTarget.checked }, true)
-              }
-            ></InlineSwitch>
-          </InlineField>
-        </Collapse>
-      )}
-      <ControlledCollapse label="Query configurations" collapsible={true}>
+
+      <ControlledCollapse label="Query configurations" collapsible={true} isOpen={isOpen} onToggle={() => setIsOpen(!isOpen)}>
         <Stack direction="row" justifyContent={'flex-start'} gap={1} wrap={'wrap'}>
           <Stack direction={'column'} justifyContent={'flex-start'} gap={1}>
             <div style={{ width: '544px' }}>
@@ -309,6 +276,39 @@ export const DataFrameQueryEditor = (props: Props) => {
         </Stack>
       </ControlledCollapse>
       {common.query.type === DataFrameQueryType.Data && (
+        <Collapse label="Column configurations" isOpen={isOpen} onToggle={() => setIsOpen(!isOpen)} collapsible={true}>
+          <InlineField label="Columns" labelWidth={30} tooltip={tooltips.columns} required>
+            <MultiCombobox
+              options={loadColumnOptions()}
+              onChange={handleColumnChange}
+              onBlur={common.onRunQuery}
+              width={'auto'}
+              minWidth={22}
+              maxWidth={125}
+              value={common.query.columns.map(c => ({ label: c, value: c }))}
+              placeholder="Select columns"
+              enableAllOption={true}
+            />
+          </InlineField>
+          <InlineField label="Include index columns" labelWidth={30} tooltip={tooltips.filterNulls}>
+            <InlineSwitch
+              value={common.query.useIndexColumn}
+              onChange={event =>
+                common.handleQueryChange({ ...common.query, useIndexColumn: event.currentTarget.checked }, true)
+              }
+            ></InlineSwitch>
+          </InlineField>
+          <InlineField label="Filter nulls" labelWidth={30} tooltip={tooltips.filterNulls}>
+            <InlineSwitch
+              value={common.query.filterNulls}
+              onChange={event =>
+                common.handleQueryChange({ ...common.query, filterNulls: event.currentTarget.checked }, true)
+              }
+            ></InlineSwitch>
+          </InlineField>
+        </Collapse>
+      )}
+      {common.query.type === DataFrameQueryType.Data && (
         <>
           <Collapse
             label="Decimation settings"
@@ -317,7 +317,7 @@ export const DataFrameQueryEditor = (props: Props) => {
             collapsible={true}
           >
             <div>
-              <InlineField label="Decimation method" labelWidth={25} tooltip={tooltips.decimation}>
+              <InlineField label="Decimation method" labelWidth={30} tooltip={tooltips.decimation}>
                 <Select
                   options={decimationMethods}
                   onChange={onDecimationMethodChange}
@@ -325,7 +325,7 @@ export const DataFrameQueryEditor = (props: Props) => {
                   width={20}
                 />
               </InlineField>
-              <InlineField label="X-column" labelWidth={25} tooltip={tooltips.columns}>
+              <InlineField label="X-column" labelWidth={30} tooltip={tooltips.columns}>
                 <Select
                   options={[]}
                   onChange={item => common.handleQueryChange({ ...common.query, XAxisColumn: item.value! }, true)}
@@ -333,7 +333,7 @@ export const DataFrameQueryEditor = (props: Props) => {
                   width={20}
                 />
               </InlineField>
-              <InlineField label="Use time range" labelWidth={25} tooltip={tooltips.useTimeRange}>
+              <InlineField label="Filter x-axis range on zoom/pan" labelWidth={30} tooltip={tooltips.useTimeRange}>
                 <InlineSwitch
                   value={common.query.applyTimeFilters}
                   onChange={event =>
@@ -341,7 +341,7 @@ export const DataFrameQueryEditor = (props: Props) => {
                   }
                 ></InlineSwitch>
               </InlineField>
-              <InlineField label="Take" labelWidth={25} tooltip={tooltips.decimation}>
+              <InlineField label="Take" labelWidth={30} tooltip={tooltips.decimation}>
                 <AutoSizeInput
                   minWidth={20}
                   maxWidth={20}

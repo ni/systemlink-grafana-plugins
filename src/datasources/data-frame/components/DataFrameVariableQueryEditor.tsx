@@ -1,33 +1,57 @@
-import React, { useState } from 'react';
-import { AsyncSelect } from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
-import { toOption } from '@grafana/data';
-import { isValidId } from '../utils';
-import { FloatingError, parseErrorMessage } from '../../../core/errors';
 import { DataFrameQueryEditorCommon, Props } from './DataFrameQueryEditorCommon';
+import React from 'react';
+import { Select } from '@grafana/ui';
+import { SelectableValue } from '@grafana/data';
+import { ResultsQueryBuilder } from 'datasources/results/components/query-builders/query-results/ResultsQueryBuilder';
+import { DataframeQueryBuilder } from './DataframeQuerybuilder';
 
 export function DataFrameVariableQueryEditor(props: Props) {
-  const [errorMsg, setErrorMsg] = useState<string | undefined>('');
-  const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
-  const common = new DataFrameQueryEditorCommon(props, handleError);
+  const onDecimationMethodChange = (item: SelectableValue<string>) => {
+    const common = new DataFrameQueryEditorCommon(props, handleError);
+    common.handleQueryChange({ ...props.query, decimationMethod: item.value! }, false);
+  };
 
   return (
-    <div style={{ position: 'relative' }}>
-      <InlineField label="Id">
-        <AsyncSelect
-          allowCreateWhileLoading
-          allowCustomValue
-          cacheOptions={false}
-          defaultOptions
-          isValidNewOption={isValidId}
-          loadOptions={common.handleLoadOptions}
-          onChange={common.handleIdChange}
-          placeholder="Search by name or enter id"
-          width={30}
-          value={common.query.tableId ? toOption(common.query.tableId) : null}
-        />
+    <>
+      <InlineField label="Query type" labelWidth={30} tooltip="Select the type of query to run">
+        <Select
+          options={[{ label: 'List data table columns', value: '' }]}
+          onChange={onDecimationMethodChange}
+          value={'List data tables'}
+          defaultValue={{ label: 'List data table columns', value: '' }}
+          width={65.5}
+        ></Select>
       </InlineField>
-      <FloatingError message={errorMsg}/>
-    </div>
+        <InlineField label="Query by results properties" labelWidth={30} tooltip="Select the type of query to run">
+          <ResultsQueryBuilder
+            filter={''}
+            workspaces={[]}
+            status={[]}
+            partNumbers={[]}
+            globalVariableOptions={[]}
+            onChange={(event: any) => {}}
+          ></ResultsQueryBuilder>
+        </InlineField>
+        <InlineField label="Query by data table properties" labelWidth={30} tooltip="Select the type of query to run">
+          <DataframeQueryBuilder
+            filter={''}
+            workspaces={[]}
+            globalVariableOptions={[]}
+            onChange={(event: any) => {}}
+          ></DataframeQueryBuilder>
+        </InlineField>
+        {/* <InlineField label="Query by column properties" labelWidth={30} tooltip="Select the type of query to run">
+          <DataframeQueryBuilder
+            filter={''}
+            workspaces={[]}
+            globalVariableOptions={[]}
+            onChange={(event: any) => {}}
+          ></DataframeQueryBuilder>
+        </InlineField> */}
+    </>
   );
+}
+function handleError(error: Error): void {
+  throw new Error('Function not implemented.');
 }
