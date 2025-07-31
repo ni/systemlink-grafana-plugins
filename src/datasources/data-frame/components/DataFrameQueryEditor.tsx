@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { useAsync } from 'react-use';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useAsync, useLocation } from 'react-use';
 import { SelectableValue, toOption } from '@grafana/data';
 import { InlineField, InlineSwitch, MultiSelect, Select, AsyncSelect, RadioButtonGroup } from '@grafana/ui';
 import { decimationMethods } from '../constants';
 import _ from 'lodash';
-import { getTemplateSrv } from '@grafana/runtime';
+import { getTemplateSrv, locationService } from '@grafana/runtime';
 import { isValidId } from '../utils';
 import { FloatingError, parseErrorMessage } from '../../../core/errors';
 import { DataFrameQueryEditorCommon, Props } from './DataFrameQueryEditorCommon';
@@ -14,7 +14,10 @@ import { DataFrameQueryType } from '../types';
 export const DataFrameQueryEditor = (props: Props) => {
   const [errorMsg, setErrorMsg] = useState<string | undefined>('');
   const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
-  const common = new DataFrameQueryEditorCommon(props, handleError);
+  const common = useMemo(
+    () => new DataFrameQueryEditorCommon(props, handleError)
+    , [props]
+  );
   const tableProperties = useAsync(() => common.datasource.getTableProperties(common.query.tableId).catch(handleError), [common.query.tableId]);
 
   const handleColumnChange = (items: Array<SelectableValue<string>>) => {
@@ -26,6 +29,68 @@ export const DataFrameQueryEditor = (props: Props) => {
     columnOptions.unshift(...getVariableOptions());
     return columnOptions;
   }
+
+  // When the user toggles the "Fetch high resolution data on zoom" switch, we update the URL query parameters
+  const updateFetchHighResolutionDataStateInQueryParams = (fetchHighResolutionData: boolean) => {
+    const editPanelId = getPanelId();
+    let fetchHighResolutionDataEnabledPanelIds: string[] = getEnabledPanelIds();
+
+    if (fetchHighResolutionData && !fetchHighResolutionDataEnabledPanelIds.includes(editPanelId)) {
+      fetchHighResolutionDataEnabledPanelIds.push(editPanelId);
+    }
+
+    if (!fetchHighResolutionData && fetchHighResolutionDataEnabledPanelIds.includes(editPanelId)) {
+      fetchHighResolutionDataEnabledPanelIds = fetchHighResolutionDataEnabledPanelIds.filter((panelId) => panelId !== editPanelId);
+    }
+
+    locationService.partial({
+      [`fetchHighResolutionData`]: fetchHighResolutionDataEnabledPanelIds.join(','),
+    }, true);
+  }
+
+  // When URL query parameters change, we check if the current panel is enabled for fetching high resolution data and update the state in all the queries available in that panel - To sync the state across queries.
+  const location = useLocation();
+  useEffect(() => {
+    const editPanelId = getPanelId();
+    const fetchHighResolutionDataEnabledPanelIds: string[] = getEnabledPanelIds();
+
+    const updatedFetchHighResolutionDataState = fetchHighResolutionDataEnabledPanelIds.includes(editPanelId ?? '');
+    if (updatedFetchHighResolutionDataState !== common.query.fetchHighResolutionData) {
+      common.handleQueryChange({ ...common.query, fetchHighResolutionData: updatedFetchHighResolutionDataState }, true);
+    }
+  }, [location.search, common]);
+
+  // Utility functions
+  const getEnabledPanelIds = (): string[] => {
+    const queryParams = locationService.getSearchObject();
+    const fetchHighResolutionDataOnZoom = queryParams['fetchHighResolutionData'];
+    let enabledPanelIds: string[] = [];
+
+    if (
+      fetchHighResolutionDataOnZoom !== undefined
+      && typeof fetchHighResolutionDataOnZoom === 'string'
+      && fetchHighResolutionDataOnZoom !== ''
+    ) {
+      enabledPanelIds = fetchHighResolutionDataOnZoom.split(',');
+    }
+
+    return enabledPanelIds;
+  }
+
+  const getPanelId = (): string => {
+    const queryParams = locationService.getSearchObject();
+    const editPanelId = queryParams['editPanel'];
+
+    if (
+      editPanelId !== undefined
+      && (typeof editPanelId === 'string' || typeof editPanelId === 'number')
+      && editPanelId !== ''
+    ) {
+      return editPanelId.toString();
+    }
+    return '';
+  }
+
 
   return (
     <div style={{ position: 'relative' }}>
@@ -74,10 +139,10 @@ export const DataFrameQueryEditor = (props: Props) => {
               onChange={event => common.handleQueryChange({ ...common.query, filterNulls: event.currentTarget.checked }, true)}
             ></InlineSwitch>
           </InlineField>
-          <InlineField label="Use time range" tooltip={tooltips.useTimeRange}>
+          <InlineField label="Fetch high resolution data on zoom" tooltip={tooltips.useTimeRange}>
             <InlineSwitch
-              value={common.query.applyTimeFilters}
-              onChange={event => common.handleQueryChange({ ...common.query, applyTimeFilters: event.currentTarget.checked }, true)}
+              value={common.query.fetchHighResolutionData}
+              onChange={event => updateFetchHighResolutionDataStateInQueryParams(event.currentTarget.checked)}
             ></InlineSwitch>
           </InlineField>
         </>
