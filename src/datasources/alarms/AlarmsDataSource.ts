@@ -2,8 +2,9 @@ import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO } from '@gra
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 
 import { DataSourceBase } from 'core/DataSourceBase';
+import { ApiService } from 'core/ApiService';
 import { AlarmsQuery, AlarmPropertiesOptions } from './types';
-import { alarms } from './constants/alarms';
+import { queryInBatches } from 'core/utils';
 
 // Define the Alarm type locally if not exported from './types'
 export interface Alarm {
@@ -68,16 +69,20 @@ export enum AlarmTransitionInclusionOption {
 }
 
 export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
+
+  private apiService: ApiService;
+
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    this.apiService = new ApiService(backendSrv, `${instanceSettings.url}/nialarm/v1`);
   }
 
   baseUrl = `${this.instanceSettings.url}/nialarm/v1`;
-  queryAlarmsUrl = `${this.baseUrl}/query-alarms`;
+  queryAlarmsUrl = `/query-instances-with-filter`;
   errorTitle = '';
   errorDescription = '';
   defaultQuery = {
@@ -103,7 +108,7 @@ floorDateToInterval(date: Date, intervalMs: number): Date {
 
 // Count alarms per interval function
 countAlarmsPerInterval(
-  alarms: Alarm[],
+  alarms: AlarmTransition[],
   intervalMs: number
 ): Map<Date, number> {
   // Convert timestamps to Date
@@ -137,9 +142,14 @@ countAlarmsPerInterval(
 }
 
   async runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    const start = new Date(this.templateSrv.replace('${__from:date}', options.scopedVars));
+    const end = new Date(this.templateSrv.replace('${__to:date}', options.scopedVars));
     const now = new Date();
+    console.log(options);
 
-    alarms.forEach(alarmInstance => {
+    const a = await this.queryAlarmsData();
+
+    a.forEach(alarmInstance => {
       const instanceTransitions = alarmInstance.transitions || [];
       const numberOfTransitions = instanceTransitions.length;
 
@@ -163,27 +173,34 @@ countAlarmsPerInterval(
     //   occurredAtCount.set(occurredAtTime, (occurredAtCount.get(occurredAtTime) || 0) + 1);
     // });
 
-    const occurredAtCount = this.countAlarmsPerInterval(alarms, options.intervalMs);
+    let t = a.flatMap(alarm => alarm.transitions)
+    const t2 = t.filter(trans => new Date(trans.occurredAt) >= start && new Date(trans.occurredAt) <= end)
+
+    const t3 = t2.concat(t2).concat(t2).concat(t2).concat(t2).concat(t2).concat(t2).concat(t2).concat(t2).concat(t2);
+
+    const occurredAtCount = this.countAlarmsPerInterval(t3, options.intervalMs);
     console.log('occurredAtCount', occurredAtCount);
 
 
     const times = Array.from(occurredAtCount.keys());
     const counts = Array.from(occurredAtCount.values());
 
+    t = t.concat(t)
+
     return {
       refId: query.refId,
       name: query.refId,
       fields: [
-        {
-          name: 'time',
-          type: 'time',
-          values: times,
-        },
-        {
-          name: 'count',
-          type: 'number',
-          values: counts,
-        },
+        // {
+        //   name: 'time',
+        //   type: 'time',
+        //   values: times,
+        // },
+        // {
+        //   name: 'count',
+        //   type: 'number',
+        //   values: counts,
+        // },
         // {
         //   name: 'time',
         //   type: 'time',
@@ -199,6 +216,121 @@ countAlarmsPerInterval(
         //   type: 'string',
         //   values: timeline.map(t => t.alarmId),
         // },
+        {
+          name: 'occurredAt',
+          type: 'time',
+          values: t.map(trans => new Date(trans.occurredAt).getTime()),
+        },
+        {
+          name: 'severityLevel',
+          type: 'number',
+          values: t.map(trans => trans.severityLevel),
+        },
+        {
+          name: 'transitionType',
+          type: 'string',
+          values: t.map(trans => trans.transitionType),
+        },
+        {
+          name: 'value',
+          type: 'string',
+          values: t.map(trans => trans.value),
+        }, {
+          name: 'occurredAt',
+          type: 'time',
+          values: t.map(trans => new Date(trans.occurredAt).getTime()),
+        },
+        {
+          name: 'severityLevel',
+          type: 'number',
+          values: t.map(trans => trans.severityLevel),
+        },
+        {
+          name: 'transitionType',
+          type: 'string',
+          values: t.map(trans => trans.transitionType),
+        },
+        {
+          name: 'value',
+          type: 'string',
+          values: t.map(trans => trans.value),
+        }, {
+          name: 'occurredAt',
+          type: 'time',
+          values: t.map(trans => new Date(trans.occurredAt).getTime()),
+        },
+        {
+          name: 'severityLevel',
+          type: 'number',
+          values: t.map(trans => trans.severityLevel),
+        },
+        {
+          name: 'transitionType',
+          type: 'string',
+          values: t.map(trans => trans.transitionType),
+        },
+        {
+          name: 'value',
+          type: 'string',
+          values: t.map(trans => trans.value),
+        }, {
+          name: 'occurredAt',
+          type: 'time',
+          values: t.map(trans => new Date(trans.occurredAt).getTime()),
+        },
+        {
+          name: 'severityLevel',
+          type: 'number',
+          values: t.map(trans => trans.severityLevel),
+        },
+        {
+          name: 'transitionType',
+          type: 'string',
+          values: t.map(trans => trans.transitionType),
+        },
+        {
+          name: 'value',
+          type: 'string',
+          values: t.map(trans => trans.value),
+        }, {
+          name: 'occurredAt',
+          type: 'time',
+          values: t.map(trans => new Date(trans.occurredAt).getTime()),
+        },
+        {
+          name: 'severityLevel',
+          type: 'number',
+          values: t.map(trans => trans.severityLevel),
+        },
+        {
+          name: 'transitionType',
+          type: 'string',
+          values: t.map(trans => trans.transitionType),
+        },
+        {
+          name: 'value',
+          type: 'string',
+          values: t.map(trans => trans.value),
+        }, {
+          name: 'occurredAt',
+          type: 'time',
+          values: t.map(trans => new Date(trans.occurredAt).getTime()),
+        },
+        {
+          name: 'severityLevel',
+          type: 'number',
+          values: t.map(trans => trans.severityLevel),
+        },
+        {
+          name: 'transitionType',
+          type: 'string',
+          values: t.map(trans => trans.transitionType),
+        },
+        {
+          name: 'value',
+          type: 'string',
+          values: t.map(trans => trans.value),
+        },
       ],
     } as DataFrameDTO;
   }
@@ -208,7 +340,39 @@ countAlarmsPerInterval(
   }
 
   async testDatasource() {
-    await this.post(this.queryAlarmsUrl, { take: 1 }, { showErrorAlert: false });
+    await this.apiService.post(this.queryAlarmsUrl, { take: 1 }, { showErrorAlert: false });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
+  }
+
+    async queryAlarmsData(
+    filter?: string,
+    projection?: string[],
+    orderBy?: string,
+    descending?: boolean,
+    take?: number
+  ): Promise<Alarm[]> {
+    const queryRecord = async (currentTake: number, token?: string): Promise<{ data: Alarm[]; continuationToken?: string }> => {
+      const body = {
+        transitionInclusionOption: 'ALL',
+        continuationToken: token,
+      };
+      const response = await this.apiService.post<{ alarms: Alarm[]; continuationToken?: string }>(
+        this.queryAlarmsUrl,
+        body,
+        { showErrorAlert: false }
+      );
+      return {
+        data: response.alarms,
+        continuationToken: response.continuationToken,
+      };
+    };
+
+    const batchQueryConfig = {
+      maxTakePerRequest: 1000, // or your preferred batch size
+      requestsPerSecond: 5,   // adjust as needed
+    };
+    const response = await queryInBatches(queryRecord, batchQueryConfig, 10000);
+
+    return response.data;
   }
 }
