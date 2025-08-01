@@ -14,14 +14,14 @@ import 'smart-webcomponents-react/source/styles/components/smart.common.css';
 import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
 import { StepsQueryBuilderFields, StepsQueryBuilderStaticFields } from 'datasources/results/constants/StepsQueryBuilder.constants';
 import '../QueryBuilder.scss';
-import { StepPaths } from 'datasources/results/types/QuerySteps.types';
+import { StepPath } from 'datasources/results/types/QuerySteps.types';
 
 type StepsQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     filter?: string;
     workspaces: Workspace[] | null;
     stepStatus: string[];
-    stepsPath: StepPaths[];
+    stepsPath: StepPath[];
     globalVariableOptions: QueryBuilderOption[];
     onFilterChange: (filter: string) => void;
     disableQueryBuilder?: boolean;
@@ -102,7 +102,7 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
         ...stepsPathField.lookup,
         dataSource: [
           ...(stepsPathField.lookup?.dataSource || []),
-          ...stepsPath.map(path => ({ label: path.label, value: path.value })),
+          ...stepsPath,
         ],
       },
     };

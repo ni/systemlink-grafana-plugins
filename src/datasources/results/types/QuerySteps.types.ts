@@ -178,7 +178,7 @@ export enum StepsPathProperties {
   path = 'path'
 };
 
-export type StepPaths = {
+export type StepPath = {
   label: string;
   value: string;
 };

@@ -20,7 +20,7 @@ import {
   StepsPropertiesOptions,
   StepsResponseProperties,
   InputOutputValues,
-  StepPaths,
+  StepPath,
 } from 'datasources/results/types/QuerySteps.types';
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { defaultStepsQuery } from 'datasources/results/defaultQueries';
@@ -302,7 +302,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     }
   }
 
-  async getStepPaths(resultsQuery: string): Promise<StepPaths[]> {
+  async getStepPaths(resultsQuery: string): Promise<StepPath[]> {
     if (resultsQuery) {
       const query = this.transformQuery(resultsQuery, this.resultsComputedDataFields, this.scopedVars);
       const stepPaths = await this.getStepPathsLookupValues(query!);

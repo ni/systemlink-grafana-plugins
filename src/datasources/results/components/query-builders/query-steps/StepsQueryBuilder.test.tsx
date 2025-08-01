@@ -2,6 +2,7 @@ import { QueryBuilderOption, Workspace } from 'core/types';
 import React, { ReactNode } from 'react';
 import { render } from '@testing-library/react';
 import { StepsQueryBuilder } from './StepsQueryBuilder';
+import { StepPath } from 'datasources/results/types/QuerySteps.types';
 
 describe('StepsQueryBuilder', () => {
   describe('useEffects', () => {
@@ -9,7 +10,7 @@ describe('StepsQueryBuilder', () => {
 
     const containerClass = 'smart-element smart-query-builder';
     const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
-    const stepsPath = [
+    const stepPaths = [
       {label: 'Parent Path\Child Path1\Child Path2', value: 'Parent Path\nChild Path1\nChild Path2'},
       {label: 'Another Path', value: 'Another Path'},
     ]
@@ -19,7 +20,7 @@ describe('StepsQueryBuilder', () => {
       filter: string,
       workspaces: Workspace[] | null,
       stepStatus: string[],
-      stepsPath: Array<{ label: string; value: string }>,
+      stepsPath: StepPath[],
       globalVariableOptions: QueryBuilderOption[] = [],
       disableQueryBuilder: boolean,
     ) {
@@ -64,7 +65,7 @@ describe('StepsQueryBuilder', () => {
     });
 
     it('should select steps path in query builder', () => {
-      const { renderResult } = renderElement('path = "Parent Path\nChild Path1\nChild Path2"',[], [], stepsPath, [], false);
+      const { renderResult } = renderElement('path = "Parent Path\nChild Path1\nChild Path2"',[], [], stepPaths, [], false);
       const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
 
       expect(filterContainer?.length).toBe(1);
@@ -116,7 +117,7 @@ describe('StepsQueryBuilder', () => {
 
     it('should render multiple conditions in query builder', () => {
       const filter = '(keywords.Contains("keyword1") && name = "stepName1") || status.statusType = "FAILED"';
-      const { renderResult } = renderElement(filter, [workspace], status, stepsPath, [], false);
+      const { renderResult } = renderElement(filter, [workspace], status, stepPaths, [], false);
       const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
       const filterConditions = renderResult.container.getElementsByClassName('smart-filter-group-condition');
       const logicalOperators = renderResult.container.getElementsByClassName('smart-filter-group-operator');
