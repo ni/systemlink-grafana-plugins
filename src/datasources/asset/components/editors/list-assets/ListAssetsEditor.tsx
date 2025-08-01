@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 
-import { InlineField } from '@grafana/ui';
+import { InlineField, RadioButtonGroup } from '@grafana/ui';
 import _ from 'lodash';
 import { FloatingError } from '../../../../../core/errors';
 import { SystemProperties } from '../../../../system/types';
 import { AssetQuery } from '../../../types/types';
-import { ListAssetsQuery } from '../../../types/ListAssets.types';
+import { ListAssetsQuery, OutputType } from '../../../types/ListAssets.types';
 import { AssetQueryBuilder } from './query-builder/AssetQueryBuilder';
 import { Workspace } from '../../../../../core/types';
 import { ListAssetsDataSource } from '../../../data-sources/list-assets/ListAssetsDataSource';
+import { SelectableValue } from '@grafana/data';
 
 type Props = {
   query: ListAssetsQuery;
@@ -36,8 +37,25 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
     }
   }
 
+  function onOutputTypeChange(newValue: OutputType) {
+    let updatedQuery: ListAssetsQuery = { ...query };
+    if (query.outputType !== newValue) {
+      updatedQuery = {
+        ...query, outputType: newValue,
+      }
+    }
+    handleQueryChange(updatedQuery, true);
+  }
+
   return (
     <>
+      <InlineField label="Output" labelWidth={22} tooltip={tooltips.listAssets.outputType}>
+        <RadioButtonGroup
+          options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
+          value={query.outputType || OutputType.Properties}
+          onChange={onOutputTypeChange}
+        />
+      </InlineField>
       <InlineField
         label="Filter"
         labelWidth={22}
@@ -61,5 +79,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
 const tooltips = {
   listAssets: {
     filter: `Filter the assets by various properties. This is an optional field.`,
+    outputType: 'This field specifies the output type to fetch work order properties or total count.',
+    properties: 'This field specifies the properties to use in the query.',
   },
 };
