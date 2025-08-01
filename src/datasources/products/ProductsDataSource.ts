@@ -226,12 +226,12 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     products: ProductResponseProperties[],
     field: Properties
   ): string[] {
-    const values = products.map(data => data[field as unknown as keyof ProductResponseProperties]);
-    return values.map(value => {
+    return products.map(product => {
+      const value = product[field];
       switch (field) {
-        case PropertiesOptions.PROPERTIES:
+        case Properties.properties:
           return value && Object.keys(value).length > 0 ? JSON.stringify(value) : '';
-        case PropertiesOptions.WORKSPACE:
+        case Properties.workspace:
           const workspace = this.workspacesCache.get(value);
           return workspace ? getWorkspaceName([workspace], value) : value;
         default:
