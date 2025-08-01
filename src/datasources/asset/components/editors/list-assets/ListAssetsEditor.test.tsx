@@ -1,10 +1,10 @@
-import { screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { SystemProperties } from '../../../../system/types';
 import { AssetDataSource } from '../../../AssetDataSource';
 import { AssetQueryEditor } from '../../AssetQueryEditor';
 import { setupRenderer } from '../../../../../test/fixtures';
-import { ListAssetsQuery } from '../../../types/ListAssets.types';
-import { AssetFeatureTogglesDefaults } from 'datasources/asset/types/types';
+import { ListAssetsQuery, OutputType } from '../../../types/ListAssets.types';
+import { AssetFeatureTogglesDefaults, AssetQueryType } from 'datasources/asset/types/types';
 import { ListAssetsDataSource } from '../../../data-sources/list-assets/ListAssetsDataSource';
 
 const fakeSystems: SystemProperties[] = [
@@ -36,25 +36,89 @@ class FakeAssetDataSource extends AssetDataSource {
   }
 }
 
-const render = setupRenderer(AssetQueryEditor, FakeAssetDataSource, () => assetDatasourceOptions);
+
+const render = async (query: ListAssetsQuery) => {
+  return await act(async () => setupRenderer(AssetQueryEditor, FakeAssetDataSource, () => assetDatasourceOptions)(query));
+}
 
 beforeEach(() => {
   assetDatasourceOptions = {
     featureToggles: { ...AssetFeatureTogglesDefaults }
-  }
+  };
 })
 
 it('does not render when feature is not enabled', async () => {
   assetDatasourceOptions.featureToggles.assetList = false;
-  render({} as ListAssetsQuery);
+  await render({} as ListAssetsQuery);
   await waitFor(() => expect(screen.getAllByRole('combobox').length).toBe(2));
 });
 
 it('renders the query builder', async () => {
   assetDatasourceOptions.featureToggles.assetList = true;
-  render({} as ListAssetsQuery);
-
+  await render({} as ListAssetsQuery);
   await waitFor(() => expect(screen.getAllByText('Property').length).toBe(1));
   await waitFor(() => expect(screen.getAllByText('Operator').length).toBe(1));
   await waitFor(() => expect(screen.getAllByText('Value').length).toBe(1));
 });
+
+test('should render OutputType RadioButtonGroup with correct options', async () => {
+  await render({} as ListAssetsQuery)
+  expect(screen.getByRole('radio', { name: OutputType.Properties })).toBeInTheDocument();
+  expect(screen.getByRole('radio', { name: OutputType.TotalCount })).toBeInTheDocument();
+});
+
+test('should set OutputType to "TotalCount" and trigger rerender', async () => {
+  const [onChange] = await render({
+    type: AssetQueryType.ListAssets,
+    filter: '',
+    refId: ''
+  });
+
+  expect(screen.getByRole('radio', { name: OutputType.Properties })).toBeChecked();
+  expect(screen.getByRole('radio', { name: OutputType.TotalCount })).not.toBeChecked();
+  fireEvent.click(screen.getByLabelText('Total Count'));
+
+  await waitFor(() => {
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+      refId: 'A',
+      type: AssetQueryType.ListAssets,
+      outputType: OutputType.TotalCount,
+    }))
+  })
+});
+
+test('should set OutputType to "Properties" and trigger rerender', async () => {
+  const [onChange] = await render({
+    type: AssetQueryType.ListAssets,
+    outputType: OutputType.TotalCount,
+    filter: '',
+    refId: ''
+  });
+
+  expect(screen.getByRole('radio', { name: OutputType.Properties })).not.toBeChecked();
+  expect(screen.getByRole('radio', { name: OutputType.TotalCount })).toBeChecked();
+  fireEvent.click(screen.getByLabelText('Properties'));
+
+  await waitFor(() => {
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+      refId: 'A',
+      type: AssetQueryType.ListAssets,
+      outputType: OutputType.Properties,
+    }))
+  })
+});
+
+test('should display "Properties" selected when OutpuType is set to properties', async () => {
+  await render({ type: AssetQueryType.ListAssets, outputType: OutputType.Properties } as ListAssetsQuery)
+  expect(screen.getByRole('radio', { name: OutputType.Properties })).toBeChecked();
+  expect(screen.getByRole('radio', { name: OutputType.TotalCount })).not.toBeChecked();
+})
+
+test('should display "TotalCount" selected when OutpuType is set to total count', async () => {
+  await render({ type: AssetQueryType.ListAssets, outputType: OutputType.TotalCount } as ListAssetsQuery)
+  expect(screen.getByRole('radio', { name: OutputType.Properties })).not.toBeChecked();
+  expect(screen.getByRole('radio', { name: OutputType.TotalCount })).toBeChecked();
+})
+
