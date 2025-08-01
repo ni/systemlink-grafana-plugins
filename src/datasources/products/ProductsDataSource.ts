@@ -146,25 +146,9 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
         ? FieldType.time
         : FieldType.string;
 
-      const values = products
-        .map(data => data[field as unknown as keyof ProductResponseProperties]);
-
-      const fieldValues = values.map(value => {
-        switch (field) {
-          case PropertiesOptions.PROPERTIES:
-            return value && (Object.keys(value).length > 0)
-              ? JSON.stringify(value)
-              : '';
-          case PropertiesOptions.WORKSPACE:
-            const workspace = this.workspacesCache.get(value);
-            return workspace ? getWorkspaceName([workspace], value) : value;
-          default:
-            return value == null ? '' : value;
-        }
-      });
       return {
         name: productsProjectionLabelLookup[field].label,
-        values: fieldValues,
+        values: this.getFieldValues(products, field),
         type: fieldType
       };
     });
@@ -236,6 +220,24 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
         .map(val => `${field} ${operation} "${val}"`)
         .join(` ${logicalOperator} `)})` : `${field} ${operation} "${value}"`;
     }
+  }
+
+  private getFieldValues(
+    products: ProductResponseProperties[],
+    field: Properties
+  ): string[] {
+    return products.map(product => {
+      const value = product[field];
+      switch (field) {
+        case Properties.properties:
+          return value && Object.keys(value).length > 0 ? JSON.stringify(value) : '';
+        case Properties.workspace:
+          const workspace = this.workspacesCache.get(value);
+          return workspace ? getWorkspaceName([workspace], value) : value;
+        default:
+          return value == null ? '' : value;
+      }
+    });
   }
 
   private getVariableOptions() {
