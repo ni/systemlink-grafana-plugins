@@ -52,39 +52,46 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
 
   async processListAssetsQuery(query: ListAssetsQuery) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
-    const assets: AssetsResponse = await this.queryAssets(query.filter, QUERY_LIMIT, false);
+    const assetsResponse: AssetsResponse = await this.queryAssets(query.filter, QUERY_LIMIT, false);
+    const assets = assetsResponse.assets;
     const workspaces = this.getCachedWorkspaces();
     result.fields = [
-      { name: 'id', values: assets.assets.map(a => a.id) },
-      { name: 'name', values: assets.assets.map(a => a.name) },
-      { name: 'vendor name', values: assets.assets.map(a => a.vendorName) },
-      { name: 'vendor number', values: assets.assets.map(a => a.vendorNumber) },
-      { name: 'model name', values: assets.assets.map(a => a.modelName) },
-      { name: 'model number', values: assets.assets.map(a => a.modelNumber) },
-      { name: 'serial number', values: assets.assets.map(a => a.serialNumber) },
-      { name: 'bus type', values: assets.assets.map(a => a.busType) },
-      { name: 'asset type', values: assets.assets.map(a => a.assetType) },
-      { name: 'is NI asset', values: assets.assets.map(a => a.isNIAsset) },
-      { name: 'part number', values: assets.assets.map(a => a.partNumber) },
-      { name: 'calibration status', values: assets.assets.map(a => a.calibrationStatus) },
-      { name: 'is system controller', values: assets.assets.map(a => a.isSystemController) },
-      { name: 'last updated timestamp', values: assets.assets.map(a => a.lastUpdatedTimestamp) },
-      { name: 'location', values: assets.assets.map(a => this.getLocationFromAsset(a)) },
-      { name: 'minionId', values: assets.assets.map(a => a.location.minionId) },
-      { name: 'parent name', values: assets.assets.map(a => a.location.parent) },
-      { name: 'workspace', values: assets.assets.map(a => getWorkspaceName(workspaces, a.workspace)) },
-      { name: 'supports self calibration', values: assets.assets.map(a => a.supportsSelfCalibration) },
-      { name: 'supports external calibration', values: assets.assets.map(a => a.supportsExternalCalibration) },
-      { name: 'visa resource name', values: assets.assets.map(a => a.visaResourceName) },
-      { name: 'firmware version', values: assets.assets.map(a => a.firmwareVersion) },
-      { name: 'discovery type', values: assets.assets.map(a => a.discoveryType) },
-      { name: 'supports self test', values: assets.assets.map(a => a.supportsSelfTest) },
-      { name: 'supports reset', values: assets.assets.map(a => a.supportsReset) },
-      { name: 'properties', values: assets.assets.map(a => JSON.stringify(a.properties)) },
-      { name: 'keywords', values: assets.assets.map(a => a.keywords.join(', ')) },
-      { name: 'self calibration', values: assets.assets.map(a => a.selfCalibration?.date ?? '') },
-      { name: 'calibration due date', values: assets.assets.map(a => a.externalCalibration?.resolvedDueDate) }
+      { name: 'id', values: assets.map(a => a.id) },
+      { name: 'name', values: assets.map(a => a.name) },
+      { name: 'vendor name', values: assets.map(a => a.vendorName) },
+      { name: 'vendor number', values: assets.map(a => a.vendorNumber) },
+      { name: 'model name', values: assets.map(a => a.modelName) },
+      { name: 'model number', values: assets.map(a => a.modelNumber) },
+      { name: 'serial number', values: assets.map(a => a.serialNumber) },
+      { name: 'bus type', values: assets.map(a => a.busType) },
+      { name: 'asset type', values: assets.map(a => a.assetType) },
+      { name: 'is NI asset', values: assets.map(a => a.isNIAsset) },
+      { name: 'part number', values: assets.map(a => a.partNumber) },
+      { name: 'calibration status', values: assets.map(a => a.calibrationStatus) },
+      { name: 'is system controller', values: assets.map(a => a.isSystemController) },
+      { name: 'last updated timestamp', values: .assets.map(a => a.lastUpdatedTimestamp) },
+      { name: 'location', values: assets.map(a => this.getLocationFromAsset(a)) },
+      { name: 'minionId', values: assets.map(a => a.location.minionId) },
+      { name: 'parent name', values: assets.map(a => a.location.parent) },
+      { name: 'workspace', values: assets.map(a => getWorkspaceName(workspaces, a.workspace)) },
+      { name: 'supports self calibration', values: assets.map(a => a.supportsSelfCalibration) },
+      { name: 'supports external calibration', values: assets.map(a => a.supportsExternalCalibration) },
+      { name: 'visa resource name', values: assets.map(a => a.visaResourceName) },
+      { name: 'firmware version', values: assets.map(a => a.firmwareVersion) },
+      { name: 'discovery type', values: assets.map(a => a.discoveryType) },
+      { name: 'supports self test', values: assets.map(a => a.supportsSelfTest) },
+      { name: 'supports reset', values: assets.map(a => a.supportsReset) },
+      { name: 'properties', values: assets.map(a => JSON.stringify(a.properties)) },
+      { name: 'keywords', values: assets.map(a => a.keywords.join(', ')) },
+      { name: 'self calibration', values: assets.map(a => a.selfCalibration?.date ?? '') },
+      { name: 'calibration due date', values: assets.map(a => a.externalCalibration?.resolvedDueDate) }
     ];
+    return result;
+  }
+
+  async processTotalCountAssetsQuery(query: ListAssetsQuery) {
+    const response: AssetsResponse = await this.queryAssets(query.filter, QUERY_LIMIT, true);
+    const result: DataFrameDTO = { refId: query.refId, fields: [{ name: "Total count", values: [response.totalCount] }] };
     return result;
   }
 
@@ -96,12 +103,6 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
     } catch (error) {
       throw new Error(`An error occurred while querying assets: ${error}`);
     }
-  }
-
-  async processTotalCountAssetsQuery(query: ListAssetsQuery) {
-    const response: AssetsResponse = await this.queryAssets(query.filter, QUERY_LIMIT, true);
-    const result: DataFrameDTO = { refId: query.refId, fields: [{ name: "Total count", values: [response.totalCount] }] };
-    return result;
   }
 
   private getLocationFromAsset(asset: AssetModel): string {
