@@ -1,3 +1,9 @@
+## [4.0.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.0.1...v4.0.2) (2025-08-01)
+
+### Bug Fixes
+
+* **core,results,testplans,workorders:** Update operator label casing for consistency ([#366](https://github.com/ni/systemlink-grafana-plugins/issues/366)) ([c63fb6c](https://github.com/ni/systemlink-grafana-plugins/commit/c63fb6ceec8daafb6f648cd7d622a44e0304fa27))
+
 ## [4.0.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.0.0...v4.0.1) (2025-07-30)
 
 ### Bug Fixes
