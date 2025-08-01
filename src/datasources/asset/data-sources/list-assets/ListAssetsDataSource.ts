@@ -69,7 +69,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
       { name: 'part number', values: assets.map(a => a.partNumber) },
       { name: 'calibration status', values: assets.map(a => a.calibrationStatus) },
       { name: 'is system controller', values: assets.map(a => a.isSystemController) },
-      { name: 'last updated timestamp', values: .assets.map(a => a.lastUpdatedTimestamp) },
+      { name: 'last updated timestamp', values: assets.map(a => a.lastUpdatedTimestamp) },
       { name: 'location', values: assets.map(a => this.getLocationFromAsset(a)) },
       { name: 'minionId', values: assets.map(a => a.location.minionId) },
       { name: 'parent name', values: assets.map(a => a.location.parent) },
