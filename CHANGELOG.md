@@ -1,3 +1,9 @@
+## [4.1.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.1.0...v4.1.1) (2025-08-04)
+
+### Bug Fixes
+
+* **prototype:** Update create-api-session url ([#375](https://github.com/ni/systemlink-grafana-plugins/issues/375)) ([6c0cb5c](https://github.com/ni/systemlink-grafana-plugins/commit/6c0cb5cfd36e077460c2affcf4203faabe8cf050))
+
 ## [4.1.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.0.2...v4.1.0) (2025-08-04)
 
 ### Features
