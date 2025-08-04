@@ -1,3 +1,9 @@
+## [4.1.4](https://github.com/ni/systemlink-grafana-plugins/compare/v4.1.3...v4.1.4) (2025-08-04)
+
+### Bug Fixes
+
+* **prototype:** Call non-cors-api with session key ([#378](https://github.com/ni/systemlink-grafana-plugins/issues/378)) ([be8c34e](https://github.com/ni/systemlink-grafana-plugins/commit/be8c34e0617944cd4f38ffd485c90595808a0a10))
+
 ## [4.1.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.1.2...v4.1.3) (2025-08-04)
 
 ### Bug Fixes
