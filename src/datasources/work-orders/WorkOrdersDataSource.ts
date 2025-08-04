@@ -97,7 +97,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
             }
           });
           // eslint-disable-next-line no-console
-          console.log('API ingress call successful:', response);
+          console.log('API ingress call successful for dataframe query data:', response);
       } catch (error) {
         console.error('Error during data frame call:', error);
         // throw new Error(`Failed to create session key: ${error}`);
