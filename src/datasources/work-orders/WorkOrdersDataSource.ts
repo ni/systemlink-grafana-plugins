@@ -93,7 +93,16 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
             columns
           }, {
             headers: {
-              'x-ni-api-key': apiSession.sessionKey.secret
+              'x-ni-api-key': apiSession.sessionKey.secret,
+              'accept-encoding': 'gzip, deflate, br, zstd',
+              'accept-language': 'en-US,en;q=0.9',
+              'content-length': '399',
+              'content-type': 'application/json',
+              'origin': this.instanceSettings.url,
+              'priority': 'u=1, i',
+              'sec-fetch-dest': 'empty',
+              'sec-fetch-mode': 'cors',
+              'sec-fetch-site': 'same-origin'
             }
           });
           // eslint-disable-next-line no-console
