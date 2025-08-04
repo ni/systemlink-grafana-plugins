@@ -1,3 +1,9 @@
+## [4.1.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.1.1...v4.1.2) (2025-08-04)
+
+### Bug Fixes
+
+* fix headers dev-api endpoint ([#376](https://github.com/ni/systemlink-grafana-plugins/issues/376)) ([8204575](https://github.com/ni/systemlink-grafana-plugins/commit/8204575ad572d0ae8041b35d1361ab3552e03975))
+
 ## [4.1.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.1.0...v4.1.1) (2025-08-04)
 
 ### Bug Fixes
