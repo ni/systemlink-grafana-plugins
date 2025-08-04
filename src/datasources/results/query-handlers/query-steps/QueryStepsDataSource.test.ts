@@ -1336,6 +1336,7 @@ describe('QueryStepsDataSource', () => {
         {path: 'Path having newline\\nin between words\nChild path2'},
         {path: ''},
         {path: null},
+        {path: '    Path with spaces    '},
       ]
       backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
@@ -1366,13 +1367,9 @@ describe('QueryStepsDataSource', () => {
           value: 'Path having newline\\nin between words\nChild path2'
         },
         {
-          label: '',
-          value: ''
+          label: '    Path with spaces    ',
+          value: '    Path with spaces    '
         },
-        {
-          label: '',
-          value: ''
-        }
       ]);
     })
 

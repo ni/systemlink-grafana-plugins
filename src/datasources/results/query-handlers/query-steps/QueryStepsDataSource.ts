@@ -306,7 +306,9 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     if (resultsQuery) {
       const query = this.transformQuery(resultsQuery, this.resultsComputedDataFields, this.scopedVars);
       const stepPaths = await this.getStepPathsLookupValues(query!);
-      return this.flattenAndDeduplicate(stepPaths).map(path => ({
+      return this.flattenAndDeduplicate(stepPaths)
+      .filter(path => path && path.trim() !== '')
+      .map(path => ({
         label: path?.replace(/\n/g, '\\') || '',
         value: path || ''
       }));
