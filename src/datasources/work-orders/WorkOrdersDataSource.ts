@@ -100,11 +100,11 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
           console.log('API ingress call successful:', response);
       } catch (error) {
         console.error('Error during data frame call:', error);
-        throw new Error(`Failed to create session key: ${error}`);
+        // throw new Error(`Failed to create session key: ${error}`);
       }
     } catch (error) {
       console.error('Error creating session key:', error);
-      throw new Error(`An error occurred while creating session: ${error} `);
+      // throw new Error(`An error occurred while creating session: ${error} `);
     }
   }
  
