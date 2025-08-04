@@ -110,7 +110,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
  
   private async createSessionKey(): Promise<ApiSession> {
     return await this.backendSrv.post<ApiSession>(
-        'user/create-api-session',
+        `${this.instanceSettings.url}/user/create-api-session`,
         {});
   }
   shouldRunQuery(query: WorkOrdersQuery): boolean {
