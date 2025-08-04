@@ -118,7 +118,7 @@ describe('TestPlansQueryBuilder', () => {
         const { conditionsContainer } = renderElement('state = "PendingApproval"', [], [], [], []);
         expect(conditionsContainer?.length).toBe(1);
         expect(conditionsContainer.item(0)?.textContent).toContain('State');
-        expect(conditionsContainer.item(0)?.textContent).toContain('Equals');
+        expect(conditionsContainer.item(0)?.textContent).toContain('equals');
         expect(conditionsContainer.item(0)?.textContent).toContain('Pending approval');
     });
     it('should select global variable option', () => {

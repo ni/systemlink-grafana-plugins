@@ -16,7 +16,7 @@ import {
   DataQueryResponseData,
   toUtc,
 } from '@grafana/data';
-import { getBackendSrv, getTemplateSrv, FetchError } from '@grafana/runtime';
+import { getBackendSrv, getTemplateSrv, FetchError, FetchResponse } from '@grafana/runtime';
 import {
   NotebookQuery,
   NotebookDataSourceOptions,
@@ -175,7 +175,7 @@ export class DataSource extends DataSourceApi<NotebookQuery, NotebookDataSourceO
         data: [
           { notebookId, workspaceId, parameters, resultCachePeriod: cacheTimeout, priority: ExecutionPriority.MEDIUM },
         ],
-      });
+      }) as FetchResponse<any>;
 
       return this.handleNotebookExecution(response.data.executions[0].id);
     } catch (e) {
@@ -192,7 +192,7 @@ export class DataSource extends DataSourceApi<NotebookQuery, NotebookDataSourceO
     const response = await getBackendSrv().datasourceRequest({
       url: this.url + '/ninbexecution/v1/executions/' + id,
       method: 'GET',
-    });
+    }) as FetchResponse<any>;
     const execution: Execution = response.data;
     if (execution.status === 'QUEUED' || execution.status === 'IN_PROGRESS') {
       await timeout(3000);

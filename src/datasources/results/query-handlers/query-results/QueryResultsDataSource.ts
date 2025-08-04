@@ -212,7 +212,8 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
         const propertyKey = ResultsPropertiesOptions[query.properties as keyof typeof ResultsPropertiesOptions] as keyof ResultsResponseProperties;
         const values = metadata.map((data: ResultsResponseProperties) => data[propertyKey]).filter(value => value !== undefined && value !== null);
         const flattenedResults = this.flattenAndDeduplicate(values as string[]);
-        return flattenedResults.map(value => ({ text: String(value), value }));
+        const resultOptions =  flattenedResults.map(value => ({ text: String(value), value }));
+        return resultOptions.sort((a, b) => a.text.localeCompare(b.text));
       }
     }
     return [];

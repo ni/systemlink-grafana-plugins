@@ -391,6 +391,36 @@ describe('query', () => {
     ]);
   });
 
+  test('should display an empty cell when properties is returned as empty object', async () => {
+    backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
+      .mockReturnValue(createFetchResponse({
+        products: [
+          {
+            id: '1',
+            name: 'Product 1',
+            properties: {}
+          }
+        ], continuationToken: null, totalCount: 0
+      } as unknown as QueryProductResponse));
+
+    const query = buildQuery(
+      {
+        refId: 'A',
+        properties: [
+          PropertiesOptions.PROPERTIES
+        ] as Properties[],
+        orderBy: undefined
+      },
+    );
+
+    const response = await datastore.query(query);
+    const fields = response.data[0].fields as Field[];
+    expect(fields).toEqual([
+      { name: 'Properties', values: [''], type: 'string' },
+    ]);
+  });
+
   test('should not query product values if cache exists', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-product-values' }))
@@ -580,6 +610,31 @@ describe('query', () => {
           }
         })
       );
+    });
+
+    it('should sort variable options', async () => {
+      const query: ProductVariableQuery = {
+        refId: '',
+        queryBy: '',
+      };
+      backendServer.fetch
+        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
+        .mockReturnValue(
+          createFetchResponse<QueryProductResponse>({
+            products: [
+              { id: '123', partNumber: '123', name: 'B Product' },
+              { id: '456', partNumber: '456', name: 'A Product' }
+            ],
+            continuationToken: '',
+            totalCount: 0
+          } as unknown as QueryProductResponse));
+
+      const results = await datastore.metricFindQuery(query, options);
+
+      expect(results).toEqual([
+        { text: 'A Product (456)', value: '456' },
+        { text: 'B Product (123)', value: '123' }
+      ]);
     });
   });
 });

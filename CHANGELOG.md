@@ -1,3 +1,49 @@
+## [4.0.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.0.1...v4.0.2) (2025-08-01)
+
+### Bug Fixes
+
+* **core,results,testplans,workorders:** Update operator label casing for consistency ([#366](https://github.com/ni/systemlink-grafana-plugins/issues/366)) ([c63fb6c](https://github.com/ni/systemlink-grafana-plugins/commit/c63fb6ceec8daafb6f648cd7d622a44e0304fa27))
+
+## [4.0.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.0.0...v4.0.1) (2025-07-30)
+
+### Bug Fixes
+
+* **products:** Display empty cell for properties when API returns empty object ([#365](https://github.com/ni/systemlink-grafana-plugins/issues/365)) ([5268e25](https://github.com/ni/systemlink-grafana-plugins/commit/5268e25ede639198b28d0dc345ceafc27c1927cb))
+
+## [4.0.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.147.3...v4.0.0) (2025-07-28)
+
+### ⚠ BREAKING CHANGES
+
+* clients must upgrade to Grafana v11.6.4+
+
+### Documentation
+
+* Update README and force major release ([#367](https://github.com/ni/systemlink-grafana-plugins/issues/367)) ([7b7c945](https://github.com/ni/systemlink-grafana-plugins/commit/7b7c945d73f6478ba10c30ea56727b1882e76c3e))
+
+## [3.147.3](https://github.com/ni/systemlink-grafana-plugins/compare/v3.147.2...v3.147.3) (2025-07-21)
+
+### Bug Fixes
+
+* **workorders,testplans:** Sort variable options by their label ([#361](https://github.com/ni/systemlink-grafana-plugins/issues/361)) ([cc446b9](https://github.com/ni/systemlink-grafana-plugins/commit/cc446b91720ca29d03f64f7e573ef52dbe427519))
+
+## [3.147.2](https://github.com/ni/systemlink-grafana-plugins/compare/v3.147.1...v3.147.2) (2025-07-18)
+
+### Bug Fixes
+
+* **products, results:** Sort variable options in dropdown ([#360](https://github.com/ni/systemlink-grafana-plugins/issues/360)) ([4a5a6a8](https://github.com/ni/systemlink-grafana-plugins/commit/4a5a6a83e5ee05f7d55771f58789ad0f29eeb26d))
+
+## [3.147.1](https://github.com/ni/systemlink-grafana-plugins/compare/v3.147.0...v3.147.1) (2025-07-17)
+
+### Bug Fixes
+
+* **system:** prevent hidden system queries to run ([#350](https://github.com/ni/systemlink-grafana-plugins/issues/350)) ([bc02654](https://github.com/ni/systemlink-grafana-plugins/commit/bc026545cad7c30d561f57ef5d1ff7e77c61ffc1))
+
+## [3.147.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.146.0...v3.147.0) (2025-07-16)
+
+### Features
+
+* **asset:** add missing fields from asset model ([#359](https://github.com/ni/systemlink-grafana-plugins/issues/359)) ([ea320a4](https://github.com/ni/systemlink-grafana-plugins/commit/ea320a47e3e34d2c4a29635ea0c4651a8fb45121))
+
 ## [3.146.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.145.1...v3.146.0) (2025-07-14)
 
 ### Features

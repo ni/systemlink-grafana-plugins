@@ -33,7 +33,7 @@ describe('ResultsQueryBuilder', () => {
 
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain("Workspace"); //label
-      expect(conditionsContainer.item(0)?.textContent).toContain("Equals"); //operator
+      expect(conditionsContainer.item(0)?.textContent).toContain("equals"); //operator
       expect(conditionsContainer.item(0)?.textContent).toContain(workspace.name); //value
     });
 
@@ -42,7 +42,7 @@ describe('ResultsQueryBuilder', () => {
 
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain("Status"); //label
-      expect(conditionsContainer.item(0)?.textContent).toContain("Equals"); //operator
+      expect(conditionsContainer.item(0)?.textContent).toContain("equals"); //operator
       expect(conditionsContainer.item(0)?.textContent).toContain("PASSED"); //value
     });
 
@@ -51,7 +51,7 @@ describe('ResultsQueryBuilder', () => {
 
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain("Part number"); //label
-      expect(conditionsContainer.item(0)?.textContent).toContain("Equals"); //operator
+      expect(conditionsContainer.item(0)?.textContent).toContain("equals"); //operator
       expect(conditionsContainer.item(0)?.textContent).toContain("PN1"); //value
     });
 
@@ -60,7 +60,7 @@ describe('ResultsQueryBuilder', () => {
 
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain("Keyword"); //label
-      expect(conditionsContainer.item(0)?.textContent).toContain("Equals"); //operator
+      expect(conditionsContainer.item(0)?.textContent).toContain("equals"); //operator
       expect(conditionsContainer.item(0)?.textContent).toContain("keyword1"); //value
     });
 
@@ -70,7 +70,7 @@ describe('ResultsQueryBuilder', () => {
 
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain("Workspace"); //label
-      expect(conditionsContainer.item(0)?.textContent).toContain("Equals"); //operator
+      expect(conditionsContainer.item(0)?.textContent).toContain("equals"); //operator
       expect(conditionsContainer.item(0)?.textContent).toContain(globalVariableOption.label); //value
     });
 

@@ -53,7 +53,7 @@ describe('WorkOrdersQueryBuilder', () => {
     const { conditionsContainer } = renderElement('state = "PendingApproval"');
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain('State');
-    expect(conditionsContainer.item(0)?.textContent).toContain('Equals');
+    expect(conditionsContainer.item(0)?.textContent).toContain('equals');
     expect(conditionsContainer.item(0)?.textContent).toContain('Pending approval');
   });
 
@@ -61,7 +61,7 @@ describe('WorkOrdersQueryBuilder', () => {
     const { conditionsContainer } = renderElement('type = "TestRequest"');
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain('Work order type');
-    expect(conditionsContainer.item(0)?.textContent).toContain('Equals');
+    expect(conditionsContainer.item(0)?.textContent).toContain('equals');
     expect(conditionsContainer.item(0)?.textContent).toContain('Test request');
   });
 

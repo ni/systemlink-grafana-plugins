@@ -60,7 +60,7 @@ describe('StepsQueryBuilder', () => {
 
       expect(filterContainer?.length).toBe(1);
       expect(filterContainer.item(0)?.textContent).toContain('workspace'); //label
-      expect(filterContainer.item(0)?.textContent).toContain('Equals'); //operator
+      expect(filterContainer.item(0)?.textContent).toContain('equals'); //operator
       expect(filterContainer.item(0)?.textContent).toContain(workspace.name); //value
     });
 
@@ -70,7 +70,7 @@ describe('StepsQueryBuilder', () => {
 
       expect(filterContainer?.length).toBe(1);
       expect(filterContainer.item(0)?.textContent).toContain('Step path'); //label
-      expect(filterContainer.item(0)?.textContent).toContain('Equals'); //operator
+      expect(filterContainer.item(0)?.textContent).toContain('equals'); //operator
       expect(filterContainer.item(0)?.textContent).toContain('Parent Path\Child Path1\Child Path2'); //value in the dropdown
     });
 
@@ -80,7 +80,7 @@ describe('StepsQueryBuilder', () => {
 
       expect(filterContainer?.length).toBe(1);
       expect(filterContainer.item(0)?.textContent).toContain('Step status'); //label
-      expect(filterContainer.item(0)?.textContent).toContain('Equals'); //operator
+      expect(filterContainer.item(0)?.textContent).toContain('equals'); //operator
       expect(filterContainer.item(0)?.textContent).toContain('PASSED'); //value
     });
 
@@ -90,7 +90,7 @@ describe('StepsQueryBuilder', () => {
 
       expect(filterContainer?.length).toBe(1);
       expect(filterContainer.item(0)?.textContent).toContain("Step keywords"); //label
-      expect(filterContainer.item(0)?.textContent).toContain("Contains"); //operator
+      expect(filterContainer.item(0)?.textContent).toContain("contains"); //operator
       expect(filterContainer.item(0)?.textContent).toContain("keyword1"); //value
     });
 
@@ -100,7 +100,7 @@ describe('StepsQueryBuilder', () => {
 
       expect(filterContainer?.length).toBe(1);
       expect(filterContainer.item(0)?.textContent).toContain('Has children'); //label
-      expect(filterContainer.item(0)?.textContent).toContain('Equals'); //operator
+      expect(filterContainer.item(0)?.textContent).toContain('equals'); //operator
       expect(filterContainer.item(0)?.textContent).toContain('True'); //value
     })
 
@@ -111,7 +111,7 @@ describe('StepsQueryBuilder', () => {
 
       expect(filterContainer?.length).toBe(1);
       expect(filterContainer.item(0)?.textContent).toContain('Step path'); //label
-      expect(filterContainer.item(0)?.textContent).toContain('Equals'); //operator
+      expect(filterContainer.item(0)?.textContent).toContain('equals'); //operator
       expect(filterContainer.item(0)?.textContent).toContain(globalVariableOption.label); //value
     });
 

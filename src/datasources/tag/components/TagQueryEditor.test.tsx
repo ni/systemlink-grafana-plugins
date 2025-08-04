@@ -16,7 +16,7 @@ it('renders with query defaults', async () => {
   expect(screen.getByRole('radio', { name: 'Current' })).toBeChecked();
   expect(screen.getByLabelText('Tag path')).not.toHaveValue();
   expect(screen.getByRole('combobox')).toHaveAccessibleDescription('Any workspace');
-  expect(screen.getByRole('checkbox')).not.toBeChecked();
+  expect(screen.getByRole('switch')).not.toBeChecked();
 });
 
 it('renders with initial query and updates when user makes changes', async () => {
@@ -27,11 +27,11 @@ it('renders with initial query and updates when user makes changes', async () =>
   expect(screen.getByRole('radio', { name: 'History' })).toBeChecked();
   expect(screen.getByLabelText('Tag path')).toHaveValue('my.tag');
   expect(screen.getByText('Default workspace')).toBeInTheDocument();
-  expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+  expect(screen.queryByRole('switch')).not.toBeInTheDocument();
 
   // Users changes query type
   await userEvent.click(screen.getByRole('radio', { name: 'Current' }));
-  expect(screen.queryByRole('checkbox')).toBeInTheDocument();
+  expect(screen.queryByRole('switch')).toBeInTheDocument();
   expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ type: TagQueryType.Current }));
 
   // User types in new tag path
@@ -43,6 +43,6 @@ it('renders with initial query and updates when user makes changes', async () =>
   expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ workspace: '2' }));
 
   // User toggles properties
-  await userEvent.click(screen.getByRole('checkbox'));
+  await userEvent.click(screen.getByRole('switch'));
   expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ properties: false }));
 });
