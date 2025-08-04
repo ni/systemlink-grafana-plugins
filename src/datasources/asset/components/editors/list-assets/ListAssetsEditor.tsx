@@ -21,6 +21,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [systems, setSystems] = useState<SystemProperties[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
+  const outputTypeOptions = Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[];
 
   useEffect(() => {
     Promise.all([datasource.areSystemsLoaded$, datasource.areWorkspacesLoaded$]).then(() => {
@@ -51,7 +52,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
     <>
       <InlineField label="Output" labelWidth={22} tooltip={tooltips.listAssets.outputType}>
         <RadioButtonGroup
-          options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
+          options={outputTypeOptions}
           value={query.outputType || OutputType.Properties}
           onChange={onOutputTypeChange}
         />
