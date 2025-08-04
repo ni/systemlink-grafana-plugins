@@ -1,13 +1,5 @@
 import { DataQuery } from '@grafana/schema';
 
-export interface ApiSession {
-  endpoint: string;
-  sessionKey: {
-      expiry: string,
-      secret: string
-  };
-}
-
 export interface WorkOrdersQuery extends DataQuery {
   queryBy?: string;
   outputType?: OutputType;
