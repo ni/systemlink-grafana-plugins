@@ -98,7 +98,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
   async queryAssets(filter = '', take = -1, returnCount = false): Promise<AssetsResponse> {
     let data: QueryListAssetRequestBody = { filter, take, returnCount };
     try {
-      let response = await this.post<AssetsResponse>(this.baseUrl + '/query-assets', data);
+      const response = await this.post<AssetsResponse>(this.baseUrl + '/query-assets', data);
       return response;
     } catch (error) {
       throw new Error(`An error occurred while querying assets: ${error}`);
