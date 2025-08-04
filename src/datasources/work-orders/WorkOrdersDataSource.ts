@@ -89,6 +89,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
             const properties = await this.getTableProperties(id);
 
             const columns = properties?.columns.map(col => col.name).slice(0,1) ?? [];
+            // eslint-disable-next-line no-console
+            console.log('Table properties fetched successfully:', columns);
             const response = await this.post<TableDataRows>(`${apiSession.endpoint}/nidataframe/v1/query-tables`, 
               {
                 "take": 1
