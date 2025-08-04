@@ -103,6 +103,7 @@ export interface TablePropertiesList {
 
 export interface TableDataRows {
   frame: { columns: string[]; data: string[][] };
+  continuationToken?: string;
 }
 
 export function isSystemLinkError(error: any): error is SystemLinkError {

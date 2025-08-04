@@ -17,14 +17,16 @@ import {
 import { propertiesCacheTTL } from './constants';
 import _ from 'lodash';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { getVariableOptions, replaceVariables } from 'core/utils';
-import { LEGACY_METADATA_TYPE, QueryBuilderOption, Workspace } from 'core/types';
+import { getVariableOptions, queryInBatches } from 'core/utils';
+import { LEGACY_METADATA_TYPE, QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { ResultsPropertiesOptions } from 'datasources/results/types/QueryResults.types';
+import { ApiSessionUtils } from 'shared/api-session.utils';
+import { Subject } from 'rxjs';
 
 export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSourceJsonData> {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
-
+  
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
@@ -32,7 +34,8 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
   ) {
     super(instanceSettings, backendSrv, templateSrv);
     this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
-
+    this.apiSessionUtils = new ApiSessionUtils(this.instanceSettings, this.backendSrv);
+    console.log(this.instanceSettings);
   }
 
   baseUrl = this.instanceSettings.url + '/nidataframe/v1';
@@ -40,7 +43,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
   defaultQuery = defaultQuery;
   workspaceUtils: WorkspaceUtils;
   queryResultsValuesUrl = this.instanceSettings.url + '/nitestmonitor/v2/query-result-values';
-
+  apiSessionUtils: ApiSessionUtils;
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
   private static _partNumbersCache: Promise<string[]> | null = null;
@@ -48,6 +51,9 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
 
 
   async runQuery(query: DataFrameQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
+    const r = await this.apiSessionUtils.createApiSession(new Subject<void>(), []);
+    console.log(r);
+    
     const processedQuery = this.processQuery(query);
     if (processedQuery.type === DataFrameQueryType.Data && processedQuery.queryBy !== '') {
       const tableData = await this.queryTables(processedQuery.queryBy);
@@ -72,24 +78,46 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
           };
         }
       } else {
+        const rows: FieldDTO[] = [];
+        
         for (const table of tableData) {
           const id = table.id;
           const properties = await this.getTableProperties(id);
-          const tableRows = await this.post<TableDataRows>(`${this.baseUrl}/tables/${id}/query-data`, {
-            columns: properties?.columns.map(col => col.name) ?? [],
-            filters: [],
-          });
-          if (tableRows && tableRows.frame && tableRows.frame.data) {
-            return {
-              refId: processedQuery.refId,
-              fields: this.dataFrameToFields(
-                tableRows.frame.data,
-                this.getColumnTypes(table.columns.map(col => col.name), properties?.columns ?? [])
-              ),
+
+            const columns = properties?.columns.map(col => col.name).slice(0,1) ?? [];
+
+            const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<string[]>> => {
+              const response = await this.post<TableDataRows>(`${this.baseUrl}/tables/${id}/query-data`, {
+                columns,
+                continuationToken: token,
+                take: currentTake,
+              });
+              return {
+                data: response.frame.data,
+                continuationToken: response.continuationToken,
+              }
             };
-          }
+
+            const batchQueryConfig = {
+                  maxTakePerRequest: 500,
+                  requestsPerSecond: 6
+                };
+            
+            const responses = await queryInBatches(queryRecord, batchQueryConfig, 1000);
+
+            if (responses && responses.data) {
+              const tableFields = this.dataFrameToFields(
+                responses.data,
+                this.getColumnTypes(table.columns.map(col => col.name).slice(0,1), properties?.columns.slice(0,1) ?? [])
+              );
+              rows.push(...tableFields);
+            }
         }
 
+        return {
+          refId: processedQuery.refId,
+          fields: rows,
+        };
       }
     }
 
@@ -143,7 +171,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
   async queryTables(query: string): Promise<TableProperties[]> {
     const filter = query;
 
-    return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take: 1000 })).tables;
+    return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take: 100 })).tables;
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

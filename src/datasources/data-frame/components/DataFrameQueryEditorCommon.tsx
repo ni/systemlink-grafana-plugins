@@ -25,7 +25,7 @@ export class DataFrameQueryEditorCommon {
   readonly handleQueryChange = (value: DataFrameQuery, runQuery: boolean) => {
     this.onChange(value);
     if (runQuery) {
-      this.onRunQuery();
+      // this.onRunQuery();
     }
   };
 
