@@ -98,9 +98,9 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
   ): Promise<TableDataRows> {
     const filters: ColumnFilter[] = [];
 
-    let enabledPanelIds: string[] = this.getEnabledPanelIds();
-    const isHighResolutionEnabled = enabledPanelIds.includes(panelId) && columns.length > 0;
-    // const isHighResolutionEnabled = query.fetchHighResolutionData;
+    // let enabledPanelIds: string[] = this.getEnabledPanelIds();
+    // const isHighResolutionEnabled = enabledPanelIds.includes(panelId) && columns.length > 0;
+    const isHighResolutionEnabled = query.fetchHighResolutionData;
     if (isHighResolutionEnabled) {
       /**
        * If `x-axis` selection is of type "TIMESTAMP", the below filters should be applied.

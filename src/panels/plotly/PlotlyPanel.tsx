@@ -166,7 +166,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
           [`${options.xAxis.field}-min`]: Math.floor(xAxisMin),
           [`${options.xAxis.field}-max`]: Math.ceil(xAxisMax)
         }, true);
-        locationService.reload();
+        (document.querySelector('[aria-label="Refresh dashboard"]') as HTMLButtonElement).click()
       } else {
         props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
       }
