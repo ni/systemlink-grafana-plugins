@@ -189,3 +189,367 @@ exports[`shouldRunQuery should match snapshot for TotalCount outputType 1`] = `
   },
 ]
 `;
+
+exports[`shouldRunQuery should return expected data when take is 0 1`] = `
+{
+  "fields": [
+    {
+      "name": "id",
+      "values": [
+        "c44750b7-1f22-4fec-b475-73b10e966217",
+      ],
+    },
+    {
+      "name": "name",
+      "values": [
+        "SDFGSDFG234",
+      ],
+    },
+    {
+      "name": "vendor name",
+      "values": [
+        "Acme",
+      ],
+    },
+    {
+      "name": "vendor number",
+      "values": [
+        0,
+      ],
+    },
+    {
+      "name": "model name",
+      "values": [
+        "ABCD",
+      ],
+    },
+    {
+      "name": "model number",
+      "values": [
+        0,
+      ],
+    },
+    {
+      "name": "serial number",
+      "values": [
+        "SDFGSDFG234",
+      ],
+    },
+    {
+      "name": "bus type",
+      "values": [
+        "BUILT_IN_SYSTEM",
+      ],
+    },
+    {
+      "name": "asset type",
+      "values": [
+        "SYSTEM",
+      ],
+    },
+    {
+      "name": "is NI asset",
+      "values": [
+        true,
+      ],
+    },
+    {
+      "name": "part number",
+      "values": [
+        "ALK AA48FFP-U AMZ",
+      ],
+    },
+    {
+      "name": "calibration status",
+      "values": [
+        "OK",
+      ],
+    },
+    {
+      "name": "is system controller",
+      "values": [
+        false,
+      ],
+    },
+    {
+      "name": "last updated timestamp",
+      "values": [
+        "2023-08-31T17:32:15.201Z",
+      ],
+    },
+    {
+      "name": "location",
+      "values": [
+        "",
+      ],
+    },
+    {
+      "name": "minionId",
+      "values": [
+        "",
+      ],
+    },
+    {
+      "name": "parent name",
+      "values": [
+        "",
+      ],
+    },
+    {
+      "name": "workspace",
+      "values": [
+        "Default",
+      ],
+    },
+    {
+      "name": "supports self calibration",
+      "values": [
+        false,
+      ],
+    },
+    {
+      "name": "supports external calibration",
+      "values": [
+        false,
+      ],
+    },
+    {
+      "name": "visa resource name",
+      "values": [
+        "",
+      ],
+    },
+    {
+      "name": "firmware version",
+      "values": [
+        "",
+      ],
+    },
+    {
+      "name": "discovery type",
+      "values": [
+        "MANUAL",
+      ],
+    },
+    {
+      "name": "supports self test",
+      "values": [
+        false,
+      ],
+    },
+    {
+      "name": "supports reset",
+      "values": [
+        false,
+      ],
+    },
+    {
+      "name": "properties",
+      "values": [
+        "{}",
+      ],
+    },
+    {
+      "name": "keywords",
+      "values": [
+        "keyword",
+      ],
+    },
+    {
+      "name": "self calibration",
+      "values": [
+        "",
+      ],
+    },
+    {
+      "name": "calibration due date",
+      "values": [
+        undefined,
+      ],
+    },
+  ],
+  "refId": "A",
+}
+`;
+
+exports[`shouldRunQuery should return expected data when take is 1000 1`] = `
+{
+  "fields": [
+    {
+      "name": "id",
+      "values": [
+        "c44750b7-1f22-4fec-b475-73b10e966217",
+      ],
+    },
+    {
+      "name": "name",
+      "values": [
+        "SDFGSDFG234",
+      ],
+    },
+    {
+      "name": "vendor name",
+      "values": [
+        "Acme",
+      ],
+    },
+    {
+      "name": "vendor number",
+      "values": [
+        0,
+      ],
+    },
+    {
+      "name": "model name",
+      "values": [
+        "ABCD",
+      ],
+    },
+    {
+      "name": "model number",
+      "values": [
+        0,
+      ],
+    },
+    {
+      "name": "serial number",
+      "values": [
+        "SDFGSDFG234",
+      ],
+    },
+    {
+      "name": "bus type",
+      "values": [
+        "BUILT_IN_SYSTEM",
+      ],
+    },
+    {
+      "name": "asset type",
+      "values": [
+        "SYSTEM",
+      ],
+    },
+    {
+      "name": "is NI asset",
+      "values": [
+        true,
+      ],
+    },
+    {
+      "name": "part number",
+      "values": [
+        "ALK AA48FFP-U AMZ",
+      ],
+    },
+    {
+      "name": "calibration status",
+      "values": [
+        "OK",
+      ],
+    },
+    {
+      "name": "is system controller",
+      "values": [
+        false,
+      ],
+    },
+    {
+      "name": "last updated timestamp",
+      "values": [
+        "2023-08-31T17:32:15.201Z",
+      ],
+    },
+    {
+      "name": "location",
+      "values": [
+        "",
+      ],
+    },
+    {
+      "name": "minionId",
+      "values": [
+        "",
+      ],
+    },
+    {
+      "name": "parent name",
+      "values": [
+        "",
+      ],
+    },
+    {
+      "name": "workspace",
+      "values": [
+        "Default",
+      ],
+    },
+    {
+      "name": "supports self calibration",
+      "values": [
+        false,
+      ],
+    },
+    {
+      "name": "supports external calibration",
+      "values": [
+        false,
+      ],
+    },
+    {
+      "name": "visa resource name",
+      "values": [
+        "",
+      ],
+    },
+    {
+      "name": "firmware version",
+      "values": [
+        "",
+      ],
+    },
+    {
+      "name": "discovery type",
+      "values": [
+        "MANUAL",
+      ],
+    },
+    {
+      "name": "supports self test",
+      "values": [
+        false,
+      ],
+    },
+    {
+      "name": "supports reset",
+      "values": [
+        false,
+      ],
+    },
+    {
+      "name": "properties",
+      "values": [
+        "{}",
+      ],
+    },
+    {
+      "name": "keywords",
+      "values": [
+        "keyword",
+      ],
+    },
+    {
+      "name": "self calibration",
+      "values": [
+        "",
+      ],
+    },
+    {
+      "name": "calibration due date",
+      "values": [
+        undefined,
+      ],
+    },
+  ],
+  "refId": "A",
+}
+`;

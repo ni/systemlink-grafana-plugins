@@ -24,7 +24,8 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
 
   defaultQuery = {
     type: AssetQueryType.ListAssets,
-    filter: ''
+    filter: '',
+    take: 1000,
   };
 
   async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
@@ -43,7 +44,15 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
       return this.processTotalCountAssetsQuery(listAssetsQuery);
     };
 
-    return this.processListAssetsQuery(listAssetsQuery);
+    if (listAssetsQuery.outputType === OutputType.Properties && this.isTakeValid(listAssetsQuery)) {
+      return this.processListAssetsQuery(listAssetsQuery);
+    }
+
+    return {
+      refId: query.refId,
+      name: query.refId,
+      fields: [],
+    };
   }
 
   shouldRunQuery(query: AssetQuery): boolean {
@@ -52,7 +61,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
 
   async processListAssetsQuery(query: ListAssetsQuery) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
-    const assetsResponse: AssetsResponse = await this.queryAssets(query.filter, QUERY_LIMIT, false);
+    const assetsResponse: AssetsResponse = await this.queryAssets(query.filter, query.take, false);
     const assets = assetsResponse.assets;
     const workspaces = this.getCachedWorkspaces();
     result.fields = [
@@ -110,5 +119,9 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
       return asset.location.physicalLocation;
     }
     return this.systemAliasCache.get(asset.location.minionId)?.alias || '';
+  }
+
+  private isTakeValid(query: ListAssetsQuery): boolean {
+    return query.take !== undefined && query.take >= 0 && query.take <= QUERY_LIMIT;
   }
 }

@@ -82,6 +82,7 @@ describe('List assets location queries', () => {
             refId: '',
             type: AssetQueryType.ListAssets,
             filter: `${ListAssetsFieldNames.LOCATION} = "Location1"`,
+            outputType: OutputType.Properties,
         });
 
         await datastore.query(query);
@@ -100,6 +101,7 @@ describe('List assets location queries', () => {
             refId: '',
             type: AssetQueryType.ListAssets,
             filter: `${ListAssetsFieldNames.LOCATION} = "Location1"`,
+            outputType: OutputType.Properties,
         });
 
         await datastore.query(query);
@@ -119,6 +121,7 @@ describe('List assets location queries', () => {
             refId: '',
             type: AssetQueryType.ListAssets,
             filter: `${ListAssetsFieldNames.LOCATION} = "{Location1,Location2}"`,
+            outputType: OutputType.Properties,
         });
 
         await datastore.query(query);
@@ -152,7 +155,8 @@ describe('shouldRunQuery', () => {
             refId: '',
             type: AssetQueryType.ListAssets,
             filter: `${ListAssetsFieldNames.LOCATION} = "Location1"`,
-            hide: false
+            hide: false,
+            outputType: OutputType.Properties,
         });
 
         await datastore.query(query);
@@ -219,4 +223,96 @@ describe('shouldRunQuery', () => {
         expect(data.fields.length).toBeGreaterThan(0);
         expect(data.fields).toMatchSnapshot();
     })
+
+    test('should call queryAsset with take set to 1000 by default', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+        });
+        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
+
+        await datastore.query(query);
+
+        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, false);
+    })
+
+    test('should return empty data when take is invalid', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            take: undefined,
+        });
+        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
+        const result = await datastore.query(query);
+        const data = result.data[0];
+
+        expect(data.fields.length).toBe(0);
+        expect(queryAssetSpy).not.toHaveBeenCalled();
+    });
+
+    test('should return empty data when take is less than 0', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            take: -1,
+        });
+        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
+        const result = await datastore.query(query);
+        const data = result.data[0];
+
+        expect(data.fields.length).toBe(0);
+        expect(queryAssetSpy).not.toHaveBeenCalled();
+    });
+
+    test('should return empty data when take is greater than 1000', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            take: 1001,
+        });
+        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
+        const result = await datastore.query(query);
+        const data = result.data[0];
+
+        expect(data.fields.length).toBe(0);
+        expect(queryAssetSpy).not.toHaveBeenCalled();
+    });
+
+    test('should return expected data when take is 0', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            take: 0,
+        });
+        jest.spyOn(datastore, 'queryAssets');
+        const result = await datastore.query(query);
+        const data = result.data[0];
+
+        expect(data).toMatchSnapshot();
+    });
+
+    test('should return expected data when take is 1000', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            take: 1000,
+        });
+        jest.spyOn(datastore, 'queryAssets');
+        const result = await datastore.query(query);
+        const data = result.data[0];
+
+        expect(data).toMatchSnapshot();
+    });
 });
