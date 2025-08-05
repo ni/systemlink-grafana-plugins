@@ -1,1 +1,0 @@
-export const SESSION_EXPIRY_BUFFER_TIME_IN_MILLISECONDS = 5 * 60 * 1000; // 5 minutes

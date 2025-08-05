@@ -21,8 +21,6 @@ import { getVariableOptions, queryInBatches } from 'core/utils';
 import { LEGACY_METADATA_TYPE, QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { ResultsPropertiesOptions } from 'datasources/results/types/QueryResults.types';
-import { ApiSessionUtils } from 'shared/api-session.utils';
-import { Subject } from 'rxjs';
 
 export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSourceJsonData> {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
@@ -34,7 +32,6 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
   ) {
     super(instanceSettings, backendSrv, templateSrv);
     this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
-    this.apiSessionUtils = new ApiSessionUtils(this.instanceSettings, this.backendSrv);
     console.log(this.instanceSettings);
   }
 
@@ -43,7 +40,6 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
   defaultQuery = defaultQuery;
   workspaceUtils: WorkspaceUtils;
   queryResultsValuesUrl = this.instanceSettings.url + '/nitestmonitor/v2/query-result-values';
-  apiSessionUtils: ApiSessionUtils;
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
   private static _partNumbersCache: Promise<string[]> | null = null;
@@ -51,8 +47,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
 
 
   async runQuery(query: DataFrameQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
-    const r = await this.apiSessionUtils.createApiSession(new Subject<void>(), []);
-    console.log(r);
+    
     
     const processedQuery = this.processQuery(query);
     if (processedQuery.type === DataFrameQueryType.Data && processedQuery.queryBy !== '') {
@@ -100,10 +95,10 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
 
             const batchQueryConfig = {
                   maxTakePerRequest: 500,
-                  requestsPerSecond: 6
+                  requestsPerSecond: 10
                 };
             
-            const responses = await queryInBatches(queryRecord, batchQueryConfig, 1000);
+            const responses = await queryInBatches(queryRecord, batchQueryConfig, 10000);
 
             if (responses && responses.data) {
               const tableFields = this.dataFrameToFields(
