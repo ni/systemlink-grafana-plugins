@@ -100,6 +100,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
 
     let enabledPanelIds: string[] = this.getEnabledPanelIds();
     const isHighResolutionEnabled = enabledPanelIds.includes(panelId) && columns.length > 0;
+    // const isHighResolutionEnabled = query.fetchHighResolutionData;
     if (isHighResolutionEnabled) {
       /**
        * If `x-axis` selection is of type "TIMESTAMP", the below filters should be applied.
@@ -117,6 +118,9 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
         && xMax !== ''
         && xMin !== undefined
         && xMax !== undefined
+        // For session storage
+        // && xMin !== null 
+        // && xMax !== null
       ) {
         filters.push(...this.constructXAxisNumberFilters(xField, Math.floor(Number(xMin)), Math.floor(Number(xMax))));
       }
