@@ -1,16 +1,69 @@
 import {
+    createFetchResponse,
     getQueryBuilder,
+    requestMatching,
     setupDataSource,
 } from "test/fixtures";
 import { AssetQueryType } from "../../types/types";
 import { ListAssetsDataSource } from "./ListAssetsDataSource";
-import { ListAssetsQuery } from "../../types/ListAssets.types";
+import { ListAssetsQuery, OutputType } from "../../types/ListAssets.types";
 import { ListAssetsFieldNames } from "../../constants/ListAssets.constants";
+import { MockProxy } from "jest-mock-extended";
+import { BackendSrv } from "@grafana/runtime";
 
-let datastore: ListAssetsDataSource;
+let datastore: ListAssetsDataSource, backendServer: MockProxy<BackendSrv>;
+const mockListAssets = {
+    assets: [
+        {
+            modelName: 'ABCD',
+            modelNumber: 0,
+            serialNumber: 'SDFGSDFG234',
+            vendorName: 'Acme',
+            vendorNumber: 0,
+            busType: 'BUILT_IN_SYSTEM',
+            name: 'SDFGSDFG234',
+            assetType: 'SYSTEM',
+            firmwareVersion: '',
+            hardwareVersion: '',
+            visaResourceName: '',
+            temperatureSensors: [],
+            supportsSelfCalibration: false,
+            supportsExternalCalibration: false,
+            isNIAsset: true,
+            partNumber: 'ALK AA48FFP-U AMZ',
+            workspace: 'Default',
+            fileIds: ["608a5684800e325b48837c2a"],
+            supportsSelfTest: false,
+            supportsReset: false,
+            id: 'c44750b7-1f22-4fec-b475-73b10e966217',
+            location: {
+                minionId: '',
+                parent: '',
+                resourceUri: '',
+                slotNumber: 0,
+                state: {
+                    assetPresence: "INITIALIZING"
+                },
+                physicalLocation: ''
+            },
+            calibrationStatus: 'OK',
+            isSystemController: false,
+            discoveryType: 'MANUAL',
+            properties: {},
+            keywords: ['keyword'],
+            lastUpdatedTimestamp: '2023-08-31T17:32:15.201Z',
+        }
+    ],
+    totalCount: 4,
+};
 
 beforeEach(() => {
-    [datastore] = setupDataSource(ListAssetsDataSource);
+    [datastore, backendServer] = setupDataSource(ListAssetsDataSource);
+    backendServer.fetch
+        .calledWith(requestMatching({ url: '/niapm/v1/query-assets', method: 'POST' }))
+        .mockReturnValue(createFetchResponse(mockListAssets));
+
+    jest.spyOn(datastore, 'processListAssetsQuery');
 });
 
 const buildListAssetsQuery = getQueryBuilder<ListAssetsQuery>()({
@@ -79,14 +132,8 @@ describe('List assets location queries', () => {
 });
 
 describe('shouldRunQuery', () => {
-    let processlistAssetsQuerySpy: jest.SpyInstance;
-
-    beforeEach(() => {
-        processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery').mockImplementation();
-
-    });
-
     test('should not process query for hidden queries', async () => {
+        const processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery').mockImplementation();
         const query = buildListAssetsQuery({
             refId: '',
             type: AssetQueryType.ListAssets,
@@ -100,6 +147,7 @@ describe('shouldRunQuery', () => {
     });
 
     test('should process query for non-hidden queries', async () => {
+        const processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery').mockImplementation();
         const query = buildListAssetsQuery({
             refId: '',
             type: AssetQueryType.ListAssets,
@@ -111,4 +159,64 @@ describe('shouldRunQuery', () => {
 
         expect(processlistAssetsQuerySpy).toHaveBeenCalled();
     });
+
+    test('should call queryAsset with returnCount set to true when outpuType is set to TotalCount', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.TotalCount,
+        });
+        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
+
+        await datastore.query(query);
+
+        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, true);
+    })
+
+    test('should call queryAsset with returnCount set to false when outpuType is set to Properties', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+        });
+        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
+
+        await datastore.query(query);
+
+        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, false);
+    })
+
+    test('should match snapshot for TotalCount outputType', async () => {
+        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(mockListAssets);
+
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.TotalCount,
+        });
+        const result = await datastore.query(query);
+        const data = result.data[0];
+
+        expect(data.fields[0].values[0]).toBe(4);
+        expect(data.fields).toMatchSnapshot();
+    })
+
+    test('should match snapshot for Properties outputType', async () => {
+        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(mockListAssets);
+
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+        });
+        const result = await datastore.query(query);
+        const data = result.data[0];
+
+        expect(data.fields.length).toBeGreaterThan(0);
+        expect(data.fields).toMatchSnapshot();
+    })
 });

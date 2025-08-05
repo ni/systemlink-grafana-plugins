@@ -2,7 +2,7 @@ import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings } from '@gra
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
 import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../types/types';
-import { ListAssetsQuery } from '../../types/ListAssets.types';
+import { ListAssetsQuery, OutputType, QueryListAssetRequestBody } from '../../types/ListAssets.types';
 import { AssetModel, AssetsResponse } from '../../../asset-common/types';
 import { getWorkspaceName } from '../../../../core/utils';
 import { transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
@@ -30,7 +30,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
   async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     const listAssetsQuery = query as ListAssetsQuery;
     await this.dependenciesLoadedPromise;
-  
+
     if (listAssetsQuery.filter) {
       listAssetsQuery.filter = transformComputedFieldsQuery(
         this.templateSrv.replace(listAssetsQuery.filter, options.scopedVars),
@@ -38,6 +38,10 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
         this.queryTransformationOptions
       );
     }
+
+    if (listAssetsQuery.outputType === OutputType.TotalCount) {
+      return this.processTotalCountAssetsQuery(listAssetsQuery);
+    };
 
     return this.processListAssetsQuery(listAssetsQuery);
   }
@@ -48,7 +52,8 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
 
   async processListAssetsQuery(query: ListAssetsQuery) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
-    const assets: AssetModel[] = await this.queryAssets(query.filter, QUERY_LIMIT);
+    const assetsResponse: AssetsResponse = await this.queryAssets(query.filter, QUERY_LIMIT, false);
+    const assets = assetsResponse.assets;
     const workspaces = this.getCachedWorkspaces();
     result.fields = [
       { name: 'id', values: assets.map(a => a.id) },
@@ -65,10 +70,10 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
       { name: 'calibration status', values: assets.map(a => a.calibrationStatus) },
       { name: 'is system controller', values: assets.map(a => a.isSystemController) },
       { name: 'last updated timestamp', values: assets.map(a => a.lastUpdatedTimestamp) },
-      { name: 'location', values: assets.map(a => this.getLocationFromAsset(a))},
+      { name: 'location', values: assets.map(a => this.getLocationFromAsset(a)) },
       { name: 'minionId', values: assets.map(a => a.location.minionId) },
       { name: 'parent name', values: assets.map(a => a.location.parent) },
-      { name: 'workspace', values: assets.map( a => getWorkspaceName( workspaces, a.workspace ) ) },
+      { name: 'workspace', values: assets.map(a => getWorkspaceName(workspaces, a.workspace)) },
       { name: 'supports self calibration', values: assets.map(a => a.supportsSelfCalibration) },
       { name: 'supports external calibration', values: assets.map(a => a.supportsExternalCalibration) },
       { name: 'visa resource name', values: assets.map(a => a.visaResourceName) },
@@ -84,20 +89,24 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
     return result;
   }
 
-  async queryAssets(filter = '', take = -1): Promise<AssetModel[]> {
-    let data = { filter, take };
+  async processTotalCountAssetsQuery(query: ListAssetsQuery) {
+    const response: AssetsResponse = await this.queryAssets(query.filter, QUERY_LIMIT, true);
+    const result: DataFrameDTO = { refId: query.refId, fields: [{ name: "Total count", values: [response.totalCount] }] };
+    return result;
+  }
+
+  async queryAssets(filter = '', take = -1, returnCount = false): Promise<AssetsResponse> {
+    let data: QueryListAssetRequestBody = { filter, take, returnCount };
     try {
-      let response = await this.post<AssetsResponse>(this.baseUrl + '/query-assets', data);
-      return response.assets;
+      const response = await this.post<AssetsResponse>(this.baseUrl + '/query-assets', data);
+      return response;
     } catch (error) {
       throw new Error(`An error occurred while querying assets: ${error}`);
     }
   }
 
-  private getLocationFromAsset(asset: AssetModel): string
-  {
-    if (asset.location.physicalLocation)
-    {
+  private getLocationFromAsset(asset: AssetModel): string {
+    if (asset.location.physicalLocation) {
       return asset.location.physicalLocation;
     }
     return this.systemAliasCache.get(asset.location.minionId)?.alias || '';

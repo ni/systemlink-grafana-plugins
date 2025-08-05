@@ -19,7 +19,7 @@ import { CalibrationForecastQuery } from './types/CalibrationForecastQuery.types
 import { ListAssetsQuery } from './types/ListAssets.types';
 import { ListAssetsDataSource } from './data-sources/list-assets/ListAssetsDataSource';
 import { AssetSummaryDataSource } from './data-sources/asset-summary/AssetSummaryDataSource';
-import { AssetModel } from 'datasources/asset-common/types';
+import { AssetModel, AssetsResponse } from 'datasources/asset-common/types';
 import { QUERY_LIMIT } from './constants/constants';
 import { transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { AssetVariableQuery } from './types/AssetVariableQuery.types';
@@ -96,8 +96,8 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
       this.listAssetsDataSource.assetComputedDataFields,
       this.listAssetsDataSource.queryTransformationOptions
     );
-    const assetsResponse: AssetModel[] = await this.listAssetsDataSource.queryAssets(assetFilter, QUERY_LIMIT);
-    return assetsResponse.map(this.getAssetNameForMetricQuery);
+    const assetsResponse: AssetsResponse = await this.listAssetsDataSource.queryAssets(assetFilter, QUERY_LIMIT);
+    return assetsResponse.assets.map(this.getAssetNameForMetricQuery);
   }
 
   private getAssetNameForMetricQuery(asset: AssetModel): MetricFindValue {
