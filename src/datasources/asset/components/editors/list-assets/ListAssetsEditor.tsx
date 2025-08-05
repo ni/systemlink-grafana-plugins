@@ -80,7 +80,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
 const tooltips = {
   listAssets: {
     filter: `Filter the assets by various properties. This is an optional field.`,
-    outputType: 'This field specifies the output type to fetch work order properties or total count.',
-    properties: 'This field specifies the properties to use in the query.',
+    outputType: 'This field specifies the output type of the query. The query can fetch work order properties or the work order total count.',
+    properties: 'This field specifies the query properties.',
   },
 };

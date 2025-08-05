@@ -203,6 +203,7 @@ describe('shouldRunQuery', () => {
         expect(data.fields[0].values[0]).toBe(4);
         expect(data.fields).toMatchSnapshot();
     })
+
     test('should match snapshot for Properties outputType', async () => {
         jest.spyOn(datastore, 'queryAssets').mockResolvedValue(mockListAssets);
 

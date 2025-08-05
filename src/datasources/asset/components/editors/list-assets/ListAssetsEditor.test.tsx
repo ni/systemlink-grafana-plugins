@@ -61,13 +61,13 @@ it('renders the query builder', async () => {
   await waitFor(() => expect(screen.getAllByText('Value').length).toBe(1));
 });
 
-test('should render OutputType RadioButtonGroup with correct options', async () => {
+it('should render OutputType RadioButtonGroup with correct options', async () => {
   await render({} as ListAssetsQuery)
   expect(screen.getByRole('radio', { name: OutputType.Properties })).toBeInTheDocument();
   expect(screen.getByRole('radio', { name: OutputType.TotalCount })).toBeInTheDocument();
 });
 
-test('should set OutputType to "TotalCount" and trigger rerender', async () => {
+it('should set OutputType to "TotalCount" and trigger rerender', async () => {
   const [onChange] = await render({
     type: AssetQueryType.ListAssets,
     filter: '',
@@ -88,7 +88,7 @@ test('should set OutputType to "TotalCount" and trigger rerender', async () => {
   })
 });
 
-test('should set OutputType to "Properties" and trigger rerender', async () => {
+it('should set OutputType to "Properties" and trigger rerender', async () => {
   const [onChange] = await render({
     type: AssetQueryType.ListAssets,
     outputType: OutputType.TotalCount,
@@ -110,13 +110,13 @@ test('should set OutputType to "Properties" and trigger rerender', async () => {
   })
 });
 
-test('should display "Properties" selected when OutpuType is set to properties', async () => {
+it('should display "Properties" selected when OutpuType is set to properties', async () => {
   await render({ type: AssetQueryType.ListAssets, outputType: OutputType.Properties } as ListAssetsQuery)
   expect(screen.getByRole('radio', { name: OutputType.Properties })).toBeChecked();
   expect(screen.getByRole('radio', { name: OutputType.TotalCount })).not.toBeChecked();
 })
 
-test('should display "TotalCount" selected when OutpuType is set to total count', async () => {
+it('should display "TotalCount" selected when OutpuType is set to total count', async () => {
   await render({ type: AssetQueryType.ListAssets, outputType: OutputType.TotalCount } as ListAssetsQuery)
   expect(screen.getByRole('radio', { name: OutputType.Properties })).not.toBeChecked();
   expect(screen.getByRole('radio', { name: OutputType.TotalCount })).toBeChecked();
