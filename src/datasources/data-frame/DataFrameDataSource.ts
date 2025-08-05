@@ -45,10 +45,10 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
     processedQuery.columns = replaceVariables(processedQuery.columns, this.templateSrv);
     const properties = await this.getTableProperties(processedQuery.tableId);
 
-    this.initializeFetchHighResolutionData(
-      processedQuery.fetchHighResolutionData,
-      request.panelId?.toString()
-    );
+    // this.initializeFetchHighResolutionData(
+    //   processedQuery.fetchHighResolutionData,
+    //   request.panelId?.toString()
+    // );
 
     if (processedQuery.type === DataFrameQueryType.Properties) {
       return {
@@ -169,39 +169,39 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
     return deepEqual(migratedQuery, query) ? (query as ValidDataFrameQuery) : migratedQuery;
   }
 
-  initializeFetchHighResolutionData(
-    enableHighResolutionZoom: boolean,
-    panelId = ''
-  ): void {
-    if (panelId === '' || this.isInEditPanelMode()) {
-      return;
-    }
+  // initializeFetchHighResolutionData(
+  //   enableHighResolutionZoom: boolean,
+  //   panelId = ''
+  // ): void {
+  //   if (panelId === '' || this.isInEditPanelMode()) {
+  //     return;
+  //   }
 
-    let enabledPanelIds: string[] = this.getEnabledPanelIds();
-    if (enableHighResolutionZoom && !enabledPanelIds.includes(panelId)) {
-      enabledPanelIds.push(panelId);
-    }
+  //   let enabledPanelIds: string[] = this.getEnabledPanelIds();
+  //   if (enableHighResolutionZoom && !enabledPanelIds.includes(panelId)) {
+  //     enabledPanelIds.push(panelId);
+  //   }
 
-    locationService.partial({
-      [`fetchHighResolutionData`]: enabledPanelIds.join(','),
-    }, true);
-  }
+  //   locationService.partial({
+  //     [`fetchHighResolutionData`]: enabledPanelIds.join(','),
+  //   }, true);
+  // }
 
-  getEnabledPanelIds(): string[] {
-    const queryParams = locationService.getSearchObject();
-    const fetchHighResolutionDataOnZoom = queryParams['fetchHighResolutionData'];
-    let enabledPanelIds: string[] = [];
+  // getEnabledPanelIds(): string[] {
+  //   const queryParams = locationService.getSearchObject();
+  //   const fetchHighResolutionDataOnZoom = queryParams['fetchHighResolutionData'];
+  //   let enabledPanelIds: string[] = [];
 
-    if (
-      fetchHighResolutionDataOnZoom !== undefined
-      && typeof fetchHighResolutionDataOnZoom === 'string'
-      && fetchHighResolutionDataOnZoom !== ''
-    ) {
-      enabledPanelIds = fetchHighResolutionDataOnZoom.split(',');
-    }
+  //   if (
+  //     fetchHighResolutionDataOnZoom !== undefined
+  //     && typeof fetchHighResolutionDataOnZoom === 'string'
+  //     && fetchHighResolutionDataOnZoom !== ''
+  //   ) {
+  //     enabledPanelIds = fetchHighResolutionDataOnZoom.split(',');
+  //   }
 
-    return enabledPanelIds;
-  }
+  //   return enabledPanelIds;
+  // }
 
   isInEditPanelMode(): boolean {
     const queryParams = locationService.getSearchObject();

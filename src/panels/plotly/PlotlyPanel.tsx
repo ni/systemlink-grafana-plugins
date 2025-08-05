@@ -153,23 +153,23 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
         props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: from.valueOf(), max: to.valueOf() } });
       }
     } else {
-      const queryParams = locationService.getSearchObject();
-      const fetchHighResolutionDataOnZoom = queryParams['fetchHighResolutionData'];
+      // const queryParams = locationService.getSearchObject();
+      // const fetchHighResolutionDataOnZoom = queryParams['fetchHighResolutionData'];
 
-      if (
-        fetchHighResolutionDataOnZoom !== undefined
-        && typeof fetchHighResolutionDataOnZoom === 'string'
-        && fetchHighResolutionDataOnZoom !== ''
-        && fetchHighResolutionDataOnZoom.split(',').includes(id.toString())
-      ) {
+      // if (
+      //   fetchHighResolutionDataOnZoom !== undefined
+      //   && typeof fetchHighResolutionDataOnZoom === 'string'
+      //   && fetchHighResolutionDataOnZoom !== ''
+      //   && fetchHighResolutionDataOnZoom.split(',').includes(id.toString())
+      // ) {
         locationService.partial({
           [`${options.xAxis.field}-min`]: Math.floor(xAxisMin),
           [`${options.xAxis.field}-max`]: Math.ceil(xAxisMax)
         }, true);
         (document.querySelector('[aria-label="Refresh dashboard"]') as HTMLButtonElement).click()
-      } else {
-        props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
-      }
+      // } else {
+      //   props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
+      // }
     }
   };
 

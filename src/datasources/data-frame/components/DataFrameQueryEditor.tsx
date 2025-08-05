@@ -31,65 +31,65 @@ export const DataFrameQueryEditor = (props: Props) => {
   }
 
   // When the user toggles the "Fetch high resolution data on zoom" switch, we update the URL query parameters
-  const updateFetchHighResolutionDataStateInQueryParams = (fetchHighResolutionData: boolean) => {
-    const editPanelId = getPanelId();
-    let fetchHighResolutionDataEnabledPanelIds: string[] = getEnabledPanelIds();
+  // const updateFetchHighResolutionDataStateInQueryParams = (fetchHighResolutionData: boolean) => {
+  //   const editPanelId = getPanelId();
+  //   let fetchHighResolutionDataEnabledPanelIds: string[] = getEnabledPanelIds();
 
-    if (fetchHighResolutionData && !fetchHighResolutionDataEnabledPanelIds.includes(editPanelId)) {
-      fetchHighResolutionDataEnabledPanelIds.push(editPanelId);
-    }
+  //   if (fetchHighResolutionData && !fetchHighResolutionDataEnabledPanelIds.includes(editPanelId)) {
+  //     fetchHighResolutionDataEnabledPanelIds.push(editPanelId);
+  //   }
 
-    if (!fetchHighResolutionData && fetchHighResolutionDataEnabledPanelIds.includes(editPanelId)) {
-      fetchHighResolutionDataEnabledPanelIds = fetchHighResolutionDataEnabledPanelIds.filter((panelId) => panelId !== editPanelId);
-    }
+  //   if (!fetchHighResolutionData && fetchHighResolutionDataEnabledPanelIds.includes(editPanelId)) {
+  //     fetchHighResolutionDataEnabledPanelIds = fetchHighResolutionDataEnabledPanelIds.filter((panelId) => panelId !== editPanelId);
+  //   }
 
-    locationService.partial({
-      [`fetchHighResolutionData`]: fetchHighResolutionDataEnabledPanelIds.join(','),
-    }, true);
-  }
+  //   locationService.partial({
+  //     [`fetchHighResolutionData`]: fetchHighResolutionDataEnabledPanelIds.join(','),
+  //   }, true);
+  // }
 
   // When URL query parameters change, we check if the current panel is enabled for fetching high resolution data and update the state in all the queries available in that panel - To sync the state across queries.
-  const location = useLocation();
-  useEffect(() => {
-    const editPanelId = getPanelId();
-    const fetchHighResolutionDataEnabledPanelIds: string[] = getEnabledPanelIds();
+  // const location = useLocation();
+  // useEffect(() => {
+  //   const editPanelId = getPanelId();
+  //   const fetchHighResolutionDataEnabledPanelIds: string[] = getEnabledPanelIds();
 
-    const updatedFetchHighResolutionDataState = fetchHighResolutionDataEnabledPanelIds.includes(editPanelId ?? '');
-    if (updatedFetchHighResolutionDataState !== common.query.fetchHighResolutionData) {
-      common.handleQueryChange({ ...common.query, fetchHighResolutionData: updatedFetchHighResolutionDataState }, true);
-    }
-  }, [location.search, common]);
+  //   const updatedFetchHighResolutionDataState = fetchHighResolutionDataEnabledPanelIds.includes(editPanelId ?? '');
+  //   if (updatedFetchHighResolutionDataState !== common.query.fetchHighResolutionData) {
+  //     common.handleQueryChange({ ...common.query, fetchHighResolutionData: updatedFetchHighResolutionDataState }, true);
+  //   }
+  // }, [location.search, common]);
 
   // Utility functions
-  const getEnabledPanelIds = (): string[] => {
-    const queryParams = locationService.getSearchObject();
-    const fetchHighResolutionDataOnZoom = queryParams['fetchHighResolutionData'];
-    let enabledPanelIds: string[] = [];
+  // const getEnabledPanelIds = (): string[] => {
+  //   const queryParams = locationService.getSearchObject();
+  //   const fetchHighResolutionDataOnZoom = queryParams['fetchHighResolutionData'];
+  //   let enabledPanelIds: string[] = [];
 
-    if (
-      fetchHighResolutionDataOnZoom !== undefined
-      && typeof fetchHighResolutionDataOnZoom === 'string'
-      && fetchHighResolutionDataOnZoom !== ''
-    ) {
-      enabledPanelIds = fetchHighResolutionDataOnZoom.split(',');
-    }
+  //   if (
+  //     fetchHighResolutionDataOnZoom !== undefined
+  //     && typeof fetchHighResolutionDataOnZoom === 'string'
+  //     && fetchHighResolutionDataOnZoom !== ''
+  //   ) {
+  //     enabledPanelIds = fetchHighResolutionDataOnZoom.split(',');
+  //   }
 
-    return enabledPanelIds;
-  }
+  //   return enabledPanelIds;
+  // }
 
-  const getPanelId = (): string => {
-    const queryParams = locationService.getSearchObject();
-    const editPanelId = queryParams['editPanel'];
+  // const getPanelId = (): string => {
+  //   const queryParams = locationService.getSearchObject();
+  //   const editPanelId = queryParams['editPanel'];
 
-    if (
-      editPanelId !== undefined
-      && (typeof editPanelId === 'string' || typeof editPanelId === 'number')
-      && editPanelId !== ''
-    ) {
-      return editPanelId.toString();
-    }
-    return '';
-  }
+  //   if (
+  //     editPanelId !== undefined
+  //     && (typeof editPanelId === 'string' || typeof editPanelId === 'number')
+  //     && editPanelId !== ''
+  //   ) {
+  //     return editPanelId.toString();
+  //   }
+  //   return '';
+  // }
 
 
   return (
@@ -142,7 +142,8 @@ export const DataFrameQueryEditor = (props: Props) => {
           <InlineField label="Fetch high resolution data on zoom" tooltip={tooltips.useTimeRange}>
             <InlineSwitch
               value={common.query.fetchHighResolutionData}
-              onChange={event => updateFetchHighResolutionDataStateInQueryParams(event.currentTarget.checked)}
+              // onChange={event => updateFetchHighResolutionDataStateInQueryParams(event.currentTarget.checked)}
+              onChange={event => common.handleQueryChange({ ...common.query, fetchHighResolutionData: event.currentTarget.checked }, true)}
             ></InlineSwitch>
           </InlineField>
         </>
