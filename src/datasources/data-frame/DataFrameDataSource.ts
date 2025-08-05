@@ -63,7 +63,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
         columns,
         range,
         maxDataPoints,
-        request.panelId?.toString()
+        // request.panelId?.toString()
       );
       return {
         refId: processedQuery.refId,
@@ -94,7 +94,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
     columns: Column[],
     timeRange: TimeRange,
     intervals = 1000,
-    panelId = ''
+    // panelId = ''
   ): Promise<TableDataRows> {
     const filters: ColumnFilter[] = [];
 
