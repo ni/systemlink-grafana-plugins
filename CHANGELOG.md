@@ -1,3 +1,9 @@
+## [4.2.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.2.0...v4.2.1) (2025-08-05)
+
+### Bug Fixes
+
+* **prototype:** Revert changes from all PRs ([#380](https://github.com/ni/systemlink-grafana-plugins/issues/380)) ([4a40a65](https://github.com/ni/systemlink-grafana-plugins/commit/4a40a658dbf3e0dcc8903df808f27dee1323cb3d))
+
 ## [4.2.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.1.4...v4.2.0) (2025-08-05)
 
 ### Features
