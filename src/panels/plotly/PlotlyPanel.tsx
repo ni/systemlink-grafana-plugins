@@ -163,8 +163,8 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
         && fetchHighResolutionDataOnZoom.split(',').includes(id.toString())
       ) {
         locationService.partial({
-          [`${options.xAxis.field}-min`]: xAxisMin,
-          [`${options.xAxis.field}-max`]: xAxisMax
+          [`${options.xAxis.field}-min`]: Math.floor(xAxisMin),
+          [`${options.xAxis.field}-max`]: Math.ceil(xAxisMax)
         }, true);
         locationService.reload();
       } else {
