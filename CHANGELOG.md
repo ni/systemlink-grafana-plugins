@@ -1,3 +1,9 @@
+## [4.2.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.1.4...v4.2.0) (2025-08-05)
+
+### Features
+
+* **asset:** Implement Properties and Total Count output options for ListAssets data source ([#370](https://github.com/ni/systemlink-grafana-plugins/issues/370)) ([b918a4f](https://github.com/ni/systemlink-grafana-plugins/commit/b918a4fe47b3424f56a60032510314ae84326134))
+
 ## [4.1.4](https://github.com/ni/systemlink-grafana-plugins/compare/v4.1.3...v4.1.4) (2025-08-04)
 
 ### Bug Fixes
