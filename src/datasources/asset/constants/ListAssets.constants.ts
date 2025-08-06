@@ -104,3 +104,5 @@ export const ListAssetsStaticFields = [
     ListAssetsFields.BUS_TYPE,
     ListAssetsFields.PART_NUMBER
 ];
+
+export const TAKE_LIMIT = 10000;

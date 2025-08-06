@@ -71,10 +71,8 @@ it('should render OutputType RadioButtonGroup with correct options', async () =>
 it('should set OutputType to "TotalCount" and trigger rerender', async () => {
   const [onChange] = await render({
     type: AssetQueryType.ListAssets,
-    outputType: OutputType.Properties,
     filter: '',
     refId: '',
-    take: 1000,
   });
 
   expect(screen.getByRole('radio', { name: OutputType.Properties })).toBeChecked();
@@ -97,7 +95,6 @@ it('should set OutputType to "Properties" and trigger rerender', async () => {
     outputType: OutputType.TotalCount,
     filter: '',
     refId: '',
-    take: 1000,
   });
 
   expect(screen.getByRole('radio', { name: OutputType.Properties })).not.toBeChecked();
@@ -169,10 +166,10 @@ it('should display error message when user changes take to number greater than m
   onRunQuery.mockClear();
 
   await userEvent.clear(take);
-  await userEvent.type(take, '10000');
+  await userEvent.type(take, '10001');
   await userEvent.tab();
   await waitFor(() => {
-    expect(screen.getByText('Enter a value less than or equal to 1000')).toBeInTheDocument();
+    expect(screen.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ take: undefined }));
     expect(onRunQuery).toHaveBeenCalled();
   });

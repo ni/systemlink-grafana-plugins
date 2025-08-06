@@ -270,13 +270,13 @@ describe('shouldRunQuery', () => {
         expect(queryAssetSpy).not.toHaveBeenCalled();
     });
 
-    test('should return empty data when take is greater than 1000', async () => {
+    test('should return empty data when take is greater than 10000', async () => {
         const query = buildListAssetsQuery({
             refId: '',
             type: AssetQueryType.ListAssets,
             filter: ``,
             outputType: OutputType.Properties,
-            take: 1001,
+            take: 10001,
         });
         const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
         const result = await datastore.query(query);
@@ -308,6 +308,21 @@ describe('shouldRunQuery', () => {
             filter: ``,
             outputType: OutputType.Properties,
             take: 1000,
+        });
+        jest.spyOn(datastore, 'queryAssets');
+        const result = await datastore.query(query);
+        const data = result.data[0];
+
+        expect(data).toMatchSnapshot();
+    });
+
+    test('should return expected data when take is 10000', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            take: 10000,
         });
         jest.spyOn(datastore, 'queryAssets');
         const result = await datastore.query(query);

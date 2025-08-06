@@ -8,6 +8,7 @@ import { getWorkspaceName } from '../../../../core/utils';
 import { transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
 import { QUERY_LIMIT } from 'datasources/asset/constants/constants';
 import { defaultListAssetsQuery } from 'datasources/asset/defaults';
+import { TAKE_LIMIT } from 'datasources/asset/constants/ListAssets.constants';
 
 export class ListAssetsDataSource extends AssetDataSourceBase {
   private dependenciesLoadedPromise: Promise<void>;
@@ -127,6 +128,6 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
   }
 
   private isTakeValid(query: ListAssetsQuery): boolean {
-    return query.take !== undefined && query.take >= 0 && query.take <= QUERY_LIMIT;
+    return query.take !== undefined && query.take >= 0 && query.take <= TAKE_LIMIT;
   }
 }

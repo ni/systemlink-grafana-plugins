@@ -1,3 +1,5 @@
+import './ListAssetsEditor.scss';
+
 import React, { useEffect, useState } from 'react';
 
 import { AutoSizeInput, InlineField, RadioButtonGroup, Stack } from '@grafana/ui';
@@ -10,9 +12,9 @@ import { AssetQueryBuilder } from './query-builder/AssetQueryBuilder';
 import { Workspace } from '../../../../../core/types';
 import { ListAssetsDataSource } from '../../../data-sources/list-assets/ListAssetsDataSource';
 import { SelectableValue } from '@grafana/data';
-import { QUERY_LIMIT, takeErrorMessages } from 'datasources/asset/constants/constants';
+import { takeErrorMessages } from 'datasources/asset/constants/constants';
 import { validateNumericInput } from 'core/utils';
-import './ListAssetsEditor.scss';
+import { TAKE_LIMIT } from 'datasources/asset/constants/ListAssets.constants';
 
 type Props = {
   query: ListAssetsQuery;
@@ -54,11 +56,11 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
     handleQueryChange(updatedQuery, true);
   }
 
-  function validateTakeValue(value: number, QUERY_LIMIT: number) {
+  function validateTakeValue(value: number, TAKE_LIMIT: number) {
     if (isNaN(value) || value < 0) {
       return { message: takeErrorMessages.greaterOrEqualToZero, take: undefined };
     }
-    if (value > QUERY_LIMIT) {
+    if (value > TAKE_LIMIT) {
       return { message: takeErrorMessages.lessOrEqualToTenThousand, take: undefined };
     }
     return { message: '', take: value };
@@ -66,7 +68,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
 
   function onTakeChange(event: React.FormEvent<HTMLInputElement>) {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    const { message, take } = validateTakeValue(value, QUERY_LIMIT);
+    const { message, take } = validateTakeValue(value, TAKE_LIMIT);
     setRecordCountInvalidMessage(message);
     if (query.take !== take) {
       const updatedQuery = { ...query, take };

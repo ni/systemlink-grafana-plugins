@@ -11,7 +11,7 @@ export enum AllFieldNames {
 
 export const takeErrorMessages = {
     greaterOrEqualToZero: 'Enter a value greater than or equal to 0',
-    lessOrEqualToTenThousand: 'Enter a value less than or equal to 1000',
+    lessOrEqualToTenThousand: 'Enter a value less than or equal to 10,000',
 };
 
 export const QUERY_LIMIT = 1000;
