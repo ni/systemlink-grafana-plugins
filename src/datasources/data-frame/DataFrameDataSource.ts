@@ -78,9 +78,11 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
         for (const table of tableData) {
           const id = table.id;
           const properties = await this.getTableProperties(id);
+          const fetchCount =  1000;
 
             const columns = properties?.columns.map(col => col.name).slice(0,1) ?? [];
 
+            const queryStartTime = Date.now();
             const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<string[]>> => {
               const response = await this.post<TableDataRows>(`${this.baseUrl}/tables/${id}/query-data`, {
                 columns,
@@ -98,8 +100,12 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
                   requestsPerSecond: 10
                 };
             
-            const responses = await queryInBatches(queryRecord, batchQueryConfig, 10000);
+            const responses = await queryInBatches(queryRecord, batchQueryConfig, fetchCount);
 
+            if(responses.data.length === fetchCount) {
+              const elapsedTime = Date.now() - queryStartTime;
+              console.log(`Query took ${elapsedTime} ms for ${responses.data.length} records`);
+            }
             if (responses && responses.data) {
               const tableFields = this.dataFrameToFields(
                 responses.data,
