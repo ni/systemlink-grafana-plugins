@@ -1,3 +1,9 @@
+## [4.2.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.2.1...v4.2.2) (2025-08-06)
+
+### Bug Fixes
+
+* **results:** Fix step path lookup label in dropdown ([#358](https://github.com/ni/systemlink-grafana-plugins/issues/358)) ([22c8752](https://github.com/ni/systemlink-grafana-plugins/commit/22c8752a29e4863bfd16bdd33cdd385839cca2b9))
+
 ## [4.2.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.2.0...v4.2.1) (2025-08-05)
 
 ### Bug Fixes
