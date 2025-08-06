@@ -140,6 +140,6 @@ const tooltips = {
     filter: `Filter the assets by various properties. This is an optional field.`,
     outputType: 'This field specifies the output type of the query. The query can fetch work order properties or the work order total count.',
     properties: 'This field specifies the query properties.',
-    take: 'This field specifies the maximum number of work orders to return.'
+    take: 'This field specifies the maximum number of assets to return.'
   },
 };
