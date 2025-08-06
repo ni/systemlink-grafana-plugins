@@ -7,6 +7,7 @@ import { AssetModel, AssetsResponse } from '../../../asset-common/types';
 import { getWorkspaceName } from '../../../../core/utils';
 import { transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
 import { QUERY_LIMIT } from 'datasources/asset/constants/constants';
+import { defaultListAssetsQuery } from 'datasources/asset/defaults';
 
 export class ListAssetsDataSource extends AssetDataSourceBase {
   private dependenciesLoadedPromise: Promise<void>;
@@ -29,23 +30,8 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
   };
 
   async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    const listAssetsQuery = query as ListAssetsQuery;
+    const listAssetsQuery = this.patchListAssetQuery(query);
     await this.dependenciesLoadedPromise;
-
-    // eslint-disable-next-line no-console
-    console.log("query initial:", listAssetsQuery);
-
-    // if (!('take' in listAssetsQuery)) {
-    //   // eslint-disable-next-line no-console
-    //   console.log("adaugam take:", listAssetsQuery);
-    //   listAssetsQuery.take = 1000;
-    // }
-
-    // if (!listAssetsQuery.outputType) {
-    //   // eslint-disable-next-line no-console
-    //   console.log("adaugam outputType:", listAssetsQuery);
-    //   listAssetsQuery.outputType = OutputType.Properties;
-    // }
 
     if (listAssetsQuery.filter) {
       listAssetsQuery.filter = transformComputedFieldsQuery(
@@ -56,8 +42,6 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
     }
 
     if (listAssetsQuery.outputType === OutputType.TotalCount) {
-      // eslint-disable-next-line no-console
-      console.log("am intrat aici", listAssetsQuery);
       return this.processTotalCountAssetsQuery(listAssetsQuery);
     };
 
@@ -136,6 +120,10 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
       return asset.location.physicalLocation;
     }
     return this.systemAliasCache.get(asset.location.minionId)?.alias || '';
+  }
+
+  public patchListAssetQuery(query: AssetQuery): ListAssetsQuery {
+    return { ...defaultListAssetsQuery, ...query } as ListAssetsQuery;
   }
 
   private isTakeValid(query: ListAssetsQuery): boolean {

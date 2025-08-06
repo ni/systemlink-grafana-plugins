@@ -71,8 +71,10 @@ it('should render OutputType RadioButtonGroup with correct options', async () =>
 it('should set OutputType to "TotalCount" and trigger rerender', async () => {
   const [onChange] = await render({
     type: AssetQueryType.ListAssets,
+    outputType: OutputType.Properties,
     filter: '',
-    refId: ''
+    refId: '',
+    take: 1000,
   });
 
   expect(screen.getByRole('radio', { name: OutputType.Properties })).toBeChecked();
@@ -94,7 +96,8 @@ it('should set OutputType to "Properties" and trigger rerender', async () => {
     type: AssetQueryType.ListAssets,
     outputType: OutputType.TotalCount,
     filter: '',
-    refId: ''
+    refId: '',
+    take: 1000,
   });
 
   expect(screen.getByRole('radio', { name: OutputType.Properties })).not.toBeChecked();
@@ -129,7 +132,7 @@ it('should not render take', async () => {
 });
 
 it('only allows numbers input in Take field', async () => {
-  await render({ type: AssetQueryType.ListAssets, outputType: OutputType.Properties } as ListAssetsQuery);
+  await render({ type: AssetQueryType.ListAssets, outputType: OutputType.Properties, take: 1000 } as ListAssetsQuery);
 
   const take = screen.getByRole('spinbutton');
 
@@ -147,9 +150,10 @@ it('only allows numbers input in Take field', async () => {
 })
 
 it('should call onChange with take when user changes take', async () => {
-  const [onChange, onRunQuery] = await render({ type: AssetQueryType.ListAssets, outputType: OutputType.Properties } as ListAssetsQuery);
+  const [onChange, onRunQuery] = await render({ type: AssetQueryType.ListAssets, outputType: OutputType.Properties, take: 1000 } as ListAssetsQuery);
   const take = screen.getByRole('spinbutton');
 
+  await userEvent.clear(take);
   await userEvent.type(take, '5');
   await userEvent.tab();
   await waitFor(() => {
