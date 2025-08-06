@@ -50,7 +50,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
   async runQuery(query: WorkOrdersQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    await this.exportTableData();
+    await this.exportTableData(options);
     if (query.queryBy) {
       query.queryBy = transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
@@ -79,11 +79,20 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     return await this.get<TableProperties>(`${this.instanceSettings.url}/nidataframe/v1/tables/${id}`);
   }
 
-  async exportTableData(): Promise<void> {
-    const tableId = '674fcad3ac23ce8dd0522141'//'679807121535de7b50d65325''674fcad3ac23ce8dd0522141'
+  async exportTableData(_options: DataQueryRequest): Promise<void> {
+    const variables = this.templateSrv.getVariables() as any[];
+    console.log('Exporting table data with variables:', variables);
+    const rowsCount = variables.find(variable => variable.name === 'rowsCount')?.current?.value ?? 1000;
+    const columnsCount = variables.find(variable => variable.name === 'columnsCount')?.current?.value ?? 2;
+    const tableId = variables.find(variable => variable.name === 'tableId')?.current?.value ?? '674fcad3ac23ce8dd0522141';
+    const take = variables.find(variable => variable.name === 'take')?.current?.value ?? 1000;
+    console.log(`Exporting table data with rowsCount: ${rowsCount}, columnsCount: ${columnsCount}, tableId: ${tableId}, take: ${take}`);
+
+    // const tableId = '674fcad3ac23ce8dd0522141'//'679807121535de7b50d65325''674fcad3ac23ce8dd0522141'
+    const startTime = new Date().getTime();
     const exportUrl = `${this.instanceSettings.url}/nidataframe/v1/tables/${tableId}/export-data`;
     const properties = await this.getTableProperties(tableId);
-    const columns = properties?.columns.map(col => col.name).slice(0,2) ?? [];
+    const columns = properties?.columns.map(col => col.name).slice(0,columnsCount) ?? [];
 
     const res = await fetch(exportUrl, {
       body: JSON.stringify({
@@ -117,10 +126,12 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     const parsed = Papa.parse(csvText, {
       header: true, // or false if you want raw array format
       skipEmptyLines: true,
-      preview: 10, // Preview first 10 lines
+      preview: rowsCount, // Preview first 10 lines
     });
     console.log('Parsed data:', parsed.data);      // ✅ Array of objects
     console.log('Parsing errors:', parsed.errors);
+    const endTime = new Date().getTime();
+    console.log(`Exported table data in ${endTime - startTime} ms`);
 
     // const file = await this.get<string>(`${this.instanceSettings.url}/nidataframe/v1/table-exports/${match![0]}`);
     // const blob = new Blob([file], { type: 'text/csv' });
