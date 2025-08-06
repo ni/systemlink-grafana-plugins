@@ -32,6 +32,21 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
     const listAssetsQuery = query as ListAssetsQuery;
     await this.dependenciesLoadedPromise;
 
+    // eslint-disable-next-line no-console
+    console.log("query initial:", listAssetsQuery);
+
+    // if (!('take' in listAssetsQuery)) {
+    //   // eslint-disable-next-line no-console
+    //   console.log("adaugam take:", listAssetsQuery);
+    //   listAssetsQuery.take = 1000;
+    // }
+
+    // if (!listAssetsQuery.outputType) {
+    //   // eslint-disable-next-line no-console
+    //   console.log("adaugam outputType:", listAssetsQuery);
+    //   listAssetsQuery.outputType = OutputType.Properties;
+    // }
+
     if (listAssetsQuery.filter) {
       listAssetsQuery.filter = transformComputedFieldsQuery(
         this.templateSrv.replace(listAssetsQuery.filter, options.scopedVars),
@@ -41,6 +56,8 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
     }
 
     if (listAssetsQuery.outputType === OutputType.TotalCount) {
+      // eslint-disable-next-line no-console
+      console.log("am intrat aici", listAssetsQuery);
       return this.processTotalCountAssetsQuery(listAssetsQuery);
     };
 

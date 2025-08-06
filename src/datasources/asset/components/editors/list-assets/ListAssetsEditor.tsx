@@ -35,6 +35,35 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
     });
   }, [datasource]);
 
+  // useEffect(() => {
+  //   let updated = false;
+  //   const updatedQuery: ListAssetsQuery = { ...query };
+
+  //   // eslint-disable-next-line no-console
+  //   console.log("am fost apelat!!!");
+
+  //   if (!query.outputType) {
+  //     // eslint-disable-next-line no-console
+  //     console.log("am fost apelat!!! am intrat sa setez outputType");
+  //     updatedQuery.outputType = OutputType.Properties;
+  //     updated = true;
+  //   }
+
+  //   if (query.take === undefined) {
+  //     // eslint-disable-next-line no-console
+  //     console.log("am fost apelat!!! am intrat sa setez take");
+  //     updatedQuery.take = 1000;
+  //     updated = true;
+  //   }
+
+  //   if (updated) {
+  //     // eslint-disable-next-line no-console
+  //     console.log("am fost apelat!!! am facut change");
+  //     handleQueryChange(updatedQuery, true);
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [])
+
   function onParameterChange(ev: CustomEvent) {
     if (query.filter !== ev.detail.linq) {
       query.filter = ev.detail.linq;
@@ -71,6 +100,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
       handleQueryChange(updatedQuery, true);
     }
   };
+
 
   return (
     <>

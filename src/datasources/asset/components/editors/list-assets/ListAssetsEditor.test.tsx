@@ -128,11 +128,6 @@ it('should not render take', async () => {
   expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
 });
 
-it('should render take', async () => {
-  await render({ type: AssetQueryType.ListAssets, outputType: OutputType.Properties } as ListAssetsQuery)
-  expect(screen.queryByRole('spinbutton')).toBeInTheDocument();
-});
-
 it('only allows numbers input in Take field', async () => {
   await render({ type: AssetQueryType.ListAssets, outputType: OutputType.Properties } as ListAssetsQuery);
 
@@ -143,6 +138,7 @@ it('only allows numbers input in Take field', async () => {
   await waitFor(() => {
     expect(take).toHaveValue(null);
   });
+
   await userEvent.clear(take);
   await userEvent.type(take, '5');
   await waitFor(() => {
