@@ -72,7 +72,6 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
     }
   };
 
-
   return (
     <>
       <Stack direction='row'>
