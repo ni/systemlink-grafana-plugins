@@ -7,6 +7,7 @@ import { AssetQueryBuilder } from '../editors/list-assets/query-builder/AssetQue
 import { Workspace } from '../../../../core/types';
 import { SystemProperties } from '../../../system/types';
 import { AssetVariableQuery } from '../../../asset/types/AssetVariableQuery.types';
+import { Select } from '@grafana/ui';
 
 type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOptions>;
 
@@ -41,6 +42,14 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
         areDependenciesLoaded={areDependenciesLoaded}
         onChange={(event: any) => onParameterChange(event)}
       ></AssetQueryBuilder>
+      <Select
+        options={[{ label: 'Default', value: 'default' }, { label: 'ID', value: 'id' }]}
+        value={datasource.getReturnType()}
+        onChange={(item) => {
+          datasource.setReturnType(item.value as 'default' | 'id');
+          onChange({ ...assetVariableQuery, returnType: item.value } as AssetVariableQuery);
+        }}
+      />
       <FloatingError message={assetListDatasource.current.error} />
     </div>
   );

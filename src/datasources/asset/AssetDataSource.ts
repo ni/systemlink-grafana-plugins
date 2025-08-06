@@ -29,6 +29,8 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
   private calibrationForecastDataSource: CalibrationForecastDataSource;
   private listAssetsDataSource: ListAssetsDataSource;
 
+  private returnType: 'default' | 'id' = 'default';
+
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,
     readonly backendSrv: BackendSrv = getBackendSrv(),
@@ -88,6 +90,14 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
   getListAssetsSource(): ListAssetsDataSource {
     return this.listAssetsDataSource;
   }
+  
+  getReturnType(): 'default' | 'id' {
+    return this.returnType;
+  }
+
+  setReturnType(returnType: 'default' | 'id'): void {
+    this.returnType = returnType;
+  }
 
   async metricFindQuery(query: AssetVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     let assetFilter = query?.filter ?? '';
@@ -97,7 +107,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
       this.listAssetsDataSource.queryTransformationOptions
     );
     const assetsResponse: AssetsResponse = await this.listAssetsDataSource.queryAssets(assetFilter, QUERY_LIMIT);
-    return assetsResponse.assets.map(this.getAssetNameForMetricQuery);
+    return assetsResponse.assets.map((asset) => this.getAssetNameForMetricQuery(asset));
   }
 
   private getAssetNameForMetricQuery(asset: AssetModel): MetricFindValue {
@@ -106,7 +116,11 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
     const serial = asset.serialNumber;
 
     const assetName = !asset.name ? `${serial}` : `${asset.name} (${serial})`;
-    const assetValue = `Assets.${vendor}.${model}.${serial}`
+    let assetValue = `Assets.${vendor}.${model}.${serial}`
+
+    if (this.returnType === 'id') {
+      assetValue = `Assets/${asset.id}`;
+    }
 
     return { text: assetName, value: assetValue };
   }
