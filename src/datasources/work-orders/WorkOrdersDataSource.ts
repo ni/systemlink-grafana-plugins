@@ -1,4 +1,5 @@
 import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, TestDataSourceResponse, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents } from '@grafana/data';
+import Papa from 'papaparse';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
@@ -12,6 +13,7 @@ import { UsersUtils } from 'shared/users.utils';
 import { extractErrorInfo } from 'core/errors';
 import { User } from 'shared/types/QueryUsers.types';
 import { TAKE_LIMIT } from './constants/QueryEditor.constants';
+import { TableProperties } from 'datasources/data-frame/types';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
@@ -48,6 +50,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
   async runQuery(query: WorkOrdersQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    await this.exportTableData();
     if (query.queryBy) {
       query.queryBy = transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
@@ -71,6 +74,63 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       name: query.refId,
       fields: [],
     };
+  }
+  async getTableProperties(id?: string): Promise<TableProperties> {
+    return await this.get<TableProperties>(`${this.instanceSettings.url}/nidataframe/v1/tables/${id}`);
+  }
+
+  async exportTableData(): Promise<void> {
+    const tableId = '674fcad3ac23ce8dd0522141'//'679807121535de7b50d65325''674fcad3ac23ce8dd0522141'
+    const exportUrl = `${this.instanceSettings.url}/nidataframe/v1/tables/${tableId}/export-data`;
+    const properties = await this.getTableProperties(tableId);
+    const columns = properties?.columns.map(col => col.name).slice(0,2) ?? [];
+
+    const res = await fetch(exportUrl, {
+      body: JSON.stringify({
+        columns: columns,
+        destination: "DOWNLOAD_LINK",
+        responseFormat: "CSV"
+      }),
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+    });
+
+    const locationHeader = res.headers.get('Location'); // ✅ Will work ONLY if server exposes it
+    const regex = /(?<=nidataframe\/v1\/table-exports\/)[^\/]+/;
+    const match = locationHeader!.match(regex);
+    console.log(match![0]);
+    const downloadUrl = `${this.instanceSettings.url}/nidataframe/v1/table-exports/${match![0]}`;
+
+    const csvResponse = await fetch(downloadUrl);
+    const csvText = await csvResponse.text();
+    // Measure byte length (UTF-8)
+    const encoder = new TextEncoder();
+    const byteArray = encoder.encode(csvText);
+    const sizeInBytes = byteArray.length;
+
+    console.log(`CSV size: ${sizeInBytes} bytes`);
+    //console.log(csvText); // Output the CSV content to console or handle it as needed
+
+    const parsed = Papa.parse(csvText, {
+      header: true, // or false if you want raw array format
+      skipEmptyLines: true,
+      preview: 10, // Preview first 10 lines
+    });
+    console.log('Parsed data:', parsed.data);      // ✅ Array of objects
+    console.log('Parsing errors:', parsed.errors);
+
+    // const file = await this.get<string>(`${this.instanceSettings.url}/nidataframe/v1/table-exports/${match![0]}`);
+    // const blob = new Blob([file], { type: 'text/csv' });
+    // const url = URL.createObjectURL(blob);
+    // const a = document.createElement('a');
+    // a.href = url;
+    // a.download = `${tableId}.csv`;
+    // document.body.appendChild(a);
+    // a.click();
+    // document.body.removeChild(a);
   }
 
   shouldRunQuery(query: WorkOrdersQuery): boolean {
