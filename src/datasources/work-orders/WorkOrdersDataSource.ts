@@ -75,7 +75,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     };
   }
   async getTableProperties(id?: string): Promise<TableProperties> {
-    return await this.get<TableProperties>(`${this.instanceSettings.url}/nidataframe/v1/tables/${id}`);
+    return await this.get<TableProperties>(`${this.instanceSettings.url}/nidataframe/v1/tables/${id}`).catch();
   }
 
   async exportTableData(_options: DataQueryRequest): Promise<void> {
@@ -106,7 +106,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-    });
+    }).catch();
 
     const locationHeader = res.headers.get('Location'); // ✅ Will work ONLY if server exposes it
     const regex = /(?<=nidataframe\/v1\/table-exports\/)[^\/]+/;
@@ -115,7 +115,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     console.log(match![0]);
     const downloadUrl = `${this.instanceSettings.url}/nidataframe/v1/table-exports/${match![0]}`;
 
-    const csvResponse = await fetch(downloadUrl);
+    const csvResponse = await fetch(downloadUrl).catch();
     const csvText = await csvResponse.text();
     // Measure byte length (UTF-8)
     const encoder = new TextEncoder();
