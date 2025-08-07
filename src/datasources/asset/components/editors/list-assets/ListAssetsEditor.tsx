@@ -58,10 +58,10 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
 
   function validateTakeValue(value: number, TAKE_LIMIT: number) {
     if (isNaN(value) || value < 0) {
-      return { message: takeErrorMessages.greaterOrEqualToZero, take: undefined };
+      return { message: takeErrorMessages.greaterOrEqualToZero };
     }
     if (value > TAKE_LIMIT) {
-      return { message: takeErrorMessages.lessOrEqualToTenThousand, take: undefined };
+      return { message: takeErrorMessages.lessOrEqualToTenThousand };
     }
     return { message: '', take: value };
   }
@@ -79,12 +79,12 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
 
   return (
     <>
-      <Stack direction='row'>
-        <Stack direction='column'>
+      <Stack direction="row">
+        <Stack direction="column">
           <InlineField label="Output" labelWidth={22} tooltip={tooltips.listAssets.outputType}>
             <RadioButtonGroup
               options={outputTypeOptions}
-              value={query.outputType || OutputType.Properties}
+              value={query.outputType}
               onChange={onOutputTypeChange}
             />
           </InlineField>
@@ -106,7 +106,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
             </InlineField>
             {query.outputType === OutputType.Properties && (
               <div className="workorders-right-query-control">
-                <Stack direction='column'>
+                <Stack direction="column">
                   <InlineField
                     label="Take"
                     labelWidth={18}
@@ -117,7 +117,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
                     <AutoSizeInput
                       minWidth={26}
                       maxWidth={26}
-                      type='number'
+                      type="number"
                       value={query.take}
                       onChange={onTakeChange}
                       placeholder="Enter record count"
