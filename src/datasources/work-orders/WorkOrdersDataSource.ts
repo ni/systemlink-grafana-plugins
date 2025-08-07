@@ -1,5 +1,4 @@
 import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, TestDataSourceResponse, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents } from '@grafana/data';
-import Papa from 'papaparse';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
@@ -127,14 +126,14 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     console.log(`CSV size: ${sizeInBytes} bytes`);
     //console.log(csvText); // Output the CSV content to console or handle it as needed
 
-    const parsed = Papa.parse(csvText, {
-      header: true, // or false if you want raw array format
-      skipEmptyLines: true
-    });
-    // eslint-disable-next-line no-console
-    console.log('Parsed data:', parsed.data);      // ✅ Array of objects
-    // eslint-disable-next-line no-console
-    console.log('Parsing errors:', parsed.errors);
+    // const parsed = Papa.parse(csvText, {
+    //   header: true, // or false if you want raw array format
+    //   skipEmptyLines: true
+    // });
+    // // eslint-disable-next-line no-console
+    // console.log('Parsed data:', parsed.data);      // ✅ Array of objects
+    // // eslint-disable-next-line no-console
+    // console.log('Parsing errors:', parsed.errors);
     const endTime = new Date().getTime();
     // eslint-disable-next-line no-console
     console.log(`Exported table data in ${endTime - startTime} ms`);
