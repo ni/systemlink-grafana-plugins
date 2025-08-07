@@ -41,14 +41,14 @@ export function DataFrameVariableQueryEditor(props: Props) {
             onChange={(event: any) => {}}
           ></DataframeQueryBuilder>
         </InlineField>
-        {/* <InlineField label="Query by column properties" labelWidth={30} tooltip="Select the type of query to run">
+        <InlineField label="Query by column properties" labelWidth={30} tooltip="Select the type of query to run">
           <DataframeQueryBuilder
             filter={''}
             workspaces={[]}
             globalVariableOptions={[]}
             onChange={(event: any) => {}}
           ></DataframeQueryBuilder>
-        </InlineField> */}
+        </InlineField>
     </>
   );
 }

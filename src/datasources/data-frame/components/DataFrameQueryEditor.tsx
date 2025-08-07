@@ -346,7 +346,7 @@ export const DataFrameQueryEditor = (props: Props) => {
                   }
                 ></InlineSwitch>
               </InlineField>
-              {decimationMethodSelected === 'NONE' && (
+              {/* {decimationMethodSelected === 'NONE' && (
                 <InlineField label="Take" labelWidth={30} tooltip={tooltips.decimation}>
                   <AutoSizeInput
                     minWidth={20}
@@ -368,7 +368,7 @@ export const DataFrameQueryEditor = (props: Props) => {
                     }}
                   />
                 </InlineField>
-              )}
+              )} */}
             </div>
           </Collapse>
         </>
