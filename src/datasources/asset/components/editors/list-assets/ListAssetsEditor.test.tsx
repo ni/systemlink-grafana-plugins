@@ -6,6 +6,7 @@ import { setupRenderer } from '../../../../../test/fixtures';
 import { ListAssetsQuery, OutputType } from '../../../types/ListAssets.types';
 import { AssetFeatureTogglesDefaults, AssetQueryType } from 'datasources/asset/types/types';
 import { ListAssetsDataSource } from '../../../data-sources/list-assets/ListAssetsDataSource';
+import userEvent from '@testing-library/user-event';
 
 const fakeSystems: SystemProperties[] = [
   {
@@ -71,7 +72,7 @@ it('should set OutputType to "TotalCount" and trigger rerender', async () => {
   const [onChange] = await render({
     type: AssetQueryType.ListAssets,
     filter: '',
-    refId: ''
+    refId: '',
   });
 
   expect(screen.getByRole('radio', { name: OutputType.Properties })).toBeChecked();
@@ -93,7 +94,7 @@ it('should set OutputType to "Properties" and trigger rerender', async () => {
     type: AssetQueryType.ListAssets,
     outputType: OutputType.TotalCount,
     filter: '',
-    refId: ''
+    refId: '',
   });
 
   expect(screen.getByRole('radio', { name: OutputType.Properties })).not.toBeChecked();
@@ -122,3 +123,84 @@ it('should display "TotalCount" selected when OutpuType is set to total count', 
   expect(screen.getByRole('radio', { name: OutputType.TotalCount })).toBeChecked();
 })
 
+it('should not render take', async () => {
+  await render({ type: AssetQueryType.ListAssets, outputType: OutputType.TotalCount } as ListAssetsQuery)
+  expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
+});
+
+it('only allows numbers input in Take field', async () => {
+  await render({ type: AssetQueryType.ListAssets, outputType: OutputType.Properties, take: 1000 } as ListAssetsQuery);
+
+  const take = screen.getByRole('spinbutton');
+
+  await userEvent.clear(take);
+  await userEvent.type(take, 'aaa');
+  await waitFor(() => {
+    expect(take).toHaveValue(null);
+  });
+
+  await userEvent.clear(take);
+  await userEvent.type(take, '5');
+  await waitFor(() => {
+    expect(take).toHaveValue(5);
+  });
+})
+
+it('should call onChange with take when user changes take', async () => {
+  const [onChange, onRunQuery] = await render({ type: AssetQueryType.ListAssets, outputType: OutputType.Properties, take: 1000 } as ListAssetsQuery);
+  const take = screen.getByRole('spinbutton');
+
+  await userEvent.clear(take);
+  await userEvent.type(take, '5');
+  await userEvent.tab();
+  await waitFor(() => {
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ take: 5 }));
+    expect(onRunQuery).toHaveBeenCalled();
+  });
+})
+
+it('should display error message when user changes take to number greater than max take', async () => {
+  const [onChange, onRunQuery] = await render({} as ListAssetsQuery);
+  const take = screen.getByRole('spinbutton');
+  onChange.mockClear();
+  onRunQuery.mockClear();
+
+  await userEvent.clear(take);
+  await userEvent.type(take, '10001');
+  await userEvent.tab();
+  await waitFor(() => {
+    expect(screen.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ take: undefined }));
+    expect(onRunQuery).toHaveBeenCalled();
+  });
+})
+
+it('should display error message when user changes take to number less than 0', async () => {
+  const [onChange, onRunQuery] = await render({} as ListAssetsQuery);
+  const take = screen.getByRole('spinbutton');
+  onChange.mockClear();
+  onRunQuery.mockClear();
+
+  await userEvent.clear(take);
+  await userEvent.tab();
+  await waitFor(() => {
+    expect(screen.getByText('Enter a value greater than or equal to 0')).toBeInTheDocument();
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ take: undefined }));
+    expect(onRunQuery).toHaveBeenCalled();
+  });
+})
+
+it('should not display error message when user changes value to number between 0 and max take', async () => {
+  const [onChange, onRunQuery] = await render({} as ListAssetsQuery);
+  const take = screen.getByRole('spinbutton');
+  onChange.mockClear();
+  onRunQuery.mockClear();
+
+  await userEvent.clear(take);
+  await userEvent.type(take, '5')
+  await userEvent.tab();
+  await waitFor(() => {
+    expect(screen.queryByText('Enter a value greater than or equal to 0')).not.toBeInTheDocument();
+    expect(screen.queryByText('Enter a value less than or equal to 10,000')).not.toBeInTheDocument();
+  });
+})

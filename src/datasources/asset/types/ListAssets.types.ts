@@ -3,6 +3,7 @@ import { AssetQuery } from './types';
 export interface ListAssetsQuery extends AssetQuery {
     filter: string;
     outputType?: OutputType;
+    take?: number;
 }
 
 export interface QueryListAssetRequestBody {

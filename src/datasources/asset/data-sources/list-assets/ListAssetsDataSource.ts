@@ -7,6 +7,8 @@ import { AssetModel, AssetsResponse } from '../../../asset-common/types';
 import { getWorkspaceName } from '../../../../core/utils';
 import { transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
 import { QUERY_LIMIT } from 'datasources/asset/constants/constants';
+import { defaultListAssetsQuery } from 'datasources/asset/defaults';
+import { TAKE_LIMIT } from 'datasources/asset/constants/ListAssets.constants';
 
 export class ListAssetsDataSource extends AssetDataSourceBase {
   private dependenciesLoadedPromise: Promise<void>;
@@ -24,11 +26,12 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
 
   defaultQuery = {
     type: AssetQueryType.ListAssets,
-    filter: ''
+    filter: '',
+    take: 1000,
   };
 
   async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    const listAssetsQuery = query as ListAssetsQuery;
+    const listAssetsQuery = this.patchListAssetQuery(query);
     await this.dependenciesLoadedPromise;
 
     if (listAssetsQuery.filter) {
@@ -43,7 +46,15 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
       return this.processTotalCountAssetsQuery(listAssetsQuery);
     };
 
-    return this.processListAssetsQuery(listAssetsQuery);
+    if (listAssetsQuery.outputType === OutputType.Properties && this.isTakeValid(listAssetsQuery)) {
+      return this.processListAssetsQuery(listAssetsQuery);
+    }
+
+    return {
+      refId: query.refId,
+      name: query.refId,
+      fields: [],
+    };
   }
 
   shouldRunQuery(query: AssetQuery): boolean {
@@ -52,7 +63,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
 
   async processListAssetsQuery(query: ListAssetsQuery) {
     const result: DataFrameDTO = { refId: query.refId, fields: [] };
-    const assetsResponse: AssetsResponse = await this.queryAssets(query.filter, QUERY_LIMIT, false);
+    const assetsResponse: AssetsResponse = await this.queryAssets(query.filter, query.take, false);
     const assets = assetsResponse.assets;
     const workspaces = this.getCachedWorkspaces();
     result.fields = [
@@ -110,5 +121,13 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
       return asset.location.physicalLocation;
     }
     return this.systemAliasCache.get(asset.location.minionId)?.alias || '';
+  }
+
+  public patchListAssetQuery(query: AssetQuery): ListAssetsQuery {
+    return { ...defaultListAssetsQuery, ...query } as ListAssetsQuery;
+  }
+
+  private isTakeValid(query: ListAssetsQuery): boolean {
+    return query.take !== undefined && query.take >= 0 && query.take <= TAKE_LIMIT;
   }
 }
