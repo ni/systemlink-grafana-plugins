@@ -1,3 +1,9 @@
+## [4.3.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.2.2...v4.3.0) (2025-08-07)
+
+### Features
+
+* **asset:** add editable take field with validation and default fallback for legacy panels ([#381](https://github.com/ni/systemlink-grafana-plugins/issues/381)) ([cb24797](https://github.com/ni/systemlink-grafana-plugins/commit/cb24797f716cd31c1c0208b9d07fbf1d62471a9b))
+
 ## [4.2.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.2.1...v4.2.2) (2025-08-06)
 
 ### Bug Fixes
