@@ -81,10 +81,12 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
 
   async exportTableData(_options: DataQueryRequest): Promise<void> {
     const variables = this.templateSrv.getVariables() as any[];
+    // eslint-disable-next-line no-console
     console.log('Exporting table data with variables:', variables);
     const columnsCount = variables.find(variable => variable.name === 'columnsCount')?.current?.value ?? 2;
     const tableId = variables.find(variable => variable.name === 'tableId')?.current?.value ?? '674fcad3ac23ce8dd0522141';
     const take = variables.find(variable => variable.name === 'take')?.current?.value ?? 1000;
+    // eslint-disable-next-line no-console
     console.log(`Exporting table data with take: ${take}, columnsCount: ${columnsCount}, tableId: ${tableId}`);
 
     // const tableId = '674fcad3ac23ce8dd0522141'//'679807121535de7b50d65325''674fcad3ac23ce8dd0522141'
@@ -110,6 +112,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     const locationHeader = res.headers.get('Location'); // ✅ Will work ONLY if server exposes it
     const regex = /(?<=nidataframe\/v1\/table-exports\/)[^\/]+/;
     const match = locationHeader!.match(regex);
+    // eslint-disable-next-line no-console
     console.log(match![0]);
     const downloadUrl = `${this.instanceSettings.url}/nidataframe/v1/table-exports/${match![0]}`;
 
@@ -120,6 +123,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     const byteArray = encoder.encode(csvText);
     const sizeInBytes = byteArray.length;
 
+    // eslint-disable-next-line no-console
     console.log(`CSV size: ${sizeInBytes} bytes`);
     //console.log(csvText); // Output the CSV content to console or handle it as needed
 
@@ -127,20 +131,13 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       header: true, // or false if you want raw array format
       skipEmptyLines: true
     });
+    // eslint-disable-next-line no-console
     console.log('Parsed data:', parsed.data);      // ✅ Array of objects
+    // eslint-disable-next-line no-console
     console.log('Parsing errors:', parsed.errors);
     const endTime = new Date().getTime();
+    // eslint-disable-next-line no-console
     console.log(`Exported table data in ${endTime - startTime} ms`);
-
-    // const file = await this.get<string>(`${this.instanceSettings.url}/nidataframe/v1/table-exports/${match![0]}`);
-    // const blob = new Blob([file], { type: 'text/csv' });
-    // const url = URL.createObjectURL(blob);
-    // const a = document.createElement('a');
-    // a.href = url;
-    // a.download = `${tableId}.csv`;
-    // document.body.appendChild(a);
-    // a.click();
-    // document.body.removeChild(a);
   }
 
   shouldRunQuery(query: WorkOrdersQuery): boolean {
