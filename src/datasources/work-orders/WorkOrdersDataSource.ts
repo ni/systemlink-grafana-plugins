@@ -82,11 +82,10 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   async exportTableData(_options: DataQueryRequest): Promise<void> {
     const variables = this.templateSrv.getVariables() as any[];
     console.log('Exporting table data with variables:', variables);
-    const rowsCount = variables.find(variable => variable.name === 'rowsCount')?.current?.value ?? 1000;
     const columnsCount = variables.find(variable => variable.name === 'columnsCount')?.current?.value ?? 2;
     const tableId = variables.find(variable => variable.name === 'tableId')?.current?.value ?? '674fcad3ac23ce8dd0522141';
     const take = variables.find(variable => variable.name === 'take')?.current?.value ?? 1000;
-    console.log(`Exporting table data with rowsCount: ${rowsCount}, columnsCount: ${columnsCount}, tableId: ${tableId}, take: ${take}`);
+    console.log(`Exporting table data with take: ${take}, columnsCount: ${columnsCount}, tableId: ${tableId}`);
 
     // const tableId = '674fcad3ac23ce8dd0522141'//'679807121535de7b50d65325''674fcad3ac23ce8dd0522141'
     const startTime = new Date().getTime();
@@ -98,7 +97,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       body: JSON.stringify({
         columns: columns,
         destination: "DOWNLOAD_LINK",
-        responseFormat: "CSV"
+        responseFormat: "CSV",
+        take
       }),
       method: 'POST',
       headers: {
@@ -125,8 +125,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
 
     const parsed = Papa.parse(csvText, {
       header: true, // or false if you want raw array format
-      skipEmptyLines: true,
-      preview: rowsCount, // Preview first 10 lines
+      skipEmptyLines: true
     });
     console.log('Parsed data:', parsed.data);      // ✅ Array of objects
     console.log('Parsing errors:', parsed.errors);
