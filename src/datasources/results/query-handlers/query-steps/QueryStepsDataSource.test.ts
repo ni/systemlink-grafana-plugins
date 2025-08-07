@@ -73,7 +73,7 @@ describe('QueryStepsDataSource', () => {
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
       .mockReturnValue(
         createFetchResponse({
-          paths: ['path1', 'path2'],
+          paths: [{ path: 'path1' }, { path: 'path2' }],
           continuationToken: null,
         })
       );
@@ -1328,6 +1328,66 @@ describe('QueryStepsDataSource', () => {
   });
 
   describe('fetch Step path', () => {
+    it('should map step paths with newline to labels with backslashes', async () => {
+      const mockPaths = [
+        {path: 'Parent path1\nChild path1\nChild path2'},
+        {path: 'Parent path1\\ExistingSlash\nChild path2'},
+        {path: 'No child paths'},
+        {path: 'Path having newline\\nin between words\nChild path2'},
+        {path: ''},
+        {path: null},
+        {path: '    Path with spaces    '},
+      ]
+      backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
+      .mockReturnValue(
+        createFetchResponse({
+          paths: mockPaths,
+          continuationToken: null,
+        })
+      );
+
+      const response = await datastore.getStepPaths('name = "MockResultsQuery"');
+
+      expect(response).toEqual([
+        {
+          label: 'Parent path1\\Child path1\\Child path2',
+          value: 'Parent path1\nChild path1\nChild path2'
+        },
+        {
+          label: 'Parent path1\\ExistingSlash\\Child path2',
+          value: 'Parent path1\\ExistingSlash\nChild path2'
+        },
+        {
+          label: 'No child paths',
+          value: 'No child paths'
+        },
+        {
+          label: 'Path having newline\\nin between words\\Child path2',
+          value: 'Path having newline\\nin between words\nChild path2'
+        },
+        {
+          label: '    Path with spaces    ',
+          value: '    Path with spaces    '
+        },
+      ]);
+    })
+
+    it('should return an empty array when no step paths are returned', async () => {
+      backendServer.fetch
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
+      .mockReturnValue(
+        createFetchResponse({
+          paths: [],
+          continuationToken: null,
+        })
+      );
+
+      const response = await datastore.getStepPaths('name = "MockResultsQuery"');
+
+      expect(response).toEqual([]);
+    })
+
     it('should make a single request when take is less than MAX_PATH_TAKE_PER_REQUEST', async () => {
       const mockResponses = [
         createFetchResponse({
@@ -1568,7 +1628,11 @@ describe('QueryStepsDataSource', () => {
 
       const result = await datastore.getStepPaths('ProgramName = "Test"');
 
-      expect(result).toEqual(['path1', 'path2', 'path3']);
+      expect(result).toEqual([
+        { label: 'path1', value: 'path1' },
+        { label: 'path2', value: 'path2' },
+        { label: 'path3', value: 'path3' },
+      ]);
     });
 
     it('should not call queryStepPathInBatches when no program names are returned', async () => {
