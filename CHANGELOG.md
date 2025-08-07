@@ -1,3 +1,9 @@
+## [4.3.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.3.0...v4.3.1) (2025-08-07)
+
+### Bug Fixes
+
+* **prototype:** Call export-data API for taking metrics ([#383](https://github.com/ni/systemlink-grafana-plugins/issues/383)) ([8e77c70](https://github.com/ni/systemlink-grafana-plugins/commit/8e77c70af46e29b2f03ada05c1c76716877ca1cf))
+
 ## [4.3.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.2.2...v4.3.0) (2025-08-07)
 
 ### Features
