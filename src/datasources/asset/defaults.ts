@@ -1,3 +1,4 @@
+import { OutputType } from "./types/ListAssets.types"
 
 export const defaultAssetSummaryQuery = {
 }
@@ -8,5 +9,7 @@ export const defaultCalibrationForecastQuery = {
 }
 
 export const defaultListAssetsQuery = {
-    filter: ""
+    filter: "",
+    outputType: OutputType.Properties,
+    take: 1000,
 }
