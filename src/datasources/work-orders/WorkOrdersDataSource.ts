@@ -74,8 +74,11 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       fields: [],
     };
   }
-  async getTableProperties(id?: string): Promise<TableProperties> {
-    return await this.get<TableProperties>(`${this.instanceSettings.url}/nidataframe/v1/tables/${id}`).catch();
+  async getTableProperties(id?: string): Promise<TableProperties | void> {
+    return await this.get<TableProperties>(`${this.instanceSettings.url}/nidataframe/v1/tables/${id}`)
+      .catch(error => {
+        console.error( error);
+      });
   }
 
   async exportTableData(_options: DataQueryRequest): Promise<void> {
@@ -106,37 +109,43 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-    }).catch();
+    })
+    .catch(error => {
+      console.error( error);
+    });
 
-    const locationHeader = res.headers.get('Location'); // ✅ Will work ONLY if server exposes it
-    const regex = /(?<=nidataframe\/v1\/table-exports\/)[^\/]+/;
-    const match = locationHeader!.match(regex);
-    // eslint-disable-next-line no-console
-    console.log(match![0]);
-    const downloadUrl = `${this.instanceSettings.url}/nidataframe/v1/table-exports/${match![0]}`;
+      const locationHeader = res!.headers.get('Location'); // ✅ Will work ONLY if server exposes it
+      const regex = /(?<=nidataframe\/v1\/table-exports\/)[^\/]+/;
+      const match = locationHeader!.match(regex);
+      // eslint-disable-next-line no-console
+      console.log(match![0]);
+      const downloadUrl = `${this.instanceSettings.url}/nidataframe/v1/table-exports/${match![0]}`;
 
-    const csvResponse = await fetch(downloadUrl).catch();
-    const csvText = await csvResponse.text();
-    // Measure byte length (UTF-8)
-    const encoder = new TextEncoder();
-    const byteArray = encoder.encode(csvText);
-    const sizeInBytes = byteArray.length;
+      const csvResponse = await fetch(downloadUrl)
+        .catch(error => {
+          console.error( error);
+        });
+      const csvText = await csvResponse!.text();
+      // Measure byte length (UTF-8)
+      const encoder = new TextEncoder();
+      const byteArray = encoder.encode(csvText);
+      const sizeInBytes = byteArray.length;
 
-    // eslint-disable-next-line no-console
-    console.log(`CSV size: ${sizeInBytes} bytes`);
-    //console.log(csvText); // Output the CSV content to console or handle it as needed
+      // eslint-disable-next-line no-console
+      console.log(`CSV size: ${sizeInBytes} bytes`);
+      //console.log(csvText); // Output the CSV content to console or handle it as needed
 
-    // const parsed = Papa.parse(csvText, {
-    //   header: true, // or false if you want raw array format
-    //   skipEmptyLines: true
-    // });
-    // // eslint-disable-next-line no-console
-    // console.log('Parsed data:', parsed.data);      // ✅ Array of objects
-    // // eslint-disable-next-line no-console
-    // console.log('Parsing errors:', parsed.errors);
-    const endTime = new Date().getTime();
-    // eslint-disable-next-line no-console
-    console.log(`Exported table data in ${endTime - startTime} ms`);
+      // const parsed = Papa.parse(csvText, {
+      //   header: true, // or false if you want raw array format
+      //   skipEmptyLines: true
+      // });
+      // // eslint-disable-next-line no-console
+      // console.log('Parsed data:', parsed.data);      // ✅ Array of objects
+      // // eslint-disable-next-line no-console
+      // console.log('Parsing errors:', parsed.errors);
+      const endTime = new Date().getTime();
+      // eslint-disable-next-line no-console
+      console.log(`Exported table data in ${endTime - startTime} ms`);
   }
 
   shouldRunQuery(query: WorkOrdersQuery): boolean {
