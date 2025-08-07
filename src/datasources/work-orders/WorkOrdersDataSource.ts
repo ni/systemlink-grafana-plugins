@@ -13,6 +13,7 @@ import { extractErrorInfo } from 'core/errors';
 import { User } from 'shared/types/QueryUsers.types';
 import { TAKE_LIMIT } from './constants/QueryEditor.constants';
 import { TableProperties } from 'datasources/data-frame/types';
+import { lastValueFrom } from 'rxjs';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
@@ -97,8 +98,9 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     const properties = await this.getTableProperties(tableId);
     const columns = properties?.columns.map(col => col.name).slice(0,columnsCount) ?? [];
 
-    const res = await fetch(exportUrl, {
-      body: JSON.stringify({
+    const res = await lastValueFrom(this.backendSrv.fetch({
+      url: exportUrl,
+      data: JSON.stringify({
         columns: columns,
         destination: "DOWNLOAD_LINK",
         responseFormat: "CSV",
@@ -109,7 +111,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-    })
+    }))
     .catch(error => {
       console.error( error);
     });
@@ -121,11 +123,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       console.log(match![0]);
       const downloadUrl = `${this.instanceSettings.url}/nidataframe/v1/table-exports/${match![0]}`;
 
-      const csvResponse = await fetch(downloadUrl)
-        .catch(error => {
-          console.error( error);
-        });
-      const csvText = await csvResponse!.text();
+      const csvText = await this.get<string>(downloadUrl);
       // Measure byte length (UTF-8)
       const encoder = new TextEncoder();
       const byteArray = encoder.encode(csvText);
