@@ -58,7 +58,7 @@ jest.mock('shared/workspace.utils', () => {
   };
 });
 
-describe.skip('WorkOrdersDataSource', () => {
+describe('WorkOrdersDataSource', () => {
   beforeEach(() => {
     [datastore, backendServer] = setupDataSource(WorkOrdersDataSource);
 
