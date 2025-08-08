@@ -1,10 +1,10 @@
 import { useTheme2 } from '@grafana/ui';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
-import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
+import { expressionBuilderCallbackWithRef, expressionReaderCallbackWithRef } from 'core/query-builder.utils';
 import { Workspace, QueryBuilderOption, QBField } from 'core/types';
 import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import QueryBuilder, { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 
 import 'smart-webcomponents-react/source/styles/smart.dark-orange.css';
@@ -41,6 +41,7 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
 
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
+  const optionsRef = useRef<Record<string, QueryBuilderOption[]>>({});
 
   const sanitizedFilter = useMemo(() => {
     return filterXSSLINQExpression(filter);
@@ -108,6 +109,11 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
     };
   }, [stepsPath]);
 
+  const callbacks = useMemo(() => ({
+    expressionBuilderCallback: expressionBuilderCallbackWithRef(optionsRef),
+    expressionReaderCallback: expressionReaderCallbackWithRef(optionsRef),
+  }), [optionsRef]);
+
   useEffect(() => {
     if(!workspaceField) {
       return;
@@ -141,10 +147,7 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
       return accumulator;
     }, {} as Record<string, QueryBuilderOption[]>);
 
-    const callbacks = {
-      expressionBuilderCallback: expressionBuilderCallback(options),
-      expressionReaderCallback: expressionReaderCallback(options),
-    };
+    optionsRef.current = options;
 
     const customOperations = [
       QueryBuilderOperations.EQUALS,
@@ -186,7 +189,7 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
     ];
 
     setOperations([...customOperations, ...keyValueOperations]);
-  }, [workspaceField, updatedAtField, stepsPathField, globalVariableOptions, stepStatusField]);
+  }, [workspaceField, updatedAtField, stepsPathField, globalVariableOptions, stepStatusField, callbacks]);
 
   return (
     <QueryBuilder
