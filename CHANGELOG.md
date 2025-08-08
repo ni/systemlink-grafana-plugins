@@ -1,3 +1,9 @@
+## [4.3.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.3.2...v4.3.3) (2025-08-08)
+
+### Bug Fixes
+
+* **prototype:** Revert use backend server to call the export-url ([#385](https://github.com/ni/systemlink-grafana-plugins/issues/385)) ([0287590](https://github.com/ni/systemlink-grafana-plugins/commit/028759072fc2a3388c59add461ecc57cb4e2ac4d))
+
 ## [4.3.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.3.1...v4.3.2) (2025-08-07)
 
 ### Bug Fixes
