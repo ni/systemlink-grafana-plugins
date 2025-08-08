@@ -12,7 +12,6 @@ import { UsersUtils } from 'shared/users.utils';
 import { extractErrorInfo } from 'core/errors';
 import { User } from 'shared/types/QueryUsers.types';
 import { TAKE_LIMIT } from './constants/QueryEditor.constants';
-import { TableProperties } from 'datasources/data-frame/types';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
@@ -49,7 +48,6 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
   async runQuery(query: WorkOrdersQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    await this.exportTableData(options);
     if (query.queryBy) {
       query.queryBy = transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
@@ -73,79 +71,6 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       name: query.refId,
       fields: [],
     };
-  }
-  async getTableProperties(id?: string): Promise<TableProperties | void> {
-    return await this.get<TableProperties>(`${this.instanceSettings.url}/nidataframe/v1/tables/${id}`)
-      .catch(error => {
-        console.error( error);
-      });
-  }
-
-  async exportTableData(_options: DataQueryRequest): Promise<void> {
-    const variables = this.templateSrv.getVariables() as any[];
-    // eslint-disable-next-line no-console
-    console.log('Exporting table data with variables:', variables);
-    const columnsCount = variables.find(variable => variable.name === 'columnsCount')?.current?.value ?? 2;
-    const tableId = variables.find(variable => variable.name === 'tableId')?.current?.value ?? '674fcad3ac23ce8dd0522141';
-    const take = variables.find(variable => variable.name === 'take')?.current?.value ?? 1000;
-    // eslint-disable-next-line no-console
-    console.log(`Exporting table data with take: ${take}, columnsCount: ${columnsCount}, tableId: ${tableId}`);
-
-    // const tableId = '674fcad3ac23ce8dd0522141'//'679807121535de7b50d65325''674fcad3ac23ce8dd0522141'
-    const startTime = new Date().getTime();
-    const exportUrl = `${this.instanceSettings.url}/nidataframe/v1/tables/${tableId}/export-data`;
-    const properties = await this.getTableProperties(tableId);
-    const columns = properties?.columns.map(col => col.name).slice(0,columnsCount) ?? [];
-
-    const res = await fetch(exportUrl, {
-      body: JSON.stringify({
-        columns: columns,
-        destination: "DOWNLOAD_LINK",
-        responseFormat: "CSV",
-        take
-      }),
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-    })
-    .catch(error => {
-      console.error( error);
-    });
-
-      const locationHeader = res!.headers.get('Location'); // ✅ Will work ONLY if server exposes it
-      const regex = /(?<=nidataframe\/v1\/table-exports\/)[^\/]+/;
-      const match = locationHeader!.match(regex);
-      // eslint-disable-next-line no-console
-      console.log(match![0]);
-      const downloadUrl = `${this.instanceSettings.url}/nidataframe/v1/table-exports/${match![0]}`;
-
-      const csvResponse = await fetch(downloadUrl)
-        .catch(error => {
-          console.error( error);
-        });
-      const csvText = await csvResponse!.text();
-      // Measure byte length (UTF-8)
-      const encoder = new TextEncoder();
-      const byteArray = encoder.encode(csvText);
-      const sizeInBytes = byteArray.length;
-
-      // eslint-disable-next-line no-console
-      console.log(`CSV size: ${sizeInBytes} bytes`);
-      //console.log(csvText); // Output the CSV content to console or handle it as needed
-
-      // const parsed = Papa.parse(csvText, {
-      //   header: true, // or false if you want raw array format
-      //   skipEmptyLines: true
-      // });
-      // // eslint-disable-next-line no-console
-      // console.log('Parsed data:', parsed.data);      // ✅ Array of objects
-      // // eslint-disable-next-line no-console
-      // console.log('Parsing errors:', parsed.errors);
-      const endTime = new Date().getTime();
-      // eslint-disable-next-line no-console
-      console.log(`Exported table data in ${endTime - startTime} ms`);
   }
 
   shouldRunQuery(query: WorkOrdersQuery): boolean {
