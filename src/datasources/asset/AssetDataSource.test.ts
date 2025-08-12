@@ -8,7 +8,7 @@ import {
   setupDataSource,
 } from "test/fixtures";
 import { AssetDataSource } from "./AssetDataSource";
-import { AssetQueryType } from "./types/types";
+import { AssetQueryType, QueryReturnType } from "./types/types";
 import { AssetPresenceWithSystemConnectionModel, AssetsResponse } from "datasources/asset-common/types";
 import { ListAssetsQuery } from "./types/ListAssets.types";
 import { AssetVariableQuery } from "./types/AssetVariableQuery.types";
@@ -365,6 +365,19 @@ describe('queries', () => {
 
     await expect(ds.query(buildMetadataQuery(assetMetadataQueryMock))).rejects.toThrow()
   })
+
+  describe('queryReturnType', () => {
+    it('should return default QueryReturnType.AssetId', () => {
+      const returnType = ds.getQueryReturnType();
+      expect(returnType).toBe(QueryReturnType.AssetIdentification);
+    });
+
+    it('should set and get QueryReturnType correctly', () => {
+      ds.setQueryReturnType(QueryReturnType.AssetId);
+      const returnType = ds.getQueryReturnType();
+      expect(returnType).toBe(QueryReturnType.AssetId);
+    });
+  });
 
   describe('metricFindQuery', () => {
     it('returns name/alias when asset name field is present', async () => {
