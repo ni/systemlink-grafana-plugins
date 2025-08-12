@@ -12,6 +12,7 @@ import {
   AssetDataSourceOptions,
   AssetQuery,
   AssetQueryType,
+  QueryReturnType
 } from './types/types';
 import { CalibrationForecastDataSource } from './data-sources/calibration-forecast/CalibrationForecastDataSource';
 import { AssetSummaryQuery } from './types/AssetSummaryQuery.types';
@@ -28,8 +29,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
   private assetSummaryDataSource: AssetSummaryDataSource;
   private calibrationForecastDataSource: CalibrationForecastDataSource;
   private listAssetsDataSource: ListAssetsDataSource;
-
-  private returnType: 'default' | 'id' = 'default';
+  private queryReturnType: QueryReturnType = QueryReturnType.AssetIdentification;
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,
@@ -90,13 +90,13 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
   getListAssetsSource(): ListAssetsDataSource {
     return this.listAssetsDataSource;
   }
-  
-  getReturnType(): 'default' | 'id' {
-    return this.returnType;
+
+  getQueryReturnType(): QueryReturnType {
+    return this.queryReturnType;
   }
 
-  setReturnType(returnType: 'default' | 'id'): void {
-    this.returnType = returnType;
+  setQueryReturnType(queryReturnType: QueryReturnType): void {
+    this.queryReturnType = queryReturnType;
   }
 
   async metricFindQuery(query: AssetVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
@@ -118,8 +118,8 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
     const assetName = !asset.name ? `${serial}` : `${asset.name} (${serial})`;
     let assetValue = `Assets.${vendor}.${model}.${serial}`
 
-    if (this.returnType === 'id') {
-      assetValue = `Assets/${asset.id}`;
+    if (this.queryReturnType === QueryReturnType.AssetId) {
+      assetValue = asset.id;
     }
 
     return { text: assetName, value: assetValue };

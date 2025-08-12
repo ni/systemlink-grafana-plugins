@@ -9,4 +9,8 @@ export enum AllFieldNames {
     CALIBRATION_DUE_DATE = 'ExternalCalibration.NextRecommendedDate',
 }
 
+export const tooltips = {
+    queryReturnType: 'This field specifies the return type of the query.'
+}
+
 export const QUERY_LIMIT = 1000;

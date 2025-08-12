@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { QueryEditorProps } from "@grafana/data";
-import { AssetDataSourceOptions, AssetQuery } from '../../../asset/types/types';
+import { AssetDataSourceOptions, AssetQuery, QueryReturnType } from '../../../asset/types/types';
 import { AssetDataSource } from '../../AssetDataSource'
 import { FloatingError } from '../../../../core/errors';
 import { AssetQueryBuilder } from '../editors/list-assets/query-builder/AssetQueryBuilder';
 import { Workspace } from '../../../../core/types';
 import { SystemProperties } from '../../../system/types';
 import { AssetVariableQuery } from '../../../asset/types/AssetVariableQuery.types';
-import { Select } from '@grafana/ui';
+import { Select, InlineField } from '@grafana/ui';
+import { tooltips } from '../../../asset/constants/constants';
 
 type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOptions>;
 
@@ -17,6 +18,10 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
   const assetVariableQuery = query as AssetVariableQuery;
   const assetListDatasource = useRef(datasource.getListAssetsSource());
+  const returnTypeOptions = Object.values(QueryReturnType).map((type) => ({
+    label: type,
+    value: type
+  }));
 
   useEffect(() => {
     Promise.all([assetListDatasource.current.areSystemsLoaded$, assetListDatasource.current.areWorkspacesLoaded$]).then(() => {
@@ -32,6 +37,11 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
     }
   }
 
+  function changeQueryReturnType(queryReturnType: QueryReturnType) {
+    datasource.setQueryReturnType(queryReturnType);
+    onChange({ ...assetVariableQuery, queryReturnType: queryReturnType } as AssetVariableQuery);
+  }
+
   return (
     <div style={{ width: "525px" }}>
       <AssetQueryBuilder
@@ -42,14 +52,14 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
         areDependenciesLoaded={areDependenciesLoaded}
         onChange={(event: any) => onParameterChange(event)}
       ></AssetQueryBuilder>
-      <Select
-        options={[{ label: 'Default', value: 'default' }, { label: 'ID', value: 'id' }]}
-        value={datasource.getReturnType()}
-        onChange={(item) => {
-          datasource.setReturnType(item.value as 'default' | 'id');
-          onChange({ ...assetVariableQuery, returnType: item.value } as AssetVariableQuery);
-        }}
-      />
+      <InlineField label="Return Type" labelWidth={25} tooltip={tooltips.queryReturnType}>
+        <Select
+          options={returnTypeOptions}
+          defaultValue={datasource.getQueryReturnType()}
+          value={datasource.getQueryReturnType()}
+          onChange={(item) => {changeQueryReturnType(item.value!)}}
+        />
+      </InlineField>
       <FloatingError message={assetListDatasource.current.error} />
     </div>
   );

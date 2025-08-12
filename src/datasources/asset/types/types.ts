@@ -29,6 +29,11 @@ export const AssetFeatureTogglesDefaults: AssetFeatureToggles = {
   assetSummary: true
 }
 
+export enum QueryReturnType {
+  AssetIdentification = 'Asset Identification',
+  AssetId = 'Asset Id'
+}
+
 export enum BusType {
   BUILT_IN_SYSTEM = 'BUILT_IN_SYSTEM',
   PCI_PXI = 'PCI_PXI',
