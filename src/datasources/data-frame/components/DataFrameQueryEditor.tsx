@@ -13,6 +13,7 @@ import {
   ControlledCollapse,
   MultiCombobox,
   ComboboxOption,
+  Alert,
 } from '@grafana/ui';
 import { decimationMethods } from '../constants';
 import _ from 'lodash';
@@ -194,6 +195,11 @@ export const DataFrameQueryEditor = (props: Props) => {
       >
         <Stack direction="row" justifyContent={'flex-start'} gap={1} wrap={'wrap'}>
           <Stack direction={'column'} justifyContent={'flex-start'} gap={1}>
+            {/* <Alert title="Warning" severity="warning">
+              {' '}
+              The tables query returned more than 1000 results. Only the first 100 tables column properties are
+              populated in the column dropdown.
+            </Alert> */}
             <div style={{ width: '544px' }}>
               <InlineLabel width={68} tooltip={tooltips.queryType} interactive={true}>
                 {' '}
@@ -219,7 +225,7 @@ export const DataFrameQueryEditor = (props: Props) => {
                 onChange={(event: any) => onQueryByChange(event.detail.linq)}
               ></DataframeQueryBuilder>
             </div>
-            {common.query.type === DataFrameQueryType.Data && (
+            {/* {common.query.type === DataFrameQueryType.Data && (
               <div style={{ width: '544px' }}>
                 <InlineLabel width={'auto'} tooltip={tooltips.queryType} interactive={true}>
                   Query by column properties
@@ -231,7 +237,7 @@ export const DataFrameQueryEditor = (props: Props) => {
                   onChange={(event: any) => onQueryByColumnChange(event.detail.linq)}
                 ></DataframeColumnsQueryBuilder>
               </div>
-            )}
+            )} */}
           </Stack>
           <div>
             {common.query.type === DataFrameQueryType.Properties && (
@@ -346,7 +352,7 @@ export const DataFrameQueryEditor = (props: Props) => {
                   }
                 ></InlineSwitch>
               </InlineField>
-              {/* {decimationMethodSelected === 'NONE' && (
+              {decimationMethodSelected === 'NONE' && (
                 <InlineField label="Take" labelWidth={30} tooltip={tooltips.decimation}>
                   <AutoSizeInput
                     minWidth={20}
@@ -368,7 +374,7 @@ export const DataFrameQueryEditor = (props: Props) => {
                     }}
                   />
                 </InlineField>
-              )} */}
+              )}
             </div>
           </Collapse>
         </>
