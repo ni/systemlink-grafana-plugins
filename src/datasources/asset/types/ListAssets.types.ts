@@ -2,6 +2,14 @@ import { AssetQuery } from './types';
 
 export interface ListAssetsQuery extends AssetQuery {
     filter: string;
+    outputType?: OutputType;
+    take?: number;
+}
+
+export interface QueryListAssetRequestBody {
+    filter?: string;
+    returnCount?: boolean;
+    take?: number;
 }
 
 export enum AssetFilterProperties {
@@ -39,4 +47,9 @@ export enum AssetFilterProperties {
 export enum EntityType {
     Asset = "Asset",
     System = "System"
+}
+
+export enum OutputType {
+    Properties = 'Properties',
+    TotalCount = 'Total Count',
 }

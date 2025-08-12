@@ -1,3 +1,93 @@
+## [4.3.4](https://github.com/ni/systemlink-grafana-plugins/compare/v4.3.3...v4.3.4) (2025-08-08)
+
+### Bug Fixes
+
+* **prototype:** Revert call export-data API for taking metrics ([#386](https://github.com/ni/systemlink-grafana-plugins/issues/386)) ([1ed8233](https://github.com/ni/systemlink-grafana-plugins/commit/1ed82330b0b4cc4d834ac53278dc4ee5d54722df))
+
+## [4.3.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.3.2...v4.3.3) (2025-08-08)
+
+### Bug Fixes
+
+* **prototype:** Revert use backend server to call the export-url ([#385](https://github.com/ni/systemlink-grafana-plugins/issues/385)) ([0287590](https://github.com/ni/systemlink-grafana-plugins/commit/028759072fc2a3388c59add461ecc57cb4e2ac4d))
+
+## [4.3.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.3.1...v4.3.2) (2025-08-07)
+
+### Bug Fixes
+
+* **prototype:** use backend server to call the export-url ([#384](https://github.com/ni/systemlink-grafana-plugins/issues/384)) ([a1125e3](https://github.com/ni/systemlink-grafana-plugins/commit/a1125e388b4790da967cd3b12beae3226d5aa8eb))
+
+## [4.3.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.3.0...v4.3.1) (2025-08-07)
+
+### Bug Fixes
+
+* **prototype:** Call export-data API for taking metrics ([#383](https://github.com/ni/systemlink-grafana-plugins/issues/383)) ([8e77c70](https://github.com/ni/systemlink-grafana-plugins/commit/8e77c70af46e29b2f03ada05c1c76716877ca1cf))
+
+## [4.3.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.2.2...v4.3.0) (2025-08-07)
+
+### Features
+
+* **asset:** add editable take field with validation and default fallback for legacy panels ([#381](https://github.com/ni/systemlink-grafana-plugins/issues/381)) ([cb24797](https://github.com/ni/systemlink-grafana-plugins/commit/cb24797f716cd31c1c0208b9d07fbf1d62471a9b))
+
+## [4.2.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.2.1...v4.2.2) (2025-08-06)
+
+### Bug Fixes
+
+* **results:** Fix step path lookup label in dropdown ([#358](https://github.com/ni/systemlink-grafana-plugins/issues/358)) ([22c8752](https://github.com/ni/systemlink-grafana-plugins/commit/22c8752a29e4863bfd16bdd33cdd385839cca2b9))
+
+## [4.2.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.2.0...v4.2.1) (2025-08-05)
+
+### Bug Fixes
+
+* **prototype:** Revert changes from all PRs ([#380](https://github.com/ni/systemlink-grafana-plugins/issues/380)) ([4a40a65](https://github.com/ni/systemlink-grafana-plugins/commit/4a40a658dbf3e0dcc8903df808f27dee1323cb3d))
+
+## [4.2.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.1.4...v4.2.0) (2025-08-05)
+
+### Features
+
+* **asset:** Implement Properties and Total Count output options for ListAssets data source ([#370](https://github.com/ni/systemlink-grafana-plugins/issues/370)) ([b918a4f](https://github.com/ni/systemlink-grafana-plugins/commit/b918a4fe47b3424f56a60032510314ae84326134))
+
+## [4.1.4](https://github.com/ni/systemlink-grafana-plugins/compare/v4.1.3...v4.1.4) (2025-08-04)
+
+### Bug Fixes
+
+* **prototype:** Call non-cors-api with session key ([#378](https://github.com/ni/systemlink-grafana-plugins/issues/378)) ([be8c34e](https://github.com/ni/systemlink-grafana-plugins/commit/be8c34e0617944cd4f38ffd485c90595808a0a10))
+
+## [4.1.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.1.2...v4.1.3) (2025-08-04)
+
+### Bug Fixes
+
+* **prototype:** fix headers dev-api endpoint ([#377](https://github.com/ni/systemlink-grafana-plugins/issues/377)) ([caf8168](https://github.com/ni/systemlink-grafana-plugins/commit/caf8168d8ac53aca09cd2ee08f61f0c023093523))
+
+## [4.1.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.1.1...v4.1.2) (2025-08-04)
+
+### Bug Fixes
+
+* fix headers dev-api endpoint ([#376](https://github.com/ni/systemlink-grafana-plugins/issues/376)) ([8204575](https://github.com/ni/systemlink-grafana-plugins/commit/8204575ad572d0ae8041b35d1361ab3552e03975))
+
+## [4.1.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.1.0...v4.1.1) (2025-08-04)
+
+### Bug Fixes
+
+* **prototype:** Update create-api-session url ([#375](https://github.com/ni/systemlink-grafana-plugins/issues/375)) ([6c0cb5c](https://github.com/ni/systemlink-grafana-plugins/commit/6c0cb5cfd36e077460c2affcf4203faabe8cf050))
+
+## [4.1.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.0.2...v4.1.0) (2025-08-04)
+
+### Features
+
+* **prototype:** call user/create-api-session api from webserver ([#374](https://github.com/ni/systemlink-grafana-plugins/issues/374)) ([e3a90cc](https://github.com/ni/systemlink-grafana-plugins/commit/e3a90cc0b67938eafdbdb67e0fdad0eae8f06c62))
+
+## [4.0.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.0.1...v4.0.2) (2025-08-01)
+
+### Bug Fixes
+
+* **core,results,testplans,workorders:** Update operator label casing for consistency ([#366](https://github.com/ni/systemlink-grafana-plugins/issues/366)) ([c63fb6c](https://github.com/ni/systemlink-grafana-plugins/commit/c63fb6ceec8daafb6f648cd7d622a44e0304fa27))
+
+## [4.0.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.0.0...v4.0.1) (2025-07-30)
+
+### Bug Fixes
+
+* **products:** Display empty cell for properties when API returns empty object ([#365](https://github.com/ni/systemlink-grafana-plugins/issues/365)) ([5268e25](https://github.com/ni/systemlink-grafana-plugins/commit/5268e25ede639198b28d0dc345ceafc27c1927cb))
+
 ## [4.0.0](https://github.com/ni/systemlink-grafana-plugins/compare/v3.147.3...v4.0.0) (2025-07-28)
 
 ### ⚠ BREAKING CHANGES

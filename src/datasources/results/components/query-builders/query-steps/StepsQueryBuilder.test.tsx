@@ -2,6 +2,7 @@ import { QueryBuilderOption, Workspace } from 'core/types';
 import React, { ReactNode } from 'react';
 import { render } from '@testing-library/react';
 import { StepsQueryBuilder } from './StepsQueryBuilder';
+import { StepPath } from 'datasources/results/types/QuerySteps.types';
 
 describe('StepsQueryBuilder', () => {
   describe('useEffects', () => {
@@ -9,14 +10,17 @@ describe('StepsQueryBuilder', () => {
 
     const containerClass = 'smart-element smart-query-builder';
     const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
-    const stepsPath = ['path1', 'path2'];
+    const stepPaths = [
+      {label: 'Parent Path\Child Path1\Child Path2', value: 'Parent Path\nChild Path1\nChild Path2'},
+      {label: 'Another Path', value: 'Another Path'},
+    ]
     const status = ['PASSED', 'FAILED'];
 
     function renderElement(
       filter: string,
       workspaces: Workspace[] | null,
       stepStatus: string[],
-      stepsPath: string[],
+      stepsPath: StepPath[],
       globalVariableOptions: QueryBuilderOption[] = [],
       disableQueryBuilder: boolean,
     ) {
@@ -56,27 +60,27 @@ describe('StepsQueryBuilder', () => {
 
       expect(filterContainer?.length).toBe(1);
       expect(filterContainer.item(0)?.textContent).toContain('workspace'); //label
-      expect(filterContainer.item(0)?.textContent).toContain('Equals'); //operator
+      expect(filterContainer.item(0)?.textContent).toContain('equals'); //operator
       expect(filterContainer.item(0)?.textContent).toContain(workspace.name); //value
     });
 
     it('should select steps path in query builder', () => {
-      const { renderResult } = renderElement('path = "path1"',[], [], stepsPath, [], false);
+      const { renderResult } = renderElement('path = "Parent Path\nChild Path1\nChild Path2"',[], [], stepPaths, [], false);
       const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
 
       expect(filterContainer?.length).toBe(1);
       expect(filterContainer.item(0)?.textContent).toContain('Step path'); //label
-      expect(filterContainer.item(0)?.textContent).toContain('Equals'); //operator
-      expect(filterContainer.item(0)?.textContent).toContain('path1'); //value
+      expect(filterContainer.item(0)?.textContent).toContain('equals'); //operator
+      expect(filterContainer.item(0)?.textContent).toContain('Parent Path\Child Path1\Child Path2'); //value in the dropdown
     });
 
     it('should select status in query builder', () => {
-      const { renderResult } = renderElement('status.statusType = "PASSED"', [], [], status, [], false);
+      const { renderResult } = renderElement('status.statusType = "PASSED"', [], status, [], [], false);
       const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
 
       expect(filterContainer?.length).toBe(1);
       expect(filterContainer.item(0)?.textContent).toContain('Step status'); //label
-      expect(filterContainer.item(0)?.textContent).toContain('Equals'); //operator
+      expect(filterContainer.item(0)?.textContent).toContain('equals'); //operator
       expect(filterContainer.item(0)?.textContent).toContain('PASSED'); //value
     });
 
@@ -86,7 +90,7 @@ describe('StepsQueryBuilder', () => {
 
       expect(filterContainer?.length).toBe(1);
       expect(filterContainer.item(0)?.textContent).toContain("Step keywords"); //label
-      expect(filterContainer.item(0)?.textContent).toContain("Contains"); //operator
+      expect(filterContainer.item(0)?.textContent).toContain("contains"); //operator
       expect(filterContainer.item(0)?.textContent).toContain("keyword1"); //value
     });
 
@@ -96,7 +100,7 @@ describe('StepsQueryBuilder', () => {
 
       expect(filterContainer?.length).toBe(1);
       expect(filterContainer.item(0)?.textContent).toContain('Has children'); //label
-      expect(filterContainer.item(0)?.textContent).toContain('Equals'); //operator
+      expect(filterContainer.item(0)?.textContent).toContain('equals'); //operator
       expect(filterContainer.item(0)?.textContent).toContain('True'); //value
     })
 
@@ -107,13 +111,13 @@ describe('StepsQueryBuilder', () => {
 
       expect(filterContainer?.length).toBe(1);
       expect(filterContainer.item(0)?.textContent).toContain('Step path'); //label
-      expect(filterContainer.item(0)?.textContent).toContain('Equals'); //operator
+      expect(filterContainer.item(0)?.textContent).toContain('equals'); //operator
       expect(filterContainer.item(0)?.textContent).toContain(globalVariableOption.label); //value
     });
 
     it('should render multiple conditions in query builder', () => {
       const filter = '(keywords.Contains("keyword1") && name = "stepName1") || status.statusType = "FAILED"';
-      const { renderResult } = renderElement(filter, [workspace], status, stepsPath, [], false);
+      const { renderResult } = renderElement(filter, [workspace], status, stepPaths, [], false);
       const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
       const filterConditions = renderResult.container.getElementsByClassName('smart-filter-group-condition');
       const logicalOperators = renderResult.container.getElementsByClassName('smart-filter-group-operator');
