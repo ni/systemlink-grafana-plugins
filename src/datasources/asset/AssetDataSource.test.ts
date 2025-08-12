@@ -132,7 +132,7 @@ const assetsResponseMock: AssetsResponse =
       "isSystemController": false,
       "workspace": "e73fcd94-649b-4d0a-b164-bf647a5d0946",
       "properties": {},
-      "keywords": [ "Kw1", "Kw2" ],
+      "keywords": ["Kw1", "Kw2"],
       "lastUpdatedTimestamp": "2024-02-21T12:54:20.072Z",
       "fileIds": [],
       "supportsSelfTest": false,
@@ -371,7 +371,8 @@ describe('queries', () => {
       const query: AssetVariableQuery = {
         filter: '',
         type: AssetQueryType.None,
-        refId: ""
+        refId: "",
+        take: 10,
       }
 
       backendSrv.fetch
@@ -391,7 +392,8 @@ describe('queries', () => {
       const query: AssetVariableQuery = {
         filter: '',
         type: AssetQueryType.None,
-        refId: ""
+        refId: "",
+        take: 10,
       }
 
       backendSrv.fetch
@@ -405,6 +407,89 @@ describe('queries', () => {
       const result = await ds.metricFindQuery(query, options)
 
       expect(result).toMatchSnapshot();
+    })
+
+    it('should return expected data when take is 10000', async () => {
+      const query: AssetVariableQuery = {
+        filter: '',
+        type: AssetQueryType.ListAssets,
+        refId: "",
+        take: 10000,
+      }
+
+      backendSrv.fetch
+        .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
+        .mockReturnValue(createFetchResponse(assetsWithoutNameResponseMock as AssetsResponse))
+
+      const options = {
+        scopedVars: {}
+      }
+
+      const result = await ds.metricFindQuery(query, options);
+
+      expect(result).toMatchSnapshot();
+    })
+
+    it('should return empty data when take is invalid', async () => {
+      const query: AssetVariableQuery = {
+        filter: '',
+        type: AssetQueryType.ListAssets,
+        refId: "",
+        take: undefined,
+      }
+
+      backendSrv.fetch
+        .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
+        .mockReturnValue(createFetchResponse(assetsWithoutNameResponseMock as AssetsResponse))
+
+      const options = {
+        scopedVars: {}
+      }
+
+      const result = await ds.metricFindQuery(query, options)
+
+      expect(result).toEqual([]);
+    })
+
+    it('should return empty data when take is less than 0', async () => {
+      const query: AssetVariableQuery = {
+        filter: '',
+        type: AssetQueryType.ListAssets,
+        refId: "",
+        take: -1,
+      }
+      backendSrv.fetch
+        .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
+        .mockReturnValue(createFetchResponse(assetsWithoutNameResponseMock as AssetsResponse))
+
+      const options = {
+        scopedVars: {}
+      }
+
+      const result = await ds.metricFindQuery(query, options)
+
+      expect(result).toEqual([]);
+    })
+
+    it('should return empty data when take is less than 10000', async () => {
+      const query: AssetVariableQuery = {
+        filter: '',
+        type: AssetQueryType.ListAssets,
+        refId: "",
+        take: 10001,
+      }
+
+      backendSrv.fetch
+        .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
+        .mockReturnValue(createFetchResponse(assetsWithoutNameResponseMock as AssetsResponse))
+
+      const options = {
+        scopedVars: {}
+      }
+
+      const result = await ds.metricFindQuery(query, options)
+
+      expect(result).toEqual([]);
     })
   })
 })

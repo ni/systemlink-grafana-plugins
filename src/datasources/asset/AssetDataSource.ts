@@ -20,9 +20,11 @@ import { ListAssetsQuery } from './types/ListAssets.types';
 import { ListAssetsDataSource } from './data-sources/list-assets/ListAssetsDataSource';
 import { AssetSummaryDataSource } from './data-sources/asset-summary/AssetSummaryDataSource';
 import { AssetModel, AssetsResponse } from 'datasources/asset-common/types';
-import { QUERY_LIMIT } from './constants/constants';
 import { transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { AssetVariableQuery } from './types/AssetVariableQuery.types';
+import { defaultListAssetsVariable } from './defaults';
+import { TAKE_LIMIT } from './constants/ListAssets.constants';
+import { QUERY_LIMIT } from './constants/constants';
 
 export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
   private assetSummaryDataSource: AssetSummaryDataSource;
@@ -90,13 +92,17 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
   }
 
   async metricFindQuery(query: AssetVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    let listAssetsTake = query?.take ?? QUERY_LIMIT;
+    if (!this.isTakeValid(listAssetsTake)) {
+      return [];
+    }
     let assetFilter = query?.filter ?? '';
     assetFilter = transformComputedFieldsQuery(
       this.templateSrv.replace(assetFilter, options.scopedVars),
       this.listAssetsDataSource.assetComputedDataFields,
       this.listAssetsDataSource.queryTransformationOptions
     );
-    const assetsResponse: AssetsResponse = await this.listAssetsDataSource.queryAssets(assetFilter, QUERY_LIMIT);
+    const assetsResponse: AssetsResponse = await this.listAssetsDataSource.queryAssets(assetFilter, listAssetsTake);
     return assetsResponse.assets.map(this.getAssetNameForMetricQuery);
   }
 
@@ -109,5 +115,13 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
     const assetValue = `Assets.${vendor}.${model}.${serial}`
 
     return { text: assetName, value: assetValue };
+  }
+
+  public patchListAssetQueryVariable(query: AssetQuery): AssetVariableQuery {
+    return { ...defaultListAssetsVariable, ...query } as AssetVariableQuery;
+  }
+
+  private isTakeValid(take: number): boolean {
+    return take !== undefined && take >= 0 && take <= TAKE_LIMIT;
   }
 }
