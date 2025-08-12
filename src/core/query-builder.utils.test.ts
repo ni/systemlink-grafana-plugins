@@ -1,4 +1,4 @@
-import { expressionBuilderCallback, expressionReaderCallback, ExpressionTransformFunction, transformComputedFieldsQuery } from "./query-builder.utils"
+import { expressionBuilderCallback, expressionBuilderCallbackWithRef, expressionReaderCallback, expressionReaderCallbackWithRef, ExpressionTransformFunction, transformComputedFieldsQuery } from "./query-builder.utils"
 
 describe('QueryBuilderUtils', () => {
   describe('transformComputedFieldsQuery', () => {
@@ -119,6 +119,95 @@ describe('QueryBuilderUtils', () => {
     it('should return original field name and value if no options are provided for the field', () => {
       const emptyOptions = {};
       const callback = expressionReaderCallback(emptyOptions);
+      const result = callback('someExpression', ['field1', 'ValueA']);
+
+      expect(result).toEqual({ fieldName: 'field1', value: 'ValueA' });
+    });
+  })
+
+  describe('expressionBuilderCallbackWithRef', () => {
+    const mockQueryBuilderCustomOperation = {
+      expressionTemplate: '{0} = {1}'
+    };
+
+    it('should use the latest options from ref for building expression', () => {
+      const initialOptions = {
+        'field1': [{ label: 'Option A', value: 'ValueA' }],
+      };
+      const updatedOptions = {
+        'field1': [{ label: 'Option B', value: 'ValueB' }],
+      };
+      const optionsRef = { current: initialOptions };
+      const builderCallback = expressionBuilderCallbackWithRef(optionsRef);
+
+      let expression = builderCallback.call(mockQueryBuilderCustomOperation, 'field1', 'someOperation', 'Option A');
+      expect(expression).toBe('field1 = ValueA');
+
+      optionsRef.current = updatedOptions;
+
+      expression = builderCallback.call(mockQueryBuilderCustomOperation, 'field1', 'someOperation', 'Option B');
+      expect(expression).toBe('field1 = ValueB');
+    });
+
+    it('should return original value if no matching label found', () => {
+      const options = {
+        'field1': [{ label: 'Option A', value: 'ValueA' }],
+      };
+      const optionsRef = { current: options };
+
+      const callback = expressionBuilderCallbackWithRef(optionsRef).bind(mockQueryBuilderCustomOperation);
+      const result = callback('field1', 'someOperation', 'Option B');
+
+      expect(result).toBe('field1 = Option B');
+    });
+
+    it('should return original expression if no options are provided', () => {
+      const emptyOptions = {};
+      const optionsRef = { current: emptyOptions };
+
+      const callback = expressionBuilderCallbackWithRef(optionsRef).bind(mockQueryBuilderCustomOperation);
+      const result = callback('field1', 'someOperation', 'Any Value');
+
+      expect(result).toBe('field1 = Any Value');
+    });
+  })
+
+  describe('expressionReaderCallbackWithRef', () => {
+    it('should map value to label for a given field from latest options', () => {
+      const initialOptions = {
+        'field1': [{ label: 'Option A', value: 'ValueA' }],
+      };
+      const updatedOptions = {
+        'field1': [{ label: 'Option B', value: 'ValueB' }],
+      };
+      const optionsRef = { current: initialOptions };
+      const callback = expressionReaderCallbackWithRef(optionsRef);
+      const result = callback('someExpression', ['field1', 'ValueA']);
+
+      expect(result).toEqual({ fieldName: 'field1', value: 'Option A' });
+
+      optionsRef.current = updatedOptions;
+      const updatedResult = callback('someExpression', ['field1', 'ValueB']);
+
+      expect(updatedResult).toEqual({ fieldName: 'field1', value: 'Option B' });
+    });
+
+    it('should return original field name and value if no matching label is found', () => {
+      const initialOptions = {
+        'field1': [{ label: 'Option A', value: 'ValueA' }],
+      };
+      const optionsRef = { current: initialOptions };
+
+      const callback = expressionReaderCallbackWithRef(optionsRef);
+      const result = callback('someExpression', ['field1', 'NonExistentValue']);
+
+      expect(result).toEqual({ fieldName: 'field1', value: 'NonExistentValue' });
+    });
+
+    it('should return original field name and value if no options are provided for the field', () => {
+      const emptyOptions = {};
+      const optionsRef = { current: emptyOptions };
+      const callback = expressionReaderCallbackWithRef(optionsRef);
       const result = callback('someExpression', ['field1', 'ValueA']);
 
       expect(result).toEqual({ fieldName: 'field1', value: 'ValueA' });
