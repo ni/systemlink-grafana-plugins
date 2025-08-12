@@ -24,7 +24,6 @@ import { transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { AssetVariableQuery } from './types/AssetVariableQuery.types';
 import { defaultListAssetsVariable } from './defaults';
 import { TAKE_LIMIT } from './constants/ListAssets.constants';
-import { QUERY_LIMIT } from './constants/constants';
 
 export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
   private assetSummaryDataSource: AssetSummaryDataSource;
@@ -92,7 +91,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
   }
 
   async metricFindQuery(query: AssetVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    let listAssetsTake = query?.take ?? QUERY_LIMIT;
+    let listAssetsTake = this.patchListAssetQueryVariable(query).take;
     if (!this.isTakeValid(listAssetsTake)) {
       return [];
     }
@@ -121,7 +120,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
     return { ...defaultListAssetsVariable, ...query } as AssetVariableQuery;
   }
 
-  private isTakeValid(take: number): boolean {
+  private isTakeValid(take: number | undefined): boolean {
     return take !== undefined && take >= 0 && take <= TAKE_LIMIT;
   }
 }
