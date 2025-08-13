@@ -1,3 +1,9 @@
+## [4.4.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.3.4...v4.4.0) (2025-08-13)
+
+### Features
+
+* **asset:**  add take support for query variables for ListAssets data source ([#387](https://github.com/ni/systemlink-grafana-plugins/issues/387)) ([8035061](https://github.com/ni/systemlink-grafana-plugins/commit/80350610a99bd0fa35b5721b802bf688bac99210))
+
 ## [4.3.4](https://github.com/ni/systemlink-grafana-plugins/compare/v4.3.3...v4.3.4) (2025-08-08)
 
 ### Bug Fixes
