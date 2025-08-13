@@ -66,7 +66,7 @@ it('renders the return type selector', async () => {
     render({  refId: '', type: AssetQueryType.ListAssets, filter: "" } as AssetQuery);
 
     await waitFor(() => expect(screen.getByText('Return Type')).toBeInTheDocument());
-    await waitFor(() => expect(screen.getAllByText(QueryReturnType.AssetIdentification).length).toBe(1));
+    await waitFor(() => expect(screen.getByText(QueryReturnType.AssetIdentification)).toBeInTheDocument());
 });
 
 it('should call onChange when return type is changed', async () => {
