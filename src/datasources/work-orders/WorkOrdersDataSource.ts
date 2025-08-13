@@ -13,7 +13,6 @@ import { extractErrorInfo } from 'core/errors';
 import { User } from 'shared/types/QueryUsers.types';
 import { TAKE_LIMIT } from './constants/QueryEditor.constants';
 import { TableProperties } from 'datasources/data-frame/types';
-import { lastValueFrom } from 'rxjs';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
@@ -98,38 +97,44 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     const properties = await this.getTableProperties(tableId);
     const columns = properties?.columns.map(col => col.name).slice(0,columnsCount) ?? [];
 
-    const res = await lastValueFrom(this.backendSrv.fetch({
-      url: exportUrl,
-      data: JSON.stringify({
+    // const res = await lastValueFrom(this.backendSrv.fetch({
+    //   url: exportUrl,
+    //   data: JSON.stringify({
+    //     columns: columns,
+    //     destination: "INLINE",
+    //     responseFormat: "CSV",
+    //     take
+    //   }),
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'Accept': 'application/json'
+    //   },
+    // }))
+    // .catch(error => {
+    //   console.error( error);
+    // });
+
+    const response = await this.post<string>(exportUrl, {
         columns: columns,
-        destination: "DOWNLOAD_LINK",
+        destination: "INLINE",
         responseFormat: "CSV",
         take
-      }),
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-    }))
-    .catch(error => {
-      console.error( error);
     });
+      // const locationHeader = res!.headers.get('Location'); // ✅ Will work ONLY if server exposes it
+      // const regex = /(?<=nidataframe\/v1\/table-exports\/)[^\/]+/;
+      // const match = locationHeader!.match(regex);
+      // // eslint-disable-next-line no-console
+      // console.log(match![0]);
+      // const downloadUrl = `${this.instanceSettings.url}/nidataframe/v1/table-exports/${match![0]}`;
 
-      const locationHeader = res!.headers.get('Location'); // ✅ Will work ONLY if server exposes it
-      const regex = /(?<=nidataframe\/v1\/table-exports\/)[^\/]+/;
-      const match = locationHeader!.match(regex);
-      // eslint-disable-next-line no-console
-      console.log(match![0]);
-      const downloadUrl = `${this.instanceSettings.url}/nidataframe/v1/table-exports/${match![0]}`;
-
-      const csvText = await this.get<string>(downloadUrl);
-      // Measure byte length (UTF-8)
+      // const csvText = await this.get<string>(downloadUrl);
+      // // Measure byte length (UTF-8)
       const encoder = new TextEncoder();
-      const byteArray = encoder.encode(csvText);
+      const byteArray = encoder.encode(response);
       const sizeInBytes = byteArray.length;
 
-      // eslint-disable-next-line no-console
+      // // eslint-disable-next-line no-console
       console.log(`CSV size: ${sizeInBytes} bytes`);
       //console.log(csvText); // Output the CSV content to console or handle it as needed
 
