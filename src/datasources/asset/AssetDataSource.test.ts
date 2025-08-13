@@ -471,7 +471,7 @@ describe('queries', () => {
       expect(result).toEqual([]);
     })
 
-    it('should return empty data when take is less than 10000', async () => {
+    it('should return empty data when take is greater than 10000', async () => {
       const query: AssetVariableQuery = {
         filter: '',
         type: AssetQueryType.ListAssets,

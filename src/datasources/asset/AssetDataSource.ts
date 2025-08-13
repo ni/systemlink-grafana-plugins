@@ -120,7 +120,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
     return { ...defaultListAssetsVariable, ...query } as AssetVariableQuery;
   }
 
-  private isTakeValid(take: number | undefined): boolean {
+  private isTakeValid(take?: number): boolean {
     return take !== undefined && take >= 0 && take <= TAKE_LIMIT;
   }
 }
