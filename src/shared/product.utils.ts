@@ -1,7 +1,7 @@
 import { DataSourceInstanceSettings } from "@grafana/data";
 import { BackendSrv } from "@grafana/runtime";
 import { QueryResponse } from "core/types";
-import { queryUntilComplete } from "core/utils";
+import { post, queryUntilComplete } from "core/utils";
 import { QUERY_PRODUCTS_MAX_TAKE, QUERY_PRODUCTS_REQUEST_PER_SECOND } from "./constants/QueryProducts.constants";
 import { Properties, QueryProductResponse } from "datasources/products/types";
 import { ProductPartNumberAndName } from "./types/QueryProducts.types";
@@ -59,7 +59,8 @@ export class ProductUtils {
         returnCount = true
     ): Promise<QueryProductResponse> {
         try {
-        const response = await this.backendSrv.post<QueryProductResponse>(
+        const response = await post<QueryProductResponse>(
+            this.backendSrv,
             this.queryProductsUrl,
             {
                 descending,
