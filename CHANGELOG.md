@@ -1,3 +1,9 @@
+## [4.4.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.4.0...v4.4.1) (2025-08-14)
+
+### Bug Fixes
+
+* **results:** Update tooltip description for use time range control ([#379](https://github.com/ni/systemlink-grafana-plugins/issues/379)) ([6e0af9b](https://github.com/ni/systemlink-grafana-plugins/commit/6e0af9b8660ede490f02d3bdde71879339733bb4))
+
 ## [4.4.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.3.4...v4.4.0) (2025-08-13)
 
 ### Features
