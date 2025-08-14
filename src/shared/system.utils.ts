@@ -2,7 +2,7 @@ import { DataSourceInstanceSettings } from "@grafana/data";
 import { BackendSrv } from "@grafana/runtime";
 import { QUERY_SYSTEMS_ALIAS_PROJECTION, QUERY_SYSTEMS_MAX_TAKE, QUERY_SYSTEMS_REQUEST_PER_SECOND } from "./constants/QuerySystems.constants";
 import { QueryResponse, QuerySystemsResponse } from "core/types";
-import { queryUsingSkip } from "core/utils";
+import { post, queryUsingSkip } from "core/utils";
 import { SystemAlias } from "./types/QuerySystems.types";
 
 export class SystemUtils {
@@ -54,7 +54,8 @@ export class SystemUtils {
         skip?: number
     ): Promise<QuerySystemsResponse> {
         try {
-            const response = await this.backendSrv.post<QuerySystemsResponse>(
+            const response = await post<QuerySystemsResponse>(
+                this.backendSrv,
                 this.querySystemsUrl,
                 {
                     projection: QUERY_SYSTEMS_ALIAS_PROJECTION,

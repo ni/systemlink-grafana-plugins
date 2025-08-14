@@ -1,6 +1,6 @@
 import { DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv } from '@grafana/runtime';
-import { queryUntilComplete } from 'core/utils';
+import { post, queryUntilComplete } from 'core/utils';
 import { QueryResponse } from 'core/types';
 import { User, QueryUsersRequest, QueryUsersResponse } from './types/QueryUsers.types';
 import { QUERY_USERS_MAX_TAKE, QUERY_USERS_REQUEST_PER_SECOND } from './constants/Users.constants';
@@ -100,7 +100,8 @@ export class UsersUtils {
    * @returns A promise that resolves to the user query response.
    */
   private queryUsers(body: QueryUsersRequest): Promise<QueryUsersResponse> {
-    return this.backendSrv.post<QueryUsersResponse>(
+    return post<QueryUsersResponse>(
+      this.backendSrv,
       `${this.instanceSettings.url}/niuser/v1/users/query`,
       body,
       { showErrorAlert: false } // suppress default error alert since we handle errors manually

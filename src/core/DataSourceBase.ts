@@ -7,11 +7,10 @@ import {
   DataSourceJsonData,
   EventBus,
 } from '@grafana/data';
-import { BackendSrv, BackendSrvRequest, FetchError, TemplateSrv, getAppEvents, isFetchError } from '@grafana/runtime';
+import { BackendSrv, BackendSrvRequest, TemplateSrv, getAppEvents } from '@grafana/runtime';
 import { DataQuery } from '@grafana/schema';
 import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
-import { sleep } from './utils';
-import { lastValueFrom } from 'rxjs';
+import { get, post } from './utils';
 
 export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData = DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
   appEvents: EventBus;
@@ -44,36 +43,8 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     return { ...this.defaultQuery, ...query };
   }
 
-  private async fetch<T>(options: BackendSrvRequest, retries = 0): Promise<T> {
-    // URL is stored and reused for each retry to ensure consistency
-    // and prevent accidental URL changes during retries
-    const url = options.url;
-
-    try {
-      return (await lastValueFrom(this.backendSrv.fetch<T>(options))).data;
-    } catch (error) {
-      if (isFetchError(error) && error.status === 429 && retries < 3) {
-        await sleep(Math.random() * 1000 * 2 ** retries);
-        return this.fetch({...options, url}, retries + 1);
-      }
-      if (isFetchError(error)) {
-        const fetchError = error as FetchError;
-        const statusCode = fetchError.status;
-        const genericErrorMessage = `Request to url "${options.url}" failed with status code: ${statusCode}.`;
-        if (statusCode === 504) {
-          throw new Error(genericErrorMessage);
-        } else {
-          const data = fetchError.data;
-          const errorMessage = data.error?.message || JSON.stringify(data);
-          throw new Error(`${genericErrorMessage} Error message: ${errorMessage}`);
-        }
-      }
-      throw error;
-    }
-  }
-
   get<T>(url: string, params?: Record<string, any>) {
-    return this.fetch<T>({ method: 'GET', url, params });
+    return get<T>(this.backendSrv,  url, params);
   }
 
   
@@ -89,7 +60,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    * @returns A promise resolving to the response of type `T`.
    */
   post<T>(url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}) {
-    return this.fetch<T>({ method: 'POST', url, data: body, ...options });
+    return post<T>(this.backendSrv, url, body, options);
   }
 
   static Workspaces: Workspace[];

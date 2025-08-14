@@ -1,6 +1,7 @@
 import { DataSourceInstanceSettings } from "@grafana/data";
 import { BackendSrv } from "@grafana/runtime";
 import { Workspace } from "core/types";
+import { get } from "core/utils";
 
 export class WorkspaceUtils {
     private static _workspacesCache?: Promise<Map<string, Workspace>>;
@@ -29,10 +30,9 @@ export class WorkspaceUtils {
     }
 
     private async fetchWorkspaces(): Promise<Workspace[]> {
-        const response = await this.backendSrv.get<{ workspaces: Workspace[] }>(
+        const response = await get<{ workspaces: Workspace[] }>(
+            this.backendSrv,
             this.queryWorkspacesUrl,
-            undefined,
-            undefined,
             { showErrorAlert: false } // suppress default error alert since we handle errors manually
         );
         return response.workspaces;
