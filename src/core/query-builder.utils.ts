@@ -89,14 +89,15 @@ export function expressionBuilderCallbackWithRef(optionsRef: React.MutableRefObj
     const buildExpression = (field: string, value: string) => {
       const options = optionsRef.current;
       const fieldOptions = options[fieldName];
+
       if (fieldOptions?.length) {
         const labelValue = fieldOptions.find(option => option.label === value);
-        if (labelValue) {
-          value = labelValue.value;
-        }
+        value = labelValue ? labelValue.value : value;
       }
+
       return this.expressionTemplate?.replace('{0}', field).replace('{1}', value);
     };
+
     return buildExpression(fieldName, value);
   };
 }
@@ -104,15 +105,11 @@ export function expressionBuilderCallbackWithRef(optionsRef: React.MutableRefObj
 export function expressionReaderCallbackWithRef(optionsRef: React.MutableRefObject<Record<string, QueryBuilderOption[]>>) {
   return function (_expression: string, [fieldName, value]: string[]) {
     const options = optionsRef.current;
-
     const fieldOptions = options[fieldName];
 
     if (fieldOptions?.length) {
       const valueLabel = fieldOptions.find(option => option.value === value);
-
-      if (valueLabel) {
-        value = valueLabel.label;
-      }
+      value = valueLabel ? valueLabel.label : value;
     }
 
     return { fieldName, value };
