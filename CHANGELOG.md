@@ -1,3 +1,51 @@
+## [4.4.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.4.0...v4.4.1) (2025-08-14)
+
+### Bug Fixes
+
+* **results:** Update tooltip description for use time range control ([#379](https://github.com/ni/systemlink-grafana-plugins/issues/379)) ([6e0af9b](https://github.com/ni/systemlink-grafana-plugins/commit/6e0af9b8660ede490f02d3bdde71879339733bb4))
+
+## [4.4.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.3.4...v4.4.0) (2025-08-13)
+
+### Features
+
+* **asset:**  add take support for query variables for ListAssets data source ([#387](https://github.com/ni/systemlink-grafana-plugins/issues/387)) ([8035061](https://github.com/ni/systemlink-grafana-plugins/commit/80350610a99bd0fa35b5721b802bf688bac99210))
+
+## [4.3.4](https://github.com/ni/systemlink-grafana-plugins/compare/v4.3.3...v4.3.4) (2025-08-08)
+
+### Bug Fixes
+
+* **prototype:** Revert call export-data API for taking metrics ([#386](https://github.com/ni/systemlink-grafana-plugins/issues/386)) ([1ed8233](https://github.com/ni/systemlink-grafana-plugins/commit/1ed82330b0b4cc4d834ac53278dc4ee5d54722df))
+
+## [4.3.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.3.2...v4.3.3) (2025-08-08)
+
+### Bug Fixes
+
+* **prototype:** Revert use backend server to call the export-url ([#385](https://github.com/ni/systemlink-grafana-plugins/issues/385)) ([0287590](https://github.com/ni/systemlink-grafana-plugins/commit/028759072fc2a3388c59add461ecc57cb4e2ac4d))
+
+## [4.3.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.3.1...v4.3.2) (2025-08-07)
+
+### Bug Fixes
+
+* **prototype:** use backend server to call the export-url ([#384](https://github.com/ni/systemlink-grafana-plugins/issues/384)) ([a1125e3](https://github.com/ni/systemlink-grafana-plugins/commit/a1125e388b4790da967cd3b12beae3226d5aa8eb))
+
+## [4.3.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.3.0...v4.3.1) (2025-08-07)
+
+### Bug Fixes
+
+* **prototype:** Call export-data API for taking metrics ([#383](https://github.com/ni/systemlink-grafana-plugins/issues/383)) ([8e77c70](https://github.com/ni/systemlink-grafana-plugins/commit/8e77c70af46e29b2f03ada05c1c76716877ca1cf))
+
+## [4.3.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.2.2...v4.3.0) (2025-08-07)
+
+### Features
+
+* **asset:** add editable take field with validation and default fallback for legacy panels ([#381](https://github.com/ni/systemlink-grafana-plugins/issues/381)) ([cb24797](https://github.com/ni/systemlink-grafana-plugins/commit/cb24797f716cd31c1c0208b9d07fbf1d62471a9b))
+
+## [4.2.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.2.1...v4.2.2) (2025-08-06)
+
+### Bug Fixes
+
+* **results:** Fix step path lookup label in dropdown ([#358](https://github.com/ni/systemlink-grafana-plugins/issues/358)) ([22c8752](https://github.com/ni/systemlink-grafana-plugins/commit/22c8752a29e4863bfd16bdd33cdd385839cca2b9))
+
 ## [4.2.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.2.0...v4.2.1) (2025-08-05)
 
 ### Bug Fixes

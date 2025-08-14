@@ -34,6 +34,19 @@ exports[`queries metricFindQuery returns name/alias when asset name field is pre
 ]
 `;
 
+exports[`queries metricFindQuery should return expected data when take is 10000 1`] = `
+[
+  {
+    "text": "01FE20D1",
+    "value": "Assets.National Instruments.sbRIO-9629.01FE20D1",
+  },
+  {
+    "text": "2222",
+    "value": "Assets.3333.1111.2222",
+  },
+]
+`;
+
 exports[`queries run metadata query 1`] = `
 [
   {

@@ -9,6 +9,11 @@ export enum AllFieldNames {
     CALIBRATION_DUE_DATE = 'ExternalCalibration.NextRecommendedDate',
 }
 
+export const takeErrorMessages = {
+    greaterOrEqualToZero: 'Enter a value greater than or equal to 0',
+    lessOrEqualToTenThousand: 'Enter a value less than or equal to 10,000',
+};
+
 export const tooltips = {
     queryReturnType: 'This field specifies the return type of the query.'
 }
