@@ -84,16 +84,17 @@ export function expressionReaderCallback(options: Record<string, QueryBuilderOpt
   }
 };
 
+/**
+ * Replaces the label with its corresponding value using the latest options from the reference.
+ * @param optionsRef - Reference object containing the latest field options.
+ * @returns Callback for QueryBuilder's custom operation.
+ */
 export function expressionBuilderCallbackWithRef(optionsRef: React.MutableRefObject<Record<string, QueryBuilderOption[]>>) {
   return function (this: QueryBuilderCustomOperation, fieldName: string, _operation: string, value: string) {
     const buildExpression = (field: string, value: string) => {
       const options = optionsRef.current;
       const fieldOptions = options[fieldName];
-
-      if (fieldOptions?.length) {
-        const labelValue = fieldOptions.find(option => option.label === value);
-        value = labelValue ? labelValue.value : value;
-      }
+      value = getOptionMappedValue('label', 'value', value, fieldOptions) ?? value;
 
       return this.expressionTemplate?.replace('{0}', field).replace('{1}', value);
     };
@@ -102,16 +103,38 @@ export function expressionBuilderCallbackWithRef(optionsRef: React.MutableRefObj
   };
 }
 
+/**
+ * Replaces the value with its corresponding label using the latest options from the reference.
+ * @param optionsRef - Reference object containing the latest field options.
+ * @returns Callback for reading QueryBuilder expressions.
+ */
 export function expressionReaderCallbackWithRef(optionsRef: React.MutableRefObject<Record<string, QueryBuilderOption[]>>) {
   return function (_expression: string, [fieldName, value]: string[]) {
     const options = optionsRef.current;
     const fieldOptions = options[fieldName];
-
-    if (fieldOptions?.length) {
-      const valueLabel = fieldOptions.find(option => option.value === value);
-      value = valueLabel ? valueLabel.label : value;
-    }
+    value = getOptionMappedValue('value', 'label', value, fieldOptions) ?? value;
 
     return { fieldName, value };
   };
+}
+
+/**
+ * Returns the value of returnKey from the matching entry in the options array.
+ * @param matchKey - The property name to match on.
+ * @param returnKey - The property name whose value should be returned from the found option.
+ * @param matchValue - The value to match against the matchKey property.
+ * @param options - The array of QueryBuilderOption objects to search.
+ * @returns The value of returnKey from the found option, or undefined if not found or input is not an array.
+ */
+function getOptionMappedValue(
+  matchKey: keyof QueryBuilderOption,
+  returnKey: keyof QueryBuilderOption,
+  matchValue: string,
+  options?: QueryBuilderOption[]
+) {
+  if (!Array.isArray(options)) {
+    return undefined;
+  }
+  const option = options.find(option => option[matchKey] === matchValue);
+  return option ? option[returnKey] : undefined;
 }
