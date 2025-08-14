@@ -74,6 +74,35 @@ describe('StepsQueryBuilder', () => {
       expect(filterContainer.item(0)?.textContent).toContain('Parent Path\Child Path1\Child Path2'); //value in the dropdown
     });
 
+    it('should update and display the latest step path in the query builder', () => {
+      const { renderResult } = renderElement('path = "Parent Path\nChild Path1\nChild Path2"',[], [], stepPaths, [], false);
+      const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
+
+      expect(filterContainer?.length).toBe(1);
+      expect(filterContainer.item(0)?.textContent).toContain('Step path'); //label
+      expect(filterContainer.item(0)?.textContent).toContain('equals'); //operator
+      expect(filterContainer.item(0)?.textContent).toContain('Parent Path\Child Path1\Child Path2'); //value in the dropdown
+
+      // Update the step paths
+      const updatedStepPaths = [
+        {label: 'Updated Path\Child Path1', value: 'Updated Path\nChild Path1'},
+      ];
+      renderResult.rerender(React.createElement(StepsQueryBuilder, {
+        filter: 'path = "Updated Path\nChild Path1"',
+        workspaces: [workspace],
+        stepStatus: [],
+        stepsPath: updatedStepPaths,
+        globalVariableOptions: [],
+        disableQueryBuilder: false,
+        onFilterChange: jest.fn(),
+      }));
+
+      expect(filterContainer?.length).toBe(1);
+      expect(filterContainer.item(0)?.textContent).toContain('Step path'); //label
+      expect(filterContainer.item(0)?.textContent).toContain('equals'); //operator
+      expect(filterContainer.item(0)?.textContent).toContain('Updated Path\Child Path1'); //value in the dropdown
+    });
+
     it('should select status in query builder', () => {
       const { renderResult } = renderElement('status.statusType = "PASSED"', [], status, [], [], false);
       const filterContainer = renderResult.container.getElementsByClassName('smart-filter-group-condition-container');
