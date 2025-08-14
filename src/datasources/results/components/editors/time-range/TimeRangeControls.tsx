@@ -24,7 +24,7 @@ export function TimeRangeControls({query, handleQueryChange}: Props) {
 }
 
 const tooltips = {
-  useTimeRange: 'This toggle enables querying by "started at" field within the dashboard time range.',
+  useTimeRange: 'This toggle enables the querying of response data with a filter. This filter only returns responses with a "Started at" property value that falls within a specified dashboard time range.',
 };
 
 const labels = {
