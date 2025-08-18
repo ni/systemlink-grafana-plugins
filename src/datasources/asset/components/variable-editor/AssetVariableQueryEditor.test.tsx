@@ -66,168 +66,167 @@ it('renders the variable query builder', async () => {
     await waitFor(() => expect(screen.getAllByText('Value').length).toBe(1));
 });
 
-it('should render take', async () => {
-    await render({ type: AssetQueryType.ListAssets } as AssetVariableQuery)
-    expect(screen.queryByRole('spinbutton')).toBeInTheDocument();
-});
-
-it('only allows numbers input in Take field', async () => {
-    await render({ type: AssetQueryType.ListAssets, take: 1000 } as AssetVariableQuery);
-
-    const take = screen.getByRole('spinbutton');
-
-    await userEvent.clear(take);
-    await userEvent.type(take, 'aaa');
-    await waitFor(() => {
-        expect(take).toHaveValue(null);
-    });
-
-    await userEvent.clear(take);
-    await userEvent.type(take, '5');
-    await waitFor(() => {
-        expect(take).toHaveValue(5);
-    });
-})
-
-it('should call onChange with take when user changes take', async () => {
-    const [onChange] = await render({ type: AssetQueryType.ListAssets, take: 1000 } as AssetVariableQuery);
-    const take = screen.getByRole('spinbutton');
-
-    await userEvent.clear(take);
-    await userEvent.type(take, '5');
-    await userEvent.tab();
-    await waitFor(() => {
-        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ take: 5 }));
-    });
-})
-
-it('should display error message when user changes take to number greater than max take', async () => {
-    const [onChange] = await render({} as AssetVariableQuery);
-    const take = screen.getByRole('spinbutton');
-    onChange.mockClear();
-
-    await userEvent.clear(take);
-    await userEvent.type(take, '10001');
-    await userEvent.tab();
-    await waitFor(() => {
-        expect(screen.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
-        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ take: undefined }));
-    });
-})
-
-it('should display error message when user changes take to number less than 0', async () => {
-    const [onChange] = await render({} as AssetVariableQuery);
-    const take = screen.getByRole('spinbutton');
-    onChange.mockClear();
-
-    await userEvent.clear(take);
-    await userEvent.tab();
-    await waitFor(() => {
-        expect(screen.getByText('Enter a value greater than or equal to 0')).toBeInTheDocument();
-        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ take: undefined }));
-    });
-})
-
-it('should not display error message when user changes value to number between 0 and max take', async () => {
-    const [onChange] = await render({} as AssetVariableQuery);
-    const take = screen.getByRole('spinbutton');
-    onChange.mockClear();
-
-    await userEvent.clear(take);
-    await userEvent.type(take, '5')
-    await userEvent.tab();
-    await waitFor(() => {
-        expect(screen.queryByText('Enter a value greater than or equal to 0')).not.toBeInTheDocument();
-        expect(screen.queryByText('Enter a value less than or equal to 10,000')).not.toBeInTheDocument();
-    });
-})
-
-it('should render take', async () => {
-    await render({ type: AssetQueryType.ListAssets } as AssetVariableQuery)
-    expect(screen.queryByRole('spinbutton')).toBeInTheDocument();
-});
-
-it('only allows numbers input in Take field', async () => {
-    await render({ type: AssetQueryType.ListAssets, take: 1000 } as AssetVariableQuery);
-
-    const take = screen.getByRole('spinbutton');
-
-    await userEvent.clear(take);
-    await userEvent.type(take, 'aaa');
-    await waitFor(() => {
-        expect(take).toHaveValue(null);
-    });
-
-    await userEvent.clear(take);
-    await userEvent.type(take, '5');
-    await waitFor(() => {
-        expect(take).toHaveValue(5);
-    });
-})
-
-it('should call onChange with take when user changes take', async () => {
-    const [onChange] = await render({ type: AssetQueryType.ListAssets, take: 1000 } as AssetVariableQuery);
-    const take = screen.getByRole('spinbutton');
-
-    await userEvent.clear(take);
-    await userEvent.type(take, '5');
-    await userEvent.tab();
-    await waitFor(() => {
-        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ take: 5 }));
-    });
-})
-
-it('should display error message when user changes take to number greater than max take', async () => {
-    const [onChange] = await render({} as AssetVariableQuery);
-    const take = screen.getByRole('spinbutton');
-    onChange.mockClear();
-
-    await userEvent.clear(take);
-    await userEvent.type(take, '10001');
-    await userEvent.tab();
-    await waitFor(() => {
-        expect(screen.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
-        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ take: undefined }));
-    });
-})
-
-it('should display error message when user changes take to number less than 0', async () => {
-    const [onChange] = await render({} as AssetVariableQuery);
-    const take = screen.getByRole('spinbutton');
-    onChange.mockClear();
-
-    await userEvent.clear(take);
-    await userEvent.tab();
-    await waitFor(() => {
-        expect(screen.getByText('Enter a value greater than or equal to 0')).toBeInTheDocument();
-        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ take: undefined }));
-    });
-})
-
-it('should not display error message when user changes value to number between 0 and max take', async () => {
-    const [onChange] = await render({} as AssetVariableQuery);
-    const take = screen.getByRole('spinbutton');
-    onChange.mockClear();
-
-    await userEvent.clear(take);
-    await userEvent.type(take, '5')
-    await userEvent.tab();
-    await waitFor(() => {
-        expect(screen.queryByText('Enter a value greater than or equal to 0')).not.toBeInTheDocument();
-        expect(screen.queryByText('Enter a value less than or equal to 10,000')).not.toBeInTheDocument();
-    });
-})
-
 it('renders the return type selector', async () => {
-    render({  refId: '', type: AssetQueryType.ListAssets, filter: "" } as AssetQuery);
+    render({  refId: '', type: AssetQueryType.ListAssets, filter: "" } as AssetVariableQuery);
 
     await waitFor(() => expect(screen.getByText('Return Type')).toBeInTheDocument());
     await waitFor(() => expect(screen.getByText(QueryReturnType.AssetIdentification)).toBeInTheDocument());
 });
 
+it('should render take', async () => {
+    await render({ type: AssetQueryType.ListAssets } as AssetVariableQuery)
+    expect(screen.queryByRole('spinbutton')).toBeInTheDocument();
+});
+
+it('only allows numbers input in Take field', async () => {
+    await render({ type: AssetQueryType.ListAssets, take: 1000 } as AssetVariableQuery);
+
+    const take = screen.getByRole('spinbutton');
+
+    await userEvent.clear(take);
+    await userEvent.type(take, 'aaa');
+    await waitFor(() => {
+        expect(take).toHaveValue(null);
+    });
+
+    await userEvent.clear(take);
+    await userEvent.type(take, '5');
+    await waitFor(() => {
+        expect(take).toHaveValue(5);
+    });
+})
+
+it('should call onChange with take when user changes take', async () => {
+    const [onChange] = await render({ type: AssetQueryType.ListAssets, take: 1000 } as AssetVariableQuery);
+    const take = screen.getByRole('spinbutton');
+
+    await userEvent.clear(take);
+    await userEvent.type(take, '5');
+    await userEvent.tab();
+    await waitFor(() => {
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ take: 5 }));
+    });
+})
+
+it('should display error message when user changes take to number greater than max take', async () => {
+    const [onChange] = await render({} as AssetVariableQuery);
+    const take = screen.getByRole('spinbutton');
+    onChange.mockClear();
+
+    await userEvent.clear(take);
+    await userEvent.type(take, '10001');
+    await userEvent.tab();
+    await waitFor(() => {
+        expect(screen.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ take: undefined }));
+    });
+})
+
+it('should display error message when user changes take to number less than 0', async () => {
+    const [onChange] = await render({} as AssetVariableQuery);
+    const take = screen.getByRole('spinbutton');
+    onChange.mockClear();
+
+    await userEvent.clear(take);
+    await userEvent.tab();
+    await waitFor(() => {
+        expect(screen.getByText('Enter a value greater than or equal to 0')).toBeInTheDocument();
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ take: undefined }));
+    });
+})
+
+it('should not display error message when user changes value to number between 0 and max take', async () => {
+    const [onChange] = await render({} as AssetVariableQuery);
+    const take = screen.getByRole('spinbutton');
+    onChange.mockClear();
+
+    await userEvent.clear(take);
+    await userEvent.type(take, '5')
+    await userEvent.tab();
+    await waitFor(() => {
+        expect(screen.queryByText('Enter a value greater than or equal to 0')).not.toBeInTheDocument();
+        expect(screen.queryByText('Enter a value less than or equal to 10,000')).not.toBeInTheDocument();
+    });
+})
+
+it('should render take', async () => {
+    await render({ type: AssetQueryType.ListAssets } as AssetVariableQuery)
+    expect(screen.queryByRole('spinbutton')).toBeInTheDocument();
+});
+
+it('only allows numbers input in Take field', async () => {
+    await render({ type: AssetQueryType.ListAssets, take: 1000 } as AssetVariableQuery);
+
+    const take = screen.getByRole('spinbutton');
+
+    await userEvent.clear(take);
+    await userEvent.type(take, 'aaa');
+    await waitFor(() => {
+        expect(take).toHaveValue(null);
+    });
+
+    await userEvent.clear(take);
+    await userEvent.type(take, '5');
+    await waitFor(() => {
+        expect(take).toHaveValue(5);
+    });
+})
+
+it('should call onChange with take when user changes take', async () => {
+    const [onChange] = await render({ type: AssetQueryType.ListAssets, take: 1000 } as AssetVariableQuery);
+    const take = screen.getByRole('spinbutton');
+
+    await userEvent.clear(take);
+    await userEvent.type(take, '5');
+    await userEvent.tab();
+    await waitFor(() => {
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ take: 5 }));
+    });
+})
+
+it('should display error message when user changes take to number greater than max take', async () => {
+    const [onChange] = await render({} as AssetVariableQuery);
+    const take = screen.getByRole('spinbutton');
+    onChange.mockClear();
+
+    await userEvent.clear(take);
+    await userEvent.type(take, '10001');
+    await userEvent.tab();
+    await waitFor(() => {
+        expect(screen.getByText('Enter a value less than or equal to 10,000')).toBeInTheDocument();
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ take: undefined }));
+    });
+})
+
+it('should display error message when user changes take to number less than 0', async () => {
+    const [onChange] = await render({} as AssetVariableQuery);
+    const take = screen.getByRole('spinbutton');
+    onChange.mockClear();
+
+    await userEvent.clear(take);
+    await userEvent.tab();
+    await waitFor(() => {
+        expect(screen.getByText('Enter a value greater than or equal to 0')).toBeInTheDocument();
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ take: undefined }));
+    });
+})
+
+it('should not display error message when user changes value to number between 0 and max take', async () => {
+    const [onChange] = await render({} as AssetVariableQuery);
+    const take = screen.getByRole('spinbutton');
+    onChange.mockClear();
+
+    await userEvent.clear(take);
+    await userEvent.type(take, '5')
+    await userEvent.tab();
+    await waitFor(() => {
+        expect(screen.queryByText('Enter a value greater than or equal to 0')).not.toBeInTheDocument();
+        expect(screen.queryByText('Enter a value less than or equal to 10,000')).not.toBeInTheDocument();
+    });
+})
+
 it('should call onChange when return type is changed', async () => {
-    const query = { refId: '', type: AssetQueryType.ListAssets, filter: "" } as AssetVariableQuery;
-    const [mockOnChange] = render(query);
+    const [onChange] = await render({ refId: '', type: AssetQueryType.ListAssets, filter: "" } as AssetVariableQuery)
 
     await waitFor(async () =>{
         const renderType = screen.getAllByRole('combobox')[0];
@@ -240,8 +239,10 @@ it('should call onChange when return type is changed', async () => {
     });
 
     await waitFor(() => {
-        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
             queryReturnType: QueryReturnType.AssetId
         }));
     });
+
+    onChange.mockClear();
 });

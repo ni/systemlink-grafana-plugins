@@ -8,10 +8,9 @@ import { Workspace } from '../../../../core/types';
 import { SystemProperties } from '../../../system/types';
 import { AssetVariableQuery } from '../../../asset/types/AssetVariableQuery.types';
 import { AutoSizeInput, InlineField, Stack, Select } from '@grafana/ui';
-import { takeErrorMessages } from 'datasources/asset/constants/constants';
+import { takeErrorMessages, tooltips } from 'datasources/asset/constants/constants';
 import { TAKE_LIMIT } from 'datasources/asset/constants/ListAssets.constants';
 import { validateNumericInput } from 'core/utils';
-import { tooltips } from '../../../asset/constants/constants';
 
 type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOptions>;
 
@@ -80,7 +79,10 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
           onChange={(event: any) => onParameterChange(event)}
         ></AssetQueryBuilder>
       </InlineField>
-      <InlineField label="Return Type" labelWidth={25} tooltip={tooltips.queryReturnType}>
+      <InlineField 
+        label="Return Type" 
+        labelWidth={25} 
+        tooltip={tooltips.queryReturnType}>
         <Select
           options={returnTypeOptions}
           defaultValue={datasource.getQueryReturnType()}
@@ -110,9 +112,4 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
   );
 }
 
-const tooltips = {
-  listAssets: {
-    filter: `Filter the assets by various properties. This is an optional field.`,
-    take: 'This field specifies the maximum number of assets to return.'
-  },
-};
+
