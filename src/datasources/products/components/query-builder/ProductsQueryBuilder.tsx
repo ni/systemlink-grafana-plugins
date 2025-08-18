@@ -1,11 +1,11 @@
 import { useTheme2 } from "@grafana/ui";
 import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder.constants";
-import { expressionBuilderCallback, expressionReaderCallback } from "core/query-builder.utils";
+import { expressionBuilderCallback, expressionBuilderCallbackWithRef, expressionReaderCallback, expressionReaderCallbackWithRef } from "core/query-builder.utils";
 import { Workspace, QueryBuilderOption } from "core/types";
 import { filterXSSField, filterXSSLINQExpression } from "core/utils";
 import { ProductsQueryBuilderFields, ProductsQueryBuilderStaticFields } from "datasources/products/constants/ProductsQueryBuilder.constants";
 import { QBField } from "datasources/products/types";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import QueryBuilder, { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
 
 import 'smart-webcomponents-react/source/styles/smart.dark-orange.css';
@@ -35,6 +35,7 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
 
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
+  const optionsRef = useRef<Record<string, QueryBuilderOption[]>>({});
 
   const sanitizedFilter = useMemo(() => {
     return filterXSSLINQExpression(filter);
@@ -100,6 +101,13 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
           }
       }, [familyNames]);
 
+      
+    const callbacks = useMemo(() => {
+      return {
+        expressionBuilderCallback: expressionBuilderCallbackWithRef(optionsRef),
+        expressionReaderCallback: expressionReaderCallbackWithRef(optionsRef),
+      };
+    }, [optionsRef]);
 
   useEffect(() => {
     const updatedFields = [partNumberField, familyField, ...ProductsQueryBuilderStaticFields!, updatedAtField, workspaceField]
@@ -125,10 +133,7 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
       return accumulator;
     }, {} as Record<string, QueryBuilderOption[]>);
 
-    const callbacks = {
-      expressionBuilderCallback: expressionBuilderCallback(options),
-      expressionReaderCallback: expressionReaderCallback(options),
-    };
+    optionsRef.current = options;
 
     const customOperations = [
       QueryBuilderOperations.EQUALS,
@@ -167,7 +172,7 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
 
     setOperations([...customOperations, ...keyValueOperations]);
 
-  }, [workspaceField, updatedAtField, partNumberField, familyField, globalVariableOptions]);
+  }, [workspaceField, updatedAtField, partNumberField, familyField, globalVariableOptions, callbacks]);
 
   return (
     <QueryBuilder
