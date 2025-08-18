@@ -1,6 +1,12 @@
-import { TemplateSrv } from "@grafana/runtime";
+import { BackendSrv, TemplateSrv } from "@grafana/runtime";
 import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, getVariableOptions } from "./utils";
 import { BatchQueryConfig } from "./types";
+import { get, post } from './utils';
+import { of, throwError } from 'rxjs';
+
+const mockBackendSrv = {
+  fetch: jest.fn(),
+} as unknown as BackendSrv;
 
 test('enumToOptions', () => {
   enum fakeStringEnum {
@@ -518,5 +524,65 @@ describe('queryUsingSkip', () => {
 
     expect(mockQueryRecord).toHaveBeenCalledTimes(2);
     jest.useRealTimers();
+  });
+});
+
+describe('get', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should call backendSrv.fetch with correct URL and params', async () => {
+    const url = '/api/test';
+    const params = { key: 'value' };
+    const expectedResponse = { data: 'test' };
+
+    (mockBackendSrv.fetch as jest.Mock).mockReturnValue(of(expectedResponse));
+
+    const response = await get(mockBackendSrv, url, params);
+
+    expect(mockBackendSrv.fetch).toHaveBeenCalledWith({ method: 'GET', url, params });
+    expect(response).toEqual('test');
+  });
+
+  it('should handle errors from backendSrv.fetch', async () => {
+    const url = '/api/test';
+    const params = { key: 'value' };
+    const errorMessage = 'Network error';
+
+    (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => new Error(errorMessage)));
+
+    await expect(get(mockBackendSrv, url, params)).rejects.toThrow(errorMessage);
+    expect(mockBackendSrv.fetch).toHaveBeenCalledWith({ method: 'GET', url, params });
+  });
+});
+
+describe('post', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should call backendSrv.fetch with correct URL and params', async () => {
+    const url = '/api/test';
+    const body = { key: 'value' };
+    const expectedResponse = { data: 'test' };
+
+    (mockBackendSrv.fetch as jest.Mock).mockReturnValue(of(expectedResponse));
+
+    const response = await post(mockBackendSrv, url, body);
+
+    expect(mockBackendSrv.fetch).toHaveBeenCalledWith({ method: 'POST', url, data: body });
+    expect(response).toEqual('test');
+  });
+
+  it('should handle errors from backendSrv.fetch', async () => {
+    const url = '/api/test';
+    const body = { key: 'value' };
+    const errorMessage = 'Network error';
+
+    (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => new Error(errorMessage)));
+
+    await expect(post(mockBackendSrv, url, body)).rejects.toThrow(errorMessage);
+    expect(mockBackendSrv.fetch).toHaveBeenCalledWith({ method: 'POST', url, data: body });
   });
 });

@@ -44,7 +44,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
   }
 
   get<T>(url: string, params?: Record<string, any>) {
-    return get<T>(this.backendSrv,  url, params);
+    return get<T>(this.backendSrv, url, params);
   }
 
   
