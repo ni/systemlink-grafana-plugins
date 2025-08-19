@@ -308,7 +308,7 @@ async function fetch<T>(backendSrv: BackendSrv, options: BackendSrvRequest, retr
   try {
     return (await lastValueFrom(backendSrv.fetch<T>(options))).data;
   } catch (error) {
-    if (isFetchError(error) && error.status === 404 && retries < 3) {
+    if (isFetchError(error) && error.status === 429 && retries < 3) {
       await sleep(Math.random() * 1000 * 2 ** retries);
       return fetch(backendSrv, {...options, url}, retries + 1);
     }
