@@ -1,3 +1,9 @@
+## [4.4.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.4.1...v4.4.2) (2025-08-19)
+
+### Bug Fixes
+
+* **core:** Use ref-based options for query builder callbacks ([#368](https://github.com/ni/systemlink-grafana-plugins/issues/368)) ([a52c05e](https://github.com/ni/systemlink-grafana-plugins/commit/a52c05eba4f376267a5a89a2cc6718ba00645c81))
+
 ## [4.4.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.4.0...v4.4.1) (2025-08-14)
 
 ### Bug Fixes
