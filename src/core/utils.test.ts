@@ -558,7 +558,7 @@ describe('get', () => {
       .mockReturnValueOnce(throwError(() => ({ status: 429, data: {} })))
       .mockReturnValueOnce(of(expectedResponse));
 
-      const response = await get(mockBackendSrv, url, params);
+    const response = await get(mockBackendSrv, url, params);
 
     expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(3);
     expect(response).toEqual('test');
@@ -567,7 +567,7 @@ describe('get', () => {
   it('should stop retrying after 3 failed attempts with 429', async () => {
     (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => ({ status: 429, data: {} })));
 
-    await expect(get(mockBackendSrv, url, params)).rejects.toThrow('Request failed with status code 429');
+    await expect(get(mockBackendSrv, url, params)).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
     expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(4);
   });
 });
@@ -602,7 +602,7 @@ describe('post', () => {
     (mockBackendSrv.fetch as jest.Mock)
       .mockReturnValueOnce(throwError(() => ({ status: 429, data: {} })))
       .mockReturnValueOnce(throwError(() => ({ status: 429, data: {} })))
-      .mockResolvedValueOnce(of(expectedResponse));
+      .mockReturnValueOnce(of(expectedResponse));
 
     const response = await post(mockBackendSrv, url, body);
 
@@ -613,7 +613,7 @@ describe('post', () => {
   it('should stop retrying after 3 failed attempts with 429', async () => {
     (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => ({ status: 429, data: {} })));
 
-    await expect(get(mockBackendSrv, url, body)).rejects.toThrow('Request failed with status code 429');
+    await expect(post(mockBackendSrv, url, body)).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
     expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(4);
   });
 });
