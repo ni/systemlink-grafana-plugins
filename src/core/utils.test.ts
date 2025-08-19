@@ -558,11 +558,12 @@ describe('get', () => {
   it('should retry up to 3 times on 429 before succeeding', async () => {
     const url = '/api/test';
     const params = { key: 'value' };
+    const expectedResponse = { data: 'test' };
 
     (mockBackendSrv.fetch as jest.Mock)
       .mockReturnValueOnce(throwError(() => ({ status: 429, data: {} })))
       .mockReturnValueOnce(throwError(() => ({ status: 429, data: {} })))
-      .mockResolvedValueOnce({ data: 'final-success' });
+      .mockReturnValueOnce(of(expectedResponse));
 
       const response = await get(mockBackendSrv, url, params);
 
@@ -603,11 +604,12 @@ describe('post', () => {
   it('should retry up to 3 times on 429 before succeeding', async () => {
     const url = '/api/test';
     const params = { key: 'value' };
+    const expectedResponse = { data: 'test' };
 
     (mockBackendSrv.fetch as jest.Mock)
       .mockReturnValueOnce(throwError(() => ({ status: 429, data: {} })))
       .mockReturnValueOnce(throwError(() => ({ status: 429, data: {} })))
-      .mockResolvedValueOnce({ data: 'final-success' });
+      .mockResolvedValueOnce(of(expectedResponse));
 
       const response = await post(mockBackendSrv, url, params);
 
