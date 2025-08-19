@@ -7,6 +7,14 @@ const mockBackendSrv = {
   fetch: jest.fn(),
 } as unknown as BackendSrv;
 
+jest.mock('./utils', () => {
+  const actual = jest.requireActual('./utils');
+  return {
+    ...actual,
+    sleep: jest.fn(() => Promise.resolve()),
+  };
+});
+
 test('enumToOptions', () => {
   enum fakeStringEnum {
     Label1 = 'Value1',
@@ -534,6 +542,7 @@ describe('get', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it('should call backendSrv.fetch with correct URL and params', async () => {
@@ -580,6 +589,7 @@ describe('post', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it('should call backendSrv.fetch with correct URL and params', async () => {
