@@ -1,5 +1,5 @@
 import { act, screen, waitFor } from '@testing-library/react';
-import { AssetQueryType, QueryReturnType } from '../../types/types';
+import { AssetQueryType, AssetQueryReturnType } from '../../types/types';
 import { SystemProperties } from '../../../system/types'
 import { AssetVariableQueryEditor } from './AssetVariableQueryEditor';
 import { Workspace } from 'core/types';
@@ -70,7 +70,7 @@ it('renders the return type selector', async () => {
     render({  refId: '', type: AssetQueryType.ListAssets, filter: "" } as AssetVariableQuery);
 
     await waitFor(() => expect(screen.getByText('Return Type')).toBeInTheDocument());
-    await waitFor(() => expect(screen.getByText(QueryReturnType.AssetIdentification)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(AssetQueryReturnType.AssetIdentification)).toBeInTheDocument());
 });
 
 it('should render take', async () => {
@@ -155,16 +155,16 @@ it('should call onChange when return type is changed', async () => {
     await waitFor(async () =>{
         const renderType = screen.getAllByRole('combobox')[0];
 
-        expect(screen.getAllByText(QueryReturnType.AssetIdentification).length).toBe(1);
-        await select(renderType, QueryReturnType.AssetId, {
+        expect(screen.getAllByText(AssetQueryReturnType.AssetIdentification).length).toBe(1);
+        await select(renderType, AssetQueryReturnType.AssetId, {
             container: document.body
         });
-        expect(screen.getAllByText(QueryReturnType.AssetId).length).toBe(1);
+        expect(screen.getAllByText(AssetQueryReturnType.AssetId).length).toBe(1);
     });
 
     await waitFor(() => {
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-            queryReturnType: QueryReturnType.AssetId
+            queryReturnType: AssetQueryReturnType.AssetId
         }));
     });
 

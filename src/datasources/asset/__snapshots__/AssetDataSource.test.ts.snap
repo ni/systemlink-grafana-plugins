@@ -1,5 +1,18 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`queries metricFindQuery returns default identifier with id as value when return type is AssetId and asset name is not present 1`] = `
+[
+  {
+    "text": "01FE20D1",
+    "value": "7f6d0d74-bc75-4d78-9edd-00c253b3a0de",
+  },
+  {
+    "text": "2222",
+    "value": "7f6d0d74-bc75-4d78-9edd-00c253b3a0de",
+  },
+]
+`;
+
 exports[`queries metricFindQuery returns default identifiers when asset name is not present 1`] = `
 [
   {
@@ -30,6 +43,27 @@ exports[`queries metricFindQuery returns name/alias when asset name field is pre
   {
     "text": "Conn0_DIO0-3 (01FE20D1)",
     "value": "Assets.National Instruments.DIO 0-3.01FE20D1",
+  },
+]
+`;
+
+exports[`queries metricFindQuery returns name/alias with id as value when return type is AssetId 1`] = `
+[
+  {
+    "text": "NI-sbRIO-9629-01FE20D1 (01FE20D1)",
+    "value": "7f6d0d74-bc75-4d78-9edd-00c253b3a0de",
+  },
+  {
+    "text": "Conn0_AI (01FE20D1)",
+    "value": "71fbef61-fae6-4364-82d4-29feb79c7146",
+  },
+  {
+    "text": "Conn0_AO (01FE20D1)",
+    "value": "cf1ac843-06a2-4713-ab43-f9d1d8dfdc32",
+  },
+  {
+    "text": "Conn0_DIO0-3 (01FE20D1)",
+    "value": "456e8812-1da4-4818-afab-f0cd34f74567",
   },
 ]
 `;

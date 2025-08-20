@@ -29,7 +29,7 @@ export const AssetFeatureTogglesDefaults: AssetFeatureToggles = {
   assetSummary: true
 }
 
-export enum QueryReturnType {
+export enum AssetQueryReturnType {
   AssetIdentification = 'Asset Identification',
   AssetId = 'Asset Id'
 }

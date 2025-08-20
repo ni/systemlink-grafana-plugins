@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { QueryEditorProps } from "@grafana/data";
-import { AssetDataSourceOptions, AssetQuery, QueryReturnType } from '../../../asset/types/types';
+import { AssetDataSourceOptions, AssetQuery, AssetQueryReturnType } from '../../../asset/types/types';
 import { AssetDataSource } from '../../AssetDataSource'
 import { FloatingError } from '../../../../core/errors';
 import { AssetQueryBuilder } from '../editors/list-assets/query-builder/AssetQueryBuilder';
@@ -23,7 +23,7 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
   const assetVariableQuery = query as AssetVariableQuery;
   const assetListDatasource = useRef(datasource.getListAssetsSource());
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
-  const returnTypeOptions = Object.values(QueryReturnType).map((type) => ({
+  const returnTypeOptions = Object.values(AssetQueryReturnType).map((type) => ({
     label: type,
     value: type
   }));
@@ -62,7 +62,7 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
     }
   };
 
-  function changeQueryReturnType(queryReturnType: QueryReturnType) {
+  function changeQueryReturnType(queryReturnType: AssetQueryReturnType) {
     datasource.setQueryReturnType(queryReturnType);
     onChange({ ...assetVariableQuery, queryReturnType: queryReturnType } as AssetVariableQuery);
   }

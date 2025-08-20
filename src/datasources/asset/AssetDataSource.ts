@@ -12,7 +12,7 @@ import {
   AssetDataSourceOptions,
   AssetQuery,
   AssetQueryType,
-  QueryReturnType
+  AssetQueryReturnType
 } from './types/types';
 import { CalibrationForecastDataSource } from './data-sources/calibration-forecast/CalibrationForecastDataSource';
 import { AssetSummaryQuery } from './types/AssetSummaryQuery.types';
@@ -30,7 +30,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
   private assetSummaryDataSource: AssetSummaryDataSource;
   private calibrationForecastDataSource: CalibrationForecastDataSource;
   private listAssetsDataSource: ListAssetsDataSource;
-  private queryReturnType: QueryReturnType = QueryReturnType.AssetIdentification;
+  private assetQueryReturnType: AssetQueryReturnType = AssetQueryReturnType.AssetIdentification;
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,
@@ -92,12 +92,12 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
     return this.listAssetsDataSource;
   }
 
-  getQueryReturnType(): QueryReturnType {
-    return this.queryReturnType;
+  getQueryReturnType(): AssetQueryReturnType {
+    return this.assetQueryReturnType;
   }
 
-  setQueryReturnType(queryReturnType: QueryReturnType): void {
-    this.queryReturnType = queryReturnType;
+  setQueryReturnType(queryReturnType: AssetQueryReturnType): void {
+    this.assetQueryReturnType = queryReturnType;
   }
 
   async metricFindQuery(query: AssetVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
@@ -119,12 +119,14 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
     const vendor = asset.vendorName ? asset.vendorName : asset.vendorNumber;
     const model = asset.modelName ? asset.modelName : asset.modelNumber;
     const serial = asset.serialNumber;
+    let assetValue: string;
 
     const assetName = !asset.name ? `${serial}` : `${asset.name} (${serial})`;
-    let assetValue = `Assets.${vendor}.${model}.${serial}`
-
-    if (this.queryReturnType === QueryReturnType.AssetId) {
+    
+    if (this.assetQueryReturnType === AssetQueryReturnType.AssetId) {
       assetValue = asset.id;
+    } else {
+      assetValue = `Assets.${vendor}.${model}.${serial}`;
     }
 
     return { text: assetName, value: assetValue };

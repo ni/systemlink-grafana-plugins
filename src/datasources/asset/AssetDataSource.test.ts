@@ -8,7 +8,7 @@ import {
   setupDataSource,
 } from "test/fixtures";
 import { AssetDataSource } from "./AssetDataSource";
-import { AssetQueryType, QueryReturnType } from "./types/types";
+import { AssetQueryType, AssetQueryReturnType } from "./types/types";
 import { AssetPresenceWithSystemConnectionModel, AssetsResponse } from "datasources/asset-common/types";
 import { ListAssetsQuery } from "./types/ListAssets.types";
 import { AssetVariableQuery } from "./types/AssetVariableQuery.types";
@@ -369,13 +369,13 @@ describe('queries', () => {
   describe('queryReturnType', () => {
     it('should return default QueryReturnType.AssetId', () => {
       const returnType = ds.getQueryReturnType();
-      expect(returnType).toBe(QueryReturnType.AssetIdentification);
+      expect(returnType).toBe(AssetQueryReturnType.AssetIdentification);
     });
 
     it('should set and get QueryReturnType correctly', () => {
-      ds.setQueryReturnType(QueryReturnType.AssetId);
+      ds.setQueryReturnType(AssetQueryReturnType.AssetId);
       const returnType = ds.getQueryReturnType();
-      expect(returnType).toBe(QueryReturnType.AssetId);
+      expect(returnType).toBe(AssetQueryReturnType.AssetId);
     });
   });
 
@@ -421,6 +421,52 @@ describe('queries', () => {
 
       expect(result).toMatchSnapshot();
     })
+
+    it('returns name/alias with id as value when return type is AssetId', async () => {
+      ds.setQueryReturnType(AssetQueryReturnType.AssetId);
+
+      const query: AssetVariableQuery = {
+        filter: '',
+        type: AssetQueryType.None,
+        refId: "",
+        take: 10,
+      }
+
+      backendSrv.fetch
+        .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
+        .mockReturnValue(createFetchResponse(assetsResponseMock as AssetsResponse))
+
+      const options = {
+        scopedVars: {}
+      }
+
+      const result = await ds.metricFindQuery(query, options)
+
+      expect(result).toMatchSnapshot();
+    })
+
+    it('returns default identifier with id as value when return type is AssetId and asset name is not present', async () => {
+      ds.setQueryReturnType(AssetQueryReturnType.AssetId);
+
+      const query: AssetVariableQuery = {
+        filter: '',
+        type: AssetQueryType.None,
+        refId: "",
+        take: 10,
+      };
+
+      backendSrv.fetch
+        .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
+        .mockReturnValue(createFetchResponse(assetsWithoutNameResponseMock as AssetsResponse));
+
+      const options = {
+        scopedVars: {}
+      };
+
+      const result = await ds.metricFindQuery(query, options);
+
+      expect(result).toMatchSnapshot();
+    });
 
     it('should return expected data when take is 10000', async () => {
       const query: AssetVariableQuery = {
