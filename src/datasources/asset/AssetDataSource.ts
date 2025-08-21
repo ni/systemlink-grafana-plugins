@@ -12,6 +12,7 @@ import {
   AssetDataSourceOptions,
   AssetQuery,
   AssetQueryType,
+  AssetQueryReturnType
 } from './types/types';
 import { CalibrationForecastDataSource } from './data-sources/calibration-forecast/CalibrationForecastDataSource';
 import { AssetSummaryQuery } from './types/AssetSummaryQuery.types';
@@ -29,6 +30,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
   private assetSummaryDataSource: AssetSummaryDataSource;
   private calibrationForecastDataSource: CalibrationForecastDataSource;
   private listAssetsDataSource: ListAssetsDataSource;
+  private assetQueryReturnType: AssetQueryReturnType = AssetQueryReturnType.AssetIdentification;
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,
@@ -90,6 +92,14 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
     return this.listAssetsDataSource;
   }
 
+  getQueryReturnType(): AssetQueryReturnType {
+    return this.assetQueryReturnType;
+  }
+
+  setQueryReturnType(queryReturnType: AssetQueryReturnType): void {
+    this.assetQueryReturnType = queryReturnType;
+  }
+
   async metricFindQuery(query: AssetVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     let listAssetsTake = this.patchListAssetQueryVariable(query).take;
     if (!this.isTakeValid(listAssetsTake)) {
@@ -102,16 +112,22 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
       this.listAssetsDataSource.queryTransformationOptions
     );
     const assetsResponse: AssetsResponse = await this.listAssetsDataSource.queryAssets(assetFilter, listAssetsTake);
-    return assetsResponse.assets.map(this.getAssetNameForMetricQuery);
+    return assetsResponse.assets.map((asset) => this.getAssetNameForMetricQuery(asset));
   }
 
   private getAssetNameForMetricQuery(asset: AssetModel): MetricFindValue {
     const vendor = asset.vendorName ? asset.vendorName : asset.vendorNumber;
     const model = asset.modelName ? asset.modelName : asset.modelNumber;
     const serial = asset.serialNumber;
+    let assetValue: string;
 
     const assetName = !asset.name ? `${serial}` : `${asset.name} (${serial})`;
-    const assetValue = `Assets.${vendor}.${model}.${serial}`
+    
+    if (this.assetQueryReturnType === AssetQueryReturnType.AssetId) {
+      assetValue = asset.id;
+    } else {
+      assetValue = `Assets.${vendor}.${model}.${serial}`;
+    }
 
     return { text: assetName, value: assetValue };
   }

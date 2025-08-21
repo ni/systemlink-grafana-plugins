@@ -1,13 +1,14 @@
 import { act, screen, waitFor } from '@testing-library/react';
-import { AssetQueryType } from '../../types/types';
+import { AssetQueryType, AssetQueryReturnType } from '../../types/types';
 import { SystemProperties } from '../../../system/types'
 import { AssetVariableQueryEditor } from './AssetVariableQueryEditor';
 import { Workspace } from 'core/types';
 import { setupRenderer } from 'test/fixtures';
 import { ListAssetsDataSource } from '../../data-sources/list-assets/ListAssetsDataSource';
 import { AssetDataSource } from 'datasources/asset/AssetDataSource';
-import { AssetVariableQuery } from 'datasources/asset/types/AssetVariableQuery.types';
 import userEvent from '@testing-library/user-event';
+import { select } from 'react-select-event';
+import { AssetVariableQuery } from 'datasources/asset/types/AssetVariableQuery.types';
 
 const fakeSystems: SystemProperties[] = [
     {
@@ -63,6 +64,13 @@ it('renders the variable query builder', async () => {
     await waitFor(() => expect(screen.getAllByText('Property').length).toBe(1));
     await waitFor(() => expect(screen.getAllByText('Operator').length).toBe(1));
     await waitFor(() => expect(screen.getAllByText('Value').length).toBe(1));
+});
+
+it('renders the return type selector', async () => {
+    render({  refId: '', type: AssetQueryType.ListAssets, filter: "" } as AssetVariableQuery);
+
+    await waitFor(() => expect(screen.getByText('Return Type')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(AssetQueryReturnType.AssetIdentification)).toBeInTheDocument());
 });
 
 it('should render take', async () => {
@@ -140,3 +148,25 @@ it('should not display error message when user changes value to number between 0
         expect(screen.queryByText('Enter a value less than or equal to 10,000')).not.toBeInTheDocument();
     });
 })
+
+it('should call onChange when return type is changed', async () => {
+    const [onChange] = await render({ refId: '', type: AssetQueryType.ListAssets, filter: "" } as AssetVariableQuery)
+
+    await waitFor(async () =>{
+        const renderType = screen.getAllByRole('combobox')[0];
+
+        expect(screen.getAllByText(AssetQueryReturnType.AssetIdentification).length).toBe(1);
+        await select(renderType, AssetQueryReturnType.AssetId, {
+            container: document.body
+        });
+        expect(screen.getAllByText(AssetQueryReturnType.AssetId).length).toBe(1);
+    });
+
+    await waitFor(() => {
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+            queryReturnType: AssetQueryReturnType.AssetId
+        }));
+    });
+
+    onChange.mockClear();
+});

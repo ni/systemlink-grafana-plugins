@@ -1,15 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { QueryEditorProps } from "@grafana/data";
-import { AssetDataSourceOptions, AssetQuery } from '../../../asset/types/types';
+import { AssetDataSourceOptions, AssetQuery, AssetQueryReturnType } from '../../../asset/types/types';
 import { AssetDataSource } from '../../AssetDataSource'
 import { FloatingError } from '../../../../core/errors';
 import { AssetQueryBuilder } from '../editors/list-assets/query-builder/AssetQueryBuilder';
 import { Workspace } from '../../../../core/types';
 import { SystemProperties } from '../../../system/types';
 import { AssetVariableQuery } from '../../../asset/types/AssetVariableQuery.types';
-import { AutoSizeInput, InlineField, Stack } from '@grafana/ui';
+import { AutoSizeInput, InlineField, Stack, Select } from '@grafana/ui';
 import { takeErrorMessages } from 'datasources/asset/constants/constants';
-import { TAKE_LIMIT } from 'datasources/asset/constants/ListAssets.constants';
+import { TAKE_LIMIT, tooltips } from 'datasources/asset/constants/ListAssets.constants';
 import { validateNumericInput } from 'core/utils';
 
 type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOptions>;
@@ -23,6 +23,10 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
   const assetVariableQuery = query as AssetVariableQuery;
   const assetListDatasource = useRef(datasource.getListAssetsSource());
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
+  const returnTypeOptions = Object.values(AssetQueryReturnType).map((type) => ({
+    label: type,
+    value: type
+  }));
 
   useEffect(() => {
     Promise.all([assetListDatasource.current.areSystemsLoaded$, assetListDatasource.current.areWorkspacesLoaded$]).then(() => {
@@ -58,9 +62,14 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
     }
   };
 
+  function changeQueryReturnType(queryReturnType: AssetQueryReturnType) {
+    datasource.setQueryReturnType(queryReturnType);
+    onChange({ ...assetVariableQuery, queryReturnType: queryReturnType } as AssetVariableQuery);
+  }
+
   return (
     <Stack direction="column">
-      <InlineField label="Filter" labelWidth={25} tooltip={tooltips.listAssets.filter}>
+      <InlineField label="Filter" labelWidth={25} tooltip={tooltips.filter}>
         <AssetQueryBuilder
           filter={assetVariableQuery.filter}
           workspaces={workspaces}
@@ -70,11 +79,23 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
           onChange={(event: any) => onParameterChange(event)}
         ></AssetQueryBuilder>
       </InlineField>
+      <InlineField 
+        label="Return Type" 
+        labelWidth={25} 
+        tooltip={tooltips.queryReturnType}>
+        <Select
+          options={returnTypeOptions}
+          defaultValue={datasource.getQueryReturnType()}
+          value={datasource.getQueryReturnType()}
+          onChange={(item) => {changeQueryReturnType(item.value!)}}
+          width={26}
+        />
+      </InlineField>
       <FloatingError message={assetListDatasource.current.error} />
       <InlineField
         label="Take"
         labelWidth={25}
-        tooltip={tooltips.listAssets.take}
+        tooltip={tooltips.take}
         invalid={!!recordCountInvalidMessage}
         error={recordCountInvalidMessage}
       >
@@ -92,9 +113,4 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
   );
 }
 
-const tooltips = {
-  listAssets: {
-    filter: `Filter the assets by various properties. This is an optional field.`,
-    take: 'This field specifies the maximum number of assets to return.'
-  },
-};
+
