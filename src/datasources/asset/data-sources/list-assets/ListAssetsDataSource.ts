@@ -86,7 +86,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
             return assets.location.parent
           case AssetFilterPropertiesOption.SelfCalibration:
             return assets.selfCalibration?.date ?? '';
-          case AssetFilterPropertiesOption.ExternaCalibrationDate:
+          case AssetFilterPropertiesOption.ExternalCalibrationDate:
             return assets.externalCalibration?.resolvedDueDate
           case AssetFilterPropertiesOption.Keywords:
             return assets.keywords.join(', ')
