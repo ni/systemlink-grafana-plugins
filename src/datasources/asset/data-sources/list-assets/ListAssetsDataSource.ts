@@ -1,14 +1,14 @@
-import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings } from '@grafana/data';
+import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings, FieldType } from '@grafana/data';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
 import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../types/types';
-import { ListAssetsQuery, OutputType, QueryListAssetRequestBody } from '../../types/ListAssets.types';
+import { AssetFilterProperties, AssetFilterPropertiesOption, ListAssetsQuery, OutputType, QueryListAssetRequestBody } from '../../types/ListAssets.types';
 import { AssetModel, AssetsResponse } from '../../../asset-common/types';
-import { getWorkspaceName } from '../../../../core/utils';
 import { transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
 import { QUERY_LIMIT } from 'datasources/asset/constants/constants';
-import { defaultListAssetsQuery } from 'datasources/asset/defaults';
+import { defaultListAssetsQuery, defaultListAssetsQueryForOldPannels } from 'datasources/asset/defaults';
 import { TAKE_LIMIT } from 'datasources/asset/constants/ListAssets.constants';
+import { getWorkspaceName } from 'core/utils';
 
 export class ListAssetsDataSource extends AssetDataSourceBase {
   private dependenciesLoadedPromise: Promise<void>;
@@ -62,52 +62,57 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
   }
 
   async processListAssetsQuery(query: ListAssetsQuery) {
-    const result: DataFrameDTO = { refId: query.refId, fields: [] };
-    const assetsResponse: AssetsResponse = await this.queryAssets(query.filter, query.take, false);
+    const assetsResponse: AssetsResponse = await this.queryAssets(query.filter, query.take, false, query.properties);
     const assets = assetsResponse.assets;
     const workspaces = this.getCachedWorkspaces();
-    result.fields = [
-      { name: 'id', values: assets.map(a => a.id) },
-      { name: 'name', values: assets.map(a => a.name) },
-      { name: 'vendor name', values: assets.map(a => a.vendorName) },
-      { name: 'vendor number', values: assets.map(a => a.vendorNumber) },
-      { name: 'model name', values: assets.map(a => a.modelName) },
-      { name: 'model number', values: assets.map(a => a.modelNumber) },
-      { name: 'serial number', values: assets.map(a => a.serialNumber) },
-      { name: 'bus type', values: assets.map(a => a.busType) },
-      { name: 'asset type', values: assets.map(a => a.assetType) },
-      { name: 'is NI asset', values: assets.map(a => a.isNIAsset) },
-      { name: 'part number', values: assets.map(a => a.partNumber) },
-      { name: 'calibration status', values: assets.map(a => a.calibrationStatus) },
-      { name: 'is system controller', values: assets.map(a => a.isSystemController) },
-      { name: 'last updated timestamp', values: assets.map(a => a.lastUpdatedTimestamp) },
-      { name: 'location', values: assets.map(a => this.getLocationFromAsset(a)) },
-      { name: 'minionId', values: assets.map(a => a.location.minionId) },
-      { name: 'parent name', values: assets.map(a => a.location.parent) },
-      { name: 'workspace', values: assets.map(a => getWorkspaceName(workspaces, a.workspace)) },
-      { name: 'supports self calibration', values: assets.map(a => a.supportsSelfCalibration) },
-      { name: 'supports external calibration', values: assets.map(a => a.supportsExternalCalibration) },
-      { name: 'visa resource name', values: assets.map(a => a.visaResourceName) },
-      { name: 'firmware version', values: assets.map(a => a.firmwareVersion) },
-      { name: 'discovery type', values: assets.map(a => a.discoveryType) },
-      { name: 'supports self test', values: assets.map(a => a.supportsSelfTest) },
-      { name: 'supports reset', values: assets.map(a => a.supportsReset) },
-      { name: 'properties', values: assets.map(a => JSON.stringify(a.properties)) },
-      { name: 'keywords', values: assets.map(a => a.keywords.join(', ')) },
-      { name: 'self calibration', values: assets.map(a => a.selfCalibration?.date ?? '') },
-      { name: 'calibration due date', values: assets.map(a => a.externalCalibration?.resolvedDueDate) }
-    ];
-    return result;
+    const mappedFields = query.properties?.map(property => {
+      const field = AssetFilterProperties[property];
+      const fieldType = FieldType.string;
+      const fieldName = field.label;
+
+      const fieldValue = assets.map(assets => {
+        switch (field.value) {
+          case AssetFilterPropertiesOption.Workspace:
+            const workspace = getWorkspaceName(workspaces, assets.workspace)
+            return workspace
+          case AssetFilterPropertiesOption.Location:
+            const location = this.getLocationFromAsset(assets);
+            return location
+          case AssetFilterPropertiesOption.Properties:
+            return JSON.stringify(assets.properties);
+          case AssetFilterPropertiesOption.MinionId:
+            return assets.location.minionId
+          case AssetFilterPropertiesOption.ParentName:
+            return assets.location.parent
+          case AssetFilterPropertiesOption.SelfCalibration:
+            return assets.selfCalibration?.date ?? '';
+          case AssetFilterPropertiesOption.ExternaCalibrationDate:
+            return assets.externalCalibration?.resolvedDueDate
+          case AssetFilterPropertiesOption.Keywords:
+            return assets.keywords.join(', ')
+          default:
+            return assets[field.field];
+        }
+      });
+
+      return { name: fieldName, values: fieldValue, type: fieldType };
+    });
+    return {
+      refId: query.refId,
+      name: query.refId,
+      fields: mappedFields ?? [],
+    };
   }
 
   async processTotalCountAssetsQuery(query: ListAssetsQuery) {
-    const response: AssetsResponse = await this.queryAssets(query.filter, QUERY_LIMIT, true);
+    const response: AssetsResponse = await this.queryAssets(query.filter, QUERY_LIMIT, true, query.properties);
     const result: DataFrameDTO = { refId: query.refId, fields: [{ name: "Total count", values: [response.totalCount] }] };
     return result;
   }
 
-  async queryAssets(filter = '', take = -1, returnCount = false): Promise<AssetsResponse> {
-    let data: QueryListAssetRequestBody = { filter, take, returnCount };
+  async queryAssets(filter = '', take = -1, returnCount = false, projection?: string[]): Promise<AssetsResponse> {
+    const formattedProjection = `new(${projection})`;
+    let data: QueryListAssetRequestBody = { filter, take, returnCount, formattedProjection };
     try {
       const response = await this.post<AssetsResponse>(this.baseUrl + '/query-assets', data);
       return response;
@@ -124,6 +129,10 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
   }
 
   public patchListAssetQuery(query: AssetQuery): ListAssetsQuery {
+    const newQuery = query as ListAssetsQuery
+    if (!newQuery.properties) {
+      return { ...defaultListAssetsQueryForOldPannels, ...query } as ListAssetsQuery;
+    }
     return { ...defaultListAssetsQuery, ...query } as ListAssetsQuery;
   }
 

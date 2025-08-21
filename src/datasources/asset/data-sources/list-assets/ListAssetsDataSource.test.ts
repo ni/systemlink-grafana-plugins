@@ -6,7 +6,7 @@ import {
 } from "test/fixtures";
 import { AssetQueryType } from "../../types/types";
 import { ListAssetsDataSource } from "./ListAssetsDataSource";
-import { ListAssetsQuery, OutputType } from "../../types/ListAssets.types";
+import { AssetFilterPropertiesOption, ListAssetsQuery, OutputType } from "../../types/ListAssets.types";
 import { ListAssetsFieldNames } from "../../constants/ListAssets.constants";
 import { MockProxy } from "jest-mock-extended";
 import { BackendSrv } from "@grafana/runtime";
@@ -175,7 +175,7 @@ describe('shouldRunQuery', () => {
 
         await datastore.query(query);
 
-        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, true);
+        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, true, Object.values(AssetFilterPropertiesOption));
     })
 
     test('should call queryAsset with returnCount set to false when outpuType is set to Properties', async () => {
@@ -189,7 +189,7 @@ describe('shouldRunQuery', () => {
 
         await datastore.query(query);
 
-        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, false);
+        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, false, Object.values(AssetFilterPropertiesOption));
     })
 
     test('should match snapshot for TotalCount outputType', async () => {
@@ -235,7 +235,7 @@ describe('shouldRunQuery', () => {
 
         await datastore.query(query);
 
-        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, false);
+        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, false, Object.values(AssetFilterPropertiesOption));
     })
 
     test('should return empty data when take is invalid', async () => {

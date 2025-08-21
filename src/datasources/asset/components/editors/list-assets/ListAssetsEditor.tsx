@@ -2,12 +2,12 @@ import './ListAssetsEditor.scss';
 
 import React, { useEffect, useState } from 'react';
 
-import { AutoSizeInput, InlineField, RadioButtonGroup, Stack } from '@grafana/ui';
+import { AutoSizeInput, InlineField, MultiSelect, RadioButtonGroup, Stack } from '@grafana/ui';
 import _ from 'lodash';
 import { FloatingError } from '../../../../../core/errors';
 import { SystemProperties } from '../../../../system/types';
 import { AssetQuery } from '../../../types/types';
-import { ListAssetsQuery, OutputType } from '../../../types/ListAssets.types';
+import { ListAssetsQuery, OutputType, AssetFilterProperties, AssetFilterPropertiesOption } from '../../../types/ListAssets.types';
 import { AssetQueryBuilder } from './query-builder/AssetQueryBuilder';
 import { Workspace } from '../../../../../core/types';
 import { ListAssetsDataSource } from '../../../data-sources/list-assets/ListAssetsDataSource';
@@ -30,6 +30,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
   const outputTypeOptions = Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[];
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
+  const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);
 
   useEffect(() => {
     Promise.all([datasource.areSystemsLoaded$, datasource.areWorkspacesLoaded$]).then(() => {
@@ -77,6 +78,14 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
   };
 
 
+  function onPropertiesChange(items: Array<SelectableValue<string>>) {
+    setIsPropertiesValid(items.length > 0);
+    if (items !== undefined) {
+      const updatedQuery = { ...query, properties: items.map(i => i.value as AssetFilterPropertiesOption) };
+      handleQueryChange(updatedQuery, true);
+    }
+  }
+
   return (
     <>
       <Stack direction="row">
@@ -88,6 +97,31 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
               onChange={onOutputTypeChange}
             />
           </InlineField>
+          {query.outputType === OutputType.Properties && (
+            <InlineField
+              label="Properties"
+              labelWidth={22}
+              tooltip={tooltips.listAssets.properties}
+              invalid={!isPropertiesValid}
+              error='You must select at least one property.'
+            >
+              <MultiSelect
+                placeholder="Select the properties to query"
+                options={
+                  Object.values(AssetFilterProperties).map(AssetFilterProperties => ({
+                    label: AssetFilterProperties.label,
+                    value: AssetFilterProperties.value,
+                  })) as SelectableValue[]
+                }
+                onChange={onPropertiesChange}
+                value={query.properties}
+                defaultValue={query.properties!}
+                width={65}
+                allowCustomValue={false}
+                closeMenuOnSelect={false}
+              />
+            </InlineField>
+          )}
           <div className="workorders-horizontal-control-group">
             <InlineField
               label="Filter"

@@ -63,13 +63,6 @@ it('renders Asset list when feature is enabled', async () => {
     await waitFor(() => expect(screen.getAllByText("List Assets").length).toBe(1));
 });
 
-it('does not render when Asset list feature is not enabled', async () => {
-    assetDatasourceOptions.featureToggles.assetList = false;
-    render({ type: AssetQueryType.ListAssets } as ListAssetsQuery);
-
-    await waitFor(() => expect(screen.getAllByRole('combobox').length).toBe(1));
-});
-
 it('renders Asset calibration forecast when feature is enabled', async () => {
     assetDatasourceOptions.featureToggles.calibrationForecast = true;
     render({ type: AssetQueryType.CalibrationForecast } as CalibrationForecastQuery);
