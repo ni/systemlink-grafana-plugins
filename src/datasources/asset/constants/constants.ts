@@ -14,12 +14,4 @@ export const takeErrorMessages = {
     lessOrEqualToTenThousand: 'Enter a value less than or equal to 10,000',
 };
 
-export const tooltips = {
-    queryReturnType: 'This field specifies the return type of the query.',
-    listAssets: {
-    filter: `Filter the assets by various properties. This is an optional field.`,
-    take: 'This field specifies the maximum number of assets to return.'
-  }
-}
-
 export const QUERY_LIMIT = 1000;

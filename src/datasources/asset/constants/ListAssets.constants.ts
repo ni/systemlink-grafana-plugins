@@ -105,4 +105,10 @@ export const ListAssetsStaticFields = [
     ListAssetsFields.PART_NUMBER
 ];
 
+export const tooltips = {
+    queryReturnType: 'This field specifies the return type of the query.',
+    filter: `Filter the assets by various properties. This is an optional field.`,
+    take: 'This field specifies the maximum number of assets to return.'
+}
+
 export const TAKE_LIMIT = 10000;
