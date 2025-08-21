@@ -1,3 +1,9 @@
+## [4.4.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.4.2...v4.4.3) (2025-08-21)
+
+### Bug Fixes
+
+* **shared:** use common fetch method for get and post API calls ([#388](https://github.com/ni/systemlink-grafana-plugins/issues/388)) ([12fc053](https://github.com/ni/systemlink-grafana-plugins/commit/12fc053cbf0a87827b12d97310b32c48d18bb080))
+
 ## [4.4.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.4.1...v4.4.2) (2025-08-19)
 
 ### Bug Fixes
