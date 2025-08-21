@@ -66,37 +66,35 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
     const assets = assetsResponse.assets;
     const workspaces = this.getCachedWorkspaces();
     const mappedFields = query.properties?.map(property => {
-      const field = AssetFilterProperties[property];
+      const { field, label, value } = AssetFilterProperties[property];
       const fieldType = FieldType.string;
-      const fieldName = field.label;
 
-      const fieldValue = assets.map(assets => {
-        switch (field.value) {
+      const fieldValues = assets.map(asset => {
+        switch (value) {
           case AssetFilterPropertiesOption.Workspace:
-            const workspace = getWorkspaceName(workspaces, assets.workspace)
-            return workspace
+            return getWorkspaceName(workspaces, asset.workspace)
           case AssetFilterPropertiesOption.Location:
-            const location = this.getLocationFromAsset(assets);
-            return location
+            return this.getLocationFromAsset(asset)
           case AssetFilterPropertiesOption.Properties:
-            return JSON.stringify(assets.properties);
+            return JSON.stringify(asset.properties);
           case AssetFilterPropertiesOption.MinionId:
-            return assets.location.minionId
+            return asset.location.minionId
           case AssetFilterPropertiesOption.ParentName:
-            return assets.location.parent
+            return asset.location.parent
           case AssetFilterPropertiesOption.SelfCalibration:
-            return assets.selfCalibration?.date ?? '';
+            return asset.selfCalibration?.date ?? '';
           case AssetFilterPropertiesOption.ExternalCalibrationDate:
-            return assets.externalCalibration?.resolvedDueDate
+            return asset.externalCalibration?.resolvedDueDate
           case AssetFilterPropertiesOption.Keywords:
-            return assets.keywords.join(', ')
+            return asset.keywords.join(', ')
           default:
-            return assets[field.field];
+            return asset[field];
         }
       });
 
-      return { name: fieldName, values: fieldValue, type: fieldType };
+      return { name: label, values: fieldValues, type: fieldType };
     });
+
     return {
       refId: query.refId,
       name: query.refId,
@@ -110,8 +108,8 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
     return result;
   }
 
-  async queryAssets(filter = '', take = -1, returnCount = false, projection?: string[]): Promise<AssetsResponse> {
-    const formattedProjection = `new(${projection})`;
+  async queryAssets(filter = '', take = -1, returnCount = false, projectionFields?: string[]): Promise<AssetsResponse> {
+    const formattedProjection = `new(${projectionFields})`;
     let data: QueryListAssetRequestBody = { filter, take, returnCount, formattedProjection };
     try {
       const response = await this.post<AssetsResponse>(this.baseUrl + '/query-assets', data);
