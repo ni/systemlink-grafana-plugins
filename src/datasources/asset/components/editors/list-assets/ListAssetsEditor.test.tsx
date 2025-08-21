@@ -206,7 +206,7 @@ it('should not display error message when user changes value to number between 0
   });
 })
 
-it('renders the query builder', async () => {
+it('renders the query builder with properties field', async () => {
   assetDatasourceOptions.featureToggles.assetList = true;
   await render({} as ListAssetsQuery);
 
