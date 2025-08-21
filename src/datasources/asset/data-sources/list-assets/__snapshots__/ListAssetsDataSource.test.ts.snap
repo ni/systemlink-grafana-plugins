@@ -1,5 +1,24 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`shouldRunQuery should convert properties to Grafana fields 1`] = `
+[
+  {
+    "name": "id",
+    "type": "string",
+    "values": [
+      "c44750b7-1f22-4fec-b475-73b10e966217",
+    ],
+  },
+  {
+    "name": "name",
+    "type": "string",
+    "values": [
+      "SDFGSDFG234",
+    ],
+  },
+]
+`;
+
 exports[`shouldRunQuery should match snapshot for Properties outputType 1`] = `
 [
   {

@@ -10,6 +10,8 @@ import { AssetFilterPropertiesOption, ListAssetsQuery, OutputType } from "../../
 import { ListAssetsFieldNames } from "../../constants/ListAssets.constants";
 import { MockProxy } from "jest-mock-extended";
 import { BackendSrv } from "@grafana/runtime";
+import { Field } from "@grafana/data";
+import { AssetsResponse } from "datasources/asset-common/types";
 
 let datastore: ListAssetsDataSource, backendServer: MockProxy<BackendSrv>;
 const mockListAssets = {
@@ -170,12 +172,13 @@ describe('shouldRunQuery', () => {
             type: AssetQueryType.ListAssets,
             filter: ``,
             outputType: OutputType.TotalCount,
+            properties: [AssetFilterPropertiesOption.AssetIdentifier],
         });
         const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
 
         await datastore.query(query);
 
-        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, true, Object.values(AssetFilterPropertiesOption));
+        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, true, ["AssetIdentifier"]);
     })
 
     test('should call queryAsset with returnCount set to false when outpuType is set to Properties', async () => {
@@ -184,12 +187,13 @@ describe('shouldRunQuery', () => {
             type: AssetQueryType.ListAssets,
             filter: ``,
             outputType: OutputType.Properties,
+            properties: [AssetFilterPropertiesOption.AssetIdentifier],
         });
         const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
 
         await datastore.query(query);
 
-        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, false, Object.values(AssetFilterPropertiesOption));
+        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, false, ["AssetIdentifier"]);
     })
 
     test('should match snapshot for TotalCount outputType', async () => {
@@ -230,12 +234,13 @@ describe('shouldRunQuery', () => {
             type: AssetQueryType.ListAssets,
             filter: ``,
             outputType: OutputType.Properties,
+            properties: [AssetFilterPropertiesOption.AssetIdentifier],
         });
         const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
 
         await datastore.query(query);
 
-        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, false, Object.values(AssetFilterPropertiesOption));
+        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, false, ["AssetIdentifier"]);
     })
 
     test('should return empty data when take is invalid', async () => {
@@ -330,4 +335,364 @@ describe('shouldRunQuery', () => {
 
         expect(data).toMatchSnapshot();
     });
+
+    test('should call queryAsset with properties set to the default', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+        });
+        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
+
+        await datastore.query(query);
+
+        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, false, Object.values(AssetFilterPropertiesOption));
+    })
+
+    test('should convert properties to Grafana fields', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            properties: [AssetFilterPropertiesOption.AssetIdentifier, AssetFilterPropertiesOption.AssetName],
+        });
+        const response = await datastore.query(query);
+        const fields = response.data[0].fields as Field[];
+
+        expect(fields).toMatchSnapshot();
+    });
+
+    test('should handle test plan custom properties', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            properties: [AssetFilterPropertiesOption.Properties],
+        });
+        const listAssetsResponse = {
+            assets: [
+                { properties: { aaaa: '11111' } },
+                { properties: { bbbb: '22222', cccc: '33333' } },
+            ], totalCount: 2
+        }
+        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+        const response = await datastore.query(query);
+        const data = response.data[0];
+
+        expect(data.fields).toHaveLength(1);
+        expect(data.fields[0].name).toEqual('properties');
+        expect(data.fields[0].values).toEqual([
+            JSON.stringify({ aaaa: '11111' }),
+            JSON.stringify({ bbbb: '22222', cccc: '33333' }),
+        ]);
+    });
+
+    test('should display empty cell when properties is empty', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            properties: [AssetFilterPropertiesOption.Properties],
+        });
+        const listAssetsResponse = {
+            assets: [
+                { properties: {} },
+            ], totalCount: 1
+        }
+        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+        const response = await datastore.query(query);
+        const data = response.data[0];
+
+        expect(data.fields).toHaveLength(1);
+        expect(data.fields[0].name).toEqual('properties');
+        expect(data.fields[0].values).toEqual(['{}']);
+    });
+
+    test('should display location property', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            properties: [AssetFilterPropertiesOption.Location],
+        });
+        const listAssetsResponse = {
+            assets: [
+                {
+                    location: {
+                        physicalLocation: 'cabinet3',
+                        parent: '',
+                        resourceUri: '',
+                        slotNumber: -1,
+                        state: {
+                            assetPresence: 'PRESENT',
+                            systemConnection: 'CONNECTED'
+                        }
+                    }
+                },
+            ], totalCount: 1
+        }
+        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+        const response = await datastore.query(query);
+        const data = response.data[0];
+
+        expect(data.fields).toHaveLength(1);
+        expect(data.fields[0].name).toEqual('location');
+        expect(data.fields[0].values).toEqual(['cabinet3']);
+    });
+
+    test('should display minionID property', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            properties: [AssetFilterPropertiesOption.MinionId],
+        });
+        const listAssetsResponse = {
+            assets: [
+                {
+                    location: {
+                        minionId: 'Latitude_5550--SN-2Y7V954--MAC-A8-59-5F-B0-95-32',
+                        parent: '',
+                        resourceUri: '',
+                        slotNumber: -1,
+                        state: {
+                            assetPresence: 'PRESENT',
+                            systemConnection: 'CONNECTED'
+                        }
+                    }
+                },
+            ], totalCount: 1
+        }
+        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+        const response = await datastore.query(query);
+        const data = response.data[0];
+
+        expect(data.fields).toHaveLength(1);
+        expect(data.fields[0].name).toEqual('minionId');
+        expect(data.fields[0].values).toEqual(['Latitude_5550--SN-2Y7V954--MAC-A8-59-5F-B0-95-32']);
+    });
+
+    test('should display parent property', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            properties: [AssetFilterPropertiesOption.ParentName],
+        });
+        const listAssetsResponse = {
+            assets: [
+                {
+                    location: {
+                        minionId: 'Latitude_5550--SN-2Y7V954--MAC-A8-59-5F-B0-95-32',
+                        parent: 'HUDEBLT-2Y7V954',
+                        resourceUri: 'c39915db-a81d-4710-82e7-14e0e9a95297',
+                        slotNumber: -1,
+                        state: {
+                            assetPresence: 'PRESENT',
+                            systemConnection: 'DISCONNECTED'
+
+                        },
+                    }
+                },
+            ], totalCount: 1
+        }
+        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+        const response = await datastore.query(query);
+        const data = response.data[0];
+
+        expect(data.fields).toHaveLength(1);
+        expect(data.fields[0].name).toEqual('parent name');
+        expect(data.fields[0].values).toEqual(['HUDEBLT-2Y7V954']);
+    });
+
+    test('should display selfCalibrationDate property', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            properties: [AssetFilterPropertiesOption.SelfCalibration],
+        });
+        const listAssetsResponse = {
+            assets: [
+                {
+                    selfCalibration: {
+                        temperatureSensors: [],
+                        isLimited: false,
+                        date: '2016-10-07T13:09:49.000Z'
+                    }
+                },
+            ], totalCount: 1
+        }
+        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+        const response = await datastore.query(query);
+        const data = response.data[0];
+
+        expect(data.fields).toHaveLength(1);
+        expect(data.fields[0].name).toEqual('self calibration');
+        expect(data.fields[0].values).toEqual(['2016-10-07T13:09:49.000Z']);
+    });
+
+    test('should display externalCalibrationDate property', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            properties: [AssetFilterPropertiesOption.ExternalCalibrationDate],
+        });
+        const listAssetsResponse = {
+            assets: [
+                {
+                    externalCalibration: {
+                        temperatureSensors: [
+                            {
+                                name: "",
+                                reading: 35.5480842590332
+                            }
+                        ],
+                        isLimited: false,
+                        date: '2016-10-07T13:09:49.000Z',
+                        recommendedInterval: 24,
+                        nextRecommendedDate: '2018-10-07T13:09:49.000Z',
+                        resolvedDueDate: '2018-10-07T13:09:49.000Z',
+                        comments: '',
+                        entryType: 'AUTOMATIC'
+                    }
+                },
+            ], totalCount: 1
+        }
+        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+        const response = await datastore.query(query);
+        const data = response.data[0];
+
+        expect(data.fields).toHaveLength(1);
+        expect(data.fields[0].name).toEqual('calibration due date');
+        expect(data.fields[0].values).toEqual(['2018-10-07T13:09:49.000Z']);
+    });
+
+    test('should display keywords property', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            properties: [AssetFilterPropertiesOption.Keywords],
+        });
+        const listAssetsResponse = {
+            assets: [
+                {
+                    keywords: [
+                        'keyword0',
+                        'keyword1',
+                        'keyword2',
+                        'keyword3',
+                        'keyword4',]
+                },
+            ], totalCount: 1
+        }
+        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+        const response = await datastore.query(query);
+        const data = response.data[0];
+
+        expect(data.fields).toHaveLength(1);
+        expect(data.fields[0].name).toEqual('keywords');
+        expect(data.fields[0].values).toEqual(['keyword0, keyword1, keyword2, keyword3, keyword4']);
+    });
+
+    test('should convert workspaceIds to workspace names for workspace field', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            properties: [AssetFilterPropertiesOption.Workspace],
+        });
+        const response = await datastore.query(query);
+        const data = response.data[0];
+        expect(data.fields).toHaveLength(1);
+        expect(data.fields[0].name).toEqual('workspace');
+        expect(data.fields[0].values).toEqual(['Default']);
+    });
+
+    test('should set field names as expected', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            properties: [
+                AssetFilterPropertiesOption.AssetIdentifier,
+                AssetFilterPropertiesOption.AssetName,
+                AssetFilterPropertiesOption.VendorName,
+                AssetFilterPropertiesOption.VendorNumber,
+                AssetFilterPropertiesOption.ModelName,
+                AssetFilterPropertiesOption.ModelNumber,
+                AssetFilterPropertiesOption.SerialNumber,
+                AssetFilterPropertiesOption.BusType,
+                AssetFilterPropertiesOption.AssetType,
+                AssetFilterPropertiesOption.IsNIAsset,
+                AssetFilterPropertiesOption.PartNumber,
+                AssetFilterPropertiesOption.CalibrationStatus,
+                AssetFilterPropertiesOption.IsSystemController,
+                AssetFilterPropertiesOption.LastUpdatedTimestamp,
+                AssetFilterPropertiesOption.Location,
+                AssetFilterPropertiesOption.MinionId,
+                AssetFilterPropertiesOption.ParentName,
+                AssetFilterPropertiesOption.Workspace,
+                AssetFilterPropertiesOption.SupportsSelfCalibration,
+                AssetFilterPropertiesOption.SupportsExternalCalibration,
+                AssetFilterPropertiesOption.VisaResourceName,
+                AssetFilterPropertiesOption.FirmwareVersion,
+                AssetFilterPropertiesOption.DiscoveryType,
+                AssetFilterPropertiesOption.SupportsSelfTest,
+                AssetFilterPropertiesOption.SupportsReset,
+                AssetFilterPropertiesOption.Properties,
+                AssetFilterPropertiesOption.Keywords,
+                AssetFilterPropertiesOption.SelfCalibration,
+                AssetFilterPropertiesOption.ExternalCalibrationDate
+            ]
+        });
+        jest.spyOn(datastore, 'queryAssets');
+
+        const response = await datastore.query(query);
+        const data = response.data[0];
+
+        expect(data.fields[0].name).toEqual('id');
+        expect(data.fields[1].name).toEqual('name');
+        expect(data.fields[2].name).toEqual('vendor name');
+        expect(data.fields[3].name).toEqual('vendor number');
+        expect(data.fields[4].name).toEqual('model name');
+        expect(data.fields[5].name).toEqual('model number');
+        expect(data.fields[6].name).toEqual('serial number');
+        expect(data.fields[7].name).toEqual('bus type');
+        expect(data.fields[8].name).toEqual('asset type');
+        expect(data.fields[9].name).toEqual('is NI asset');
+        expect(data.fields[10].name).toEqual('part number');
+        expect(data.fields[11].name).toEqual('calibration status');
+        expect(data.fields[12].name).toEqual('is system controller');
+        expect(data.fields[13].name).toEqual('last updated timestamp');
+        expect(data.fields[14].name).toEqual('location');
+        expect(data.fields[15].name).toEqual('minionId');
+        expect(data.fields[16].name).toEqual('parent name');
+        expect(data.fields[17].name).toEqual('workspace');
+        expect(data.fields[18].name).toEqual('supports self calibration');
+        expect(data.fields[19].name).toEqual('supports external calibration');
+        expect(data.fields[20].name).toEqual('visa resource name');
+        expect(data.fields[21].name).toEqual('firmware version');
+        expect(data.fields[22].name).toEqual('discovery type');
+        expect(data.fields[23].name).toEqual('supports self test');
+        expect(data.fields[24].name).toEqual('supports reset');
+        expect(data.fields[25].name).toEqual('properties');
+        expect(data.fields[26].name).toEqual('keywords');
+        expect(data.fields[27].name).toEqual('self calibration');
+        expect(data.fields[28].name).toEqual('calibration due date');
+    })
 });
