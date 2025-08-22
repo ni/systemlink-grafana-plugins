@@ -87,6 +87,7 @@ exports[`queries run metadata query 1`] = `
     "fields": [
       {
         "name": "id",
+        "type": "string",
         "values": [
           "7f6d0d74-bc75-4d78-9edd-00c253b3a0de",
           "71fbef61-fae6-4364-82d4-29feb79c7146",
@@ -95,34 +96,18 @@ exports[`queries run metadata query 1`] = `
         ],
       },
       {
-        "name": "name",
+        "name": "serial number",
+        "type": "string",
         "values": [
-          "NI-sbRIO-9629-01FE20D1",
-          "Conn0_AI",
-          "Conn0_AO",
-          "Conn0_DIO0-3",
-        ],
-      },
-      {
-        "name": "vendor name",
-        "values": [
-          "National Instruments",
-          "National Instruments",
-          "National Instruments",
-          "National Instruments",
-        ],
-      },
-      {
-        "name": "vendor number",
-        "values": [
-          0,
-          4243,
-          4243,
-          4243,
+          "01FE20D1",
+          "01FE20D1",
+          "01FE20D1",
+          "01FE20D1",
         ],
       },
       {
         "name": "model name",
+        "type": "string",
         "values": [
           "sbRIO-9629",
           "AI 0-15",
@@ -132,6 +117,7 @@ exports[`queries run metadata query 1`] = `
       },
       {
         "name": "model number",
+        "type": "string",
         "values": [
           31299,
           31303,
@@ -140,25 +126,38 @@ exports[`queries run metadata query 1`] = `
         ],
       },
       {
-        "name": "serial number",
+        "name": "vendor name",
+        "type": "string",
         "values": [
-          "01FE20D1",
-          "01FE20D1",
-          "01FE20D1",
-          "01FE20D1",
+          "National Instruments",
+          "National Instruments",
+          "National Instruments",
+          "National Instruments",
         ],
       },
       {
-        "name": "bus type",
+        "name": "vendor number",
+        "type": "string",
         "values": [
-          "BUILT_IN_SYSTEM",
-          "CRIO",
-          "CRIO",
-          "CRIO",
+          0,
+          4243,
+          4243,
+          4243,
+        ],
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "values": [
+          "NI-sbRIO-9629-01FE20D1",
+          "Conn0_AI",
+          "Conn0_AO",
+          "Conn0_DIO0-3",
         ],
       },
       {
         "name": "asset type",
+        "type": "string",
         "values": [
           "SYSTEM",
           "GENERIC",
@@ -167,16 +166,28 @@ exports[`queries run metadata query 1`] = `
         ],
       },
       {
-        "name": "is NI asset",
+        "name": "firmware version",
+        "type": "string",
         "values": [
-          true,
-          true,
-          true,
-          true,
+          "8.8.0f0",
+          "",
+          "",
+          "",
+        ],
+      },
+      {
+        "name": "visa resource name",
+        "type": "string",
+        "values": [
+          "",
+          "PXI::203.0::INSTR",
+          "",
+          "",
         ],
       },
       {
         "name": "part number",
+        "type": "string",
         "values": [
           "1",
           "2",
@@ -185,25 +196,8 @@ exports[`queries run metadata query 1`] = `
         ],
       },
       {
-        "name": "calibration status",
-        "values": [
-          "OK",
-          "OK",
-          "OK",
-          "OK",
-        ],
-      },
-      {
-        "name": "is system controller",
-        "values": [
-          true,
-          false,
-          false,
-          false,
-        ],
-      },
-      {
         "name": "last updated timestamp",
+        "type": "string",
         "values": [
           "2024-02-21T12:54:20.069Z",
           "2024-02-21T12:54:20.072Z",
@@ -212,7 +206,48 @@ exports[`queries run metadata query 1`] = `
         ],
       },
       {
+        "name": "bus type",
+        "type": "string",
+        "values": [
+          "BUILT_IN_SYSTEM",
+          "CRIO",
+          "CRIO",
+          "CRIO",
+        ],
+      },
+      {
+        "name": "is NI asset",
+        "type": "string",
+        "values": [
+          true,
+          true,
+          true,
+          true,
+        ],
+      },
+      {
+        "name": "keywords",
+        "type": "string",
+        "values": [
+          "TestKeyword1, TestKeyword2",
+          "Kw1, Kw2",
+          "",
+          "",
+        ],
+      },
+      {
+        "name": "properties",
+        "type": "string",
+        "values": [
+          "{"Property1":"Test1","Property2":"Test2"}",
+          "{}",
+          "{}",
+          "{}",
+        ],
+      },
+      {
         "name": "location",
+        "type": "string",
         "values": [
           "",
           "",
@@ -222,6 +257,7 @@ exports[`queries run metadata query 1`] = `
       },
       {
         "name": "minionId",
+        "type": "string",
         "values": [
           "NI_sbRIO-9629--SN-01FE20D1--MAC-00-80-2F-33-30-18",
           "NI_sbRIO-9629--SN-01FE20D1--MAC-00-80-2F-33-30-18",
@@ -231,60 +267,27 @@ exports[`queries run metadata query 1`] = `
       },
       {
         "name": "parent name",
+        "type": "string",
         "values": [
           "",
           "sbRIO1",
           "sbRIO1",
           "sbRIO1",
-        ],
-      },
-      {
-        "name": "workspace",
-        "values": [
-          "e73fcd94-649b-4d0a-b164-bf647a5d0946",
-          "e73fcd94-649b-4d0a-b164-bf647a5d0946",
-          "e73fcd94-649b-4d0a-b164-bf647a5d0946",
-          "e73fcd94-649b-4d0a-b164-bf647a5d0946",
         ],
       },
       {
         "name": "supports self calibration",
+        "type": "string",
         "values": [
           true,
           false,
           false,
           false,
-        ],
-      },
-      {
-        "name": "supports external calibration",
-        "values": [
-          false,
-          true,
-          true,
-          false,
-        ],
-      },
-      {
-        "name": "visa resource name",
-        "values": [
-          "",
-          "PXI::203.0::INSTR",
-          "",
-          "",
-        ],
-      },
-      {
-        "name": "firmware version",
-        "values": [
-          "8.8.0f0",
-          "",
-          "",
-          "",
         ],
       },
       {
         "name": "discovery type",
+        "type": "string",
         "values": [
           "AUTOMATIC",
           "AUTOMATIC",
@@ -294,6 +297,7 @@ exports[`queries run metadata query 1`] = `
       },
       {
         "name": "supports self test",
+        "type": "string",
         "values": [
           false,
           false,
@@ -303,6 +307,7 @@ exports[`queries run metadata query 1`] = `
       },
       {
         "name": "supports reset",
+        "type": "string",
         "values": [
           false,
           false,
@@ -311,25 +316,8 @@ exports[`queries run metadata query 1`] = `
         ],
       },
       {
-        "name": "properties",
-        "values": [
-          "{"Property1":"Test1","Property2":"Test2"}",
-          "{}",
-          "{}",
-          "{}",
-        ],
-      },
-      {
-        "name": "keywords",
-        "values": [
-          "TestKeyword1, TestKeyword2",
-          "Kw1, Kw2",
-          "",
-          "",
-        ],
-      },
-      {
         "name": "self calibration",
+        "type": "string",
         "values": [
           "2024-02-21T12:54:20.069Z",
           "",
@@ -338,7 +326,18 @@ exports[`queries run metadata query 1`] = `
         ],
       },
       {
+        "name": "supports external calibration",
+        "type": "string",
+        "values": [
+          false,
+          true,
+          true,
+          false,
+        ],
+      },
+      {
         "name": "calibration due date",
+        "type": "string",
         "values": [
           undefined,
           undefined,
@@ -346,7 +345,38 @@ exports[`queries run metadata query 1`] = `
           "2025-02-21T12:54:20.078Z",
         ],
       },
+      {
+        "name": "is system controller",
+        "type": "string",
+        "values": [
+          true,
+          false,
+          false,
+          false,
+        ],
+      },
+      {
+        "name": "workspace",
+        "type": "string",
+        "values": [
+          "e73fcd94-649b-4d0a-b164-bf647a5d0946",
+          "e73fcd94-649b-4d0a-b164-bf647a5d0946",
+          "e73fcd94-649b-4d0a-b164-bf647a5d0946",
+          "e73fcd94-649b-4d0a-b164-bf647a5d0946",
+        ],
+      },
+      {
+        "name": "calibration status",
+        "type": "string",
+        "values": [
+          "OK",
+          "OK",
+          "OK",
+          "OK",
+        ],
+      },
     ],
+    "name": "A",
     "refId": "A",
   },
 ]

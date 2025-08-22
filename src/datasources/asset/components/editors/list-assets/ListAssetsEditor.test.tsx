@@ -3,10 +3,11 @@ import { SystemProperties } from '../../../../system/types';
 import { AssetDataSource } from '../../../AssetDataSource';
 import { AssetQueryEditor } from '../../AssetQueryEditor';
 import { setupRenderer } from '../../../../../test/fixtures';
-import { ListAssetsQuery, OutputType } from '../../../types/ListAssets.types';
+import { AssetFilterProperties, AssetFilterPropertiesOption, ListAssetsQuery, OutputType } from '../../../types/ListAssets.types';
 import { AssetFeatureTogglesDefaults, AssetQueryType } from 'datasources/asset/types/types';
 import { ListAssetsDataSource } from '../../../data-sources/list-assets/ListAssetsDataSource';
 import userEvent from '@testing-library/user-event';
+import { select } from 'react-select-event';
 
 const fakeSystems: SystemProperties[] = [
   {
@@ -202,5 +203,55 @@ it('should not display error message when user changes value to number between 0
   await waitFor(() => {
     expect(screen.queryByText('Enter a value greater than or equal to 0')).not.toBeInTheDocument();
     expect(screen.queryByText('Enter a value less than or equal to 10,000')).not.toBeInTheDocument();
+  });
+})
+
+it('renders the query builder with properties field', async () => {
+  assetDatasourceOptions.featureToggles.assetList = true;
+  await render({} as ListAssetsQuery);
+
+  await waitFor(() => {
+    const properties = screen.getAllByRole('combobox')[1];
+    expect(properties).toBeInTheDocument();
+    expect(properties).toHaveAttribute('aria-expanded', 'false');
+    expect(properties).toHaveDisplayValue('');
+  });
+});
+
+it('should render Properties when outputType is set to Properties', async () => {
+  await render({ type: AssetQueryType.ListAssets, outputType: OutputType.Properties } as ListAssetsQuery)
+  expect(screen.getByRole('radio', { name: OutputType.Properties })).toBeChecked();
+  expect(screen.getByRole('radio', { name: OutputType.TotalCount })).not.toBeChecked();
+  expect(screen.getAllByRole('combobox')).toHaveLength(2);
+});
+
+it('should not render Properties when outputType is set to TotalCount', async () => {
+  await render({ type: AssetQueryType.ListAssets, outputType: OutputType.TotalCount } as ListAssetsQuery)
+  expect(screen.getByRole('radio', { name: OutputType.Properties })).not.toBeChecked();
+  expect(screen.getByRole('radio', { name: OutputType.TotalCount })).toBeChecked();
+  expect(screen.getAllByRole('combobox')).toHaveLength(1);
+});
+
+it('should show error when all properties are removed', async () => {
+  await render({ type: AssetQueryType.ListAssets, outputType: OutputType.Properties, properties: ['Workspace'] } as ListAssetsQuery);
+
+  const removeButton = screen.getByRole('button', { name: 'Remove' });
+  await userEvent.click(removeButton);
+
+  expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
+})
+
+it('should call onChange when properties are updated', async () => {
+  const [onChange, onRunQuery] = await render({ type: AssetQueryType.ListAssets, outputType: OutputType.Properties, properties: ['Workspace'] } as ListAssetsQuery);
+
+  const propertiesSelect = screen.getAllByRole('combobox')[1];
+  userEvent.click(propertiesSelect);
+  await select(propertiesSelect, AssetFilterProperties[AssetFilterPropertiesOption.Location].label, {
+    container: document.body,
+  });
+
+  await waitFor(() => {
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ "properties": ['Workspace', 'Location'] }));
+    expect(onRunQuery).toHaveBeenCalled();
   });
 })
