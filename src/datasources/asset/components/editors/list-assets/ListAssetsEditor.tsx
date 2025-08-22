@@ -29,6 +29,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
   const [systems, setSystems] = useState<SystemProperties[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
   const outputTypeOptions = Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[];
+  const assetFilterOptions = Object.values(AssetFilterProperties).map(AssetFilterProperties => ({ label: AssetFilterProperties.label, value: AssetFilterProperties.value, })) as SelectableValue[]
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
   const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);
 
@@ -80,10 +81,8 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
 
   function onPropertiesChange(items: Array<SelectableValue<string>>) {
     setIsPropertiesValid(items.length > 0);
-    if (items !== undefined) {
-      const updatedQuery = { ...query, properties: items.map(i => i.value as AssetFilterPropertiesOption) };
-      handleQueryChange(updatedQuery, true);
-    }
+    const updatedQuery = { ...query, properties: items.map(i => i.value as AssetFilterPropertiesOption) };
+    handleQueryChange(updatedQuery, true);
   }
 
   return (
@@ -107,12 +106,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
             >
               <MultiSelect
                 placeholder="Select the properties to query"
-                options={
-                  Object.values(AssetFilterProperties).map(AssetFilterProperties => ({
-                    label: AssetFilterProperties.label,
-                    value: AssetFilterProperties.value,
-                  })) as SelectableValue[]
-                }
+                options={assetFilterOptions}
                 onChange={onPropertiesChange}
                 value={query.properties}
                 defaultValue={query.properties!}

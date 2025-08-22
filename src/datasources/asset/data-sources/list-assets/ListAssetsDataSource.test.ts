@@ -300,6 +300,7 @@ describe('shouldRunQuery', () => {
             take: 0,
         });
         jest.spyOn(datastore, 'queryAssets');
+
         const result = await datastore.query(query);
         const data = result.data[0];
 
@@ -315,6 +316,7 @@ describe('shouldRunQuery', () => {
             take: 1000,
         });
         jest.spyOn(datastore, 'queryAssets');
+
         const result = await datastore.query(query);
         const data = result.data[0];
 
@@ -330,6 +332,7 @@ describe('shouldRunQuery', () => {
             take: 10000,
         });
         jest.spyOn(datastore, 'queryAssets');
+
         const result = await datastore.query(query);
         const data = result.data[0];
 
@@ -379,6 +382,7 @@ describe('shouldRunQuery', () => {
             ], totalCount: 2
         }
         jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+
         const response = await datastore.query(query);
         const data = response.data[0];
 
@@ -404,6 +408,7 @@ describe('shouldRunQuery', () => {
             ], totalCount: 1
         }
         jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+
         const response = await datastore.query(query);
         const data = response.data[0];
 
@@ -437,6 +442,7 @@ describe('shouldRunQuery', () => {
             ], totalCount: 1
         }
         jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+
         const response = await datastore.query(query);
         const data = response.data[0];
 
@@ -470,6 +476,7 @@ describe('shouldRunQuery', () => {
             ], totalCount: 1
         }
         jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+
         const response = await datastore.query(query);
         const data = response.data[0];
 
@@ -504,6 +511,7 @@ describe('shouldRunQuery', () => {
             ], totalCount: 1
         }
         jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+
         const response = await datastore.query(query);
         const data = response.data[0];
 
@@ -532,6 +540,7 @@ describe('shouldRunQuery', () => {
             ], totalCount: 1
         }
         jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+
         const response = await datastore.query(query);
         const data = response.data[0];
 
@@ -570,6 +579,7 @@ describe('shouldRunQuery', () => {
             ], totalCount: 1
         }
         jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+
         const response = await datastore.query(query);
         const data = response.data[0];
 
@@ -599,6 +609,7 @@ describe('shouldRunQuery', () => {
             ], totalCount: 1
         }
         jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+
         const response = await datastore.query(query);
         const data = response.data[0];
 
@@ -617,6 +628,7 @@ describe('shouldRunQuery', () => {
         });
         const response = await datastore.query(query);
         const data = response.data[0];
+
         expect(data.fields).toHaveLength(1);
         expect(data.fields[0].name).toEqual('workspace');
         expect(data.fields[0].values).toEqual(['Default']);
