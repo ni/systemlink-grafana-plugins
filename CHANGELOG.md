@@ -1,3 +1,9 @@
+## [4.5.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.4.3...v4.5.0) (2025-08-22)
+
+### Features
+
+* **asset:** Implement Properties multiselect options for ListAssets data source ([#390](https://github.com/ni/systemlink-grafana-plugins/issues/390)) ([6baff46](https://github.com/ni/systemlink-grafana-plugins/commit/6baff46c0312fbc1bbf9c788d4f74027bf79a505))
+
 ## [4.4.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.4.2...v4.4.3) (2025-08-21)
 
 ### Bug Fixes
