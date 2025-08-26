@@ -15,7 +15,7 @@ import {
   ComboboxOption,
   Alert,
 } from '@grafana/ui';
-import { decimationMethods } from '../constants';
+import { decimationMethods, propertiesCacheTTL } from '../constants';
 import _ from 'lodash';
 import { getTemplateSrv } from '@grafana/runtime';
 // import { isValidId } from '../utils';
@@ -37,6 +37,8 @@ export const DataFrameQueryEditor = (props: Props) => {
   const common = new DataFrameQueryEditorCommon(props, handleError);
   const [isOpen, setIsOpen] = useState(true);
   const [isDecimationOpen, setIsDecimationOpen] = useState(true);
+  const [indexedColumns, setIndexedColumns] = useState('');
+  const [showAlert, setShowAlert] = useState(false);
   let columnNameMap: Record<string, string[]> = {};
 
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
@@ -50,6 +52,7 @@ export const DataFrameQueryEditor = (props: Props) => {
       const partNumbers = await common.datasource.partNumbersCache;
       setPartNumbers(partNumbers);
     };
+    setIndexedColumns(common.datasource.indexedProperties);
     loadPartNumbers();
     loadWorkspaces();
   }, [common.datasource]);
@@ -130,15 +133,26 @@ export const DataFrameQueryEditor = (props: Props) => {
     return columnOptions;
   };
 
-  const onQueryByChange = (queryBy: string) => {
-    common.query.queryBy = queryBy;
-    common.handleQueryChange({ ...common.query, queryBy: queryBy }, true);
+  const onQueryByChange = (event: any) => {
+    common.query.queryBy = event.detail.linq;
+
+    if (event.detail.linq) {
+      const firstIndexValues = event.detail.value?.[0] ?? [];
+      const hasIndexed = Array.isArray(firstIndexValues)
+        ? firstIndexValues.some((val: string) => indexedColumns.includes(val[0]))
+        : indexedColumns.includes(firstIndexValues[0]);
+      setShowAlert(!hasIndexed);
+    } else {
+      setShowAlert(false);
+    }
+
+    common.handleQueryChange({ ...common.query, queryBy: event.detail.linq }, true);
   };
 
-  const onQueryByColumnChange = (queryByColumn: string) => {
-    common.query.queryByColumn = queryByColumn;
-    common.handleQueryChange({ ...common.query, queryByColumn: queryByColumn }, true);
-  };
+  // const onQueryByColumnChange = (queryByColumn: string) => {
+  //   common.query.queryByColumn = queryByColumn;
+  //   common.handleQueryChange({ ...common.query, queryByColumn: queryByColumn }, true);
+  // };
 
   const onParameterChange = (queryBy: string) => {
     common.query.queryByResults = queryBy;
@@ -195,14 +209,25 @@ export const DataFrameQueryEditor = (props: Props) => {
       >
         <Stack direction="row" justifyContent={'flex-start'} gap={1} wrap={'wrap'}>
           <Stack direction={'column'} justifyContent={'flex-start'} gap={1}>
-            {/* <Alert title="Warning" severity="warning">
-              {' '}
+            {showAlert && (
+                <Alert title="" severity="info">
+                Queries may have a significant impact on resource utilization.{' '}
+                <a
+                  href="https://docs.ni.com/systemlink/query-optimization"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: 'underline' }}
+                >
+                  Click here to learn more about optimizing query performance.
+                </a>
+                </Alert>
+            )}
+            <Alert title="Warning" severity="warning">
               The tables query returned more than 1000 results. Only the first 100 tables column properties are
               populated in the column dropdown.
-            </Alert> */}
+            </Alert>
             <div style={{ width: '544px' }}>
               <InlineLabel width={68} tooltip={tooltips.queryType} interactive={true}>
-                {' '}
                 Query by results properties
               </InlineLabel>
               <ResultsQueryBuilder
@@ -222,7 +247,7 @@ export const DataFrameQueryEditor = (props: Props) => {
                 filter={common.query.queryBy}
                 workspaces={workspaces}
                 globalVariableOptions={common.datasource.globalVariableOptions()}
-                onChange={(event: any) => onQueryByChange(event.detail.linq)}
+                onChange={(event: any) => onQueryByChange(event)}
               ></DataframeQueryBuilder>
             </div>
             {/* {common.query.type === DataFrameQueryType.Data && (

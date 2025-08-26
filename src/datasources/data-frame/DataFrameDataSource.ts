@@ -22,6 +22,13 @@ import { LEGACY_METADATA_TYPE, QueryBuilderOption, Workspace } from 'core/types'
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { ResultsPropertiesOptions } from 'datasources/results/types/QueryResults.types';
 
+// Extend DataSourceJsonData to include indexedProperties
+declare module '@grafana/data' {
+  interface DataSourceJsonData {
+    indexedProperties?: string;
+  }
+}
+
 export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSourceJsonData> {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
 
@@ -36,6 +43,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
   }
 
   baseUrl = this.instanceSettings.url + '/nidataframe/v1';
+  indexedProperties = this.instanceSettings.jsonData.indexedProperties ?? '';
   filteredTableColumns: TableProperties[] = [];
 
   defaultQuery = defaultQuery;
