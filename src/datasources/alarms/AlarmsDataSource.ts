@@ -12,8 +12,8 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     super(instanceSettings, backendSrv, templateSrv);
   }
 
-  baseUrl = this.instanceSettings.url + '/nialarm/v1';
-  queryAlarms = this.baseUrl + '/query-instances-with-filter';
+  baseUrl = `${this.instanceSettings.url}/nialarm/v1`;
+  queryAlarmsUrl = `${this.baseUrl}/query-instances-with-filter`;
 
   defaultQuery = {};
 
@@ -29,7 +29,7 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
-    await this.post(this.queryAlarms, {take: 1})
+    await this.post(this.queryAlarmsUrl, { take: 1 });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }

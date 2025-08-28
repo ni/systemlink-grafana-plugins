@@ -11,9 +11,9 @@ describe('AlarmsDataSource', () => {
     [datastore, backendServer] = setupDataSource(AlarmsDataSource);
   });
 
-  it('should initializes baseUrl and queryAlarms properties', () => {
-    expect(datastore.baseUrl).toBe(datastore.instanceSettings.url + '/nialarm/v1');
-    expect(datastore.queryAlarms).toEqual(datastore.instanceSettings.url + '/nialarm/v1/query-instances-with-filter');
+  it('should initialize baseUrl and queryAlarms url properties', () => {
+  expect(datastore.baseUrl).toBe(`${datastore.instanceSettings.url}/nialarm/v1`);
+  expect(datastore.queryAlarmsUrl).toEqual(`${datastore.instanceSettings.url}/nialarm/v1/query-instances-with-filter`);
   });
 
   describe('runQuery', () => {
