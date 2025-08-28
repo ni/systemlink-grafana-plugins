@@ -24,7 +24,7 @@ function renderElement(query: AlarmsQuery = { refId: 'A' }) {
 }
 
 describe('AlarmsQueryEditor', () => {
-  it('renders with query defaults', () => {
+  it('should render the placeholder', () => {
     renderElement();
 
     expect(screen.getByText('Placeholder for Alarm Query Editor')).toBeInTheDocument();
