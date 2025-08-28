@@ -1,6 +1,6 @@
 {
   "type": "datasource",
-  "name": "SystemLink Alarmss",
+  "name": "SystemLink Alarms",
   "id": "ni-slalarms-datasource",
   "metrics": true,
   "info": {
