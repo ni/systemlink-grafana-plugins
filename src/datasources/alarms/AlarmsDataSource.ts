@@ -1,31 +1,33 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { AlarmsQuery } from './types';
+import { AlarmsQuery } from './types/types';
+import { AlarmsCountDataSource } from './query-handlers/alarms-count/AlarmsCountDataSource';
 
 export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
+  public defaultQuery: Partial<AlarmsQuery> & Omit<AlarmsQuery, 'refId'>;
+
+  private _alarmsCountDataSource: AlarmsCountDataSource;
+
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    this._alarmsCountDataSource = new AlarmsCountDataSource(instanceSettings, backendSrv, templateSrv);
+    this.defaultQuery = this._alarmsCountDataSource.defaultQuery;
   }
 
   baseUrl = `${this.instanceSettings.url}/nialarm/v1`;
   queryAlarmsUrl = `${this.baseUrl}/query-instances-with-filter`;
 
-  defaultQuery = {};
-
   async runQuery(query: AlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
-    return {
-      refId: query.refId,
-      fields: [],
-    };
+    return this._alarmsCountDataSource.runQuery(query, _);
   }
 
-  shouldRunQuery(_: AlarmsQuery): boolean {
-    return true;
+  shouldRunQuery(query: AlarmsQuery): boolean {
+    return this._alarmsCountDataSource.shouldRunQuery(query);
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

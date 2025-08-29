@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { AlarmsQueryEditor } from './AlarmsQueryEditor';
-import { AlarmsQuery } from '../types';
+import { AlarmsQuery } from '../types/types';
 import { QueryEditorProps } from '@grafana/data';
 import { AlarmsDataSource } from '../AlarmsDataSource';
 
