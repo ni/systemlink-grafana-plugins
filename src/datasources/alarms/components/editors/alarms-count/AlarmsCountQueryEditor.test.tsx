@@ -8,7 +8,7 @@ function renderElement() {
 }
 
 describe('AlarmsCountQueryEditor', () => {
-  it('should render the AlarmsCountQueryEditor', () => {
+  it('should render the placeholder', () => {
     renderElement();
 
     expect(screen.getByText('Placeholder for Alarms Count Query Editor')).toBeInTheDocument();

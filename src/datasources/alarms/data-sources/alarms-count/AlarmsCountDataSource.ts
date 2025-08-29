@@ -12,7 +12,7 @@ export class AlarmsCountDataSource extends AlarmsDataSourceBase {
     };
   }
 
-  shouldRunQuery(_: AlarmsCountQuery): boolean {
+  shouldRunQuery(): boolean {
     return true;
   }
 }

@@ -17,21 +17,28 @@ describe('AlarmsDataSource', () => {
   });
 
   describe('runQuery', () => {
-    it('should return empty fields', async () => {
+    it('should call alarmsCountDataSource runQuery', async () => {
       const query = { refId: 'A' };
       const dataQueryRequest = {} as DataQueryRequest;
+      const alarmsCountDataSource = datastore.alarmsCountDataSource;
+      alarmsCountDataSource.runQuery = jest.fn().mockResolvedValue({ refId: "A", fields: [] });
 
       const result = await datastore.runQuery(query, dataQueryRequest);
-      
+
+      expect(alarmsCountDataSource.runQuery).toHaveBeenCalledWith(query, dataQueryRequest);
       expect(result).toEqual({ refId: "A", fields: [] });
     });
   });
 
   describe('shouldRunQuery', () => {
-    test('should return true', () => {
-      const query = { refId: 'A' };
+    test('should call alarmsCountDataSource shouldRunQuery', () => {
+      const alarmsCountDataSource = datastore.alarmsCountDataSource;
+      alarmsCountDataSource.shouldRunQuery = jest.fn().mockReturnValue(true);
 
-      expect(datastore.shouldRunQuery(query)).toBe(true);
+      const result = datastore.shouldRunQuery();
+
+      expect(alarmsCountDataSource.shouldRunQuery).toHaveBeenCalled();
+      expect(result).toBe(true);
     });
   });
 
