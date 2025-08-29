@@ -1,9 +1,14 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { AlarmsQueryEditor } from './AlarmsQueryEditor';
+import * as AlarmsCountModule from './editors/alarms-count/AlarmsCountQueryEditor';
 import { AlarmsQuery } from '../types/types';
 import { QueryEditorProps } from '@grafana/data';
 import { AlarmsDataSource } from '../AlarmsDataSource';
+
+jest.mock('./editors/alarms-count/AlarmsCountQueryEditor', () => ({
+  AlarmsCountQueryEditor: jest.fn(() => <div data-testid="mock-alarms-count" />),
+}));
 
 const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
@@ -24,9 +29,9 @@ function renderElement(query: AlarmsQuery = { refId: 'A' }) {
 }
 
 describe('AlarmsQueryEditor', () => {
-  it('should render the placeholder', () => {
+  it('should render the AlarmsCountQueryEditor', () => {
     renderElement();
 
-    expect(screen.getByText('Placeholder for Alarm Query Editor')).toBeInTheDocument();
+    expect(screen.getByTestId('mock-alarms-count')).toBeInTheDocument();
   });
 });
