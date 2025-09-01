@@ -1,3 +1,33 @@
+## [4.5.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.4.3...v4.5.0) (2025-08-22)
+
+### Features
+
+* **asset:** Implement Properties multiselect options for ListAssets data source ([#390](https://github.com/ni/systemlink-grafana-plugins/issues/390)) ([6baff46](https://github.com/ni/systemlink-grafana-plugins/commit/6baff46c0312fbc1bbf9c788d4f74027bf79a505))
+
+## [4.4.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.4.2...v4.4.3) (2025-08-21)
+
+### Bug Fixes
+
+* **shared:** use common fetch method for get and post API calls ([#388](https://github.com/ni/systemlink-grafana-plugins/issues/388)) ([12fc053](https://github.com/ni/systemlink-grafana-plugins/commit/12fc053cbf0a87827b12d97310b32c48d18bb080))
+
+## [4.4.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.4.1...v4.4.2) (2025-08-19)
+
+### Bug Fixes
+
+* **core:** Use ref-based options for query builder callbacks ([#368](https://github.com/ni/systemlink-grafana-plugins/issues/368)) ([a52c05e](https://github.com/ni/systemlink-grafana-plugins/commit/a52c05eba4f376267a5a89a2cc6718ba00645c81))
+
+## [4.4.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.4.0...v4.4.1) (2025-08-14)
+
+### Bug Fixes
+
+* **results:** Update tooltip description for use time range control ([#379](https://github.com/ni/systemlink-grafana-plugins/issues/379)) ([6e0af9b](https://github.com/ni/systemlink-grafana-plugins/commit/6e0af9b8660ede490f02d3bdde71879339733bb4))
+
+## [4.4.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.3.4...v4.4.0) (2025-08-13)
+
+### Features
+
+* **asset:**  add take support for query variables for ListAssets data source ([#387](https://github.com/ni/systemlink-grafana-plugins/issues/387)) ([8035061](https://github.com/ni/systemlink-grafana-plugins/commit/80350610a99bd0fa35b5721b802bf688bac99210))
+
 ## [4.3.4](https://github.com/ni/systemlink-grafana-plugins/compare/v4.3.3...v4.3.4) (2025-08-08)
 
 ### Bug Fixes
