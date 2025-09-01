@@ -1,6 +1,6 @@
 import { useTheme2 } from "@grafana/ui";
 import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder.constants";
-import { expressionBuilderCallback, expressionBuilderCallbackWithRef, expressionReaderCallback, expressionReaderCallbackWithRef } from "core/query-builder.utils";
+import { expressionBuilderCallbackWithRef, expressionReaderCallbackWithRef } from "core/query-builder.utils";
 import { Workspace, QueryBuilderOption } from "core/types";
 import { filterXSSField, filterXSSLINQExpression } from "core/utils";
 import { ProductsQueryBuilderFields, ProductsQueryBuilderStaticFields } from "datasources/products/constants/ProductsQueryBuilder.constants";
