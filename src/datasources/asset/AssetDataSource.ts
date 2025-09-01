@@ -23,7 +23,7 @@ import { AssetSummaryDataSource } from './data-sources/asset-summary/AssetSummar
 import { AssetModel, AssetsResponse } from 'datasources/asset-common/types';
 import { transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { AssetVariableQuery } from './types/AssetVariableQuery.types';
-import { defaultListAssetsVariable } from './defaults';
+import { defaultListAssetsVariable, defaultProjectionForListAssetsVariable } from './defaults';
 import { TAKE_LIMIT } from './constants/ListAssets.constants';
 
 export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
@@ -111,7 +111,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
       this.listAssetsDataSource.assetComputedDataFields,
       this.listAssetsDataSource.queryTransformationOptions
     );
-    const assetsResponse: AssetsResponse = await this.listAssetsDataSource.queryAssets(assetFilter, listAssetsTake);
+    const assetsResponse: AssetsResponse = await this.listAssetsDataSource.queryAssets(assetFilter, listAssetsTake, false, defaultProjectionForListAssetsVariable);
     return assetsResponse.assets.map((asset) => this.getAssetNameForMetricQuery(asset));
   }
 
@@ -122,7 +122,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
     let assetValue: string;
 
     const assetName = !asset.name ? `${serial}` : `${asset.name} (${serial})`;
-    
+
     if (this.assetQueryReturnType === AssetQueryReturnType.AssetId) {
       assetValue = asset.id;
     } else {
