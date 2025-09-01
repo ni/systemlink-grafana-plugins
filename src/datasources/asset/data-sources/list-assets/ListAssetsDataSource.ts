@@ -103,7 +103,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
   }
 
   async processTotalCountAssetsQuery(query: ListAssetsQuery) {
-    const response: AssetsResponse = await this.queryAssets(query.filter, QUERY_LIMIT, true, query.properties);
+    const response: AssetsResponse = await this.queryAssets(query.filter, 1, true, [AssetFilterPropertiesOption.AssetIdentifier]);
     const result: DataFrameDTO = { refId: query.refId, fields: [{ name: "Total count", values: [response.totalCount] }] };
     return result;
   }
