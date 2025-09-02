@@ -109,8 +109,8 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
   }
 
   async queryAssets(filter = '', take = -1, returnCount = false, projectionFields?: string[]): Promise<AssetsResponse> {
-    const formattedProjection = `new(${projectionFields})`;
-    let data: QueryListAssetRequestBody = { filter, take, returnCount, formattedProjection };
+    const projection = `new(${projectionFields})`;
+    let data: QueryListAssetRequestBody = { filter, take, returnCount, projection };
     try {
       const response = await this.post<AssetsResponse>(this.baseUrl + '/query-assets', data);
       return response;
