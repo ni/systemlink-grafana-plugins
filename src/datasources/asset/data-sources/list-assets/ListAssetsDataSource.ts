@@ -5,7 +5,6 @@ import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../types/
 import { AssetFilterProperties, AssetFilterPropertiesOption, ListAssetsQuery, OutputType, QueryListAssetRequestBody } from '../../types/ListAssets.types';
 import { AssetModel, AssetsResponse } from '../../../asset-common/types';
 import { transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
-import { QUERY_LIMIT } from 'datasources/asset/constants/constants';
 import { defaultListAssetsQuery, defaultListAssetsQueryForOldPannels } from 'datasources/asset/defaults';
 import { TAKE_LIMIT } from 'datasources/asset/constants/ListAssets.constants';
 import { getWorkspaceName } from 'core/utils';

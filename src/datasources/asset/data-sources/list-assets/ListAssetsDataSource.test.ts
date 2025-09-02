@@ -178,7 +178,7 @@ describe('shouldRunQuery', () => {
 
         await datastore.query(query);
 
-        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, true, ["AssetIdentifier"]);
+        expect(queryAssetSpy).toHaveBeenCalledWith('', 1, true, ["AssetIdentifier"]);
     })
 
     test('should call queryAsset with returnCount set to false when outpuType is set to Properties', async () => {
