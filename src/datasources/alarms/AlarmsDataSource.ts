@@ -5,7 +5,7 @@ import { AlarmsQuery, QueryType } from './types/types';
 import { AlarmsCountDataSource } from './data-sources/alarms-count/AlarmsCountDataSource';
 
 export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
-  public defaultQuery: Partial<AlarmsQuery> & Omit<AlarmsQuery, 'refId'>;
+  public defaultQuery: Omit<AlarmsQuery, 'refId'>;
 
   private _alarmsCountDataSource: AlarmsCountDataSource;
 
