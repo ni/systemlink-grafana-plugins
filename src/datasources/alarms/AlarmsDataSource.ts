@@ -18,22 +18,28 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     this._alarmsCountDataSource = new AlarmsCountDataSource(instanceSettings, backendSrv, templateSrv);
     this.defaultQuery = this._alarmsCountDataSource.defaultQuery;
   }
-  
+
   baseUrl = `${this.instanceSettings.url}/nialarm/v1`;
   queryAlarmsUrl = `${this.baseUrl}/query-instances-with-filter`;
 
   async runQuery(query: AlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
-    if (query.queryType === QueryType.AlarmsCount) {
-      return this.alarmsCountDataSource.runQuery(query, _);
+    switch (query.queryType) {
+      case QueryType.AlarmsCount:
+        return this.alarmsCountDataSource.runQuery(query, _);
+      // Add more cases here for other query types as needed
+      default:
+        throw new Error('Invalid query type');
     }
-    throw new Error('Invalid query type');
   }
 
   shouldRunQuery(query: AlarmsQuery): boolean {
-    if (query.queryType === QueryType.AlarmsCount) {
-      return this.alarmsCountDataSource.shouldRunQuery(query);
+    switch (query.queryType) {
+      case QueryType.AlarmsCount:
+        return this.alarmsCountDataSource.shouldRunQuery(query);
+      // Add more cases here for other query types as needed
+      default:
+        return false;
     }
-    return false;
   }
 
   get alarmsCountDataSource(): AlarmsCountDataSource {
