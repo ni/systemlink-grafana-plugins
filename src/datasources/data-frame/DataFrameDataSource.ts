@@ -71,7 +71,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
         for (const table of tableData) {
           const id = table.id;
           const properties = await this.getTableProperties(id);
-          const columns = this.getColumnTypes(table.columns.map(col => col.name), properties?.columns ?? []);
+          const columns = (query.columns && query.columns.length > 0) ? this.getColumnTypes(query.columns, properties?.columns ?? []) : [];
           processedQuery.columns = columns.map(c => c.name);
           const tableData = await this.getDecimatedTableData(processedQuery, id,  columns, range, maxDataPoints);
           return {
