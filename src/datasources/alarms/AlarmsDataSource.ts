@@ -16,6 +16,7 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
   ) {
     super(instanceSettings, backendSrv, templateSrv);
     this._alarmsCountDataSource = new AlarmsCountDataSource(instanceSettings, backendSrv, templateSrv);
+    // AB#3064461 - Update defaultQuery to use list alarms defaults when supported
     this.defaultQuery = this._alarmsCountDataSource.defaultQuery;
   }
 
@@ -26,7 +27,6 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     switch (query.queryType) {
       case QueryType.AlarmsCount:
         return this.alarmsCountDataSource.runQuery(query, _);
-      // Add more cases here for other query types as needed
       default:
         throw new Error('Invalid query type');
     }
@@ -36,7 +36,6 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     switch (query.queryType) {
       case QueryType.AlarmsCount:
         return this.alarmsCountDataSource.shouldRunQuery(query);
-      // Add more cases here for other query types as needed
       default:
         return false;
     }
