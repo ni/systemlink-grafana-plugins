@@ -31,7 +31,7 @@ describe('AlarmsDataSource', () => {
   });
 
   describe('shouldRunQuery', () => {
-    test('should call alarmsCountDataSource shouldRunQuery', () => {
+    it('should call alarmsCountDataSource shouldRunQuery', () => {
       const alarmsCountDataSource = datastore.alarmsCountDataSource;
       alarmsCountDataSource.shouldRunQuery = jest.fn().mockReturnValue(true);
 
@@ -43,7 +43,7 @@ describe('AlarmsDataSource', () => {
   });
 
   describe('testDataSource', () => {
-    test('returns success', async () => {
+    it('returns success', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nialarm/v1/query-instances-with-filter' }))
         .mockReturnValue(createFetchResponse('testData'));
@@ -53,7 +53,7 @@ describe('AlarmsDataSource', () => {
       expect(response.status).toEqual('success');
     });
 
-    test('bubbles up exception', async () => {
+    it('bubbles up exception', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nialarm/v1/query-instances-with-filter' }))
         .mockReturnValue(createFetchError(400));
