@@ -1,9 +1,10 @@
 import { DataFrameDTO, DataQueryRequest } from '@grafana/data';
 import { AlarmsDataSourceCore } from 'datasources/alarms/AlarmsDataSourceCore';
+import { defaultAlarmsCountQuery } from 'datasources/alarms/constants/defaultQueries';
 import { AlarmsCountQuery } from 'datasources/alarms/types/AlarmsCount.types';
 
 export class AlarmsCountDataSource extends AlarmsDataSourceCore {
-  defaultQuery = {};
+  defaultQuery = defaultAlarmsCountQuery;
 
   async runQuery(query: AlarmsCountQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
     return {
@@ -12,7 +13,7 @@ export class AlarmsCountDataSource extends AlarmsDataSourceCore {
     };
   }
 
-  shouldRunQuery(): boolean {
+  shouldRunQuery(_: AlarmsCountQuery): boolean {
     return true;
   }
 }

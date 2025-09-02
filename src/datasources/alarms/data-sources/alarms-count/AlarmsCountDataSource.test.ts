@@ -1,6 +1,7 @@
 import { AlarmsCountDataSource } from './AlarmsCountDataSource';
 import { setupDataSource } from 'test/fixtures';
 import { DataQueryRequest } from '@grafana/data';
+import { defaultAlarmsCountQuery } from 'datasources/alarms/constants/defaultQueries';
 
 let datastore: AlarmsCountDataSource;
 
@@ -9,10 +10,10 @@ describe('AlarmsCountDataSource', () => {
     [datastore] = setupDataSource(AlarmsCountDataSource);
   });
 
-  it('should set defaultQuery to an empty object', () => {
+  it('should set defaultQuery to defaultAlarmsCountQuery', () => {
     const defaultQuery = datastore.defaultQuery;
     
-    expect(defaultQuery).toEqual({});
+    expect(defaultQuery).toEqual(defaultAlarmsCountQuery);
   });
 
   describe('runQuery', () => {
@@ -28,7 +29,9 @@ describe('AlarmsCountDataSource', () => {
 
   describe('shouldRunQuery', () => {
     it('should return true', () => {
-      expect(datastore.shouldRunQuery()).toBe(true);
+      const query = { refId: 'A' };
+
+      expect(datastore.shouldRunQuery(query)).toBe(true);
     });
   });
 });
