@@ -1,3 +1,9 @@
+## [4.6.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.5.1...v4.6.0) (2025-09-03)
+
+### Features
+
+* **alarms:** Add initial structure for SystemLink Alarms datasource ([#392](https://github.com/ni/systemlink-grafana-plugins/issues/392)) ([b768c1e](https://github.com/ni/systemlink-grafana-plugins/commit/b768c1e06baefa2752233a0253de7261d515e7bd))
+
 ## [4.5.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.5.0...v4.5.1) (2025-09-02)
 
 ### Bug Fixes
