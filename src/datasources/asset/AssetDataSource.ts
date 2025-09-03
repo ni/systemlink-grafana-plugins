@@ -30,7 +30,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
   private assetSummaryDataSource: AssetSummaryDataSource;
   private calibrationForecastDataSource: CalibrationForecastDataSource;
   private listAssetsDataSource: ListAssetsDataSource;
-  private assetQueryReturnType: AssetQueryReturnType = AssetQueryReturnType.AssetIdentification;
+  private assetQueryReturnType: AssetQueryReturnType = AssetQueryReturnType.AssetTagPath;
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,

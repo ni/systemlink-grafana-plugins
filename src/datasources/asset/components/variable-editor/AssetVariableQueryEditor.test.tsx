@@ -70,7 +70,7 @@ it('renders the return type selector', async () => {
     render({  refId: '', type: AssetQueryType.ListAssets, filter: "" } as AssetVariableQuery);
 
     await waitFor(() => expect(screen.getByText('Return Type')).toBeInTheDocument());
-    await waitFor(() => expect(screen.getByText(AssetQueryReturnType.AssetIdentification)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(AssetQueryReturnType.AssetTagPath)).toBeInTheDocument());
 });
 
 it('should render take', async () => {
@@ -155,7 +155,7 @@ it('should call onChange when return type is changed', async () => {
     await waitFor(async () =>{
         const renderType = screen.getAllByRole('combobox')[0];
 
-        expect(screen.getAllByText(AssetQueryReturnType.AssetIdentification).length).toBe(1);
+        expect(screen.getAllByText(AssetQueryReturnType.AssetTagPath).length).toBe(1);
         await select(renderType, AssetQueryReturnType.AssetId, {
             container: document.body
         });
