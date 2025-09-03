@@ -1,3 +1,9 @@
+## [4.6.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.6.0...v4.6.1) (2025-09-03)
+
+### Performance Improvements
+
+* **asset:** Update processTotalCountAssetsQuery so only one asset with one property is returned ([#396](https://github.com/ni/systemlink-grafana-plugins/issues/396)) ([3ad016b](https://github.com/ni/systemlink-grafana-plugins/commit/3ad016bd4dac787764dab1c4bfc1db8092537404))
+
 ## [4.6.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.5.1...v4.6.0) (2025-09-03)
 
 ### Features
