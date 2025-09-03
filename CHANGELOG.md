@@ -1,3 +1,9 @@
+## [4.5.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.5.0...v4.5.1) (2025-09-02)
+
+### Bug Fixes
+
+* **asset:** Update the request body and include projection in Query Assets Variable ([#395](https://github.com/ni/systemlink-grafana-plugins/issues/395)) ([d9e1d58](https://github.com/ni/systemlink-grafana-plugins/commit/d9e1d587288b2924965399f26ff39b36d7cf9048))
+
 ## [4.5.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.4.3...v4.5.0) (2025-08-22)
 
 ### Features
