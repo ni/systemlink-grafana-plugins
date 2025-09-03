@@ -367,9 +367,9 @@ describe('queries', () => {
   })
 
   describe('queryReturnType', () => {
-    it('should return default QueryReturnType.AssetId', () => {
+    it('should return default QueryReturnType.AssetTagPath', () => {
       const returnType = ds.getQueryReturnType();
-      expect(returnType).toBe(AssetQueryReturnType.AssetIdentification);
+      expect(returnType).toBe(AssetQueryReturnType.AssetTagPath);
     });
 
     it('should set and get QueryReturnType correctly', () => {
