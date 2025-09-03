@@ -4,7 +4,6 @@ import { setupDataSource, requestMatching, createFetchResponse, createFetchError
 import { AlarmsDataSource } from './AlarmsDataSource';
 import { DataQueryRequest } from '@grafana/data';
 import { QueryType } from './types/types';
-import { defaultAlarmsCountQuery } from './constants/defaultQueries';
 import { AlarmsCountDataSource } from './data-sources/alarms-count/AlarmsCountDataSource';
 
 let datastore: AlarmsDataSource, backendServer: MockProxy<BackendSrv>;
@@ -22,7 +21,7 @@ describe('AlarmsDataSource', () => {
   });
 
   it('should initialize with AlarmsCount as the default query', () => {
-    expect(datastore.defaultQuery).toEqual(defaultAlarmsCountQuery);
+    expect(datastore.defaultQuery).toEqual({ queryType: QueryType.AlarmsCount });
   });
 
   describe('AlarmsCountDataSource', () => {
