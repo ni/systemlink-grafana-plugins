@@ -5,10 +5,13 @@ import { AlarmsDataSource } from './AlarmsDataSource';
 import { DataQueryRequest } from '@grafana/data';
 import { QueryType } from './types/types';
 import { defaultAlarmsCountQuery } from './constants/defaultQueries';
+import { AlarmsCountDataSource } from './data-sources/alarms-count/AlarmsCountDataSource';
 
 let datastore: AlarmsDataSource, backendServer: MockProxy<BackendSrv>;
 
 describe('AlarmsDataSource', () => {
+  const dataQueryRequest = {} as DataQueryRequest;
+
   beforeEach(() => {
     [datastore, backendServer] = setupDataSource(AlarmsDataSource);
   });
@@ -22,47 +25,55 @@ describe('AlarmsDataSource', () => {
     expect(datastore.defaultQuery).toEqual(defaultAlarmsCountQuery);
   });
 
-  describe('runQuery', () => {
-    it('should throw error for an invalid queryType', async () => {
-      const query = { refId: 'A', queryType: undefined };
-      const dataQueryRequest = {} as DataQueryRequest;
+  describe('AlarmsCountDataSource', () => {
+    const query = { refId: 'A', queryType: QueryType.AlarmsCount };
 
-      const runQueryPromise = datastore.runQuery(query, dataQueryRequest);
-
-      await expect(runQueryPromise).rejects.toThrow('Invalid query type');
+    let alarmsCountDataSource: AlarmsCountDataSource;
+    
+    beforeEach(() => {
+      alarmsCountDataSource = datastore.alarmsCountDataSource;
     });
 
-    it('should call AlarmsCountDataSource runQuery when queryType is AlarmsCount', async () => {
-      const query = { refId: 'A', queryType: QueryType.AlarmsCount };
-      const dataQueryRequest = {} as DataQueryRequest;
-      const alarmsCountDataSource = datastore.alarmsCountDataSource;
-      alarmsCountDataSource.runQuery = jest.fn().mockResolvedValue({ refId: "A", fields: [] });
+    describe('runQuery', () => {
+      it('should call AlarmsCountDataSource runQuery when queryType is AlarmsCount', async () => {
+        alarmsCountDataSource.runQuery = jest.fn().mockResolvedValue({ refId: "A", fields: [] });
 
-      const result = await datastore.runQuery(query, dataQueryRequest);
+        const result = await datastore.runQuery(query, dataQueryRequest);
 
-      expect(alarmsCountDataSource.runQuery).toHaveBeenCalledWith(query, dataQueryRequest);
-      expect(result).toEqual({ refId: "A", fields: [] });
+        expect(alarmsCountDataSource.runQuery).toHaveBeenCalledWith(query, dataQueryRequest);
+        expect(result).toEqual({ refId: "A", fields: [] });
+      });
+    });
+
+    describe('shouldRunQuery', () => {
+      it('should call AlarmsCountDataSource shouldRunQuery when queryType is AlarmsCount', () => {
+        alarmsCountDataSource.shouldRunQuery = jest.fn().mockReturnValue(true);
+
+        const result = datastore.shouldRunQuery(query);
+
+        expect(alarmsCountDataSource.shouldRunQuery).toHaveBeenCalled();
+        expect(result).toBe(true);
+      });
     });
   });
 
-  describe('shouldRunQuery', () => {
-    it('should return false for an invalid queryType', () => {
-      const query = { refId: 'A', queryType: undefined };
+  describe('Invalid queryType', () => {
+    const query = { refId: 'A', queryType: undefined };
 
-      const result = datastore.shouldRunQuery(query);
-
-      expect(result).toBe(false);
+    describe('runQuery', () => {
+      it('should throw error for an invalid queryType', async () => {  
+        const runQueryPromise = datastore.runQuery(query, dataQueryRequest);
+  
+        await expect(runQueryPromise).rejects.toThrow('Invalid query type');
+      });
     });
+  
+    describe('shouldRunQuery', () => {
+      it('should return false for an invalid queryType', () => {
+        const result = datastore.shouldRunQuery(query);
 
-    it('should call AlarmsCountDataSource shouldRunQuery when queryType is AlarmsCount', () => {
-      const query = { refId: 'A', queryType: QueryType.AlarmsCount };
-      const alarmsCountDataSource = datastore.alarmsCountDataSource;
-      alarmsCountDataSource.shouldRunQuery = jest.fn().mockReturnValue(true);
-
-      const result = datastore.shouldRunQuery(query);
-
-      expect(alarmsCountDataSource.shouldRunQuery).toHaveBeenCalled();
-      expect(result).toBe(true);
+        expect(result).toBe(false);
+      });
     });
   });
 
