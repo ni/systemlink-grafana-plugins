@@ -46,7 +46,7 @@ describe('AlarmsQueryEditor', () => {
     expect(screen.queryByTestId('mock-alarms-count')).not.toBeInTheDocument();
   });
 
-  function buildQuery(query = {}) {
+  function buildQuery(query: Omit<AlarmsQuery, 'refId'> = {}) {
     return { refId: 'A', ...query };
   }
 });
