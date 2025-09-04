@@ -12,6 +12,7 @@ import { MockProxy } from "jest-mock-extended";
 import { BackendSrv } from "@grafana/runtime";
 import { Field } from "@grafana/data";
 import { AssetsResponse } from "datasources/asset-common/types";
+import { QUERY_LIMIT } from "datasources/asset/constants/constants";
 
 let datastore: ListAssetsDataSource, backendServer: MockProxy<BackendSrv>;
 const mockListAssets = {
@@ -178,7 +179,7 @@ describe('shouldRunQuery', () => {
 
         await datastore.query(query);
 
-        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, true, ["AssetIdentifier"]);
+        expect(queryAssetSpy).toHaveBeenCalledWith('', 1, true, [AssetFilterPropertiesOption.AssetIdentifier]);
     })
 
     test('should call queryAsset with returnCount set to false when outpuType is set to Properties', async () => {
@@ -193,7 +194,7 @@ describe('shouldRunQuery', () => {
 
         await datastore.query(query);
 
-        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, false, ["AssetIdentifier"]);
+        expect(queryAssetSpy).toHaveBeenCalledWith('', QUERY_LIMIT, false, ["AssetIdentifier"]);
     })
 
     test('should match snapshot for TotalCount outputType', async () => {
@@ -350,7 +351,7 @@ describe('shouldRunQuery', () => {
 
         await datastore.query(query);
 
-        expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, false, Object.values(AssetFilterPropertiesOption));
+        expect(queryAssetSpy).toHaveBeenCalledWith('', QUERY_LIMIT, false, Object.values(AssetFilterPropertiesOption));
     })
 
     test('should convert properties to Grafana fields', async () => {

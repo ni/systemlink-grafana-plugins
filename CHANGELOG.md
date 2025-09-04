@@ -1,3 +1,21 @@
+## [4.6.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.6.0...v4.6.1) (2025-09-03)
+
+### Performance Improvements
+
+* **asset:** Update processTotalCountAssetsQuery so only one asset with one property is returned ([#396](https://github.com/ni/systemlink-grafana-plugins/issues/396)) ([3ad016b](https://github.com/ni/systemlink-grafana-plugins/commit/3ad016bd4dac787764dab1c4bfc1db8092537404))
+
+## [4.6.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.5.1...v4.6.0) (2025-09-03)
+
+### Features
+
+* **alarms:** Add initial structure for SystemLink Alarms datasource ([#392](https://github.com/ni/systemlink-grafana-plugins/issues/392)) ([b768c1e](https://github.com/ni/systemlink-grafana-plugins/commit/b768c1e06baefa2752233a0253de7261d515e7bd))
+
+## [4.5.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.5.0...v4.5.1) (2025-09-02)
+
+### Bug Fixes
+
+* **asset:** Update the request body and include projection in Query Assets Variable ([#395](https://github.com/ni/systemlink-grafana-plugins/issues/395)) ([d9e1d58](https://github.com/ni/systemlink-grafana-plugins/commit/d9e1d587288b2924965399f26ff39b36d7cf9048))
+
 ## [4.5.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.4.3...v4.5.0) (2025-08-22)
 
 ### Features

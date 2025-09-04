@@ -12,15 +12,17 @@ describe('AlarmsDataSource', () => {
   });
 
   it('should initialize baseUrl and queryAlarms url properties', () => {
-  expect(datastore.baseUrl).toBe(`${datastore.instanceSettings.url}/nialarm/v1`);
-  expect(datastore.queryAlarmsUrl).toEqual(`${datastore.instanceSettings.url}/nialarm/v1/query-instances-with-filter`);
+    expect(datastore.baseUrl).toBe(`${datastore.instanceSettings.url}/nialarm/v1`);
+    expect(datastore.queryAlarmsUrl).toEqual(`${datastore.instanceSettings.url}/nialarm/v1/query-instances-with-filter`);
   });
 
   describe('runQuery', () => {
     it('should return empty fields', async () => {
       const query = { refId: 'A' };
       const dataQueryRequest = {} as DataQueryRequest;
+
       const result = await datastore.runQuery(query, dataQueryRequest);
+      
       expect(result).toEqual({ refId: "A", fields: [] });
     });
   });
@@ -28,6 +30,7 @@ describe('AlarmsDataSource', () => {
   describe('shouldRunQuery', () => {
     test('should return true', () => {
       const query = { refId: 'A' };
+
       expect(datastore.shouldRunQuery(query)).toBe(true);
     });
   });

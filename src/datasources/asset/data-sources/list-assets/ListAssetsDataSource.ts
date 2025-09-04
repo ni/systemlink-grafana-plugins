@@ -5,7 +5,6 @@ import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../types/
 import { AssetFilterProperties, AssetFilterPropertiesOption, ListAssetsQuery, OutputType, QueryListAssetRequestBody } from '../../types/ListAssets.types';
 import { AssetModel, AssetsResponse } from '../../../asset-common/types';
 import { transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
-import { QUERY_LIMIT } from 'datasources/asset/constants/constants';
 import { defaultListAssetsQuery, defaultListAssetsQueryForOldPannels } from 'datasources/asset/defaults';
 import { TAKE_LIMIT } from 'datasources/asset/constants/ListAssets.constants';
 import { getWorkspaceName } from 'core/utils';
@@ -103,14 +102,14 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
   }
 
   async processTotalCountAssetsQuery(query: ListAssetsQuery) {
-    const response: AssetsResponse = await this.queryAssets(query.filter, QUERY_LIMIT, true, query.properties);
+    const response: AssetsResponse = await this.queryAssets(query.filter, 1, true, [AssetFilterPropertiesOption.AssetIdentifier]);
     const result: DataFrameDTO = { refId: query.refId, fields: [{ name: "Total count", values: [response.totalCount] }] };
     return result;
   }
 
   async queryAssets(filter = '', take = -1, returnCount = false, projectionFields?: string[]): Promise<AssetsResponse> {
-    const formattedProjection = `new(${projectionFields})`;
-    let data: QueryListAssetRequestBody = { filter, take, returnCount, formattedProjection };
+    const projection = `new(${projectionFields})`;
+    let data: QueryListAssetRequestBody = { filter, take, returnCount, projection };
     try {
       const response = await this.post<AssetsResponse>(this.baseUrl + '/query-assets', data);
       return response;

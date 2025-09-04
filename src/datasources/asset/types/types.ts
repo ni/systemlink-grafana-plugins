@@ -30,7 +30,7 @@ export const AssetFeatureTogglesDefaults: AssetFeatureToggles = {
 }
 
 export enum AssetQueryReturnType {
-  AssetIdentification = 'Asset Identification',
+  AssetTagPath = 'Asset Tag Path',
   AssetId = 'Asset Id'
 }
 
