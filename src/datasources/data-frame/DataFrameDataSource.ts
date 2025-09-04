@@ -20,7 +20,7 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import { getVariableOptions, replaceVariables } from 'core/utils';
 import { LEGACY_METADATA_TYPE, QueryBuilderOption, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
-import { ResultsPropertiesOptions } from 'datasources/results/types/QueryResults.types';
+import { QueryResultsResponse, ResultsProperties, ResultsPropertiesOptions, ResultsResponseProperties } from 'datasources/results/types/QueryResults.types';
 
 export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSourceJsonData> {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
@@ -41,64 +41,125 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
   defaultQuery = defaultQuery;
   workspaceUtils: WorkspaceUtils;
   queryResultsValuesUrl = this.instanceSettings.url + '/nitestmonitor/v2/query-result-values';
+  queryResultsUrl = this.instanceSettings.url + '/nitestmonitor/v2/query-results';
 
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
   private static _partNumbersCache: Promise<string[]> | null = null;
 
-
+  async queryResults(
+    filter?: string,
+    orderBy?: string,
+    projection?: ResultsProperties[],
+    take?: number,
+    descending?: boolean,
+    returnCount = false
+  ): Promise<QueryResultsResponse> {
+    try {
+      return await this.post<QueryResultsResponse>(
+        `${this.queryResultsUrl}`,
+        {
+          filter,
+          orderBy,
+          descending,
+          projection,
+          take,
+          returnCount,
+        },
+        { showErrorAlert: false },// suppress default error alert since we handle errors manually
+      );
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : String(error));
+    }
+  }
 
   async runQuery(query: DataFrameQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
-    const processedQuery = this.processQuery(query);
-    if (processedQuery.type === DataFrameQueryType.Data) {
-      const tableData = await this.queryTables(processedQuery.queryBy);
-      this.setFilteredColumns(tableData)
-      if (!tableData || tableData.length === 0) {
-        return {
-          refId: processedQuery.refId,
-          fields: [],
-        };
-      }
-      if (processedQuery.decimationMethod !== 'NONE') {
-        for (const table of tableData) {
-          const id = table.id;
-          const properties = await this.getTableProperties(id);
-          const columns = this.getColumnTypes(table.columns.map(col => col.name), properties?.columns ?? []);
-          processedQuery.columns = columns.map(c => c.name);
-          const tableData = await this.getDecimatedTableData(processedQuery, id,  columns, range, maxDataPoints);
+    if (query.queryByResults || query.queryBy) {
+      const processedQuery = this.processQuery(query);
+      let idFilterString = '';
+      if (processedQuery.type === DataFrameQueryType.Data) {
+        let metadata: ResultsResponseProperties[] = [];
+        if (query.queryByResults) {
+          metadata = (await this.queryResults(
+            query.queryByResults,
+            "STARTED_AT",
+            [ResultsProperties.dataTableIds], 
+            100000,
+            true
+          )).results;
+
+          let uniqueIDs: string | string[] = [];
+          const uniqueTableIdsPerIndex = metadata.map((item: ResultsResponseProperties) => {
+            item.dataTableIds?.map(id => {
+              if (id && !uniqueIDs.includes(id)) {
+                uniqueIDs.push(id);
+              };
+            });
+            return uniqueIDs;
+          });
+          const ids = uniqueIDs.slice(0, 500);
+          idFilterString = `(${ids.map(id => `id = "${id}"`).join(' || ')})`;
+          // Do something with metadata
+        }
+        let tableData: TableProperties[] = [];
+        if (idFilterString !== '') {
+          tableData = await this.queryTables(idFilterString);
+        } else {
+          tableData = await this.queryTables(processedQuery.queryBy);
+        }
+        this.setFilteredColumns(tableData)
+        if (!tableData || tableData.length === 0) {
           return {
             refId: processedQuery.refId,
-            name: properties.name,
-            fields: this.dataFrameToFields(tableData.frame.data, columns),
+            fields: [],
           };
         }
-      } else {
-        for (const table of tableData) {
-          const id = table.id;
-          const properties = await this.getTableProperties(id);
-          const tableRows = await this.post<TableDataRows>(`${this.baseUrl}/tables/${id}/query-data`, {
-            columns: properties?.columns.map(col => col.name) ?? [],
-            filters: [],
-          });
-          if (tableRows && tableRows.frame && tableRows.frame.data) {
+        if ((query.columns?.length ?? 0) !== 0) {
+          for (const table of tableData) {
+            const id = table.id;
+            const properties = await this.getTableProperties(id);
+            const columns = this.getColumnTypes(table.columns.map(col => col.name), properties?.columns ?? []);
+            processedQuery.columns = columns.map(c => c.name);
+            const tableData = await this.getDecimatedTableData(processedQuery, id, columns, range, maxDataPoints);
             return {
               refId: processedQuery.refId,
               name: properties.name,
-              fields: this.dataFrameToFields(
-                tableRows.frame.data,
-                this.getColumnTypes(table.columns.map(col => col.name), properties?.columns ?? [])
-              ),
+              fields: this.dataFrameToFields(tableData.frame.data, columns),
             };
           }
         }
+        // else {
+        //   for (const table of tableData) {
+        //     const id = table.id;
+        //     const properties = await this.getTableProperties(id);
+        //     const tableRows = await this.post<TableDataRows>(`${this.baseUrl}/tables/${id}/query-data`, {
+        //       columns: properties?.columns.map(col => col.name) ?? [],
+        //       filters: [],
+        //     });
+        //     if (tableRows && tableRows.frame && tableRows.frame.data) {
+        //       return {
+        //         refId: processedQuery.refId,
+        //         name: properties.name,
+        //         fields: this.dataFrameToFields(
+        //           tableRows.frame.data,
+        //           this.getColumnTypes(table.columns.map(col => col.name), properties?.columns ?? [])
+        //         ),
+        //       };
+        //     }
+        //   }
 
+        // }
+      }
+      return {
+        refId: processedQuery.refId,
+        fields: [],
+      }
+    } else {
+      return {
+        fields: [],
       }
     }
-  
-    return {
-      refId: processedQuery.refId,
-      fields: [],
-    }
+
 
   }
 

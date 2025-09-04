@@ -19,11 +19,11 @@ export function DataFrameVariableQueryEditor(props: Props) {
           options={[{ label: 'List data table', value: '' }]}
           onChange={onDecimationMethodChange}
           value={'List data tables'}
-          defaultValue={{ label: 'List data table columns', value: '' }}
+          defaultValue={{ label: 'List data table', value: '' }}
           width={65.5}
         ></Select>
       </InlineField>
-        <InlineField label="Query by results properties" labelWidth={30} tooltip="Select the type of query to run">
+        {/* <InlineField label="Query by results properties" labelWidth={30} tooltip="Select the type of query to run">
           <ResultsQueryBuilder
             filter={''}
             workspaces={[]}
@@ -32,7 +32,7 @@ export function DataFrameVariableQueryEditor(props: Props) {
             globalVariableOptions={[]}
             onChange={(event: any) => {}}
           ></ResultsQueryBuilder>
-        </InlineField>
+        </InlineField> */}
         <InlineField label="Query by data table properties" labelWidth={30} tooltip="Select the type of query to run">
           <DataframeQueryBuilder
             filter={''}

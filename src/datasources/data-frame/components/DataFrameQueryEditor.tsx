@@ -84,7 +84,7 @@ export const DataFrameQueryEditor = (props: Props) => {
         columns: items.map(item => item.value as string),
         // columnTableMap, // Add this to query if you want to use it elsewhere
       },
-      false
+      true
     );
   };
 
@@ -118,16 +118,26 @@ export const DataFrameQueryEditor = (props: Props) => {
     }
     const columnOptions = Array.from(
       new Map(
-        (tableProperties?.flatMap(table => table.columns) ?? []).map(col => [
-          col.name,
-          {
-            label: col.name,
-            value: String(col.name),
-          },
-        ])
+        (tableProperties?.flatMap(table => table.columns) ?? []).map(col => {
+          // Count occurrences of each column name with different data types
+          const colName = col.name;
+          const colDataType = col.dataType;
+          const sameNameColumns = (tableProperties?.flatMap(t => t.columns) ?? []).filter(c => c.name === colName);
+          const isAmbiguous = sameNameColumns.length > 1 && _.uniq(sameNameColumns.map(c => c.dataType)).length > 1;
+
+          const uniqueKey = `${col.name}_${colDataType}`;
+
+          return [
+            uniqueKey,
+            {
+              label: isAmbiguous && col.dataType ? `${col.name} (${colDataType})` : col.name,
+              value: String(col.name),
+            },
+          ];
+        })
       ).values()
     );
-    return columnOptions;
+    return columnOptions.slice(0, 1000);
   };
 
   const onQueryByChange = (queryBy: string) => {
@@ -195,12 +205,26 @@ export const DataFrameQueryEditor = (props: Props) => {
       >
         <Stack direction="row" justifyContent={'flex-start'} gap={1} wrap={'wrap'}>
           <Stack direction={'column'} justifyContent={'flex-start'} gap={1}>
-            {/* <Alert title="Warning" severity="warning">
-              {' '}
-              The tables query returned more than 1000 results. Only the first 100 tables column properties are
+            <Alert title="" severity="info">
+              Queries may have a significant impact on resource utilization.{' '}
+              <a
+                href="https://docs.ni.com/systemlink/query-optimization"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: 'underline' }}
+              >
+                Click here to learn more about optimizing query performance.
+              </a>
+            </Alert>
+            <Alert title="Warning" severity="warning" onRemove={() => {}}>
+              The tables query returned more than 1000 results. Only the first 1000 tables will be used to fetch row
+              data.
+            </Alert>
+            <Alert title="Warning" severity="warning" onRemove={() => {}}>
+              The tables query returned more than 10,000 table columns. Only the first 10,000 tables column names are
               populated in the column dropdown.
-            </Alert> */}
-            <div style={{ width: '544px' }}>
+            </Alert>
+            {/* <div style={{ width: '544px' }}>
               <InlineLabel width={68} tooltip={tooltips.queryType} interactive={true}>
                 {' '}
                 Query by results properties
@@ -213,7 +237,7 @@ export const DataFrameQueryEditor = (props: Props) => {
                 globalVariableOptions={common.datasource.globalVariableOptions()}
                 onChange={(event: any) => onParameterChange(event.detail.linq)}
               ></ResultsQueryBuilder>
-            </div>
+            </div> */}
             <div style={{ width: '544px' }}>
               <InlineLabel width={'auto'} tooltip={tooltips.queryType} interactive={true}>
                 Query by data table properties
@@ -242,7 +266,7 @@ export const DataFrameQueryEditor = (props: Props) => {
           <div>
             {common.query.type === DataFrameQueryType.Properties && (
               <>
-                <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.columns}>
+                {/* <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.columns}>
                   <Select
                     options={[]}
                     placeholder="Select field to order by"
@@ -259,7 +283,7 @@ export const DataFrameQueryEditor = (props: Props) => {
                     }
                     value={common.query.descending}
                   />
-                </InlineField>
+                </InlineField> */}
                 <InlineField label="Take" labelWidth={25} tooltip={tooltips.decimation}>
                   <AutoSizeInput
                     minWidth={26}
