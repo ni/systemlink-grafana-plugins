@@ -1,3 +1,9 @@
+## [4.6.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.6.1...v4.6.2) (2025-09-04)
+
+### Bug Fixes
+
+* **asset:** Update projection for ListAssetsDataSource ([#398](https://github.com/ni/systemlink-grafana-plugins/issues/398)) ([62b2fe8](https://github.com/ni/systemlink-grafana-plugins/commit/62b2fe8c21f5598960422e52f229acc23e460002))
+
 ## [4.6.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.6.0...v4.6.1) (2025-09-03)
 
 ### Performance Improvements
