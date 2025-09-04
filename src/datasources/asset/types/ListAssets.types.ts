@@ -12,7 +12,7 @@ export interface QueryListAssetRequestBody {
     filter?: string;
     returnCount?: boolean;
     take?: number;
-    formattedProjection?: string;
+    projection?: string;
 }
 
 export enum AssetFilterPropertiesOption {
