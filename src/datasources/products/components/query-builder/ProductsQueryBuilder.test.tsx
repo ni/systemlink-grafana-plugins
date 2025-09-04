@@ -36,6 +36,27 @@ describe('ProductsQueryBuilder', () => {
       expect(conditionsContainer.item(1)?.textContent).toContain("partNumber1");
     })
 
+    it('should update and display the latest workspace in the query builder', () => {
+      const { conditionsContainer, renderResult } = renderElement([], partNumber, familyNames, 'Workspace = "1"');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("1");
+
+      renderResult.rerender(
+        React.createElement(ProductsQueryBuilder, {
+          filter: 'Workspace = "1"',
+          onChange: jest.fn(),
+          workspaces: [workspace],
+          partNumbers: partNumber,
+          familyNames,
+          globalVariableOptions: [],
+        })
+      );
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain(workspace.name);
+    })
+
     it('should select part number in query builder', () => {
       const { conditionsContainer } = renderElement([workspace], partNumber, familyNames,  'PartNumber = "partNumber1"');
 
