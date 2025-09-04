@@ -1,7 +1,6 @@
 import { AlarmsCountDataSource } from './AlarmsCountDataSource';
 import { setupDataSource } from 'test/fixtures';
 import { DataQueryRequest } from '@grafana/data';
-import { defaultAlarmsCountQuery } from 'datasources/alarms/constants/defaultQueries';
 import { QueryType } from 'datasources/alarms/types/types';
 
 let datastore: AlarmsCountDataSource;
