@@ -1,6 +1,7 @@
 import { DataFrameDTO, DataQueryRequest } from '@grafana/data';
 import { AlarmsDataSourceCore } from 'datasources/alarms/AlarmsDataSourceCore';
 import { defaultAlarmsCountQuery } from 'datasources/alarms/constants/defaultQueries';
+import { MINIMUM_TAKE } from 'datasources/alarms/constants/QueryAlarms.constants';
 import { AlarmsCountQuery } from 'datasources/alarms/types/AlarmsCount.types';
 
 export class AlarmsCountDataSource extends AlarmsDataSourceCore {
@@ -18,7 +19,7 @@ export class AlarmsCountDataSource extends AlarmsDataSourceCore {
 
   async queryAlarmsCount(): Promise<number> {
     const body = {
-      take: 1,
+      take: MINIMUM_TAKE,
       returnCount: true,
     };
 
