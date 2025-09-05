@@ -1,3 +1,9 @@
+## [4.7.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.6.3...v4.7.0) (2025-09-05)
+
+### Features
+
+* **alarms:** Set up base class for Alarms DataSource ([#394](https://github.com/ni/systemlink-grafana-plugins/issues/394)) ([f765dac](https://github.com/ni/systemlink-grafana-plugins/commit/f765dac82d0807a130d9f8314da5e96b4fb828ef))
+
 ## [4.6.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.6.2...v4.6.3) (2025-09-04)
 
 ### Bug Fixes
