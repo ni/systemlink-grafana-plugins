@@ -1,3 +1,9 @@
+## [4.7.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.7.0...v4.7.1) (2025-09-05)
+
+### Bug Fixes
+
+* **asset:** Update projection for Asset Variable Query  ([#400](https://github.com/ni/systemlink-grafana-plugins/issues/400)) ([b4ccdde](https://github.com/ni/systemlink-grafana-plugins/commit/b4ccdde1876a987fa2906b81c83af96b0b7725c0))
+
 ## [4.7.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.6.3...v4.7.0) (2025-09-05)
 
 ### Features
