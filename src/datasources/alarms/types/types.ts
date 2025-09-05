@@ -7,3 +7,13 @@ export interface AlarmsQuery extends DataQuery {
 export enum QueryType {
   AlarmsCount = 'AlarmsCount',
 }
+
+export interface QueryAlarmsRequestBody {
+  take: number;
+  returnCount: boolean;
+};
+
+export interface QueryAlarmsResponse {
+  totalCount?: number;
+  continuationToken?: string;
+}

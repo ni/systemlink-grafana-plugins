@@ -7,10 +7,23 @@ export class AlarmsCountDataSource extends AlarmsDataSourceCore {
   defaultQuery = defaultAlarmsCountQuery;
 
   async runQuery(query: AlarmsCountQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
+    const alarmsCount = await this.queryAlarmsCount();
+
     return {
       refId: query.refId,
-      fields: [],
+      name: query.refId,
+      fields: [{ name: query.refId, values: [alarmsCount] }],
     };
+  }
+
+  async queryAlarmsCount(): Promise<number> {
+    const body = {
+      take: 1,
+      returnCount: true,
+    };
+
+    const response = await this.queryAlarms(body);
+    return response.totalCount ?? 0;
   }
 
   shouldRunQuery(_: AlarmsCountQuery): boolean {
