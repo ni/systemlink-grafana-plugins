@@ -2,7 +2,7 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TestDataSou
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { AlarmsQuery, QueryType } from './types/types';
-import { AlarmsCountDataSource } from './data-sources/alarms-count/AlarmsCountDataSource';
+import { AlarmsCountDataSource } from './query-type-handlers/alarms-count/AlarmsCountDataSource';
 
 export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
   public defaultQuery: Omit<AlarmsQuery, 'refId'>;
