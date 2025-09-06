@@ -1,4 +1,4 @@
-import { AlarmsCountDataSource } from './AlarmsCountDataSource';
+import { AlarmsCountDataSource } from '../../query-type-handlers/alarms-count/AlarmsCountDataSource';
 import { setupDataSource } from 'test/fixtures';
 import { DataQueryRequest } from '@grafana/data';
 import { QueryType } from 'datasources/alarms/types/types';
