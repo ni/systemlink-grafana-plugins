@@ -23,7 +23,7 @@ export const defaultListAssetsQueryForOldPannels = {
     properties: Object.values(AssetFilterPropertiesOption),
 }
 
-export const defaultProjectionForListAssetsVariable = [AssetFilterPropertiesOption.VendorName, AssetFilterPropertiesOption.VendorNumber, AssetFilterPropertiesOption.ModelName, AssetFilterPropertiesOption.ModelNumber, AssetFilterPropertiesOption.SerialNumber, AssetFilterPropertiesOption.AssetIdentifier]
+export const defaultProjectionForListAssetsVariable = [AssetFilterPropertiesOption.VendorName, AssetFilterPropertiesOption.VendorNumber, AssetFilterPropertiesOption.ModelName, AssetFilterPropertiesOption.ModelNumber, AssetFilterPropertiesOption.SerialNumber, AssetFilterPropertiesOption.AssetIdentifier, AssetFilterPropertiesOption.AssetName]
 
 export const defaultListAssetsVariable = {
     filter: "",

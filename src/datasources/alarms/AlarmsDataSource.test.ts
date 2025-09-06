@@ -4,7 +4,7 @@ import { setupDataSource, requestMatching, createFetchResponse, createFetchError
 import { AlarmsDataSource } from './AlarmsDataSource';
 import { DataQueryRequest } from '@grafana/data';
 import { QueryType } from './types/types';
-import { AlarmsCountDataSource } from './data-sources/alarms-count/AlarmsCountDataSource';
+import { AlarmsCountDataSource } from './query-type-handlers/alarms-count/AlarmsCountDataSource';
 
 let datastore: AlarmsDataSource, backendServer: MockProxy<BackendSrv>;
 

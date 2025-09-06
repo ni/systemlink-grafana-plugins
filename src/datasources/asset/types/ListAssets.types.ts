@@ -34,7 +34,7 @@ export enum AssetFilterPropertiesOption {
     Properties = 'Properties',
     Location = 'Location',
     MinionId = 'Location.MinionId',
-    ParentName = 'ParentName',
+    ParentName = 'Location.Parent',
     SupportsSelfCalibration = 'SupportsSelfCalibration',
     DiscoveryType = 'DiscoveryType',
     SupportsSelfTest = 'SupportsSelfTest',
