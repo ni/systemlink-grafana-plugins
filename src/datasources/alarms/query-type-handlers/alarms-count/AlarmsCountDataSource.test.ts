@@ -4,7 +4,6 @@ import { DataQueryRequest } from '@grafana/data';
 import { QueryAlarmsResponse, QueryType } from 'datasources/alarms/types/types';
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv } from '@grafana/runtime';
-import { throwError } from 'rxjs';
 
 let datastore: AlarmsCountDataSource, backendServer: MockProxy<BackendSrv>;
 

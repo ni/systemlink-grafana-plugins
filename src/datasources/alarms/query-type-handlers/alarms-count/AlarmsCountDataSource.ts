@@ -18,12 +18,12 @@ export class AlarmsCountDataSource extends AlarmsDataSourceCore {
   }
 
   async queryAlarmsCount(): Promise<number> {
-    const body = {
+    const requestBody = {
       take: MINIMUM_TAKE,
       returnCount: true,
     };
 
-    const response = await this.queryAlarms(body);
+    const response = await this.queryAlarms(requestBody);
     return response.totalCount ?? 0;
   }
 

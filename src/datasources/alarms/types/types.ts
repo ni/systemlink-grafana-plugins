@@ -11,7 +11,7 @@ export enum QueryType {
 export interface QueryAlarmsRequestBody {
   take?: number;
   returnCount?: boolean;
-};
+}
 
 export interface QueryAlarmsResponse {
   totalCount?: number;
