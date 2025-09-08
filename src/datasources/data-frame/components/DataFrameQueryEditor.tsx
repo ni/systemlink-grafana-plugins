@@ -205,24 +205,24 @@ export const DataFrameQueryEditor = (props: Props) => {
       >
         <Stack direction="row" justifyContent={'flex-start'} gap={1} wrap={'wrap'}>
           <Stack direction={'column'} justifyContent={'flex-start'} gap={1}>
-            <Alert title="" severity="info">
+            {/* <Alert title="" severity="info">
               Queries may have a significant impact on resource utilization.{' '}
               <a
                 href="https://docs.ni.com/systemlink/query-optimization"
-                target="_blank"
-                rel="noopener noreferrer"
+              target="_blank"
+              rel="noopener noreferrer"
                 style={{ textDecoration: 'underline' }}
               >
                 Click here to learn more about optimizing query performance.
               </a>
-            </Alert>
-            <Alert title="Warning" severity="warning" onRemove={() => {}}>
-              The tables query returned more than 1000 results. Only the first 1000 tables will be used to fetch row
+            </Alert> */}
+            {/* <Alert title="Warning" severity="warning" onRemove={() => {}}>
+              The tables query returned more than 1000 data tables. Only the first 1000 tables will be used to fetch row
               data.
-            </Alert>
+            </Alert> */}
             <Alert title="Warning" severity="warning" onRemove={() => {}}>
-              The tables query returned more than 10,000 table columns. Only the first 10,000 tables column names are
-              populated in the column dropdown.
+              The tables query returned over 10,000 table columns. Only the first 10,000 column names will be available
+              in the column dropdown.
             </Alert>
             {/* <div style={{ width: '544px' }}>
               <InlineLabel width={68} tooltip={tooltips.queryType} interactive={true}>
