@@ -97,7 +97,7 @@ describe('List assets location queries', () => {
         );
     });
 
-    test('should transform LOCATION field with single value and cache hit', async () => {
+    test('should transform LOCATION field with single value and system cache hit', async () => {
         datastore.systemAliasCache.set('Location1', { id: 'Location1', alias: 'Location1-alias', state: 'CONNECTED', workspace: '1' });
 
         const query = buildListAssetsQuery({
@@ -116,7 +116,7 @@ describe('List assets location queries', () => {
         );
     });
 
-    test('should transform LOCATION field with multiple values and cache hit', async () => {
+    test('should transform LOCATION field with multiple values and system cache hit', async () => {
         datastore.systemAliasCache.set('Location1', { id: 'Location1', alias: 'Location1-alias', state: 'CONNECTED', workspace: '1' });
         datastore.systemAliasCache.set('Location2', { id: 'Location2', alias: 'Location2-alias', state: 'CONNECTED', workspace: '2' });
 
@@ -132,6 +132,25 @@ describe('List assets location queries', () => {
         expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
             expect.objectContaining({
                 filter: "(Location.MinionId = \"Location1\" || Location.MinionId = \"Location2\")"
+            })
+        );
+    });
+
+    test('should transform LOCATION field with location cache hit', async () => {
+        datastore.locationCache.set('cabinet-1-id', { id: 'cabinet-1-id', name: 'Cabinet 1' });
+
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: `${ListAssetsFieldNames.LOCATION} = "cabinet-1-id"`,
+            outputType: OutputType.Properties,
+        });
+
+        await datastore.query(query);
+
+        expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                filter: "Location.PhysicalLocation = \"cabinet-1-id\""
             })
         );
     });
