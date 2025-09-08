@@ -53,6 +53,17 @@ describe('AssetQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain(system.alias);
     });
 
+    it('should select physical location in query builder', () => {
+      const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
+      const system = { id: '1', alias: 'Selected system' } as SystemProperties;
+      const location = { id: 'location-1', name: 'Location 1' } as LocationModel;
+
+      const { conditionsContainer } = renderElement([workspace], [system], [location], 'Location = "location-1"');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain(location.name);
+    });
+
     it('should select global variable option', () => {
       const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
       const system = { id: '1', alias: 'Selected system' } as SystemProperties;
