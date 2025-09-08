@@ -67,7 +67,7 @@ describe('TestPlansQueryBuilder', () => {
         const { renderResult, conditionsContainer } = renderElement('', [], [], [], []);
 
         expect(conditionsContainer.length).toBe(1);
-        expect(renderResult.findByLabelText('Empty condition row')).toBeTruthy();
+        expect(renderResult.getByLabelText('Empty condition row')).toBeTruthy();
     });
 
     it('should select workspace in query builder', () => {

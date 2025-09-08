@@ -14,13 +14,13 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   async queryAlarms(alarmsRequestBody: QueryAlarmsRequestBody): Promise<QueryAlarmsResponse> {
     try {
       return await this.post<QueryAlarmsResponse>(
-        `${this.queryAlarmsUrl}`,
+        this.queryAlarmsUrl,
         alarmsRequestBody,
         { showErrorAlert: false } // suppress default error alert since we handle errors manually
       );
     } catch (error) {
       const errorDetails = extractErrorInfo((error as Error).message);
-      const errorMessage = this.returnErrorMessage(errorDetails);
+      const errorMessage = this.getStatusCodeErrorMessage(errorDetails);
 
       this.appEvents?.publish?.({
         type: AppEvents.alertError.name,
@@ -31,7 +31,7 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
     }
   }
 
-  private returnErrorMessage(errorDetails: { statusCode: string; message: string }): string {
+  private getStatusCodeErrorMessage(errorDetails: { statusCode: string; message: string }): string {
     let errorMessage: string;
     switch (errorDetails.statusCode) {
       case '':

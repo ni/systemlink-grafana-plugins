@@ -1,4 +1,4 @@
-import { DataFrameDTO, DataQueryRequest } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, FieldType } from '@grafana/data';
 import { AlarmsDataSourceCore } from 'datasources/alarms/AlarmsDataSourceCore';
 import { defaultAlarmsCountQuery } from 'datasources/alarms/constants/defaultQueries';
 import { MINIMUM_TAKE } from 'datasources/alarms/constants/QueryAlarms.constants';
@@ -13,7 +13,7 @@ export class AlarmsCountDataSource extends AlarmsDataSourceCore {
     return {
       refId: query.refId,
       name: query.refId,
-      fields: [{ name: query.refId, values: [alarmsCount] }],
+      fields: [{ name: query.refId, type: FieldType.number, values: [alarmsCount] }],
     };
   }
 
