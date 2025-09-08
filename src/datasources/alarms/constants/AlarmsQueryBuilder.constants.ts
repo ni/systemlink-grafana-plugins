@@ -15,6 +15,14 @@ export enum AlarmsQueryBuilderFieldNames {
   ResourceType = 'resourceType',
 }
 
+const SEVERITY_LEVELS = [
+  { label: 'Low', value: '1' },
+  { label: 'Moderate', value: '2' },
+  { label: 'High', value: '3' },
+  { label: 'Critical', value: '4' },
+  { label: 'Clear', value: '-1' },
+];
+
 export const AlarmsQueryBuilderFields: Record<string, QBField> = {
   ACKNOWLEDGED: {
     label: 'Acknowledged',
@@ -91,20 +99,16 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
       QueryBuilderOperations.IS_BLANK.name,
       QueryBuilderOperations.IS_NOT_BLANK.name,
+      QueryBuilderOperations.CONTAINS.name,
+      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
     ],
   },
   CURRENT_SEVERITY: {
-    label: 'Current Severity',
+    label: 'Current severity',
     dataField: AlarmsQueryBuilderFieldNames.CurrentSeverity,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
     lookup: {
-      dataSource: [
-        { label: 'Clear', value: '-1' },
-        { label: 'Low (1)', value: '1' },
-        { label: 'Moderate (2)', value: '2' },
-        { label: 'High (3)', value: '3' },
-        { label: 'Critical (4)', value: '4' },
-      ],
+        dataSource: SEVERITY_LEVELS,
     },
   },
   DESCRIPTION: {
@@ -120,17 +124,11 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
     ],
   },
   HIGHEST_SEVERITY: {
-    label: 'Highest Severity',
+    label: 'Highest severity',
     dataField: AlarmsQueryBuilderFieldNames.HighestSeverity,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
     lookup: {
-      dataSource: [
-        { label: 'Clear', value: '-1' },
-        { label: 'Low (1)', value: '1' },
-        { label: 'Moderate (2)', value: '2' },
-        { label: 'High (3)', value: '3' },
-        { label: 'Critical (4)', value: '4' },
-      ],
+      dataSource: SEVERITY_LEVELS,
     },
   },
   RESOURCE_TYPE: {
@@ -145,13 +143,14 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
   },
 };
 
-export const AlarmsQueryBuilderStaticFields = [
+export const AlarmsQueryBuilderStaticFields: QBField[] = [
   AlarmsQueryBuilderFields.ACKNOWLEDGED,
   AlarmsQueryBuilderFields.ACTIVE,
   AlarmsQueryBuilderFields.ALARM_ID,
   AlarmsQueryBuilderFields.ALARM_NAME,
   AlarmsQueryBuilderFields.CHANNEL,
   AlarmsQueryBuilderFields.CLEAR,
+  AlarmsQueryBuilderFields.CREATED_BY,
   AlarmsQueryBuilderFields.CURRENT_SEVERITY,
   AlarmsQueryBuilderFields.DESCRIPTION,
   AlarmsQueryBuilderFields.HIGHEST_SEVERITY,

@@ -9,8 +9,8 @@ import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcompone
 
 type AlarmsQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
-    filter?: string;
     globalVariableOptions: QueryBuilderOption[];
+    filter?: string;
   };
 
 export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, onChange, globalVariableOptions }) => {
@@ -48,6 +48,7 @@ export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, 
 
       return accumulator;
     }, {} as Record<string, QueryBuilderOption[]>);
+    
     optionsRef.current = options;
 
     const customOperations = [
