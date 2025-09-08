@@ -56,7 +56,7 @@ describe('CalibrationForecastQueryBuilder', () => {
       const { conditionsContainer } = renderElement([workspace], [system], [location], 'Location = "location-1"');
 
       expect(conditionsContainer?.length).toBe(1);
-      expect(conditionsContainer.item(0)?.textContent).toContain(system.alias);
+      expect(conditionsContainer.item(0)?.textContent).toContain(location.name);
     });
 
     it('should select global variable option', () => {
