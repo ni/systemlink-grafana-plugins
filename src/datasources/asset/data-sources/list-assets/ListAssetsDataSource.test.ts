@@ -419,6 +419,8 @@ describe('shouldRunQuery', () => {
     });
 
     test('should display location property', async () => {
+        datastore.locationCache.set('cabinet-3-id', { id: 'cabinet-3-id', name: 'Cabinet 3' });
+
         const query = buildListAssetsQuery({
             refId: '',
             type: AssetQueryType.ListAssets,
@@ -430,7 +432,7 @@ describe('shouldRunQuery', () => {
             assets: [
                 {
                     location: {
-                        physicalLocation: 'cabinet3',
+                        physicalLocation: 'cabinet-3-id',
                         parent: '',
                         resourceUri: '',
                         slotNumber: -1,
@@ -449,7 +451,7 @@ describe('shouldRunQuery', () => {
 
         expect(data.fields).toHaveLength(1);
         expect(data.fields[0].name).toEqual('location');
-        expect(data.fields[0].values).toEqual(['cabinet3']);
+        expect(data.fields[0].values).toEqual(['Cabinet 3']);
     });
 
     test('should display minionID property', async () => {

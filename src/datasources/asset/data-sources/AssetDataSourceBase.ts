@@ -127,7 +127,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
   }
 
   public readonly queryTransformationOptions = new Map<string, Map<string, unknown>>([
-    [AllFieldNames.LOCATION, this.systemAliasCache],
+    [AllFieldNames.LOCATION, new Map<string, unknown>()],
     [AllFieldNames.CALIBRATION_DUE_DATE, new Map<string, unknown>()]
   ]);
 
@@ -146,8 +146,12 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
           return `(${values.map(val => `Location.MinionId ${operation} "${val}"`).join(` ${this.getLocicalOperator(operation)} `)})`;
         }
 
-        if (options?.has(value)) {
+        if (this.systemAliasCache?.has(value)) {
           return `Location.MinionId ${operation} "${value}"`
+        }
+
+        if (this.locationCache?.has(value)) {
+          return `Location.PhysicalLocation ${operation} "${value}"`
         }
 
         return `Locations.Any(l => l.MinionId ${operation} "${value}" ${this.getLocicalOperator(operation)} l.PhysicalLocation ${operation} "${value}")`;
