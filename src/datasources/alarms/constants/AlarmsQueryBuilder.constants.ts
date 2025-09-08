@@ -97,10 +97,10 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.IS_BLANK.name,
-      QueryBuilderOperations.IS_NOT_BLANK.name,
       QueryBuilderOperations.CONTAINS.name,
       QueryBuilderOperations.DOES_NOT_CONTAIN.name,
+      QueryBuilderOperations.IS_BLANK.name,
+      QueryBuilderOperations.IS_NOT_BLANK.name,
     ],
   },
   CURRENT_SEVERITY: {
@@ -115,10 +115,10 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
     label: 'Description',
     dataField: AlarmsQueryBuilderFieldNames.Description,
     filterOperations: [
-      QueryBuilderOperations.CONTAINS.name,
-      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.CONTAINS.name,
+      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
       QueryBuilderOperations.IS_BLANK.name,
       QueryBuilderOperations.IS_NOT_BLANK.name,
     ],
