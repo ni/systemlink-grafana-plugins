@@ -9,17 +9,21 @@ import { ExpressionTransformFunction } from "../../../core/query-builder.utils";
 import { QueryBuilderOperations } from "../../../core/query-builder.constants";
 import { AllFieldNames } from "../constants/constants";
 import { getVariableOptions } from "core/utils";
+import { ListLocationsResponse, LocationModel } from "../types/ListLocations.types";
 
 export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
   private systemsLoaded!: () => void;
+  private locationsLoaded!: () => void;
   private workspacesLeaded!: () => void;
 
   public areSystemsLoaded$ = new Promise<void>(resolve => this.systemsLoaded = resolve);
+  public areLocationsLoaded$ = new Promise<void>(resolve => this.locationsLoaded = resolve);
   public areWorkspacesLoaded$ = new Promise<void>(resolve => this.workspacesLeaded = resolve);
 
   public error = '';
 
   public readonly systemAliasCache = new Map<string, SystemProperties>([]);
+  public readonly locationCache = new Map<string, LocationModel>([]);
   public readonly workspacesCache = new Map<string, Workspace>([]);
 
 
@@ -45,8 +49,22 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
     }
   }
 
+  public async getLocations(): Promise<LocationModel[]> {
+    try {
+      let response = await this.get<ListLocationsResponse>(this.instanceSettings.url + '/nilocation/v1/locations');
+
+      return response.locations;
+    } catch (error) {
+      throw new Error(`An error occurred while retrieving locations: ${error}`);
+    }
+  }
+
   public getCachedSystems(): SystemProperties[] {
     return Array.from(this.systemAliasCache.values());
+  }
+
+  public getCachedLocations(): LocationModel[] {
+    return Array.from(this.locationCache.values());
   }
 
   public getCachedWorkspaces(): Workspace[] {
@@ -59,6 +77,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
     this.error = '';
 
     await this.loadSystems();
+    await this.loadLocations();
     await this.loadWorkspaces();
   }
 
@@ -75,6 +94,21 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
     systems?.forEach(system => this.systemAliasCache.set(system.id, system));
 
     this.systemsLoaded();
+  }
+
+  private async loadLocations(): Promise<void> {
+    if (this.locationCache.size > 0) {
+      return;
+    }
+
+    const locations = await this.getLocations()
+      .catch(error => {
+        this.error = parseErrorMessage(error)!;
+      });
+
+    locations?.forEach(location => this.locationCache.set(location.id, location));
+
+    this.locationsLoaded();
   }
 
   private async loadWorkspaces(): Promise<void> {
