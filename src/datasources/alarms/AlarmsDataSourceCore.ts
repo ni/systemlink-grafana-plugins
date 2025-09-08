@@ -22,7 +22,7 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
       const errorDetails = extractErrorInfo((error as Error).message);
       const errorMessage = this.getStatusCodeErrorMessage(errorDetails);
 
-      this.appEvents?.publish?.({
+      this.appEvents.publish?.({
         type: AppEvents.alertError.name,
         payload: ['Error during alarms query', errorMessage],
       });
