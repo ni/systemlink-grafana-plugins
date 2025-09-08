@@ -23,7 +23,6 @@ describe('AlarmsQueryBuilder', () => {
   });
 
   [['true', 'True'], ['false', 'False']].forEach(([value, label]) => {
-
     it(`should select ${label} for acknowledged in query builder`, () => {
         const { conditionsContainer } = renderElement(`acknowledged = \"${value}\"`);
 
@@ -33,6 +32,7 @@ describe('AlarmsQueryBuilder', () => {
         expect(conditionText).toContain('equals');
         expect(conditionText).toContain(label);       
     });
+    
     it(`should select ${label} for active in query builder`, () => {
         const { conditionsContainer } = renderElement(`active = \"${value}\"`);
 
