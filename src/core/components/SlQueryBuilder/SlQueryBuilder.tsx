@@ -47,10 +47,21 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
     return filterXSSLINQExpression(value);
   }, [value]);
 
+  const sortedFields = useMemo(() => {
+    if (!fields) return [];
+
+    return [...fields].sort((a, b) => {
+      if (!a.label && !b.label) return 0;
+      if (!a.label) return 1;
+      if (!b.label) return -1;
+      return a.label.localeCompare(b.label);
+    });
+  }, [fields]);
+
   return (
     <QueryBuilder
       customOperations={customOperations}
-      fields={fields}
+      fields={sortedFields}
       messages={messages}
       onChange={onChange}
       value={sanitizedFilter}
