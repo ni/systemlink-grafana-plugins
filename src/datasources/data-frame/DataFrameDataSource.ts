@@ -37,17 +37,17 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
 
   async runQuery(
     query: DataFrameQuery,
-    request: DataQueryRequest
+    request: DataQueryRequest<DataFrameQuery>
   ): Promise<DataFrameDTO> {
-    const { range, scopedVars, maxDataPoints } = request;
+    const { range, scopedVars, maxDataPoints, targets } = request;
     const processedQuery = this.processQuery(query);
     processedQuery.tableId = this.templateSrv.replace(processedQuery.tableId, scopedVars);
     processedQuery.columns = replaceVariables(processedQuery.columns, this.templateSrv);
     const properties = await this.getTableProperties(processedQuery.tableId);
 
     this.initializeFetchHighResolutionData(
-      processedQuery.fetchHighResolutionData,
-      request.panelId?.toString()
+      targets.some(t => t.fetchHighResolutionData),
+      request.panelId?.toString(),
     );
 
     if (processedQuery.type === DataFrameQueryType.Properties) {
