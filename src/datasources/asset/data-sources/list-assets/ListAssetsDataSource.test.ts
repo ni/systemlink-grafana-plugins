@@ -60,8 +60,14 @@ const mockListAssets = {
     totalCount: 4,
 };
 
+let assetOptions = {
+  featureToggles: {
+    locations: true
+  }
+}
+
 beforeEach(() => {
-    [datastore, backendServer] = setupDataSource(ListAssetsDataSource);
+    [datastore, backendServer] = setupDataSource(ListAssetsDataSource, () => assetOptions);
     backendServer.fetch
         .calledWith(requestMatching({ url: '/niapm/v1/query-assets', method: 'POST' }))
         .mockReturnValue(createFetchResponse(mockListAssets));

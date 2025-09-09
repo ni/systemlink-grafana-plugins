@@ -19,6 +19,7 @@ let assetOptions = {
     assetListEnabled: true,
     calibrationForecastEnabled: true,
     assetSummaryEnabled: true,
+    locations: true
   }
 }
 
