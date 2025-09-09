@@ -32,7 +32,7 @@ describe('AlarmsQueryBuilder', () => {
         expect(conditionText).toContain('equals');
         expect(conditionText).toContain(label);       
     });
-    
+
     it(`should select ${label} for active in query builder`, () => {
         const { conditionsContainer } = renderElement(`active = \"${value}\"`);
 
@@ -74,6 +74,46 @@ describe('AlarmsQueryBuilder', () => {
         expect(conditionText).toContain('equals');
         expect(conditionText).toContain(label);
     });
+  });
+
+  [[ '${__from:date}', 'From' ],[ '${__to:date}', 'To' ],[ '${__now:date}', 'Now' ]].forEach(([ value, label ]) => {
+    it(`should select ${label} for acknowledged on`, () => {
+      const { conditionsContainer } = renderElement(`acknowledgedAt > \"${ value }\"`, []);
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain('Acknowledged on');
+      expect(conditionsContainer.item(0)?.textContent).toContain('is after');
+      expect(conditionsContainer.item(0)?.textContent).toContain(label);
+    });
+
+    it(`should select ${label} for first occurrence`, () => {
+      const { conditionsContainer } = renderElement(`occurredAt > \"${ value }\"`, []);
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain('First occurrence');
+      expect(conditionsContainer.item(0)?.textContent).toContain('is after');
+      expect(conditionsContainer.item(0)?.textContent).toContain(label);
+    });
+  });
+  
+  it('should select keywords in query builder', () => {
+    const { conditionsContainer } = renderElement('keywords.Contains(\"test\")');
+
+    expect(conditionsContainer?.length).toBe(1);
+    const conditionText = conditionsContainer.item(0)?.textContent;
+    expect(conditionText).toContain('Keyword');
+    expect(conditionText).toContain('equals');
+    expect(conditionText).toContain('test');
+  });
+
+  it('should select key and value for properties', () => {
+    const { conditionsContainer } = renderElement("properties[\"key\"] = \"value\"");
+
+    expect(conditionsContainer?.length).toBe(1);
+    expect(conditionsContainer.item(0)?.textContent).toContain('Properties');
+    expect(conditionsContainer.item(0)?.textContent).toContain('matches');
+    expect(conditionsContainer.item(0)?.textContent).toContain('key');
+    expect(conditionsContainer.item(0)?.textContent).toContain('value');
   });
 
   it('should select global variable option', () => {
