@@ -31,7 +31,7 @@ export const DataFrameQueryEditor = (props: Props) => {
   }
 
   // When the user toggles the "Fetch high resolution data on zoom" switch, we update the URL query parameters
-  const updateFetchHighResolutionDataStateInQueryParams = (fetchHighResolutionData: boolean) => {
+  const handleFetchHighResolutionDataStateUpdate = (fetchHighResolutionData: boolean) => {
     const editPanelId = getPanelId();
     let fetchHighResolutionDataEnabledPanelIds: string[] = getEnabledPanelIds();
 
@@ -142,7 +142,7 @@ export const DataFrameQueryEditor = (props: Props) => {
           <InlineField label="Fetch high resolution data on zoom" tooltip={tooltips.useTimeRange}>
             <InlineSwitch
               value={common.query.fetchHighResolutionData}
-              onChange={event => updateFetchHighResolutionDataStateInQueryParams(event.currentTarget.checked)}
+              onChange={event => handleFetchHighResolutionDataStateUpdate(event.currentTarget.checked)}
               // onChange={event => common.handleQueryChange({ ...common.query, fetchHighResolutionData: event.currentTarget.checked }, true)}
             ></InlineSwitch>
           </InlineField>
