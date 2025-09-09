@@ -143,7 +143,6 @@ export const DataFrameQueryEditor = (props: Props) => {
             <InlineSwitch
               value={common.query.fetchHighResolutionData}
               onChange={event => handleFetchHighResolutionDataStateUpdate(event.currentTarget.checked)}
-              // onChange={event => common.handleQueryChange({ ...common.query, fetchHighResolutionData: event.currentTarget.checked }, true)}
             ></InlineSwitch>
           </InlineField>
         </>
