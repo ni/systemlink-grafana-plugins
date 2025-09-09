@@ -34,7 +34,7 @@ const fakeLocations: LocationModel[] = [
     {
         id: 'location-2',
         name: 'Location 2'
-    },
+    }
 ]
 
 let assetDatasourceOptions = {
