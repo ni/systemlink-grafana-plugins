@@ -3,6 +3,7 @@ import { QBField } from 'core/types';
 
 export enum AlarmsQueryBuilderFieldNames {
   Acknowledged = 'acknowledged',
+  AcknowledgedOn = 'acknowledgedAt',
   Active = 'active',
   AlarmID = 'alarmId',
   AlarmName = 'displayName',
@@ -11,7 +12,10 @@ export enum AlarmsQueryBuilderFieldNames {
   CreatedBy = 'createdBy',
   CurrentSeverity = 'currentSeverityLevel',
   Description = 'description',
+  FirstOccurrence = 'occurredAt',
   HighestSeverity = 'highestSeverityLevel',
+  Keyword = 'keywords',
+  Properties = 'properties',
   ResourceType = 'resourceType',
 }
 
@@ -34,6 +38,14 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
         { label: 'False', value: 'false' },
       ],
     },
+  },
+  ACKNOWLEDGED_ON: {
+    label: 'Acknowledged on',
+    dataField: AlarmsQueryBuilderFieldNames.AcknowledgedOn,
+    filterOperations: [
+      QueryBuilderOperations.DATE_TIME_IS_BEFORE.name,
+      QueryBuilderOperations.DATE_TIME_IS_AFTER.name,
+    ],
   },
   ACTIVE: {
     label: 'Active',
@@ -123,6 +135,14 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
       QueryBuilderOperations.IS_NOT_BLANK.name,
     ],
   },
+  FIRST_OCCURRENCE: {
+    label: 'First occurrence',
+    dataField: AlarmsQueryBuilderFieldNames.FirstOccurrence,
+    filterOperations: [
+      QueryBuilderOperations.DATE_TIME_IS_BEFORE.name,
+      QueryBuilderOperations.DATE_TIME_IS_AFTER.name,
+    ],
+  },
   HIGHEST_SEVERITY: {
     label: 'Highest severity',
     dataField: AlarmsQueryBuilderFieldNames.HighestSeverity,
@@ -130,6 +150,27 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
     lookup: {
       dataSource: SEVERITY_LEVELS,
     },
+  },
+  KEYWORD: {
+    label: 'Keyword',
+    dataField: AlarmsQueryBuilderFieldNames.Keyword,
+    filterOperations: [
+      QueryBuilderOperations.LIST_EQUALS.name,
+      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.LIST_CONTAINS.name,
+      QueryBuilderOperations.LIST_DOES_NOT_CONTAIN.name,
+    ],
+  },
+  PROPERTIES: {
+    label: 'Properties',
+    dataField: AlarmsQueryBuilderFieldNames.Properties,
+    dataType: 'object',
+    filterOperations: [
+      QueryBuilderOperations.KEY_VALUE_MATCH.name,
+      QueryBuilderOperations.KEY_VALUE_DOES_NOT_MATCH.name,
+      QueryBuilderOperations.KEY_VALUE_CONTAINS.name,
+      QueryBuilderOperations.KEY_VALUE_DOES_NOT_CONTAINS.name,
+    ],
   },
   RESOURCE_TYPE: {
     label: 'Resource type',
@@ -145,6 +186,7 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
 
 export const AlarmsQueryBuilderStaticFields: QBField[] = [
   AlarmsQueryBuilderFields.ACKNOWLEDGED,
+  AlarmsQueryBuilderFields.ACKNOWLEDGED_ON,
   AlarmsQueryBuilderFields.ACTIVE,
   AlarmsQueryBuilderFields.ALARM_ID,
   AlarmsQueryBuilderFields.ALARM_NAME,
@@ -153,6 +195,9 @@ export const AlarmsQueryBuilderStaticFields: QBField[] = [
   AlarmsQueryBuilderFields.CREATED_BY,
   AlarmsQueryBuilderFields.CURRENT_SEVERITY,
   AlarmsQueryBuilderFields.DESCRIPTION,
+  AlarmsQueryBuilderFields.FIRST_OCCURRENCE,
   AlarmsQueryBuilderFields.HIGHEST_SEVERITY,
+  AlarmsQueryBuilderFields.KEYWORD,
+  AlarmsQueryBuilderFields.PROPERTIES,
   AlarmsQueryBuilderFields.RESOURCE_TYPE,
 ];
