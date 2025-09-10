@@ -1,7 +1,10 @@
 import { DataSourceBase } from "core/DataSourceBase";
-import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents } from "@grafana/data";
+import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, ScopedVars } from "@grafana/data";
 import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from "./types/types";
 import { extractErrorInfo } from "core/errors";
+import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
+import { AlarmsQueryBuilderFieldNames } from "./constants/AlarmsQueryBuilder.constants";
+import { QueryBuilderOperations } from "core/query-builder.constants";
 import { QUERY_ALARMS_RELATIVE_PATH } from "./constants/QueryAlarms.constants";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
@@ -27,6 +30,61 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
 
       throw new Error(errorMessage);
     }
+  }
+
+  protected transformAlarmsQuery(
+    queryField: string | undefined,
+    scopedVars?: ScopedVars
+  ): string | undefined {
+    return queryField
+      ? transformComputedFieldsQuery(this.templateSrv.replace(queryField, scopedVars), this.alarmsComputedDataFields)
+      : undefined;
+  }
+
+  private isTimeField(field: AlarmsQueryBuilderFieldNames): boolean {
+    const timeFields = [
+      AlarmsQueryBuilderFieldNames.AcknowledgedOn,
+      AlarmsQueryBuilderFieldNames.FirstOccurrence,
+    ];
+    return timeFields.includes(field);
+  }
+
+  private readonly alarmsComputedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(AlarmsQueryBuilderFieldNames).map(field => [
+      field,
+      this.isTimeField(field) ? this.timeFieldsQuery(field) : this.multipleValuesQuery(field),
+    ])
+  );
+
+  private multipleValuesQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string, _options?: any) => {
+      const isMultiSelect = this.isMultiSelectValue(value);
+      const valuesArray = this.getMultipleValuesArray(value);
+      const logicalOperator = this.getLogicalOperator(operation);
+
+      return isMultiSelect ? `(${valuesArray
+        .map(val => `${field} ${operation} "${val}"`)
+        .join(` ${logicalOperator} `)})` : `${field} ${operation} "${value}"`;
+    }
+  }
+
+  private timeFieldsQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string): string => {
+      const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
+      return `${field} ${operation} "${formattedValue}"`;
+    };
+  }
+
+  private isMultiSelectValue(value: string): boolean {
+    return value.startsWith('{') && value.endsWith('}');
+  }
+
+  private getMultipleValuesArray(value: string): string[] {
+    return value.replace(/({|})/g, '').split(',');
+  }
+
+  private getLogicalOperator(operation: string): string {
+    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
   }
 
   private getStatusCodeErrorMessage(errorDetails: { statusCode: string; message: string }): string {
