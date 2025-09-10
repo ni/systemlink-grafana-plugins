@@ -9,6 +9,7 @@ import { AssetDataSource } from 'datasources/asset/AssetDataSource';
 import userEvent from '@testing-library/user-event';
 import { select } from 'react-select-event';
 import { AssetVariableQuery } from 'datasources/asset/types/AssetVariableQuery.types';
+import { LocationModel } from 'datasources/asset/types/ListLocations.types';
 
 const fakeSystems: SystemProperties[] = [
     {
@@ -22,6 +23,17 @@ const fakeSystems: SystemProperties[] = [
         workspace: '2',
     },
 ];
+
+const fakeLocations: LocationModel[] = [
+    {
+        id: 'location-1',
+        name: 'Location 1'
+    },
+    {
+        id: 'location-2',
+        name: 'Location 2'
+    }
+]
 
 const fakeWorkspaces: Workspace[] = [
     {
@@ -44,6 +56,9 @@ class FakeAssetsSource extends ListAssetsDataSource {
     }
     querySystems(filter?: string, projection?: string[]): Promise<SystemProperties[]> {
         return Promise.resolve(fakeSystems);
+    }
+    getLocations(): Promise<LocationModel[]> {
+        return Promise.resolve(fakeLocations);
     }
 }
 

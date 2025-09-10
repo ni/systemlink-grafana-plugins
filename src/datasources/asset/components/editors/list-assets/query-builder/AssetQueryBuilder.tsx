@@ -15,12 +15,14 @@ import { SystemProperties } from 'datasources/system/types';
 import { QBField } from '../../../../types/CalibrationForecastQuery.types';
 import { ListAssetsFields, ListAssetsStaticFields } from '../../../../constants/ListAssets.constants';
 import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
+import { LocationModel } from 'datasources/asset/types/ListLocations.types';
 
 type AssetCalibrationQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     filter?: string;
     workspaces: Workspace[];
     systems: SystemProperties[];
+    locations: LocationModel[];
     globalVariableOptions: QueryBuilderOption[];
     areDependenciesLoaded: boolean;
   };
@@ -30,6 +32,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
   onChange,
   workspaces,
   systems,
+  locations,
   globalVariableOptions,
   areDependenciesLoaded,
 }) => {
@@ -68,10 +71,11 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
         dataSource: [
           ...(locationField.lookup?.dataSource || []),
           ...systems.map(({ id, alias }) => (filterXSSField({ label: alias || id, value: id }))),
+          ...locations.map(({ id, name }) => (filterXSSField({ label: name || id, value: id }))),
         ],
       },
     };
-  }, [systems]);
+  }, [systems, locations]);
 
   const calibrationDueDateField = useMemo(() => {
     const calibrationField = ListAssetsFields.CALIBRATION_DUE_DATE;

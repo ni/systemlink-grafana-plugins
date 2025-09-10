@@ -15,17 +15,19 @@ import { SystemProperties } from 'datasources/system/types';
 import { QBField } from '../../../../types/CalibrationForecastQuery.types';
 import { AssetCalibrationFields, AssetCalibrationStaticFields } from '../../../../constants/CalibrationForecastQuery.constants';
 import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
+import { LocationModel } from 'datasources/asset/types/ListLocations.types';
 
 type CalibrationForecastQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     filter?: string;
     workspaces: Workspace[];
     systems: SystemProperties[];
+    locations: LocationModel[];
     globalVariableOptions: QueryBuilderOption[];
     areDependenciesLoaded: boolean;
   };
 
-export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryBuilderProps> = ({ filter, onChange, workspaces, systems, globalVariableOptions, areDependenciesLoaded }) => {
+export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryBuilderProps> = ({ filter, onChange, workspaces, systems, locations, globalVariableOptions, areDependenciesLoaded }) => {
   const theme = useTheme2();
   document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
 
@@ -60,11 +62,12 @@ export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryB
         ...locationField.lookup,
         dataSource: [
           ...locationField.lookup?.dataSource || [],
-          ...systems.map(({ id, alias }) => (filterXSSField({ label: alias || id, value: id })))
+          ...systems.map(({ id, alias }) => (filterXSSField({ label: alias || id, value: id }))),
+          ...locations.map(({ id, name }) => (filterXSSField({ label: name, value: id })))
         ]
       }
     };
-  }, [systems]);
+  }, [systems, locations]);
 
   useEffect(() => {
     if (areDependenciesLoaded) {
