@@ -1,3 +1,9 @@
+## [4.8.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.7.1...v4.8.0) (2025-09-10)
+
+### Features
+
+* **Assets:** Get locations in assets query builder ([#402](https://github.com/ni/systemlink-grafana-plugins/issues/402)) ([8668651](https://github.com/ni/systemlink-grafana-plugins/commit/86686510cdb3d9fea37861722ab4674b87745698))
+
 ## [4.7.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.7.0...v4.7.1) (2025-09-05)
 
 ### Bug Fixes
