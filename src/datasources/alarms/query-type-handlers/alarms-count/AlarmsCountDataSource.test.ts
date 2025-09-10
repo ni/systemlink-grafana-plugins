@@ -31,14 +31,14 @@ describe('AlarmsCountDataSource', () => {
     const query = { refId: 'A' };
     const dataQueryRequest = {} as DataQueryRequest;
 
-    it('should call query alarms API with take as 1 and returnCount as true', async () => {
+    it('should call the query alarms API with an empty filter, take set to 1 and returnCount set to true by default', async () => {
       await datastore.runQuery(query, dataQueryRequest);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           url: expect.stringContaining('/nialarm/v1/query-instances-with-filter'),
           method: 'POST',
-          data: { take: 1, returnCount: true },
+          data: { filter: '', take: 1, returnCount: true },
           showErrorAlert: false
         })
       );
