@@ -19,6 +19,11 @@ const EXTENDED_STRING_FILTER_OPERATIONS = [
   QueryBuilderOperations.IS_NOT_BLANK.name,
 ];
 
+const DATE_TIME_FILTER_OPERATIONS = [
+  QueryBuilderOperations.DATE_TIME_IS_BEFORE.name,
+  QueryBuilderOperations.DATE_TIME_IS_AFTER.name,
+];
+
 export const SEVERITY_LEVELS = [
   { label: 'Low', value: '1' },
   { label: 'Moderate', value: '2' },
@@ -30,6 +35,12 @@ export const SEVERITY_LEVELS = [
 export const BOOLEAN_OPTIONS = [
   { label: 'True', value: 'true' },
   { label: 'False', value: 'false' },
+];
+
+export const TIME_OPTIONS = [
+  { label: 'From', value: '${__from:date}' },
+  { label: 'To', value: '${__to:date}' },
+  { label: 'Now', value: '${__now:date}' },
 ];
 
 export const AlarmsQueryBuilderFields: Record<string, QBField> = {
@@ -44,10 +55,7 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
   ACKNOWLEDGED_ON: {
     label: 'Acknowledged on',
     dataField: 'acknowledgedAt',
-    filterOperations: [
-      QueryBuilderOperations.DATE_TIME_IS_BEFORE.name,
-      QueryBuilderOperations.DATE_TIME_IS_AFTER.name,
-    ],
+    filterOperations: DATE_TIME_FILTER_OPERATIONS,
   },
   ACTIVE: {
     label: 'Active',
@@ -101,10 +109,7 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
   FIRST_OCCURRENCE: {
     label: 'First occurrence',
     dataField: 'occurredAt',
-    filterOperations: [
-      QueryBuilderOperations.DATE_TIME_IS_BEFORE.name,
-      QueryBuilderOperations.DATE_TIME_IS_AFTER.name,
-    ],
+    filterOperations: DATE_TIME_FILTER_OPERATIONS,
   },
   HIGHEST_SEVERITY: {
     label: 'Highest severity',
@@ -144,6 +149,7 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
 
 export const AlarmsQueryBuilderStaticFields: QBField[] = [
   AlarmsQueryBuilderFields.ACKNOWLEDGED,
+  AlarmsQueryBuilderFields.ACKNOWLEDGED_ON,
   AlarmsQueryBuilderFields.ACTIVE,
   AlarmsQueryBuilderFields.ALARM_ID,
   AlarmsQueryBuilderFields.ALARM_NAME,
@@ -152,6 +158,9 @@ export const AlarmsQueryBuilderStaticFields: QBField[] = [
   AlarmsQueryBuilderFields.CREATED_BY,
   AlarmsQueryBuilderFields.CURRENT_SEVERITY,
   AlarmsQueryBuilderFields.DESCRIPTION,
+  AlarmsQueryBuilderFields.FIRST_OCCURRENCE,
   AlarmsQueryBuilderFields.HIGHEST_SEVERITY,
+  AlarmsQueryBuilderFields.KEYWORD,
+  AlarmsQueryBuilderFields.PROPERTIES,
   AlarmsQueryBuilderFields.RESOURCE_TYPE,
 ];

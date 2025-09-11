@@ -3,7 +3,7 @@ import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder
 import { expressionBuilderCallbackWithRef, expressionReaderCallbackWithRef } from 'core/query-builder.utils';
 import { QBField, QueryBuilderOption } from 'core/types';
 import { filterXSSField } from 'core/utils';
-import { AlarmsQueryBuilderFields, AlarmsQueryBuilderStaticFields } from 'datasources/alarms/constants/AlarmsQueryBuilder.constants';
+import { AlarmsQueryBuilderFields, AlarmsQueryBuilderStaticFields, TIME_OPTIONS } from 'datasources/alarms/constants/AlarmsQueryBuilder.constants';
 import React, { useState, useEffect, useMemo } from 'react';
 import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 
@@ -40,15 +40,9 @@ export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, 
   };
 
   const timeFields = useMemo(() => {
-    const timeOptions = [
-      { label: 'From', value: '${__from:date}' },
-      { label: 'To', value: '${__to:date}' },
-      { label: 'Now', value: '${__now:date}' },
-    ];
-
     return [
-      addOptionsToLookup(AlarmsQueryBuilderFields.ACKNOWLEDGED_ON, timeOptions),
-      addOptionsToLookup(AlarmsQueryBuilderFields.FIRST_OCCURRENCE, timeOptions),
+      addOptionsToLookup(AlarmsQueryBuilderFields.ACKNOWLEDGED_ON, TIME_OPTIONS),
+      addOptionsToLookup(AlarmsQueryBuilderFields.FIRST_OCCURRENCE, TIME_OPTIONS),
     ];
   }, []);
 
@@ -69,15 +63,9 @@ export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, 
       return field;
     })
 
-    const sortedFields = updatedFields.sort((a, b) => {
-      const labelA = a.label ?? '';
-      const labelB = b.label ?? '';
-      return labelA.localeCompare(labelB);
-    });
+    setFields(updatedFields);
 
-    setFields(sortedFields);
-
-    const options = sortedFields.reduce((accumulator, fieldConfig) => {
+    const options = updatedFields.reduce((accumulator, fieldConfig) => {
       if (fieldConfig.lookup) {
         accumulator[fieldConfig.dataField!] = fieldConfig.lookup.dataSource;
       }

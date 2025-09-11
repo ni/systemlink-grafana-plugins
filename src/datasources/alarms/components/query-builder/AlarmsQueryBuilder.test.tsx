@@ -2,17 +2,17 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { AlarmsQueryBuilder } from './AlarmsQueryBuilder';
 import { QueryBuilderOption } from 'core/types';
-import { BOOLEAN_OPTIONS, SEVERITY_LEVELS } from 'datasources/alarms/constants/AlarmsQueryBuilder.constants';
+import { BOOLEAN_OPTIONS, SEVERITY_LEVELS, TIME_OPTIONS } from 'datasources/alarms/constants/AlarmsQueryBuilder.constants';
 
 describe('AlarmsQueryBuilder', () => {
-  function renderElement(filter: string, globalVariableOptions: QueryBuilderOption[] = []) {
+  function renderElement (filter: string, globalVariableOptions: QueryBuilderOption[] = []) {
     const reactNode = React.createElement(AlarmsQueryBuilder, { filter, globalVariableOptions, onChange: jest.fn() });
     const renderResult = render(reactNode);
     const containerClass = 'smart-filter-group-condition-container';
 
     return {
       renderResult,
-      conditionsContainer: renderResult.container.getElementsByClassName(`${containerClass}`),
+      conditionsContainer: renderResult.container.getElementsByClassName(`${ containerClass }`),
     };
   }
 
@@ -24,56 +24,56 @@ describe('AlarmsQueryBuilder', () => {
   });
 
   BOOLEAN_OPTIONS.forEach(({ label, value }) => {
-    it(`should select ${label} for acknowledged in query builder`, () => {
-        const { conditionsContainer } = renderElement(`acknowledged = \"${value}\"`);
+    it(`should select ${ label } for acknowledged in query builder`, () => {
+      const { conditionsContainer } = renderElement(`acknowledged = \"${ value }\"`);
 
-        expect(conditionsContainer?.length).toBe(1);
-        const conditionText = conditionsContainer.item(0)?.textContent;
-        expect(conditionText).toContain('Acknowledged');
-        expect(conditionText).toContain('equals');
-        expect(conditionText).toContain(label);       
-    });
-    
-    it(`should select ${label} for active in query builder`, () => {
-        const { conditionsContainer } = renderElement(`active = \"${value}\"`);
-
-        expect(conditionsContainer?.length).toBe(1);
-        const conditionText = conditionsContainer.item(0)?.textContent;
-        expect(conditionText).toContain('Active');
-        expect(conditionText).toContain('equals');
-        expect(conditionText).toContain(label);
+      expect(conditionsContainer?.length).toBe(1);
+      const conditionText = conditionsContainer.item(0)?.textContent;
+      expect(conditionText).toContain('Acknowledged');
+      expect(conditionText).toContain('equals');
+      expect(conditionText).toContain(label);
     });
 
-    it(`should select ${label} for clear in query builder`, () => {
-        const { conditionsContainer } = renderElement(`clear = \"${value}\"`);
+    it(`should select ${ label } for active in query builder`, () => {
+      const { conditionsContainer } = renderElement(`active = \"${ value }\"`);
 
-        expect(conditionsContainer?.length).toBe(1);
-        const conditionText = conditionsContainer.item(0)?.textContent;
-        expect(conditionText).toContain('Clear');
-        expect(conditionText).toContain('equals');
-        expect(conditionText).toContain(label);
+      expect(conditionsContainer?.length).toBe(1);
+      const conditionText = conditionsContainer.item(0)?.textContent;
+      expect(conditionText).toContain('Active');
+      expect(conditionText).toContain('equals');
+      expect(conditionText).toContain(label);
+    });
+
+    it(`should select ${ label } for clear in query builder`, () => {
+      const { conditionsContainer } = renderElement(`clear = \"${ value }\"`);
+
+      expect(conditionsContainer?.length).toBe(1);
+      const conditionText = conditionsContainer.item(0)?.textContent;
+      expect(conditionText).toContain('Clear');
+      expect(conditionText).toContain('equals');
+      expect(conditionText).toContain(label);
     });
   });
 
-  SEVERITY_LEVELS.forEach(({label, value}) => {
-    it(`should select ${label} for current severity in query builder`, () => {
-        const { conditionsContainer } = renderElement(`currentSeverityLevel = "${value}"`);
+  SEVERITY_LEVELS.forEach(({ label, value }) => {
+    it(`should select ${ label } for current severity in query builder`, () => {
+      const { conditionsContainer } = renderElement(`currentSeverityLevel = "${ value }"`);
 
-        expect(conditionsContainer?.length).toBe(1);
-        const conditionText = conditionsContainer.item(0)?.textContent;
-        expect(conditionText).toContain('Current severity');
-        expect(conditionText).toContain('equals');
-        expect(conditionText).toContain(label);
+      expect(conditionsContainer?.length).toBe(1);
+      const conditionText = conditionsContainer.item(0)?.textContent;
+      expect(conditionText).toContain('Current severity');
+      expect(conditionText).toContain('equals');
+      expect(conditionText).toContain(label);
     });
 
-    it(`should select ${label} for highest severity in query builder`, () => {
-        const { conditionsContainer } = renderElement(`highestSeverityLevel = "${value}"`);
+    it(`should select ${ label } for highest severity in query builder`, () => {
+      const { conditionsContainer } = renderElement(`highestSeverityLevel = "${ value }"`);
 
-        expect(conditionsContainer?.length).toBe(1);
-        const conditionText = conditionsContainer.item(0)?.textContent;
-        expect(conditionText).toContain('Highest severity');
-        expect(conditionText).toContain('equals');
-        expect(conditionText).toContain(label);
+      expect(conditionsContainer?.length).toBe(1);
+      const conditionText = conditionsContainer.item(0)?.textContent;
+      expect(conditionText).toContain('Highest severity');
+      expect(conditionText).toContain('equals');
+      expect(conditionText).toContain(label);
     });
   });
 
@@ -137,8 +137,8 @@ describe('AlarmsQueryBuilder', () => {
     expect(conditionText).toContain('Tag');
   });
 
-    [[ '${__from:date}', 'From' ],[ '${__to:date}', 'To' ],[ '${__now:date}', 'Now' ]].forEach(([ value, label ]) => {
-    it(`should select ${label} for acknowledged on`, () => {
+  TIME_OPTIONS.forEach(({ label, value }) => {
+    it(`should select ${ label } for acknowledged on`, () => {
       const { conditionsContainer } = renderElement(`acknowledgedAt > \"${ value }\"`, []);
 
       expect(conditionsContainer?.length).toBe(1);
@@ -147,7 +147,7 @@ describe('AlarmsQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain(label);
     });
 
-    it(`should select ${label} for first occurrence`, () => {
+    it(`should select ${ label } for first occurrence`, () => {
       const { conditionsContainer } = renderElement(`occurredAt > \"${ value }\"`, []);
 
       expect(conditionsContainer?.length).toBe(1);
@@ -179,7 +179,7 @@ describe('AlarmsQueryBuilder', () => {
 
   it('should select global variable option', () => {
     const globalVariableOption = { label: 'Global variable', value: '$global_variable' };
-    const { conditionsContainer } = renderElement('currentSeverityLevel = \"$global_variable\"', [globalVariableOption]);
+    const { conditionsContainer } = renderElement('currentSeverityLevel = \"$global_variable\"', [ globalVariableOption ]);
 
     expect(conditionsContainer?.length).toBe(1);
     const conditionText = conditionsContainer.item(0)?.textContent;
