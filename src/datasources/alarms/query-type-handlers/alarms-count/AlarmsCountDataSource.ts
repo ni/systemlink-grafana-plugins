@@ -5,7 +5,7 @@ import { MINIMUM_TAKE } from 'datasources/alarms/constants/QueryAlarms.constants
 import { AlarmsCountQuery } from 'datasources/alarms/types/AlarmsCount.types';
 
 export class AlarmsCountDataSource extends AlarmsDataSourceCore {
-  defaultQuery = defaultAlarmsCountQuery;
+  readonly defaultQuery = defaultAlarmsCountQuery;
 
   async runQuery(query: AlarmsCountQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
     const alarmsCount = await this.queryAlarmsCount();
@@ -17,7 +17,7 @@ export class AlarmsCountDataSource extends AlarmsDataSourceCore {
     };
   }
 
-  async queryAlarmsCount(): Promise<number> {
+  private async queryAlarmsCount(): Promise<number> {
     const requestBody = {
       take: MINIMUM_TAKE,
       returnCount: true,

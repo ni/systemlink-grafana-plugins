@@ -4,17 +4,17 @@ import { AlarmsQuery, QueryAlarmsRequestBody, QueryAlarmsResponse } from "./type
 import { extractErrorInfo } from "core/errors";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
-  baseUrl = `${this.instanceSettings.url}/nialarm/v1`;
-  queryAlarmsUrl = `${this.baseUrl}/query-instances-with-filter`;
+  private readonly baseUrl = `${this.instanceSettings.url}/nialarm/v1`;
+  private readonly queryAlarmsUrl = `${this.baseUrl}/query-instances-with-filter`;
 
   abstract runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
-  async queryAlarms(alarmsRequestBody: QueryAlarmsRequestBody): Promise<QueryAlarmsResponse> {
+  protected async queryAlarms(alarmsRequestBody: QueryAlarmsRequestBody): Promise<QueryAlarmsResponse> {
     try {
       return await this.post<QueryAlarmsResponse>(
         this.queryAlarmsUrl,
         alarmsRequestBody,
-        { showErrorAlert: false } // suppress default error alert since we handle errors manually
+        { showErrorAlert: false }
       );
     } catch (error) {
       const errorDetails = extractErrorInfo((error as Error).message);

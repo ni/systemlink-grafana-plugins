@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { QueryEditorProps } from '@grafana/data';
 import { AlarmsDataSource } from '../AlarmsDataSource';
 import { AlarmsQuery, QueryType } from '../types/types';
@@ -19,10 +19,15 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
     [onChange, onRunQuery]
   );
 
+  useEffect(() => {
+    handleQueryChange(query, true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <>
       {query.queryType === QueryType.AlarmsCount && (
-        <AlarmsCountQueryEditor query={query} handleQueryChange={handleQueryChange} />
+        <AlarmsCountQueryEditor query={query}/>
       )}
     </>
   );

@@ -1,13 +1,12 @@
 import { AlarmsDataSourceCore } from './AlarmsDataSourceCore';
 import { DataFrameDTO, DataQueryRequest } from '@grafana/data';
-import { AlarmsQuery, QueryType } from './types/types';
+import { AlarmsQuery, QueryAlarmsRequestBody, QueryType } from './types/types';
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 
 class TestAlarmsDataSource extends AlarmsDataSourceCore {
   async runQuery(query: AlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
-    await this.queryAlarms({});
 
     return {
       refId: query.refId,
@@ -15,7 +14,11 @@ class TestAlarmsDataSource extends AlarmsDataSourceCore {
     };
   }
 
-  defaultQuery = {
+  async queryAlarmsWrapper(query: QueryAlarmsRequestBody) {
+    return this.queryAlarms(query);
+  }
+
+  readonly defaultQuery = {
     queryType: QueryType.AlarmsCount,
   };
 }
@@ -27,20 +30,13 @@ describe('AlarmsDataSourceCore', () => {
     [datastore, backendServer] = setupDataSource(TestAlarmsDataSource);
   });
 
-  it('should initialize baseUrl and queryAlarms url properties', () => {
-    expect(datastore.baseUrl).toBe(`${datastore.instanceSettings.url}/nialarm/v1`);
-    expect(datastore.queryAlarmsUrl).toEqual(
-      `${datastore.instanceSettings.url}/nialarm/v1/query-instances-with-filter`
-    );
-  });
-
   describe('queryAlarms', () => {
     it('should call the query alarms API', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nialarm/v1/query-instances-with-filter' }))
         .mockReturnValue(await Promise.resolve(createFetchResponse({ totalCount: 10 })));
 
-      const response = await datastore.queryAlarms({ take: 1, returnCount: true });
+      const response = await datastore.queryAlarmsWrapper({ take: 1, returnCount: true });
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -83,7 +79,7 @@ describe('AlarmsDataSourceCore', () => {
             .calledWith(requestMatching({ url: '/nialarm/v1/query-instances-with-filter' }))
             .mockReturnValueOnce(createFetchError(status));
 
-          await expect(datastore.queryAlarms({})).rejects.toThrow(expectedErrorMessage);
+          await expect(datastore.queryAlarmsWrapper({})).rejects.toThrow(expectedErrorMessage);
 
           expect(publishMock).toHaveBeenCalledWith({
             type: 'alert-error',
@@ -98,7 +94,7 @@ describe('AlarmsDataSourceCore', () => {
           throw new Error('Request failed with status code: 429');
         });
 
-        await expect(datastore.queryAlarms({})).rejects.toThrow(expectedErrorMessage);
+        await expect(datastore.queryAlarmsWrapper({})).rejects.toThrow(expectedErrorMessage);
 
         expect(publishMock).toHaveBeenCalledWith({
           type: 'alert-error',
@@ -114,7 +110,7 @@ describe('AlarmsDataSourceCore', () => {
             throw new Error('Error');
           });
 
-        await expect(datastore.queryAlarms({})).rejects.toThrow(expectedErrorMessage);
+        await expect(datastore.queryAlarmsWrapper({})).rejects.toThrow(expectedErrorMessage);
 
         expect(publishMock).toHaveBeenCalledWith({
           type: 'alert-error',
