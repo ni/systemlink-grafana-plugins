@@ -9,8 +9,6 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
 
   abstract runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
-  abstract shouldRunQuery(query: AlarmsQuery): boolean;
-
   async queryAlarms(alarmsRequestBody: QueryAlarmsRequestBody): Promise<QueryAlarmsResponse> {
     try {
       return await this.post<QueryAlarmsResponse>(
@@ -55,6 +53,10 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
     return errorMessage;
   }
 
+  shouldRunQuery(query: AlarmsQuery): boolean {
+    return !query.hide;
+  }
+  
   testDatasource(): Promise<TestDataSourceResponse> {
     throw new Error("Method not implemented.");
   }

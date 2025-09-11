@@ -26,8 +26,4 @@ export class AlarmsCountDataSource extends AlarmsDataSourceCore {
     const response = await this.queryAlarms(requestBody);
     return response.totalCount ?? 0;
   }
-
-  shouldRunQuery(_: AlarmsCountQuery): boolean {
-    return true;
-  }
 }

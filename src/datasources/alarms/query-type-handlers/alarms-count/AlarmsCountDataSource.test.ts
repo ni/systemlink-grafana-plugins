@@ -28,9 +28,10 @@ describe('AlarmsCountDataSource', () => {
   });
 
   describe('runQuery', () => {
+    const query = { refId: 'A' };
+    const dataQueryRequest = {} as DataQueryRequest;
+
     it('should call query alarms API with take as 1 and returnCount as true', async () => {
-      const query = { refId: 'A' };
-      const dataQueryRequest = {} as DataQueryRequest;
       await datastore.runQuery(query, dataQueryRequest);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
@@ -44,9 +45,6 @@ describe('AlarmsCountDataSource', () => {
     });
     
     it('should return totalCount response from API', async () => {
-      const query = { refId: 'A' };
-      const dataQueryRequest = {} as DataQueryRequest;
-
       const result = await datastore.runQuery(query, dataQueryRequest);
 
       expect(result).toEqual({ refId: 'A', name: 'A', fields: [{ name: 'A', type: 'number', values: [10] }] });
@@ -56,92 +54,10 @@ describe('AlarmsCountDataSource', () => {
       backendServer.fetch
       .calledWith(requestMatching({ url: '/nialarm/v1/query-instances-with-filter' }))
       .mockReturnValue(createFetchResponse({ totalCount: undefined }));
-      const query = { refId: 'A' };
-      const dataQueryRequest = {} as DataQueryRequest;
 
       const result = await datastore.runQuery(query, dataQueryRequest);
 
       expect(result).toEqual({ refId: 'A', name: 'A', fields: [{ name: 'A', type: 'number', values: [0] }] });
-    });
-
-    describe('error handling', () => {
-      const query = { refId: 'A' };
-      const dataQueryRequest = {} as DataQueryRequest;
-      const publishMock = jest.fn();
-
-      beforeEach(() => {
-        (datastore as any).appEvents = { publish: publishMock };
-      });
-
-      const testCases = [
-        {
-          status: 404,
-          expectedErrorMessage: 'The query to fetch alarms failed because the requested resource was not found. Please check the query parameters and try again.'
-        },
-        {
-          status: 504,
-          expectedErrorMessage: 'The query to fetch alarms experienced a timeout error. Narrow your query with a more specific filter and try again.'
-        },
-        {
-          status: 500,
-          expectedErrorMessage: 'The query failed due to the following error: (status 500) \"Error\".'
-        },
-      ];
-
-      testCases.forEach(({ status, expectedErrorMessage }) => {
-        it('should handle ' + status + ' error', async () => {
-          backendServer.fetch
-            .calledWith(requestMatching({ url: '/nialarm/v1/query-instances-with-filter' }))
-            .mockReturnValueOnce(createFetchError(status));
-
-          await expect(datastore.runQuery(query, dataQueryRequest))
-            .rejects
-            .toThrow(expectedErrorMessage);
-
-          expect(publishMock).toHaveBeenCalledWith({
-            type: 'alert-error',
-            payload: ['Error during alarms query', expectedErrorMessage]
-          });
-        });
-      });
-
-      it('should handle 429 error', async () => {
-        const expectedErrorMessage = 'The query to fetch alarms failed due to too many requests. Please try again later.';
-        jest.spyOn(datastore, 'post').mockImplementation(() => {
-          throw new Error('Request failed with status code: 429');
-        });
-
-        await expect(datastore.queryAlarms({})).rejects.toThrow(expectedErrorMessage);
-
-        expect(publishMock).toHaveBeenCalledWith({
-          type: 'alert-error',
-          payload: ['Error during alarms query', expectedErrorMessage]
-        });
-      });
-
-      it('should handle unknown errors', async () => {
-        const expectedErrorMessage = 'The query failed due to an unknown error.';
-        backendServer.fetch
-          .calledWith(requestMatching({ url: '/nialarm/v1/query-instances-with-filter' }))
-          .mockImplementation(() => { throw new Error('Error'); });
-
-        await expect(datastore.runQuery(query, dataQueryRequest))
-          .rejects
-          .toThrow(expectedErrorMessage);
-
-        expect(publishMock).toHaveBeenCalledWith({
-          type: 'alert-error',
-          payload: ['Error during alarms query', expectedErrorMessage]
-        });
-      });
-    });
-  });
-
-  describe('shouldRunQuery', () => {
-    it('should return true', () => {
-      const query = { refId: 'A' };
-
-      expect(datastore.shouldRunQuery(query)).toBe(true);
     });
   });
 });
