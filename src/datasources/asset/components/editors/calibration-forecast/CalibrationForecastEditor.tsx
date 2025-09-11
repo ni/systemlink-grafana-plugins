@@ -15,6 +15,7 @@ import { FloatingError } from '../../../../../core/errors';
 import { enumToOptions } from '../../../../../core/utils';
 import { CalibrationForecastQueryBuilder } from './query-builder/CalibrationForecastQueryBuilder';
 import './CalibrationForecastEditor.scss';
+import { LocationModel } from 'datasources/asset/types/ListLocations.types';
 
 type Props = {
   query: CalibrationForecastQuery;
@@ -26,12 +27,14 @@ export function CalibrationForecastEditor({ query, handleQueryChange, datasource
   query = datasource.prepareQuery(query) as CalibrationForecastQuery;
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [systems, setSystems] = useState<SystemProperties[]>([]);
+  const [locations, setLocations] = useState<LocationModel[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
 
   useEffect(() => {
-    Promise.all([datasource.areSystemsLoaded$, datasource.areWorkspacesLoaded$]).then(() => {
+    Promise.all([datasource.areSystemsLoaded$, datasource.areWorkspacesLoaded$, datasource.areLocationsLoaded$]).then(() => {
       setWorkspaces(Array.from(datasource.workspacesCache.values()));
       setSystems(Array.from(datasource.systemAliasCache.values()));
+      setLocations(Array.from(datasource.locationCache.values()));
       setAreDependenciesLoaded(true);
     });
   }, [datasource]);
@@ -104,6 +107,7 @@ export function CalibrationForecastEditor({ query, handleQueryChange, datasource
           filter={query.filter}
           workspaces={workspaces}
           systems={systems}
+          locations={locations}
           globalVariableOptions={datasource.globalVariableOptions()}
           areDependenciesLoaded={areDependenciesLoaded}
           onChange={(event: any) => onParameterChange(event)}

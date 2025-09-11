@@ -21,6 +21,7 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
     assetList: datasource.instanceSettings.jsonData?.featureToggles?.assetList ?? AssetFeatureTogglesDefaults.assetList,
     calibrationForecast: datasource.instanceSettings.jsonData?.featureToggles?.calibrationForecast ?? AssetFeatureTogglesDefaults.calibrationForecast,
     assetSummary: datasource.instanceSettings.jsonData?.featureToggles?.assetSummary ?? AssetFeatureTogglesDefaults.assetSummary,
+    locations: datasource.instanceSettings.jsonData?.featureToggles?.locations ?? AssetFeatureTogglesDefaults.locations
   });
 
   const handleQueryChange = useCallback((value: AssetQuery, runQuery = false): void => {

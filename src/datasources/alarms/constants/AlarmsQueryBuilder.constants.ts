@@ -1,25 +1,25 @@
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { QBField } from 'core/types';
 
-export enum AlarmsQueryBuilderFieldNames {
-  Acknowledged = 'acknowledged',
-  AcknowledgedOn = 'acknowledgedAt',
-  Active = 'active',
-  AlarmID = 'alarmId',
-  AlarmName = 'displayName',
-  Channel = 'channel',
-  Clear = 'clear',
-  CreatedBy = 'createdBy',
-  CurrentSeverity = 'currentSeverityLevel',
-  Description = 'description',
-  FirstOccurrence = 'occurredAt',
-  HighestSeverity = 'highestSeverityLevel',
-  Keyword = 'keywords',
-  Properties = 'properties',
-  ResourceType = 'resourceType',
-}
+const BOOLEAN_FILTER_OPERATIONS = [
+  QueryBuilderOperations.EQUALS.name, 
+  QueryBuilderOperations.DOES_NOT_EQUAL.name
+];
 
-const SEVERITY_LEVELS = [
+const BASIC_STRING_FILTER_OPERATIONS = [
+  QueryBuilderOperations.EQUALS.name,
+  QueryBuilderOperations.DOES_NOT_EQUAL.name,
+  QueryBuilderOperations.CONTAINS.name,
+  QueryBuilderOperations.DOES_NOT_CONTAIN.name,
+];
+
+const EXTENDED_STRING_FILTER_OPERATIONS = [
+  ...BASIC_STRING_FILTER_OPERATIONS,
+  QueryBuilderOperations.IS_BLANK.name,
+  QueryBuilderOperations.IS_NOT_BLANK.name,
+];
+
+export const SEVERITY_LEVELS = [
   { label: 'Low', value: '1' },
   { label: 'Moderate', value: '2' },
   { label: 'High', value: '3' },
@@ -27,21 +27,23 @@ const SEVERITY_LEVELS = [
   { label: 'Clear', value: '-1' },
 ];
 
+export const BOOLEAN_OPTIONS = [
+  { label: 'True', value: 'true' },
+  { label: 'False', value: 'false' },
+];
+
 export const AlarmsQueryBuilderFields: Record<string, QBField> = {
   ACKNOWLEDGED: {
     label: 'Acknowledged',
-    dataField: AlarmsQueryBuilderFieldNames.Acknowledged,
-    filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
+    dataField: 'acknowledged',
+    filterOperations: BOOLEAN_FILTER_OPERATIONS,
     lookup: {
-      dataSource: [
-        { label: 'True', value: 'true' },
-        { label: 'False', value: 'false' },
-      ],
+      dataSource: BOOLEAN_OPTIONS,
     },
   },
   ACKNOWLEDGED_ON: {
     label: 'Acknowledged on',
-    dataField: AlarmsQueryBuilderFieldNames.AcknowledgedOn,
+    dataField: 'acknowledgedAt',
     filterOperations: [
       QueryBuilderOperations.DATE_TIME_IS_BEFORE.name,
       QueryBuilderOperations.DATE_TIME_IS_AFTER.name,
@@ -49,95 +51,56 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
   },
   ACTIVE: {
     label: 'Active',
-    dataField: AlarmsQueryBuilderFieldNames.Active,
-    filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
+    dataField: 'active',
+    filterOperations: BOOLEAN_FILTER_OPERATIONS,
     lookup: {
-      dataSource: [
-        { label: 'True', value: 'true' },
-        { label: 'False', value: 'false' },
-      ],
+      dataSource: BOOLEAN_OPTIONS,
     },
   },
   ALARM_ID: {
     label: 'Alarm ID',
-    dataField: AlarmsQueryBuilderFieldNames.AlarmID,
-    filterOperations: [
-      QueryBuilderOperations.EQUALS.name,
-      QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.CONTAINS.name,
-      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
-    ],
+    dataField: 'alarmId',
+    filterOperations: BASIC_STRING_FILTER_OPERATIONS,
   },
   ALARM_NAME: {
     label: 'Alarm name',
-    dataField: AlarmsQueryBuilderFieldNames.AlarmName,
-    filterOperations: [
-      QueryBuilderOperations.EQUALS.name,
-      QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.CONTAINS.name,
-      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
-      QueryBuilderOperations.IS_BLANK.name,
-      QueryBuilderOperations.IS_NOT_BLANK.name,
-    ],
+    dataField: 'displayName',
+    filterOperations: EXTENDED_STRING_FILTER_OPERATIONS,
   },
   CHANNEL: {
     label: 'Channel',
-    dataField: AlarmsQueryBuilderFieldNames.Channel,
-    filterOperations: [
-      QueryBuilderOperations.EQUALS.name,
-      QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.CONTAINS.name,
-      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
-      QueryBuilderOperations.IS_BLANK.name,
-      QueryBuilderOperations.IS_NOT_BLANK.name,
-    ],
+    dataField: 'channel',
+    filterOperations: EXTENDED_STRING_FILTER_OPERATIONS,
   },
   CLEAR: {
     label: 'Clear',
-    dataField: AlarmsQueryBuilderFieldNames.Clear,
-    filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
+    dataField: 'clear',
+    filterOperations: BOOLEAN_FILTER_OPERATIONS,
     lookup: {
-      dataSource: [
-        { label: 'True', value: 'true' },
-        { label: 'False', value: 'false' },
-      ],
+      dataSource: BOOLEAN_OPTIONS,
     },
   },
   CREATED_BY: {
     label: 'Created by',
-    dataField: AlarmsQueryBuilderFieldNames.CreatedBy,
-    filterOperations: [
-      QueryBuilderOperations.EQUALS.name,
-      QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.CONTAINS.name,
-      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
-      QueryBuilderOperations.IS_BLANK.name,
-      QueryBuilderOperations.IS_NOT_BLANK.name,
-    ],
+    dataField: 'createdBy',
+    filterOperations: EXTENDED_STRING_FILTER_OPERATIONS,
   },
   CURRENT_SEVERITY: {
     label: 'Current severity',
-    dataField: AlarmsQueryBuilderFieldNames.CurrentSeverity,
-    filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
+    dataField: 'currentSeverityLevel',
+    filterOperations: BOOLEAN_FILTER_OPERATIONS,
     lookup: {
         dataSource: SEVERITY_LEVELS,
     },
   },
   DESCRIPTION: {
     label: 'Description',
-    dataField: AlarmsQueryBuilderFieldNames.Description,
-    filterOperations: [
-      QueryBuilderOperations.EQUALS.name,
-      QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.CONTAINS.name,
-      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
-      QueryBuilderOperations.IS_BLANK.name,
-      QueryBuilderOperations.IS_NOT_BLANK.name,
-    ],
+    dataField: 'description',
+    filterOperations: EXTENDED_STRING_FILTER_OPERATIONS,
   },
   FIRST_OCCURRENCE: {
     label: 'First occurrence',
-    dataField: AlarmsQueryBuilderFieldNames.FirstOccurrence,
+    dataField: 'occurredAt',
     filterOperations: [
       QueryBuilderOperations.DATE_TIME_IS_BEFORE.name,
       QueryBuilderOperations.DATE_TIME_IS_AFTER.name,
@@ -145,15 +108,15 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
   },
   HIGHEST_SEVERITY: {
     label: 'Highest severity',
-    dataField: AlarmsQueryBuilderFieldNames.HighestSeverity,
-    filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
+    dataField: 'highestSeverityLevel',
+    filterOperations: BOOLEAN_FILTER_OPERATIONS,
     lookup: {
       dataSource: SEVERITY_LEVELS,
     },
   },
   KEYWORD: {
     label: 'Keyword',
-    dataField: AlarmsQueryBuilderFieldNames.Keyword,
+    dataField: 'keywords',
     filterOperations: [
       QueryBuilderOperations.LIST_EQUALS.name,
       QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
@@ -163,7 +126,7 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
   },
   PROPERTIES: {
     label: 'Properties',
-    dataField: AlarmsQueryBuilderFieldNames.Properties,
+    dataField: 'properties',
     dataType: 'object',
     filterOperations: [
       QueryBuilderOperations.KEY_VALUE_MATCH.name,
@@ -174,19 +137,13 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
   },
   RESOURCE_TYPE: {
     label: 'Resource type',
-    dataField: AlarmsQueryBuilderFieldNames.ResourceType,
-    filterOperations: [
-      QueryBuilderOperations.EQUALS.name,
-      QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.CONTAINS.name,
-      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
-    ],
+    dataField: 'resourceType',
+    filterOperations: BASIC_STRING_FILTER_OPERATIONS,
   },
 };
 
 export const AlarmsQueryBuilderStaticFields: QBField[] = [
   AlarmsQueryBuilderFields.ACKNOWLEDGED,
-  AlarmsQueryBuilderFields.ACKNOWLEDGED_ON,
   AlarmsQueryBuilderFields.ACTIVE,
   AlarmsQueryBuilderFields.ALARM_ID,
   AlarmsQueryBuilderFields.ALARM_NAME,
@@ -195,9 +152,6 @@ export const AlarmsQueryBuilderStaticFields: QBField[] = [
   AlarmsQueryBuilderFields.CREATED_BY,
   AlarmsQueryBuilderFields.CURRENT_SEVERITY,
   AlarmsQueryBuilderFields.DESCRIPTION,
-  AlarmsQueryBuilderFields.FIRST_OCCURRENCE,
   AlarmsQueryBuilderFields.HIGHEST_SEVERITY,
-  AlarmsQueryBuilderFields.KEYWORD,
-  AlarmsQueryBuilderFields.PROPERTIES,
   AlarmsQueryBuilderFields.RESOURCE_TYPE,
 ];

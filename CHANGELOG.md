@@ -1,3 +1,33 @@
+## [4.8.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.7.1...v4.8.0) (2025-09-10)
+
+### Features
+
+* **Assets:** Get locations in assets query builder ([#402](https://github.com/ni/systemlink-grafana-plugins/issues/402)) ([8668651](https://github.com/ni/systemlink-grafana-plugins/commit/86686510cdb3d9fea37861722ab4674b87745698))
+
+## [4.7.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.7.0...v4.7.1) (2025-09-05)
+
+### Bug Fixes
+
+* **asset:** Update projection for Asset Variable Query  ([#400](https://github.com/ni/systemlink-grafana-plugins/issues/400)) ([b4ccdde](https://github.com/ni/systemlink-grafana-plugins/commit/b4ccdde1876a987fa2906b81c83af96b0b7725c0))
+
+## [4.7.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.6.3...v4.7.0) (2025-09-05)
+
+### Features
+
+* **alarms:** Set up base class for Alarms DataSource ([#394](https://github.com/ni/systemlink-grafana-plugins/issues/394)) ([f765dac](https://github.com/ni/systemlink-grafana-plugins/commit/f765dac82d0807a130d9f8314da5e96b4fb828ef))
+
+## [4.6.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.6.2...v4.6.3) (2025-09-04)
+
+### Bug Fixes
+
+* **products:** Label not persisting in Query Builder after selection from dropdown ([#389](https://github.com/ni/systemlink-grafana-plugins/issues/389)) ([56f944f](https://github.com/ni/systemlink-grafana-plugins/commit/56f944f40743e7fd25c59bfd1ca0704b2a83664a))
+
+## [4.6.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.6.1...v4.6.2) (2025-09-04)
+
+### Bug Fixes
+
+* **asset:** Update projection for ListAssetsDataSource ([#398](https://github.com/ni/systemlink-grafana-plugins/issues/398)) ([62b2fe8](https://github.com/ni/systemlink-grafana-plugins/commit/62b2fe8c21f5598960422e52f229acc23e460002))
+
 ## [4.6.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.6.0...v4.6.1) (2025-09-03)
 
 ### Performance Improvements

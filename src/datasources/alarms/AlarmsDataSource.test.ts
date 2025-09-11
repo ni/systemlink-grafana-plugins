@@ -3,10 +3,14 @@ import { MockProxy } from 'jest-mock-extended';
 import { setupDataSource, requestMatching, createFetchResponse, createFetchError } from 'test/fixtures';
 import { AlarmsDataSource } from './AlarmsDataSource';
 import { DataQueryRequest } from '@grafana/data';
+import { QueryType } from './types/types';
+import { AlarmsCountDataSource } from './query-type-handlers/alarms-count/AlarmsCountDataSource';
 
 let datastore: AlarmsDataSource, backendServer: MockProxy<BackendSrv>;
 
 describe('AlarmsDataSource', () => {
+  const dataQueryRequest = {} as DataQueryRequest;
+
   beforeEach(() => {
     [datastore, backendServer] = setupDataSource(AlarmsDataSource);
   });
@@ -16,27 +20,64 @@ describe('AlarmsDataSource', () => {
     expect(datastore.queryAlarmsUrl).toEqual(`${datastore.instanceSettings.url}/nialarm/v1/query-instances-with-filter`);
   });
 
-  describe('runQuery', () => {
-    it('should return empty fields', async () => {
-      const query = { refId: 'A' };
-      const dataQueryRequest = {} as DataQueryRequest;
+  it('should initialize with AlarmsCount as the default query', () => {
+    expect(datastore.defaultQuery).toEqual({ queryType: QueryType.AlarmsCount });
+  });
 
-      const result = await datastore.runQuery(query, dataQueryRequest);
-      
-      expect(result).toEqual({ refId: "A", fields: [] });
+  describe('AlarmsCountDataSource', () => {
+    const query = { refId: 'A', queryType: QueryType.AlarmsCount };
+
+    let alarmsCountDataSource: AlarmsCountDataSource;
+    
+    beforeEach(() => {
+      alarmsCountDataSource = datastore.alarmsCountDataSource;
+    });
+
+    describe('runQuery', () => {
+      it('should call AlarmsCountDataSource runQuery when queryType is AlarmsCount', async () => {
+        alarmsCountDataSource.runQuery = jest.fn().mockResolvedValue({ refId: "A", fields: [] });
+
+        const result = await datastore.runQuery(query, dataQueryRequest);
+
+        expect(alarmsCountDataSource.runQuery).toHaveBeenCalledWith(query, dataQueryRequest);
+        expect(result).toEqual({ refId: "A", fields: [] });
+      });
+    });
+
+    describe('shouldRunQuery', () => {
+      it('should call AlarmsCountDataSource shouldRunQuery when queryType is AlarmsCount', () => {
+        alarmsCountDataSource.shouldRunQuery = jest.fn().mockReturnValue(true);
+
+        const result = datastore.shouldRunQuery(query);
+
+        expect(alarmsCountDataSource.shouldRunQuery).toHaveBeenCalled();
+        expect(result).toBe(true);
+      });
     });
   });
 
-  describe('shouldRunQuery', () => {
-    test('should return true', () => {
-      const query = { refId: 'A' };
+  describe('Invalid queryType', () => {
+    const query = { refId: 'A', queryType: undefined };
 
-      expect(datastore.shouldRunQuery(query)).toBe(true);
+    describe('runQuery', () => {
+      it('should throw error for an invalid queryType', async () => {  
+        const runQueryPromise = datastore.runQuery(query, dataQueryRequest);
+  
+        await expect(runQueryPromise).rejects.toThrow('Invalid query type');
+      });
+    });
+  
+    describe('shouldRunQuery', () => {
+      it('should return false for an invalid queryType', () => {
+        const result = datastore.shouldRunQuery(query);
+
+        expect(result).toBe(false);
+      });
     });
   });
 
   describe('testDataSource', () => {
-    test('returns success', async () => {
+    it('returns success', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nialarm/v1/query-instances-with-filter' }))
         .mockReturnValue(createFetchResponse('testData'));
@@ -46,7 +87,7 @@ describe('AlarmsDataSource', () => {
       expect(response.status).toEqual('success');
     });
 
-    test('bubbles up exception', async () => {
+    it('bubbles up exception', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/nialarm/v1/query-instances-with-filter' }))
         .mockReturnValue(createFetchError(400));

@@ -15,6 +15,7 @@ import { SelectableValue } from '@grafana/data';
 import { takeErrorMessages } from 'datasources/asset/constants/constants';
 import { validateNumericInput } from 'core/utils';
 import { TAKE_LIMIT } from 'datasources/asset/constants/ListAssets.constants';
+import { LocationModel } from 'datasources/asset/types/ListLocations.types';
 
 type Props = {
   query: ListAssetsQuery;
@@ -27,6 +28,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
 
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [systems, setSystems] = useState<SystemProperties[]>([]);
+  const [locations, setLocations] = useState<LocationModel[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
   const outputTypeOptions = Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[];
   const assetFilterOptions = Object.values(AssetFilterProperties).map(AssetFilterProperties => ({ label: AssetFilterProperties.label, value: AssetFilterProperties.value, })) as SelectableValue[];
@@ -34,9 +36,10 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
   const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);
 
   useEffect(() => {
-    Promise.all([datasource.areSystemsLoaded$, datasource.areWorkspacesLoaded$]).then(() => {
+    Promise.all([datasource.areSystemsLoaded$, datasource.areLocationsLoaded$, datasource.areWorkspacesLoaded$]).then(() => {
       setWorkspaces(Array.from(datasource.workspacesCache.values()));
       setSystems(Array.from(datasource.systemAliasCache.values()));
+      setLocations(Array.from(datasource.locationCache.values()));
       setAreDependenciesLoaded(true);
     });
   }, [datasource]);
@@ -126,6 +129,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
                 filter={query.filter}
                 workspaces={workspaces}
                 systems={systems}
+                locations={locations}
                 globalVariableOptions={datasource.globalVariableOptions()}
                 areDependenciesLoaded={areDependenciesLoaded}
                 onChange={(event: any) => onParameterChange(event)}

@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { AlarmsQueryBuilder } from './AlarmsQueryBuilder';
 import { QueryBuilderOption } from 'core/types';
+import { BOOLEAN_OPTIONS, SEVERITY_LEVELS } from 'datasources/alarms/constants/AlarmsQueryBuilder.constants';
 
 describe('AlarmsQueryBuilder', () => {
   function renderElement(filter: string, globalVariableOptions: QueryBuilderOption[] = []) {
@@ -22,7 +23,7 @@ describe('AlarmsQueryBuilder', () => {
     expect(renderResult.getByLabelText('Empty condition row')).toBeTruthy();
   });
 
-  [['true', 'True'], ['false', 'False']].forEach(([value, label]) => {
+  BOOLEAN_OPTIONS.forEach(({ label, value }) => {
     it(`should select ${label} for acknowledged in query builder`, () => {
         const { conditionsContainer } = renderElement(`acknowledged = \"${value}\"`);
 
@@ -32,7 +33,7 @@ describe('AlarmsQueryBuilder', () => {
         expect(conditionText).toContain('equals');
         expect(conditionText).toContain(label);       
     });
-
+    
     it(`should select ${label} for active in query builder`, () => {
         const { conditionsContainer } = renderElement(`active = \"${value}\"`);
 
@@ -54,7 +55,7 @@ describe('AlarmsQueryBuilder', () => {
     });
   });
 
-  [[1, 'Low'], [2, 'Moderate'], [3, 'High'], [4, 'Critical'], [-1, 'Clear']].forEach(([value, label]) => {
+  SEVERITY_LEVELS.forEach(({label, value}) => {
     it(`should select ${label} for current severity in query builder`, () => {
         const { conditionsContainer } = renderElement(`currentSeverityLevel = "${value}"`);
 
@@ -76,7 +77,67 @@ describe('AlarmsQueryBuilder', () => {
     });
   });
 
-  [[ '${__from:date}', 'From' ],[ '${__to:date}', 'To' ],[ '${__now:date}', 'Now' ]].forEach(([ value, label ]) => {
+  it('should select value for alarm ID in query builder', () => {
+    const { conditionsContainer } = renderElement('alarmId = "test-alarm-123"');
+
+    expect(conditionsContainer?.length).toBe(1);
+    const conditionText = conditionsContainer.item(0)?.textContent;
+    expect(conditionText).toContain('Alarm ID');
+    expect(conditionText).toContain('equals');
+    expect(conditionText).toContain('test-alarm-123');
+  });
+
+  it('should select value for alarm name in query builder', () => {
+    const { conditionsContainer } = renderElement('displayName = "Test Alarm Name"');
+
+    expect(conditionsContainer?.length).toBe(1);
+    const conditionText = conditionsContainer.item(0)?.textContent;
+    expect(conditionText).toContain('Alarm name');
+    expect(conditionText).toContain('equals');
+    expect(conditionText).toContain('Test Alarm Name');
+  });
+
+  it('should select value for channel in query builder', () => {
+    const { conditionsContainer } = renderElement('channel = "channel-001"');
+
+    expect(conditionsContainer?.length).toBe(1);
+    const conditionText = conditionsContainer.item(0)?.textContent;
+    expect(conditionText).toContain('Channel');
+    expect(conditionText).toContain('equals');
+    expect(conditionText).toContain('channel-001');
+  });
+
+  it('should select value for created by in query builder', () => {
+    const { conditionsContainer } = renderElement('createdBy = "tagRuleEngine"');
+
+    expect(conditionsContainer?.length).toBe(1);
+    const conditionText = conditionsContainer.item(0)?.textContent;
+    expect(conditionText).toContain('Created by');
+    expect(conditionText).toContain('equals');
+    expect(conditionText).toContain('tagRuleEngine');
+  });
+
+  it('should select value for description in query builder', () => {
+    const { conditionsContainer } = renderElement('description = "System overheating detected"');
+
+    expect(conditionsContainer?.length).toBe(1);
+    const conditionText = conditionsContainer.item(0)?.textContent;
+    expect(conditionText).toContain('Description');
+    expect(conditionText).toContain('equals');
+    expect(conditionText).toContain('System overheating detected');
+  });
+
+  it('should select value for resource type in query builder', () => {
+    const { conditionsContainer } = renderElement('resourceType = "Tag"');
+
+    expect(conditionsContainer?.length).toBe(1);
+    const conditionText = conditionsContainer.item(0)?.textContent;
+    expect(conditionText).toContain('Resource type');
+    expect(conditionText).toContain('equals');
+    expect(conditionText).toContain('Tag');
+  });
+
+    [[ '${__from:date}', 'From' ],[ '${__to:date}', 'To' ],[ '${__now:date}', 'Now' ]].forEach(([ value, label ]) => {
     it(`should select ${label} for acknowledged on`, () => {
       const { conditionsContainer } = renderElement(`acknowledgedAt > \"${ value }\"`, []);
 
@@ -95,7 +156,7 @@ describe('AlarmsQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain(label);
     });
   });
-  
+
   it('should select keywords in query builder', () => {
     const { conditionsContainer } = renderElement('keywords.Contains(\"test\")');
 
