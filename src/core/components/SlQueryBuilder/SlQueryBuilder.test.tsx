@@ -2,6 +2,8 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { SlQueryBuilder } from './SlQueryBuilder';
 import { QueryBuilderCustomOperation, QueryBuilderField } from 'smart-webcomponents-react';
+import * as QueryBuilderModule from 'smart-webcomponents-react/querybuilder';
+
 
 describe('SlQueryBuilder', () => {
   const containerClass = 'smart-filter-group-condition-container';
@@ -10,7 +12,12 @@ describe('SlQueryBuilder', () => {
     label: 'Custom operation',
     expressionTemplate: '{0} = "{1}"'
   }];
-  const fields = [ { label: 'Field1', dataField: 'field1', filterOperations: ['='] } ];
+  const fields = [
+    { label: 'Field2', dataField: 'field2', filterOperations: ['='] },
+    { label: 'Field1', dataField: 'field1', filterOperations: ['='] },
+    { label: 'Field4', dataField: 'field4', filterOperations: ['='] },
+    { label: 'Field3', dataField: 'field3', filterOperations: ['='] }
+  ];
 
   function renderElement(
     customOperations: QueryBuilderCustomOperation[] = [],
@@ -40,5 +47,16 @@ describe('SlQueryBuilder', () => {
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.innerHTML).not.toContain('alert(\'Test\')');
+  });
+
+  it('should sort fields in query builder', () => {
+    const queryBuilderSpy = jest.spyOn(QueryBuilderModule, "default").mockImplementation(jest.fn());
+    const expectedFieldLabels = ['Field1', 'Field2', 'Field3', 'Field4'];
+
+    renderElement(customOperations, fields);
+    const queryBuilderFields = queryBuilderSpy.mock.lastCall?.at(0).fields;
+    const queryBuilderFieldLabels = queryBuilderFields?.map((field: QueryBuilderField) => field.label);
+
+    expect(queryBuilderFieldLabels).toEqual(expectedFieldLabels);
   });
 });

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { useTheme2 } from '@grafana/ui';
-import QueryBuilder, { QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
+import QueryBuilder, { QueryBuilderField, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 import './SlQueryBuilder.css';
 import { filterXSSLINQExpression } from 'core/utils';
 
@@ -47,10 +47,33 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
     return filterXSSLINQExpression(value);
   }, [value]);
 
+  const sortFieldsByLabel = (fields: QueryBuilderField[]) => {
+    return fields.sort((a, b) => {
+      if (!a.label && !b.label) {
+        return 0;
+      }
+      if (!a.label) {
+        return 1;
+      }
+      if (!b.label) {
+        return -1;
+      }
+      return a.label.localeCompare(b.label);
+    });
+  }
+
+  const sortedFields = useMemo(() => {
+    if (!fields) {
+      return fields;
+    }
+
+    return sortFieldsByLabel([...fields]);
+  }, [fields]);
+
   return (
     <QueryBuilder
       customOperations={customOperations}
-      fields={fields}
+      fields={sortedFields}
       messages={messages}
       onChange={onChange}
       value={sanitizedFilter}
