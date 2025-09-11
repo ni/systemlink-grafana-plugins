@@ -31,11 +31,13 @@ export function transformComputedFieldsQuery(
 ) {
   for (const [field, transformation] of computedDataFields.entries()) {
     const regex = new RegExp(`\\b${field}\\s*(${computedFieldsupportedOperations.join('|')})\\s*"([^"]*)"`, 'g');
+
     query = query.replace(regex, (_match, operation, value) => {
       return transformation(value, operation, options?.get(field));
     });
 
     const nullOrEmptyRegex = new RegExp(`(!)?string\\.IsNullOrEmpty\\(${field}\\)`, 'g');
+
     query = query.replace(nullOrEmptyRegex, (_match, negation) => {
       const operation = negation
         ? QueryBuilderOperations.IS_NOT_BLANK.name
