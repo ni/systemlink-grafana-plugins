@@ -19,7 +19,9 @@ export const ListAssetsFields: Record<string, QBField> = {
         dataField: ListAssetsFieldNames.LOCATION,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
-            QueryBuilderOperations.DOES_NOT_EQUAL.name
+            QueryBuilderOperations.DOES_NOT_EQUAL.name,
+            QueryBuilderOperations.IS_BLANK.name,
+            QueryBuilderOperations.IS_NOT_BLANK.name
         ],
         lookup: {
             dataSource: []

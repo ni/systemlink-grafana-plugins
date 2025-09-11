@@ -1,5 +1,6 @@
 import { QueryBuilderCustomOperation } from "smart-webcomponents-react";
 import { QueryBuilderOption } from "./types";
+import { QueryBuilderOperations } from "./query-builder.constants";
 
 /**
  * Should be used when looking to build a custom expression for a field
@@ -30,13 +31,31 @@ export function transformComputedFieldsQuery(
 ) {
   for (const [field, transformation] of computedDataFields.entries()) {
     const regex = new RegExp(`\\b${field}\\s*(${computedFieldsupportedOperations.join('|')})\\s*"([^"]*)"`, 'g');
-
     query = query.replace(regex, (_match, operation, value) => {
       return transformation(value, operation, options?.get(field));
+    });
+
+    const nullOrEmptyRegex = new RegExp(`(!)?string\\.IsNullOrEmpty\\(${field}\\)`, 'g');
+    query = query.replace(nullOrEmptyRegex, (_match, negation) => {
+      const operation = negation
+        ? QueryBuilderOperations.IS_NOT_BLANK.name
+        : QueryBuilderOperations.IS_BLANK.name;
+      return transformation(field, operation, options?.get(field));
     });
   }
 
   return query;
+}
+
+/**
+ * Builds the expression from the provided template
+ * @param expressionTemplate The expression template of the @see QueryBuilderCustomOperation
+ * @param field The field to be used in the expression
+ * @param value The value to be used in the expression
+ * @returns The built expression
+ */
+export function buildExpressionFromTemplate(expressionTemplate: string | undefined, field: string, value?: string) {
+  return expressionTemplate?.replace('{0}', field).replace('{1}', value ?? '');
 }
 
 /**
@@ -56,7 +75,7 @@ export function expressionBuilderCallback(options: Record<string, QueryBuilderOp
         }
       }
 
-      return this.expressionTemplate?.replace('{0}', field).replace('{1}', value);
+      return buildExpressionFromTemplate(this.expressionTemplate, field, value);
     };
 
     return buildExpression(fieldName, value);
@@ -97,7 +116,7 @@ export function expressionBuilderCallbackWithRef(optionsRef: React.MutableRefObj
 
       value = getOptionMappedValue('label', 'value', value, fieldOptions) ?? value;
 
-      return this.expressionTemplate?.replace('{0}', field).replace('{1}', value);
+      return buildExpressionFromTemplate(this.expressionTemplate, field, value);
     };
 
     return buildExpression(fieldName, value);
