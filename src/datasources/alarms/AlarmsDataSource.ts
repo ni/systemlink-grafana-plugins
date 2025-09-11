@@ -5,9 +5,11 @@ import { AlarmsQuery, QueryType } from './types/types';
 import { AlarmsCountDataSource } from './query-type-handlers/alarms-count/AlarmsCountDataSource';
 
 export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
-  public defaultQuery: Omit<AlarmsQuery, 'refId'>;
+  public readonly defaultQuery: Omit<AlarmsQuery, 'refId'>;
 
-  private _alarmsCountDataSource: AlarmsCountDataSource;
+  private readonly _alarmsCountDataSource: AlarmsCountDataSource;
+  private readonly baseUrl = `${this.instanceSettings.url}/nialarm/v1`;
+  private readonly queryAlarmsUrl = `${this.baseUrl}/query-instances-with-filter`;
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
@@ -19,9 +21,6 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     // AB#3064461 - Update defaultQuery to use list alarms defaults when supported
     this.defaultQuery = this._alarmsCountDataSource.defaultQuery;
   }
-
-  baseUrl = `${this.instanceSettings.url}/nialarm/v1`;
-  queryAlarmsUrl = `${this.baseUrl}/query-instances-with-filter`;
 
   async runQuery(query: AlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
     switch (query.queryType) {

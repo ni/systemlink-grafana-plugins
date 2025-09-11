@@ -1,5 +1,5 @@
 import { AlarmsCountDataSource } from './AlarmsCountDataSource';
-import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
+import { createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { DataQueryRequest } from '@grafana/data';
 import { QueryAlarmsResponse, QueryType } from 'datasources/alarms/types/types';
 import { MockProxy } from 'jest-mock-extended';
