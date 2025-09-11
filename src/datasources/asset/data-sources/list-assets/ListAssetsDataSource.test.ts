@@ -103,6 +103,40 @@ describe('List assets location queries', () => {
         );
     });
 
+    test('should transform LOCATION field when operator is string.IsNullOrEmpty', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: `string.IsNullOrEmpty(${ListAssetsFieldNames.LOCATION})`,
+            outputType: OutputType.Properties,
+        });
+
+        await datastore.query(query);
+
+        expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                filter: "string.IsNullOrEmpty(Location.MinionId) && string.IsNullOrEmpty(Location.PhysicalLocation)"
+            })
+        );
+    });
+
+    test('should transform LOCATION field when operator is !string.IsNullOrEmpty', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: `!string.IsNullOrEmpty(${ListAssetsFieldNames.LOCATION})`,
+            outputType: OutputType.Properties,
+        });
+
+        await datastore.query(query);
+
+        expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                filter: "!string.IsNullOrEmpty(Location.MinionId) || !string.IsNullOrEmpty(Location.PhysicalLocation)"
+            })
+        );
+    });
+
     test('should transform LOCATION field with single value and system cache hit', async () => {
         datastore.systemAliasCache.set('Location1', { id: 'Location1', alias: 'Location1-alias', state: 'CONNECTED', workspace: '1' });
 
