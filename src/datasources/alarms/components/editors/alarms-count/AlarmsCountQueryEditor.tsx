@@ -6,7 +6,6 @@ type Props = {
 };
 
 export function AlarmsCountQueryEditor(_: Props) {
-
   return (
     <>
         <span>Placeholder for Alarms Count Query Editor</span>
