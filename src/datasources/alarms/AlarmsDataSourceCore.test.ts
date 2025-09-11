@@ -31,16 +31,18 @@ describe('AlarmsDataSourceCore', () => {
   });
 
   describe('queryAlarms', () => {
-    it('should call the query alarms API', async () => {
+    const queryAlarmsUrl = '/nialarm/v1/query-instances-with-filter';
+    
+    it('should call the query alarms API with the given parameters', async () => {
       backendServer.fetch
-        .calledWith(requestMatching({ url: '/nialarm/v1/query-instances-with-filter' }))
+        .calledWith(requestMatching({ url: queryAlarmsUrl }))
         .mockReturnValue(await Promise.resolve(createFetchResponse({ totalCount: 10 })));
 
       const response = await datastore.queryAlarmsWrapper({ take: 1, returnCount: true });
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: expect.stringContaining('/nialarm/v1/query-instances-with-filter'),
+          url: expect.stringContaining(queryAlarmsUrl),
           method: 'POST',
           data: { take: 1, returnCount: true },
           showErrorAlert: false
@@ -76,7 +78,7 @@ describe('AlarmsDataSourceCore', () => {
       testCases.forEach(({ status, expectedErrorMessage }) => {
       it('should handle ' + status + ' error', async () => {
           backendServer.fetch
-            .calledWith(requestMatching({ url: '/nialarm/v1/query-instances-with-filter' }))
+            .calledWith(requestMatching({ url: queryAlarmsUrl }))
             .mockReturnValueOnce(createFetchError(status));
 
           await expect(datastore.queryAlarmsWrapper({})).rejects.toThrow(expectedErrorMessage);
@@ -89,7 +91,8 @@ describe('AlarmsDataSourceCore', () => {
       });
 
       it('should handle 429 error', async () => {
-        const expectedErrorMessage = 'The query to fetch alarms failed due to too many requests. Please try again later.';
+        const expectedErrorMessage =
+          'The query to fetch alarms failed due to too many requests. Please try again later.';
         jest.spyOn(datastore, 'post').mockImplementation(() => {
           throw new Error('Request failed with status code: 429');
         });
@@ -104,11 +107,9 @@ describe('AlarmsDataSourceCore', () => {
 
       it('should handle unknown errors', async () => {
         const expectedErrorMessage = 'The query failed due to an unknown error.';
-        backendServer.fetch
-          .calledWith(requestMatching({ url: '/nialarm/v1/query-instances-with-filter' }))
-          .mockImplementation(() => {
-            throw new Error('Error');
-          });
+        backendServer.fetch.calledWith(requestMatching({ url: queryAlarmsUrl })).mockImplementation(() => {
+          throw new Error('Error');
+        });
 
         await expect(datastore.queryAlarmsWrapper({})).rejects.toThrow(expectedErrorMessage);
 

@@ -27,7 +27,7 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
   return (
     <>
       {query.queryType === QueryType.AlarmsCount && (
-        <AlarmsCountQueryEditor query={query}/>
+        <AlarmsCountQueryEditor query={query} />
       )}
     </>
   );

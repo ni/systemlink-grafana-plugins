@@ -7,7 +7,7 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   private readonly baseUrl = `${this.instanceSettings.url}/nialarm/v1`;
   private readonly queryAlarmsUrl = `${this.baseUrl}/query-instances-with-filter`;
 
-  abstract runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
+  public abstract runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
   protected async queryAlarms(alarmsRequestBody: QueryAlarmsRequestBody): Promise<QueryAlarmsResponse> {
     try {
@@ -53,11 +53,11 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
     return errorMessage;
   }
 
-  shouldRunQuery(query: AlarmsQuery): boolean {
+  public shouldRunQuery(query: AlarmsQuery): boolean {
     return !query.hide;
   }
-  
-  testDatasource(): Promise<TestDataSourceResponse> {
+
+  public testDatasource(): Promise<TestDataSourceResponse> {
     throw new Error("Method not implemented.");
   }
 }
