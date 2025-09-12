@@ -2,12 +2,16 @@ import { DataSourceBase } from "core/DataSourceBase";
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents } from "@grafana/data";
 import { AlarmsQuery, QueryAlarmsRequestBody, QueryAlarmsResponse } from "./types/types";
 import { extractErrorInfo } from "core/errors";
+import { getVariableOptions } from "core/utils";
+import { QueryBuilderOption } from "core/types";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   private readonly baseUrl = `${this.instanceSettings.url}/nialarm/v1`;
   private readonly queryAlarmsUrl = `${this.baseUrl}/query-instances-with-filter`;
 
   public abstract runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
+
+  public readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
   protected async queryAlarms(alarmsRequestBody: QueryAlarmsRequestBody): Promise<QueryAlarmsResponse> {
     try {
