@@ -197,7 +197,7 @@ export const DataFrameQueryEditor = (props: Props) => {
         <>
           <InlineField label="Properties" labelWidth={25} tooltip={tooltips.columns}>
             <MultiCombobox
-              options={loadColumnOptions()}
+              options={columnOptions}
               onChange={handleColumnChange}
               onBlur={common.onRunQuery}
               value={common.query.columns.map(c => ({ label: c, value: c }))}
@@ -325,7 +325,7 @@ export const DataFrameQueryEditor = (props: Props) => {
             <MultiCombobox
               options={columnOptions}
               onChange={handleColumnChange}
-              // onBlur={() => {}}
+              // onBlur={common.onRunQuery}
               width={'auto'}
               minWidth={22}
               maxWidth={125}

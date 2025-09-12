@@ -43,9 +43,8 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
   queryResultsValuesUrl = this.instanceSettings.url + '/nitestmonitor/v2/query-result-values';
   queryResultsUrl = this.instanceSettings.url + '/nitestmonitor/v2/query-results';
 
-  queryByDataTableProperties = '';
+  queryByDataTablesFilter = ""
   tableData: TableProperties[] = [];
-
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
   private static _partNumbersCache: Promise<string[]> | null = null;
@@ -77,36 +76,12 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
   }
 
   async runQuery(query: DataFrameQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
-    if (query.queryByResults || query.queryBy) {
+    if (query.queryBy) {
       const processedQuery = this.processQuery(query);
-      let idFilterString = '';
       if (processedQuery.type === DataFrameQueryType.Data) {
-        // let metadata: ResultsResponseProperties[] = [];
-        // if (query.queryByResults) {
-        //   metadata = (await this.queryResults(
-        //     query.queryByResults,
-        //     "STARTED_AT",
-        //     [ResultsProperties.dataTableIds],
-        //     100000,
-        //     true
-        //   )).results;
-
-        //   let uniqueIDs: string | string[] = [];
-        //   const uniqueTableIdsPerIndex = metadata.map((item: ResultsResponseProperties) => {
-        //     item.dataTableIds?.map(id => {
-        //       if (id && !uniqueIDs.includes(id)) {
-        //         uniqueIDs.push(id);
-        //       };
-        //     });
-        //     return uniqueIDs;
-        //   });
-        //   const ids = uniqueIDs.slice(0, 500);
-        //   idFilterString = `(${ids.map(id => `id = "${id}"`).join(' || ')})`;
-        //   // Do something with metadata
-        // }
-        if (this.queryByChanged(query.queryBy!)) {
+        if (this.queryByChanged(processedQuery.queryBy)) {
           this.tableData = await this.queryTables(processedQuery.queryBy);
-          this.setFilteredColumns(this.tableData)
+          this.setFilteredColumns(this.tableData);
         }
         if (!this.tableData || this.tableData.length === 0) {
           return {
@@ -164,14 +139,6 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
     }
 
 
-  }
-
-  private queryByChanged(queryBy: string): boolean {
-    if (queryBy !== this.queryByDataTableProperties) {
-      this.queryByDataTableProperties = queryBy;
-      return true;
-    }
-    return false
   }
 
   shouldRunQuery(query: ValidDataFrameQuery): boolean {
@@ -298,6 +265,14 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
     } catch (error) {
       return new Map<string, Workspace>();
     }
+  }
+
+  private queryByChanged(newQueryBy: string): boolean {
+    if (this.queryByDataTablesFilter !== newQueryBy) {
+      this.queryByDataTablesFilter = newQueryBy;
+      return true;
+    }
+    return false;
   }
 
   private setFilteredColumns(tableData: TableProperties[]): void {
