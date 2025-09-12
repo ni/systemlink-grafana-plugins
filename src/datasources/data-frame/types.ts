@@ -1,5 +1,6 @@
 import { DataQuery } from '@grafana/schema';
 import { SystemLinkError } from "../../core/types";
+import { DataSourceJsonData } from '@grafana/data';
 
 export enum DataFrameQueryType {
   Data = 'Data',
@@ -22,6 +23,10 @@ export const defaultQuery: Omit<ValidDataFrameQuery, 'refId'> = {
   decimationMethod: 'LOSSY',
   filterNulls: false,
   applyTimeFilters: false
+};
+
+export const DataFrameFeatureTogglesDefaults: DataFrameFeatureToggles = {
+  queryByDataTableProperties: false,
 };
 
 export type ValidDataFrameQuery = DataFrameQuery & Required<Omit<DataFrameQuery, keyof DataQuery>>;
@@ -64,6 +69,14 @@ export interface TablePropertiesList {
 
 export interface TableDataRows {
   frame: { columns: string[]; data: string[][] };
+}
+
+export interface DataFrameFeatureToggles {
+  queryByDataTableProperties: boolean;
+}
+
+export interface DataFrameDataSourceOptions extends DataSourceJsonData {
+  featureToggles: DataFrameFeatureToggles;
 }
 
 export function isSystemLinkError(error: any): error is SystemLinkError {
