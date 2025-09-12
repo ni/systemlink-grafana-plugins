@@ -31,6 +31,16 @@ describe('AlarmsDataSourceCore', () => {
     [datastore, backendServer] = setupDataSource(TestAlarmsDataSource);
   });
 
+  it('should retrieve variable options using getVariableOptions', () => {
+    const mockOptions: QueryBuilderOption[] = [{ label: '$var', value: 'var' }];
+    (getVariableOptions as jest.Mock).mockReturnValue(mockOptions);
+
+    const result = datastore.globalVariableOptions();
+
+    expect(getVariableOptions).toHaveBeenCalledWith(datastore);
+    expect(result).toBe(mockOptions);
+  });
+
   describe('queryAlarms', () => {
     it('should call the query alarms API with the given parameters', async () => {
       backendServer.fetch
