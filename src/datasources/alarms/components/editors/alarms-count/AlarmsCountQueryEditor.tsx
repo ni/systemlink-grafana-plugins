@@ -3,6 +3,7 @@ import React from "react";
 import { InlineField } from "core/components/InlineField";
 import { AlarmsQueryBuilder } from "../../query-builder/AlarmsQueryBuilder";
 import { AlarmsCountDataSource } from "datasources/alarms/query-type-handlers/alarms-count/AlarmsCountDataSource";
+import { labels, tooltips } from "datasources/alarms/constants/AlarmsQueryEditor.constants";
 
 type Props = {
   query: AlarmsCountQuery;
@@ -28,11 +29,3 @@ export function AlarmsCountQueryEditor({ query, handleQueryChange, datasource }:
     </InlineField>
   );
 }
-
-const labels = {
-  queryBy: 'Query By',
-};
-
-const tooltips = {
-  queryBy: 'This optional field applies a filter to the query alarms.',
-};
