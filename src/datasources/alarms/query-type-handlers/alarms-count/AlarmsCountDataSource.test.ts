@@ -105,7 +105,7 @@ describe('AlarmsCountDataSource', () => {
       expect(result).toEqual({ refId: 'A', name: 'A', fields: [{ name: 'A', type: 'number', values: [0] }] });
     });
 
-    it('should pass the filter from query to the API', async () => {
+    it('should pass the queryBy filter to the API', async () => {
       const filterQuery = { refId: 'A', queryBy: 'alarmId = "test-alarm-123"' };
 
       await datastore.runQuery(filterQuery, dataQueryRequest);
