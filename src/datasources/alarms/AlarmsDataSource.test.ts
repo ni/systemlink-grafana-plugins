@@ -15,11 +15,6 @@ describe('AlarmsDataSource', () => {
     [datastore, backendServer] = setupDataSource(AlarmsDataSource);
   });
 
-  it('should initialize baseUrl and queryAlarms url properties', () => {
-    expect(datastore.baseUrl).toBe(`${datastore.instanceSettings.url}/nialarm/v1`);
-    expect(datastore.queryAlarmsUrl).toEqual(`${datastore.instanceSettings.url}/nialarm/v1/query-instances-with-filter`);
-  });
-
   it('should initialize with AlarmsCount as the default query', () => {
     expect(datastore.defaultQuery).toEqual({ queryType: QueryType.AlarmsCount });
   });
@@ -84,6 +79,11 @@ describe('AlarmsDataSource', () => {
 
       const response = await datastore.testDatasource();
 
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: `${datastore.instanceSettings.url}/nialarm/v1/query-instances-with-filter`,
+        })
+      );
       expect(response.status).toEqual('success');
     });
 

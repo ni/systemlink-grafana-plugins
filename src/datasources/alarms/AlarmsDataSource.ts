@@ -5,9 +5,11 @@ import { AlarmsQuery, QueryType } from './types/types';
 import { AlarmsCountDataSource } from './query-type-handlers/alarms-count/AlarmsCountDataSource';
 
 export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
-  public defaultQuery: Omit<AlarmsQuery, 'refId'>;
+  public readonly defaultQuery: Omit<AlarmsQuery, 'refId'>;
 
-  private _alarmsCountDataSource: AlarmsCountDataSource;
+  private readonly _alarmsCountDataSource: AlarmsCountDataSource;
+  private readonly baseUrl = `${this.instanceSettings.url}/nialarm/v1`;
+  private readonly queryAlarmsUrl = `${this.baseUrl}/query-instances-with-filter`;
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
@@ -20,10 +22,7 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     this.defaultQuery = this._alarmsCountDataSource.defaultQuery;
   }
 
-  baseUrl = `${this.instanceSettings.url}/nialarm/v1`;
-  queryAlarmsUrl = `${this.baseUrl}/query-instances-with-filter`;
-
-  async runQuery(query: AlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
+  public async runQuery(query: AlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
     switch (query.queryType) {
       case QueryType.AlarmsCount:
         return this.alarmsCountDataSource.runQuery(query, _);
@@ -32,7 +31,7 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     }
   }
 
-  shouldRunQuery(query: AlarmsQuery): boolean {
+  public shouldRunQuery(query: AlarmsQuery): boolean {
     switch (query.queryType) {
       case QueryType.AlarmsCount:
         return this.alarmsCountDataSource.shouldRunQuery(query);
@@ -41,11 +40,11 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     }
   }
 
-  get alarmsCountDataSource(): AlarmsCountDataSource {
+  public get alarmsCountDataSource(): AlarmsCountDataSource {
     return this._alarmsCountDataSource;
   }
 
-  async testDatasource(): Promise<TestDataSourceResponse> {
+  public async testDatasource(): Promise<TestDataSourceResponse> {
     await this.post(this.queryAlarmsUrl, { take: 1 });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
