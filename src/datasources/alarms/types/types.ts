@@ -9,6 +9,7 @@ export enum QueryType {
 }
 
 export interface QueryAlarmsRequestBody {
+  filter?: string;
   take?: number;
   returnCount?: boolean;
 }

@@ -4,6 +4,12 @@ import { AlarmsQuery, QueryAlarmsRequestBody, QueryType } from './types/types';
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
+import { QueryBuilderOption } from 'core/types';
+import { getVariableOptions } from 'core/utils';
+
+jest.mock('core/utils', () => ({
+  getVariableOptions: jest.fn(),
+}));
 
 class TestAlarmsDataSource extends AlarmsDataSourceCore {
   async runQuery(query: AlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
@@ -28,6 +34,16 @@ describe('AlarmsDataSourceCore', () => {
 
   beforeEach(() => {
     [datastore, backendServer] = setupDataSource(TestAlarmsDataSource);
+  });
+
+  it('should retrieve variable options using getVariableOptions', () => {
+    const mockOptions: QueryBuilderOption[] = [{ label: '$var', value: 'var' }];
+    (getVariableOptions as jest.Mock).mockReturnValue(mockOptions);
+
+    const result = datastore.globalVariableOptions();
+
+    expect(getVariableOptions).toHaveBeenCalledWith(datastore);
+    expect(result).toBe(mockOptions);
   });
 
   describe('queryAlarms', () => {
