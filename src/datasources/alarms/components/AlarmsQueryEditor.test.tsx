@@ -24,6 +24,10 @@ const defaultProps: QueryEditorProps<AlarmsDataSource, AlarmsQuery> = {
   datasource: mockDatasource,
 };
 
+function buildQuery(query: Omit<AlarmsQuery, 'refId'> = {}) {
+  return { refId: 'A', ...query };
+}
+
 function renderElement(query: AlarmsQuery) {
   const reactNode = React.createElement(AlarmsQueryEditor, { ...defaultProps, query });
   return render(reactNode);
@@ -57,7 +61,3 @@ describe('AlarmsQueryEditor', () => {
     });
   });
 });
-
-function buildQuery(query: Omit<AlarmsQuery, 'refId'> = {}) {
-  return { refId: 'A', ...query };
-}
