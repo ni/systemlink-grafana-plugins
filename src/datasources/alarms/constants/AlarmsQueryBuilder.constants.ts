@@ -149,7 +149,6 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
 
 export const AlarmsQueryBuilderStaticFields: QBField[] = [
   AlarmsQueryBuilderFields.ACKNOWLEDGED,
-  AlarmsQueryBuilderFields.ACKNOWLEDGED_ON,
   AlarmsQueryBuilderFields.ACTIVE,
   AlarmsQueryBuilderFields.ALARM_ID,
   AlarmsQueryBuilderFields.ALARM_NAME,
@@ -158,7 +157,6 @@ export const AlarmsQueryBuilderStaticFields: QBField[] = [
   AlarmsQueryBuilderFields.CREATED_BY,
   AlarmsQueryBuilderFields.CURRENT_SEVERITY,
   AlarmsQueryBuilderFields.DESCRIPTION,
-  AlarmsQueryBuilderFields.FIRST_OCCURRENCE,
   AlarmsQueryBuilderFields.HIGHEST_SEVERITY,
   AlarmsQueryBuilderFields.KEYWORD,
   AlarmsQueryBuilderFields.PROPERTIES,
