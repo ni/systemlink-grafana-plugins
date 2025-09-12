@@ -3,9 +3,9 @@ import { LoadOptionsCallback } from "@grafana/ui";
 import { getWorkspaceName, getVariableOptions } from "core/utils";
 import _ from "lodash";
 import { DataFrameDataSource } from "../DataFrameDataSource";
-import { DataFrameQuery, DataFrameQueryType, ValidDataFrameQuery } from "../types";
+import { DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryType, ValidDataFrameQuery } from "../types";
 
-export type Props = QueryEditorProps<DataFrameDataSource, DataFrameQuery>;
+export type Props = QueryEditorProps<DataFrameDataSource, DataFrameQuery, DataFrameDataSourceOptions>;
 
 export class DataFrameQueryEditorCommon {
   readonly datasource: DataFrameDataSource;
