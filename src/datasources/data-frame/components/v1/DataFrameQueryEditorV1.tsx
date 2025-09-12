@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { DataFrameQueryEditorCommon, Props } from "./DataFrameQueryEditorCommon";
 import { FloatingError, parseErrorMessage } from "core/errors";
 
 import { useAsync } from 'react-use';
@@ -7,10 +6,11 @@ import { SelectableValue, toOption } from "@grafana/data";
 
 import { InlineField, InlineSwitch, MultiSelect, Select, AsyncSelect, RadioButtonGroup } from '@grafana/ui';
 import { enumToOptions } from "core/utils";
-import { DataFrameQueryType } from "../types";
-import { isValidId } from "../utils";
-import { decimationMethods } from "../constants";
 import { getTemplateSrv } from "@grafana/runtime";
+import { DataFrameQueryEditorCommon, Props } from "../DataFrameQueryEditorCommon";
+import { DataFrameQueryType } from "datasources/data-frame/types";
+import { isValidId } from "datasources/data-frame/utils";
+import { decimationMethods } from "datasources/data-frame/constants";
 
 export const DataFrameQueryEditorV1 = (props: Props) => {
     const [errorMsg, setErrorMsg] = useState<string | undefined>('');
