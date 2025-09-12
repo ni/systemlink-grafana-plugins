@@ -111,34 +111,44 @@ export const DataFrameQueryEditor = (props: Props) => {
   // };
 
   const loadColumnOptions = (): Array<ComboboxOption<string>> => {
+    // if (tableProperties) {
+    //   tableProperties.forEach(table => {
+    //     columnNameMap[table.id] = table.columns.map(col => col.name);
+    //   });
+    // }
+    // Collect unique column names up to 10,000
+    const seen = new Set<string>();
+    const columnOptions: Array<ComboboxOption<string>> = [];
     if (tableProperties) {
-      tableProperties.forEach(table => {
-        columnNameMap[table.id] = table.columns.map(col => col.name);
-      });
-    }
-    const columnOptions = Array.from(
-      new Map(
-        (tableProperties?.flatMap(table => table.columns) ?? []).map(col => {
-          // Count occurrences of each column name with different data types
-          const colName = col.name;
-          const colDataType = col.dataType;
-          const sameNameColumns = (tableProperties?.flatMap(t => t.columns) ?? []).filter(c => c.name === colName);
-          const isAmbiguous = sameNameColumns.length > 1 && _.uniq(sameNameColumns.map(c => c.dataType)).length > 1;
-
-          const uniqueKey = `${col.name}_${colDataType}`;
-
-          return [
-            uniqueKey,
-            {
-              label: isAmbiguous && col.dataType ? `${col.name} (${colDataType})` : col.name,
+      for (const table of tableProperties) {
+        for (const col of table.columns) {
+          if (!seen.has(col.name)) {
+            seen.add(col.name);
+            columnOptions.push({
+              label: col.name,
               value: String(col.name),
-            },
-          ];
-        })
-      ).values()
+            });
+            if (columnOptions.length >= 10000) {
+              break;
+            }
+          }
+        }
+        if (columnOptions.length >= 10000) {
+          break;
+        }
+      }
+    }
+    // Add variable options at the top
+    columnOptions.unshift(
+      ...getVariableOptions().map(opt => ({
+        label: opt.label ?? String(opt.value),
+        value: String(opt.value!),
+      }))
     );
-    return columnOptions.slice(0, 1000);
+    return columnOptions.slice(0, 10000);
   };
+
+  const columnOptions = loadColumnOptions();
 
   const onQueryByChange = (queryBy: string) => {
     common.query.queryBy = queryBy;
@@ -170,19 +180,19 @@ export const DataFrameQueryEditor = (props: Props) => {
         />
       </InlineField>
       {/* <InlineField label="Id">
-        <AsyncSelect
-        allowCreateWhileLoading
-        allowCustomValue
-        cacheOptions={false}
-        defaultOptions
-        isValidNewOption={isValidId}
-        loadOptions={common.handleLoadOptions}
-        onChange={common.handleIdChange}
-        placeholder="Search by name or enter id"
-        width={30}
-        value={common.query.tableId ? toOption(common.query.tableId) : null}
-        />
-        </InlineField> */}
+      <AsyncSelect
+      allowCreateWhileLoading
+      allowCustomValue
+      cacheOptions={false}
+      defaultOptions
+      isValidNewOption={isValidId}
+      loadOptions={common.handleLoadOptions}
+      onChange={common.handleIdChange}
+      placeholder="Search by name or enter id"
+      width={30}
+      value={common.query.tableId ? toOption(common.query.tableId) : null}
+      />
+      </InlineField> */}
       {common.query.type === DataFrameQueryType.Properties && (
         <>
           <InlineField label="Properties" labelWidth={25} tooltip={tooltips.columns}>
@@ -196,7 +206,6 @@ export const DataFrameQueryEditor = (props: Props) => {
           </InlineField>
         </>
       )}
-
       <ControlledCollapse
         label="Query configurations"
         collapsible={true}
@@ -206,25 +215,25 @@ export const DataFrameQueryEditor = (props: Props) => {
         <Stack direction="row" justifyContent={'flex-start'} gap={1} wrap={'wrap'}>
           <Stack direction={'column'} justifyContent={'flex-start'} gap={1}>
             {/* <Alert title="" severity="info">
-              Queries may have a significant impact on resource utilization.{' '}
-              <a
-                href="https://docs.ni.com/systemlink/query-optimization"
-              target="_blank"
-              rel="noopener noreferrer"
-                style={{ textDecoration: 'underline' }}
-              >
-                Click here to learn more about optimizing query performance.
-              </a>
-            </Alert> */}
+          Queries may have a significant impact on resource utilization.{' '}
+          <a
+          href="https://docs.ni.com/systemlink/query-optimization"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ textDecoration: 'underline' }}
+          >
+          Click here to learn more about optimizing query performance.
+          </a>
+        </Alert> */}
             {/* <Alert title="Warning" severity="warning" onRemove={() => {}}>
-              The tables query returned more than 1000 data tables. Only the first 1000 tables will be used to fetch row
-              data.
-            </Alert> */}
-            <Alert title="Warning" severity="warning" onRemove={() => {}}>
+          The tables query returned more than 1000 data tables. Only the first 1000 tables will be used to fetch row
+          data.
+        </Alert> */}
+            {/* <Alert title="Warning" severity="warning" onRemove={() => {}}>
               The tables query returned over 10,000 table columns. Only the first 10,000 column names will be available
               in the column dropdown.
-            </Alert>
-            {/* <div style={{ width: '544px' }}>
+            </Alert> */}
+            <div style={{ width: '544px' }}>
               <InlineLabel width={68} tooltip={tooltips.queryType} interactive={true}>
                 {' '}
                 Query by results properties
@@ -237,7 +246,7 @@ export const DataFrameQueryEditor = (props: Props) => {
                 globalVariableOptions={common.datasource.globalVariableOptions()}
                 onChange={(event: any) => onParameterChange(event.detail.linq)}
               ></ResultsQueryBuilder>
-            </div> */}
+            </div>
             <div style={{ width: '544px' }}>
               <InlineLabel width={'auto'} tooltip={tooltips.queryType} interactive={true}>
                 Query by data table properties
@@ -249,7 +258,7 @@ export const DataFrameQueryEditor = (props: Props) => {
                 onChange={(event: any) => onQueryByChange(event.detail.linq)}
               ></DataframeQueryBuilder>
             </div>
-            {/* {common.query.type === DataFrameQueryType.Data && (
+            {common.query.type === DataFrameQueryType.Data && (
               <div style={{ width: '544px' }}>
                 <InlineLabel width={'auto'} tooltip={tooltips.queryType} interactive={true}>
                   Query by column properties
@@ -261,29 +270,29 @@ export const DataFrameQueryEditor = (props: Props) => {
                   onChange={(event: any) => onQueryByColumnChange(event.detail.linq)}
                 ></DataframeColumnsQueryBuilder>
               </div>
-            )} */}
+            )}
           </Stack>
           <div>
             {common.query.type === DataFrameQueryType.Properties && (
               <>
                 {/* <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.columns}>
-                  <Select
-                    options={[]}
-                    placeholder="Select field to order by"
-                    onChange={() => {}}
-                    value={common.query.orderBy}
-                    defaultValue={common.query.orderBy}
-                    width={26}
-                  />
-                </InlineField>
-                <InlineField label="Descending" labelWidth={25} tooltip={tooltips.columns}>
-                  <InlineSwitch
-                    onChange={event =>
-                      common.handleQueryChange({ ...common.query, descending: event.currentTarget.checked }, true)
-                    }
-                    value={common.query.descending}
-                  />
-                </InlineField> */}
+            <Select
+            options={[]}
+            placeholder="Select field to order by"
+            onChange={() => {}}
+            value={common.query.orderBy}
+            defaultValue={common.query.orderBy}
+            width={26}
+            />
+          </InlineField>
+          <InlineField label="Descending" labelWidth={25} tooltip={tooltips.columns}>
+            <InlineSwitch
+            onChange={event =>
+              common.handleQueryChange({ ...common.query, descending: event.currentTarget.checked }, true)
+            }
+            value={common.query.descending}
+            />
+          </InlineField> */}
                 <InlineField label="Take" labelWidth={25} tooltip={tooltips.decimation}>
                   <AutoSizeInput
                     minWidth={26}
@@ -314,9 +323,9 @@ export const DataFrameQueryEditor = (props: Props) => {
         <Collapse label="Column configurations" isOpen={isOpen} onToggle={() => setIsOpen(!isOpen)} collapsible={true}>
           <InlineField label="Columns" labelWidth={30} tooltip={tooltips.columns} required>
             <MultiCombobox
-              options={loadColumnOptions()}
+              options={columnOptions}
               onChange={handleColumnChange}
-              onBlur={common.onRunQuery}
+              // onBlur={() => {}}
               width={'auto'}
               minWidth={22}
               maxWidth={125}

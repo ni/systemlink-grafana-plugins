@@ -43,6 +43,9 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
   queryResultsValuesUrl = this.instanceSettings.url + '/nitestmonitor/v2/query-result-values';
   queryResultsUrl = this.instanceSettings.url + '/nitestmonitor/v2/query-results';
 
+  queryByDataTableProperties = '';
+  tableData: TableProperties[] = [];
+
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
   private static _partNumbersCache: Promise<string[]> | null = null;
@@ -78,49 +81,49 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
       const processedQuery = this.processQuery(query);
       let idFilterString = '';
       if (processedQuery.type === DataFrameQueryType.Data) {
-        let metadata: ResultsResponseProperties[] = [];
-        if (query.queryByResults) {
-          metadata = (await this.queryResults(
-            query.queryByResults,
-            "STARTED_AT",
-            [ResultsProperties.dataTableIds], 
-            100000,
-            true
-          )).results;
+        // let metadata: ResultsResponseProperties[] = [];
+        // if (query.queryByResults) {
+        //   metadata = (await this.queryResults(
+        //     query.queryByResults,
+        //     "STARTED_AT",
+        //     [ResultsProperties.dataTableIds],
+        //     100000,
+        //     true
+        //   )).results;
 
-          let uniqueIDs: string | string[] = [];
-          const uniqueTableIdsPerIndex = metadata.map((item: ResultsResponseProperties) => {
-            item.dataTableIds?.map(id => {
-              if (id && !uniqueIDs.includes(id)) {
-                uniqueIDs.push(id);
-              };
-            });
-            return uniqueIDs;
-          });
-          const ids = uniqueIDs.slice(0, 500);
-          idFilterString = `(${ids.map(id => `id = "${id}"`).join(' || ')})`;
-          // Do something with metadata
+        //   let uniqueIDs: string | string[] = [];
+        //   const uniqueTableIdsPerIndex = metadata.map((item: ResultsResponseProperties) => {
+        //     item.dataTableIds?.map(id => {
+        //       if (id && !uniqueIDs.includes(id)) {
+        //         uniqueIDs.push(id);
+        //       };
+        //     });
+        //     return uniqueIDs;
+        //   });
+        //   const ids = uniqueIDs.slice(0, 500);
+        //   idFilterString = `(${ids.map(id => `id = "${id}"`).join(' || ')})`;
+        //   // Do something with metadata
+        // }
+        if (this.queryByChanged(query.queryBy!)) {
+          this.tableData = await this.queryTables(processedQuery.queryBy);
+          this.setFilteredColumns(this.tableData)
         }
-        let tableData: TableProperties[] = [];
-        if (idFilterString !== '') {
-          tableData = await this.queryTables(idFilterString);
-        } else {
-          tableData = await this.queryTables(processedQuery.queryBy);
-        }
-        this.setFilteredColumns(tableData)
-        if (!tableData || tableData.length === 0) {
+        if (!this.tableData || this.tableData.length === 0) {
           return {
             refId: processedQuery.refId,
             fields: [],
           };
         }
         if ((query.columns?.length ?? 0) !== 0) {
-          for (const table of tableData) {
+          for (const table of this.tableData) {
             const id = table.id;
             const properties = await this.getTableProperties(id);
-            const columns = this.getColumnTypes(table.columns.map(col => col.name), properties?.columns ?? []);
+            const columns = this.getColumnTypes(query.columns!, properties?.columns ?? []);
             processedQuery.columns = columns.map(c => c.name);
-            const tableData = await this.getDecimatedTableData(processedQuery, id, columns, range, maxDataPoints);
+            let tableData = await this.getDecimatedTableData(processedQuery, id, columns, range, maxDataPoints);
+            if (typeof(tableData) === 'string') {
+              tableData = JSON.parse(tableData);
+            }
             return {
               refId: processedQuery.refId,
               name: properties.name,
@@ -161,6 +164,14 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
     }
 
 
+  }
+
+  private queryByChanged(queryBy: string): boolean {
+    if (queryBy !== this.queryByDataTableProperties) {
+      this.queryByDataTableProperties = queryBy;
+      return true;
+    }
+    return false
   }
 
   shouldRunQuery(query: ValidDataFrameQuery): boolean {
@@ -208,7 +219,19 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
   async queryTables(query: string): Promise<TableProperties[]> {
     const filter = query;
 
-    return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take: 1000 })).tables;
+    let allTables: TableProperties[] = [];
+    let continuationToken: string | undefined = undefined;
+
+    do {
+      const response: TablePropertiesList = await this.post<TablePropertiesList>(
+        `${this.baseUrl}/query-tables`,
+        { filter, take: 1000, continuationToken }
+      );
+      allTables = allTables.concat(response.tables);
+      continuationToken = response.continuationToken;
+    } while (continuationToken && allTables.length < 5000);
+
+    return allTables;
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
