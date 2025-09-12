@@ -60,8 +60,14 @@ const mockListAssets = {
     totalCount: 4,
 };
 
+let assetOptions = {
+  featureToggles: {
+    locations: true
+  }
+}
+
 beforeEach(() => {
-    [datastore, backendServer] = setupDataSource(ListAssetsDataSource);
+    [datastore, backendServer] = setupDataSource(ListAssetsDataSource, () => assetOptions);
     backendServer.fetch
         .calledWith(requestMatching({ url: '/niapm/v1/query-assets', method: 'POST' }))
         .mockReturnValue(createFetchResponse(mockListAssets));
@@ -97,7 +103,7 @@ describe('List assets location queries', () => {
         );
     });
 
-    test('should transform LOCATION field with single value and cache hit', async () => {
+    test('should transform LOCATION field with single value and system cache hit', async () => {
         datastore.systemAliasCache.set('Location1', { id: 'Location1', alias: 'Location1-alias', state: 'CONNECTED', workspace: '1' });
 
         const query = buildListAssetsQuery({
@@ -116,7 +122,7 @@ describe('List assets location queries', () => {
         );
     });
 
-    test('should transform LOCATION field with multiple values and cache hit', async () => {
+    test('should transform LOCATION field with multiple values and system cache hit', async () => {
         datastore.systemAliasCache.set('Location1', { id: 'Location1', alias: 'Location1-alias', state: 'CONNECTED', workspace: '1' });
         datastore.systemAliasCache.set('Location2', { id: 'Location2', alias: 'Location2-alias', state: 'CONNECTED', workspace: '2' });
 
@@ -132,6 +138,25 @@ describe('List assets location queries', () => {
         expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
             expect.objectContaining({
                 filter: "(Location.MinionId = \"Location1\" || Location.MinionId = \"Location2\")"
+            })
+        );
+    });
+
+    test('should transform LOCATION field with location cache hit', async () => {
+        datastore.locationCache.set('cabinet-1-id', { id: 'cabinet-1-id', name: 'Cabinet 1' });
+
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: `${ListAssetsFieldNames.LOCATION} = "cabinet-1-id"`,
+            outputType: OutputType.Properties,
+        });
+
+        await datastore.query(query);
+
+        expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                filter: "Location.PhysicalLocation = \"cabinet-1-id\""
             })
         );
     });
@@ -419,6 +444,8 @@ describe('shouldRunQuery', () => {
     });
 
     test('should display location property', async () => {
+        datastore.locationCache.set('cabinet-3-id', { id: 'cabinet-3-id', name: 'Cabinet 3' });
+
         const query = buildListAssetsQuery({
             refId: '',
             type: AssetQueryType.ListAssets,
@@ -430,7 +457,7 @@ describe('shouldRunQuery', () => {
             assets: [
                 {
                     location: {
-                        physicalLocation: 'cabinet3',
+                        physicalLocation: 'cabinet-3-id',
                         parent: '',
                         resourceUri: '',
                         slotNumber: -1,
@@ -449,7 +476,7 @@ describe('shouldRunQuery', () => {
 
         expect(data.fields).toHaveLength(1);
         expect(data.fields[0].name).toEqual('location');
-        expect(data.fields[0].values).toEqual(['cabinet3']);
+        expect(data.fields[0].values).toEqual(['Cabinet 3']);
     });
 
     test('should display minionID property', async () => {
