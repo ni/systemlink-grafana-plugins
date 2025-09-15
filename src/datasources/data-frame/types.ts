@@ -26,7 +26,7 @@ export const defaultQuery: Omit<ValidDataFrameQuery, 'refId'> = {
 };
 
 export const DataFrameFeatureTogglesDefaults: DataFrameFeatureToggles = {
-  queryByDataTableProperties: false,
+  queryByDataTableProperties: true,
 };
 
 export type ValidDataFrameQuery = DataFrameQuery & Required<Omit<DataFrameQuery, keyof DataQuery>>;
@@ -43,14 +43,14 @@ export interface Column {
 export interface ColumnFilter {
   column: string;
   operation:
-    | 'EQUALS'
-    | 'LESS_THAN'
-    | 'LESS_THAN_EQUALS'
-    | 'GREATER_THAN'
-    | 'GREATER_THAN_EQUALS'
-    | 'NOT_EQUALS'
-    | 'CONTAINS'
-    | 'NOT_CONTAINS';
+  | 'EQUALS'
+  | 'LESS_THAN'
+  | 'LESS_THAN_EQUALS'
+  | 'GREATER_THAN'
+  | 'GREATER_THAN_EQUALS'
+  | 'NOT_EQUALS'
+  | 'CONTAINS'
+  | 'NOT_CONTAINS';
   value: string | null;
 }
 
