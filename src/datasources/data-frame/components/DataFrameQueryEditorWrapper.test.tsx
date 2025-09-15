@@ -4,11 +4,11 @@ import React from "react";
 import { DataFrameDataSource } from "../DataFrameDataSource";
 import { DataFrameQuery, DataFrameQueryType } from "../types";
 
-jest.mock('./DataFrameQueryEditorV1', () => ({
+jest.mock('./v1/DataFrameQueryEditorV1', () => ({
     DataFrameQueryEditorV1: () => <div className="data-frame-query-editor-v1" />
 }));
 
-jest.mock('./DataFrameQueryEditorV2', () => ({
+jest.mock('./v2/DataFrameQueryEditorV2', () => ({
     DataFrameQueryEditorV2: () => <div className="data-frame-query-editor-v2" />
 }));
 
