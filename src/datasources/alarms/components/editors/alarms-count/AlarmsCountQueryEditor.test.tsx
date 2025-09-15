@@ -3,14 +3,9 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { AlarmsCountQueryEditor } from './AlarmsCountQueryEditor';
 import { QueryType } from 'datasources/alarms/types/types';
 import { AlarmsCountQuery } from 'datasources/alarms/types/AlarmsCount.types';
-import { AlarmsCountDataSource } from 'datasources/alarms/query-type-handlers/alarms-count/AlarmsCountDataSource';
 import userEvent from '@testing-library/user-event';
 
-const mockGlobalVars = [{ label: '$var1', value: '$var1' }];
 const mockHandleQueryChange = jest.fn();
-const mockDatasource = {
-  globalVariableOptions: jest.fn(() => mockGlobalVars),
-} as unknown as AlarmsCountDataSource
 
 jest.mock('../../query-builder/AlarmsQueryBuilder', () => ({
   AlarmsQueryBuilder: jest.fn((props) => {
@@ -37,7 +32,6 @@ const defaultProps = {
     queryType: QueryType.AlarmsCount
   },
   handleQueryChange: mockHandleQueryChange,
-  datasource: mockDatasource
 };
 
 function renderElement(query: AlarmsCountQuery = { ...defaultProps.query }) {
@@ -58,14 +52,14 @@ describe('AlarmsCountQueryEditor', () => {
     renderElement();
 
     expect(screen.getByTestId('alarms-filter').textContent).toBe('');
-    expect(screen.getByTestId('alarms-global-vars').textContent).toBe(JSON.stringify(mockGlobalVars));
+    expect(screen.getByTestId('alarms-global-vars').textContent).toBe('[]');
   });
 
   it('should call handleQueryChange on filter change', () => {
     renderElement();
     
     screen.getByTestId('alarms-trigger-change').click();
-    
+
     expect(mockHandleQueryChange).toHaveBeenCalledWith({
       refId: 'A',
       queryType: QueryType.AlarmsCount,
