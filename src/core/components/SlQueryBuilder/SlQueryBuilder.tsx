@@ -49,16 +49,7 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
 
   const sortFieldsByLabel = (fields: QueryBuilderField[]) => {
     return fields.sort((a, b) => {
-      if (!a.label && !b.label) {
-        return 0;
-      }
-      if (!a.label) {
-        return 1;
-      }
-      if (!b.label) {
-        return -1;
-      }
-      return a.label.localeCompare(b.label);
+      return (a.label ?? '').localeCompare(b.label ?? '');
     });
   }
 
