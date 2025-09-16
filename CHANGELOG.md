@@ -1,3 +1,13 @@
+## [4.9.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.8.0...v4.9.0) (2025-09-16)
+
+### Features
+
+* **alarms:** Add alarms query builder ([#399](https://github.com/ni/systemlink-grafana-plugins/issues/399)) ([2ec0dff](https://github.com/ni/systemlink-grafana-plugins/commit/2ec0dffe7d87318eae7ca29abe5d5f319dd9dd9a))
+
+### Bug Fixes
+
+* **core:** sort fields in query builder by label ([#405](https://github.com/ni/systemlink-grafana-plugins/issues/405)) ([6982703](https://github.com/ni/systemlink-grafana-plugins/commit/6982703b0795c4b944d7576592a9a830b30cb4a4))
+
 ## [4.8.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.7.1...v4.8.0) (2025-09-10)
 
 ### Features
