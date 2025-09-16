@@ -9,8 +9,6 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
 
   public abstract runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
-  public readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
-
   protected async queryAlarms(alarmsRequestBody: QueryAlarmsRequest): Promise<QueryAlarmsResponse> {
     try {
       return await this.post<QueryAlarmsResponse>(
