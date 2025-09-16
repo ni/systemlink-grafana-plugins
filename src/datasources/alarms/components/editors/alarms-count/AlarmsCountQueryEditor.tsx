@@ -10,20 +10,24 @@ type Props = {
 };
 
 export function AlarmsCountQueryEditor({ query, handleQueryChange }: Props) {
-  const onFilterChange = (value: string) => {
-    if (query.queryBy !== value) {
-      query.queryBy = value;
-      handleQueryChange({ ...query, queryBy: value });
+  const onFilterChange = (event?: Event | React.FormEvent<Element>) => {
+    if (event && 'detail' in event) {
+      const value = (event as CustomEvent).detail.linq;
+      
+      if (query.queryBy !== value) {
+        query.queryBy = value;
+        handleQueryChange({ ...query, queryBy: value });
+      }
     }
-  }
+  };
 
   return (
-    <InlineField label={labels.queryBy} labelWidth={26} tooltip={tooltips.queryBy}>
-      <AlarmsQueryBuilder
-        filter={query.queryBy}
-        globalVariableOptions={[]}
-        onChange={(event: any) => onFilterChange(event.detail.linq)}
-      />
-    </InlineField>
-  );
+  <InlineField label={labels.queryBy} labelWidth={26} tooltip={tooltips.queryBy}>
+    <AlarmsQueryBuilder
+      filter={query.queryBy}
+      globalVariableOptions={[]}
+      onChange={onFilterChange}
+    />
+  </InlineField>
+);
 }

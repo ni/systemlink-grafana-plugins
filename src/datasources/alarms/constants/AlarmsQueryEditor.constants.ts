@@ -3,5 +3,5 @@ export const labels = {
 };
 
 export const tooltips = {
-  queryBy: 'This optional field applies a filter to the query alarms.',
+  queryBy: 'This optional field specifies the query filters.',
 };
