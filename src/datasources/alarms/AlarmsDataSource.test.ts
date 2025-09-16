@@ -5,6 +5,7 @@ import { AlarmsDataSource } from './AlarmsDataSource';
 import { DataQueryRequest } from '@grafana/data';
 import { QueryType } from './types/types';
 import { AlarmsCountDataSource } from './query-type-handlers/alarms-count/AlarmsCountDataSource';
+import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
 
 let datastore: AlarmsDataSource, backendServer: MockProxy<BackendSrv>;
 
@@ -74,14 +75,14 @@ describe('AlarmsDataSource', () => {
   describe('testDataSource', () => {
     it('returns success', async () => {
       backendServer.fetch
-        .calledWith(requestMatching({ url: '/nialarm/v1/query-instances-with-filter' }))
+        .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
         .mockReturnValue(createFetchResponse('testData'));
 
       const response = await datastore.testDatasource();
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: `${datastore.instanceSettings.url}/nialarm/v1/query-instances-with-filter`,
+          url: `${datastore.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`,
         })
       );
       expect(response.status).toEqual('success');
@@ -89,11 +90,11 @@ describe('AlarmsDataSource', () => {
 
     it('bubbles up exception', async () => {
       backendServer.fetch
-        .calledWith(requestMatching({ url: '/nialarm/v1/query-instances-with-filter' }))
+        .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
         .mockReturnValue(createFetchError(400));
 
       await expect(datastore.testDatasource()).rejects.toThrow(
-        'Request to url "/nialarm/v1/query-instances-with-filter" failed with status code: 400. Error message: "Error"'
+        `Request to url "${QUERY_ALARMS_RELATIVE_PATH}" failed with status code: 400. Error message: "Error"`
       );
     });
   });

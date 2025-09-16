@@ -3,13 +3,12 @@ import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana
 import { DataSourceBase } from 'core/DataSourceBase';
 import { AlarmsQuery, QueryType } from './types/types';
 import { AlarmsCountDataSource } from './query-type-handlers/alarms-count/AlarmsCountDataSource';
+import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
 
 export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
   public readonly defaultQuery: Omit<AlarmsQuery, 'refId'>;
 
   private readonly _alarmsCountDataSource: AlarmsCountDataSource;
-  private readonly baseUrl = `${this.instanceSettings.url}/nialarm/v1`;
-  private readonly queryAlarmsUrl = `${this.baseUrl}/query-instances-with-filter`;
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
@@ -45,7 +44,7 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
   }
 
   public async testDatasource(): Promise<TestDataSourceResponse> {
-    await this.post(this.queryAlarmsUrl, { take: 1 });
+    await this.post(`${this.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`, { take: 1 });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }

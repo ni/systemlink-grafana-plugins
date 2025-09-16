@@ -4,6 +4,7 @@ import { DataQueryRequest } from '@grafana/data';
 import { QueryAlarmsResponse, QueryType } from 'datasources/alarms/types/types';
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv } from '@grafana/runtime';
+import { QUERY_ALARMS_RELATIVE_PATH } from 'datasources/alarms/constants/QueryAlarms.constants';
 
 let datastore: AlarmsCountDataSource, backendServer: MockProxy<BackendSrv>;
 
@@ -17,7 +18,7 @@ describe('AlarmsCountDataSource', () => {
     [datastore, backendServer] = setupDataSource(AlarmsCountDataSource);
 
     backendServer.fetch
-    .calledWith(requestMatching({ url: '/nialarm/v1/query-instances-with-filter' }))
+    .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
     .mockReturnValue(createFetchResponse(mockAlarmResponse));
   });
 
@@ -36,7 +37,7 @@ describe('AlarmsCountDataSource', () => {
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: expect.stringContaining('/nialarm/v1/query-instances-with-filter'),
+          url: expect.stringContaining(QUERY_ALARMS_RELATIVE_PATH),
           method: 'POST',
           data: { take: 1, returnCount: true },
           showErrorAlert: false
@@ -52,7 +53,7 @@ describe('AlarmsCountDataSource', () => {
 
     it('should return 0 when totalCount is undefined', async () => {
       backendServer.fetch
-      .calledWith(requestMatching({ url: '/nialarm/v1/query-instances-with-filter' }))
+      .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
       .mockReturnValue(createFetchResponse({ totalCount: undefined }));
 
       const result = await datastore.runQuery(query, dataQueryRequest);

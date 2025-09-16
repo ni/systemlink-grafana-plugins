@@ -2,10 +2,10 @@ import { DataSourceBase } from "core/DataSourceBase";
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents } from "@grafana/data";
 import { AlarmsQuery, QueryAlarmsRequestBody, QueryAlarmsResponse } from "./types/types";
 import { extractErrorInfo } from "core/errors";
+import { QUERY_ALARMS_RELATIVE_PATH } from "./constants/QueryAlarms.constants";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
-  private readonly baseUrl = `${this.instanceSettings.url}/nialarm/v1`;
-  private readonly queryAlarmsUrl = `${this.baseUrl}/query-instances-with-filter`;
+  private readonly queryAlarmsUrl = `${this.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`;
 
   public abstract runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 

@@ -4,6 +4,7 @@ import { AlarmsQuery, QueryAlarmsRequestBody, QueryType } from './types/types';
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
+import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
 
 class TestAlarmsDataSource extends AlarmsDataSourceCore {
   async runQuery(query: AlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
@@ -31,18 +32,16 @@ describe('AlarmsDataSourceCore', () => {
   });
 
   describe('queryAlarms', () => {
-    const queryAlarmsUrl = '/nialarm/v1/query-instances-with-filter';
-    
     it('should call the query alarms API with the given parameters', async () => {
       backendServer.fetch
-        .calledWith(requestMatching({ url: queryAlarmsUrl }))
+        .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
         .mockReturnValue(await Promise.resolve(createFetchResponse({ totalCount: 10 })));
 
       const response = await datastore.queryAlarmsWrapper({ take: 1, returnCount: true });
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: expect.stringContaining(queryAlarmsUrl),
+          url: expect.stringContaining(QUERY_ALARMS_RELATIVE_PATH),
           method: 'POST',
           data: { take: 1, returnCount: true },
           showErrorAlert: false
@@ -78,7 +77,7 @@ describe('AlarmsDataSourceCore', () => {
       testCases.forEach(({ status, expectedErrorMessage }) => {
       it('should handle ' + status + ' error', async () => {
           backendServer.fetch
-            .calledWith(requestMatching({ url: queryAlarmsUrl }))
+            .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
             .mockReturnValueOnce(createFetchError(status));
 
           await expect(datastore.queryAlarmsWrapper({})).rejects.toThrow(expectedErrorMessage);
@@ -107,7 +106,7 @@ describe('AlarmsDataSourceCore', () => {
 
       it('should handle unknown errors', async () => {
         const expectedErrorMessage = 'The query failed due to an unknown error.';
-        backendServer.fetch.calledWith(requestMatching({ url: queryAlarmsUrl })).mockImplementation(() => {
+        backendServer.fetch.calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH })).mockImplementation(() => {
           throw new Error('Error');
         });
 
