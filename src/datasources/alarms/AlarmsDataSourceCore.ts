@@ -1,6 +1,6 @@
 import { DataSourceBase } from "core/DataSourceBase";
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents } from "@grafana/data";
-import { AlarmsQuery, QueryAlarmsRequestBody, QueryAlarmsResponse } from "./types/types";
+import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from "./types/types";
 import { extractErrorInfo } from "core/errors";
 import { QUERY_ALARMS_RELATIVE_PATH } from "./constants/QueryAlarms.constants";
 
@@ -9,7 +9,7 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
 
   public abstract runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
-  protected async queryAlarms(alarmsRequestBody: QueryAlarmsRequestBody): Promise<QueryAlarmsResponse> {
+  protected async queryAlarms(alarmsRequestBody: QueryAlarmsRequest): Promise<QueryAlarmsResponse> {
     try {
       return await this.post<QueryAlarmsResponse>(
         this.queryAlarmsUrl,

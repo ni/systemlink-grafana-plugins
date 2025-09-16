@@ -1,6 +1,6 @@
 import { AlarmsDataSourceCore } from './AlarmsDataSourceCore';
 import { DataFrameDTO, DataQueryRequest } from '@grafana/data';
-import { AlarmsQuery, QueryAlarmsRequestBody, QueryType } from './types/types';
+import { AlarmsQuery, QueryAlarmsRequest, QueryType } from './types/types';
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
@@ -15,7 +15,7 @@ class TestAlarmsDataSource extends AlarmsDataSourceCore {
     };
   }
 
-  async queryAlarmsWrapper(query: QueryAlarmsRequestBody) {
+  async queryAlarmsWrapper(query: QueryAlarmsRequest) {
     return this.queryAlarms(query);
   }
 

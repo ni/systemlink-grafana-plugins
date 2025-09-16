@@ -8,7 +8,8 @@ export enum QueryType {
   AlarmsCount = 'AlarmsCount',
 }
 
-export interface QueryAlarmsRequestBody {
+export interface QueryAlarmsRequest {
+  filter?: string;
   take?: number;
   returnCount?: boolean;
 }
