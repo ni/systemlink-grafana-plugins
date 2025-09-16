@@ -4,7 +4,7 @@ import { DataTableQueryBuilderFields, DataTableQueryBuilderStaticFields } from "
 import { QBField, QueryBuilderOption, Workspace } from "core/types";
 import { addOptionsToLookup, filterXSSField } from "core/utils";
 import { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
-import { expressionBuilderCallback, expressionReaderCallback } from "core/query-builder.utils";
+import { expressionBuilderCallbackWithRef, expressionReaderCallbackWithRef } from "core/query-builder.utils";
 import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder.constants";
 
 type DataTableQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
@@ -21,6 +21,7 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
 }) => {
     const [fields, setFields] = useState<QBField[]>([]);
     const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
+    const optionsRef = React.useRef<Record<string, QueryBuilderOption[]>>({});
 
     const workspaceField = useMemo(() => {
         const workspaceField = DataTableQueryBuilderFields.WORKSPACE;
@@ -46,12 +47,25 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
         ]
     }, []);
 
+    const callbacks = useMemo(() => {
+        return {
+            expressionBuilderCallback: expressionBuilderCallbackWithRef(optionsRef),
+            expressionReaderCallback: expressionReaderCallbackWithRef(optionsRef),
+        };
+    }, [optionsRef]);
+
     useEffect(() => {
         if (!workspaceField || !timeFields) {
             return;
         }
 
-        const updatedFields = [...DataTableQueryBuilderStaticFields, workspaceField, ...timeFields].map(field => {
+        const updatedFields = [
+            ...DataTableQueryBuilderStaticFields,
+            workspaceField,
+            ...timeFields,
+            DataTableQueryBuilderFields.ID,
+            DataTableQueryBuilderFields.NAME,
+        ].map(field => {
             if (field.lookup?.dataSource) {
                 return {
                     ...field,
@@ -73,10 +87,7 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
             return accumulator;
         }, {} as Record<string, QueryBuilderOption[]>);
 
-        const callbacks = {
-            expressionBuilderCallback: expressionBuilderCallback(options),
-            expressionReaderCallback: expressionReaderCallback(options),
-        };
+        optionsRef.current = options;
 
         const customOperations = [
             QueryBuilderOperations.EQUALS,
@@ -114,7 +125,7 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
 
         setOperations([...customOperations, ...customDateTimeOperations, ...keyValueOperations]);
 
-    }, [workspaceField, timeFields, globalVariableOptions]);
+    }, [workspaceField, timeFields, globalVariableOptions, callbacks]);
 
     return (
         <SlQueryBuilder

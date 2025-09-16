@@ -60,6 +60,7 @@ export const DataTableQueryBuilderFields: Record<string, QBField> = {
     PROPERTIES: {
         label: 'Properties',
         dataField: DataTableQueryBuilderFieldNames.Properties,
+        dataType: 'object',
         filterOperations: [
             QueryBuilderOperations.KEY_VALUE_MATCH.name,
             QueryBuilderOperations.KEY_VALUE_DOES_NOT_MATCH.name,
