@@ -112,7 +112,7 @@ describe('AlarmsCountDataSource', () => {
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: expect.stringContaining('/nialarm/v1/query-instances-with-filter'),
+          url: expect.stringContaining(QUERY_ALARMS_RELATIVE_PATH),
           method: 'POST',
           data: { filter: 'alarmId = "test-alarm-123"', take: 1, returnCount: true },
           showErrorAlert: false
