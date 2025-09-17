@@ -4,7 +4,7 @@ import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from '../types/t
 import { extractErrorInfo } from 'core/errors';
 import { QUERY_ALARMS_RELATIVE_PATH } from '../constants/QueryAlarms.constants';
 
-export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
+export abstract class AlarmsQueryHandlersCore extends DataSourceBase<AlarmsQuery> {
   private readonly queryAlarmsUrl = `${this.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`;
 
   public abstract runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;

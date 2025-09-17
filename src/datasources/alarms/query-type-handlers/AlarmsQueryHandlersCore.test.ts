@@ -1,4 +1,4 @@
-import { AlarmsDataSourceCore } from './AlarmsDataSourceCore';
+import { AlarmsQueryHandlersCore } from './AlarmsQueryHandlersCore';
 import { DataFrameDTO, DataQueryRequest } from '@grafana/data';
 import { AlarmsQuery, QueryAlarmsRequest, QueryType } from '../types/types';
 import { MockProxy } from 'jest-mock-extended';
@@ -6,7 +6,7 @@ import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { QUERY_ALARMS_RELATIVE_PATH } from '../constants/QueryAlarms.constants';
 
-class TestAlarmsDataSource extends AlarmsDataSourceCore {
+class TestAlarmsDataSource extends AlarmsQueryHandlersCore {
   async runQuery(query: AlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
 
     return {
@@ -24,7 +24,7 @@ class TestAlarmsDataSource extends AlarmsDataSourceCore {
   };
 }
 
-describe('AlarmsDataSourceCore', () => {
+describe('AlarmsQueryHandlersCore', () => {
   let datastore: TestAlarmsDataSource, backendServer: MockProxy<BackendSrv>;
 
   beforeEach(() => {
