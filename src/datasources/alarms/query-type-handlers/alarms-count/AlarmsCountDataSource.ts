@@ -1,5 +1,5 @@
 import { DataFrameDTO, DataQueryRequest, FieldType } from '@grafana/data';
-import { AlarmsDataSourceCore } from 'datasources/alarms/AlarmsDataSourceCore';
+import { AlarmsDataSourceCore } from 'datasources/alarms/query-type-handlers/AlarmsDataSourceCore';
 import { defaultAlarmsCountQuery } from 'datasources/alarms/constants/defaultQueries';
 import { MINIMUM_TAKE } from 'datasources/alarms/constants/QueryAlarms.constants';
 import { AlarmsCountQuery } from 'datasources/alarms/types/AlarmsCount.types';
