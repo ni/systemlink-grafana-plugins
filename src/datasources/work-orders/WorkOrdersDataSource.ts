@@ -1,4 +1,5 @@
 import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, TestDataSourceResponse, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents } from '@grafana/data';
+import Papa from 'papaparse';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
@@ -49,7 +50,14 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
   async runQuery(query: WorkOrdersQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    await this.exportTableData(options);
+    const values = await this.exportTableData(options);
+    const rows = values.split('\n').map(row => row.split(','));
+    const fields = rows[0].map((name, index) => ({
+      name,
+      values: rows.slice(1).map(row => row[index]),
+      type: FieldType.string,
+    }));
+    return { refId: query.refId, name: query.refId, fields};
     if (query.queryBy) {
       query.queryBy = transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
@@ -81,7 +89,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       });
   }
 
-  async exportTableData(_options: DataQueryRequest): Promise<void> {
+  async exportTableData(_options: DataQueryRequest): Promise<string> {
     const variables = this.templateSrv.getVariables() as any[];
     // eslint-disable-next-line no-console
     console.log('Exporting table data with variables:', variables);
@@ -97,43 +105,43 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     const properties = await this.getTableProperties(tableId);
     const columns = properties?.columns.map(col => col.name).slice(0,columnsCount) ?? [];
 
-    // const res = await fetch(exportUrl, {
-    //   body: JSON.stringify({
-    //     columns: columns,
-    //     destination: "DOWNLOAD_LINK",
-    //     responseFormat: "CSV",
-    //     take
-    //   }),
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Accept': 'application/json'
-    //   },
-    // })
-    // .catch(error => {
-    //   console.error( error);
-    // });
-
-    //   const locationHeader = res!.headers.get('Location'); // ✅ Will work ONLY if server exposes it
-    //   const regex = /(?<=nidataframe\/v1\/table-exports\/)[^\/]+/;
-    //   const match = locationHeader!.match(regex);
-    //   // eslint-disable-next-line no-console
-    //   console.log(match![0]);
-    //   const downloadUrl = `${this.instanceSettings.url}/nidataframe/v1/table-exports/${match![0]}`;
-
-    //   const csvResponse = await fetch(downloadUrl)
-    //     .catch(error => {
-    //       console.error( error);
-    //     });
-    //   const csvText = await csvResponse!.text();
-    //   // Measure byte length (UTF-8)
-    const response = await this.post<string>(exportUrl, {
-      columns: columns,
-      destination: "INLINE",
-      responseFormat: "CSV",
-      take
+    const res = await fetch(exportUrl, {
+      body: JSON.stringify({
+        columns: columns,
+        destination: "DOWNLOAD_LINK",
+        responseFormat: "CSV",
+        take
+      }),
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+    })
+    .catch(error => {
+      console.error( error);
     });
-      const csvText = response;
+
+      const locationHeader = res!.headers.get('Location'); // ✅ Will work ONLY if server exposes it
+      const regex = /(?<=nidataframe\/v1\/table-exports\/)[^\/]+/;
+      const match = locationHeader!.match(regex);
+      // eslint-disable-next-line no-console
+      console.log(match![0]);
+      const downloadUrl = `${this.instanceSettings.url}/nidataframe/v1/table-exports/${match![0]}`;
+
+      const csvResponse = await fetch(downloadUrl)
+        .catch(error => {
+          console.error( error);
+        });
+      const csvText = await csvResponse!.text();
+    //   // Measure byte length (UTF-8)
+    // const response = await this.post<string>(exportUrl, {
+    //   columns: columns,
+    //   destination: "INLINE",
+    //   responseFormat: "CSV",
+    //   take
+    // });
+    //   const csvText = response;
       const encoder = new TextEncoder();
       const byteArray = encoder.encode(csvText);
       const sizeInBytes = byteArray.length;
@@ -142,10 +150,10 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       console.log(`CSV size: ${sizeInBytes} bytes`);
       //console.log(csvText); // Output the CSV content to console or handle it as needed
 
-      // const parsed = Papa.parse(csvText, {
-      //   header: true, // or false if you want raw array format
-      //   skipEmptyLines: true
-      // });
+      const parsed = Papa.parse(csvText, {
+        header: true, // or false if you want raw array format
+        skipEmptyLines: true
+      });
       // // eslint-disable-next-line no-console
       // console.log('Parsed data:', parsed.data);      // ✅ Array of objects
       // // eslint-disable-next-line no-console
@@ -153,6 +161,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       const endTime = new Date().getTime();
       // eslint-disable-next-line no-console
       console.log(`Exported table data in ${endTime - startTime} ms`);
+      return csvText;
   }
 
   shouldRunQuery(query: WorkOrdersQuery): boolean {
