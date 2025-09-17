@@ -1,30 +1,10 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { AlarmsCountQueryEditor } from './AlarmsCountQueryEditor';
 import { QueryType } from 'datasources/alarms/types/types';
 import { AlarmsCountQuery } from 'datasources/alarms/types/AlarmsCount.types';
-import userEvent from '@testing-library/user-event';
 
 const mockHandleQueryChange = jest.fn();
-
-jest.mock('../../query-builder/AlarmsQueryBuilder', () => ({
-  AlarmsQueryBuilder: jest.fn((props) => {
-    const { filter, globalVariableOptions, onChange } = props;
-
-    return (
-      <div data-testid="mock-alarms-query-builder">
-        <div data-testid="alarms-filter">{filter}</div>
-        <div data-testid="alarms-global-vars">{JSON.stringify(globalVariableOptions)}</div>
-        <button
-          data-testid="alarms-trigger-change"
-          onClick={() => onChange(new CustomEvent('change', { detail: { linq: 'alarmId = "test-alarm-123"' } }))}
-        >
-          Trigger Alarms Change
-        </button>
-      </div>
-    );
-  })
-}));
 
 const defaultProps = {
   query: {
@@ -44,38 +24,30 @@ describe('AlarmsCountQueryEditor', () => {
   it('should render the query builder', () => {
     renderElement();
 
-    expect(screen.getByText('Query By')).toBeInTheDocument();
-    expect(screen.getByTestId('mock-alarms-query-builder')).toBeInTheDocument();
+    expect(screen.getAllByText('Property').length).toBe(1);
+    expect(screen.getAllByText('Operator').length).toBe(1);
+    expect(screen.getAllByText('Value').length).toBe(1);
   });
 
-  it('should pass the correct props to AlarmsQueryBuilder', () => {
-    renderElement();
+  it('should call handleQueryChange when query by changes', () => {
+    const container = renderElement();
+    const queryBuilder = container.getByRole('dialog');
+    const event = { detail: { linq: 'new-query' } };
 
-    expect(screen.getByTestId('alarms-filter').textContent).toBe('');
-    expect(screen.getByTestId('alarms-global-vars').textContent).toBe('[]');
+    queryBuilder?.dispatchEvent(new CustomEvent('change', event));
+
+    expect(queryBuilder).toBeInTheDocument();
+    expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ queryBy: 'new-query' }));
   });
 
-  it('should call handleQueryChange on filter change', () => {
-    renderElement();
+  test('should not call handleQueryChange when query by changes with same value', () => {
+    const container = renderElement({ refId: 'A', queryType: QueryType.AlarmsCount, queryBy: 'same-query' });
+    const queryBuilder = container.getByRole('dialog');
+    const event = { detail: { linq: 'same-query' } };
     
-    screen.getByTestId('alarms-trigger-change').click();
-
-    expect(mockHandleQueryChange).toHaveBeenCalledWith({
-      refId: 'A',
-      queryType: QueryType.AlarmsCount,
-      queryBy: 'alarmId = "test-alarm-123"',
-    });
-  });
-
-  test('should not call handleQueryChange when filter is not changed', async () => {
-    const initialQueryBy = 'alarmId = "test-alarm-123"';
-    renderElement({ refId: 'A', queryType: QueryType.AlarmsCount, queryBy: initialQueryBy });
-    const triggerChangeButton = screen.getByTestId('alarms-trigger-change');
-
-    await userEvent.click(triggerChangeButton);
-
-    await waitFor(() => {
-      expect(mockHandleQueryChange).not.toHaveBeenCalled();
-    });
+    queryBuilder?.dispatchEvent(new CustomEvent('change', event));
+    
+    expect(queryBuilder).toBeInTheDocument();
+    expect(mockHandleQueryChange).not.toHaveBeenCalled();
   });
 });
