@@ -53,6 +53,26 @@ export interface Alarm {
   resourceType: string;
 }
 
+export enum AlarmPropertiesOptions {
+  ALARM_ID = 'alarmID',
+  WORKSPACE = 'workspace',
+  ACTIVE = 'active',
+  CLEAR = 'clear',
+  ACKNOWLEDGED = 'acknowledged',
+  ACKNOWLEDGED_AT = 'acknowledgedAt',
+  ACKNOWLEDGED_BY = 'acknowledgedBy',
+  OCCURRED_AT = 'occurredAt',
+  CREATED_BY = 'createdBy',
+  CURRENT_SEVERITY_LEVEL = 'currentSeverityLevel',
+  HIGHEST_SEVERITY_LEVEL = 'highestSeverityLevel',
+  CHANNEL = 'channel',
+  DISPLAY_NAME = 'displayName',
+  DESCRIPTION = 'description',
+  KEYWORDS = 'keywords',
+  PROPERTIES = 'properties',
+  RESOURCE_TYPE = 'resourceType',
+};
+
 enum TransitionInclusionOption {
   None = 'NONE',
   MostRecentOnly = 'MOST_RECENT_ONLY',
