@@ -26,7 +26,7 @@ export const defaultQuery: Omit<ValidDataFrameQuery, 'refId'> = {
 };
 
 export const DataFrameFeatureTogglesDefaults: DataFrameFeatureToggles = {
-  queryByDataTableProperties: true,
+  queryByDataTableProperties: false,
 };
 
 export type ValidDataFrameQuery = DataFrameQuery & Required<Omit<DataFrameQuery, keyof DataQuery>>;
