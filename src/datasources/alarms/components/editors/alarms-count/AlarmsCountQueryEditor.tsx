@@ -1,8 +1,8 @@
-import { AlarmsCountQuery } from "datasources/alarms/types/AlarmsCount.types";
-import React from "react";
-import { InlineField } from "core/components/InlineField";
-import { AlarmsQueryBuilder } from "../../query-builder/AlarmsQueryBuilder";
-import { labels, tooltips } from "datasources/alarms/constants/AlarmsQueryEditor.constants";
+import { AlarmsCountQuery } from 'datasources/alarms/types/AlarmsCount.types';
+import React from 'react';
+import { InlineField } from 'core/components/InlineField';
+import { AlarmsQueryBuilder } from '../../query-builder/AlarmsQueryBuilder';
+import { labels, tooltips } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 
 type Props = {
   query: AlarmsCountQuery;
