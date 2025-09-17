@@ -1,7 +1,7 @@
 import { SelectableValue, textUtil } from '@grafana/data';
 import { useAsync } from 'react-use';
 import { DataSourceBase } from './DataSourceBase';
-import { BatchQueryConfig, QueryResponse, SystemLinkError, Workspace } from './types';
+import { BatchQueryConfig, QBField, QueryBuilderOption, QueryResponse, SystemLinkError, Workspace } from './types';
 import { BackendSrv, BackendSrvRequest, FetchError, isFetchError, TemplateSrv } from '@grafana/runtime';
 import { lastValueFrom } from 'rxjs';
 
@@ -295,6 +295,19 @@ export function get<T>(backendSrv: BackendSrv, url: string, params?: Record<stri
 export function post<T>(backendSrv: BackendSrv, url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}) {
   return fetch<T>(backendSrv, { method: 'POST', url, data: body, ...options });
 }
+
+export function addOptionsToLookup(field: QBField, options: QueryBuilderOption[]) {
+    return {
+        ...field,
+        lookup: {
+            ...field.lookup,
+            dataSource: [
+                ...(field.lookup?.dataSource || []),
+                ...options,
+            ],
+        },
+    };
+};
 
 async function delay(timeout: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, timeout));
