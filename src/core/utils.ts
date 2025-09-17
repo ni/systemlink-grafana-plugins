@@ -143,7 +143,7 @@ export async function queryInBatches<T>(
     if (responseLength < recordCount || continuationToken === null) {
       return;
     }
-
+    
     recordCount = Math.min(take - queryResponse.length, queryConfig.maxTakePerRequest);
     await getRecords(recordCount);
   };
@@ -244,15 +244,15 @@ export async function queryUsingSkip<T>(
     const start = Date.now();
 
     for (let i = 0; i < requestsPerSecond && hasMore; i++) {
-      const response = await queryRecord(maxTakePerRequest, skip);
-      data.push(...response.data);
+        const response = await queryRecord(maxTakePerRequest, skip);
+        data.push(...response.data);
 
-      if (response.data.length < maxTakePerRequest) {
-        hasMore = false;
-        break;
-      }
+        if (response.data.length < maxTakePerRequest) {
+          hasMore = false;
+          break;
+        }
 
-      skip += maxTakePerRequest;
+        skip += maxTakePerRequest;
     }
 
     const elapsed = Date.now() - start;
@@ -297,16 +297,16 @@ export function post<T>(backendSrv: BackendSrv, url: string, body: Record<string
 }
 
 export function addOptionsToLookup(field: QBField, options: QueryBuilderOption[]) {
-  return {
-    ...field,
-    lookup: {
-      ...field.lookup,
-      dataSource: [
-        ...(field.lookup?.dataSource || []),
-        ...options,
-      ],
-    },
-  };
+    return {
+        ...field,
+        lookup: {
+            ...field.lookup,
+            dataSource: [
+                ...(field.lookup?.dataSource || []),
+                ...options,
+            ],
+        },
+    };
 };
 
 async function delay(timeout: number): Promise<void> {
@@ -323,7 +323,7 @@ async function fetch<T>(backendSrv: BackendSrv, options: BackendSrvRequest, retr
   } catch (error) {
     if (isFetchError(error) && error.status === 429 && retries < 3) {
       await sleep(Math.random() * 1000 * 2 ** retries);
-      return fetch(backendSrv, { ...options, url }, retries + 1);
+      return fetch(backendSrv, {...options, url}, retries + 1);
     }
     if (isFetchError(error)) {
       const fetchError = error as FetchError;
