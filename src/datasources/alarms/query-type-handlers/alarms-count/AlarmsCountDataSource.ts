@@ -8,7 +8,7 @@ export class AlarmsCountDataSource extends AlarmsDataSourceCore {
   public readonly defaultQuery = defaultAlarmsCountQuery;
 
   public async runQuery(query: AlarmsCountQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
-    const alarmsCount = await this.queryAlarmsCount(query.queryBy);
+    const alarmsCount = await this.queryAlarmsCount(query.filter);
 
     return {
       refId: query.refId,

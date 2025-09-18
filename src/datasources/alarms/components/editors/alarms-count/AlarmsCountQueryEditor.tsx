@@ -2,7 +2,7 @@ import { AlarmsCountQuery } from "datasources/alarms/types/AlarmsCount.types";
 import React from "react";
 import { InlineField } from "core/components/InlineField";
 import { AlarmsQueryBuilder } from "../../query-builder/AlarmsQueryBuilder";
-import { labels, tooltips } from "datasources/alarms/constants/AlarmsQueryEditor.constants";
+import { LABEL_WIDTH, labels, tooltips } from "datasources/alarms/constants/AlarmsQueryEditor.constants";
 
 type Props = {
   query: AlarmsCountQuery;
@@ -14,17 +14,17 @@ export function AlarmsCountQueryEditor({ query, handleQueryChange }: Props) {
     if (event && 'detail' in event) {
       const value = (event as CustomEvent).detail.linq;
       
-      if (query.queryBy !== value) {
-        query.queryBy = value;
-        handleQueryChange({ ...query, queryBy: value });
+      if (query.filter !== value) {
+        query.filter = value;
+        handleQueryChange({ ...query, filter: value });
       }
     }
   };
 
   return (
-  <InlineField label={labels.queryBy} labelWidth={26} tooltip={tooltips.queryBy}>
+  <InlineField label={labels.queryBy} labelWidth={LABEL_WIDTH} tooltip={tooltips.queryBy}>
     <AlarmsQueryBuilder
-      filter={query.queryBy}
+      filter={query.filter}
       globalVariableOptions={[]}
       onChange={onFilterChange}
     />

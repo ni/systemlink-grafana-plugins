@@ -1,3 +1,5 @@
+export const LABEL_WIDTH = 26;
+
 export const labels = {
   queryBy: 'Query By',
 };
