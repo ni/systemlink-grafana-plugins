@@ -1,3 +1,9 @@
+## [4.11.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.10.0...v4.11.0) (2025-09-18)
+
+### Features
+
+* **alarms:** Implement filtering logic for Query Alarms API ([#404](https://github.com/ni/systemlink-grafana-plugins/issues/404)) ([7762e78](https://github.com/ni/systemlink-grafana-plugins/commit/7762e7849783cb08929fdcc57fdbd30ce6a4ec7c))
+
 ## [4.10.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.9.0...v4.10.0) (2025-09-17)
 
 ### Features
