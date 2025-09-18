@@ -5,7 +5,7 @@ import _ from "lodash";
 import { DataFrameDataSource } from "../../DataFrameDataSource";
 import { DataFrameQuery, DataFrameQueryType, Props, ValidDataFrameQuery } from "../../types";
 
-export class DataFrameQueryEditorCommon {
+export class DataFrameQueryEditorCommonV1 {
   readonly datasource: DataFrameDataSource;
   readonly onChange: (value: DataFrameQuery) => void;
   readonly query: ValidDataFrameQuery;

@@ -4,13 +4,13 @@ import { InlineField } from 'core/components/InlineField';
 import { toOption } from '@grafana/data';
 import { isValidId } from '../utils';
 import { FloatingError, parseErrorMessage } from '../../../core/errors';
-import { DataFrameQueryEditorCommon } from './v1/DataFrameQueryEditorCommon';
+import { DataFrameQueryEditorCommonV1 } from './v1/DataFrameQueryEditorCommonV1';
 import { Props } from '../types';
 
 export function DataFrameVariableQueryEditor(props: Props) {
   const [errorMsg, setErrorMsg] = useState<string | undefined>('');
   const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
-  const common = new DataFrameQueryEditorCommon(props, handleError);
+  const common = new DataFrameQueryEditorCommonV1(props, handleError);
 
   return (
     <div style={{ position: 'relative' }}>
