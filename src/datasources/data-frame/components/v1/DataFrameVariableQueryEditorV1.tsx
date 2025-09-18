@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { AsyncSelect } from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
 import { toOption } from '@grafana/data';
-import { DataFrameQueryEditorCommon, Props } from '../DataFrameQueryEditorCommon';
 import { FloatingError, parseErrorMessage } from 'core/errors';
 import { isValidId } from 'datasources/data-frame/utils';
+import { Props } from 'datasources/data-frame/types';
+import { DataFrameQueryEditorCommon } from './DataFrameQueryEditorCommon';
 
 export function DataFrameVariableQueryEditorV1(props: Props) {
     const [errorMsg, setErrorMsg] = useState<string | undefined>('');
