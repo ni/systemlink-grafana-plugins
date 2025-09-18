@@ -33,22 +33,21 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
 
   protected transformAlarmsQuery(scopedVars: ScopedVars, query?: string): string | undefined {
     return query
-    ? transformComputedFieldsQuery(this.templateSrv.replace(query, scopedVars), this.computedDataFields)
-    : undefined;
+      ? transformComputedFieldsQuery(this.templateSrv.replace(query, scopedVars), this.computedDataFields)
+      : undefined;
   }
 
   private readonly computedDataFields = new Map<string, ExpressionTransformFunction>(
-    Object.values(AlarmsQueryBuilderFields)
-      .map(field => {
-        const dataField = field.dataField as string;
-        
-        return [
-          dataField,
-          this.isTimeField(dataField)
-            ? this.timeFieldsQuery(dataField)
-            : (value, operation) => `${dataField} ${operation} "${value}"`,
-        ];
-      })
+    Object.values(AlarmsQueryBuilderFields).map(field => {
+      const dataField = field.dataField as string;
+
+      return [
+        dataField,
+        this.isTimeField(dataField)
+          ? this.timeFieldsQuery(dataField)
+          : (value, operation) => `${dataField} ${operation} "${value}"`,
+      ];
+    })
   );
 
   private timeFieldsQuery(field: string): ExpressionTransformFunction {
