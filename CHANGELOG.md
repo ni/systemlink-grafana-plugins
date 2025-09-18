@@ -1,3 +1,10 @@
+## [4.10.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.9.0...v4.10.0) (2025-09-17)
+
+### Features
+
+* **alarms:** Add support for querying alarms with default values ([#401](https://github.com/ni/systemlink-grafana-plugins/issues/401)) ([bc57f77](https://github.com/ni/systemlink-grafana-plugins/commit/bc57f77e96fef06c79b98a7788085308ebb3bb5b))
+* **alarms:** support datetime filters, keywords and properties ([#403](https://github.com/ni/systemlink-grafana-plugins/issues/403)) ([3121cc2](https://github.com/ni/systemlink-grafana-plugins/commit/3121cc2d9c607e3c10c6ba2b79124bc33402739c))
+
 ## [4.9.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.8.0...v4.9.0) (2025-09-16)
 
 ### Features
