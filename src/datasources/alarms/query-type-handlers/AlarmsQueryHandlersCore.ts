@@ -1,8 +1,8 @@
-import { DataSourceBase } from 'core/DataSourceBase';
-import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents } from '@grafana/data';
-import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from '../types/types';
-import { extractErrorInfo } from 'core/errors';
-import { QUERY_ALARMS_RELATIVE_PATH } from '../constants/QueryAlarms.constants';
+import { DataSourceBase } from "core/DataSourceBase";
+import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents } from "@grafana/data";
+import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from "../types/types";
+import { extractErrorInfo } from "core/errors";
+import { QUERY_ALARMS_RELATIVE_PATH } from "../constants/QueryAlarms.constants";
 
 export abstract class AlarmsQueryHandlersCore extends DataSourceBase<AlarmsQuery> {
   private readonly queryAlarmsUrl = `${this.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`;
@@ -58,6 +58,6 @@ export abstract class AlarmsQueryHandlersCore extends DataSourceBase<AlarmsQuery
   }
 
   public testDatasource(): Promise<TestDataSourceResponse> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
 }
