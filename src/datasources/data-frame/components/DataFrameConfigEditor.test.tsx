@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { DataSourcePluginOptionsEditorProps, DataSourceSettings } from '@grafana/data';
 import userEvent from '@testing-library/user-event';
 import { DataFrameConfigEditor } from './DataFrameConfigEditor';
+import { DataFrameDataSourceOptions } from '../types';
 
 const mockOnOptionsChange = jest.fn();
 jest.mock('@grafana/ui', () => ({
@@ -18,7 +19,7 @@ const defaultProps: DataSourcePluginOptionsEditorProps<any> = {
             },
         },
         id: 0,
-    } as DataSourceSettings<any>,
+    } as DataSourceSettings<DataFrameDataSourceOptions>,
     onOptionsChange: mockOnOptionsChange,
 };
 let dataTableQueryBuilderToggle: HTMLElement;
