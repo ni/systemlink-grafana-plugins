@@ -40,7 +40,7 @@ describe('AlarmsCountQueryEditor', () => {
     expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ queryBy: 'new-query' }));
   });
 
-  test('should not call handleQueryChange when query by changes with same value', () => {
+  it('should not call handleQueryChange when query by changes with same value', () => {
     const container = renderElement({ refId: 'A', queryType: QueryType.AlarmsCount, queryBy: 'same-query' });
     const queryBuilder = container.getByRole('dialog');
     const event = { detail: { linq: 'same-query' } };
