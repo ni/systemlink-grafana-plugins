@@ -120,7 +120,7 @@ describe('AlarmsCountDataSource', () => {
       );
     });
 
-    it('should apply date transformation logic to query filters', async () => {
+    it('should pass the transformed filter to the API', async () => {
       jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
       const filterQuery = { refId: 'A', filter: 'acknowledgedAt > "${__now:date}"'};
 
@@ -132,7 +132,7 @@ describe('AlarmsCountDataSource', () => {
             filter: `acknowledgedAt > "2025-01-01T00:00:00.000Z"`,
           }),
         })
-      )
+      );
 
       jest.useRealTimers();
     })

@@ -32,7 +32,6 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   }
 
   protected transformAlarmsQuery(scopedVars: ScopedVars, query?: string): string | undefined {
-    console.log(query);
     return query
       ? transformComputedFieldsQuery(this.templateSrv.replace(query, scopedVars), this.computedDataFields)
       : undefined;

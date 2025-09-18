@@ -124,7 +124,7 @@ describe('AlarmsDataSourceCore', () => {
     });
 
     describe('transformAlarmsQuery', () => {
-      test('should transform fields when queryBy contains a date time filter', () => {
+      it('should replace ${__now:date} with the current datetime in the filter', () => {
         jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
 
         const mockQueryBy = 'acknowledgedAt > "${__now:date}"';
@@ -134,7 +134,7 @@ describe('AlarmsDataSourceCore', () => {
         jest.useRealTimers();
       });
 
-      test('replace time variables', () => {
+      it('should replace time variables in the filter', () => {
         const mockQueryBy = 'occurredAt < "${__from:date}"';
         jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('occurredAt < "2025-01-01T00:00:00.000Z"');
         
@@ -142,7 +142,17 @@ describe('AlarmsDataSourceCore', () => {
 
         expect(datastore.templateSrv.replace).toHaveBeenCalledWith('occurredAt < "${__from:date}"', {});
         expect(transformQuery).toBe('occurredAt < "2025-01-01T00:00:00.000Z"');
-      })
+      });
+
+      it('should replace single value variable in the filter', () => {
+        const mockQueryBy = 'alarmId < "${query0}"';
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('alarmId < "test-alarmID-1"');
+
+        const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockQueryBy);
+
+        expect(datastore.templateSrv.replace).toHaveBeenCalledWith('alarmId < "${query0}"', {});
+        expect(transformQuery).toBe('alarmId < "test-alarmID-1"');
+      });
     });
   });
 
