@@ -4,6 +4,7 @@ import { AlarmsQueryEditor } from './AlarmsQueryEditor';
 import { AlarmsQuery, QueryType } from '../types/types';
 import { QueryEditorProps } from '@grafana/data';
 import { AlarmsDataSource } from '../AlarmsDataSource';
+import { AlarmsCountQueryEditor } from './editors/alarms-count/AlarmsCountQueryEditor';
 
 jest.mock('./editors/alarms-count/AlarmsCountQueryEditor', () => ({
   AlarmsCountQueryEditor: jest.fn(() => <div data-testid="mock-alarms-count" />),
@@ -58,6 +59,20 @@ describe('AlarmsQueryEditor', () => {
       renderElement(query);
 
       expect(screen.queryByTestId('mock-alarms-count')).not.toBeInTheDocument();
+    });
+
+    it('should pass the correct props to AlarmsCountQueryEditor', () => {
+      const query = buildQuery({ queryType: QueryType.AlarmsCount });
+
+      renderElement(query);
+
+      expect(AlarmsCountQueryEditor).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query,
+          handleQueryChange: expect.any(Function),
+        }),
+        expect.anything()
+      );
     });
   });
 });

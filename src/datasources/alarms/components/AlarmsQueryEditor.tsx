@@ -3,6 +3,7 @@ import { QueryEditorProps } from '@grafana/data';
 import { AlarmsDataSource } from '../AlarmsDataSource';
 import { AlarmsQuery, QueryType } from '../types/types';
 import { AlarmsCountQueryEditor } from './editors/alarms-count/AlarmsCountQueryEditor';
+import { AlarmsCountQuery } from '../types/AlarmsCount.types';
 
 type Props = QueryEditorProps<AlarmsDataSource, AlarmsQuery>;
 
@@ -27,7 +28,10 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
   return (
     <>
       {query.queryType === QueryType.AlarmsCount && (
-        <AlarmsCountQueryEditor query={query} />
+        <AlarmsCountQueryEditor
+          query={query as AlarmsCountQuery}
+          handleQueryChange={handleQueryChange}
+        />
       )}
     </>
   );
