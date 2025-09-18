@@ -39,7 +39,7 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   private readonly computedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(AlarmPropertiesOptions).map((field) => [
       field,
-      this.isTimeField(field) ? this.timeFieldsQuery(field): ((value, operation) => `${field} ${operation} "${value}"`),
+      this.isTimeField(field) ? this.timeFieldsQuery(field) : (value, operation) => `${field} ${operation} "${value}"`,
     ])
   );
 
