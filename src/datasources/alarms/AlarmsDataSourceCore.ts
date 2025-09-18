@@ -1,9 +1,10 @@
 import { DataSourceBase } from "core/DataSourceBase";
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, ScopedVars } from "@grafana/data";
-import { AlarmPropertiesOptions, AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from "./types/types";
+import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from "./types/types";
 import { extractErrorInfo } from "core/errors";
 import { QUERY_ALARMS_RELATIVE_PATH } from "./constants/QueryAlarms.constants";
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
+import { AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   private readonly queryAlarmsUrl = `${this.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`;
@@ -37,10 +38,17 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   }
 
   private readonly computedDataFields = new Map<string, ExpressionTransformFunction>(
-    Object.values(AlarmPropertiesOptions).map((field) => [
-      field,
-      this.isTimeField(field) ? this.timeFieldsQuery(field) : (value, operation) => `${field} ${operation} "${value}"`,
-    ])
+    Object.values(AlarmsQueryBuilderFields)
+      .map(field => {
+        const dataField = field.dataField as string;
+        
+        return [
+          dataField,
+          this.isTimeField(dataField)
+            ? this.timeFieldsQuery(dataField)
+            : (value, operation) => `${dataField} ${operation} "${value}"`,
+        ];
+      })
   );
 
   private timeFieldsQuery(field: string): ExpressionTransformFunction {
@@ -50,10 +58,10 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
     };
   }
 
-  private isTimeField(field: AlarmPropertiesOptions): boolean {
+  private isTimeField(field: string): boolean {
     const timeFields = [
-      AlarmPropertiesOptions.ACKNOWLEDGED_AT,
-      AlarmPropertiesOptions.OCCURRED_AT,
+      AlarmsQueryBuilderFields.FIRST_OCCURRENCE.dataField,
+      AlarmsQueryBuilderFields.ACKNOWLEDGED_ON.dataField,
     ];
 
     return timeFields.includes(field);
