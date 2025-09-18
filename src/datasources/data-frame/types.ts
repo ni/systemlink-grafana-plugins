@@ -1,6 +1,7 @@
 import { DataQuery } from '@grafana/schema';
 import { SystemLinkError } from "../../core/types";
-import { DataSourceJsonData } from '@grafana/data';
+import { DataSourceJsonData, QueryEditorProps } from '@grafana/data';
+import { DataFrameDataSource } from './DataFrameDataSource';
 
 export enum DataFrameQueryType {
   Data = 'Data',
@@ -32,6 +33,8 @@ export const DataFrameFeatureTogglesDefaults: DataFrameFeatureToggles = {
 export type ValidDataFrameQuery = DataFrameQuery & Required<Omit<DataFrameQuery, keyof DataQuery>>;
 
 export type ColumnDataType = 'BOOL' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64' | 'STRING' | 'TIMESTAMP';
+
+export type Props = QueryEditorProps<DataFrameDataSource, DataFrameQuery, DataFrameDataSourceOptions>;
 
 export interface Column {
   name: string;
