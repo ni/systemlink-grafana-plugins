@@ -4,7 +4,7 @@ import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from "./types/ty
 import { extractErrorInfo } from "core/errors";
 import { QUERY_ALARMS_RELATIVE_PATH } from "./constants/QueryAlarms.constants";
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
-import { AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
+import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   private readonly queryAlarmsUrl = `${this.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`;
@@ -58,12 +58,7 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   }
 
   private isTimeField(field: string): boolean {
-    const timeFields = [
-      AlarmsQueryBuilderFields.FIRST_OCCURRENCE.dataField,
-      AlarmsQueryBuilderFields.ACKNOWLEDGED_ON.dataField,
-    ];
-
-    return timeFields.includes(field);
+    return ALARMS_TIME_FIELDS.includes(field);
   }
 
   private getStatusCodeErrorMessage(errorDetails: { statusCode: string; message: string }): string {
