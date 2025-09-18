@@ -1,8 +1,17 @@
-import { expressionBuilderCallback, expressionBuilderCallbackWithRef, expressionReaderCallback, expressionReaderCallbackWithRef, ExpressionTransformFunction, transformComputedFieldsQuery } from "./query-builder.utils"
+import { QueryBuilderOperations } from "./query-builder.constants";
+import { buildExpressionFromTemplate, expressionBuilderCallback, expressionBuilderCallbackWithRef, expressionReaderCallback, expressionReaderCallbackWithRef, ExpressionTransformFunction, transformComputedFieldsQuery } from "./query-builder.utils"
 
 describe('QueryBuilderUtils', () => {
   describe('transformComputedFieldsQuery', () => {
     const mockTransformation: ExpressionTransformFunction = (value, operation, _options) => {
+      if (operation === QueryBuilderOperations.IS_BLANK.name) {
+        return `string.IsNullOrEmpty(obj.prop1)`;
+      }
+
+      if (operation === QueryBuilderOperations.IS_NOT_BLANK.name) {
+        return `!string.IsNullOrEmpty(obj.prop1)`;
+      }
+
       return `obj.prop1 ${operation} ${value}`;
     };
 
@@ -36,6 +45,18 @@ describe('QueryBuilderUtils', () => {
       expect(result).toBe(query);
     });
 
+    it('should handle string.IsNullOrEmpty operations correctly with computed fields', () => {
+      const query = 'string.IsNullOrEmpty(Object1) OR !string.IsNullOrEmpty(Object2)';
+      const result = transformComputedFieldsQuery(query, computedDataFields);
+      expect(result).toBe('string.IsNullOrEmpty(obj.prop1) OR !string.IsNullOrEmpty(obj.prop1)');
+    });
+
+    it('should handle string.IsNullOrEmpty operations correctly if no computed fields are present', () => {
+      const query = 'string.IsNullOrEmpty(field1) OR !string.IsNullOrEmpty(field2)';
+      const result = transformComputedFieldsQuery(query, computedDataFields);
+      expect(result).toBe(query);
+    });
+
     it('should handle unsupported operations correctly', () => {
       const query = 'Object1 % "value1" AND Object2 % "value2"';
       const result = transformComputedFieldsQuery(query, computedDataFields);
@@ -57,6 +78,23 @@ describe('QueryBuilderUtils', () => {
       const query = 'Object1 = "value1"';
       const result = transformComputedFieldsQuery(query, computedDataFields, options);
       expect(result).toBe('obj.prop1 = value1');
+    });
+  });
+
+  describe('buildExpressionFromTemplate', () => {
+    it('should build expression from template with field and value', () => {
+      const template = '{0} = {1}';
+      const field = 'FieldName';
+      const value = 'SomeValue';
+      const result = buildExpressionFromTemplate(template, field, value);
+      expect(result).toBe('FieldName = SomeValue');
+    });
+
+    it('should build expression from template with only field', () => {
+      const template = 'string.IsNullOrEmpty({0})';
+      const field = 'FieldName';
+      const result = buildExpressionFromTemplate(template, field);
+      expect(result).toBe('string.IsNullOrEmpty(FieldName)');
     });
   });
 
