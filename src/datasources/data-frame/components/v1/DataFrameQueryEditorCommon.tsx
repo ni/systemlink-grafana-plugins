@@ -1,11 +1,9 @@
-import { QueryEditorProps, CoreApp, SelectableValue } from "@grafana/data";
+import { CoreApp, SelectableValue } from "@grafana/data";
 import { LoadOptionsCallback } from "@grafana/ui";
 import { getWorkspaceName, getVariableOptions } from "core/utils";
 import _ from "lodash";
-import { DataFrameDataSource } from "../DataFrameDataSource";
-import { DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryType, ValidDataFrameQuery } from "../types";
-
-export type Props = QueryEditorProps<DataFrameDataSource, DataFrameQuery, DataFrameDataSourceOptions>;
+import { DataFrameDataSource } from "../../DataFrameDataSource";
+import { DataFrameQuery, DataFrameQueryType, Props, ValidDataFrameQuery } from "../../types";
 
 export class DataFrameQueryEditorCommon {
   readonly datasource: DataFrameDataSource;

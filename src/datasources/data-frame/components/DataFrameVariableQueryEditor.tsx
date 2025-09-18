@@ -4,7 +4,8 @@ import { InlineField } from 'core/components/InlineField';
 import { toOption } from '@grafana/data';
 import { isValidId } from '../utils';
 import { FloatingError, parseErrorMessage } from '../../../core/errors';
-import { DataFrameQueryEditorCommon, Props } from './DataFrameQueryEditorCommon';
+import { DataFrameQueryEditorCommon } from './v1/DataFrameQueryEditorCommon';
+import { Props } from '../types';
 
 export function DataFrameVariableQueryEditor(props: Props) {
   const [errorMsg, setErrorMsg] = useState<string | undefined>('');
@@ -27,7 +28,7 @@ export function DataFrameVariableQueryEditor(props: Props) {
           value={common.query.tableId ? toOption(common.query.tableId) : null}
         />
       </InlineField>
-      <FloatingError message={errorMsg}/>
+      <FloatingError message={errorMsg} />
     </div>
   );
 }
