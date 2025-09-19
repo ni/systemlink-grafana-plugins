@@ -108,21 +108,25 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
        * filters.push(...this.constructTimeFilters(columns, timeRange));
        */
 
-      const queryParams = locationService.getSearchObject();
-      // Once we have a seprate control to select x-axis, we can use that value directly instead of assuming the first column as the x-axis.
-      const xField = columns[0].name;
-      const xMin = queryParams[`${xField}-min`];
-      const xMax = queryParams[`${xField}-max`];
-      if (
-        xMin !== ''
-        && xMax !== ''
-        && xMin !== undefined
-        && xMax !== undefined
-        // For session storage
-        // && xMin !== null 
-        // && xMax !== null
-      ) {
-        filters.push(...this.constructXAxisNumberFilters(xField, Math.floor(Number(xMin)), Math.floor(Number(xMax))));
+      if (columns[0].dataType === 'TIMESTAMP') {
+        filters.push(...this.constructTimeFilters(columns, timeRange));
+      } else {
+        const queryParams = locationService.getSearchObject();
+        // Once we have a seprate control to select x-axis, we can use that value directly instead of assuming the first column as the x-axis.
+        const xField = columns[0].name;
+        const xMin = queryParams[`${xField}-min`];
+        const xMax = queryParams[`${xField}-max`];
+        if (
+          xMin !== ''
+          && xMax !== ''
+          && xMin !== undefined
+          && xMax !== undefined
+          // For session storage
+          // && xMin !== null 
+          // && xMax !== null
+        ) {
+          filters.push(...this.constructXAxisNumberFilters(xField, Math.floor(Number(xMin)), Math.floor(Number(xMax))));
+        }
       }
     }
 
