@@ -12,7 +12,7 @@ import {
 } from '@grafana/data';
 import { AxisLabels, PanelOptions } from './types';
 import { useTheme2, ContextMenu, MenuItemsGroup, linkModelToContextMenuItems } from '@grafana/ui';
-import { getTemplateSrv, PanelDataErrorView } from '@grafana/runtime';
+import { getTemplateSrv, PanelDataErrorView, locationService } from '@grafana/runtime';
 import { getFieldsByName, notEmpty, Plot, renderMenuItems, useTraceColors } from './utils';
 import { AxisType, Legend, PlotData, PlotType, toImage, Icons, PlotlyHTMLElement } from 'plotly.js-basic-dist-min';
 import { saveAs } from 'file-saver';
@@ -28,7 +28,7 @@ interface MenuState {
 interface Props extends PanelProps<PanelOptions> {}
 
 export const PlotlyPanel: React.FC<Props> = (props) => {
-  const { data, width, height, options } = props;
+  const { data, width, height, options, id, timeRange } = props;
   const [menu, setMenu] = useState<MenuState>({ x: 0, y: 0, show: false, items: [] });
   const theme = useTheme2();
 
@@ -153,7 +153,25 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
         props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: from.valueOf(), max: to.valueOf() } });
       }
     } else {
-      props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
+      const queryParams = locationService.getSearchObject();
+      const fetchHighResolutionDataOnZoom = queryParams['fetchHighResolutionData'];
+
+      if (
+        fetchHighResolutionDataOnZoom !== undefined
+        && typeof fetchHighResolutionDataOnZoom === 'string'
+        && fetchHighResolutionDataOnZoom !== ''
+        && fetchHighResolutionDataOnZoom.split(',').includes(id.toString())
+      ) {
+        locationService.partial({
+          [`${options.xAxis.field}-min`]: Math.floor(xAxisMin),
+          [`${options.xAxis.field}-max`]: Math.ceil(xAxisMax)
+        }, true);
+        // (document.querySelector('[aria-label="Refresh dashboard"]') as HTMLButtonElement).click();
+        props.onChangeTimeRange({ from: timeRange.from.valueOf() + 1, to: timeRange.from.valueOf() + 1 });
+        props.onChangeTimeRange({ from: timeRange.from.valueOf(), to: timeRange.from.valueOf() });
+      } else {
+        props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
+      }
     }
   };
 
