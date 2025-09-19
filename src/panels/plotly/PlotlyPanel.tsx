@@ -28,7 +28,7 @@ interface MenuState {
 interface Props extends PanelProps<PanelOptions> {}
 
 export const PlotlyPanel: React.FC<Props> = (props) => {
-  const { data, width, height, options, id } = props;
+  const { data, width, height, options, id, timeRange } = props;
   const [menu, setMenu] = useState<MenuState>({ x: 0, y: 0, show: false, items: [] });
   const theme = useTheme2();
 
@@ -166,7 +166,9 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
           [`${options.xAxis.field}-min`]: Math.floor(xAxisMin),
           [`${options.xAxis.field}-max`]: Math.ceil(xAxisMax)
         }, true);
-        (document.querySelector('[aria-label="Refresh dashboard"]') as HTMLButtonElement).click()
+        // (document.querySelector('[aria-label="Refresh dashboard"]') as HTMLButtonElement).click();
+        props.onChangeTimeRange({ from: timeRange.from.valueOf() + 1, to: timeRange.from.valueOf() + 1 });
+        props.onChangeTimeRange({ from: timeRange.from.valueOf(), to: timeRange.from.valueOf() });
       } else {
         props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
       }
