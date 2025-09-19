@@ -1,8 +1,10 @@
 import { DataSourceBase } from "core/DataSourceBase";
-import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents } from "@grafana/data";
+import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, ScopedVars } from "@grafana/data";
 import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from "./types/types";
 import { extractErrorInfo } from "core/errors";
 import { QUERY_ALARMS_RELATIVE_PATH } from "./constants/QueryAlarms.constants";
+import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
+import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   private readonly queryAlarmsUrl = `${this.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`;
@@ -27,6 +29,36 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
 
       throw new Error(errorMessage);
     }
+  }
+
+  protected transformAlarmsQuery(scopedVars: ScopedVars, query?: string): string | undefined {
+    return query
+      ? transformComputedFieldsQuery(this.templateSrv.replace(query, scopedVars), this.computedDataFields)
+      : undefined;
+  }
+
+  private readonly computedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(AlarmsQueryBuilderFields).map(field => {
+      const dataField = field.dataField as string;
+
+      return [
+        dataField,
+        this.isTimeField(dataField)
+          ? this.timeFieldsQuery(dataField)
+          : (value, operation) => `${dataField} ${operation} "${value}"`,
+      ];
+    })
+  );
+
+  private timeFieldsQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string): string => {
+      const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
+      return `${field} ${operation} "${formattedValue}"`;
+    };
+  }
+
+  private isTimeField(field: string): boolean {
+    return ALARMS_TIME_FIELDS.includes(field);
   }
 
   private getStatusCodeErrorMessage(errorDetails: { statusCode: string; message: string }): string {

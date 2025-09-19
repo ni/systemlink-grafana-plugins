@@ -1,5 +1,5 @@
 import { AlarmsDataSourceCore } from './AlarmsDataSourceCore';
-import { DataFrameDTO, DataQueryRequest } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, ScopedVars } from '@grafana/data';
 import { AlarmsQuery, QueryAlarmsRequest, QueryType } from './types/types';
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv } from '@grafana/runtime';
@@ -17,6 +17,10 @@ class TestAlarmsDataSource extends AlarmsDataSourceCore {
 
   async queryAlarmsWrapper(query: QueryAlarmsRequest) {
     return this.queryAlarms(query);
+  }
+
+  transformAlarmsQueryWrapper(scopedVars: ScopedVars, query?: string): string | undefined {
+    return this.transformAlarmsQuery(scopedVars, query);
   }
 
   readonly defaultQuery = {
@@ -116,6 +120,38 @@ describe('AlarmsDataSourceCore', () => {
           type: 'alert-error',
           payload: ['Error during alarms query', expectedErrorMessage],
         });
+      });
+    });
+
+    describe('transformAlarmsQuery', () => {
+      it('should replace ${__now:date} with the current datetime in the filter', () => {
+        jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
+
+        const mockQueryBy = 'acknowledgedAt > "${__now:date}"';
+        const transformedQuery = datastore.transformAlarmsQueryWrapper({}, mockQueryBy);
+
+        expect(transformedQuery).toBe('acknowledgedAt > "2025-01-01T00:00:00.000Z"');
+        jest.useRealTimers();
+      });
+
+      it('should replace time variables in the filter', () => {
+        const mockQueryBy = 'occurredAt < "${__from:date}"';
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('occurredAt < "2025-01-01T00:00:00.000Z"');
+        
+        const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockQueryBy);
+
+        expect(datastore.templateSrv.replace).toHaveBeenCalledWith('occurredAt < "${__from:date}"', {});
+        expect(transformQuery).toBe('occurredAt < "2025-01-01T00:00:00.000Z"');
+      });
+
+      it('should replace single value variable in the filter', () => {
+        const mockQueryBy = 'alarmId < "${query0}"';
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('alarmId < "test-alarmID-1"');
+
+        const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockQueryBy);
+
+        expect(datastore.templateSrv.replace).toHaveBeenCalledWith('alarmId < "${query0}"', {});
+        expect(transformQuery).toBe('alarmId < "test-alarmID-1"');
       });
     });
   });
