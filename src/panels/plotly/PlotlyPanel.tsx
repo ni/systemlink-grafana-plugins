@@ -167,8 +167,8 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
           [`${options.xAxis.field}-max`]: Math.ceil(xAxisMax)
         }, true);
         // (document.querySelector('[aria-label="Refresh dashboard"]') as HTMLButtonElement).click();
-        props.onChangeTimeRange({ from: timeRange.from.valueOf() + 1, to: timeRange.from.valueOf() + 1 });
-        props.onChangeTimeRange({ from: timeRange.from.valueOf(), to: timeRange.from.valueOf() });
+        props.onChangeTimeRange({ from: timeRange.from.valueOf() + 1, to: timeRange.to.valueOf() + 1 });
+        props.onChangeTimeRange({ from: timeRange.from.valueOf(), to: timeRange.to.valueOf() });
       } else {
         props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
       }
