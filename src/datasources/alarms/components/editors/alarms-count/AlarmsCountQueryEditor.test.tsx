@@ -3,8 +3,13 @@ import { render, screen } from '@testing-library/react';
 import { AlarmsCountQueryEditor } from './AlarmsCountQueryEditor';
 import { QueryType } from 'datasources/alarms/types/types';
 import { AlarmsCountQuery } from 'datasources/alarms/types/AlarmsCount.types';
+import { AlarmsCountDataSource } from 'datasources/alarms/query-type-handlers/alarms-count/AlarmsCountDataSource';
 
 const mockHandleQueryChange = jest.fn();
+const mockGlobalVars = [{ label: '$var1', value: '$value1' }];
+const mockDatasource = {
+  globalVariableOptions: jest.fn(() => mockGlobalVars),
+} as unknown as AlarmsCountDataSource
 
 const defaultProps = {
   query: {
@@ -12,6 +17,7 @@ const defaultProps = {
     queryType: QueryType.AlarmsCount
   },
   handleQueryChange: mockHandleQueryChange,
+  datasource: mockDatasource
 };
 
 function renderElement(query: AlarmsCountQuery = { ...defaultProps.query }) {
@@ -49,5 +55,15 @@ describe('AlarmsCountQueryEditor', () => {
     
     expect(queryBuilder).toBeInTheDocument();
     expect(mockHandleQueryChange).not.toHaveBeenCalled();
+  });
+
+  it('should pass globalVariableOptions from datasource to AlarmsQueryBuilder', () => {
+    const container = renderElement();
+    const queryBuilder = container.getByRole('dialog');
+    const event = { detail: { linq: 'currentSeverityLevel = \"$value1"' } };
+    
+    queryBuilder?.dispatchEvent(new CustomEvent('change', event));
+    
+    expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ filter: 'currentSeverityLevel = \"$value1"' }));
   });
 });
