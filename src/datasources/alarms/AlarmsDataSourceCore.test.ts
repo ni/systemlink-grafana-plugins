@@ -153,6 +153,16 @@ describe('AlarmsDataSourceCore', () => {
         expect(datastore.templateSrv.replace).toHaveBeenCalledWith('alarmId < "${query0}"', {});
         expect(transformQuery).toBe('alarmId < "test-alarmID-1"');
       });
+
+      it('should replace multiple value variable in the filter', () => {
+        const mockFilter = 'channel = "${query0}"';
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('channel = "{channel1,channel2}"');
+
+        const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockFilter);
+
+        expect(datastore.templateSrv.replace).toHaveBeenCalledWith('channel = "${query0}"', {});
+        expect(transformQuery).toBe('(channel = "channel1" || channel = "channel2")');
+      });
     });
   });
 
