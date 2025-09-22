@@ -5,10 +5,9 @@ import { extractErrorInfo } from "core/errors";
 import { QUERY_ALARMS_RELATIVE_PATH } from "./constants/QueryAlarms.constants";
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
-import { Workspace } from "core/types";
+import { QueryBuilderOption, Workspace } from "core/types";
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
 import { WorkspaceUtils } from "shared/workspace.utils";
-import { QueryBuilderOption } from "core/types";
 import { getVariableOptions } from "core/utils";
 import { QueryBuilderOperations } from "core/query-builder.constants";
 
@@ -28,6 +27,14 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   public abstract runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
   public readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
+  public async loadWorkspaces(): Promise<Map<string, Workspace>> {
+    try {
+      return await this.workspaceUtils.getWorkspaces();
+    } catch (error) {
+      return new Map<string, Workspace>();
+    }
+  }
+
   protected async queryAlarms(alarmsRequestBody: QueryAlarmsRequest): Promise<QueryAlarmsResponse> {
     try {
       return await this.post<QueryAlarmsResponse>(
@@ -45,14 +52,6 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
       });
 
       throw new Error(errorMessage);
-    }
-  }
-
-  protected async loadWorkspaces(): Promise<Map<string, Workspace>> {
-    try {
-      return await this.workspaceUtils.getWorkspaces();
-    } catch (error) {
-      return new Map<string, Workspace>();
     }
   }
 
