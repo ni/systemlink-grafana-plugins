@@ -7,7 +7,7 @@ import { parseErrorMessage } from "../../../core/errors";
 import { QueryBuilderOption, Workspace } from "../../../core/types";
 import { buildExpressionFromTemplate, ExpressionTransformFunction } from "../../../core/query-builder.utils";
 import { QueryBuilderOperations } from "../../../core/query-builder.constants";
-import { AllFieldNames } from "../constants/constants";
+import { AllFieldNames, LocationFieldNames } from "../constants/constants";
 import { getVariableOptions } from "core/utils";
 import { ListLocationsResponse, LocationModel } from "../types/ListLocations.types";
 
@@ -143,13 +143,10 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
       (value: string, operation: string, options?: Map<string, unknown>) => {
         let values = [value];
 
-        const minionIdProperty = 'Location.MinionId';
-        const physicalLocationProperty = 'Location.PhysicalLocation';
-
         const blankExpressionTemplate = this.getBlankExpressionTemplate(operation);        
         if (blankExpressionTemplate) {
-          const minionIdExpression = buildExpressionFromTemplate(blankExpressionTemplate, minionIdProperty);
-          const physicalLocationExpression = buildExpressionFromTemplate(blankExpressionTemplate, physicalLocationProperty);
+          const minionIdExpression = buildExpressionFromTemplate(blankExpressionTemplate, LocationFieldNames.MINION_ID);
+          const physicalLocationExpression = buildExpressionFromTemplate(blankExpressionTemplate, LocationFieldNames.PHYSICAL_LOCATION);
           return `${minionIdExpression} ${this.getLocicalOperator(operation)} ${physicalLocationExpression}`;
         }
 
@@ -158,15 +155,15 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
         }
 
         if (values.length > 1) {
-          return `(${values.map(val => `${minionIdProperty} ${operation} "${val}"`).join(` ${this.getLocicalOperator(operation)} `)})`;
+          return `(${values.map(val => `${LocationFieldNames.MINION_ID} ${operation} "${val}"`).join(` ${this.getLocicalOperator(operation)} `)})`;
         }
 
         if (this.systemAliasCache?.has(value)) {
-          return `${minionIdProperty} ${operation} "${value}"`
+          return `${LocationFieldNames.MINION_ID} ${operation} "${value}"`
         }
 
         if (this.locationCache?.has(value)) {
-          return `${physicalLocationProperty} ${operation} "${value}"`
+          return `${LocationFieldNames.PHYSICAL_LOCATION} ${operation} "${value}"`
         }
 
         return `Locations.Any(l => l.MinionId ${operation} "${value}" ${this.getLocicalOperator(operation)} l.PhysicalLocation ${operation} "${value}")`;

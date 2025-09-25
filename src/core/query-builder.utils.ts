@@ -30,23 +30,30 @@ export function transformComputedFieldsQuery(
   options?: Map<string, Map<string, unknown>>
 ) {
   for (const [field, transformation] of computedDataFields.entries()) {
+    query = transformBasedOnComputedFieldSupportedOperations(query, field, transformation, options);
+    query = transformBasedOnBlankOperations(query, field, transformation, options);
+  }
+
+  return query;
+}
+
+function transformBasedOnComputedFieldSupportedOperations(query: string, field: string, transformation: ExpressionTransformFunction, options?: Map<string, Map<string, unknown>>) {
     const regex = new RegExp(`\\b${field}\\s*(${computedFieldsupportedOperations.join('|')})\\s*"([^"]*)"`, 'g');
 
-    query = query.replace(regex, (_match, operation, value) => {
+    return query.replace(regex, (_match, operation, value) => {
       return transformation(value, operation, options?.get(field));
     });
+}
 
+function transformBasedOnBlankOperations(query: string, field: string, transformation: ExpressionTransformFunction, options?: Map<string, Map<string, unknown>>) {
     const nullOrEmptyRegex = new RegExp(`(!)?string\\.IsNullOrEmpty\\(${field}\\)`, 'g');
 
-    query = query.replace(nullOrEmptyRegex, (_match, negation) => {
+    return query.replace(nullOrEmptyRegex, (_match, negation) => {
       const operation = negation
         ? QueryBuilderOperations.IS_NOT_BLANK.name
         : QueryBuilderOperations.IS_BLANK.name;
       return transformation(field, operation, options?.get(field));
     });
-  }
-
-  return query;
 }
 
 /**
