@@ -97,11 +97,6 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
   }
 
   private async loadLocations(): Promise<void> {
-    if (!this.instanceSettings.jsonData?.featureToggles?.locations) {
-      this.locationsLoaded();
-      return;
-    }
-
     if (this.locationCache.size > 0) {
       return;
     }
