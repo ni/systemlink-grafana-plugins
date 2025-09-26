@@ -10,17 +10,18 @@ import { ListAssetsEditor } from './editors/list-assets/ListAssetsEditor';
 import { defaultAssetSummaryQuery, defaultCalibrationForecastQuery, defaultListAssetsQuery } from '../defaults';
 import { ListAssetsQuery } from '../types/ListAssets.types';
 import { AssetSummaryQuery } from '../types/AssetSummaryQuery.types';
-import { AssetDataSourceOptions, AssetFeatureToggles, AssetFeatureTogglesDefaults, AssetQuery, AssetQueryType } from '../types/types';
+import { AssetQuery, AssetQueryType } from '../types/types';
 import { CalibrationForecastQuery } from '../types/CalibrationForecastQuery.types';
+import { FeatureToggleDataSourceOptions, FeatureToggleNames, getFeatureFlagValue } from 'core/feature-toggle';
 
-type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOptions>;
+type Props = QueryEditorProps<AssetDataSource, AssetQuery, FeatureToggleDataSourceOptions>;
 
 export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   const [queryType, setQueryType] = useState(query.type);
-  const assetFeatures = useRef<AssetFeatureToggles>({
-    assetList: datasource.instanceSettings.jsonData?.featureToggles?.assetList ?? AssetFeatureTogglesDefaults.assetList,
-    calibrationForecast: datasource.instanceSettings.jsonData?.featureToggles?.calibrationForecast ?? AssetFeatureTogglesDefaults.calibrationForecast,
-    assetSummary: datasource.instanceSettings.jsonData?.featureToggles?.assetSummary ?? AssetFeatureTogglesDefaults.assetSummary
+  const assetFeatures = useRef<{ [key: string]: boolean }>({
+    assetList: getFeatureFlagValue(datasource.instanceSettings.jsonData, FeatureToggleNames.assetList),
+    calibrationForecast: getFeatureFlagValue(datasource.instanceSettings.jsonData, FeatureToggleNames.calibrationForecast),
+    assetSummary: getFeatureFlagValue(datasource.instanceSettings.jsonData, FeatureToggleNames.assetSummary),
   });
 
   const handleQueryChange = useCallback((value: AssetQuery, runQuery = false): void => {
