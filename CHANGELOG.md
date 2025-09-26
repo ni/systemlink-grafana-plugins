@@ -1,3 +1,9 @@
+## [4.13.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.12.0...v4.13.0) (2025-09-26)
+
+### Features
+
+* **Assets:** Remove locations feature flag ([#417](https://github.com/ni/systemlink-grafana-plugins/issues/417)) ([0a0db9d](https://github.com/ni/systemlink-grafana-plugins/commit/0a0db9d237e22f25419263125863880452f7641b))
+
 ## [4.12.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.11.0...v4.12.0) (2025-09-25)
 
 ### Features
