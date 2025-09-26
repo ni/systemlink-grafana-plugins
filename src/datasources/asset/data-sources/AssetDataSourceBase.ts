@@ -5,9 +5,9 @@ import { defaultOrderBy, defaultProjection } from "../../system/constants";
 import { SystemProperties } from "../../system/types";
 import { parseErrorMessage } from "../../../core/errors";
 import { QueryBuilderOption, Workspace } from "../../../core/types";
-import { ExpressionTransformFunction } from "../../../core/query-builder.utils";
+import { buildExpressionFromTemplate, ExpressionTransformFunction } from "../../../core/query-builder.utils";
 import { QueryBuilderOperations } from "../../../core/query-builder.constants";
-import { AllFieldNames } from "../constants/constants";
+import { AllFieldNames, LocationFieldNames } from "../constants/constants";
 import { getVariableOptions } from "core/utils";
 import { ListLocationsResponse, LocationModel } from "../types/ListLocations.types";
 import { FeatureToggleDataSourceOptions, FeatureToggleNames, getFeatureFlagValue } from "core/feature-toggle";
@@ -98,11 +98,6 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Fea
   }
 
   private async loadLocations(): Promise<void> {
-    if (!getFeatureFlagValue(this.instanceSettings.jsonData, FeatureToggleNames.locations)) {
-      this.locationsLoaded();
-      return;
-    }
-
     if (this.locationCache.size > 0) {
       return;
     }
@@ -144,20 +139,27 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Fea
       (value: string, operation: string, options?: Map<string, unknown>) => {
         let values = [value];
 
+        const blankExpressionTemplate = this.getBlankExpressionTemplate(operation);        
+        if (blankExpressionTemplate) {
+          const minionIdExpression = buildExpressionFromTemplate(blankExpressionTemplate, LocationFieldNames.MINION_ID);
+          const physicalLocationExpression = buildExpressionFromTemplate(blankExpressionTemplate, LocationFieldNames.PHYSICAL_LOCATION);
+          return `${minionIdExpression} ${this.getLocicalOperator(operation)} ${physicalLocationExpression}`;
+        }
+
         if (this.isMultiSelectValue(value)) {
           values = this.getMultipleValuesArray(value);
         }
 
         if (values.length > 1) {
-          return `(${values.map(val => `Location.MinionId ${operation} "${val}"`).join(` ${this.getLocicalOperator(operation)} `)})`;
+          return `(${values.map(val => `${LocationFieldNames.MINION_ID} ${operation} "${val}"`).join(` ${this.getLocicalOperator(operation)} `)})`;
         }
 
         if (this.systemAliasCache?.has(value)) {
-          return `Location.MinionId ${operation} "${value}"`
+          return `${LocationFieldNames.MINION_ID} ${operation} "${value}"`
         }
 
         if (this.locationCache?.has(value)) {
-          return `Location.PhysicalLocation ${operation} "${value}"`
+          return `${LocationFieldNames.PHYSICAL_LOCATION} ${operation} "${value}"`
         }
 
         return `Locations.Any(l => l.MinionId ${operation} "${value}" ${this.getLocicalOperator(operation)} l.PhysicalLocation ${operation} "${value}")`;
@@ -195,7 +197,19 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Fea
     return value.replace(/({|})/g, '').split(',');
   }
 
+  private getBlankExpressionTemplate(operation: string): string | undefined {
+    if (operation === QueryBuilderOperations.IS_BLANK.name) {
+      return QueryBuilderOperations.IS_BLANK.expressionTemplate;
+    }
+
+    if (operation === QueryBuilderOperations.IS_NOT_BLANK.name) {
+      return QueryBuilderOperations.IS_NOT_BLANK.expressionTemplate;
+    }
+
+    return undefined;
+  }
+
   private getLocicalOperator(operation: string): string {
-    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
+    return (operation === QueryBuilderOperations.EQUALS.name || operation === QueryBuilderOperations.IS_NOT_BLANK.name) ? '||' : '&&';
   }
 }

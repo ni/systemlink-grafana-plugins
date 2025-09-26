@@ -1,3 +1,16 @@
+## [4.13.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.12.0...v4.13.0) (2025-09-26)
+
+### Features
+
+* **Assets:** Remove locations feature flag ([#417](https://github.com/ni/systemlink-grafana-plugins/issues/417)) ([0a0db9d](https://github.com/ni/systemlink-grafana-plugins/commit/0a0db9d237e22f25419263125863880452f7641b))
+
+## [4.12.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.11.0...v4.12.0) (2025-09-25)
+
+### Features
+
+* **alarms:** Add transformation logic for date time filters ([#413](https://github.com/ni/systemlink-grafana-plugins/issues/413)) ([1360560](https://github.com/ni/systemlink-grafana-plugins/commit/1360560ac71bfbffbc35d1fc9907d852c5f22007))
+* **Assets:** Add "is blank" and "is not blank" supported operation for Locations filter ([#406](https://github.com/ni/systemlink-grafana-plugins/issues/406)) ([f604c6e](https://github.com/ni/systemlink-grafana-plugins/commit/f604c6e8205bb911f8509693d8f6cd7898e2b01c))
+
 ## [4.11.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.10.0...v4.11.0) (2025-09-18)
 
 ### Features

@@ -19,15 +19,6 @@ type Props = QueryEditorProps<AssetDataSource, AssetQuery, FeatureToggleDataSour
 export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   const [queryType, setQueryType] = useState(query.type);
   const assetFeatures = useRef<{ [key: string]: boolean }>({
-    // assetList: (window as any).DataSourceFeatureFlags['assetList']
-    //   ?? datasource.instanceSettings.jsonData?.featureToggles?.assetList
-    //   ?? FeatureTogglesDefaults.assetList,
-    // calibrationForecast: (window as any).DataSourceFeatureFlags['calibrationForecast']
-    //   ?? datasource.instanceSettings.jsonData?.featureToggles?.calibrationForecast
-    //   ?? FeatureTogglesDefaults.calibrationForecast,
-    // assetSummary: (window as any).DataSourceFeatureFlags['assetSummary']
-    //   ?? datasource.instanceSettings.jsonData?.featureToggles?.assetSummary
-    //   ?? FeatureTogglesDefaults.assetSummary,
     assetList: getFeatureFlagValue(datasource.instanceSettings.jsonData, FeatureToggleNames.assetList),
     calibrationForecast: getFeatureFlagValue(datasource.instanceSettings.jsonData, FeatureToggleNames.calibrationForecast),
     assetSummary: getFeatureFlagValue(datasource.instanceSettings.jsonData, FeatureToggleNames.assetSummary),

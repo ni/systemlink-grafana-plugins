@@ -8,7 +8,7 @@ import { transformComputedFieldsQuery } from '../../../../core/query-builder.uti
 import { defaultListAssetsQuery, defaultListAssetsQueryForOldPannels } from 'datasources/asset/defaults';
 import { TAKE_LIMIT } from 'datasources/asset/constants/ListAssets.constants';
 import { getWorkspaceName } from 'core/utils';
-import { FeatureToggleDataSourceOptions, FeatureToggleNames, getFeatureFlagValue } from 'core/feature-toggle';
+import { FeatureToggleDataSourceOptions } from 'core/feature-toggle';
 
 export class ListAssetsDataSource extends AssetDataSourceBase {
   private dependenciesLoadedPromise: Promise<void>;
@@ -121,11 +121,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
 
   private getLocationFromAsset(asset: AssetModel): string {
     if (asset.location.physicalLocation) {
-      const isLocationsFeatureToggleEnabled = getFeatureFlagValue(this.instanceSettings.jsonData, FeatureToggleNames.locations);
-
-      return isLocationsFeatureToggleEnabled
-        ? this.locationCache.get(asset.location.physicalLocation)?.name || ''
-        : asset.location.physicalLocation;
+      return this.locationCache.get(asset.location.physicalLocation)?.name || '';
     }
     return this.systemAliasCache.get(asset.location.minionId)?.alias || '';
   }
