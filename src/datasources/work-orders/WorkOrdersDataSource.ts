@@ -1,7 +1,7 @@
 import { DataSourceInstanceSettings, DataQueryRequest, DataFrameDTO, FieldType, TestDataSourceResponse, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
+import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery, ApiSession } from './types';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { transformComputedFieldsQuery, ExpressionTransformFunction } from 'core/query-builder.utils';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
@@ -12,6 +12,7 @@ import { UsersUtils } from 'shared/users.utils';
 import { extractErrorInfo } from 'core/errors';
 import { User } from 'shared/types/QueryUsers.types';
 import { TAKE_LIMIT } from './constants/QueryEditor.constants';
+import { TableDataRows, TableProperties } from 'datasources/data-frame/types';
 
 export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   constructor(
@@ -48,6 +49,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
   async runQuery(query: WorkOrdersQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    this.checkApiIngressCall('687a5196e155258dbe6a9c50');
     if (query.queryBy) {
       query.queryBy = transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
@@ -73,6 +75,46 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     };
   }
 
+
+  async getTableProperties(id?: string): Promise<TableProperties> {
+    return await this.get<TableProperties>(`${this.instanceSettings.url}/nidataframe/v1/tables/${id}`);
+  }
+  
+  async checkApiIngressCall(id: string): Promise<void> {
+    try {
+      // Create session key
+      const apiSession = await this.createSessionKey();
+      
+      try{
+        // To get data table columns
+        const properties = await this.getTableProperties(id);
+        const columns = properties?.columns.map(col => col.name) ?? [];
+
+        // Make a call to data frame API ingress with session key
+        const response = await this.post<TableDataRows>(
+          `${apiSession.endpoint}/nidataframe/v1/tables/${id}/query-data`,
+          { columns },
+          {
+            headers: {
+              'x-ni-api-key': apiSession.sessionKey.secret
+            }
+          }
+        );
+
+        //TODO: Deletes the session key once received the response
+      } catch (error) {
+        console.error('Error during data frame call:', error);
+      }
+    } catch (error) {
+      console.error('Error creating session key:', error);
+    }
+  }
+ 
+  private async createSessionKey(): Promise<ApiSession> {
+    return await this.backendSrv.post<ApiSession>(
+        `${this.instanceSettings.url}/user/create-api-session`,
+        {});
+  }
   shouldRunQuery(query: WorkOrdersQuery): boolean {
     return true;
   }
