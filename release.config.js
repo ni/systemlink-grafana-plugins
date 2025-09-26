@@ -3,7 +3,6 @@ const package = 'systemlink-grafana-plugins';
 module.exports = {
     branches: [
         'main',
-        'alpha',
         { name: '*', prerelease: 'pre' }
     ],
     plugins: [
