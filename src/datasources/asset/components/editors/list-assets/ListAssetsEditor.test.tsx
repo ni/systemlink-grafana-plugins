@@ -4,11 +4,12 @@ import { AssetDataSource } from '../../../AssetDataSource';
 import { AssetQueryEditor } from '../../AssetQueryEditor';
 import { setupRenderer } from '../../../../../test/fixtures';
 import { AssetFilterProperties, AssetFilterPropertiesOption, ListAssetsQuery, OutputType } from '../../../types/ListAssets.types';
-import { AssetFeatureTogglesDefaults, AssetQueryType } from 'datasources/asset/types/types';
+import { AssetQueryType } from 'datasources/asset/types/types';
 import { ListAssetsDataSource } from '../../../data-sources/list-assets/ListAssetsDataSource';
 import userEvent from '@testing-library/user-event';
 import { select } from 'react-select-event';
 import { LocationModel } from 'datasources/asset/types/ListLocations.types';
+import { FeatureTogglesDefaults } from 'core/feature-toggle';
 
 const fakeSystems: SystemProperties[] = [
   {
@@ -35,7 +36,7 @@ const fakeLocations: LocationModel[] = [
 ];
 
 let assetDatasourceOptions = {
-  featureToggles: { ...AssetFeatureTogglesDefaults }
+  featureToggles: { ...FeatureTogglesDefaults }
 }
 
 class FakeAssetsSource extends ListAssetsDataSource {
@@ -61,18 +62,18 @@ const render = async (query: ListAssetsQuery) => {
 
 beforeEach(() => {
   assetDatasourceOptions = {
-    featureToggles: { ...AssetFeatureTogglesDefaults }
+    featureToggles: { ...FeatureTogglesDefaults }
   };
 })
 
 it('does not render when feature is not enabled', async () => {
-  assetDatasourceOptions.featureToggles.assetList = false;
+  localStorage.setItem('assetList', 'false');
   await render({} as ListAssetsQuery);
   await waitFor(() => expect(screen.getAllByRole('combobox').length).toBe(2));
 });
 
 it('renders the query builder', async () => {
-  assetDatasourceOptions.featureToggles.assetList = true;
+  localStorage.setItem('assetList', 'true');
   await render({} as ListAssetsQuery);
   await waitFor(() => expect(screen.getAllByText('Property').length).toBe(1));
   await waitFor(() => expect(screen.getAllByText('Operator').length).toBe(1));
@@ -223,7 +224,7 @@ it('should not display error message when user changes value to number between 0
 })
 
 it('renders the query builder with properties field', async () => {
-  assetDatasourceOptions.featureToggles.assetList = true;
+  localStorage.setItem('assetList', 'true');
   await render({} as ListAssetsQuery);
 
   await waitFor(() => {

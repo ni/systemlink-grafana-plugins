@@ -3,13 +3,14 @@ import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { mock } from 'jest-mock-extended';
 
 import { AssetSummaryResponse } from 'datasources/asset/types/AssetSummaryQuery.types';
-import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from 'datasources/asset/types/types';
+import { AssetQuery, AssetQueryType } from 'datasources/asset/types/types';
 import { AssetSummaryDataSource } from '../../../data-sources/asset-summary/AssetSummaryDataSource';
 import { assetSummaryFields } from '../../../constants/AssetSummaryQuery.constants';
+import { FeatureToggleDataSourceOptions } from 'core/feature-toggle';
 
 describe('AssetSummaryDataSource', () => {
   let dataSource: AssetSummaryDataSource;
-  const instanceSettings = mock<DataSourceInstanceSettings<AssetDataSourceOptions>>();
+  const instanceSettings = mock<DataSourceInstanceSettings<FeatureToggleDataSourceOptions>>();
   const backendSrv = mock<BackendSrv>();
   const templateSrv = mock<TemplateSrv>();
   const assetSummary: AssetSummaryResponse = {

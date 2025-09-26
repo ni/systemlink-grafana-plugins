@@ -8,10 +8,11 @@ import { ListAssetsQuery } from '../types/ListAssets.types';
 import { CalibrationForecastQuery } from '../types/CalibrationForecastQuery.types';
 import { select } from 'react-select-event';
 import { AssetSummaryQuery } from '../types/AssetSummaryQuery.types';
-import { AssetFeatureTogglesDefaults, AssetQueryType } from '../types/types';
+import { AssetQueryType } from '../types/types';
 import { ListAssetsDataSource } from '../data-sources/list-assets/ListAssetsDataSource';
 import { AssetSummaryDataSource } from '../data-sources/asset-summary/AssetSummaryDataSource';
 import { LocationModel } from '../types/ListLocations.types';
+import { FeatureTogglesDefaults } from 'core/feature-toggle';
 
 const fakeSystems: SystemProperties[] = [
     {
@@ -38,7 +39,7 @@ const fakeLocations: LocationModel[] = [
 ]
 
 let assetDatasourceOptions = {
-    featureToggles: { ...AssetFeatureTogglesDefaults }
+    featureToggles: { ...FeatureTogglesDefaults }
 }
 
 class FakeAssetsSource extends ListAssetsDataSource {
@@ -67,12 +68,12 @@ const render = setupRenderer(AssetQueryEditor, FakeAssetDataSource, () => assetD
 
 beforeEach(() => {
     assetDatasourceOptions = {
-        featureToggles: { ...AssetFeatureTogglesDefaults }
+        featureToggles: { ...FeatureTogglesDefaults }
     };
 });
 
 it('renders Asset list when feature is enabled', async () => {
-    assetDatasourceOptions.featureToggles.assetList = true;
+    localStorage.setItem('assetList', 'true');
     render({ type: AssetQueryType.ListAssets } as ListAssetsQuery);
     const queryType = screen.getAllByRole('combobox')[0];
     await select(queryType, "List Assets", { container: document.body });
@@ -80,7 +81,7 @@ it('renders Asset list when feature is enabled', async () => {
 });
 
 it('renders Asset calibration forecast when feature is enabled', async () => {
-    assetDatasourceOptions.featureToggles.calibrationForecast = true;
+    localStorage.setItem('calibrationForecast', 'true');
     render({ type: AssetQueryType.CalibrationForecast } as CalibrationForecastQuery);
     const queryType = screen.getAllByRole('combobox')[0];
     await select(queryType, "Calibration Forecast", { container: document.body });
@@ -88,7 +89,7 @@ it('renders Asset calibration forecast when feature is enabled', async () => {
 });
 
 it('renders Asset summary when feature is enabled', async () => {
-    assetDatasourceOptions.featureToggles.assetSummary = true;
+    localStorage.setItem('assetSummary', 'true');
     render({ type: AssetQueryType.AssetSummary } as AssetSummaryQuery);
     const queryType = screen.getAllByRole('combobox')[0];
     await select(queryType, "Asset Summary", { container: document.body });
