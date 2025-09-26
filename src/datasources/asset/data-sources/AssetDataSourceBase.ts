@@ -10,7 +10,7 @@ import { QueryBuilderOperations } from "../../../core/query-builder.constants";
 import { AllFieldNames, LocationFieldNames } from "../constants/constants";
 import { getVariableOptions } from "core/utils";
 import { ListLocationsResponse, LocationModel } from "../types/ListLocations.types";
-import { FeatureToggleDataSourceOptions, FeatureToggleNames, getFeatureFlagValue } from "core/feature-toggle";
+import { FeatureToggleDataSourceOptions } from "core/feature-toggle";
 
 export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, FeatureToggleDataSourceOptions> {
   private systemsLoaded!: () => void;

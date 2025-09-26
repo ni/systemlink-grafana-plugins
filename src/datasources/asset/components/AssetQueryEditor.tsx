@@ -22,7 +22,6 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
     assetList: getFeatureFlagValue(datasource.instanceSettings.jsonData, FeatureToggleNames.assetList),
     calibrationForecast: getFeatureFlagValue(datasource.instanceSettings.jsonData, FeatureToggleNames.calibrationForecast),
     assetSummary: getFeatureFlagValue(datasource.instanceSettings.jsonData, FeatureToggleNames.assetSummary),
-    locations: getFeatureFlagValue(datasource.instanceSettings.jsonData, FeatureToggleNames.locations)
   });
 
   const handleQueryChange = useCallback((value: AssetQuery, runQuery = false): void => {
