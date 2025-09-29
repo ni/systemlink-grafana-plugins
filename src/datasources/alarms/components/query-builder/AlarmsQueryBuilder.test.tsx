@@ -1,12 +1,12 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { AlarmsQueryBuilder } from './AlarmsQueryBuilder';
-import { QueryBuilderOption, Workspace } from 'core/types';
+import { QueryBuilderOption } from 'core/types';
 import { BOOLEAN_OPTIONS, SEVERITY_LEVELS, TIME_OPTIONS } from 'datasources/alarms/constants/AlarmsQueryBuilder.constants';
 
 describe('AlarmsQueryBuilder', () => {
-  function renderElement (filter: string, globalVariableOptions: QueryBuilderOption[] = [], workspaces: Workspace[] = []) {
-    const reactNode = React.createElement(AlarmsQueryBuilder, { filter, globalVariableOptions, workspaces, onChange: jest.fn() });
+  function renderElement (filter: string, globalVariableOptions: QueryBuilderOption[] = []) {
+    const reactNode = React.createElement(AlarmsQueryBuilder, { filter, globalVariableOptions, onChange: jest.fn() });
     const renderResult = render(reactNode);
     const containerClass = 'smart-filter-group-condition-container';
 
