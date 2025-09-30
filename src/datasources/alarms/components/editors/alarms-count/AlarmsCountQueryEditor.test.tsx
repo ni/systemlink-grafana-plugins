@@ -57,13 +57,10 @@ describe('AlarmsCountQueryEditor', () => {
     expect(mockHandleQueryChange).not.toHaveBeenCalled();
   });
 
-  it('should pass globalVariableOptions from datasource to AlarmsQueryBuilder', () => {
-    const container = renderElement();
-    const queryBuilder = container.getByRole('dialog');
-    const event = { detail: { linq: 'currentSeverityLevel = \"$value1"' } };
-    
-    queryBuilder?.dispatchEvent(new CustomEvent('change', event));
-    
-    expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ filter: 'currentSeverityLevel = \"$value1"' }));
+  it('should call datasource.globalVariableOptions when component renders', () => {
+    renderElement();
+
+    expect(mockDatasource.globalVariableOptions).toHaveBeenCalled();
+    expect(mockDatasource.globalVariableOptions).toHaveBeenCalledTimes(1);
   });
 });
