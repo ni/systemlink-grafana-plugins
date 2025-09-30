@@ -1,3 +1,9 @@
+## [4.14.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.13.0...v4.14.0) (2025-09-30)
+
+### Features
+
+* **Dataframe:** Add v2 Query Editor under feature toggle ([#408](https://github.com/ni/systemlink-grafana-plugins/issues/408)) ([8f2399a](https://github.com/ni/systemlink-grafana-plugins/commit/8f2399a589ca4a65cc9fc329bae89e18c42f1cf7))
+
 ## [4.13.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.12.0...v4.13.0) (2025-09-26)
 
 ### Features
