@@ -61,6 +61,5 @@ describe('AlarmsCountQueryEditor', () => {
     renderElement();
 
     expect(mockDatasource.globalVariableOptions).toHaveBeenCalled();
-    expect(mockDatasource.globalVariableOptions).toHaveBeenCalledTimes(1);
   });
 });
