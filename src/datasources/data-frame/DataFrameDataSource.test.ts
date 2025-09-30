@@ -2,7 +2,7 @@ import { of, Observable } from 'rxjs';
 import { DataQueryRequest, DataSourceInstanceSettings, dateTime, Field, FieldType } from '@grafana/data';
 import { BackendSrvRequest, FetchResponse } from '@grafana/runtime';
 
-import { DataFrameQuery, DataFrameQueryType, TableDataRows, TableProperties } from './types';
+import { DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryType, TableDataRows, TableProperties } from './types';
 import { DataFrameDataSource } from './DataFrameDataSource';
 import { LEGACY_METADATA_TYPE } from 'core/types';
 
@@ -35,7 +35,7 @@ beforeEach(() => {
     url: '_',
     name: 'SystemLink Data Frames',
   };
-  ds = new DataFrameDataSource(instanceSettings as DataSourceInstanceSettings);
+  ds = new DataFrameDataSource(instanceSettings as DataSourceInstanceSettings<DataFrameDataSourceOptions>);
   setupFetchMock();
 });
 
