@@ -49,7 +49,7 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
         dataField,
         this.isTimeField(dataField)
           ? this.timeFieldsQuery(dataField)
-          : this.multipleValuesQuery(dataField),
+          : this.multiValueVariableQuery (dataField),
       ];
     })
   );
@@ -65,9 +65,9 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
     return ALARMS_TIME_FIELDS.includes(field);
   }
 
-  private multipleValuesQuery(field: string): ExpressionTransformFunction {
+  private multiValueVariableQuery(field: string): ExpressionTransformFunction {
     return (value: string, operation: string, _options?: any) => {
-      const isMultiSelect = this.isMultiSelectValue(value);
+      const isMultiSelect = this.isMultiValueExpression(value);
       const valuesArray = this.getMultipleValuesArray(value);
       const logicalOperator = this.getLogicalOperator(operation);
 
@@ -77,7 +77,7 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
     }
   }
 
-  private isMultiSelectValue(value: string): boolean {
+  private isMultiValueExpression(value: string): boolean {
     return value.startsWith('{') && value.endsWith('}');
   }
 

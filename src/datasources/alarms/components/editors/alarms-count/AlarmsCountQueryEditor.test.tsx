@@ -22,7 +22,7 @@ const defaultProps = {
 
 function renderElement(query: AlarmsCountQuery = { ...defaultProps.query }) {
   const reactNode = React.createElement(AlarmsCountQueryEditor, { ...defaultProps, query });
-
+  
   return render(reactNode);
 }
 
