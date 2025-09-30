@@ -5,11 +5,7 @@ import _ from "lodash";
 import { DataFrameDataSource } from "../../DataFrameDataSource";
 import { DataFrameQuery, DataFrameQueryType, Props, ValidDataFrameQuery } from "../../types";
 
-<<<<<<<< HEAD:src/datasources/data-frame/components/v1/DataFrameQueryEditorCommon.tsx
-export class DataFrameQueryEditorCommon {
-========
 export class DataFrameQueryEditorCommonV1 {
->>>>>>>> main:src/datasources/data-frame/components/v1/DataFrameQueryEditorCommonV1.tsx
   readonly datasource: DataFrameDataSource;
   readonly onChange: (value: DataFrameQuery) => void;
   readonly query: ValidDataFrameQuery;

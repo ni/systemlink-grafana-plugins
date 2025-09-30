@@ -1,6 +1,5 @@
 import React, { useRef } from 'react';
-import { Props } from './DataFrameQueryEditorCommon';
-import { DataFrameFeatureToggles, DataFrameFeatureTogglesDefaults } from '../types';
+import { DataFrameFeatureToggles, DataFrameFeatureTogglesDefaults, Props } from '../types';
 import { DataFrameVariableQueryEditorV1 } from './v1/DataFrameVariableQueryEditorV1';
 import { DataFrameVariableQueryEditorV2 } from './v2/DataFrameVariableQueryEditorV2';
 

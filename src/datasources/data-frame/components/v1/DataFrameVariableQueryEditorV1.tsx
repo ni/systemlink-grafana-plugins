@@ -5,12 +5,12 @@ import { toOption } from '@grafana/data';
 import { FloatingError, parseErrorMessage } from 'core/errors';
 import { isValidId } from 'datasources/data-frame/utils';
 import { Props } from 'datasources/data-frame/types';
-import { DataFrameQueryEditorCommon } from './DataFrameQueryEditorCommon';
+import { DataFrameQueryEditorCommonV1 } from './DataFrameQueryEditorCommonV1';
 
 export function DataFrameVariableQueryEditorV1(props: Props) {
     const [errorMsg, setErrorMsg] = useState<string | undefined>('');
     const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
-    const common = new DataFrameQueryEditorCommon(props, handleError);
+    const common = new DataFrameQueryEditorCommonV1(props, handleError);
 
     return (
         <div style={{ position: 'relative' }}>
