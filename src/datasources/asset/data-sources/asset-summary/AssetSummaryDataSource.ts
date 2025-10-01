@@ -3,11 +3,13 @@ import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana
 
 import { AssetSummaryResponse } from 'datasources/asset/types/AssetSummaryQuery.types';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
-import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../types/types';
+import { AssetQuery, AssetQueryType } from '../../types/types';
 import { assetSummaryFields } from '../../constants/AssetSummaryQuery.constants';
+import { FeatureToggleDataSourceOptions } from 'core/feature-toggle';
+
 export class AssetSummaryDataSource extends AssetDataSourceBase {
     constructor(
-        readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,
+        readonly instanceSettings: DataSourceInstanceSettings<FeatureToggleDataSourceOptions>,
         readonly backendSrv: BackendSrv = getBackendSrv(),
         readonly templateSrv: TemplateSrv = getTemplateSrv()
     ) {
