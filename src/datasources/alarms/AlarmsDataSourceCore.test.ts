@@ -6,10 +6,24 @@ import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
 import { getVariableOptions } from 'core/utils';
+import { Workspace } from 'core/types';
 
 jest.mock('core/utils', () => ({
   getVariableOptions: jest.fn(),
 }));
+
+jest.mock('shared/workspace.utils', () => {
+  return {
+    WorkspaceUtils: jest.fn().mockImplementation(() => ({
+      getWorkspaces: jest.fn().mockResolvedValue(
+        new Map([
+          ['Workspace1', { id: 'Workspace1', name: 'Workspace Name' }],
+          ['Workspace2', { id: 'Workspace2', name: 'Another Workspace Name' }],
+        ])
+      )
+    }))
+  };
+});
 
 class TestAlarmsDataSource extends AlarmsDataSourceCore {
   async runQuery(query: AlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
@@ -220,6 +234,27 @@ describe('AlarmsDataSourceCore', () => {
       const result = datastore.shouldRunQuery(query);
 
       expect(result).toBe(true);
+    });
+  });
+
+  describe('loadWorkspaces', () => {
+    it('should return workspaces', async () => {
+      const workspaces = await datastore.loadWorkspaces();
+
+      expect(workspaces).toEqual(
+        new Map([
+          ['Workspace1', { id: 'Workspace1', name: 'Workspace Name' }],
+          ['Workspace2', { id: 'Workspace2', name: 'Another Workspace Name' }],
+        ])
+      );
+    });
+
+    it('should return empty map on error', async () => {
+      (datastore as any).workspaceUtils.getWorkspaces.mockRejectedValue(new Error('Error loading workspaces'));
+
+      const workspaces = await datastore.loadWorkspaces();
+
+      expect(workspaces).toEqual(new Map<string, Workspace>());
     });
   });
 });

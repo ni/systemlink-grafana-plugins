@@ -66,10 +66,17 @@ describe('AlarmsCountQueryEditor', () => {
     expect(mockHandleQueryChange).not.toHaveBeenCalled();
   });
 
-  it('should call datasource.globalVariableOptions and render variable name when its filter is applied', () => {
-    const container = renderElement({ refId: 'A', queryType: QueryType.AlarmsCount, filter: 'currentSeverityLevel = "$value1"' });
+  it('should call datasource.globalVariableOptions and render variable name when its filter is applied', async () => {
+    const container = await renderElement({ refId: 'A', queryType: QueryType.AlarmsCount, filter: 'currentSeverityLevel = "$value1"' });
 
     expect(mockDatasource.globalVariableOptions).toHaveBeenCalled();
     expect(container.getByText('$var1')).toBeInTheDocument();
+  });
+
+  it('should call loadWorkspaces and render workspace name when workspace filter is applied', async () => {
+    const container = await renderElement({ refId: 'A', queryType: QueryType.AlarmsCount, filter: 'workspace = "1"' });
+
+    expect(mockDatasource.loadWorkspaces).toHaveBeenCalled();
+    expect(container.getByText('WorkspaceName')).toBeInTheDocument();
   });
 });
