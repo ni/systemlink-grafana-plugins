@@ -11,7 +11,7 @@ describe('AlarmsQueryBuilder', () => {
     const reactNode = React.createElement(AlarmsQueryBuilder, { filter, globalVariableOptions, workspaces, onChange: jest.fn() });
     const renderResult = render(reactNode);
     const containerClass = 'smart-filter-group-condition-container';
-    
+
     return {
       renderResult,
       conditionsContainer: renderResult.container.getElementsByClassName(`${ containerClass }`),
