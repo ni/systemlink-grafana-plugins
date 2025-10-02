@@ -149,9 +149,6 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
     label: 'Workspace',
     dataField: 'workspace',
     filterOperations: BOOLEAN_FILTER_OPERATIONS,
-    lookup: {
-      dataSource: [], // Should be populated with workspace options
-    },
   }
 };
 
