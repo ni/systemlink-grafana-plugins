@@ -1,28 +1,18 @@
 import { DataSourceBase } from "core/DataSourceBase";
-import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, ScopedVars, DataSourceInstanceSettings } from "@grafana/data";
+import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, ScopedVars } from "@grafana/data";
 import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from "./types/types";
 import { extractErrorInfo } from "core/errors";
 import { QUERY_ALARMS_RELATIVE_PATH } from "./constants/QueryAlarms.constants";
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
 import { QueryBuilderOption, Workspace } from "core/types";
-import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
 import { WorkspaceUtils } from "shared/workspace.utils";
 import { getVariableOptions } from "core/utils";
 import { QueryBuilderOperations } from "core/query-builder.constants";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   private readonly queryAlarmsUrl = `${this.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`;
-  private workspaceUtils: WorkspaceUtils;
-
-  constructor(
-    readonly instanceSettings: DataSourceInstanceSettings,
-    readonly backendSrv: BackendSrv = getBackendSrv(),
-    readonly templateSrv: TemplateSrv = getTemplateSrv()
-  ) {
-    super(instanceSettings, backendSrv, templateSrv);
-    this.workspaceUtils = new WorkspaceUtils(instanceSettings, backendSrv);
-  }
+  private _workspaceUtils?: WorkspaceUtils;
 
   public abstract runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
   public readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
@@ -50,7 +40,8 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   public async loadWorkspaces(): Promise<Map<string, Workspace>> {
     try {
       return await this.workspaceUtils.getWorkspaces();
-    } catch (error) {
+    } catch (_error){
+      // #AB3283306 - Error handling for workspace dependency
       return new Map<string, Workspace>();
     }
   }
@@ -59,6 +50,13 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
     return query
       ? transformComputedFieldsQuery(this.templateSrv.replace(query, scopedVars), this.computedDataFields)
       : undefined;
+  }
+
+  private get workspaceUtils(): WorkspaceUtils {
+    if (!this._workspaceUtils) {
+      this._workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
+    }
+    return this._workspaceUtils;
   }
 
   private readonly computedDataFields = new Map<string, ExpressionTransformFunction>(

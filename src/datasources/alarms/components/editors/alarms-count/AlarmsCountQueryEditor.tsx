@@ -44,8 +44,8 @@ export function AlarmsCountQueryEditor({ query, handleQueryChange, datasource }:
       <AlarmsQueryBuilder
         filter={query.filter}
         globalVariableOptions={datasource.globalVariableOptions()}
-        onChange={onFilterChange}
         workspaces={workspaces}
+        onChange={onFilterChange}
       />
     </InlineField>
   );

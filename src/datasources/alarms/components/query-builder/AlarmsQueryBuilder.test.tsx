@@ -5,7 +5,7 @@ import { QueryBuilderOption, Workspace } from 'core/types';
 import { BOOLEAN_OPTIONS, SEVERITY_LEVELS, TIME_OPTIONS } from 'datasources/alarms/constants/AlarmsQueryBuilder.constants';
 
 describe('AlarmsQueryBuilder', () => {
-  const workspace = { id: '1', name: 'Workspace Name', default: false, enabled: true } as Workspace;
+  const workspace: Workspace = { id: '1', name: 'Workspace Name', default: false, enabled: true };
 
   function renderElement (filter: string, globalVariableOptions: QueryBuilderOption[] = [], workspaces: Workspace[] = []) {
     const reactNode = React.createElement(AlarmsQueryBuilder, { filter, globalVariableOptions, workspaces, onChange: jest.fn() });
