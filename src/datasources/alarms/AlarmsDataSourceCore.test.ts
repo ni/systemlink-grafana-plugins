@@ -7,6 +7,7 @@ import { createFetchError, createFetchResponse, requestMatching, setupDataSource
 import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
 import { getVariableOptions } from 'core/utils';
 import { Workspace } from 'core/types';
+import { WorkspaceUtils } from 'shared/workspace.utils';
 
 jest.mock('core/utils', () => ({
   getVariableOptions: jest.fn(),
@@ -255,6 +256,16 @@ describe('AlarmsDataSourceCore', () => {
       const workspaces = await datastore.loadWorkspaces();
 
       expect(workspaces).toEqual(new Map<string, Workspace>());
+    });
+
+  it('should create WorkspaceUtils instance only once and reuse it across multiple calls', async () => {
+      expect(WorkspaceUtils).not.toHaveBeenCalled();
+
+      await datastore.loadWorkspaces();
+      await datastore.loadWorkspaces();
+      await datastore.loadWorkspaces();
+      
+      expect(WorkspaceUtils).toHaveBeenCalledTimes(1);
     });
   });
 });
