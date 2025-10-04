@@ -83,7 +83,7 @@ describe('AlarmsQueryBuilder', () => {
     const { conditionsContainer } = renderElement('workspace = "1"', [], [workspace]);
 
     expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain(workspace.name);
+    expect(conditionsContainer.item(0)?.textContent).toContain('Workspace Name');
   });
 
   it('should select value for alarm ID in query builder', () => {
