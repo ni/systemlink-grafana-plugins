@@ -65,6 +65,15 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSour
         maxDataPoints,
         // request.panelId?.toString()
       );
+
+      // const tableData: TableDataRows = {
+      //   frame: {
+      //     data: columns.map(() => {
+      //       return [Number(Math.random() * 100).toString(), Number(Math.random() * 100).toString()];
+      //     }),
+      //     columns: columns.map(c => c.name),
+      //   }
+      // }
       return {
         refId: processedQuery.refId,
         name: properties.name,
