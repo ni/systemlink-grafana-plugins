@@ -5,7 +5,6 @@ import { DataFrameQuery, DataFrameQueryType, Props } from "datasources/data-fram
 import { enumToOptions } from "core/utils";
 
 export const DataFrameQueryEditorV2 = (props: Props) => {
-    // TODO AB#3259790: Add `Data table properties` Query Builder
 
     const [isOpen, setIsOpen] = React.useState(true);
     const query = props.datasource.processQuery(props.query);
