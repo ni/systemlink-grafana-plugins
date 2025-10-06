@@ -595,6 +595,44 @@ describe('Asset calibration location queries', () => {
     );
   });
 
+  test('should transform LOCATION field when operator is string.IsNullOrEmpty', async () => {
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      type: AssetQueryType.CalibrationForecast,
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+      filter: `string.IsNullOrEmpty(${AssetCalibrationFieldNames.LOCATION})`,
+    });
+
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        filter: "string.IsNullOrEmpty(Location.MinionId) && string.IsNullOrEmpty(Location.PhysicalLocation)"
+      }),
+      expect.anything()
+    );
+  });
+
+  test('should transform LOCATION field when operator is !string.IsNullOrEmpty', async () => {
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      type: AssetQueryType.CalibrationForecast,
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+      filter: `!string.IsNullOrEmpty(${AssetCalibrationFieldNames.LOCATION})`,
+    });
+
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        filter: "!string.IsNullOrEmpty(Location.MinionId) || !string.IsNullOrEmpty(Location.PhysicalLocation)"
+      }),
+      expect.anything()
+    );
+  });
+
   test('should transform LOCATION field with single value and cache hit', async () => {
     datastore.systemAliasCache.set('Location1', { id: 'Location1', alias: 'Location1-alias', state: 'CONNECTED', workspace: '1' });
 

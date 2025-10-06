@@ -7,15 +7,15 @@ import { SelectableValue, toOption } from "@grafana/data";
 import { InlineField, InlineSwitch, MultiSelect, Select, AsyncSelect, RadioButtonGroup } from '@grafana/ui';
 import { enumToOptions } from "core/utils";
 import { getTemplateSrv } from "@grafana/runtime";
-import { DataFrameQueryEditorCommon, Props } from "../DataFrameQueryEditorCommon";
-import { DataFrameQueryType } from "datasources/data-frame/types";
+import { DataFrameQueryEditorCommonV1 } from "./DataFrameQueryEditorCommonV1";
+import { DataFrameQueryType, Props } from "datasources/data-frame/types";
 import { isValidId } from "datasources/data-frame/utils";
 import { decimationMethods } from "datasources/data-frame/constants";
 
 export const DataFrameQueryEditorV1 = (props: Props) => {
     const [errorMsg, setErrorMsg] = useState<string | undefined>('');
     const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
-    const common = new DataFrameQueryEditorCommon(props, handleError);
+    const common = new DataFrameQueryEditorCommonV1(props, handleError);
     const tableProperties = useAsync(() => common.datasource.getTableProperties(common.query.tableId).catch(handleError), [common.query.tableId]);
 
     const handleColumnChange = (items: Array<SelectableValue<string>>) => {

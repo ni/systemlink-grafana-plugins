@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import { AsyncSelect } from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
 import { toOption } from '@grafana/data';
-import { DataFrameQueryEditorCommon, Props } from '../DataFrameQueryEditorCommon';
 import { FloatingError, parseErrorMessage } from 'core/errors';
 import { isValidId } from 'datasources/data-frame/utils';
+import { Props } from 'datasources/data-frame/types';
+import { DataFrameQueryEditorCommonV1 } from './DataFrameQueryEditorCommonV1';
 
-export function DataFrameVariableQueryEditorV1(props: Props) {
+export const DataFrameVariableQueryEditorV1 = (props: Props) => {
     const [errorMsg, setErrorMsg] = useState<string | undefined>('');
     const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
-    const common = new DataFrameQueryEditorCommon(props, handleError);
+    const common = new DataFrameQueryEditorCommonV1(props, handleError);
 
     return (
         <div style={{ position: 'relative' }}>

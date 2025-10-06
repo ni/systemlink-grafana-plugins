@@ -7,3 +7,73 @@ export interface AlarmsQuery extends DataQuery {
 export enum QueryType {
   AlarmsCount = 'AlarmsCount',
 }
+
+export interface QueryAlarmsRequest {
+  filter?: string;
+  transitionInclusionOption?: TransitionInclusionOption;
+  take?: number;
+  orderBy?: string;
+  orderByDescending?: boolean;
+  continuationToken?: string;
+  returnCount?: boolean;
+}
+
+export interface QueryAlarmsResponse {
+  alarms: Alarm[];
+  totalCount?: number;
+  continuationToken?: string;
+}
+
+export interface Alarm {
+  instanceId: string;
+  alarmId: string;
+  workspace: string;
+  active: boolean;
+  clear: boolean;
+  acknowledged: boolean;
+  acknowledgedAt: string | null;
+  acknowledgedBy: string | null;
+  occurredAt: string;
+  updatedAt: string;
+  createdBy: string;
+  transitions: AlarmTransition[];
+  transitionOverflowCount: number;
+  currentSeverityLevel: number;
+  highestSeverityLevel: number;
+  mostRecentSetOccurredAt: string | null;
+  mostRecentTransitionOccurredAt: string | null;
+  channel: string;
+  condition: string;
+  displayName: string;
+  description: string;
+  keywords: string[];
+  properties: {
+    [key: string]: string;
+  };
+  resourceType: string;
+}
+
+enum TransitionInclusionOption {
+  None = 'NONE',
+  MostRecentOnly = 'MOST_RECENT_ONLY',
+  All = 'ALL',
+};
+
+interface AlarmTransition {
+  transitionType: AlarmTransitionType;
+  occurredAt: string;
+  severityLevel: number;
+  value: string;
+  condition: string;
+  shortText: string;
+  detailText: string;
+  keywords: string[];
+  properties: {
+    [key: string]: string;
+  };
+}
+
+export enum AlarmTransitionType {
+  Clear = 'CLEAR',
+  Set = 'SET',
+};
