@@ -57,9 +57,10 @@ describe('AlarmsCountQueryEditor', () => {
     expect(mockHandleQueryChange).not.toHaveBeenCalled();
   });
 
-  it('should call datasource.globalVariableOptions when component renders', () => {
-    renderElement();
+  it('should call datasource.globalVariableOptions and render variable name when its filter is applied', () => {
+    const container = renderElement({ refId: 'A', queryType: QueryType.AlarmsCount, filter: 'currentSeverityLevel = "$value1"' });
 
     expect(mockDatasource.globalVariableOptions).toHaveBeenCalled();
+    expect(container.getByText('$var1')).toBeInTheDocument();
   });
 });
