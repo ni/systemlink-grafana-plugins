@@ -1,5 +1,4 @@
 import { QueryBuilderOption, Workspace } from "core/types";
-import { ReactNode } from "react";
 import { DataTableQueryBuilder } from "./DataTableQueryBuilder";
 import React from "react";
 import { render } from "@testing-library/react";
@@ -105,5 +104,5 @@ describe('DataTableQueryBuilder', () => {
                 expect(conditionsContainer.item(0)?.textContent).toContain(label);
             });
         });
-    })
-})
+    });
+});

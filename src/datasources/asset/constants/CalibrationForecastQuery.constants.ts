@@ -18,7 +18,9 @@ export const AssetCalibrationFields: Record<string, QBField> = {
         dataField: AssetCalibrationFieldNames.LOCATION,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
-            QueryBuilderOperations.DOES_NOT_EQUAL.name
+            QueryBuilderOperations.DOES_NOT_EQUAL.name,
+            QueryBuilderOperations.IS_BLANK.name,
+            QueryBuilderOperations.IS_NOT_BLANK.name
         ],
         lookup: {
             dataSource: []

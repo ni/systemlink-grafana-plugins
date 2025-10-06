@@ -17,7 +17,6 @@ export interface AssetFeatureToggles {
   calibrationForecast: boolean;
   assetList: boolean;
   assetSummary: boolean;
-  locations: boolean;
 }
 
 export interface AssetDataSourceOptions extends DataSourceJsonData {
@@ -27,8 +26,7 @@ export interface AssetDataSourceOptions extends DataSourceJsonData {
 export const AssetFeatureTogglesDefaults: AssetFeatureToggles = {
   assetList: true,
   calibrationForecast: true,
-  assetSummary: true,
-  locations: false
+  assetSummary: true
 }
 
 export enum AssetQueryReturnType {

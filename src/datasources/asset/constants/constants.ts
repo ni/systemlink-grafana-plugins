@@ -9,6 +9,11 @@ export enum AllFieldNames {
     CALIBRATION_DUE_DATE = 'ExternalCalibration.NextRecommendedDate',
 }
 
+export enum LocationFieldNames {
+    MINION_ID = 'Location.MinionId',
+    PHYSICAL_LOCATION = 'Location.PhysicalLocation'
+}
+
 export const takeErrorMessages = {
     greaterOrEqualToZero: 'Enter a value greater than or equal to 0',
     lessOrEqualToTenThousand: 'Enter a value less than or equal to 10,000',

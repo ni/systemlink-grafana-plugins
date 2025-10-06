@@ -2,8 +2,8 @@ import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallbackWithRef, expressionReaderCallbackWithRef } from 'core/query-builder.utils';
 import { QBField, QueryBuilderOption } from 'core/types';
-import { filterXSSField } from 'core/utils';
-import { AlarmsQueryBuilderStaticFields } from 'datasources/alarms/constants/AlarmsQueryBuilder.constants';
+import { addOptionsToLookup, filterXSSField } from 'core/utils';
+import { AlarmsQueryBuilderFields, AlarmsQueryBuilderStaticFields, TIME_OPTIONS } from 'datasources/alarms/constants/AlarmsQueryBuilder.constants';
 import React, { useState, useEffect, useMemo } from 'react';
 import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 
@@ -26,8 +26,19 @@ export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, 
     [optionsRef]
   );
 
+  const timeFields = useMemo(() => {
+    return [
+      addOptionsToLookup(AlarmsQueryBuilderFields.ACKNOWLEDGED_ON, TIME_OPTIONS),
+      addOptionsToLookup(AlarmsQueryBuilderFields.FIRST_OCCURRENCE, TIME_OPTIONS),
+    ];
+  }, []);
+
   useEffect(() => {
-    const updatedFields = AlarmsQueryBuilderStaticFields.map(field => {
+    if (!timeFields) {
+      return;
+    }
+
+    const updatedFields = [...AlarmsQueryBuilderStaticFields, ...timeFields].map(field => {
       if (field.lookup?.dataSource) {
         return {
           ...field,
@@ -37,18 +48,18 @@ export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, 
         };
       }
       return field;
-    });
+    })
 
     setFields(updatedFields);
 
-    const options = Object.values(updatedFields).reduce((accumulator, fieldConfig) => {
+    const options = updatedFields.reduce((accumulator, fieldConfig) => {
       if (fieldConfig.lookup) {
         accumulator[fieldConfig.dataField!] = fieldConfig.lookup.dataSource;
       }
 
       return accumulator;
     }, {} as Record<string, QueryBuilderOption[]>);
-    
+
     optionsRef.current = options;
 
     const customOperations = [
@@ -58,6 +69,12 @@ export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, 
       QueryBuilderOperations.DOES_NOT_CONTAIN,
       QueryBuilderOperations.IS_BLANK,
       QueryBuilderOperations.IS_NOT_BLANK,
+      QueryBuilderOperations.DATE_TIME_IS_BEFORE,
+      QueryBuilderOperations.DATE_TIME_IS_AFTER,
+      QueryBuilderOperations.LIST_EQUALS,
+      QueryBuilderOperations.LIST_DOES_NOT_EQUAL,
+      QueryBuilderOperations.LIST_CONTAINS,
+      QueryBuilderOperations.LIST_DOES_NOT_CONTAIN,
     ].map(operation => {
       return {
         ...operation,
@@ -65,8 +82,15 @@ export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, 
       };
     });
 
-    setOperations([...customOperations]);
-  }, [globalVariableOptions, callbacks]);
+    const keyValueOperations = [
+      QueryBuilderOperations.KEY_VALUE_MATCH,
+      QueryBuilderOperations.KEY_VALUE_DOES_NOT_MATCH,
+      QueryBuilderOperations.KEY_VALUE_CONTAINS,
+      QueryBuilderOperations.KEY_VALUE_DOES_NOT_CONTAINS,
+    ];
+
+    setOperations([...customOperations, ...keyValueOperations]);
+  }, [globalVariableOptions, callbacks, timeFields]);
 
   return (
     <SlQueryBuilder
