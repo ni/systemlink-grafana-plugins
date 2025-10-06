@@ -1,6 +1,6 @@
 import { BackendSrv, TemplateSrv } from "@grafana/runtime";
 import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, getVariableOptions, get, post, addOptionsToLookup } from "./utils";
-import { BatchQueryConfig } from "./types";
+import { BatchQueryConfig, QBField, QueryBuilderOption } from "./types";
 import { of, throwError } from 'rxjs';
 
 const mockBackendSrv = {
@@ -32,19 +32,19 @@ test('enumToOptions', () => {
 describe('addOptionsToLookup', () => {
   it('appends new options to existing lookup data source', () => {
     const field = {
-      name: 'field',
+      label: 'Test Field',
       lookup: {
         dataSource: [
           { label: 'Existing', value: 'existing' },
         ],
-        someOtherProp: 'preserve',
+        readonly: true
       },
-    } as any;
+    } as QBField;
 
     const additionalOptions = [
       { label: 'New 1', value: 'new1' },
       { label: 'New 2', value: 'new2' },
-    ];
+    ] as QueryBuilderOption[];
 
     const result = addOptionsToLookup(field, additionalOptions);
 
@@ -53,7 +53,8 @@ describe('addOptionsToLookup', () => {
       { label: 'New 1', value: 'new1' },
       { label: 'New 2', value: 'new2' },
     ]);
-    expect((result.lookup as any).someOtherProp).toBe('preserve');
+    expect(result.lookup.readonly).toBeTruthy();
+    expect(result.label).toBe('Test Field');
   });
 });
 
