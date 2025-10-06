@@ -1,8 +1,7 @@
-import React, { } from "react";
+import React from "react";
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
-import { Props } from "../DataFrameQueryEditorCommon";
 import { AutoSizeInput, Collapse, InlineField, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQuery, DataFrameQueryType } from "datasources/data-frame/types";
+import { DataFrameQuery, DataFrameQueryType, Props } from "datasources/data-frame/types";
 import { enumToOptions } from "core/utils";
 
 export const DataFrameQueryEditorV2 = (props: Props) => {
@@ -27,7 +26,8 @@ export const DataFrameQueryEditorV2 = (props: Props) => {
             <InlineField
                 label="Query type"
                 labelWidth={27}
-                tooltip={tooltips.queryType}>
+                tooltip={tooltips.queryType}
+            >
                 <RadioButtonGroup
                     options={enumToOptions(DataFrameQueryType)}
                     value={query.type}
@@ -38,32 +38,33 @@ export const DataFrameQueryEditorV2 = (props: Props) => {
                 label="Query configurations"
                 isOpen={isOpen}
                 collapsible={true}
-                onToggle={() => setIsOpen(!isOpen)}>
+                onToggle={() => setIsOpen(!isOpen)}
+            >
                 <InlineField
-                    label="Query by data table propeties"
+                    label="Query by data table properties"
                     labelWidth={27}
-                    tooltip={tooltips.queryByDatatableProperties}>
-                    <DataTableQueryBuilder
-                        workspaces={[]}
-                        globalVariableOptions={[]}
-                    />
-                </InlineField>
-                {query.type === DataFrameQueryType.Properties && (<InlineField
-                    label="Take"
-                    labelWidth={27}
-                    tooltip={tooltips.take}
+                    tooltip={tooltips.queryByDatatableProperties}
                 >
-                    <AutoSizeInput
-                        minWidth={26}
-                        maxWidth={26}
-                        type='number'
-                        placeholder="Enter record count"
-                    />
-                </InlineField>)}
-            </Collapse >
+                    <DataTableQueryBuilder workspaces={[]} globalVariableOptions={[]} />
+                </InlineField>
+                {query.type === DataFrameQueryType.Properties && (
+                    <InlineField
+                        label="Take"
+                        labelWidth={27}
+                        tooltip={tooltips.take}
+                    >
+                        <AutoSizeInput
+                            minWidth={26}
+                            maxWidth={26}
+                            type="number"
+                            placeholder="Enter record count"
+                        />
+                    </InlineField>
+                )}
+            </Collapse>
         </>
     );
-}
+};
 
 const tooltips = {
     queryType: 'Specifies whether to visualize the data rows or properties associated with a table.',
