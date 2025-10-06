@@ -7,7 +7,7 @@ import { isValidId } from 'datasources/data-frame/utils';
 import { Props } from 'datasources/data-frame/types';
 import { DataFrameQueryEditorCommonV1 } from './DataFrameQueryEditorCommonV1';
 
-export function DataFrameVariableQueryEditorV1(props: Props) {
+export const DataFrameVariableQueryEditorV1 = (props: Props) => {
     const [errorMsg, setErrorMsg] = useState<string | undefined>('');
     const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
     const common = new DataFrameQueryEditorCommonV1(props, handleError);
