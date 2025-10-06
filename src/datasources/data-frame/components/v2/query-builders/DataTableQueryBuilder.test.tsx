@@ -104,5 +104,5 @@ describe('DataTableQueryBuilder', () => {
                 expect(conditionsContainer.item(0)?.textContent).toContain(label);
             });
         });
-    })
-})
+    });
+});
