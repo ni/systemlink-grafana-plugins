@@ -2,6 +2,7 @@ import { editorTemplate, handleNumberValue, handleStringValue, keyValueExpressio
 import { QueryBuilderCustomOperation } from "smart-webcomponents-react";
 import { dateTimeExpressionBuilderCallback } from "./custom-query-builder-operations/date-time-operations";
 import { QueryOperation } from "./types";
+import { sourceExpressionBuilderCallback, sourceExpressionReaderCallback } from "./custom-query-builder-operations/source-operations";
 
 export const queryBuilderMessages = {
   en: {
@@ -56,6 +57,7 @@ export enum FilterOperations {
   KeyValueIsNumericallyNotEqual = 'key_value_!==',
   DateTimeIsBlank = 'date_time_is_blank',
   DateTimeIsNotBlank = 'date_time_is_not_blank',
+  SourceEquals = 'source_equals',
 }
 
 export enum FilterExpressions {
@@ -71,6 +73,7 @@ export enum FilterExpressions {
   KeyValueIsNumericallyNotEqual = 'SafeConvert.ToDecimal({0}["{1}"]) != {2}',
   DateTimeIsBlank = '{0} == null || {0} == ""',
   DateTimeIsNotBlank = '{0} != null && {0} != ""',
+  SourceEquals = 'properties.system = "{0}" && properties.minionId = "{0}"',
 }
 
 export enum QueryOperationEnum {
@@ -114,6 +117,7 @@ export enum QueryOperationEnum {
   DATE_TIME_IS_BEFORE = 'DATE_TIME_IS_BEFORE',
   DATE_TIME_IS_BLANK = 'DATE_TIME_IS_BLANK',
   DATE_TIME_IS_NOT_BLANK = 'DATE_TIME_IS_NOT_BLANK',
+  SOURCE_EQUALS = 'SOURCE_EQUALS',
 }
 
 export const QueryBuilderOperations: Record<QueryOperationEnum, QueryOperation> = {
@@ -380,6 +384,13 @@ export const QueryBuilderOperations: Record<QueryOperationEnum, QueryOperation> 
     expressionBuilderCallback: dateTimeExpressionBuilderCallback,
     hideValue: true,
   },
+  SOURCE_EQUALS: {
+    label: 'equals source',
+    name: FilterOperations.SourceEquals,
+    expressionTemplate: FilterExpressions.SourceEquals,
+    expressionBuilderCallback: sourceExpressionBuilderCallback,
+    expressionReaderCallback: sourceExpressionReaderCallback,
+  }
 };
 
 export const customOperations: QueryBuilderCustomOperation[] = [

@@ -102,7 +102,11 @@ export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, 
       QueryBuilderOperations.KEY_VALUE_DOES_NOT_CONTAINS,
     ];
 
-    setOperations([...customOperations, ...keyValueOperations]);
+    const sourceOperations = [
+      QueryBuilderOperations.SOURCE_EQUALS
+    ]
+
+    setOperations([...customOperations, ...keyValueOperations, ...sourceOperations]);
   }, [globalVariableOptions, callbacks, timeFields]);
 
   return (
