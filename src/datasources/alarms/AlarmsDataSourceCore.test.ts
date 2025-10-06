@@ -258,7 +258,7 @@ describe('AlarmsDataSourceCore', () => {
       expect(workspaces).toEqual(new Map<string, Workspace>());
     });
 
-  it('should create WorkspaceUtils instance only once and reuse it across multiple calls', async () => {
+    it('should create WorkspaceUtils instance only once and reuse it across multiple calls', async () => {
       expect(WorkspaceUtils).not.toHaveBeenCalled();
 
       await datastore.loadWorkspaces();
