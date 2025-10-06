@@ -1,5 +1,5 @@
 import { BackendSrv, TemplateSrv } from "@grafana/runtime";
-import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, getVariableOptions, get, post } from "./utils";
+import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, getVariableOptions, get, post, addOptionsToLookup } from "./utils";
 import { BatchQueryConfig } from "./types";
 import { of, throwError } from 'rxjs';
 
@@ -27,6 +27,34 @@ test('enumToOptions', () => {
     { label: 'Label1', value: 'Value1' },
     { label: 'Label2', value: 'Value2' }
   ]);
+});
+
+describe('addOptionsToLookup', () => {
+  it('appends new options to existing lookup data source', () => {
+    const field = {
+      name: 'field',
+      lookup: {
+        dataSource: [
+          { label: 'Existing', value: 'existing' },
+        ],
+        someOtherProp: 'preserve',
+      },
+    } as any;
+
+    const additionalOptions = [
+      { label: 'New 1', value: 'new1' },
+      { label: 'New 2', value: 'new2' },
+    ];
+
+    const result = addOptionsToLookup(field, additionalOptions);
+
+    expect(result.lookup.dataSource).toEqual([
+      { label: 'Existing', value: 'existing' },
+      { label: 'New 1', value: 'new1' },
+      { label: 'New 2', value: 'new2' },
+    ]);
+    expect((result.lookup as any).someOtherProp).toBe('preserve');
+  });
 });
 
 describe('getVariableOptions', () => {
@@ -221,68 +249,68 @@ describe('queryInBatches', () => {
   });
 
   describe('RecordCount', () => {
-  test('passes correct currentRecordCount to queryRecord for each batch', async () => {
-    const mockQueryRecord = jest.fn()
-      .mockResolvedValueOnce({
-        data: Array(100).fill({ id: 1 }),
-        continuationToken: 'token1',
-      })
-      .mockResolvedValueOnce({
-        data: Array(50).fill({ id: 2 }),
-        continuationToken: null,
-      });
+    test('passes correct currentRecordCount to queryRecord for each batch', async () => {
+      const mockQueryRecord = jest.fn()
+        .mockResolvedValueOnce({
+          data: Array(100).fill({ id: 1 }),
+          continuationToken: 'token1',
+        })
+        .mockResolvedValueOnce({
+          data: Array(50).fill({ id: 2 }),
+          continuationToken: null,
+        });
 
-    const take = 150;
-    await queryInBatches(mockQueryRecord, queryConfig, take);
+      const take = 150;
+      await queryInBatches(mockQueryRecord, queryConfig, take);
 
-    // First call should take 100 (maxTakePerRequest)
-    expect(mockQueryRecord).toHaveBeenNthCalledWith(1, 100, undefined);
-    // Second call should take 50 (remaining)
-    expect(mockQueryRecord).toHaveBeenNthCalledWith(2, 50, 'token1');
+      // First call should take 100 (maxTakePerRequest)
+      expect(mockQueryRecord).toHaveBeenNthCalledWith(1, 100, undefined);
+      // Second call should take 50 (remaining)
+      expect(mockQueryRecord).toHaveBeenNthCalledWith(2, 50, 'token1');
+    });
+
+    test('does not exceed take when not divisible by maxTakePerRequest', async () => {
+      const mockQueryRecord = jest.fn()
+        .mockResolvedValueOnce({
+          data: Array(100).fill({ id: 1 }),
+          continuationToken: 'token1',
+        })
+        .mockResolvedValueOnce({
+          data: Array(30).fill({ id: 2 }),
+          continuationToken: null,
+        });
+
+      const take = 130;
+      await queryInBatches(mockQueryRecord, queryConfig, take);
+
+      expect(mockQueryRecord).toHaveBeenNthCalledWith(1, 100, undefined);
+      expect(mockQueryRecord).toHaveBeenNthCalledWith(2, 30, 'token1');
+    });
+
+    test('calls queryRecord with correct currentRecordCount for each batch when take is large', async () => {
+      const mockQueryRecord = jest.fn()
+        .mockResolvedValueOnce({
+          data: Array(100).fill({ id: 1 }),
+          continuationToken: 'token1',
+        })
+        .mockResolvedValueOnce({
+          data: Array(100).fill({ id: 2 }),
+          continuationToken: 'token2',
+        })
+        .mockResolvedValueOnce({
+          data: Array(50).fill({ id: 3 }),
+          continuationToken: null,
+        });
+
+      const take = 2500;
+      const response = await queryInBatches(mockQueryRecord, queryConfig, take);
+
+      expect(response.data.length).toBe(250);
+      expect(mockQueryRecord).toHaveBeenNthCalledWith(1, 100, undefined);
+      expect(mockQueryRecord).toHaveBeenNthCalledWith(2, 100, 'token1');
+      expect(mockQueryRecord).toHaveBeenNthCalledWith(3, 100, 'token2');
+    });
   });
-
-  test('does not exceed take when not divisible by maxTakePerRequest', async () => {
-    const mockQueryRecord = jest.fn()
-      .mockResolvedValueOnce({
-        data: Array(100).fill({ id: 1 }),
-        continuationToken: 'token1',
-      })
-      .mockResolvedValueOnce({
-        data: Array(30).fill({ id: 2 }),
-        continuationToken: null,
-      });
-
-    const take = 130;
-    await queryInBatches(mockQueryRecord, queryConfig, take);
-
-    expect(mockQueryRecord).toHaveBeenNthCalledWith(1, 100, undefined);
-    expect(mockQueryRecord).toHaveBeenNthCalledWith(2, 30, 'token1');
-  });
-
-  test('calls queryRecord with correct currentRecordCount for each batch when take is large', async () => {
-    const mockQueryRecord = jest.fn()
-      .mockResolvedValueOnce({
-        data: Array(100).fill({ id: 1 }),
-        continuationToken: 'token1',
-      })
-      .mockResolvedValueOnce({
-        data: Array(100).fill({ id: 2 }),
-        continuationToken: 'token2',
-      })
-      .mockResolvedValueOnce({
-        data: Array(50).fill({ id: 3 }),
-        continuationToken: null,
-      });
-
-    const take = 2500;
-    const response = await queryInBatches(mockQueryRecord, queryConfig, take);
-
-    expect(response.data.length).toBe(250);
-    expect(mockQueryRecord).toHaveBeenNthCalledWith(1, 100, undefined);
-    expect(mockQueryRecord).toHaveBeenNthCalledWith(2, 100, 'token1');
-    expect(mockQueryRecord).toHaveBeenNthCalledWith(3, 100, 'token2');
-  });
-});
 
   test('should fetch records in multiple requests when take is greater than maxTakePerRequest', async () => {
     mockQueryRecord
