@@ -168,7 +168,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataFram
   }
 
   private constructTimeFilters(columns: Column[], timeRange: TimeRange): ColumnFilter[] {
-    const timeIndex = columns.find(c => c.dataType === 'TIMESTAMP' && c.columnType === 'INDEX');
+    const timeIndex = columns.find(c => c.dataType === 'TIMESTAMP');
 
     if (!timeIndex) {
       return [];
