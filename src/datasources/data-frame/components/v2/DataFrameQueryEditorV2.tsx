@@ -46,7 +46,7 @@ export const DataFrameQueryEditorV2 = (props: Props) => {
             </InlineField>
             )}
             <div
-                style={{ width: sectionWidth }}
+                style={{ width: getValuesInPixels(sectionWidth) }}
             >
                 <Collapse
                     label={labels.queryConfigurations}
@@ -60,7 +60,10 @@ export const DataFrameQueryEditorV2 = (props: Props) => {
                     >
                         {labels.queryByDatatableProperties}
                     </InlineLabel>
-                    <div style={{ width: "max-content", marginBottom: defaultMargin }}>
+                    <div style={{
+                        width: getValuesInPixels(valueFieldWidth),
+                        marginBottom: getValuesInPixels(defaultMarginBottom)
+                    }}>
                         <DataTableQueryBuilder workspaces={[]} globalVariableOptions={[]} />
                     </div>
 
@@ -85,25 +88,31 @@ export const DataFrameQueryEditorV2 = (props: Props) => {
 };
 
 const labels = {
-    queryType: "Query type",
-    properties: "Properties",
-    queryConfigurations: "Query configurations",
-    queryByDatatableProperties: "Query by data table properties",
-    take: "Take",
+    queryType: 'Query type',
+    properties: 'Properties',
+    queryConfigurations: 'Query configurations',
+    queryByDatatableProperties: 'Query by data table properties',
+    take: 'Take',
 }
 const tooltips = {
     queryType: 'Specifies whether to visualize the data rows or properties associated with a table.',
     queryByDatatableProperties: 'This field applies a filter to the query the datatables.',
     take: 'This field sets the maximum number of records to return from the query.',
-    properties: "Specifies the properties to be queried.",
+    properties: 'Specifies the properties to be queried.',
 }
 const placeholders = {
-    properties: "Select properties to fetch",
-    take: "Enter record count"
+    properties: 'Select properties to fetch',
+    take: 'Enter record count'
 }
 
-const inlinelabelWidth = 25
-const valueFieldWidth = 65.5
-const inlineMarginBetweenLabelAndField = 0.5
-const defaultMargin = '8px'
-const sectionWidth = (8 * (inlinelabelWidth + valueFieldWidth + inlineMarginBetweenLabelAndField)) + 'px'
+const getValuesInPixels = (valueInGrafanaUnits: number) => {
+    return valueInGrafanaUnits * 8 + 'px';
+}
+
+// The following values are multiples of 8 to align with Grafana's grid system, hence 25 in grafana 
+// is equal to 25*8 = 200px.
+const inlinelabelWidth = 25;
+const valueFieldWidth = 65.5;
+const inlineMarginBetweenLabelAndField = 0.5;
+const defaultMarginBottom = 1;
+const sectionWidth = inlinelabelWidth + valueFieldWidth + inlineMarginBetweenLabelAndField;
