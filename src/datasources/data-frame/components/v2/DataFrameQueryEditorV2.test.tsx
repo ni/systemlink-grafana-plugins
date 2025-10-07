@@ -82,6 +82,18 @@ describe("DataFrameQueryEditorV2", () => {
         expect(screen.getByTestId("data-table-query-builder")).toBeInTheDocument();
     });
 
+    it("should show the properties field when the query type is properties", () => {
+        renderComponent({ type: DataFrameQueryType.Properties });
+
+        expect(screen.getByText("Select properties to fetch")).toBeInTheDocument();
+    });
+
+    it("should hide the properties field when the query type is data", () => {
+        renderComponent({ type: DataFrameQueryType.Data });
+
+        expect(screen.queryByText("Select properties to fetch")).not.toBeInTheDocument();
+    });
+
     it("should show the take field when the query type is properties", () => {
         renderComponent({ type: DataFrameQueryType.Properties });
 

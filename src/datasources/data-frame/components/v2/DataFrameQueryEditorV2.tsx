@@ -1,12 +1,12 @@
 import React from "react";
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
-import { AutoSizeInput, Collapse, InlineField, RadioButtonGroup } from "@grafana/ui";
+import { AutoSizeInput, Collapse, InlineField, InlineLabel, MultiSelect, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQuery, DataFrameQueryType, Props } from "datasources/data-frame/types";
 import { enumToOptions } from "core/utils";
 
 export const DataFrameQueryEditorV2 = (props: Props) => {
 
-    const [isOpen, setIsOpen] = React.useState(true);
+    const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = React.useState(true);
     const query = props.datasource.processQuery(props.query);
 
     const handleQueryChange = (value: DataFrameQuery, runQuery: boolean) => {
@@ -16,57 +16,94 @@ export const DataFrameQueryEditorV2 = (props: Props) => {
         }
     };
 
-    const onQueryTypeChange = (value: DataFrameQuery) => {
-        handleQueryChange(value, false);
+    const onQueryTypeChange = (queryType: DataFrameQueryType) => {
+        handleQueryChange({ ...query, type: queryType }, false);
     };
 
     return (
         <>
             <InlineField
-                label="Query type"
-                labelWidth={27}
+                label={labels.queryType}
+                labelWidth={inlinelabelWidth}
                 tooltip={tooltips.queryType}
             >
                 <RadioButtonGroup
                     options={enumToOptions(DataFrameQueryType)}
                     value={query.type}
-                    onChange={value => onQueryTypeChange({ ...query, type: value })}
+                    onChange={queryType => onQueryTypeChange(queryType)}
                 />
             </InlineField>
-            <Collapse
-                label="Query configurations"
-                isOpen={isOpen}
-                collapsible={true}
-                onToggle={() => setIsOpen(!isOpen)}
+            {query.type === DataFrameQueryType.Properties && (<InlineField
+                label={labels.properties}
+                labelWidth={inlinelabelWidth}
+                tooltip={tooltips.properties}
             >
-                <InlineField
-                    label="Query by data table properties"
-                    labelWidth={27}
-                    tooltip={tooltips.queryByDatatableProperties}
+                <MultiSelect
+                    placeholder={placeholders.properties}
+                    width={valueFieldWidth}
+                    onChange={(): void => { }}
+                />
+            </InlineField>
+            )}
+            <div
+                style={{ width: sectionWidth }}
+            >
+                <Collapse
+                    label={labels.queryConfigurations}
+                    isOpen={isQueryConfigurationSectionOpen}
+                    collapsible={true}
+                    onToggle={() => setIsQueryConfigurationSectionOpen(!isQueryConfigurationSectionOpen)}
                 >
-                    <DataTableQueryBuilder workspaces={[]} globalVariableOptions={[]} />
-                </InlineField>
-                {query.type === DataFrameQueryType.Properties && (
-                    <InlineField
-                        label="Take"
-                        labelWidth={27}
-                        tooltip={tooltips.take}
+                    <InlineLabel
+                        width={valueFieldWidth}
+                        tooltip={tooltips.queryByDatatableProperties}
                     >
-                        <AutoSizeInput
-                            minWidth={26}
-                            maxWidth={26}
-                            type="number"
-                            placeholder="Enter record count"
-                        />
-                    </InlineField>
-                )}
-            </Collapse>
+                        {labels.queryByDatatableProperties}
+                    </InlineLabel>
+                    <div style={{ width: "max-content", marginBottom: defaultMargin }}>
+                        <DataTableQueryBuilder workspaces={[]} globalVariableOptions={[]} />
+                    </div>
+
+                    {query.type === DataFrameQueryType.Properties && (
+                        <InlineField
+                            label={labels.take}
+                            labelWidth={inlinelabelWidth}
+                            tooltip={tooltips.take}
+                        >
+                            <AutoSizeInput
+                                minWidth={26}
+                                maxWidth={26}
+                                type="number"
+                                placeholder={placeholders.take}
+                            />
+                        </InlineField>
+                    )}
+                </Collapse>
+            </div>
         </>
     );
 };
 
+const labels = {
+    queryType: "Query type",
+    properties: "Properties",
+    queryConfigurations: "Query configurations",
+    queryByDatatableProperties: "Query by data table properties",
+    take: "Take",
+}
 const tooltips = {
     queryType: 'Specifies whether to visualize the data rows or properties associated with a table.',
-    queryByDatatableProperties: 'This field applies a filter to the query dataframes.',
+    queryByDatatableProperties: 'This field applies a filter to the query the datatables.',
     take: 'This field sets the maximum number of records to return from the query.',
+    properties: "Specifies the properties to be queried.",
 }
+const placeholders = {
+    properties: "Select properties to fetch",
+    take: "Enter record count"
+}
+
+const inlinelabelWidth = 25
+const valueFieldWidth = 65.5
+const inlineMarginBetweenLabelAndField = 0.5
+const defaultMargin = '8px'
+const sectionWidth = (8 * (inlinelabelWidth + valueFieldWidth + inlineMarginBetweenLabelAndField)) + 'px'
