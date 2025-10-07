@@ -9,15 +9,15 @@ export const DataFrameQueryEditorV2 = (props: Props) => {
     const [isOpen, setIsOpen] = React.useState(true);
     const query = props.datasource.processQuery(props.query);
 
-    const onQueryTypeChange = (value: DataFrameQuery) => {
-        handleQueryChange(value, false);
-    };
-
     const handleQueryChange = (value: DataFrameQuery, runQuery: boolean) => {
         props.onChange(value);
         if (runQuery) {
             props.onRunQuery();
         }
+    };
+
+    const onQueryTypeChange = (value: DataFrameQuery) => {
+        handleQueryChange(value, false);
     };
 
     return (
