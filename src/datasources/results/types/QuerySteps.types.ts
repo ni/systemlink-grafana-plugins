@@ -35,6 +35,7 @@ export const StepsPropertiesOptions = {
   WORKSPACE: 'workspace',
   KEYWORDS: 'keywords',
   PROPERTIES: 'properties',
+  PATH: 'path'
 };
 
 export enum StepsProperties {
@@ -53,7 +54,7 @@ export enum StepsProperties {
   data = 'data',
   workspace = 'workspace',
   keywords = 'keywords',
-  properties = 'properties',
+  properties = 'properties'
 }
 
 export const stepsProjectionLabelLookup: Record<StepsProperties, {
@@ -122,7 +123,7 @@ export const stepsProjectionLabelLookup: Record<StepsProperties, {
   [StepsProperties.properties]: {
     label: 'Properties',
     projection: StepsProperties.properties
-  },
+  }
 }
 
 export interface StatusHttp {
@@ -157,6 +158,7 @@ export interface StepsResponseProperties {
   workspace?: string;
   keywords?: string[];
   properties?: { [key: string]: string };
+  path?: string;
 };
 
 export interface QueryStepsResponse {
