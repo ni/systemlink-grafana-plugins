@@ -19,10 +19,16 @@ import { propertiesCacheTTL } from './constants';
 import _ from 'lodash';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { replaceVariables } from 'core/utils';
-import { LEGACY_METADATA_TYPE } from 'core/types';
+import { LEGACY_METADATA_TYPE, Workspace } from 'core/types';
+import { WorkspaceUtils } from 'shared/workspace.utils';
+import { extractErrorInfo } from 'core/errors';
 
 export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataFrameDataSourceOptions> {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
+  private readonly workspaceUtils: WorkspaceUtils;
+
+  errorTitle: string = '';
+  errorDescription: string = '';
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
@@ -30,6 +36,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataFram
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
   }
 
   baseUrl = this.instanceSettings.url + '/nidataframe/v1';
@@ -130,6 +137,17 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataFram
     return tableProperties.columns.map(col => ({ text: col.name, value: col.name }));
   }
 
+  public async loadWorkspaces(): Promise<Map<string, Workspace>> {
+    try {
+      return await this.workspaceUtils.getWorkspaces();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, Workspace>();
+    }
+  }
+
   private getColumnTypes(columnNames: string[], tableProperties: Column[]): Column[] {
     return columnNames.map(c => {
       const column = tableProperties.find(({ name }) => name === c);
@@ -208,6 +226,27 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataFram
         return true;
       default:
         return false;
+    }
+  }
+
+  private handleDependenciesError(error: unknown): void {
+    const errorDetails = extractErrorInfo((error as Error).message);
+    this.errorTitle = 'Warning during datatables query';
+    switch (errorDetails.statusCode) {
+      case '404':
+        this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
+        break;
+      case '429':
+        this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
+        break;
+      case '504':
+        this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
+        break;
+      default:
+        this.errorDescription = errorDetails.message
+          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+          : 'Some values may not be available in the query builder lookups due to an unknown error.';
+        break;
     }
   }
 }

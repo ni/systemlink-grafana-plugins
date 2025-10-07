@@ -1,12 +1,16 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
 import { AutoSizeInput, Collapse, InlineField, InlineLabel, MultiSelect, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQuery, DataFrameQueryType, Props } from "datasources/data-frame/types";
+import { DataFrameQuery, DataFrameQueryType, DataTableProjectionLabelLookup, Props } from "datasources/data-frame/types";
 import { enumToOptions } from "core/utils";
+import { SelectableValue } from "@grafana/data";
+import { Workspace } from "core/types";
+import { FloatingError } from "core/errors";
 
 export const DataFrameQueryEditorV2 = (props: Props) => {
 
     const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = React.useState(true);
+    const [workspaces, setWorkspaces] = React.useState<Workspace[] | null>(null);
     const query = props.datasource.processQuery(props.query);
 
     const handleQueryChange = (value: DataFrameQuery, runQuery: boolean) => {
@@ -19,6 +23,15 @@ export const DataFrameQueryEditorV2 = (props: Props) => {
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
         handleQueryChange({ ...query, type: queryType }, false);
     };
+
+    useEffect(() => {
+        const loadWorkspaces = async () => {
+            const workspaces = await props.datasource.loadWorkspaces();
+            setWorkspaces(Array.from(workspaces.values()));
+        };
+
+        loadWorkspaces();
+    }, [props.datasource]);
 
     return (
         <>
@@ -42,6 +55,9 @@ export const DataFrameQueryEditorV2 = (props: Props) => {
                     placeholder={placeholders.properties}
                     width={valueFieldWidth}
                     onChange={(): void => { }}
+                    options={Object.entries(DataTableProjectionLabelLookup).map(([key, value]) => ({ label: value.label, value: key })) as SelectableValue[]}
+                    allowCustomValue={false}
+                    closeMenuOnSelect={false}
                 />
             </InlineField>
             )}
@@ -64,7 +80,7 @@ export const DataFrameQueryEditorV2 = (props: Props) => {
                         width: getValuesInPixels(valueFieldWidth),
                         marginBottom: getValuesInPixels(defaultMarginBottom)
                     }}>
-                        <DataTableQueryBuilder workspaces={[]} globalVariableOptions={[]} />
+                        <DataTableQueryBuilder workspaces={workspaces} globalVariableOptions={[]} />
                     </div>
 
                     {query.type === DataFrameQueryType.Properties && (
@@ -83,6 +99,7 @@ export const DataFrameQueryEditorV2 = (props: Props) => {
                     )}
                 </Collapse>
             </div>
+            <FloatingError message={props.datasource.errorTitle} innerMessage={props.datasource.errorDescription} severity="warning" />
         </>
     );
 };
