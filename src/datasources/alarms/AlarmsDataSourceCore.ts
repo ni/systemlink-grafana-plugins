@@ -36,9 +36,62 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   }
 
   protected transformAlarmsQuery(scopedVars: ScopedVars, query?: string): string | undefined {
-    return query
-      ? transformComputedFieldsQuery(this.templateSrv.replace(query, scopedVars), this.computedDataFields)
-      : undefined;
+    if(!query) {
+      return undefined;
+    }
+    
+    const transformedFilter = transformComputedFieldsQuery(this.templateSrv.replace(query, scopedVars), this.computedDataFields);
+    return this.transformSourceExpressions(transformedFilter);
+  }
+
+  private static getSourceTransformRules(): Array<{ pattern: RegExp; replacer: (_: string, ...args: string[]) => string }> {
+    const sourceField = AlarmsQueryBuilderFields.SOURCE.dataField;
+    const systemProperty = 'properties.system';
+    const minionProperty = 'properties.minionId';
+
+    return [
+      {
+        pattern: new RegExp(`${sourceField}\\s*=\\s*"([^"]+)"`, 'g'),
+        replacer: (_: string, value: string) => 
+          `(${systemProperty} = "${value}" || ${minionProperty} = "${value}")`,
+      },
+      {
+        pattern: new RegExp(`${sourceField}\\s*!=\\s*"([^"]+)"`, 'g'),
+        replacer: (_: string, value: string) => 
+          `(${systemProperty} != "${value}" && ${minionProperty} != "${value}")`,
+      },
+      {
+        pattern: new RegExp(`!\\s*\\(\\s*${sourceField}\\s*\\.\\s*Contains\\(\\s*"([^"]+)"\\s*\\)\\s*\\)`, 'g'),
+        replacer: (_: string, value: string) => 
+          `(!${systemProperty}.Contains("${value}") && !${minionProperty}.Contains("${value}"))`,
+      },
+      {
+        pattern: new RegExp(`${sourceField}\\s*\\.\\s*Contains\\(\\s*"([^"]+)"\\s*\\)`, 'g'),
+        replacer: (_: string, value: string) => 
+          `(${systemProperty}.Contains("${value}") || ${minionProperty}.Contains("${value}"))`,
+      },
+      {
+        pattern: new RegExp(`!\\s*string\\.IsNullOrEmpty\\(${sourceField}\\)`, 'g'),
+        replacer: () => 
+          `(!string.IsNullOrEmpty(${systemProperty}) || !string.IsNullOrEmpty(${minionProperty}))`,
+      },
+      {
+        pattern: new RegExp(`string\\.IsNullOrEmpty\\(${sourceField}\\)`, 'g'),
+        replacer: () => 
+          `(string.IsNullOrEmpty(${systemProperty}) && string.IsNullOrEmpty(${minionProperty}))`,
+      }
+    ];
+  }
+
+  private transformSourceExpressions(query: string): string {
+    const rules = AlarmsDataSourceCore.getSourceTransformRules();
+    let transformedQuery = query;
+
+    for (const { pattern, replacer } of rules) {
+      transformedQuery = transformedQuery.replace(pattern, replacer);
+    }
+
+    return transformedQuery;
   }
 
   private readonly computedDataFields = new Map<string, ExpressionTransformFunction>(

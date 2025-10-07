@@ -145,6 +145,11 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
     dataField: 'resourceType',
     filterOperations: BASIC_STRING_FILTER_OPERATIONS,
   },
+  SOURCE: {
+    label: 'Source',
+    dataField: 'source',
+    filterOperations: EXTENDED_STRING_FILTER_OPERATIONS
+  }
 };
 
 export const ALARMS_TIME_FIELDS = [
@@ -166,4 +171,5 @@ export const AlarmsQueryBuilderStaticFields: QBField[] = [
   AlarmsQueryBuilderFields.KEYWORD,
   AlarmsQueryBuilderFields.PROPERTIES,
   AlarmsQueryBuilderFields.RESOURCE_TYPE,
+  AlarmsQueryBuilderFields.SOURCE,
 ];
