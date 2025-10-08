@@ -49,7 +49,7 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
         dataField,
         this.isTimeField(dataField)
           ? this.timeFieldsQuery(dataField)
-          : this.multiValueVariableQuery (dataField),
+          : this.multiValueVariableQuery(dataField),
       ];
     })
   );

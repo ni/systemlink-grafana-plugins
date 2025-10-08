@@ -41,7 +41,7 @@ describe('AlarmsDataSourceCore', () => {
   });
 
   describe('globalVariableOptions', () => {
-    it('should call getVariableOptions with the datasource instance', () => {
+    it('should get variable options', () => {
       const mockOptions = [
         { label: 'Variable 1', value: '$var1' },
         { label: 'Variable 2', value: '$var2' },
@@ -192,6 +192,15 @@ describe('AlarmsDataSourceCore', () => {
 
         expect(datastore.templateSrv.replace).toHaveBeenCalledWith('(alarmId = \"$query0\" && description = \"test\") || channel = \"Channel3\"', {});
         expect(transformQuery).toBe('((alarmId = \"alarmId1\" || alarmId = \"alarmId2\") && description = \"test\") || channel = \"Channel3\"');
+      });
+
+      it('should apply the && operator for multi-value variables with the not-equals condition', () => {
+        const mockFilter = 'channel != "${query0}"';
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('channel != "{channel1,channel2}"');
+
+        const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockFilter);
+        expect(datastore.templateSrv.replace).toHaveBeenCalledWith('channel != "${query0}"', {});
+        expect(transformQuery).toBe('(channel != "channel1" && channel != "channel2")');
       });
     });
   });
