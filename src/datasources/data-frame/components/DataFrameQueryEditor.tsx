@@ -10,12 +10,13 @@ import { FloatingError, parseErrorMessage } from '../../../core/errors';
 import { DataFrameQueryEditorCommon, Props } from './DataFrameQueryEditorCommon';
 import { enumToOptions } from 'core/utils';
 import { DataFrameQueryType } from '../types';
+import { lastValueFrom } from 'rxjs';
 
 export const DataFrameQueryEditor = (props: Props) => {
   const [errorMsg, setErrorMsg] = useState<string | undefined>('');
   const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
   const common = new DataFrameQueryEditorCommon(props, handleError);
-  const tableProperties = useAsync(() => common.datasource.getTableProperties(common.query.tableId).catch(handleError), [common.query.tableId]);
+  const tableProperties = useAsync(() => (lastValueFrom(common.datasource.getTableProperties(common.query.tableId))).catch(handleError), [common.query.tableId]);
 
   const handleColumnChange = (items: Array<SelectableValue<string>>) => {
     common.handleQueryChange({ ...common.query, columns: items.map(i => i.value!) }, false);

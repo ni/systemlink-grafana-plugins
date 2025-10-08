@@ -11,6 +11,7 @@ import { BackendSrv, BackendSrvRequest, TemplateSrv, getAppEvents } from '@grafa
 import { DataQuery } from '@grafana/schema';
 import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
 import { get, post } from './utils';
+import { Observable } from 'rxjs';
 
 export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData = DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
   appEvents: EventBus;
@@ -26,11 +27,11 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
 
   abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;
 
-  abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
+  abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrameDTO> | Observable<DataFrameDTO>;
 
   abstract shouldRunQuery(query: TQuery): boolean;
 
-  query(request: DataQueryRequest<TQuery>): Promise<DataQueryResponse> {
+  query(request: DataQueryRequest<TQuery>): Promise<DataQueryResponse> | Observable<DataQueryResponse> {
     const promises = request.targets
       .map(this.prepareQuery, this)
       .filter(this.shouldRunQuery, this)
