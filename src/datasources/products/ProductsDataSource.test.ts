@@ -542,7 +542,7 @@ describe('query', () => {
         expect.objectContaining({
           data: {
             descending: false,
-            filter: "!string.IsNullOrEmpty(Name)",
+            filter: "!string.IsNullOrEmpty(PartNumber)",
             orderBy: undefined,
             projection: ["name"],
             returnCount: false,
