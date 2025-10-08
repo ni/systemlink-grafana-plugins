@@ -330,12 +330,20 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       const isMultiSelect = this.isMultiSelectValue(value);
       const valuesArray = this.getMultipleValuesArray(value);
       const logicalOperator = this.getLogicalOperator(operation);
-      const expressionTemplate = QueryBuilderOperations[operation as keyof typeof QueryBuilderOperations]?.expressionTemplate;
 
       return isMultiSelect
-        ? `(${valuesArray.map(val => buildExpressionFromTemplate(expressionTemplate, field, val) ?? "").join(` ${logicalOperator} `)})`
-        : (buildExpressionFromTemplate(expressionTemplate, field, value) ?? '');
+        ? `(${valuesArray.map(val => this.buildExpression(field, val, operation)).join(` ${logicalOperator} `)})`
+        : this.buildExpression(field, value, operation);
     };
+  }
+
+  private buildExpression(field: string, value: string, operation: string): string {
+    const operationConfig = Object.values(QueryBuilderOperations).find(op => op.name === operation);
+    const expressionTemplate = operationConfig?.expressionTemplate;
+    if (expressionTemplate) {
+      return buildExpressionFromTemplate(expressionTemplate, field, value) ?? '';
+    }
+    return `${field} ${operation} "${value}"`;
   }
 
   protected timeFieldsQuery(field: string): ExpressionTransformFunction {
