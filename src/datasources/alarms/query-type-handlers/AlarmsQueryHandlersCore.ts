@@ -29,6 +29,36 @@ export abstract class AlarmsQueryHandlersCore extends DataSourceBase<AlarmsQuery
     }
   }
 
+  protected transformAlarmsQuery(scopedVars: ScopedVars, query?: string): string | undefined {
+    return query
+      ? transformComputedFieldsQuery(this.templateSrv.replace(query, scopedVars), this.computedDataFields)
+      : undefined;
+  }
+
+  private readonly computedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(AlarmsQueryBuilderFields).map(field => {
+      const dataField = field.dataField as string;
+
+      return [
+        dataField,
+        this.isTimeField(dataField)
+          ? this.timeFieldsQuery(dataField)
+          : (value, operation) => `${dataField} ${operation} "${value}"`,
+      ];
+    })
+  );
+
+  private timeFieldsQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string): string => {
+      const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
+      return `${field} ${operation} "${formattedValue}"`;
+    };
+  }
+
+  private isTimeField(field: string): boolean {
+    return ALARMS_TIME_FIELDS.includes(field);
+  }
+
   private getStatusCodeErrorMessage(errorDetails: { statusCode: string; message: string }): string {
     let errorMessage: string;
     switch (errorDetails.statusCode) {

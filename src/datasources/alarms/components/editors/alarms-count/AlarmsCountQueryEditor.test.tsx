@@ -29,7 +29,7 @@ describe('AlarmsCountQueryEditor', () => {
     expect(screen.getAllByText('Value').length).toBe(1);
   });
 
-  it('should call handleQueryChange when query by changes', () => {
+  it('should call handleQueryChange when filter changes', () => {
     const container = renderElement();
     const queryBuilder = container.getByRole('dialog');
     const event = { detail: { linq: 'new-query' } };
@@ -37,11 +37,11 @@ describe('AlarmsCountQueryEditor', () => {
     queryBuilder?.dispatchEvent(new CustomEvent('change', event));
 
     expect(queryBuilder).toBeInTheDocument();
-    expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ queryBy: 'new-query' }));
+    expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ filter: 'new-query' }));
   });
 
-  test('should not call handleQueryChange when query by changes with same value', () => {
-    const container = renderElement({ refId: 'A', queryType: QueryType.AlarmsCount, queryBy: 'same-query' });
+  it('should not call handleQueryChange when filter changes with same value', () => {
+    const container = renderElement({ refId: 'A', queryType: QueryType.AlarmsCount, filter: 'same-query' });
     const queryBuilder = container.getByRole('dialog');
     const event = { detail: { linq: 'same-query' } };
     

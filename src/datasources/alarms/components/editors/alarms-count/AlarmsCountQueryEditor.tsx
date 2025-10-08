@@ -22,12 +22,16 @@ export function AlarmsCountQueryEditor({ query, handleQueryChange }: Props) {
   };
 
   return (
-  <InlineField label={labels.queryBy} labelWidth={26} tooltip={tooltips.queryBy}>
-    <AlarmsQueryBuilder
-      filter={query.queryBy}
-      globalVariableOptions={[]}
-      onChange={onFilterChange}
-    />
-  </InlineField>
-);
+    <InlineField
+      label={labels.queryBy}
+      labelWidth={LABEL_WIDTH}
+      tooltip={tooltips.queryBy}
+    >
+      <AlarmsQueryBuilder
+        filter={query.filter}
+        globalVariableOptions={[]}
+        onChange={onFilterChange}
+      />
+    </InlineField>
+  );
 }

@@ -2,7 +2,7 @@ import { SlQueryBuilder } from "core/components/SlQueryBuilder/SlQueryBuilder";
 import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder.constants";
 import { expressionBuilderCallback, expressionReaderCallback } from "core/query-builder.utils";
 import { QBField, QueryBuilderOption, Workspace } from "core/types";
-import { filterXSSField } from "core/utils";
+import { addOptionsToLookup, filterXSSField } from "core/utils";
 import { TestPlansQueryBuilderFields, TestPlansQueryBuilderStaticFields } from "datasources/test-plans/constants/TestPlansQueryBuilder.constants";
 import React, { useState, useEffect, useMemo } from "react";
 import { ProductPartNumberAndName } from "shared/types/QueryProducts.types";
@@ -31,19 +31,6 @@ export const TestPlansQueryBuilder: React.FC<TestPlansQueryBuilderProps> = ({
 }) => {
     const [fields, setFields] = useState<QBField[]>([]);
     const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
-
-    const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]) => {
-        return {
-            ...field,
-            lookup: {
-                ...field.lookup,
-                dataSource: [
-                    ...(field.lookup?.dataSource || []),
-                    ...options,
-                ],
-            },
-        };
-    };
 
     const workspaceField = useMemo(() => {
         const workspaceField = TestPlansQueryBuilderFields.WORKSPACE;

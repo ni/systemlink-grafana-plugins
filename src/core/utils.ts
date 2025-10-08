@@ -1,7 +1,7 @@
 import { SelectableValue, textUtil } from '@grafana/data';
 import { useAsync } from 'react-use';
 import { DataSourceBase } from './DataSourceBase';
-import { BatchQueryConfig, QueryResponse, SystemLinkError, Workspace } from './types';
+import { BatchQueryConfig, QBField, QueryBuilderOption, QueryResponse, SystemLinkError, Workspace } from './types';
 import { BackendSrv, BackendSrvRequest, FetchError, isFetchError, TemplateSrv } from '@grafana/runtime';
 import { lastValueFrom } from 'rxjs';
 
@@ -143,7 +143,7 @@ export async function queryInBatches<T>(
     if (responseLength < recordCount || continuationToken === null) {
       return;
     }
-    
+
     recordCount = Math.min(take - queryResponse.length, queryConfig.maxTakePerRequest);
     await getRecords(recordCount);
   };
@@ -244,15 +244,15 @@ export async function queryUsingSkip<T>(
     const start = Date.now();
 
     for (let i = 0; i < requestsPerSecond && hasMore; i++) {
-        const response = await queryRecord(maxTakePerRequest, skip);
-        data.push(...response.data);
+      const response = await queryRecord(maxTakePerRequest, skip);
+      data.push(...response.data);
 
-        if (response.data.length < maxTakePerRequest) {
-          hasMore = false;
-          break;
-        }
+      if (response.data.length < maxTakePerRequest) {
+        hasMore = false;
+        break;
+      }
 
-        skip += maxTakePerRequest;
+      skip += maxTakePerRequest;
     }
 
     const elapsed = Date.now() - start;
@@ -296,6 +296,19 @@ export function post<T>(backendSrv: BackendSrv, url: string, body: Record<string
   return fetch<T>(backendSrv, { method: 'POST', url, data: body, ...options });
 }
 
+export const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]) => {
+  return {
+    ...field,
+    lookup: {
+      ...field.lookup,
+      dataSource: [
+        ...(field.lookup?.dataSource || []),
+        ...options,
+      ],
+    },
+  };
+};
+
 async function delay(timeout: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, timeout));
 }
@@ -310,7 +323,7 @@ async function fetch<T>(backendSrv: BackendSrv, options: BackendSrvRequest, retr
   } catch (error) {
     if (isFetchError(error) && error.status === 429 && retries < 3) {
       await sleep(Math.random() * 1000 * 2 ** retries);
-      return fetch(backendSrv, {...options, url}, retries + 1);
+      return fetch(backendSrv, { ...options, url }, retries + 1);
     }
     if (isFetchError(error)) {
       const fetchError = error as FetchError;

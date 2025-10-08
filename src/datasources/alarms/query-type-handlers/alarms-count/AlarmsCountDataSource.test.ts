@@ -105,8 +105,8 @@ describe('AlarmsCountDataSource', () => {
       expect(result).toEqual({ refId: 'A', name: 'A', fields: [{ name: 'A', type: 'number', values: [0] }] });
     });
 
-    it('should pass the queryBy filter to the API', async () => {
-      const filterQuery = { refId: 'A', queryBy: 'alarmId = "test-alarm-123"' };
+    it('should pass the filter to the API', async () => {
+      const filterQuery = { refId: 'A', filter: 'alarmId = "test-alarm-123"' };
 
       await datastore.runQuery(filterQuery, dataQueryRequest);
 
@@ -119,5 +119,22 @@ describe('AlarmsCountDataSource', () => {
         })
       );
     });
+
+    it('should pass the transformed filter to the API', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
+      const filterQuery = { refId: 'A', filter: 'acknowledgedAt > "${__now:date}"'};
+
+      await datastore.runQuery(filterQuery, dataQueryRequest);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            filter: `acknowledgedAt > "2025-01-01T00:00:00.000Z"`,
+          }),
+        })
+      );
+
+      jest.useRealTimers();
+    })
   });
 });

@@ -120,11 +120,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
 
   private getLocationFromAsset(asset: AssetModel): string {
     if (asset.location.physicalLocation) {
-      const isLocationsFeatureToggleEnabled = this.instanceSettings.jsonData?.featureToggles?.locations ?? false;
-
-      return isLocationsFeatureToggleEnabled
-        ? this.locationCache.get(asset.location.physicalLocation)?.name || ''
-        : asset.location.physicalLocation;
+      return this.locationCache.get(asset.location.physicalLocation)?.name || '';
     }
     return this.systemAliasCache.get(asset.location.minionId)?.alias || '';
   }
