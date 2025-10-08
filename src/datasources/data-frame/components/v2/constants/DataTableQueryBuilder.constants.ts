@@ -1,7 +1,6 @@
 import { QueryBuilderOperations } from "core/query-builder.constants";
 import { QBField } from "core/types";
 
-
 export enum DataTableQueryBuilderFieldNames {
     CreatedAt = 'createdAt',
     Id = 'id',
@@ -12,7 +11,7 @@ export enum DataTableQueryBuilderFieldNames {
     RowsModifiedAt = 'rowsModifiedAt',
     SupportsAppend = 'supportsAppend',
     Workspace = 'workspace'
-}
+};
 
 export const DataTableQueryBuilderFields: Record<string, QBField> = {
     CREATED_AT: {
@@ -109,10 +108,10 @@ export const DataTableQueryBuilderFields: Record<string, QBField> = {
             dataSource: []
         }
     }
-}
+};
 
 export const DataTableQueryBuilderStaticFields = [
     DataTableQueryBuilderFields.PROPERTIES,
     DataTableQueryBuilderFields.ROW_COUNT,
     DataTableQueryBuilderFields.SUPPORTS_APPEND
-]
+];
