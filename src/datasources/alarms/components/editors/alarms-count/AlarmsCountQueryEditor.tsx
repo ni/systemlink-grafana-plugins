@@ -5,6 +5,7 @@ import { AlarmsQueryBuilder } from "../../query-builder/AlarmsQueryBuilder";
 import { LABEL_WIDTH, labels, tooltips } from "datasources/alarms/constants/AlarmsQueryEditor.constants";
 import { AlarmsCountDataSource } from "datasources/alarms/query-type-handlers/alarms-count/AlarmsCountDataSource";
 import { Workspace } from "core/types";
+import { FloatingError } from "core/errors";
 
 type Props = {
   query: AlarmsCountQuery;
@@ -36,17 +37,24 @@ export function AlarmsCountQueryEditor({ query, handleQueryChange, datasource }:
   };
 
   return (
-    <InlineField
-      label={labels.queryBy}
-      labelWidth={LABEL_WIDTH}
-      tooltip={tooltips.queryBy}
-    >
-      <AlarmsQueryBuilder
-        filter={query.filter}
-        globalVariableOptions={datasource.globalVariableOptions()}
-        workspaces={workspaces}
-        onChange={onFilterChange}
+    <>
+      <InlineField
+        label={labels.queryBy}
+        labelWidth={LABEL_WIDTH}
+        tooltip={tooltips.queryBy}
+      >
+        <AlarmsQueryBuilder
+          filter={query.filter}
+          globalVariableOptions={datasource.globalVariableOptions()}
+          workspaces={workspaces}
+          onChange={onFilterChange}
+        />
+      </InlineField>
+      <FloatingError
+        message={datasource.errorTitle}
+        innerMessage={datasource.errorDescription}
+        severity="warning"
       />
-    </InlineField>
+    </>
   );
 }
