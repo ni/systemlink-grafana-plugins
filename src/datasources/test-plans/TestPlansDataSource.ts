@@ -10,7 +10,7 @@ import { AssetUtils } from './asset.utils';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { SystemUtils } from 'shared/system.utils';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
-import { computedFieldsupportedOperations, ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { buildExpressionFromTemplate, computedFieldsupportedOperations, ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { UsersUtils } from 'shared/users.utils';
 import { ProductUtils } from 'shared/product.utils';
 import { extractErrorInfo } from 'core/errors';
@@ -330,10 +330,11 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       const isMultiSelect = this.isMultiSelectValue(value);
       const valuesArray = this.getMultipleValuesArray(value);
       const logicalOperator = this.getLogicalOperator(operation);
+      const expressionTemplate = QueryBuilderOperations[operation as keyof typeof QueryBuilderOperations]?.expressionTemplate;
 
       return isMultiSelect
-        ? `(${valuesArray.map(val => `${field} ${operation} "${val}"`).join(` ${logicalOperator} `)})`
-        : `${field} ${operation} "${value}"`;
+        ? `(${valuesArray.map(val => buildExpressionFromTemplate(expressionTemplate, field, val) ?? "").join(` ${logicalOperator} `)})`
+        : (buildExpressionFromTemplate(expressionTemplate, field, value) ?? '');
     };
   }
 
