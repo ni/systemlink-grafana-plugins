@@ -93,21 +93,21 @@ const labels = {
     queryConfigurations: 'Query configurations',
     queryByDatatableProperties: 'Query by data table properties',
     take: 'Take',
-}
+};
 const tooltips = {
     queryType: 'Specifies whether to visualize the data rows or properties associated with a table.',
     queryByDatatableProperties: 'This field applies a filter to the query the datatables.',
     take: 'This field sets the maximum number of records to return from the query.',
     properties: 'Specifies the properties to be queried.',
-}
+};
 const placeholders = {
     properties: 'Select properties to fetch',
     take: 'Enter record count'
-}
+};
 
 const getValuesInPixels = (valueInGrafanaUnits: number) => {
     return valueInGrafanaUnits * 8 + 'px';
-}
+};
 
 // The following values are multiples of 8 to align with Grafana's grid system, hence 25 in grafana 
 // is equal to 25*8 = 200px.
