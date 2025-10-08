@@ -57,7 +57,7 @@ enum TransitionInclusionOption {
   None = 'NONE',
   MostRecentOnly = 'MOST_RECENT_ONLY',
   All = 'ALL',
-}
+};
 
 interface AlarmTransition {
   transitionType: AlarmTransitionType;
@@ -76,4 +76,4 @@ interface AlarmTransition {
 export enum AlarmTransitionType {
   Clear = 'CLEAR',
   Set = 'SET',
-}
+};

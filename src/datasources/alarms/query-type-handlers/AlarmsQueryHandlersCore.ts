@@ -1,8 +1,10 @@
 import { DataSourceBase } from "core/DataSourceBase";
-import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents } from "@grafana/data";
+import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, ScopedVars } from "@grafana/data";
 import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from "../types/types";
 import { extractErrorInfo } from "core/errors";
 import { QUERY_ALARMS_RELATIVE_PATH } from "../constants/QueryAlarms.constants";
+import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "../constants/AlarmsQueryBuilder.constants";
+import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
 
 export abstract class AlarmsQueryHandlersCore extends DataSourceBase<AlarmsQuery> {
   private readonly queryAlarmsUrl = `${this.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`;
