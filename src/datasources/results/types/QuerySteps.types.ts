@@ -54,7 +54,7 @@ export enum StepsProperties {
   data = 'data',
   workspace = 'workspace',
   keywords = 'keywords',
-  properties = 'properties'
+  properties = 'properties',
 }
 
 export const stepsProjectionLabelLookup: Record<StepsProperties, {
@@ -123,7 +123,7 @@ export const stepsProjectionLabelLookup: Record<StepsProperties, {
   [StepsProperties.properties]: {
     label: 'Properties',
     projection: StepsProperties.properties
-  }
+  },
 }
 
 export interface StatusHttp {
@@ -175,10 +175,6 @@ export interface ErrorBody {
   args?: string[];
   innerErrors?: ErrorBody[];
 }
-
-export enum StepsPathProperties {
-  path = 'path'
-};
 
 export interface StepPath {
   label: string;

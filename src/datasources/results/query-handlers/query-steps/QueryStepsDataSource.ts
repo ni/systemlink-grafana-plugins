@@ -184,7 +184,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       undefined,
       defaultStepsQuery.orderBy,
       projection,
-      undefined,
+      take,
       defaultStepsQuery.descending,
       filter
     );
