@@ -1,3 +1,13 @@
+## [4.16.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.15.0...v4.16.0) (2025-10-09)
+
+### Features
+
+* **alarms:** Add support for global variable workflow ([#415](https://github.com/ni/systemlink-grafana-plugins/issues/415)) ([0e48872](https://github.com/ni/systemlink-grafana-plugins/commit/0e488720098364cb32cdd140509d7d62a19d0b19))
+
+### Bug Fixes
+
+* **testplans, workorders, products, results:** Fix isblank and is not blank operation not working  ([#429](https://github.com/ni/systemlink-grafana-plugins/issues/429)) ([bdacd13](https://github.com/ni/systemlink-grafana-plugins/commit/bdacd1323c4d169159ff97c92577fbfc09ce8058))
+
 ## [4.15.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.14.0...v4.15.0) (2025-10-06)
 
 ### Features
