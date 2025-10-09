@@ -265,49 +265,45 @@ describe('AlarmsDataSourceCore', () => {
     [
       {
         error: new Error('Request failed with status code: 404'),
-        expectedTitle: 'Warning during alarms query',
-        expectedDescription:
+        expectedErrorDescription:
           'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.',
         case: '404 error',
       },
       {
         error: new Error('Request failed with status code: 429'),
-        expectedTitle: 'Warning during alarms query',
-        expectedDescription:
+        expectedErrorDescription:
           'The query builder lookups failed due to too many requests. Please try again later.',
         case: '429 error',
       },
       {
         error: new Error('Request failed with status code: 504'),
-        expectedTitle: 'Warning during alarms query',
-        expectedDescription:
+        expectedErrorDescription:
           'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.',
         case: '504 error',
       },
       {
         error: new Error('Request failed with status code: 500, Error message: {"message": "Internal Server Error"}'),
-        expectedTitle: 'Warning during alarms query',
-        expectedDescription:
+        expectedErrorDescription:
           'Some values may not be available in the query builder lookups due to the following error: Internal Server Error.',
         case: '500 error with message',
       },
       {
-        error: new Error('Request failed with status code: 501'),
-        expectedTitle: 'Warning during alarms query',
-        expectedDescription:
+        error: new Error('API failed'),
+        expectedErrorDescription:
           'Some values may not be available in the query builder lookups due to an unknown error.',
-        case: '501 error with no message',
+        case: 'Unknown error',
       },
-    ].forEach(({ error, expectedTitle, expectedDescription, case: testCase }) => {
+    ].forEach(({ error, expectedErrorDescription, case: testCase }) => {
       it(`should handle ${testCase}`, async () => {
+        const expectedErrorTitle = 'Warning during alarms query';
         jest
           .spyOn((datastore as any).workspaceUtils, 'getWorkspaces')
           .mockRejectedValue(error);
 
         await datastore.loadWorkspaces();
 
-        expect(datastore.errorTitle).toBe(expectedTitle);
-        expect(datastore.errorDescription).toBe(expectedDescription);
+        expect(datastore.errorTitle).toBe(expectedErrorTitle);
+        expect(datastore.errorDescription).toBe(expectedErrorDescription);
       });
     });
   });
