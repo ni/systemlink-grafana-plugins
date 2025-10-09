@@ -1,3 +1,57 @@
+## [4.15.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.14.0...v4.15.0) (2025-10-06)
+
+### Features
+
+* **dataframe:** add V2 variable query editor under feature toggle ([#420](https://github.com/ni/systemlink-grafana-plugins/issues/420)) ([a211ca7](https://github.com/ni/systemlink-grafana-plugins/commit/a211ca70aa746fa9db3c4a3327311f300f387fc1))
+
+## [4.14.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.13.0...v4.14.0) (2025-09-30)
+
+### Features
+
+* **Dataframe:** Add v2 Query Editor under feature toggle ([#408](https://github.com/ni/systemlink-grafana-plugins/issues/408)) ([8f2399a](https://github.com/ni/systemlink-grafana-plugins/commit/8f2399a589ca4a65cc9fc329bae89e18c42f1cf7))
+
+## [4.13.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.12.0...v4.13.0) (2025-09-26)
+
+### Features
+
+* **Assets:** Remove locations feature flag ([#417](https://github.com/ni/systemlink-grafana-plugins/issues/417)) ([0a0db9d](https://github.com/ni/systemlink-grafana-plugins/commit/0a0db9d237e22f25419263125863880452f7641b))
+
+## [4.12.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.11.0...v4.12.0) (2025-09-25)
+
+### Features
+
+* **alarms:** Add transformation logic for date time filters ([#413](https://github.com/ni/systemlink-grafana-plugins/issues/413)) ([1360560](https://github.com/ni/systemlink-grafana-plugins/commit/1360560ac71bfbffbc35d1fc9907d852c5f22007))
+* **Assets:** Add "is blank" and "is not blank" supported operation for Locations filter ([#406](https://github.com/ni/systemlink-grafana-plugins/issues/406)) ([f604c6e](https://github.com/ni/systemlink-grafana-plugins/commit/f604c6e8205bb911f8509693d8f6cd7898e2b01c))
+
+## [4.11.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.10.0...v4.11.0) (2025-09-18)
+
+### Features
+
+* **alarms:** Implement filtering logic for Query Alarms API ([#404](https://github.com/ni/systemlink-grafana-plugins/issues/404)) ([7762e78](https://github.com/ni/systemlink-grafana-plugins/commit/7762e7849783cb08929fdcc57fdbd30ce6a4ec7c))
+
+## [4.10.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.9.0...v4.10.0) (2025-09-17)
+
+### Features
+
+* **alarms:** Add support for querying alarms with default values ([#401](https://github.com/ni/systemlink-grafana-plugins/issues/401)) ([bc57f77](https://github.com/ni/systemlink-grafana-plugins/commit/bc57f77e96fef06c79b98a7788085308ebb3bb5b))
+* **alarms:** support datetime filters, keywords and properties ([#403](https://github.com/ni/systemlink-grafana-plugins/issues/403)) ([3121cc2](https://github.com/ni/systemlink-grafana-plugins/commit/3121cc2d9c607e3c10c6ba2b79124bc33402739c))
+
+## [4.9.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.8.0...v4.9.0) (2025-09-16)
+
+### Features
+
+* **alarms:** Add alarms query builder ([#399](https://github.com/ni/systemlink-grafana-plugins/issues/399)) ([2ec0dff](https://github.com/ni/systemlink-grafana-plugins/commit/2ec0dffe7d87318eae7ca29abe5d5f319dd9dd9a))
+
+### Bug Fixes
+
+* **core:** sort fields in query builder by label ([#405](https://github.com/ni/systemlink-grafana-plugins/issues/405)) ([6982703](https://github.com/ni/systemlink-grafana-plugins/commit/6982703b0795c4b944d7576592a9a830b30cb4a4))
+
+## [4.8.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.7.1...v4.8.0) (2025-09-10)
+
+### Features
+
+* **Assets:** Get locations in assets query builder ([#402](https://github.com/ni/systemlink-grafana-plugins/issues/402)) ([8668651](https://github.com/ni/systemlink-grafana-plugins/commit/86686510cdb3d9fea37861722ab4674b87745698))
+
 ## [4.7.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.7.0...v4.7.1) (2025-09-05)
 
 ### Bug Fixes

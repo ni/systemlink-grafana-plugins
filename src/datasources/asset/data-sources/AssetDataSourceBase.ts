@@ -5,21 +5,25 @@ import { defaultOrderBy, defaultProjection } from "../../system/constants";
 import { SystemProperties } from "../../system/types";
 import { parseErrorMessage } from "../../../core/errors";
 import { QueryBuilderOption, Workspace } from "../../../core/types";
-import { ExpressionTransformFunction } from "../../../core/query-builder.utils";
+import { buildExpressionFromTemplate, ExpressionTransformFunction } from "../../../core/query-builder.utils";
 import { QueryBuilderOperations } from "../../../core/query-builder.constants";
-import { AllFieldNames } from "../constants/constants";
+import { AllFieldNames, LocationFieldNames } from "../constants/constants";
 import { getVariableOptions } from "core/utils";
+import { ListLocationsResponse, LocationModel } from "../types/ListLocations.types";
 
 export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
   private systemsLoaded!: () => void;
+  private locationsLoaded!: () => void;
   private workspacesLeaded!: () => void;
 
   public areSystemsLoaded$ = new Promise<void>(resolve => this.systemsLoaded = resolve);
+  public areLocationsLoaded$ = new Promise<void>(resolve => this.locationsLoaded = resolve);
   public areWorkspacesLoaded$ = new Promise<void>(resolve => this.workspacesLeaded = resolve);
 
   public error = '';
 
   public readonly systemAliasCache = new Map<string, SystemProperties>([]);
+  public readonly locationCache = new Map<string, LocationModel>([]);
   public readonly workspacesCache = new Map<string, Workspace>([]);
 
 
@@ -45,8 +49,22 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
     }
   }
 
+  public async getLocations(): Promise<LocationModel[]> {
+    try {
+      let response = await this.get<ListLocationsResponse>(this.instanceSettings.url + '/nilocation/v1/locations');
+
+      return response.locations;
+    } catch (error) {
+      throw new Error(`An error occurred while retrieving locations: ${error}`);
+    }
+  }
+
   public getCachedSystems(): SystemProperties[] {
     return Array.from(this.systemAliasCache.values());
+  }
+
+  public getCachedLocations(): LocationModel[] {
+    return Array.from(this.locationCache.values());
   }
 
   public getCachedWorkspaces(): Workspace[] {
@@ -59,6 +77,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
     this.error = '';
 
     await this.loadSystems();
+    await this.loadLocations();
     await this.loadWorkspaces();
   }
 
@@ -77,6 +96,21 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
     this.systemsLoaded();
   }
 
+  private async loadLocations(): Promise<void> {
+    if (this.locationCache.size > 0) {
+      return;
+    }
+
+    const locations = await this.getLocations()
+      .catch(error => {
+        this.error = parseErrorMessage(error)!;
+      });
+
+    locations?.forEach(location => this.locationCache.set(location.id, location));
+
+    this.locationsLoaded();
+  }
+
   private async loadWorkspaces(): Promise<void> {
     if (this.workspacesCache.size > 0) {
       return;
@@ -93,7 +127,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
   }
 
   public readonly queryTransformationOptions = new Map<string, Map<string, unknown>>([
-    [AllFieldNames.LOCATION, this.systemAliasCache],
+    [AllFieldNames.LOCATION, new Map<string, unknown>()],
     [AllFieldNames.CALIBRATION_DUE_DATE, new Map<string, unknown>()]
   ]);
 
@@ -104,16 +138,27 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
       (value: string, operation: string, options?: Map<string, unknown>) => {
         let values = [value];
 
+        const blankExpressionTemplate = this.getBlankExpressionTemplate(operation);        
+        if (blankExpressionTemplate) {
+          const minionIdExpression = buildExpressionFromTemplate(blankExpressionTemplate, LocationFieldNames.MINION_ID);
+          const physicalLocationExpression = buildExpressionFromTemplate(blankExpressionTemplate, LocationFieldNames.PHYSICAL_LOCATION);
+          return `${minionIdExpression} ${this.getLocicalOperator(operation)} ${physicalLocationExpression}`;
+        }
+
         if (this.isMultiSelectValue(value)) {
           values = this.getMultipleValuesArray(value);
         }
 
         if (values.length > 1) {
-          return `(${values.map(val => `Location.MinionId ${operation} "${val}"`).join(` ${this.getLocicalOperator(operation)} `)})`;
+          return `(${values.map(val => `${LocationFieldNames.MINION_ID} ${operation} "${val}"`).join(` ${this.getLocicalOperator(operation)} `)})`;
         }
 
-        if (options?.has(value)) {
-          return `Location.MinionId ${operation} "${value}"`
+        if (this.systemAliasCache?.has(value)) {
+          return `${LocationFieldNames.MINION_ID} ${operation} "${value}"`
+        }
+
+        if (this.locationCache?.has(value)) {
+          return `${LocationFieldNames.PHYSICAL_LOCATION} ${operation} "${value}"`
         }
 
         return `Locations.Any(l => l.MinionId ${operation} "${value}" ${this.getLocicalOperator(operation)} l.PhysicalLocation ${operation} "${value}")`;
@@ -151,7 +196,19 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
     return value.replace(/({|})/g, '').split(',');
   }
 
+  private getBlankExpressionTemplate(operation: string): string | undefined {
+    if (operation === QueryBuilderOperations.IS_BLANK.name) {
+      return QueryBuilderOperations.IS_BLANK.expressionTemplate;
+    }
+
+    if (operation === QueryBuilderOperations.IS_NOT_BLANK.name) {
+      return QueryBuilderOperations.IS_NOT_BLANK.expressionTemplate;
+    }
+
+    return undefined;
+  }
+
   private getLocicalOperator(operation: string): string {
-    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
+    return (operation === QueryBuilderOperations.EQUALS.name || operation === QueryBuilderOperations.IS_NOT_BLANK.name) ? '||' : '&&';
   }
 }

@@ -1,7 +1,7 @@
 import TTLCache from '@isaacs/ttlcache';
 import deepEqual from 'fast-deep-equal';
-import { DataQueryRequest, DataSourceInstanceSettings, FieldType, TimeRange, FieldDTO, dateTime, DataFrameDTO, MetricFindValue, TestDataSourceResponse, DataSourceJsonData, DataQueryResponse } from '@grafana/data';
-import { BackendSrv, FetchResponse, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
+import { DataQueryRequest, DataSourceInstanceSettings, FieldType, TimeRange, FieldDTO, dateTime, DataFrameDTO, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
+import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import {
   ColumnDataType,
   DataFrameQuery,
@@ -13,6 +13,7 @@ import {
   defaultQuery,
   ValidDataFrameQuery,
   DataFrameQueryType,
+  DataFrameDataSourceOptions,
 } from './types';
 import { propertiesCacheTTL } from './constants';
 import _ from 'lodash';
@@ -21,11 +22,11 @@ import { replaceVariables } from 'core/utils';
 import { LEGACY_METADATA_TYPE } from 'core/types';
 import { iif, lastValueFrom, map, Observable, of, switchMap, tap, forkJoin } from 'rxjs';
 
-export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataSourceJsonData> {
+export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataFrameDataSourceOptions> {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
 
   constructor(
-    readonly instanceSettings: DataSourceInstanceSettings,
+    readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {

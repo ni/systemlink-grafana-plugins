@@ -20,7 +20,7 @@ export function AssetQueryEditor({ query, onChange, onRunQuery, datasource }: Pr
   const assetFeatures = useRef<AssetFeatureToggles>({
     assetList: datasource.instanceSettings.jsonData?.featureToggles?.assetList ?? AssetFeatureTogglesDefaults.assetList,
     calibrationForecast: datasource.instanceSettings.jsonData?.featureToggles?.calibrationForecast ?? AssetFeatureTogglesDefaults.calibrationForecast,
-    assetSummary: datasource.instanceSettings.jsonData?.featureToggles?.assetSummary ?? AssetFeatureTogglesDefaults.assetSummary,
+    assetSummary: datasource.instanceSettings.jsonData?.featureToggles?.assetSummary ?? AssetFeatureTogglesDefaults.assetSummary
   });
 
   const handleQueryChange = useCallback((value: AssetQuery, runQuery = false): void => {
