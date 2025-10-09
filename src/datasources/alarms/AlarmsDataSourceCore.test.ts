@@ -25,6 +25,11 @@ jest.mock('shared/workspace.utils', () => {
     }))
   };
 });
+import { getVariableOptions } from 'core/utils';
+
+jest.mock('core/utils', () => ({
+  getVariableOptions: jest.fn(),
+}));
 
 class TestAlarmsDataSource extends AlarmsDataSourceCore {
   async runQuery(query: AlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
@@ -214,6 +219,7 @@ describe('AlarmsDataSourceCore', () => {
         jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('channel != "{channel1,channel2}"');
 
         const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockFilter);
+
         expect(datastore.templateSrv.replace).toHaveBeenCalledWith('channel != "${query0}"', {});
         expect(transformQuery).toBe('(channel != "channel1" && channel != "channel2")');
       });

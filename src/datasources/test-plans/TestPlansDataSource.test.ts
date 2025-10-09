@@ -666,6 +666,158 @@ describe('runQuery', () => {
     );
   });
 
+  test('should transform fields with is blank operation', async () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: 'string.IsNullOrEmpty(testProgram)',
+      properties: [Properties.ID],
+      recordCount: 1000,
+    };
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.runQuery(mockQuery, {} as unknown as DataQueryRequest);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      'string.IsNullOrEmpty(testProgram)',
+      undefined,
+      ["ID"],
+      1000,
+      undefined,
+    );
+  });
+
+  test('should transform fields with is not blank operation', async () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: '!string.IsNullOrEmpty(testProgram)',
+      properties: [Properties.ID],
+      recordCount: 1000,
+    };
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.runQuery(mockQuery, {} as unknown as DataQueryRequest);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      '!string.IsNullOrEmpty(testProgram)',
+      undefined,
+      ["ID"],
+      1000,
+      undefined,
+    );
+  });
+
+  test('should transform fields when queryBy contains equals operations', async () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: 'testProgram = "Regression"',
+      properties: [Properties.ID],
+      recordCount: 1000,
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      'testProgram = "Regression"',
+      undefined,
+      ["ID"],
+      1000,
+      undefined,
+    );
+  });
+
+  test('should transform fields when queryBy contains greater than', async () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: 'estimatedDurationInDays > "2"',
+      properties: [Properties.ID],
+      recordCount: 1000,
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      'estimatedDurationInSeconds > "172800"',
+      undefined,
+      ["ID"],
+      1000,
+      undefined,
+    );
+  });
+
+  test('should transform fields when queryBy contains less than', async () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: 'estimatedDurationInDays < "2"',
+      properties: [Properties.ID],
+      recordCount: 1000,
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      'estimatedDurationInSeconds < "172800"',
+      undefined,
+      ["ID"],
+      1000,
+      undefined,
+    );
+  });
+
+  test('should transform fields when queryBy contains greater than or equal to', async () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: 'estimatedDurationInDays >= "2"',
+      properties: [Properties.ID],
+      recordCount: 1000,
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      'estimatedDurationInSeconds >= "172800"',
+      undefined,
+      ["ID"],
+      1000,
+      undefined,
+    );
+  });
+
+  test('should transform fields when queryBy contains less than or equal to', async () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: 'estimatedDurationInDays <= "2"',
+      properties: [Properties.ID],
+      recordCount: 1000,
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      'estimatedDurationInSeconds <= "172800"',
+      undefined,
+      ["ID"],
+      1000,
+      undefined,
+    );
+  }); 
+
   test('should transform fields when queryBy contains a date', async () => {
     jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
     jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });

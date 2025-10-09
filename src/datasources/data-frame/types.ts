@@ -1,5 +1,7 @@
 import { DataQuery } from '@grafana/schema';
 import { SystemLinkError } from "../../core/types";
+import { DataSourceJsonData, QueryEditorProps } from '@grafana/data';
+import { DataFrameDataSource } from './DataFrameDataSource';
 
 export enum DataFrameQueryType {
   Data = 'Data',
@@ -24,9 +26,15 @@ export const defaultQuery: Omit<ValidDataFrameQuery, 'refId'> = {
   applyTimeFilters: false
 };
 
+export const DataFrameFeatureTogglesDefaults: DataFrameFeatureToggles = {
+  queryByDataTableProperties: false,
+};
+
 export type ValidDataFrameQuery = DataFrameQuery & Required<Omit<DataFrameQuery, keyof DataQuery>>;
 
 export type ColumnDataType = 'BOOL' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64' | 'STRING' | 'TIMESTAMP';
+
+export type Props = QueryEditorProps<DataFrameDataSource, DataFrameQuery, DataFrameDataSourceOptions>;
 
 export interface Column {
   name: string;
@@ -64,6 +72,14 @@ export interface TablePropertiesList {
 
 export interface TableDataRows {
   frame: { columns: string[]; data: string[][] };
+}
+
+export interface DataFrameFeatureToggles {
+  queryByDataTableProperties: boolean;
+}
+
+export interface DataFrameDataSourceOptions extends DataSourceJsonData {
+  featureToggles: DataFrameFeatureToggles;
 }
 
 export function isSystemLinkError(error: any): error is SystemLinkError {

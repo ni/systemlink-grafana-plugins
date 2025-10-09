@@ -500,6 +500,109 @@ describe('query', () => {
       );
     });
 
+    test('should transform fields with is blank operation', async () => {
+      const query = buildQuery(
+        {
+          refId: 'A',
+          properties: [PropertiesOptions.NAME] as Properties[],
+          queryBy: 'string.IsNullOrEmpty(PartNumber)',
+          descending: false
+        },
+      );
+
+      await datastore.query(query);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            descending: false,
+            filter: "string.IsNullOrEmpty(PartNumber)",
+            orderBy: undefined,
+            projection: ["name"],
+            returnCount: false,
+            take: 1000
+          }
+        })
+      );
+    });
+
+    test('should transform fields with is not blank operation', async () => {
+      const query = buildQuery(
+        {
+          refId: 'A',
+          properties: [PropertiesOptions.NAME] as Properties[],
+          queryBy: '!string.IsNullOrEmpty(PartNumber)',
+          descending: false
+        },
+      );
+
+      await datastore.query(query);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            descending: false,
+            filter: "!string.IsNullOrEmpty(PartNumber)",
+            orderBy: undefined,
+            projection: ["name"],
+            returnCount: false,
+            take: 1000
+          }
+        })
+      );
+    });
+
+    test('should transform fields with equals operation', async () => {
+      const query = buildQuery(
+        {
+          refId: 'A',
+          properties: [PropertiesOptions.PART_NUMBER] as Properties[],
+          queryBy: 'PartNumber == "Test"',
+          descending: false
+        },
+      );
+
+      await datastore.query(query);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            descending: false,
+            filter: "PartNumber == \"Test\"",
+            orderBy: undefined,
+            projection: ["partNumber"],
+            returnCount: false,
+            take: 1000
+          }
+        })
+      );
+    });
+
+    test('should transform fields with not equals operation', async () => {
+      const query = buildQuery(
+        {
+          refId: 'A',
+          properties: [PropertiesOptions.PART_NUMBER] as Properties[],
+          queryBy: 'PartNumber != "Obsolete"',
+          descending: false
+        },
+      );
+
+      await datastore.query(query);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            descending: false,
+            filter: "PartNumber != \"Obsolete\"",
+            orderBy: undefined,
+            projection: ["partNumber"],
+            returnCount: false,
+            take: 1000
+          }
+        })
+      );
+    });
   });
 
   describe('metricFindQuery', () => {
