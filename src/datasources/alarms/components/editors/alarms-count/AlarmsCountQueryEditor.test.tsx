@@ -79,7 +79,7 @@ describe('AlarmsCountQueryEditor', () => {
     expect(container.getByText('WorkspaceName')).toBeInTheDocument();
   });
 
-  it('should call floating error with appropriate title and description when error occurs', async () => {
+  it('should display error title and description when error occurs', async () => {
     mockDatasource.errorTitle = 'Test Error Title';
     mockDatasource.errorDescription = 'Test Error Description';
     
