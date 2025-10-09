@@ -199,6 +199,7 @@ describe('AlarmsDataSourceCore', () => {
         jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('channel != "{channel1,channel2}"');
 
         const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockFilter);
+
         expect(datastore.templateSrv.replace).toHaveBeenCalledWith('channel != "${query0}"', {});
         expect(transformQuery).toBe('(channel != "channel1" && channel != "channel2")');
       });

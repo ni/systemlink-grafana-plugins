@@ -17,11 +17,7 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
 
   protected async queryAlarms(alarmsRequestBody: QueryAlarmsRequest): Promise<QueryAlarmsResponse> {
     try {
-      return await this.post<QueryAlarmsResponse>(
-        this.queryAlarmsUrl,
-        alarmsRequestBody,
-        { showErrorAlert: false }
-      );
+      return await this.post<QueryAlarmsResponse>(this.queryAlarmsUrl, alarmsRequestBody, { showErrorAlert: false });
     } catch (error) {
       const errorDetails = extractErrorInfo((error as Error).message);
       const errorMessage = this.getStatusCodeErrorMessage(errorDetails);
@@ -47,9 +43,7 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
 
       return [
         dataField,
-        this.isTimeField(dataField)
-          ? this.timeFieldsQuery(dataField)
-          : this.multiValueVariableQuery(dataField),
+        this.isTimeField(dataField) ? this.timeFieldsQuery(dataField) : this.multiValueVariableQuery(dataField),
       ];
     })
   );
@@ -71,10 +65,19 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
       const valuesArray = this.getMultipleValuesArray(value);
       const logicalOperator = this.getLogicalOperator(operation);
 
-      return isMultiSelect ? `(${valuesArray
-        .map(val => `${field} ${operation} "${val}"`)
-        .join(` ${logicalOperator} `)})` : `${field} ${operation} "${value}"`;
+      return isMultiSelect
+        ? `(${valuesArray.map(val => this.buildExpression(field, val, operation)).join(` ${logicalOperator} `)})`
+        : this.buildExpression(field, value, operation);
+    };
+  }
+
+  private buildExpression(field: string, value: string, operation: string): string {
+    const operationConfig = Object.values(QueryBuilderOperations).find(op => op.name === operation);
+    const expressionTemplate = operationConfig?.expressionTemplate;
+    if (expressionTemplate) {
+      return buildExpressionFromTemplate(expressionTemplate, field, value) ?? '';
     }
+    return `${field} ${operation} "${value}"`;
   }
 
   private isMultiValueExpression(value: string): boolean {
@@ -118,6 +121,6 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   }
 
   public testDatasource(): Promise<TestDataSourceResponse> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 }
