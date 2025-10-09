@@ -5,7 +5,6 @@ import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
-import { getVariableOptions } from 'core/utils';
 import { Workspace } from 'core/types';
 
 jest.mock('core/utils', () => ({
@@ -24,6 +23,11 @@ jest.mock('shared/workspace.utils', () => {
     }))
   };
 });
+import { getVariableOptions } from 'core/utils';
+
+jest.mock('core/utils', () => ({
+  getVariableOptions: jest.fn(),
+}));
 
 class TestAlarmsDataSource extends AlarmsDataSourceCore {
   async runQuery(query: AlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
