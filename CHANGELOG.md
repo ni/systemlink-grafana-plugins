@@ -1,3 +1,38 @@
+## [4.16.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.15.0...v4.16.0) (2025-10-09)
+
+### Features
+
+* **alarms:** Add support for global variable workflow ([#415](https://github.com/ni/systemlink-grafana-plugins/issues/415)) ([0e48872](https://github.com/ni/systemlink-grafana-plugins/commit/0e488720098364cb32cdd140509d7d62a19d0b19))
+
+### Bug Fixes
+
+* **testplans, workorders, products, results:** Fix isblank and is not blank operation not working  ([#429](https://github.com/ni/systemlink-grafana-plugins/issues/429)) ([bdacd13](https://github.com/ni/systemlink-grafana-plugins/commit/bdacd1323c4d169159ff97c92577fbfc09ce8058))
+
+## [4.15.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.14.0...v4.15.0) (2025-10-06)
+
+### Features
+
+* **dataframe:** add V2 variable query editor under feature toggle ([#420](https://github.com/ni/systemlink-grafana-plugins/issues/420)) ([a211ca7](https://github.com/ni/systemlink-grafana-plugins/commit/a211ca70aa746fa9db3c4a3327311f300f387fc1))
+
+## [4.14.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.13.0...v4.14.0) (2025-09-30)
+
+### Features
+
+* **Dataframe:** Add v2 Query Editor under feature toggle ([#408](https://github.com/ni/systemlink-grafana-plugins/issues/408)) ([8f2399a](https://github.com/ni/systemlink-grafana-plugins/commit/8f2399a589ca4a65cc9fc329bae89e18c42f1cf7))
+
+## [4.13.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.12.0...v4.13.0) (2025-09-26)
+
+### Features
+
+* **Assets:** Remove locations feature flag ([#417](https://github.com/ni/systemlink-grafana-plugins/issues/417)) ([0a0db9d](https://github.com/ni/systemlink-grafana-plugins/commit/0a0db9d237e22f25419263125863880452f7641b))
+
+## [4.12.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.11.0...v4.12.0) (2025-09-25)
+
+### Features
+
+* **alarms:** Add transformation logic for date time filters ([#413](https://github.com/ni/systemlink-grafana-plugins/issues/413)) ([1360560](https://github.com/ni/systemlink-grafana-plugins/commit/1360560ac71bfbffbc35d1fc9907d852c5f22007))
+* **Assets:** Add "is blank" and "is not blank" supported operation for Locations filter ([#406](https://github.com/ni/systemlink-grafana-plugins/issues/406)) ([f604c6e](https://github.com/ni/systemlink-grafana-plugins/commit/f604c6e8205bb911f8509693d8f6cd7898e2b01c))
+
 ## [4.11.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.10.0...v4.11.0) (2025-09-18)
 
 ### Features

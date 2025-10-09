@@ -27,19 +27,6 @@ export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, 
     [optionsRef]
   );
 
-  const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]) => {
-    return {
-      ...field,
-      lookup: {
-        ...field.lookup,
-        dataSource: [
-          ...(field.lookup?.dataSource || []),
-          ...options,
-        ],
-      },
-    };
-  };
-
   const timeFields = useMemo(() => {
     return [
       addOptionsToLookup(AlarmsQueryBuilderFields.ACKNOWLEDGED_ON, TIME_OPTIONS),
@@ -57,7 +44,7 @@ export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, 
     if (!timeFields) {
       return;
     }
-    
+
     const updatedFields = [...AlarmsQueryBuilderStaticFields, ...timeFields, workspaceField].map(field => {
       if (field.lookup?.dataSource) {
         return {
@@ -79,7 +66,7 @@ export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, 
 
       return accumulator;
     }, {} as Record<string, QueryBuilderOption[]>);
-    
+
     optionsRef.current = options;
 
     const customOperations = [

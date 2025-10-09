@@ -5,18 +5,20 @@ import { QueryType } from 'datasources/alarms/types/types';
 import { AlarmsCountQuery } from 'datasources/alarms/types/AlarmsCount.types';
 import { AlarmsCountDataSource } from 'datasources/alarms/query-type-handlers/alarms-count/AlarmsCountDataSource';
 import { act } from 'react-dom/test-utils';
+import { AlarmsCountDataSource } from 'datasources/alarms/query-type-handlers/alarms-count/AlarmsCountDataSource';
+import { act } from 'react-dom/test-utils';
 
 const mockHandleQueryChange = jest.fn();
 const mockGlobalVars = [{ label: '$var1', value: '$value1' }];
 const mockDatasource = {
   globalVariableOptions: jest.fn(() => mockGlobalVars),
-    loadWorkspaces: jest.fn().mockResolvedValue(
+  loadWorkspaces: jest.fn().mockResolvedValue(
     new Map([
-        ['1', { id: '1', name: 'WorkspaceName' }],
-        ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+      ['1', { id: '1', name: 'WorkspaceName' }],
+      ['2', { id: '2', name: 'AnotherWorkspaceName' }],
     ])
   ),
-} as unknown as AlarmsCountDataSource
+} as unknown as AlarmsCountDataSource;
 
 const defaultProps = {
   query: {

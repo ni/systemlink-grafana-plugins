@@ -4,7 +4,7 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import { ProductQuery, ProductResponseProperties, productsProjectionLabelLookup, ProductVariableQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { extractErrorInfo } from 'core/errors';
-import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { ExpressionTransformFunction, transformComputedFieldsQuery, buildExpressionFromTemplate } from 'core/query-builder.utils';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
 import { getWorkspaceName } from 'core/utils';
@@ -216,10 +216,19 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       const valuesArray = this.getMultipleValuesArray(value);
       const logicalOperator = this.getLogicalOperator(operation);
 
-      return isMultiSelect ? `(${valuesArray
-        .map(val => `${field} ${operation} "${val}"`)
-        .join(` ${logicalOperator} `)})` : `${field} ${operation} "${value}"`;
+      return isMultiSelect
+        ? `(${valuesArray.map(val => this.buildExpression(field, val, operation)).join(` ${logicalOperator} `)})`
+        : this.buildExpression(field, value, operation);
+    };
+  }
+
+  private buildExpression(field: string, value: string, operation: string): string {
+    const operationConfig = Object.values(QueryBuilderOperations).find(op => op.name === operation);
+    const expressionTemplate = operationConfig?.expressionTemplate;
+    if (expressionTemplate) {
+      return buildExpressionFromTemplate(expressionTemplate, field, value) ?? '';
     }
+    return `${field} ${operation} "${value}"`;
   }
 
   private getFieldValues(
