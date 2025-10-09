@@ -44,7 +44,7 @@ export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, 
     if (!timeFields) {
       return;
     }
-    
+
     const updatedFields = [...AlarmsQueryBuilderStaticFields, ...timeFields, workspaceField].map(field => {
       if (field.lookup?.dataSource) {
         return {

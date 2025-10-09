@@ -92,10 +92,10 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
       const valuesArray = this.getMultipleValuesArray(value);
       const logicalOperator = this.getLogicalOperator(operation);
 
-      return isMultiSelect ? `(${valuesArray
-        .map(val => `${field} ${operation} "${val}"`)
-        .join(` ${logicalOperator} `)})` : `${field} ${operation} "${value}"`;
-    }
+      return isMultiSelect
+        ? `(${valuesArray.map(val => `${field} ${operation} "${val}"`).join(` ${logicalOperator} `)})`
+        : `${field} ${operation} "${value}"`;
+    };
   }
 
   private isMultiValueExpression(value: string): boolean {
