@@ -18,8 +18,7 @@ let assetOptions = {
   featureToggles: {
     assetListEnabled: true,
     calibrationForecastEnabled: true,
-    assetSummaryEnabled: true,
-    locations: true
+    assetSummaryEnabled: true
   }
 }
 

@@ -66,18 +66,9 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
       const logicalOperator = this.getLogicalOperator(operation);
 
       return isMultiSelect
-        ? `(${valuesArray.map(val => this.buildExpression(field, val, operation)).join(` ${logicalOperator} `)})`
-        : this.buildExpression(field, value, operation);
+        ? `(${valuesArray.map(val => `${field} ${operation} "${val}"`).join(` ${logicalOperator} `)})`
+        : `${field} ${operation} "${value}"`;
     };
-  }
-
-  private buildExpression(field: string, value: string, operation: string): string {
-    const operationConfig = Object.values(QueryBuilderOperations).find(op => op.name === operation);
-    const expressionTemplate = operationConfig?.expressionTemplate;
-    if (expressionTemplate) {
-      return buildExpressionFromTemplate(expressionTemplate, field, value) ?? '';
-    }
-    return `${field} ${operation} "${value}"`;
   }
 
   private isMultiValueExpression(value: string): boolean {
