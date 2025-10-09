@@ -5,9 +5,7 @@ import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
-import { getVariableOptions } from 'core/utils';
 import { Workspace } from 'core/types';
-import { WorkspaceUtils } from 'shared/workspace.utils';
 
 jest.mock('core/utils', () => ({
   getVariableOptions: jest.fn(),

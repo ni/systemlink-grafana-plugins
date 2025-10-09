@@ -10,13 +10,13 @@ const mockHandleQueryChange = jest.fn();
 const mockGlobalVars = [{ label: '$var1', value: '$value1' }];
 const mockDatasource = {
   globalVariableOptions: jest.fn(() => mockGlobalVars),
-    loadWorkspaces: jest.fn().mockResolvedValue(
+  loadWorkspaces: jest.fn().mockResolvedValue(
     new Map([
-        ['1', { id: '1', name: 'WorkspaceName' }],
-        ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+      ['1', { id: '1', name: 'WorkspaceName' }],
+      ['2', { id: '2', name: 'AnotherWorkspaceName' }],
     ])
   ),
-} as unknown as AlarmsCountDataSource
+} as unknown as AlarmsCountDataSource;
 
 const defaultProps = {
   query: {
