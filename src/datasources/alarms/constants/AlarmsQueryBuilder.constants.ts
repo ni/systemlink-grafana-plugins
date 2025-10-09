@@ -149,7 +149,7 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
     label: 'Source',
     dataField: 'source',
     filterOperations: EXTENDED_STRING_FILTER_OPERATIONS
-  }
+  },
   WORKSPACE: {
     label: 'Workspace',
     dataField: 'workspace',

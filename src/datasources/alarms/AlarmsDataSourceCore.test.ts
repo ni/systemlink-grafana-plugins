@@ -222,35 +222,6 @@ describe('AlarmsDataSourceCore', () => {
         expect(transformQuery).toBe('(channel != "channel1" && channel != "channel2")');
       });
 
-      it('should replace multiple value variable in the filter', () => {
-        const mockFilter = 'channel = "${query0}"';
-        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('channel = "{channel1,channel2}"');
-
-        const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockFilter);
-
-        expect(datastore.templateSrv.replace).toHaveBeenCalledWith('channel = "${query0}"', {});
-        expect(transformQuery).toBe('(channel = "channel1" || channel = "channel2")');
-      });
-
-      it('should transform query with multiple filters and variable combinations', () => {
-        const mockFilter = '(alarmId = "$query0" && description = "test") || channel = "Channel3"';
-        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('(alarmId = "{alarmId1,alarmId2}" && description = "test") || channel = "Channel3"');
-
-        const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockFilter);
-
-        expect(datastore.templateSrv.replace).toHaveBeenCalledWith('(alarmId = \"$query0\" && description = \"test\") || channel = \"Channel3\"', {});
-        expect(transformQuery).toBe('((alarmId = \"alarmId1\" || alarmId = \"alarmId2\") && description = \"test\") || channel = \"Channel3\"');
-      });
-
-      it('should apply the && operator for multi-value variables with the not-equals condition', () => {
-        const mockFilter = 'channel != "${query0}"';
-        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('channel != "{channel1,channel2}"');
-
-        const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockFilter);
-        expect(datastore.templateSrv.replace).toHaveBeenCalledWith('channel != "${query0}"', {});
-        expect(transformQuery).toBe('(channel != "channel1" && channel != "channel2")');
-      });
-
       describe('transformSourceFilter', () => {
         const transformationTestCases = [
           {
