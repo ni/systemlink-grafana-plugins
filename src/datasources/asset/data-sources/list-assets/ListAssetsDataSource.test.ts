@@ -60,14 +60,8 @@ const mockListAssets = {
     totalCount: 4,
 };
 
-let assetOptions = {
-  featureToggles: {
-    locations: true
-  }
-}
-
 beforeEach(() => {
-    [datastore, backendServer] = setupDataSource(ListAssetsDataSource, () => assetOptions);
+    [datastore, backendServer] = setupDataSource(ListAssetsDataSource);
     backendServer.fetch
         .calledWith(requestMatching({ url: '/niapm/v1/query-assets', method: 'POST' }))
         .mockReturnValue(createFetchResponse(mockListAssets));
@@ -99,6 +93,40 @@ describe('List assets location queries', () => {
         expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
             expect.objectContaining({
                 filter: "Locations.Any(l => l.MinionId = \"Location1\" || l.PhysicalLocation = \"Location1\")"
+            })
+        );
+    });
+
+    test('should transform LOCATION field when operator is string.IsNullOrEmpty', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: `string.IsNullOrEmpty(${ListAssetsFieldNames.LOCATION})`,
+            outputType: OutputType.Properties,
+        });
+
+        await datastore.query(query);
+
+        expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                filter: "string.IsNullOrEmpty(Location.MinionId) && string.IsNullOrEmpty(Location.PhysicalLocation)"
+            })
+        );
+    });
+
+    test('should transform LOCATION field when operator is !string.IsNullOrEmpty', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: `!string.IsNullOrEmpty(${ListAssetsFieldNames.LOCATION})`,
+            outputType: OutputType.Properties,
+        });
+
+        await datastore.query(query);
+
+        expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                filter: "!string.IsNullOrEmpty(Location.MinionId) || !string.IsNullOrEmpty(Location.PhysicalLocation)"
             })
         );
     });

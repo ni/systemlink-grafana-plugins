@@ -2,7 +2,7 @@ import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
 import { QBField, QueryBuilderOption, Workspace } from 'core/types';
-import { filterXSSField } from 'core/utils';
+import { addOptionsToLookup, filterXSSField } from 'core/utils';
 import { WorkOrdersQueryBuilderFields, WorkOrdersQueryBuilderStaticFields } from 'datasources/work-orders/constants/WorkOrdersQueryBuilder.constants';
 import React, { useState, useEffect, useMemo } from 'react';
 import { User } from 'shared/types/QueryUsers.types';
@@ -26,20 +26,6 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
 
-    
-  const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]) => {
-    return {
-      ...field,
-      lookup: {
-        ...field.lookup,
-        dataSource: [
-          ...(field.lookup?.dataSource || []),
-          ...options,
-        ],
-      },
-    };
-  };
-
   const timeFields = useMemo(() => {
     const timeOptions = [
       { label: 'From', value: '${__from:date}' },
@@ -57,7 +43,7 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
 
   const workspaceField = useMemo(() => {
     if (!workspaces) {
-        return null;
+      return null;
     }
     const workspaceOptions = workspaces.map(({ id, name }) => ({ label: name, value: id }));
 
@@ -67,7 +53,7 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
   const usersField = useMemo(() => {
     if (!users) {
       return;
-    }    
+    }
     const usersMap = users.map(user => ({ label: UsersUtils.getUserNameAndEmail(user), value: user.id }));
 
     return [
@@ -144,7 +130,7 @@ export const WorkOrdersQueryBuilder: React.FC<WorkOrdersQueryBuilderProps> = ({
       QueryBuilderOperations.KEY_VALUE_DOES_NOT_CONTAINS,
     ];
 
-    setOperations([...customOperations,...customDateTimeOperations, ...keyValueOperations]);
+    setOperations([...customOperations, ...customDateTimeOperations, ...keyValueOperations]);
   }, [globalVariableOptions, timeFields, workspaceField, usersField]);
 
   return (

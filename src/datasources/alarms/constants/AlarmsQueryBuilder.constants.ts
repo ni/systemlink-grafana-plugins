@@ -150,6 +150,11 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
     dataField: 'source',
     filterOperations: EXTENDED_STRING_FILTER_OPERATIONS
   }
+  WORKSPACE: {
+    label: 'Workspace',
+    dataField: 'workspace',
+    filterOperations: BOOLEAN_FILTER_OPERATIONS,
+  }
 };
 
 export const ALARMS_TIME_FIELDS = [
