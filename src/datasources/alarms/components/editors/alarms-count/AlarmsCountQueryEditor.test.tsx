@@ -3,8 +3,13 @@ import { render, screen } from '@testing-library/react';
 import { AlarmsCountQueryEditor } from './AlarmsCountQueryEditor';
 import { QueryType } from 'datasources/alarms/types/types';
 import { AlarmsCountQuery } from 'datasources/alarms/types/AlarmsCount.types';
+import { AlarmsCountDataSource } from 'datasources/alarms/query-type-handlers/alarms-count/AlarmsCountDataSource';
 
 const mockHandleQueryChange = jest.fn();
+const mockGlobalVars = [{ label: '$var1', value: '$value1' }];
+const mockDatasource = {
+  globalVariableOptions: jest.fn(() => mockGlobalVars),
+} as unknown as AlarmsCountDataSource
 
 const defaultProps = {
   query: {
@@ -12,6 +17,7 @@ const defaultProps = {
     queryType: QueryType.AlarmsCount
   },
   handleQueryChange: mockHandleQueryChange,
+  datasource: mockDatasource
 };
 
 function renderElement(query: AlarmsCountQuery = { ...defaultProps.query }) {
@@ -49,5 +55,12 @@ describe('AlarmsCountQueryEditor', () => {
     
     expect(queryBuilder).toBeInTheDocument();
     expect(mockHandleQueryChange).not.toHaveBeenCalled();
+  });
+
+  it('should call datasource.globalVariableOptions and render variable name when its filter is applied', () => {
+    const container = renderElement({ refId: 'A', queryType: QueryType.AlarmsCount, filter: 'currentSeverityLevel = "$value1"' });
+
+    expect(mockDatasource.globalVariableOptions).toHaveBeenCalled();
+    expect(container.getByText('$var1')).toBeInTheDocument();
   });
 });

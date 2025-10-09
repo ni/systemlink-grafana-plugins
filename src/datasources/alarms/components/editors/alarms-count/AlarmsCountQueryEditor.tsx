@@ -3,13 +3,15 @@ import React from "react";
 import { InlineField } from "core/components/InlineField";
 import { AlarmsQueryBuilder } from "../../query-builder/AlarmsQueryBuilder";
 import { LABEL_WIDTH, labels, tooltips } from "datasources/alarms/constants/AlarmsQueryEditor.constants";
+import { AlarmsCountDataSource } from "datasources/alarms/query-type-handlers/alarms-count/AlarmsCountDataSource";
 
 type Props = {
   query: AlarmsCountQuery;
   handleQueryChange: (query: AlarmsCountQuery, runQuery?: boolean) => void;
+  datasource: AlarmsCountDataSource
 };
 
-export function AlarmsCountQueryEditor({ query, handleQueryChange }: Props) {
+export function AlarmsCountQueryEditor({ query, handleQueryChange, datasource }: Props) {
   const onFilterChange = (event?: Event | React.FormEvent<Element>) => {
     if (event && 'detail' in event) {
       const value = (event as CustomEvent).detail.linq;
@@ -29,7 +31,7 @@ export function AlarmsCountQueryEditor({ query, handleQueryChange }: Props) {
     >
       <AlarmsQueryBuilder
         filter={query.filter}
-        globalVariableOptions={[]}
+        globalVariableOptions={datasource.globalVariableOptions()}
         onChange={onFilterChange}
       />
     </InlineField>

@@ -5,11 +5,15 @@ import { extractErrorInfo } from "core/errors";
 import { QUERY_ALARMS_RELATIVE_PATH } from "./constants/QueryAlarms.constants";
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
+import { QueryBuilderOption } from "core/types";
+import { getVariableOptions } from "core/utils";
+import { QueryBuilderOperations } from "core/query-builder.constants";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   private readonly queryAlarmsUrl = `${this.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`;
 
   public abstract runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
+  public readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
   protected async queryAlarms(alarmsRequestBody: QueryAlarmsRequest): Promise<QueryAlarmsResponse> {
     try {
@@ -45,7 +49,7 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
         dataField,
         this.isTimeField(dataField)
           ? this.timeFieldsQuery(dataField)
-          : (value, operation) => `${dataField} ${operation} "${value}"`,
+          : this.multiValueVariableQuery(dataField),
       ];
     })
   );
@@ -59,6 +63,30 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
 
   private isTimeField(field: string): boolean {
     return ALARMS_TIME_FIELDS.includes(field);
+  }
+
+  private multiValueVariableQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string, _options?: any) => {
+      const isMultiSelect = this.isMultiValueExpression(value);
+      const valuesArray = this.getMultipleValuesArray(value);
+      const logicalOperator = this.getLogicalOperator(operation);
+
+      return isMultiSelect
+        ? `(${valuesArray.map(val => `${field} ${operation} "${val}"`).join(` ${logicalOperator} `)})`
+        : `${field} ${operation} "${value}"`;
+    };
+  }
+
+  private isMultiValueExpression(value: string): boolean {
+    return value.startsWith('{') && value.endsWith('}');
+  }
+
+  private getMultipleValuesArray(value: string): string[] {
+    return value.replace(/({|})/g, '').split(',');
+  }
+
+  private getLogicalOperator(operation: string): string {
+    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
   }
 
   private getStatusCodeErrorMessage(errorDetails: { statusCode: string; message: string }): string {

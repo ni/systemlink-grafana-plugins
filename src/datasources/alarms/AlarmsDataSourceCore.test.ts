@@ -5,6 +5,11 @@ import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
+import { getVariableOptions } from 'core/utils';
+
+jest.mock('core/utils', () => ({
+  getVariableOptions: jest.fn(),
+}));
 
 class TestAlarmsDataSource extends AlarmsDataSourceCore {
   async runQuery(query: AlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
@@ -33,6 +38,21 @@ describe('AlarmsDataSourceCore', () => {
 
   beforeEach(() => {
     [datastore, backendServer] = setupDataSource(TestAlarmsDataSource);
+  });
+
+  describe('globalVariableOptions', () => {
+    it('should get variable options', () => {
+      const mockOptions = [
+        { label: 'Variable 1', value: '$var1' },
+        { label: 'Variable 2', value: '$var2' },
+      ];
+      (getVariableOptions as jest.Mock).mockReturnValue(mockOptions);
+
+      const result = datastore.globalVariableOptions();
+
+      expect(getVariableOptions).toHaveBeenCalledWith(datastore);
+      expect(result).toEqual(mockOptions);
+    });
   });
 
   describe('queryAlarms', () => {
@@ -152,6 +172,36 @@ describe('AlarmsDataSourceCore', () => {
 
         expect(datastore.templateSrv.replace).toHaveBeenCalledWith('alarmId < "${query0}"', {});
         expect(transformQuery).toBe('alarmId < "test-alarmID-1"');
+      });
+
+      it('should replace multiple value variable in the filter', () => {
+        const mockFilter = 'channel = "${query0}"';
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('channel = "{channel1,channel2}"');
+
+        const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockFilter);
+
+        expect(datastore.templateSrv.replace).toHaveBeenCalledWith('channel = "${query0}"', {});
+        expect(transformQuery).toBe('(channel = "channel1" || channel = "channel2")');
+      });
+
+      it('should transform query with multiple filters and variable combinations', () => {
+        const mockFilter = '(alarmId = "$query0" && description = "test") || channel = "Channel3"';
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('(alarmId = "{alarmId1,alarmId2}" && description = "test") || channel = "Channel3"');
+
+        const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockFilter);
+
+        expect(datastore.templateSrv.replace).toHaveBeenCalledWith('(alarmId = \"$query0\" && description = \"test\") || channel = \"Channel3\"', {});
+        expect(transformQuery).toBe('((alarmId = \"alarmId1\" || alarmId = \"alarmId2\") && description = \"test\") || channel = \"Channel3\"');
+      });
+
+      it('should apply the && operator for multi-value variables with the not-equals condition', () => {
+        const mockFilter = 'channel != "${query0}"';
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('channel != "{channel1,channel2}"');
+
+        const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockFilter);
+
+        expect(datastore.templateSrv.replace).toHaveBeenCalledWith('channel != "${query0}"', {});
+        expect(transformQuery).toBe('(channel != "channel1" && channel != "channel2")');
       });
     });
   });
