@@ -1795,6 +1795,86 @@ describe('QueryStepsDataSource', () => {
         })
       );
     });
+
+    test('should transform fields with is blank operation', async () => {
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        resultsQuery: 'string.IsNullOrEmpty(ProgramName)',
+        stepsQuery: 'string.IsNullOrEmpty(name)',
+      });
+      await datastore.query(query);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: '/nitestmonitor/v2/query-steps',
+          data: expect.objectContaining({
+            resultFilter: 'string.IsNullOrEmpty(ProgramName)',
+            filter: 'string.IsNullOrEmpty(name)',
+          }),
+        })
+      );
+    });
+
+    test('should transform fields with is not blank operation', async () => {
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        resultsQuery: '!string.IsNullOrEmpty(ProgramName)',
+        stepsQuery: '!string.IsNullOrEmpty(name)',
+      });
+      await datastore.query(query);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: '/nitestmonitor/v2/query-steps',
+          data: expect.objectContaining({
+            resultFilter: '!string.IsNullOrEmpty(ProgramName)',
+            filter: '!string.IsNullOrEmpty(name)',
+          }),
+        })
+      );
+    });
+
+    test('should transform fields with equals operation', async () => {
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        resultsQuery: 'programName = "name"',
+        stepsQuery: 'name = "name"',
+      });
+      await datastore.query(query);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: '/nitestmonitor/v2/query-steps',
+          data: expect.objectContaining({
+            resultFilter: 'programName = "name"',
+            filter: 'name = "name"',
+          }),
+        })
+      );
+    });
+
+    test('should transform fields with not equals operation', async () => {
+      const query = buildQuery({
+        refId: 'A',
+        outputType: OutputType.Data,
+        resultsQuery: 'programName != "name"',
+        stepsQuery: 'name != "name"',
+      });
+      await datastore.query(query);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: '/nitestmonitor/v2/query-steps',
+          data: expect.objectContaining({
+            resultFilter: 'programName != "name"',
+            filter: 'name != "name"',
+          }),
+        })
+      );
+    });
   });
 
   describe('metricFindQuery', () => {

@@ -10,7 +10,7 @@ import { AssetUtils } from './asset.utils';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { SystemUtils } from 'shared/system.utils';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
-import { computedFieldsupportedOperations, ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { buildExpressionFromTemplate, computedFieldsupportedOperations, ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { UsersUtils } from 'shared/users.utils';
 import { ProductUtils } from 'shared/product.utils';
 import { extractErrorInfo } from 'core/errors';
@@ -332,9 +332,18 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       const logicalOperator = this.getLogicalOperator(operation);
 
       return isMultiSelect
-        ? `(${valuesArray.map(val => `${field} ${operation} "${val}"`).join(` ${logicalOperator} `)})`
-        : `${field} ${operation} "${value}"`;
+        ? `(${valuesArray.map(val => this.buildExpression(field, val, operation)).join(` ${logicalOperator} `)})`
+        : this.buildExpression(field, value, operation);
     };
+  }
+
+  private buildExpression(field: string, value: string, operation: string): string {
+    const operationConfig = Object.values(QueryBuilderOperations).find(op => op.name === operation);
+    const expressionTemplate = operationConfig?.expressionTemplate;
+    if (expressionTemplate) {
+      return buildExpressionFromTemplate(expressionTemplate, field, value) ?? '';
+    }
+    return `${field} ${operation} "${value}"`;
   }
 
   protected timeFieldsQuery(field: string): ExpressionTransformFunction {
