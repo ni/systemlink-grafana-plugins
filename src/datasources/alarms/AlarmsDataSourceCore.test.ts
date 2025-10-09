@@ -7,7 +7,6 @@ import { createFetchError, createFetchResponse, requestMatching, setupDataSource
 import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
 import { getVariableOptions } from 'core/utils';
 import { Workspace } from 'core/types';
-import { WorkspaceUtils } from 'shared/workspace.utils';
 
 jest.mock('core/utils', () => ({
   getVariableOptions: jest.fn(),

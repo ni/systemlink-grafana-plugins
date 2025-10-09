@@ -1,12 +1,9 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { AlarmsCountQueryEditor } from './AlarmsCountQueryEditor';
 import { QueryType } from 'datasources/alarms/types/types';
 import { AlarmsCountQuery } from 'datasources/alarms/types/AlarmsCount.types';
 import { AlarmsCountDataSource } from 'datasources/alarms/query-type-handlers/alarms-count/AlarmsCountDataSource';
-import { act } from 'react-dom/test-utils';
-import { AlarmsCountDataSource } from 'datasources/alarms/query-type-handlers/alarms-count/AlarmsCountDataSource';
-import { act } from 'react-dom/test-utils';
 
 const mockHandleQueryChange = jest.fn();
 const mockGlobalVars = [{ label: '$var1', value: '$value1' }];

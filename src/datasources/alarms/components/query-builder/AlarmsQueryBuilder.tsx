@@ -2,7 +2,7 @@ import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallbackWithRef, expressionReaderCallbackWithRef } from 'core/query-builder.utils';
 import { QBField, QueryBuilderOption, Workspace } from 'core/types';
-import { filterXSSField } from 'core/utils';
+import { addOptionsToLookup, filterXSSField } from 'core/utils';
 import { AlarmsQueryBuilderFields, AlarmsQueryBuilderStaticFields, TIME_OPTIONS } from 'datasources/alarms/constants/AlarmsQueryBuilder.constants';
 import React, { useState, useEffect, useMemo } from 'react';
 import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
