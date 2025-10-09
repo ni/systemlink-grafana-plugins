@@ -4,6 +4,8 @@ import { DataSourceBase } from './DataSourceBase';
 import { BatchQueryConfig, QBField, QueryBuilderOption, QueryResponse, SystemLinkError, Workspace } from './types';
 import { BackendSrv, BackendSrvRequest, FetchError, isFetchError, TemplateSrv } from '@grafana/runtime';
 import { lastValueFrom } from 'rxjs';
+import { buildExpressionFromTemplate, ExpressionTransformFunction } from './query-builder.utils';
+import { QueryBuilderOperations } from './query-builder.constants';
 
 export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<SelectableValue<T>> {
   const RESULT = [];
@@ -339,4 +341,37 @@ async function fetch<T>(backendSrv: BackendSrv, options: BackendSrvRequest, retr
     }
     throw error;
   }
+}
+
+export function multiValueVariableQuery(field: string): ExpressionTransformFunction {
+  return (value: string, operation: string, _options?: any) => {
+    const isMultiSelect = isMultiValueExpression(value);
+    const valuesArray = getMultipleValuesArray(value);
+    const logicalOperator = getLogicalOperator(operation);
+
+    return isMultiSelect
+      ? `(${valuesArray.map(val => buildExpression(field, val, operation)).join(` ${logicalOperator} `)})`
+      : buildExpression(field, value, operation);
+  };
+}
+
+export function buildExpression(field: string, value: string, operation: string): string {
+  const operationConfig = Object.values(QueryBuilderOperations).find(op => op.name === operation);
+  const expressionTemplate = operationConfig?.expressionTemplate;
+  if (expressionTemplate) {
+    return buildExpressionFromTemplate(expressionTemplate, field, value) ?? '';
+  }
+  return `${field} ${operation} "${value}"`;
+}
+
+function isMultiValueExpression(value: string): boolean {
+  return value.startsWith('{') && value.endsWith('}');
+}
+
+function getMultipleValuesArray(value: string): string[] {
+  return value.replace(/({|})/g, '').split(',');
+}
+
+function getLogicalOperator(operation: string): string {
+  return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
 }
