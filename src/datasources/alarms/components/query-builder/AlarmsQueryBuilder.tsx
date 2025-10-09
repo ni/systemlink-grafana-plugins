@@ -1,7 +1,7 @@
 import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallbackWithRef, expressionReaderCallbackWithRef } from 'core/query-builder.utils';
-import { QBField, QueryBuilderOption } from 'core/types';
+import { QBField, QueryBuilderOption, Workspace } from 'core/types';
 import { addOptionsToLookup, filterXSSField } from 'core/utils';
 import { AlarmsQueryBuilderFields, AlarmsQueryBuilderStaticFields, TIME_OPTIONS } from 'datasources/alarms/constants/AlarmsQueryBuilder.constants';
 import React, { useState, useEffect, useMemo } from 'react';
@@ -10,10 +10,11 @@ import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcompone
 type AlarmsQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     globalVariableOptions: QueryBuilderOption[];
+    workspaces: Workspace[]
     filter?: string;
   };
 
-export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, onChange, globalVariableOptions }) => {
+export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, onChange, globalVariableOptions, workspaces }) => {
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
   const optionsRef = React.useRef<Record<string, QueryBuilderOption[]>>({});
@@ -33,12 +34,18 @@ export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, 
     ];
   }, []);
 
+  const workspaceField = useMemo(() => {
+    const workspaceOptions = workspaces.map(({ id, name }) => ({ label: name, value: id }));
+
+    return addOptionsToLookup(AlarmsQueryBuilderFields.WORKSPACE, workspaceOptions);
+  }, [workspaces]);
+
   useEffect(() => {
     if (!timeFields) {
       return;
     }
 
-    const updatedFields = [...AlarmsQueryBuilderStaticFields, ...timeFields].map(field => {
+    const updatedFields = [...AlarmsQueryBuilderStaticFields, ...timeFields, workspaceField].map(field => {
       if (field.lookup?.dataSource) {
         return {
           ...field,
@@ -90,7 +97,7 @@ export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, 
     ];
 
     setOperations([...customOperations, ...keyValueOperations]);
-  }, [globalVariableOptions, callbacks, timeFields]);
+  }, [globalVariableOptions, callbacks, timeFields, workspaceField]);
 
   return (
     <SlQueryBuilder
