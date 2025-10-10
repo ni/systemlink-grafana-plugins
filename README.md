@@ -67,12 +67,17 @@ connect to a SystemLink service running in the cloud.
    there by clicking the gear icon in the sidebar.
 2. Select **Add data source**. Search for the plugin in the list and click on it
    to enter the data source settings view.
-3. Fill in the **URL** field with the API URL of the Stratus environment you
-   want to use (e.g. https://test-api.lifecyclesolutions.ni.com).
-4. For authentication, click the **Add header** button and add a custom header
+3. To use API ingress
+   1. Fill in the **URL** field with the API URL of the Stratus environment you want to use (e.g. https://test-api.lifecyclesolutions.ni.com).
+   2. For authentication, click the **Add header** button and add a custom header
    with the name `x-ni-api-key` and value set to [an API
    key](https://ni-staging.zoominsoftware.io/docs/en-US/bundle/systemlink-enterprise/page/creating-an-api-key.html)
    for the SLE instance.
+4. To use UI ingress
+   1. Fill in the **URL** field with the UI URL of the Stratus environment you want to use (e.g. https://test.lifecyclesolutions.ni.com).
+   2. Login to the url in the browser and copy the value of the cookie from the **Network Tab**
+   2. For authentication, enable **With Credentials** toggle, click the **Add header** button and add a custom header
+   with the name `cookie` and value set to browser cookie
 5. Click **Save & test**. You should see **Success** pop up if the data source
    was configured correctly and the API key grants the necessary privileges.
 
