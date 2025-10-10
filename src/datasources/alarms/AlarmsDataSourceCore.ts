@@ -1,15 +1,31 @@
 import { DataSourceBase } from "core/DataSourceBase";
-import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, ScopedVars } from "@grafana/data";
+import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, ScopedVars, DataSourceInstanceSettings } from "@grafana/data";
 import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from "./types/types";
 import { extractErrorInfo } from "core/errors";
 import { QUERY_ALARMS_RELATIVE_PATH } from "./constants/QueryAlarms.constants";
 import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
+import { QueryBuilderOption, Workspace } from "core/types";
+import { WorkspaceUtils } from "shared/workspace.utils";
+import { getVariableOptions } from "core/utils";
+import { QueryBuilderOperations } from "core/query-builder.constants";
+import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   private readonly queryAlarmsUrl = `${this.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`;
+  private readonly workspaceUtils: WorkspaceUtils;
+
+  constructor(
+    readonly instanceSettings: DataSourceInstanceSettings,
+    readonly backendSrv: BackendSrv = getBackendSrv(),
+    readonly templateSrv: TemplateSrv = getTemplateSrv()
+  ) {
+    super(instanceSettings, backendSrv, templateSrv);
+    this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
+  }
 
   public abstract runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
+  public readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
   protected async queryAlarms(alarmsRequestBody: QueryAlarmsRequest): Promise<QueryAlarmsResponse> {
     try {
@@ -31,6 +47,15 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
     }
   }
 
+  public async loadWorkspaces(): Promise<Map<string, Workspace>> {
+    try {
+      return await this.workspaceUtils.getWorkspaces();
+    } catch (_error){
+      // #AB3283306 - Error handling for workspace dependency
+      return new Map<string, Workspace>();
+    }
+  }
+
   protected transformAlarmsQuery(scopedVars: ScopedVars, query?: string): string | undefined {
     return query
       ? transformComputedFieldsQuery(this.templateSrv.replace(query, scopedVars), this.computedDataFields)
@@ -45,7 +70,7 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
         dataField,
         this.isTimeField(dataField)
           ? this.timeFieldsQuery(dataField)
-          : (value, operation) => `${dataField} ${operation} "${value}"`,
+          : this.multiValueVariableQuery(dataField),
       ];
     })
   );
@@ -59,6 +84,30 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
 
   private isTimeField(field: string): boolean {
     return ALARMS_TIME_FIELDS.includes(field);
+  }
+
+  private multiValueVariableQuery(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string, _options?: any) => {
+      const isMultiSelect = this.isMultiValueExpression(value);
+      const valuesArray = this.getMultipleValuesArray(value);
+      const logicalOperator = this.getLogicalOperator(operation);
+
+      return isMultiSelect
+        ? `(${valuesArray.map(val => `${field} ${operation} "${val}"`).join(` ${logicalOperator} `)})`
+        : `${field} ${operation} "${value}"`;
+    };
+  }
+
+  private isMultiValueExpression(value: string): boolean {
+    return value.startsWith('{') && value.endsWith('}');
+  }
+
+  private getMultipleValuesArray(value: string): string[] {
+    return value.replace(/({|})/g, '').split(',');
+  }
+
+  private getLogicalOperator(operation: string): string {
+    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
   }
 
   private getStatusCodeErrorMessage(errorDetails: { statusCode: string; message: string }): string {

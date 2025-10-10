@@ -3,7 +3,7 @@ import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana
 import { DataSourceBase } from 'core/DataSourceBase';
 import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
-import { transformComputedFieldsQuery, ExpressionTransformFunction } from 'core/query-builder.utils';
+import { transformComputedFieldsQuery, ExpressionTransformFunction, buildExpressionFromTemplate } from 'core/query-builder.utils';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { getVariableOptions, queryInBatches } from 'core/utils';
 import { QUERY_WORK_ORDERS_MAX_TAKE, QUERY_WORK_ORDERS_REQUEST_PER_SECOND } from './constants/QueryWorkOrders.constants';
@@ -271,9 +271,18 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       const logicalOperator = this.getLogicalOperator(operation);
 
       return isMultiSelect
-        ? `(${valuesArray.map(val => `${field} ${operation} "${val}"`).join(` ${logicalOperator} `)})`
-        : `${field} ${operation} "${value}"`;
+        ? `(${valuesArray.map(val => this.buildExpression(field, val, operation)).join(` ${logicalOperator} `)})`
+        : this.buildExpression(field, value, operation);
     };
+  }
+
+  private buildExpression(field: string, value: string, operation: string): string {
+    const operationConfig = Object.values(QueryBuilderOperations).find(op => op.name === operation);
+    const expressionTemplate = operationConfig?.expressionTemplate;
+    if (expressionTemplate) {
+      return buildExpressionFromTemplate(expressionTemplate, field, value) ?? '';
+    }
+    return `${field} ${operation} "${value}"`;
   }
 
   protected timeFieldsQuery(field: string): ExpressionTransformFunction {
