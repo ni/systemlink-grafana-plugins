@@ -321,6 +321,7 @@ export const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]
 export function timeFieldsQuery(field: string): ExpressionTransformFunction {
   return (value: string, operation: string): string => {
     const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
+
     return `${field} ${operation} "${formattedValue}"`;
   };
 }
@@ -358,9 +359,11 @@ export function multipleValuesQuery(field: string): ExpressionTransformFunction 
 export function buildExpression(field: string, value: string, operation: string): string {
   const operationConfig = Object.values(QueryBuilderOperations).find(op => op.name === operation);
   const expressionTemplate = operationConfig?.expressionTemplate;
+
   if (expressionTemplate) {
     return buildExpressionFromTemplate(expressionTemplate, field, value) ?? '';
   }
+
   return `${field} ${operation} "${value}"`;
 }
 

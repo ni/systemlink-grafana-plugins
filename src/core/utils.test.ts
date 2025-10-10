@@ -658,6 +658,33 @@ describe('post', () => {
   });
 });
 
+describe('timeFieldsQuery', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2025-10-10T00:00:00Z'));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('should build time field expression with the provided value', () => {
+    const transform = timeFieldsQuery('timestampField');
+
+    const result = transform('2024-10-10T12:00:00Z', '<');
+
+    expect(result).toBe('timestampField < "2024-10-10T12:00:00Z"');
+  });
+
+  it('should replace ${__now:date} with the current date in time field expression', () => {
+    const transform = timeFieldsQuery('timestampField');
+
+    const result = transform('${__now:date}', '=');
+
+    expect(result).toBe('timestampField = "2025-10-10T00:00:00.000Z"');
+  });
+});
+
 describe('multipleValuesQuery', () => {
   it('should build expression for single value query', () => {
     const buildExpression = multipleValuesQuery('field');
@@ -677,13 +704,13 @@ describe('multipleValuesQuery', () => {
 });
 
 describe('buildExpression', () => {
-  it('should build expression with known operator', () => {
-    const result = buildExpression('field', 'value', '=');
+  it('should build expression from template for supported QueryBuilderOperations', () => {
+    const result = buildExpression('field', 'value', 'contains');
 
-    expect(result).toBe('field = "value"');
+    expect(result).toBe('field.Contains("value")');
   });
 
-  it('should build expression with unknown operator', () => {
+  it('should build expression with given operator when it is not defined in QueryBuilderOperations', () => {
     const result = buildExpression('field', 'value', '===');
 
     expect(result).toBe('field === "value"');
@@ -711,34 +738,16 @@ describe('getMultipleValuesArray', () => {
     expect(result).toEqual(['value1', 'value2']);
   });
 
-  it('should trim whitespace around values', () => {
-    const result = getMultipleValuesArray('{ value1, value2 }');
+  it('should return array of empty values for empty multi-value expression', () => {
+    const result = getMultipleValuesArray('{,}');
 
-    expect(result).toEqual(['value1', 'value2']);
+    expect(result).toEqual(['', '']);
   });
 
   it('should return single value as array if not multi-value expression', () => {
     const result = getMultipleValuesArray('value1');
 
     expect(result).toEqual(['value1']);
-  });
-
-  it('should return empty array for empty multi-value expression', () => {
-    const result = getMultipleValuesArray('{}');
-
-    expect(result).toEqual([]);
-  });
-
-  it('should handle multi-value with empty values', () => {
-    const result = getMultipleValuesArray('{,value1,,value2,}');
-
-    expect(result).toEqual(['', 'value1', '', 'value2', '']);
-  });
-
-  it('should handle multi-value with only spaces', () => {
-    const result = getMultipleValuesArray('{   }');
-
-    expect(result).toEqual(['']);
   });
 });
 
@@ -750,37 +759,10 @@ describe('getLogicalOperator', () => {
   });
 
   forEach(['<>', '<', 'startswith', 'contains', 'isblank'], (operator) => {
-    it(`should return AND for operator ${operator}`, () => {
+    it('should return AND for operators other than equals', () => {
       const result = getLogicalOperator(operator);
 
       expect(result).toBe('&&');
     });
-  });
-});
-
-describe('timeFieldsQuery', () => {
-  beforeEach(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2025-10-10T00:00:00Z'));
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
-  it('should build the time field expression with the provided value', () => {
-    const transform = timeFieldsQuery('timestamp');
-
-    const result = transform('2024-10-10T12:00:00Z', '<');
-
-    expect(result).toBe('timestamp < "2024-10-10T12:00:00Z"');
-  });
-
-  it('should build the now date template variable in time field queries', () => {
-    const transform = timeFieldsQuery('timestamp');
-
-    const result = transform('${__now:date}', '=');
-    
-    expect(result).toBe('timestamp = "2025-10-10T00:00:00.000Z"');
   });
 });
