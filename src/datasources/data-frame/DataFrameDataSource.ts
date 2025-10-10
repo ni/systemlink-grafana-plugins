@@ -1,6 +1,6 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindValue } from "@grafana/data";
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindValue, TimeRange } from "@grafana/data";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { DataFrameDataSourceOptions, DataFrameQuery, defaultQueryV1, TableDataRows, TableProperties, ValidDataFrameQuery } from "./types";
+import { Column, DataFrameDataSourceOptions, DataFrameQuery, defaultQueryV1, TableDataRows, TableProperties, ValidDataFrameQuery } from "./types";
 import { DataFrameDatasourceBase } from "./DataFrameDataSourceBase";
 import { DataFrameDataSourceV1 } from "./datasources/v1-datasource/DataFrameDataSourceV1";
 import { DataFrameDataSourceV2 } from "./datasources/v2-datasource/DataFrameDataSourceV2";
@@ -16,10 +16,10 @@ export class DataFrameDataSource extends DataFrameDatasourceBase {
     ) {
         super(instanceSettings, backendSrv, templateSrv);
         this.queryByTablePropertiesFeatureEnabled = instanceSettings.jsonData?.featureToggles?.queryByDataTableProperties ?? false;
-        if (!this.queryByTablePropertiesFeatureEnabled) {
-            this.datasource = new DataFrameDataSourceV1(instanceSettings, backendSrv, templateSrv);
+        if (this.queryByTablePropertiesFeatureEnabled) {
+          this.datasource = new DataFrameDataSourceV2(instanceSettings, backendSrv, templateSrv);
         } else {
-            this.datasource = new DataFrameDataSourceV2(instanceSettings, backendSrv, templateSrv);
+          this.datasource = new DataFrameDataSourceV1(instanceSettings, backendSrv, templateSrv);
         }
     }
 
@@ -43,8 +43,8 @@ export class DataFrameDataSource extends DataFrameDatasourceBase {
 
     async getDecimatedTableData(
         query: DataFrameQuery,
-        columns: any[],
-        timeRange: any,
+        columns: Column[],
+        timeRange: TimeRange,
         intervals?: number
     ): Promise<TableDataRows> {
         return this.datasource.getDecimatedTableData(query, columns, timeRange, intervals);
@@ -57,6 +57,5 @@ export class DataFrameDataSource extends DataFrameDatasourceBase {
     processQuery(query: DataFrameQuery): ValidDataFrameQuery {
         return this.datasource.processQuery(query);
     }
-
 
 }

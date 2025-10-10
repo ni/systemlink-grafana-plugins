@@ -1,7 +1,7 @@
 import { DataFrameDataSource } from './DataFrameDataSource';
 import { DataFrameDataSourceV1 } from './datasources/v1-datasource/DataFrameDataSourceV1';
 import { DataFrameDataSourceV2 } from './datasources/v2-datasource/DataFrameDataSourceV2';
-import { DataSourceInstanceSettings } from '@grafana/data';
+import { DataSourceInstanceSettings, TimeRange } from '@grafana/data';
 
 jest.mock('./datasources/v1-datasource/DataFrameDataSourceV1');
 jest.mock('./datasources/v2-datasource/DataFrameDataSourceV2');
@@ -67,7 +67,7 @@ describe('DataFrameDataSource', () => {
         await expect(ds.getTableProperties('id')).resolves.toBe('v1-tableProps');
         expect(v1Mock.getTableProperties).toHaveBeenCalledWith('id');
 
-        await expect(ds.getDecimatedTableData({} as any, [], {}, 10)).resolves.toBe('v1-decimated');
+        await expect(ds.getDecimatedTableData({} as any, [], {} as TimeRange, 10)).resolves.toBe('v1-decimated');
         expect(v1Mock.getDecimatedTableData).toHaveBeenCalled();
 
         await expect(ds.queryTables('query')).resolves.toEqual(['v1-tables']);
@@ -94,7 +94,7 @@ describe('DataFrameDataSource', () => {
         await expect(ds.getTableProperties('id')).resolves.toBe('v2-tableProps');
         expect(v2Mock.getTableProperties).toHaveBeenCalledWith('id');
 
-        await expect(ds.getDecimatedTableData({} as any, [], {}, 10)).resolves.toBe('v2-decimated');
+        await expect(ds.getDecimatedTableData({} as any, [], {} as TimeRange, 10)).resolves.toBe('v2-decimated');
         expect(v2Mock.getDecimatedTableData).toHaveBeenCalled();
 
         await expect(ds.queryTables('query')).resolves.toEqual(['v2-tables']);
