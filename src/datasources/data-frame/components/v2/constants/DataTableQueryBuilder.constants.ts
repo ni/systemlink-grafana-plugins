@@ -11,7 +11,7 @@ export enum DataTableQueryBuilderFieldNames {
     RowsModifiedAt = 'rowsModifiedAt',
     SupportsAppend = 'supportsAppend',
     Workspace = 'workspace'
-};
+}
 
 export const DataTableQueryBuilderFields: Record<string, QBField> = {
     CREATED_AT: {
@@ -68,8 +68,9 @@ export const DataTableQueryBuilderFields: Record<string, QBField> = {
         ]
     },
     ROW_COUNT: {
-        label: 'Row count',
+        label: 'Rows',
         dataField: DataTableQueryBuilderFieldNames.RowCount,
+        dataType: 'number',
         filterOperations: [
             QueryBuilderOperations.LESS_THAN.name,
             QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
@@ -77,8 +78,7 @@ export const DataTableQueryBuilderFields: Record<string, QBField> = {
             QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name,
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name
-        ],
-        dataType: 'number'
+        ]
     },
     ROWS_MODIFIED_AT: {
         label: 'Rows modified',
@@ -91,11 +91,11 @@ export const DataTableQueryBuilderFields: Record<string, QBField> = {
     SUPPORTS_APPEND: {
         label: 'Supports append',
         dataField: DataTableQueryBuilderFieldNames.SupportsAppend,
+        dataType: 'boolean',
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name
-        ],
-        dataType: 'boolean'
+        ]
     },
     WORKSPACE: {
         label: 'Workspace',
