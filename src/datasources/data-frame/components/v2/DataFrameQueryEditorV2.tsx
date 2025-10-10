@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
 import { AutoSizeInput, Collapse, InlineField, InlineLabel, MultiSelect, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQuery, DataFrameQueryType, Props } from "datasources/data-frame/types";
@@ -9,12 +9,14 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
     const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
 
-    const handleQueryChange = (value: DataFrameQuery, runQuery: boolean) => {
-        onChange(value);
-        if (runQuery) {
-            onRunQuery();
-        }
-    };
+    const handleQueryChange = useCallback(
+        (query: DataFrameQuery, runQuery = true): void => {
+            onChange(query);
+            if (runQuery) {
+                onRunQuery();
+            }
+        }, [onChange, onRunQuery]
+    );
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
         handleQueryChange({ ...query, type: queryType }, false);
     };
@@ -29,7 +31,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                 <RadioButtonGroup
                     options={enumToOptions(DataFrameQueryType)}
                     value={query.type}
-                    onChange={queryType => onQueryTypeChange(queryType)}
+                    onChange={onQueryTypeChange}
                 />
             </InlineField>
             {query.type === DataFrameQueryType.Properties && (<InlineField
@@ -94,8 +96,8 @@ const labels = {
     take: 'Take',
 };
 const tooltips = {
-    queryType: 'Specifies whether to visualize the data rows or properties associated with a table.',
-    queryByDatatableProperties: 'This field applies a filter to the query the datatables.',
+    queryType: 'This field specifies the query type to fetch row data or metadata associated with the data tables.',
+    queryByDatatableProperties: 'This optional field applies a filter to query data tables.',
     take: 'This field sets the maximum number of records to return from the query.',
     properties: 'Specifies the properties to be queried.',
 };
