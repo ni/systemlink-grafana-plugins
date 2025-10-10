@@ -152,13 +152,16 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
       ...BOOLEAN_FILTER_OPERATIONS,
       QueryBuilderOperations.IS_BLANK.name,
       QueryBuilderOperations.IS_NOT_BLANK.name,
+      /* #AB#3422087 - Switch to BASIC_STRING_FILTER_OPERATIONS 
+      once transformation support for "contains" and "does not contain" 
+      is implemented */
     ],
   },
   WORKSPACE: {
     label: 'Workspace',
     dataField: 'workspace',
     filterOperations: BOOLEAN_FILTER_OPERATIONS,
-  },
+  }
 };
 
 export const ALARMS_TIME_FIELDS = [
