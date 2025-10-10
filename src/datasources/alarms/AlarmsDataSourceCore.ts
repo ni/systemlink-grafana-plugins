@@ -3,7 +3,7 @@ import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, Scop
 import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from "./types/types";
 import { extractErrorInfo } from "core/errors";
 import { QUERY_ALARMS_RELATIVE_PATH } from "./constants/QueryAlarms.constants";
-import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
+import { buildExpressionFromTemplate, ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { WorkspaceUtils } from "shared/workspace.utils";
@@ -61,72 +61,51 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
       return undefined;
     }
     
-    const transformedFilter = transformComputedFieldsQuery(this.templateSrv.replace(query, scopedVars), this.computedDataFields);
-    return this.transformSourceExpressions(transformedFilter);
-  }
-
-  private static getSourceTransformRules(): Array<{ pattern: RegExp; replacer: (_: string, ...args: string[]) => string }> {
-    const sourceField = AlarmsQueryBuilderFields.SOURCE.dataField;
-    const systemProperty = 'properties.system';
-    const minionProperty = 'properties.minionId';
-
-    return [
-      {
-        pattern: new RegExp(`${sourceField}\\s*=\\s*"([^"]+)"`, 'g'),
-        replacer: (_: string, value: string) => 
-          `(${systemProperty} = "${value}" || ${minionProperty} = "${value}")`,
-      },
-      {
-        pattern: new RegExp(`${sourceField}\\s*!=\\s*"([^"]+)"`, 'g'),
-        replacer: (_: string, value: string) => 
-          `(${systemProperty} != "${value}" && ${minionProperty} != "${value}")`,
-      },
-      {
-        pattern: new RegExp(`!\\s*\\(\\s*${sourceField}\\s*\\.\\s*Contains\\(\\s*"([^"]+)"\\s*\\)\\s*\\)`, 'g'),
-        replacer: (_: string, value: string) => 
-          `(!${systemProperty}.Contains("${value}") && !${minionProperty}.Contains("${value}"))`,
-      },
-      {
-        pattern: new RegExp(`${sourceField}\\s*\\.\\s*Contains\\(\\s*"([^"]+)"\\s*\\)`, 'g'),
-        replacer: (_: string, value: string) => 
-          `(${systemProperty}.Contains("${value}") || ${minionProperty}.Contains("${value}"))`,
-      },
-      {
-        pattern: new RegExp(`!\\s*string\\.IsNullOrEmpty\\(${sourceField}\\)`, 'g'),
-        replacer: () => 
-          `(!string.IsNullOrEmpty(${systemProperty}) || !string.IsNullOrEmpty(${minionProperty}))`,
-      },
-      {
-        pattern: new RegExp(`string\\.IsNullOrEmpty\\(${sourceField}\\)`, 'g'),
-        replacer: () => 
-          `(string.IsNullOrEmpty(${systemProperty}) && string.IsNullOrEmpty(${minionProperty}))`,
-      }
-    ];
-  }
-
-  private transformSourceExpressions(query: string): string {
-    const rules = AlarmsDataSourceCore.getSourceTransformRules();
-    let transformedQuery = query;
-
-    for (const { pattern, replacer } of rules) {
-      transformedQuery = transformedQuery.replace(pattern, replacer);
-    }
-
-    return transformedQuery;
+    return transformComputedFieldsQuery(this.templateSrv.replace(query, scopedVars), this.computedDataFields);
   }
 
   private readonly computedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(AlarmsQueryBuilderFields).map(field => {
       const dataField = field.dataField as string;
 
-      return [
-        dataField,
-        this.isTimeField(dataField)
-          ? this.timeFieldsQuery(dataField)
-          : this.multiValueVariableQuery(dataField),
-      ];
+      if (dataField === AlarmsQueryBuilderFields.SOURCE.dataField) {
+        return [dataField, this.getSourceTransformation()];
+      } else if (this.isTimeField(dataField)) {
+        return [dataField, this.timeFieldsQuery(dataField)];
+      } else {
+        return [dataField, this.multiValueVariableQuery(dataField)];
+      }
     })
   );
+
+  private getSourceTransformation(): ExpressionTransformFunction {
+    return (value: string, operation: string) => {
+      const isMultiSelect = this.isMultiValueExpression(value);
+      const logicalOperator = this.getLogicalOperator(operation);
+
+      if (isMultiSelect) {
+        const valuesArray = this.getMultipleValuesArray(value);
+
+        return `(${valuesArray
+          .map(val => {
+            return this.buildSourceExpression(val, operation, logicalOperator);
+          })
+          .join(` ${logicalOperator} `)})`;
+      } else {
+        return this.buildSourceExpression(value, operation, logicalOperator);
+      }
+    };
+  }
+
+  private buildSourceExpression(val: string, operation: string, logicalOperator: string): string {
+    const systemCustomProperty = 'properties.system';
+    const minionIdCustomProperty = 'properties.minionId';
+
+    const systemExpression = this.buildExpression(systemCustomProperty, val, operation);
+    const minionExpression = this.buildExpression(minionIdCustomProperty, val, operation);
+
+    return `(${systemExpression} ${logicalOperator} ${minionExpression})`;
+  }
 
   private timeFieldsQuery(field: string): ExpressionTransformFunction {
     return (value: string, operation: string): string => {
@@ -146,9 +125,18 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
       const logicalOperator = this.getLogicalOperator(operation);
 
       return isMultiSelect
-        ? `(${valuesArray.map(val => `${field} ${operation} "${val}"`).join(` ${logicalOperator} `)})`
-        : `${field} ${operation} "${value}"`;
+        ? `(${valuesArray.map(val => this.buildExpression(field, val, operation)).join(` ${logicalOperator} `)})`
+        : this.buildExpression(field, value, operation);
     };
+  }
+
+  private buildExpression(field: string, value: string, operation: string): string {
+    const operationConfig = Object.values(QueryBuilderOperations).find(op => op.name === operation);
+    const expressionTemplate = operationConfig?.expressionTemplate;
+    if (expressionTemplate) {
+      return buildExpressionFromTemplate(expressionTemplate, field, value) ?? '';
+    }
+    return `${field} ${operation} "${value}"`;
   }
 
   private isMultiValueExpression(value: string): boolean {
