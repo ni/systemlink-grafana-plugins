@@ -3,8 +3,6 @@ import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse } from "@grafana
 import { ProductProperties, QueryProductResponse, ResultsQuery } from "./types/types";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { getVariableOptions } from "core/utils";
-import { ExpressionTransformFunction, buildExpressionFromTemplate } from "core/query-builder.utils";
-import { QueryBuilderOperations } from "core/query-builder.constants";
 import { extractErrorInfo } from "core/errors";
 import { ResultsPropertiesOptions } from "./types/QueryResults.types";
 
@@ -126,34 +124,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     return ResultsDataSourceBase._productCache;
   };
 
-  protected multipleValuesQuery(field: string): ExpressionTransformFunction {
-    return (value: string, operation: string, _options?: any) => {
-      const isMultiSelect = this.isMultiSelectValue(value);
-      const valuesArray = this.getMultipleValuesArray(value);
-      const logicalOperator = this.getLogicalOperator(operation);
-
-      return isMultiSelect ? `(${valuesArray
-        .map(val => this.buildExpression(field, val, operation))
-        .join(` ${logicalOperator} `)})` : this.buildExpression(field, value, operation);
-    }
-  }
-
-  private buildExpression(field: string, value: string, operation: string): string {
-    const operationConfig = Object.values(QueryBuilderOperations).find(op => op.name === operation);
-    const expressionTemplate = operationConfig?.expressionTemplate;
-    if (expressionTemplate) {
-      return buildExpressionFromTemplate(expressionTemplate, field, value) ?? '';
-    }
-    return `${field} ${operation} "${value}"`;
-  }
-
-  protected timeFieldsQuery(field: string): ExpressionTransformFunction {
-    return (value: string, operation: string): string => {
-      const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
-      return `${field} ${operation} "${formattedValue}"`;
-    };
-  }
-
   /**
    * Flattens an array of strings, where each element may be a string or an array of strings,
    * into a single-level array and removes duplicate values.
@@ -190,18 +160,6 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     }
     return values.map(item => `${fieldName} = "${item}"`).join(' || ');
   };
-
-  private isMultiSelectValue(value: string): boolean {
-    return value.startsWith('{') && value.endsWith('}');
-  }
-
-  private getMultipleValuesArray(value: string): string[] {
-    return value.replace(/({|})/g, '').split(',');
-  }
-
-  private getLogicalOperator(operation: string): string {
-    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
-  }
 
   testDatasource(): Promise<TestDataSourceResponse> {
     throw new Error("Method not implemented.");

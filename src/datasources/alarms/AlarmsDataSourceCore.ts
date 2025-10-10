@@ -7,8 +7,7 @@ import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/
 import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { WorkspaceUtils } from "shared/workspace.utils";
-import { getVariableOptions } from "core/utils";
-import { QueryBuilderOperations } from "core/query-builder.constants";
+import { getVariableOptions, multipleValuesQuery, timeFieldsQuery } from "core/utils";
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
@@ -69,45 +68,14 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
       return [
         dataField,
         this.isTimeField(dataField)
-          ? this.timeFieldsQuery(dataField)
-          : this.multiValueVariableQuery(dataField),
+          ? timeFieldsQuery(dataField)
+          : multipleValuesQuery(dataField),
       ];
     })
   );
 
-  private timeFieldsQuery(field: string): ExpressionTransformFunction {
-    return (value: string, operation: string): string => {
-      const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
-      return `${field} ${operation} "${formattedValue}"`;
-    };
-  }
-
   private isTimeField(field: string): boolean {
     return ALARMS_TIME_FIELDS.includes(field);
-  }
-
-  private multiValueVariableQuery(field: string): ExpressionTransformFunction {
-    return (value: string, operation: string, _options?: any) => {
-      const isMultiSelect = this.isMultiValueExpression(value);
-      const valuesArray = this.getMultipleValuesArray(value);
-      const logicalOperator = this.getLogicalOperator(operation);
-
-      return isMultiSelect
-        ? `(${valuesArray.map(val => `${field} ${operation} "${val}"`).join(` ${logicalOperator} `)})`
-        : `${field} ${operation} "${value}"`;
-    };
-  }
-
-  private isMultiValueExpression(value: string): boolean {
-    return value.startsWith('{') && value.endsWith('}');
-  }
-
-  private getMultipleValuesArray(value: string): string[] {
-    return value.replace(/({|})/g, '').split(',');
-  }
-
-  private getLogicalOperator(operation: string): string {
-    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
   }
 
   private getStatusCodeErrorMessage(errorDetails: { statusCode: string; message: string }): string {

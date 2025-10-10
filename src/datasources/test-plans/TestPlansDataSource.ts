@@ -2,15 +2,14 @@ import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, 
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { Asset, OrderByOptions, OutputType, Projections, Properties, PropertiesProjectionMap, QueryTemplatesResponse, QueryTestPlansResponse, TemplateResponseProperties, TestPlanResponseProperties, TestPlansQuery, TestPlansVariableQuery } from './types';
-import { getWorkspaceName, getVariableOptions, queryInBatches } from 'core/utils';
+import { getWorkspaceName, getVariableOptions, queryInBatches, multipleValuesQuery, timeFieldsQuery } from 'core/utils';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { isTimeField, transformDuration } from './utils';
 import { QUERY_TEMPLATES_BATCH_SIZE, QUERY_TEMPLATES_REQUEST_PER_SECOND, QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
 import { AssetUtils } from './asset.utils';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { SystemUtils } from 'shared/system.utils';
-import { QueryBuilderOperations } from 'core/query-builder.constants';
-import { buildExpressionFromTemplate, computedFieldsupportedOperations, ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { computedFieldsupportedOperations, ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { UsersUtils } from 'shared/users.utils';
 import { ProductUtils } from 'shared/product.utils';
 import { extractErrorInfo } from 'core/errors';
@@ -321,49 +320,9 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     Object.values(PropertiesProjectionMap).map(({ field, projection }) => {
       const fieldName = field;
       const isTime = isTimeField(projection[0]);
-      return [fieldName, isTime ? this.timeFieldsQuery(fieldName) : this.multipleValuesQuery(fieldName)];
+      return [fieldName, isTime ? timeFieldsQuery(fieldName) : multipleValuesQuery(fieldName)];
     })
   );
-
-  protected multipleValuesQuery(field: string): ExpressionTransformFunction {
-    return (value: string, operation: string, _options?: any) => {
-      const isMultiSelect = this.isMultiSelectValue(value);
-      const valuesArray = this.getMultipleValuesArray(value);
-      const logicalOperator = this.getLogicalOperator(operation);
-
-      return isMultiSelect
-        ? `(${valuesArray.map(val => this.buildExpression(field, val, operation)).join(` ${logicalOperator} `)})`
-        : this.buildExpression(field, value, operation);
-    };
-  }
-
-  private buildExpression(field: string, value: string, operation: string): string {
-    const operationConfig = Object.values(QueryBuilderOperations).find(op => op.name === operation);
-    const expressionTemplate = operationConfig?.expressionTemplate;
-    if (expressionTemplate) {
-      return buildExpressionFromTemplate(expressionTemplate, field, value) ?? '';
-    }
-    return `${field} ${operation} "${value}"`;
-  }
-
-  protected timeFieldsQuery(field: string): ExpressionTransformFunction {
-    return (value: string, operation: string): string => {
-      const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
-      return `${field} ${operation} "${formattedValue}"`;
-    };
-  }
-
-  private isMultiSelectValue(value: string): boolean {
-    return value.startsWith('{') && value.endsWith('}');
-  }
-
-  private getMultipleValuesArray(value: string): string[] {
-    return value.replace(/({|})/g, '').split(',');
-  }
-
-  private getLogicalOperator(operation: string): string {
-    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
-  }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
     await this.post(this.queryTestPlansUrl, { take: 1 });

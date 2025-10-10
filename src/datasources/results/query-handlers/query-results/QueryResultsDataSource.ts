@@ -7,7 +7,7 @@ import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/
 import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
 import { TAKE_LIMIT } from "datasources/results/constants/QuerySteps.constants";
 import { extractErrorInfo } from "core/errors";
-import { getWorkspaceName } from "core/utils";
+import { getWorkspaceName, multipleValuesQuery, timeFieldsQuery } from "core/utils";
 import { Workspace } from "core/types";
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
 
@@ -188,8 +188,8 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     Object.values(ResultsQueryBuilderFieldNames).map(field => [
       field,
       field === (ResultsQueryBuilderFieldNames.UPDATED_AT) || field === (ResultsQueryBuilderFieldNames.STARTED_AT)
-        ? this.timeFieldsQuery(field)
-        : this.multipleValuesQuery(field),
+        ? timeFieldsQuery(field)
+        : multipleValuesQuery(field),
     ])
   );
 

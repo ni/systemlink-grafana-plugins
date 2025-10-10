@@ -4,6 +4,8 @@ import { DataSourceBase } from './DataSourceBase';
 import { BatchQueryConfig, QBField, QueryBuilderOption, QueryResponse, SystemLinkError, Workspace } from './types';
 import { BackendSrv, BackendSrvRequest, FetchError, isFetchError, TemplateSrv } from '@grafana/runtime';
 import { lastValueFrom } from 'rxjs';
+import { buildExpressionFromTemplate, ExpressionTransformFunction } from './query-builder.utils';
+import { QueryBuilderOperations } from './query-builder.constants';
 
 export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<SelectableValue<T>> {
   const RESULT = [];
@@ -308,6 +310,89 @@ export const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]
     },
   };
 };
+
+/**
+ * The function checks if the value is '${__now:date}' and replaces it with the current date in ISO format.
+ * If the value does not match '${__now:date}', it uses the provided value as is for the transformation.
+ * @param field - The name of the time field to be queried.
+ * @return A function that takes a value and an operation, and returns a formatted query string.
+ */
+
+export function timeFieldsQuery(field: string): ExpressionTransformFunction {
+  return (value: string, operation: string): string => {
+    const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
+
+    return `${field} ${operation} "${formattedValue}"`;
+  };
+}
+
+/**
+ * Transforms a field query to support both single and multi-value inputs.
+ * Returns a function that builds the correct query expression for the given field, value(s), and operation.
+ *
+ * For example:
+ * - Single value: field = "value"
+ * - Multi-value: (field = "value1" || field = "value2")
+ *
+ * @param field - The name of the field to be queried.
+ * @returns A function that takes a value and an operation, and returns a formatted query string.
+ */
+export function multipleValuesQuery(field: string): ExpressionTransformFunction {
+  return (value: string, operation: string, _options?: any) => {
+    const isMultiSelect = isMultiValueExpression(value);
+    const valuesArray = getMultipleValuesArray(value);
+    const logicalOperator = getLogicalOperator(operation);
+
+    return isMultiSelect
+      ? `(${valuesArray.map(val => buildExpression(field, val, operation)).join(` ${logicalOperator} `)})`
+      : buildExpression(field, value, operation);
+  };
+}
+
+/**
+ * Builds a query expression for a specific field, value, and operation.
+ * @param field - The name of the field to be queried.
+ * @param value - The value to be used in the query.
+ * @param operation - The operation to be applied.
+ * @returns The constructed query expression as a string.
+ */
+export function buildExpression(field: string, value: string, operation: string): string {
+  const operationConfig = Object.values(QueryBuilderOperations).find(op => op.name === operation);
+  const expressionTemplate = operationConfig?.expressionTemplate;
+
+  if (expressionTemplate) {
+    return buildExpressionFromTemplate(expressionTemplate, field, value) ?? '';
+  }
+
+  return `${field} ${operation} "${value}"`;
+}
+
+/**
+ * Checks if the given value is a multi-value expression.
+ * @param value The value to be checked.
+ * @returns True if the value is a multi-value expression, false otherwise.
+ */
+export function isMultiValueExpression(value: string): boolean {
+  return value.startsWith('{') && value.endsWith('}');
+}
+
+/**
+ * Extracts the individual values from a multi-value expression.
+ * @param value The multi-value expression to be processed.
+ * @returns An array of individual values.
+ */
+export function getMultipleValuesArray(value: string): string[] {
+  return value.replace(/({|})/g, '').split(',');
+}
+
+/**
+ * Gets the logical operator for a given query operation.
+ * @param operation The operation to be checked.
+ * @returns The logical operator as a string.
+ */
+export function getLogicalOperator(operation: string): string {
+  return (operation === QueryBuilderOperations.EQUALS.name || operation === QueryBuilderOperations.IS_NOT_BLANK.name) ? '||' : '&&';
+}
 
 async function delay(timeout: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, timeout));

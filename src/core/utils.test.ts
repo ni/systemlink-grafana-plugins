@@ -1,5 +1,5 @@
 import { BackendSrv, TemplateSrv } from "@grafana/runtime";
-import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, getVariableOptions, get, post, addOptionsToLookup } from "./utils";
+import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, getVariableOptions, get, post, addOptionsToLookup, multipleValuesQuery, timeFieldsQuery, buildExpression, isMultiValueExpression, getLogicalOperator, getMultipleValuesArray } from "./utils";
 import { BatchQueryConfig, QBField, QueryBuilderOption } from "./types";
 import { of, throwError } from 'rxjs';
 
@@ -654,5 +654,125 @@ describe('post', () => {
 
     await expect(post(mockBackendSrv, url, body)).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
     expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(4);
+  });
+});
+
+describe('timeFieldsQuery', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2025-10-10T00:00:00Z'));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('should build time field expression with the provided value', () => {
+    const transform = timeFieldsQuery('timestampField');
+
+    const result = transform('2024-10-10T12:00:00Z', '<');
+
+    expect(result).toBe('timestampField < "2024-10-10T12:00:00Z"');
+  });
+
+  it('should replace ${__now:date} with the current date in time field expression', () => {
+    const transform = timeFieldsQuery('timestampField');
+
+    const result = transform('${__now:date}', '=');
+
+    expect(result).toBe('timestampField = "2025-10-10T00:00:00.000Z"');
+  });
+});
+
+describe('multipleValuesQuery', () => {
+  it('should build expression for single value query', () => {
+    const buildExpression = multipleValuesQuery('field');
+
+    const result = buildExpression('value', '=');
+
+    expect(result).toBe('field = "value"');
+  });
+
+  it('should build expression for multi-value query', () => {
+    const buildExpression = multipleValuesQuery('field');
+
+    const result = buildExpression('{value1,value2}', '=');
+
+    expect(result).toBe('(field = "value1" || field = "value2")');
+  });
+});
+
+describe('buildExpression', () => {
+  it('should build expression from template for supported QueryBuilderOperations', () => {
+    const result = buildExpression('field', 'value', 'contains');
+
+    expect(result).toBe('field.Contains("value")');
+  });
+
+  it('should build expression with given operator when it is not defined in QueryBuilderOperations', () => {
+    const result = buildExpression('field', 'value', '===');
+
+    expect(result).toBe('field === "value"');
+  });
+});
+
+describe('isMultiValueExpression', () => {
+  it('should return true for multi-value expression', () => {
+    const result = isMultiValueExpression('{value1,value2}');
+
+    expect(result).toBe(true);
+  });
+
+  it('should return false for single value expression', () => {
+    const result = isMultiValueExpression('value1');
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('getMultipleValuesArray', () => {
+  it('should return array of values for multi-value expression', () => {
+    const result = getMultipleValuesArray('{value1,value2}');
+
+    expect(result).toEqual(['value1', 'value2']);
+  });
+
+  it('should return array of empty values for empty multi-value expression', () => {
+    const result = getMultipleValuesArray('{,}');
+
+    expect(result).toEqual(['', '']);
+  });
+
+  it('should return single value as array if not multi-value expression', () => {
+    const result = getMultipleValuesArray('value1');
+
+    expect(result).toEqual(['value1']);
+  });
+});
+
+describe('getLogicalOperator', () => {
+  [
+    {
+      name: 'equals',
+      operator: '=',
+    },
+    {
+      name: 'is not blank',
+      operator: 'isnotblank',
+    },
+  ].forEach(testCase => {
+    it(`should return OR for ${testCase.name} operator`, () => {
+      const result = getLogicalOperator(testCase.operator);
+
+      expect(result).toBe('||');
+    });
+  });
+
+  ['<>', '>', '<=', '!=', 'contains', 'startswith', 'isblank'].forEach(operator => {
+    it('should return AND for operators other than equals and is not blank', () => {
+      const result = getLogicalOperator(operator);
+
+      expect(result).toBe('&&');
+    });
   });
 });
