@@ -11,12 +11,26 @@ import { DataFrameQueryEditorCommonV1 } from "./DataFrameQueryEditorCommonV1";
 import { DataFrameQueryType, Props } from "datasources/data-frame/types";
 import { isValidId } from "datasources/data-frame/utils";
 import { decimationMethods } from "datasources/data-frame/constants";
+import { catchError, firstValueFrom, of } from "rxjs";
 
 export const DataFrameQueryEditorV1 = (props: Props) => {
     const [errorMsg, setErrorMsg] = useState<string | undefined>('');
     const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
     const common = new DataFrameQueryEditorCommonV1(props, handleError);
-    const tableProperties = useAsync(() => common.datasource.getTableProperties(common.query.tableId).catch(handleError), [common.query.tableId]);
+    const tableProperties = useAsync(
+        () =>
+          firstValueFrom(
+            common.datasource
+              .getTableProperties(common.query.tableId)
+              .pipe(
+                catchError(error => {
+                  handleError(error);
+                  return of(undefined);
+                })
+              )
+          ),
+        [common.query.tableId]
+      );
 
     const handleColumnChange = (items: Array<SelectableValue<string>>) => {
         common.handleQueryChange({ ...common.query, columns: items.map(i => i.value!) }, false);

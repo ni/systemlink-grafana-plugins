@@ -1,7 +1,7 @@
 import TTLCache from '@isaacs/ttlcache';
 import deepEqual from 'fast-deep-equal';
-import { DataQueryRequest, DataSourceInstanceSettings, FieldType, TimeRange, FieldDTO, dateTime, DataFrameDTO, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
-import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
+import { DataQueryRequest, DataSourceInstanceSettings, FieldType, TimeRange, FieldDTO, dateTime, DataFrameDTO, MetricFindValue, TestDataSourceResponse, DataQueryResponse } from '@grafana/data';
+import { BackendSrv, FetchResponse, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import {
   ColumnDataType,
   DataFrameQuery,
