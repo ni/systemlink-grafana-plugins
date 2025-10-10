@@ -311,38 +311,6 @@ export const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]
   };
 };
 
-async function delay(timeout: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, timeout));
-}
-
-async function fetch<T>(backendSrv: BackendSrv, options: BackendSrvRequest, retries = 0): Promise<T> {
-  // URL is stored and reused for each retry to ensure consistency
-  // and prevent accidental URL changes during retries
-  const url = options.url;
-
-  try {
-    return (await lastValueFrom(backendSrv.fetch<T>(options))).data;
-  } catch (error) {
-    if (isFetchError(error) && error.status === 429 && retries < 3) {
-      await sleep(Math.random() * 1000 * 2 ** retries);
-      return fetch(backendSrv, { ...options, url }, retries + 1);
-    }
-    if (isFetchError(error)) {
-      const fetchError = error as FetchError;
-      const statusCode = fetchError.status;
-      const genericErrorMessage = `Request to url "${options.url}" failed with status code: ${statusCode}.`;
-      if (statusCode === 504) {
-        throw new Error(genericErrorMessage);
-      } else {
-        const data = fetchError.data;
-        const errorMessage = data.error?.message || JSON.stringify(data);
-        throw new Error(`${genericErrorMessage} Error message: ${errorMessage}`);
-      }
-    }
-    throw error;
-  }
-}
-
 /**
  * The function checks if the value is '${__now:date}' and replaces it with the current date in ISO format.
  * If the value does not match '${__now:date}', it uses the provided value as is for the transformation.
@@ -421,4 +389,36 @@ export function getMultipleValuesArray(value: string): string[] {
  */
 export function getLogicalOperator(operation: string): string {
   return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
+}
+
+async function delay(timeout: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, timeout));
+}
+
+async function fetch<T>(backendSrv: BackendSrv, options: BackendSrvRequest, retries = 0): Promise<T> {
+  // URL is stored and reused for each retry to ensure consistency
+  // and prevent accidental URL changes during retries
+  const url = options.url;
+
+  try {
+    return (await lastValueFrom(backendSrv.fetch<T>(options))).data;
+  } catch (error) {
+    if (isFetchError(error) && error.status === 429 && retries < 3) {
+      await sleep(Math.random() * 1000 * 2 ** retries);
+      return fetch(backendSrv, { ...options, url }, retries + 1);
+    }
+    if (isFetchError(error)) {
+      const fetchError = error as FetchError;
+      const statusCode = fetchError.status;
+      const genericErrorMessage = `Request to url "${options.url}" failed with status code: ${statusCode}.`;
+      if (statusCode === 504) {
+        throw new Error(genericErrorMessage);
+      } else {
+        const data = fetchError.data;
+        const errorMessage = data.error?.message || JSON.stringify(data);
+        throw new Error(`${genericErrorMessage} Error message: ${errorMessage}`);
+      }
+    }
+    throw error;
+  }
 }
