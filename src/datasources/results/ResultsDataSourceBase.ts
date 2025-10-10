@@ -3,7 +3,6 @@ import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse } from "@grafana
 import { ProductProperties, QueryProductResponse, ResultsQuery } from "./types/types";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { getVariableOptions } from "core/utils";
-import { ExpressionTransformFunction } from "core/query-builder.utils";
 import { extractErrorInfo } from "core/errors";
 import { ResultsPropertiesOptions } from "./types/QueryResults.types";
 
