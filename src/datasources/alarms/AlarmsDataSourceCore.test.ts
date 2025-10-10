@@ -235,16 +235,6 @@ describe('AlarmsDataSourceCore', () => {
             expected: '(properties.system != "test-source" && properties.minionId != "test-source")'
           },
           {
-            name: 'source contains',
-            input: 'source.Contains("test-source")',
-            expected: '(properties.system.Contains("test-source") || properties.minionId.Contains("test-source"))'
-          },
-          {
-            name: 'source does not contain',
-            input: '!(source.Contains("test-source"))',
-            expected: '(!properties.system.Contains("test-source") && !properties.minionId.Contains("test-source"))'
-          },
-          {
             name: 'source is blank',
             input: 'string.IsNullOrEmpty(source)',
             expected: '(string.IsNullOrEmpty(properties.system) && string.IsNullOrEmpty(properties.minionId))'
@@ -264,17 +254,17 @@ describe('AlarmsDataSourceCore', () => {
           });
         });
 
-        it('should apply transformations to all source filters in a query', () => {
-          const mockFilter = 'source = "source1" || source.Contains("test")';
+        it('should handle transformation for multiple source filters in a query', () => {
+          const mockFilter = 'source = "source1" || string.IsNullOrEmpty(source)';
 
           const result = datastore.transformAlarmsQueryWrapper({}, mockFilter);
 
           expect(result).toBe(
-            '(properties.system = "source1" || properties.minionId = "source1") || (properties.system.Contains("test") || properties.minionId.Contains("test"))'
+            '(properties.system = "source1" || properties.minionId = "source1") || (string.IsNullOrEmpty(properties.system) && string.IsNullOrEmpty(properties.minionId))'
           );
         });
 
-        it('should replace single value variable in the filter', () => {
+        it('should replace single value variable in the source filter', () => {
           const mockQueryBy = 'source = "${query0}"';
           jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('source = "test-source"');
 

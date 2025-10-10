@@ -123,12 +123,12 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
     };
   }
 
-  private buildSourceExpression(val: string, operation: string, logicalOperator: string): string {
+  private buildSourceExpression(value: string, operation: string, logicalOperator: string): string {
     const systemCustomProperty = 'properties.system';
     const minionIdCustomProperty = 'properties.minionId';
 
-    const systemExpression = buildExpression(systemCustomProperty, val, operation);
-    const minionExpression = buildExpression(minionIdCustomProperty, val, operation);
+    const systemExpression = buildExpression(systemCustomProperty, value, operation);
+    const minionExpression = buildExpression(minionIdCustomProperty, value, operation);
 
     return `(${systemExpression} ${logicalOperator} ${minionExpression})`;
   }
