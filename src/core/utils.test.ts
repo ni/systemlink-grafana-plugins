@@ -1,7 +1,8 @@
 import { BackendSrv, TemplateSrv } from "@grafana/runtime";
-import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, getVariableOptions, get, post, addOptionsToLookup, multipleValuesQuery, timeFieldsQuery } from "./utils";
+import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, getVariableOptions, get, post, addOptionsToLookup, multipleValuesQuery, timeFieldsQuery, buildExpression, isMultiValueExpression, getLogicalOperator, getMultipleValuesArray } from "./utils";
 import { BatchQueryConfig, QBField, QueryBuilderOption } from "./types";
 import { of, throwError } from 'rxjs';
+import { forEach } from "lodash";
 
 const mockBackendSrv = {
   fetch: jest.fn(),
@@ -658,7 +659,7 @@ describe('post', () => {
 });
 
 describe('multipleValuesQuery', () => {
-  it('should build expression for single value', () => {
+  it('should build expression for single value query', () => {
     const buildExpression = multipleValuesQuery('field');
 
     const result = buildExpression('value', '=');
@@ -666,36 +667,94 @@ describe('multipleValuesQuery', () => {
     expect(result).toBe('field = "value"');
   });
 
-  it('should build expression for single value with unknown operator', () => {
-    const buildExpression = multipleValuesQuery('field');
-
-    const result = buildExpression('value', '===');
-
-    expect(result).toBe('field === "value"');
-  });
-
-  it('should build expression for multi-value with equals operator', () => {
+  it('should build expression for multi-value query', () => {
     const buildExpression = multipleValuesQuery('field');
 
     const result = buildExpression('{value1,value2}', '=');
 
     expect(result).toBe('(field = "value1" || field = "value2")');
   });
+});
 
-  it('should build expression for multi-value with operators other than equals', () => {
-    const buildExpression = multipleValuesQuery('field');
+describe('buildExpression', () => {
+  it('should build expression with known operator', () => {
+    const result = buildExpression('field', 'value', '=');
 
-    const result = buildExpression('{value1,value2}', '<>');
-
-    expect(result).toBe('(field != "value1" && field != "value2")');
+    expect(result).toBe('field = "value"');
   });
 
-  it('should build expression for multi-value with unknown operator', () => {
-    const buildExpression = multipleValuesQuery('field');
+  it('should build expression with unknown operator', () => {
+    const result = buildExpression('field', 'value', '===');
 
-    const result = buildExpression('{value1,value2}', '===');
+    expect(result).toBe('field === "value"');
+  });
+});
 
-    expect(result).toBe('(field === "value1" && field === "value2")');
+describe('isMultiValueExpression', () => {
+  it('should return true for multi-value expression', () => {
+    const result = isMultiValueExpression('{value1,value2}');
+
+    expect(result).toBe(true);
+  });
+
+  it('should return false for single value expression', () => {
+    const result = isMultiValueExpression('value1');
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('getMultipleValuesArray', () => {
+  it('should return array of values for multi-value expression', () => {
+    const result = getMultipleValuesArray('{value1,value2}');
+
+    expect(result).toEqual(['value1', 'value2']);
+  });
+
+  it('should trim whitespace around values', () => {
+    const result = getMultipleValuesArray('{ value1, value2 }');
+
+    expect(result).toEqual(['value1', 'value2']);
+  });
+
+  it('should return single value as array if not multi-value expression', () => {
+    const result = getMultipleValuesArray('value1');
+
+    expect(result).toEqual(['value1']);
+  });
+
+  it('should return empty array for empty multi-value expression', () => {
+    const result = getMultipleValuesArray('{}');
+
+    expect(result).toEqual([]);
+  });
+
+  it('should handle multi-value with empty values', () => {
+    const result = getMultipleValuesArray('{,value1,,value2,}');
+
+    expect(result).toEqual(['', 'value1', '', 'value2', '']);
+  });
+
+  it('should handle multi-value with only spaces', () => {
+    const result = getMultipleValuesArray('{   }');
+
+    expect(result).toEqual(['']);
+  });
+});
+
+describe('getLogicalOperator', () => {
+  it('should return OR for equals operator', () => {
+    const result = getLogicalOperator('=');
+
+    expect(result).toBe('||');
+  });
+
+  forEach(['<>', '<', 'startswith', 'contains', 'isblank'], (operator) => {
+    it(`should return AND for operator ${operator}`, () => {
+      const result = getLogicalOperator(operator);
+
+      expect(result).toBe('&&');
+    });
   });
 });
 
