@@ -23,7 +23,7 @@ export const DataTableQueryBuilderFields: Record<string, QBField> = {
         ]
     },
     ID: {
-        label: 'ID',
+        label: 'Data table ID',
         dataField: DataTableQueryBuilderFieldNames.Id,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
@@ -44,7 +44,7 @@ export const DataTableQueryBuilderFields: Record<string, QBField> = {
         ]
     },
     NAME: {
-        label: 'Name',
+        label: 'Data table name',
         dataField: DataTableQueryBuilderFieldNames.Name,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
