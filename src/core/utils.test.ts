@@ -674,7 +674,7 @@ describe('multipleValuesQuery', () => {
     expect(result).toBe('field === "value"');
   });
 
-  it('should build expressions for multi-value with equals operator', () => {
+  it('should build expression for multi-value with equals operator', () => {
     const buildExpression = multipleValuesQuery('field');
 
     const result = buildExpression('{value1,value2}', '=');
@@ -682,7 +682,7 @@ describe('multipleValuesQuery', () => {
     expect(result).toBe('(field = "value1" || field = "value2")');
   });
 
-  it('should build expressions for multi-value with operators other than equals', () => {
+  it('should build expression for multi-value with operators other than equals', () => {
     const buildExpression = multipleValuesQuery('field');
 
     const result = buildExpression('{value1,value2}', '<>');
@@ -690,7 +690,7 @@ describe('multipleValuesQuery', () => {
     expect(result).toBe('(field != "value1" && field != "value2")');
   });
 
-  it('should build expressions for multi-value with unknown operator', () => {
+  it('should build expression for multi-value with unknown operator', () => {
     const buildExpression = multipleValuesQuery('field');
 
     const result = buildExpression('{value1,value2}', '===');
@@ -709,7 +709,7 @@ describe('timeFieldsQuery', () => {
     jest.useRealTimers();
   });
 
-  it('should build expression for a regular value', () => {
+  it('should build the time field expression with the provided value', () => {
     const transform = timeFieldsQuery('timestamp');
 
     const result = transform('2024-10-10T12:00:00Z', '<');
@@ -717,7 +717,7 @@ describe('timeFieldsQuery', () => {
     expect(result).toBe('timestamp < "2024-10-10T12:00:00Z"');
   });
 
-  it('should replace ${__now:date} with current ISO string', () => {
+  it('should build the now date template variable in time field queries', () => {
     const transform = timeFieldsQuery('timestamp');
 
     const result = transform('${__now:date}', '=');
