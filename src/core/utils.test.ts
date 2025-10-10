@@ -752,14 +752,25 @@ describe('getMultipleValuesArray', () => {
 });
 
 describe('getLogicalOperator', () => {
-  it('should return OR for equals operator', () => {
-    const result = getLogicalOperator('=');
+  [
+    {
+      name: 'equals',
+      operator: '=',
+    },
+    {
+      name: 'is not blank',
+      operator: 'isnotblank',
+    },
+  ].forEach(testCase => {
+    it(`should return OR for ${testCase.name} operator`, () => {
+      const result = getLogicalOperator(testCase.operator);
 
-    expect(result).toBe('||');
+      expect(result).toBe('||');
+    });
   });
 
-  forEach(['<>', '<', 'startswith', 'contains', 'isblank'], (operator) => {
-    it('should return AND for operators other than equals', () => {
+  ['<>', '>', '<=', '!=', 'contains', 'startswith', 'isblank'].forEach(operator => {
+    it('should return AND for operators other than equals and is not blank', () => {
       const result = getLogicalOperator(operator);
 
       expect(result).toBe('&&');

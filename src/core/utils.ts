@@ -391,7 +391,7 @@ export function getMultipleValuesArray(value: string): string[] {
  * @returns The logical operator as a string.
  */
 export function getLogicalOperator(operation: string): string {
-  return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
+  return (operation === QueryBuilderOperations.EQUALS.name || operation === QueryBuilderOperations.IS_NOT_BLANK.name) ? '||' : '&&';
 }
 
 async function delay(timeout: number): Promise<void> {
