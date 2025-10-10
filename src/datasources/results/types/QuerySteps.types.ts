@@ -35,6 +35,7 @@ export const StepsPropertiesOptions = {
   WORKSPACE: 'workspace',
   KEYWORDS: 'keywords',
   PROPERTIES: 'properties',
+  PATH: 'path'
 };
 
 export enum StepsProperties {
@@ -157,6 +158,7 @@ export interface StepsResponseProperties {
   workspace?: string;
   keywords?: string[];
   properties?: { [key: string]: string };
+  path?: string;
 };
 
 export interface QueryStepsResponse {
@@ -173,10 +175,6 @@ export interface ErrorBody {
   args?: string[];
   innerErrors?: ErrorBody[];
 }
-
-export enum StepsPathProperties {
-  path = 'path'
-};
 
 export interface StepPath {
   label: string;

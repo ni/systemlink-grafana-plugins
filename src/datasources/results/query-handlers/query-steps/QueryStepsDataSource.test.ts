@@ -1339,10 +1339,10 @@ describe('QueryStepsDataSource', () => {
         {path: '    Path with spaces    '},
       ]
       backendServer.fetch
-      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
       .mockReturnValue(
         createFetchResponse({
-          paths: mockPaths,
+          steps: mockPaths,
           continuationToken: null,
         })
       );
@@ -1375,10 +1375,10 @@ describe('QueryStepsDataSource', () => {
 
     it('should return an empty array when no step paths are returned', async () => {
       backendServer.fetch
-      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
+      .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps', method: 'POST' }))
       .mockReturnValue(
         createFetchResponse({
-          paths: [],
+          steps: [],
           continuationToken: null,
         })
       );
@@ -1391,7 +1391,7 @@ describe('QueryStepsDataSource', () => {
     it('should make a single request when take is less than MAX_PATH_TAKE_PER_REQUEST', async () => {
       const mockResponses = [
         createFetchResponse({
-          paths: mockPaths.slice(0, 100),
+          steps: mockPaths.slice(0, 100),
           continuationToken: null,
         }),
       ];
@@ -1404,7 +1404,7 @@ describe('QueryStepsDataSource', () => {
       expect(backendServer.fetch).toHaveBeenNthCalledWith(
         1,
         expect.objectContaining({
-          url: '/nitestmonitor/v2/query-paths',
+          url: '/nitestmonitor/v2/query-steps',
           data: expect.objectContaining({ take: 100, continuationToken: undefined }),
         })
       );
@@ -1413,11 +1413,11 @@ describe('QueryStepsDataSource', () => {
     test('should batch requests when total number of paths matching the filter is less than requested take', async () => {
       const mockResponses = [
         createFetchResponse({
-          paths: mockPaths,
+          steps: mockPaths,
           continuationToken: 'token1',
         }),
         createFetchResponse({
-          paths: mockPaths.slice(0, 500),
+          steps: mockPaths.slice(0, 500),
           continuationToken: null,
         }),
       ];
@@ -1430,14 +1430,14 @@ describe('QueryStepsDataSource', () => {
       expect(backendServer.fetch).toHaveBeenNthCalledWith(
         1,
         expect.objectContaining({
-          url: '/nitestmonitor/v2/query-paths',
-          data: expect.objectContaining({ take: 1000, continuationToken: undefined }),
+          url: '/nitestmonitor/v2/query-steps',
+          data: expect.objectContaining({ take: 500, continuationToken: undefined }),
         })
       );
       expect(backendServer.fetch).toHaveBeenNthCalledWith(
         2,
         expect.objectContaining({
-          url: '/nitestmonitor/v2/query-paths',
+          url: '/nitestmonitor/v2/query-steps',
           data: expect.objectContaining({ take: 1000, continuationToken: 'token1' }),
         })
       );
@@ -1449,19 +1449,19 @@ describe('QueryStepsDataSource', () => {
 
       const mockResponses = [
         createFetchResponse({
-          paths: mockPaths,
+          steps: mockPaths,
           continuationToken: 'token1',
         }),
         createFetchResponse({
-          paths: mockPaths,
+          steps: mockPaths,
           continuationToken: 'token2',
         }),
         createFetchResponse({
-          paths: mockPaths,
+          steps: mockPaths,
           continuationToken: 'token3',
         }),
         createFetchResponse({
-          paths: mockPaths,
+          steps: mockPaths,
           continuationToken: null,
         }),
       ];
@@ -1483,28 +1483,28 @@ describe('QueryStepsDataSource', () => {
       expect(fetchSpy).toHaveBeenNthCalledWith(
         1,
         expect.objectContaining({
-          url: '/nitestmonitor/v2/query-paths',
-          data: expect.objectContaining({ take: 1000, continuationToken: undefined }),
+          url: '/nitestmonitor/v2/query-steps',
+          data: expect.objectContaining({ take: 500, continuationToken: undefined }),
         })
       );
       expect(fetchSpy).toHaveBeenNthCalledWith(
         2,
         expect.objectContaining({
-          url: '/nitestmonitor/v2/query-paths',
+          url: '/nitestmonitor/v2/query-steps',
           data: expect.objectContaining({ take: 1000, continuationToken: 'token1' }),
         })
       );
       expect(fetchSpy).toHaveBeenNthCalledWith(
         3,
         expect.objectContaining({
-          url: '/nitestmonitor/v2/query-paths',
+          url: '/nitestmonitor/v2/query-steps',
           data: expect.objectContaining({ take: 1000, continuationToken: 'token2' }),
         })
       );
       expect(fetchSpy).toHaveBeenNthCalledWith(
         4,
         expect.objectContaining({
-          url: '/nitestmonitor/v2/query-paths',
+          url: '/nitestmonitor/v2/query-steps',
           data: expect.objectContaining({ take: 1000, continuationToken: 'token3' }),
         })
       );
@@ -1513,7 +1513,7 @@ describe('QueryStepsDataSource', () => {
     test('should stop fetching when continuationToken is null', async () => {
       const mockResponses = [
         createFetchResponse({
-          paths: mockPaths,
+          steps: mockPaths,
           continuationToken: null,
         }),
       ];
@@ -1525,8 +1525,8 @@ describe('QueryStepsDataSource', () => {
       expect(backendServer.fetch).toHaveBeenCalledTimes(1);
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: '/nitestmonitor/v2/query-paths',
-          data: expect.objectContaining({ take: 1000, continuationToken: undefined }),
+          url: '/nitestmonitor/v2/query-steps',
+          data: expect.objectContaining({ take: 500, continuationToken: undefined }),
         })
       );
     });
@@ -1535,14 +1535,14 @@ describe('QueryStepsDataSource', () => {
       backendServer.fetch
         .mockImplementationOnce(() =>
           createFetchResponse({
-            paths: mockPaths,
+            steps: mockPaths,
             continuationToken: 'token1',
           })
         )
         .mockImplementationOnce(() => createFetchError(400)) //Error
         .mockImplementationOnce(() =>
           createFetchResponse({
-            paths: mockPaths,
+            steps: mockPaths,
             continuationToken: 'token2',
           })
         );
@@ -1550,7 +1550,7 @@ describe('QueryStepsDataSource', () => {
       const batchPromise = datastore.queryStepPathInBatches('filter', undefined, 3000, true);
 
       await expect(batchPromise).rejects.toThrow(
-        'Request to url "/nitestmonitor/v2/query-paths" failed with status code: 400. Error message: "Error"'
+        'The query failed due to the following error: (status 400) \"Error\".'
       );
       expect(backendServer.fetch).toHaveBeenCalledTimes(2);
     });
@@ -1567,19 +1567,19 @@ describe('QueryStepsDataSource', () => {
 
       const mockResponses = [
         createFetchResponse({
-          paths: mockPaths,
+          steps: mockPaths,
           continuationToken: 'token1',
         }),
         createFetchResponse({
-          paths: mockPaths,
+          steps: mockPaths,
           continuationToken: 'token2',
         }),
         createFetchResponse({
-          paths: mockPaths,
+          steps: mockPaths,
           continuationToken: 'token3',
         }),
         createFetchResponse({
-          paths: mockPaths,
+          steps: mockPaths,
           continuationToken: null,
         }),
       ];
@@ -1617,14 +1617,14 @@ describe('QueryStepsDataSource', () => {
     });
 
     it('should return unique step paths', async () => {
-      backendServer.fetch
-        .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-paths', method: 'POST' }))
-        .mockReturnValue(
-          createFetchResponse({
-            paths: [{ path: 'path1' }, { path: 'path2' }, { path: 'path1' }, { path: 'path3' }, { path: 'path2' }],
-            continuationToken: null,
-          })
-        );
+      backendServer.fetch.calledWith(requestMatching({ url: '/nitestmonitor/v2/query-steps' })).mockReturnValue(
+        createFetchResponse({
+          steps: [
+            { path: 'path1' }, { path: 'path2' }, { path: 'path1' }, { path: 'path3' }, { path: 'path2' }
+          ],
+          continuationToken: null,
+        } as unknown as QueryStepsResponse)
+      );
 
       const result = await datastore.getStepPaths('ProgramName = "Test"');
 
@@ -1699,18 +1699,31 @@ describe('QueryStepsDataSource', () => {
       );
     });
 
-    it('should contain error details when query-path error contains additional information', async () => {
+    it('should contain error details when query-steps error contains additional information', async () => {
       const error = new Error(
         `API failed Error message: ${JSON.stringify({ message: 'Detailed error message', statusCode: 500 })}`
       );
       jest.spyOn(datastore as any, 'queryResultsValues').mockResolvedValue(['name1', 'name2']);
-      jest.spyOn(datastore as any, 'queryStepPaths').mockRejectedValue(error);
+      jest.spyOn(datastore as any, 'queryStepsInBatches').mockRejectedValue(error);
 
       await datastore.getStepPaths('ProgramName = "Test"');
 
       expect(datastore.errorTitle).toBe('Warning during step paths value query');
       expect(datastore.errorDescription).toContain(
         'Some values may not be available in the query builder lookups due to the following error:Detailed error message.'
+      );
+    });
+
+    it('should include result filter in query when resultsQuery is provided', async () => {
+      const spy = jest.spyOn(datastore as any, 'queryStepPathInBatches');
+      jest.spyOn(datastore as any, 'queryResultsValues').mockResolvedValue(['name1', 'name2']);
+
+      await datastore.getStepPaths('PartNumber = "123"');
+
+      expect(spy).toHaveBeenCalledWith(
+        '(PartNumber = \"123\") && (ProgramName = \"name1\" || ProgramName = \"name2\")',
+        ['path'],
+        1000
       );
     });
   });
