@@ -343,7 +343,14 @@ async function fetch<T>(backendSrv: BackendSrv, options: BackendSrvRequest, retr
   }
 }
 
-export function multiValueVariableQuery(field: string): ExpressionTransformFunction {
+export function timeFieldsQuery(field: string): ExpressionTransformFunction {
+  return (value: string, operation: string): string => {
+    const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
+    return `${field} ${operation} "${formattedValue}"`;
+  };
+}
+
+export function multipleValuesQuery(field: string): ExpressionTransformFunction {
   return (value: string, operation: string, _options?: any) => {
     const isMultiSelect = isMultiValueExpression(value);
     const valuesArray = getMultipleValuesArray(value);
@@ -355,7 +362,7 @@ export function multiValueVariableQuery(field: string): ExpressionTransformFunct
   };
 }
 
-export function buildExpression(field: string, value: string, operation: string): string {
+function buildExpression(field: string, value: string, operation: string): string {
   const operationConfig = Object.values(QueryBuilderOperations).find(op => op.name === operation);
   const expressionTemplate = operationConfig?.expressionTemplate;
   if (expressionTemplate) {

@@ -7,7 +7,7 @@ import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/
 import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { WorkspaceUtils } from "shared/workspace.utils";
-import { getVariableOptions, multiValueVariableQuery } from "core/utils";
+import { getVariableOptions, multipleValuesQuery, timeFieldsQuery } from "core/utils";
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
@@ -68,18 +68,11 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
       return [
         dataField,
         this.isTimeField(dataField)
-          ? this.timeFieldsQuery(dataField)
-          : multiValueVariableQuery(dataField),
+          ? timeFieldsQuery(dataField)
+          : multipleValuesQuery(dataField),
       ];
     })
   );
-
-  private timeFieldsQuery(field: string): ExpressionTransformFunction {
-    return (value: string, operation: string): string => {
-      const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
-      return `${field} ${operation} "${formattedValue}"`;
-    };
-  }
 
   private isTimeField(field: string): boolean {
     return ALARMS_TIME_FIELDS.includes(field);
