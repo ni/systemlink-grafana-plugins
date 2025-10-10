@@ -1,11 +1,150 @@
-import React from "react";
+import React, { useCallback, useState } from 'react';
+import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
+import { AutoSizeInput, Collapse, InlineField, InlineLabel, MultiSelect, RadioButtonGroup } from "@grafana/ui";
+import { DataFrameQuery, DataFrameQueryType, Props } from "datasources/data-frame/types";
+import { enumToOptions, validateNumericInput } from "core/utils";
+import { TAKE_LIMIT } from 'datasources/data-frame/constants';
 
-export const DataFrameQueryEditorV2 = () => {
-    // TODO AB#3259790: Add `Data table properties` Query Builder
+export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRunQuery, datasource }: Props) => {
+    query = datasource.processQuery(query);
+
+    const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
+    const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
+
+    const handleQueryChange = useCallback(
+        (query: DataFrameQuery, runQuery = true): void => {
+            onChange(query);
+            if (runQuery) {
+                onRunQuery();
+            }
+        }, [onChange, onRunQuery]
+    );
+    const onQueryTypeChange = (queryType: DataFrameQueryType) => {
+        handleQueryChange({ ...query, type: queryType }, false);
+    };
+
+    function validateTakeValue(value: number, TAKE_LIMIT: number) {
+        if (isNaN(value) || value <= 0) {
+            return errorMessages.take.greaterOrEqualToZero;
+        }
+        if (value > TAKE_LIMIT) {
+            return errorMessages.take.lessOrEqualToTakeLimit;
+        }
+
+        return '';
+    }
+
+    function onTakeChange(event: React.FormEvent<HTMLInputElement>) {
+        const value = parseInt((event.target as HTMLInputElement).value, 10);
+        const message = validateTakeValue(value, TAKE_LIMIT);
+
+        setRecordCountInvalidMessage(message);
+    };
 
     return (
-        <div>
-            <p>DataFrame Query Editor V2 is under development.</p>
-        </div>
+        <>
+            <InlineField
+                label={labels.queryType}
+                labelWidth={inlinelabelWidth}
+                tooltip={tooltips.queryType}
+            >
+                <RadioButtonGroup
+                    options={enumToOptions(DataFrameQueryType)}
+                    value={query.type}
+                    onChange={onQueryTypeChange}
+                />
+            </InlineField>
+            {query.type === DataFrameQueryType.Properties && (<InlineField
+                label={labels.properties}
+                labelWidth={inlinelabelWidth}
+                tooltip={tooltips.properties}
+            >
+                <MultiSelect
+                    placeholder={placeholders.properties}
+                    width={valueFieldWidth}
+                    onChange={(): void => { }}
+                />
+            </InlineField>
+            )}
+            <div
+                style={{ width: getValuesInPixels(sectionWidth) }}
+            >
+                <Collapse
+                    label={labels.queryConfigurations}
+                    isOpen={isQueryConfigurationSectionOpen}
+                    collapsible={true}
+                    onToggle={() => setIsQueryConfigurationSectionOpen(!isQueryConfigurationSectionOpen)}
+                >
+                    <InlineLabel
+                        width={valueFieldWidth}
+                        tooltip={tooltips.queryByDatatableProperties}
+                    >
+                        {labels.queryByDatatableProperties}
+                    </InlineLabel>
+                    <div style={{
+                        width: getValuesInPixels(valueFieldWidth),
+                        marginBottom: getValuesInPixels(defaultMarginBottom)
+                    }}>
+                        <DataTableQueryBuilder workspaces={[]} globalVariableOptions={[]} />
+                    </div>
+
+                    {query.type === DataFrameQueryType.Properties && (
+                        <InlineField
+                            label={labels.take}
+                            labelWidth={inlinelabelWidth}
+                            tooltip={tooltips.take}
+                            invalid={!!recordCountInvalidMessage}
+                            error={recordCountInvalidMessage}
+                        >
+                            <AutoSizeInput
+                                minWidth={26}
+                                maxWidth={26}
+                                type="number"
+                                placeholder={placeholders.take}
+                                onChange={onTakeChange}
+                                onKeyDown={(event) => { validateNumericInput(event); }}
+                            />
+                        </InlineField>
+                    )}
+                </Collapse>
+            </div>
+        </>
     );
-}
+};
+
+const labels = {
+    queryType: 'Query type',
+    properties: 'Properties',
+    queryConfigurations: 'Query configurations',
+    queryByDatatableProperties: 'Query by data table properties',
+    take: 'Take',
+};
+const tooltips = {
+    queryType: 'This field specifies the query type to fetch row data or metadata associated with the data tables.',
+    queryByDatatableProperties: 'This optional field applies a filter to query data tables.',
+    take: 'This field sets the maximum number of records to return from the query.',
+    properties: 'Specifies the properties to be queried.',
+};
+const placeholders = {
+    properties: 'Select properties to fetch',
+    take: 'Enter record count'
+};
+
+const errorMessages = {
+    take: {
+        greaterOrEqualToZero: 'The take value must be greater than or equal to 0.',
+        lessOrEqualToTakeLimit: `The take value must be less than or equal to ${TAKE_LIMIT}.`
+    }
+};
+
+const getValuesInPixels = (valueInGrafanaUnits: number) => {
+    return valueInGrafanaUnits * 8 + 'px';
+};
+
+// The following values are multiples of 8 to align with Grafana's grid system, hence 25 in grafana 
+// is equal to 25*8 = 200px.
+const inlinelabelWidth = 25;
+const valueFieldWidth = 65.5;
+const inlineMarginBetweenLabelAndField = 0.5;
+const defaultMarginBottom = 1;
+const sectionWidth = inlinelabelWidth + valueFieldWidth + inlineMarginBetweenLabelAndField;
