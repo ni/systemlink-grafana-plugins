@@ -1,6 +1,6 @@
-import { SlQueryBuilder } from "core/components/SlQueryBuilder/SlQueryBuilder"
-import React, { useEffect, useMemo, useState } from "react"
-import { DataTableQueryBuilderFields, DataTableQueryBuilderStaticFields } from "../constants/DataTableQueryBuilder.constants"
+import { SlQueryBuilder } from "core/components/SlQueryBuilder/SlQueryBuilder";
+import React, { useEffect, useMemo, useState, useRef } from "react";
+import { DataTableQueryBuilderFields, DataTableQueryBuilderStaticFields } from "../constants/DataTableQueryBuilder.constants";
 import { QBField, QueryBuilderOption, Workspace } from "core/types";
 import { addOptionsToLookup, filterXSSField } from "core/utils";
 import { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
@@ -21,30 +21,29 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
 }) => {
     const [fields, setFields] = useState<QBField[]>([]);
     const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
-    const optionsRef = React.useRef<Record<string, QueryBuilderOption[]>>({});
+    const optionsRef = useRef<Record<string, QueryBuilderOption[]>>({});
 
     const workspaceField = useMemo(() => {
-        const workspaceField = DataTableQueryBuilderFields.WORKSPACE;
         if (!workspaces) {
             return null;
         }
 
-        const options = workspaces.map(({ id, name }) => ({ label: name, value: id }))
-        return addOptionsToLookup(workspaceField, options);
-    }, [workspaces])
+        const options = workspaces.map(({ id, name }) => ({ label: name, value: id }));
+        return addOptionsToLookup(DataTableQueryBuilderFields.WORKSPACE, options);
+    }, [workspaces]);
 
     const timeFields = useMemo(() => {
         const timeOptions = [
             { label: 'From', value: '${__from:date}' },
             { label: 'To', value: '${__to:date}' },
             { label: 'Now', value: '${__now:date}' },
-        ]
+        ];
 
         return [
             addOptionsToLookup(DataTableQueryBuilderFields.CREATED_AT, timeOptions),
             addOptionsToLookup(DataTableQueryBuilderFields.METADATA_MODIFIED_AT, timeOptions),
             addOptionsToLookup(DataTableQueryBuilderFields.ROWS_MODIFIED_AT, timeOptions)
-        ]
+        ];
     }, []);
 
     const callbacks = useMemo(() => {
@@ -52,17 +51,17 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
             expressionBuilderCallback: expressionBuilderCallbackWithRef(optionsRef),
             expressionReaderCallback: expressionReaderCallbackWithRef(optionsRef),
         };
-    }, [optionsRef]);
+    }, []);
 
     useEffect(() => {
-        if (!workspaceField || !timeFields) {
+        if (!workspaceField) {
             return;
         }
 
         const updatedFields = [
             ...DataTableQueryBuilderStaticFields,
-            workspaceField,
             ...timeFields,
+            workspaceField,
             DataTableQueryBuilderFields.ID,
             DataTableQueryBuilderFields.NAME,
         ].map(field => {
@@ -80,8 +79,8 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
         setFields(updatedFields);
 
         const options = Object.values(updatedFields).reduce((accumulator, fieldConfig) => {
-            if (fieldConfig.lookup) {
-                accumulator[fieldConfig.dataField!] = fieldConfig.lookup.dataSource;
+            if (fieldConfig.lookup && fieldConfig.dataField) {
+                accumulator[fieldConfig.dataField] = fieldConfig.lookup.dataSource;
             }
 
             return accumulator;
@@ -92,8 +91,6 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
         const customOperations = [
             QueryBuilderOperations.EQUALS,
             QueryBuilderOperations.DOES_NOT_EQUAL,
-            QueryBuilderOperations.STARTS_WITH,
-            QueryBuilderOperations.ENDS_WITH,
             QueryBuilderOperations.CONTAINS,
             QueryBuilderOperations.DOES_NOT_CONTAIN,
             QueryBuilderOperations.LESS_THAN,
@@ -111,11 +108,6 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
             };
         });
 
-        const customDateTimeOperations = [
-            QueryBuilderOperations.DATE_TIME_IS_BLANK,
-            QueryBuilderOperations.DATE_TIME_IS_NOT_BLANK
-        ];
-
         const keyValueOperations = [
             QueryBuilderOperations.KEY_VALUE_MATCH,
             QueryBuilderOperations.KEY_VALUE_DOES_NOT_MATCH,
@@ -123,7 +115,7 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
             QueryBuilderOperations.KEY_VALUE_DOES_NOT_CONTAINS
         ];
 
-        setOperations([...customOperations, ...customDateTimeOperations, ...keyValueOperations]);
+        setOperations([...customOperations, ...keyValueOperations]);
 
     }, [workspaceField, timeFields, globalVariableOptions, callbacks]);
 
@@ -135,5 +127,5 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
             onChange={onChange}
             value={filter}
         />
-    )
-}
+    );
+};
