@@ -1,14 +1,16 @@
 import { DataQuery } from '@grafana/schema';
 import { SystemLinkError } from "../../core/types";
 import { DataSourceJsonData, QueryEditorProps } from '@grafana/data';
-import { DataFrameDataSource } from './DataFrameDataSource';
+import { DataFrameDataSourceV1 } from './datasources/v1-datasource/DataFrameDataSourceV1';
+import { DataFrameDataSourceV2 } from './datasources/v2-datasource/DataFrameDataSourceV2';
 
 export enum DataFrameQueryType {
   Data = 'Data',
   Properties = 'Properties',
 }
 
-export interface DataFrameQuery extends DataQuery {
+export type DataFrameQuery = DataFrameQueryV1 | DataFrameQueryV2;
+export interface DataFrameQueryV1 extends DataQuery {
   type: DataFrameQueryType;
   tableId?: string;
   columns?: string[];
@@ -17,7 +19,11 @@ export interface DataFrameQuery extends DataQuery {
   applyTimeFilters?: boolean;
 }
 
-export const defaultQuery: Omit<ValidDataFrameQuery, 'refId'> = {
+export interface DataFrameQueryV2 extends DataQuery {
+  type: DataFrameQueryType;
+}
+
+export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
   type: DataFrameQueryType.Data,
   tableId: '',
   columns: [],
@@ -26,15 +32,23 @@ export const defaultQuery: Omit<ValidDataFrameQuery, 'refId'> = {
   applyTimeFilters: false
 };
 
+export const defaultQueryV2: Omit<DataFrameQueryV2, 'refId'> = {
+  type: DataFrameQueryType.Data,
+};
+
 export const DataFrameFeatureTogglesDefaults: DataFrameFeatureToggles = {
   queryByDataTableProperties: false,
 };
 
-export type ValidDataFrameQuery = DataFrameQuery & Required<Omit<DataFrameQuery, keyof DataQuery>>;
+export type ValidDataFrameQuery = ValidDataFrameQueryV1 | ValidDataFrameQueryV2;
+export type ValidDataFrameQueryV1 = DataFrameQueryV1 & Required<Omit<DataFrameQueryV1, keyof DataQuery>>;
+export type ValidDataFrameQueryV2 = DataFrameQueryV2 & Required<Omit<DataFrameQueryV2, keyof DataQuery>>;
 
 export type ColumnDataType = 'BOOL' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64' | 'STRING' | 'TIMESTAMP';
 
-export type Props = QueryEditorProps<DataFrameDataSource, DataFrameQuery, DataFrameDataSourceOptions>;
+export type Props = PropsV1 | PropsV2;
+export type PropsV1 = QueryEditorProps<DataFrameDataSourceV1, DataFrameQueryV1, DataFrameDataSourceOptions>;
+export type PropsV2 = QueryEditorProps<DataFrameDataSourceV2, DataFrameQueryV2, DataFrameDataSourceOptions>;
 
 export interface Column {
   name: string;
@@ -46,14 +60,14 @@ export interface Column {
 export interface ColumnFilter {
   column: string;
   operation:
-    | 'EQUALS'
-    | 'LESS_THAN'
-    | 'LESS_THAN_EQUALS'
-    | 'GREATER_THAN'
-    | 'GREATER_THAN_EQUALS'
-    | 'NOT_EQUALS'
-    | 'CONTAINS'
-    | 'NOT_CONTAINS';
+  | 'EQUALS'
+  | 'LESS_THAN'
+  | 'LESS_THAN_EQUALS'
+  | 'GREATER_THAN'
+  | 'GREATER_THAN_EQUALS'
+  | 'NOT_EQUALS'
+  | 'CONTAINS'
+  | 'NOT_CONTAINS';
   value: string | null;
 }
 

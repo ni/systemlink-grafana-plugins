@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { DataFrameFeatureToggles, DataFrameFeatureTogglesDefaults, Props } from '../types';
+import { DataFrameFeatureToggles, DataFrameFeatureTogglesDefaults, Props, PropsV1 } from '../types';
 import { DataFrameQueryEditorV2 } from './v2/DataFrameQueryEditorV2';
 import { DataFrameQueryEditorV1 } from './v1/DataFrameQueryEditorV1';
 
@@ -12,6 +12,6 @@ export const DataFrameQueryEditorWrapper = (props: Props) => {
   return (
     dataFrameFeatures.current.queryByDataTableProperties
       ? <DataFrameQueryEditorV2 />
-      : <DataFrameQueryEditorV1 {...props} />
+      : <DataFrameQueryEditorV1 {...props as PropsV1} />
   );
 };
