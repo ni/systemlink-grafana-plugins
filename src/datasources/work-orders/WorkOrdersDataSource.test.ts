@@ -36,6 +36,7 @@ const mockWorkOrders = {
 };
 
 jest.mock('core/utils', () => ({
+  ...jest.requireActual('core/utils'),
   queryInBatches: jest.fn(() => {
     return Promise.resolve({
       data: mockWorkOrders.workOrders,
