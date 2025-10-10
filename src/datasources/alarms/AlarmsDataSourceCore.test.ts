@@ -218,6 +218,71 @@ describe('AlarmsDataSourceCore', () => {
         expect(datastore.templateSrv.replace).toHaveBeenCalledWith('channel != "${query0}"', {});
         expect(transformQuery).toBe('(channel != "channel1" && channel != "channel2")');
       });
+
+      describe('transformSourceFilter', () => {
+        const transformationTestCases = [
+          {
+            name: 'source equals',
+            input: 'source = "test-source"',
+            expected: '(properties.system = "test-source" || properties.minionId = "test-source")'
+          },
+          {
+            name: 'source does not equal',
+            input: 'source != "test-source"',
+            expected: '(properties.system != "test-source" && properties.minionId != "test-source")'
+          },
+          {
+            name: 'source is blank',
+            input: 'string.IsNullOrEmpty(source)',
+            expected: '(string.IsNullOrEmpty(properties.system) && string.IsNullOrEmpty(properties.minionId))'
+          },
+          {
+            name: 'source is not blank',
+            input: '!string.IsNullOrEmpty(source)',
+            expected: '(!string.IsNullOrEmpty(properties.system) || !string.IsNullOrEmpty(properties.minionId))'
+          }
+        ];
+
+        transformationTestCases.forEach(({ name, input, expected }) => {
+          it(`should transform ${name} filter`, () => {
+            const result = datastore.transformAlarmsQueryWrapper({}, input);
+
+            expect(result).toBe(expected);
+          });
+        });
+
+        it('should handle transformation for multiple source filters in a query', () => {
+          const mockFilter = 'source = "source1" || string.IsNullOrEmpty(source)';
+
+          const result = datastore.transformAlarmsQueryWrapper({}, mockFilter);
+
+          expect(result).toBe(
+            '(properties.system = "source1" || properties.minionId = "source1") || (string.IsNullOrEmpty(properties.system) && string.IsNullOrEmpty(properties.minionId))'
+          );
+        });
+
+        it('should replace single value variable in the source filter', () => {
+          const mockQueryBy = 'source = "${query0}"';
+          jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('source = "test-source"');
+
+          const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockQueryBy);
+
+          expect(datastore.templateSrv.replace).toHaveBeenCalledWith('source = "${query0}"', {});
+          expect(transformQuery).toBe('(properties.system = "test-source" || properties.minionId = "test-source")');
+        });
+
+        it('should replace multiple value variable in the source filter', () => {
+          const mockFilter = 'source = "${query0}"';
+          jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('source = "{source1,source2}"');
+
+          const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockFilter);
+
+          expect(datastore.templateSrv.replace).toHaveBeenCalledWith('source = "${query0}"', {});
+          expect(transformQuery).toBe(
+            '((properties.system = "source1" || properties.minionId = "source1") || (properties.system = "source2" || properties.minionId = "source2"))'
+          );
+        });
+      });
     });
   });
 
