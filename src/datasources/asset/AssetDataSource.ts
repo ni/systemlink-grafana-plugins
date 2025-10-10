@@ -9,7 +9,6 @@ import {
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
-  AssetDataSourceOptions,
   AssetQuery,
   AssetQueryType,
   AssetQueryReturnType
@@ -25,15 +24,16 @@ import { transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { AssetVariableQuery } from './types/AssetVariableQuery.types';
 import { defaultListAssetsVariable, defaultProjectionForListAssetsVariable } from './defaults';
 import { TAKE_LIMIT } from './constants/ListAssets.constants';
+import { FeatureToggleDataSourceOptions } from 'core/feature-toggle';
 
-export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
+export class AssetDataSource extends DataSourceBase<AssetQuery, FeatureToggleDataSourceOptions> {
   private assetSummaryDataSource: AssetSummaryDataSource;
   private calibrationForecastDataSource: CalibrationForecastDataSource;
   private listAssetsDataSource: ListAssetsDataSource;
   private assetQueryReturnType: AssetQueryReturnType = AssetQueryReturnType.AssetTagPath;
 
   constructor(
-    readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,
+    readonly instanceSettings: DataSourceInstanceSettings<FeatureToggleDataSourceOptions>,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {

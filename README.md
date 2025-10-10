@@ -1,4 +1,5 @@
 # SystemLink Grafana Plugins
+
 [![Push to
 main](https://github.com/ni/systemlink-grafana-plugins/actions/workflows/push.yml/badge.svg)](https://github.com/ni/systemlink-grafana-plugins/actions/workflows/push.yml)
 
@@ -80,6 +81,92 @@ You should now be able to use the data source when building a dashboard or in
 the Explore mode. Navigating to Explore is the easiest way to begin testing the
 plugin.
 
+### Feature Toggle implementation
+
+The SystemLink Grafana plugins now support a feature flag infrastructure to enable or disable specific features dynamically. This implementation is inspired by the feature flag system used in SLE Angular Apps and is designed to work seamlessly in both development and production environments. Features can be toggled on or off without requiring a redeployment.
+
+#### Steps to Add a New Feature Toggle
+
+**Define the Feature Toggle**
+
+1. Add new entry to the `FeatureToggleNames` enum present in [feature-toggle.ts](/src/core/feature-toggle.ts).
+
+```ts
+export enum FeatureToggleNames {
+  locations = 'locations',
+  newFeature = 'newFeature', // Add your new feature toggle here
+}
+```
+
+2. Add the default configuration for the new feature toggle in the `FeatureTogglesDefaults` object.
+
+```ts
+export const FeatureTogglesDefaults: Record<FeatureToggleNames, FeatureToggle> = {
+  [FeatureToggleNames.locations]: {
+    name: 'locations',
+    enabledByDefault: false,
+    description: 'Enables location support in Asset queries.',
+  },
+  // Add your new feature toggle configuration
+  [FeatureToggleNames.newFeature]: {
+    name: 'newFeature',
+    enabledByDefault: false,
+    description: 'Description of the new feature.',
+  },
+};
+```
+
+**Use the Feature Flag in Code**
+
+1. Use the getFeatureFlagValue function to check if the feature is enabled before executing the related logic.
+
+```ts
+const isNewFeatureEnabled = getFeatureFlagValue(this.instanceSettings.jsonData, FeatureToggleNames.newFeature);
+
+if (isNewFeatureEnabled) {
+  // Execute logic for the new feature
+} else {
+  // Fallback logic
+}
+```
+
+**Update the Data Source Configuration UI (Optional)**
+
+1. This step is needed only if you want to toggle the feature flag from the data source configuration UI.
+2. Open `ConfigEditor.tsx` file of your data source and add a new `InlineField` for the feature flag in the **Features** section:
+
+```ts
+<InlineSegmentGroup>
+   <InlineField label="New Feature" labelWidth={25}>
+      <InlineSwitch
+         value={options.jsonData?.featureToggles?.newFeature ?? FeatureTogglesDefaults.newFeature.enabledByDefault}
+         onChange={handleFeatureChange('newFeature')}
+      />
+   </InlineField>
+   <Tag name="Beta" colorIndex={5} />
+</InlineSegmentGroup>
+```
+
+**Test the Feature Flag**
+
+1. Testing from local storage
+   1. Open the inspect mode and go to the Application tab. You can update the boolean value of the feature toggle.
+   2. Check whether the feature is enabled in the data source when building a dashboard.
+2. Testing from data source configuration UI
+   1. Navigate to the data sources configuration page (/datasources). You can get there by clicking the gear icon in the sidebar.
+   2. Select the plugin in the list and click on it to enter the data source settings view.
+   3. If you have created `ConfigEditor.tsx`, you can see the **Features** section in the configuration UI.
+   4. Toggle a feature and click **Save & test**.
+   5. Check whether the feature is enabled in the data source when building a dashboard.
+
+> **Note:**
+> When adding a new feature flag, it is recommended to set `enabledByDefault: false` initially and use local storage for testing purposes. This ensures that the feature is only accessible to developers or testers during the development phase.
+> Once the feature is released to customers and deemed stable, you should either:
+>
+> - Remove the feature flag from the source code entirely, or
+> - Set enabledByDefault: true to make the feature permanently available.
+>   This approach helps maintain clean and maintainable code while ensuring a smooth feature rollout process.
+
 ### Testing
 
 If you followed the steps above, a live reload script was injected into the
@@ -121,17 +208,17 @@ optional.
 
 `<type>` must be one of the following:
 
-| Type | When to use | Automatic version bump |
-| --- | --- | --- |
-| `build` | Changes that affect the build system or external dependencies | None |
-| `ci` | Changes to our CI configuration files and scripts | None |
-| `docs` | Documentation only changes | None |
-| `feat` | A new feature | Minor |
-| `fix` | A bug fix | Maintenance |
-| `perf`| A code change that improves performance | None |
-| `refactor`| A code change that neither fixes a bug nor adds a feature | None |
-| `test`| Adding missing tests or correcting existing tests | None |
-| `chore` | Changes that don't fit into the above categories | None |
+| Type       | When to use                                                   | Automatic version bump |
+| ---------- | ------------------------------------------------------------- | ---------------------- |
+| `build`    | Changes that affect the build system or external dependencies | None                   |
+| `ci`       | Changes to our CI configuration files and scripts             | None                   |
+| `docs`     | Documentation only changes                                    | None                   |
+| `feat`     | A new feature                                                 | Minor                  |
+| `fix`      | A bug fix                                                     | Maintenance            |
+| `perf`     | A code change that improves performance                       | None                   |
+| `refactor` | A code change that neither fixes a bug nor adds a feature     | None                   |
+| `test`     | Adding missing tests or correcting existing tests             | None                   |
+| `chore`    | Changes that don't fit into the above categories              | None                   |
 
 For example, if you're making a bug fix to the [Data
 frame](src/datasources/data-frame/) plugin, your PR title (and therefore the
@@ -175,4 +262,4 @@ follow the instructions.
 ### Helpful links
 
 - [Grafana plugin developer's
-guide](https://grafana.com/docs/grafana/latest/developers/plugins/)
+  guide](https://grafana.com/docs/grafana/latest/developers/plugins/)
