@@ -1,21 +1,20 @@
-import React from "react";
+import React, { useState } from 'react';
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
 import { AutoSizeInput, Collapse, InlineField, InlineLabel, MultiSelect, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQuery, DataFrameQueryType, Props } from "datasources/data-frame/types";
 import { enumToOptions } from "core/utils";
 
-export const DataFrameQueryEditorV2 = (props: Props) => {
+export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRunQuery, datasource }: Props) => {
+    query = datasource.processQuery(query);
 
-    const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = React.useState(true);
-    const query = props.datasource.processQuery(props.query);
+    const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
 
     const handleQueryChange = (value: DataFrameQuery, runQuery: boolean) => {
-        props.onChange(value);
+        onChange(value);
         if (runQuery) {
-            props.onRunQuery();
+            onRunQuery();
         }
     };
-
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
         handleQueryChange({ ...query, type: queryType }, false);
     };
