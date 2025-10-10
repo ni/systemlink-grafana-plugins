@@ -7,7 +7,7 @@ import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, tran
 import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { WorkspaceUtils } from "shared/workspace.utils";
-import { getVariableOptions } from "core/utils";
+import { buildExpression, getLogicalOperator, getMultipleValuesArray, getVariableOptions, isMultiValueExpression, multipleValuesQuery, timeFieldsQuery } from "core/utils";
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
@@ -70,12 +70,13 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
     Object.values(AlarmsQueryBuilderFields).map(field => {
       const dataField = field.dataField as string;
 
-      return [
-        dataField,
-        this.isTimeField(dataField)
-          ? timeFieldsQuery(dataField)
-          : multipleValuesQuery(dataField),
-      ];
+      if (dataField === AlarmsQueryBuilderFields.SOURCE.dataField) {
+        return [dataField, this.getSourceTransformation()];
+      } else if (this.isTimeField(dataField)) {
+        return [dataField, timeFieldsQuery(dataField)];
+      } else {
+        return [dataField, multipleValuesQuery(dataField)];
+      }
     })
   );
 
@@ -101,6 +102,35 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
 
   private isTimeField(field: string): boolean {
     return ALARMS_TIME_FIELDS.includes(field);
+  }
+
+  private getSourceTransformation(): ExpressionTransformFunction {
+    return (value: string, operation: string) => {
+      const isMultiSelect = isMultiValueExpression(value);
+      const logicalOperator = getLogicalOperator(operation);
+
+      if (isMultiSelect) {
+        const valuesArray = getMultipleValuesArray(value);
+
+        return `(${valuesArray
+          .map(val => {
+            return this.buildSourceExpression(val, operation, logicalOperator);
+          })
+          .join(` ${logicalOperator} `)})`;
+      } else {
+        return this.buildSourceExpression(value, operation, logicalOperator);
+      }
+    };
+  }
+
+  private buildSourceExpression(val: string, operation: string, logicalOperator: string): string {
+    const systemCustomProperty = 'properties.system';
+    const minionIdCustomProperty = 'properties.minionId';
+
+    const systemExpression = buildExpression(systemCustomProperty, val, operation);
+    const minionExpression = buildExpression(minionIdCustomProperty, val, operation);
+
+    return `(${systemExpression} ${logicalOperator} ${minionExpression})`;
   }
 
   private getStatusCodeErrorMessage(errorDetails: { statusCode: string; message: string }): string {
