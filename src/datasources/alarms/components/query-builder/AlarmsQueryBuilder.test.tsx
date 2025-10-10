@@ -86,6 +86,16 @@ describe('AlarmsQueryBuilder', () => {
     expect(conditionsContainer.item(0)?.textContent).toContain('Workspace Name');
   });
 
+  it('should select source in query builder', () => {
+    const { conditionsContainer } = renderElement('source = "test-source"', [], [workspace]);
+
+    expect(conditionsContainer?.length).toBe(1);
+    const conditionText = conditionsContainer.item(0)?.textContent;
+    expect(conditionText).toContain('Source');
+    expect(conditionText).toContain('equals');
+    expect(conditionText).toContain('test-source');
+  });
+
   it('should select value for alarm ID in query builder', () => {
     const { conditionsContainer } = renderElement('alarmId = "test-alarm-123"');
 
