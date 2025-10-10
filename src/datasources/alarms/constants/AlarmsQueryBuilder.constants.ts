@@ -98,7 +98,7 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
     dataField: 'currentSeverityLevel',
     filterOperations: BOOLEAN_FILTER_OPERATIONS,
     lookup: {
-        dataSource: SEVERITY_LEVELS,
+      dataSource: SEVERITY_LEVELS,
     },
   },
   DESCRIPTION: {
@@ -145,11 +145,20 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
     dataField: 'resourceType',
     filterOperations: BASIC_STRING_FILTER_OPERATIONS,
   },
+  SOURCE: {
+    label: 'Source',
+    dataField: 'source',
+    filterOperations: EXTENDED_STRING_FILTER_OPERATIONS,
+  },
   WORKSPACE: {
     label: 'Workspace',
     dataField: 'workspace',
-    filterOperations: BOOLEAN_FILTER_OPERATIONS,
-  }
+    filterOperations: [
+      ...BOOLEAN_FILTER_OPERATIONS,
+      QueryBuilderOperations.IS_BLANK.name,
+      QueryBuilderOperations.IS_NOT_BLANK.name,
+    ],
+  },
 };
 
 export const ALARMS_TIME_FIELDS = [
@@ -171,4 +180,5 @@ export const AlarmsQueryBuilderStaticFields: QBField[] = [
   AlarmsQueryBuilderFields.KEYWORD,
   AlarmsQueryBuilderFields.PROPERTIES,
   AlarmsQueryBuilderFields.RESOURCE_TYPE,
+  AlarmsQueryBuilderFields.SOURCE,
 ];
