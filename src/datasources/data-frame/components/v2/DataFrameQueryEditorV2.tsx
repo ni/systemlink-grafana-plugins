@@ -2,12 +2,14 @@ import React, { useCallback, useState } from 'react';
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
 import { AutoSizeInput, Collapse, InlineField, InlineLabel, MultiSelect, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQuery, DataFrameQueryType, Props } from "datasources/data-frame/types";
-import { enumToOptions } from "core/utils";
+import { enumToOptions, validateNumericInput } from "core/utils";
+import { TAKE_LIMIT } from 'datasources/data-frame/constants';
 
 export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRunQuery, datasource }: Props) => {
     query = datasource.processQuery(query);
 
     const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
+    const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
 
     const handleQueryChange = useCallback(
         (query: DataFrameQuery, runQuery = true): void => {
@@ -19,6 +21,24 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     );
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
         handleQueryChange({ ...query, type: queryType }, false);
+    };
+
+    function validateTakeValue(value: number, TAKE_LIMIT: number) {
+        if (isNaN(value) || value <= 0) {
+            return errorMessages.take.greaterOrEqualToZero;
+        }
+        if (value > TAKE_LIMIT) {
+            return errorMessages.take.lessOrEqualToTakeLimit;
+        }
+
+        return '';
+    }
+
+    function onTakeChange(event: React.FormEvent<HTMLInputElement>) {
+        const value = parseInt((event.target as HTMLInputElement).value, 10);
+        const message = validateTakeValue(value, TAKE_LIMIT);
+
+        setRecordCountInvalidMessage(message);
     };
 
     return (
@@ -73,12 +93,16 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             label={labels.take}
                             labelWidth={inlinelabelWidth}
                             tooltip={tooltips.take}
+                            invalid={!!recordCountInvalidMessage}
+                            error={recordCountInvalidMessage}
                         >
                             <AutoSizeInput
                                 minWidth={26}
                                 maxWidth={26}
                                 type="number"
                                 placeholder={placeholders.take}
+                                onChange={onTakeChange}
+                                onKeyDown={(event) => { validateNumericInput(event); }}
                             />
                         </InlineField>
                     )}
@@ -104,6 +128,13 @@ const tooltips = {
 const placeholders = {
     properties: 'Select properties to fetch',
     take: 'Enter record count'
+};
+
+const errorMessages = {
+    take: {
+        greaterOrEqualToZero: 'The take value must be greater than or equal to 0.',
+        lessOrEqualToTakeLimit: `The take value must be less than or equal to ${TAKE_LIMIT}.`
+    }
 };
 
 const getValuesInPixels = (valueInGrafanaUnits: number) => {
