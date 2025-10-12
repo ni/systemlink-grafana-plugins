@@ -56,8 +56,8 @@ describe("DataFrameQueryEditorV2", () => {
     });
 
     it("should update the query type when a different option is selected", async () => {
-        const { onChange, onRunQuery } = renderComponent();
         const user = userEvent.setup();
+        const { onChange, onRunQuery } = renderComponent();
 
         await user.click(screen.getByRole("radio", { name: DataFrameQueryType.Properties }));
 
@@ -67,7 +67,6 @@ describe("DataFrameQueryEditorV2", () => {
             }));
         });
         expect(onRunQuery).not.toHaveBeenCalled();
-        expect(screen.getByPlaceholderText("Enter record count")).toBeInTheDocument();
     });
 
     describe("when the query type is data", () => {

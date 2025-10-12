@@ -45,7 +45,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         <>
             <InlineField
                 label={labels.queryType}
-                labelWidth={inlinelabelWidth}
+                labelWidth={inlineLabelWidth}
                 tooltip={tooltips.queryType}
             >
                 <RadioButtonGroup
@@ -54,18 +54,21 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                     onChange={onQueryTypeChange}
                 />
             </InlineField>
-            {query.type === DataFrameQueryType.Properties && (<InlineField
-                label={labels.properties}
-                labelWidth={inlinelabelWidth}
-                tooltip={tooltips.properties}
-            >
-                <MultiSelect
-                    placeholder={placeholders.properties}
-                    width={valueFieldWidth}
-                    onChange={(): void => { }}
-                />
-            </InlineField>
+
+            {query.type === DataFrameQueryType.Properties && (
+                <InlineField
+                    label={labels.properties}
+                    labelWidth={inlineLabelWidth}
+                    tooltip={tooltips.properties}
+                >
+                    <MultiSelect
+                        placeholder={placeholders.properties}
+                        width={valueFieldWidth}
+                        onChange={(): void => { }}
+                    />
+                </InlineField>
             )}
+
             <div
                 style={{ width: getValuesInPixels(sectionWidth) }}
             >
@@ -91,7 +94,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                     {query.type === DataFrameQueryType.Properties && (
                         <InlineField
                             label={labels.take}
-                            labelWidth={inlinelabelWidth}
+                            labelWidth={inlineLabelWidth}
                             tooltip={tooltips.take}
                             invalid={!!recordCountInvalidMessage}
                             error={recordCountInvalidMessage}
@@ -106,6 +109,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             />
                         </InlineField>
                     )}
+
                 </Collapse>
             </div>
         </>
@@ -143,8 +147,8 @@ const getValuesInPixels = (valueInGrafanaUnits: number) => {
 
 // The following values are multiples of 8 to align with Grafana's grid system, hence 25 in grafana 
 // is equal to 25*8 = 200px.
-const inlinelabelWidth = 25;
+const inlineLabelWidth = 25;
 const valueFieldWidth = 65.5;
 const inlineMarginBetweenLabelAndField = 0.5;
 const defaultMarginBottom = 1;
-const sectionWidth = inlinelabelWidth + valueFieldWidth + inlineMarginBetweenLabelAndField;
+const sectionWidth = inlineLabelWidth + valueFieldWidth + inlineMarginBetweenLabelAndField;
