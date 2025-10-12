@@ -11,9 +11,9 @@ import { TAKE_LIMIT } from 'datasources/data-frame/constants';
 export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRunQuery, datasource }: Props) => {
     query = datasource.processQuery(query);
 
-    const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = React.useState(true);
+    const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
-    const [workspaces, setWorkspaces] = React.useState<Workspace[] | null>(null);
+    const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
 
     const handleQueryChange = useCallback(
         (query: DataFrameQuery, runQuery = true): void => {
@@ -26,6 +26,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
         handleQueryChange({ ...query, type: queryType }, false);
     };
+
+    const propertiesOptions = Object.entries(DataTableProjectionLabelLookup)
+        .map(([key, value]) => ({ label: value.label, value: key })) as SelectableValue[];
 
     useEffect(() => {
         const loadWorkspaces = async () => {
@@ -78,7 +81,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                         placeholder={placeholders.properties}
                         width={valueFieldWidth}
                         onChange={(): void => { }}
-                        options={Object.entries(DataTableProjectionLabelLookup).map(([key, value]) => ({ label: value.label, value: key })) as SelectableValue[]}
+                        options={propertiesOptions}
                         allowCustomValue={false}
                         closeMenuOnSelect={false}
                     />
@@ -104,7 +107,10 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                         width: getValuesInPixels(valueFieldWidth),
                         marginBottom: getValuesInPixels(defaultMarginBottom)
                     }}>
-                        <DataTableQueryBuilder workspaces={workspaces} globalVariableOptions={[]} />
+                        <DataTableQueryBuilder
+                            workspaces={workspaces}
+                            globalVariableOptions={datasource.globalVariableOptions()}
+                        />
                     </div>
 
                     {query.type === DataFrameQueryType.Properties && (

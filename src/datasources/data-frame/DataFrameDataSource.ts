@@ -18,8 +18,8 @@ import {
 import { propertiesCacheTTL } from './constants';
 import _ from 'lodash';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { replaceVariables } from 'core/utils';
-import { LEGACY_METADATA_TYPE, Workspace } from 'core/types';
+import { getVariableOptions, replaceVariables } from 'core/utils';
+import { LEGACY_METADATA_TYPE, QueryBuilderOption, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { extractErrorInfo } from 'core/errors';
 
@@ -42,6 +42,8 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataFram
   baseUrl = this.instanceSettings.url + '/nidataframe/v1';
 
   defaultQuery = defaultQuery;
+
+  readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
 
   async runQuery(query: DataFrameQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
     const processedQuery = this.processQuery(query);
