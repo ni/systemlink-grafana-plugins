@@ -4,12 +4,21 @@ import { BackendSrvRequest, FetchResponse } from '@grafana/runtime';
 
 import { DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryType, TableDataRows, TableProperties } from './types';
 import { DataFrameDataSource } from './DataFrameDataSource';
-import { LEGACY_METADATA_TYPE } from 'core/types';
+import { LEGACY_METADATA_TYPE, Workspace } from 'core/types';
+import { WorkspaceUtils } from 'shared/workspace.utils';
 
 jest.mock('@grafana/runtime', () => ({
   ...jest.requireActual('@grafana/runtime'),
   getBackendSrv: () => ({ fetch: fetchMock }),
   getTemplateSrv: () => ({ replace: replaceMock, containsTemplate: containsTemplateMock }),
+}));
+
+jest.mock('core/utils', () => ({
+  ...jest.requireActual('core/utils'),
+  getVariableOptions: jest.fn(() => [
+    { label: 'Var1', value: 'Value1' },
+    { label: 'Var2', value: 'Value2' },
+  ]),
 }));
 
 const mockVariables = [{
@@ -263,6 +272,100 @@ it('handles properties query when table has no properties', async () => {
 
   expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/nidataframe/v1/tables/2' }));
   expect(response.data[0].fields).toEqual([]);
+});
+
+it('should return global variable options', async () => {
+  const options = await ds.globalVariableOptions();
+
+  expect(options).toEqual([
+    { label: 'Var1', value: 'Value1' },
+    { label: 'Var2', value: 'Value2' },
+  ]);
+});
+
+describe('loadWorkspaces', () => {
+  it('returns workspaces', async () => {
+    jest.spyOn(WorkspaceUtils.prototype, 'getWorkspaces').mockResolvedValue(
+      new Map([
+          ['1', { id: '1', name: 'WorkspaceName' } as Workspace],
+          ['2', { id: '2', name: 'AnotherWorkspaceName' } as Workspace],
+        ])
+    );
+    
+    const result = await ds.loadWorkspaces();
+
+    expect(result.get('1')?.name).toBe('WorkspaceName');
+    expect(result.get('2')?.name).toBe('AnotherWorkspaceName');
+  });
+
+  it('should handle errors and set error and innerError fields', async () => {
+    jest.spyOn(WorkspaceUtils.prototype, 'getWorkspaces').mockRejectedValue(new Error('Error'));
+
+    await ds.loadWorkspaces();
+
+    expect(ds.errorTitle).toBe('Warning during datatables query');
+    expect(ds.errorDescription).toContain(
+      'Some values may not be available in the query builder lookups due to an unknown error.'
+    );
+  });
+
+  it('should handle errors and set innerError fields with error message detail', async () => {
+    ds.errorTitle = '';
+    jest
+      .spyOn(WorkspaceUtils.prototype, 'getWorkspaces')
+      .mockRejectedValue(
+        new Error('Request failed with status code: 500, Error message: {"message": "Internal Server Error"}')
+      );
+
+    await ds.loadWorkspaces();
+
+    expect(ds.errorTitle).toBe('Warning during datatables query');
+    expect(ds.errorDescription).toContain(
+      'Some values may not be available in the query builder lookups due to the following error: Internal Server Error.'
+    );
+  });
+
+  it('should throw timeOut error when API returns 504 status', async () => {
+    ds.errorTitle = '';
+    jest
+      .spyOn(WorkspaceUtils.prototype, 'getWorkspaces')
+      .mockRejectedValue(new Error('Request failed with status code: 504'));
+
+    await ds.loadWorkspaces();
+
+    expect(ds.errorTitle).toBe('Warning during datatables query');
+    expect(ds.errorDescription).toContain(
+      `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`
+    );
+  });
+
+  it('should throw too many requests error when API returns 429 status', async () => {
+    ds.errorTitle = '';
+    jest
+      .spyOn(WorkspaceUtils.prototype, 'getWorkspaces')
+      .mockRejectedValue(new Error('Request failed with status code: 429'));
+
+    await ds.loadWorkspaces();
+
+    expect(ds.errorTitle).toBe('Warning during datatables query');
+    expect(ds.errorDescription).toContain(
+      `The query builder lookups failed due to too many requests. Please try again later.`
+    );
+  });
+
+  it('should throw not found error when API returns 404 status', async () => {
+    ds.errorTitle = '';
+    jest
+      .spyOn(WorkspaceUtils.prototype, 'getWorkspaces')
+      .mockRejectedValue(new Error('Request failed with status code: 404'));
+
+    await ds.loadWorkspaces();
+
+    expect(ds.errorTitle).toBe('Warning during datatables query');
+    expect(ds.errorDescription).toContain(
+      `The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.`
+    );
+  });
 });
 
 const buildQuery = (targets: DataFrameQuery[]): DataQueryRequest<DataFrameQuery> => {

@@ -15,6 +15,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
     const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
 
+    const propertiesOptions = Object.entries(DataTableProjectionLabelLookup)
+        .map(([key, value]) => ({ label: value.label, value: key })) as SelectableValue[];
+
     const handleQueryChange = useCallback(
         (query: DataFrameQuery, runQuery = true): void => {
             onChange(query);
@@ -27,8 +30,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         handleQueryChange({ ...query, type: queryType }, false);
     };
 
-    const propertiesOptions = Object.entries(DataTableProjectionLabelLookup)
-        .map(([key, value]) => ({ label: value.label, value: key })) as SelectableValue[];
 
     useEffect(() => {
         const loadWorkspaces = async () => {
