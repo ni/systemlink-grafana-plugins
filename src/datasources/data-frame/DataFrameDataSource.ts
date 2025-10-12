@@ -27,8 +27,8 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataFram
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
   private readonly workspaceUtils: WorkspaceUtils;
 
-  errorTitle: string = '';
-  errorDescription: string = '';
+  errorTitle = '';
+  errorDescription = '';
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
