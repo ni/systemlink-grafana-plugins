@@ -385,6 +385,86 @@ describe('WorkOrdersDataSource', () => {
       jest.useRealTimers();
     });
 
+    test('should transform fields with is blank operation', async () => {
+      const mockQuery = {
+        refId: 'C',
+        outputType: OutputType.Properties,
+        queryBy: 'string.IsNullOrEmpty(assignedTo)',
+        properties: [WorkOrderPropertiesOptions.NAME],
+        take: 1000,
+      };
+
+      await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+      expect(datastore.queryWorkordersData).toHaveBeenCalledWith(
+        'string.IsNullOrEmpty(assignedTo)',
+        ["NAME"],
+        undefined,
+        undefined,
+        1000,
+      );
+    });
+
+    test('should transform fields with is not blank operation', async () => {
+      const mockQuery = {
+        refId: 'C',
+        outputType: OutputType.Properties,
+        queryBy: '!string.IsNullOrEmpty(assignedTo)',
+        properties: [WorkOrderPropertiesOptions.NAME],
+        take: 1000,
+      };
+
+      await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+      expect(datastore.queryWorkordersData).toHaveBeenCalledWith(
+        '!string.IsNullOrEmpty(assignedTo)',
+        ["NAME"],
+        undefined,
+        undefined,
+        1000,
+      );
+    });
+
+    test('should transform fields when queryBy contains equals operation', async () => {
+      const mockQuery = {
+        refId: 'C',
+        outputType: OutputType.Properties,
+        queryBy: 'name = "1"',
+        properties: [WorkOrderPropertiesOptions.NAME],
+        take: 1000,
+      };
+
+      await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+      expect(datastore.queryWorkordersData).toHaveBeenCalledWith(
+        'name = "1"',
+        ["NAME"],
+        undefined,
+        undefined,
+        1000,
+      );
+    });
+
+    test('should transform fields when queryBy contains not equals operation', async () => {
+      const mockQuery = {
+        refId: 'C',
+        outputType: OutputType.Properties,
+        queryBy: 'name != "1"',
+        properties: [WorkOrderPropertiesOptions.NAME],
+        take: 1000,
+      };
+
+      await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+      expect(datastore.queryWorkordersData).toHaveBeenCalledWith(
+        'name != "1"',
+        ["NAME"],
+        undefined,
+        undefined,
+        1000,
+      );
+    });
+
     test('should return type as string type', async () => {
       const mockQuery = {
         refId: 'A',

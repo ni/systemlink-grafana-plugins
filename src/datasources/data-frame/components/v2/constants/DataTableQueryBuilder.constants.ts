@@ -1,7 +1,6 @@
 import { QueryBuilderOperations } from "core/query-builder.constants";
 import { QBField } from "core/types";
 
-
 export enum DataTableQueryBuilderFieldNames {
     CreatedAt = 'createdAt',
     Id = 'id',
@@ -24,7 +23,7 @@ export const DataTableQueryBuilderFields: Record<string, QBField> = {
         ]
     },
     ID: {
-        label: 'ID',
+        label: 'Data table ID',
         dataField: DataTableQueryBuilderFieldNames.Id,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
@@ -45,7 +44,7 @@ export const DataTableQueryBuilderFields: Record<string, QBField> = {
         ]
     },
     NAME: {
-        label: 'Name',
+        label: 'Data table name',
         dataField: DataTableQueryBuilderFieldNames.Name,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
@@ -69,8 +68,9 @@ export const DataTableQueryBuilderFields: Record<string, QBField> = {
         ]
     },
     ROW_COUNT: {
-        label: 'Row count',
+        label: 'Rows',
         dataField: DataTableQueryBuilderFieldNames.RowCount,
+        dataType: 'number',
         filterOperations: [
             QueryBuilderOperations.LESS_THAN.name,
             QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
@@ -78,8 +78,7 @@ export const DataTableQueryBuilderFields: Record<string, QBField> = {
             QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name,
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name
-        ],
-        dataType: 'number'
+        ]
     },
     ROWS_MODIFIED_AT: {
         label: 'Rows modified',
@@ -92,11 +91,11 @@ export const DataTableQueryBuilderFields: Record<string, QBField> = {
     SUPPORTS_APPEND: {
         label: 'Supports append',
         dataField: DataTableQueryBuilderFieldNames.SupportsAppend,
+        dataType: 'boolean',
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name
-        ],
-        dataType: 'boolean'
+        ]
     },
     WORKSPACE: {
         label: 'Workspace',
@@ -109,10 +108,10 @@ export const DataTableQueryBuilderFields: Record<string, QBField> = {
             dataSource: []
         }
     }
-}
+};
 
 export const DataTableQueryBuilderStaticFields = [
     DataTableQueryBuilderFields.PROPERTIES,
     DataTableQueryBuilderFields.ROW_COUNT,
     DataTableQueryBuilderFields.SUPPORTS_APPEND
-]
+];

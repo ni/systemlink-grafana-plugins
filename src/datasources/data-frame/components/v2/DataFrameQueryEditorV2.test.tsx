@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
 import type { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { DataFrameQuery, DataFrameQueryType } from "datasources/data-frame/types";
@@ -56,8 +56,8 @@ describe("DataFrameQueryEditorV2", () => {
     });
 
     it("should update the query type when a different option is selected", async () => {
-        const { onChange, onRunQuery } = renderComponent();
         const user = userEvent.setup();
+        const { onChange, onRunQuery } = renderComponent();
 
         await user.click(screen.getByRole("radio", { name: DataFrameQueryType.Properties }));
 
@@ -67,42 +67,95 @@ describe("DataFrameQueryEditorV2", () => {
             }));
         });
         expect(onRunQuery).not.toHaveBeenCalled();
-        expect(screen.getByPlaceholderText("Enter record count")).toBeInTheDocument();
     });
 
-    it("should show the 'DataTableQueryBuilder' component when the query type is data", () => {
-        renderComponent();
+    describe("when the query type is data", () => {
+        beforeEach(() => {
+            renderComponent({ type: DataFrameQueryType.Data });
+        });
 
-        expect(screen.getByTestId("data-table-query-builder")).toBeInTheDocument();
+        it("should show the 'DataTableQueryBuilder' component when the query type is data", async () => {
+            await waitFor(() => {
+                expect(screen.getByTestId("data-table-query-builder")).toBeInTheDocument();
+            });
+        });
+
+        it("should hide the properties field when the query type is data", async () => {
+            await waitFor(() => {
+                expect(screen.queryByText("Select properties to fetch")).not.toBeInTheDocument();
+            });
+        });
+
+        it("should hide the take field when the query type is data", async () => {
+            await waitFor(() => {
+                expect(screen.queryByPlaceholderText("Enter record count")).not.toBeInTheDocument();
+            });
+        });
     });
 
-    it("should show the DataTableQueryBuilder component when the query type is properties", () => {
-        renderComponent({ type: DataFrameQueryType.Properties });
+    describe("when the query type is properties", () => {
+        beforeEach(() => {
+            renderComponent({ type: DataFrameQueryType.Properties });
+        });
 
-        expect(screen.getByTestId("data-table-query-builder")).toBeInTheDocument();
+        it("should show the DataTableQueryBuilder component", async () => {
+            await waitFor(() => {
+                expect(screen.getByTestId("data-table-query-builder")).toBeInTheDocument();
+            });
+        });
+
+        it("should show the properties field", async () => {
+            await waitFor(() => {
+                expect(screen.getByText("Select properties to fetch")).toBeInTheDocument();
+            });
+        });
+
+        describe("take field", () => {
+            let takeInput: HTMLElement;
+            let user: UserEvent;
+
+            beforeEach(() => {
+                takeInput = screen.getByPlaceholderText("Enter record count");
+                user = userEvent.setup();
+            });
+
+            it("should show the take field", async () => {
+                await waitFor(() => {
+                    expect(takeInput).toBeInTheDocument();
+                });
+            });
+
+            it("should allow only numeric input in the take field", async () => {
+                await user.type(takeInput, "abc");
+
+                expect(takeInput).toHaveValue(null);
+            });
+
+            it("should show an error message when the take value entered is less than or equal to 0", async () => {
+                await user.type(takeInput, "0");
+
+                await waitFor(() => {
+                    expect(screen.getByText("The take value must be greater than or equal to 0.")).toBeInTheDocument();
+                });
+            });
+
+            it("should show an error message when the take value entered is greater than 1000", async () => {
+                await user.type(takeInput, "5000");
+
+                await waitFor(() => {
+                    expect(screen.getByText("The take value must be less than or equal to 1000.")).toBeInTheDocument();
+                });
+            });
+
+            it("should not show an error message when a valid take value is entered", async () => {
+                await user.type(takeInput, "500");
+
+                await waitFor(() => {
+                    expect(screen.queryByText("The take value must be greater than or equal to 0.")).not.toBeInTheDocument();
+                    expect(screen.queryByText("The take value must be less than or equal to 1000.")).not.toBeInTheDocument();
+                });
+            });
+        });
     });
 
-    it("should show the properties field when the query type is properties", () => {
-        renderComponent({ type: DataFrameQueryType.Properties });
-
-        expect(screen.getByText("Select properties to fetch")).toBeInTheDocument();
-    });
-
-    it("should hide the properties field when the query type is data", () => {
-        renderComponent({ type: DataFrameQueryType.Data });
-
-        expect(screen.queryByText("Select properties to fetch")).not.toBeInTheDocument();
-    });
-
-    it("should show the take field when the query type is properties", () => {
-        renderComponent({ type: DataFrameQueryType.Properties });
-
-        expect(screen.getByPlaceholderText("Enter record count")).toBeInTheDocument();
-    });
-
-    it("should hide the take field when the query type is data", () => {
-        renderComponent({ type: DataFrameQueryType.Data });
-
-        expect(screen.queryByPlaceholderText("Enter record count")).not.toBeInTheDocument();
-    });
 });

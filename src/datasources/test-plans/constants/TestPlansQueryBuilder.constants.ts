@@ -22,7 +22,7 @@ export enum TestPlansQueryBuilderFieldNames {
     TestProgram = 'testProgram',
     UpdatedAt = 'updatedAt',
     UpdatedBy = 'updatedBy',
-    WorkOrderID = 'workOrderID',
+    WorkOrderID = 'workOrderId',
     Workspace = 'workspace',
 }
 
