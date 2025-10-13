@@ -97,7 +97,6 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
         this.errorDescription = errorDetails.message
           ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
           : 'Some values may not be available in the query builder lookups due to an unknown error.';
-        break;
     }
   }
 
