@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useState } from "react";
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
 import { AutoSizeInput, Collapse, InlineField, InlineLabel, MultiSelect, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQuery, DataFrameQueryType, DataTableProjectionLabelLookup, Props } from "datasources/data-frame/types";
+import { DataFrameQuery, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, Props } from "datasources/data-frame/types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { SelectableValue } from "@grafana/data";
 import { Workspace } from "core/types";
@@ -15,8 +15,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
     const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
 
-    const propertiesOptions = Object.entries(DataTableProjectionLabelLookup)
+    const getPropertiesOptions = (type: DataTableProjectionType) => Object.entries(DataTableProjectionLabelLookup)
+        .filter(([_, value]) => value.type === type)
         .map(([key, value]) => ({ label: value.label, value: key })) as SelectableValue[];
+
+    const datatablePropertiesOptions = getPropertiesOptions(DataTableProjectionType.DataTable);
+    const columnPropertiesOptions = getPropertiesOptions(DataTableProjectionType.Column);
 
     const handleQueryChange = useCallback(
         (query: DataFrameQuery, runQuery = true): void => {
@@ -73,20 +77,36 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             </InlineField>
 
             {query.type === DataFrameQueryType.Properties && (
-                <InlineField
-                    label={labels.properties}
-                    labelWidth={inlineLabelWidth}
-                    tooltip={tooltips.properties}
-                >
-                    <MultiSelect
-                        placeholder={placeholders.properties}
-                        width={valueFieldWidth}
-                        onChange={(): void => { }}
-                        options={propertiesOptions}
-                        allowCustomValue={false}
-                        closeMenuOnSelect={false}
-                    />
-                </InlineField>
+                <>
+                    <InlineField
+                        label={labels.datatableProperties}
+                        labelWidth={inlineLabelWidth}
+                        tooltip={tooltips.datatableProperties}
+                    >
+                        <MultiSelect
+                            placeholder={placeholders.datatableProperties}
+                            width={valueFieldWidth}
+                            onChange={(): void => { }}
+                            options={datatablePropertiesOptions}
+                            allowCustomValue={false}
+                            closeMenuOnSelect={false}
+                        />
+                    </InlineField>
+                    <InlineField
+                        label={labels.columnProperties}
+                        labelWidth={inlineLabelWidth}
+                        tooltip={tooltips.columnProperties}
+                    >
+                        <MultiSelect
+                            placeholder={placeholders.columnProperties}
+                            width={valueFieldWidth}
+                            onChange={(): void => { }}
+                            options={columnPropertiesOptions}
+                            allowCustomValue={false}
+                            closeMenuOnSelect={false}
+                        />
+                    </InlineField>
+                </>
             )}
 
             <div
@@ -104,6 +124,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                     >
                         {labels.queryByDatatableProperties}
                     </InlineLabel>
+
                     <div style={{
                         width: getValuesInPixels(valueFieldWidth),
                         marginBottom: getValuesInPixels(defaultMarginBottom)
@@ -142,19 +163,22 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
 const labels = {
     queryType: 'Query type',
-    properties: 'Properties',
+    datatableProperties: 'Data table properties',
+    columnProperties: 'Column properties',
     queryConfigurations: 'Query configurations',
     queryByDatatableProperties: 'Query by data table properties',
     take: 'Take',
 };
 const tooltips = {
-    queryType: 'This field specifies the query type to fetch row data or metadata associated with the data tables.',
-    queryByDatatableProperties: 'This optional field applies a filter to query data tables.',
+    queryType: 'This field specifies the type for the query that searches the data tables. The query can retrieve row data or metadata.',
+    queryByDatatableProperties: 'This optional field applies a filter to a query while searching the data tables.',
     take: 'This field sets the maximum number of records to return from the query.',
-    properties: 'Specifies the properties to be queried.',
+    datatableProperties: 'This field specifies the data table properties to be queried.',
+    columnProperties: 'This field specifies the column properties to be queried.',
 };
 const placeholders = {
-    properties: 'Select properties to fetch',
+    datatableProperties: 'Select data table properties to fetch',
+    columnProperties: 'Select column properties to fetch',
     take: 'Enter record count'
 };
 

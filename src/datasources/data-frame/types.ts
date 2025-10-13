@@ -66,69 +66,90 @@ export enum DataTableProjections {
   Properties = 'PROPERTIES'
 }
 
+export enum DataTableProjectionType {
+  DataTable = 'dataTable',
+  Column = 'column'
+}
+
 export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
   label: string,
-  projection: readonly DataTableProjections[]
+  projection: readonly DataTableProjections[],
+  type: DataTableProjectionType
 }> = {
   [DataTableProperties.Name]: {
     label: 'Data table name',
     projection: [DataTableProjections.Name],
+    type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.Id]: {
     label: 'Data table ID',
     projection: [DataTableProjections.Id],
+    type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.RowCount]: {
     label: 'Number of rows',
     projection: [DataTableProjections.RowCount],
+    type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.ColumnCount]: {
     label: 'Number of columns',
     projection: [DataTableProjections.columnCount],
+    type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.CreatedAt]: {
     label: 'Created at',
     projection: [DataTableProjections.CreatedAt],
+    type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.Workspace]: {
     label: 'Workspace',
     projection: [DataTableProjections.Workspace],
+    type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.MetadataModifiedAt]: {
     label: 'Metadata modified at',
     projection: [DataTableProjections.MetadataModifiedAt],
+    type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.MetadataRevision]: {
     label: 'Metadata revision',
     projection: [DataTableProjections.MetadataRevision],
+    type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.RowsModifiedAt]: {
     label: 'Rows modified at',
     projection: [DataTableProjections.RowsModifiedAt],
+    type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.ColumnName]: {
     label: 'Column name',
     projection: [DataTableProjections.ColumnName],
+    type: DataTableProjectionType.Column
   },
   [DataTableProperties.ColumnDataType]: {
     label: 'Column data type',
     projection: [DataTableProjections.ColumnDataType],
+    type: DataTableProjectionType.Column
   },
   [DataTableProperties.ColumnType]: {
     label: 'Column type',
     projection: [DataTableProjections.ColumnType],
+    type: DataTableProjectionType.Column
   },
   [DataTableProperties.ColumnProperties]: {
     label: 'Column properties',
     projection: [DataTableProjections.ColumnProperties],
+    type: DataTableProjectionType.Column
   },
   [DataTableProperties.SupportsAppend]: {
     label: 'Supports append',
     projection: [DataTableProjections.SupportsAppend],
+    type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.Properties]: {
     label: 'Properties',
     projection: [DataTableProjections.Properties],
+    type: DataTableProjectionType.DataTable
   },
 }
 
