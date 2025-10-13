@@ -12,10 +12,11 @@ import { QueryBuilderOperations } from "core/query-builder.constants";
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
-  private readonly queryAlarmsUrl = `${this.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`;
-  private readonly workspaceUtils: WorkspaceUtils;
   public errorTitle?: string;
   public errorDescription?: string;
+
+  private readonly queryAlarmsUrl = `${this.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`;
+  private readonly workspaceUtils: WorkspaceUtils;
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
