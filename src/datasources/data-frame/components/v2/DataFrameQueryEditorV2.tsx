@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useState } from "react";
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
-import { AutoSizeInput, Collapse, InlineField, InlineLabel, MultiSelect, RadioButtonGroup } from "@grafana/ui";
+import { AutoSizeInput, Collapse, InlineField, InlineLabel, InlineSwitch, MultiSelect, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQuery, DataFrameQueryType, DataTableProjectionLabelLookup, Props } from "datasources/data-frame/types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { SelectableValue } from "@grafana/data";
@@ -12,6 +12,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     query = datasource.processQuery(query);
 
     const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
+    const [isColumnConfigurationSectionOpen, setIsColumnConfigurationSectionOpen] = useState(true);
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
     const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
 
@@ -28,6 +29,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     );
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
         handleQueryChange({ ...query, type: queryType }, false);
+    };
+    const onColumnChange = (items: Array<SelectableValue<string>>) => {
+        handleQueryChange({ ...query, columns: items.map(i => i.value!) }, false);
     };
 
 
@@ -135,6 +139,46 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
                 </Collapse>
             </div>
+
+            {query.type === DataFrameQueryType.Data && (
+                <div
+                    style={{ width: getValuesInPixels(sectionWidth) }}
+                >
+                    <Collapse
+                        label={labels.columnConfigurations}
+                        isOpen={isColumnConfigurationSectionOpen}
+                        collapsible={true}
+                        onToggle={() => setIsColumnConfigurationSectionOpen(!isColumnConfigurationSectionOpen)}
+                    >
+                        <InlineField
+                            label={labels.columns}
+                            labelWidth={inlineLabelWidth}
+                            tooltip={tooltips.columns}
+                        >
+                            <MultiSelect
+                                onChange={onColumnChange}
+                                options={[]}
+                                allowCustomValue={false}
+                            />
+                        </InlineField>
+                        <InlineField
+                            label={labels.filterNulls}
+                            labelWidth={inlineLabelWidth}
+                            tooltip={tooltips.filterNulls}>
+                            <InlineSwitch
+                            />
+                        </InlineField>
+                        <InlineField
+                            label={labels.includeIndexColumns}
+                            labelWidth={inlineLabelWidth}
+                            tooltip={tooltips.includeIndexColumns}>
+                            <InlineSwitch
+                            />
+                        </InlineField>
+                    </Collapse>
+                </div>
+            )}
+
             <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
         </>
     );
@@ -144,7 +188,11 @@ const labels = {
     queryType: 'Query type',
     properties: 'Properties',
     queryConfigurations: 'Query configurations',
+    columnConfigurations: 'Column configurations',
     queryByDatatableProperties: 'Query by data table properties',
+    columns: 'Columns',
+    filterNulls: 'Filter nulls',
+    includeIndexColumns: 'Include index columns',
     take: 'Take',
 };
 const tooltips = {
@@ -152,6 +200,9 @@ const tooltips = {
     queryByDatatableProperties: 'This optional field applies a filter to query data tables.',
     take: 'This field sets the maximum number of records to return from the query.',
     properties: 'Specifies the properties to be queried.',
+    columns: 'Specifies the columns to include in the response data.',
+    filterNulls: `Specifies whether to filter out null and NaN values before decimating the data.`,
+    includeIndexColumns: 'Specifies whether to include index columns in the response data.'
 };
 const placeholders = {
     properties: 'Select properties to fetch',
