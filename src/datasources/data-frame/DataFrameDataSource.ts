@@ -37,7 +37,7 @@ export class DataFrameDataSource extends DataFrameDatasourceBase {
     return this.datasource.metricFindQuery(query);
   }
 
-  async getTableProperties(id?: string): Promise<any> {
+  async getTableProperties(id?: string): Promise<TableProperties> {
     return this.datasource.getTableProperties(id);
   }
 
