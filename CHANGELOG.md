@@ -1,3 +1,9 @@
+## [4.19.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.18.1...v4.19.0) (2025-10-13)
+
+### Features
+
+* **dataframes:** Add query type control ([#422](https://github.com/ni/systemlink-grafana-plugins/issues/422)) ([e6c17ce](https://github.com/ni/systemlink-grafana-plugins/commit/e6c17ce08bb1430a2707eb19fb8a4e3ca63247b4))
+
 ## [4.18.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.18.0...v4.18.1) (2025-10-13)
 
 ### Bug Fixes
