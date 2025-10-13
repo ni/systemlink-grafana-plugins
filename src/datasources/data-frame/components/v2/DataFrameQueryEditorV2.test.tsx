@@ -80,9 +80,15 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
-        it("should hide the properties field when the query type is data", async () => {
+        it("should hide the datatable properties field when the query type is data", async () => {
             await waitFor(() => {
-                expect(screen.queryByText("Select properties to fetch")).not.toBeInTheDocument();
+                expect(screen.queryByText("Select datatable properties to fetch")).not.toBeInTheDocument();
+            });
+        });
+
+        it("should hide the column properties field when the query type is data", async () => {
+            await waitFor(() => {
+                expect(screen.queryByText("Select column properties to fetch")).not.toBeInTheDocument();
             });
         });
 
@@ -104,9 +110,15 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
-        it("should show the properties field", async () => {
+        it("should show the datatable properties field", async () => {
             await waitFor(() => {
-                expect(screen.getByText("Select properties to fetch")).toBeInTheDocument();
+                expect(screen.getByText("Select datatable properties to fetch")).toBeInTheDocument();
+            });
+        });
+
+        it("should show the column properties field", async () => {
+            await waitFor(() => {
+                expect(screen.getByText("Select column properties to fetch")).toBeInTheDocument();
             });
         });
 

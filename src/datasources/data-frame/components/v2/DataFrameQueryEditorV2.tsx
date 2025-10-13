@@ -56,17 +56,30 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             </InlineField>
 
             {query.type === DataFrameQueryType.Properties && (
-                <InlineField
-                    label={labels.properties}
-                    labelWidth={inlineLabelWidth}
-                    tooltip={tooltips.properties}
-                >
-                    <MultiSelect
-                        placeholder={placeholders.properties}
-                        width={valueFieldWidth}
-                        onChange={(): void => { }}
-                    />
-                </InlineField>
+                <>
+                    <InlineField
+                        label={labels.datatableProperties}
+                        labelWidth={inlineLabelWidth}
+                        tooltip={tooltips.datatableProperties}
+                    >
+                        <MultiSelect
+                            placeholder={placeholders.datatableProperties}
+                            width={valueFieldWidth}
+                            onChange={(): void => { }}
+                        />
+                    </InlineField>
+                    <InlineField
+                        label={labels.columnProperties}
+                        labelWidth={inlineLabelWidth}
+                        tooltip={tooltips.columnProperties}
+                    >
+                        <MultiSelect
+                            placeholder={placeholders.columnProperties}
+                            width={valueFieldWidth}
+                            onChange={(): void => { }}
+                        />
+                    </InlineField>
+                </>
             )}
 
             <div
@@ -118,19 +131,22 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
 const labels = {
     queryType: 'Query type',
-    properties: 'Properties',
+    datatableProperties: 'Datatable properties',
+    columnProperties: 'Column properties',
     queryConfigurations: 'Query configurations',
     queryByDatatableProperties: 'Query by data table properties',
     take: 'Take',
 };
 const tooltips = {
-    queryType: 'This field specifies the query type to fetch row data or metadata associated with the data tables.',
-    queryByDatatableProperties: 'This optional field applies a filter to query data tables.',
+    queryType: 'This field specifies the type for the query that searches the data tables. The query can retrieve row data or metadata.',
+    queryByDatatableProperties: 'This optional field applies a filter to a query while searching the data tables.',
     take: 'This field sets the maximum number of records to return from the query.',
-    properties: 'Specifies the properties to be queried.',
+    datatableProperties: 'This field specifies the datatable properties to be queried.',
+    columnProperties: 'This field specifies the column properties to be queried.',
 };
 const placeholders = {
-    properties: 'Select properties to fetch',
+    datatableProperties: 'Select datatable properties to fetch',
+    columnProperties: 'Select column properties to fetch',
     take: 'Enter record count'
 };
 
