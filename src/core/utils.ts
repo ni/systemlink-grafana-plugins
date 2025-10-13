@@ -312,7 +312,7 @@ export const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]
 };
 
 /**
- * The function checks if the value is '${__now:date}' and replaces it with the current date in ISO format.
+ * Checks if the value is '${__now:date}' and replaces it with the current date in ISO format.
  * If the value does not match '${__now:date}', it uses the provided value as is for the transformation.
  * @param field - The name of the time field to be queried.
  * @return A function that takes a value and an operation, and returns a formatted query string.
@@ -331,8 +331,13 @@ export function timeFieldsQuery(field: string): ExpressionTransformFunction {
  * Returns a function that builds the correct query expression for the given field, value(s), and operation.
  *
  * For example:
- * - Single value: field = "value"
- * - Multi-value: (field = "value1" || field = "value2")
+ * Single value:
+ * Input: field = "status", value = "active", operation = "="
+ * Output: status = "active"
+ *
+ * Multi-value:
+ * Input: field = "status", value = "{active,pending}", operation = "<>"
+ * Output: (status != "active" && status != "pending")
  *
  * @param field - The name of the field to be queried.
  * @returns A function that takes a value and an operation, and returns a formatted query string.
@@ -391,7 +396,11 @@ export function getMultipleValuesArray(value: string): string[] {
  * @returns The logical operator as a string.
  */
 export function getLogicalOperator(operation: string): string {
-  return (operation === QueryBuilderOperations.EQUALS.name || operation === QueryBuilderOperations.IS_NOT_BLANK.name) ? '||' : '&&';
+  return operation === QueryBuilderOperations.EQUALS.name ||
+    operation === QueryBuilderOperations.IS_NOT_BLANK.name ||
+    operation === QueryBuilderOperations.CONTAINS.name
+    ? '||'
+    : '&&';
 }
 
 async function delay(timeout: number): Promise<void> {

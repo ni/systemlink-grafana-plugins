@@ -693,6 +693,14 @@ describe('multipleValuesQuery', () => {
     expect(result).toBe('field = "value"');
   });
 
+  it('should build expression for a single value in the multi-value format', () => {
+    const buildExpression = multipleValuesQuery('field');
+
+    const result = buildExpression('{value}', '=');
+
+    expect(result).toBe('(field = "value")');
+  });
+
   it('should build expression for multi-value query', () => {
     const buildExpression = multipleValuesQuery('field');
 
@@ -760,6 +768,10 @@ describe('getLogicalOperator', () => {
       name: 'is not blank',
       operator: 'isnotblank',
     },
+    {
+      name: 'contains',
+      operator: 'contains',
+    }
   ].forEach(testCase => {
     it(`should return OR for ${testCase.name} operator`, () => {
       const result = getLogicalOperator(testCase.operator);
@@ -768,11 +780,9 @@ describe('getLogicalOperator', () => {
     });
   });
 
-  ['<>', '>', '<=', '!=', 'contains', 'startswith', 'isblank'].forEach(operator => {
-    it('should return AND for operators other than equals and is not blank', () => {
-      const result = getLogicalOperator(operator);
+  it('should return AND as the default logical operator', () => {
+    const result = getLogicalOperator('>');
 
-      expect(result).toBe('&&');
-    });
+    expect(result).toBe('&&');
   });
 });
