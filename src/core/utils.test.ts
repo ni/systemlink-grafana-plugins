@@ -1,19 +1,11 @@
+import { BackendSrv, TemplateSrv } from "@grafana/runtime";
+import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, getVariableOptions, get, post, addOptionsToLookup } from "./utils";
+import { BatchQueryConfig, QBField, QueryBuilderOption } from "./types";
+import { of, throwError } from 'rxjs';
+
 const mockBackendSrv = {
   fetch: jest.fn(),
 } as unknown as BackendSrv;
-
-jest.mock('./utils', () => {
-  const actual = jest.requireActual('./utils');
-  return {
-    ...actual,
-    sleep: jest.fn(),
-  };
-});
-
-import { BackendSrv, TemplateSrv } from "@grafana/runtime";
-import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, getVariableOptions, get, post, addOptionsToLookup, sleep } from "./utils";
-import { BatchQueryConfig, QBField, QueryBuilderOption } from "./types";
-import { of, throwError } from 'rxjs';
 
 test('enumToOptions', () => {
   enum fakeStringEnum {
@@ -603,18 +595,17 @@ describe('get', () => {
   });
 
   it('should stop retrying after 3 failed attempts with 429', async () => {
-    (sleep as jest.Mock).mockResolvedValue(undefined);
+    jest.useFakeTimers();
+    jest.spyOn(global.Math, 'random').mockReturnValue(0);
+    (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => ({ status: 429, data: {} })));
 
-    const error = {
-      status: 429,
-      data: {},
-      statusText: 'Too Many Requests',
-      config: {},
-    };
-    (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => error));
+    const promise = get(mockBackendSrv, url, params);
 
-    await expect(get(mockBackendSrv, url, params)).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
+    jest.advanceTimersByTime(2000);
+
+    await expect(promise).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
     expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(4);
+    jest.useRealTimers();
   });
 });
 
@@ -658,17 +649,15 @@ describe('post', () => {
   });
 
   it('should stop retrying after 3 failed attempts with 429', async () => {
-    (sleep as jest.Mock).mockResolvedValue(undefined);
-
-    const error = {
-      status: 429,
-      data: {},
-      statusText: 'Too Many Requests',
-      config: {},
-    };
-    (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => error));
-
-    await expect(post(mockBackendSrv, url, body)).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
+    jest.useFakeTimers();
+    jest.spyOn(global.Math, 'random').mockReturnValue(0);
+    (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => ({ status: 429, data: {} })));
+    
+    const promise = post(mockBackendSrv, url, body);
+    jest.advanceTimersByTime(3000);
+  
+    await expect(promise).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
     expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(4);
+    jest.useRealTimers();
   });
 });
