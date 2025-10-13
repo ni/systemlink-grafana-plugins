@@ -1,3 +1,37 @@
+## [4.19.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.18.1...v4.19.0) (2025-10-13)
+
+### Features
+
+* **dataframes:** Add query type control ([#422](https://github.com/ni/systemlink-grafana-plugins/issues/422)) ([e6c17ce](https://github.com/ni/systemlink-grafana-plugins/commit/e6c17ce08bb1430a2707eb19fb8a4e3ca63247b4))
+
+## [4.18.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.18.0...v4.18.1) (2025-10-13)
+
+### Bug Fixes
+
+* **results-datasource:** Show only step paths based on results query builder ([#424](https://github.com/ni/systemlink-grafana-plugins/issues/424)) ([1a6ca95](https://github.com/ni/systemlink-grafana-plugins/commit/1a6ca95a4acb0747c43ecb8d9532aaca82cccacc))
+
+## [4.18.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.17.0...v4.18.0) (2025-10-10)
+
+### Features
+
+* **dataframe:** Add query builder component ([#411](https://github.com/ni/systemlink-grafana-plugins/issues/411)) ([2936910](https://github.com/ni/systemlink-grafana-plugins/commit/293691047d1c1b3478a2efeca148a838e862ef52))
+
+## [4.17.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.16.0...v4.17.0) (2025-10-09)
+
+### Features
+
+* **alarms:** Support filtering alarms by workspace ([#419](https://github.com/ni/systemlink-grafana-plugins/issues/419)) ([fdf26ea](https://github.com/ni/systemlink-grafana-plugins/commit/fdf26ea8a1396b4e362ddd54ced8011561dcf9d6))
+
+## [4.16.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.15.0...v4.16.0) (2025-10-09)
+
+### Features
+
+* **alarms:** Add support for global variable workflow ([#415](https://github.com/ni/systemlink-grafana-plugins/issues/415)) ([0e48872](https://github.com/ni/systemlink-grafana-plugins/commit/0e488720098364cb32cdd140509d7d62a19d0b19))
+
+### Bug Fixes
+
+* **testplans, workorders, products, results:** Fix isblank and is not blank operation not working  ([#429](https://github.com/ni/systemlink-grafana-plugins/issues/429)) ([bdacd13](https://github.com/ni/systemlink-grafana-plugins/commit/bdacd1323c4d169159ff97c92577fbfc09ce8058))
+
 ## [4.15.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.14.0...v4.15.0) (2025-10-06)
 
 ### Features
