@@ -131,7 +131,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
 const labels = {
     queryType: 'Query type',
-    datatableProperties: 'Datatable properties',
+    datatableProperties: 'Data table properties',
     columnProperties: 'Column properties',
     queryConfigurations: 'Query configurations',
     queryByDatatableProperties: 'Query by data table properties',
@@ -141,11 +141,11 @@ const tooltips = {
     queryType: 'This field specifies the type for the query that searches the data tables. The query can retrieve row data or metadata.',
     queryByDatatableProperties: 'This optional field applies a filter to a query while searching the data tables.',
     take: 'This field sets the maximum number of records to return from the query.',
-    datatableProperties: 'This field specifies the datatable properties to be queried.',
+    datatableProperties: 'This field specifies the data table properties to be queried.',
     columnProperties: 'This field specifies the column properties to be queried.',
 };
 const placeholders = {
-    datatableProperties: 'Select datatable properties to fetch',
+    datatableProperties: 'Select data table properties to fetch',
     columnProperties: 'Select column properties to fetch',
     take: 'Enter record count'
 };
