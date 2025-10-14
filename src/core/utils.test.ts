@@ -6,7 +6,7 @@ jest.mock('./utils', () => {
   const actual = jest.requireActual('./utils');
   return {
     ...actual,
-    delay: jest.fn(),
+    delay: jest.fn(() => Promise.resolve()),
   };
 });
 
