@@ -1,7 +1,7 @@
 import React from "react";
 import { render } from "@testing-library/react";
 import { DataFrameQueryEditorWrapper } from "./DataFrameQueryEditorWrapper";
-import { DataFrameDataSource } from "../DataFrameDataSource";
+import { DataFrameDataSourceV1 } from "../DataFrameDataSourceV1";
 import { DataFrameQuery, DataFrameQueryType, Props } from "../types";
 
 jest.mock('./v1/DataFrameQueryEditorV1', () => ({
@@ -21,7 +21,7 @@ describe('DataFrameQueryEditorWrapper', () => {
                 },
             },
         },
-    } as unknown as DataFrameDataSource;
+    } as unknown as DataFrameDataSourceV1;
     const mockQuery = {
         type: DataFrameQueryType.Data
     } as unknown as DataFrameQuery

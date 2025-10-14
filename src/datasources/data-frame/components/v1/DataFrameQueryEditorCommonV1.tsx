@@ -2,11 +2,11 @@ import { CoreApp, SelectableValue } from "@grafana/data";
 import { LoadOptionsCallback } from "@grafana/ui";
 import { getWorkspaceName, getVariableOptions } from "core/utils";
 import _ from "lodash";
-import { DataFrameDataSource } from "../../DataFrameDataSource";
+import { DataFrameDataSourceV1 } from "../../DataFrameDataSourceV1";
 import { DataFrameQuery, DataFrameQueryType, Props, ValidDataFrameQuery } from "../../types";
 
 export class DataFrameQueryEditorCommonV1 {
-  readonly datasource: DataFrameDataSource;
+  readonly datasource: DataFrameDataSourceV1;
   readonly onChange: (value: DataFrameQuery) => void;
   readonly query: ValidDataFrameQuery;
   readonly onRunQuery: () => false | void;

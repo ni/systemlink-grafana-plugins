@@ -2,13 +2,13 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { select } from 'react-select-event';
 import { setupDataSource } from 'test/fixtures';
-import { DataFrameDataSource } from '../../DataFrameDataSource';
+import { DataFrameDataSourceV1 } from '../../DataFrameDataSourceV1';
 import { DataFrameQuery } from '../../types';
 import { DataFrameVariableQueryEditorV1 } from './DataFrameVariableQueryEditorV1';
 
 const onChange = jest.fn();
 const onRunQuery = jest.fn();
-const [datasource] = setupDataSource(DataFrameDataSource);
+const [datasource] = setupDataSource(DataFrameDataSourceV1);
 
 test('renders with no data table selected', async () => {
   render(<DataFrameVariableQueryEditorV1 {...{ onChange, onRunQuery, datasource, query: '' as unknown as DataFrameQuery }} />);

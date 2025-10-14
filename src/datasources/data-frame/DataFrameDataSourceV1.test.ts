@@ -3,7 +3,7 @@ import { DataQueryRequest, DataSourceInstanceSettings, dateTime, Field, FieldTyp
 import { BackendSrvRequest, FetchResponse } from '@grafana/runtime';
 
 import { DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryType, TableDataRows, TableProperties } from './types';
-import { DataFrameDataSource } from './DataFrameDataSource';
+import { DataFrameDataSourceV1 } from './DataFrameDataSourceV1';
 import { LEGACY_METADATA_TYPE } from 'core/types';
 
 jest.mock('@grafana/runtime', () => ({
@@ -27,7 +27,7 @@ const replaceMock = jest.fn((variable: string) => {
 });
 const containsTemplateMock = jest.fn((a: string) => mockVariables.map(v => `$${v.name}`).includes(a));
 
-let ds: DataFrameDataSource;
+let ds: DataFrameDataSourceV1;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -35,7 +35,7 @@ beforeEach(() => {
     url: '_',
     name: 'SystemLink Data Frames',
   };
-  ds = new DataFrameDataSource(instanceSettings as DataSourceInstanceSettings<DataFrameDataSourceOptions>);
+  ds = new DataFrameDataSourceV1(instanceSettings as DataSourceInstanceSettings<DataFrameDataSourceOptions>);
   setupFetchMock();
 });
 
