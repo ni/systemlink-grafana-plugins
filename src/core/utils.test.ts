@@ -708,53 +708,21 @@ describe('multipleValuesQuery', () => {
 
     expect(result).toBe('(field = "value1" || field = "value2")');
   });
-});
 
-describe('buildExpression', () => {
-  it('should build expression from template for supported QueryBuilderOperations', () => {
-    const result = buildExpression('field', 'value', 'contains');
+  it('should build expression for multi-value query with empty values', () => {
+    const buildExpression = multipleValuesQuery('field');
 
-    expect(result).toBe('field.Contains("value")');
+    const result = buildExpression('{,value2,}', '=');
+
+    expect(result).toBe('(field = "" || field = "value2" || field = "")');
   });
 
-  it('should build expression with given operator when it is not defined in QueryBuilderOperations', () => {
-    const result = buildExpression('field', 'value', '===');
+  it('should use default transformation with operator as-is when not defined in QueryBuilderOperations', () => {
+    const buildExpression = multipleValuesQuery('field');
 
-    expect(result).toBe('field === "value"');
-  });
-});
+    const result = buildExpression('{value1,value2}', '===');
 
-describe('isMultiValueExpression', () => {
-  it('should return true for multi-value expression', () => {
-    const result = isMultiValueExpression('{value1,value2}');
-
-    expect(result).toBe(true);
-  });
-
-  it('should return false for single value expression', () => {
-    const result = isMultiValueExpression('value1');
-
-    expect(result).toBe(false);
-  });
-});
-
-describe('getMultipleValuesArray', () => {
-  it('should return array of values for multi-value expression', () => {
-    const result = getMultipleValuesArray('{value1,value2}');
-
-    expect(result).toEqual(['value1', 'value2']);
-  });
-
-  it('should return array of empty values for empty multi-value expression', () => {
-    const result = getMultipleValuesArray('{,}');
-
-    expect(result).toEqual(['', '']);
-  });
-
-  it('should return single value as array if not multi-value expression', () => {
-    const result = getMultipleValuesArray('value1');
-
-    expect(result).toEqual(['value1']);
+    expect(result).toBe('(field === "value1" && field === "value2")');
   });
 });
 

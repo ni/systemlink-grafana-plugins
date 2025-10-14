@@ -355,13 +355,26 @@ export function multipleValuesQuery(field: string): ExpressionTransformFunction 
 }
 
 /**
+ * Gets the logical operator for a given query operation.
+ * @param operation The operation to be checked.
+ * @returns The logical operator as a string.
+ */
+export function getLogicalOperator(operation: string): string {
+  return operation === QueryBuilderOperations.EQUALS.name ||
+    operation === QueryBuilderOperations.IS_NOT_BLANK.name ||
+    operation === QueryBuilderOperations.CONTAINS.name
+    ? '||'
+    : '&&';
+}
+
+/**
  * Builds a query expression for a specific field, value, and operation.
  * @param field - The name of the field to be queried.
  * @param value - The value to be used in the query.
  * @param operation - The operation to be applied.
  * @returns The constructed query expression as a string.
  */
-export function buildExpression(field: string, value: string, operation: string): string {
+function buildExpression(field: string, value: string, operation: string): string {
   const operationConfig = Object.values(QueryBuilderOperations).find(op => op.name === operation);
   const expressionTemplate = operationConfig?.expressionTemplate;
 
@@ -377,7 +390,7 @@ export function buildExpression(field: string, value: string, operation: string)
  * @param value The value to be checked.
  * @returns True if the value is a multi-value expression, false otherwise.
  */
-export function isMultiValueExpression(value: string): boolean {
+function isMultiValueExpression(value: string): boolean {
   return value.startsWith('{') && value.endsWith('}');
 }
 
@@ -386,21 +399,8 @@ export function isMultiValueExpression(value: string): boolean {
  * @param value The multi-value expression to be processed.
  * @returns An array of individual values.
  */
-export function getMultipleValuesArray(value: string): string[] {
+function getMultipleValuesArray(value: string): string[] {
   return value.replace(/({|})/g, '').split(',');
-}
-
-/**
- * Gets the logical operator for a given query operation.
- * @param operation The operation to be checked.
- * @returns The logical operator as a string.
- */
-export function getLogicalOperator(operation: string): string {
-  return operation === QueryBuilderOperations.EQUALS.name ||
-    operation === QueryBuilderOperations.IS_NOT_BLANK.name ||
-    operation === QueryBuilderOperations.CONTAINS.name
-    ? '||'
-    : '&&';
 }
 
 async function delay(timeout: number): Promise<void> {
