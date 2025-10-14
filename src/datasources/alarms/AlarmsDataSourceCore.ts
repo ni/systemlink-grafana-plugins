@@ -7,7 +7,7 @@ import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, tran
 import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { WorkspaceUtils } from "shared/workspace.utils";
-import { buildExpression, getLogicalOperator, getMultipleValuesArray, getVariableOptions, isMultiValueExpression, multipleValuesQuery, timeFieldsQuery } from "core/utils";
+import { getLogicalOperator, getVariableOptions, multipleValuesQuery, timeFieldsQuery } from "core/utils";
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
@@ -106,31 +106,14 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
 
   private getSourceTransformation(): ExpressionTransformFunction {
     return (value: string, operation: string) => {
-      const isMultiSelect = isMultiValueExpression(value);
+      const systemCustomProperty = 'properties.system';
+      const minionIdCustomProperty = 'properties.minionId';
+      const systemExpression = multipleValuesQuery(systemCustomProperty)(value, operation);
+      const minionExpression = multipleValuesQuery(minionIdCustomProperty)(value, operation);
       const logicalOperator = getLogicalOperator(operation);
 
-      if (isMultiSelect) {
-        const valuesArray = getMultipleValuesArray(value);
-
-        return `(${valuesArray
-          .map(val => {
-            return this.buildSourceExpression(val, operation, logicalOperator);
-          })
-          .join(` ${logicalOperator} `)})`;
-      } else {
-        return this.buildSourceExpression(value, operation, logicalOperator);
-      }
+      return `(${systemExpression} ${logicalOperator} ${minionExpression})`;
     };
-  }
-
-  private buildSourceExpression(value: string, operation: string, logicalOperator: string): string {
-    const systemCustomProperty = 'properties.system';
-    const minionIdCustomProperty = 'properties.minionId';
-
-    const systemExpression = buildExpression(systemCustomProperty, value, operation);
-    const minionExpression = buildExpression(minionIdCustomProperty, value, operation);
-
-    return `(${systemExpression} ${logicalOperator} ${minionExpression})`;
   }
 
   private getStatusCodeErrorMessage(errorDetails: { statusCode: string; message: string }): string {

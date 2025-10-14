@@ -282,7 +282,7 @@ describe('AlarmsDataSourceCore', () => {
 
           expect(datastore.templateSrv.replace).toHaveBeenCalledWith('source = "${query0}"', {});
           expect(transformQuery).toBe(
-            '((properties.system = "source1" || properties.minionId = "source1") || (properties.system = "source2" || properties.minionId = "source2"))'
+            '((properties.system = "source1" || properties.system = "source2") || (properties.minionId = "source1" || properties.minionId = "source2"))'
           );
         });
       });
