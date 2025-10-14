@@ -1,6 +1,6 @@
 import TTLCache from '@isaacs/ttlcache';
 import deepEqual from 'fast-deep-equal';
-import { DataQueryRequest, DataSourceInstanceSettings, FieldType, TimeRange, FieldDTO, dateTime, DataFrameDTO, MetricFindValue, TestDataSourceResponse, DataQueryResponse } from '@grafana/data';
+import { DataQueryRequest, DataSourceInstanceSettings, FieldType, TimeRange, FieldDTO, dateTime, DataFrameDTO, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, FetchResponse, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import {
   ColumnDataType,
@@ -20,7 +20,7 @@ import _ from 'lodash';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { replaceVariables } from 'core/utils';
 import { LEGACY_METADATA_TYPE } from 'core/types';
-import { iif, lastValueFrom, map, Observable, of, switchMap, tap, forkJoin } from 'rxjs';
+import { iif, lastValueFrom, map, Observable, of, switchMap, tap } from 'rxjs';
 
 export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataFrameDataSourceOptions> {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
@@ -85,18 +85,6 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataFram
 
   shouldRunQuery(query: DataFrameQuery): boolean {
     return Boolean(query.tableId) && (query.type === DataFrameQueryType.Properties || Boolean(query.columns!.length));
-  }
-
-  
-  query(request: DataQueryRequest<DataFrameQuery>): Observable<DataQueryResponse> {
-    const perTarget$ = request.targets
-      .map(this.prepareQuery, this)
-      .filter(this.shouldRunQuery, this)
-      .map(q => this.runQuery(q, request), this);
-
-    return forkJoin(perTarget$).pipe(
-      map((data) => ({ data } as DataQueryResponse)),
-    );
   }
 
   getTableProperties(id?: string): Observable<TableProperties> {

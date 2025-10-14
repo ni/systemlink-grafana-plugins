@@ -13,6 +13,7 @@ import { AssetCalibrationForecastKey, AssetCalibrationPropertyGroupByType, Asset
 import { CalibrationForecastDataSource } from "./CalibrationForecastDataSource";
 import { AssetQueryType, AssetType, BusType } from "../../types/types";
 import { AssetCalibrationFieldNames } from "../../constants/CalibrationForecastQuery.constants";
+import { firstValueFrom } from "rxjs";
 
 let datastore: CalibrationForecastDataSource, backendServer: MockProxy<BackendSrv>
 
@@ -352,7 +353,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(monthGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock))
+    const result = await firstValueFrom(datastore.query(buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock)))
 
     expect(result.data).toMatchSnapshot()
   })
@@ -362,7 +363,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(weekGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery(weekBasedCalibrationForecastQueryMock))
+    const result = await firstValueFrom(datastore.query(buildCalibrationForecastQuery(weekBasedCalibrationForecastQueryMock)))
 
     expect(result.data).toMatchSnapshot()
   })
@@ -372,7 +373,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(dayGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery(dayBasedCalibrationForecastQueryMock))
+    const result = await firstValueFrom(datastore.query(buildCalibrationForecastQuery(dayBasedCalibrationForecastQueryMock)))
 
     expect(result.data).toMatchSnapshot()
   })
@@ -382,7 +383,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(locationGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery(locationBasedCalibrationForecastQueryMock))
+    const result = await firstValueFrom(datastore.query(buildCalibrationForecastQuery(locationBasedCalibrationForecastQueryMock)))
 
     expect(result.data).toMatchSnapshot()
   })
@@ -392,7 +393,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(minionIdLocationGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery(locationBasedCalibrationForecastQueryMock))
+    const result = await firstValueFrom(datastore.query(buildCalibrationForecastQuery(locationBasedCalibrationForecastQueryMock)))
 
     expect(result.data).toMatchSnapshot()
   })
@@ -402,7 +403,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(modelGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery(modelBasedCalibrationForecastQueryMock))
+    const result = await firstValueFrom(datastore.query(buildCalibrationForecastQuery(modelBasedCalibrationForecastQueryMock)))
 
     expect(result.data).toMatchSnapshot();
   })
@@ -412,7 +413,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(modelLocationGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery(modelLocationBasedCalibrationForecastQueryMock))
+    const result = await firstValueFrom(datastore.query(buildCalibrationForecastQuery(modelLocationBasedCalibrationForecastQueryMock)))
 
     expect(result.data).toMatchSnapshot();
   })
@@ -422,7 +423,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(monthLocationGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery(monthLocationBasedCalibrationForecastQueryMock))
+    const result = await firstValueFrom(datastore.query(buildCalibrationForecastQuery(monthLocationBasedCalibrationForecastQueryMock)))
 
     expect(result.data).toMatchSnapshot();
   })
@@ -432,7 +433,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(workspaceGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery(workspaceBasedCalibrationForecastQueryMock))
+    const result = await firstValueFrom(datastore.query(buildCalibrationForecastQuery(workspaceBasedCalibrationForecastQueryMock)))
 
     expect(result.data).toMatchSnapshot();
   })
@@ -442,7 +443,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(modelWorkspaceGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery(modelWorkspaceBasedCalibrationForecastQueryMock))
+    const result = await firstValueFrom(datastore.query(buildCalibrationForecastQuery(modelWorkspaceBasedCalibrationForecastQueryMock)))
 
     expect(result.data).toMatchSnapshot();
   })
@@ -452,7 +453,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(monthWorkspaceGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery(monthWorkspaceBasedCalibrationForecastQueryMock))
+    const result = await firstValueFrom(datastore.query(buildCalibrationForecastQuery(monthWorkspaceBasedCalibrationForecastQueryMock)))
 
     expect(result.data).toMatchSnapshot()
   })
@@ -462,7 +463,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(vendorGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery({ type: AssetQueryType.CalibrationForecast, groupBy: [AssetCalibrationPropertyGroupByType.Vendor] }))
+    const result = await firstValueFrom(datastore.query(buildCalibrationForecastQuery({ type: AssetQueryType.CalibrationForecast, groupBy: [AssetCalibrationPropertyGroupByType.Vendor] })))
 
     expect(result.data).toMatchSnapshot();
   })
@@ -472,10 +473,10 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(monthVendorGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery({
+    const result = await firstValueFrom(datastore.query(buildCalibrationForecastQuery({
       type: AssetQueryType.CalibrationForecast,
       groupBy: [AssetCalibrationTimeBasedGroupByType.Month, AssetCalibrationPropertyGroupByType.Vendor]
-    }));
+    })));
 
     expect(result.data).toMatchSnapshot();
   })
@@ -485,7 +486,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(assetTypeGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery({ type: AssetQueryType.CalibrationForecast, groupBy: [AssetCalibrationPropertyGroupByType.AssetType] }))
+    const result = await firstValueFrom(datastore.query(buildCalibrationForecastQuery({ type: AssetQueryType.CalibrationForecast, groupBy: [AssetCalibrationPropertyGroupByType.AssetType] })))
 
     expect(result.data).toMatchSnapshot();
   })
@@ -495,10 +496,10 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(monthAssetTypeGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery({
+    const result = await firstValueFrom(datastore.query(buildCalibrationForecastQuery({
       type: AssetQueryType.CalibrationForecast,
       groupBy: [AssetCalibrationTimeBasedGroupByType.Month, AssetCalibrationPropertyGroupByType.AssetType]
-    }));
+    })));
 
     expect(result.data).toMatchSnapshot();
   })
@@ -508,7 +509,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(busTypeGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery({ type: AssetQueryType.CalibrationForecast, groupBy: [AssetCalibrationPropertyGroupByType.BusType] }))
+    const result = await firstValueFrom(datastore.query(buildCalibrationForecastQuery({ type: AssetQueryType.CalibrationForecast, groupBy: [AssetCalibrationPropertyGroupByType.BusType] })))
 
     expect(result.data).toMatchSnapshot();
   })
@@ -518,10 +519,10 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(monthBusTypeGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery({
+    const result = await firstValueFrom(datastore.query(buildCalibrationForecastQuery({
       type: AssetQueryType.CalibrationForecast,
       groupBy: [AssetCalibrationTimeBasedGroupByType.Month, AssetCalibrationPropertyGroupByType.BusType]
-    }));
+    })));
 
     expect(result.data).toMatchSnapshot();
   })
@@ -531,7 +532,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(emptyGroupCalibrationForecastResponseMock() as CalibrationForecastResponse))
 
-    const result = await datastore.query(buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock))
+    const result = await firstValueFrom(datastore.query(buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock)))
 
     expect(result.data).toMatchSnapshot()
   })
@@ -584,7 +585,7 @@ describe('Asset calibration location queries', () => {
       filter: `${AssetCalibrationFieldNames.LOCATION} = "Location1"`,
     });
 
-    await datastore.query(query);
+    await firstValueFrom(datastore.query(query));
 
     expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -603,7 +604,7 @@ describe('Asset calibration location queries', () => {
       filter: `string.IsNullOrEmpty(${AssetCalibrationFieldNames.LOCATION})`,
     });
 
-    await datastore.query(query);
+    await firstValueFrom(datastore.query(query));
 
     expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -622,7 +623,7 @@ describe('Asset calibration location queries', () => {
       filter: `!string.IsNullOrEmpty(${AssetCalibrationFieldNames.LOCATION})`,
     });
 
-    await datastore.query(query);
+    await firstValueFrom(datastore.query(query));
 
     expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -643,7 +644,7 @@ describe('Asset calibration location queries', () => {
       filter: `${AssetCalibrationFieldNames.LOCATION} = "Location1"`,
     });
 
-    await datastore.query(query);
+    await firstValueFrom(datastore.query(query));
 
     expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -665,7 +666,7 @@ describe('Asset calibration location queries', () => {
       filter: `${AssetCalibrationFieldNames.LOCATION} = "{Location1,Location2}"`,
     });
 
-    await datastore.query(query);
+    await firstValueFrom(datastore.query(query));
 
     expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -687,7 +688,7 @@ describe('Time based data links', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(dayGroupCalibrationForecastResponseMock() as CalibrationForecastResponse));
 
-    const result = await datastore.query(query);
+    const result = await firstValueFrom(datastore.query(query));
     const [_day, assets] = result.data[0].fields;
     const [dataLink] = assets.config.links;
 
@@ -712,7 +713,7 @@ describe('Time based data links', () => {
     query.range = { from: dateTime("2022-01-01T00:00:00.0000000Z"), to: dateTime("2022-03-01T00:00:00.0000000Z"), raw: { from: 'now', to: 'now+3M' } };
     query.timezone = 'UTC';
 
-    const result = await datastore.query(query);
+    const result = await firstValueFrom(datastore.query(query));
     const [_week, assets] = result.data[0].fields;
     const [dataLink] = assets.config.links;
 
@@ -737,7 +738,7 @@ describe('Time based data links', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchResponse(monthGroupCalibrationForecastResponseMock() as CalibrationForecastResponse));
 
-    const result = await datastore.query(query);
+    const result = await firstValueFrom(datastore.query(query));
     const [_month, assets] = result.data[0].fields;
     const [dataLink] = assets.config.links;
 

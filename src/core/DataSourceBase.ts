@@ -11,7 +11,7 @@ import { BackendSrv, BackendSrvRequest, TemplateSrv, getAppEvents } from '@grafa
 import { DataQuery } from '@grafana/schema';
 import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
 import { get, post } from './utils';
-import { Observable } from 'rxjs';
+import { forkJoin, map, Observable } from 'rxjs';
 
 export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData = DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
   appEvents: EventBus;
@@ -31,13 +31,15 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
 
   abstract shouldRunQuery(query: TQuery): boolean;
 
-  query(request: DataQueryRequest<TQuery>): Promise<DataQueryResponse> | Observable<DataQueryResponse> {
-    const promises = request.targets
+  query(request: DataQueryRequest<TQuery>): Observable<DataQueryResponse> {
+    const perTarget$ = request.targets
       .map(this.prepareQuery, this)
       .filter(this.shouldRunQuery, this)
       .map(q => this.runQuery(q, request), this);
 
-    return Promise.all(promises).then(data => ({ data }));
+    return forkJoin(perTarget$).pipe(
+      map((data) => ({ data } as DataQueryResponse)),
+    );
   }
 
   prepareQuery(query: TQuery): TQuery {

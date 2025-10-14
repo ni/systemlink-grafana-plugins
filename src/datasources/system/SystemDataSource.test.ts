@@ -3,6 +3,7 @@ import { SystemDataSource } from './SystemDataSource';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
 import { SystemProperties, SystemQuery, SystemQueryType } from './types';
+import { firstValueFrom } from 'rxjs';
 
 let ds: SystemDataSource, backendSrv: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
 
@@ -17,7 +18,7 @@ test('query for summary counts', async () => {
     .calledWith(requestMatching({ url: '/nisysmgmt/v1/get-systems-summary' }))
     .mockReturnValue(createFetchResponse({ connectedCount: 1, disconnectedCount: 2 }));
 
-  const result = await ds.query(buildQuery({ queryKind: SystemQueryType.Summary }));
+  const result = await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Summary })));
 
   expect(result.data).toEqual([
     {
@@ -35,7 +36,7 @@ test('query properties for all systems', async () => {
     .calledWith(requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { filter: '' } }))
     .mockReturnValue(createFetchResponse({ data: fakeSystems }));
 
-  const result = await ds.query(buildQuery({ queryKind: SystemQueryType.Properties }));
+  const result = await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties })));
 
   expect(result.data).toEqual([
     {
@@ -63,7 +64,7 @@ test('query properties for one system', async () => {
     )
     .mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
 
-  const result = await ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: 'system-1' }));
+  const result = await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: 'system-1' })));
 
   expect(result.data).toEqual([
     {
@@ -88,7 +89,7 @@ test('query properties with templated system name', async () => {
   templateSrv.replace.calledWith('$system_id').mockReturnValue('system-1');
   backendSrv.fetch.mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
 
-  await ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: '$system_id' }));
+  await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: '$system_id' })));
 
   expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('filter', 'id = "system-1" || alias = "system-1"');
 });
@@ -119,7 +120,7 @@ test('attempts to replace variables in properties query', async () => {
   backendSrv.fetch.mockReturnValue(createFetchResponse({ data: fakeSystems }));
   templateSrv.replace.calledWith(workspaceVariable).mockReturnValue('1');
 
-  await ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: 'system', workspace: workspaceVariable }));
+  await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: 'system', workspace: workspaceVariable })));
 
   expect(templateSrv.replace).toHaveBeenCalledTimes(2);
   expect(templateSrv.replace.mock.calls[1][0]).toBe(workspaceVariable);

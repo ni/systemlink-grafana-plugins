@@ -6,6 +6,7 @@ import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching
 import { MockProxy } from 'jest-mock-extended';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
 import { Workspace } from 'core/types';
+import { firstValueFrom } from 'rxjs';
 
 const mockQueryProductResponse: QueryProductResponse = {
   products: [
@@ -230,7 +231,7 @@ describe('query', () => {
       },
     );
 
-    const response = await datastore.query(query);
+    const response = await firstValueFrom(datastore.query(query));
 
     expect(response.data).toHaveLength(1);
     expect(response.data).toMatchSnapshot();
@@ -242,7 +243,7 @@ describe('query', () => {
       properties: []
     });
 
-    const response = await datastore.query(query);
+    const response = await firstValueFrom(datastore.query(query));
 
     expect(response.data).toMatchSnapshot();
   });
@@ -259,7 +260,7 @@ describe('query', () => {
       recordCount: undefined
     });
 
-    const response = await datastore.query(query);
+    const response = await firstValueFrom(datastore.query(query));
 
     expect(response.data).toMatchSnapshot();
   });
@@ -287,7 +288,7 @@ describe('query', () => {
       }
     );
 
-    const response = await datastore.query(query);
+    const response = await firstValueFrom(datastore.query(query));
 
     expect(response.data).toMatchSnapshot();
   });
@@ -329,7 +330,7 @@ describe('query', () => {
       },
     );
 
-    const response = await datastore.query(query);
+    const response = await firstValueFrom(datastore.query(query));
 
     const fields = response.data[0].fields as Field[];
     expect(fields).toEqual([
@@ -354,7 +355,7 @@ describe('query', () => {
       },
     );
 
-    const response = await datastore.query(query);
+    const response = await firstValueFrom(datastore.query(query));
 
     const fields = response.data[0].fields as Field[];
     expect(fields).toEqual([
@@ -384,7 +385,7 @@ describe('query', () => {
       },
     );
 
-    const response = await datastore.query(query);
+    const response = await firstValueFrom(datastore.query(query));
     const fields = response.data[0].fields as Field[];
     expect(fields).toEqual([
       { name: 'Properties', values: [''], type: 'string' },
@@ -414,7 +415,7 @@ describe('query', () => {
       },
     );
 
-    const response = await datastore.query(query);
+    const response = await firstValueFrom(datastore.query(query));
     const fields = response.data[0].fields as Field[];
     expect(fields).toEqual([
       { name: 'Properties', values: [''], type: 'string' },
@@ -428,7 +429,7 @@ describe('query', () => {
     datastore.partNumbersCache.set('partNumber', 'value1');
     backendServer.fetch.mockClear();
 
-    await datastore.query(buildQuery())
+    await firstValueFrom(datastore.query(buildQuery()))
 
     expect(backendServer.fetch).not.toHaveBeenCalled();
   });
@@ -440,7 +441,7 @@ describe('query', () => {
     datastore.workspacesCache.set('workspace', { id: 'workspace1', name: 'workspace1', default: false, enabled: true });
     backendServer.fetch.mockClear();
 
-    await datastore.query(buildQuery())
+    await firstValueFrom(datastore.query(buildQuery()))
 
     expect(backendServer.fetch).not.toHaveBeenCalled();
   });
@@ -458,7 +459,7 @@ describe('query', () => {
         },
       );
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -485,7 +486,7 @@ describe('query', () => {
         },
       );
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
