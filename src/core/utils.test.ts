@@ -596,10 +596,16 @@ describe('get', () => {
 
   it('should stop retrying after 3 failed attempts with 429', async () => {
     jest.useFakeTimers();
+    jest.spyOn(Math, 'random').mockReturnValue(0.5);
     (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => ({ status: 429, data: {} })));
 
     const promise = get(mockBackendSrv, url, params);
-    await jest.advanceTimersByTimeAsync(7000);
+    await jest.advanceTimersByTimeAsync(0);
+    expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(1);
+    await jest.advanceTimersByTimeAsync(0.5 * 1000 * 2 ** 1);
+    expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(2);
+    await jest.advanceTimersByTimeAsync(0.5 * 1000 * 2 ** 2);
+    expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(3);
 
     await expect(promise).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
     expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(4);
@@ -648,11 +654,18 @@ describe('post', () => {
 
   it('should stop retrying after 3 failed attempts with 429', async () => {
     jest.useFakeTimers();
-    jest.spyOn(Math, 'random').mockReturnValue(0);
+    jest.spyOn(Math, 'random').mockReturnValue(0.5);
     (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => ({ status: 429, data: {} })));
-    await jest.advanceTimersByTimeAsync(7000);
 
-    await expect(post(mockBackendSrv, url, body)).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
+    const promise = post(mockBackendSrv, url, body);
+    await jest.advanceTimersByTimeAsync(0);
+    expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(1);
+    await jest.advanceTimersByTimeAsync(0.5 * 1000 * 2 ** 1);
+    expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(2);
+    await jest.advanceTimersByTimeAsync(0.5 * 1000 * 2 ** 2);
+    expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(3);
+
+    await expect(promise).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
     expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(4);
     jest.useRealTimers();
   });
