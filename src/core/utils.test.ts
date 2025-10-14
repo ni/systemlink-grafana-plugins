@@ -1,19 +1,11 @@
-const mockBackendSrv = {
-  fetch: jest.fn(),
-} as unknown as BackendSrv;
-
-jest.mock('./utils', () => {
-  const actual = jest.requireActual('./utils');
-  return {
-    ...actual,
-    delay: jest.fn(() => Promise.resolve()),
-  };
-});
-
 import { BackendSrv, TemplateSrv } from "@grafana/runtime";
 import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, getVariableOptions, get, post, addOptionsToLookup } from "./utils";
 import { BatchQueryConfig, QBField, QueryBuilderOption } from "./types";
 import { of, throwError } from 'rxjs';
+
+const mockBackendSrv = {
+  fetch: jest.fn(),
+} as unknown as BackendSrv;
 
 test('enumToOptions', () => {
   enum fakeStringEnum {
@@ -603,10 +595,15 @@ describe('get', () => {
   });
 
   it('should stop retrying after 3 failed attempts with 429', async () => {
+    jest.useFakeTimers();
     (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => ({ status: 429, data: {} })));
 
-    await expect(get(mockBackendSrv, url, params)).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
+    const promise = get(mockBackendSrv, url, params);
+    await jest.advanceTimersByTimeAsync(7000);
+
+    await expect(promise).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
     expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(4);
+    jest.useRealTimers();
   });
 });
 
@@ -650,9 +647,12 @@ describe('post', () => {
   });
 
   it('should stop retrying after 3 failed attempts with 429', async () => {
+    jest.useFakeTimers();
     (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => ({ status: 429, data: {} })));
+    await jest.advanceTimersByTimeAsync(7000);
 
     await expect(post(mockBackendSrv, url, body)).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
     expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(4);
+    jest.useRealTimers();
   });
 });
