@@ -1,3 +1,9 @@
+## [4.18.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.18.0...v4.18.1) (2025-10-13)
+
+### Bug Fixes
+
+* **results-datasource:** Show only step paths based on results query builder ([#424](https://github.com/ni/systemlink-grafana-plugins/issues/424)) ([1a6ca95](https://github.com/ni/systemlink-grafana-plugins/commit/1a6ca95a4acb0747c43ecb8d9532aaca82cccacc))
+
 ## [4.18.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.17.0...v4.18.0) (2025-10-10)
 
 ### Features
