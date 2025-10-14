@@ -367,16 +367,44 @@ describe('queries', () => {
     await expect(ds.query(buildMetadataQuery(assetMetadataQueryMock))).rejects.toThrow()
   })
 
-  describe('queryReturnType', () => {
-    it('should return default QueryReturnType.AssetTagPath', () => {
-      const returnType = ds.getQueryReturnType();
-      expect(returnType).toBe(AssetQueryReturnType.AssetTagPath);
+  describe('patchListAssetQueryVariable', () => {
+    it('should use default QueryReturnType.AssetTagPath when not specified', () => {
+      const query = {
+        filter: '',
+        type: AssetQueryType.ListAssets,
+        refId: ''
+      };
+
+      const result = ds.patchListAssetQueryVariable(query);
+
+      expect(result.queryReturnType).toBe(AssetQueryReturnType.AssetTagPath);
     });
 
-    it('should set and get QueryReturnType correctly', () => {
-      ds.setQueryReturnType(AssetQueryReturnType.AssetId);
-      const returnType = ds.getQueryReturnType();
-      expect(returnType).toBe(AssetQueryReturnType.AssetId);
+    it('should preserve existing queryReturnType when specified', () => {
+      const query = {
+        filter: '',
+        queryReturnType: AssetQueryReturnType.AssetId,
+        type: AssetQueryType.ListAssets,
+        refId: ''
+      };
+
+      const result = ds.patchListAssetQueryVariable(query);
+
+      expect(result.queryReturnType).toBe(AssetQueryReturnType.AssetId);
+    });
+
+    it('should merge with defaultListAssetsVariable properly', () => {
+      const query = {
+        filter: '',
+        type: AssetQueryType.ListAssets,
+        refId: ''
+      };
+
+      const result = ds.patchListAssetQueryVariable(query);
+
+      expect(result.filter).toBe('');
+      expect(result.queryReturnType).toBeDefined();
+      expect(result.type).toBe(AssetQueryType.ListAssets);
     });
   });
 
@@ -424,13 +452,12 @@ describe('queries', () => {
     })
 
     it('returns name/alias with id as value when return type is AssetId', async () => {
-      ds.setQueryReturnType(AssetQueryReturnType.AssetId);
-
       const query: AssetVariableQuery = {
         filter: '',
         type: AssetQueryType.None,
         refId: "",
         take: 10,
+        queryReturnType: AssetQueryReturnType.AssetId,
       }
 
       backendSrv.fetch
@@ -447,13 +474,12 @@ describe('queries', () => {
     })
 
     it('returns default identifier with id as value when return type is AssetId and asset name is not present', async () => {
-      ds.setQueryReturnType(AssetQueryReturnType.AssetId);
-
       const query: AssetVariableQuery = {
         filter: '',
         type: AssetQueryType.None,
         refId: "",
         take: 10,
+        queryReturnType: AssetQueryReturnType.AssetId,
       };
 
       backendSrv.fetch
