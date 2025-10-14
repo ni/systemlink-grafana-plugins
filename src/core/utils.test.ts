@@ -595,6 +595,7 @@ describe('get', () => {
   });
 
   it('should stop retrying after 3 failed attempts with 429', async () => {
+    jest.useRealTimers();
     (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => ({ status: 429, data: {} })));
 
     await expect(get(mockBackendSrv, url, params)).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
@@ -642,6 +643,7 @@ describe('post', () => {
   });
 
   it('should stop retrying after 3 failed attempts with 429', async () => {
+    jest.useRealTimers();
     (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => ({ status: 429, data: {} })));
 
     await expect(post(mockBackendSrv, url, body)).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
