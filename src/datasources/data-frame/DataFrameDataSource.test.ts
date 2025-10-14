@@ -3,8 +3,8 @@ import { DataFrameDataSourceV1 } from './datasources/v1/DataFrameDataSourceV1';
 import { DataFrameDataSourceV2 } from './datasources/v2/DataFrameDataSourceV2';
 import { DataSourceInstanceSettings, TimeRange } from '@grafana/data';
 
-jest.mock('./datasources/v1-datasource/DataFrameDataSourceV1');
-jest.mock('./datasources/v2-datasource/DataFrameDataSourceV2');
+jest.mock('./datasources/v1/DataFrameDataSourceV1');
+jest.mock('./datasources/v2/DataFrameDataSourceV2');
 
 const mockInstanceSettings = (featureToggle = false): DataSourceInstanceSettings<any> => ({
     id: 1,
