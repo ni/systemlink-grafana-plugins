@@ -423,7 +423,7 @@ describe('queries', () => {
       ])
     );
 
-    await firstValueFrom(ds.query(queryRequest);
+    await firstValueFrom(ds.query(queryRequest));
 
     expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('decimation', 1000);
   });
