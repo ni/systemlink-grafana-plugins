@@ -3,16 +3,16 @@ import { LoadOptionsCallback } from "@grafana/ui";
 import { getWorkspaceName, getVariableOptions } from "core/utils";
 import _ from "lodash";
 import { DataFrameDataSourceV1 } from "../../DataFrameDataSourceV1";
-import { DataFrameQuery, DataFrameQueryType, Props, ValidDataFrameQuery } from "../../types";
+import { DataFrameQueryV1, DataFrameQueryType, PropsV1, ValidDataFrameQueryV1 } from "../../types";
 
 export class DataFrameQueryEditorCommonV1 {
   readonly datasource: DataFrameDataSourceV1;
-  readonly onChange: (value: DataFrameQuery) => void;
-  readonly query: ValidDataFrameQuery;
+  readonly onChange: (value: DataFrameQueryV1) => void;
+  readonly query: ValidDataFrameQueryV1;
   readonly onRunQuery: () => false | void;
   readonly handleError: (error: Error) => void;
 
-  constructor(readonly props: Props, readonly errorHandler: (error: Error) => void) {
+  constructor(readonly props: PropsV1, readonly errorHandler: (error: Error) => void) {
     this.datasource = props.datasource;
     this.onChange = props.onChange;
     this.query = this.datasource.processQuery(props.query);
@@ -20,7 +20,7 @@ export class DataFrameQueryEditorCommonV1 {
     this.handleError = errorHandler;
   }
 
-  readonly handleQueryChange = (value: DataFrameQuery, runQuery: boolean) => {
+  readonly handleQueryChange = (value: DataFrameQueryV1, runQuery: boolean) => {
     this.onChange(value);
     if (runQuery) {
       this.onRunQuery();
