@@ -143,15 +143,48 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
-        it("should show the data table properties field", async () => {
-            await waitFor(() => {
-                expect(screen.getByText("Select data table properties to fetch")).toBeInTheDocument();
+        describe("proeperties fields", () => {
+            it("should show the data table properties field", async () => {
+                await waitFor(() => {
+                    expect(screen.getByText("Select data table properties to fetch")).toBeInTheDocument();
+                });
             });
-        });
 
-        it("should show the column properties field", async () => {
-            await waitFor(() => {
-                expect(screen.getByText("Select column properties to fetch")).toBeInTheDocument();
+            it("should show the column properties field", async () => {
+                await waitFor(() => {
+                    expect(screen.getByText("Select column properties to fetch")).toBeInTheDocument();
+                });
+            });
+
+            it("should show the expected options in the data table properties field", async () => {
+                const dataTablePropertiesField = screen.getByText("Select data table properties to fetch");
+                await userEvent.click(dataTablePropertiesField);
+
+                await waitFor(() => {
+                    expect(document.body).toHaveTextContent("Data table name");
+                    expect(document.body).toHaveTextContent("Data table ID");
+                    expect(document.body).toHaveTextContent("Number of rows");
+                    expect(document.body).toHaveTextContent("Number of columns");
+                    expect(document.body).toHaveTextContent("Created at");
+                    expect(document.body).toHaveTextContent("Workspace");
+                    expect(document.body).toHaveTextContent("Metadata modified at");
+                    expect(document.body).toHaveTextContent("Metadata revision");
+                    expect(document.body).toHaveTextContent("Rows modified at");
+                    expect(document.body).toHaveTextContent("Supports append");
+                    expect(document.body).toHaveTextContent("Properties");
+                });
+            });
+
+            it("should show the expected options in the column properties field", async () => {
+                const columnPropertiesField = screen.getByText("Select column properties to fetch");
+                await userEvent.click(columnPropertiesField);
+
+                await waitFor(() => {
+                    expect(document.body).toHaveTextContent("Column name");
+                    expect(document.body).toHaveTextContent("Column data type");
+                    expect(document.body).toHaveTextContent("Column type");
+                    expect(document.body).toHaveTextContent("Column properties");
+                });
             });
         });
 
