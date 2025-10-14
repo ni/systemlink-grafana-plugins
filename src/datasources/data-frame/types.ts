@@ -10,6 +10,7 @@ export enum DataFrameQueryType {
 }
 
 export type DataFrameQuery = DataFrameQueryV1 | DataFrameQueryV2;
+
 export interface DataFrameQueryV1 extends DataQuery {
   type: DataFrameQueryType;
   tableId?: string;
@@ -41,13 +42,17 @@ export const DataFrameFeatureTogglesDefaults: DataFrameFeatureToggles = {
 };
 
 export type ValidDataFrameQuery = ValidDataFrameQueryV1 | ValidDataFrameQueryV2;
+
 export type ValidDataFrameQueryV1 = DataFrameQueryV1 & Required<Omit<DataFrameQueryV1, keyof DataQuery>>;
+
 export type ValidDataFrameQueryV2 = DataFrameQueryV2 & Required<Omit<DataFrameQueryV2, keyof DataQuery>>;
 
 export type ColumnDataType = 'BOOL' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64' | 'STRING' | 'TIMESTAMP';
 
 export type Props = PropsV1 | PropsV2;
+
 export type PropsV1 = QueryEditorProps<DataFrameDataSourceV1, DataFrameQueryV1, DataFrameDataSourceOptions>;
+
 export type PropsV2 = QueryEditorProps<DataFrameDataSourceV2, DataFrameQueryV2, DataFrameDataSourceOptions>;
 
 export interface Column {

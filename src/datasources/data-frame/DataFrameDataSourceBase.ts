@@ -18,7 +18,6 @@ import {
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from '@grafana/runtime';
 
 export abstract class DataFrameDatasourceBase extends DataSourceBase<DataFrameQuery, DataFrameDataSourceOptions> {
-
     constructor(
         readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
         readonly backendSrv: BackendSrv = getBackendSrv(),

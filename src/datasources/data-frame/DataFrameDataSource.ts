@@ -15,6 +15,7 @@ export class DataFrameDataSource extends DataFrameDatasourceBase {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+
     this.queryByTablePropertiesFeatureEnabled = instanceSettings.jsonData?.featureToggles?.queryByDataTableProperties ?? false;
     if (this.queryByTablePropertiesFeatureEnabled) {
       this.datasource = new DataFrameDataSourceV2(instanceSettings, backendSrv, templateSrv);
