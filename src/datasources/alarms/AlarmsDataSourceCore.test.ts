@@ -265,7 +265,7 @@ describe('AlarmsDataSourceCore', () => {
             input: 'source != "${query0}"',
             replacedInput: 'source != "{source1,source2}"',
             expected:
-              '(properties.system != "source1" && properties.system != "source2") && (properties.minionId != "source1" && properties.minionId != "source2")',
+              '((properties.system != "source1" && properties.system != "source2") && (properties.minionId != "source1" && properties.minionId != "source2"))',
           },
         ].forEach(({ name, input, replacedInput, expected }) => {
           it(`should transform ${name} for mutiple value variable filter`, () => {
