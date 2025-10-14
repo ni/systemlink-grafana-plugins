@@ -355,16 +355,6 @@ export function multipleValuesQuery(field: string): ExpressionTransformFunction 
 }
 
 /**
- * Gets the logical operator to use for a given query operation when building multi-value expressions
- * or combining multiple conditions.
- * @param operation The operation to be checked.
- * @returns The logical operator as a string.
- */
-function getLogicalOperator(operation: string): string {
-  return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
-}
-
-/**
  * Builds a query expression for a specific field, value, and operation.
  * @param field - The name of the field to be queried.
  * @param value - The value to be used in the query.
@@ -398,6 +388,16 @@ function isMultiValueExpression(value: string): boolean {
  */
 function getMultipleValuesArray(value: string): string[] {
   return value.replace(/({|})/g, '').split(',');
+}
+
+/**
+ * Gets the logical operator to use for a given query operation when building multi-value expressions
+ * or combining multiple conditions.
+ * @param operation The operation to be checked.
+ * @returns The logical operator as a string.
+ */
+function getLogicalOperator(operation: string): string {
+  return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
 }
 
 async function delay(timeout: number): Promise<void> {
