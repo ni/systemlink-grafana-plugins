@@ -106,10 +106,8 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
 
   private getSourceTransformation(): ExpressionTransformFunction {
     return (value: string, operation: string) => {
-      const systemCustomProperty = 'properties.system';
-      const minionIdCustomProperty = 'properties.minionId';
-      const systemExpression = multipleValuesQuery(systemCustomProperty)(value, operation);
-      const minionExpression = multipleValuesQuery(minionIdCustomProperty)(value, operation);
+      const systemExpression = multipleValuesQuery(SYSTEM_CUSTOM_PROPERTY)(value, operation);
+      const minionExpression = multipleValuesQuery(MINION_ID_CUSTOM_PROPERTY)(value, operation);
       const logicalOperator = getLogicalOperator(operation);
 
       return `(${systemExpression} ${logicalOperator} ${minionExpression})`;

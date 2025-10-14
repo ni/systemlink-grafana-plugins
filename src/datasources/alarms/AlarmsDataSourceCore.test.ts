@@ -268,7 +268,7 @@ describe('AlarmsDataSourceCore', () => {
               '(properties.system != "source1" && properties.system != "source2") && (properties.minionId != "source1" && properties.minionId != "source2")',
           },
         ].forEach(({ name, input, replacedInput, expected }) => {
-          it(`should transform ${name} mutiple value variable filter`, () => {
+          it(`should transform ${name} for mutiple value variable filter`, () => {
             jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue(replacedInput);
 
             const transformQuery = datastore.transformAlarmsQueryWrapper({}, input);
