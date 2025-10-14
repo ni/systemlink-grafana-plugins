@@ -9,6 +9,7 @@ import { QueryBuilderOption, Workspace } from "core/types";
 import { WorkspaceUtils } from "shared/workspace.utils";
 import { getLogicalOperator, getVariableOptions, multipleValuesQuery, timeFieldsQuery } from "core/utils";
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
+import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from "./constants/SourceProperties.constants";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   public errorTitle?: string;
