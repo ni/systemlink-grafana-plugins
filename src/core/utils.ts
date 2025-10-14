@@ -336,7 +336,7 @@ export function timeFieldsQuery(field: string): ExpressionTransformFunction {
  * Output: status = "active"
  *
  * Multi-value:
- * Input: field = "status", value = "{active,pending}", operation = "<>"
+ * Input: field = "status", value = "{active,pending}", operation = "!="
  * Output: (status != "active" && status != "pending")
  *
  * @param field - The name of the field to be queried.
