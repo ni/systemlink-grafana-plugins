@@ -391,7 +391,7 @@ function getMultipleValuesArray(value: string): string[] {
 }
 
 /**
- * Gets the logical operator to use for a given query operation when building multi-value expressions
+ * Gets the logical operator for a given query operation when building multi-value expressions
  * or combining multiple conditions.
  * @param operation The operation to be checked.
  * @returns The logical operator as a string.

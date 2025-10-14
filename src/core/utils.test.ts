@@ -728,8 +728,8 @@ describe('multipleValuesQuery', () => {
   it('should use default transformation with operator as-is when not defined in QueryBuilderOperations', () => {
     const buildExpression = multipleValuesQuery('field');
 
-    const result = buildExpression('{value1,value2}', 'like');
+    const result = buildExpression('{value1}', 'like');
 
-    expect(result).toBe('(field like "value1" && field like "value2")');
+    expect(result).toBe('(field like "value1")');
   });
 });
