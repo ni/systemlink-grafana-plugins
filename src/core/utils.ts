@@ -355,16 +355,13 @@ export function multipleValuesQuery(field: string): ExpressionTransformFunction 
 }
 
 /**
- * Gets the logical operator for a given query operation.
+ * Gets the logical operator to use for a given query operation when building multi-value expressions
+ * or combining multiple conditions.
  * @param operation The operation to be checked.
  * @returns The logical operator as a string.
  */
-export function getLogicalOperator(operation: string): string {
-  return operation === QueryBuilderOperations.EQUALS.name ||
-    operation === QueryBuilderOperations.IS_NOT_BLANK.name ||
-    operation === QueryBuilderOperations.CONTAINS.name
-    ? '||'
-    : '&&';
+function getLogicalOperator(operation: string): string {
+  return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
 }
 
 /**

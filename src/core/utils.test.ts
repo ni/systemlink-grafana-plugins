@@ -1,5 +1,5 @@
 import { BackendSrv, TemplateSrv } from "@grafana/runtime";
-import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, getVariableOptions, get, post, addOptionsToLookup, multipleValuesQuery, timeFieldsQuery, getLogicalOperator } from "./utils";
+import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, getVariableOptions, get, post, addOptionsToLookup, multipleValuesQuery, timeFieldsQuery } from "./utils";
 import { BatchQueryConfig, QBField, QueryBuilderOption } from "./types";
 import { of, throwError } from 'rxjs';
 
@@ -701,12 +701,20 @@ describe('multipleValuesQuery', () => {
     expect(result).toBe('(field = "value")');
   });
 
-  it('should build expression for multi-value query', () => {
+  it('should build expression for multi-value query with "||" for equals operator', () => {
     const buildExpression = multipleValuesQuery('field');
 
     const result = buildExpression('{value1,value2}', '=');
 
     expect(result).toBe('(field = "value1" || field = "value2")');
+  });
+
+  it('should build expression for multi-value query with "&&" for not equals operator', () => {
+    const buildExpression = multipleValuesQuery('field');
+
+    const result = buildExpression('{value1,value2}', '!=');
+
+    expect(result).toBe('(field != "value1" && field != "value2")');
   });
 
   it('should build expression for multi-value query with empty values', () => {
@@ -720,37 +728,8 @@ describe('multipleValuesQuery', () => {
   it('should use default transformation with operator as-is when not defined in QueryBuilderOperations', () => {
     const buildExpression = multipleValuesQuery('field');
 
-    const result = buildExpression('{value1,value2}', '===');
+    const result = buildExpression('{value1,value2}', 'like');
 
-    expect(result).toBe('(field === "value1" && field === "value2")');
-  });
-});
-
-describe('getLogicalOperator', () => {
-  [
-    {
-      name: 'equals',
-      operator: '=',
-    },
-    {
-      name: 'is not blank',
-      operator: 'isnotblank',
-    },
-    {
-      name: 'contains',
-      operator: 'contains',
-    }
-  ].forEach(testCase => {
-    it(`should return OR for ${testCase.name} operator`, () => {
-      const result = getLogicalOperator(testCase.operator);
-
-      expect(result).toBe('||');
-    });
-  });
-
-  it('should return AND as the default logical operator', () => {
-    const result = getLogicalOperator('>');
-
-    expect(result).toBe('&&');
+    expect(result).toBe('(field like "value1" && field like "value2")');
   });
 });
