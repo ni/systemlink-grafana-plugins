@@ -648,6 +648,7 @@ describe('post', () => {
 
   it('should stop retrying after 3 failed attempts with 429', async () => {
     jest.useFakeTimers();
+    jest.spyOn(Math, 'random').mockReturnValue(0);
     (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => ({ status: 429, data: {} })));
     await jest.advanceTimersByTimeAsync(7000);
 
