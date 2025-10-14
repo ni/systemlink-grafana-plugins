@@ -1,8 +1,8 @@
 import { DataQuery } from '@grafana/schema';
 import { SystemLinkError } from "../../core/types";
 import { DataSourceJsonData, QueryEditorProps } from '@grafana/data';
-import { DataFrameDataSourceV1 } from './datasources/v1-datasource/DataFrameDataSourceV1';
-import { DataFrameDataSourceV2 } from './datasources/v2-datasource/DataFrameDataSourceV2';
+import { DataFrameDataSourceV1 } from './datasources/v1/DataFrameDataSourceV1';
+import { DataFrameDataSourceV2 } from './datasources/v2/DataFrameDataSourceV2';
 
 export enum DataFrameQueryType {
   Data = 'Data',

@@ -4,7 +4,7 @@ import { select } from 'react-select-event';
 import { setupDataSource } from 'test/fixtures';
 import { DataFrameQueryV1 } from '../../types';
 import { DataFrameVariableQueryEditorV1 } from './DataFrameVariableQueryEditorV1';
-import { DataFrameDataSourceV1 } from 'datasources/data-frame/datasources/v1-datasource/DataFrameDataSourceV1';
+import { DataFrameDataSourceV1 } from 'datasources/data-frame/datasources/v1/DataFrameDataSourceV1';
 
 const onChange = jest.fn();
 const onRunQuery = jest.fn();

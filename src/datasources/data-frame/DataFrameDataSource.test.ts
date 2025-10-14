@@ -1,6 +1,6 @@
 import { DataFrameDataSource } from './DataFrameDataSource';
-import { DataFrameDataSourceV1 } from './datasources/v1-datasource/DataFrameDataSourceV1';
-import { DataFrameDataSourceV2 } from './datasources/v2-datasource/DataFrameDataSourceV2';
+import { DataFrameDataSourceV1 } from './datasources/v1/DataFrameDataSourceV1';
+import { DataFrameDataSourceV2 } from './datasources/v2/DataFrameDataSourceV2';
 import { DataSourceInstanceSettings, TimeRange } from '@grafana/data';
 
 jest.mock('./datasources/v1-datasource/DataFrameDataSourceV1');

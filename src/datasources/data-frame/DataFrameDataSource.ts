@@ -2,8 +2,8 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindV
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, DataFrameDataSourceOptions, DataFrameQuery, defaultQueryV1, TableDataRows, TableProperties, ValidDataFrameQuery } from "./types";
 import { DataFrameDatasourceBase } from "./DataFrameDataSourceBase";
-import { DataFrameDataSourceV1 } from "./datasources/v1-datasource/DataFrameDataSourceV1";
-import { DataFrameDataSourceV2 } from "./datasources/v2-datasource/DataFrameDataSourceV2";
+import { DataFrameDataSourceV1 } from "./datasources/v1/DataFrameDataSourceV1";
+import { DataFrameDataSourceV2 } from "./datasources/v2/DataFrameDataSourceV2";
 
 export class DataFrameDataSource extends DataFrameDatasourceBase {
   private queryByTablePropertiesFeatureEnabled = false;
