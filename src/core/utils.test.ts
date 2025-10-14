@@ -594,18 +594,11 @@ describe('get', () => {
     expect(response).toEqual('test');
   });
 
-  it('should stop retrying after 3 failed attempts with 429', async () => {
-    jest.useFakeTimers();
-    jest.spyOn(global.Math, 'random').mockReturnValue(0);
+  it('should stop retrying after 3 failed attempts with 429', async () => {    (mockBackendSrv.fetch as jest.Mock).mockReturnValue(
     (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => ({ status: 429, data: {} })));
 
-    const promise = get(mockBackendSrv, url, params);
-
-    jest.advanceTimersByTime(2000);
-
-    await expect(promise).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
+    await expect(get(mockBackendSrv, url, params)).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
     expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(4);
-    jest.useRealTimers();
   });
 });
 
@@ -649,15 +642,9 @@ describe('post', () => {
   });
 
   it('should stop retrying after 3 failed attempts with 429', async () => {
-    jest.useFakeTimers();
-    jest.spyOn(global.Math, 'random').mockReturnValue(0);
     (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => ({ status: 429, data: {} })));
-    
-    const promise = post(mockBackendSrv, url, body);
-    jest.advanceTimersByTime(3000);
-  
-    await expect(promise).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
+
+    await expect(post(mockBackendSrv, url, body)).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
     expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(4);
-    jest.useRealTimers();
   });
 });
