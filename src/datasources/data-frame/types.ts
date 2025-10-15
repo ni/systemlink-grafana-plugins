@@ -1,14 +1,14 @@
 import { DataQuery } from '@grafana/schema';
 import { SystemLinkError } from "../../core/types";
 import { DataSourceJsonData, QueryEditorProps } from '@grafana/data';
-import { DataFrameDataSourceV1 } from './DataFrameDataSourceV1';
+import { DataFrameDataSourceV1 } from './datasources/v1/DataFrameDataSourceV1';
 
 export enum DataFrameQueryType {
   Data = 'Data',
   Properties = 'Properties',
 }
 
-export interface DataFrameQuery extends DataQuery {
+export interface DataFrameQueryV1 extends DataQuery {
   type: DataFrameQueryType;
   tableId?: string;
   columns?: string[];
@@ -17,7 +17,7 @@ export interface DataFrameQuery extends DataQuery {
   applyTimeFilters?: boolean;
 }
 
-export const defaultQuery: Omit<ValidDataFrameQuery, 'refId'> = {
+export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
   type: DataFrameQueryType.Data,
   tableId: '',
   columns: [],
@@ -30,11 +30,11 @@ export const DataFrameFeatureTogglesDefaults: DataFrameFeatureToggles = {
   queryByDataTableProperties: false,
 };
 
-export type ValidDataFrameQuery = DataFrameQuery & Required<Omit<DataFrameQuery, keyof DataQuery>>;
+export type ValidDataFrameQueryV1 = DataFrameQueryV1 & Required<Omit<DataFrameQueryV1, keyof DataQuery>>;
 
 export type ColumnDataType = 'BOOL' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64' | 'STRING' | 'TIMESTAMP';
 
-export type Props = QueryEditorProps<DataFrameDataSourceV1, DataFrameQuery, DataFrameDataSourceOptions>;
+export type PropsV1 = QueryEditorProps<DataFrameDataSourceV1, DataFrameQueryV1, DataFrameDataSourceOptions>;
 
 export interface Column {
   name: string;
