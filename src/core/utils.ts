@@ -59,14 +59,6 @@ export function getWorkspaceName(workspaces: Workspace[], id: string) {
 }
 
 /**
- * Async wrapper for `window.setTimeout`
- * @param timeout the time to sleep in milliseconds
- */
-export function sleep(timeout: number) {
-  return new Promise(res => window.setTimeout(res, timeout));
-}
-
-/**
  * Replace variables in an array of values.
  * Useful for multi-value variables.
  */
@@ -410,7 +402,7 @@ async function fetch<T>(backendSrv: BackendSrv, options: BackendSrvRequest, retr
     return (await lastValueFrom(backendSrv.fetch<T>(options))).data;
   } catch (error) {
     if (isFetchError(error) && error.status === 429 && retries < 3) {
-      await sleep(Math.random() * 1000 * 2 ** retries);
+      await delay(Math.random() * 1000 * 2 ** retries);
       return fetch(backendSrv, { ...options, url }, retries + 1);
     }
     if (isFetchError(error)) {

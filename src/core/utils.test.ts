@@ -7,14 +7,6 @@ const mockBackendSrv = {
   fetch: jest.fn(),
 } as unknown as BackendSrv;
 
-jest.mock('./utils', () => {
-  const actual = jest.requireActual('./utils');
-  return {
-    ...actual,
-    sleep: jest.fn(() => Promise.resolve()),
-  };
-});
-
 test('enumToOptions', () => {
   enum fakeStringEnum {
     Label1 = 'Value1',
@@ -603,10 +595,12 @@ describe('get', () => {
   });
 
   it('should stop retrying after 3 failed attempts with 429', async () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0.001);
     (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => ({ status: 429, data: {} })));
 
     await expect(get(mockBackendSrv, url, params)).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
     expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(4);
+    jest.spyOn(Math, 'random').mockRestore();
   });
 });
 
@@ -650,10 +644,12 @@ describe('post', () => {
   });
 
   it('should stop retrying after 3 failed attempts with 429', async () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0.001);
     (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => ({ status: 429, data: {} })));
 
     await expect(post(mockBackendSrv, url, body)).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
     expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(4);
+    jest.spyOn(Math, 'random').mockRestore();
   });
 });
 

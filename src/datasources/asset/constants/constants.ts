@@ -1,4 +1,5 @@
 export enum AllFieldNames {
+    ASSET_ID = 'AssetIdentifier',
     LOCATION = 'Location',
     WORKSPACE = 'Workspace',
     MODEL_NAME = 'ModelName',

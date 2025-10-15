@@ -11,6 +11,9 @@ import { getVariableOptions, multipleValuesQuery, timeFieldsQuery } from "core/u
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
+  public errorTitle?: string;
+  public errorDescription?: string;
+
   private readonly queryAlarmsUrl = `${this.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`;
   private readonly workspaceUtils: WorkspaceUtils;
 
@@ -49,8 +52,10 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   public async loadWorkspaces(): Promise<Map<string, Workspace>> {
     try {
       return await this.workspaceUtils.getWorkspaces();
-    } catch (_error){
-      // #AB3283306 - Error handling for workspace dependency
+    } catch (error){
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
       return new Map<string, Workspace>();
     }
   }
@@ -73,6 +78,26 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
       ];
     })
   );
+
+  private handleDependenciesError(error: unknown): void {
+    const errorDetails = extractErrorInfo((error as Error).message);
+    this.errorTitle = 'Warning during alarms query';
+    switch (errorDetails.statusCode) {
+      case '404':
+        this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
+        break;
+      case '429':
+        this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
+        break;
+      case '504':
+        this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
+        break;
+      default:
+        this.errorDescription = errorDetails.message
+          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+          : 'Some values may not be available in the query builder lookups due to an unknown error.';
+    }
+  }
 
   private isTimeField(field: string): boolean {
     return ALARMS_TIME_FIELDS.includes(field);

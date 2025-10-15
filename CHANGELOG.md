@@ -1,3 +1,27 @@
+## [4.20.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.19.2...v4.20.0) (2025-10-15)
+
+### Features
+
+* **alarms:** Error handling for workspace dependency ([#428](https://github.com/ni/systemlink-grafana-plugins/issues/428)) ([81aa8c4](https://github.com/ni/systemlink-grafana-plugins/commit/81aa8c4a06b98ce206d0942c7826d878f9951308))
+
+## [4.19.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.19.1...v4.19.2) (2025-10-15)
+
+### Bug Fixes
+
+* **assets:** Add Asset Identifier to filters ([#438](https://github.com/ni/systemlink-grafana-plugins/issues/438)) ([c229b4c](https://github.com/ni/systemlink-grafana-plugins/commit/c229b4cf4dfd494be787b0c084303393a478f044))
+
+## [4.19.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.19.0...v4.19.1) (2025-10-15)
+
+### Bug Fixes
+
+* **utils-tests:** fix random unit test failure ([#426](https://github.com/ni/systemlink-grafana-plugins/issues/426)) ([b2bb44a](https://github.com/ni/systemlink-grafana-plugins/commit/b2bb44a6eb6815edb404655e1353b5c957431783))
+
+## [4.19.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.18.1...v4.19.0) (2025-10-13)
+
+### Features
+
+* **dataframes:** Add query type control ([#422](https://github.com/ni/systemlink-grafana-plugins/issues/422)) ([e6c17ce](https://github.com/ni/systemlink-grafana-plugins/commit/e6c17ce08bb1430a2707eb19fb8a4e3ca63247b4))
+
 ## [4.18.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.18.0...v4.18.1) (2025-10-13)
 
 ### Bug Fixes
