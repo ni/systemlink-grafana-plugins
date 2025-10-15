@@ -1,4 +1,4 @@
-import { act, cleanup, screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import { AssetQueryType, AssetQueryReturnType } from '../../types/types';
 import { SystemProperties } from '../../../system/types'
 import { AssetVariableQueryEditor } from './AssetVariableQueryEditor';
