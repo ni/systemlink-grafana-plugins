@@ -3,8 +3,8 @@ import { DataQueryRequest, DataSourceInstanceSettings, dateTime, Field, FieldTyp
 import { BackendSrvRequest, FetchResponse } from '@grafana/runtime';
 
 import { DataFrameDataSourceOptions, DataFrameQueryV1, DataFrameQueryType, TableDataRows, TableProperties } from '../../types';
-import { LEGACY_METADATA_TYPE } from 'core/types';
 import { DataFrameDataSourceV1 } from './DataFrameDataSourceV1';
+import { LEGACY_METADATA_TYPE } from 'core/types';
 
 jest.mock('@grafana/runtime', () => ({
   ...jest.requireActual('@grafana/runtime'),

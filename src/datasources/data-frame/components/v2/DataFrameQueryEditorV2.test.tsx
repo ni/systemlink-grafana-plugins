@@ -3,22 +3,22 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
 import { DataFrameDataSourceV2 } from "datasources/data-frame/datasources/v2/DataFrameDataSourceV2";
-import { DataFrameQuery, DataFrameQueryType } from "datasources/data-frame/types";
+import { DataFrameQueryV2, DataFrameQueryType } from "datasources/data-frame/types";
 
 jest.mock("./query-builders/DataTableQueryBuilder", () => ({
     DataTableQueryBuilder: () => <div data-testid="data-table-query-builder" />
 }));
 
-const renderComponent = (queryOverrides: Partial<DataFrameQuery> = {}) => {
+const renderComponent = (queryOverrides: Partial<DataFrameQueryV2> = {}) => {
     const onChange = jest.fn();
     const onRunQuery = jest.fn();
-    const processQuery = jest.fn<DataFrameQuery, [DataFrameQuery]>().mockImplementation(query => ({ ...query }));
+    const processQuery = jest.fn<DataFrameQueryV2, [DataFrameQueryV2]>().mockImplementation(query => ({ ...query }));
     const datasource = { processQuery } as unknown as DataFrameDataSourceV2;
     const initialQuery = {
         refId: "A",
         type: DataFrameQueryType.Data,
         ...queryOverrides,
-    } as DataFrameQuery;
+    } as DataFrameQueryV2;
 
     const renderResult = render(
         <DataFrameQueryEditorV2
