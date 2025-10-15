@@ -8,7 +8,7 @@ import { InlineField, InlineSwitch, MultiSelect, Select, AsyncSelect, RadioButto
 import { enumToOptions } from "core/utils";
 import { getTemplateSrv } from "@grafana/runtime";
 import { DataFrameQueryEditorCommonV1 } from "./DataFrameQueryEditorCommonV1";
-import { DataFrameQueryType, PropsV1 } from "datasources/data-frame/types";
+import { DataFrameQueryType, PropsV1 } from "../../types";
 import { isValidId } from "datasources/data-frame/utils";
 import { decimationMethods } from "datasources/data-frame/constants";
 

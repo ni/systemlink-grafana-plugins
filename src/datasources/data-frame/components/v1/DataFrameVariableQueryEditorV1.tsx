@@ -4,7 +4,7 @@ import { InlineField } from 'core/components/InlineField';
 import { toOption } from '@grafana/data';
 import { FloatingError, parseErrorMessage } from 'core/errors';
 import { isValidId } from 'datasources/data-frame/utils';
-import { PropsV1 } from 'datasources/data-frame/types';
+import { PropsV1 } from '../../types';
 import { DataFrameQueryEditorCommonV1 } from './DataFrameQueryEditorCommonV1';
 
 export const DataFrameVariableQueryEditorV1 = (props: PropsV1) => {

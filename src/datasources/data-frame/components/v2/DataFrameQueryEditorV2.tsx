@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
 import { AutoSizeInput, Collapse, InlineField, InlineLabel, MultiSelect, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQueryV1, DataFrameQueryType, PropsV1 } from "datasources/data-frame/types";
+import { DataFrameQueryV1, DataFrameQueryType, PropsV1 } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { TAKE_LIMIT } from 'datasources/data-frame/constants';
 
