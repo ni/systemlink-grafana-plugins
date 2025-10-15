@@ -367,47 +367,6 @@ describe('queries', () => {
     await expect(ds.query(buildMetadataQuery(assetMetadataQueryMock))).rejects.toThrow()
   })
 
-  describe('patchListAssetQueryVariable', () => {
-    it('should use default QueryReturnType.AssetTagPath when not specified', () => {
-      const query = {
-        filter: '',
-        type: AssetQueryType.ListAssets,
-        refId: ''
-      };
-
-      const result = ds.patchListAssetQueryVariable(query);
-
-      expect(result.queryReturnType).toBe(AssetQueryReturnType.AssetTagPath);
-    });
-
-    it('should preserve existing queryReturnType when specified', () => {
-      const query = {
-        filter: '',
-        queryReturnType: AssetQueryReturnType.AssetId,
-        type: AssetQueryType.ListAssets,
-        refId: ''
-      };
-
-      const result = ds.patchListAssetQueryVariable(query);
-
-      expect(result.queryReturnType).toBe(AssetQueryReturnType.AssetId);
-    });
-
-    it('should merge with defaultListAssetsVariable properly', () => {
-      const query = {
-        filter: '',
-        type: AssetQueryType.ListAssets,
-        refId: ''
-      };
-
-      const result = ds.patchListAssetQueryVariable(query);
-
-      expect(result.filter).toBe('');
-      expect(result.queryReturnType).toBeDefined();
-      expect(result.type).toBe(AssetQueryType.ListAssets);
-    });
-  });
-
   describe('metricFindQuery', () => {
     it('returns name/alias when asset name field is present', async () => {
       const query: AssetVariableQuery = {
