@@ -80,8 +80,11 @@ describe('AlarmsCountQueryEditor', () => {
   });
 
   it('should display error title and description when error occurs', async () => {
-    mockDatasource.errorTitle = 'Test Error Title';
-    mockDatasource.errorDescription = 'Test Error Description';
+    mockDatasource.loadWorkspaces = jest.fn().mockImplementation(() => {
+      mockDatasource.errorTitle = 'Test Error Title';
+      mockDatasource.errorDescription = 'Test Error Description';
+      return Promise.resolve(new Map());
+    });
     
     await renderElement();
 
