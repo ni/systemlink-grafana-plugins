@@ -315,7 +315,8 @@ export const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]
  * Checks if the value is '${__now:date}' and replaces it with the current date in ISO format.
  * If the value does not match '${__now:date}', it uses the provided value as is for the transformation.
  * @param field - The name of the time field to be queried.
- * @return A function that takes a value and an operation, and returns a formatted query string.
+ * @returns A function that formats a query string using the given @param `field` as the time field.
+ * The returned function takes `value` and `operation`, replacing '${__now:date}' in value with the current date in ISO format if matched.
  */
 
 export function timeFieldsQuery(field: string): ExpressionTransformFunction {
