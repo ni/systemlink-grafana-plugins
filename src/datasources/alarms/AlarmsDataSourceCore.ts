@@ -7,7 +7,7 @@ import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, tran
 import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { WorkspaceUtils } from "shared/workspace.utils";
-import { getFilterConcatOperator, getVariableOptions, multipleValuesQuery, timeFieldsQuery } from "core/utils";
+import { getConcatOperatorForMultiExpression, getVariableOptions, multipleValuesQuery, timeFieldsQuery } from "core/utils";
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
 import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from "./constants/SourceProperties.constants";
 
@@ -109,7 +109,7 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
     return (value: string, operation: string) => {
       const systemExpression = multipleValuesQuery(`properties.${SYSTEM_CUSTOM_PROPERTY}`)(value, operation);
       const minionExpression = multipleValuesQuery(`properties.${MINION_ID_CUSTOM_PROPERTY}`)(value, operation);
-      const logicalOperator = getFilterConcatOperator(operation);
+      const logicalOperator = getConcatOperatorForMultiExpression(operation);
 
       return `(${systemExpression} ${logicalOperator} ${minionExpression})`;
     };
