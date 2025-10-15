@@ -12,8 +12,8 @@ export interface ApiSession {
 
 export class ApiSessionUtils {
     private readonly appEvents: EventBus;
-    private readonly cacheExpiryBufferTimeInMilliseconds = 5 * 60 * 1000;
-    private sessionKeyCache?: ApiSession;
+    private readonly cacheExpiryBufferTimeInMilliseconds = 5 * 60 * 1000; // 5 minutes buffer
+    private sessionCache?: ApiSession;
 
     constructor(
         private readonly instanceSettings: DataSourceInstanceSettings,
@@ -23,25 +23,25 @@ export class ApiSessionUtils {
     }
 
     public async createApiSession(): Promise<ApiSession> {
-        if (this.sessionKeyCache) {
-            if (this.isSessionKeyValid()) {
-                return this.sessionKeyCache;
+        if (this.sessionCache) {
+            if (this.isSessionValid()) {
+                return this.sessionCache;
             }
         }
 
-        const sessionData = await this.createApiSessionKey();
-        this.sessionKeyCache = sessionData;
-        return sessionData;
+        const apiSession = await this.createApiSessionKey();
+        this.sessionCache = apiSession;
+        return apiSession;
     }
 
-    private isSessionKeyValid(): boolean {
-        if (!this.sessionKeyCache) {
+    private isSessionValid(): boolean {
+        if (!this.sessionCache) {
             return false;
         }
         const currentTimeWithBuffer = new Date(
             new Date().getTime() + this.cacheExpiryBufferTimeInMilliseconds
         );
-        return currentTimeWithBuffer < new Date(this.sessionKeyCache.sessionKey.expiry);
+        return currentTimeWithBuffer < new Date(this.sessionCache.sessionKey.expiry);
     }
 
     private async createApiSessionKey(): Promise<ApiSession> {
@@ -56,7 +56,7 @@ export class ApiSessionUtils {
             this.appEvents?.publish?.({
                 type: AppEvents.alertError.name,
                 payload: [
-                    'Error during creating Session-keys',
+                    'Error creating session',
                     `The query to create an API session failed. ${error?.message ?? ''} Please check the data source configuration and try again.`
                 ],
             });

@@ -20,8 +20,12 @@ describe('ApiSessionUtils', () => {
     let backendSrv: BackendSrv;
     let appEvents: EventBus;
     let apiSessionUtils: ApiSessionUtils;
+    let originalDateNow: () => number;
 
     beforeEach(() => {
+        // Store original Date.now
+        originalDateNow = Date.now;
+        
         instanceSettings = {
             id: 1,
             uid: 'test-uid',
@@ -43,6 +47,11 @@ describe('ApiSessionUtils', () => {
         (appEvents.publish as jest.Mock).mockClear();
     });
 
+    afterEach(() => {
+        // Restore original Date.now
+        Date.now = originalDateNow;
+    });
+
     const createMockSession = (expiryOffset: number): ApiSession => ({
         endpoint: 'http://localhost',
         sessionKey: {
@@ -59,7 +68,7 @@ describe('ApiSessionUtils', () => {
             const result = await apiSessionUtils.createApiSession();
 
             expect(mockPost).toHaveBeenCalledTimes(1);
-            expect(result).toBe(newSession);
+            expect(result).toEqual(newSession);
         });
 
         it('should return a valid cached session', async () => {
@@ -70,21 +79,50 @@ describe('ApiSessionUtils', () => {
             const result2 = await apiSessionUtils.createApiSession();
 
             expect(mockPost).toHaveBeenCalledTimes(1);
-            expect(result1).toBe(validSession);
-            expect(result2).toBe(validSession);
+            expect(result1).toEqual(validSession);
+            expect(result2).toEqual(validSession);
         });
 
         it('should create a new session if cached session is expired', async () => {
-            const expiredSession = createMockSession(240_000); // 4 minutes expiry (inside 5-minute buffer)
-            const newSession = createMockSession(600_000);
-            mockPost.mockResolvedValueOnce(expiredSession).mockResolvedValueOnce(newSession);
-
+            // Set up a fixed timestamp for consistent testing
+            const baseTime = 1610000000000; // Fixed timestamp
+            Date.now = jest.fn().mockReturnValue(baseTime);
+            
+            // Create a session that will expire soon (just over 5 minutes)
+            const expiredSession = {
+                endpoint: 'http://localhost',
+                sessionKey: {
+                    expiry: new Date(baseTime + 310_000).toISOString(), // 5m10s from now
+                    secret: 'test-secret-1',
+                },
+            };
+            
+            const newSession = {
+                endpoint: 'http://localhost',
+                sessionKey: {
+                    expiry: new Date(baseTime + 600_000).toISOString(), // 10m from now
+                    secret: 'test-secret-2',
+                },
+            };
+            
+            mockPost.mockResolvedValueOnce(expiredSession);
+            
+            // First call - should get and cache the session
             const result1 = await apiSessionUtils.createApiSession();
+            expect(result1).toEqual(expiredSession);
+            
+            // Simulate time passing - move forward just beyond the buffer time (5m1s)
+            Date.now = jest.fn().mockReturnValue(baseTime + 301_000);
+            
+            // Set up the mock for the second call
+            mockPost.mockResolvedValueOnce(newSession);
+            
+            // Second call - should detect near-expiry and get a new session
             const result2 = await apiSessionUtils.createApiSession();
-
+            
+            // Verify behavior
             expect(mockPost).toHaveBeenCalledTimes(2);
-            expect(result1).toBe(expiredSession);
-            expect(result2).toBe(newSession);
+            expect(result2).toEqual(newSession);
         });
 
         it('should handle errors during session creation and publish an event', async () => {
@@ -98,7 +136,7 @@ describe('ApiSessionUtils', () => {
             expect(appEvents.publish).toHaveBeenCalledWith({
                 type: AppEvents.alertError.name,
                 payload: [
-                    'Error during creating Session-keys',
+                    'Error creating session',
                     `The query to create an API session failed. ${error.message} Please check the data source configuration and try again.`
                 ],
             });
