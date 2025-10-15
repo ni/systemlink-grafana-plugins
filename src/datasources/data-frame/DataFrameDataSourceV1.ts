@@ -21,7 +21,7 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import { replaceVariables } from 'core/utils';
 import { LEGACY_METADATA_TYPE } from 'core/types';
 
-export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataFrameDataSourceOptions> {
+export class DataFrameDataSourceV1 extends DataSourceBase<DataFrameQuery, DataFrameDataSourceOptions> {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
 
   constructor(
