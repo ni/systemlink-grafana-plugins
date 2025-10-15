@@ -30,8 +30,8 @@ export class DataFrameQueryEditorCommonV1 {
   readonly handleIdChange = (item: SelectableValue<string>) => {
     if (this.query.tableId !== item.value) {
       this.handleQueryChange({
-          ...this.query,
-          tableId: item.value,
+        ...this.query,
+        tableId: item.value,
         columns: []
       }, this.query.type === DataFrameQueryType.Properties);
     }
