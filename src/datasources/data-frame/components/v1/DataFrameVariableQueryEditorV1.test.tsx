@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { select } from 'react-select-event';
 import { setupDataSource } from 'test/fixtures';
-import { DataFrameDataSourceV1 } from '../../DataFrameDataSourceV1';
+import { DataFrameDataSourceV1 } from 'datasources/data-frame/datasources/v1/DataFrameDataSourceV1';
 import { DataFrameQueryV1 } from '../../types';
 import { DataFrameVariableQueryEditorV1 } from './DataFrameVariableQueryEditorV1';
 
