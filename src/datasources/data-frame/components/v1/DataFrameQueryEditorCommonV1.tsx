@@ -2,7 +2,7 @@ import { CoreApp, SelectableValue } from "@grafana/data";
 import { LoadOptionsCallback } from "@grafana/ui";
 import { getWorkspaceName, getVariableOptions } from "core/utils";
 import _ from "lodash";
-import { DataFrameDataSourceV1 } from "datasources/data-frame/datasources/v1/DataFrameDataSourceV1";
+import { DataFrameDataSourceV1 } from "../../datasources/v1/DataFrameDataSourceV1";
 import { DataFrameQueryV1, DataFrameQueryType, PropsV1, ValidDataFrameQueryV1 } from "../../types";
 
 export class DataFrameQueryEditorCommonV1 {
