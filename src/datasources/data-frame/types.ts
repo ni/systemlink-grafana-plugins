@@ -8,6 +8,8 @@ export enum DataFrameQueryType {
   Properties = 'Properties',
 }
 
+export type DataFrameQuery = DataFrameQueryV1 | DataFrameQueryV2;
+
 export interface DataFrameQueryV1 extends DataQuery {
   type: DataFrameQueryType;
   tableId?: string;
