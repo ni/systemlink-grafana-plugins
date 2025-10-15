@@ -2,8 +2,8 @@ import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
-import { DataFrameDataSourceV2 } from "datasources/data-frame/datasources/v2/DataFrameDataSourceV2";
-import { DataFrameQueryV2, DataFrameQueryType } from "datasources/data-frame/types";
+import { DataFrameDataSourceV2 } from "../../datasources/v2/DataFrameDataSourceV2";
+import { DataFrameQueryV2, DataFrameQueryType } from "../../types";
 
 jest.mock("./query-builders/DataTableQueryBuilder", () => ({
     DataTableQueryBuilder: () => <div data-testid="data-table-query-builder" />

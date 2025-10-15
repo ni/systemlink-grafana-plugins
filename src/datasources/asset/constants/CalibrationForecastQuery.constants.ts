@@ -3,6 +3,7 @@ import { QBField } from "../types/CalibrationForecastQuery.types";
 import { AssetTypeOptions, BusTypeOptions } from "../types/types";
 
 export enum AssetCalibrationFieldNames {
+    ASSET_ID = 'AssetIdentifier',
     LOCATION = 'Location',
     WORKSPACE = 'Workspace',
     MODEL_NAME = 'ModelName',
@@ -13,6 +14,14 @@ export enum AssetCalibrationFieldNames {
 }
 
 export const AssetCalibrationFields: Record<string, QBField> = {
+    ASSET_ID: {
+        label: 'Asset Identifier',
+        dataField: AssetCalibrationFieldNames.ASSET_ID,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name
+        ],
+    },
     LOCATION: {
         label: 'Location',
         dataField: AssetCalibrationFieldNames.LOCATION,
@@ -86,6 +95,7 @@ export const AssetCalibrationFields: Record<string, QBField> = {
 };
 
 export const AssetCalibrationStaticFields = [
+    AssetCalibrationFields.ASSET_ID,
     AssetCalibrationFields.MODEL_NAME,
     AssetCalibrationFields.VENDOR_NAME,
     AssetCalibrationFields.ASSET_TYPE,
