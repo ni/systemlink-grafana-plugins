@@ -1,18 +1,18 @@
 import React, { useCallback, useState } from 'react';
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
 import { AutoSizeInput, Collapse, InlineField, InlineLabel, MultiSelect, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQuery, DataFrameQueryType, Props } from "datasources/data-frame/types";
+import { DataFrameQueryV1, DataFrameQueryType, PropsV1 } from "datasources/data-frame/types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { TAKE_LIMIT } from 'datasources/data-frame/constants';
 
-export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRunQuery, datasource }: Props) => {
+export const DataFrameQueryEditorV2: React.FC<PropsV1> = ({ query, onChange, onRunQuery, datasource }: PropsV1) => {
     query = datasource.processQuery(query);
 
     const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
 
     const handleQueryChange = useCallback(
-        (query: DataFrameQuery, runQuery = true): void => {
+        (query: DataFrameQueryV1, runQuery = true): void => {
             onChange(query);
             if (runQuery) {
                 onRunQuery();
