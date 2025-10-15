@@ -2,7 +2,7 @@ import { of, Observable } from 'rxjs';
 import { DataQueryRequest, DataSourceInstanceSettings, dateTime, Field, FieldType } from '@grafana/data';
 import { BackendSrvRequest, FetchResponse } from '@grafana/runtime';
 
-import { DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryType, TableDataRows, TableProperties } from './types';
+import { DataFrameDataSourceOptions, DataFrameQueryV1, DataFrameQueryType, TableDataRows, TableProperties } from './types';
 import { DataFrameDataSourceV1 } from './DataFrameDataSourceV1';
 import { LEGACY_METADATA_TYPE } from 'core/types';
 
@@ -199,7 +199,7 @@ it('should migrate queries using columns of arrays of objects', async () => {
       refId: 'B',
       tableId: '1',
       columns: [{ name: 'float', dataType: 'FLOAT32', columnType: 'NORMAL' }],
-    } as unknown as DataFrameQuery,
+    } as unknown as DataFrameQueryV1,
   ]);
 
   await ds.query(query);
@@ -231,7 +231,7 @@ it('metricFindQuery returns table columns', async () => {
   const tableId = '1';
   const expectedColumns = fakePropertiesResponse.columns.map(col => ({ text: col.name, value: col.name }));
 
-  const columns = await ds.metricFindQuery({ tableId } as DataFrameQuery);
+  const columns = await ds.metricFindQuery({ tableId } as DataFrameQueryV1);
 
   expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: `_/nidataframe/v1/tables/${tableId}` }));
   expect(columns).toEqual(expect.arrayContaining(expectedColumns));
@@ -250,7 +250,7 @@ it('returns table properties for properties query', async () => {
 });
 
 it('should migrate legacy metadata type to properties type', () => {
-  const query: DataFrameQuery = { refId: 'A', type: LEGACY_METADATA_TYPE as any, tableId: '1', columns: [] };
+  const query: DataFrameQueryV1 = { refId: 'A', type: LEGACY_METADATA_TYPE as any, tableId: '1', columns: [] };
 
   const result = ds.processQuery(query);
   expect(result.type).toBe(DataFrameQueryType.Properties);
@@ -265,7 +265,7 @@ it('handles properties query when table has no properties', async () => {
   expect(response.data[0].fields).toEqual([]);
 });
 
-const buildQuery = (targets: DataFrameQuery[]): DataQueryRequest<DataFrameQuery> => {
+const buildQuery = (targets: DataFrameQueryV1[]): DataQueryRequest<DataFrameQueryV1> => {
   return {
     ...defaultQuery,
     targets,
@@ -345,7 +345,7 @@ function getFakeDataResponse(columns: string[]): TableDataRows {
   }
 };
 
-const defaultQuery: DataQueryRequest<DataFrameQuery> = {
+const defaultQuery: DataQueryRequest<DataFrameQueryV1> = {
   requestId: '1',
   dashboardUID: '1',
   interval: '0',
