@@ -1,3 +1,9 @@
+## [4.20.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.19.2...v4.20.0) (2025-10-15)
+
+### Features
+
+* **alarms:** Error handling for workspace dependency ([#428](https://github.com/ni/systemlink-grafana-plugins/issues/428)) ([81aa8c4](https://github.com/ni/systemlink-grafana-plugins/commit/81aa8c4a06b98ce206d0942c7826d878f9951308))
+
 ## [4.19.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.19.1...v4.19.2) (2025-10-15)
 
 ### Bug Fixes
