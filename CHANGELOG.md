@@ -1,3 +1,9 @@
+## [4.19.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.19.1...v4.19.2) (2025-10-15)
+
+### Bug Fixes
+
+* **assets:** Add Asset Identifier to filters ([#438](https://github.com/ni/systemlink-grafana-plugins/issues/438)) ([c229b4c](https://github.com/ni/systemlink-grafana-plugins/commit/c229b4cf4dfd494be787b0c084303393a478f044))
+
 ## [4.19.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.19.0...v4.19.1) (2025-10-15)
 
 ### Bug Fixes
