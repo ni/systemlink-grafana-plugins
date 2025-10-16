@@ -149,6 +149,102 @@ export function expressionReaderCallbackWithRef(optionsRef: React.MutableRefObje
 }
 
 /**
+ * Returns a function that formats a query string using the given @param `field` as the time field.
+ * The returned function takes `value` and `operation`, replacing '${__now:date}' in value with the current date in ISO format if matched.
+ */
+export function timeFieldsQuery(field: string): ExpressionTransformFunction {
+  return (value: string, operation: string): string => {
+    const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
+
+    return `${field} ${operation} "${formattedValue}"`;
+  };
+}
+
+/**
+ * Transforms a field query to support both single and multi-value inputs.
+ * Returns a function that builds the correct query expression for the given field, value(s), and operation.
+ *
+ * For example:
+ * Single value:
+ * Input: field = "status", value = "active", operation = "="
+ * Output: status = "active"
+ *
+ * Multi-value:
+ * Input: field = "status", value = "{active,pending}", operation = "!="
+ * Output: (status != "active" && status != "pending")
+ *
+ * @param field - The name of the field to be queried.
+ * @returns A function that takes a value and an operation, and returns a formatted query string.
+ */
+export function multipleValuesQuery(field: string): ExpressionTransformFunction {
+  return (value: string, operation: string, _options?: any) => {
+    const isMultiSelect = isMultiValueExpression(value);
+    const valuesArray = getMultipleValuesArray(value);
+    const logicalOperator = getConcatOperatorForMultiExpression(operation);
+
+    return isMultiSelect
+      ? `(${valuesArray.map(val => buildExpression(field, val, operation)).join(` ${logicalOperator} `)})`
+      : buildExpression(field, value, operation);
+  };
+}
+
+/**
+ * Gets the logical operator for a given query operation when building multi-value expressions
+ * or combining multiple properties.
+ * 
+ * Use Cases:
+ * 1. Multi-value fields: Combines expressions when using multi-value variables
+ *    Example: status = "{active,pending}" → (status = "active" || status = "pending")
+ * 
+ * 2. Multi property fields: Combines expressions when a field corresponds to multiple properties
+ *    Example: source != "sys1" → (system != "sys1" && minionId != "sys1")
+ *  
+ * @param operation The operation to be checked.
+ * @returns The logical operator as a string.
+ */
+export function getConcatOperatorForMultiExpression(operation: string): string {
+  return operation === QueryBuilderOperations.EQUALS.name || operation === QueryBuilderOperations.IS_NOT_BLANK.name
+    ? '||'
+    : '&&';
+}
+
+/**
+ * Builds a query expression for a specific field, value, and operation.
+ * @param field - The name of the field to be queried.
+ * @param value - The value to be used in the query.
+ * @param operation - The operation to be applied.
+ * @returns The constructed query expression as a string.
+ */
+function buildExpression(field: string, value: string, operation: string): string {
+  const operationConfig = Object.values(QueryBuilderOperations).find(op => op.name === operation);
+  const expressionTemplate = operationConfig?.expressionTemplate;
+
+  if (expressionTemplate) {
+    return buildExpressionFromTemplate(expressionTemplate, field, value) ?? '';
+  }
+
+  return `${field} ${operation} "${value}"`;
+}
+
+/**
+ * Checks if the given value is a multi-value expression.
+ * @param value The value to be checked.
+ * @returns True if the value is a multi-value expression, false otherwise.
+ */
+function isMultiValueExpression(value: string): boolean {
+  return value.startsWith('{') && value.endsWith('}');
+}
+
+/**
+ * Extracts the individual values from a multi-value expression.
+ * @param value The multi-value expression to be processed.
+ * @returns An array of individual values.
+ */
+function getMultipleValuesArray(value: string): string[] {
+  return value.replace(/({|})/g, '').split(',');
+}
+
+/**
  * Returns the value of returnKey from the matching entry in the options array.
  * @param matchKey - The property name to match on.
  * @param returnKey - The property name whose value should be returned from the found option.

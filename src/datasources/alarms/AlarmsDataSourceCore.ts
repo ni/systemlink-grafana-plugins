@@ -3,15 +3,18 @@ import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, Scop
 import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from "./types/types";
 import { extractErrorInfo } from "core/errors";
 import { QUERY_ALARMS_RELATIVE_PATH } from "./constants/QueryAlarms.constants";
-import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
+import { ExpressionTransformFunction, getConcatOperatorForMultiExpression, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { WorkspaceUtils } from "shared/workspace.utils";
 import { getVariableOptions } from "core/utils";
-import { QueryBuilderOperations } from "core/query-builder.constants";
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
+import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from "./constants/SourceProperties.constants";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
+  public errorTitle?: string;
+  public errorDescription?: string;
+
   private readonly queryAlarmsUrl = `${this.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`;
   private readonly workspaceUtils: WorkspaceUtils;
 
@@ -50,8 +53,10 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   public async loadWorkspaces(): Promise<Map<string, Workspace>> {
     try {
       return await this.workspaceUtils.getWorkspaces();
-    } catch (_error){
-      // #AB3283306 - Error handling for workspace dependency
+    } catch (error){
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
       return new Map<string, Workspace>();
     }
   }
@@ -65,49 +70,52 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   private readonly computedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(AlarmsQueryBuilderFields).map(field => {
       const dataField = field.dataField as string;
+      let callback;
 
-      return [
-        dataField,
-        this.isTimeField(dataField)
-          ? this.timeFieldsQuery(dataField)
-          : this.multiValueVariableQuery(dataField),
-      ];
+      if (dataField === AlarmsQueryBuilderFields.SOURCE.dataField) {
+        callback = this.getSourceTransformation();
+      } else if (this.isTimeField(dataField)) {
+        callback = timeFieldsQuery(dataField);
+      } else {
+        callback = multipleValuesQuery(dataField);
+      }
+
+      return [dataField, callback];
     })
   );
 
-  private timeFieldsQuery(field: string): ExpressionTransformFunction {
-    return (value: string, operation: string): string => {
-      const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
-      return `${field} ${operation} "${formattedValue}"`;
-    };
+  private handleDependenciesError(error: unknown): void {
+    const errorDetails = extractErrorInfo((error as Error).message);
+    this.errorTitle = 'Warning during alarms query';
+    switch (errorDetails.statusCode) {
+      case '404':
+        this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
+        break;
+      case '429':
+        this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
+        break;
+      case '504':
+        this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
+        break;
+      default:
+        this.errorDescription = errorDetails.message
+          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+          : 'Some values may not be available in the query builder lookups due to an unknown error.';
+    }
   }
 
   private isTimeField(field: string): boolean {
     return ALARMS_TIME_FIELDS.includes(field);
   }
 
-  private multiValueVariableQuery(field: string): ExpressionTransformFunction {
-    return (value: string, operation: string, _options?: any) => {
-      const isMultiSelect = this.isMultiValueExpression(value);
-      const valuesArray = this.getMultipleValuesArray(value);
-      const logicalOperator = this.getLogicalOperator(operation);
+  private getSourceTransformation(): ExpressionTransformFunction {
+    return (value: string, operation: string) => {
+      const systemExpression = multipleValuesQuery(`properties.${SYSTEM_CUSTOM_PROPERTY}`)(value, operation);
+      const minionExpression = multipleValuesQuery(`properties.${MINION_ID_CUSTOM_PROPERTY}`)(value, operation);
+      const logicalOperator = getConcatOperatorForMultiExpression(operation);
 
-      return isMultiSelect
-        ? `(${valuesArray.map(val => `${field} ${operation} "${val}"`).join(` ${logicalOperator} `)})`
-        : `${field} ${operation} "${value}"`;
+      return `(${systemExpression} ${logicalOperator} ${minionExpression})`;
     };
-  }
-
-  private isMultiValueExpression(value: string): boolean {
-    return value.startsWith('{') && value.endsWith('}');
-  }
-
-  private getMultipleValuesArray(value: string): string[] {
-    return value.replace(/({|})/g, '').split(',');
-  }
-
-  private getLogicalOperator(operation: string): string {
-    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
   }
 
   private getStatusCodeErrorMessage(errorDetails: { statusCode: string; message: string }): string {

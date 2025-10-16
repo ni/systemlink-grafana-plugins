@@ -873,3 +873,215 @@ exports[`shouldRunQuery should return expected data when take is 10000 1`] = `
   "refId": "A",
 }
 `;
+
+exports[`shouldRunQuery should return single asset when identifier is provided 1`] = `
+{
+  "fields": [
+    {
+      "name": "id",
+      "type": "string",
+      "values": [
+        "c44750b7-1f22-4fec-b475-73b10e966217",
+      ],
+    },
+    {
+      "name": "serial number",
+      "type": "string",
+      "values": [
+        "SDFGSDFG234",
+      ],
+    },
+    {
+      "name": "model name",
+      "type": "string",
+      "values": [
+        "ABCD",
+      ],
+    },
+    {
+      "name": "model number",
+      "type": "string",
+      "values": [
+        0,
+      ],
+    },
+    {
+      "name": "vendor name",
+      "type": "string",
+      "values": [
+        "Acme",
+      ],
+    },
+    {
+      "name": "vendor number",
+      "type": "string",
+      "values": [
+        0,
+      ],
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "values": [
+        "SDFGSDFG234",
+      ],
+    },
+    {
+      "name": "asset type",
+      "type": "string",
+      "values": [
+        "SYSTEM",
+      ],
+    },
+    {
+      "name": "firmware version",
+      "type": "string",
+      "values": [
+        "",
+      ],
+    },
+    {
+      "name": "visa resource name",
+      "type": "string",
+      "values": [
+        "",
+      ],
+    },
+    {
+      "name": "part number",
+      "type": "string",
+      "values": [
+        "ALK AA48FFP-U AMZ",
+      ],
+    },
+    {
+      "name": "last updated timestamp",
+      "type": "string",
+      "values": [
+        "2023-08-31T17:32:15.201Z",
+      ],
+    },
+    {
+      "name": "bus type",
+      "type": "string",
+      "values": [
+        "BUILT_IN_SYSTEM",
+      ],
+    },
+    {
+      "name": "is NI asset",
+      "type": "string",
+      "values": [
+        true,
+      ],
+    },
+    {
+      "name": "keywords",
+      "type": "string",
+      "values": [
+        "keyword",
+      ],
+    },
+    {
+      "name": "properties",
+      "type": "string",
+      "values": [
+        "{}",
+      ],
+    },
+    {
+      "name": "location",
+      "type": "string",
+      "values": [
+        "",
+      ],
+    },
+    {
+      "name": "minionId",
+      "type": "string",
+      "values": [
+        "",
+      ],
+    },
+    {
+      "name": "parent name",
+      "type": "string",
+      "values": [
+        "",
+      ],
+    },
+    {
+      "name": "supports self calibration",
+      "type": "string",
+      "values": [
+        false,
+      ],
+    },
+    {
+      "name": "discovery type",
+      "type": "string",
+      "values": [
+        "MANUAL",
+      ],
+    },
+    {
+      "name": "supports self test",
+      "type": "string",
+      "values": [
+        false,
+      ],
+    },
+    {
+      "name": "supports reset",
+      "type": "string",
+      "values": [
+        false,
+      ],
+    },
+    {
+      "name": "self calibration",
+      "type": "string",
+      "values": [
+        "",
+      ],
+    },
+    {
+      "name": "supports external calibration",
+      "type": "string",
+      "values": [
+        false,
+      ],
+    },
+    {
+      "name": "calibration due date",
+      "type": "string",
+      "values": [
+        undefined,
+      ],
+    },
+    {
+      "name": "is system controller",
+      "type": "string",
+      "values": [
+        false,
+      ],
+    },
+    {
+      "name": "workspace",
+      "type": "string",
+      "values": [
+        "Default",
+      ],
+    },
+    {
+      "name": "calibration status",
+      "type": "string",
+      "values": [
+        "OK",
+      ],
+    },
+  ],
+  "name": "A",
+  "refId": "A",
+}
+`;

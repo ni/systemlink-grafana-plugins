@@ -95,5 +95,14 @@ describe('AssetQueryBuilder', () => {
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.innerHTML).not.toContain('alert(\'Workspace\')');
     })
+
+    it('should select asset identifier in query builder', () => {
+      const workspace = { id: '1', name: 'Selected workspace' } as Workspace;
+      const system = { id: '1', alias: 'Selected system' } as SystemProperties;
+      const { conditionsContainer } = renderElement([workspace], [system], [], 'AssetIdentifier = "AssetIdentifier_123"');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("AssetIdentifier_123");
+    })
   });
 });

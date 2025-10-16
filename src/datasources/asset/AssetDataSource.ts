@@ -30,7 +30,6 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
   private assetSummaryDataSource: AssetSummaryDataSource;
   private calibrationForecastDataSource: CalibrationForecastDataSource;
   private listAssetsDataSource: ListAssetsDataSource;
-  private assetQueryReturnType: AssetQueryReturnType = AssetQueryReturnType.AssetTagPath;
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,
@@ -92,14 +91,6 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
     return this.listAssetsDataSource;
   }
 
-  getQueryReturnType(): AssetQueryReturnType {
-    return this.assetQueryReturnType;
-  }
-
-  setQueryReturnType(queryReturnType: AssetQueryReturnType): void {
-    this.assetQueryReturnType = queryReturnType;
-  }
-
   async metricFindQuery(query: AssetVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     let listAssetsTake = this.patchListAssetQueryVariable(query).take;
     if (!this.isTakeValid(listAssetsTake)) {
@@ -112,10 +103,10 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
       this.listAssetsDataSource.queryTransformationOptions
     );
     const assetsResponse: AssetsResponse = await this.listAssetsDataSource.queryAssets(assetFilter, listAssetsTake, false, defaultProjectionForListAssetsVariable);
-    return assetsResponse.assets.map((asset) => this.getAssetNameForMetricQuery(asset));
+    return assetsResponse.assets.map((asset) => this.getAssetNameForMetricQuery(query, asset));
   }
 
-  private getAssetNameForMetricQuery(asset: AssetModel): MetricFindValue {
+  private getAssetNameForMetricQuery(query: AssetVariableQuery, asset: AssetModel): MetricFindValue {
     const vendor = asset.vendorName ? asset.vendorName : asset.vendorNumber;
     const model = asset.modelName ? asset.modelName : asset.modelNumber;
     const serial = asset.serialNumber;
@@ -123,7 +114,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
 
     const assetName = !asset.name ? `${serial}` : `${asset.name} (${serial})`;
 
-    if (this.assetQueryReturnType === AssetQueryReturnType.AssetId) {
+    if (query.queryReturnType === AssetQueryReturnType.AssetId) {
       assetValue = asset.id;
     } else {
       assetValue = `Assets.${vendor}.${model}.${serial}`;

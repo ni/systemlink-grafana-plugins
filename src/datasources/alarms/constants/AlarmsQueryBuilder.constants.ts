@@ -145,6 +145,19 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
     dataField: 'resourceType',
     filterOperations: BASIC_STRING_FILTER_OPERATIONS,
   },
+  SOURCE: {
+    label: 'Source',
+    dataField: 'source',
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name, 
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.IS_BLANK.name,
+      QueryBuilderOperations.IS_NOT_BLANK.name,
+      /* #AB#3422087 - Switch to BASIC_STRING_FILTER_OPERATIONS 
+      once transformation support for "contains" and "does not contain" 
+      is implemented */
+    ],
+  },
   WORKSPACE: {
     label: 'Workspace',
     dataField: 'workspace',
@@ -171,4 +184,5 @@ export const AlarmsQueryBuilderStaticFields: QBField[] = [
   AlarmsQueryBuilderFields.KEYWORD,
   AlarmsQueryBuilderFields.PROPERTIES,
   AlarmsQueryBuilderFields.RESOURCE_TYPE,
+  AlarmsQueryBuilderFields.SOURCE,
 ];

@@ -29,7 +29,7 @@ import {
   TAKE_LIMIT,
 } from 'datasources/results/constants/QuerySteps.constants';
 import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/StepsQueryBuilder.constants';
-import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
 import { QueryResponse, Workspace } from 'core/types';
@@ -578,7 +578,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   private readonly stepsComputedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(StepsQueryBuilderFieldNames).map(field => [
       field,
-      field === StepsQueryBuilderFieldNames.UPDATED_AT ? this.timeFieldsQuery(field) : this.multipleValuesQuery(field),
+      field === StepsQueryBuilderFieldNames.UPDATED_AT ? timeFieldsQuery(field) : multipleValuesQuery(field),
     ])
   );
 
@@ -589,8 +589,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     Object.values(ResultsQueryBuilderFieldNames).map(field => [
       field,
       field === ResultsQueryBuilderFieldNames.UPDATED_AT || field === ResultsQueryBuilderFieldNames.STARTED_AT
-        ? this.timeFieldsQuery(field)
-        : this.multipleValuesQuery(field),
+        ? timeFieldsQuery(field)
+        : multipleValuesQuery(field),
     ])
   );
 

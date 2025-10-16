@@ -1,10 +1,9 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { AlarmsCountQueryEditor } from './AlarmsCountQueryEditor';
 import { QueryType } from 'datasources/alarms/types/types';
 import { AlarmsCountQuery } from 'datasources/alarms/types/AlarmsCount.types';
 import { AlarmsCountDataSource } from 'datasources/alarms/query-type-handlers/alarms-count/AlarmsCountDataSource';
-import { act } from 'react-dom/test-utils';
 
 const mockHandleQueryChange = jest.fn();
 const mockGlobalVars = [{ label: '$var1', value: '$value1' }];
@@ -78,5 +77,18 @@ describe('AlarmsCountQueryEditor', () => {
 
     expect(mockDatasource.loadWorkspaces).toHaveBeenCalled();
     expect(container.getByText('WorkspaceName')).toBeInTheDocument();
+  });
+
+  it('should display error title and description when error occurs', async () => {
+    mockDatasource.loadWorkspaces = jest.fn().mockImplementation(() => {
+      mockDatasource.errorTitle = 'Test Error Title';
+      mockDatasource.errorDescription = 'Test Error Description';
+      return Promise.resolve(new Map());
+    });
+    
+    await renderElement();
+
+    expect(screen.getByText('Test Error Title')).toBeInTheDocument();
+    expect(screen.getByText('Test Error Description')).toBeInTheDocument();
   });
 });

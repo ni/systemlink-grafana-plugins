@@ -66,10 +66,8 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
   };
 
   function changeQueryReturnType(queryReturnType: AssetQueryReturnType) {
-    datasource.setQueryReturnType(queryReturnType);
     onChange({ ...assetVariableQuery, queryReturnType: queryReturnType } as AssetVariableQuery);
   }
-
   return (
     <Stack direction="column">
       <InlineField label="Filter" labelWidth={25} tooltip={tooltips.filter}>
@@ -83,15 +81,17 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
           onChange={(event: any) => onParameterChange(event)}
         ></AssetQueryBuilder>
       </InlineField>
-      <InlineField 
-        label="Return Type" 
-        labelWidth={25} 
+      <InlineField
+        label="Return Type"
+        labelWidth={25}
         tooltip={tooltips.queryReturnType}>
         <Select
           options={returnTypeOptions}
-          defaultValue={datasource.getQueryReturnType()}
-          value={datasource.getQueryReturnType()}
-          onChange={(item) => {changeQueryReturnType(item.value!)}}
+          defaultValue={AssetQueryReturnType.AssetTagPath}
+          value={assetVariableQuery.queryReturnType || AssetQueryReturnType.AssetTagPath}
+          onChange={(item) => {
+            changeQueryReturnType(item.value!);
+          }}
           width={26}
         />
       </InlineField>

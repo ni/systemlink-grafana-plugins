@@ -1,5 +1,6 @@
 import { QUERY_LIMIT } from "./constants/constants"
 import { AssetFilterPropertiesOption, OutputType } from "./types/ListAssets.types"
+import { AssetQueryReturnType } from "./types/types"
 
 export const defaultAssetSummaryQuery = {
 }
@@ -28,4 +29,5 @@ export const defaultProjectionForListAssetsVariable = [AssetFilterPropertiesOpti
 export const defaultListAssetsVariable = {
     filter: "",
     take: QUERY_LIMIT,
+    queryReturnType: AssetQueryReturnType.AssetTagPath,
 }
