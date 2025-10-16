@@ -6,7 +6,8 @@ import { QueryBuilderOption, Workspace } from 'core/types';
 import { extractErrorInfo } from 'core/errors';
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
-import { getWorkspaceName } from 'core/utils';
+import { getWorkspaceName, postV1 } from 'core/utils';
+import { concatMap, from, lastValueFrom, map, Observable, of } from 'rxjs';
 
 export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   constructor(
@@ -54,16 +55,17 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   private workspacesLoaded!: () => void;
   private partNumberLoaded!: () => void;
 
-  async queryProducts(
+  queryProducts(
     orderBy?: string,
     projection?: Properties[],
     filter?: string,
     take?: number,
     descending = false,
     returnCount = false
-  ): Promise<QueryProductResponse> {
+  ): Observable<QueryProductResponse> {
     try {
-      const response = await this.post<QueryProductResponse>(
+      return postV1<QueryProductResponse>(
+        this.backendSrv,
         this.queryProductsUrl,
         {
           filter,
@@ -75,7 +77,6 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
         },
         { showErrorAlert: false },// suppress default error alert since we handle errors manually
       );
-      return response;
     } catch (error) {
       const errorDetails = extractErrorInfo((error as Error).message);
       let errorMessage: string;
@@ -106,56 +107,63 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     );
   }
 
-  async runQuery(query: ProductQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    await this.workspaceLoadedPromise;
-    await this.partNumberLoadedPromise;
+  runQuery(query: ProductQuery, options: DataQueryRequest): Observable<DataFrameDTO> {
+    return from(this.workspaceLoadedPromise).pipe(
+      concatMap(() => from(this.partNumberLoadedPromise)),
+      concatMap(() => {
+        // Early return if no properties or recordCount
+        if (query.properties?.length === 0 || query.recordCount === undefined) {
+          return of({
+            refId: query.refId,
+            name: query.refId,
+            fields: [],
+          });
+        }
+  
+        // Replace and transform queryBy if defined
+        if (query.queryBy) {
+          query.queryBy = transformComputedFieldsQuery(
+            this.templateSrv.replace(query.queryBy, options.scopedVars),
+            this.productsComputedDataFields,
+          );
+        }
+  
+        // Query products (returns Promise, wrap in from())
+        return this.queryProducts(
+          query.orderBy,
+          query.properties,
+          query.queryBy,
+          query.recordCount,
+          query.descending
+        ).pipe(
+          map(({ products }) => {
+            const selectedFields =
+              products && products.length > 0
+                ? query.properties?.filter(
+                    (field: Properties) => field in products[0]
+                  ) ?? []
+                : query.properties ?? [];
 
-    if( query.properties?.length === 0 || query.recordCount === undefined ) {
-      return {
-        refId: query.refId,
-        name: query.refId,
-        fields: [],
-      }
-    }
+            const fields = selectedFields.map((field) => {
+              const isTimeField = field === PropertiesOptions.UPDATEDAT;
+              const fieldType = isTimeField ? FieldType.time : FieldType.string;
 
-    if (query.queryBy) {
-      query.queryBy = transformComputedFieldsQuery(
-        this.templateSrv.replace(query.queryBy, options.scopedVars),
-        this.productsComputedDataFields,
-      );
-    }
+              return {
+                name: productsProjectionLabelLookup[field].label,
+                values: this.getFieldValues(products, field),
+                type: fieldType,
+              };
+            });
 
-    const products = (
-      await this.queryProducts(
-        query.orderBy,
-        query.properties,
-        query.queryBy,
-        query.recordCount,
-        query.descending
-      )).products;
-
-    const selectedFields = (products && products.length > 0)
-      ? (query.properties?.filter(
-        (field: Properties) => field in products[0]
-      ) ?? [])
-      : (query.properties ?? []);
-    const fields = selectedFields.map((field) => {
-      const isTimeField = field === PropertiesOptions.UPDATEDAT;
-      const fieldType = isTimeField
-        ? FieldType.time
-        : FieldType.string;
-
-      return {
-        name: productsProjectionLabelLookup[field].label,
-        values: this.getFieldValues(products, field),
-        type: fieldType
-      };
-    });
-    return {
-      refId: query.refId,
-      name: query.refId,
-      fields: fields,
-    };
+            return {
+              refId: query.refId,
+              name: query.refId,
+              fields,
+            } as DataFrameDTO;
+          })
+        );
+      })
+    );
   }
 
   shouldRunQuery(query: ProductQuery): boolean {
@@ -182,7 +190,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     familyNames?.forEach(familyName => this.familyNamesCache.set(familyName, familyName));
   }
 
-  async metricFindQuery(query: ProductVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+  metricFindQuery(query: ProductVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     const filter = query.queryBy
       ? transformComputedFieldsQuery(
         this.templateSrv.replace(query.queryBy, options.scopedVars),
@@ -190,14 +198,15 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       )
       : undefined;
 
-    const metadata = (await this.queryProducts(
+    return lastValueFrom(this.queryProducts(
       PropertiesOptions.PART_NUMBER,
       [Properties.partNumber, Properties.name],
       filter
-    )).products;
-
-    const productOptions = metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.partNumber})`, value: frame.partNumber })) : [];
-    return productOptions.sort((a, b) => a.text.localeCompare(b.text));  
+    ).pipe(
+      map(res => res.products),
+      map(metadata => metadata.map(frame => ({ text: `${frame.name} (${frame.partNumber})`, value: frame.partNumber }))),
+      map(productOptions => productOptions.sort((a, b) => a.text.localeCompare(b.text)))
+    ));
   }
 
   readonly productsComputedDataFields = new Map<string, ExpressionTransformFunction>(

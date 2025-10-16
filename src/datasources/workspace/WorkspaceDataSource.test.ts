@@ -10,6 +10,7 @@ import {
 } from 'test/fixtures';
 import { WorkspaceDataSource } from './WorkspaceDataSource';
 import { WorkspaceQuery } from './types';
+import { firstValueFrom } from 'rxjs';
 
 let ds: WorkspaceDataSource, backendSrv: MockProxy<BackendSrv>;
 
@@ -41,7 +42,7 @@ describe('testDatasource', () => {
 
 describe('queries', () => {
   test('returns all workspaces', async () => {
-    const result = await ds.query(buildQuery({}));
+    const result = await firstValueFrom(ds.query(buildQuery({})));
 
     expect(result.data[0]).toHaveProperty('fields', [
       { name: 'name', values: ['Default workspace', 'Other workspace'] }
