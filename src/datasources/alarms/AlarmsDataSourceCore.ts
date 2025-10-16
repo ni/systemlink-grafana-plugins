@@ -3,12 +3,11 @@ import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, Scop
 import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from "./types/types";
 import { extractErrorInfo } from "core/errors";
 import { QUERY_ALARMS_RELATIVE_PATH } from "./constants/QueryAlarms.constants";
-import { ExpressionTransformFunction, transformComputedFieldsQuery } from "core/query-builder.utils";
+import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { WorkspaceUtils } from "shared/workspace.utils";
 import { getVariableOptions } from "core/utils";
-import { QueryBuilderOperations } from "core/query-builder.constants";
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
@@ -74,8 +73,8 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
       return [
         dataField,
         this.isTimeField(dataField)
-          ? this.timeFieldsQuery(dataField)
-          : this.multiValueVariableQuery(dataField),
+          ? timeFieldsQuery(dataField)
+          : multipleValuesQuery(dataField),
       ];
     })
   );
@@ -100,39 +99,8 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
     }
   }
 
-  private timeFieldsQuery(field: string): ExpressionTransformFunction {
-    return (value: string, operation: string): string => {
-      const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
-      return `${field} ${operation} "${formattedValue}"`;
-    };
-  }
-
   private isTimeField(field: string): boolean {
     return ALARMS_TIME_FIELDS.includes(field);
-  }
-
-  private multiValueVariableQuery(field: string): ExpressionTransformFunction {
-    return (value: string, operation: string, _options?: any) => {
-      const isMultiSelect = this.isMultiValueExpression(value);
-      const valuesArray = this.getMultipleValuesArray(value);
-      const logicalOperator = this.getLogicalOperator(operation);
-
-      return isMultiSelect
-        ? `(${valuesArray.map(val => `${field} ${operation} "${val}"`).join(` ${logicalOperator} `)})`
-        : `${field} ${operation} "${value}"`;
-    };
-  }
-
-  private isMultiValueExpression(value: string): boolean {
-    return value.startsWith('{') && value.endsWith('}');
-  }
-
-  private getMultipleValuesArray(value: string): string[] {
-    return value.replace(/({|})/g, '').split(',');
-  }
-
-  private getLogicalOperator(operation: string): string {
-    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
   }
 
   private getStatusCodeErrorMessage(errorDetails: { statusCode: string; message: string }): string {
