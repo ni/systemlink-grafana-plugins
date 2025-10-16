@@ -1,3 +1,9 @@
+## [4.21.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.21.1...v4.21.2) (2025-10-16)
+
+### Bug Fixes
+
+* **assets:** fix field ordering ([#442](https://github.com/ni/systemlink-grafana-plugins/issues/442)) ([39b8715](https://github.com/ni/systemlink-grafana-plugins/commit/39b8715b7c9b5abe2c0abf490e9d9a668a1fcf96))
+
 ## [4.21.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.21.0...v4.21.1) (2025-10-16)
 
 ### Bug Fixes
