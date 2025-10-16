@@ -1,5 +1,5 @@
 import { QueryBuilderOperations } from "./query-builder.constants";
-import { buildExpressionFromTemplate, expressionBuilderCallback, expressionBuilderCallbackWithRef, expressionReaderCallback, expressionReaderCallbackWithRef, ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "./query-builder.utils"
+import { buildExpressionFromTemplate, expressionBuilderCallback, expressionBuilderCallbackWithRef, expressionReaderCallback, expressionReaderCallbackWithRef, ExpressionTransformFunction, getConcatOperatorForMultiExpression, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "./query-builder.utils"
 
 describe('QueryBuilderUtils', () => {
   describe('transformComputedFieldsQuery', () => {
@@ -326,6 +326,31 @@ describe('QueryBuilderUtils', () => {
       const result = buildExpression('{value1}', 'like');
 
       expect(result).toBe('(field like "value1")');
+    });
+  });
+
+  describe('getConcatOperatorForMultiExpression', () => {
+    [
+      {
+        name: 'equals',
+        operator: '=',
+      },
+      {
+        name: 'is not blank',
+        operator: 'isnotblank',
+      },
+    ].forEach(testCase => {
+      it(`should return OR for ${testCase.name} operator`, () => {
+        const result = getConcatOperatorForMultiExpression(testCase.operator);
+
+        expect(result).toBe('||');
+      });
+    });
+
+    it('should return AND as the default logical operator', () => {
+      const result = getConcatOperatorForMultiExpression('>');
+
+      expect(result).toBe('&&');
     });
   });
 })

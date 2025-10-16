@@ -180,12 +180,32 @@ export function multipleValuesQuery(field: string): ExpressionTransformFunction 
   return (value: string, operation: string, _options?: any) => {
     const isMultiSelect = isMultiValueExpression(value);
     const valuesArray = getMultipleValuesArray(value);
-    const logicalOperator = getLogicalOperator(operation);
+    const logicalOperator = getConcatOperatorForMultiExpression(operation);
 
     return isMultiSelect
       ? `(${valuesArray.map(val => buildExpression(field, val, operation)).join(` ${logicalOperator} `)})`
       : buildExpression(field, value, operation);
   };
+}
+
+/**
+ * Gets the logical operator for a given query operation when building multi-value expressions
+ * or combining multiple properties.
+ * 
+ * Use Cases:
+ * 1. Multi-value fields: Combines expressions when using multi-value variables
+ *    Example: status = "{active,pending}" → (status = "active" || status = "pending")
+ * 
+ * 2. Multi property fields: Combines expressions when a field corresponds to multiple properties
+ *    Example: source != "sys1" → (system != "sys1" && minionId != "sys1")
+ *  
+ * @param operation The operation to be checked.
+ * @returns The logical operator as a string.
+ */
+export function getConcatOperatorForMultiExpression(operation: string): string {
+  return operation === QueryBuilderOperations.EQUALS.name || operation === QueryBuilderOperations.IS_NOT_BLANK.name
+    ? '||'
+    : '&&';
 }
 
 /**
@@ -222,16 +242,6 @@ function isMultiValueExpression(value: string): boolean {
  */
 function getMultipleValuesArray(value: string): string[] {
   return value.replace(/({|})/g, '').split(',');
-}
-
-/**
- * Gets the logical operator for a given query operation when building multi-value expressions
- * or combining multiple conditions.
- * @param operation The operation to be checked.
- * @returns The logical operator as a string.
- */
-function getLogicalOperator(operation: string): string {
-  return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
 }
 
 /**
