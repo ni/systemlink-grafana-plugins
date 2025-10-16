@@ -3,12 +3,13 @@ import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, Scop
 import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from "./types/types";
 import { extractErrorInfo } from "core/errors";
 import { QUERY_ALARMS_RELATIVE_PATH } from "./constants/QueryAlarms.constants";
-import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
+import { ExpressionTransformFunction, getConcatOperatorForMultiExpression, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { WorkspaceUtils } from "shared/workspace.utils";
 import { getVariableOptions } from "core/utils";
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
+import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from "./constants/SourceProperties.constants";
 
 export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   public errorTitle?: string;
@@ -69,13 +70,17 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   private readonly computedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(AlarmsQueryBuilderFields).map(field => {
       const dataField = field.dataField as string;
+      let callback;
 
-      return [
-        dataField,
-        this.isTimeField(dataField)
-          ? timeFieldsQuery(dataField)
-          : multipleValuesQuery(dataField),
-      ];
+      if (dataField === AlarmsQueryBuilderFields.SOURCE.dataField) {
+        callback = this.getSourceTransformation();
+      } else if (this.isTimeField(dataField)) {
+        callback = timeFieldsQuery(dataField);
+      } else {
+        callback = multipleValuesQuery(dataField);
+      }
+
+      return [dataField, callback];
     })
   );
 
@@ -101,6 +106,16 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
 
   private isTimeField(field: string): boolean {
     return ALARMS_TIME_FIELDS.includes(field);
+  }
+
+  private getSourceTransformation(): ExpressionTransformFunction {
+    return (value: string, operation: string) => {
+      const systemExpression = multipleValuesQuery(`properties.${SYSTEM_CUSTOM_PROPERTY}`)(value, operation);
+      const minionExpression = multipleValuesQuery(`properties.${MINION_ID_CUSTOM_PROPERTY}`)(value, operation);
+      const logicalOperator = getConcatOperatorForMultiExpression(operation);
+
+      return `(${systemExpression} ${logicalOperator} ${minionExpression})`;
+    };
   }
 
   private getStatusCodeErrorMessage(errorDetails: { statusCode: string; message: string }): string {
