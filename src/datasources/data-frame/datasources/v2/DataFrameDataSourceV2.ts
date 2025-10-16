@@ -1,17 +1,8 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindValue, TimeRange } from "@grafana/data";
-import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { DataFrameDatasourceBase } from "datasources/data-frame/DataFrameDataSourceBase";
-import { Column, DataFrameDataSourceOptions, DataFrameQueryV2, defaultQueryV2, TableDataRows, TableProperties, ValidDataFrameQueryV2 } from "datasources/data-frame/types";
+import { DataFrameDTO, DataQueryRequest, MetricFindValue, TimeRange } from "@grafana/data";
+import { DataFrameDataSourceBase } from "datasources/data-frame/DataFrameDataSourceBase";
+import { Column, DataFrameQueryV2, defaultQueryV2, TableDataRows, TableProperties, ValidDataFrameQueryV2 } from "datasources/data-frame/types";
 
-export class DataFrameDataSourceV2 extends DataFrameDatasourceBase {
-    constructor(
-        readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
-        readonly backendSrv: BackendSrv = getBackendSrv(),
-        readonly templateSrv: TemplateSrv = getTemplateSrv()
-    ) {
-        super(instanceSettings, backendSrv, templateSrv);
-    }
-
+export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
 
     async runQuery(_query: DataFrameQueryV2, _options: DataQueryRequest<DataFrameQueryV2>): Promise<DataFrameDTO> {

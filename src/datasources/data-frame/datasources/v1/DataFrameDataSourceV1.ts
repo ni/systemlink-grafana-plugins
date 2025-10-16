@@ -17,11 +17,11 @@ import {
 } from '../../types';
 import { propertiesCacheTTL } from '../../constants';
 import _ from 'lodash';
+import { DataFrameDataSourceBase } from '../../DataFrameDataSourceBase';
 import { replaceVariables } from 'core/utils';
 import { LEGACY_METADATA_TYPE } from 'core/types';
-import { DataFrameDatasourceBase } from 'datasources/data-frame/DataFrameDataSourceBase';
 
-export class DataFrameDataSourceV1 extends DataFrameDatasourceBase {
+export class DataFrameDataSourceV1 extends DataFrameDataSourceBase {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
 
   constructor(

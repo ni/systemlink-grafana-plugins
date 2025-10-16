@@ -1,8 +1,5 @@
 import {
-    DataQueryRequest,
     DataSourceInstanceSettings,
-    DataFrameDTO,
-    MetricFindValue,
     TestDataSourceResponse,
     TimeRange,
 } from '@grafana/data';
@@ -17,8 +14,10 @@ import {
 } from './types';
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from '@grafana/runtime';
 
-export abstract class DataFrameDatasourceBase extends DataSourceBase<DataFrameQuery, DataFrameDataSourceOptions> {
-    constructor(
+export abstract class DataFrameDataSourceBase extends DataSourceBase<DataFrameQuery, DataFrameDataSourceOptions> {
+    baseUrl = this.instanceSettings.url + '/nidataframe/v1';
+
+    public constructor(
         readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
         readonly backendSrv: BackendSrv = getBackendSrv(),
         readonly templateSrv: TemplateSrv = getTemplateSrv()
@@ -26,14 +25,7 @@ export abstract class DataFrameDatasourceBase extends DataSourceBase<DataFrameQu
         super(instanceSettings, backendSrv, templateSrv);
     }
 
-    baseUrl = this.instanceSettings.url + '/nidataframe/v1';
-
-    abstract runQuery(
-        query: DataFrameQuery,
-        options: DataQueryRequest<DataFrameQuery>
-    ): Promise<DataFrameDTO>;
-
-    abstract shouldRunQuery(query: ValidDataFrameQuery): boolean;
+    abstract processQuery(query: DataFrameQuery): ValidDataFrameQuery;
 
     abstract getTableProperties(id?: string): Promise<TableProperties>;
 
@@ -45,10 +37,6 @@ export abstract class DataFrameDatasourceBase extends DataSourceBase<DataFrameQu
     ): Promise<TableDataRows>;
 
     abstract queryTables(query: string): Promise<TableProperties[]>;
-
-    abstract processQuery(query: DataFrameQuery): ValidDataFrameQuery;
-
-    abstract metricFindQuery(query: DataFrameQuery): Promise<MetricFindValue[]>;
 
     async testDatasource(): Promise<TestDataSourceResponse> {
         await this.get(`${this.baseUrl}/tables`, { take: 1 });
