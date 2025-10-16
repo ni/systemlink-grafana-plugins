@@ -39,6 +39,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         // TODO: Implement logic to fetch and return decimated table data based on the query, columns, time range, and intervals.
         throw new Error('Method not implemented.');
     }
+
     async queryTables(_query: string): Promise<TableProperties[]> {
         // TODO: Implement logic to query and return table properties
         throw new Error('Method not implemented.');

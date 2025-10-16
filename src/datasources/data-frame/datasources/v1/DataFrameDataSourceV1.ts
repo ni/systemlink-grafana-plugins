@@ -1,7 +1,6 @@
 import TTLCache from '@isaacs/ttlcache';
 import deepEqual from 'fast-deep-equal';
-import { DataQueryRequest, DataSourceInstanceSettings, FieldType, TimeRange, FieldDTO, dateTime, DataFrameDTO, MetricFindValue } from '@grafana/data';
-import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
+import { DataQueryRequest, FieldType, TimeRange, FieldDTO, dateTime, DataFrameDTO, MetricFindValue } from '@grafana/data';
 import {
   ColumnDataType,
   DataFrameQueryV1,
@@ -13,7 +12,6 @@ import {
   defaultQueryV1,
   ValidDataFrameQueryV1,
   DataFrameQueryType,
-  DataFrameDataSourceOptions,
 } from '../../types';
 import { propertiesCacheTTL } from '../../constants';
 import _ from 'lodash';
@@ -23,14 +21,6 @@ import { LEGACY_METADATA_TYPE } from 'core/types';
 
 export class DataFrameDataSourceV1 extends DataFrameDataSourceBase {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
-
-  constructor(
-    readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
-    readonly backendSrv: BackendSrv = getBackendSrv(),
-    readonly templateSrv: TemplateSrv = getTemplateSrv()
-  ) {
-    super(instanceSettings, backendSrv, templateSrv);
-  }
   defaultQuery = defaultQueryV1;
 
   async runQuery(query: DataFrameQueryV1, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
