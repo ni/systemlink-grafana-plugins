@@ -27,28 +27,19 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
   );
 
   const handleQueryTypeChange = useCallback((queryType: QueryType): void => {
+    saveCurrentQueryState(query.queryType);
     switch (queryType) {
       case QueryType.ListAlarms:
-        // Preserve the current list alarms query state when switching from AlarmsCount to ListAlarms
-        if (query.queryType === QueryType.AlarmsCount) {
-          setAlarmsCountQuery(query as AlarmsCountQuery);
-        }
         handleQueryChange({
           ...query,
-          queryType,
           ...defaultListAlarmsQuery,
           ...listAlarmsQuery,
           refId: query.refId,
         });
         break;
       case QueryType.AlarmsCount:
-        // Preserve alarms count query state when switching from ListAlarms to AlarmsCount
-        if (query.queryType === QueryType.ListAlarms) {
-          setListAlarmsQuery(query as ListAlarmsQuery);
-        }
         handleQueryChange({
           ...query,
-          queryType,
           ...defaultAlarmsCountQuery,
           ...alarmsCountQuery,
           refId: query.refId,
@@ -58,6 +49,19 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
         break;
     }
   }, [query, alarmsCountQuery, listAlarmsQuery, handleQueryChange]);
+
+  const saveCurrentQueryState = (queryType: QueryType | undefined): void => {
+    switch (queryType) {
+      case QueryType.ListAlarms:
+        setListAlarmsQuery(query as ListAlarmsQuery);
+        break;
+      case QueryType.AlarmsCount:
+        setAlarmsCountQuery(query as AlarmsCountQuery);
+        break;
+      default:
+        break;
+    }
+  };
 
   useEffect(() => {
     if (!query.queryType) {
