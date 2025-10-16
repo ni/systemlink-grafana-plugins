@@ -1,7 +1,7 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
-import { defaultQueryV2 } from 'datasources/data-frame/types';
+import { defaultQueryV2 } from '../../types';
 
 describe('DataFrameDataSourceV2', () => {
     let instanceSettings: DataSourceInstanceSettings<any>;

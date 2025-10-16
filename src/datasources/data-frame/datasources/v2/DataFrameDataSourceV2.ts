@@ -1,6 +1,6 @@
 import { DataFrameDTO, DataQueryRequest, MetricFindValue, TimeRange } from "@grafana/data";
-import { DataFrameDataSourceBase } from "datasources/data-frame/DataFrameDataSourceBase";
-import { Column, DataFrameQueryV2, defaultQueryV2, TableDataRows, TableProperties, ValidDataFrameQueryV2 } from "datasources/data-frame/types";
+import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
+import { Column, DataFrameQueryV2, defaultQueryV2, TableDataRows, TableProperties, ValidDataFrameQueryV2 } from "../../types";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
