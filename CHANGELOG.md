@@ -1,3 +1,9 @@
+## [4.21.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.20.0...v4.21.0) (2025-10-16)
+
+### Features
+
+* **alarms:** Support filtering alarms by source ([#432](https://github.com/ni/systemlink-grafana-plugins/issues/432)) ([3754c6f](https://github.com/ni/systemlink-grafana-plugins/commit/3754c6f8b0c5b55fb115295f199e06019a854377))
+
 ## [4.20.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.19.2...v4.20.0) (2025-10-15)
 
 ### Features
