@@ -362,6 +362,22 @@ describe('shouldRunQuery', () => {
         expect(data).toMatchSnapshot();
     });
 
+    test('should return single asset when identifier is provided', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: `AssetIdentifier = "c44750b7-1f22-4fec-b475-73b10e966217"   `,
+            outputType: OutputType.Properties,
+            take: 1,
+        });
+        jest.spyOn(datastore, 'queryAssets');
+
+        const result = await datastore.query(query);
+        const data = result.data[0];
+
+        expect(data).toMatchSnapshot();
+    });
+
     test('should return expected data when take is 1000', async () => {
         const query = buildListAssetsQuery({
             refId: '',

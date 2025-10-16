@@ -4,25 +4,25 @@ import { DataQueryRequest, DataSourceInstanceSettings, FieldType, TimeRange, Fie
 import { BackendSrv, FetchResponse, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import {
   ColumnDataType,
-  DataFrameQuery,
+  DataFrameQueryV1,
   TableProperties,
   TablePropertiesList,
   TableDataRows,
   ColumnFilter,
   Column,
-  defaultQuery,
-  ValidDataFrameQuery,
+  defaultQueryV1,
+  ValidDataFrameQueryV1,
   DataFrameQueryType,
   DataFrameDataSourceOptions,
-} from './types';
-import { propertiesCacheTTL } from './constants';
+} from '../../types';
+import { propertiesCacheTTL } from '../../constants';
 import _ from 'lodash';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { replaceVariables } from 'core/utils';
 import { LEGACY_METADATA_TYPE } from 'core/types';
 import { iif, lastValueFrom, map, Observable, of, switchMap, tap } from 'rxjs';
 
-export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataFrameDataSourceOptions> {
+export class DataFrameDataSourceV1 extends DataSourceBase<DataFrameQueryV1, DataFrameDataSourceOptions> {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
 
   constructor(
@@ -35,7 +35,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataFram
 
   baseUrl = this.instanceSettings.url + '/nidataframe/v1';
 
-  defaultQuery = defaultQuery;
+  defaultQuery = defaultQueryV1;
 
   runQuery(query: DataFrameQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Observable<DataFrameDTO> {
     const processedQuery = this.processQuery(query);
@@ -83,8 +83,8 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataFram
       );
   }
 
-  shouldRunQuery(query: DataFrameQuery): boolean {
-    return Boolean(query.tableId) && (query.type === DataFrameQueryType.Properties || Boolean(query.columns!.length));
+  shouldRunQuery(query: ValidDataFrameQueryV1): boolean {
+    return Boolean(query.tableId) && (query.type === DataFrameQueryType.Properties || Boolean(query.columns.length));
   }
 
   getTableProperties(id?: string): Observable<TableProperties> {
@@ -110,8 +110,7 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataFram
     );
   }
 
-  private getDecimatedTableData(query: DataFrameQuery, columns: Column[], timeRange: TimeRange, intervals = 1000): Observable<TableDataRows>
- {
+  private getDecimatedTableData(query: DataFrameQueryV1, columns: Column[], timeRange: TimeRange, intervals = 1000): Promise<TableDataRows> {
     const filters: ColumnFilter[] = [];
 
     if (query.applyTimeFilters) {
@@ -151,8 +150,8 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataFram
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 
-  processQuery(query: DataFrameQuery): ValidDataFrameQuery {
-    const migratedQuery = { ...defaultQuery, ...query };
+  processQuery(query: DataFrameQueryV1): ValidDataFrameQueryV1 {
+    const migratedQuery = { ...defaultQueryV1, ...query };
 
     // Handle existing dashboards with 'MetaData' type
     if ((migratedQuery.type as any) === LEGACY_METADATA_TYPE) {
@@ -165,10 +164,10 @@ export class DataFrameDataSource extends DataSourceBase<DataFrameQuery, DataFram
     }
 
     // If we didn't make any changes to the query, then return the original object
-    return deepEqual(migratedQuery, query) ? (query as ValidDataFrameQuery) : migratedQuery;
+    return deepEqual(migratedQuery, query) ? (query as ValidDataFrameQueryV1) : migratedQuery;
   }
 
-  async metricFindQuery(tableQuery: DataFrameQuery): Promise<MetricFindValue[]> {
+  async metricFindQuery(tableQuery: DataFrameQueryV1): Promise<MetricFindValue[]> {
     const tableProperties$ = this.getTableProperties(tableQuery.tableId);
     const tableProperties = await lastValueFrom(tableProperties$);
     return tableProperties.columns.map(col => ({ text: col.name, value: col.name }));

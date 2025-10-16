@@ -749,6 +749,78 @@ describe('QueryResultsDataSource', () => {
           })
         );
       });
+
+      test('should transform fields with is blank operation', async () => {
+        const query = buildQuery({
+          refId: 'A',
+          queryBy: 'string.IsNullOrEmpty(ProgramName)',
+        });
+        
+        await datastore.query(query);
+        
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: 'string.IsNullOrEmpty(ProgramName)',
+            }),
+          })
+        );
+      });
+
+      test('should transform fields with is not blank operation', async () => {
+        const query = buildQuery({
+          refId: 'A',
+          queryBy: '!string.IsNullOrEmpty(ProgramName)',
+        });
+        
+        await datastore.query(query);
+        
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: '!string.IsNullOrEmpty(ProgramName)',
+            }),
+          })
+        );
+      });
+
+      test('should transform field when queryBy contains equals operation', async () => {
+        const query = buildQuery({
+          refId: 'A',
+          queryBy: 'ProgramName = "test"',
+        });
+
+        await datastore.query(query);
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: 'ProgramName = "test"',
+            }),
+          })
+        );
+      });
+
+      test('should transform field when queryBy contains not equals operation', async () => {
+        const query = buildQuery({
+          refId: 'A',
+          queryBy: 'ProgramName != "test"',
+        });
+
+        await datastore.query(query);
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: 'ProgramName != "test"',
+            }),
+          })
+        );
+      });
     });
 
     describe('buildQueryFilter', () => {
