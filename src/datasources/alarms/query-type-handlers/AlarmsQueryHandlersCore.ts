@@ -1,17 +1,17 @@
 import { DataSourceBase } from "core/DataSourceBase";
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, ScopedVars, DataSourceInstanceSettings } from "@grafana/data";
-import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from "./types/types";
+import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from "../types/types"
 import { extractErrorInfo } from "core/errors";
-import { QUERY_ALARMS_RELATIVE_PATH } from "./constants/QueryAlarms.constants";
+import { QUERY_ALARMS_RELATIVE_PATH } from "../constants/QueryAlarms.constants";
 import { ExpressionTransformFunction, getConcatOperatorForMultiExpression, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
-import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
+import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "../constants/AlarmsQueryBuilder.constants";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { WorkspaceUtils } from "shared/workspace.utils";
 import { getVariableOptions } from "core/utils";
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
-import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from "./constants/SourceProperties.constants";
+import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from "../constants/SourceProperties.constants";
 
-export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
+export abstract class AlarmsQueryHandlersCore extends DataSourceBase<AlarmsQuery> {
   public errorTitle?: string;
   public errorDescription?: string;
 
