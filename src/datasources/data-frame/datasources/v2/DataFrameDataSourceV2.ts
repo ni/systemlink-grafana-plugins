@@ -11,11 +11,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     async metricFindQuery(_query: DataFrameQueryV2): Promise<MetricFindValue[]> {
+        // TODO: Implement logic to fetch and return metric find values based on the query.
         return [];
     }
 
-    // TODO: Implement logic to determine if the query should run. Currently always returns false.
     shouldRunQuery(_query: ValidDataFrameQueryV2): boolean {
+        // TODO: Implement logic to determine if the query should run. Currently always returns false.
         return false;
     }
 
@@ -29,13 +30,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         throw new Error('Method not implemented.');
     }
 
-    // TODO: Implement logic to fetch and return decimated table data based on the query, columns, time range, and intervals.
     async getDecimatedTableData(
         _query: DataFrameQueryV2,
         _columns: Column[],
         _timeRange: TimeRange,
         _intervals?: number | undefined
     ): Promise<TableDataRows> {
+        // TODO: Implement logic to fetch and return decimated table data based on the query, columns, time range, and intervals.
         throw new Error('Method not implemented.');
     }
     async queryTables(_query: string): Promise<TableProperties[]> {
