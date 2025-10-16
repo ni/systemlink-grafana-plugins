@@ -1,3 +1,9 @@
+## [4.21.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.21.0...v4.21.1) (2025-10-16)
+
+### Bug Fixes
+
+* **asset:** update returnType management for Asset Variable Query ([#437](https://github.com/ni/systemlink-grafana-plugins/issues/437)) ([3208260](https://github.com/ni/systemlink-grafana-plugins/commit/3208260b694b48562cb06f50828a680b65031c68))
+
 ## [4.21.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.20.0...v4.21.0) (2025-10-16)
 
 ### Features
