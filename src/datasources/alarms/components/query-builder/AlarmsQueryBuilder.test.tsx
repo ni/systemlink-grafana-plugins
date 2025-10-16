@@ -1,12 +1,14 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { AlarmsQueryBuilder } from './AlarmsQueryBuilder';
-import { QueryBuilderOption } from 'core/types';
+import { QueryBuilderOption, Workspace } from 'core/types';
 import { BOOLEAN_OPTIONS, SEVERITY_LEVELS, TIME_OPTIONS } from 'datasources/alarms/constants/AlarmsQueryBuilder.constants';
 
 describe('AlarmsQueryBuilder', () => {
-  function renderElement (filter: string, globalVariableOptions: QueryBuilderOption[] = []) {
-    const reactNode = React.createElement(AlarmsQueryBuilder, { filter, globalVariableOptions, onChange: jest.fn() });
+  const workspace: Workspace = { id: '1', name: 'Workspace Name', default: false, enabled: true };
+
+  function renderElement (filter: string, globalVariableOptions: QueryBuilderOption[] = [], workspaces: Workspace[] = []) {
+    const reactNode = React.createElement(AlarmsQueryBuilder, { filter, globalVariableOptions, workspaces, onChange: jest.fn() });
     const renderResult = render(reactNode);
     const containerClass = 'smart-filter-group-condition-container';
 
@@ -75,6 +77,23 @@ describe('AlarmsQueryBuilder', () => {
       expect(conditionText).toContain('equals');
       expect(conditionText).toContain(label);
     });
+  });
+
+  it('should select workspace in query builder', () => {
+    const { conditionsContainer } = renderElement('workspace = "1"', [], [workspace]);
+
+    expect(conditionsContainer?.length).toBe(1);
+    expect(conditionsContainer.item(0)?.textContent).toContain('Workspace Name');
+  });
+
+  it('should select source in query builder', () => {
+    const { conditionsContainer } = renderElement('source = "test-source"', [], [workspace]);
+
+    expect(conditionsContainer?.length).toBe(1);
+    const conditionText = conditionsContainer.item(0)?.textContent;
+    expect(conditionText).toContain('Source');
+    expect(conditionText).toContain('equals');
+    expect(conditionText).toContain('test-source');
   });
 
   it('should select value for alarm ID in query builder', () => {

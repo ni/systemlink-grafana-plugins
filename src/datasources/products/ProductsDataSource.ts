@@ -4,8 +4,7 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import { ProductQuery, ProductResponseProperties, productsProjectionLabelLookup, ProductVariableQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { extractErrorInfo } from 'core/errors';
-import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
-import { QueryBuilderOperations } from 'core/query-builder.constants';
+import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
 import { getWorkspaceName } from 'core/utils';
 
@@ -205,22 +204,10 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     Object.values(ProductsQueryBuilderFieldNames).map(field => [
       field,
       field === ProductsQueryBuilderFieldNames.UPDATED_AT
-        ? this.updatedAtQuery
-        : this.multipleValuesQuery(field)
+        ? timeFieldsQuery(field)
+        : multipleValuesQuery(field)
     ])
   );
-
-  protected multipleValuesQuery(field: string): ExpressionTransformFunction {
-    return (value: string, operation: string, _options?: any) => {
-      const isMultiSelect = this.isMultiSelectValue(value);
-      const valuesArray = this.getMultipleValuesArray(value);
-      const logicalOperator = this.getLogicalOperator(operation);
-
-      return isMultiSelect ? `(${valuesArray
-        .map(val => `${field} ${operation} "${val}"`)
-        .join(` ${logicalOperator} `)})` : `${field} ${operation} "${value}"`;
-    }
-  }
 
   private getFieldValues(
     products: ProductResponseProperties[],
@@ -244,23 +231,6 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     return this.templateSrv
       .getVariables()
       .map(variable => ({ label: '$' + variable.name, value: '$' + variable.name }));
-  }
-
-  private updatedAtQuery(value: string, operation: string): string {
-    const formattedValue = value === '${__now:date}' ? new Date().toISOString() : value;
-    return `${ProductsQueryBuilderFieldNames.UPDATED_AT} ${operation} "${formattedValue}"`;
-  }
-
-  private isMultiSelectValue(value: string): boolean {
-    return value.startsWith('{') && value.endsWith('}');
-  }
-
-  private getMultipleValuesArray(value: string): string[] {
-    return value.replace(/({|})/g, '').split(',');
-  }
-
-  private getLogicalOperator(operation: string): string {
-    return operation === QueryBuilderOperations.EQUALS.name ? '||' : '&&';
   }
 
   private async loadWorkspaces(): Promise<void> {
