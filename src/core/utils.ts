@@ -3,7 +3,7 @@ import { useAsync } from 'react-use';
 import { DataSourceBase } from './DataSourceBase';
 import { BatchQueryConfig, QBField, QueryBuilderOption, QueryResponse, SystemLinkError, Workspace } from './types';
 import { BackendSrv, BackendSrvRequest, FetchError, isFetchError, TemplateSrv } from '@grafana/runtime';
-import { lastValueFrom } from 'rxjs';
+import { catchError, lastValueFrom, mergeMap, Observable, retry, throwError, timer } from 'rxjs';
 
 export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<SelectableValue<T>> {
   const RESULT = [];
@@ -272,6 +272,10 @@ export function get<T>(backendSrv: BackendSrv, url: string, params?: Record<stri
   return fetch<T>(backendSrv, { method: 'GET', url, params });
 }
 
+export function getV1<T>(backendSrv: BackendSrv, url: string, params?: Record<string, any>) {
+  return fetchV1<T>(backendSrv, { method: 'GET', url, params });
+}
+
 /**
  * Sends a POST request to the specified URL with the provided request body and options.
  *
@@ -286,6 +290,10 @@ export function get<T>(backendSrv: BackendSrv, url: string, params?: Record<stri
  */
 export function post<T>(backendSrv: BackendSrv, url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}) {
   return fetch<T>(backendSrv, { method: 'POST', url, data: body, ...options });
+}
+
+export function postV1<T>(backendSrv: BackendSrv, url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}) {
+  return fetchV1<T>(backendSrv, { method: 'POST', url, data: body, ...options });
 }
 
 export const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]) => {
@@ -331,4 +339,51 @@ async function fetch<T>(backendSrv: BackendSrv, options: BackendSrvRequest, retr
     }
     throw error;
   }
+}
+
+export function fetchV1<T>(backendSrv: BackendSrv, options: BackendSrvRequest): Observable<T> {
+  const url = options.url;
+  const maxRetries = 3;
+
+  return backendSrv.fetch<T>(options).pipe(
+    // unwrap response
+    mergeMap((response) => new Observable<T>((observer) => {
+      observer.next(response.data);
+      observer.complete();
+    })),
+
+    // retry with exponential backoff for 429s
+    retry({
+      count: maxRetries,
+      delay: (error, retryCount) => {
+        if (isFetchError(error) && error.status === 429 && retryCount <= maxRetries) {
+          const delayMs = Math.random() * 1000 * 2 ** (retryCount - 1);
+          console.warn(
+            `[fetch$] Retry ${retryCount}/${maxRetries} after ${Math.round(delayMs)}ms for ${url}`
+          );
+          return timer(delayMs);
+        }
+        // stop retrying for other errors
+        return throwError(() => error);
+      },
+    }),
+
+    // replicate your detailed error handling
+    catchError((error) => {
+      if (isFetchError(error)) {
+        const fetchError = error as FetchError;
+        const statusCode = fetchError.status;
+        const genericErrorMessage = `Request to url "${url}" failed with status code: ${statusCode}.`;
+
+        if (statusCode === 504) {
+          return throwError(() => new Error(genericErrorMessage));
+        } else {
+          const data = fetchError.data;
+          const errorMessage = data.error?.message || JSON.stringify(data);
+          return throwError(() => new Error(`${genericErrorMessage} Error message: ${errorMessage}`));
+        }
+      }
+      return throwError(() => error);
+    }),
+  );
 }
