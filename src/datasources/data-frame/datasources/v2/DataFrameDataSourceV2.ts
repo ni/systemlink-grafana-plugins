@@ -3,7 +3,6 @@ import { DataFrameDataSourceBase } from "datasources/data-frame/DataFrameDataSou
 import { Column, DataFrameQueryV2, defaultQueryV2, TableDataRows, TableProperties, ValidDataFrameQueryV2 } from "datasources/data-frame/types";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
-
     defaultQuery = defaultQueryV2;
 
     async runQuery(_query: DataFrameQueryV2, _options: DataQueryRequest<DataFrameQueryV2>): Promise<DataFrameDTO> {

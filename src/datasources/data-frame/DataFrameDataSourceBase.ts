@@ -7,6 +7,7 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import {
     DataFrameQuery,
     DataFrameDataSourceOptions,
+    ValidDataFrameQuery,
     TableProperties,
     TableDataRows,
     Column
@@ -14,7 +15,6 @@ import {
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from '@grafana/runtime';
 
 export abstract class DataFrameDataSourceBase extends DataSourceBase<DataFrameQuery, DataFrameDataSourceOptions> {
-
     baseUrl = this.instanceSettings.url + '/nidataframe/v1';
 
     public constructor(
@@ -24,6 +24,8 @@ export abstract class DataFrameDataSourceBase extends DataSourceBase<DataFrameQu
     ) {
         super(instanceSettings, backendSrv, templateSrv);
     }
+
+    abstract processQuery(query: DataFrameQuery): ValidDataFrameQuery;
 
     abstract getTableProperties(id?: string): Promise<TableProperties>;
 
