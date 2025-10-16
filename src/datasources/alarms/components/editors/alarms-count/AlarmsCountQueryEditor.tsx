@@ -1,6 +1,6 @@
 import { AlarmsCountQuery } from 'datasources/alarms/types/AlarmsCount.types';
 import React, { useEffect, useState } from 'react';
-import { InlineField } from "core/components/InlineField";
+import { InlineField } from 'core/components/InlineField';
 import { AlarmsQueryBuilder } from '../../query-builder/AlarmsQueryBuilder';
 import { ERROR_SEVERITY_WARNING, LABEL_WIDTH, labels, tooltips } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { AlarmsCountDataSource } from 'datasources/alarms/query-type-handlers/alarms-count/AlarmsCountDataSource';
