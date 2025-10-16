@@ -9,9 +9,7 @@
     {
       "files": ["**/**.ts", "**/*.tsx"],
       "rules": {
-        "no-console": ["error", { "allow": ["warn", "error"] }],
-        "quotes": ["error", "single", { "avoidEscape": true, "allowTemplateLiterals": true }],
-        "jsx-quotes": ["error", "prefer-single"]
+        "no-console": ["error", { "allow": ["warn", "error"] }]
       }
     }
   ]
