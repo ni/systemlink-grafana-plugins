@@ -372,7 +372,7 @@ describe('shouldRunQuery', () => {
         });
         jest.spyOn(datastore, 'queryAssets');
 
-        const result = await datastore.query(query);
+        const result = await firstValueFrom(datastore.query(query));
         const data = result.data[0];
 
         expect(data).toMatchSnapshot();

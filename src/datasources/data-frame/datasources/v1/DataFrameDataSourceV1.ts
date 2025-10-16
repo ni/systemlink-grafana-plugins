@@ -1,7 +1,7 @@
 import TTLCache from '@isaacs/ttlcache';
 import deepEqual from 'fast-deep-equal';
 import { DataQueryRequest, DataSourceInstanceSettings, FieldType, TimeRange, FieldDTO, dateTime, DataFrameDTO, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
-import { BackendSrv, FetchResponse, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
+import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import {
   ColumnDataType,
   DataFrameQueryV1,
@@ -20,7 +20,6 @@ import _ from 'lodash';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { replaceVariables } from 'core/utils';
 import { LEGACY_METADATA_TYPE } from 'core/types';
-import { iif, lastValueFrom, map, Observable, of, switchMap, tap } from 'rxjs';
 
 export class DataFrameDataSourceV1 extends DataSourceBase<DataFrameQueryV1, DataFrameDataSourceOptions> {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
@@ -37,80 +36,46 @@ export class DataFrameDataSourceV1 extends DataSourceBase<DataFrameQueryV1, Data
 
   defaultQuery = defaultQueryV1;
 
-  runQuery(query: DataFrameQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Observable<DataFrameDTO> {
+  async runQuery(query: DataFrameQueryV1, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
     const processedQuery = this.processQuery(query);
     processedQuery.tableId = this.templateSrv.replace(processedQuery.tableId, scopedVars);
-    processedQuery.columns = replaceVariables(processedQuery.columns, this.templateSrv);;
+    processedQuery.columns = replaceVariables(processedQuery.columns, this.templateSrv);
+    const properties = await this.getTableProperties(processedQuery.tableId);
 
-    return this.getTableProperties(processedQuery.tableId).pipe(
-      switchMap((properties: TableProperties) => {
-        if(processedQuery.type === DataFrameQueryType.Properties) {
-          return this.handlePropertiesQuery(processedQuery, properties);
-        } else {
-          return this.handleDataQuery(processedQuery, properties, range, maxDataPoints);
-        }
-      })
-    );
-  }
-
-
-  private handlePropertiesQuery(processedQuery: DataFrameQuery, properties: TableProperties): Observable<DataFrameDTO> {
-      const dataframe: DataFrameDTO = {
+    if (processedQuery.type === DataFrameQueryType.Properties) {
+      return {
         refId: processedQuery.refId,
         name: properties.name,
         fields: Object.entries(properties.properties).map(([name, value]) => ({ name, values: [value] })),
       };
-      return of(dataframe);
-  }
-  
-  private handleDataQuery(
-    processedQuery: DataFrameQuery,
-    properties: TableProperties,
-    timeRange: TimeRange,
-    intervals?: number
-  ): Observable<DataFrameDTO> {
-    const columns = this.getColumnTypes(processedQuery.columns!, properties?.columns ?? []);
-
-    return this.getDecimatedTableData(processedQuery, columns, timeRange, intervals)
-      .pipe(
-        map((tableData: TableDataRows) => {
-          return {
-            refId: processedQuery.refId,
-            name: properties.name,
-            fields: this.dataFrameToFields(tableData.frame.data, columns),
-          };
-        })
-      );
+    } else {
+      const columns = this.getColumnTypes(processedQuery.columns, properties?.columns ?? []);
+      const tableData = await this.getDecimatedTableData(processedQuery, columns, range, maxDataPoints);
+      return {
+        refId: processedQuery.refId,
+        name: properties.name,
+        fields: this.dataFrameToFields(tableData.frame.data, columns),
+      };
+    }
   }
 
   shouldRunQuery(query: ValidDataFrameQueryV1): boolean {
     return Boolean(query.tableId) && (query.type === DataFrameQueryType.Properties || Boolean(query.columns.length));
   }
 
-  getTableProperties(id?: string): Observable<TableProperties> {
+  async getTableProperties(id?: string): Promise<TableProperties> {
     const resolvedId = this.templateSrv.replace(id);
     let properties = this.propertiesCache.get(resolvedId);
-    let properties$: Observable<TableProperties> = iif(
-      () => properties !== undefined,
-      of(properties!),
-      this.backendSrv.fetch<TableProperties>(
-        {
-          method: 'GET',
-          url: `${this.baseUrl}/tables/${resolvedId}`
-        }
-      ).pipe(
-        map((response: FetchResponse<TableProperties>) => response.data),
-      )
-    );
 
-    return properties$.pipe(
-      tap((props: TableProperties) => {
-        this.propertiesCache.set(resolvedId, props);
-      })
-    );
+    if (!properties) {
+      properties = await this.get<TableProperties>(`${this.baseUrl}/tables/${resolvedId}`);
+      this.propertiesCache.set(resolvedId, properties);
+    }
+
+    return properties;
   }
 
-  private getDecimatedTableData(query: DataFrameQueryV1, columns: Column[], timeRange: TimeRange, intervals = 1000): Promise<TableDataRows> {
+  async getDecimatedTableData(query: DataFrameQueryV1, columns: Column[], timeRange: TimeRange, intervals = 1000): Promise<TableDataRows> {
     const filters: ColumnFilter[] = [];
 
     if (query.applyTimeFilters) {
@@ -121,22 +86,15 @@ export class DataFrameDataSourceV1 extends DataSourceBase<DataFrameQueryV1, Data
       filters.push(...this.constructNullFilters(columns));
     }
 
-    return this.backendSrv.fetch<TableDataRows>(
-      {
-        method: 'POST',
-        url: `${this.baseUrl}/tables/${query.tableId}/query-decimated-data`,
-        data: {
-        columns: query.columns,
-        filters,
-        decimation: {
-          intervals,
-          method: query.decimationMethod,
-          yColumns: this.getNumericColumns(columns).map(c => c.name),
-        },
-      }
-     }).pipe(
-      map((response: FetchResponse<TableDataRows>) => response.data)
-     );
+    return await this.post<TableDataRows>(`${this.baseUrl}/tables/${query.tableId}/query-decimated-data`, {
+      columns: query.columns,
+      filters,
+      decimation: {
+        intervals,
+        method: query.decimationMethod,
+        yColumns: this.getNumericColumns(columns).map(c => c.name),
+      },
+    });
   }
 
   async queryTables(query: string): Promise<TableProperties[]> {
@@ -168,8 +126,7 @@ export class DataFrameDataSourceV1 extends DataSourceBase<DataFrameQueryV1, Data
   }
 
   async metricFindQuery(tableQuery: DataFrameQueryV1): Promise<MetricFindValue[]> {
-    const tableProperties$ = this.getTableProperties(tableQuery.tableId);
-    const tableProperties = await lastValueFrom(tableProperties$);
+    const tableProperties = await this.getTableProperties(tableQuery.tableId);
     return tableProperties.columns.map(col => ({ text: col.name, value: col.name }));
   }
 
