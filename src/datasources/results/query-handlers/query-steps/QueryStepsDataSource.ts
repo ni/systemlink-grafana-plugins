@@ -29,11 +29,11 @@ import {
   TAKE_LIMIT,
 } from 'datasources/results/constants/QuerySteps.constants';
 import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/StepsQueryBuilder.constants';
-import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
 import { QueryResponse, Workspace } from 'core/types';
-import { getWorkspaceName, multipleValuesQuery, queryInBatches, timeFieldsQuery } from 'core/utils';
+import { getWorkspaceName, queryInBatches } from 'core/utils';
 import { MAX_PATH_TAKE_PER_REQUEST } from 'datasources/results/constants/QueryStepPath.constants';
 import { extractErrorInfo } from 'core/errors';
 import {

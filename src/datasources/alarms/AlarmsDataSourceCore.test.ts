@@ -9,7 +9,6 @@ import { Workspace } from 'core/types';
 import { getVariableOptions } from 'core/utils';
 
 jest.mock('core/utils', () => ({
-  ...jest.requireActual('core/utils'),
   getVariableOptions: jest.fn(),
 }));
 

@@ -4,8 +4,6 @@ import { DataSourceBase } from './DataSourceBase';
 import { BatchQueryConfig, QBField, QueryBuilderOption, QueryResponse, SystemLinkError, Workspace } from './types';
 import { BackendSrv, BackendSrvRequest, FetchError, isFetchError, TemplateSrv } from '@grafana/runtime';
 import { lastValueFrom } from 'rxjs';
-import { buildExpressionFromTemplate, ExpressionTransformFunction } from './query-builder.utils';
-import { QueryBuilderOperations } from './query-builder.constants';
 
 export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<SelectableValue<T>> {
   const RESULT = [];

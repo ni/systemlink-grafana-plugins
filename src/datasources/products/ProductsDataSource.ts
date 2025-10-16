@@ -4,9 +4,9 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import { ProductQuery, ProductResponseProperties, productsProjectionLabelLookup, ProductVariableQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { extractErrorInfo } from 'core/errors';
-import { ExpressionTransformFunction, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
-import { getWorkspaceName, multipleValuesQuery, timeFieldsQuery } from 'core/utils';
+import { getWorkspaceName } from 'core/utils';
 
 export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   constructor(

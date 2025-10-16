@@ -3,8 +3,8 @@ import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana
 import { DataSourceBase } from 'core/DataSourceBase';
 import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
-import { transformComputedFieldsQuery, ExpressionTransformFunction } from 'core/query-builder.utils';
-import { getVariableOptions, multipleValuesQuery, queryInBatches, timeFieldsQuery } from 'core/utils';
+import { transformComputedFieldsQuery, ExpressionTransformFunction, timeFieldsQuery, multipleValuesQuery } from 'core/query-builder.utils';
+import { getVariableOptions, queryInBatches } from 'core/utils';
 import { QUERY_WORK_ORDERS_MAX_TAKE, QUERY_WORK_ORDERS_REQUEST_PER_SECOND } from './constants/QueryWorkOrders.constants';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { UsersUtils } from 'shared/users.utils';
