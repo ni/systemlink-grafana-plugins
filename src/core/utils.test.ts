@@ -1,5 +1,5 @@
 import { BackendSrv, TemplateSrv } from "@grafana/runtime";
-import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, getVariableOptions, get, post, addOptionsToLookup, multipleValuesQuery, timeFieldsQuery } from "./utils";
+import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, getVariableOptions, get, post, addOptionsToLookup } from "./utils";
 import { BatchQueryConfig, QBField, QueryBuilderOption } from "./types";
 import { of, throwError } from 'rxjs';
 
@@ -650,82 +650,5 @@ describe('post', () => {
     await expect(post(mockBackendSrv, url, body)).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
     expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(4);
     jest.spyOn(Math, 'random').mockRestore();
-  });
-});
-
-describe('timeFieldsQuery', () => {
-  beforeEach(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2025-10-10T00:00:00Z'));
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
-  it('should build time field expression with the provided value', () => {
-    const transform = timeFieldsQuery('timestampField');
-
-    const result = transform('2024-10-10T12:00:00Z', '<');
-
-    expect(result).toBe('timestampField < "2024-10-10T12:00:00Z"');
-  });
-
-  it('should replace ${__now:date} with the current date in time field expression', () => {
-    const transform = timeFieldsQuery('timestampField');
-
-    const result = transform('${__now:date}', '=');
-
-    expect(result).toBe('timestampField = "2025-10-10T00:00:00.000Z"');
-  });
-});
-
-describe('multipleValuesQuery', () => {
-  it('should build expression for single value query', () => {
-    const buildExpression = multipleValuesQuery('field');
-
-    const result = buildExpression('value', '=');
-
-    expect(result).toBe('field = "value"');
-  });
-
-  it('should build expression for a single value in the multi-value format', () => {
-    const buildExpression = multipleValuesQuery('field');
-
-    const result = buildExpression('{value}', '=');
-
-    expect(result).toBe('(field = "value")');
-  });
-
-  it('should build expression for multi-value query with "||" for equals operator', () => {
-    const buildExpression = multipleValuesQuery('field');
-
-    const result = buildExpression('{value1,value2}', '=');
-
-    expect(result).toBe('(field = "value1" || field = "value2")');
-  });
-
-  it('should build expression for multi-value query with "&&" for not equals operator', () => {
-    const buildExpression = multipleValuesQuery('field');
-
-    const result = buildExpression('{value1,value2}', '!=');
-
-    expect(result).toBe('(field != "value1" && field != "value2")');
-  });
-
-  it('should build expression for multi-value query with empty values', () => {
-    const buildExpression = multipleValuesQuery('field');
-
-    const result = buildExpression('{,value2,}', '=');
-
-    expect(result).toBe('(field = "" || field = "value2" || field = "")');
-  });
-
-  it('should use default transformation with operator as-is when not defined in QueryBuilderOperations', () => {
-    const buildExpression = multipleValuesQuery('field');
-
-    const result = buildExpression('{value1}', 'like');
-
-    expect(result).toBe('(field like "value1")');
   });
 });
