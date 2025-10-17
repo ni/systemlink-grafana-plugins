@@ -1,15 +1,16 @@
 import React, { useCallback, useState } from 'react';
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
-import { AutoSizeInput, Collapse, ComboboxOption, InlineField, InlineLabel, InlineSwitch, MultiCombobox, MultiSelect, RadioButtonGroup } from "@grafana/ui";
+import { AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineLabel, InlineSwitch, MultiCombobox, MultiSelect, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQueryV1, DataFrameQueryType, PropsV1 } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
-import { TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
 
 export const DataFrameQueryEditorV2: React.FC<PropsV1> = ({ query, onChange, onRunQuery, datasource }: PropsV1) => {
     query = datasource.processQuery(query);
 
     const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
     const [isColumnConfigurationSectionOpen, setIsColumnConfigurationSectionOpen] = useState(true);
+    const [isDecimationSettingsSectionOpen, setIsDecimationSettingsSectionOpen] = useState(true);
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
 
     const handleQueryChange = useCallback(
@@ -27,6 +28,15 @@ export const DataFrameQueryEditorV2: React.FC<PropsV1> = ({ query, onChange, onR
 
     const onColumnsChange = (columns: Array<ComboboxOption<string>>) => {
         handleQueryChange({ ...query, columns: columns.map(i => i.value) }, false);
+    };
+
+    const onDecimationMethodChange = (option: ComboboxOption<string>) => {
+        handleQueryChange({ ...query, decimationMethod: option.value }, false);
+    };
+
+    const onUseTimeRangeChange = (event: React.FormEvent<HTMLInputElement>) => {
+        const value = (event.target as HTMLInputElement).checked;
+        handleQueryChange({ ...query, applyTimeFilters: value }, false);
     };
 
     function validateTakeValue(value: number, TAKE_LIMIT: number) {
@@ -172,6 +182,48 @@ export const DataFrameQueryEditorV2: React.FC<PropsV1> = ({ query, onChange, onR
                             />
                         </InlineField>
                     </Collapse>
+
+                    <Collapse
+                        label={labels.decimationSettings}
+                        isOpen={isDecimationSettingsSectionOpen}
+                        collapsible={true}
+                        onToggle={() => setIsDecimationSettingsSectionOpen(!isDecimationSettingsSectionOpen)}
+                    >
+                        <InlineField
+                            label={labels.decimationMethod}
+                            labelWidth={inlineLabelWidth}
+                            tooltip={tooltips.decimationMethod}
+                        >
+                            <Combobox
+                                width={inlineLabelWidth}
+                                onChange={onDecimationMethodChange}
+                                options={decimationMethods}
+                                createCustomValue={false}
+                            />
+                        </InlineField>
+                        <InlineField
+                            label={labels.xColumn}
+                            labelWidth={inlineLabelWidth}
+                            tooltip={tooltips.xColumn}
+                        >
+                            <Combobox
+                                placeholder={placeholders.xColumn}
+                                width={inlineLabelWidth}
+                                onChange={() => { }}
+                                options={[]}
+                                createCustomValue={false}
+                            />
+                        </InlineField>
+                        <InlineField
+                            label={labels.useTimeRange}
+                            labelWidth={inlineLabelWidth}
+                            tooltip={tooltips.useTimeRange}
+                            onChange={onUseTimeRangeChange}
+                        >
+                            <InlineSwitch
+                            />
+                        </InlineField>
+                    </Collapse>
                 </div>
             )}
         </>
@@ -184,10 +236,14 @@ const labels = {
     columnProperties: 'Column properties',
     queryConfigurations: 'Query configurations',
     columnConfigurations: 'Column configurations',
+    decimationSettings: 'Decimation settings',
     queryByDatatableProperties: 'Query by data table properties',
     columns: 'Columns',
     filterNulls: 'Filter nulls',
     includeIndexColumns: 'Include index columns',
+    decimationMethod: 'Decimation method',
+    xColumn: 'X-Column',
+    useTimeRange: 'Use time range',
     take: 'Take',
 };
 const tooltips = {
@@ -199,12 +255,17 @@ const tooltips = {
     includeIndexColumns: 'Specifies whether to include index columns in the response data.',
     datatableProperties: 'This field specifies the data table properties to be queried.',
     columnProperties: 'This field specifies the column properties to be queried.',
+    decimationMethod: 'Specifies the method used to decimate the data.',
+    xColumn: 'Specifies the column to use for the x-axis when decimating the data.',
+    useTimeRange: `Specifies whether to query only for data within the dashboard time range if the
+                table index is a timestamp. Enable when interacting with your data on a graph.`,
 };
 const placeholders = {
     datatableProperties: 'Select data table properties to fetch',
     columnProperties: 'Select column properties to fetch',
     take: 'Enter record count',
     columns: 'Select columns',
+    xColumn: 'Select x-column',
 };
 
 const errorMessages = {
