@@ -106,6 +106,15 @@ describe("DataFrameQueryEditorV2", () => {
                 expect(screen.getByText("Filter nulls")).toBeInTheDocument();
             });
         });
+
+        it("should show the decimation settings controls when the query type is data", async () => {
+            await waitFor(() => {
+                expect(screen.getByText("Decimation settings")).toBeInTheDocument();
+                expect(screen.getByText("Decimation method")).toBeInTheDocument();
+                expect(screen.getByText("X-column")).toBeInTheDocument();
+                expect(screen.getByText("Use time range")).toBeInTheDocument();
+            });
+        });
     });
 
     describe("when the query type is properties", () => {

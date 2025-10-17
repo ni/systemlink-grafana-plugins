@@ -23,6 +23,8 @@ export interface DataFrameQueryV1 extends DataQuery {
 export interface DataFrameQueryV2 extends DataQuery {
   type: DataFrameQueryType;
   columns?: string[];
+  decimationMethod?: string;
+  applyTimeFilters?: boolean;
 }
 
 export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
@@ -36,7 +38,9 @@ export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
 
 export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   type: DataFrameQueryType.Data,
-  columns: []
+  columns: [],
+  decimationMethod: 'LOSSY',
+  applyTimeFilters: false
 };
 
 export const DataFrameFeatureTogglesDefaults: DataFrameFeatureToggles = {
