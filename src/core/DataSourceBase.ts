@@ -11,9 +11,11 @@ import { BackendSrv, BackendSrvRequest, TemplateSrv, getAppEvents } from '@grafa
 import { DataQuery } from '@grafana/schema';
 import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
 import { get, post } from './utils';
+import { ApiSessionUtils } from './api-session.utils';
 
 export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData = DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
   appEvents: EventBus;
+  apiSession: ApiSessionUtils;
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<TOptions>,
@@ -22,6 +24,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
   ) {
     super(instanceSettings);
     this.appEvents = getAppEvents();
+    this.apiSession = new ApiSessionUtils(instanceSettings, backendSrv);
   }
 
   abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;
@@ -43,11 +46,31 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     return { ...this.defaultQuery, ...query };
   }
 
-  get<T>(url: string, params?: Record<string, any>) {
+  /**
+   * Sends a GET request to the specified URL with optional query parameters.
+   *
+   * @template T - The expected response type.
+   * @param url - The endpoint URL for the GET request.
+   * @param params - Optional query parameters as a key-value map.
+   * @param useApiIngress - If true, uses API ingress bypassing the UI ingress for the request.
+   * @returns A promise resolving to the response of type `T`.
+   */
+  async get<T>(url: string, params?: Record<string, any>, useApiIngress = false) {
+    if (useApiIngress) {
+      const apiSession = await this.apiSession.createApiSession();
+      if (apiSession) {
+        url = apiSession.endpoint + url.replace(this.instanceSettings.url ?? '', '');
+        params = {
+          ...params,
+          'x-ni-api-key': apiSession.sessionKey.secret,
+        };
+      }
+    }
+
     return get<T>(this.backendSrv, url, params);
   }
 
-  
+
   /**
    * Sends a POST request to the specified URL with the provided request body and options.
    *
@@ -57,9 +80,28 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    * @param options - Optional configuration for the request. This can include:
    *   - `showingErrorAlert` (boolean): If true, displays an error alert on request failure.
    *   - Any other properties supported by {@link BackendSrvRequest}, such as headers, credentials, etc.
+   * @param useApiIngress - If true, uses API ingress bypassing the UI ingress for the request.
    * @returns A promise resolving to the response of type `T`.
    */
-  post<T>(url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}) {
+  async post<T>(
+    url: string,
+    body: Record<string, any>,
+    options: Partial<BackendSrvRequest> = {},
+    useApiIngress = false
+  ) {
+    if (useApiIngress) {
+      const apiSession = await this.apiSession.createApiSession();
+      if (apiSession) {
+        options = {
+          ...options,
+          headers: {
+            ...options.headers,
+            'x-ni-api-key': apiSession.sessionKey.secret,
+          },
+        };
+        url = apiSession.endpoint + url.replace(this.instanceSettings.url ?? '', '');
+      }
+    }
     return post<T>(this.backendSrv, url, body, options);
   }
 
