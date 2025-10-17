@@ -104,8 +104,19 @@ describe('DataFrameDataSource', () => {
         expect(v2Mock.processQuery).toHaveBeenCalled();
     });
 
-    it('should set defaultQuery to defaultQueryV1', () => {
-        const ds = new DataFrameDataSource(mockInstanceSettings(false));
-        expect(ds.defaultQuery).toBeDefined();
+    it('should set defaultQuery to defaultQueryV1 when datasource is DataFrameDataSourceV1 with refId "A"', () => {
+        const dsV1 = new DataFrameDataSource(mockInstanceSettings(false));
+        expect(dsV1.defaultQuery).toBeDefined();
+        expect(dsV1.defaultQuery.refId).toBe('A');
+        const expectedV1Default = v1Mock.defaultQuery ? { ...v1Mock.defaultQuery, refId: 'A' } : { refId: 'A' };
+        expect(dsV1.defaultQuery).toEqual(expectedV1Default);
+    });
+
+    it('should set defaultQuery to defaultQueryV2 when datasource is DataFrameDataSourceV2 with refId "A"', () => {
+        const dsV2 = new DataFrameDataSource(mockInstanceSettings(true));
+        expect(dsV2.defaultQuery).toBeDefined();
+        expect(dsV2.defaultQuery.refId).toBe('A');
+        const expectedV2Default = v2Mock.defaultQuery ? { ...v2Mock.defaultQuery, refId: 'A' } : { refId: 'A' };
+        expect(dsV2.defaultQuery).toEqual(expectedV2Default);
     });
 });

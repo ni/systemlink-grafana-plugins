@@ -8,11 +8,12 @@ import { DataFrameDataSourceV2 } from "./datasources/v2/DataFrameDataSourceV2";
 export class DataFrameDataSource extends DataFrameDataSourceBase {
   private queryByTablePropertiesFeatureEnabled = false;
   private datasource: DataFrameDataSourceV1 | DataFrameDataSourceV2;
+  public defaultQuery: ValidDataFrameQuery;
 
   constructor(
-    readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
-    readonly backendSrv: BackendSrv = getBackendSrv(),
-    readonly templateSrv: TemplateSrv = getTemplateSrv()
+    public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
+    public readonly backendSrv: BackendSrv = getBackendSrv(),
+    public readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
 
@@ -22,27 +23,26 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     } else {
       this.datasource = new DataFrameDataSourceV1(instanceSettings, backendSrv, templateSrv);
     }
+    this.defaultQuery = { ...this.datasource.defaultQuery, refId: 'A' };
   }
 
-  defaultQuery = defaultQueryV1;
-
-  async runQuery(query: DataFrameQuery, options: DataQueryRequest<DataFrameQuery>): Promise<DataFrameDTO> {
+  public async runQuery(query: DataFrameQuery, options: DataQueryRequest<DataFrameQuery>): Promise<DataFrameDTO> {
     return this.datasource.runQuery(query, options);
   }
 
-  shouldRunQuery(query: ValidDataFrameQuery): boolean {
+  public shouldRunQuery(query: ValidDataFrameQuery): boolean {
     return this.datasource.shouldRunQuery(query as any);
   }
 
-  metricFindQuery(query: DataFrameQuery): Promise<MetricFindValue[]> {
+  public metricFindQuery(query: DataFrameQuery): Promise<MetricFindValue[]> {
     return this.datasource.metricFindQuery(query);
   }
 
-  async getTableProperties(id?: string): Promise<TableProperties> {
+  public async getTableProperties(id?: string): Promise<TableProperties> {
     return this.datasource.getTableProperties(id);
   }
 
-  async getDecimatedTableData(
+  public async getDecimatedTableData(
     query: DataFrameQuery,
     columns: Column[],
     timeRange: TimeRange,
@@ -51,12 +51,11 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.getDecimatedTableData(query, columns, timeRange, intervals);
   }
 
-  async queryTables(query: string): Promise<TableProperties[]> {
+  public async queryTables(query: string): Promise<TableProperties[]> {
     return this.datasource.queryTables(query);
   }
 
-  processQuery(query: DataFrameQuery): ValidDataFrameQuery {
+  public processQuery(query: DataFrameQuery): ValidDataFrameQuery {
     return this.datasource.processQuery(query);
   }
-
 }
