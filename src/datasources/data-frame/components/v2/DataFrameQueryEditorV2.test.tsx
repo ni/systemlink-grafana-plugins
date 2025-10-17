@@ -111,7 +111,7 @@ describe("DataFrameQueryEditorV2", () => {
             await waitFor(() => {
                 expect(screen.getByText("Decimation settings")).toBeInTheDocument();
                 expect(screen.getByText("Decimation method")).toBeInTheDocument();
-                expect(screen.getByText("X-Column")).toBeInTheDocument();
+                expect(screen.getByText("X-column")).toBeInTheDocument();
                 expect(screen.getByText("Use time range")).toBeInTheDocument();
             });
         });
