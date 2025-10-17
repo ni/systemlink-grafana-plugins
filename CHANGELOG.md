@@ -1,3 +1,9 @@
+## [4.23.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.22.0...v4.23.0) (2025-10-17)
+
+### Features
+
+* **dataframe:** Add properties options ([#443](https://github.com/ni/systemlink-grafana-plugins/issues/443)) ([72a62aa](https://github.com/ni/systemlink-grafana-plugins/commit/72a62aaa53f51fdb49de1ad45b024c9f0cd06d0b))
+
 ## [4.22.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.21.3...v4.22.0) (2025-10-17)
 
 ### Features
