@@ -1,3 +1,9 @@
+## [4.22.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.21.3...v4.22.0) (2025-10-17)
+
+### Features
+
+* **dataframe:** Introduce top level DataFrameDataSource ([#427](https://github.com/ni/systemlink-grafana-plugins/issues/427)) ([dd20a0a](https://github.com/ni/systemlink-grafana-plugins/commit/dd20a0a4e87b4213fe0cfd593431ec52af29fb6d))
+
 ## [4.21.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.21.2...v4.21.3) (2025-10-17)
 
 ### Bug Fixes
