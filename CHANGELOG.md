@@ -1,3 +1,9 @@
+## [4.21.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.21.2...v4.21.3) (2025-10-17)
+
+### Bug Fixes
+
+* **alarms:** Set plugin state to beta in plugin.json ([#444](https://github.com/ni/systemlink-grafana-plugins/issues/444)) ([70e2144](https://github.com/ni/systemlink-grafana-plugins/commit/70e2144035b7e5cc461dd0b3108c8a87ad9e3e1f))
+
 ## [4.21.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.21.1...v4.21.2) (2025-10-16)
 
 ### Bug Fixes
