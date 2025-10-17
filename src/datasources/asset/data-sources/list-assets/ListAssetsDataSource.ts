@@ -1,19 +1,20 @@
 import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings, FieldType } from '@grafana/data';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
-import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../types/types';
+import { AssetQuery, AssetQueryType } from '../../types/types';
 import { AssetFilterProperties, AssetFilterPropertiesOption, ListAssetsQuery, OutputType, QueryListAssetRequestBody } from '../../types/ListAssets.types';
 import { AssetModel, AssetsResponse } from '../../../asset-common/types';
 import { transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
 import { defaultListAssetsQuery, defaultListAssetsQueryForOldPannels } from 'datasources/asset/defaults';
 import { TAKE_LIMIT } from 'datasources/asset/constants/ListAssets.constants';
 import { getWorkspaceName } from 'core/utils';
+import { FeatureToggleDataSourceOptions } from 'core/feature-toggle';
 
 export class ListAssetsDataSource extends AssetDataSourceBase {
   private dependenciesLoadedPromise: Promise<void>;
 
   constructor(
-    readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,
+    readonly instanceSettings: DataSourceInstanceSettings<FeatureToggleDataSourceOptions>,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {

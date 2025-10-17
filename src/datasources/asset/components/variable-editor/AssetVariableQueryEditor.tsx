@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { QueryEditorProps } from "@grafana/data";
-import { AssetDataSourceOptions, AssetQuery, AssetQueryReturnType } from '../../../asset/types/types';
+import { AssetQuery, AssetQueryReturnType } from '../../../asset/types/types';
 import { AssetDataSource } from '../../AssetDataSource'
 import { FloatingError } from '../../../../core/errors';
 import { AssetQueryBuilder } from '../editors/list-assets/query-builder/AssetQueryBuilder';
@@ -12,8 +12,9 @@ import { takeErrorMessages } from 'datasources/asset/constants/constants';
 import { TAKE_LIMIT, tooltips } from 'datasources/asset/constants/ListAssets.constants';
 import { validateNumericInput } from 'core/utils';
 import { LocationModel } from 'datasources/asset/types/ListLocations.types';
+import { FeatureToggleDataSourceOptions } from 'core/feature-toggle';
 
-type Props = QueryEditorProps<AssetDataSource, AssetQuery, AssetDataSourceOptions>;
+type Props = QueryEditorProps<AssetDataSource, AssetQuery, FeatureToggleDataSourceOptions>;
 
 export function AssetVariableQueryEditor({ datasource, query, onChange }: Props) {
   query = datasource.patchListAssetQueryVariable(query);
