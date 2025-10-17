@@ -36,6 +36,7 @@ export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
 
 export const defaultQueryV2: Omit<DataFrameQueryV2, 'refId'> = {
   type: DataFrameQueryType.Data,
+  columns: []
 };
 
 export const DataFrameFeatureTogglesDefaults: DataFrameFeatureToggles = {
