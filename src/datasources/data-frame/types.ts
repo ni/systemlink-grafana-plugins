@@ -147,7 +147,7 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.Properties]: {
-    label: 'Properties',
+    label: 'Custom Properties',
     projection: [DataTableProjections.Properties],
     type: DataTableProjectionType.DataTable
   },

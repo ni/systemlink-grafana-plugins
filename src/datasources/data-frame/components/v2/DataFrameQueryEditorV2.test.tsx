@@ -110,7 +110,7 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
-        describe("proeperties fields", () => {
+        describe("properties fields", () => {
             it("should show the data table properties field", async () => {
                 await waitFor(() => {
                     expect(screen.getByText("Select data table properties to fetch")).toBeInTheDocument();
