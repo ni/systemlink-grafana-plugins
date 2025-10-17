@@ -25,10 +25,6 @@ import { extractErrorInfo } from 'core/errors';
 
 export class DataFrameDataSourceV1 extends DataSourceBase<DataFrameQueryV1, DataFrameDataSourceOptions> {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
-  private readonly workspaceUtils: WorkspaceUtils;
-
-  errorTitle = '';
-  errorDescription = '';
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
@@ -36,7 +32,6 @@ export class DataFrameDataSourceV1 extends DataSourceBase<DataFrameQueryV1, Data
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
-    this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
   }
 
   baseUrl = this.instanceSettings.url + '/nidataframe/v1';
@@ -137,17 +132,6 @@ export class DataFrameDataSourceV1 extends DataSourceBase<DataFrameQueryV1, Data
     return tableProperties.columns.map(col => ({ text: col.name, value: col.name }));
   }
 
-  public async loadWorkspaces(): Promise<Map<string, Workspace>> {
-    try {
-      return await this.workspaceUtils.getWorkspaces();
-    } catch (error) {
-      if (!this.errorTitle) {
-        this.handleDependenciesError(error);
-      }
-      return new Map<string, Workspace>();
-    }
-  }
-
   private getColumnTypes(columnNames: string[], tableProperties: Column[]): Column[] {
     return columnNames.map(c => {
       const column = tableProperties.find(({ name }) => name === c);
@@ -226,27 +210,6 @@ export class DataFrameDataSourceV1 extends DataSourceBase<DataFrameQueryV1, Data
         return true;
       default:
         return false;
-    }
-  }
-
-  private handleDependenciesError(error: unknown): void {
-    const errorDetails = extractErrorInfo((error as Error).message);
-    this.errorTitle = 'Warning during datatables query';
-    switch (errorDetails.statusCode) {
-      case '404':
-        this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
-        break;
-      case '429':
-        this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
-        break;
-      case '504':
-        this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
-        break;
-      default:
-        this.errorDescription = errorDetails.message
-          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
-          : 'Some values may not be available in the query builder lookups due to an unknown error.';
-        break;
     }
   }
 }

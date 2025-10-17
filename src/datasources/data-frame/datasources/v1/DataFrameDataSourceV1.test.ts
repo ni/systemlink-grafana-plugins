@@ -12,14 +12,6 @@ jest.mock('@grafana/runtime', () => ({
   getTemplateSrv: () => ({ replace: replaceMock, containsTemplate: containsTemplateMock }),
 }));
 
-jest.mock('core/utils', () => ({
-  ...jest.requireActual('core/utils'),
-  getVariableOptions: jest.fn(() => [
-    { label: 'Var1', value: 'Value1' },
-    { label: 'Var2', value: 'Value2' },
-  ]),
-}));
-
 const mockVariables = [{
   name: 'tableId',
   value: '1'
