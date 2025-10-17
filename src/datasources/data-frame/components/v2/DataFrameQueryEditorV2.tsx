@@ -1,52 +1,34 @@
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useCallback, useState } from 'react';
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
-import { AutoSizeInput, Collapse, InlineField, InlineLabel, InlineSwitch, MultiSelect, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQuery, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, Props } from "datasources/data-frame/types";
+import { AutoSizeInput, Collapse, ComboboxOption, InlineField, InlineLabel, InlineSwitch, MultiCombobox, MultiSelect, RadioButtonGroup } from "@grafana/ui";
+import { DataFrameQueryV1, DataFrameQueryType, PropsV1 } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
-import { SelectableValue } from "@grafana/data";
-import { Workspace } from "core/types";
-import { FloatingError } from "core/errors";
 import { TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { SelectableValue } from '@grafana/data';
 
-export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRunQuery, datasource }: Props) => {
+export const DataFrameQueryEditorV2: React.FC<PropsV1> = ({ query, onChange, onRunQuery, datasource }: PropsV1) => {
     query = datasource.processQuery(query);
 
     const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
     const [isColumnConfigurationSectionOpen, setIsColumnConfigurationSectionOpen] = useState(true);
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
-    const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
-
-    const getPropertiesOptions = (type: DataTableProjectionType) => Object.entries(DataTableProjectionLabelLookup)
-        .filter(([_, value]) => value.type === type)
-        .map(([key, value]) => ({ label: value.label, value: key })) as SelectableValue[];
-
-    const datatablePropertiesOptions = getPropertiesOptions(DataTableProjectionType.DataTable);
-    const columnPropertiesOptions = getPropertiesOptions(DataTableProjectionType.Column);
 
     const handleQueryChange = useCallback(
-        (query: DataFrameQuery, runQuery = true): void => {
+        (query: DataFrameQueryV1, runQuery = true): void => {
             onChange(query);
             if (runQuery) {
                 onRunQuery();
             }
         }, [onChange, onRunQuery]
     );
+
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
         handleQueryChange({ ...query, type: queryType }, false);
     };
-    const onColumnChange = (items: Array<SelectableValue<string>>) => {
-        handleQueryChange({ ...query, columns: items.map(i => i.value!) }, false);
+
+    const onColumnsChange = (columns: ComboboxOption<string>[]) => {
+        handleQueryChange({ ...query, columns: columns.map(i => i.value) }, false);
     };
-
-
-    useEffect(() => {
-        const loadWorkspaces = async () => {
-            const workspaces = await datasource.loadWorkspaces();
-            setWorkspaces(Array.from(workspaces.values()));
-        };
-
-        loadWorkspaces();
-    }, [datasource]);
 
     function validateTakeValue(value: number, TAKE_LIMIT: number) {
         if (isNaN(value) || value <= 0) {
@@ -91,9 +73,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             placeholder={placeholders.datatableProperties}
                             width={valueFieldWidth}
                             onChange={(): void => { }}
-                            options={datatablePropertiesOptions}
-                            allowCustomValue={false}
-                            closeMenuOnSelect={false}
                         />
                     </InlineField>
                     <InlineField
@@ -105,9 +84,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             placeholder={placeholders.columnProperties}
                             width={valueFieldWidth}
                             onChange={(): void => { }}
-                            options={columnPropertiesOptions}
-                            allowCustomValue={false}
-                            closeMenuOnSelect={false}
                         />
                     </InlineField>
                 </>
@@ -128,15 +104,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                     >
                         {labels.queryByDatatableProperties}
                     </InlineLabel>
-
                     <div style={{
                         width: getValuesInPixels(valueFieldWidth),
                         marginBottom: getValuesInPixels(defaultMarginBottom)
                     }}>
-                        <DataTableQueryBuilder
-                            workspaces={workspaces}
-                            globalVariableOptions={datasource.globalVariableOptions()}
-                        />
+                        <DataTableQueryBuilder workspaces={[]} globalVariableOptions={[]} />
                     </div>
 
                     {query.type === DataFrameQueryType.Properties && (
@@ -159,7 +131,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                     )}
 
                 </Collapse>
-            </div>
+            </div >
 
             {query.type === DataFrameQueryType.Data && (
                 <div
@@ -176,31 +148,31 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             labelWidth={inlineLabelWidth}
                             tooltip={tooltips.columns}
                         >
-                            <MultiSelect
-                                onChange={onColumnChange}
+                            <MultiCombobox
+                                onChange={onColumnsChange}
                                 options={[]}
-                                allowCustomValue={false}
-                            />
-                        </InlineField>
-                        <InlineField
-                            label={labels.filterNulls}
-                            labelWidth={inlineLabelWidth}
-                            tooltip={tooltips.filterNulls}>
-                            <InlineSwitch
+                                createCustomValue={false}
                             />
                         </InlineField>
                         <InlineField
                             label={labels.includeIndexColumns}
                             labelWidth={inlineLabelWidth}
-                            tooltip={tooltips.includeIndexColumns}>
+                            tooltip={tooltips.includeIndexColumns}
+                        >
+                            <InlineSwitch
+                            />
+                        </InlineField>
+                        <InlineField
+                            label={labels.filterNulls}
+                            labelWidth={inlineLabelWidth}
+                            tooltip={tooltips.filterNulls}
+                        >
                             <InlineSwitch
                             />
                         </InlineField>
                     </Collapse>
                 </div>
             )}
-
-            <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
         </>
     );
 };

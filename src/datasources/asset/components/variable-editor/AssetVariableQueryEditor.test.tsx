@@ -82,7 +82,7 @@ it('renders the variable query builder', async () => {
 });
 
 it('renders the return type selector', async () => {
-    render({  refId: '', type: AssetQueryType.ListAssets, filter: "" } as AssetVariableQuery);
+    render({ refId: '', type: AssetQueryType.ListAssets, filter: "" } as AssetVariableQuery);
 
     await waitFor(() => expect(screen.getByText('Return Type')).toBeInTheDocument());
     await waitFor(() => expect(screen.getByText(AssetQueryReturnType.AssetTagPath)).toBeInTheDocument());
@@ -167,7 +167,7 @@ it('should not display error message when user changes value to number between 0
 it('should call onChange when return type is changed', async () => {
     const [onChange] = await render({ refId: '', type: AssetQueryType.ListAssets, filter: "" } as AssetVariableQuery)
 
-    await waitFor(async () =>{
+    await waitFor(async () => {
         const renderType = screen.getAllByRole('combobox')[0];
 
         expect(screen.getAllByText(AssetQueryReturnType.AssetTagPath).length).toBe(1);
@@ -184,4 +184,66 @@ it('should call onChange when return type is changed', async () => {
     });
 
     onChange.mockClear();
+});
+
+it('should display default return type AssetTagPath for new variables', async () => {
+    const [onChange] = await render({ refId: '', type: AssetQueryType.ListAssets, filter: "" } as AssetVariableQuery)
+    await waitFor(() => {
+        expect(screen.getByText(AssetQueryReturnType.AssetTagPath)).toBeInTheDocument();
+    });
+    expect(onChange).not.toHaveBeenCalled();
+})
+
+it('should allow changing return type and persist the selection', async () => {
+    const [onChange] = await render({
+        refId: '',
+        type: AssetQueryType.ListAssets,
+        filter: "",
+        queryReturnType: AssetQueryReturnType.AssetTagPath
+    } as AssetVariableQuery);
+
+    expect(screen.getByText(AssetQueryReturnType.AssetTagPath)).toBeInTheDocument();
+    expect(onChange).not.toHaveBeenCalled();
+
+    const returnTypeSelect = screen.getAllByRole('combobox')[0];
+    await select(returnTypeSelect, AssetQueryReturnType.AssetId, {
+        container: document.body
+    });
+
+    await waitFor(() => {
+        expect(screen.getByText(AssetQueryReturnType.AssetId)).toBeInTheDocument();
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+            queryReturnType: AssetQueryReturnType.AssetId
+        }));
+    });
+});
+
+it('should maintain independent return types for different variable instances', async () => {
+    const [onChange1] = await render({
+        refId: 'A',
+        type: AssetQueryType.ListAssets,
+        filter: "",
+        queryReturnType: AssetQueryReturnType.AssetTagPath
+    } as AssetVariableQuery);
+    expect(screen.getByText(AssetQueryReturnType.AssetTagPath)).toBeInTheDocument();
+
+    const returnTypeSelect = screen.getAllByRole('combobox')[0];
+    await select(returnTypeSelect, AssetQueryReturnType.AssetId, {
+        container: document.body
+    });
+
+    await waitFor(() => {
+        expect(screen.getByText(AssetQueryReturnType.AssetId)).toBeInTheDocument();
+        expect(onChange1).toHaveBeenCalledWith(expect.objectContaining({
+            queryReturnType: AssetQueryReturnType.AssetId
+        }));
+    });
+
+    const [onChange2] = await render({
+        refId: 'B',
+        type: AssetQueryType.ListAssets,
+        filter: "",
+    } as AssetVariableQuery);
+    expect(screen.getByText(AssetQueryReturnType.AssetTagPath)).toBeInTheDocument();
+    expect(onChange2).not.toHaveBeenCalled();
 });
