@@ -19,9 +19,7 @@ import { propertiesCacheTTL } from '../../constants';
 import _ from 'lodash';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { replaceVariables } from 'core/utils';
-import { LEGACY_METADATA_TYPE, Workspace } from 'core/types';
-import { WorkspaceUtils } from 'shared/workspace.utils';
-import { extractErrorInfo } from 'core/errors';
+import { LEGACY_METADATA_TYPE } from 'core/types';
 
 export class DataFrameDataSourceV1 extends DataSourceBase<DataFrameQueryV1, DataFrameDataSourceOptions> {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
