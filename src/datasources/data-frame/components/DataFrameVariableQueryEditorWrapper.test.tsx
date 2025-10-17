@@ -1,8 +1,8 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { DataFrameVariableQueryEditorWrapper } from './DataFrameVariableQueryEditorWrapper';
-import { DataFrameDataSourceV1 } from '../datasources/v1/DataFrameDataSourceV1';
-import { DataFrameQueryV1, DataFrameQueryType, PropsV1 } from '../types';
+import { DataFrameDataSource } from '../DataFrameDataSource';
+import { DataFrameQuery, DataFrameQueryType, Props } from '../types';
 
 jest.mock('./v1/DataFrameVariableQueryEditorV1', () => ({
     DataFrameVariableQueryEditorV1: () => <div className="data-frame-variable-query-editor-v1" />,
@@ -18,13 +18,13 @@ describe('DataFrameVariableQueryEditorWrapper', () => {
             instanceSettings: {
                 jsonData,
             },
-        } as unknown as DataFrameDataSourceV1;
+        } as unknown as DataFrameDataSource;
 
-        const props: PropsV1 = {
+        const props: Props = {
             datasource,
             query: {
                 type: DataFrameQueryType.Data,
-            } as DataFrameQueryV1,
+            } as DataFrameQuery,
             onChange: jest.fn(),
             onRunQuery: jest.fn(),
         };

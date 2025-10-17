@@ -2,23 +2,23 @@ import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
-import { DataFrameDataSourceV1 } from "../../datasources/v1/DataFrameDataSourceV1";
-import { DataFrameQueryV1, DataFrameQueryType } from "../../types";
+import { DataFrameDataSourceV2 } from "../../datasources/v2/DataFrameDataSourceV2";
+import { DataFrameQueryV2, DataFrameQueryType } from "../../types";
 
 jest.mock("./query-builders/DataTableQueryBuilder", () => ({
     DataTableQueryBuilder: () => <div data-testid="data-table-query-builder" />
 }));
 
-const renderComponent = (queryOverrides: Partial<DataFrameQueryV1> = {}) => {
+const renderComponent = (queryOverrides: Partial<DataFrameQueryV2> = {}) => {
     const onChange = jest.fn();
     const onRunQuery = jest.fn();
-    const processQuery = jest.fn<DataFrameQueryV1, [DataFrameQueryV1]>().mockImplementation(query => ({ ...query }));
-    const datasource = { processQuery } as unknown as DataFrameDataSourceV1;
+    const processQuery = jest.fn<DataFrameQueryV2, [DataFrameQueryV2]>().mockImplementation(query => ({ ...query }));
+    const datasource = { processQuery } as unknown as DataFrameDataSourceV2;
     const initialQuery = {
         refId: "A",
         type: DataFrameQueryType.Data,
         ...queryOverrides,
-    } as DataFrameQueryV1;
+    } as DataFrameQueryV2;
 
     const renderResult = render(
         <DataFrameQueryEditorV2
@@ -119,15 +119,48 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
-        it("should show the data table properties field", async () => {
-            await waitFor(() => {
-                expect(screen.getByText("Select data table properties to fetch")).toBeInTheDocument();
+        describe("properties fields", () => {
+            it("should show the data table properties field", async () => {
+                await waitFor(() => {
+                    expect(screen.getByText("Select data table properties to fetch")).toBeInTheDocument();
+                });
             });
-        });
 
-        it("should show the column properties field", async () => {
-            await waitFor(() => {
-                expect(screen.getByText("Select column properties to fetch")).toBeInTheDocument();
+            it("should show the column properties field", async () => {
+                await waitFor(() => {
+                    expect(screen.getByText("Select column properties to fetch")).toBeInTheDocument();
+                });
+            });
+
+            it("should show the expected options in the data table properties field", async () => {
+                const dataTablePropertiesField = screen.getByText("Select data table properties to fetch");
+                await userEvent.click(dataTablePropertiesField);
+
+                await waitFor(() => {
+                    expect(document.body).toHaveTextContent("Data table name");
+                    expect(document.body).toHaveTextContent("Data table ID");
+                    expect(document.body).toHaveTextContent("Number of rows");
+                    expect(document.body).toHaveTextContent("Number of columns");
+                    expect(document.body).toHaveTextContent("Created at");
+                    expect(document.body).toHaveTextContent("Workspace");
+                    expect(document.body).toHaveTextContent("Metadata modified at");
+                    expect(document.body).toHaveTextContent("Metadata revision");
+                    expect(document.body).toHaveTextContent("Rows modified at");
+                    expect(document.body).toHaveTextContent("Supports append");
+                    expect(document.body).toHaveTextContent("Properties");
+                });
+            });
+
+            it("should show the expected options in the column properties field", async () => {
+                const columnPropertiesField = screen.getByText("Select column properties to fetch");
+                await userEvent.click(columnPropertiesField);
+
+                await waitFor(() => {
+                    expect(document.body).toHaveTextContent("Column name");
+                    expect(document.body).toHaveTextContent("Column data type");
+                    expect(document.body).toHaveTextContent("Column type");
+                    expect(document.body).toHaveTextContent("Column properties");
+                });
             });
         });
 

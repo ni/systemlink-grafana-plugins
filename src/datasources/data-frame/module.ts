@@ -1,10 +1,10 @@
 import { DataSourcePlugin } from '@grafana/data';
-import { DataFrameDataSourceV1 } from './datasources/v1/DataFrameDataSourceV1';
+import { DataFrameDataSource } from './DataFrameDataSource';
 import { DataFrameQueryEditorWrapper } from './components/DataFrameQueryEditorWrapper';
 import { DataFrameVariableQueryEditorWrapper } from './components/DataFrameVariableQueryEditorWrapper';
 import { DataFrameConfigEditor } from './components/DataFrameConfigEditor';
 
-export const plugin = new DataSourcePlugin(DataFrameDataSourceV1)
+export const plugin = new DataSourcePlugin(DataFrameDataSource)
   .setConfigEditor(DataFrameConfigEditor)
   .setQueryEditor(DataFrameQueryEditorWrapper)
   .setVariableQueryEditor(DataFrameVariableQueryEditorWrapper);

@@ -1,6 +1,6 @@
 import TTLCache from '@isaacs/ttlcache';
 import deepEqual from 'fast-deep-equal';
-import { DataQueryRequest, DataSourceInstanceSettings, FieldType, TimeRange, FieldDTO, dateTime, DataFrameDTO, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
+import { DataQueryRequest, DataSourceInstanceSettings, FieldType, TimeRange, FieldDTO, dateTime, DataFrameDTO, MetricFindValue } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import {
   ColumnDataType,
@@ -17,24 +17,21 @@ import {
 } from '../../types';
 import { propertiesCacheTTL } from '../../constants';
 import _ from 'lodash';
-import { DataSourceBase } from 'core/DataSourceBase';
+import { DataFrameDataSourceBase } from '../../DataFrameDataSourceBase';
 import { replaceVariables } from 'core/utils';
 import { LEGACY_METADATA_TYPE } from 'core/types';
 
-export class DataFrameDataSourceV1 extends DataSourceBase<DataFrameQueryV1, DataFrameDataSourceOptions> {
+export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQueryV1> {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
+  defaultQuery = defaultQueryV1;
 
-  constructor(
-    readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
-    readonly backendSrv: BackendSrv = getBackendSrv(),
-    readonly templateSrv: TemplateSrv = getTemplateSrv()
+  public constructor(
+    public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
+    public readonly backendSrv: BackendSrv = getBackendSrv(),
+    public readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
   }
-
-  baseUrl = this.instanceSettings.url + '/nidataframe/v1';
-
-  defaultQuery = defaultQueryV1;
 
   async runQuery(query: DataFrameQueryV1, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
     const processedQuery = this.processQuery(query);
@@ -101,11 +98,6 @@ export class DataFrameDataSourceV1 extends DataSourceBase<DataFrameQueryV1, Data
     const filter = `name.Contains("${query}")`;
 
     return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take: 5 })).tables;
-  }
-
-  async testDatasource(): Promise<TestDataSourceResponse> {
-    await this.get(`${this.baseUrl}/tables`, { take: 1 });
-    return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 
   processQuery(query: DataFrameQueryV1): ValidDataFrameQueryV1 {
