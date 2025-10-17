@@ -1,15 +1,23 @@
 import React, { useCallback, useState } from 'react';
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
 import { AutoSizeInput, Collapse, InlineField, InlineLabel, MultiSelect, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQueryV2, DataFrameQueryType, PropsV2 } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, PropsV2, DataTableProjectionLabelLookup, DataTableProjectionType } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { SelectableValue } from '@grafana/data';
 
 export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onRunQuery, datasource }: PropsV2) => {
     query = datasource.processQuery(query);
 
     const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
+
+    const getPropertiesOptions = (type: DataTableProjectionType) => Object.entries(DataTableProjectionLabelLookup)
+        .filter(([_, value]) => value.type === type)
+        .map(([key, value]) => ({ label: value.label, value: key })) as SelectableValue[];
+
+    const datatablePropertiesOptions = getPropertiesOptions(DataTableProjectionType.DataTable);
+    const columnPropertiesOptions = getPropertiesOptions(DataTableProjectionType.Column);
 
     const handleQueryChange = useCallback(
         (query: DataFrameQueryV2, runQuery = true): void => {
@@ -66,6 +74,9 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                             placeholder={placeholders.datatableProperties}
                             width={valueFieldWidth}
                             onChange={(): void => { }}
+                            options={datatablePropertiesOptions}
+                            allowCustomValue={false}
+                            closeMenuOnSelect={false}
                         />
                     </InlineField>
                     <InlineField
@@ -77,6 +88,9 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                             placeholder={placeholders.columnProperties}
                             width={valueFieldWidth}
                             onChange={(): void => { }}
+                            options={columnPropertiesOptions}
+                            allowCustomValue={false}
+                            closeMenuOnSelect={false}
                         />
                     </InlineField>
                 </>
