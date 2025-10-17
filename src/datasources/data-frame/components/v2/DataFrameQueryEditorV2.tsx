@@ -43,7 +43,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
     };
 
     const onUseTimeRangeChange = (event: React.FormEvent<HTMLInputElement>) => {
-        const value = (event.target as HTMLInputElement).checked;
+        const value = event.currentTarget.checked;
         handleQueryChange({ ...query, applyTimeFilters: value }, false);
     };
 
@@ -232,9 +232,9 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                             label={labels.useTimeRange}
                             labelWidth={inlineLabelWidth}
                             tooltip={tooltips.useTimeRange}
-                            onChange={onUseTimeRangeChange}
                         >
                             <InlineSwitch
+                                onChange={onUseTimeRangeChange}
                             />
                         </InlineField>
                     </Collapse>
@@ -256,7 +256,7 @@ const labels = {
     filterNulls: 'Filter nulls',
     includeIndexColumns: 'Include index columns',
     decimationMethod: 'Decimation method',
-    xColumn: 'X-Column',
+    xColumn: 'X-column',
     useTimeRange: 'Use time range',
     take: 'Take',
 };
