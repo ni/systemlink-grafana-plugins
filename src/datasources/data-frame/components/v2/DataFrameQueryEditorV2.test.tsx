@@ -97,6 +97,15 @@ describe("DataFrameQueryEditorV2", () => {
                 expect(screen.queryByPlaceholderText("Enter record count")).not.toBeInTheDocument();
             });
         });
+
+        it("should show the column configuration controls when the query type is data", async () => {
+            await waitFor(() => {
+                expect(screen.getByText("Column configurations")).toBeInTheDocument();
+                expect(screen.getByText("Columns")).toBeInTheDocument();
+                expect(screen.getByText("Include index columns")).toBeInTheDocument();
+                expect(screen.getByText("Filter nulls")).toBeInTheDocument();
+            });
+        });
     });
 
     describe("when the query type is properties", () => {
@@ -202,5 +211,4 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
     });
-
 });

@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
-import { AutoSizeInput, Collapse, InlineField, InlineLabel, MultiSelect, RadioButtonGroup } from "@grafana/ui";
+import { AutoSizeInput, Collapse, ComboboxOption, InlineField, InlineLabel, InlineSwitch, MultiCombobox, MultiSelect, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQueryV2, DataFrameQueryType, PropsV2, DataTableProjectionLabelLookup, DataTableProjectionType } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { TAKE_LIMIT } from 'datasources/data-frame/constants';
@@ -10,6 +10,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
     query = datasource.processQuery(query);
 
     const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
+    const [isColumnConfigurationSectionOpen, setIsColumnConfigurationSectionOpen] = useState(true);
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
 
     const getPropertiesOptions = (type: DataTableProjectionType) => Object.entries(DataTableProjectionLabelLookup)
@@ -27,8 +28,13 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
             }
         }, [onChange, onRunQuery]
     );
+
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
         handleQueryChange({ ...query, type: queryType }, false);
+    };
+
+    const onColumnsChange = (columns: Array<ComboboxOption<string>>) => {
+        handleQueryChange({ ...query, columns: columns.map(i => i.value) }, false);
     };
 
     function validateTakeValue(value: number, TAKE_LIMIT: number) {
@@ -138,7 +144,50 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                     )}
 
                 </Collapse>
-            </div>
+            </div >
+
+            {query.type === DataFrameQueryType.Data && (
+                <div
+                    style={{ width: getValuesInPixels(sectionWidth) }}
+                >
+                    <Collapse
+                        label={labels.columnConfigurations}
+                        isOpen={isColumnConfigurationSectionOpen}
+                        collapsible={true}
+                        onToggle={() => setIsColumnConfigurationSectionOpen(!isColumnConfigurationSectionOpen)}
+                    >
+                        <InlineField
+                            label={labels.columns}
+                            labelWidth={inlineLabelWidth}
+                            tooltip={tooltips.columns}
+                        >
+                            <MultiCombobox
+                                placeholder={placeholders.columns}
+                                width={inlineLabelWidth}
+                                onChange={onColumnsChange}
+                                options={[]}
+                                createCustomValue={false}
+                            />
+                        </InlineField>
+                        <InlineField
+                            label={labels.includeIndexColumns}
+                            labelWidth={inlineLabelWidth}
+                            tooltip={tooltips.includeIndexColumns}
+                        >
+                            <InlineSwitch
+                            />
+                        </InlineField>
+                        <InlineField
+                            label={labels.filterNulls}
+                            labelWidth={inlineLabelWidth}
+                            tooltip={tooltips.filterNulls}
+                        >
+                            <InlineSwitch
+                            />
+                        </InlineField>
+                    </Collapse>
+                </div>
+            )}
         </>
     );
 };
@@ -148,20 +197,28 @@ const labels = {
     datatableProperties: 'Data table properties',
     columnProperties: 'Column properties',
     queryConfigurations: 'Query configurations',
+    columnConfigurations: 'Column configurations',
     queryByDatatableProperties: 'Query by data table properties',
+    columns: 'Columns',
+    filterNulls: 'Filter nulls',
+    includeIndexColumns: 'Include index columns',
     take: 'Take',
 };
 const tooltips = {
     queryType: 'This field specifies the type for the query that searches the data tables. The query can retrieve row data or metadata.',
     queryByDatatableProperties: 'This optional field applies a filter to a query while searching the data tables.',
     take: 'This field sets the maximum number of records to return from the query.',
+    columns: 'Specifies the columns to include in the response data.',
+    filterNulls: `Specifies whether to filter out null and NaN values before decimating the data.`,
+    includeIndexColumns: 'Specifies whether to include index columns in the response data.',
     datatableProperties: 'This field specifies the data table properties to be queried.',
     columnProperties: 'This field specifies the column properties to be queried.',
 };
 const placeholders = {
     datatableProperties: 'Select data table properties to fetch',
     columnProperties: 'Select column properties to fetch',
-    take: 'Enter record count'
+    take: 'Enter record count',
+    columns: 'Select columns',
 };
 
 const errorMessages = {
