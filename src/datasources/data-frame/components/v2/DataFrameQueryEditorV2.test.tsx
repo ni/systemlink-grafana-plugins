@@ -102,8 +102,8 @@ describe("DataFrameQueryEditorV2", () => {
             await waitFor(() => {
                 expect(screen.getByText("Column configurations")).toBeInTheDocument();
                 expect(screen.getByText("Columns")).toBeInTheDocument();
-                expect(screen.getByText("Filter nulls")).toBeInTheDocument();
                 expect(screen.getByText("Include index columns")).toBeInTheDocument();
+                expect(screen.getByText("Filter nulls")).toBeInTheDocument();
             });
         });
     });

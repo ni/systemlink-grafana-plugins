@@ -4,7 +4,6 @@ import { AutoSizeInput, Collapse, ComboboxOption, InlineField, InlineLabel, Inli
 import { DataFrameQueryV1, DataFrameQueryType, PropsV1 } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { TAKE_LIMIT } from 'datasources/data-frame/constants';
-import { SelectableValue } from '@grafana/data';
 
 export const DataFrameQueryEditorV2: React.FC<PropsV1> = ({ query, onChange, onRunQuery, datasource }: PropsV1) => {
     query = datasource.processQuery(query);
@@ -26,7 +25,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV1> = ({ query, onChange, onR
         handleQueryChange({ ...query, type: queryType }, false);
     };
 
-    const onColumnsChange = (columns: ComboboxOption<string>[]) => {
+    const onColumnsChange = (columns: Array<ComboboxOption<string>>) => {
         handleQueryChange({ ...query, columns: columns.map(i => i.value) }, false);
     };
 
@@ -149,6 +148,8 @@ export const DataFrameQueryEditorV2: React.FC<PropsV1> = ({ query, onChange, onR
                             tooltip={tooltips.columns}
                         >
                             <MultiCombobox
+                                placeholder={placeholders.columns}
+                                width={inlineLabelWidth}
                                 onChange={onColumnsChange}
                                 options={[]}
                                 createCustomValue={false}
@@ -202,7 +203,8 @@ const tooltips = {
 const placeholders = {
     datatableProperties: 'Select data table properties to fetch',
     columnProperties: 'Select column properties to fetch',
-    take: 'Enter record count'
+    take: 'Enter record count',
+    columns: 'Select columns',
 };
 
 const errorMessages = {

@@ -18,8 +18,8 @@ import {
 import { propertiesCacheTTL } from '../../constants';
 import _ from 'lodash';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { getVariableOptions, replaceVariables } from 'core/utils';
-import { LEGACY_METADATA_TYPE, QueryBuilderOption, Workspace } from 'core/types';
+import { replaceVariables } from 'core/utils';
+import { LEGACY_METADATA_TYPE, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { extractErrorInfo } from 'core/errors';
 
