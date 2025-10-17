@@ -1,3 +1,9 @@
+## [4.25.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.24.0...v4.25.0) (2025-10-17)
+
+### Features
+
+* **dataframe:** Add decimation settings controls ([#445](https://github.com/ni/systemlink-grafana-plugins/issues/445)) ([ac1fb32](https://github.com/ni/systemlink-grafana-plugins/commit/ac1fb32fbe95d6924fb47b915f203e1e0389e17a))
+
 ## [4.24.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.23.0...v4.24.0) (2025-10-17)
 
 ### Features
