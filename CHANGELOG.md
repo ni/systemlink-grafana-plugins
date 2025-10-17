@@ -1,3 +1,21 @@
+## [4.23.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.22.0...v4.23.0) (2025-10-17)
+
+### Features
+
+* **dataframe:** Add properties options ([#443](https://github.com/ni/systemlink-grafana-plugins/issues/443)) ([72a62aa](https://github.com/ni/systemlink-grafana-plugins/commit/72a62aaa53f51fdb49de1ad45b024c9f0cd06d0b))
+
+## [4.22.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.21.3...v4.22.0) (2025-10-17)
+
+### Features
+
+* **dataframe:** Introduce top level DataFrameDataSource ([#427](https://github.com/ni/systemlink-grafana-plugins/issues/427)) ([dd20a0a](https://github.com/ni/systemlink-grafana-plugins/commit/dd20a0a4e87b4213fe0cfd593431ec52af29fb6d))
+
+## [4.21.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.21.2...v4.21.3) (2025-10-17)
+
+### Bug Fixes
+
+* **alarms:** Set plugin state to beta in plugin.json ([#444](https://github.com/ni/systemlink-grafana-plugins/issues/444)) ([70e2144](https://github.com/ni/systemlink-grafana-plugins/commit/70e2144035b7e5cc461dd0b3108c8a87ad9e3e1f))
+
 ## [4.21.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.21.1...v4.21.2) (2025-10-16)
 
 ### Bug Fixes
