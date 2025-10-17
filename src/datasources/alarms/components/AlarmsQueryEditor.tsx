@@ -45,8 +45,6 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
           refId: query.refId,
         });
         break;
-      default:
-        break;
     }
   }, [query, alarmsCountQuery, listAlarmsQuery, handleQueryChange]);
 
@@ -57,8 +55,6 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
         break;
       case QueryType.AlarmsCount:
         setAlarmsCountQuery(query as AlarmsCountQuery);
-        break;
-      default:
         break;
     }
   };
