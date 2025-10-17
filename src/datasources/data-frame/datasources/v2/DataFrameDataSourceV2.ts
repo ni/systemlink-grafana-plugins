@@ -1,9 +1,18 @@
-import { DataFrameDTO, DataQueryRequest, MetricFindValue, TimeRange } from "@grafana/data";
-import { DataFrameDataSourceBase } from "datasources/data-frame/DataFrameDataSourceBase";
-import { Column, DataFrameQueryV2, defaultQueryV2, TableDataRows, TableProperties, ValidDataFrameQueryV2 } from "datasources/data-frame/types";
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindValue, TimeRange } from "@grafana/data";
+import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
+import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
+import { Column, DataFrameDataSourceOptions, DataFrameQueryV2, defaultQueryV2, TableDataRows, TableProperties, ValidDataFrameQueryV2 } from "../../types";
 
-export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
+export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
     defaultQuery = defaultQueryV2;
+
+    public constructor(
+        public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
+        public readonly backendSrv: BackendSrv = getBackendSrv(),
+        public readonly templateSrv: TemplateSrv = getTemplateSrv()
+    ) {
+        super(instanceSettings, backendSrv, templateSrv);
+    }
 
     async runQuery(_query: DataFrameQueryV2, _options: DataQueryRequest<DataFrameQueryV2>): Promise<DataFrameDTO> {
         // TODO: Implement logic to fetch and return DataFrameDTO based on the query and options.
@@ -39,6 +48,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         // TODO: Implement logic to fetch and return decimated table data based on the query, columns, time range, and intervals.
         throw new Error('Method not implemented.');
     }
+
     async queryTables(_query: string): Promise<TableProperties[]> {
         // TODO: Implement logic to query and return table properties
         throw new Error('Method not implemented.');

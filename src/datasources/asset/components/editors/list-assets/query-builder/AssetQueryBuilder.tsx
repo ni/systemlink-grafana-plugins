@@ -99,6 +99,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
     }
 
     const fields = [workspaceField, locationField, calibrationDueDateField, ...ListAssetsStaticFields]
+      .sort((a, b) => a.label?.localeCompare(b?.label ?? '') ?? 0)
       .map(field => {
         if (field.lookup?.dataSource) {
           return {

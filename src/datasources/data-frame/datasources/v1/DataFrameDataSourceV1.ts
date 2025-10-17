@@ -21,17 +21,17 @@ import { DataFrameDataSourceBase } from '../../DataFrameDataSourceBase';
 import { replaceVariables } from 'core/utils';
 import { LEGACY_METADATA_TYPE } from 'core/types';
 
-export class DataFrameDataSourceV1 extends DataFrameDataSourceBase {
+export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQueryV1> {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
+  defaultQuery = defaultQueryV1;
 
-  constructor(
-    readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
-    readonly backendSrv: BackendSrv = getBackendSrv(),
-    readonly templateSrv: TemplateSrv = getTemplateSrv()
+  public constructor(
+    public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
+    public readonly backendSrv: BackendSrv = getBackendSrv(),
+    public readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
   }
-  defaultQuery = defaultQueryV1;
 
   async runQuery(query: DataFrameQueryV1, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
     const processedQuery = this.processQuery(query);

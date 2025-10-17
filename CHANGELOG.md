@@ -1,3 +1,27 @@
+## [4.21.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.21.2...v4.21.3) (2025-10-17)
+
+### Bug Fixes
+
+* **alarms:** Set plugin state to beta in plugin.json ([#444](https://github.com/ni/systemlink-grafana-plugins/issues/444)) ([70e2144](https://github.com/ni/systemlink-grafana-plugins/commit/70e2144035b7e5cc461dd0b3108c8a87ad9e3e1f))
+
+## [4.21.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.21.1...v4.21.2) (2025-10-16)
+
+### Bug Fixes
+
+* **assets:** fix field ordering ([#442](https://github.com/ni/systemlink-grafana-plugins/issues/442)) ([39b8715](https://github.com/ni/systemlink-grafana-plugins/commit/39b8715b7c9b5abe2c0abf490e9d9a668a1fcf96))
+
+## [4.21.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.21.0...v4.21.1) (2025-10-16)
+
+### Bug Fixes
+
+* **asset:** update returnType management for Asset Variable Query ([#437](https://github.com/ni/systemlink-grafana-plugins/issues/437)) ([3208260](https://github.com/ni/systemlink-grafana-plugins/commit/3208260b694b48562cb06f50828a680b65031c68))
+
+## [4.21.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.20.0...v4.21.0) (2025-10-16)
+
+### Features
+
+* **alarms:** Support filtering alarms by source ([#432](https://github.com/ni/systemlink-grafana-plugins/issues/432)) ([3754c6f](https://github.com/ni/systemlink-grafana-plugins/commit/3754c6f8b0c5b55fb115295f199e06019a854377))
+
 ## [4.20.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.19.2...v4.20.0) (2025-10-15)
 
 ### Features

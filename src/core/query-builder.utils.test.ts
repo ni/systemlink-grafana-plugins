@@ -1,5 +1,5 @@
 import { QueryBuilderOperations } from "./query-builder.constants";
-import { buildExpressionFromTemplate, expressionBuilderCallback, expressionBuilderCallbackWithRef, expressionReaderCallback, expressionReaderCallbackWithRef, ExpressionTransformFunction, transformComputedFieldsQuery } from "./query-builder.utils"
+import { buildExpressionFromTemplate, expressionBuilderCallback, expressionBuilderCallbackWithRef, expressionReaderCallback, expressionReaderCallbackWithRef, ExpressionTransformFunction, getConcatOperatorForMultiExpression, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "./query-builder.utils"
 
 describe('QueryBuilderUtils', () => {
   describe('transformComputedFieldsQuery', () => {
@@ -251,4 +251,106 @@ describe('QueryBuilderUtils', () => {
       expect(result).toEqual({ fieldName: 'field1', value: 'ValueA' });
     });
   })
+
+  describe('timeFieldsQuery', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2025-10-10T00:00:00Z'));
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should build time field expression with the provided value', () => {
+      const transform = timeFieldsQuery('timestampField');
+
+      const result = transform('2024-10-10T12:00:00Z', '<');
+
+      expect(result).toBe('timestampField < "2024-10-10T12:00:00Z"');
+    });
+
+    it('should replace ${__now:date} with the current date in time field expression', () => {
+      const transform = timeFieldsQuery('timestampField');
+
+      const result = transform('${__now:date}', '=');
+
+      expect(result).toBe('timestampField = "2025-10-10T00:00:00.000Z"');
+    });
+  });
+
+  describe('multipleValuesQuery', () => {
+    it('should build expression for single value query', () => {
+      const buildExpression = multipleValuesQuery('field');
+
+      const result = buildExpression('value', '=');
+
+      expect(result).toBe('field = "value"');
+    });
+
+    it('should build expression for a single value in the multi-value format', () => {
+      const buildExpression = multipleValuesQuery('field');
+
+      const result = buildExpression('{value}', '=');
+
+      expect(result).toBe('(field = "value")');
+    });
+
+    it('should build expression for multi-value query with "||" for equals operator', () => {
+      const buildExpression = multipleValuesQuery('field');
+
+      const result = buildExpression('{value1,value2}', '=');
+
+      expect(result).toBe('(field = "value1" || field = "value2")');
+    });
+
+    it('should build expression for multi-value query with "&&" for not equals operator', () => {
+      const buildExpression = multipleValuesQuery('field');
+
+      const result = buildExpression('{value1,value2}', '!=');
+
+      expect(result).toBe('(field != "value1" && field != "value2")');
+    });
+
+    it('should build expression for multi-value query with empty values', () => {
+      const buildExpression = multipleValuesQuery('field');
+
+      const result = buildExpression('{,value2,}', '=');
+
+      expect(result).toBe('(field = "" || field = "value2" || field = "")');
+    });
+
+    it('should use default transformation with operator as-is when not defined in QueryBuilderOperations', () => {
+      const buildExpression = multipleValuesQuery('field');
+
+      const result = buildExpression('{value1}', 'like');
+
+      expect(result).toBe('(field like "value1")');
+    });
+  });
+
+  describe('getConcatOperatorForMultiExpression', () => {
+    [
+      {
+        name: 'equals',
+        operator: '=',
+      },
+      {
+        name: 'is not blank',
+        operator: 'isnotblank',
+      },
+    ].forEach(testCase => {
+      it(`should return OR for ${testCase.name} operator`, () => {
+        const result = getConcatOperatorForMultiExpression(testCase.operator);
+
+        expect(result).toBe('||');
+      });
+    });
+
+    it('should return AND as the default logical operator', () => {
+      const result = getConcatOperatorForMultiExpression('>');
+
+      expect(result).toBe('&&');
+    });
+  });
 })
