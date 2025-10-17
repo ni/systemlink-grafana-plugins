@@ -35,7 +35,7 @@ beforeEach(() => {
     url: '_',
     name: 'SystemLink Data Frames',
   };
-  ds = new DataFrameDataSourceV1(instanceSettings as DataSourceInstanceSettings<DataFrameDataSourceOptions>);
+  ds = new DataFrameDataSourceV1(instanceSettings as DataSourceInstanceSettings<DataFrameDataSourceOptions>,);
   setupFetchMock();
 });
 

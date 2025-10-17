@@ -12,18 +12,17 @@ import {
     TableDataRows,
     Column
 } from './types';
-import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from '@grafana/runtime';
+import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 
 export abstract class DataFrameDataSourceBase<
     TQuery extends DataFrameQuery = DataFrameQuery,
-    TOptions extends DataFrameDataSourceOptions = DataFrameDataSourceOptions
-> extends DataSourceBase<TQuery, TOptions> {
+> extends DataSourceBase<TQuery, DataFrameDataSourceOptions> {
     public baseUrl = this.instanceSettings.url + '/nidataframe/v1';
 
     public constructor(
-        public readonly instanceSettings: DataSourceInstanceSettings<TOptions>,
-        public readonly backendSrv: BackendSrv = getBackendSrv(),
-        public readonly templateSrv: TemplateSrv = getTemplateSrv()
+        public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
+        public readonly backendSrv: BackendSrv,
+        public readonly templateSrv: TemplateSrv
     ) {
         super(instanceSettings, backendSrv, templateSrv);
     }
