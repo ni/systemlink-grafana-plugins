@@ -1,3 +1,9 @@
+## [4.24.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.23.0...v4.24.0) (2025-10-17)
+
+### Features
+
+* **dataframe:** Add column configuration controls ([#435](https://github.com/ni/systemlink-grafana-plugins/issues/435)) ([b3e18b0](https://github.com/ni/systemlink-grafana-plugins/commit/b3e18b086d8e666a4d9e5409f76ac5362b886495))
+
 ## [4.23.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.22.0...v4.23.0) (2025-10-17)
 
 ### Features
