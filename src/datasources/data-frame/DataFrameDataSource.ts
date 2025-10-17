@@ -1,6 +1,6 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindValue, TimeRange } from "@grafana/data";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, DataFrameDataSourceOptions, DataFrameQuery, defaultQueryV1, TableDataRows, TableProperties, ValidDataFrameQuery } from "./types";
+import { Column, DataFrameDataSourceOptions, DataFrameQuery, TableDataRows, TableProperties, ValidDataFrameQuery } from "./types";
 import { DataFrameDataSourceBase } from "./DataFrameDataSourceBase";
 import { DataFrameDataSourceV1 } from "./datasources/v1/DataFrameDataSourceV1";
 import { DataFrameDataSourceV2 } from "./datasources/v2/DataFrameDataSourceV2";
