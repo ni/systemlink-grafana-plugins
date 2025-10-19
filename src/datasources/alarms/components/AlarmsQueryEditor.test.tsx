@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { AlarmsQueryEditor } from './AlarmsQueryEditor';
 import { AlarmsQuery, QueryType } from '../types/types';
 import { QueryEditorProps } from '@grafana/data';
@@ -32,33 +32,26 @@ function buildQuery(query: Omit<AlarmsQuery, 'refId'> = {}) {
   return { refId: 'A', ...query };
 }
 
+async function clickQueryTypeOption(option: QueryType) {
+  const queryTypeControl = screen.getAllByRole('combobox')[0];
+  await userEvent.click(queryTypeControl);
+  const queryTypeOptionControl = await screen.findByRole('option', { name: option });
+  await userEvent.click(queryTypeOptionControl);
+}
+
 function renderElement(query: AlarmsQuery) {
   const reactNode = React.createElement(AlarmsQueryEditor, { ...defaultProps, query });
   return render(reactNode);
 }
 
 describe('AlarmsQueryEditor', () => {
-
   beforeAll(() => {
-  const mockGetBoundingClientRect = jest.fn(() => ({
-    width: 120,
-    height: 120,
-    top: 0,
-    left: 0,
-    bottom: 0,
-    right: 0,
-  }));
-
-  Object.defineProperty(Element.prototype, 'getBoundingClientRect', {
-    value: mockGetBoundingClientRect,
-  });
-});
-
-beforeEach(() => {
-    // Clear all mocks before each test
-    jest.clearAllMocks();
-    mockOnChange.mockClear();
-    mockOnRunQuery.mockClear();
+    // Mock offsetHeight/offsetWidth for virtualization calculations
+    Object.defineProperties(HTMLElement.prototype, {
+      offsetHeight: {
+        get() { return 30; } // Height per option
+      },
+    });
   });
 
   it('should call onChange and onRunQuery on initialization meaning query type is not defined', () => {
@@ -71,7 +64,7 @@ beforeEach(() => {
   });
 
   it('should not call onChange and onRunQuery after initialization', () => {
-    const query = buildQuery({ queryType: QueryType. ListAlarms });
+    const query = buildQuery({ queryType: QueryType.ListAlarms });
 
     renderElement(query);
 
@@ -79,61 +72,71 @@ beforeEach(() => {
     expect(mockOnRunQuery).not.toHaveBeenCalled();
   });
 
-  it('should call onChange and onRunQuery with defaultListAlarmsQuery and queryType as listAlarms when query Type is not defined', () => {
+  it('should initialize with ListAlarms when queryType is undefined', () => {
     const query = buildQuery();
 
     renderElement(query);
 
-    expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ ...defaultListAlarmsQuery, queryType: QueryType.ListAlarms }));
+    expect(mockOnChange).toHaveBeenCalledWith({ refId: 'A', queryType: QueryType.ListAlarms });
     expect(mockOnRunQuery).toHaveBeenCalled();
   });
 
-  it('should render the Query Type UI control', async () => {
-    const query = buildQuery({ queryType: QueryType.AlarmsCount });
+  it('should preserve base query properties across query type changes', async () => {
+    const initialAlarmsCountQuery = {
+      refId: 'A',
+      queryType: QueryType.AlarmsCount,
+      hide: false, // Base query property
+    } as AlarmsQuery;
 
-    const renderResult = renderElement(query);
-    const queryTypeControl = renderResult.getByRole('combobox');
-    await userEvent.click(queryTypeControl);
-    const item = await screen.findByRole('option', { name: QueryType.ListAlarms });
-    await userEvent.click(item);
+    const onChange = jest.fn((newQuery) => {
+      let currentQuery = { refId: 'A' };
+      currentQuery = { ...currentQuery, ...newQuery };
 
-    expect(screen.getByDisplayValue(QueryType.ListAlarms)).toBeInTheDocument();
-  });
+      renderResult.rerender(
+        React.createElement(AlarmsQueryEditor, { ...defaultProps, query: currentQuery, onChange })
+      );
+    });
 
-  it('should render the Query Type UI control and allow selecting an option', async () => {
-    const query = buildQuery({ queryType: QueryType.AlarmsCount });
+    // Initial render with AlarmsCount query type
+    const renderResult = render(
+      React.createElement(AlarmsQueryEditor, { ...defaultProps, query: initialAlarmsCountQuery, onChange })
+    );
 
-    const renderResult = renderElement(query);
-    const queryTypeControl = renderResult.getByRole('combobox');
-    await userEvent.clear(queryTypeControl);
-    await userEvent.keyboard('{Enter}');
-    await userEvent.type(queryTypeControl, 'List Alarms');
-    
+    await clickQueryTypeOption(QueryType.ListAlarms);
+
     await waitFor(() => {
-      expect(queryTypeControl).toHaveDisplayValue('List Alarms');
-      expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining(defaultListAlarmsQuery));
-    })
+      expect(onChange).toHaveBeenCalledWith({ refId: 'A', queryType: QueryType.ListAlarms, hide: false });
+    });
+
+    await clickQueryTypeOption(QueryType.AlarmsCount);
+
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith({ refId: 'A', queryType: QueryType.AlarmsCount, hide: false });
+    });
   });
 
   describe('ListAlarmsQueryEditor', () => {
     it('should render list alarms query type and its editor in the UI', () => {
       const query = buildQuery({ queryType: QueryType.ListAlarms });
   
-      const container = renderElement(query);
+      renderElement(query);
   
-      const queryTypeControl = container.getAllByRole('combobox')[0];
+      const queryTypeControl = screen.getAllByRole('combobox')[0];
       expect(queryTypeControl).toBeInTheDocument();
       expect(queryTypeControl).toHaveDisplayValue(QueryType.ListAlarms);
-      expect(container.getByText('List Alarms query editor')).toBeInTheDocument();
+      expect(screen.getByText('List Alarms query editor')).toBeInTheDocument();
     });
 
-    it('should change the query type', () => {
-      const query = buildQuery({ queryType: QueryType.ListAlarms });
-  
-      const container = renderElement(query);
-  
-      const queryTypeControl = container.getAllByRole('combobox')[0];
-      expect(queryTypeControl).toBeInTheDocument();
+    it('should call onChange with defaultListAlarmsQuery when switch to list alarms query type from other query type', async () => {
+      const query = buildQuery({ queryType: QueryType.AlarmsCount });
+
+      renderElement(query);
+      await clickQueryTypeOption(QueryType.ListAlarms);
+
+      await waitFor(() => {
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining(defaultListAlarmsQuery));
+        expect(mockOnRunQuery).toHaveBeenCalled();
+      });
     });
   });
 
@@ -169,26 +172,16 @@ beforeEach(() => {
       );
     });
 
-    it('should save the previous edit state when switching query types and restore it when switching back', async () => {
-      const user = userEvent.setup();
-      const initialAlarmsCountQuery = {
-        refId: 'A',
-        queryType: QueryType.AlarmsCount,
-        filter: 'workspace = "1"',
-      };
+    it('should call onChange with defaultAlarmsCountQuery when switch to alarms count query type from other query type', async () => {
+      const query = buildQuery({ queryType: QueryType.ListAlarms });
 
-      let currentQuery = { ...initialAlarmsCountQuery };
-    const onChange = jest.fn((query) => {
-      currentQuery = { ...currentQuery, ...query };
-      renderResult.rerender(
-        React.createElement(AlarmsQueryEditor, { ...defaultProps, query: currentQuery, onChange })
-      );
-    });
+      renderElement(query);
+      await clickQueryTypeOption(QueryType.AlarmsCount);
 
-    const renderResult = render(
-      React.createElement(AlarmsQueryEditor, { ...defaultProps, query: currentQuery, onChange })
-    );
-
+      await waitFor(() => {
+        expect(mockOnChange).toHaveBeenCalledWith({ refId: 'A', queryType: 'Alarms Count' });
+        expect(mockOnRunQuery).toHaveBeenCalled();
+      });
     });
   });
 });
