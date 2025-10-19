@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { QueryEditorProps } from '@grafana/data';
 import { AlarmsDataSource } from '../AlarmsDataSource';
 import { AlarmsQuery, QueryType } from '../types/types';
@@ -7,15 +7,11 @@ import { AlarmsCountQuery } from '../types/AlarmsCount.types';
 import { InlineField } from 'core/components/InlineField';
 import { labels, tooltips } from '../constants/AlarmsQueryEditor.constants';
 import { Combobox, ComboboxOption } from '@grafana/ui';
-import { ListAlarmsQuery } from '../types/ListAlarms.types';
 import { defaultAlarmsCountQuery, defaultListAlarmsQuery } from '../constants/defaultQueries';
 
 type Props = QueryEditorProps<AlarmsDataSource, AlarmsQuery>;
 
 export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: Props) {
-  const [listAlarmsQuery, setListAlarmsQuery] = useState<ListAlarmsQuery>();
-  const [alarmsCountQuery, setAlarmsCountQuery] = useState<AlarmsCountQuery>();
-
   const handleQueryChange = useCallback(
     (query: AlarmsQuery, runQuery = true): void => {
       onChange(query);
@@ -27,13 +23,11 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
   );
 
   const handleQueryTypeChange = useCallback((queryType: QueryType): void => {
-    saveCurrentQueryState(query.queryType);
     switch (queryType) {
       case QueryType.ListAlarms:
         handleQueryChange({
           ...query,
           ...defaultListAlarmsQuery,
-          ...listAlarmsQuery,
           refId: query.refId,
         });
         break;
@@ -41,23 +35,11 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
         handleQueryChange({
           ...query,
           ...defaultAlarmsCountQuery,
-          ...alarmsCountQuery,
           refId: query.refId,
         });
         break;
     }
-  }, [query, alarmsCountQuery, listAlarmsQuery, handleQueryChange]);
-
-  const saveCurrentQueryState = (queryType: QueryType | undefined): void => {
-    switch (queryType) {
-      case QueryType.ListAlarms:
-        setListAlarmsQuery(query as ListAlarmsQuery);
-        break;
-      case QueryType.AlarmsCount:
-        setAlarmsCountQuery(query as AlarmsCountQuery);
-        break;
-    }
-  };
+  }, [query, handleQueryChange]);
 
   useEffect(() => {
     if (!query.queryType) {
