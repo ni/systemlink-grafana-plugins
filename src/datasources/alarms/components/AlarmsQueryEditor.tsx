@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { QueryEditorProps } from '@grafana/data';
 import { AlarmsDataSource } from '../AlarmsDataSource';
 import { AlarmsQuery, QueryType } from '../types/types';
