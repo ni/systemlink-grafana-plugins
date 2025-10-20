@@ -1,4 +1,4 @@
-import { AlarmsQuery } from "./types";
+import { AlarmsQuery } from './types';
 
 export interface ListAlarmsQuery extends AlarmsQuery {
 }

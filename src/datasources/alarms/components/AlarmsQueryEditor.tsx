@@ -7,7 +7,7 @@ import { AlarmsCountQuery } from '../types/AlarmsCount.types';
 import { InlineField } from 'core/components/InlineField';
 import { labels, tooltips } from '../constants/AlarmsQueryEditor.constants';
 import { Combobox, ComboboxOption } from '@grafana/ui';
-import { defaultAlarmsCountQuery, defaultListAlarmsQuery } from '../constants/defaultQueries';
+import { defaultAlarmsCountQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
 
 type Props = QueryEditorProps<AlarmsDataSource, AlarmsQuery>;
 
@@ -23,21 +23,22 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
   );
 
   const handleQueryTypeChange = useCallback((queryType: QueryType): void => {
-    switch (queryType) {
-      case QueryType.ListAlarms:
-        handleQueryChange({
-          ...query,
-          ...defaultListAlarmsQuery,
-          refId: query.refId,
-        });
-        break;
-      case QueryType.AlarmsCount:
-        handleQueryChange({
-          ...query,
-          ...defaultAlarmsCountQuery,
-          refId: query.refId,
-        });
-        break;
+    const QUERY_TYPE_CONFIG = {
+      [QueryType.ListAlarms]: {
+        defaultQuery: defaultListAlarmsQuery,
+      },
+      [QueryType.AlarmsCount]: {
+        defaultQuery: defaultAlarmsCountQuery,
+      },
+    };
+    const config = QUERY_TYPE_CONFIG[queryType];
+
+    if (config) {
+      handleQueryChange({
+        ...query,
+        ...config.defaultQuery,
+        refId: query.refId,
+      });
     }
   }, [query, handleQueryChange]);
 

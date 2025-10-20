@@ -5,8 +5,8 @@ import { AlarmsQuery, QueryType } from '../types/types';
 import { QueryEditorProps } from '@grafana/data';
 import { AlarmsDataSource } from '../AlarmsDataSource';
 import { AlarmsCountQueryEditor } from './editors/alarms-count/AlarmsCountQueryEditor';
-import { defaultListAlarmsQuery } from '../constants/defaultQueries';
 import userEvent from '@testing-library/user-event';
+import { defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
 
 jest.mock('./editors/alarms-count/AlarmsCountQueryEditor', () => ({
   AlarmsCountQueryEditor: jest.fn(() => <div data-testid="mock-alarms-count" />),
@@ -46,7 +46,7 @@ function renderElement(query: AlarmsQuery) {
 
 describe('AlarmsQueryEditor', () => {
   beforeAll(() => {
-    // Mock offsetHeight/offsetWidth for virtualization calculations
+    // Mock offsetHeight for virtualization calculations
     Object.defineProperties(HTMLElement.prototype, {
       offsetHeight: {
         get() { return 30; } // Height per option
