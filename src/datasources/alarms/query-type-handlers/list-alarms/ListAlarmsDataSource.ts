@@ -1,9 +1,9 @@
 import { DataFrameDTO, DataQueryRequest } from '@grafana/data';
-import { AlarmsDataSourceCore } from 'datasources/alarms/AlarmsDataSourceCore';
-import { defaultListAlarmsQuery } from 'datasources/alarms/constants/defaultQueries';
+import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
+import { AlarmsQueryHandlersCore } from '../AlarmsQueryHandlersCore';
 
-export class ListAlarmsDataSource extends AlarmsDataSourceCore {
+export class ListAlarmsDataSource extends AlarmsQueryHandlersCore {
   public readonly defaultQuery = defaultListAlarmsQuery;
 
   public async runQuery(query: ListAlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
