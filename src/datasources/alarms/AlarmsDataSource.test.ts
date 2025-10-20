@@ -6,6 +6,7 @@ import { DataQueryRequest } from '@grafana/data';
 import { QueryType } from './types/types';
 import { AlarmsCountDataSource } from './query-type-handlers/alarms-count/AlarmsCountDataSource';
 import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
+import { ListAlarmsDataSource } from './query-type-handlers/list-alarms/ListAlarmsDataSource';
 
 let datastore: AlarmsDataSource, backendServer: MockProxy<BackendSrv>;
 
@@ -16,8 +17,8 @@ describe('AlarmsDataSource', () => {
     [datastore, backendServer] = setupDataSource(AlarmsDataSource);
   });
 
-  it('should initialize with AlarmsCount as the default query', () => {
-    expect(datastore.defaultQuery).toEqual({ queryType: QueryType.AlarmsCount, filter: '' });
+  it('should initialize with ListAlarms as the default query', () => {
+    expect(datastore.defaultQuery).toEqual({ queryType: QueryType.ListAlarms, filter: '' });
   });
 
   describe('AlarmsCountDataSource', () => {
@@ -47,6 +48,38 @@ describe('AlarmsDataSource', () => {
         const result = datastore.shouldRunQuery(query);
 
         expect(alarmsCountDataSource.shouldRunQuery).toHaveBeenCalled();
+        expect(result).toBe(true);
+      });
+    });
+  });
+
+  describe('ListAlarmsDataSource', () => {
+    const query = { refId: 'A', queryType: QueryType.ListAlarms };
+
+    let listAlarmsDataSource: ListAlarmsDataSource;
+
+    beforeEach(() => {
+      listAlarmsDataSource = datastore.listAlarmsDataSource;
+    });
+
+    describe('runQuery', () => {
+      it('should call ListAlarmsDataSource runQuery when queryType is ListAlarms', async () => {
+        listAlarmsDataSource.runQuery = jest.fn().mockResolvedValue({ refId: "A", fields: [] });
+
+        const result = await datastore.runQuery(query, dataQueryRequest);
+
+        expect(listAlarmsDataSource.runQuery).toHaveBeenCalledWith(query, dataQueryRequest);
+        expect(result).toEqual({ refId: "A", fields: [] });
+      });
+    });
+
+    describe('shouldRunQuery', () => {
+      it('should call ListAlarmsDataSource shouldRunQuery when queryType is ListAlarms', () => {
+        listAlarmsDataSource.shouldRunQuery = jest.fn().mockReturnValue(true);
+
+        const result = datastore.shouldRunQuery(query);
+
+        expect(listAlarmsDataSource.shouldRunQuery).toHaveBeenCalled();
         expect(result).toBe(true);
       });
     });

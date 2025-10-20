@@ -8,6 +8,8 @@ import { InlineField } from 'core/components/InlineField';
 import { labels, tooltips } from '../constants/AlarmsQueryEditor.constants';
 import { Combobox, ComboboxOption } from '@grafana/ui';
 import { defaultAlarmsCountQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
+import { ListAlarmsQueryEditor } from './editors/list-alarms/ListAlarmsQueryEditor';
+import { ListAlarmsQuery } from '../types/ListAlarms.types';
 
 type Props = QueryEditorProps<AlarmsDataSource, AlarmsQuery>;
 
@@ -70,7 +72,11 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
         />
       )}
       {query.queryType === QueryType.ListAlarms && (
-        <span>List Alarms query editor</span>
+        <ListAlarmsQueryEditor
+          query={query as ListAlarmsQuery}
+          handleQueryChange={handleQueryChange}
+          datasource={datasource.listAlarmsDataSource}
+        />
       )}
     </>
   );

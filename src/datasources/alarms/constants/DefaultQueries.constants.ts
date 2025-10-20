@@ -9,8 +9,5 @@ export const defaultAlarmsCountQuery: Omit<AlarmsCountQuery, 'refId'> = {
 
 export const defaultListAlarmsQuery: Omit<ListAlarmsQuery, 'refId'> = {
     queryType: QueryType.ListAlarms,
-};
-
-export const defaultListAlarmsQuery: Omit<ListAlarmsQuery, 'refId'> = {
-    queryType: QueryType.ListAlarms,
+    filter: '',
 };

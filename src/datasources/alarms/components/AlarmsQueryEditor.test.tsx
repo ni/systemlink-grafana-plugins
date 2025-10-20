@@ -12,6 +12,10 @@ jest.mock('./editors/alarms-count/AlarmsCountQueryEditor', () => ({
   AlarmsCountQueryEditor: jest.fn(() => <div data-testid="mock-alarms-count" />),
 }));
 
+jest.mock('./editors/list-alarms/ListAlarmsQueryEditor', () => ({
+  ListAlarmsQueryEditor: jest.fn(() => <div data-testid="mock-list-alarms">List Alarms query editor</div>),
+}));
+
 const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
@@ -149,6 +153,22 @@ describe('AlarmsQueryEditor', () => {
         expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
+
+    it('should not affect the same properties when switching between query types', async () => {
+      const query = buildQuery({
+        refId: 'A',
+        queryType: QueryType.ListAlarms, 
+        filter: 'initial-filter' 
+      } as AlarmsQuery);
+
+      renderElement(query);
+      await clickQueryTypeOption(QueryType.AlarmsCount);
+
+      await waitFor(() => {
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ filter: "" }));
+        expect(mockOnRunQuery).toHaveBeenCalled();
+      });
+    });
   });
 
   describe('AlarmsCountQueryEditor', () => {
@@ -191,6 +211,22 @@ describe('AlarmsQueryEditor', () => {
 
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith({ refId: 'A', ...defaultAlarmsCountQuery });
+        expect(mockOnRunQuery).toHaveBeenCalled();
+      });
+    });
+
+    it('should not affect the same properties when switching between query types', async () => {
+      const query = buildQuery({
+        refId: 'A',
+        queryType: QueryType.AlarmsCount, 
+        filter: 'initial-filter' 
+      } as AlarmsQuery);
+
+      renderElement(query);
+      await clickQueryTypeOption(QueryType.ListAlarms);
+
+      await waitFor(() => {
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ filter: "" }));
         expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
