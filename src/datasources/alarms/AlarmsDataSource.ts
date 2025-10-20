@@ -28,7 +28,7 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
       case QueryType.AlarmsCount:
         return this.alarmsCountDataSource.runQuery(query, options);
       case QueryType.ListAlarms:
-        return this.listAlarmsDataSource.runQuery(query, _);
+        return this.listAlarmsDataSource.runQuery(query, options);
       default:
         throw new Error('Invalid query type');
     }
