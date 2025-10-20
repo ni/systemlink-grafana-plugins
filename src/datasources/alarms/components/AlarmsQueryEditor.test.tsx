@@ -13,7 +13,7 @@ jest.mock('./editors/alarms-count/AlarmsCountQueryEditor', () => ({
 }));
 
 jest.mock('./editors/list-alarms/ListAlarmsQueryEditor', () => ({
-  ListAlarmsQueryEditor: jest.fn(() => <div data-testid="mock-list-alarms">List Alarms query editor</div>),
+  ListAlarmsQueryEditor: jest.fn(() => <div data-testid="mock-list-alarms" />),
 }));
 
 const mockOnChange = jest.fn();
@@ -92,7 +92,7 @@ describe('AlarmsQueryEditor', () => {
 
     renderElement(query);
 
-    expect(mockOnChange).toHaveBeenCalledWith({ refId: 'A', queryType: QueryType.ListAlarms });
+    expect(mockOnChange).toHaveBeenCalledWith({ refId: 'A', ...defaultListAlarmsQuery });
     expect(mockOnRunQuery).toHaveBeenCalled();
   });
 
@@ -139,7 +139,7 @@ describe('AlarmsQueryEditor', () => {
       const queryTypeControl = screen.getAllByRole('combobox')[0];
       expect(queryTypeControl).toBeInTheDocument();
       expect(queryTypeControl).toHaveDisplayValue(QueryType.ListAlarms);
-      expect(screen.getByText('List Alarms query editor')).toBeInTheDocument();
+      expect(screen.getByTestId('mock-list-alarms')).toBeInTheDocument();
     });
 
     it('should call onChange with defaultListAlarmsQuery when switch to list alarms query type from other query type', async () => {
