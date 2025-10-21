@@ -143,7 +143,7 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   }
 
   public shouldRunQuery(query: AlarmsQuery): boolean {
-    return !query.hide;
+    return !query?.hide;
   }
 
   public testDatasource(): Promise<TestDataSourceResponse> {
