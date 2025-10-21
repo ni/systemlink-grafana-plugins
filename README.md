@@ -1,4 +1,5 @@
 # SystemLink Grafana Plugins
+
 [![Push to
 main](https://github.com/ni/systemlink-grafana-plugins/actions/workflows/push.yml/badge.svg)](https://github.com/ni/systemlink-grafana-plugins/actions/workflows/push.yml)
 
@@ -67,12 +68,17 @@ connect to a SystemLink service running in the cloud.
    there by clicking the gear icon in the sidebar.
 2. Select **Add data source**. Search for the plugin in the list and click on it
    to enter the data source settings view.
-3. Fill in the **URL** field with the API URL of the Stratus environment you
-   want to use (e.g. https://test-api.lifecyclesolutions.ni.com).
-4. For authentication, click the **Add header** button and add a custom header
-   with the name `x-ni-api-key` and value set to [an API
-   key](https://ni-staging.zoominsoftware.io/docs/en-US/bundle/systemlink-enterprise/page/creating-an-api-key.html)
-   for the SLE instance.
+3. To use API ingress
+   1. Fill in the **URL** field with the API URL of the Stratus environment you want to use (e.g. https://test-api.lifecyclesolutions.ni.com).
+   2. For authentication, click the **Add header** button and add a custom header
+      with the name `x-ni-api-key` and value set to [an API
+      key](https://ni-staging.zoominsoftware.io/docs/en-US/bundle/systemlink-enterprise/page/creating-an-api-key.html)
+      for the SLE instance.
+4. To use UI ingress
+   1. Fill in the **URL** field with the UI URL of the Stratus environment you want to use (e.g. https://test.lifecyclesolutions.ni.com).
+   2. Login to the url in the browser and copy the value of the cookie from the **Network Tab**.
+   3. For authentication, enable **With Credentials** toggle, click the **Add header** button and add a custom header
+      with the name `cookie` and value set to browser cookie.
 5. Click **Save & test**. You should see **Success** pop up if the data source
    was configured correctly and the API key grants the necessary privileges.
 
@@ -121,17 +127,17 @@ optional.
 
 `<type>` must be one of the following:
 
-| Type | When to use | Automatic version bump |
-| --- | --- | --- |
-| `build` | Changes that affect the build system or external dependencies | None |
-| `ci` | Changes to our CI configuration files and scripts | None |
-| `docs` | Documentation only changes | None |
-| `feat` | A new feature | Minor |
-| `fix` | A bug fix | Maintenance |
-| `perf`| A code change that improves performance | None |
-| `refactor`| A code change that neither fixes a bug nor adds a feature | None |
-| `test`| Adding missing tests or correcting existing tests | None |
-| `chore` | Changes that don't fit into the above categories | None |
+| Type       | When to use                                                   | Automatic version bump |
+| ---------- | ------------------------------------------------------------- | ---------------------- |
+| `build`    | Changes that affect the build system or external dependencies | None                   |
+| `ci`       | Changes to our CI configuration files and scripts             | None                   |
+| `docs`     | Documentation only changes                                    | None                   |
+| `feat`     | A new feature                                                 | Minor                  |
+| `fix`      | A bug fix                                                     | Maintenance            |
+| `perf`     | A code change that improves performance                       | None                   |
+| `refactor` | A code change that neither fixes a bug nor adds a feature     | None                   |
+| `test`     | Adding missing tests or correcting existing tests             | None                   |
+| `chore`    | Changes that don't fit into the above categories              | None                   |
 
 For example, if you're making a bug fix to the [Data
 frame](src/datasources/data-frame/) plugin, your PR title (and therefore the
@@ -175,4 +181,4 @@ follow the instructions.
 ### Helpful links
 
 - [Grafana plugin developer's
-guide](https://grafana.com/docs/grafana/latest/developers/plugins/)
+  guide](https://grafana.com/docs/grafana/latest/developers/plugins/)

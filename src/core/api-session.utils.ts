@@ -51,14 +51,15 @@ export class ApiSessionUtils {
                 { showErrorAlert: false }
             );
         } catch (error: any) {
+            const errorMessage = `The query to create an API session failed. ${error?.message ?? ''}. Please check the data source configuration and try again.`
             this.appEvents?.publish?.({
                 type: AppEvents.alertError.name,
                 payload: [
                     'Error creating session',
-                    `The query to create an API session failed. ${error?.message ?? ''}. Please check the data source configuration and try again.`
+                    errorMessage
                 ],
             });
-            throw new Error('The query to create an API session failed. Please check the data source configuration and try again.');
+            throw new Error(errorMessage);
         }
     }
 }

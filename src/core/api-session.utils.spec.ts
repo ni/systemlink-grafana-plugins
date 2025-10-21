@@ -86,17 +86,19 @@ describe('ApiSessionUtils', () => {
 
         it('should handle errors during session creation and publish an event', async () => {
             const error = new Error('Network error');
+            const errorMessage = `The query to create an API session failed. ${error?.message}. Please check the data source configuration and try again.`
+
             mockPost.mockRejectedValue(error);
 
             await expect(apiSessionUtils.createApiSession()).rejects.toThrow(
-                'The query to create an API session failed. Please check the data source configuration and try again.'
+                errorMessage
             );
 
             expect(appEvents.publish).toHaveBeenCalledWith({
                 type: AppEvents.alertError.name,
                 payload: [
                     'Error creating session',
-                    `The query to create an API session failed. ${error.message}. Please check the data source configuration and try again.`
+                    errorMessage
                 ],
             });
         });
