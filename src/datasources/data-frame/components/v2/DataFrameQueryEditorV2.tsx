@@ -145,7 +145,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                     }}>
                         <DataTableQueryBuilder
                             workspaces={workspaces}
-                            globalVariableOptions={[]}
+                            globalVariableOptions={datasource.globalVariableOptions()}
                         />
                     </div>
 

@@ -5,6 +5,14 @@ import { DataFrameQuery, DataFrameDataSourceOptions, TableProperties, TableDataR
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { Workspace } from 'core/types';
 
+jest.mock('core/utils', () => ({
+    ...jest.requireActual('core/utils'),
+    getVariableOptions: jest.fn(() => [
+        { label: 'Var1', value: 'Value1' },
+        { label: 'Var2', value: 'Value2' },
+    ]),
+}));
+
 describe('DataFrameDataSourceBase', () => {
     let instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>;
     let backendSrv: jest.Mocked<BackendSrv>;
@@ -99,6 +107,16 @@ describe('DataFrameDataSourceBase', () => {
         await expect(ds.getTableProperties()).resolves.toEqual({});
         await expect(ds.getDecimatedTableData({} as DataFrameQuery, [], {} as TimeRange)).resolves.toEqual([]);
         await expect(ds.queryTables('')).resolves.toEqual([]);
+    });
+
+    it('should return global variable options when the `globalVariableOptions` is called', async () => {
+        const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+        const options = await ds.globalVariableOptions();
+
+        expect(options).toEqual([
+            { label: 'Var1', value: 'Value1' },
+            { label: 'Var2', value: 'Value2' },
+        ]);
     });
 
     describe('loadWorkspaces', () => {
