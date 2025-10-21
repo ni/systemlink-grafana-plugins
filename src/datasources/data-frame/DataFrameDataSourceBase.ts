@@ -55,12 +55,12 @@ export abstract class DataFrameDataSourceBase<
 
     public async loadWorkspaces(): Promise<Map<string, Workspace>> {
         try {
-          return await this.workspaceUtils.getWorkspaces();
+            return await this.workspaceUtils.getWorkspaces();
         } catch (error) {
-          if (!this.errorTitle) {
-            this.handleDependenciesError(error);
-          }
-          return new Map<string, Workspace>();
+            if (!this.errorTitle) {
+                this.handleDependenciesError(error);
+            }
+            return new Map<string, Workspace>();
         }
     }
 
@@ -68,20 +68,20 @@ export abstract class DataFrameDataSourceBase<
         const errorDetails = extractErrorInfo((error as Error).message);
         this.errorTitle = 'Warning during dataframe query';
         switch (errorDetails.statusCode) {
-          case '404':
-            this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
-            break;
-          case '429':
-            this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
-            break;
-          case '504':
-            this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
-            break;
-          default:
-            this.errorDescription = errorDetails.message
-              ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
-              : 'Some values may not be available in the query builder lookups due to an unknown error.';
-            break;
+            case '404':
+                this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
+                break;
+            case '429':
+                this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
+                break;
+            case '504':
+                this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
+                break;
+            default:
+                this.errorDescription = errorDetails.message
+                    ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+                    : 'Some values may not be available in the query builder lookups due to an unknown error.';
+                break;
         }
     }
 }
