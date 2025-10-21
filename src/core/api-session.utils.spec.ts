@@ -1,49 +1,48 @@
-import { AppEvents, DataSourceInstanceSettings, EventBus } from '@grafana/data';
-import { BackendSrv, getAppEvents } from '@grafana/runtime';
-import { ApiSession, ApiSessionUtils } from './api-session.utils';
-import { post } from './utils';
+import { AppEvents, DataSourceInstanceSettings } from '@grafana/data';
+import { BackendSrv } from '@grafana/runtime';
 
 jest.mock('@grafana/runtime', () => ({
     ...jest.requireActual('@grafana/runtime'),
     getAppEvents: jest.fn(),
 }));
-
 jest.mock('./utils', () => ({
     post: jest.fn(),
 }));
+jest.resetModules();
 
-const mockGetAppEvents = getAppEvents as jest.Mock;
-const mockPost = post as jest.Mock;
+let post, getAppEvents, ApiSessionUtils;
+let mockGetAppEvents: jest.Mock;
+let mockPost: jest.Mock;
 
 describe('ApiSessionUtils', () => {
     let instanceSettings: DataSourceInstanceSettings;
     let backendSrv: BackendSrv;
-    let appEvents: EventBus;
-    let apiSessionUtils: ApiSessionUtils;
+    let appEvents: { publish: any; };
+    let apiSessionUtils: any;
 
-    beforeEach(() => {
-        instanceSettings = {
-            id: 1,
-            uid: 'test-uid',
-            name: 'Test-DataSource',
-            type: 'test-type',
-            meta: {} as any,
-            jsonData: {},
-            url: '/api/datasources/proxy/1',
-            readOnly: false,
-            access: 'proxy'
-        };
+    beforeEach(async () => {
+        // Dynamically import dependencies after mocks
+        ApiSessionUtils = (await import('./api-session.utils')).ApiSessionUtils;
+        getAppEvents = (await import('@grafana/runtime')).getAppEvents;
+        post = (await import('./utils')).post;
+
+        mockGetAppEvents = getAppEvents as jest.Mock;
+        mockPost = post as jest.Mock;
+
+        // Setup test instance settings
+        instanceSettings = { url: 'http://api-example.com' } as DataSourceInstanceSettings;
         backendSrv = {} as BackendSrv;
-        appEvents = { publish: jest.fn() } as any;
+        appEvents = { publish: jest.fn() };
         mockGetAppEvents.mockReturnValue(appEvents);
 
         apiSessionUtils = new ApiSessionUtils(instanceSettings, backendSrv);
 
         mockPost.mockClear();
-        (appEvents.publish as jest.Mock).mockClear();
+        appEvents.publish.mockClear();
     });
 
-    const createMockSession = (expiryOffset: number): ApiSession => ({
+    // Helper to create a mock ApiSession
+    const createMockSession = (expiryOffset: number) => ({
         endpoint: 'http://localhost',
         sessionKey: {
             expiry: new Date(Date.now() + expiryOffset).toISOString(),
@@ -56,10 +55,10 @@ describe('ApiSessionUtils', () => {
             const newSession = createMockSession(600_000); // 10 minutes expiry
             mockPost.mockResolvedValue(newSession);
 
-            const result = await apiSessionUtils.createApiSession();
+            const session = await apiSessionUtils.createApiSession();
 
             expect(mockPost).toHaveBeenCalledTimes(1);
-            expect(result).toBe(newSession);
+            expect(session).toBe(newSession);
         });
 
         it('should return a valid cached session', async () => {
