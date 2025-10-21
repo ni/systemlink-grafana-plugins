@@ -4,7 +4,7 @@ import { post } from "./utils";
 
 export interface ApiSession {
     endpoint: string;
-    sessionKey: {
+    session: {
         expiry: string,
         secret: string
     };
@@ -29,7 +29,7 @@ export class ApiSessionUtils {
             }
         }
 
-        const apiSession = await this.createApiSessionKey();
+        const apiSession = await this.createApiSessionData();
         this.sessionCache = apiSession;
         return apiSession;
     }
@@ -41,10 +41,10 @@ export class ApiSessionUtils {
         const currentTimeWithBuffer = new Date(
             new Date().getTime() + this.cacheExpiryBufferTimeInMilliseconds
         );
-        return currentTimeWithBuffer < new Date(this.sessionCache.sessionKey.expiry);
+        return currentTimeWithBuffer < new Date(this.sessionCache.session.expiry);
     }
 
-    private async createApiSessionKey(): Promise<ApiSession> {
+    private async createApiSessionData(): Promise<ApiSession> {
         try {
             return await post<ApiSession>(
                 this.backendSrv,
@@ -57,7 +57,7 @@ export class ApiSessionUtils {
                 type: AppEvents.alertError.name,
                 payload: [
                     'Error creating session',
-                    `The query to create an API session failed. ${error?.message ?? ''} Please check the data source configuration and try again.`
+                    `The query to create an API session failed. ${error?.message ?? ''}. Please check the data source configuration and try again.`
                 ],
             });
             throw new Error('The query to create an API session failed. Please check the data source configuration and try again.');
