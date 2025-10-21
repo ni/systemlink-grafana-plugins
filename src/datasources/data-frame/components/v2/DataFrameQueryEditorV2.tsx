@@ -1,10 +1,12 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
 import { AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineLabel, InlineSwitch, MultiCombobox, MultiSelect, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQueryV2, DataFrameQueryType, PropsV2, DataTableProjectionLabelLookup, DataTableProjectionType } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import { SelectableValue } from '@grafana/data';
+import { Workspace } from 'core/types';
+import { FloatingError } from 'core/errors';
 
 export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onRunQuery, datasource }: PropsV2) => {
     query = datasource.processQuery(query);
@@ -13,6 +15,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
     const [isColumnConfigurationSectionOpen, setIsColumnConfigurationSectionOpen] = useState(true);
     const [isDecimationSettingsSectionOpen, setIsDecimationSettingsSectionOpen] = useState(true);
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
+    const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
 
     const getPropertiesOptions = (type: DataTableProjectionType) => Object.entries(DataTableProjectionLabelLookup)
         .filter(([_, value]) => value.type === type)
@@ -46,6 +49,15 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
         const value = event.currentTarget.checked;
         handleQueryChange({ ...query, applyTimeFilters: value }, false);
     };
+
+    useEffect(() => {
+        const loadWorkspaces = async () => {
+            const workspaces = await datasource.loadWorkspaces();
+            setWorkspaces(Array.from(workspaces.values()));
+        };
+
+        loadWorkspaces();
+    }, [datasource]);
 
     function validateTakeValue(value: number, TAKE_LIMIT: number) {
         if (isNaN(value) || value <= 0) {
@@ -131,7 +143,10 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                         width: getValuesInPixels(valueFieldWidth),
                         marginBottom: getValuesInPixels(defaultMarginBottom)
                     }}>
-                        <DataTableQueryBuilder workspaces={[]} globalVariableOptions={[]} />
+                        <DataTableQueryBuilder
+                            workspaces={workspaces}
+                            globalVariableOptions={[]}
+                        />
                     </div>
 
                     {query.type === DataFrameQueryType.Properties && (
@@ -240,6 +255,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                     </Collapse>
                 </div >
             )}
+            <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
         </>
     );
 };

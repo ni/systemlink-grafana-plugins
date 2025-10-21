@@ -1,19 +1,41 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
 import { DataFrameDataSourceV2 } from "../../datasources/v2/DataFrameDataSourceV2";
 import { DataFrameQueryV2, DataFrameQueryType } from "../../types";
+import { Workspace } from "core/types";
 
 jest.mock("./query-builders/DataTableQueryBuilder", () => ({
-    DataTableQueryBuilder: () => <div data-testid="data-table-query-builder" />
+    DataTableQueryBuilder: (props: {
+        workspaces?: Workspace[] | null;
+    }) => (
+        <div data-testid="data-table-query-builder">
+            <ul data-testid="workspaces-list">
+                {props.workspaces && props.workspaces.map(workspace => (
+                    <li key={workspace.id}>{workspace.name}</li>
+                ))}
+            </ul>
+        </div>
+    )
 }));
 
-const renderComponent = (queryOverrides: Partial<DataFrameQueryV2> = {}) => {
+const renderComponent = (queryOverrides: Partial<DataFrameQueryV2> = {}, errorTitle = '', errorDescription = '') => {
     const onChange = jest.fn();
     const onRunQuery = jest.fn();
     const processQuery = jest.fn<DataFrameQueryV2, [DataFrameQueryV2]>().mockImplementation(query => ({ ...query }));
-    const datasource = { processQuery } as unknown as DataFrameDataSourceV2;
+    const datasource = {
+        errorTitle,
+        errorDescription,
+        processQuery,
+        loadWorkspaces: jest.fn().mockResolvedValue(
+            [
+                { id: '1', name: 'WorkspaceName' },
+                { id: '2', name: 'AnotherWorkspaceName' },
+            ]
+        ),
+    } as unknown as DataFrameDataSourceV2;
+
     const initialQuery = {
         refId: "A",
         type: DataFrameQueryType.Data,
@@ -217,6 +239,40 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(screen.queryByText("The take value must be greater than or equal to 0.")).not.toBeInTheDocument();
                     expect(screen.queryByText("The take value must be less than or equal to 1000.")).not.toBeInTheDocument();
                 });
+            });
+        });
+    });
+
+    describe("DataTableQueryBuilder props", () => {
+        it("should pass the workspaces to the DataTableQueryBuilder component", async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                const workspacesList = screen.getByTestId("workspaces-list");
+                expect(workspacesList).toBeInTheDocument();
+                expect(within(workspacesList).getByText("WorkspaceName")).toBeInTheDocument();
+                expect(within(workspacesList).getByText("AnotherWorkspaceName")).toBeInTheDocument();
+            });
+        });
+    });
+
+    describe("floating error", () => {
+        it("should not be rendered when there is no error", async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+            });
+        });
+
+        it("should be rendered when there is an error", async () => {
+            renderComponent({}, "Test error title", "Test error description");
+
+            await waitFor(() => {
+                const alert = screen.getByRole("alert");
+                expect(alert).toBeInTheDocument();
+                expect(within(alert).getByText("Test error title")).toBeInTheDocument();
+                expect(within(alert).getByText("Test error description")).toBeInTheDocument();
             });
         });
     });
