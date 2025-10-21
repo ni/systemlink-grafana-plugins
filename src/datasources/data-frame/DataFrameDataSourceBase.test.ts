@@ -128,7 +128,7 @@ describe('DataFrameDataSourceBase', () => {
             getWorkspacesSpy = jest.spyOn(WorkspaceUtils.prototype, 'getWorkspaces');
         });
 
-        it('returns workspaces', async () => {
+        it('should return workspaces', async () => {
             getWorkspacesSpy.mockResolvedValue(
                 new Map([
                     ['1', { id: '1', name: 'WorkspaceName' } as Workspace],
