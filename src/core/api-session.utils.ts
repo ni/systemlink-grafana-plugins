@@ -23,10 +23,8 @@ export class ApiSessionUtils {
     }
 
     public async createApiSession(): Promise<ApiSession> {
-        if (this.sessionCache) {
-            if (this.isSessionValid()) {
-                return this.sessionCache;
-            }
+        if (this.sessionCache && this.isSessionValid()) {
+            return this.sessionCache;
         }
 
         const apiSession = await this.createApiSessionData();
