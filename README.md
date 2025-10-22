@@ -1,5 +1,4 @@
 # SystemLink Grafana Plugins
-
 [![Push to
 main](https://github.com/ni/systemlink-grafana-plugins/actions/workflows/push.yml/badge.svg)](https://github.com/ni/systemlink-grafana-plugins/actions/workflows/push.yml)
 
@@ -127,17 +126,17 @@ optional.
 
 `<type>` must be one of the following:
 
-| Type       | When to use                                                   | Automatic version bump |
-| ---------- | ------------------------------------------------------------- | ---------------------- |
-| `build`    | Changes that affect the build system or external dependencies | None                   |
-| `ci`       | Changes to our CI configuration files and scripts             | None                   |
-| `docs`     | Documentation only changes                                    | None                   |
-| `feat`     | A new feature                                                 | Minor                  |
-| `fix`      | A bug fix                                                     | Maintenance            |
-| `perf`     | A code change that improves performance                       | None                   |
-| `refactor` | A code change that neither fixes a bug nor adds a feature     | None                   |
-| `test`     | Adding missing tests or correcting existing tests             | None                   |
-| `chore`    | Changes that don't fit into the above categories              | None                   |
+| Type | When to use | Automatic version bump |
+| --- | --- | --- |
+| `build` | Changes that affect the build system or external dependencies | None |
+| `ci` | Changes to our CI configuration files and scripts | None |
+| `docs` | Documentation only changes | None |
+| `feat` | A new feature | Minor |
+| `fix` | A bug fix | Maintenance |
+| `perf`| A code change that improves performance | None |
+| `refactor`| A code change that neither fixes a bug nor adds a feature | None |
+| `test`| Adding missing tests or correcting existing tests | None |
+| `chore` | Changes that don't fit into the above categories | None |
 
 For example, if you're making a bug fix to the [Data
 frame](src/datasources/data-frame/) plugin, your PR title (and therefore the
@@ -181,4 +180,4 @@ follow the instructions.
 ### Helpful links
 
 - [Grafana plugin developer's
-  guide](https://grafana.com/docs/grafana/latest/developers/plugins/)
+guide](https://grafana.com/docs/grafana/latest/developers/plugins/)
