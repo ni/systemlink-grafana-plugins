@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindValue, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, DataFrameDataSourceOptions, DataFrameQueryV2, defaultQueryV2, TableDataRows, TableProperties, ValidDataFrameQueryV2 } from "../../types";
+import { Column, DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryV2, defaultQueryV2, TableDataRows, TableProperties, ValidDataFrameQueryV2 } from "../../types";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
     defaultQuery = defaultQueryV2;
@@ -29,8 +29,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         return false;
     }
 
-    processQuery(query: DataFrameQueryV2): ValidDataFrameQueryV2 {
+    processQuery(query: DataFrameQuery): ValidDataFrameQueryV2 {
+        // TODO: #3259801 - Implement Migration of DataFrameQueryV1 to ValidDataFrameQueryV2.
         return {
+            ...defaultQueryV2,
             ...query
         } as ValidDataFrameQueryV2;
     }

@@ -1,7 +1,7 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
-import { defaultQueryV2 } from '../../types';
+import { DataFrameQuery, DataFrameQueryType, defaultQueryV2 } from '../../types';
 
 describe('DataFrameDataSourceV2', () => {
     let instanceSettings: DataSourceInstanceSettings<any>;
@@ -47,10 +47,32 @@ describe('DataFrameDataSourceV2', () => {
     });
 
     describe('processQuery', () => {
-        it('should return the query as ValidDataFrameQueryV2', () => {
-            const query = { foo: 'bar' } as any;
+        it('should return the query with default values when all the fields from `ValidDataFrameQueryV2` are missing', () => {
+            const query = {} as DataFrameQuery;
+            const expectedQuery = {
+                type: DataFrameQueryType.Data,
+                columns: [],
+                decimationMethod: 'LOSSY',
+                applyTimeFilters: false
+            } as any;
+
             const result = ds.processQuery(query);
-            expect(result).toEqual(query);
+
+            expect(result).toEqual(expectedQuery);
+        });
+
+        it('should return the query with default values for missing fields when some of the fields from `ValidDataFrameQueryV2` are missing', () => {
+            const query = { decimationMethod: 'MAX_MIN', applyTimeFilters: true } as DataFrameQuery;
+            const expectedQuery = {
+                type: DataFrameQueryType.Data,
+                columns: [],
+                decimationMethod: 'MAX_MIN',
+                applyTimeFilters: true
+            } as any;
+
+            const result = ds.processQuery(query);
+
+            expect(result).toEqual(expectedQuery);
         });
     });
 
