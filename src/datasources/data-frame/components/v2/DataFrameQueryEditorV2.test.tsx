@@ -7,10 +7,12 @@ import { DataFrameQueryV2, DataFrameQueryType } from "../../types";
 import { QueryBuilderOption, Workspace } from "core/types";
 
 jest.mock("./query-builders/DataTableQueryBuilder", () => ({
-    DataTableQueryBuilder: (props: {
-        workspaces?: Workspace[] | null,
-        globalVariableOptions: QueryBuilderOption[];
-    }) => (
+    DataTableQueryBuilder: (
+        props: {
+            workspaces?: Workspace[];
+            globalVariableOptions: QueryBuilderOption[];
+        }
+    ) => (
         <div data-testid="data-table-query-builder">
             <ul data-testid="workspaces-list">
                 {props.workspaces && props.workspaces.map(workspace => (
@@ -26,10 +28,16 @@ jest.mock("./query-builders/DataTableQueryBuilder", () => ({
     )
 }));
 
-const renderComponent = (queryOverrides: Partial<DataFrameQueryV2> = {}, errorTitle = '', errorDescription = '') => {
+const renderComponent = (
+    queryOverrides: Partial<DataFrameQueryV2> = {},
+    errorTitle = '',
+    errorDescription = ''
+) => {
     const onChange = jest.fn();
     const onRunQuery = jest.fn();
-    const processQuery = jest.fn<DataFrameQueryV2, [DataFrameQueryV2]>().mockImplementation(query => ({ ...query }));
+    const processQuery = jest
+        .fn<DataFrameQueryV2, [DataFrameQueryV2]>()
+        .mockImplementation(query => ({ ...query }));
     const datasource = {
         errorTitle,
         errorDescription,
@@ -49,7 +57,7 @@ const renderComponent = (queryOverrides: Partial<DataFrameQueryV2> = {}, errorTi
     } as unknown as DataFrameDataSourceV2;
 
     const initialQuery = {
-        refId: "A",
+        refId: 'A',
         type: DataFrameQueryType.Data,
         ...queryOverrides,
     } as DataFrameQueryV2;
