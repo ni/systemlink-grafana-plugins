@@ -4,18 +4,24 @@ import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
 import { DataFrameDataSourceV2 } from "../../datasources/v2/DataFrameDataSourceV2";
 import { DataFrameQueryV2, DataFrameQueryType } from "../../types";
-import { Workspace } from "core/types";
+import { QueryBuilderOption, Workspace } from "core/types";
 
 jest.mock("./query-builders/DataTableQueryBuilder", () => ({
     DataTableQueryBuilder: (
         props: {
             workspaces?: Workspace[];
+            globalVariableOptions: QueryBuilderOption[];
         }
     ) => (
         <div data-testid="data-table-query-builder">
             <ul data-testid="workspaces-list">
                 {props.workspaces && props.workspaces.map(workspace => (
                     <li key={workspace.id}>{workspace.name}</li>
+                ))}
+            </ul>
+            <ul data-testid="global-variable-options-list">
+                {props.globalVariableOptions && props.globalVariableOptions.map(option => (
+                    <li key={option.label}>{`${option.label}:${option.value}`}</li>
                 ))}
             </ul>
         </div>
@@ -36,10 +42,18 @@ const renderComponent = (
         errorTitle,
         errorDescription,
         processQuery,
-        loadWorkspaces: jest.fn().mockResolvedValue([
-            { id: '1', name: 'WorkspaceName' },
-            { id: '2', name: 'AnotherWorkspaceName' },
-        ]),
+        loadWorkspaces: jest.fn().mockResolvedValue(
+            [
+                { id: '1', name: 'WorkspaceName' },
+                { id: '2', name: 'AnotherWorkspaceName' },
+            ]
+        ),
+        globalVariableOptions: jest.fn().mockReturnValue(
+            [
+                { label: 'Var1', value: 'Value1' },
+                { label: 'Var2', value: 'Value2' },
+            ]
+        ),
     } as unknown as DataFrameDataSourceV2;
 
     const initialQuery = {
@@ -258,6 +272,17 @@ describe("DataFrameQueryEditorV2", () => {
                 expect(workspacesList).toBeInTheDocument();
                 expect(within(workspacesList).getByText("WorkspaceName")).toBeInTheDocument();
                 expect(within(workspacesList).getByText("AnotherWorkspaceName")).toBeInTheDocument();
+            });
+        });
+
+        it("should pass the global variable options to the DataTableQueryBuilder component", async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                const optionsList = screen.getByTestId("global-variable-options-list");
+                expect(optionsList).toBeInTheDocument();
+                expect(within(optionsList).getByText("Var1:Value1")).toBeInTheDocument();
+                expect(within(optionsList).getByText("Var2:Value2")).toBeInTheDocument();
             });
         });
     });
