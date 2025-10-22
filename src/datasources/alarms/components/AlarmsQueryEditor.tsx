@@ -5,8 +5,8 @@ import { AlarmsQuery, QueryType } from '../types/types';
 import { AlarmsCountQueryEditor } from './editors/alarms-count/AlarmsCountQueryEditor';
 import { AlarmsCountQuery } from '../types/AlarmsCount.types';
 import { InlineField } from 'core/components/InlineField';
-import { labels, tooltips } from '../constants/AlarmsQueryEditor.constants';
-import { Combobox, ComboboxOption } from '@grafana/ui';
+import { LABEL_WIDTH, labels, tooltips } from '../constants/AlarmsQueryEditor.constants';
+import { Combobox, Stack } from '@grafana/ui';
 import { defaultAlarmsCountQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
 
 type Props = QueryEditorProps<AlarmsDataSource, AlarmsQuery>;
@@ -33,13 +33,11 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
     };
     const config = QUERY_TYPE_CONFIG[queryType];
 
-    if (config) {
-      handleQueryChange({
-        ...query,
-        ...config.defaultQuery,
-        refId: query.refId,
-      });
-    }
+    handleQueryChange({
+      ...query,
+      ...config.defaultQuery,
+      refId: query.refId,
+    });
   }, [query, handleQueryChange]);
 
   useEffect(() => {
@@ -49,16 +47,18 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
   }, [query.queryType, handleQueryTypeChange]);
 
   return (
-    <>
-      <InlineField label={labels.queryType} labelWidth={26} tooltip={tooltips.queryType}>
+    <Stack direction={'column'}>
+      <InlineField
+        label={labels.queryType}
+        labelWidth={LABEL_WIDTH}
+        tooltip={tooltips.queryType}
+      >
         <Combobox
-          options={Object.values(QueryType).map(value => ({ label: value, value })) as ComboboxOption[]}
+          options={Object.values(QueryType).map(value => ({ label: value, value }))}
           value={query.queryType}
-          width={26}
+          width={65}
           onChange={option => {
-            if (option) {
-              handleQueryTypeChange(option.value as QueryType);
-            }
+            handleQueryTypeChange(option.value as QueryType);
           }}
         />
       </InlineField>
@@ -72,6 +72,6 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
       {query.queryType === QueryType.ListAlarms && (
         <span>List Alarms query editor</span>
       )}
-    </>
+    </Stack>
   );
 }
