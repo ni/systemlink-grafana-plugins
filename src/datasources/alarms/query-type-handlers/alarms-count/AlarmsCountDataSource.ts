@@ -19,21 +19,6 @@ export class AlarmsCountDataSource extends AlarmsDataSourceCore {
     };
   }
 
-  // TODO: Move this method to AlarmsListDataSource when implemented
-  public async metricFindQuery(query: AlarmsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    const filter = query.queryBy
-      ? this.transformAlarmsQuery(options?.scopedVars || {}, query.queryBy)
-      : undefined;
-    const response = await this.queryAlarms({filter});
-
-    return (response.alarms
-      ? response.alarms.map(alarm => ({
-          text: `${alarm.displayName} (${alarm.alarmId})`,
-          value: alarm.alarmId
-        }))
-      : []).sort((a, b) => a.text.localeCompare(b.text));
-  }
-
   private async queryAlarmsCount(filter = ''): Promise<number> {
     const requestBody = {
       filter,

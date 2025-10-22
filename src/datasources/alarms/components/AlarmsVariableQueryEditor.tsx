@@ -9,14 +9,13 @@ import { AlarmsVariableQuery } from "../types/types";
 
 type Props = QueryEditorProps<AlarmsDataSource, AlarmsVariableQuery>;
 
-// TODO: Update references from AlarmsCountDataSource to AlarmsListDataSource when implemented
 export function AlarmsVariableQueryEditor({ query, onChange, datasource }: Props) {
 
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
 
     useEffect(() => {
          const loadWorkspaces = async () => {
-            const workspaces = await datasource.alarmsCountDataSource.loadWorkspaces();
+            const workspaces = await datasource.listAlarmsDataSource.loadWorkspaces();
             setWorkspaces(Array.from(workspaces.values()));
         };
 
@@ -34,10 +33,10 @@ export function AlarmsVariableQueryEditor({ query, onChange, datasource }: Props
                     filter={query.queryBy}
                     onChange={(event: any) => onQueryByChange(event.detail.linq)}
                     workspaces={workspaces}
-                    globalVariableOptions={datasource.alarmsCountDataSource.globalVariableOptions()}
+                    globalVariableOptions={datasource.listAlarmsDataSource.globalVariableOptions()}
                 ></AlarmsQueryBuilder>
             </InlineField>
-            <FloatingError message={datasource.alarmsCountDataSource.errorTitle} innerMessage={datasource.alarmsCountDataSource.errorDescription} severity="warning"/>
+            <FloatingError message={datasource.listAlarmsDataSource.errorTitle} innerMessage={datasource.listAlarmsDataSource.errorDescription} severity="warning"/>
         </>
     );
 };
