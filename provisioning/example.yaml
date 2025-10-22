@@ -6,17 +6,16 @@ apiVersion: 1
 
 config: &config
   access: proxy
-  #
+  # Enable this to send credentials (cookies, headers, or TLS certs) with cross-site requests.
+  # Necessary for session cookie authentication.
   withCredentials: true
-  # Use the API Ingress URL if you are using an API Key for authentication
-  # (e.g. 'https://dev-api.lifecyclesolutions.ni.com/')
+  # Use API URL for API Key authentication (e.g. 'https://dev-api.lifecyclesolutions.ni.com/')
   #
-  # Use the UI Ingress URL if you are using a session cookie for authentication
-  # (e.g. 'https://dev.lifecyclesolutions.ni.com/')
+  # Use UI URL for session cookie authentication (e.g. 'https://dev.lifecyclesolutions.ni.com/')
   url: MY_SYSTEMLINK_API_URL
   jsonData:
-    httpHeaderName1: "x-ni-api-key" # Use 'x-ni-api-key' for API Ingress
-    httpHeaderName2: "cookie" # Use 'cookie' for UI Ingress
+    httpHeaderName1: "x-ni-api-key" # Use for API Ingress
+    httpHeaderName2: "cookie" # Use for UI Ingress
   secureJsonData:
     httpHeaderValue1: MY_SYSTEMLINK_API_KEY
     httpHeaderValue2: MY_SYSTEMLINK_UI_SESSION_COOKIE # e.g. 'session-id=*; apt.sid=*; apt.uid=*'
