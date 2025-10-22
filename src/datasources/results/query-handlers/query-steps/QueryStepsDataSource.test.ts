@@ -385,7 +385,7 @@ describe('QueryStepsDataSource', () => {
         outputType: OutputType.Data,
       });
 
-      await expect(datastore.query(query)).rejects.toThrow(
+      await expect(firstValueFrom(datastore.query(query))).rejects.toThrow(
         'The query failed due to the following error: (status 400) "Error".'
       );
     });

@@ -542,7 +542,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/assets/calibration-forecast' }))
       .mockReturnValue(createFetchError(418))
 
-    await expect(datastore.query(buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock))).rejects.toThrow()
+    await expect(firstValueFrom(datastore.query(buildCalibrationForecastQuery(monthBasedCalibrationForecastQueryMock)))).rejects.toThrow()
   })
 
   test('validate DAY grouping', async () => {
@@ -550,7 +550,7 @@ describe('queries', () => {
     const numberOfDays = 31 * 3 + 1;
     request.range = { from: dateTime().subtract(numberOfDays, 'day'), to: dateTime(), raw: { from: `now-${numberOfDays}d`, to: 'now' } };
 
-    await expect(datastore.query(request)).rejects.toThrow('Query range exceeds range limit of DAY grouping method: 3 months');
+    await expect(firstValueFrom(datastore.query(request))).rejects.toThrow('Query range exceeds range limit of DAY grouping method: 3 months');
   })
 
   test('validate WEEK grouping', async () => {
@@ -558,7 +558,7 @@ describe('queries', () => {
     const numberOfDays = 366 * 2 + 1;
     request.range = { from: dateTime().subtract(numberOfDays, 'day'), to: dateTime(), raw: { from: `now-${numberOfDays}d`, to: 'now' } };
 
-    await expect(datastore.query(request)).rejects.toThrow('Query range exceeds range limit of WEEK grouping method: 2 years');
+    await expect(firstValueFrom(datastore.query(request))).rejects.toThrow('Query range exceeds range limit of WEEK grouping method: 2 years');
   })
 
   test('validate MONTH grouping', async () => {
@@ -566,7 +566,7 @@ describe('queries', () => {
     const numberOfDays = 366 * 5 + 1;
     request.range = { from: dateTime().subtract(numberOfDays, 'day'), to: dateTime(), raw: { from: `now-${numberOfDays}d`, to: 'now' } };
 
-    await expect(datastore.query(request)).rejects.toThrow('Query range exceeds range limit of MONTH grouping method: 5 years');
+    await expect(firstValueFrom(datastore.query(request))).rejects.toThrow('Query range exceeds range limit of MONTH grouping method: 5 years');
   })
 })
 

@@ -11,7 +11,7 @@ import { BackendSrv, BackendSrvRequest, TemplateSrv, getAppEvents } from '@grafa
 import { DataQuery } from '@grafana/schema';
 import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
 import { get, post } from './utils';
-import { forkJoin, map, Observable } from 'rxjs';
+import { defaultIfEmpty, forkJoin, map, Observable, of } from 'rxjs';
 
 export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData = DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
   appEvents: EventBus;
@@ -36,7 +36,11 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
       .map(this.prepareQuery, this)
       .filter(this.shouldRunQuery, this)
       .map(q => this.runQuery(q, request), this);
-
+    
+    if (perTarget$.length === 0) {
+      return of({ data: [] }); // emit empty response immediately
+    }
+    
     return forkJoin(perTarget$).pipe(
       map((data) => ({ data } as DataQueryResponse)),
     );

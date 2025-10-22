@@ -8,7 +8,7 @@ import { ExpressionTransformFunction, transformComputedFieldsQuery, buildExpress
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
 import { getWorkspaceName, postV1 } from 'core/utils';
-import { concatMap, from, lastValueFrom, map, Observable, of } from 'rxjs';
+import { catchError, concatMap, from, lastValueFrom, map, Observable, of } from 'rxjs';
 
 export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   constructor(
@@ -64,38 +64,38 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     descending = false,
     returnCount = false
   ): Observable<QueryProductResponse> {
-    try {
-      return postV1<QueryProductResponse>(
-        this.backendSrv,
-        this.queryProductsUrl,
-        {
-          filter,
-          orderBy,
-          descending,
-          projection,
-          take,
-          returnCount
-        },
-        { showErrorAlert: false },// suppress default error alert since we handle errors manually
-      );
-    } catch (error) {
-      const errorDetails = extractErrorInfo((error as Error).message);
-      let errorMessage: string;
-      if (!errorDetails.statusCode) {
-        errorMessage = 'The query failed due to an unknown error.';
-      } else if (errorDetails.statusCode === '504') {
-        errorMessage = 'The query to fetch products experienced a timeout error. Narrow your query with a more specific filter and try again.';
-      } else {
-        errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
-      }
-
-      this.appEvents?.publish?.({
-        type: AppEvents.alertError.name,
-        payload: ['Error during product query', errorMessage],
-      });
-
-      throw new Error(errorMessage);
-    }
+    return postV1<QueryProductResponse>(
+      this.backendSrv,
+      this.queryProductsUrl,
+      {
+        filter,
+        orderBy,
+        descending,
+        projection,
+        take,
+        returnCount
+      },
+      { showErrorAlert: false },// suppress default error alert since we handle errors manually
+    ).pipe(
+      catchError((error) => {
+        const errorDetails = extractErrorInfo((error as Error).message);
+        let errorMessage: string;
+        if (!errorDetails.statusCode) {
+          errorMessage = 'The query failed due to an unknown error.';
+        } else if (errorDetails.statusCode === '504') {
+          errorMessage = 'The query to fetch products experienced a timeout error. Narrow your query with a more specific filter and try again.';
+        } else {
+          errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+        }
+  
+        this.appEvents?.publish?.({
+          type: AppEvents.alertError.name,
+          payload: ['Error during product query', errorMessage],
+        });
+  
+        throw new Error(errorMessage);
+      })
+    );
   }
 
   async queryProductValues(fieldName: string): Promise<string[]> {

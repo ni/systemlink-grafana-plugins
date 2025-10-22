@@ -183,7 +183,7 @@ describe('queries', () => {
   test('throw when no tags matched', async () => {
     backendSrv.fetch.mockReturnValue(createQueryTagsResponse([]));
 
-    await expect(ds.query(buildQuery({ path: 'my.tag' }))).rejects.toThrow("No tags matched the path 'my.tag'");
+    await expect(firstValueFrom(ds.query(buildQuery({ path: 'my.tag' })))).rejects.toThrow("No tags matched the path 'my.tag'");
   });
 
   test('numeric tag history', async () => {
@@ -475,7 +475,7 @@ describe('queries', () => {
     backendSrv.fetch.mockReturnValueOnce(createQueryTagsResponse());
     backendSrv.fetch.mockReturnValue(createFetchError(429));
 
-    await expect(ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag' }))).rejects.toThrow(
+    await expect(firstValueFrom(ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag' })))).rejects.toThrow(
       'Request to url "/nitaghistorian/v2/tags/query-decimated-history" failed with status code: 429. Error message: "Error"'
     );
 
@@ -575,7 +575,7 @@ describe('parseMultiSelectValues', () => {
   test('throw when no tags matched', async () => {
     backendSrv.fetch.mockReturnValue(createQueryTagsResponse([]));
 
-    await expect(ds.query(buildQuery({ path: 'my.tag' }))).rejects.toThrow("No tags matched the path 'my.tag'");
+    await expect(firstValueFrom(ds.query(buildQuery({ path: 'my.tag' })))).rejects.toThrow("No tags matched the path 'my.tag'");
   });
 
   test('numeric tag history', async () => {

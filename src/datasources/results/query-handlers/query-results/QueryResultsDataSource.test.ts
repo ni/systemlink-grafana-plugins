@@ -370,7 +370,7 @@ describe('QueryResultsDataSource', () => {
           },
         );
 
-        await expect(datastore.query(query))
+        await expect(firstValueFrom(datastore.query(query)))
         .rejects
         .toThrow('The query failed due to the following error: (status 400) \"Error\"');
     });

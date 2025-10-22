@@ -365,7 +365,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/niapm/v1/query-assets' }))
       .mockReturnValue(createFetchError(418))
 
-    await expect(ds.query(buildMetadataQuery(assetMetadataQueryMock))).rejects.toThrow()
+    await expect(firstValueFrom(ds.query(buildMetadataQuery(assetMetadataQueryMock)))).rejects.toThrow()
   })
 
   describe('queryReturnType', () => {

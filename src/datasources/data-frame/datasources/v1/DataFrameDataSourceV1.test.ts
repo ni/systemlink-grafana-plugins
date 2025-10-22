@@ -190,7 +190,7 @@ it('should cache table properties for subsequent requests', async () => {
 it('should return error if query columns do not match table properties', async () => {
   const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Data, tableId: '1', columns: ['nonexistent'] }]);
 
-  await expect(ds.query(query)).rejects.toEqual(expect.anything());
+  await expect(firstValueFrom(ds.query(query))).rejects.toEqual(expect.anything());
 });
 
 it('should migrate queries using columns of arrays of objects', async () => {

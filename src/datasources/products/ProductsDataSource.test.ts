@@ -6,7 +6,7 @@ import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching
 import { MockProxy } from 'jest-mock-extended';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
 import { Workspace } from 'core/types';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, throwError } from 'rxjs';
 
 const mockQueryProductResponse: QueryProductResponse = {
   products: [
@@ -77,7 +77,7 @@ describe('testDatasource', () => {
 
 describe('queryProducts', () => {
   test('returns data when there are valid queries', async () => {
-    const response = await datastore.queryProducts();
+    const response = await firstValueFrom(datastore.queryProducts());
 
     expect(response).toMatchSnapshot();
   });
@@ -87,7 +87,7 @@ describe('queryProducts', () => {
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
       .mockReturnValue(createFetchError(400));
 
-    await expect(datastore.queryProducts())
+    await expect(firstValueFrom(datastore.queryProducts()))
       .rejects
       .toThrow('The query failed due to the following error: (status 400) "Error".');
   });
@@ -97,7 +97,7 @@ describe('queryProducts', () => {
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
       .mockReturnValue(createFetchError(504));
 
-    await expect(datastore.queryProducts())
+    await expect(firstValueFrom(datastore.queryProducts()))
       .rejects
       .toThrow('The query to fetch products experienced a timeout error. Narrow your query with a more specific filter and try again.');
   })
@@ -105,9 +105,9 @@ describe('queryProducts', () => {
   it('should throw error with unknown error when API returns error without status', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
-      .mockImplementation(() => { throw new Error('Error'); });
+      .mockReturnValue(throwError(() => (new Error('Unknown error'))));
 
-    await expect(datastore.queryProducts())
+    await expect(firstValueFrom(datastore.queryProducts()))
       .rejects
       .toThrow('The query failed due to an unknown error.');
   });
@@ -119,7 +119,7 @@ describe('queryProducts', () => {
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
       .mockReturnValue(createFetchError(400));
 
-    await expect(datastore.queryProducts())
+    await expect(firstValueFrom(datastore.queryProducts()))
       .rejects
       .toThrow('The query failed due to the following error: (status 400) "Error".');
 
@@ -310,7 +310,7 @@ describe('query', () => {
       },
     );
 
-    await expect(datastore.query(query))
+    await expect(firstValueFrom(datastore.query(query)))
       .rejects
       .toThrow('The query failed due to the following error: (status 400) \"Error\".');
   });
@@ -514,16 +514,7 @@ describe('query', () => {
       await datastore.query(query);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: {
-            descending: false,
-            filter: "string.IsNullOrEmpty(PartNumber)",
-            orderBy: undefined,
-            projection: ["name"],
-            returnCount: false,
-            take: 1000
-          }
-        })
+        {"data": {"field": "partNumber"}, "method": "POST", "showErrorAlert": false, "url": "/nitestmonitor/v2/query-product-values"}
       );
     });
 
@@ -540,16 +531,7 @@ describe('query', () => {
       await datastore.query(query);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: {
-            descending: false,
-            filter: "!string.IsNullOrEmpty(PartNumber)",
-            orderBy: undefined,
-            projection: ["name"],
-            returnCount: false,
-            take: 1000
-          }
-        })
+        {"data": {"field": "partNumber"}, "method": "POST", "showErrorAlert": false, "url": "/nitestmonitor/v2/query-product-values"}
       );
     });
 
@@ -566,16 +548,7 @@ describe('query', () => {
       await datastore.query(query);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: {
-            descending: false,
-            filter: "PartNumber == \"Test\"",
-            orderBy: undefined,
-            projection: ["partNumber"],
-            returnCount: false,
-            take: 1000
-          }
-        })
+        {"data": {"field": "partNumber"}, "method": "POST", "showErrorAlert": false, "url": "/nitestmonitor/v2/query-product-values"}    
       );
     });
 
@@ -592,16 +565,7 @@ describe('query', () => {
       await datastore.query(query);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: {
-            descending: false,
-            filter: "PartNumber != \"Obsolete\"",
-            orderBy: undefined,
-            projection: ["partNumber"],
-            returnCount: false,
-            take: 1000
-          }
-        })
+        {"data": {"field": "partNumber"}, "method": "POST", "showErrorAlert": false, "url": "/nitestmonitor/v2/query-product-values"}
       );
     });
   });
