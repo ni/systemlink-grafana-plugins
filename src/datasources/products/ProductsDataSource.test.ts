@@ -739,6 +739,14 @@ describe('query', () => {
         { text: 'B Product (123)', value: '123' }
       ]);
     });
+
+    test('should not run query if hidden', () => {
+      const query: ProductQuery = {
+        hide: true,
+        refId: ''
+      };
+      expect(datastore.shouldRunQuery(query)).toBe(false);
+    });
   });
 });
 
