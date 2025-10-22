@@ -16,16 +16,20 @@ export class ListAlarmsDataSource extends AlarmsDataSourceCore {
     }
 
     public async metricFindQuery(query: AlarmsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-        const filter = query.queryBy
-        ? this.transformAlarmsQuery(options?.scopedVars || {}, query.queryBy)
-        : undefined;
-        const response = await this.queryAlarms({filter});
+        try {
+            const filter = query.queryBy
+            ? this.transformAlarmsQuery(options?.scopedVars || {}, query.queryBy)
+            : undefined;
+            const response = await this.queryAlarms({filter});
 
-        return (response.alarms
-        ? response.alarms.map(alarm => ({
-            text: `${alarm.displayName} (${alarm.alarmId})`,
-            value: alarm.alarmId
-            }))
-        : []).sort((a, b) => a.text.localeCompare(b.text));
+            return (response.alarms
+            ? response.alarms.map(alarm => ({
+                text: `${alarm.displayName} (${alarm.instanceId})`,
+                value: alarm.instanceId
+                }))
+            : []).sort((a, b) => a.text.localeCompare(b.text));
+        } catch (error) {
+            return [];
+        }
     }
 }

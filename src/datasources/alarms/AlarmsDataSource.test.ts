@@ -16,8 +16,8 @@ describe('AlarmsDataSource', () => {
     [datastore, backendServer] = setupDataSource(AlarmsDataSource);
   });
 
-  it('should initialize with AlarmsCount as the default query', () => {
-    expect(datastore.defaultQuery).toEqual({ queryType: QueryType.AlarmsCount });
+  it('should initialize with ListAlarms as the default query', () => {
+    expect(datastore.defaultQuery).toEqual({ queryType: QueryType.ListAlarms });
   });
 
   describe('AlarmsCountDataSource', () => {
@@ -74,18 +74,18 @@ describe('AlarmsDataSource', () => {
 
   describe('Variable Query Support', () => {
     describe('metricFindQuery', () => {
-      it('should delegate to AlarmsCountDataSource', async () => {
+      it('should delegate to ListAlarmsDataSource', async () => {
         const mockQuery: AlarmsVariableQuery = { refId: 'A', queryBy: 'workspace = "Lab-1"' };
         const mockOptions = { scopedVars: {} };
         const mockResult = [
           { text: 'High Temperature Alarm (INST-001)', value: 'INST-001' }
         ];
 
-        jest.spyOn(datastore.alarmsCountDataSource, 'metricFindQuery').mockResolvedValue(mockResult);
+        jest.spyOn(datastore.listAlarmsDataSource, 'metricFindQuery').mockResolvedValue(mockResult);
 
         const result = await datastore.metricFindQuery(mockQuery, mockOptions);
 
-        expect(datastore.alarmsCountDataSource.metricFindQuery).toHaveBeenCalledWith(mockQuery, mockOptions);
+        expect(datastore.listAlarmsDataSource.metricFindQuery).toHaveBeenCalledWith(mockQuery, mockOptions);
         expect(result).toBe(mockResult);
       });
 
@@ -95,11 +95,11 @@ describe('AlarmsDataSource', () => {
           { text: 'System Error Alarm (INST-002)', value: 'INST-002' }
         ];
 
-        jest.spyOn(datastore.alarmsCountDataSource, 'metricFindQuery').mockResolvedValue(mockResult);
+        jest.spyOn(datastore.listAlarmsDataSource, 'metricFindQuery').mockResolvedValue(mockResult);
 
         const result = await datastore.metricFindQuery(mockQuery);
 
-        expect(datastore.alarmsCountDataSource.metricFindQuery).toHaveBeenCalledWith(mockQuery, undefined);
+        expect(datastore.listAlarmsDataSource.metricFindQuery).toHaveBeenCalledWith(mockQuery, undefined);
         expect(result).toBe(mockResult);
       });
     });

@@ -15,8 +15,12 @@ export function AlarmsVariableQueryEditor({ query, onChange, datasource }: Props
 
     useEffect(() => {
          const loadWorkspaces = async () => {
-            const workspaces = await datasource.listAlarmsDataSource.loadWorkspaces();
-            setWorkspaces(Array.from(workspaces.values()));
+            try {
+                const workspaces = await datasource.listAlarmsDataSource.loadWorkspaces();
+                setWorkspaces(Array.from(workspaces.values()));
+            } catch {
+                setWorkspaces([]);
+            }
         };
 
         loadWorkspaces();

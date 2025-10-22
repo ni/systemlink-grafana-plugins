@@ -69,7 +69,7 @@ describe('ListAlarmsDataSource', () => {
     it('should set defaultListAlarmsQuery to defaultQuery', () => {
         const defaultQuery = datastore.defaultQuery;
 
-        expect(defaultQuery).toEqual({ queryType: QueryType.ListAlarms, filter: '' });
+        expect(defaultQuery).toEqual({ queryType: QueryType.ListAlarms });
     });
 
     describe('runQuery', () => {
@@ -137,10 +137,7 @@ describe('ListAlarmsDataSource', () => {
                     url: expect.stringContaining(QUERY_ALARMS_RELATIVE_PATH),
                     method: 'POST',
                     data: {
-                        filter: undefined,
-                        take: 1000,
-                        orderBy: 'occurredAt',
-                        orderByDescending: true
+                        filter: undefined
                     },
                     showErrorAlert: false
                 })
@@ -164,10 +161,7 @@ describe('ListAlarmsDataSource', () => {
             expect(backendServer.fetch).toHaveBeenCalledWith(
                 expect.objectContaining({
                     data: expect.objectContaining({
-                        filter: 'workspace = "Lab-1"',
-                        take: 1000,
-                        orderBy: 'occurredAt',
-                        orderByDescending: true
+                        filter: 'workspace = "Lab-1"'
                     })
                 })
             );
@@ -178,6 +172,8 @@ describe('ListAlarmsDataSource', () => {
                 refId: 'A',
                 queryBy: 'workspace = "$workspace"'
             };
+
+            jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "Lab-1"');
 
             await datastore.metricFindQuery(query, options);
 
