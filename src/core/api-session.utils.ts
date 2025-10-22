@@ -13,7 +13,7 @@ export interface ApiSession {
 export class ApiSessionUtils {
     private readonly appEvents: EventBus;
     private readonly cacheExpiryBufferTimeInMilliseconds = 5 * 60 * 1000; // 5 minutes buffer
-    private sessionCache?: ApiSession;
+    private static _sessionCache?: Promise<ApiSession>;
 
     constructor(
         private readonly instanceSettings: DataSourceInstanceSettings,
@@ -23,23 +23,21 @@ export class ApiSessionUtils {
     }
 
     public async createApiSession(): Promise<ApiSession> {
-        if (this.sessionCache && this.isSessionValid()) {
-            return this.sessionCache;
+        if (ApiSessionUtils._sessionCache && await this.isSessionValid()) {
+            return await ApiSessionUtils._sessionCache;
         }
-
-        const apiSession = await this.createApiSessionData();
-        this.sessionCache = apiSession;
-        return apiSession;
+        ApiSessionUtils._sessionCache = this.createApiSessionData();
+        return await ApiSessionUtils._sessionCache;
     }
 
-    private isSessionValid(): boolean {
-        if (!this.sessionCache) {
+    private async isSessionValid(): Promise<boolean> {
+        if (!ApiSessionUtils._sessionCache) {
             return false;
         }
         const currentTimeWithBuffer = new Date(
             new Date().getTime() + this.cacheExpiryBufferTimeInMilliseconds
         );
-        return currentTimeWithBuffer < new Date(this.sessionCache.session.expiry);
+        return currentTimeWithBuffer < new Date((await ApiSessionUtils._sessionCache).session.expiry);
     }
 
     private async createApiSessionData(): Promise<ApiSession> {

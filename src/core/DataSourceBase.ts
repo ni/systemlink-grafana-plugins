@@ -102,6 +102,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
         url = apiSession.endpoint + url.replace(this.instanceSettings.url ?? '', '');
       }
     }
+    
     return post<T>(this.backendSrv, url, body, options);
   }
 

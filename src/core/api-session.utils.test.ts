@@ -26,6 +26,9 @@ describe('ApiSessionUtils', () => {
         getAppEvents = (await import('@grafana/runtime')).getAppEvents;
         post = (await import('./utils')).post;
 
+        // Reset static cache before each test
+        (ApiSessionUtils as any)._sessionCache = undefined;
+
         mockGetAppEvents = getAppEvents as jest.Mock;
         mockPost = post as jest.Mock;
 
@@ -40,15 +43,15 @@ describe('ApiSessionUtils', () => {
         appEvents.publish.mockClear();
     });
 
-    const createMockSession = (expiryOffset: number) => ({
-        endpoint: 'http://test-endpoint',
-        session: {
-            expiry: new Date(Date.now() + expiryOffset).toISOString(),
-            secret: 'test-secret',
-        },
-    });
-
     describe('createApiSession', () => {
+        const createMockSession = (expiryOffset: number) => ({
+            endpoint: 'http://test-endpoint',
+            session: {
+                expiry: new Date(Date.now() + expiryOffset).toISOString(),
+                secret: 'test-secret',
+            },
+        });
+
         it('should create a new session if cache is empty', async () => {
             const newSession = createMockSession(600_000); // 10 minutes expiry
             mockPost.mockResolvedValue(newSession);
@@ -74,7 +77,8 @@ describe('ApiSessionUtils', () => {
         it('should create a new session if cached session is expired', async () => {
             const expiredSession = createMockSession(240_000); // 4 minutes expiry (inside 5-minute buffer)
             const newSession = createMockSession(600_000);
-            mockPost.mockResolvedValueOnce(expiredSession).mockResolvedValueOnce(newSession);
+            mockPost.mockResolvedValueOnce(expiredSession)
+                .mockResolvedValueOnce(newSession);
 
             const session1 = await apiSessionUtils.createApiSession();
             const session2 = await apiSessionUtils.createApiSession();
