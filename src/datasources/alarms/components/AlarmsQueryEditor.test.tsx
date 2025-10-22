@@ -6,7 +6,7 @@ import { QueryEditorProps } from '@grafana/data';
 import { AlarmsDataSource } from '../AlarmsDataSource';
 import { AlarmsCountQueryEditor } from './editors/alarms-count/AlarmsCountQueryEditor';
 import userEvent from '@testing-library/user-event';
-import { defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
+import { defaultAlarmsCountQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
 
 jest.mock('./editors/alarms-count/AlarmsCountQueryEditor', () => ({
   AlarmsCountQueryEditor: jest.fn(() => <div data-testid="mock-alarms-count" />),
@@ -116,13 +116,13 @@ describe('AlarmsQueryEditor', () => {
     await clickQueryTypeOption(QueryType.ListAlarms);
 
     await waitFor(() => {
-      expect(onChange).toHaveBeenCalledWith({ refId: 'A', queryType: QueryType.ListAlarms, hide: false });
+      expect(onChange).toHaveBeenCalledWith({ refId: 'A', hide: false, ...defaultListAlarmsQuery });
     });
 
     await clickQueryTypeOption(QueryType.AlarmsCount);
 
     await waitFor(() => {
-      expect(onChange).toHaveBeenCalledWith({ refId: 'A', queryType: QueryType.AlarmsCount, hide: false });
+      expect(onChange).toHaveBeenCalledWith({ refId: 'A', hide: false, ...defaultAlarmsCountQuery });
     });
   });
 
@@ -190,7 +190,7 @@ describe('AlarmsQueryEditor', () => {
       await clickQueryTypeOption(QueryType.AlarmsCount);
 
       await waitFor(() => {
-        expect(mockOnChange).toHaveBeenCalledWith({ refId: 'A', queryType: 'Alarms Count' });
+        expect(mockOnChange).toHaveBeenCalledWith({ refId: 'A', ...defaultAlarmsCountQuery });
         expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
