@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { InlineField } from "core/components/InlineField";
-import { AlarmsQueryBuilder } from "../../query-builder/AlarmsQueryBuilder";
-import { ERROR_SEVERITY_WARNING, LABEL_WIDTH, labels, tooltips } from "datasources/alarms/constants/AlarmsQueryEditor.constants";
-import { Workspace } from "core/types";
-import { FloatingError } from "core/errors";
-import { ListAlarmsQuery } from "datasources/alarms/types/ListAlarms.types";
-import { ListAlarmsDataSource } from "datasources/alarms/query-type-handlers/list-alarms/ListAlarmsDataSource";
+import React, { useEffect, useState } from 'react';
+import { InlineField } from 'core/components/InlineField';
+import { AlarmsQueryBuilder } from '../../query-builder/AlarmsQueryBuilder';
+import { ERROR_SEVERITY_WARNING, LABEL_WIDTH, labels, tooltips } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { Workspace } from 'core/types';
+import { FloatingError } from 'core/errors';
+import { ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
+import { ListAlarmsDataSource } from 'datasources/alarms/query-type-handlers/list-alarms/ListAlarmsDataSource';
 
 type Props = {
   query: ListAlarmsQuery;

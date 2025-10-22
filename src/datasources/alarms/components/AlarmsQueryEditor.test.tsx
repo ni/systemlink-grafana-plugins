@@ -165,7 +165,7 @@ describe('AlarmsQueryEditor', () => {
       await clickQueryTypeOption(QueryType.AlarmsCount);
 
       await waitFor(() => {
-        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ filter: "" }));
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ filter: '' }));
         expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
@@ -263,7 +263,7 @@ describe('AlarmsQueryEditor', () => {
       await clickQueryTypeOption(QueryType.ListAlarms);
 
       await waitFor(() => {
-        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ filter: "" }));
+        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ filter: '' }));
         expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
