@@ -5,8 +5,8 @@ export interface AlarmsQuery extends DataQuery {
 }
 
 export enum QueryType {
-  ListAlarms = 'List Alarms', 
   AlarmsCount = 'Alarms Count',
+  ListAlarms = 'List Alarms', 
 }
 
 export interface QueryAlarmsRequest {
