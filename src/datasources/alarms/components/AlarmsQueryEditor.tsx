@@ -14,8 +14,8 @@ import { ListAlarmsQuery } from '../types/ListAlarms.types';
 type Props = QueryEditorProps<AlarmsDataSource, AlarmsQuery>;
 
 export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: Props) {
-  const [listAlarmsQuery, setListAlarmsQuery] = useState<ListAlarmsQuery | null>(null);
-  const [alarmsCountQuery, setAlarmsCountQuery] = useState<AlarmsCountQuery | null>(null);
+  const [listAlarmsQuery, setListAlarmsQuery] = useState<ListAlarmsQuery>();
+  const [alarmsCountQuery, setAlarmsCountQuery] = useState<AlarmsCountQuery>();
 
   const handleQueryChange = useCallback(
     (query: AlarmsQuery, runQuery = true): void => {
