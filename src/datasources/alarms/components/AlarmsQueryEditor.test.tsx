@@ -169,6 +169,43 @@ describe('AlarmsQueryEditor', () => {
         expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
+
+    it('should preserve the current state of ListAlarmsQuery when switching from list alarms to other types', async () => {
+      const initialListAlarmsQuery = {
+        refId: 'A',
+        queryType: QueryType.ListAlarms,
+        filter: 'filter-in-list-alarms',
+      } as AlarmsQuery;
+
+      const onChange = jest.fn((newQuery) => {
+        let currentQuery = { refId: 'A' };
+        currentQuery = { ...currentQuery, ...newQuery };
+
+        renderResult.rerender(
+          React.createElement(AlarmsQueryEditor, { ...defaultProps, query: currentQuery, onChange })
+        );
+      });
+
+      const renderResult = render(
+        React.createElement(AlarmsQueryEditor, { ...defaultProps, query: initialListAlarmsQuery, onChange })
+      );
+
+      await clickQueryTypeOption(QueryType.AlarmsCount);
+
+      await waitFor(() => {
+        expect(onChange.mock.calls[0][0]).toEqual({ refId: 'A', ...defaultAlarmsCountQuery });
+      });
+
+      await clickQueryTypeOption(QueryType.ListAlarms);
+
+      await waitFor(() => {
+        expect(onChange.mock.calls[1][0]).toEqual({
+          refId: 'A',
+          ...defaultListAlarmsQuery,
+          filter: 'filter-in-list-alarms'
+        });
+      });
+    });
   });
 
   describe('AlarmsCountQueryEditor', () => {
@@ -228,6 +265,43 @@ describe('AlarmsQueryEditor', () => {
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ filter: "" }));
         expect(mockOnRunQuery).toHaveBeenCalled();
+      });
+    });
+
+    it('should preserve the current state of AlarmsCountQuery when switching from alarms count to other types', async () => {
+      const initialAlarmsCountQuery = {
+        refId: 'A',
+        queryType: QueryType.AlarmsCount,
+        filter: 'filter-in-alarms-count',
+      } as AlarmsQuery;
+
+      const onChange = jest.fn((newQuery) => {
+        let currentQuery = { refId: 'A' };
+        currentQuery = { ...currentQuery, ...newQuery };
+
+        renderResult.rerender(
+          React.createElement(AlarmsQueryEditor, { ...defaultProps, query: currentQuery, onChange })
+        );
+      });
+
+      const renderResult = render(
+        React.createElement(AlarmsQueryEditor, { ...defaultProps, query: initialAlarmsCountQuery, onChange })
+      );
+
+      await clickQueryTypeOption(QueryType.ListAlarms);
+
+      await waitFor(() => {
+        expect(onChange.mock.calls[0][0]).toEqual({ refId: 'A', ...defaultListAlarmsQuery });
+      });
+
+      await clickQueryTypeOption(QueryType.AlarmsCount);
+
+      await waitFor(() => {
+        expect(onChange.mock.calls[1][0]).toEqual({
+          refId: 'A',
+          ...defaultAlarmsCountQuery,
+          filter: 'filter-in-alarms-count'
+        });
       });
     });
   });

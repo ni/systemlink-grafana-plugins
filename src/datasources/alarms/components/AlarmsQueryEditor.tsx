@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { QueryEditorProps } from '@grafana/data';
 import { AlarmsDataSource } from '../AlarmsDataSource';
 import { AlarmsQuery, QueryType } from '../types/types';
@@ -14,6 +14,9 @@ import { ListAlarmsQuery } from '../types/ListAlarms.types';
 type Props = QueryEditorProps<AlarmsDataSource, AlarmsQuery>;
 
 export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: Props) {
+  const [listAlarmsQuery, setListAlarmsQuery] = useState<ListAlarmsQuery | null>(null);
+  const [alarmsCountQuery, setAlarmsCountQuery] = useState<AlarmsCountQuery | null>(null);
+
   const handleQueryChange = useCallback(
     (query: AlarmsQuery, runQuery = true): void => {
       onChange(query);
@@ -24,25 +27,41 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
     [onChange, onRunQuery]
   );
 
+  const saveCurrentQueryState = useCallback((): void => {
+    switch (query.queryType) {
+      case QueryType.ListAlarms:
+        setListAlarmsQuery(query as ListAlarmsQuery);
+        break;
+      case QueryType.AlarmsCount:
+        setAlarmsCountQuery(query as AlarmsCountQuery);
+        break;
+    }
+  }, [query]);
+
   const handleQueryTypeChange = useCallback((queryType: QueryType): void => {
     const QUERY_TYPE_CONFIG = {
       [QueryType.ListAlarms]: {
         defaultQuery: defaultListAlarmsQuery,
+        savedQuery: listAlarmsQuery,
       },
       [QueryType.AlarmsCount]: {
         defaultQuery: defaultAlarmsCountQuery,
+        savedQuery : alarmsCountQuery,
       },
     };
     const config = QUERY_TYPE_CONFIG[queryType];
+
+    saveCurrentQueryState();
 
     if (config) {
       handleQueryChange({
         ...query,
         ...config.defaultQuery,
+        ...config.savedQuery,
         refId: query.refId,
       });
     }
-  }, [query, handleQueryChange]);
+  }, [query, handleQueryChange, alarmsCountQuery, listAlarmsQuery, saveCurrentQueryState]);
 
   useEffect(() => {
     if (!query.queryType) {
