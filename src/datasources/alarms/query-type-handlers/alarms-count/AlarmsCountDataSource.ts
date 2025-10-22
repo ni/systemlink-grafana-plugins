@@ -1,9 +1,8 @@
-import { DataFrameDTO, DataQueryRequest, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, FieldType } from '@grafana/data';
 import { AlarmsDataSourceCore } from 'datasources/alarms/AlarmsDataSourceCore';
 import { defaultAlarmsCountQuery } from 'datasources/alarms/constants/defaultQueries';
 import { MINIMUM_TAKE } from 'datasources/alarms/constants/QueryAlarms.constants';
 import { AlarmsCountQuery } from 'datasources/alarms/types/AlarmsCount.types';
-import { AlarmsVariableQuery } from 'datasources/alarms/types/types';
 
 export class AlarmsCountDataSource extends AlarmsDataSourceCore {
   public readonly defaultQuery = defaultAlarmsCountQuery;
