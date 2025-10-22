@@ -35,6 +35,7 @@ function buildQuery(query: Omit<AlarmsQuery, 'refId'> = {}) {
 async function clickQueryTypeOption(option: QueryType) {
   const queryTypeControl = screen.getAllByRole('combobox')[0];
   await userEvent.click(queryTypeControl);
+
   const queryTypeOptionControl = await screen.findByRole('option', { name: option });
   await userEvent.click(queryTypeOptionControl);
 }
@@ -65,7 +66,7 @@ describe('AlarmsQueryEditor', () => {
     }
   });
 
-  it('should call onChange and onRunQuery on initialization meaning query type is not defined', () => {
+  it('should call onChange and onRunQuery on initialization', () => {
     const query = buildQuery();
 
     renderElement(query);
@@ -108,7 +109,6 @@ describe('AlarmsQueryEditor', () => {
       );
     });
 
-    // Initial render with AlarmsCount query type
     const renderResult = render(
       React.createElement(AlarmsQueryEditor, { ...defaultProps, query: initialAlarmsCountQuery, onChange })
     );
