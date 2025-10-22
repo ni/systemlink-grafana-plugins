@@ -9,7 +9,7 @@ import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder
 
 type DataTableQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
     filter?: string;
-    workspaces: Workspace[] | null;
+    workspaces: Workspace[];
     globalVariableOptions: QueryBuilderOption[];
 };
 
@@ -24,7 +24,7 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
     const optionsRef = useRef<Record<string, QueryBuilderOption[]>>({});
 
     const workspaceField = useMemo(() => {
-        if (!workspaces) {
+        if (workspaces.length === 0) {
             return null;
         }
 
