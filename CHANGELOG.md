@@ -1,3 +1,9 @@
+## [4.27.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.26.0...v4.27.0) (2025-10-22)
+
+### Features
+
+* **dataframe:** Provide global variable options to query builder ([#449](https://github.com/ni/systemlink-grafana-plugins/issues/449)) ([2d1ba6d](https://github.com/ni/systemlink-grafana-plugins/commit/2d1ba6dcdd277dcfe4a4275cd79b28b72592d54e))
+
 ## [4.26.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.25.0...v4.26.0) (2025-10-22)
 
 ### Features
