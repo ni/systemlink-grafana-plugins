@@ -75,7 +75,7 @@ connect to a SystemLink service running in the cloud.
 4. **Using UI Ingress**
 
    1. Enter the **URL** of the Stratus environment's UI you want to access (e.g., `https://test.lifecyclesolutions.ni.com`).
-   2. Log in to the URL in your browser and navigate to the **Network Tab** to copy the cookie value.
+   2. Log in to the URL in your browser and navigate to the **Application Tab** to copy the cookie value.
    3. For authentication, enable the **With Credentials** toggle, click the **Add header** button, and create a custom header with the name `cookie` and set its value to the copied browser cookie.
 
 5. Click **Save & test**. You should see **Success** pop up if the data source
