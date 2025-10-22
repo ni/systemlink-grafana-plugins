@@ -95,7 +95,7 @@ export abstract class AlarmsQueryHandlersCore extends DataSourceBase<AlarmsQuery
         this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
         break;
       case '504':
-        this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
+        this.errorDescription = 'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.';
         break;
       default:
         this.errorDescription = errorDetails.message
