@@ -69,7 +69,7 @@ describe('AlarmsCountDataSource', () => {
   it('should set defaultAlarmsCountQuery to defaultQuery', () => {
     const defaultQuery = datastore.defaultQuery;
     
-    expect(defaultQuery).toEqual({ queryType: QueryType.AlarmsCount, filter: "" });
+    expect(defaultQuery).toEqual({ queryType: QueryType.AlarmsCount, filter: '' });
   });
 
   describe('runQuery', () => {
@@ -129,7 +129,7 @@ describe('AlarmsCountDataSource', () => {
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            filter: `acknowledgedAt > "2025-01-01T00:00:00.000Z"`,
+            filter: 'acknowledgedAt > "2025-01-01T00:00:00.000Z"',
           }),
         })
       );

@@ -17,7 +17,7 @@ describe('AlarmsDataSource', () => {
   });
 
   it('should initialize with AlarmsCount as the default query', () => {
-    expect(datastore.defaultQuery).toEqual({ queryType: QueryType.AlarmsCount, filter: "" });
+    expect(datastore.defaultQuery).toEqual({ queryType: QueryType.AlarmsCount, filter: '' });
   });
 
   describe('AlarmsCountDataSource', () => {
@@ -31,12 +31,12 @@ describe('AlarmsDataSource', () => {
 
     describe('runQuery', () => {
       it('should call AlarmsCountDataSource runQuery when queryType is AlarmsCount', async () => {
-        alarmsCountDataSource.runQuery = jest.fn().mockResolvedValue({ refId: "A", fields: [] });
+        alarmsCountDataSource.runQuery = jest.fn().mockResolvedValue({ refId: 'A', fields: [] });
 
         const result = await datastore.runQuery(query, dataQueryRequest);
 
         expect(alarmsCountDataSource.runQuery).toHaveBeenCalledWith(query, dataQueryRequest);
-        expect(result).toEqual({ refId: "A", fields: [] });
+        expect(result).toEqual({ refId: 'A', fields: [] });
       });
     });
 
