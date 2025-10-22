@@ -8,7 +8,7 @@ import {
   AppEvents,
   DataSourceInstanceSettings,
 } from '@grafana/data';
-import { OutputType, ResultsQuery } from 'datasources/results/types/types';
+import { OutputType } from 'datasources/results/types/types';
 import {
   stepsProjectionLabelLookup,
   QueryStepPathsResponse,
@@ -647,7 +647,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     return query.resultsQuery !== '' && query.recordCount !== undefined && query.properties!.length > 0;
   }
 
-  shouldRunQuery(query: ResultsQuery): boolean {
+  shouldRunQuery(query: QuerySteps): boolean {
     return !query?.hide;
   }
 }
