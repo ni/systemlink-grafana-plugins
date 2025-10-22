@@ -45,13 +45,24 @@ function renderElement(query: AlarmsQuery) {
 }
 
 describe('AlarmsQueryEditor', () => {
+  let originalOffsetHeight: PropertyDescriptor | undefined;
+
   beforeAll(() => {
-    // Mock offsetHeight for virtualization calculations
-    Object.defineProperties(HTMLElement.prototype, {
-      offsetHeight: {
-        get() { return 30; } // Height per option
+    originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
+    // JSDOM provides offsetHeight as 0 by default.
+    // Mocking it to return 30 because the ComboBox virtualization relies on this value
+    // to correctly calculate and render the dropdown options.
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
+      get() {
+        return 30;
       },
     });
+  });
+
+  afterAll(() => {
+    if (originalOffsetHeight) {
+      Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
+    }
   });
 
   it('should call onChange and onRunQuery on initialization meaning query type is not defined', () => {
