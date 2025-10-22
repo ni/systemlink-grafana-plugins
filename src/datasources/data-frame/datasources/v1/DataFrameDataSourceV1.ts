@@ -57,7 +57,7 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
   }
 
   shouldRunQuery(query: ValidDataFrameQueryV1): boolean {
-    return !query?.hide && Boolean(query.tableId) && (query.type === DataFrameQueryType.Properties || Boolean(query.columns.length));
+    return Boolean(query.tableId) && (query.type === DataFrameQueryType.Properties || Boolean(query.columns.length));
   }
 
   async getTableProperties(id?: string): Promise<TableProperties> {
