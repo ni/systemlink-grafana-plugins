@@ -15,7 +15,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
     const [isColumnConfigurationSectionOpen, setIsColumnConfigurationSectionOpen] = useState(true);
     const [isDecimationSettingsSectionOpen, setIsDecimationSettingsSectionOpen] = useState(true);
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
-    const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
+    const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
 
     const getPropertiesOptions = (type: DataTableProjectionType) => Object.entries(DataTableProjectionLabelLookup)
         .filter(([_, value]) => value.type === type)
@@ -255,7 +255,11 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                     </Collapse>
                 </div >
             )}
-            <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
+            <FloatingError
+                message={datasource.errorTitle}
+                innerMessage={datasource.errorDescription}
+                severity="warning"
+            />
         </>
     );
 };
