@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { QueryEditorProps } from '@grafana/data';
 import { AlarmsDataSource } from '../AlarmsDataSource';
 import { AlarmsQuery, QueryType } from '../types/types';
@@ -8,10 +8,15 @@ import { InlineField } from 'core/components/InlineField';
 import { CONTROL_WIDTH, LABEL_WIDTH, labels, tooltips } from '../constants/AlarmsQueryEditor.constants';
 import { Combobox, Stack } from '@grafana/ui';
 import { defaultAlarmsCountQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.contants';
+import { ListAlarmsQuery } from '../types/ListAlarms.types';
+import { ListAlarmsQueryEditor } from './editors/list-alarms/ListAlarmsQueryEditor';
 
 type Props = QueryEditorProps<AlarmsDataSource, AlarmsQuery>;
 
 export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: Props) {
+  const [listAlarmsQuery, setListAlarmsQuery] = useState<ListAlarmsQuery>();
+  const [alarmsCountQuery, setAlarmsCountQuery] = useState<AlarmsCountQuery>();
+
   const QUERY_TYPE_CONFIG = useMemo(() => ({
     [QueryType.ListAlarms]: {
       defaultQuery: defaultListAlarmsQuery,
@@ -31,15 +36,28 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
     [onChange, onRunQuery]
   );
 
+  const saveCurrentQueryState = useCallback((): void => {
+    switch (query.queryType) {
+      case QueryType.ListAlarms:
+        setListAlarmsQuery(query as ListAlarmsQuery);
+        break;
+      case QueryType.AlarmsCount:
+        setAlarmsCountQuery(query as AlarmsCountQuery);
+        break;
+    }
+  }, [query]);
+
   const handleQueryTypeChange = useCallback((queryType: QueryType): void => {
     const config = QUERY_TYPE_CONFIG[queryType];
 
+    saveCurrentQueryState();
     handleQueryChange({
       ...query,
       ...config.defaultQuery,
+      ...config.savedQuery,
       refId: query.refId,
     });
-  }, [query, handleQueryChange, QUERY_TYPE_CONFIG]);
+  }, [query, handleQueryChange, listAlarmsQuery, alarmsCountQuery, saveCurrentQueryState, QUERY_TYPE_CONFIG]);
 
   useEffect(() => {
     if (!query.queryType) {
@@ -71,7 +89,11 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
         />
       )}
       {query.queryType === QueryType.ListAlarms && (
-        <span>List Alarms query editor</span>
+        <ListAlarmsQueryEditor
+          query={query as ListAlarmsQuery}
+          handleQueryChange={handleQueryChange}
+          datasource={datasource.listAlarmsDataSource}
+        />
       )}
     </Stack>
   );

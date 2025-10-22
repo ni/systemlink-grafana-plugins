@@ -4,11 +4,13 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import { AlarmsQuery, QueryType } from './types/types';
 import { AlarmsCountQueryHandler } from './query-type-handlers/alarms-count/AlarmsCountQueryHandler';
 import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
+import { ListAlarmsDataSource } from './query-type-handlers/list-alarms/ListAlarmsDataSource';
 
 export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
   public readonly defaultQuery: Omit<AlarmsQuery, 'refId'>;
 
   private readonly _alarmsCountQueryHandler: AlarmsCountQueryHandler;
+  private readonly _listAlarmsDataSource: ListAlarmsDataSource;
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
@@ -16,15 +18,17 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
-    this._alarmsCountQueryHandler = new AlarmsCountQueryHandler(instanceSettings, backendSrv, templateSrv);
-    // AB#3064461 - Update defaultQuery to use list alarms defaults when supported
-    this.defaultQuery = this._alarmsCountQueryHandler.defaultQuery;
+    this._alarmsCountDataSource = new AlarmsCountDataSource(instanceSettings, backendSrv, templateSrv);
+    this._listAlarmsDataSource = new ListAlarmsDataSource(instanceSettings, backendSrv, templateSrv);
+    this.defaultQuery = this._listAlarmsDataSource.defaultQuery;
   }
 
   public async runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     switch (query.queryType) {
       case QueryType.AlarmsCount:
         return this.alarmsCountQueryHandler.runQuery(query, options);
+      case QueryType.ListAlarms:
+        return this.listAlarmsDataSource.runQuery(query, options);
       default:
         throw new Error('Invalid query type');
     }
@@ -34,6 +38,8 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     switch (query.queryType) {
       case QueryType.AlarmsCount:
         return this.alarmsCountQueryHandler.shouldRunQuery(query);
+      case QueryType.ListAlarms:
+        return this.listAlarmsDataSource.shouldRunQuery(query);
       default:
         return false;
     }
@@ -41,6 +47,10 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
 
   public get alarmsCountQueryHandler(): AlarmsCountQueryHandler {
     return this._alarmsCountQueryHandler;
+  }
+
+  public get listAlarmsDataSource(): ListAlarmsDataSource {
+    return this._listAlarmsDataSource;
   }
 
   public async testDatasource(): Promise<TestDataSourceResponse> {
