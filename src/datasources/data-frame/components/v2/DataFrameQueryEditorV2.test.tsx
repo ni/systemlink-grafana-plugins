@@ -2,8 +2,8 @@ import React from "react";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
-import { DataFrameDataSourceV2 } from "../../datasources/v2/DataFrameDataSourceV2";
 import { DataFrameQueryV2, DataFrameQueryType } from "../../types";
+import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { QueryBuilderOption, Workspace } from "core/types";
 
 jest.mock("./query-builders/DataTableQueryBuilder", () => ({
@@ -54,7 +54,7 @@ const renderComponent = (
                 { label: 'Var2', value: 'Value2' },
             ]
         ),
-    } as unknown as DataFrameDataSourceV2;
+    } as unknown as DataFrameDataSource;
 
     const initialQuery = {
         refId: 'A',
