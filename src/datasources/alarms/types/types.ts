@@ -4,6 +4,10 @@ export interface AlarmsQuery extends DataQuery {
   queryType?: QueryType;
 }
 
+export interface AlarmsVariableQuery extends AlarmsQuery {
+  queryBy?: string;
+}
+
 export enum QueryType {
   AlarmsCount = 'AlarmsCount',
 }
