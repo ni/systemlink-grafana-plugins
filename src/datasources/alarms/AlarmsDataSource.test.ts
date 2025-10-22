@@ -64,12 +64,12 @@ describe('AlarmsDataSource', () => {
 
     describe('runQuery', () => {
       it('should call ListAlarmsDataSource runQuery when queryType is ListAlarms', async () => {
-        listAlarmsDataSource.runQuery = jest.fn().mockResolvedValue({ refId: "A", fields: [] });
+        listAlarmsDataSource.runQuery = jest.fn().mockResolvedValue({ refId: 'A', fields: [] });
 
         const result = await datastore.runQuery(query, dataQueryRequest);
 
         expect(listAlarmsDataSource.runQuery).toHaveBeenCalledWith(query, dataQueryRequest);
-        expect(result).toEqual({ refId: "A", fields: [] });
+        expect(result).toEqual({ refId: 'A', fields: [] });
       });
     });
 

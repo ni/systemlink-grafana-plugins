@@ -1,7 +1,7 @@
-import { setupDataSource } from "test/fixtures";
-import { ListAlarmsDataSource } from "./ListAlarmsDataSource";
-import { QueryType } from "datasources/alarms/types/types";
-import { DataQueryRequest } from "@grafana/data";
+import { setupDataSource } from 'test/fixtures';
+import { ListAlarmsDataSource } from './ListAlarmsDataSource';
+import { QueryType } from 'datasources/alarms/types/types';
+import { DataQueryRequest } from '@grafana/data';
 
 let datastore: ListAlarmsDataSource;
 
