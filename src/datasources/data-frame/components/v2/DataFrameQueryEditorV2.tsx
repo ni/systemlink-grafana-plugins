@@ -210,7 +210,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                             <InlineSwitch
                             />
                         </InlineField>
-                    </Collapse>;
+                    </Collapse>
 
                     <Collapse
                         label={labels.decimationSettings}
