@@ -90,7 +90,7 @@ describe('ApiSessionUtils', () => {
 
         it('should handle errors during session creation and publish an event', async () => {
             const error = new Error('Network error');
-            const errorMessage = `The query to create an API session failed. ${error?.message}. Please check the data source configuration and try again.`
+            const errorMessage = `The query to create an API session failed. ${error?.message}.`
 
             mockPost.mockRejectedValue(error);
 

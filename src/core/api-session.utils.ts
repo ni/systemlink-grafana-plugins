@@ -23,11 +23,10 @@ export class ApiSessionUtils {
     }
 
     public async createApiSession(): Promise<ApiSession> {
-        if (ApiSessionUtils._sessionCache && await this.isSessionValid()) {
-            return await ApiSessionUtils._sessionCache;
+        if (!ApiSessionUtils._sessionCache || !await this.isSessionValid()) {
+            ApiSessionUtils._sessionCache = this.createApiSessionData();
         }
-        ApiSessionUtils._sessionCache = this.createApiSessionData();
-        return await ApiSessionUtils._sessionCache;
+        return ApiSessionUtils._sessionCache;
     }
 
     private async isSessionValid(): Promise<boolean> {
@@ -49,7 +48,7 @@ export class ApiSessionUtils {
                 { showErrorAlert: false }
             );
         } catch (error: any) {
-            const errorMessage = `The query to create an API session failed. ${error?.message ?? ''}. Please check the data source configuration and try again.`
+            const errorMessage = `The query to create an API session failed. ${error?.message ?? ''}.`
             this.appEvents?.publish?.({
                 type: AppEvents.alertError.name,
                 payload: [
