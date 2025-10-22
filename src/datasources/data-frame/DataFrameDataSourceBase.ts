@@ -13,11 +13,18 @@ import {
     Column
 } from './types';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
+import { extractErrorInfo } from 'core/errors';
+import { Workspace } from 'core/types';
+import { WorkspaceUtils } from 'shared/workspace.utils';
 
 export abstract class DataFrameDataSourceBase<
     TQuery extends DataFrameQuery = DataFrameQuery,
 > extends DataSourceBase<TQuery, DataFrameDataSourceOptions> {
     public baseUrl = this.instanceSettings.url + '/nidataframe/v1';
+    public errorTitle = '';
+    public errorDescription = '';
+
+    private readonly workspaceUtils: WorkspaceUtils;
 
     public constructor(
         public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
@@ -25,6 +32,7 @@ export abstract class DataFrameDataSourceBase<
         public readonly templateSrv: TemplateSrv
     ) {
         super(instanceSettings, backendSrv, templateSrv);
+        this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
     }
 
     public abstract processQuery(query: TQuery): ValidDataFrameQuery;
@@ -43,5 +51,37 @@ export abstract class DataFrameDataSourceBase<
     public async testDatasource(): Promise<TestDataSourceResponse> {
         await this.get(`${this.baseUrl}/tables`, { take: 1 });
         return { status: 'success', message: 'Data source connected and authentication successful!' };
+    }
+
+    public async loadWorkspaces(): Promise<Map<string, Workspace>> {
+        try {
+            return await this.workspaceUtils.getWorkspaces();
+        } catch (error) {
+            if (!this.errorTitle) {
+                this.handleDependenciesError(error);
+            }
+            return new Map<string, Workspace>();
+        }
+    }
+
+    private handleDependenciesError(error: unknown): void {
+        const errorDetails = extractErrorInfo((error as Error).message);
+        this.errorTitle = 'Warning during dataframe query';
+        switch (errorDetails.statusCode) {
+            case '404':
+                this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
+                break;
+            case '429':
+                this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
+                break;
+            case '504':
+                this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
+                break;
+            default:
+                this.errorDescription = errorDetails.message
+                    ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+                    : 'Some values may not be available in the query builder lookups due to an unknown error.';
+                break;
+        }
     }
 }
