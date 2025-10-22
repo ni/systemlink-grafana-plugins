@@ -119,7 +119,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
               />
             </InlineField>
           )}
-          <div className="workorders-horizontal-control-group">
+          <div className="listAssets-horizontal-control-group">
             <InlineField
               label="Filter"
               labelWidth={22}
@@ -137,7 +137,7 @@ export function ListAssetsEditor({ query, handleQueryChange, datasource }: Props
 
             </InlineField>
             {query.outputType === OutputType.Properties && (
-              <div className="workorders-right-query-control">
+              <div className="listAssets-right-filter-control">
                 <Stack direction="column">
                   <InlineField
                     label="Take"
