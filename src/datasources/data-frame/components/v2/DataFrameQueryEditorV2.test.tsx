@@ -7,9 +7,11 @@ import { DataFrameQueryV2, DataFrameQueryType } from "../../types";
 import { Workspace } from "core/types";
 
 jest.mock("./query-builders/DataTableQueryBuilder", () => ({
-    DataTableQueryBuilder: (props: {
-        workspaces?: Workspace[];
-    }) => (
+    DataTableQueryBuilder: (
+        props: {
+            workspaces?: Workspace[];
+        }
+    ) => (
         <div data-testid="data-table-query-builder">
             <ul data-testid="workspaces-list">
                 {props.workspaces && props.workspaces.map(workspace => (
