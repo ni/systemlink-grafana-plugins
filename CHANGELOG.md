@@ -1,3 +1,9 @@
+## [4.27.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.27.0...v4.27.1) (2025-10-22)
+
+### Bug Fixes
+
+* **dataframe:** Query type not set by default ([#451](https://github.com/ni/systemlink-grafana-plugins/issues/451)) ([bbb202a](https://github.com/ni/systemlink-grafana-plugins/commit/bbb202a0d7101bc0de54acfa060c3764a9e06feb))
+
 ## [4.27.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.26.0...v4.27.0) (2025-10-22)
 
 ### Features
