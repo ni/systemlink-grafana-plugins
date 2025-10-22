@@ -46,7 +46,7 @@ describe('ApiSessionUtils', () => {
     describe('createApiSession', () => {
         const createMockSession = (expiryOffset: number) => ({
             endpoint: 'http://test-endpoint',
-            session: {
+            sessionKey: {
                 expiry: new Date(Date.now() + expiryOffset).toISOString(),
                 secret: 'test-secret',
             },

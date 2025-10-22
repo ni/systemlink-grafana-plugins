@@ -4,7 +4,7 @@ import { post } from "./utils";
 
 export interface ApiSession {
     endpoint: string;
-    session: {
+    sessionKey: {
         expiry: string,
         secret: string
     };
@@ -36,7 +36,7 @@ export class ApiSessionUtils {
         const currentTimeWithBuffer = new Date(
             new Date().getTime() + this.cacheExpiryBufferTimeInMilliseconds
         );
-        return currentTimeWithBuffer < new Date((await ApiSessionUtils._sessionCache).session.expiry);
+        return currentTimeWithBuffer < new Date((await ApiSessionUtils._sessionCache).sessionKey.expiry);
     }
 
     private async createApiSessionData(): Promise<ApiSession> {

@@ -62,7 +62,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
         url = apiSession.endpoint + url.replace(this.instanceSettings.url ?? '', '');
         params = {
           ...params,
-          'x-ni-api-key': apiSession.session.secret,
+          'x-ni-api-key': apiSession.sessionKey.secret,
         };
       }
     }
@@ -96,7 +96,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
           ...options,
           headers: {
             ...options.headers,
-            'x-ni-api-key': apiSession.session.secret,
+            'x-ni-api-key': apiSession.sessionKey.secret,
           },
         };
         url = apiSession.endpoint + url.replace(this.instanceSettings.url ?? '', '');

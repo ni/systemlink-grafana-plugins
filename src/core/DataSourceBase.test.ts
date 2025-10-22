@@ -15,7 +15,7 @@ describe('DataSourceBase', () => {
 
     const mockApiSession = {
         endpoint: 'http://api-ingress.com',
-        session: { secret: 'api-key-secret' }
+        sessionKey: { secret: 'api-key-secret' }
     };
     const mockApiSessionUtils = {
         createApiSession: jest.fn().mockResolvedValue(mockApiSession)
