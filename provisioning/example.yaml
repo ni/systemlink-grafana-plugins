@@ -49,7 +49,7 @@ datasources:
     type: ni-slassetcalibration-datasource
     uid: assetcalibration
     <<: *config
-  - name: SystemLink Products
+  - name: SystemLink Products 
     type: ni-slproducts-datasource
     uid: products
     <<: *config
