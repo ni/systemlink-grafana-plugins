@@ -1,25 +1,18 @@
 import { AppEvents, DataSourceInstanceSettings, EventBus } from "@grafana/data";
 import { BackendSrv, getAppEvents } from "@grafana/runtime";
-import { post } from "./utils";
-
-export interface ApiSession {
-    endpoint: string;
-    sessionKey: {
-        expiry: string,
-        secret: string
-    };
-}
+import { post } from "../core/utils";
+import { ApiSession } from "./types/ApiSessionUtils.types";
 
 export class ApiSessionUtils {
-    private readonly appEvents: EventBus;
     private readonly cacheExpiryBufferTimeInMilliseconds = 5 * 60 * 1000; // 5 minutes buffer
     private static _sessionCache?: Promise<ApiSession>;
 
     constructor(
         private readonly instanceSettings: DataSourceInstanceSettings,
-        private readonly backendSrv: BackendSrv
+        private readonly backendSrv: BackendSrv,
+        private readonly appEvents?: EventBus
     ) {
-        this.appEvents = getAppEvents();
+        this.appEvents = appEvents ?? getAppEvents();
     }
 
     public async createApiSession(): Promise<ApiSession> {
@@ -52,7 +45,7 @@ export class ApiSessionUtils {
             this.appEvents?.publish?.({
                 type: AppEvents.alertError.name,
                 payload: [
-                    'Error creating session',
+                    'An error occurred while creating a session',
                     errorMessage
                 ],
             });

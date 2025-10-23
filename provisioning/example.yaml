@@ -9,8 +9,8 @@ config: &config
   # Enable this to send credentials (cookies, headers, or TLS certs) with cross-site requests.
   # Necessary for session cookie authentication.
   withCredentials: true
+
   # Use API URL for API Key authentication (e.g. 'https://dev-api.lifecyclesolutions.ni.com/')
-  #
   # Use UI URL for session cookie authentication (e.g. 'https://dev.lifecyclesolutions.ni.com/')
   url: MY_SYSTEMLINK_API_URL
   jsonData:

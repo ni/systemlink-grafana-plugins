@@ -5,39 +5,38 @@ jest.mock('@grafana/runtime', () => ({
     ...jest.requireActual('@grafana/runtime'),
     getAppEvents: jest.fn(),
 }));
-jest.mock('./utils', () => ({
+jest.mock('../core/utils', () => ({
     post: jest.fn(),
 }));
 jest.resetModules();
 
-let post, getAppEvents, ApiSessionUtils;
-let mockGetAppEvents: jest.Mock;
-let mockPost: jest.Mock;
-
 describe('ApiSessionUtils', () => {
+    let post, getAppEvents, ApiSessionUtils;
     let instanceSettings: DataSourceInstanceSettings;
     let backendSrv: BackendSrv;
     let appEvents: { publish: any; };
     let apiSessionUtils: any;
+    let mockGetAppEvents: jest.Mock;
+    let mockPost: jest.Mock;
 
     beforeEach(async () => {
         // Dynamically import dependencies after mocks
         ApiSessionUtils = (await import('./api-session.utils')).ApiSessionUtils;
         getAppEvents = (await import('@grafana/runtime')).getAppEvents;
-        post = (await import('./utils')).post;
-
-        // Reset static cache before each test
-        (ApiSessionUtils as any)._sessionCache = undefined;
+        post = (await import('../core/utils')).post;
 
         mockGetAppEvents = getAppEvents as jest.Mock;
+        appEvents = { publish: jest.fn() };
+        mockGetAppEvents.mockReturnValue(appEvents);
+
         mockPost = post as jest.Mock;
 
         instanceSettings = { url: 'http://api-example.com' } as DataSourceInstanceSettings;
         backendSrv = {} as BackendSrv;
-        appEvents = { publish: jest.fn() };
-        mockGetAppEvents.mockReturnValue(appEvents);
-
         apiSessionUtils = new ApiSessionUtils(instanceSettings, backendSrv);
+
+        // Reset static cache before each test
+        (ApiSessionUtils as any)._sessionCache = undefined;
 
         mockPost.mockClear();
         appEvents.publish.mockClear();
@@ -59,6 +58,12 @@ describe('ApiSessionUtils', () => {
             const session = await apiSessionUtils.createApiSession();
 
             expect(mockPost).toHaveBeenCalledTimes(1);
+            expect(mockPost).toHaveBeenCalledWith(
+                backendSrv,
+                "http://api-example.com/user/create-api-session",
+                {},
+                { showErrorAlert: false },
+            );
             expect(session).toBe(newSession);
         });
 
@@ -70,6 +75,12 @@ describe('ApiSessionUtils', () => {
             const session2 = await apiSessionUtils.createApiSession();
 
             expect(mockPost).toHaveBeenCalledTimes(1);
+            expect(mockPost).toHaveBeenCalledWith(
+                backendSrv,
+                "http://api-example.com/user/create-api-session",
+                {},
+                { showErrorAlert: false },
+            );
             expect(session1).toBe(validSession);
             expect(session2).toBe(validSession);
         });
@@ -84,6 +95,13 @@ describe('ApiSessionUtils', () => {
             const session2 = await apiSessionUtils.createApiSession();
 
             expect(mockPost).toHaveBeenCalledTimes(2);
+            expect(mockPost).toHaveBeenNthCalledWith(
+                1,
+                backendSrv,
+                "http://api-example.com/user/create-api-session",
+                {},
+                { showErrorAlert: false },
+            );
             expect(session1).toBe(expiredSession);
             expect(session2).toBe(newSession);
         });
@@ -101,7 +119,7 @@ describe('ApiSessionUtils', () => {
             expect(appEvents.publish).toHaveBeenCalledWith({
                 type: AppEvents.alertError.name,
                 payload: [
-                    'Error creating session',
+                    'An error occurred while creating a session',
                     errorMessage
                 ],
             });

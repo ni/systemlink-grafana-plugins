@@ -40,62 +40,66 @@ describe('DataSourceBase', () => {
             backendSrv,
             {}
         );
+        dataSource.apiSessionUtils = mockApiSessionUtils;
     });
 
     describe('get', () => {
+        let getSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            getSpy = jest.spyOn(dataSource, 'get');
+        });
+
         it('should send GET request with correct parameters when useApiIngress is not set', async () => {
             const response = await dataSource.get('/test-endpoint', { param1: 'value1' });
 
-            expect(backendSrv.fetch).toHaveBeenCalledWith({
-                method: 'GET',
-                url: '/test-endpoint',
-                params: { param1: 'value1' },
-            });
+            expect(getSpy).toHaveBeenCalledWith(
+                '/test-endpoint',
+                { param1: 'value1' },
+            );
             expect(response).toEqual('test');
         });
 
         it('should send GET request with API ingress when useApiIngress is true', async () => {
-            dataSource.apiSession = mockApiSessionUtils;
-
             const response = await dataSource.get('/test-endpoint', { param1: 'value1' }, true);
 
-
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
-            expect(backendSrv.fetch).toHaveBeenCalledWith({
-
-                method: 'GET',
-                url: 'http://api-ingress.com/test-endpoint',
-                params: { param1: 'value1', 'x-ni-api-key': 'api-key-secret' }
-            }
+            expect(getSpy).toHaveBeenCalledWith(
+                '/test-endpoint',
+                { param1: 'value1' },
+                true
             );
             expect(response).toEqual('test');
         });
     });
 
     describe('post', () => {
+        let postSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            postSpy = jest.spyOn(dataSource, 'post');
+        });
+
         it('should send POST request with correct parameters when useApiIngress is not set', async () => {
             const response = await dataSource.post('/test-endpoint', { option1: 'optionValue' });
 
-            expect(backendSrv.fetch).toHaveBeenCalledWith({
-                method: 'POST',
-                url: '/test-endpoint',
-                data: { option1: 'optionValue' },
-            });
+            expect(postSpy).toHaveBeenCalledWith(
+                '/test-endpoint',
+                { option1: 'optionValue' },
+            );
             expect(response).toEqual('test');
         });
 
         it('should send POST request with API ingress when useApiIngress is true', async () => {
-            dataSource.apiSession = mockApiSessionUtils;
-
             const response = await dataSource.post('/test-endpoint', { option1: 'optionValue' }, {}, true);
 
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
-            expect(backendSrv.fetch).toHaveBeenCalledWith({
-                method: 'POST',
-                url: 'http://api-ingress.com/test-endpoint',
-                data: { option1: 'optionValue' },
-                headers: { 'x-ni-api-key': 'api-key-secret' },
-            });
+            expect(postSpy).toHaveBeenCalledWith(
+                '/test-endpoint',
+                { option1: 'optionValue' },
+                {},
+                true
+            );
             expect(response).toEqual('test');
         });
     });

@@ -69,12 +69,12 @@ connect to a SystemLink service running in the cloud.
    to enter the data source settings view.
 3. **Using API Ingress**
 
-   1. Enter the **URL** of the Stratus environment's API you wish to access (e.g., `https://test-api.lifecyclesolutions.ni.com`).
+   1. Enter the API ingress **URL** of the Stratus environment you want to access (e.g., `https://test-api.lifecyclesolutions.ni.com`).
    2. For authentication, click the **Add header** button. Create a custom header with the name `x-ni-api-key` and set its value to your [API key](https://ni-staging.zoominsoftware.io/docs/en-US/bundle/systemlink-enterprise/page/creating-an-api-key.html) for the SLE instance.
 
 4. **Using UI Ingress**
 
-   1. Enter the **URL** of the Stratus environment's UI you want to access (e.g., `https://test.lifecyclesolutions.ni.com`).
+   1. Enter the UI ingress **URL** of the Stratus environment you want to access (e.g., `https://test.lifecyclesolutions.ni.com`).
    2. Log in to the URL in your browser and navigate to the **Application Tab** to copy the cookie value.
    3. For authentication, enable the **With Credentials** toggle, click the **Add header** button, and create a custom header with the name `cookie` and set its value to the copied browser cookie.
 

@@ -11,11 +11,12 @@ import { BackendSrv, BackendSrvRequest, TemplateSrv, getAppEvents } from '@grafa
 import { DataQuery } from '@grafana/schema';
 import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
 import { get, post } from './utils';
-import { ApiSessionUtils } from './api-session.utils';
+import { ApiSessionUtils } from '../shared/api-session.utils';
 
 export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData = DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
+  readonly apiKeyHeader = 'x-ni-api-key';
   appEvents: EventBus;
-  apiSession: ApiSessionUtils;
+  apiSessionUtils: ApiSessionUtils;
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<TOptions>,
@@ -24,7 +25,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
   ) {
     super(instanceSettings);
     this.appEvents = getAppEvents();
-    this.apiSession = new ApiSessionUtils(instanceSettings, backendSrv);
+    this.apiSessionUtils = new ApiSessionUtils(instanceSettings, backendSrv, this.appEvents);
   }
 
   abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;
@@ -57,19 +58,18 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    */
   async get<T>(url: string, params?: Record<string, any>, useApiIngress = false) {
     if (useApiIngress) {
-      const apiSession = await this.apiSession.createApiSession();
+      const apiSession = await this.apiSessionUtils.createApiSession();
       if (apiSession) {
-        url = apiSession.endpoint + url.replace(this.instanceSettings.url ?? '', '');
+        url = this.constructApiUrl(apiSession.endpoint, url);
         params = {
           ...params,
-          'x-ni-api-key': apiSession.sessionKey.secret,
+          [this.apiKeyHeader]: apiSession.sessionKey.secret,
         };
       }
     }
 
     return get<T>(this.backendSrv, url, params);
   }
-
 
   /**
    * Sends a POST request to the specified URL with the provided request body and options.
@@ -90,19 +90,19 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     useApiIngress = false
   ) {
     if (useApiIngress) {
-      const apiSession = await this.apiSession.createApiSession();
+      const apiSession = await this.apiSessionUtils.createApiSession();
       if (apiSession) {
         options = {
           ...options,
           headers: {
             ...options.headers,
-            'x-ni-api-key': apiSession.sessionKey.secret,
+            [this.apiKeyHeader]: apiSession.sessionKey.secret,
           },
         };
-        url = apiSession.endpoint + url.replace(this.instanceSettings.url ?? '', '');
+        url = this.constructApiUrl(apiSession.endpoint, url);
       }
     }
-    
+
     return post<T>(this.backendSrv, url, body, options);
   }
 
@@ -124,5 +124,9 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     return await this.post<QuerySystemsResponse>(
       this.instanceSettings.url + '/nisysmgmt/v1/query-systems', body
     )
+  }
+
+  private constructApiUrl(apiEndpoint: string, url: string): string {
+    return apiEndpoint + url.replace(this.instanceSettings.url ?? '', '');
   }
 }
