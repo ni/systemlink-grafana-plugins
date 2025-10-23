@@ -1,3 +1,9 @@
+## [4.27.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.27.1...v4.27.2) (2025-10-23)
+
+### Bug Fixes
+
+* **dataframe:** Update properties labels ([#458](https://github.com/ni/systemlink-grafana-plugins/issues/458)) ([e24e117](https://github.com/ni/systemlink-grafana-plugins/commit/e24e1175a4075aa08d10955d62769346c67b8c5d))
+
 ## [4.27.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.27.0...v4.27.1) (2025-10-22)
 
 ### Bug Fixes
