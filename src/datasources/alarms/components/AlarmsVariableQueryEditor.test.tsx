@@ -117,32 +117,6 @@ describe('AlarmsVariableQueryEditor', () => {
     expect(mockOnChange).not.toHaveBeenCalled();
   });
 
-  it('should handle workspace loading errors gracefully', async () => {
-    const mockDatasourceWithLoadError = {
-      listAlarmsDataSource: {
-        loadWorkspaces: jest.fn().mockRejectedValue(new Error('Failed to load workspaces')),
-        globalVariableOptions: jest.fn(() => []),
-        get errorTitle() {
-          return undefined as string | undefined;
-        },
-        get errorDescription() {
-          return undefined as string | undefined;
-        }
-      }
-    } as unknown as AlarmsDataSource;
-
-    await act(async () => {
-      const reactNode = React.createElement(AlarmsVariableQueryEditor, {
-        ...defaultProps,
-        datasource: mockDatasourceWithLoadError
-      });
-      render(reactNode);
-    });
-
-    expect(screen.getByText('Query By')).toBeInTheDocument();
-    expect(mockDatasourceWithLoadError.listAlarmsDataSource.loadWorkspaces).toHaveBeenCalled();
-  });
-
   it('should pass correct props to AlarmsQueryBuilder', async () => {
     await renderElement({ refId: 'A', filter: 'existing filter' });
 
