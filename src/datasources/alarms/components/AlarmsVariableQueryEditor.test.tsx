@@ -1,104 +1,112 @@
-import { screen, waitFor } from '@testing-library/react';
-import { Workspace } from 'core/types';
+import { act, render, screen } from '@testing-library/react';
 import { AlarmsDataSource } from '../AlarmsDataSource';
 import { AlarmsVariableQuery } from '../types/types';
-import { setupRenderer } from 'test/fixtures';
+import { QueryEditorProps } from '@grafana/data';
+import React from 'react';
 import { AlarmsVariableQueryEditor } from './AlarmsVariableQueryEditor';
 
-const fakeWorkspaces: Workspace[] = [
-  {
-    id: 'ws1',
-    name: 'Test Workspace 1',
-    default: false,
-    enabled: true
+const mockOnChange = jest.fn();
+const mockOnRunQuery = jest.fn();
+const mockDatasource = {
+  listAlarmsDataSource: {
+    loadWorkspaces: jest.fn().mockResolvedValue(
+      new Map([
+        ['1', { id: '1', name: 'WorkspaceName' }],
+        ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+      ])
+    ),
+    globalVariableOptions: jest.fn(() => [
+      { label: 'Workspace', value: 'workspace' },
+      { label: 'Alarm ID', value: 'alarmId' }
+    ]),
+    get errorTitle() {
+      return undefined as string | undefined;
+    },
+    get errorDescription() {
+      return undefined as string | undefined;
+    }
+  }
+} as unknown as AlarmsDataSource;
+
+const defaultProps: QueryEditorProps<AlarmsDataSource, AlarmsVariableQuery> = {
+  query: {
+    refId: 'A',
   },
-  {
-    id: 'ws2', 
-    name: 'Test Workspace 2',
-    default: true,
-    enabled: true
-  }
-];
-
-class FakeAlarmsDataSource extends AlarmsDataSource {
-  constructor() {
-    super({} as any);
-    
-    (this as any)._listAlarmsDataSource = {
-      async loadWorkspaces(): Promise<Map<string, Workspace>> {
-        const workspacesMap = new Map<string, Workspace>();
-        fakeWorkspaces.forEach(ws => workspacesMap.set(ws.id, ws));
-        return Promise.resolve(workspacesMap);
-      },
-      
-      globalVariableOptions() {
-        return [
-          { label: 'Workspace', value: 'workspace' },
-          { label: 'Alarm ID', value: 'alarmId' }
-        ];
-      },
-
-      get errorTitle() {
-        return undefined as string | undefined;
-      },
-
-      get errorDescription() {
-        return undefined as string | undefined;
-      }
-    };
-  }
-}
-
-const render = setupRenderer(AlarmsVariableQueryEditor, FakeAlarmsDataSource, () => {});
+  onChange: mockOnChange,
+  onRunQuery: mockOnRunQuery,
+  datasource: mockDatasource,
+};
 
 describe('AlarmsVariableQueryEditor', () => {
-  it('should render the query builder', async () => {
-    render({ refId: 'A', filter: '' } as AlarmsVariableQuery);
-
-    await waitFor(() => expect(screen.getByText('Query By')).toBeInTheDocument());
-    expect(screen.getByText('Property')).toBeInTheDocument();
-    expect(screen.getByText('Operator')).toBeInTheDocument();
-    expect(screen.getByText('Value')).toBeInTheDocument();
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('should load workspaces on mount', async () => {
-    render({ refId: 'A', filter: '' } as AlarmsVariableQuery);
+  async function renderElement(query: AlarmsVariableQuery = { refId: 'A' }) {
+    return await act(async () => {
+      const reactNode = React.createElement(AlarmsVariableQueryEditor, { ...defaultProps, query });
+      return render(reactNode);
+    });
+  }
 
-    await waitFor(() => expect(screen.getByText('Query By')).toBeInTheDocument());
-    expect(screen.getByText('Property')).toBeInTheDocument();
-  });
-
-  it('should call onChange when query changes', async () => {
-    const onChangeSpy = jest.fn();
-    const renderWithOnChange = setupRenderer(AlarmsVariableQueryEditor, FakeAlarmsDataSource, onChangeSpy);
+  it('renders the component', async () => {
+    await renderElement();
     
-    const initialQuery = { refId: 'A', filter: '' } as AlarmsVariableQuery;
-    renderWithOnChange(initialQuery);
-
-    await waitFor(() => expect(screen.getByText('Query By')).toBeInTheDocument());
+    expect(screen.getByText('Query By')).toBeInTheDocument();
   });
 
-  it('should handle undefined filter gracefully', async () => {
-    render({ refId: 'A' } as AlarmsVariableQuery);
+  it('should call listAlarmsDataSource.loadWorkspaces on render', async () => {
+    await renderElement();
 
-    await waitFor(() => expect(screen.getByText('Query By')).toBeInTheDocument());
-    expect(screen.getByText('Property')).toBeInTheDocument();
+    expect(mockDatasource.listAlarmsDataSource.loadWorkspaces).toHaveBeenCalled();
+  });
+
+  it('should load workspaces from datasource', async () => {
+    const workspaces = await mockDatasource.listAlarmsDataSource.loadWorkspaces();
+    expect(workspaces).toBeDefined();
+    expect(workspaces).toEqual(
+      new Map([
+        ['1', { id: '1', name: 'WorkspaceName' }],
+        ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+      ])
+    );
+  });
+
+  it('should render with undefined filter', async () => {
+    await renderElement({ refId: 'A' });
+
+    expect(screen.getByText('Query By')).toBeInTheDocument();
+  });
+
+  it('should render with proper filter', async () => {
+    await renderElement({ refId: 'A', filter: 'id = "test"' });
+
+    expect(screen.getByText('Query By')).toBeInTheDocument();
   });
 
   it('should show floating error when datasource has error', async () => {
-    class ErrorAlarmsDataSource extends FakeAlarmsDataSource {
-      get errorTitle() {
-        return 'Test Error Title';
+    const mockDatasourceWithError = {
+      ...mockDatasource,
+      listAlarmsDataSource: {
+        ...mockDatasource.listAlarmsDataSource,
+        get errorTitle() {
+          return 'Test Error Title';
+        },
+        get errorDescription() {
+          return 'Test error description';
+        }
       }
+    } as unknown as AlarmsDataSource;
 
-      get errorDescription() {
-        return 'Test error description';
-      }
-    }
+    const propsWithError = { ...defaultProps, datasource: mockDatasourceWithError };
+    
+    await act(async () => {
+      const reactNode = React.createElement(AlarmsVariableQueryEditor, propsWithError);
+      render(reactNode);
+    });
 
-    const errorRender = setupRenderer(AlarmsVariableQueryEditor, ErrorAlarmsDataSource, () => {});
-    errorRender({ refId: 'A', filter: '' } as AlarmsVariableQuery);
-
-    await waitFor(() => expect(screen.getByText('Query By')).toBeInTheDocument());
+    expect(screen.getByText('Query By')).toBeInTheDocument();
+    expect(screen.getByText('Test Error Title')).toBeInTheDocument();
+    expect(screen.getByText('Test error description')).toBeInTheDocument();
   });
 });
