@@ -27,6 +27,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
 
   abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;
 
+  // TODO: AB#3442981 - Make this return type Observable
   abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrameDTO> | Observable<DataFrameDTO>;
 
   abstract shouldRunQuery(query: TQuery): boolean;

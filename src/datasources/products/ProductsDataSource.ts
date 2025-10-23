@@ -7,7 +7,7 @@ import { extractErrorInfo } from 'core/errors';
 import { ExpressionTransformFunction, transformComputedFieldsQuery, buildExpressionFromTemplate } from 'core/query-builder.utils';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
-import { getWorkspaceName, postV1 } from 'core/utils';
+import { getWorkspaceName, postDataAsObservable } from 'core/utils';
 import { catchError, concatMap, from, lastValueFrom, map, Observable, of } from 'rxjs';
 
 export class ProductsDataSource extends DataSourceBase<ProductQuery> {
@@ -64,7 +64,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     descending = false,
     returnCount = false
   ): Observable<QueryProductResponse> {
-    return postV1<QueryProductResponse>(
+    return postDataAsObservable<QueryProductResponse>(
       this.backendSrv,
       this.queryProductsUrl,
       {

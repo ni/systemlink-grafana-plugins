@@ -3,7 +3,7 @@ import { useAsync } from 'react-use';
 import { DataSourceBase } from './DataSourceBase';
 import { BatchQueryConfig, QBField, QueryBuilderOption, QueryResponse, SystemLinkError, Workspace } from './types';
 import { BackendSrv, BackendSrvRequest, FetchError, isFetchError, TemplateSrv } from '@grafana/runtime';
-import { catchError, lastValueFrom, mergeMap, Observable, retry, throwError, timer } from 'rxjs';
+import { catchError, delayWhen, lastValueFrom, map, mergeMap, Observable, of, retry, throwError, timer } from 'rxjs';
 
 export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<SelectableValue<T>> {
   const RESULT = [];
@@ -272,8 +272,17 @@ export function get<T>(backendSrv: BackendSrv, url: string, params?: Record<stri
   return fetch<T>(backendSrv, { method: 'GET', url, params });
 }
 
-export function getV1<T>(backendSrv: BackendSrv, url: string, params?: Record<string, any>) {
-  return fetchV1<T>(backendSrv, { method: 'GET', url, params });
+/**
+ * Sends a GET request to the specified URL with the provided parameters.
+ *
+ * @template T - The expected response type.
+ * @param backendSrv - The Backend Service instance {@link BackendSrv} used to make the request.
+ * @param url - The endpoint URL to which the GET request is sent.
+ * @param params - The query parameters to be included in the request.
+ * @returns An observable emitting the response of type `T`.
+ */
+export function getDataAsObservable<T>(backendSrv: BackendSrv, url: string, params?: Record<string, any>) {
+  return fetchDataAsObservable<T>(backendSrv, { method: 'GET', url, params });
 }
 
 /**
@@ -292,8 +301,20 @@ export function post<T>(backendSrv: BackendSrv, url: string, body: Record<string
   return fetch<T>(backendSrv, { method: 'POST', url, data: body, ...options });
 }
 
-export function postV1<T>(backendSrv: BackendSrv, url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}) {
-  return fetchV1<T>(backendSrv, { method: 'POST', url, data: body, ...options });
+/**
+ * Sends a POST request to the specified URL with the provided request body and options.
+ *
+ * @template T - The expected response type.
+ * @param backendSrv - The Backend Service instance {@link BackendSrv} used to make the request.
+ * @param url - The endpoint URL to which the POST request is sent.
+ * @param body - The request payload as a key-value map.
+ * @param options - Optional configuration for the request. This can include:
+ *   - `showingErrorAlert` (boolean): If true, displays an error alert on request failure.
+ *   - Any other properties supported by {@link BackendSrvRequest}, such as headers, credentials, etc.
+ * @returns An observable emitting the response of type `T`.
+ */
+export function postDataAsObservable<T>(backendSrv: BackendSrv, url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}) {
+  return fetchDataAsObservable<T>(backendSrv, { method: 'POST', url, data: body, ...options });
 }
 
 export const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]) => {
@@ -341,35 +362,25 @@ async function fetch<T>(backendSrv: BackendSrv, options: BackendSrvRequest, retr
   }
 }
 
-export function fetchV1<T>(backendSrv: BackendSrv, options: BackendSrvRequest): Observable<T> {
+function fetchDataAsObservable<T>(
+  backendSrv: BackendSrv,
+  options: BackendSrvRequest,
+  retries = 0
+): Observable<T> {
   const url = options.url;
   const maxRetries = 3;
 
   return backendSrv.fetch<T>(options).pipe(
-    // unwrap response
-    mergeMap((response) => new Observable<T>((observer) => {
-      observer.next(response.data);
-      observer.complete();
-    })),
-
-    // retry with exponential backoff for 429s
-    retry({
-      count: maxRetries,
-      delay: (error, retryCount) => {
-        if (isFetchError(error) && error.status === 429 && retryCount <= maxRetries) {
-          const delayMs = Math.random() * 1000 * 2 ** (retryCount - 1);
-          console.warn(
-            `[fetch$] Retry ${retryCount}/${maxRetries} after ${Math.round(delayMs)}ms for ${url}`
-          );
-          return timer(delayMs);
-        }
-        // stop retrying for other errors
-        return throwError(() => error);
-      },
-    }),
-
-    // replicate your detailed error handling
+    map((response) => response.data),
     catchError((error) => {
+      if (isFetchError(error) && error.status === 429 && retries < maxRetries) {
+        const delayMs = Math.random() * 1000 * 2 ** retries;
+        return timer(delayMs).pipe(
+          delayWhen(() => of(null)),
+          mergeMap(() => fetchDataAsObservable<T>(backendSrv, options, retries + 1))
+        );
+      }
+
       if (isFetchError(error)) {
         const fetchError = error as FetchError;
         const statusCode = fetchError.status;
@@ -379,11 +390,14 @@ export function fetchV1<T>(backendSrv: BackendSrv, options: BackendSrvRequest): 
           return throwError(() => new Error(genericErrorMessage));
         } else {
           const data = fetchError.data;
-          const errorMessage = data.error?.message || JSON.stringify(data);
-          return throwError(() => new Error(`${genericErrorMessage} Error message: ${errorMessage}`));
+          const errorMessage = data?.error?.message || JSON.stringify(data);
+          return throwError(
+            () => new Error(`${genericErrorMessage} Error message: ${errorMessage}`)
+          );
         }
       }
+
       return throwError(() => error);
-    }),
+    })
   );
 }
