@@ -249,8 +249,9 @@ describe('ListAlarmsDataSource', () => {
         refId: 'A',
         filter: 'workspace = "Lab-1"'
       };
+      const options = undefined;
 
-      const result = await datastore.metricFindQuery(query);
+      const result = await datastore.metricFindQuery(query, options);
 
       expect(result).toEqual([
         { text: 'High Temperature Alarm (INST-001)', value: 'INST-001' },
