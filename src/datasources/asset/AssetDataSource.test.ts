@@ -368,19 +368,6 @@ describe('queries', () => {
     await expect(firstValueFrom(ds.query(buildMetadataQuery(assetMetadataQueryMock)))).rejects.toThrow()
   })
 
-  describe('queryReturnType', () => {
-    it('should return default QueryReturnType.AssetTagPath', () => {
-      const returnType = ds.getQueryReturnType();
-      expect(returnType).toBe(AssetQueryReturnType.AssetTagPath);
-    });
-
-    it('should set and get QueryReturnType correctly', () => {
-      ds.setQueryReturnType(AssetQueryReturnType.AssetId);
-      const returnType = ds.getQueryReturnType();
-      expect(returnType).toBe(AssetQueryReturnType.AssetId);
-    });
-  });
-
   describe('metricFindQuery', () => {
     it('returns name/alias when asset name field is present', async () => {
       const query: AssetVariableQuery = {
@@ -425,13 +412,12 @@ describe('queries', () => {
     })
 
     it('returns name/alias with id as value when return type is AssetId', async () => {
-      ds.setQueryReturnType(AssetQueryReturnType.AssetId);
-
       const query: AssetVariableQuery = {
         filter: '',
         type: AssetQueryType.None,
         refId: "",
         take: 10,
+        queryReturnType: AssetQueryReturnType.AssetId,
       }
 
       backendSrv.fetch
@@ -448,13 +434,12 @@ describe('queries', () => {
     })
 
     it('returns default identifier with id as value when return type is AssetId and asset name is not present', async () => {
-      ds.setQueryReturnType(AssetQueryReturnType.AssetId);
-
       const query: AssetVariableQuery = {
         filter: '',
         type: AssetQueryType.None,
         refId: "",
         take: 10,
+        queryReturnType: AssetQueryReturnType.AssetId,
       };
 
       backendSrv.fetch

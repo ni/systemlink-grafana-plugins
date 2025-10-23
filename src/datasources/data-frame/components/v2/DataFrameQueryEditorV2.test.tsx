@@ -1,24 +1,66 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
-import { DataFrameDataSourceV1 } from "../../datasources/v1/DataFrameDataSourceV1";
-import { DataFrameQueryV1, DataFrameQueryType } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType } from "../../types";
+import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
+import { QueryBuilderOption, Workspace } from "core/types";
 
 jest.mock("./query-builders/DataTableQueryBuilder", () => ({
-    DataTableQueryBuilder: () => <div data-testid="data-table-query-builder" />
+    DataTableQueryBuilder: (
+        props: {
+            workspaces?: Workspace[];
+            globalVariableOptions: QueryBuilderOption[];
+        }
+    ) => (
+        <div data-testid="data-table-query-builder">
+            <ul data-testid="workspaces-list">
+                {props.workspaces && props.workspaces.map(workspace => (
+                    <li key={workspace.id}>{workspace.name}</li>
+                ))}
+            </ul>
+            <ul data-testid="global-variable-options-list">
+                {props.globalVariableOptions && props.globalVariableOptions.map(option => (
+                    <li key={option.label}>{`${option.label}:${option.value}`}</li>
+                ))}
+            </ul>
+        </div>
+    )
 }));
 
-const renderComponent = (queryOverrides: Partial<DataFrameQueryV1> = {}) => {
+const renderComponent = (
+    queryOverrides: Partial<DataFrameQueryV2> = {},
+    errorTitle = '',
+    errorDescription = ''
+) => {
     const onChange = jest.fn();
     const onRunQuery = jest.fn();
-    const processQuery = jest.fn<DataFrameQueryV1, [DataFrameQueryV1]>().mockImplementation(query => ({ ...query }));
-    const datasource = { processQuery } as unknown as DataFrameDataSourceV1;
+    const processQuery = jest
+        .fn<DataFrameQueryV2, [DataFrameQueryV2]>()
+        .mockImplementation(query => ({ ...query }));
+    const datasource = {
+        errorTitle,
+        errorDescription,
+        processQuery,
+        loadWorkspaces: jest.fn().mockResolvedValue(
+            [
+                { id: '1', name: 'WorkspaceName' },
+                { id: '2', name: 'AnotherWorkspaceName' },
+            ]
+        ),
+        globalVariableOptions: jest.fn().mockReturnValue(
+            [
+                { label: 'Var1', value: 'Value1' },
+                { label: 'Var2', value: 'Value2' },
+            ]
+        ),
+    } as unknown as DataFrameDataSource;
+
     const initialQuery = {
-        refId: "A",
+        refId: 'A',
         type: DataFrameQueryType.Data,
         ...queryOverrides,
-    } as DataFrameQueryV1;
+    } as DataFrameQueryV2;
 
     const renderResult = render(
         <DataFrameQueryEditorV2
@@ -97,6 +139,24 @@ describe("DataFrameQueryEditorV2", () => {
                 expect(screen.queryByPlaceholderText("Enter record count")).not.toBeInTheDocument();
             });
         });
+
+        it("should show the column configuration controls when the query type is data", async () => {
+            await waitFor(() => {
+                expect(screen.getByText("Column configurations")).toBeInTheDocument();
+                expect(screen.getByText("Columns")).toBeInTheDocument();
+                expect(screen.getByText("Include index columns")).toBeInTheDocument();
+                expect(screen.getByText("Filter nulls")).toBeInTheDocument();
+            });
+        });
+
+        it("should show the decimation settings controls when the query type is data", async () => {
+            await waitFor(() => {
+                expect(screen.getByText("Decimation settings")).toBeInTheDocument();
+                expect(screen.getByText("Decimation method")).toBeInTheDocument();
+                expect(screen.getByText("X-column")).toBeInTheDocument();
+                expect(screen.getByText("Use time range")).toBeInTheDocument();
+            });
+        });
     });
 
     describe("when the query type is properties", () => {
@@ -110,15 +170,48 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
-        it("should show the data table properties field", async () => {
-            await waitFor(() => {
-                expect(screen.getByText("Select data table properties to fetch")).toBeInTheDocument();
+        describe("properties fields", () => {
+            it("should show the data table properties field", async () => {
+                await waitFor(() => {
+                    expect(screen.getByText("Select data table properties to fetch")).toBeInTheDocument();
+                });
             });
-        });
 
-        it("should show the column properties field", async () => {
-            await waitFor(() => {
-                expect(screen.getByText("Select column properties to fetch")).toBeInTheDocument();
+            it("should show the column properties field", async () => {
+                await waitFor(() => {
+                    expect(screen.getByText("Select column properties to fetch")).toBeInTheDocument();
+                });
+            });
+
+            it("should show the expected options in the data table properties field", async () => {
+                const dataTablePropertiesField = screen.getByText("Select data table properties to fetch");
+                await userEvent.click(dataTablePropertiesField);
+
+                await waitFor(() => {
+                    expect(document.body).toHaveTextContent("Data table name");
+                    expect(document.body).toHaveTextContent("Data table ID");
+                    expect(document.body).toHaveTextContent("Number of rows");
+                    expect(document.body).toHaveTextContent("Number of columns");
+                    expect(document.body).toHaveTextContent("Created at");
+                    expect(document.body).toHaveTextContent("Workspace");
+                    expect(document.body).toHaveTextContent("Metadata modified at");
+                    expect(document.body).toHaveTextContent("Metadata revision");
+                    expect(document.body).toHaveTextContent("Rows modified at");
+                    expect(document.body).toHaveTextContent("Supports append");
+                    expect(document.body).toHaveTextContent("Properties");
+                });
+            });
+
+            it("should show the expected options in the column properties field", async () => {
+                const columnPropertiesField = screen.getByText("Select column properties to fetch");
+                await userEvent.click(columnPropertiesField);
+
+                await waitFor(() => {
+                    expect(document.body).toHaveTextContent("Column name");
+                    expect(document.body).toHaveTextContent("Column data type");
+                    expect(document.body).toHaveTextContent("Column type");
+                    expect(document.body).toHaveTextContent("Column properties");
+                });
             });
         });
 
@@ -170,4 +263,48 @@ describe("DataFrameQueryEditorV2", () => {
         });
     });
 
+    describe("DataTableQueryBuilder props", () => {
+        it("should pass the workspaces to the DataTableQueryBuilder component", async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                const workspacesList = screen.getByTestId("workspaces-list");
+                expect(workspacesList).toBeInTheDocument();
+                expect(within(workspacesList).getByText("WorkspaceName")).toBeInTheDocument();
+                expect(within(workspacesList).getByText("AnotherWorkspaceName")).toBeInTheDocument();
+            });
+        });
+
+        it("should pass the global variable options to the DataTableQueryBuilder component", async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                const optionsList = screen.getByTestId("global-variable-options-list");
+                expect(optionsList).toBeInTheDocument();
+                expect(within(optionsList).getByText("Var1:Value1")).toBeInTheDocument();
+                expect(within(optionsList).getByText("Var2:Value2")).toBeInTheDocument();
+            });
+        });
+    });
+
+    describe("floating error", () => {
+        it("should not be rendered when there is no error", async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+            });
+        });
+
+        it("should be rendered when there is an error", async () => {
+            renderComponent({}, "Test error title", "Test error description");
+
+            await waitFor(() => {
+                const alert = screen.getByRole("alert");
+                expect(alert).toBeInTheDocument();
+                expect(within(alert).getByText("Test error title")).toBeInTheDocument();
+                expect(within(alert).getByText("Test error description")).toBeInTheDocument();
+            });
+        });
+    });
 });

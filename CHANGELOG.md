@@ -1,3 +1,69 @@
+## [4.27.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.27.0...v4.27.1) (2025-10-22)
+
+### Bug Fixes
+
+* **dataframe:** Query type not set by default ([#451](https://github.com/ni/systemlink-grafana-plugins/issues/451)) ([bbb202a](https://github.com/ni/systemlink-grafana-plugins/commit/bbb202a0d7101bc0de54acfa060c3764a9e06feb))
+
+## [4.27.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.26.0...v4.27.0) (2025-10-22)
+
+### Features
+
+* **dataframe:** Provide global variable options to query builder ([#449](https://github.com/ni/systemlink-grafana-plugins/issues/449)) ([2d1ba6d](https://github.com/ni/systemlink-grafana-plugins/commit/2d1ba6dcdd277dcfe4a4275cd79b28b72592d54e))
+
+## [4.26.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.25.0...v4.26.0) (2025-10-22)
+
+### Features
+
+* **dataframe:** Add lookup options for workspace ([#448](https://github.com/ni/systemlink-grafana-plugins/issues/448)) ([30d088e](https://github.com/ni/systemlink-grafana-plugins/commit/30d088e09e912ab7dd087825244b1f8dcfee3740))
+
+## [4.25.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.24.0...v4.25.0) (2025-10-17)
+
+### Features
+
+* **dataframe:** Add decimation settings controls ([#445](https://github.com/ni/systemlink-grafana-plugins/issues/445)) ([ac1fb32](https://github.com/ni/systemlink-grafana-plugins/commit/ac1fb32fbe95d6924fb47b915f203e1e0389e17a))
+
+## [4.24.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.23.0...v4.24.0) (2025-10-17)
+
+### Features
+
+* **dataframe:** Add column configuration controls ([#435](https://github.com/ni/systemlink-grafana-plugins/issues/435)) ([b3e18b0](https://github.com/ni/systemlink-grafana-plugins/commit/b3e18b086d8e666a4d9e5409f76ac5362b886495))
+
+## [4.23.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.22.0...v4.23.0) (2025-10-17)
+
+### Features
+
+* **dataframe:** Add properties options ([#443](https://github.com/ni/systemlink-grafana-plugins/issues/443)) ([72a62aa](https://github.com/ni/systemlink-grafana-plugins/commit/72a62aaa53f51fdb49de1ad45b024c9f0cd06d0b))
+
+## [4.22.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.21.3...v4.22.0) (2025-10-17)
+
+### Features
+
+* **dataframe:** Introduce top level DataFrameDataSource ([#427](https://github.com/ni/systemlink-grafana-plugins/issues/427)) ([dd20a0a](https://github.com/ni/systemlink-grafana-plugins/commit/dd20a0a4e87b4213fe0cfd593431ec52af29fb6d))
+
+## [4.21.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.21.2...v4.21.3) (2025-10-17)
+
+### Bug Fixes
+
+* **alarms:** Set plugin state to beta in plugin.json ([#444](https://github.com/ni/systemlink-grafana-plugins/issues/444)) ([70e2144](https://github.com/ni/systemlink-grafana-plugins/commit/70e2144035b7e5cc461dd0b3108c8a87ad9e3e1f))
+
+## [4.21.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.21.1...v4.21.2) (2025-10-16)
+
+### Bug Fixes
+
+* **assets:** fix field ordering ([#442](https://github.com/ni/systemlink-grafana-plugins/issues/442)) ([39b8715](https://github.com/ni/systemlink-grafana-plugins/commit/39b8715b7c9b5abe2c0abf490e9d9a668a1fcf96))
+
+## [4.21.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.21.0...v4.21.1) (2025-10-16)
+
+### Bug Fixes
+
+* **asset:** update returnType management for Asset Variable Query ([#437](https://github.com/ni/systemlink-grafana-plugins/issues/437)) ([3208260](https://github.com/ni/systemlink-grafana-plugins/commit/3208260b694b48562cb06f50828a680b65031c68))
+
+## [4.21.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.20.0...v4.21.0) (2025-10-16)
+
+### Features
+
+* **alarms:** Support filtering alarms by source ([#432](https://github.com/ni/systemlink-grafana-plugins/issues/432)) ([3754c6f](https://github.com/ni/systemlink-grafana-plugins/commit/3754c6f8b0c5b55fb115295f199e06019a854377))
+
 ## [4.20.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.19.2...v4.20.0) (2025-10-15)
 
 ### Features
