@@ -91,26 +91,29 @@ describe('DataSourceBase', () => {
         });
 
         it('should send POST request with correct parameters when useApiIngress is not set', async () => {
-            const response = await dataSource.post('/test-endpoint', { option1: 'optionValue' });
+            const response = await dataSource.post('/test-endpoint', { body: 'body' }, { option1: 'optionValue' });
 
             expect(mockPost).toHaveBeenCalledWith(
                 backendSrv,
                 '/test-endpoint',
-                { option1: 'optionValue' },
-                {}
+                { body: 'body' },
+                { option1: 'optionValue' }
             );
             expect(response).toEqual('test');
         });
 
         it('should send POST request with API ingress when useApiIngress is true', async () => {
-            const response = await dataSource.post('/test-endpoint', { option1: 'optionValue' }, {}, true);
+            const response = await dataSource.post('/test-endpoint', { body: 'body' }, { option1: 'optionValue' }, true);
 
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
             expect(mockPost).toHaveBeenCalledWith(
                 backendSrv,
                 "http://api-ingress.com/test-endpoint",
-                { option1: 'optionValue' },
-                { headers: { "x-ni-api-key": "api-key-secret" } },
+                { body: 'body' },
+                {
+                    option1: 'optionValue',
+                    headers: { "x-ni-api-key": "api-key-secret" }
+                },
             );
             expect(response).toEqual('test');
         });
