@@ -90,7 +90,7 @@ export enum DataTableProjectionType {
 export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
   label: string,
   projection: readonly DataTableProjections[],
-  type: DataTableProjectionType
+  type: DataTableProjectionType;
 }> = {
   [DataTableProperties.Name]: {
     label: 'Data table name',
@@ -103,17 +103,17 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.RowCount]: {
-    label: 'Number of rows',
+    label: 'Rows',
     projection: [DataTableProjections.RowCount],
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.ColumnCount]: {
-    label: 'Number of columns',
+    label: 'Columns',
     projection: [DataTableProjections.columnCount],
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.CreatedAt]: {
-    label: 'Created at',
+    label: 'Created',
     projection: [DataTableProjections.CreatedAt],
     type: DataTableProjectionType.DataTable
   },
@@ -123,7 +123,7 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.MetadataModifiedAt]: {
-    label: 'Metadata modified at',
+    label: 'Metadata modified',
     projection: [DataTableProjections.MetadataModifiedAt],
     type: DataTableProjectionType.DataTable
   },
@@ -133,7 +133,7 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.RowsModifiedAt]: {
-    label: 'Rows modified at',
+    label: 'Rows modified',
     projection: [DataTableProjections.RowsModifiedAt],
     type: DataTableProjectionType.DataTable
   },
@@ -163,7 +163,7 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.Properties]: {
-    label: 'Custom Properties',
+    label: 'Data table properties',
     projection: [DataTableProjections.Properties],
     type: DataTableProjectionType.DataTable
   },
@@ -192,14 +192,14 @@ export interface Column {
 export interface ColumnFilter {
   column: string;
   operation:
-    | 'EQUALS'
-    | 'LESS_THAN'
-    | 'LESS_THAN_EQUALS'
-    | 'GREATER_THAN'
-    | 'GREATER_THAN_EQUALS'
-    | 'NOT_EQUALS'
-    | 'CONTAINS'
-    | 'NOT_CONTAINS';
+  | 'EQUALS'
+  | 'LESS_THAN'
+  | 'LESS_THAN_EQUALS'
+  | 'GREATER_THAN'
+  | 'GREATER_THAN_EQUALS'
+  | 'NOT_EQUALS'
+  | 'CONTAINS'
+  | 'NOT_CONTAINS';
   value: string | null;
 }
 
@@ -217,7 +217,7 @@ export interface TablePropertiesList {
 }
 
 export interface TableDataRows {
-  frame: { columns: string[]; data: string[][] };
+  frame: { columns: string[]; data: string[][]; };
 }
 
 export interface DataFrameFeatureToggles {

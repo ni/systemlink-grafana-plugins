@@ -190,15 +190,15 @@ describe("DataFrameQueryEditorV2", () => {
                 await waitFor(() => {
                     expect(document.body).toHaveTextContent("Data table name");
                     expect(document.body).toHaveTextContent("Data table ID");
-                    expect(document.body).toHaveTextContent("Number of rows");
-                    expect(document.body).toHaveTextContent("Number of columns");
-                    expect(document.body).toHaveTextContent("Created at");
+                    expect(document.body).toHaveTextContent("Rows");
+                    expect(document.body).toHaveTextContent("Columns");
+                    expect(document.body).toHaveTextContent("Created");
                     expect(document.body).toHaveTextContent("Workspace");
-                    expect(document.body).toHaveTextContent("Metadata modified at");
+                    expect(document.body).toHaveTextContent("Metadata modified");
                     expect(document.body).toHaveTextContent("Metadata revision");
-                    expect(document.body).toHaveTextContent("Rows modified at");
+                    expect(document.body).toHaveTextContent("Rows modified");
                     expect(document.body).toHaveTextContent("Supports append");
-                    expect(document.body).toHaveTextContent("Properties");
+                    expect(document.body).toHaveTextContent("Data table properties");
                 });
             });
 
