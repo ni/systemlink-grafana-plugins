@@ -72,36 +72,34 @@ describe('AlarmsDataSource', () => {
     });
   });
 
-  describe('Variable Query Support', () => {
-    describe('metricFindQuery', () => {
-      it('should delegate to ListAlarmsDataSource', async () => {
-        const mockQuery: AlarmsVariableQuery = { refId: 'A', filter: 'workspace = "Lab-1"' };
-        const mockOptions = { scopedVars: {} };
-        const mockResult = [
-          { text: 'High Temperature Alarm (INST-001)', value: 'INST-001' }
-        ];
+  describe('metricFindQuery', () => {
+    it('should delegate to ListAlarmsDataSource', async () => {
+      const mockQuery: AlarmsVariableQuery = { refId: 'A', filter: 'workspace = "Lab-1"' };
+      const mockOptions = { scopedVars: {} };
+      const mockResult = [
+        { text: 'High Temperature Alarm (INST-001)', value: 'INST-001' }
+      ];
 
-        jest.spyOn(datastore.listAlarmsDataSource, 'metricFindQuery').mockResolvedValue(mockResult);
+      jest.spyOn(datastore.listAlarmsDataSource, 'metricFindQuery').mockResolvedValue(mockResult);
 
-        const result = await datastore.metricFindQuery(mockQuery, mockOptions);
+      const result = await datastore.metricFindQuery(mockQuery, mockOptions);
 
-        expect(datastore.listAlarmsDataSource.metricFindQuery).toHaveBeenCalledWith(mockQuery, mockOptions);
-        expect(result).toBe(mockResult);
-      });
+      expect(datastore.listAlarmsDataSource.metricFindQuery).toHaveBeenCalledWith(mockQuery, mockOptions);
+      expect(result).toBe(mockResult);
+    });
 
-      it('should work without options', async () => {
-        const mockQuery: AlarmsVariableQuery = { refId: 'A', filter: undefined };
-        const mockResult = [
-          { text: 'System Error Alarm (INST-002)', value: 'INST-002' }
-        ];
+    it('should work without options', async () => {
+      const mockQuery: AlarmsVariableQuery = { refId: 'A', filter: undefined };
+      const mockResult = [
+        { text: 'System Error Alarm (INST-002)', value: 'INST-002' }
+      ];
 
-        jest.spyOn(datastore.listAlarmsDataSource, 'metricFindQuery').mockResolvedValue(mockResult);
+      jest.spyOn(datastore.listAlarmsDataSource, 'metricFindQuery').mockResolvedValue(mockResult);
 
-        const result = await datastore.metricFindQuery(mockQuery);
+      const result = await datastore.metricFindQuery(mockQuery);
 
-        expect(datastore.listAlarmsDataSource.metricFindQuery).toHaveBeenCalledWith(mockQuery, undefined);
-        expect(result).toBe(mockResult);
-      });
+      expect(datastore.listAlarmsDataSource.metricFindQuery).toHaveBeenCalledWith(mockQuery, undefined);
+      expect(result).toBe(mockResult);
     });
   });
 

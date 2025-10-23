@@ -52,8 +52,8 @@ class FakeAlarmsDataSource extends AlarmsDataSource {
 const render = setupRenderer(AlarmsVariableQueryEditor, FakeAlarmsDataSource, () => {});
 
 describe('AlarmsVariableQueryEditor', () => {
-  it('renders the query builder', async () => {
-    render({ refId: 'A', queryBy: '' } as AlarmsVariableQuery);
+  it('should render the query builder', async () => {
+    render({ refId: 'A', filter: '' } as AlarmsVariableQuery);
 
     await waitFor(() => expect(screen.getByText('Query By')).toBeInTheDocument());
     expect(screen.getByText('Property')).toBeInTheDocument();
@@ -61,31 +61,31 @@ describe('AlarmsVariableQueryEditor', () => {
     expect(screen.getByText('Value')).toBeInTheDocument();
   });
 
-  it('loads workspaces on mount', async () => {
-    render({ refId: 'A', queryBy: '' } as AlarmsVariableQuery);
+  it('should load workspaces on mount', async () => {
+    render({ refId: 'A', filter: '' } as AlarmsVariableQuery);
 
     await waitFor(() => expect(screen.getByText('Query By')).toBeInTheDocument());
     expect(screen.getByText('Property')).toBeInTheDocument();
   });
 
-  it('calls onChange when query changes', async () => {
+  it('should call onChange when query changes', async () => {
     const onChangeSpy = jest.fn();
     const renderWithOnChange = setupRenderer(AlarmsVariableQueryEditor, FakeAlarmsDataSource, onChangeSpy);
     
-    const initialQuery = { refId: 'A', queryBy: '' } as AlarmsVariableQuery;
+    const initialQuery = { refId: 'A', filter: '' } as AlarmsVariableQuery;
     renderWithOnChange(initialQuery);
 
     await waitFor(() => expect(screen.getByText('Query By')).toBeInTheDocument());
   });
 
-  it('handles undefined queryBy gracefully', async () => {
+  it('should handle undefined filter gracefully', async () => {
     render({ refId: 'A' } as AlarmsVariableQuery);
 
     await waitFor(() => expect(screen.getByText('Query By')).toBeInTheDocument());
     expect(screen.getByText('Property')).toBeInTheDocument();
   });
 
-  it('shows floating error when datasource has error', async () => {
+  it('should show floating error when datasource has error', async () => {
     class ErrorAlarmsDataSource extends FakeAlarmsDataSource {
       get errorTitle() {
         return 'Test Error Title';
@@ -97,7 +97,7 @@ describe('AlarmsVariableQueryEditor', () => {
     }
 
     const errorRender = setupRenderer(AlarmsVariableQueryEditor, ErrorAlarmsDataSource, () => {});
-    errorRender({ refId: 'A', queryBy: '' } as AlarmsVariableQuery);
+    errorRender({ refId: 'A', filter: '' } as AlarmsVariableQuery);
 
     await waitFor(() => expect(screen.getByText('Query By')).toBeInTheDocument());
   });
