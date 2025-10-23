@@ -127,6 +127,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
   }
 
   private constructApiUrl(apiEndpoint: string, url: string): string {
-    return apiEndpoint + url.replace(this.instanceSettings.url ?? '', '');
+    const webserverUrl = this.instanceSettings.url ?? '';
+    return apiEndpoint + url.replace(webserverUrl, '');
   }
 }

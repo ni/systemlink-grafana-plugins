@@ -11,19 +11,19 @@ jest.mock('../core/utils', () => ({
 jest.resetModules();
 
 describe('ApiSessionUtils', () => {
-    let post, getAppEvents, ApiSessionUtils;
     let instanceSettings: DataSourceInstanceSettings;
     let backendSrv: BackendSrv;
     let appEvents: { publish: any; };
+    let ApiSessionUtils: any;
     let apiSessionUtils: any;
     let mockGetAppEvents: jest.Mock;
     let mockPost: jest.Mock;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
         // Dynamically import dependencies after mocks
         ApiSessionUtils = (await import('./api-session.utils')).ApiSessionUtils;
-        getAppEvents = (await import('@grafana/runtime')).getAppEvents;
-        post = (await import('../core/utils')).post;
+        let getAppEvents = (await import('@grafana/runtime')).getAppEvents;
+        let post = (await import('../core/utils')).post;
 
         mockGetAppEvents = getAppEvents as jest.Mock;
         appEvents = { publish: jest.fn() };
@@ -34,7 +34,9 @@ describe('ApiSessionUtils', () => {
         instanceSettings = { url: 'http://api-example.com' } as DataSourceInstanceSettings;
         backendSrv = {} as BackendSrv;
         apiSessionUtils = new ApiSessionUtils(instanceSettings, backendSrv);
+    });
 
+    beforeEach(async () => {
         // Reset static cache before each test
         (ApiSessionUtils as any)._sessionCache = undefined;
 
