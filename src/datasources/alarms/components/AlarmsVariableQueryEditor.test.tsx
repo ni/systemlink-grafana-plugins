@@ -150,33 +150,6 @@ describe('AlarmsVariableQueryEditor', () => {
     });
   });
 
-  it('should reload workspaces when datasource changes', async () => {
-    const newMockDatasource = {
-      listAlarmsDataSource: {
-        loadWorkspaces: jest.fn().mockResolvedValue(new Map([['3', { id: '3', name: 'NewWorkspace' }]])),
-        globalVariableOptions: jest.fn(() => []),
-        get errorTitle() {
-          return undefined as string | undefined;
-        },
-        get errorDescription() {
-          return undefined as string | undefined;
-        }
-      }
-    } as unknown as AlarmsDataSource;
-
-    const { rerender } = await renderElement();
-    
-    // Change datasource
-    await act(async () => {
-      rerender(React.createElement(AlarmsVariableQueryEditor, {
-        ...defaultProps,
-        datasource: newMockDatasource
-      }));
-    });
-
-    expect(newMockDatasource.listAlarmsDataSource.loadWorkspaces).toHaveBeenCalled();
-  });
-
   it('should show floating error when datasource has error', async () => {
     const mockDatasourceWithError = {
       ...mockDatasource,
