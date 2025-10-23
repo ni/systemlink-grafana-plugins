@@ -20,7 +20,9 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     super(instanceSettings, backendSrv, templateSrv);
     this._alarmsCountDataSource = new AlarmsCountDataSource(instanceSettings, backendSrv, templateSrv);
     this._listAlarmsDataSource = new ListAlarmsDataSource(instanceSettings, backendSrv, templateSrv);
-    this.defaultQuery = this._listAlarmsDataSource.defaultQuery;
+
+    // AB#3064461 - Update defaultQuery to use list alarms defaults when supported
+    this.defaultQuery = this._alarmsCountDataSource.defaultQuery;
   }
 
   public async runQuery(query: AlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
