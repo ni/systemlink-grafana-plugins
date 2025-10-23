@@ -4,7 +4,7 @@ export interface AlarmsQuery extends DataQuery {
   queryType?: QueryType;
 }
 
-export interface AlarmsVariableQuery extends AlarmsQuery {
+export interface AlarmsVariableQuery extends DataQuery {
   filter?: string;
 }
 
