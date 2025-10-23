@@ -73,7 +73,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   }
 
   shouldRunQuery(query: WorkOrdersQuery): boolean {
-    return !query?.hide;
+    return !query.hide;
   }
 
   readonly workordersComputedDataFields = new Map<string, ExpressionTransformFunction>(

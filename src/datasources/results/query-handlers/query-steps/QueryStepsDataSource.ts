@@ -648,6 +648,6 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   }
 
   shouldRunQuery(query: QuerySteps): boolean {
-    return !query?.hide;
+    return !query.hide;
   }
 }

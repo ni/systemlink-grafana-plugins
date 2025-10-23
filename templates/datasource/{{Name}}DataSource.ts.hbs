@@ -30,7 +30,7 @@ export class {{Name}}DataSource extends DataSourceBase<{{Name}}Query> {
   }
 
   shouldRunQuery(query: {{Name}}Query): boolean {
-    return !query?.hide;
+    return !query.hide;
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

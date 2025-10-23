@@ -87,7 +87,7 @@ export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJson
   }
 
   shouldRunQuery(query: SystemQuery): boolean {
-    return !query?.hide;
+    return !query.hide;
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

@@ -234,7 +234,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   }
 
   shouldRunQuery(query: QueryResults): boolean {
-    return !query?.hide;
+    return !query.hide;
   }
 }
 

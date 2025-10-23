@@ -77,7 +77,7 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
   }
 
   shouldRunQuery(query: TagQuery): boolean {
-    return !query?.hide && Boolean(query.path);
+    return !query.hide && Boolean(query.path);
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

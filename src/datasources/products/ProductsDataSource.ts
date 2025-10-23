@@ -159,7 +159,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   }
 
   shouldRunQuery(query: ProductQuery): boolean {
-    return !query?.hide;
+    return !query.hide;
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

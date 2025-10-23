@@ -56,7 +56,7 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
     }
 
     shouldRunQuery(query: CalibrationForecastQuery): boolean {
-        return !query?.hide && (query.groupBy.length > 0);
+        return !query.hide && (query.groupBy.length > 0);
     }
 
     async testDatasource(): Promise<TestDataSourceResponse> {

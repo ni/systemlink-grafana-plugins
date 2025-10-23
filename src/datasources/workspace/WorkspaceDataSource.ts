@@ -22,7 +22,7 @@ export class WorkspaceDataSource extends DataSourceBase<WorkspaceQuery, DataSour
   }
 
   shouldRunQuery(query: WorkspaceQuery): boolean {
-    return !query?.hide;
+    return !query.hide;
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
