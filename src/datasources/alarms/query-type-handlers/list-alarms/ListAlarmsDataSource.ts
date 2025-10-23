@@ -20,12 +20,15 @@ export class ListAlarmsDataSource extends AlarmsDataSourceCore {
       const filter = this.transformAlarmsQuery(options?.scopedVars || {}, query.filter);
       const response = await this.queryAlarms({filter});
 
-      return (response.alarms
+      const alarmsOptions = response.alarms
         ? response.alarms.map(alarm => ({
           text: `${alarm.displayName} (${alarm.instanceId})`,
           value: alarm.instanceId
-          }))
-        : []).sort((a, b) => a.text.localeCompare(b.text));
+        }))
+        : [];
+      const sortedOptions = alarmsOptions.sort((a, b) => a.text.localeCompare(b.text));
+
+      return sortedOptions;
     } catch (error) {
       return [];
     }
