@@ -163,7 +163,7 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.Properties]: {
-    label: 'Data table Properties',
+    label: 'Data table properties',
     projection: [DataTableProjections.Properties],
     type: DataTableProjectionType.DataTable
   },
@@ -192,14 +192,14 @@ export interface Column {
 export interface ColumnFilter {
   column: string;
   operation:
-    | 'EQUALS'
-    | 'LESS_THAN'
-    | 'LESS_THAN_EQUALS'
-    | 'GREATER_THAN'
-    | 'GREATER_THAN_EQUALS'
-    | 'NOT_EQUALS'
-    | 'CONTAINS'
-    | 'NOT_CONTAINS';
+  | 'EQUALS'
+  | 'LESS_THAN'
+  | 'LESS_THAN_EQUALS'
+  | 'GREATER_THAN'
+  | 'GREATER_THAN_EQUALS'
+  | 'NOT_EQUALS'
+  | 'CONTAINS'
+  | 'NOT_CONTAINS';
   value: string | null;
 }
 
@@ -217,7 +217,7 @@ export interface TablePropertiesList {
 }
 
 export interface TableDataRows {
-  frame: { columns: string[]; data: string[][] };
+  frame: { columns: string[]; data: string[][]; };
 }
 
 export interface DataFrameFeatureToggles {
