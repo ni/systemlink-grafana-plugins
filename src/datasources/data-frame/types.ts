@@ -1,7 +1,8 @@
 import { DataQuery } from '@grafana/schema';
-import { SystemLinkError } from "../../core/types";
+import { QueryBuilderOption, SystemLinkError } from "../../core/types";
 import { DataSourceJsonData, QueryEditorProps } from '@grafana/data';
 import { DataFrameDataSource } from './DataFrameDataSource';
+import { QueryBuilderField } from 'smart-webcomponents-react';
 
 export enum DataFrameQueryType {
   Data = 'Data',
@@ -20,6 +21,7 @@ export interface DataFrameQueryV1 extends DataQuery {
 }
 
 export interface DataFrameQueryV2 extends DataQuery {
+  filter?: string;
   type: DataFrameQueryType;
   columns?: string[];
   decimationMethod?: string;
@@ -36,6 +38,7 @@ export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
 };
 
 export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
+  filter: '',
   type: DataFrameQueryType.Data,
   columns: [],
   decimationMethod: 'LOSSY',
@@ -90,7 +93,7 @@ export enum DataTableProjectionType {
 export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
   label: string,
   projection: readonly DataTableProjections[],
-  type: DataTableProjectionType
+  type: DataTableProjectionType;
 }> = {
   [DataTableProperties.Name]: {
     label: 'Data table name',
@@ -182,6 +185,17 @@ export type PropsV1 = QueryEditorProps<DataFrameDataSource, DataFrameQueryV1, Da
 
 export type PropsV2 = QueryEditorProps<DataFrameDataSource, DataFrameQuery, DataFrameDataSourceOptions>;
 
+export type DataTableLookupDataSourceCallback = (query: string) => Promise<QueryBuilderOption[]>;
+
+export type DataSourceCallback = (query: string, callback: Function) => Promise<void>;
+
+export interface QBFieldWithDataSourceCallback extends QueryBuilderField {
+  lookup?: {
+    readonly?: boolean;
+    dataSource?: DataSourceCallback;
+  },
+}
+
 export interface Column {
   name: string;
   dataType: ColumnDataType;
@@ -192,14 +206,14 @@ export interface Column {
 export interface ColumnFilter {
   column: string;
   operation:
-    | 'EQUALS'
-    | 'LESS_THAN'
-    | 'LESS_THAN_EQUALS'
-    | 'GREATER_THAN'
-    | 'GREATER_THAN_EQUALS'
-    | 'NOT_EQUALS'
-    | 'CONTAINS'
-    | 'NOT_CONTAINS';
+  | 'EQUALS'
+  | 'LESS_THAN'
+  | 'LESS_THAN_EQUALS'
+  | 'GREATER_THAN'
+  | 'GREATER_THAN_EQUALS'
+  | 'NOT_EQUALS'
+  | 'CONTAINS'
+  | 'NOT_CONTAINS';
   value: string | null;
 }
 
@@ -217,7 +231,7 @@ export interface TablePropertiesList {
 }
 
 export interface TableDataRows {
-  frame: { columns: string[]; data: string[][] };
+  frame: { columns: string[]; data: string[][]; };
 }
 
 export interface DataFrameFeatureToggles {

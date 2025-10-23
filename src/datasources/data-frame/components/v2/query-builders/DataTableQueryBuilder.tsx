@@ -1,16 +1,19 @@
 import { SlQueryBuilder } from "core/components/SlQueryBuilder/SlQueryBuilder";
 import React, { useEffect, useMemo, useState, useRef } from "react";
-import { DataTableQueryBuilderFields, DataTableQueryBuilderStaticFields } from "../constants/DataTableQueryBuilder.constants";
+import { DataTableQueryBuilderDynamicOptionsFields, DataTableQueryBuilderFieldNames, DataTableQueryBuilderFields, DataTableQueryBuilderStaticFields } from "../constants/DataTableQueryBuilder.constants";
 import { QBField, QueryBuilderOption, Workspace } from "core/types";
 import { addOptionsToLookup, filterXSSField } from "core/utils";
 import { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
 import { expressionBuilderCallbackWithRef, expressionReaderCallbackWithRef } from "core/query-builder.utils";
 import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder.constants";
+import _ from "lodash";
+import { DataSourceCallback, DataTableLookupDataSourceCallback, QBFieldWithDataSourceCallback } from "datasources/data-frame/types";
 
 type DataTableQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
     filter?: string;
     workspaces: Workspace[];
     globalVariableOptions: QueryBuilderOption[];
+    dataTableFieldLookupCallbacks: Partial<Record<DataTableQueryBuilderFieldNames, DataTableLookupDataSourceCallback>>;
 };
 
 export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
@@ -18,8 +21,9 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
     onChange,
     workspaces,
     globalVariableOptions,
+    dataTableFieldLookupCallbacks
 }) => {
-    const [fields, setFields] = useState<QBField[]>([]);
+    const [fields, setFields] = useState<Array<QBField | QBFieldWithDataSourceCallback>>([]);
     const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
     const optionsRef = useRef<Record<string, QueryBuilderOption[]>>({});
 
@@ -29,7 +33,7 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
         }
 
         const options = workspaces.map(({ id, name }) => ({ label: name, value: id }));
-        return addOptionsToLookup(DataTableQueryBuilderFields.WORKSPACE, options);
+        return addOptionsToLookup(DataTableQueryBuilderFields.WORKSPACE as QBField, options);
     }, [workspaces]);
 
     const timeFields = useMemo(() => {
@@ -40,9 +44,9 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
         ];
 
         return [
-            addOptionsToLookup(DataTableQueryBuilderFields.CREATED_AT, timeOptions),
-            addOptionsToLookup(DataTableQueryBuilderFields.METADATA_MODIFIED_AT, timeOptions),
-            addOptionsToLookup(DataTableQueryBuilderFields.ROWS_MODIFIED_AT, timeOptions)
+            addOptionsToLookup(DataTableQueryBuilderFields.CREATED_AT as QBField, timeOptions),
+            addOptionsToLookup(DataTableQueryBuilderFields.METADATA_MODIFIED_AT as QBField, timeOptions),
+            addOptionsToLookup(DataTableQueryBuilderFields.ROWS_MODIFIED_AT as QBField, timeOptions)
         ];
     }, []);
 
@@ -51,32 +55,60 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
             expressionBuilderCallback: expressionBuilderCallbackWithRef(optionsRef),
             expressionReaderCallback: expressionReaderCallbackWithRef(optionsRef),
         };
-    }, []);
+    }, [optionsRef]);
 
     useEffect(() => {
         if (!workspaceField) {
             return;
         }
 
+        const dataTableFieldLookupWithGlobalVariablesCallback = (field: QBFieldWithDataSourceCallback) => {
+            return _.debounce(async (query: string, callback: Function) => {
+                const dataTableFieldLookupCallback = dataTableFieldLookupCallbacks[field.dataField as DataTableQueryBuilderFieldNames];
+                const options = dataTableFieldLookupCallback ? await dataTableFieldLookupCallback(query) : [];
+                const optionsWithGlobalVariable = [...globalVariableOptions, ...options].map(filterXSSField);
+                callback(optionsWithGlobalVariable);
+
+                optionsRef.current = {
+                    ...optionsRef.current,
+                    [field.dataField!]: optionsWithGlobalVariable,
+                };
+            }, 300);
+        };
+
+        const getDatasource = (field: QBFieldWithDataSourceCallback) => {
+            return dataTableFieldLookupWithGlobalVariablesCallback(field);
+        };
+
         const updatedFields = [
             ...DataTableQueryBuilderStaticFields,
             ...timeFields,
-            workspaceField,
-            DataTableQueryBuilderFields.ID,
-            DataTableQueryBuilderFields.NAME,
+            workspaceField
         ].map(field => {
             if (field.lookup?.dataSource) {
                 return {
                     ...field,
                     lookup: {
-                        dataSource: [...globalVariableOptions, ...field.lookup?.dataSource].map(filterXSSField),
+                        dataSource: [...globalVariableOptions, ...field.lookup.dataSource].map(filterXSSField),
                     },
                 };
             }
             return field;
         });
 
-        setFields(updatedFields);
+        const fieldsWithDataSourceCallback = DataTableQueryBuilderDynamicOptionsFields.map(field => {
+            const updatedField = {
+                ...field,
+                lookup: {
+                    ...field.lookup,
+                    dataSource: getDatasource(field) as DataSourceCallback
+                }
+            };
+
+            return updatedField;
+        });
+
+        setFields([...updatedFields, ...fieldsWithDataSourceCallback]);
 
         const options = Object.values(updatedFields).reduce((accumulator, fieldConfig) => {
             if (fieldConfig.lookup && fieldConfig.dataField) {
@@ -117,7 +149,7 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
 
         setOperations([...customOperations, ...keyValueOperations]);
 
-    }, [workspaceField, timeFields, globalVariableOptions, callbacks]);
+    }, [dataTableFieldLookupCallbacks, workspaceField, timeFields, globalVariableOptions, callbacks]);
 
     return (
         <SlQueryBuilder

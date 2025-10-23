@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindValue, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryV2, defaultQueryV2, TableDataRows, TableProperties, ValidDataFrameQueryV2 } from "../../types";
+import { Column, DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryV2, defaultQueryV2, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2 } from "../../types";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
     defaultQuery = defaultQueryV2;
@@ -16,7 +16,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
 
     async runQuery(_query: DataFrameQueryV2, _options: DataQueryRequest<DataFrameQueryV2>): Promise<DataFrameDTO> {
         // TODO: Implement logic to fetch and return DataFrameDTO based on the query and options.
-        return { fields: [] }
+        return { fields: [] };
     }
 
     async metricFindQuery(_query: DataFrameQueryV2): Promise<MetricFindValue[]> {
@@ -51,8 +51,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         throw new Error('Method not implemented.');
     }
 
-    async queryTables(_query: string): Promise<TableProperties[]> {
-        // TODO: Implement logic to query and return table properties
-        throw new Error('Method not implemented.');
+    async queryTables(filter: string): Promise<TableProperties[]> {
+        return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take: 10 })).tables;
     }
 }
