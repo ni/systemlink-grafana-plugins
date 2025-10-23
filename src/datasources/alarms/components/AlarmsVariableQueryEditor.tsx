@@ -27,8 +27,10 @@ export function AlarmsVariableQueryEditor({ query, onChange, datasource }: Props
     loadWorkspaces();
   }, [datasource]);
 
-  const onFilterChange = (value: string) => {
-    onChange({ ...query, filter: value });
+  const onFilterChange = (filter: string) => {
+    if (query.filter !== filter) {
+      onChange({ ...query, filter });
+    }
   };
 
   return (

@@ -101,6 +101,22 @@ describe('AlarmsVariableQueryEditor', () => {
     });
   });
 
+  it('should not call onChange when filter value is the same', async () => {
+    const container = await renderElement({ refId: 'A', filter: 'existing filter' });
+    mockOnChange.mockClear();
+
+    const queryBuilderElement = container.container.querySelector('smart-query-builder');
+    const changeEvent = new CustomEvent('change', {
+      detail: { linq: 'existing filter' }
+    });
+    
+    act(() => {
+      queryBuilderElement?.dispatchEvent(changeEvent);
+    });
+
+    expect(mockOnChange).not.toHaveBeenCalled();
+  });
+
   it('should handle workspace loading errors gracefully', async () => {
     const mockDatasourceWithLoadError = {
       listAlarmsDataSource: {
