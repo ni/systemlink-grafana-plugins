@@ -1,6 +1,6 @@
 import { AlarmsQueryHandlerCore } from './AlarmsQueryHandlerCore';
 import { DataFrameDTO, DataQueryRequest, ScopedVars } from '@grafana/data';
-import { AlarmsQuery, QueryAlarmsRequest, QueryType } from '../types/types';
+import { AlarmsQuery, AlarmTransitionType, QueryAlarmsRequest, QueryType } from '../types/types';
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
@@ -8,8 +8,64 @@ import { QUERY_ALARMS_RELATIVE_PATH } from '../constants/QueryAlarms.constants';
 import { Workspace } from 'core/types';
 import { getVariableOptions } from 'core/utils';
 
+const mockAlarmsResponse = {
+  alarms: [
+    {
+      instanceId: 'IN1',
+      alarmId: 'ALARM-001',
+      workspace: 'Lab-1',
+      active: true,
+      clear: false,
+      acknowledged: true,
+      acknowledgedAt: '2025-09-16T10:30:00Z',
+      acknowledgedBy: 'user123',
+      occurredAt: '2025-09-16T09:00:00Z',
+      updatedAt: '2025-09-16T10:29:00Z',
+      createdBy: 'admin',
+      transitions: [
+        {
+          transitionType: AlarmTransitionType.Set,
+          occurredAt: '2025-09-16T09:00:00Z',
+          severityLevel: 3,
+          value: 'High',
+          condition: 'Temperature',
+          shortText: 'Temp High',
+          detailText: 'Temperature exceeded threshold',
+          keywords: ['temperature', 'high'],
+          properties: {
+            sensorId: 'SENSOR-12',
+          },
+        },
+      ],
+      transitionOverflowCount: 0,
+      currentSeverityLevel: 3,
+      highestSeverityLevel: 3,
+      mostRecentSetOccurredAt: '2025-09-16T09:00:00Z',
+      mostRecentTransitionOccurredAt: '2025-09-16T10:00:00Z',
+      channel: 'Main',
+      condition: 'Temperature',
+      displayName: 'High Temperature Alarm',
+      description: 'Alarm triggered when temperature exceeds safe limit.',
+      keywords: ['temperature'],
+      properties: {
+        location: 'Lab-1',
+      },
+      resourceType: '',
+    },
+  ],
+  totalCount: 1,
+  continuationToken: '',
+};
+
 jest.mock('core/utils', () => ({
   getVariableOptions: jest.fn(),
+  queryInBatches: jest.fn(() => {
+    return Promise.resolve({
+      data: mockAlarmsResponse.alarms,
+      continuationToken: mockAlarmsResponse.continuationToken,
+      totalCount: mockAlarmsResponse.totalCount,
+    });
+  }),
 }));
 
 jest.mock('shared/workspace.utils', () => {
@@ -40,6 +96,10 @@ class TestAlarmsQueryHandler extends AlarmsQueryHandlerCore {
 
   transformAlarmsQueryWrapper(scopedVars: ScopedVars, query?: string): string | undefined {
     return this.transformAlarmsQuery(scopedVars, query);
+  }
+
+  async queryAlarmsInBatchesWrapper(alarmsRequest: QueryAlarmsRequest){
+    return this.queryAlarmsInBatches(alarmsRequest);
   }
 
   readonly defaultQuery = {
