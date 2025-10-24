@@ -129,7 +129,7 @@ describe('AlarmsCountDataSource', () => {
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            filter: `acknowledgedAt > "2025-01-01T00:00:00.000Z"`,
+            filter: 'acknowledgedAt > "2025-01-01T00:00:00.000Z"',
           }),
         })
       );
