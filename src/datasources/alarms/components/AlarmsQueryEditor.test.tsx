@@ -14,7 +14,7 @@ const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: AlarmsQuery) => query),
-  alarmsCountDataSource: {},
+  alarmsCountQueryHandler: {},
 } as unknown as AlarmsDataSource;
 
 const defaultProps: QueryEditorProps<AlarmsDataSource, AlarmsQuery> = {
@@ -71,7 +71,7 @@ describe('AlarmsQueryEditor', () => {
         expect.objectContaining({
           query,
           handleQueryChange: expect.any(Function),
-          datasource: mockDatasource.alarmsCountDataSource
+          datasource: mockDatasource.alarmsCountQueryHandler
         }),
         expect.anything()
       );
