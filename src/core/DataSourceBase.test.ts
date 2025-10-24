@@ -1,4 +1,5 @@
-import { DataSourceInstanceSettings } from "@grafana/data";
+import { DataQuery, DataSourceInstanceSettings, TestDataSourceResponse } from "@grafana/data";
+import { BackendSrv } from "@grafana/runtime";
 
 jest.mock('./utils', () => ({
     get: jest.fn(),
@@ -6,9 +7,7 @@ jest.mock('./utils', () => ({
 }));
 
 describe('DataSourceBase', () => {
-    let instanceSettings: DataSourceInstanceSettings;
-    let backendSrv: any;
-    let DataSourceBaseStub: any;
+    let backendSrv: BackendSrv;
     let dataSource: any;
     let mockGet: jest.Mock;
     let mockPost: jest.Mock;
@@ -25,29 +24,20 @@ describe('DataSourceBase', () => {
         jest.resetModules();
 
         const { DataSourceBase } = await import('./DataSourceBase');
-        DataSourceBaseStub = DataSourceBase;
-        const utils = require('./utils');
+        const utils = await import('./utils');
+
         mockGet = utils.get as jest.Mock;
         mockPost = utils.post as jest.Mock;
+        mockGet.mockResolvedValue('test');
+        mockPost.mockResolvedValue('test');
 
-        backendSrv = {};
-        instanceSettings = {
-            url: 'http://api-example.com',
-        } as DataSourceInstanceSettings;
+        backendSrv = {} as BackendSrv;
 
-        dataSource = new DataSourceBaseStub(
-            instanceSettings,
-            backendSrv,
-            {}
-        );
+        dataSource = setupMockDataSource(DataSourceBase);
         dataSource.apiSessionUtils = mockApiSessionUtils;
     });
 
     describe('get', () => {
-        beforeEach(() => {
-            mockGet.mockResolvedValue('test');
-        });
-
         it('should send GET request with correct parameters when useApiIngress is not set', async () => {
             const response = await dataSource.get('/test-endpoint', { param1: 'value1' });
 
@@ -86,24 +76,29 @@ describe('DataSourceBase', () => {
     });
 
     describe('post', () => {
-        beforeEach(() => {
-            mockPost.mockResolvedValue('test');
-        });
-
         it('should send POST request with correct parameters when useApiIngress is not set', async () => {
-            const response = await dataSource.post('/test-endpoint', { body: 'body' }, { option1: 'optionValue' });
+            const response = await dataSource.post('/test-endpoint', { body: 'body' }, { options: 'optionValue' });
 
             expect(mockPost).toHaveBeenCalledWith(
                 backendSrv,
                 '/test-endpoint',
                 { body: 'body' },
-                { option1: 'optionValue' }
+                { options: 'optionValue' }
             );
             expect(response).toEqual('test');
         });
 
         it('should send POST request with API ingress when useApiIngress is true', async () => {
-            const response = await dataSource.post('/test-endpoint', { body: 'body' }, { option1: 'optionValue' }, true);
+            const response = await dataSource.post(
+                '/test-endpoint',
+                { body: 'body' },
+                {
+                    headers: {
+                        testHeader: 'headerValue'
+                    }
+                },
+                true
+            );
 
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
             expect(mockPost).toHaveBeenCalledWith(
@@ -111,8 +106,12 @@ describe('DataSourceBase', () => {
                 "http://api-ingress.com/test-endpoint",
                 { body: 'body' },
                 {
-                    option1: 'optionValue',
-                    headers: { "x-ni-api-key": "api-key-secret" }
+
+                    headers: {
+                        testHeader: 'headerValue',
+                        "x-ni-api-key": "api-key-secret"
+                    }
+
                 },
             );
             expect(response).toEqual('test');
@@ -122,10 +121,34 @@ describe('DataSourceBase', () => {
             jest.clearAllMocks();
             mockApiSessionUtils.createApiSession.mockRejectedValueOnce(new Error('No session created'));
 
-            await expect(dataSource.post('/test-endpoint', { option1: 'optionValue' }, {}, true))
+            await expect(dataSource.post('/test-endpoint', { options: 'optionValue' }, {}, true))
                 .rejects.toThrow('No session created');
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
             expect(mockPost).not.toHaveBeenCalled();
         });
     });
+
+    function setupMockDataSource(DataSourceBase: any) {
+        const instanceSettings = {
+            url: 'http://api-example.com',
+        } as DataSourceInstanceSettings;
+        class MockDataSource extends DataSourceBase<DataQuery> {
+            public constructor() {
+                super(instanceSettings, backendSrv, {} as any);
+            }
+            public defaultQuery = {};
+            public runQuery(_query: DataQuery, _options: any) {
+                return Promise.resolve({
+                    fields: [],
+                });
+            }
+            public shouldRunQuery() {
+                return true;
+            }
+            testDatasource(): Promise<TestDataSourceResponse> {
+                throw new Error("Method not implemented.");
+            }
+        }
+        return new MockDataSource();
+    }
 });

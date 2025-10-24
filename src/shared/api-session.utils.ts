@@ -10,10 +10,8 @@ export class ApiSessionUtils {
     constructor(
         private readonly instanceSettings: DataSourceInstanceSettings,
         private readonly backendSrv: BackendSrv,
-        private readonly appEvents?: EventBus
-    ) {
-        this.appEvents = appEvents ?? getAppEvents();
-    }
+        private readonly appEvents: EventBus = getAppEvents(),
+    ) {}
 
     public async createApiSession(): Promise<ApiSession> {
         if (!ApiSessionUtils._sessionCache || !await this.isSessionValid()) {

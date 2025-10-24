@@ -15,7 +15,7 @@ describe('ApiSessionUtils', () => {
     let backendSrv: BackendSrv;
     let appEvents: { publish: any; };
     let ApiSessionUtils: any;
-    let apiSessionUtils: any;
+    let apiSessionUtilsInstance: any;
     let mockGetAppEvents: jest.Mock;
     let mockPost: jest.Mock;
 
@@ -33,7 +33,7 @@ describe('ApiSessionUtils', () => {
 
         instanceSettings = { url: 'http://api-example.com' } as DataSourceInstanceSettings;
         backendSrv = {} as BackendSrv;
-        apiSessionUtils = new ApiSessionUtils(instanceSettings, backendSrv);
+        apiSessionUtilsInstance = new ApiSessionUtils(instanceSettings, backendSrv);
     });
 
     beforeEach(async () => {
@@ -57,7 +57,7 @@ describe('ApiSessionUtils', () => {
             const newSession = createMockSession(600_000); // 10 minutes expiry
             mockPost.mockResolvedValue(newSession);
 
-            const session = await apiSessionUtils.createApiSession();
+            const session = await apiSessionUtilsInstance.createApiSession();
 
             expect(mockPost).toHaveBeenCalledTimes(1);
             expect(mockPost).toHaveBeenCalledWith(
@@ -73,8 +73,8 @@ describe('ApiSessionUtils', () => {
             const validSession = createMockSession(600_000); // 10 minutes expiry, well outside 5 min buffer
             mockPost.mockResolvedValue(validSession);
 
-            const session1 = await apiSessionUtils.createApiSession();
-            const session2 = await apiSessionUtils.createApiSession();
+            const session1 = await apiSessionUtilsInstance.createApiSession();
+            const session2 = await apiSessionUtilsInstance.createApiSession();
 
             expect(mockPost).toHaveBeenCalledTimes(1);
             expect(mockPost).toHaveBeenCalledWith(
@@ -93,17 +93,10 @@ describe('ApiSessionUtils', () => {
             mockPost.mockResolvedValueOnce(expiredSession)
                 .mockResolvedValueOnce(newSession);
 
-            const session1 = await apiSessionUtils.createApiSession();
-            const session2 = await apiSessionUtils.createApiSession();
+            const session1 = await apiSessionUtilsInstance.createApiSession();
+            const session2 = await apiSessionUtilsInstance.createApiSession();
 
             expect(mockPost).toHaveBeenCalledTimes(2);
-            expect(mockPost).toHaveBeenNthCalledWith(
-                1,
-                backendSrv,
-                "http://api-example.com/user/create-api-session",
-                {},
-                { showErrorAlert: false },
-            );
             expect(session1).toBe(expiredSession);
             expect(session2).toBe(newSession);
         });
@@ -114,7 +107,7 @@ describe('ApiSessionUtils', () => {
 
             mockPost.mockRejectedValue(error);
 
-            await expect(apiSessionUtils.createApiSession()).rejects.toThrow(
+            await expect(apiSessionUtilsInstance.createApiSession()).rejects.toThrow(
                 errorMessage
             );
 

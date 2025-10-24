@@ -14,27 +14,27 @@ import { get, post } from './utils';
 import { ApiSessionUtils } from '../shared/api-session.utils';
 
 export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData = DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
-  readonly apiKeyHeader = 'x-ni-api-key';
-  appEvents: EventBus;
-  apiSessionUtils: ApiSessionUtils;
+  public readonly apiKeyHeader = 'x-ni-api-key';
+  public appEvents: EventBus;
+  public apiSessionUtils: ApiSessionUtils;
 
-  constructor(
-    readonly instanceSettings: DataSourceInstanceSettings<TOptions>,
-    readonly backendSrv: BackendSrv,
-    readonly templateSrv: TemplateSrv
+  public constructor(
+    public readonly instanceSettings: DataSourceInstanceSettings<TOptions>,
+    public readonly backendSrv: BackendSrv,
+    public readonly templateSrv: TemplateSrv
   ) {
     super(instanceSettings);
     this.appEvents = getAppEvents();
     this.apiSessionUtils = new ApiSessionUtils(instanceSettings, backendSrv, this.appEvents);
   }
 
-  abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;
+  public abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;
 
-  abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
+  public abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 
-  abstract shouldRunQuery(query: TQuery): boolean;
+  public abstract shouldRunQuery(query: TQuery): boolean;
 
-  query(request: DataQueryRequest<TQuery>): Promise<DataQueryResponse> {
+  public query(request: DataQueryRequest<TQuery>): Promise<DataQueryResponse> {
     const promises = request.targets
       .map(this.prepareQuery, this)
       .filter(this.shouldRunQuery, this)
@@ -43,7 +43,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     return Promise.all(promises).then(data => ({ data }));
   }
 
-  prepareQuery(query: TQuery): TQuery {
+  public prepareQuery(query: TQuery): TQuery {
     return { ...this.defaultQuery, ...query };
   }
 
@@ -56,7 +56,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    * @param useApiIngress - If true, uses API ingress bypassing the UI ingress for the request.
    * @returns A promise resolving to the response of type `T`.
    */
-  async get<T>(url: string, params?: Record<string, any>, useApiIngress = false) {
+  public async get<T>(url: string, params?: Record<string, any>, useApiIngress = false) {
     if (useApiIngress) {
       const apiSession = await this.apiSessionUtils.createApiSession();
       if (apiSession) {
@@ -83,7 +83,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    * @param useApiIngress - If true, uses API ingress bypassing the UI ingress for the request.
    * @returns A promise resolving to the response of type `T`.
    */
-  async post<T>(
+  public async post<T>(
     url: string,
     body: Record<string, any>,
     options: Partial<BackendSrvRequest> = {},
@@ -92,6 +92,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     if (useApiIngress) {
       const apiSession = await this.apiSessionUtils.createApiSession();
       if (apiSession) {
+        url = this.constructApiUrl(apiSession.endpoint, url);
         options = {
           ...options,
           headers: {
@@ -99,16 +100,15 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
             [this.apiKeyHeader]: apiSession.sessionKey.secret,
           },
         };
-        url = this.constructApiUrl(apiSession.endpoint, url);
       }
     }
 
     return post<T>(this.backendSrv, url, body, options);
   }
 
-  static Workspaces: Workspace[];
+  public static Workspaces: Workspace[];
 
-  async getWorkspaces(): Promise<Workspace[]> {
+  public async getWorkspaces(): Promise<Workspace[]> {
     if (DataSourceBase.Workspaces) {
       return DataSourceBase.Workspaces;
     }
@@ -120,7 +120,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     return (DataSourceBase.Workspaces = response.workspaces);
   }
 
-  async getSystems(body: QuerySystemsRequest): Promise<QuerySystemsResponse> {
+  public async getSystems(body: QuerySystemsRequest): Promise<QuerySystemsResponse> {
     return await this.post<QuerySystemsResponse>(
       this.instanceSettings.url + '/nisysmgmt/v1/query-systems', body
     )
