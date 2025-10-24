@@ -29,7 +29,7 @@ jest.mock('core/utils', () => ({
   getVariableOptions: jest.fn(),
 }));
 
-class TestAlarmsDataSource extends AlarmsQueryHandlersCore {
+class TestAlarmsQueryHandlers extends AlarmsQueryHandlersCore {
   async runQuery(query: AlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
 
     return {
@@ -52,10 +52,10 @@ class TestAlarmsDataSource extends AlarmsQueryHandlersCore {
 }
 
 describe('AlarmsQueryHandlersCore', () => {
-  let datastore: TestAlarmsDataSource, backendServer: MockProxy<BackendSrv>;
+  let datastore: TestAlarmsQueryHandlers, backendServer: MockProxy<BackendSrv>;
 
   beforeEach(() => {
-    [datastore, backendServer] = setupDataSource(TestAlarmsDataSource);
+    [datastore, backendServer] = setupDataSource(TestAlarmsQueryHandlers);
   });
 
   describe('globalVariableOptions', () => {
