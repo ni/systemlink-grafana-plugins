@@ -4,7 +4,16 @@ on:
   push:
     branches:
       - main
-      - alpha
+  workflow_dispatch:
+    inputs:
+      prerelease:
+        description: 'Create a pre-release version'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+        - 'false'
+        - 'true'
 
 jobs:
   release:
@@ -27,6 +36,20 @@ jobs:
       - name: Unit tests
         run: npm run test:ci
 
-      - run: npm run release
+      - name: Check manual release conditions
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.prerelease == 'false' && github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Cannot run standard release from non-main branch. Use prerelease=true instead."
+          exit 1
+
+      - name: Pre-release
+        if: github.event.inputs.prerelease == 'true'
+        run: npm run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+
+      - name: Automatic release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: npm run release
         env:
           GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
