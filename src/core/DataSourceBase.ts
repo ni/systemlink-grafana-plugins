@@ -11,6 +11,7 @@ import { BackendSrv, BackendSrvRequest, TemplateSrv, getAppEvents } from '@grafa
 import { DataQuery } from '@grafana/schema';
 import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
 import { get, post } from './utils';
+import { forkJoin, map, Observable, of } from 'rxjs';
 
 export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData = DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
   appEvents: EventBus;
@@ -26,17 +27,24 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
 
   abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;
 
-  abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
+  // TODO: AB#3442981 - Make this return type Observable
+  abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrameDTO> | Observable<DataFrameDTO>;
 
   abstract shouldRunQuery(query: TQuery): boolean;
 
-  query(request: DataQueryRequest<TQuery>): Promise<DataQueryResponse> {
-    const promises = request.targets
+  query(request: DataQueryRequest<TQuery>): Observable<DataQueryResponse> {
+    const perTarget$ = request.targets
       .map(this.prepareQuery, this)
       .filter(this.shouldRunQuery, this)
       .map(q => this.runQuery(q, request), this);
-
-    return Promise.all(promises).then(data => ({ data }));
+    
+    if (perTarget$.length === 0) {
+      return of({ data: [] }); // emit empty response immediately
+    }
+    
+    return forkJoin(perTarget$).pipe(
+      map((data) => ({ data } as DataQueryResponse)),
+    );
   }
 
   prepareQuery(query: TQuery): TQuery {
