@@ -21,10 +21,10 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     this.defaultQuery = this._alarmsCountQueryHandler.defaultQuery;
   }
 
-  public async runQuery(query: AlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
+  public async runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     switch (query.queryType) {
       case QueryType.AlarmsCount:
-        return this.alarmsCountQueryHandler.runQuery(query, _);
+        return this.alarmsCountQueryHandler.runQuery(query, options);
       default:
         throw new Error('Invalid query type');
     }
