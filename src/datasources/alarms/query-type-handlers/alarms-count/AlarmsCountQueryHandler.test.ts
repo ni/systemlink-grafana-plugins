@@ -1,7 +1,7 @@
 import { AlarmsCountQueryHandler } from './AlarmsCountQueryHandler';
 import { createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { DataQueryRequest } from '@grafana/data';
-import { QueryAlarmsResponse, QueryType, Alarm, AlarmTransitionType } from 'datasources/alarms/types/types';
+import { QueryAlarmsResponse, Alarm, AlarmTransitionType } from 'datasources/alarms/types/types';
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv } from '@grafana/runtime';
 import { QUERY_ALARMS_RELATIVE_PATH } from 'datasources/alarms/constants/QueryAlarms.constants';
@@ -69,7 +69,7 @@ describe('AlarmsCountQueryHandler', () => {
   it('should set defaultAlarmsCountQuery to defaultQuery', () => {
     const defaultQuery = datastore.defaultQuery;
     
-    expect(defaultQuery).toEqual({ queryType: QueryType.AlarmsCount });
+    expect(defaultQuery).toEqual({ queryType: 'Alarms Count', filter: '' });
   });
 
   describe('runQuery', () => {
