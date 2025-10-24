@@ -91,17 +91,17 @@ describe('ListAlarmsDataSource', () => {
       alarms: [
         {
           ...sampleAlarm,
-          instanceId: 'INST-001',
+          alarmId: 'ALARM-001',
           displayName: 'High Temperature Alarm',
         },
         {
           ...sampleAlarm,
-          instanceId: 'INST-002',
+          alarmId: 'ALARM-002',
           displayName: 'Low Pressure Alarm',
         },
         {
           ...sampleAlarm,
-          instanceId: 'INST-003',
+          alarmId: 'ALARM-003',
           displayName: 'System Error Alarm',
         }
       ],
@@ -118,7 +118,7 @@ describe('ListAlarmsDataSource', () => {
         .mockReturnValue(createFetchResponse(mockMetricResponse));
     });
 
-    it('should return alarms in "displayName (instanceId)" format when no filter is provided', async () => {
+    it('should return alarms in "displayName (alarmId)" format when no filter is provided', async () => {
       const query: AlarmsVariableQuery = {
         refId: 'A',
         filter: undefined
@@ -127,9 +127,9 @@ describe('ListAlarmsDataSource', () => {
       const result = await datastore.metricFindQuery(query, options);
 
       expect(result).toEqual([
-        { text: 'High Temperature Alarm (INST-001)', value: 'INST-001' },
-        { text: 'Low Pressure Alarm (INST-002)', value: 'INST-002' },
-        { text: 'System Error Alarm (INST-003)', value: 'INST-003' }
+        { text: 'High Temperature Alarm (ALARM-001)', value: 'ALARM-001' },
+        { text: 'Low Pressure Alarm (ALARM-002)', value: 'ALARM-002' },
+        { text: 'System Error Alarm (ALARM-003)', value: 'ALARM-003' }
       ]);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
@@ -153,9 +153,9 @@ describe('ListAlarmsDataSource', () => {
       const result = await datastore.metricFindQuery(query, options);
 
       expect(result).toEqual([
-        { text: 'High Temperature Alarm (INST-001)', value: 'INST-001' },
-        { text: 'Low Pressure Alarm (INST-002)', value: 'INST-002' },
-        { text: 'System Error Alarm (INST-003)', value: 'INST-003' }
+        { text: 'High Temperature Alarm (ALARM-001)', value: 'ALARM-001' },
+        { text: 'Low Pressure Alarm (ALARM-002)', value: 'ALARM-002' },
+        { text: 'System Error Alarm (ALARM-003)', value: 'ALARM-003' }
       ]);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
@@ -219,9 +219,9 @@ describe('ListAlarmsDataSource', () => {
     it('should sort results alphabetically by text', async () => {
       const unsortedResponse: QueryAlarmsResponse = {
         alarms: [
-          { ...sampleAlarm, instanceId: 'INST-003', displayName: 'Z Last Alarm' },
-          { ...sampleAlarm, instanceId: 'INST-001', displayName: 'A First Alarm' },
-          { ...sampleAlarm, instanceId: 'INST-002', displayName: 'M Middle Alarm' }
+          { ...sampleAlarm, alarmId: 'ALARM-003', displayName: 'Z Last Alarm' },
+          { ...sampleAlarm, alarmId: 'ALARM-001', displayName: 'A First Alarm' },
+          { ...sampleAlarm, alarmId: 'ALARM-002', displayName: 'M Middle Alarm' }
         ],
         totalCount: 3
       };
@@ -238,9 +238,9 @@ describe('ListAlarmsDataSource', () => {
       const result = await datastore.metricFindQuery(query, options);
 
       expect(result).toEqual([
-        { text: 'A First Alarm (INST-001)', value: 'INST-001' },
-        { text: 'M Middle Alarm (INST-002)', value: 'INST-002' },
-        { text: 'Z Last Alarm (INST-003)', value: 'INST-003' }
+        { text: 'A First Alarm (ALARM-001)', value: 'ALARM-001' },
+        { text: 'M Middle Alarm (ALARM-002)', value: 'ALARM-002' },
+        { text: 'Z Last Alarm (ALARM-003)', value: 'ALARM-003' }
       ]);
     });
 
@@ -254,9 +254,30 @@ describe('ListAlarmsDataSource', () => {
       const result = await datastore.metricFindQuery(query, options);
 
       expect(result).toEqual([
-        { text: 'High Temperature Alarm (INST-001)', value: 'INST-001' },
-        { text: 'Low Pressure Alarm (INST-002)', value: 'INST-002' },
-        { text: 'System Error Alarm (INST-003)', value: 'INST-003' }
+        { text: 'High Temperature Alarm (ALARM-001)', value: 'ALARM-001' },
+        { text: 'Low Pressure Alarm (ALARM-002)', value: 'ALARM-002' },
+        { text: 'System Error Alarm (ALARM-003)', value: 'ALARM-003' }
+      ]);
+    });
+
+    it('should not display duplicate alarms based on alarm id', async () => {
+      const duplicateAlarmsResponse: QueryAlarmsResponse = {
+        alarms: [
+          { ...sampleAlarm, instanceId: 'INST-001', displayName: 'High Temperature Alarm' },
+          { ...sampleAlarm, instanceId: 'INST-002', displayName: 'High Temperature Alarm' },
+          { ...sampleAlarm, instanceId: 'INST-003', displayName: 'High Temperature Alarm' }
+        ],
+        totalCount: 3
+      };
+      backendServer.fetch
+        .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
+        .mockReturnValue(createFetchResponse(duplicateAlarmsResponse));
+
+      const query: AlarmsVariableQuery = {refId: 'A'};
+      const result = await datastore.metricFindQuery(query, options);
+
+      expect(result).toEqual([
+        { text: 'High Temperature Alarm (ALARM-001)', value: 'ALARM-001' }
       ]);
     });
   });

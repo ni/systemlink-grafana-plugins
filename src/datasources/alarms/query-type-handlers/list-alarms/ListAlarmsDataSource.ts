@@ -22,11 +22,16 @@ export class ListAlarmsDataSource extends AlarmsDataSourceCore {
 
       const alarmsOptions = response.alarms
         ? response.alarms.map(alarm => ({
-          text: `${alarm.displayName} (${alarm.instanceId})`,
-          value: alarm.instanceId
+          text: `${alarm.displayName} (${alarm.alarmId})`,
+          value: alarm.alarmId
         }))
         : [];
-      const sortedOptions = alarmsOptions.sort((a, b) => a.text.localeCompare(b.text));
+      
+      const uniqueOptions = Array.from(
+        new Map(alarmsOptions.map(option => [option.value, option])).values()
+      );
+      
+      const sortedOptions = uniqueOptions.sort((a, b) => a.text.localeCompare(b.text));
 
       return sortedOptions;
     } catch (error) {
