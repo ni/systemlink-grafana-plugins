@@ -1,14 +1,16 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TestDataSourceResponse } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TestDataSourceResponse, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { AlarmsQuery, QueryType } from './types/types';
+import { AlarmsQuery, AlarmsVariableQuery, QueryType } from './types/types';
 import { AlarmsCountDataSource } from './query-type-handlers/alarms-count/AlarmsCountDataSource';
 import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
+import { ListAlarmsDataSource } from './query-type-handlers/list-alarms/ListAlarmsDataSource';
 
 export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
   public readonly defaultQuery: Omit<AlarmsQuery, 'refId'>;
 
   private readonly _alarmsCountDataSource: AlarmsCountDataSource;
+  private readonly _listAlarmsDataSource: ListAlarmsDataSource;
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
@@ -17,6 +19,8 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
   ) {
     super(instanceSettings, backendSrv, templateSrv);
     this._alarmsCountDataSource = new AlarmsCountDataSource(instanceSettings, backendSrv, templateSrv);
+    this._listAlarmsDataSource = new ListAlarmsDataSource(instanceSettings, backendSrv, templateSrv);
+
     // AB#3064461 - Update defaultQuery to use list alarms defaults when supported
     this.defaultQuery = this._alarmsCountDataSource.defaultQuery;
   }
@@ -41,6 +45,14 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
 
   public get alarmsCountDataSource(): AlarmsCountDataSource {
     return this._alarmsCountDataSource;
+  }
+
+  public get listAlarmsDataSource(): ListAlarmsDataSource {
+    return this._listAlarmsDataSource;
+  }
+
+  public async metricFindQuery(query: AlarmsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    return this._listAlarmsDataSource.metricFindQuery(query, options);
   }
 
   public async testDatasource(): Promise<TestDataSourceResponse> {
