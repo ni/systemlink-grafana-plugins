@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { QueryEditorProps } from '@grafana/data';
 import { AlarmsDataSource } from '../AlarmsDataSource';
 import { AlarmsQuery, QueryType } from '../types/types';
@@ -12,6 +12,15 @@ import { defaultAlarmsCountQuery, defaultListAlarmsQuery } from '../constants/De
 type Props = QueryEditorProps<AlarmsDataSource, AlarmsQuery>;
 
 export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: Props) {
+  const QUERY_TYPE_CONFIG = useMemo(() => ({
+    [QueryType.ListAlarms]: {
+      defaultQuery: defaultListAlarmsQuery,
+    },
+    [QueryType.AlarmsCount]: {
+      defaultQuery: defaultAlarmsCountQuery,
+    },
+  }), []);
+
   const handleQueryChange = useCallback(
     (query: AlarmsQuery, runQuery = true): void => {
       onChange(query);
@@ -23,14 +32,6 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
   );
 
   const handleQueryTypeChange = useCallback((queryType: QueryType): void => {
-    const QUERY_TYPE_CONFIG = {
-      [QueryType.ListAlarms]: {
-        defaultQuery: defaultListAlarmsQuery,
-      },
-      [QueryType.AlarmsCount]: {
-        defaultQuery: defaultAlarmsCountQuery,
-      },
-    };
     const config = QUERY_TYPE_CONFIG[queryType];
 
     handleQueryChange({
@@ -38,7 +39,7 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
       ...config.defaultQuery,
       refId: query.refId,
     });
-  }, [query, handleQueryChange]);
+  }, [query, handleQueryChange, QUERY_TYPE_CONFIG]);
 
   useEffect(() => {
     if (!query.queryType) {
@@ -47,7 +48,7 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
   }, [query.queryType, handleQueryTypeChange]);
 
   return (
-    <Stack direction={'column'}>
+    <Stack direction='column'>
       <InlineField
         label={labels.queryType}
         labelWidth={LABEL_WIDTH}
