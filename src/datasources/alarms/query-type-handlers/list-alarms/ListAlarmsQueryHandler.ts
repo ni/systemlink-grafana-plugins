@@ -7,7 +7,7 @@ import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQuer
 export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultListAlarmsQuery;
 
-  public async runQuery(query: ListAlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
+  public async runQuery(query: ListAlarmsQuery, _options: DataQueryRequest): Promise<DataFrameDTO> {
     return {
       refId: query.refId,
       name: query.refId,
