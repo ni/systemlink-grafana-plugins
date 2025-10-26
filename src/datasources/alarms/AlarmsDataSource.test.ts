@@ -80,11 +80,11 @@ describe('AlarmsDataSource', () => {
         { text: 'High Temperature Alarm (INST-001)', value: 'INST-001' }
       ];
 
-      jest.spyOn(datastore.listAlarmsDataSource, 'metricFindQuery').mockResolvedValue(mockResult);
+      jest.spyOn(datastore.listAlarmsQueryHandler, 'metricFindQuery').mockResolvedValue(mockResult);
 
       const result = await datastore.metricFindQuery(mockQuery, mockOptions);
 
-      expect(datastore.listAlarmsDataSource.metricFindQuery).toHaveBeenCalledWith(mockQuery, mockOptions);
+      expect(datastore.listAlarmsQueryHandler.metricFindQuery).toHaveBeenCalledWith(mockQuery, mockOptions);
       expect(result).toBe(mockResult);
     });
 
@@ -94,11 +94,11 @@ describe('AlarmsDataSource', () => {
         { text: 'System Error Alarm (INST-002)', value: 'INST-002' }
       ];
 
-      jest.spyOn(datastore.listAlarmsDataSource, 'metricFindQuery').mockResolvedValue(mockResult);
+      jest.spyOn(datastore.listAlarmsQueryHandler, 'metricFindQuery').mockResolvedValue(mockResult);
 
       const result = await datastore.metricFindQuery(mockQuery);
 
-      expect(datastore.listAlarmsDataSource.metricFindQuery).toHaveBeenCalledWith(mockQuery, undefined);
+      expect(datastore.listAlarmsQueryHandler.metricFindQuery).toHaveBeenCalledWith(mockQuery, undefined);
       expect(result).toBe(mockResult);
     });
   });

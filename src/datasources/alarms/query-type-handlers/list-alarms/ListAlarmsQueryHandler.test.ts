@@ -1,12 +1,12 @@
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from "test/fixtures";
-import { ListAlarmsDataSource } from "./ListAlarmsDataSource";
+import { ListAlarmsQueryHandler } from "./ListAlarmsQueryHandler";
 import { Alarm, AlarmsVariableQuery, AlarmTransitionType, QueryAlarmsResponse, QueryType } from "../../types/types";
 import { DataQueryRequest, LegacyMetricFindQueryOptions } from "@grafana/data";
 import { QUERY_ALARMS_RELATIVE_PATH } from "datasources/alarms/constants/QueryAlarms.constants";
 import { BackendSrv } from "@grafana/runtime";
 import { MockProxy } from "jest-mock-extended";
 
-let datastore: ListAlarmsDataSource, backendServer: MockProxy<BackendSrv>;
+let datastore: ListAlarmsQueryHandler, backendServer: MockProxy<BackendSrv>;
 
 const sampleAlarm: Alarm = {
   instanceId: 'INST-001',
@@ -57,9 +57,9 @@ const mockAlarmResponse: QueryAlarmsResponse = {
   continuationToken: '',
 };
 
-describe('ListAlarmsDataSource', () => {
+describe('ListAlarmsQueryHandler', () => {
   beforeEach(() => {
-    [datastore, backendServer] = setupDataSource(ListAlarmsDataSource);
+    [datastore, backendServer] = setupDataSource(ListAlarmsQueryHandler);
 
     backendServer.fetch
       .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))

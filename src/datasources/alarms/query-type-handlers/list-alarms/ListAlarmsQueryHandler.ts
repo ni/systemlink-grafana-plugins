@@ -1,11 +1,11 @@
 import { DataFrameDTO, DataQueryRequest, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
-import { AlarmsDataSourceCore } from '../../AlarmsDataSourceCore';
 import { ListAlarmsQuery } from '../../types/ListAlarms.types';
-import { defaultListAlarmsQuery } from '../../constants/defaultQueries';
 import { AlarmsVariableQuery } from '../../types/types';
+import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
+import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.contants';
 
-export class ListAlarmsDataSource extends AlarmsDataSourceCore {
-  public readonly defaultQuery = defaultListAlarmsQuery
+export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
+  public readonly defaultQuery = defaultListAlarmsQuery;
 
   public async runQuery(query: ListAlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
     return {
