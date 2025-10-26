@@ -53,6 +53,8 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     }
   }
 
+  // @ts-ignore
+  // #AB:3249477 Suppress unused method warning until properties control support is implemented
   private async loadUsers(): Promise<Map<string, User>> {
     try {
       return await this.usersUtils.getUsers();
