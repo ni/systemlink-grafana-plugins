@@ -7,6 +7,7 @@ import { AlarmsDataSource } from '../AlarmsDataSource';
 import { AlarmsCountQueryEditor } from './editors/alarms-count/AlarmsCountQueryEditor';
 import userEvent from '@testing-library/user-event';
 import { defaultAlarmsCountQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.contants';
+import { ListAlarmsQueryEditor } from './editors/list-alarms/ListAlarmsQueryEditor';
 
 jest.mock('./editors/alarms-count/AlarmsCountQueryEditor', () => ({
   AlarmsCountQueryEditor: jest.fn(() => <div data-testid="mock-alarms-count" />),
@@ -15,11 +16,18 @@ jest.mock('./editors/list-alarms/ListAlarmsQueryEditor', () => ({
   ListAlarmsQueryEditor: jest.fn(() => <div data-testid="mock-list-alarms" />),
 }));
 
+const mockAlarmsCountQueryHandler = {
+  defaultQuery: defaultAlarmsCountQuery,
+};
+const mockListAlarmsQueryHandler = {
+  defaultQuery: defaultListAlarmsQuery,
+};
 const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: AlarmsQuery) => query),
-  alarmsCountQueryHandler: {},
+  alarmsCountQueryHandler: mockAlarmsCountQueryHandler,
+  listAlarmsQueryHandler: mockListAlarmsQueryHandler,
 } as unknown as AlarmsDataSource;
 
 const defaultProps: QueryEditorProps<AlarmsDataSource, AlarmsQuery> = {
@@ -94,6 +102,21 @@ describe('AlarmsQueryEditor', () => {
 
     expect(mockOnChange).toHaveBeenCalledWith({ refId: 'A', queryType: QueryType.ListAlarms, filter: '' });
     expect(mockOnRunQuery).toHaveBeenCalled();
+  });
+
+  it('should pass the correct props to ListAlarmsQueryEditor', () => {
+    const query = buildQuery({ queryType: QueryType.ListAlarms });
+
+    renderElement(query);
+
+    expect(ListAlarmsQueryEditor).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query,
+        handleQueryChange: expect.any(Function),
+        datasource: mockDatasource.listAlarmsQueryHandler
+      }),
+      expect.anything()
+    );
   });
 
   it('should preserve base query properties across query type changes', async () => {
