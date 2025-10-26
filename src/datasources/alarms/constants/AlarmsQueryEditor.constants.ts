@@ -1,6 +1,7 @@
 import { AlertVariant } from '@grafana/ui';
 
 export const LABEL_WIDTH = 26;
+export const CONTROL_WIDTH = 65;
 export const ERROR_SEVERITY_WARNING: AlertVariant = 'warning';
 
 export const labels = {

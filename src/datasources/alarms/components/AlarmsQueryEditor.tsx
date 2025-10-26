@@ -5,9 +5,9 @@ import { AlarmsQuery, QueryType } from '../types/types';
 import { AlarmsCountQueryEditor } from './editors/alarms-count/AlarmsCountQueryEditor';
 import { AlarmsCountQuery } from '../types/AlarmsCount.types';
 import { InlineField } from 'core/components/InlineField';
-import { LABEL_WIDTH, labels, tooltips } from '../constants/AlarmsQueryEditor.constants';
+import { CONTROL_WIDTH, LABEL_WIDTH, labels, tooltips } from '../constants/AlarmsQueryEditor.constants';
 import { Combobox, Stack } from '@grafana/ui';
-import { defaultAlarmsCountQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
+import { defaultAlarmsCountQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.contants';
 
 type Props = QueryEditorProps<AlarmsDataSource, AlarmsQuery>;
 
@@ -57,7 +57,7 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
         <Combobox
           options={Object.values(QueryType).map(value => ({ label: value, value }))}
           value={query.queryType}
-          width={65}
+          width={CONTROL_WIDTH}
           onChange={option => {
             handleQueryTypeChange(option.value as QueryType);
           }}

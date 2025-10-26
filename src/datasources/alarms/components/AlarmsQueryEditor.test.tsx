@@ -6,7 +6,7 @@ import { QueryEditorProps } from '@grafana/data';
 import { AlarmsDataSource } from '../AlarmsDataSource';
 import { AlarmsCountQueryEditor } from './editors/alarms-count/AlarmsCountQueryEditor';
 import userEvent from '@testing-library/user-event';
-import { defaultAlarmsCountQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
+import { defaultAlarmsCountQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.contants';
 
 jest.mock('./editors/alarms-count/AlarmsCountQueryEditor', () => ({
   AlarmsCountQueryEditor: jest.fn(() => <div data-testid="mock-alarms-count" />),
