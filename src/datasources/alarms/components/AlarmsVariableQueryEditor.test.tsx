@@ -8,7 +8,7 @@ import { AlarmsVariableQueryEditor } from './AlarmsVariableQueryEditor';
 const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
-  listAlarmsDataSource: {
+  listAlarmsQueryHandler: {
     loadWorkspaces: jest.fn().mockResolvedValue(
       new Map([
         ['1', { id: '1', name: 'WorkspaceName' }],
@@ -55,14 +55,14 @@ describe('AlarmsVariableQueryEditor', () => {
     expect(screen.getByText('Query By')).toBeInTheDocument();
   });
 
-  it('should call listAlarmsDataSource.loadWorkspaces on render', async () => {
+  it('should call listAlarmsQueryHandler.loadWorkspaces on render', async () => {
     await renderElement();
 
-    expect(mockDatasource.listAlarmsDataSource.loadWorkspaces).toHaveBeenCalled();
+    expect(mockDatasource.listAlarmsQueryHandler.loadWorkspaces).toHaveBeenCalled();
   });
 
   it('should load workspaces from datasource', async () => {
-    const workspaces = await mockDatasource.listAlarmsDataSource.loadWorkspaces();
+    const workspaces = await mockDatasource.listAlarmsQueryHandler.loadWorkspaces();
     expect(workspaces).toBeDefined();
     expect(workspaces).toEqual(
       new Map([
@@ -122,7 +122,7 @@ describe('AlarmsVariableQueryEditor', () => {
 
     const queryBuilder = screen.getByRole('dialog');
     expect(queryBuilder).toBeInTheDocument();
-    expect(mockDatasource.listAlarmsDataSource.globalVariableOptions).toHaveBeenCalled();
+    expect(mockDatasource.listAlarmsQueryHandler.globalVariableOptions).toHaveBeenCalled();
   });
 
   it('should preserve existing query properties when filter changes', async () => {
@@ -153,8 +153,8 @@ describe('AlarmsVariableQueryEditor', () => {
   it('should show floating error when datasource has error', async () => {
     const mockDatasourceWithError = {
       ...mockDatasource,
-      listAlarmsDataSource: {
-        ...mockDatasource.listAlarmsDataSource,
+      listAlarmsQueryHandler: {
+        ...mockDatasource.listAlarmsQueryHandler,
         get errorTitle() {
           return 'Test Error Title';
         },

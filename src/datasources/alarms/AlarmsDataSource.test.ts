@@ -73,7 +73,7 @@ describe('AlarmsDataSource', () => {
   });
 
   describe('metricFindQuery', () => {
-    it('should delegate to ListAlarmsDataSource', async () => {
+    it('should delegate to listAlarmsQueryHandler', async () => {
       const mockQuery: AlarmsVariableQuery = { refId: 'A', filter: 'workspace = "Lab-1"' };
       const mockOptions = { scopedVars: {} };
       const mockResult = [
