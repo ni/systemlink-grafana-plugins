@@ -3,7 +3,7 @@ import { MockProxy } from 'jest-mock-extended';
 import { setupDataSource, requestMatching, createFetchResponse, createFetchError } from 'test/fixtures';
 import { AlarmsDataSource } from './AlarmsDataSource';
 import { DataQueryRequest } from '@grafana/data';
-import { QueryType } from './types/types';
+import { QueryType, AlarmsVariableQuery } from './types/types';
 import { AlarmsCountQueryHandler } from './query-type-handlers/alarms-count/AlarmsCountQueryHandler';
 import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
 
@@ -69,6 +69,37 @@ describe('AlarmsDataSource', () => {
 
         expect(result).toBe(false);
       });
+    });
+  });
+
+  describe('metricFindQuery', () => {
+    it('should delegate to listAlarmsQueryHandler', async () => {
+      const mockQuery: AlarmsVariableQuery = { refId: 'A', filter: 'workspace = "Lab-1"' };
+      const mockOptions = { scopedVars: {} };
+      const mockResult = [
+        { text: 'High Temperature Alarm (INST-001)', value: 'INST-001' }
+      ];
+
+      jest.spyOn(datastore.listAlarmsQueryHandler, 'metricFindQuery').mockResolvedValue(mockResult);
+
+      const result = await datastore.metricFindQuery(mockQuery, mockOptions);
+
+      expect(datastore.listAlarmsQueryHandler.metricFindQuery).toHaveBeenCalledWith(mockQuery, mockOptions);
+      expect(result).toBe(mockResult);
+    });
+
+    it('should work without options', async () => {
+      const mockQuery: AlarmsVariableQuery = { refId: 'A', filter: undefined };
+      const mockResult = [
+        { text: 'System Error Alarm (INST-002)', value: 'INST-002' }
+      ];
+
+      jest.spyOn(datastore.listAlarmsQueryHandler, 'metricFindQuery').mockResolvedValue(mockResult);
+
+      const result = await datastore.metricFindQuery(mockQuery);
+
+      expect(datastore.listAlarmsQueryHandler.metricFindQuery).toHaveBeenCalledWith(mockQuery, undefined);
+      expect(result).toBe(mockResult);
     });
   });
 
