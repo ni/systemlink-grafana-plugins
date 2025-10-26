@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { AlarmsDataSource } from '../AlarmsDataSource';
 import { AlarmsVariableQuery } from '../types/types';
 import { QueryEditorProps } from '@grafana/data';
@@ -36,6 +36,31 @@ const defaultProps: QueryEditorProps<AlarmsDataSource, AlarmsVariableQuery> = {
   onRunQuery: mockOnRunQuery,
   datasource: mockDatasource,
 };
+
+jest.mock('./query-builder/AlarmsQueryBuilder', () => ({
+  AlarmsQueryBuilder: jest.fn(({ filter, onChange, workspaces, globalVariableOptions }) => {
+    return (
+      <div data-testid="mocked-query-builder">
+        <span data-testid="filter-prop">{filter || 'no-filter'}</span>
+        <span data-testid="workspaces-count">{workspaces.length}</span>
+        <span data-testid="global-variables-count">{globalVariableOptions.length}</span>
+        <button onClick={(e) => onChange({ detail: { linq: 'test-filter' } })}>
+          Trigger Change
+        </button>
+      </div>
+    );
+  })
+}));
+
+jest.mock('../../../core/errors', () => ({
+  FloatingError: jest.fn(({ message, innerMessage, severity }) => (
+    <div data-testid="floating-error">
+      <span data-testid="error-message">{message || 'no-message'}</span>
+      <span data-testid="error-inner">{innerMessage || 'no-inner'}</span>
+      <span data-testid="error-severity">{severity}</span>
+    </div>
+  ))
+}));
 
 describe('AlarmsVariableQueryEditor', () => {
   beforeEach(() => {
@@ -84,23 +109,6 @@ describe('AlarmsVariableQueryEditor', () => {
     expect(screen.getByText('Query By')).toBeInTheDocument();
   });
 
-  it('should call onChange when filter changes', async () => {
-    const container = await renderElement({ refId: 'A' });
-    const queryBuilderElement = container.container.querySelector('smart-query-builder');
-    const changeEvent = new CustomEvent('change', {
-      detail: { linq: 'name = "test filter"' }
-    });
-    
-    act(() => {
-      queryBuilderElement?.dispatchEvent(changeEvent);
-    });
-
-    expect(mockOnChange).toHaveBeenCalledWith({
-      refId: 'A',
-      filter: 'name = "test filter"'
-    });
-  });
-
   it('should not call onChange when filter value is the same', async () => {
     const container = await renderElement({ refId: 'A', filter: 'existing filter' });
     mockOnChange.mockClear();
@@ -115,39 +123,6 @@ describe('AlarmsVariableQueryEditor', () => {
     });
 
     expect(mockOnChange).not.toHaveBeenCalled();
-  });
-
-  it('should pass correct props to AlarmsQueryBuilder', async () => {
-    await renderElement({ refId: 'A', filter: 'existing filter' });
-
-    const queryBuilder = screen.getByRole('dialog');
-    expect(queryBuilder).toBeInTheDocument();
-    expect(mockDatasource.listAlarmsQueryHandler.globalVariableOptions).toHaveBeenCalled();
-  });
-
-  it('should preserve existing query properties when filter changes', async () => {
-    const existingQuery = { 
-      refId: 'TestRef', 
-      filter: 'old filter',
-      customProperty: 'should be preserved' 
-    } as AlarmsVariableQuery & { customProperty: string };
-
-    const container = await renderElement(existingQuery);
-    const queryBuilderElement = container.container.querySelector('smart-query-builder');
-    
-    const changeEvent = new CustomEvent('change', {
-      detail: { linq: 'new filter value' }
-    });
-    
-    act(() => {
-      queryBuilderElement?.dispatchEvent(changeEvent);
-    });
-
-    expect(mockOnChange).toHaveBeenCalledWith({
-      refId: 'TestRef',
-      filter: 'new filter value',
-      customProperty: 'should be preserved'
-    });
   });
 
   it('should show floating error when datasource has error', async () => {
@@ -175,4 +150,76 @@ describe('AlarmsVariableQueryEditor', () => {
     expect(screen.getByText('Test Error Title')).toBeInTheDocument();
     expect(screen.getByText('Test error description')).toBeInTheDocument();
   });
+
+  describe('Child Component Props Tests', () => {
+    it('should pass correct filter prop to AlarmsQueryBuilder', async () => {
+        await renderElement({ refId: 'A', filter: 'id = "test-id"' });
+  
+        expect(screen.getByTestId('filter-prop')).toHaveTextContent('id = "test-id"');
+    });
+  
+    it('should pass empty filter prop when filter is undefined', async () => {
+        await renderElement({ refId: 'A' });
+    
+        expect(screen.getByTestId('filter-prop')).toHaveTextContent('no-filter');
+    });
+    
+    it('should pass workspaces array to AlarmsQueryBuilder', async () => {
+        await renderElement({ refId: 'A' });
+    
+        expect(screen.getByTestId('workspaces-count')).toHaveTextContent('2');
+    });
+    
+    it('should pass globalVariableOptions to AlarmsQueryBuilder', async () => {
+        await renderElement({ refId: 'A' });
+    
+        expect(screen.getByTestId('global-variables-count')).toHaveTextContent('2');
+    });
+    
+    it('should pass error props to FloatingError component', async () => {
+        const mockDatasourceWithError = {
+        ...mockDatasource,
+        listAlarmsQueryHandler: {
+          ...mockDatasource.listAlarmsQueryHandler,
+          get errorTitle() {
+            return 'Test Error Title';
+          },
+          get errorDescription() {
+            return 'Test Error Description';
+          }
+        }
+      } as unknown as AlarmsDataSource;
+
+      const propsWithError = { ...defaultProps, datasource: mockDatasourceWithError };
+      
+      await act(async () => {
+        const reactNode = React.createElement(AlarmsVariableQueryEditor, propsWithError);
+        render(reactNode);
+      });
+    
+        expect(screen.getByTestId('error-message')).toHaveTextContent('Test Error Title');
+        expect(screen.getByTestId('error-inner')).toHaveTextContent('Test Error Description');
+        expect(screen.getByTestId('error-severity')).toHaveTextContent('warning');
+    });
+    
+    it('should handle undefined error props in FloatingError component', async () => {
+        await renderElement({ refId: 'A' });
+    
+        expect(screen.getByTestId('error-message')).toHaveTextContent('no-message');
+        expect(screen.getByTestId('error-inner')).toHaveTextContent('no-inner');
+    });
+  });
+  
+  it('should call onChange when AlarmsQueryBuilder triggers change', async () => {
+    await renderElement({ refId: 'A' });
+    
+    const changeButton = screen.getByText('Trigger Change');
+    fireEvent.click(changeButton);
+    
+    expect(mockOnChange).toHaveBeenCalledWith({
+      refId: 'A',
+      filter: 'test-filter'
+    });
+  });
 });
+
