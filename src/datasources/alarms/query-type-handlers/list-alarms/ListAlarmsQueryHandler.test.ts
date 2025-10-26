@@ -1,10 +1,10 @@
-import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from "test/fixtures";
-import { ListAlarmsQueryHandler } from "./ListAlarmsQueryHandler";
-import { Alarm, AlarmsVariableQuery, AlarmTransitionType, QueryAlarmsResponse, QueryType } from "../../types/types";
-import { DataQueryRequest, LegacyMetricFindQueryOptions } from "@grafana/data";
-import { QUERY_ALARMS_RELATIVE_PATH } from "datasources/alarms/constants/QueryAlarms.constants";
-import { BackendSrv } from "@grafana/runtime";
-import { MockProxy } from "jest-mock-extended";
+import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
+import { ListAlarmsQueryHandler } from './ListAlarmsQueryHandler';
+import { Alarm, AlarmsVariableQuery, AlarmTransitionType, QueryAlarmsResponse, QueryType } from '../../types/types';
+import { DataQueryRequest, LegacyMetricFindQueryOptions } from '@grafana/data';
+import { QUERY_ALARMS_RELATIVE_PATH } from 'datasources/alarms/constants/QueryAlarms.constants';
+import { BackendSrv } from '@grafana/runtime';
+import { MockProxy } from 'jest-mock-extended';
 
 let datastore: ListAlarmsQueryHandler, backendServer: MockProxy<BackendSrv>;
 
