@@ -1,4 +1,4 @@
-import { AlarmsQueryHandlersCore } from './AlarmsQueryHandlersCore';
+import { AlarmsQueryHandlerCore } from './AlarmsQueryHandlerCore';
 import { DataFrameDTO, DataQueryRequest, ScopedVars } from '@grafana/data';
 import { AlarmsQuery, QueryAlarmsRequest, QueryType } from '../types/types';
 import { MockProxy } from 'jest-mock-extended';
@@ -25,7 +25,7 @@ jest.mock('shared/workspace.utils', () => {
   };
 });
 
-class TestAlarmsQueryHandlers extends AlarmsQueryHandlersCore {
+class TestAlarmsQueryHandlers extends AlarmsQueryHandlerCore {
   async runQuery(query: AlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
 
     return {
@@ -47,7 +47,7 @@ class TestAlarmsQueryHandlers extends AlarmsQueryHandlersCore {
   };
 }
 
-describe('AlarmsQueryHandlersCore', () => {
+describe('AlarmsQueryHandlerCore', () => {
   let datastore: TestAlarmsQueryHandlers, backendServer: MockProxy<BackendSrv>;
 
   beforeEach(() => {
