@@ -11,7 +11,7 @@ import { getVariableOptions } from 'core/utils';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from '../constants/SourceProperties.constants';
 
-export abstract class AlarmsQueryHandlersCore extends DataSourceBase<AlarmsQuery> {
+export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery> {
   public errorTitle?: string;
   public errorDescription?: string;
 
