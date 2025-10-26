@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, render, screen } from '@testing-library/react';
 import { QueryType } from 'datasources/alarms/types/types';
-import { ListAlarmsDataSource } from 'datasources/alarms/query-type-handlers/list-alarms/ListAlarmsDataSource';
+import { ListAlarmsQueryHandler } from 'datasources/alarms/query-type-handlers/list-alarms/ListAlarmsQueryHandler';
 import { ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 import { ListAlarmsQueryEditor } from './ListAlarmsQueryEditor';
 
@@ -15,7 +15,7 @@ const mockDatasource = {
       ['2', { id: '2', name: 'AnotherWorkspaceName' }],
     ])
   ),
-} as unknown as ListAlarmsDataSource;
+} as unknown as ListAlarmsQueryHandler;
 
 const defaultProps = {
   query: {

@@ -3,7 +3,7 @@ import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQuer
 import { ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
 
-export class ListAlarmsDataSource extends AlarmsQueryHandlerCore {
+export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultListAlarmsQuery;
 
   public async runQuery(query: ListAlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {

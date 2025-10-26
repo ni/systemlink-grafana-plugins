@@ -10,12 +10,12 @@ import {
 import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
 import { ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
-import { ListAlarmsDataSource } from 'datasources/alarms/query-type-handlers/list-alarms/ListAlarmsDataSource';
+import { ListAlarmsQueryHandler } from 'datasources/alarms/query-type-handlers/list-alarms/ListAlarmsQueryHandler';
 
 type Props = {
   query: ListAlarmsQuery;
   handleQueryChange: (query: ListAlarmsQuery, runQuery?: boolean) => void;
-  datasource: ListAlarmsDataSource;
+  datasource: ListAlarmsQueryHandler;
 };
 
 export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: Props) {

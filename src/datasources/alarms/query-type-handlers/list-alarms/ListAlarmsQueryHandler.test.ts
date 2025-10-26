@@ -1,13 +1,13 @@
 import { setupDataSource } from 'test/fixtures';
-import { ListAlarmsDataSource } from './ListAlarmsDataSource';
+import { ListAlarmsQueryHandler } from './ListAlarmsQueryHandler';
 import { QueryType } from 'datasources/alarms/types/types';
 import { DataQueryRequest } from '@grafana/data';
 
-let datastore: ListAlarmsDataSource;
+let datastore: ListAlarmsQueryHandler;
 
-describe('ListAlarmsDataSource', () => {
+describe('ListAlarmsQueryHandler', () => {
   beforeEach(() => {
-    [datastore] = setupDataSource(ListAlarmsDataSource);
+    [datastore] = setupDataSource(ListAlarmsQueryHandler);
   });
 
   it('should set defaultListAlarmsQuery to defaultQuery', () => {

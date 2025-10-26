@@ -6,7 +6,7 @@ import { DataQueryRequest } from '@grafana/data';
 import { QueryType } from './types/types';
 import { AlarmsCountQueryHandler } from './query-type-handlers/alarms-count/AlarmsCountQueryHandler';
 import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
-import { ListAlarmsDataSource } from './query-type-handlers/list-alarms/ListAlarmsDataSource';
+import { ListAlarmsQueryHandler } from './query-type-handlers/list-alarms/ListAlarmsQueryHandler';
 
 let datastore: AlarmsDataSource, backendServer: MockProxy<BackendSrv>;
 
@@ -53,33 +53,33 @@ describe('AlarmsDataSource', () => {
     });
   });
 
-  describe('ListAlarmsDataSource', () => {
+  describe('ListAlarmsQueryHandler', () => {
     const query = { refId: 'A', queryType: QueryType.ListAlarms };
 
-    let listAlarmsDataSource: ListAlarmsDataSource;
+    let listAlarmsQueryHandler: ListAlarmsQueryHandler;
 
     beforeEach(() => {
-      listAlarmsDataSource = datastore.listAlarmsDataSource;
+      listAlarmsQueryHandler = datastore.listAlarmsQueryHandler;
     });
 
     describe('runQuery', () => {
-      it('should call ListAlarmsDataSource runQuery when queryType is ListAlarms', async () => {
-        listAlarmsDataSource.runQuery = jest.fn().mockResolvedValue({ refId: 'A', fields: [] });
+      it('should call ListAlarmsQueryHandler runQuery when queryType is ListAlarms', async () => {
+        listAlarmsQueryHandler.runQuery = jest.fn().mockResolvedValue({ refId: 'A', fields: [] });
 
         const result = await datastore.runQuery(query, dataQueryRequest);
 
-        expect(listAlarmsDataSource.runQuery).toHaveBeenCalledWith(query, dataQueryRequest);
+        expect(listAlarmsQueryHandler.runQuery).toHaveBeenCalledWith(query, dataQueryRequest);
         expect(result).toEqual({ refId: 'A', fields: [] });
       });
     });
 
     describe('shouldRunQuery', () => {
-      it('should call ListAlarmsDataSource shouldRunQuery when queryType is ListAlarms', () => {
-        listAlarmsDataSource.shouldRunQuery = jest.fn().mockReturnValue(true);
+      it('should call ListAlarmsQueryHandler shouldRunQuery when queryType is ListAlarms', () => {
+        listAlarmsQueryHandler.shouldRunQuery = jest.fn().mockReturnValue(true);
 
         const result = datastore.shouldRunQuery(query);
 
-        expect(listAlarmsDataSource.shouldRunQuery).toHaveBeenCalled();
+        expect(listAlarmsQueryHandler.shouldRunQuery).toHaveBeenCalled();
         expect(result).toBe(true);
       });
     });

@@ -94,7 +94,7 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
         <ListAlarmsQueryEditor
           query={query as ListAlarmsQuery}
           handleQueryChange={handleQueryChange}
-          datasource={datasource.listAlarmsDataSource}
+          datasource={datasource.listAlarmsQueryHandler}
         />
       )}
     </Stack>
