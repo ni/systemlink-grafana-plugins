@@ -10,6 +10,8 @@ import { WorkspaceUtils } from 'shared/workspace.utils';
 import { getVariableOptions } from 'core/utils';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from '../constants/SourceProperties.constants';
+import { User } from 'shared/types/QueryUsers.types';
+import { UsersUtils } from 'shared/users.utils';
 
 export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery> {
   public errorTitle?: string;
@@ -17,6 +19,7 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
 
   private readonly queryAlarmsUrl = `${this.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`;
   private readonly workspaceUtils: WorkspaceUtils;
+  private readonly usersUtils: UsersUtils;
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
@@ -25,6 +28,7 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
   ) {
     super(instanceSettings, backendSrv, templateSrv);
     this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
+    this.usersUtils = new UsersUtils(this.instanceSettings, this.backendSrv)
   }
 
   public abstract runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
@@ -58,6 +62,17 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
         this.handleDependenciesError(error);
       }
       return new Map<string, Workspace>();
+    }
+  }
+
+  public async loadUsers(): Promise<Map<string, User>> {
+    try {
+      return await this.usersUtils.getUsers();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, User>();
     }
   }
 
