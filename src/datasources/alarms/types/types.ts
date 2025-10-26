@@ -9,7 +9,7 @@ export interface AlarmsVariableQuery extends AlarmsQuery {
 }
 
 export enum QueryType {
-  AlarmsCount = 'AlarmsCount',
+  AlarmsCount = 'Alarms Count',
   ListAlarms = 'List Alarms'
 }
 

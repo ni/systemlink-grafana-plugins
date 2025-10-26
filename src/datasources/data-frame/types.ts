@@ -1,8 +1,7 @@
 import { DataQuery } from '@grafana/schema';
 import { SystemLinkError } from "../../core/types";
 import { DataSourceJsonData, QueryEditorProps } from '@grafana/data';
-import { DataFrameDataSourceV1 } from './datasources/v1/DataFrameDataSourceV1';
-import { DataFrameDataSourceV2 } from './datasources/v2/DataFrameDataSourceV2';
+import { DataFrameDataSource } from './DataFrameDataSource';
 
 export enum DataFrameQueryType {
   Data = 'Data',
@@ -91,7 +90,7 @@ export enum DataTableProjectionType {
 export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
   label: string,
   projection: readonly DataTableProjections[],
-  type: DataTableProjectionType
+  type: DataTableProjectionType;
 }> = {
   [DataTableProperties.Name]: {
     label: 'Data table name',
@@ -104,17 +103,17 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.RowCount]: {
-    label: 'Number of rows',
+    label: 'Rows',
     projection: [DataTableProjections.RowCount],
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.ColumnCount]: {
-    label: 'Number of columns',
+    label: 'Columns',
     projection: [DataTableProjections.columnCount],
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.CreatedAt]: {
-    label: 'Created at',
+    label: 'Created',
     projection: [DataTableProjections.CreatedAt],
     type: DataTableProjectionType.DataTable
   },
@@ -124,7 +123,7 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.MetadataModifiedAt]: {
-    label: 'Metadata modified at',
+    label: 'Metadata modified',
     projection: [DataTableProjections.MetadataModifiedAt],
     type: DataTableProjectionType.DataTable
   },
@@ -134,7 +133,7 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.RowsModifiedAt]: {
-    label: 'Rows modified at',
+    label: 'Rows modified',
     projection: [DataTableProjections.RowsModifiedAt],
     type: DataTableProjectionType.DataTable
   },
@@ -164,7 +163,7 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.Properties]: {
-    label: 'Custom Properties',
+    label: 'Data table properties',
     projection: [DataTableProjections.Properties],
     type: DataTableProjectionType.DataTable
   },
@@ -179,9 +178,9 @@ export type ColumnDataType = 'BOOL' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64' 
 
 export type Props = PropsV1 | PropsV2;
 
-export type PropsV1 = QueryEditorProps<DataFrameDataSourceV1, DataFrameQueryV1, DataFrameDataSourceOptions>;
+export type PropsV1 = QueryEditorProps<DataFrameDataSource, DataFrameQueryV1, DataFrameDataSourceOptions>;
 
-export type PropsV2 = QueryEditorProps<DataFrameDataSourceV2, DataFrameQueryV2, DataFrameDataSourceOptions>;
+export type PropsV2 = QueryEditorProps<DataFrameDataSource, DataFrameQuery, DataFrameDataSourceOptions>;
 
 export interface Column {
   name: string;
@@ -193,14 +192,14 @@ export interface Column {
 export interface ColumnFilter {
   column: string;
   operation:
-    | 'EQUALS'
-    | 'LESS_THAN'
-    | 'LESS_THAN_EQUALS'
-    | 'GREATER_THAN'
-    | 'GREATER_THAN_EQUALS'
-    | 'NOT_EQUALS'
-    | 'CONTAINS'
-    | 'NOT_CONTAINS';
+  | 'EQUALS'
+  | 'LESS_THAN'
+  | 'LESS_THAN_EQUALS'
+  | 'GREATER_THAN'
+  | 'GREATER_THAN_EQUALS'
+  | 'NOT_EQUALS'
+  | 'CONTAINS'
+  | 'NOT_CONTAINS';
   value: string | null;
 }
 
@@ -218,7 +217,7 @@ export interface TablePropertiesList {
 }
 
 export interface TableDataRows {
-  frame: { columns: string[]; data: string[][] };
+  frame: { columns: string[]; data: string[][]; };
 }
 
 export interface DataFrameFeatureToggles {

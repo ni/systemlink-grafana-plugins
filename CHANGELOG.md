@@ -1,3 +1,27 @@
+## [4.27.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.27.1...v4.27.2) (2025-10-23)
+
+### Bug Fixes
+
+* **dataframe:** Update properties labels ([#458](https://github.com/ni/systemlink-grafana-plugins/issues/458)) ([e24e117](https://github.com/ni/systemlink-grafana-plugins/commit/e24e1175a4075aa08d10955d62769346c67b8c5d))
+
+## [4.27.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.27.0...v4.27.1) (2025-10-22)
+
+### Bug Fixes
+
+* **dataframe:** Query type not set by default ([#451](https://github.com/ni/systemlink-grafana-plugins/issues/451)) ([bbb202a](https://github.com/ni/systemlink-grafana-plugins/commit/bbb202a0d7101bc0de54acfa060c3764a9e06feb))
+
+## [4.27.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.26.0...v4.27.0) (2025-10-22)
+
+### Features
+
+* **dataframe:** Provide global variable options to query builder ([#449](https://github.com/ni/systemlink-grafana-plugins/issues/449)) ([2d1ba6d](https://github.com/ni/systemlink-grafana-plugins/commit/2d1ba6dcdd277dcfe4a4275cd79b28b72592d54e))
+
+## [4.26.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.25.0...v4.26.0) (2025-10-22)
+
+### Features
+
+* **dataframe:** Add lookup options for workspace ([#448](https://github.com/ni/systemlink-grafana-plugins/issues/448)) ([30d088e](https://github.com/ni/systemlink-grafana-plugins/commit/30d088e09e912ab7dd087825244b1f8dcfee3740))
+
 ## [4.25.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.24.0...v4.25.0) (2025-10-17)
 
 ### Features
