@@ -20,11 +20,13 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
   const QUERY_TYPE_CONFIG = useMemo(() => ({
     [QueryType.ListAlarms]: {
       defaultQuery: defaultListAlarmsQuery,
+      savedQuery: listAlarmsQuery,
     },
     [QueryType.AlarmsCount]: {
       defaultQuery: defaultAlarmsCountQuery,
+      savedQuery: alarmsCountQuery,
     },
-  }), []);
+  }), [listAlarmsQuery, alarmsCountQuery]);
 
   const handleQueryChange = useCallback(
     (query: AlarmsQuery, runQuery = true): void => {
@@ -57,7 +59,7 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
       ...config.savedQuery,
       refId: query.refId,
     });
-  }, [query, handleQueryChange, listAlarmsQuery, alarmsCountQuery, saveCurrentQueryState, QUERY_TYPE_CONFIG]);
+  }, [query, handleQueryChange, QUERY_TYPE_CONFIG, saveCurrentQueryState]);
 
   useEffect(() => {
     if (!query.queryType) {

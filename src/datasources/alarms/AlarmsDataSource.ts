@@ -18,7 +18,7 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
-    this._alarmsCountDataSource = new AlarmsCountDataSource(instanceSettings, backendSrv, templateSrv);
+    this._alarmsCountQueryHandler = new AlarmsCountQueryHandler(instanceSettings, backendSrv, templateSrv);
     this._listAlarmsDataSource = new ListAlarmsDataSource(instanceSettings, backendSrv, templateSrv);
     this.defaultQuery = this._listAlarmsDataSource.defaultQuery;
   }
