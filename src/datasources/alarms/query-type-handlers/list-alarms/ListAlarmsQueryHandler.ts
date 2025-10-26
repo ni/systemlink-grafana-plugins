@@ -6,7 +6,7 @@ import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
 export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultListAlarmsQuery;
 
-  public async runQuery(query: ListAlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
+  public async runQuery(query: ListAlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     return {
       refId: query.refId,
       name: query.refId,
