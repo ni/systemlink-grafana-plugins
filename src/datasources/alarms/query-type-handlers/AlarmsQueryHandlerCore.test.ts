@@ -25,7 +25,7 @@ jest.mock('shared/workspace.utils', () => {
   };
 });
 
-class TestAlarmsQueryHandlers extends AlarmsQueryHandlerCore {
+class TestAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   async runQuery(query: AlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
 
     return {
@@ -48,10 +48,10 @@ class TestAlarmsQueryHandlers extends AlarmsQueryHandlerCore {
 }
 
 describe('AlarmsQueryHandlerCore', () => {
-  let datastore: TestAlarmsQueryHandlers, backendServer: MockProxy<BackendSrv>;
+  let datastore: TestAlarmsQueryHandler, backendServer: MockProxy<BackendSrv>;
 
   beforeEach(() => {
-    [datastore, backendServer] = setupDataSource(TestAlarmsQueryHandlers);
+    [datastore, backendServer] = setupDataSource(TestAlarmsQueryHandler);
   });
 
   describe('globalVariableOptions', () => {
