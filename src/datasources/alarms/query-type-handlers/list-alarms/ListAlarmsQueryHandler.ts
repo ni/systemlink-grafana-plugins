@@ -10,6 +10,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
 
   public async runQuery(query: ListAlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
+
     await this.queryAlarmsData(query);
 
     return {
@@ -44,10 +45,11 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   }
 
   private async queryAlarmsData(alarmsQuery: ListAlarmsQuery): Promise<Alarm[]> {
-    const alarmsRequestBody = {
-      filter: alarmsQuery.filter ?? '',
+    const alarmsRequestBody: QueryAlarmsRequest = {
+      filter: alarmsQuery.filter,
       take: 10,
     }
+
     return await this.queryAlarmsInBatches(alarmsRequestBody);
   }
 }

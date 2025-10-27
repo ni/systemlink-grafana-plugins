@@ -66,7 +66,7 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
       const body = {
         ...alarmsRequestBody,
         take: currentTake,
-        continationToken: token,
+        continuationToken: token,
       };
       const response = await this.queryAlarms(body);
 
