@@ -1,5 +1,5 @@
 import { DataFrameDTO, DataQueryRequest } from '@grafana/data';
-import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.contants';
+import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
 
