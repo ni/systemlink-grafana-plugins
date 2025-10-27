@@ -5,6 +5,7 @@ import { DataQueryRequest, LegacyMetricFindQueryOptions } from '@grafana/data';
 import { QUERY_ALARMS_RELATIVE_PATH } from 'datasources/alarms/constants/QueryAlarms.constants';
 import { BackendSrv } from '@grafana/runtime';
 import { MockProxy } from 'jest-mock-extended';
+import { User } from 'shared/types/QueryUsers.types';
 
 jest.mock('shared/users.utils', () => {
   return {
