@@ -1,6 +1,6 @@
 import { AlarmsQueryHandlerCore } from './AlarmsQueryHandlerCore';
 import { DataFrameDTO, DataQueryRequest, ScopedVars } from '@grafana/data';
-import { AlarmsQuery, AlarmTransitionType, QueryAlarmsRequest, QueryType } from '../types/types';
+import { AlarmsQuery, QueryAlarmsRequest, QueryType } from '../types/types';
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
@@ -333,7 +333,7 @@ describe('AlarmsQueryHandlerCore', () => {
     it('should pass correct batch configuration and take to queryInBatches', async () => {
       (queryInBatches as jest.Mock).mockResolvedValueOnce([]);
 
-      await datastore.queryAlarmsInBatchesWrapper({take: 500});
+      await datastore.queryAlarmsInBatchesWrapper({ take: 500 });
 
       expect(queryInBatches).toHaveBeenCalledWith(
         expect.any(Function),
