@@ -6,66 +6,11 @@ import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { QUERY_ALARMS_RELATIVE_PATH } from '../constants/QueryAlarms.constants';
 import { Workspace } from 'core/types';
-import { getVariableOptions } from 'core/utils';
-
-const mockAlarmsResponse = {
-  alarms: [
-    {
-      instanceId: 'IN1',
-      alarmId: 'ALARM-001',
-      workspace: 'Lab-1',
-      active: true,
-      clear: false,
-      acknowledged: true,
-      acknowledgedAt: '2025-09-16T10:30:00Z',
-      acknowledgedBy: 'user123',
-      occurredAt: '2025-09-16T09:00:00Z',
-      updatedAt: '2025-09-16T10:29:00Z',
-      createdBy: 'admin',
-      transitions: [
-        {
-          transitionType: AlarmTransitionType.Set,
-          occurredAt: '2025-09-16T09:00:00Z',
-          severityLevel: 3,
-          value: 'High',
-          condition: 'Temperature',
-          shortText: 'Temp High',
-          detailText: 'Temperature exceeded threshold',
-          keywords: ['temperature', 'high'],
-          properties: {
-            sensorId: 'SENSOR-12',
-          },
-        },
-      ],
-      transitionOverflowCount: 0,
-      currentSeverityLevel: 3,
-      highestSeverityLevel: 3,
-      mostRecentSetOccurredAt: '2025-09-16T09:00:00Z',
-      mostRecentTransitionOccurredAt: '2025-09-16T10:00:00Z',
-      channel: 'Main',
-      condition: 'Temperature',
-      displayName: 'High Temperature Alarm',
-      description: 'Alarm triggered when temperature exceeds safe limit.',
-      keywords: ['temperature'],
-      properties: {
-        location: 'Lab-1',
-      },
-      resourceType: '',
-    },
-  ],
-  totalCount: 1,
-  continuationToken: '',
-};
+import { getVariableOptions, queryInBatches } from 'core/utils';
 
 jest.mock('core/utils', () => ({
   getVariableOptions: jest.fn(),
-  queryInBatches: jest.fn(() => {
-    return Promise.resolve({
-      data: mockAlarmsResponse.alarms,
-      continuationToken: mockAlarmsResponse.continuationToken,
-      totalCount: mockAlarmsResponse.totalCount,
-    });
-  }),
+  queryInBatches: jest.fn(),
 }));
 
 jest.mock('shared/workspace.utils', () => {
@@ -354,6 +299,50 @@ describe('AlarmsQueryHandlerCore', () => {
           );
         });
       });
+    });
+  });
+
+  describe('queryAlarmsInBatches', () => {
+    it('queryRecord callback should call queryAlarms with correct parameters', async () => {
+      const requestBody = { filter: 'active = true', take: 100 };
+      const mockAlarmsResponse = {
+        alarms: [{ id: '1' }, { id: '2' }],
+        continuationToken: 'token-123',
+        totalCount: 2
+      };
+      jest.spyOn(datastore as any, 'queryAlarms').mockResolvedValue(mockAlarmsResponse);
+      (queryInBatches as jest.Mock).mockImplementation(async (queryRecord, _config, _take) => {
+        const result = await queryRecord(100, 'continuation-token');
+        
+        return { 
+          data: result.data,
+          totalCount: result.totalCount
+        };
+      });
+
+      const result = await datastore.queryAlarmsInBatchesWrapper(requestBody);
+
+      expect((datastore as any).queryAlarms).toHaveBeenCalledWith({
+        filter: 'active = true',
+        take: 100,
+        continuationToken: 'continuation-token',
+      });
+      expect(result).toEqual(mockAlarmsResponse.alarms);
+    });
+
+    it('should pass correct batch configuration and take to queryInBatches', async () => {
+      (queryInBatches as jest.Mock).mockResolvedValueOnce([]);
+
+      await datastore.queryAlarmsInBatchesWrapper({take: 500});
+
+      expect(queryInBatches).toHaveBeenCalledWith(
+        expect.any(Function),
+        {
+          maxTakePerRequest: 1000,
+          requestsPerSecond: 5,
+        },
+        500
+      );
     });
   });
 
