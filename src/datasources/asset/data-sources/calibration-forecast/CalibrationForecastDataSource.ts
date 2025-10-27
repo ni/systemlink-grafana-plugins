@@ -1,10 +1,11 @@
 import { DataQueryRequest, DataFrameDTO, DataSourceInstanceSettings, FieldDTO, TestDataSourceResponse, DataLink } from '@grafana/data';
-import { AssetDataSourceOptions, AssetQuery, AssetQueryType, AssetType, AssetTypeOptions, BusType, BusTypeOptions } from '../../types/types';
+import { AssetQuery, AssetQueryType, AssetType, AssetTypeOptions, BusType, BusTypeOptions } from '../../types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv, locationService } from '@grafana/runtime';
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
 import { AssetCalibrationForecastKey, AssetCalibrationTimeBasedGroupByType, CalibrationForecastQuery, CalibrationForecastResponse, ColumnDescriptorType, FieldDTOWithDescriptor } from '../../types/CalibrationForecastQuery.types';
 import { transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
 import { AssetModel, AssetsResponse } from '../../../asset-common/types';
+import { FeatureToggleDataSourceOptions } from 'core/feature-toggle';
 
 export class CalibrationForecastDataSource extends AssetDataSourceBase {
     private dependenciesLoadedPromise: Promise<void>;
@@ -16,7 +17,7 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
     ]);
 
     constructor(
-        readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,
+        readonly instanceSettings: DataSourceInstanceSettings<FeatureToggleDataSourceOptions>,
         readonly backendSrv: BackendSrv = getBackendSrv(),
         readonly templateSrv: TemplateSrv = getTemplateSrv()
     ) {

@@ -1,5 +1,5 @@
 import { DataFrameDTO, DataQueryRequest, TestDataSourceResponse } from "@grafana/data";
-import { AssetDataSourceOptions, AssetQuery } from "../types/types";
+import { AssetQuery } from "../types/types";
 import { DataSourceBase } from "../../../core/DataSourceBase";
 import { defaultOrderBy, defaultProjection } from "../../system/constants";
 import { SystemProperties } from "../../system/types";
@@ -10,8 +10,9 @@ import { QueryBuilderOperations } from "../../../core/query-builder.constants";
 import { AllFieldNames, LocationFieldNames } from "../constants/constants";
 import { getVariableOptions } from "core/utils";
 import { ListLocationsResponse, LocationModel } from "../types/ListLocations.types";
+import { FeatureToggleDataSourceOptions } from "core/feature-toggle";
 
-export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
+export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, FeatureToggleDataSourceOptions> {
   private systemsLoaded!: () => void;
   private locationsLoaded!: () => void;
   private workspacesLeaded!: () => void;
