@@ -2,7 +2,7 @@ import { DataFrameDTO, DataQueryRequest, LegacyMetricFindQueryOptions, MetricFin
 import { ListAlarmsQuery } from '../../types/ListAlarms.types';
 import { AlarmsVariableQuery } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
-import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.contants';
+import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 
 export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultListAlarmsQuery;
