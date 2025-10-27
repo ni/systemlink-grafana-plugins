@@ -58,6 +58,9 @@ const mockAlarmResponse: QueryAlarmsResponse = {
 };
 
 describe('ListAlarmsQueryHandler', () => {
+  const query = { refId: 'A', queryType: QueryType.ListAlarms };
+  const dataQueryRequest = {} as DataQueryRequest;
+
   beforeEach(() => {
     [datastore, backendServer] = setupDataSource(ListAlarmsQueryHandler);
 
@@ -75,15 +78,27 @@ describe('ListAlarmsQueryHandler', () => {
   });
 
   describe('runQuery', () => {
-    const query = { refId: 'A', queryType: QueryType.ListAlarms };
-    const dataQueryRequest = {} as DataQueryRequest;
-
     it('should return empty value with refId and name from query', async () => {
       const result = await datastore.runQuery(query, dataQueryRequest);
 
       expect(result).toEqual({ refId: 'A', name: 'A', fields: [{ name: 'A', values: [] }] });
     });
 
+    it('should transform filter and call queryAlarmsInBatches', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
+      const filterQuery = { refId: 'A', filter: 'acknowledgedAt > "${__now:date}"'};
+
+      await datastore.runQuery(filterQuery, dataQueryRequest);
+
+      expect((datastore as any).queryAlarmsInBatches).toHaveBeenCalledWith({
+        filter: 'acknowledgedAt > "2025-01-01T00:00:00.000Z"',
+      });
+
+      jest.useRealTimers();
+    });
+  });
+
+  describe('queryAlarmsInBatches', () => {
     it('should pass an empty filter to queryAlarmsInBatches if filter is undefined in ListAlarmsQuery', async () => {
       await datastore.runQuery(query, dataQueryRequest);
 
