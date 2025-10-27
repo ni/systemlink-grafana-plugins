@@ -130,6 +130,28 @@ describe('DataSourceBase', () => {
             expect(response).toEqual('test');
         });
 
+        it('should send POST request with API ingress endpoints and api key when useApiIngress is true and no options are provided', async () => {
+            const response = await dataSource.post(
+                '/test-endpoint',
+                { body: 'body' },
+                {},
+                true
+            );
+
+            expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
+            expect(mockPost).toHaveBeenCalledWith(
+                backendSrv,
+                "http://api-ingress.com/test-endpoint",
+                { body: 'body' },
+                {
+                    headers: {
+                        "x-ni-api-key": "api-key-secret"
+                    }
+                },
+            );
+            expect(response).toEqual('test');
+        });
+
         it('should not send POST request if no API session is returned', async () => {
             jest.clearAllMocks();
             mockApiSessionUtils.createApiSession.mockRejectedValueOnce(new Error('No session created'));
