@@ -46,6 +46,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   private async queryAlarmsData(alarmsQuery: ListAlarmsQuery): Promise<Alarm[]> {
     const alarmsRequestBody = {
       filter: alarmsQuery.filter ?? '',
+      take: 10,
     }
     return await this.queryAlarmsInBatches(alarmsRequestBody);
   }
