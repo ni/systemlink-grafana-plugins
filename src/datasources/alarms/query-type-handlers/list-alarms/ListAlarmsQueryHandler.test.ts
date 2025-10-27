@@ -67,8 +67,6 @@ describe('ListAlarmsQueryHandler', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
       .mockReturnValue(createFetchResponse(mockAlarmResponse));
-
-    jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValue([]);
   });
 
   it('should set defaultListAlarmsQuery to defaultQuery', () => {
@@ -84,33 +82,49 @@ describe('ListAlarmsQueryHandler', () => {
       expect(result).toEqual({ refId: 'A', name: 'A', fields: [{ name: 'A', values: [] }] });
     });
 
-    it('should transform filter and call queryAlarmsInBatches', async () => {
+    it('should pass the transformed filter to the API', async () => {
       jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
       const filterQuery = { refId: 'A', filter: 'acknowledgedAt > "${__now:date}"'};
 
       await datastore.runQuery(filterQuery, dataQueryRequest);
 
-      expect((datastore as any).queryAlarmsInBatches).toHaveBeenCalledWith({
-        filter: 'acknowledgedAt > "2025-01-01T00:00:00.000Z"',
-      });
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            filter: 'acknowledgedAt > "2025-01-01T00:00:00.000Z"',
+          }),
+        })
+      );
 
       jest.useRealTimers();
     });
   });
 
   describe('queryAlarmsInBatches', () => {
-    it('should pass an empty filter to queryAlarmsInBatches if filter is undefined in ListAlarmsQuery', async () => {
+    it('should default to empty filter when filter is not provided in query', async () => {
       await datastore.runQuery(query, dataQueryRequest);
 
-      expect((datastore as any).queryAlarmsInBatches).toHaveBeenCalledWith({ filter: '' });
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            filter: '',
+          }),
+        })
+      );
     });
 
-    it('should pass the specified filter to queryAlarmsInBatches', async () => {
+    it('should use the provided filter when querying alarms', async () => {
       const filter = 'test-filter';
 
       await datastore.runQuery({ ...query, filter }, dataQueryRequest);
 
-      expect((datastore as any).queryAlarmsInBatches).toHaveBeenCalledWith({ filter });
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            filter,
+          }),
+        })
+      );
     });
   });
 
