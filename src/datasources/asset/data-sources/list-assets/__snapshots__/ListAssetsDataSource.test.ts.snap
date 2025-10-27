@@ -224,6 +224,13 @@ exports[`shouldRunQuery should match snapshot for Properties outputType 1`] = `
       "OK",
     ],
   },
+  {
+    "name": "scan code",
+    "type": "string",
+    "values": [
+      "c44750b7-1f22-4fec-b475-73b10e966217",
+    ],
+  },
 ]
 `;
 
@@ -444,6 +451,13 @@ exports[`shouldRunQuery should return expected data when take is 0 1`] = `
         "OK",
       ],
     },
+    {
+      "name": "scan code",
+      "type": "string",
+      "values": [
+        "c44750b7-1f22-4fec-b475-73b10e966217",
+      ],
+    },
   ],
   "name": "A",
   "refId": "A",
@@ -654,6 +668,13 @@ exports[`shouldRunQuery should return expected data when take is 1000 1`] = `
       "type": "string",
       "values": [
         "OK",
+      ],
+    },
+    {
+      "name": "scan code",
+      "type": "string",
+      "values": [
+        "c44750b7-1f22-4fec-b475-73b10e966217",
       ],
     },
   ],
@@ -868,6 +889,13 @@ exports[`shouldRunQuery should return expected data when take is 10000 1`] = `
         "OK",
       ],
     },
+    {
+      "name": "scan code",
+      "type": "string",
+      "values": [
+        "c44750b7-1f22-4fec-b475-73b10e966217",
+      ],
+    },
   ],
   "name": "A",
   "refId": "A",
@@ -1078,6 +1106,13 @@ exports[`shouldRunQuery should return single asset when identifier is provided 1
       "type": "string",
       "values": [
         "OK",
+      ],
+    },
+    {
+      "name": "scan code",
+      "type": "string",
+      "values": [
+        "c44750b7-1f22-4fec-b475-73b10e966217",
       ],
     },
   ],
