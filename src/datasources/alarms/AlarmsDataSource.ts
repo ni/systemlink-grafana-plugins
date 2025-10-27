@@ -1,7 +1,7 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TestDataSourceResponse } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TestDataSourceResponse, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { AlarmsQuery, QueryType } from './types/types';
+import { AlarmsQuery, AlarmsVariableQuery, QueryType } from './types/types';
 import { AlarmsCountQueryHandler } from './query-type-handlers/alarms-count/AlarmsCountQueryHandler';
 import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
 import { ListAlarmsQueryHandler } from './query-type-handlers/list-alarms/ListAlarmsQueryHandler';
@@ -52,6 +52,10 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
 
   public get listAlarmsQueryHandler(): ListAlarmsQueryHandler {
     return this._listAlarmsQueryHandler;
+  }
+
+  public async metricFindQuery(query: AlarmsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+    return this._listAlarmsQueryHandler.metricFindQuery(query, options);
   }
 
   public async testDatasource(): Promise<TestDataSourceResponse> {
