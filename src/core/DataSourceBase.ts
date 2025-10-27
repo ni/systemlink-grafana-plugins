@@ -58,14 +58,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    */
   public async get<T>(url: string, params?: Record<string, any>, useApiIngress = false) {
     if (useApiIngress) {
-      const apiSession = await this.apiSessionUtils.createApiSession();
-      if (apiSession) {
-        url = this.constructApiUrl(apiSession.endpoint, url);
-        params = {
-          ...params,
-          [this.apiKeyHeader]: apiSession.sessionKey.secret,
-        };
-      }
+      [url, params] = await this.buildApiRequestConfig(url, params ?? {}, 'GET');
     }
 
     return get<T>(this.backendSrv, url, params);
@@ -90,23 +83,13 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     useApiIngress = false
   ) {
     if (useApiIngress) {
-      const apiSession = await this.apiSessionUtils.createApiSession();
-      if (apiSession) {
-        url = this.constructApiUrl(apiSession.endpoint, url);
-        options = {
-          ...options,
-          headers: {
-            ...options.headers,
-            [this.apiKeyHeader]: apiSession.sessionKey.secret,
-          },
-        };
-      }
+      [url, options] = await this.buildApiRequestConfig(url, options, 'POST');
     }
 
     return post<T>(this.backendSrv, url, body, options);
   }
 
-  public static Workspaces: Workspace[];
+  private static Workspaces: Workspace[];
 
   public async getWorkspaces(): Promise<Workspace[]> {
     if (DataSourceBase.Workspaces) {
@@ -129,5 +112,32 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
   private constructApiUrl(apiEndpoint: string, url: string): string {
     const webserverUrl = this.instanceSettings.url ?? '';
     return apiEndpoint + url.replace(webserverUrl, '');
+  }
+
+  private async buildApiRequestConfig(
+    url: string,
+    options: Partial<BackendSrvRequest>,
+    method: 'GET' | 'POST'
+  ): Promise<[string, Partial<BackendSrvRequest>]> {
+    let updatedOptions: Partial<BackendSrvRequest> | Record<string, any>;
+
+    const apiSession = await this.apiSessionUtils.createApiSession();
+    url = this.constructApiUrl(apiSession.endpoint, url);
+
+    if (method === 'POST') {
+      updatedOptions = {
+        ...options,
+        headers: {
+          ...options.headers,
+          [this.apiKeyHeader]: apiSession.sessionKey.secret,
+        },
+      };
+    } else {
+      updatedOptions = {
+        ...options,
+        [this.apiKeyHeader]: apiSession.sessionKey.secret,
+      };
+    }
+    return [url, updatedOptions];
   }
 }

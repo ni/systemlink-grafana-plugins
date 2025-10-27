@@ -13,7 +13,7 @@ export class ApiSessionUtils {
         private readonly appEvents: EventBus = getAppEvents(),
     ) {}
 
-    public async createApiSession(): Promise<ApiSession> {
+    public async createApiSession(): Promise<NonNullable<ApiSession>> {
         if (!ApiSessionUtils._sessionCache || !await this.isSessionValid()) {
             ApiSessionUtils._sessionCache = this.createApiSessionData();
         }
