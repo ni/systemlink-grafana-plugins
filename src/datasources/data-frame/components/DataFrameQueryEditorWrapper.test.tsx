@@ -2,7 +2,7 @@ import React from "react";
 import { render } from "@testing-library/react";
 import { DataFrameQueryEditorWrapper } from "./DataFrameQueryEditorWrapper";
 import { DataFrameDataSource } from "../DataFrameDataSource";
-import { DataFrameQuery, DataFrameQueryType, Props } from "../types";
+import { DataFrameQueryType, Props, DataFrameQuery } from "../types";
 
 jest.mock('./v1/DataFrameQueryEditorV1', () => ({
     DataFrameQueryEditorV1: () => <div className="data-frame-query-editor-v1" />

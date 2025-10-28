@@ -45,6 +45,13 @@ describe('CalibrationForecastQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain("PartNumber_123");
     })
 
+    it('should select asset identifier in query builder', () => {
+      const { conditionsContainer } = renderElement([workspace], [system], [location], 'AssetIdentifier = "AssetIdentifier_123"');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("AssetIdentifier_123");
+    })
+
     it('should select system in query builder', () => {
       const { conditionsContainer } = renderElement([workspace], [system], [location], 'Location = "1"');
 
