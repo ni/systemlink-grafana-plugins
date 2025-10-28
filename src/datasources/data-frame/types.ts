@@ -21,7 +21,6 @@ export interface DataFrameQueryV1 extends DataQuery {
 }
 
 export interface DataFrameQueryV2 extends DataQuery {
-  filter?: string;
   type: DataFrameQueryType;
   columns?: string[];
   decimationMethod?: string;
@@ -38,7 +37,6 @@ export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
 };
 
 export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
-  filter: '',
   type: DataFrameQueryType.Data,
   columns: [],
   decimationMethod: 'LOSSY',

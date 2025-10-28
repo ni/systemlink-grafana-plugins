@@ -84,7 +84,7 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
             expressionBuilderCallback: expressionBuilderCallbackWithRef(optionsRef),
             expressionReaderCallback: expressionReaderCallbackWithRef(optionsRef),
         };
-    }, [optionsRef]);
+    }, []);
 
     useEffect(() => {
         if (!workspaceField) {

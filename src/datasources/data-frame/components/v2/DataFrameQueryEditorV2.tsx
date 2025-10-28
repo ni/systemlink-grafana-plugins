@@ -10,7 +10,7 @@ import { FloatingError } from 'core/errors';
 import { DataTableQueryBuilderFieldNames } from './constants/DataTableQueryBuilder.constants';
 
 export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onRunQuery, datasource }: PropsV2) => {
-    const migratedQuery = datasource.processQuery(query) as DataFrameQueryV2;
+    query = datasource.processQuery(query);
 
     const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
     const [isColumnConfigurationSectionOpen, setIsColumnConfigurationSectionOpen] = useState(true);
@@ -35,24 +35,20 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
     );
 
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
-        handleQueryChange({ ...migratedQuery, type: queryType }, false);
+        handleQueryChange({ ...query, type: queryType }, false);
     };
 
     const onColumnsChange = (columns: Array<ComboboxOption<string>>) => {
-        handleQueryChange({ ...migratedQuery, columns: columns.map(i => i.value) }, false);
+        handleQueryChange({ ...query, columns: columns.map(i => i.value) }, false);
     };
 
     const onDecimationMethodChange = (option: ComboboxOption<string>) => {
-        handleQueryChange({ ...migratedQuery, decimationMethod: option.value }, false);
+        handleQueryChange({ ...query, decimationMethod: option.value }, false);
     };
 
     const onUseTimeRangeChange = (event: React.FormEvent<HTMLInputElement>) => {
         const value = event.currentTarget.checked;
-        handleQueryChange({ ...migratedQuery, applyTimeFilters: value }, false);
-    };
-
-    const onQueryByChange = (queryBy: string) => {
-        handleQueryChange({ ...migratedQuery, filter: queryBy }, false);
+        handleQueryChange({ ...query, applyTimeFilters: value }, false);
     };
 
     const dataTableNameLookupCallback = async (query: string) => {
@@ -96,12 +92,12 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
             >
                 <RadioButtonGroup
                     options={enumToOptions(DataFrameQueryType)}
-                    value={migratedQuery.type}
+                    value={query.type}
                     onChange={onQueryTypeChange}
                 />
             </InlineField>
 
-            {migratedQuery.type === DataFrameQueryType.Properties && (
+            {query.type === DataFrameQueryType.Properties && (
                 <>
                     <InlineField
                         label={labels.datatableProperties}
@@ -154,15 +150,13 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                         marginBottom: getValuesInPixels(defaultMarginBottom)
                     }}>
                         <DataTableQueryBuilder
-                            filter={migratedQuery.filter}
                             workspaces={workspaces}
                             globalVariableOptions={datasource.globalVariableOptions()}
                             dataTableNameDataSourceCallback={dataTableNameLookupCallback}
-                            onChange={(event: any) => onQueryByChange(event.detail.linq)}
                         />
                     </div>
 
-                    {migratedQuery.type === DataFrameQueryType.Properties && (
+                    {query.type === DataFrameQueryType.Properties && (
                         <InlineField
                             label={labels.take}
                             labelWidth={inlineLabelWidth}
@@ -184,7 +178,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                 </Collapse>
             </div >
 
-            {migratedQuery.type === DataFrameQueryType.Data && (
+            {query.type === DataFrameQueryType.Data && (
                 <div
                     style={{ width: getValuesInPixels(sectionWidth) }}
                 >
