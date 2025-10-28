@@ -52,7 +52,7 @@ export abstract class DataFrameDataSourceBase<
     public abstract queryTables(query: string): Promise<TableProperties[]>;
 
     public async testDatasource(): Promise<TestDataSourceResponse> {
-        await this.get(`${this.baseUrl}/tables`, { take: 1 });
+        await this.get(`${this.baseUrl}/tables`, { params: { take: 1 } });
         return { status: 'success', message: 'Data source connected and authentication successful!' };
     }
 
