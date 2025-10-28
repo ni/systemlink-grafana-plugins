@@ -1,3 +1,9 @@
+## [4.28.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.27.2...v4.28.0) (2025-10-26)
+
+### Features
+
+* **Alarms:** Variable Query Editor ([#453](https://github.com/ni/systemlink-grafana-plugins/issues/453)) ([981a517](https://github.com/ni/systemlink-grafana-plugins/commit/981a5175b3f61b3d0c63d2eef63e98a830ec033d))
+
 ## [4.27.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.27.1...v4.27.2) (2025-10-23)
 
 ### Bug Fixes
