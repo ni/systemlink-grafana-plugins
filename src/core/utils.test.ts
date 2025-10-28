@@ -1,5 +1,5 @@
 import { BackendSrv, TemplateSrv } from "@grafana/runtime";
-import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, getVariableOptions, get, post, addOptionsToLookup } from "./utils";
+import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, get, post, addOptionsToLookup } from "./utils";
 import { BatchQueryConfig, QBField, QueryBuilderOption } from "./types";
 import { of, throwError } from 'rxjs';
 
@@ -57,7 +57,7 @@ describe('getVariableOptions', () => {
         getVariables: () => [{ name: 'var1' }, { name: 'var2' }]
       }
     };
-    expect(getVariableOptions(ds)).toEqual([
+    expect(ds.getVariableOptions()).toEqual([
       { label: '$var1', value: '$var1' },
       { label: '$var2', value: '$var2' }
     ]);

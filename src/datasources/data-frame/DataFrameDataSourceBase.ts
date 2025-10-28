@@ -16,7 +16,6 @@ import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { extractErrorInfo } from 'core/errors';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
-import { getVariableOptions } from 'core/utils';
 
 export abstract class DataFrameDataSourceBase<
     TQuery extends DataFrameQuery = DataFrameQuery,
@@ -25,7 +24,7 @@ export abstract class DataFrameDataSourceBase<
     public errorTitle = '';
     public errorDescription = '';
 
-    public readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
+    public readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
     private readonly workspaceUtils: WorkspaceUtils;
 

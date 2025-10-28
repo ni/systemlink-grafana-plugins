@@ -4,7 +4,7 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { transformComputedFieldsQuery, ExpressionTransformFunction, timeFieldsQuery, multipleValuesQuery } from 'core/query-builder.utils';
-import { getVariableOptions, queryInBatches } from 'core/utils';
+import { queryInBatches } from 'core/utils';
 import { QUERY_WORK_ORDERS_MAX_TAKE, QUERY_WORK_ORDERS_REQUEST_PER_SECOND } from './constants/QueryWorkOrders.constants';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { UsersUtils } from 'shared/users.utils';
@@ -44,7 +44,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     take: 1000,
   };
 
-  readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
+  readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   async runQuery(query: WorkOrdersQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     if (query.queryBy) {
@@ -90,8 +90,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     const variableQuery = this.prepareQuery(query);
     if (!this.isTakeValid(variableQuery)) {
       return [];
-    }    
-    const filter = variableQuery.queryBy? 
+    }
+    const filter = variableQuery.queryBy ?
       transformComputedFieldsQuery(
         this.templateSrv.replace(variableQuery.queryBy, options.scopedVars),
         this.workordersComputedDataFields
@@ -131,8 +131,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       const fieldValue = workOrders.map(workOrder => {
         switch (field.value) {
           case WorkOrderPropertiesOptions.WORKSPACE:
-              const workspace = workspaces.get(workOrder.workspace);
-              return workspace ? workspace.name : workOrder.workspace;
+            const workspace = workspaces.get(workOrder.workspace);
+            return workspace ? workspace.name : workOrder.workspace;
           case WorkOrderPropertiesOptions.ASSIGNED_TO:
           case WorkOrderPropertiesOptions.CREATED_BY:
           case WorkOrderPropertiesOptions.REQUESTED_BY:
@@ -141,8 +141,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
             const user = users.get(userId);
             return user ? UsersUtils.getUserFullName(user) : userId;
           case WorkOrderPropertiesOptions.PROPERTIES:
-              const properties = workOrder.properties || {};
-              return Object.keys(properties).length > 0 ? JSON.stringify(properties) : '';
+            const properties = workOrder.properties || {};
+            return Object.keys(properties).length > 0 ? JSON.stringify(properties) : '';
           default:
             return workOrder[field.field] ?? '';
         }

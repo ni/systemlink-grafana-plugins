@@ -18,14 +18,14 @@ interface RequestOptions extends Partial<BackendSrvRequest> {
 }
 
 export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData = DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
-  public readonly apiKeyHeader = 'x-ni-api-key';
-  public appEvents: EventBus;
-  public apiSessionUtils: ApiSessionUtils;
+  protected readonly apiKeyHeader = 'x-ni-api-key';
+  protected appEvents: EventBus;
+  protected apiSessionUtils: ApiSessionUtils;
 
-  public constructor(
-    public readonly instanceSettings: DataSourceInstanceSettings<TOptions>,
-    public readonly backendSrv: BackendSrv,
-    public readonly templateSrv: TemplateSrv
+  protected constructor(
+    protected readonly instanceSettings: DataSourceInstanceSettings<TOptions>,
+    protected readonly backendSrv: BackendSrv,
+    protected readonly templateSrv: TemplateSrv
   ) {
     super(instanceSettings);
     this.appEvents = getAppEvents();
@@ -86,6 +86,12 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
   ) {
     [url, options] = await this.buildApiRequestConfig(url, options, 'POST');
     return post<T>(this.backendSrv, url, body, options);
+  }
+
+  public getVariableOptions() {
+    return this.templateSrv
+      .getVariables()
+      .map(variable => ({ label: '$' + variable.name, value: '$' + variable.name }));
   }
 
   private static Workspaces: Workspace[];
