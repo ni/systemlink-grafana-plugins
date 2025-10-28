@@ -1,3 +1,9 @@
+## [4.31.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.30.0...v4.31.0) (2025-10-28)
+
+### Features
+
+* **alarms:** Add support for users with error handling ([#465](https://github.com/ni/systemlink-grafana-plugins/issues/465)) ([ca26460](https://github.com/ni/systemlink-grafana-plugins/commit/ca264601cf53d3bc042aa9bf11231aa0244a43be))
+
 ## [4.30.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.29.0...v4.30.0) (2025-10-28)
 
 ### Features
