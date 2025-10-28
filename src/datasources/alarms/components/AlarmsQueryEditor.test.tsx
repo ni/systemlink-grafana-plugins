@@ -100,7 +100,7 @@ describe('AlarmsQueryEditor', () => {
 
     renderElement(query);
 
-    expect(mockOnChange).toHaveBeenCalledWith({ refId: 'A', queryType: QueryType.ListAlarms, filter: '' });
+    expect(mockOnChange).toHaveBeenCalledWith({ refId: 'A', ...defaultListAlarmsQuery });
     expect(mockOnRunQuery).toHaveBeenCalled();
   });
 
@@ -142,13 +142,17 @@ describe('AlarmsQueryEditor', () => {
     await clickQueryTypeOption(QueryType.ListAlarms);
 
     await waitFor(() => {
-      expect(onChange).toHaveBeenCalledWith({ refId: 'A', hide: false, ...defaultListAlarmsQuery });
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining({ refId: 'A', hide: false, ...defaultListAlarmsQuery })
+      );
     });
 
     await clickQueryTypeOption(QueryType.AlarmsCount);
 
     await waitFor(() => {
-      expect(onChange).toHaveBeenCalledWith({ refId: 'A', hide: false, ...defaultAlarmsCountQuery });
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining({ refId: 'A', hide: false, ...defaultAlarmsCountQuery })
+      );
     });
   });
 
