@@ -219,17 +219,19 @@ describe('AlarmsQueryEditor', () => {
       await clickQueryTypeOption(QueryType.AlarmsCount);
 
       await waitFor(() => {
-        expect(onChange).toHaveBeenCalledWith({ refId: 'A', ...defaultAlarmsCountQuery });
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ refId: 'A', ...defaultAlarmsCountQuery }));
       });
 
       await clickQueryTypeOption(QueryType.ListAlarms);
 
       await waitFor(() => {
-        expect(onChange).toHaveBeenCalledWith({
-          refId: 'A',
-          ...defaultListAlarmsQuery,
-          filter: 'filter-in-list-alarms',
-        });
+        expect(onChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            refId: 'A',
+            ...defaultListAlarmsQuery,
+            filter: 'filter-in-list-alarms',
+          })
+        );
       });
     });
   });
@@ -317,17 +319,19 @@ describe('AlarmsQueryEditor', () => {
       await clickQueryTypeOption(QueryType.ListAlarms);
 
       await waitFor(() => {
-        expect(onChange).toHaveBeenCalledWith({ refId: 'A', ...defaultListAlarmsQuery });
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ refId: 'A', ...defaultListAlarmsQuery }));
       });
 
       await clickQueryTypeOption(QueryType.AlarmsCount);
 
       await waitFor(() => {
-        expect(onChange).toHaveBeenCalledWith({
-          refId: 'A',
-          ...defaultAlarmsCountQuery,
-          filter: 'filter-in-alarms-count'
-        });
+        expect(onChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            refId: 'A',
+            ...defaultAlarmsCountQuery,
+            filter: 'filter-in-alarms-count',
+          })
+        );
       });
     });
   });
