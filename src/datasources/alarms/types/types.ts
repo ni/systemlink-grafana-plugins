@@ -4,8 +4,13 @@ export interface AlarmsQuery extends DataQuery {
   queryType?: QueryType;
 }
 
+export interface AlarmsVariableQuery extends AlarmsQuery {
+  filter?: string;
+}
+
 export enum QueryType {
-  AlarmsCount = 'AlarmsCount',
+  AlarmsCount = 'Alarms Count',
+  ListAlarms = 'List Alarms'
 }
 
 export interface QueryAlarmsRequest {

@@ -106,17 +106,17 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.RowCount]: {
-    label: 'Number of rows',
+    label: 'Rows',
     projection: [DataTableProjections.RowCount],
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.ColumnCount]: {
-    label: 'Number of columns',
+    label: 'Columns',
     projection: [DataTableProjections.columnCount],
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.CreatedAt]: {
-    label: 'Created at',
+    label: 'Created',
     projection: [DataTableProjections.CreatedAt],
     type: DataTableProjectionType.DataTable
   },
@@ -126,7 +126,7 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.MetadataModifiedAt]: {
-    label: 'Metadata modified at',
+    label: 'Metadata modified',
     projection: [DataTableProjections.MetadataModifiedAt],
     type: DataTableProjectionType.DataTable
   },
@@ -136,7 +136,7 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.RowsModifiedAt]: {
-    label: 'Rows modified at',
+    label: 'Rows modified',
     projection: [DataTableProjections.RowsModifiedAt],
     type: DataTableProjectionType.DataTable
   },
@@ -166,7 +166,7 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.Properties]: {
-    label: 'Custom Properties',
+    label: 'Data table properties',
     projection: [DataTableProjections.Properties],
     type: DataTableProjectionType.DataTable
   },

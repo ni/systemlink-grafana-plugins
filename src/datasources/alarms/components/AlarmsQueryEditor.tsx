@@ -31,7 +31,7 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
         <AlarmsCountQueryEditor
           query={query as AlarmsCountQuery}
           handleQueryChange={handleQueryChange}
-          datasource={datasource.alarmsCountDataSource}
+          datasource={datasource.alarmsCountQueryHandler}
         />
       )}
     </>

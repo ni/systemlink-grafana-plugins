@@ -187,7 +187,7 @@ describe('AlarmsQueryBuilder', () => {
   });
 
   it('should select key and value for properties', () => {
-    const { conditionsContainer } = renderElement("properties[\"key\"] = \"value\"");
+    const { conditionsContainer } = renderElement('properties["key"] = "value"');
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain('Properties');
