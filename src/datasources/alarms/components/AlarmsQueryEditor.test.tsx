@@ -101,19 +101,7 @@ describe('AlarmsQueryEditor', () => {
 
     renderElement(query);
 
-    expect(mockOnChange).toHaveBeenCalledWith({
-      refId: 'A',
-      queryType: QueryType.ListAlarms,
-      filter: '',
-      properties: [
-        AlarmsProperties.displayName,
-        AlarmsProperties.currentSeverityLevel,
-        AlarmsProperties.occurredAt,
-        AlarmsProperties.source,
-        AlarmsProperties.state,
-        AlarmsProperties.workspace,
-      ],
-    });
+    expect(mockOnChange).toHaveBeenCalledWith({ refId: 'A', ...defaultListAlarmsQuery });
     expect(mockOnRunQuery).toHaveBeenCalled();
   });
 
@@ -238,11 +226,13 @@ describe('AlarmsQueryEditor', () => {
       await clickQueryTypeOption(QueryType.ListAlarms);
 
       await waitFor(() => {
-        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-          refId: 'A',
-          ...defaultListAlarmsQuery,
-          filter: 'filter-in-list-alarms',
-        }));
+        expect(onChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            refId: 'A',
+            ...defaultListAlarmsQuery,
+            filter: 'filter-in-list-alarms',
+          })
+        );
       });
     });
   });
