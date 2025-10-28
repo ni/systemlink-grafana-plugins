@@ -25,7 +25,7 @@ type Props = {
 
 export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);  
+  const [isPropertiesControlValid, setIsPropertiesControlValid] = useState<boolean>(true);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -47,13 +47,11 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     }
   };
 
-  const onPropertiesChange = (items: ComboboxOption<AlarmsProperties>[]) => {
-    const arePropertiesSelected = items.length > 0;
+  const onPropertiesChange = (properties: Array<ComboboxOption<AlarmsProperties>>) => {
+    setIsPropertiesControlValid(properties.length > 0);
 
-    setIsPropertiesValid(arePropertiesSelected);
-
-    if (arePropertiesSelected) {
-      handleQueryChange({ ...query, properties: items.map(i => i.value) });
+    if (properties !== undefined) {
+      handleQueryChange({ ...query, properties: properties.map(property => property.value) }, false);
     }
   };
 
@@ -63,7 +61,7 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
         label={labels.properties}
         labelWidth={LABEL_WIDTH}
         tooltip={tooltips.properties}
-        invalid={!isPropertiesValid}
+        invalid={!isPropertiesControlValid}
         error={PROPERTIES_ERROR_MESSAGE}
       >
         <MultiCombobox

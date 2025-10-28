@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, prettyDOM, render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { QueryType } from 'datasources/alarms/types/types';
 import { ListAlarmsQueryHandler } from 'datasources/alarms/query-type-handlers/list-alarms/ListAlarmsQueryHandler';
 import { AlarmsProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
@@ -7,6 +7,7 @@ import { ListAlarmsQueryEditor } from './ListAlarmsQueryEditor';
 import userEvent from '@testing-library/user-event';
 import { AlarmsPropertiesOptions } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { select } from 'react-select-event';
+import exp from 'node:constants';
 
 const mockHandleQueryChange = jest.fn();
 const mockGlobalVars = [{ label: '$var1', value: '$value1' }];
@@ -120,12 +121,11 @@ describe('ListAlarmsQueryEditor', () => {
   });
 
   describe('Properties', () => {
-    it('should call onChange with properties when user selects a property', async () => {
+    it('should call handleQueryChange with selected property when a property is selected', async () => {
       await renderElement();
-
       const propertiesControl = screen.getAllByRole('combobox')[0];
-      await userEvent.click(propertiesControl);
 
+      await userEvent.click(propertiesControl);
       await select(propertiesControl, AlarmsPropertiesOptions[AlarmsProperties.acknowledged].label, {
         container: document.body,
       });
@@ -144,13 +144,12 @@ describe('ListAlarmsQueryEditor', () => {
       const propertyToBeSelected = AlarmsProperties.acknowledged;
 
       await renderElement({ refId: 'A', queryType: QueryType.ListAlarms, properties: [propertyToBeSelected] });
-
       const removePropertyButton = screen.getByRole('button', { name: `Remove ${AlarmsPropertiesOptions[propertyToBeSelected].label}` });
       await userEvent.click(removePropertyButton);
 
       expect(removePropertyButton).toBeInTheDocument();
       expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
-      expect(mockHandleQueryChange).not.toHaveBeenCalled();
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ properties: [] }), false);
     });
   });
 });

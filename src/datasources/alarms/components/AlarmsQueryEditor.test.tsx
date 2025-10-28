@@ -8,7 +8,6 @@ import { AlarmsCountQueryEditor } from './editors/alarms-count/AlarmsCountQueryE
 import userEvent from '@testing-library/user-event';
 import { defaultAlarmsCountQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
 import { ListAlarmsQueryEditor } from './editors/list-alarms/ListAlarmsQueryEditor';
-import { AlarmsProperties } from '../types/ListAlarms.types';
 
 jest.mock('./editors/alarms-count/AlarmsCountQueryEditor', () => ({
   AlarmsCountQueryEditor: jest.fn(() => <div data-testid="mock-alarms-count" />),
