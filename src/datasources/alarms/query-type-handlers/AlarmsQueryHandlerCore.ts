@@ -2,7 +2,7 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, ScopedVars, DataSourceInstanceSettings } from '@grafana/data';
 import { Alarm, AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from '../types/types';
 import { extractErrorInfo } from 'core/errors';
-import { MAXIMUM_TAKE, QUERY_ALARMS_RELATIVE_PATH, QUERY_ALARMS_REQUEST_PER_SECOND } from '../constants/QueryAlarms.constants';
+import { QUERY_ALARMS_MAXIMUM_TAKE, QUERY_ALARMS_RELATIVE_PATH, QUERY_ALARMS_REQUEST_PER_SECOND } from '../constants/QueryAlarms.constants';
 import { ExpressionTransformFunction, getConcatOperatorForMultiExpression, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from '../constants/AlarmsQueryBuilder.constants';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
@@ -98,7 +98,7 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
     };
 
     const batchQueryConfig = {
-      maxTakePerRequest: MAXIMUM_TAKE,
+      maxTakePerRequest: QUERY_ALARMS_MAXIMUM_TAKE,
       requestsPerSecond: QUERY_ALARMS_REQUEST_PER_SECOND,
     };
     const response = await queryInBatches(queryRecord, batchQueryConfig, alarmsRequestBody.take);

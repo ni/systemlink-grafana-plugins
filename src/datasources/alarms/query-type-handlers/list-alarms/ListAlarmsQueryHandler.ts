@@ -25,6 +25,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public async runQuery(query: ListAlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
 
+    // #AB:3449773 Map queryAlarmsData response to user-selected properties
     await this.queryAlarmsData(query);
 
     return {

@@ -93,7 +93,7 @@ const mockAlarmResponse: QueryAlarmsResponse = {
 
 describe('ListAlarmsQueryHandler', () => {
   const query = { refId: 'A', queryType: QueryType.ListAlarms };
-  const dataQueryRequest = {} as DataQueryRequest;
+  const options = {} as DataQueryRequest;
 
   beforeEach(() => {
     [datastore, backendServer] = setupDataSource(ListAlarmsQueryHandler);
@@ -111,7 +111,7 @@ describe('ListAlarmsQueryHandler', () => {
 
   describe('runQuery', () => {
     it('should return empty value with refId and name from query', async () => {
-      const result = await datastore.runQuery(query, dataQueryRequest);
+      const result = await datastore.runQuery(query, options);
 
       expect(result).toEqual({ refId: 'A', name: 'A', fields: [{ name: 'A', values: [] }] });
     });
@@ -120,7 +120,7 @@ describe('ListAlarmsQueryHandler', () => {
       jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
       const filterQuery = { refId: 'A', filter: 'acknowledgedAt > "${__now:date}"'};
 
-      await datastore.runQuery(filterQuery, dataQueryRequest);
+      await datastore.runQuery(filterQuery, options);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -136,7 +136,7 @@ describe('ListAlarmsQueryHandler', () => {
 
   describe('queryAlarmsInBatches', () => {
     it('should default to empty filter when filter is not provided in query', async () => {
-      await datastore.runQuery(query, dataQueryRequest);
+      await datastore.runQuery(query, options);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -150,7 +150,7 @@ describe('ListAlarmsQueryHandler', () => {
     it('should use the provided filter when querying alarms', async () => {
       const filter = 'test-filter';
 
-      await datastore.runQuery({ ...query, filter }, dataQueryRequest);
+      await datastore.runQuery({ ...query, filter }, options);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
