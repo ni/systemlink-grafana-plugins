@@ -90,8 +90,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     const variableQuery = this.prepareQuery(query);
     if (!this.isTakeValid(variableQuery)) {
       return [];
-    }
-    const filter = variableQuery.queryBy ?
+    }    
+    const filter = variableQuery.queryBy? 
       transformComputedFieldsQuery(
         this.templateSrv.replace(variableQuery.queryBy, options.scopedVars),
         this.workordersComputedDataFields
@@ -131,8 +131,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       const fieldValue = workOrders.map(workOrder => {
         switch (field.value) {
           case WorkOrderPropertiesOptions.WORKSPACE:
-            const workspace = workspaces.get(workOrder.workspace);
-            return workspace ? workspace.name : workOrder.workspace;
+              const workspace = workspaces.get(workOrder.workspace);
+              return workspace ? workspace.name : workOrder.workspace;
           case WorkOrderPropertiesOptions.ASSIGNED_TO:
           case WorkOrderPropertiesOptions.CREATED_BY:
           case WorkOrderPropertiesOptions.REQUESTED_BY:
@@ -141,8 +141,8 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
             const user = users.get(userId);
             return user ? UsersUtils.getUserFullName(user) : userId;
           case WorkOrderPropertiesOptions.PROPERTIES:
-            const properties = workOrder.properties || {};
-            return Object.keys(properties).length > 0 ? JSON.stringify(properties) : '';
+              const properties = workOrder.properties || {};
+              return Object.keys(properties).length > 0 ? JSON.stringify(properties) : '';
           default:
             return workOrder[field.field] ?? '';
         }

@@ -1,9 +1,9 @@
-import { CoreApp, SelectableValue } from '@grafana/data';
-import { LoadOptionsCallback } from '@grafana/ui';
-import { getWorkspaceName } from 'core/utils';
-import _ from 'lodash';
-import { DataFrameQueryV1, DataFrameQueryType, PropsV1, ValidDataFrameQueryV1 } from '../../types';
-import { DataFrameDataSource } from 'datasources/data-frame/DataFrameDataSource';
+import { CoreApp, SelectableValue } from "@grafana/data";
+import { LoadOptionsCallback } from "@grafana/ui";
+import { getWorkspaceName } from "core/utils";
+import _ from "lodash";
+import { DataFrameQueryV1, DataFrameQueryType, PropsV1, ValidDataFrameQueryV1 } from "../../types";
+import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 
 export class DataFrameQueryEditorCommonV1 {
   readonly datasource: DataFrameDataSource;
@@ -29,14 +29,11 @@ export class DataFrameQueryEditorCommonV1 {
 
   readonly handleIdChange = (item: SelectableValue<string>) => {
     if (this.query.tableId !== item.value) {
-      this.handleQueryChange(
-        {
-          ...this.query,
-          tableId: item.value,
-          columns: [],
-        },
-        this.query.type === DataFrameQueryType.Properties
-      );
+      this.handleQueryChange({
+        ...this.query,
+        tableId: item.value,
+        columns: []
+      }, this.query.type === DataFrameQueryType.Properties);
     }
   };
 
