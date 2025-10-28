@@ -13,6 +13,10 @@ import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
 import { get, post } from './utils';
 import { ApiSessionUtils } from '../shared/api-session.utils';
 
+interface RequestOptions extends Partial<BackendSrvRequest> {
+  useApiIngress?: boolean;
+}
+
 export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData = DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
   public readonly apiKeyHeader = 'x-ni-api-key';
   public appEvents: EventBus;
@@ -56,12 +60,12 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    * @param useApiIngress - If true, uses API ingress bypassing the UI ingress for the request.
    * @returns A promise resolving to the response of type `T`.
    */
-  public async get<T>(url: string, params?: Record<string, any>, useApiIngress = false) {
-    if (useApiIngress) {
-      [url, params] = await this.buildApiRequestConfig(url, params ?? {}, 'GET');
+  public async get<T>(url: string, options: RequestOptions = {}) {
+    if (options.useApiIngress) {
+      [url, options] = await this.buildApiRequestConfig(url, options, 'GET');
     }
-
-    return get<T>(this.backendSrv, url, params);
+    const { useApiIngress, ...remainingOptions } = options;
+    return get<T>(this.backendSrv, url, remainingOptions);
   }
 
   /**
@@ -79,14 +83,13 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
   public async post<T>(
     url: string,
     body: Record<string, any>,
-    options: Partial<BackendSrvRequest> = {},
-    useApiIngress = false
+    options: RequestOptions = {},
   ) {
-    if (useApiIngress) {
+    if (options.useApiIngress) {
       [url, options] = await this.buildApiRequestConfig(url, options, 'POST');
     }
-
-    return post<T>(this.backendSrv, url, body, options);
+    const { useApiIngress, ...remainingOptions } = options;
+    return post<T>(this.backendSrv, url, body, remainingOptions);
   }
 
   private static Workspaces: Workspace[];
@@ -135,7 +138,10 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     } else {
       updatedOptions = {
         ...options,
-        [this.apiKeyHeader]: apiSession.sessionKey.secret,
+        params: {
+          ...options.params,
+          [this.apiKeyHeader]: apiSession.sessionKey.secret,
+        }
       };
     }
     return [url, updatedOptions];
