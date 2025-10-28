@@ -1,3 +1,9 @@
+## [4.29.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.28.0...v4.29.0) (2025-10-28)
+
+### Features
+
+* **core:** Implement ApiSession and ApiSessionUtils with session management ([#434](https://github.com/ni/systemlink-grafana-plugins/issues/434)) ([3e5a2f4](https://github.com/ni/systemlink-grafana-plugins/commit/3e5a2f4ea6f67475f423cfd6004590612ebd4cba))
+
 ## [4.28.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.27.2...v4.28.0) (2025-10-26)
 
 ### Features
