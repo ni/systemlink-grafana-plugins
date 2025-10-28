@@ -56,16 +56,15 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    *
    * @template T - The expected response type.
    * @param url - The endpoint URL for the GET request.
-   * @param params - Optional query parameters as a key-value map.
-   * @param useApiIngress - If true, uses API ingress bypassing the UI ingress for the request.
+   * @param options - Optional configuration for the request. This can include:
+   *   - `showingErrorAlert` (boolean): If true, displays an error alert on request failure.
+   *   - `useApiIngress` (boolean): If true, uses API ingress bypassing the UI ingress for the request.
+   *   - Any other properties supported by {@link RequestOptions}, such as headers, credentials, etc.
    * @returns A promise resolving to the response of type `T`.
    */
   public async get<T>(url: string, options: RequestOptions = {}) {
-    if (options.useApiIngress) {
-      [url, options] = await this.buildApiRequestConfig(url, options, 'GET');
-    }
-    const { useApiIngress, ...remainingOptions } = options;
-    return get<T>(this.backendSrv, url, remainingOptions);
+    [url, options] = await this.buildApiRequestConfig(url, options, 'GET');
+    return get<T>(this.backendSrv, url, options);
   }
 
   /**
@@ -76,8 +75,8 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    * @param body - The request payload as a key-value map.
    * @param options - Optional configuration for the request. This can include:
    *   - `showingErrorAlert` (boolean): If true, displays an error alert on request failure.
-   *   - Any other properties supported by {@link BackendSrvRequest}, such as headers, credentials, etc.
-   * @param useApiIngress - If true, uses API ingress bypassing the UI ingress for the request.
+   *   - `useApiIngress` (boolean): If true, uses API ingress bypassing the UI ingress for the request.
+   *   - Any other properties supported by {@link RequestOptions}, such as headers, credentials, etc.
    * @returns A promise resolving to the response of type `T`.
    */
   public async post<T>(
@@ -85,11 +84,8 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     body: Record<string, any>,
     options: RequestOptions = {},
   ) {
-    if (options.useApiIngress) {
-      [url, options] = await this.buildApiRequestConfig(url, options, 'POST');
-    }
-    const { useApiIngress, ...remainingOptions } = options;
-    return post<T>(this.backendSrv, url, body, remainingOptions);
+    [url, options] = await this.buildApiRequestConfig(url, options, 'POST');
+    return post<T>(this.backendSrv, url, body, options);
   }
 
   private static Workspaces: Workspace[];
@@ -119,31 +115,39 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
 
   private async buildApiRequestConfig(
     url: string,
-    options: Partial<BackendSrvRequest>,
+    options: RequestOptions,
     method: 'GET' | 'POST'
   ): Promise<[string, Partial<BackendSrvRequest>]> {
-    let updatedOptions: Partial<BackendSrvRequest> | Record<string, any>;
+    if (!options.useApiIngress) {
+      return [url, options];
+    };
 
     const apiSession = await this.apiSessionUtils.createApiSession();
     url = this.constructApiUrl(apiSession.endpoint, url);
+    const { useApiIngress, ...remainingOptions } = options;
 
     if (method === 'POST') {
-      updatedOptions = {
-        ...options,
-        headers: {
-          ...options.headers,
-          [this.apiKeyHeader]: apiSession.sessionKey.secret,
-        },
-      };
-    } else {
-      updatedOptions = {
-        ...options,
-        params: {
-          ...options.params,
-          [this.apiKeyHeader]: apiSession.sessionKey.secret,
+      return [
+        url,
+        {
+          ...remainingOptions,
+          headers: {
+            ...remainingOptions.headers,
+            [this.apiKeyHeader]: apiSession.sessionKey.secret,
+          },
         }
-      };
+      ];
+    } else {
+      return [
+        url,
+        {
+          ...remainingOptions,
+          params: {
+            ...remainingOptions.params,
+            [this.apiKeyHeader]: apiSession.sessionKey.secret,
+          }
+        }
+      ];
     }
-    return [url, updatedOptions];
   }
 }
