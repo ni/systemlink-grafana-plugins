@@ -8,6 +8,7 @@ import { AlarmsCountQueryEditor } from './editors/alarms-count/AlarmsCountQueryE
 import userEvent from '@testing-library/user-event';
 import { defaultAlarmsCountQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
 import { ListAlarmsQueryEditor } from './editors/list-alarms/ListAlarmsQueryEditor';
+import { AlarmsProperties } from '../types/ListAlarms.types';
 
 jest.mock('./editors/alarms-count/AlarmsCountQueryEditor', () => ({
   AlarmsCountQueryEditor: jest.fn(() => <div data-testid="mock-alarms-count" />),
@@ -100,7 +101,19 @@ describe('AlarmsQueryEditor', () => {
 
     renderElement(query);
 
-    expect(mockOnChange).toHaveBeenCalledWith({ refId: 'A', queryType: QueryType.ListAlarms, filter: '' });
+    expect(mockOnChange).toHaveBeenCalledWith({
+      refId: 'A',
+      queryType: QueryType.ListAlarms,
+      filter: '',
+      properties: [
+        AlarmsProperties.displayName,
+        AlarmsProperties.currentSeverityLevel,
+        AlarmsProperties.occurredAt,
+        AlarmsProperties.source,
+        AlarmsProperties.state,
+        AlarmsProperties.workspace,
+      ],
+    });
     expect(mockOnRunQuery).toHaveBeenCalled();
   });
 
@@ -142,13 +155,17 @@ describe('AlarmsQueryEditor', () => {
     await clickQueryTypeOption(QueryType.ListAlarms);
 
     await waitFor(() => {
-      expect(onChange).toHaveBeenCalledWith({ refId: 'A', hide: false, ...defaultListAlarmsQuery });
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining({ refId: 'A', hide: false, ...defaultListAlarmsQuery })
+      );
     });
 
     await clickQueryTypeOption(QueryType.AlarmsCount);
 
     await waitFor(() => {
-      expect(onChange).toHaveBeenCalledWith({ refId: 'A', hide: false, ...defaultAlarmsCountQuery });
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining({ refId: 'A', hide: false, ...defaultAlarmsCountQuery })
+      );
     });
   });
 
@@ -215,17 +232,17 @@ describe('AlarmsQueryEditor', () => {
       await clickQueryTypeOption(QueryType.AlarmsCount);
 
       await waitFor(() => {
-        expect(onChange).toHaveBeenCalledWith({ refId: 'A', ...defaultAlarmsCountQuery });
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ refId: 'A', ...defaultAlarmsCountQuery }));
       });
 
       await clickQueryTypeOption(QueryType.ListAlarms);
 
       await waitFor(() => {
-        expect(onChange).toHaveBeenCalledWith({
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
           refId: 'A',
           ...defaultListAlarmsQuery,
           filter: 'filter-in-list-alarms',
-        });
+        }));
       });
     });
   });
@@ -313,17 +330,19 @@ describe('AlarmsQueryEditor', () => {
       await clickQueryTypeOption(QueryType.ListAlarms);
 
       await waitFor(() => {
-        expect(onChange).toHaveBeenCalledWith({ refId: 'A', ...defaultListAlarmsQuery });
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ refId: 'A', ...defaultListAlarmsQuery }));
       });
 
       await clickQueryTypeOption(QueryType.AlarmsCount);
 
       await waitFor(() => {
-        expect(onChange).toHaveBeenCalledWith({
-          refId: 'A',
-          ...defaultAlarmsCountQuery,
-          filter: 'filter-in-alarms-count'
-        });
+        expect(onChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            refId: 'A',
+            ...defaultAlarmsCountQuery,
+            filter: 'filter-in-alarms-count',
+          })
+        );
       });
     });
   });

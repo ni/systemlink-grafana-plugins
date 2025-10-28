@@ -69,7 +69,11 @@ describe('ListAlarmsQueryHandler', () => {
   it('should set defaultListAlarmsQuery to defaultQuery', () => {
     const defaultQuery = datastore.defaultQuery;
 
-    expect(defaultQuery).toEqual({ queryType: 'List Alarms', filter: '' });
+    expect(defaultQuery).toEqual({
+      queryType: 'List Alarms',
+      filter: '',
+      properties: ['displayName', 'currentSeverityLevel', 'occurredAt', 'source', 'state', 'workspace'],
+    });
   });
 
   describe('runQuery', () => {
