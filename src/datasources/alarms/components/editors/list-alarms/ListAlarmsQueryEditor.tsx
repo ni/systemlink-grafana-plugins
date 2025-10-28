@@ -48,11 +48,12 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
   };
 
   const onPropertiesChange = (properties: Array<ComboboxOption<AlarmsProperties>>) => {
-    setIsPropertiesControlValid(properties.length > 0);
+    const selectedProperties = properties.map(property => property.value);
+    const isValid = selectedProperties.length > 0;
 
-    if (properties !== undefined) {
-      handleQueryChange({ ...query, properties: properties.map(property => property.value) }, false);
-    }
+    setIsPropertiesControlValid(isValid);
+
+    return handleQueryChange({ ...query, properties: selectedProperties }, isValid);
   };
 
   return (

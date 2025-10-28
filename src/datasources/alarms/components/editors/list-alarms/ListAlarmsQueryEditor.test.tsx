@@ -135,7 +135,8 @@ describe('ListAlarmsQueryEditor', () => {
         expect(mockHandleQueryChange).toHaveBeenCalledWith(
           expect.objectContaining({
             properties: ['acknowledged'],
-          })
+          }),
+          true
         );
       });
     });
@@ -144,7 +145,9 @@ describe('ListAlarmsQueryEditor', () => {
       const propertyToBeSelected = AlarmsProperties.acknowledged;
 
       await renderElement({ refId: 'A', queryType: QueryType.ListAlarms, properties: [propertyToBeSelected] });
-      const removePropertyButton = screen.getByRole('button', { name: `Remove ${AlarmsPropertiesOptions[propertyToBeSelected].label}` });
+      const removePropertyButton = screen.getByRole('button', {
+        name: `Remove ${AlarmsPropertiesOptions[propertyToBeSelected].label}`,
+      });
       await userEvent.click(removePropertyButton);
 
       expect(removePropertyButton).toBeInTheDocument();
