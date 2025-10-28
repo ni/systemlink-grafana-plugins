@@ -118,36 +118,39 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     options: RequestOptions,
     method: 'GET' | 'POST'
   ): Promise<[string, Partial<BackendSrvRequest>]> {
-    if (!options.useApiIngress) {
-      return [url, options];
-    };
+    const { useApiIngress, ...remainingOptions } = options;
+    if (!useApiIngress) {
+      return [url, remainingOptions];
+    }
 
     const apiSession = await this.apiSessionUtils.createApiSession();
     url = this.constructApiUrl(apiSession.endpoint, url);
-    const { useApiIngress, ...remainingOptions } = options;
 
-    if (method === 'POST') {
-      return [
-        url,
-        {
+    let requestOptions;
+
+    switch (method) {
+      case 'POST':
+        requestOptions = {
           ...remainingOptions,
           headers: {
             ...remainingOptions.headers,
             [this.apiKeyHeader]: apiSession.sessionKey.secret,
           },
-        }
-      ];
-    } else {
-      return [
-        url,
-        {
+        };
+        break;
+      case 'GET':
+        requestOptions = {
           ...remainingOptions,
           params: {
             ...remainingOptions.params,
             [this.apiKeyHeader]: apiSession.sessionKey.secret,
           }
-        }
-      ];
+        };
+        break;
+      default:
+        requestOptions = { ...remainingOptions };
+        break;
     }
+    return [url, requestOptions];
   }
 }
