@@ -265,7 +265,9 @@ export async function queryUsingSkip<T>(
  * @template T - The expected response type.
  * @param backendSrv - The Backend Service instance {@link BackendSrv} used to make the request.
  * @param url - The endpoint URL to which the GET request is sent.
- * @param options - Optional configuration for the request. Supports properties supported by {@link BackendSrvRequest}.
+ * @param options - Optional configuration for the request. This can include:
+ *   - `showingErrorAlert` (boolean): If true, displays an error alert on request failure.
+ *   - Any other properties supported by {@link BackendSrvRequest}, such as headers, credentials, etc.
  * @returns A promise resolving to the response of type `T`.
  */
 export function get<T>(backendSrv: BackendSrv, url: string, options: Partial<BackendSrvRequest> = {}) {
