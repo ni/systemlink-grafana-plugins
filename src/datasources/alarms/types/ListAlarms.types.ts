@@ -31,4 +31,5 @@ export enum AlarmsProperties {
   transitionOverflowCount = 'transitionOverflowCount',
   updatedAt = 'updatedAt',
   workspace = 'workspace',
+  //AB: 3356927 - Add support for transition property
 }
