@@ -4,6 +4,7 @@ import { AlarmsVariableQuery } from '../types/types';
 import { QueryEditorProps } from '@grafana/data';
 import React from 'react';
 import { AlarmsVariableQueryEditor } from './AlarmsVariableQueryEditor';
+import { takeErrorMessages } from '../constants/AlarmsQueryEditor.constants';
 
 const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
@@ -219,6 +220,202 @@ describe('AlarmsVariableQueryEditor', () => {
     expect(mockOnChange).toHaveBeenCalledWith({
       refId: 'A',
       filter: 'test-filter'
+    });
+  });
+
+  describe('Take Control Tests', () => {
+    it('should render take input with 1000 as default value', async () => {
+      await renderElement({ refId: 'A' });
+
+      const takeInput = screen.getByRole('spinbutton');
+      expect(takeInput).toBeInTheDocument();
+      expect(takeInput).toHaveAttribute('type', 'number');
+      expect(takeInput).toHaveValue(1000);
+    });
+
+    it('should render take input with custom value', async () => {
+      const customTake = 500;
+      await renderElement({ refId: 'A', take: customTake });
+
+      const takeInput = screen.getByRole('spinbutton');
+      expect(takeInput).toHaveValue(customTake);
+    });
+
+    it('should call onChange when take value is changed', async () => {
+      await renderElement({ refId: 'A' });
+
+      const takeInput = screen.getByRole('spinbutton');
+      
+      fireEvent.change(takeInput, { target: { value: '250' } });
+      fireEvent.blur(takeInput);
+
+      expect(mockOnChange).toHaveBeenCalledWith({
+        refId: 'A',
+        take: 250
+      });
+    });
+
+    it('should preserve other query properties when take changes', async () => {
+      const initialQuery = { refId: 'A', filter: 'existing filter', descending: true };
+      await renderElement(initialQuery);
+
+      const takeInput = screen.getByRole('spinbutton');
+      
+      fireEvent.change(takeInput, { target: { value: '300' } });
+      fireEvent.blur(takeInput);
+
+      expect(mockOnChange).toHaveBeenCalledWith({
+        refId: 'A',
+        filter: 'existing filter',
+        descending: true,
+        take: 300
+      });
+    });
+
+    it('should display minimum error message when take value is below 1', async () => {
+      await renderElement({ refId: 'A' });
+
+      const takeInput = screen.getByRole('spinbutton');
+      
+      fireEvent.change(takeInput, { target: { value: '0' } });
+      fireEvent.blur(takeInput);
+
+      expect(screen.getByText(takeErrorMessages.minErrorMsg)).toBeInTheDocument();
+    });
+
+    it('should display maximum error message when take value is above MAX_TAKE', async () => {
+      await renderElement({ refId: 'A' });
+
+      const takeInput = screen.getByRole('spinbutton');
+      
+      fireEvent.change(takeInput, { target: { value: '99999' } });
+      fireEvent.blur(takeInput);
+
+      expect(screen.getByText(takeErrorMessages.maxErrorMsg)).toBeInTheDocument();
+    });
+
+    it('should display minimum error message for negative values', async () => {
+      await renderElement({ refId: 'A' });
+
+      const takeInput = screen.getByRole('spinbutton');
+      
+      fireEvent.change(takeInput, { target: { value: '-5' } });
+      fireEvent.blur(takeInput);
+
+      expect(screen.getByText(takeErrorMessages.minErrorMsg)).toBeInTheDocument();
+    });
+
+    it('should display minimum error message for NaN values', async () => {
+      await renderElement({ refId: 'A' });
+
+      const takeInput = screen.getByRole('spinbutton');
+      
+      fireEvent.change(takeInput, { target: { value: 'invalid' } });
+      fireEvent.blur(takeInput);
+
+      expect(screen.getByText(takeErrorMessages.minErrorMsg)).toBeInTheDocument();
+    });
+
+    it('should display minimum error message for empty string', async () => {
+      await renderElement({ refId: 'A' });
+
+      const takeInput = screen.getByRole('spinbutton');
+      
+      fireEvent.change(takeInput, { target: { value: '' } });
+      fireEvent.blur(takeInput);
+
+      expect(screen.getByText(takeErrorMessages.minErrorMsg)).toBeInTheDocument();
+    });
+
+    it('should clear error message when valid value is entered', async () => {
+      await renderElement({ refId: 'A' });
+
+      const takeInput = screen.getByRole('spinbutton');
+      
+      fireEvent.change(takeInput, { target: { value: '0' } });
+      fireEvent.blur(takeInput);
+      
+      expect(screen.getByText(takeErrorMessages.minErrorMsg)).toBeInTheDocument();
+      
+      fireEvent.change(takeInput, { target: { value: '100' } });
+      fireEvent.blur(takeInput);
+      
+      expect(screen.queryByText(takeErrorMessages.minErrorMsg)).not.toBeInTheDocument();
+      expect(screen.queryByText(takeErrorMessages.maxErrorMsg)).not.toBeInTheDocument();
+    });
+
+    it('should maintain error message consistency across multiple invalid inputs', async () => {
+      await renderElement({ refId: 'A' });
+
+      const takeInput = screen.getByRole('spinbutton');
+      
+      const invalidMinValues = ['0', '-1', '-100', 'abc', ''];
+      
+      for (const value of invalidMinValues) {
+        fireEvent.change(takeInput, { target: { value } });
+        fireEvent.blur(takeInput);
+        
+        expect(screen.getByText(takeErrorMessages.minErrorMsg)).toBeInTheDocument();
+        expect(screen.queryByText(takeErrorMessages.maxErrorMsg)).not.toBeInTheDocument();
+      }
+      
+      const invalidMaxValues = ['99999', '100000'];
+      
+      for (const value of invalidMaxValues) {
+        fireEvent.change(takeInput, { target: { value } });
+        fireEvent.blur(takeInput);
+        
+        expect(screen.getByText(takeErrorMessages.maxErrorMsg)).toBeInTheDocument();
+        expect(screen.queryByText(takeErrorMessages.minErrorMsg)).not.toBeInTheDocument();
+      }
+    });
+  });
+
+  describe('Descending Control Tests', () => {
+    it('should render descending switch with true as default value', async () => {
+      await renderElement({ refId: 'A' });
+
+      const descendingSwitch = screen.getByRole('switch');
+      expect(descendingSwitch).toBeInTheDocument();
+      expect(descendingSwitch).toHaveAttribute('type', 'checkbox');
+      expect(descendingSwitch).toBeChecked();
+    });
+
+    it('should render descending switch with custom value', async () => {
+      const customDescending = false;
+      await renderElement({ refId: 'A', descending: customDescending });
+
+      const descendingSwitch = screen.getByRole('switch');
+      expect(descendingSwitch).not.toBeChecked();
+    });
+
+    it('should call onChange when descending switch is toggled', async () => {
+      await renderElement({ refId: 'A', descending: false });
+
+      const descendingSwitch = screen.getByRole('switch');
+      expect(descendingSwitch).not.toBeChecked();
+
+      fireEvent.click(descendingSwitch);
+
+      expect(mockOnChange).toHaveBeenCalledWith({
+        refId: 'A',
+        descending: true
+      });
+    });
+
+    it('should preserve other query properties when descending changes', async () => {
+      const initialQuery = { refId: 'A', filter: 'test filter', take: 500 };
+      await renderElement(initialQuery);
+
+      const descendingSwitch = screen.getByRole('switch');
+      fireEvent.click(descendingSwitch);
+
+      expect(mockOnChange).toHaveBeenCalledWith({
+        refId: 'A',
+        filter: 'test filter',
+        take: 500,
+        descending: false
+      });
     });
   });
 });

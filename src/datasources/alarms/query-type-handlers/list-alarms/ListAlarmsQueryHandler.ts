@@ -18,7 +18,11 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public async metricFindQuery(query: AlarmsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     try {
       const filter = this.transformAlarmsQuery(options?.scopedVars || {}, query.filter);
-      const response = await this.queryAlarms({filter});
+      const take = query.take;
+      const orderByDescending = query.descending;
+      const returnMostRecentlyOccurredOnly = true;
+      const requestBody = {filter, take, orderByDescending, returnMostRecentlyOccurredOnly}
+      const response = await this.queryAlarms(requestBody);
 
       const alarmsOptions = response.alarms
         ? response.alarms.map(alarm => ({
@@ -27,11 +31,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
         }))
         : [];
       
-      const uniqueOptions = Array.from(
-        new Map(alarmsOptions.map(option => [option.value, option])).values()
-      );
-      
-      const sortedOptions = uniqueOptions.sort((a, b) => a.text.localeCompare(b.text));
+      const sortedOptions = alarmsOptions.sort((a, b) => a.text.localeCompare(b.text));
 
       return sortedOptions;
     } catch (error) {

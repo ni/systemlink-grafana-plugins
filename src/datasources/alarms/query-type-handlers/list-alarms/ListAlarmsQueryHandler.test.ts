@@ -137,7 +137,10 @@ describe('ListAlarmsQueryHandler', () => {
           url: expect.stringContaining(QUERY_ALARMS_RELATIVE_PATH),
           method: 'POST',
           data: {
-            filter: undefined
+            filter: undefined,
+            orderByDescending: undefined,
+            returnMostRecentlyOccurredOnly: true,
+            take: undefined
           },
           showErrorAlert: false
         })
@@ -257,27 +260,6 @@ describe('ListAlarmsQueryHandler', () => {
         { text: 'High Temperature Alarm (ALARM-001)', value: 'ALARM-001' },
         { text: 'Low Pressure Alarm (ALARM-002)', value: 'ALARM-002' },
         { text: 'System Error Alarm (ALARM-003)', value: 'ALARM-003' }
-      ]);
-    });
-
-    it('should not display duplicate alarms based on alarm id', async () => {
-      const duplicateAlarmsResponse: QueryAlarmsResponse = {
-        alarms: [
-          { ...sampleAlarm, instanceId: 'INST-001', displayName: 'High Temperature Alarm' },
-          { ...sampleAlarm, instanceId: 'INST-002', displayName: 'High Temperature Alarm' },
-          { ...sampleAlarm, instanceId: 'INST-003', displayName: 'High Temperature Alarm' }
-        ],
-        totalCount: 3
-      };
-      backendServer.fetch
-        .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
-        .mockReturnValue(createFetchResponse(duplicateAlarmsResponse));
-
-      const query: AlarmsVariableQuery = {refId: 'A'};
-      const result = await datastore.metricFindQuery(query, options);
-
-      expect(result).toEqual([
-        { text: 'High Temperature Alarm (ALARM-001)', value: 'ALARM-001' }
       ]);
     });
   });
