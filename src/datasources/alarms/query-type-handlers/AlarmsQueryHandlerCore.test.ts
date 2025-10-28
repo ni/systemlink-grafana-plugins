@@ -2,7 +2,7 @@ import { AlarmsQueryHandlerCore } from './AlarmsQueryHandlerCore';
 import { DataFrameDTO, DataQueryRequest, ScopedVars } from '@grafana/data';
 import { AlarmsQuery, QueryAlarmsRequest, QueryType } from '../types/types';
 import { MockProxy } from 'jest-mock-extended';
-import { BackendSrv, TemplateSrv } from '@grafana/runtime';
+import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { QUERY_ALARMS_RELATIVE_PATH } from '../constants/QueryAlarms.constants';
 import { Workspace } from 'core/types';
@@ -55,22 +55,8 @@ describe('AlarmsQueryHandlerCore', () => {
 
   describe('globalVariableOptions', () => {
     it('should get variable options', () => {
-      class TestHandler extends AlarmsQueryHandlerCore {
-        public defaultQuery = {};
-        constructor() {
-          super({} as any, {} as any, {
-            getVariables: () => [
-              { name: 'var1' }, { name: 'var2' }
-            ]
-          } as TemplateSrv);
-        }
-        async runQuery() { return { refId: '', fields: [] }; }
-      }
-      const ds = new TestHandler();
-      const result = ds.globalVariableOptions();
-      expect(result).toEqual([
-        { label: '$var1', value: '$var1' },
-        { label: '$var2', value: '$var2' }
+      expect(datastore.globalVariableOptions()).toEqual([
+        { label: '$test_var', value: '$test_var' },
       ]);
     });
   });
@@ -119,7 +105,7 @@ describe('AlarmsQueryHandlerCore', () => {
       ];
 
       testCases.forEach(({ status, expectedErrorMessage }) => {
-        it('should handle ' + status + ' error', async () => {
+      it('should handle ' + status + ' error', async () => {
           backendServer.fetch
             .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
             .mockReturnValueOnce(createFetchError(status));
@@ -177,7 +163,7 @@ describe('AlarmsQueryHandlerCore', () => {
       it('should replace time variables in the filter', () => {
         const mockQueryBy = 'occurredAt < "${__from:date}"';
         jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('occurredAt < "2025-01-01T00:00:00.000Z"');
-
+        
         const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockQueryBy);
 
         expect(datastore.templateSrv.replace).toHaveBeenCalledWith('occurredAt < "${__from:date}"', {});
