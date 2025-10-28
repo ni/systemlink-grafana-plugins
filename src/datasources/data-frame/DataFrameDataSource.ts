@@ -51,8 +51,8 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.getDecimatedTableData(query, columns, timeRange, intervals);
   }
 
-  public async queryTables(query: string): Promise<TableProperties[]> {
-    return this.datasource.queryTables(query);
+  public async queryTables(query: string, take?: number): Promise<TableProperties[]> {
+    return this.datasource.queryTables(query, take);
   }
 
   public processQuery(query: DataFrameQuery): ValidDataFrameQuery {

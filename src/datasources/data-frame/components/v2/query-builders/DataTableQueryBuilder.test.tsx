@@ -14,7 +14,7 @@ describe('DataTableQueryBuilder', () => {
         ];
 
         function renderElement(filter: string, workspaces: Workspace[], globalVariableOptions: QueryBuilderOption[] = []) {
-            const reactNode = React.createElement(DataTableQueryBuilder, { filter, workspaces, globalVariableOptions: globalVariableOptions, onChange: jest.fn(), dataTableFieldLookupCallbacks: {} });
+            const reactNode = React.createElement(DataTableQueryBuilder, { filter, workspaces, globalVariableOptions: globalVariableOptions, onChange: jest.fn(), dataTableNameDataSourceCallback: jest.fn() });
             const renderResult = render(reactNode);
             return {
                 renderResult,

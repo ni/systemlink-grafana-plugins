@@ -57,17 +57,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
 
     const dataTableNameLookupCallback = async (query: string) => {
         const filter = `${DataTableQueryBuilderFieldNames.Name}.Contains("${query}")`;
-        return (await datasource.queryTables(filter)).map(table => ({ label: table.name, value: table.name }));
-    };
-
-    const dataTableIdLookupCallback = async (query: string) => {
-        const filter = `${DataTableQueryBuilderFieldNames.Id}.Contains("${query}")`;
-        return (await datasource.queryTables(filter)).map(table => ({ label: table.id, value: table.id }));
-    };
-
-    const dataTableFieldLookupCallbacks = {
-        [DataTableQueryBuilderFieldNames.Id]: dataTableIdLookupCallback,
-        [DataTableQueryBuilderFieldNames.Name]: dataTableNameLookupCallback
+        return (await datasource.queryTables(filter, 5)).map(table => ({ label: table.name, value: table.name }));
     };
 
     useEffect(() => {
@@ -167,7 +157,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                             filter={migratedQuery.filter}
                             workspaces={workspaces}
                             globalVariableOptions={datasource.globalVariableOptions()}
-                            dataTableFieldLookupCallbacks={dataTableFieldLookupCallbacks}
+                            dataTableNameDataSourceCallback={dataTableNameLookupCallback}
                             onChange={(event: any) => onQueryByChange(event.detail.linq)}
                         />
                     </div>

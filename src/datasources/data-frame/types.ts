@@ -185,7 +185,7 @@ export type PropsV1 = QueryEditorProps<DataFrameDataSource, DataFrameQueryV1, Da
 
 export type PropsV2 = QueryEditorProps<DataFrameDataSource, DataFrameQuery, DataFrameDataSourceOptions>;
 
-export type DataTableLookupDataSourceCallback = (query: string) => Promise<QueryBuilderOption[]>;
+export type DataTableDataSourceCallback = (query: string) => Promise<QueryBuilderOption[]>;
 
 export type DataSourceCallback = (query: string, callback: Function) => Promise<void>;
 

@@ -2,6 +2,7 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindV
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryV2, defaultQueryV2, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2 } from "../../types";
+import { TAKE_LIMIT } from "datasources/data-frame/constants";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
     defaultQuery = defaultQueryV2;
@@ -51,7 +52,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         throw new Error('Method not implemented.');
     }
 
-    async queryTables(filter: string): Promise<TableProperties[]> {
-        return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take: 10 })).tables;
+    async queryTables(filter: string, take = TAKE_LIMIT): Promise<TableProperties[]> {
+        return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take })).tables;
     }
 }

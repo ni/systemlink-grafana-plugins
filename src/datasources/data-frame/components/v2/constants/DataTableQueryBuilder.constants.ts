@@ -28,9 +28,7 @@ export const DataTableQueryBuilderFields: Record<string, QBField | QBFieldWithDa
         dataField: DataTableQueryBuilderFieldNames.Id,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
-            QueryBuilderOperations.DOES_NOT_EQUAL.name,
-            QueryBuilderOperations.CONTAINS.name,
-            QueryBuilderOperations.DOES_NOT_CONTAIN.name
+            QueryBuilderOperations.DOES_NOT_EQUAL.name
         ]
     },
     METADATA_MODIFIED_AT: {
@@ -106,12 +104,8 @@ export const DataTableQueryBuilderFields: Record<string, QBField | QBFieldWithDa
 };
 
 export const DataTableQueryBuilderStaticFields = [
+    DataTableQueryBuilderFields.ID,
     DataTableQueryBuilderFields.PROPERTIES,
     DataTableQueryBuilderFields.ROW_COUNT,
     DataTableQueryBuilderFields.SUPPORTS_APPEND
 ] as QBField[];
-
-export const DataTableQueryBuilderDynamicOptionsFields = [
-    DataTableQueryBuilderFields.ID,
-    DataTableQueryBuilderFields.NAME,
-] as QBFieldWithDataSourceCallback[];
