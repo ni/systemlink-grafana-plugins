@@ -52,11 +52,14 @@ describe('addOptionsToLookup', () => {
 
 describe('getVariableOptions', () => {
   it('returns variables as SelectableValue array', () => {
-    const ds: any = {
-      templateSrv: {
-        getVariables: () => [{ name: 'var1' }, { name: 'var2' }]
+    class TestDataSource extends (require('./DataSourceBase').DataSourceBase) {
+      constructor() {
+        super({} as any, {} as any, {
+          getVariables: () => [{ name: 'var1' }, { name: 'var2' }]
+        } as TemplateSrv);
       }
-    };
+    }
+    const ds = new TestDataSource();
     expect(ds.getVariableOptions()).toEqual([
       { label: '$var1', value: '$var1' },
       { label: '$var2', value: '$var2' }
