@@ -1,3 +1,9 @@
+## [4.32.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.31.0...v4.32.0) (2025-10-29)
+
+### Features
+
+* **assets:** added scanCode return type ([#467](https://github.com/ni/systemlink-grafana-plugins/issues/467)) ([a5f619d](https://github.com/ni/systemlink-grafana-plugins/commit/a5f619d5ca771bf65002c14e8fc7f70e587a0f1f))
+
 ## [4.31.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.30.0...v4.31.0) (2025-10-28)
 
 ### Features
