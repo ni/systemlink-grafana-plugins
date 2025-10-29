@@ -4,15 +4,22 @@ import { PanelProps } from '@grafana/data';
 import { QRCodePanel } from './QRCodePanel';
 import { QRCodePanelOptions } from './types';
 
-jest.mock('react-qr-code', () =>
-    ({ value, ...props }: any) => (
-        <div data-testid="qrcode-code" value={value} {...props}>
-            {value}
-        </div>
-    )
-);
 
 describe('QR Code Panel', () => {
+    beforeEach(() => {
+        // jest.clearAllMocks();
+        jest.mock('node_modules\react-qr-code', () =>
+            ({ value, ...props }: any) => {
+                console.log('mock react-qr-code called with value:', value);
+                return (
+                    <div data-testid="qrcode-code" value={value} {...props}>
+                        {value}
+                    </div>
+                )
+            }
+        );
+    });
+
     const createMockProps = (
         options: Partial<QRCodePanelOptions> = {},
         replaceVariables: jest.Mock = jest.fn((str) => str)
@@ -39,7 +46,7 @@ describe('QR Code Panel', () => {
     });
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        // jest.clearAllMocks();
     });
 
     describe('Default Rendering', () => {
@@ -99,4 +106,5 @@ describe('QR Code Panel', () => {
             expect(mockReplaceVariables).toHaveBeenCalledTimes(2);
         });
     });
+
 });
