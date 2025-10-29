@@ -12,25 +12,29 @@ import { DataQuery } from '@grafana/schema';
 import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
 import { get, post } from './utils';
 import { forkJoin, map, Observable, of } from 'rxjs';
+import { ApiSessionUtils } from '../shared/api-session.utils';
 
 export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData = DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
-  appEvents: EventBus;
+  public readonly apiKeyHeader = 'x-ni-api-key';
+  public appEvents: EventBus;
+  public apiSessionUtils: ApiSessionUtils;
 
-  constructor(
-    readonly instanceSettings: DataSourceInstanceSettings<TOptions>,
-    readonly backendSrv: BackendSrv,
-    readonly templateSrv: TemplateSrv
+  public constructor(
+    public readonly instanceSettings: DataSourceInstanceSettings<TOptions>,
+    public readonly backendSrv: BackendSrv,
+    public readonly templateSrv: TemplateSrv
   ) {
     super(instanceSettings);
     this.appEvents = getAppEvents();
+    this.apiSessionUtils = new ApiSessionUtils(instanceSettings, backendSrv, this.appEvents);
   }
 
-  abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;
+  public abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;
 
   // TODO: AB#3442981 - Make this return type Observable
   abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrameDTO> | Observable<DataFrameDTO>;
 
-  abstract shouldRunQuery(query: TQuery): boolean;
+  public abstract shouldRunQuery(query: TQuery): boolean;
 
   query(request: DataQueryRequest<TQuery>): Observable<DataQueryResponse> {
     const perTarget$ = request.targets
@@ -47,15 +51,27 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     );
   }
 
-  prepareQuery(query: TQuery): TQuery {
+  public prepareQuery(query: TQuery): TQuery {
     return { ...this.defaultQuery, ...query };
   }
 
-  get<T>(url: string, params?: Record<string, any>) {
+  /**
+   * Sends a GET request to the specified URL with optional query parameters.
+   *
+   * @template T - The expected response type.
+   * @param url - The endpoint URL for the GET request.
+   * @param params - Optional query parameters as a key-value map.
+   * @param useApiIngress - If true, uses API ingress bypassing the UI ingress for the request.
+   * @returns A promise resolving to the response of type `T`.
+   */
+  public async get<T>(url: string, params?: Record<string, any>, useApiIngress = false) {
+    if (useApiIngress) {
+      [url, params] = await this.buildApiRequestConfig(url, params ?? {}, 'GET');
+    }
+
     return get<T>(this.backendSrv, url, params);
   }
 
-  
   /**
    * Sends a POST request to the specified URL with the provided request body and options.
    *
@@ -65,15 +81,25 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    * @param options - Optional configuration for the request. This can include:
    *   - `showingErrorAlert` (boolean): If true, displays an error alert on request failure.
    *   - Any other properties supported by {@link BackendSrvRequest}, such as headers, credentials, etc.
+   * @param useApiIngress - If true, uses API ingress bypassing the UI ingress for the request.
    * @returns A promise resolving to the response of type `T`.
    */
-  post<T>(url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}) {
+  public async post<T>(
+    url: string,
+    body: Record<string, any>,
+    options: Partial<BackendSrvRequest> = {},
+    useApiIngress = false
+  ) {
+    if (useApiIngress) {
+      [url, options] = await this.buildApiRequestConfig(url, options, 'POST');
+    }
+
     return post<T>(this.backendSrv, url, body, options);
   }
 
-  static Workspaces: Workspace[];
+  private static Workspaces: Workspace[];
 
-  async getWorkspaces(): Promise<Workspace[]> {
+  public async getWorkspaces(): Promise<Workspace[]> {
     if (DataSourceBase.Workspaces) {
       return DataSourceBase.Workspaces;
     }
@@ -85,9 +111,41 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     return (DataSourceBase.Workspaces = response.workspaces);
   }
 
-  async getSystems(body: QuerySystemsRequest): Promise<QuerySystemsResponse> {
+  public async getSystems(body: QuerySystemsRequest): Promise<QuerySystemsResponse> {
     return await this.post<QuerySystemsResponse>(
       this.instanceSettings.url + '/nisysmgmt/v1/query-systems', body
     )
+  }
+
+  private constructApiUrl(apiEndpoint: string, url: string): string {
+    const webserverUrl = this.instanceSettings.url ?? '';
+    return apiEndpoint + url.replace(webserverUrl, '');
+  }
+
+  private async buildApiRequestConfig(
+    url: string,
+    options: Partial<BackendSrvRequest>,
+    method: 'GET' | 'POST'
+  ): Promise<[string, Partial<BackendSrvRequest>]> {
+    let updatedOptions: Partial<BackendSrvRequest> | Record<string, any>;
+
+    const apiSession = await this.apiSessionUtils.createApiSession();
+    url = this.constructApiUrl(apiSession.endpoint, url);
+
+    if (method === 'POST') {
+      updatedOptions = {
+        ...options,
+        headers: {
+          ...options.headers,
+          [this.apiKeyHeader]: apiSession.sessionKey.secret,
+        },
+      };
+    } else {
+      updatedOptions = {
+        ...options,
+        [this.apiKeyHeader]: apiSession.sessionKey.secret,
+      };
+    }
+    return [url, updatedOptions];
   }
 }

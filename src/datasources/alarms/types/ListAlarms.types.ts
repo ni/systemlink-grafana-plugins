@@ -1,5 +1,5 @@
 import { AlarmsQuery } from './types';
 
-export interface AlarmsCountQuery extends AlarmsQuery {
+export interface ListAlarmsQuery extends AlarmsQuery {
   filter?: string;
 }

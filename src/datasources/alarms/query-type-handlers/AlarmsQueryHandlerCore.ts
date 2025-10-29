@@ -1,17 +1,17 @@
-import { DataSourceBase } from "core/DataSourceBase";
-import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, ScopedVars, DataSourceInstanceSettings } from "@grafana/data";
-import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from "./types/types";
-import { extractErrorInfo } from "core/errors";
-import { QUERY_ALARMS_RELATIVE_PATH } from "./constants/QueryAlarms.constants";
-import { ExpressionTransformFunction, getConcatOperatorForMultiExpression, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
-import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
-import { QueryBuilderOption, Workspace } from "core/types";
-import { WorkspaceUtils } from "shared/workspace.utils";
-import { getVariableOptions } from "core/utils";
-import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
-import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from "./constants/SourceProperties.constants";
+import { DataSourceBase } from 'core/DataSourceBase';
+import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, ScopedVars, DataSourceInstanceSettings } from '@grafana/data';
+import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from '../types/types';
+import { extractErrorInfo } from 'core/errors';
+import { QUERY_ALARMS_RELATIVE_PATH } from '../constants/QueryAlarms.constants';
+import { ExpressionTransformFunction, getConcatOperatorForMultiExpression, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from '../constants/AlarmsQueryBuilder.constants';
+import { QueryBuilderOption, Workspace } from 'core/types';
+import { WorkspaceUtils } from 'shared/workspace.utils';
+import { getVariableOptions } from 'core/utils';
+import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
+import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from '../constants/SourceProperties.constants';
 
-export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
+export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery> {
   public errorTitle?: string;
   public errorDescription?: string;
 
@@ -61,6 +61,26 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
     }
   }
 
+  protected handleDependenciesError(error: unknown): void {
+    const errorDetails = extractErrorInfo((error as Error).message);
+    this.errorTitle = 'Warning during alarms query';
+    switch (errorDetails.statusCode) {
+      case '404':
+        this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
+        break;
+      case '429':
+        this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
+        break;
+      case '504':
+        this.errorDescription = 'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.';
+        break;
+      default:
+        this.errorDescription = errorDetails.message
+          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+          : 'Some values may not be available in the query builder lookups due to an unknown error.';
+    }
+  }
+
   protected transformAlarmsQuery(scopedVars: ScopedVars, query?: string): string | undefined {
     return query
       ? transformComputedFieldsQuery(this.templateSrv.replace(query, scopedVars), this.computedDataFields)
@@ -83,26 +103,6 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
       return [dataField, callback];
     })
   );
-
-  private handleDependenciesError(error: unknown): void {
-    const errorDetails = extractErrorInfo((error as Error).message);
-    this.errorTitle = 'Warning during alarms query';
-    switch (errorDetails.statusCode) {
-      case '404':
-        this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
-        break;
-      case '429':
-        this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
-        break;
-      case '504':
-        this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
-        break;
-      default:
-        this.errorDescription = errorDetails.message
-          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
-          : 'Some values may not be available in the query builder lookups due to an unknown error.';
-    }
-  }
 
   private isTimeField(field: string): boolean {
     return ALARMS_TIME_FIELDS.includes(field);
@@ -147,6 +147,6 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   }
 
   public testDatasource(): Promise<TestDataSourceResponse> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 }
