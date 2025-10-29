@@ -12,6 +12,8 @@ import { DEFAULT_QUERY_TYPE, defaultAlarmsCountQuery, defaultListAlarmsQuery } f
 type Props = QueryEditorProps<AlarmsDataSource, AlarmsQuery>;
 
 export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: Props) {
+  query = datasource.prepareQuery(query);
+
   const QUERY_TYPE_CONFIG = useMemo(() => ({
     [QueryType.ListAlarms]: {
       defaultQuery: defaultListAlarmsQuery,
