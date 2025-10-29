@@ -129,6 +129,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       const fieldName = field.label;
 
       const fieldValue = workOrders.map(workOrder => {
+        console.log('Mapping property:', property, 'for work order:', workOrder);
         switch (field.value) {
           case WorkOrderPropertiesOptions.WORKSPACE:
               const workspace = workspaces.get(workOrder.workspace);

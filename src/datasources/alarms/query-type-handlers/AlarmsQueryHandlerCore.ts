@@ -2,9 +2,9 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, ScopedVars, DataSourceInstanceSettings } from '@grafana/data';
 import { Alarm, AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from '../types/types';
 import { extractErrorInfo } from 'core/errors';
-import { QUERY_ALARMS_RELATIVE_PATH } from '../constants/QueryAlarms.constants';
+import { QUERY_ALARMS_MAXIMUM_TAKE, QUERY_ALARMS_RELATIVE_PATH, QUERY_ALARMS_REQUEST_PER_SECOND } from '../constants/QueryAlarms.constants';
 import { ExpressionTransformFunction, getConcatOperatorForMultiExpression, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
-import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from '../constants/AlarmsQueryBuilder.constants';
+import { AlarmsQueryBuilderFields, EXTENDED_ALARMS_TIME_FIELDS } from '../constants/AlarmsQueryBuilder.constants';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { getVariableOptions, queryInBatches } from 'core/utils';
@@ -68,7 +68,7 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
   }
 
   protected isTimeField(field: string): boolean {
-    return ALARMS_TIME_FIELDS.includes(field);
+    return EXTENDED_ALARMS_TIME_FIELDS.includes(field);
   }
 
   private readonly computedDataFields = new Map<string, ExpressionTransformFunction>(
