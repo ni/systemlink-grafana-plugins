@@ -348,7 +348,6 @@ export function fetchDataAsObservable<T>(
       if (isFetchError(error) && error.status === 429 && retries < maxRetries) {
         const delayMs = Math.random() * 1000 * 2 ** retries;
         return timer(delayMs).pipe(
-          delayWhen(() => of(null)),
           mergeMap(() => fetchDataAsObservable<T>(backendSrv, { ...options, url }, retries + 1))
         );
       }
