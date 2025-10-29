@@ -307,8 +307,8 @@ describe('AlarmsQueryHandlerCore', () => {
       const requestBody = { filter: 'active = "true"', take: 100 };
       const mockAlarmsResponse = {
         alarms: [{ id: '1' }, { id: '2' }],
-        continuationToken: '',
-        totalCount: 2
+        continuationToken: null,
+        totalCount: null,
       };
       jest.spyOn(datastore as any, 'queryAlarms').mockResolvedValue(mockAlarmsResponse);
       (queryInBatches as jest.Mock).mockImplementation(async (queryRecord, _config, _take) => {
