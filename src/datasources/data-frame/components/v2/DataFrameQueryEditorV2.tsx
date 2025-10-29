@@ -57,6 +57,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
         const message = validateTakeValue(value, TAKE_LIMIT);
 
         setRecordCountInvalidMessage(message);
+        handleQueryChange({ ...migratedQuery, take: value }, false);
     };
 
     const onColumnsChange = (columns: Array<ComboboxOption<string>>) => {
