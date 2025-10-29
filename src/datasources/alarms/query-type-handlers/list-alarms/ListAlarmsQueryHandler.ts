@@ -5,8 +5,8 @@ import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
 import { DEFAULT_QUERY_EDITOR_DESCENDING, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
-import { UsersUtils } from 'shared/users.utils';
 import { User } from 'shared/types/QueryUsers.types';
+import { UsersUtils } from 'shared/users.utils';
 
 export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultListAlarmsQuery;

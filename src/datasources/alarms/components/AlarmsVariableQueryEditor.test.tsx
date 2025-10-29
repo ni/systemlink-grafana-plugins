@@ -283,7 +283,7 @@ describe('AlarmsVariableQueryEditor', () => {
       expect(screen.getByText(takeErrorMessages.minErrorMsg)).toBeInTheDocument();
     });
 
-    it('should display maximum error message when take value is above MAX_TAKE', async () => {
+    it('should display maximum error message when take value is above 1000', async () => {
       await renderElement({ refId: 'A' });
 
       const takeInput = screen.getByRole('spinbutton');

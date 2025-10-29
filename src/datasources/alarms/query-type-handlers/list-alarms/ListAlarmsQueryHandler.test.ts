@@ -343,6 +343,28 @@ describe('ListAlarmsQueryHandler', () => {
         expect(result).toEqual([]);
         expect(backendServer.fetch).not.toHaveBeenCalled();
       });
+
+      it('should call the API when take is valid', async () => {
+        const query: AlarmsVariableQuery = {
+          refId: 'A',
+          filter: 'workspace = "Lab-1"',
+          take: 1000
+        };
+  
+        const result = await datastore.metricFindQuery(query, options);
+        expect(result).toEqual([
+          { text: 'High Temperature Alarm (ALARM-001)', value: 'ALARM-001' },
+          { text: 'Low Pressure Alarm (ALARM-002)', value: 'ALARM-002' },
+          { text: 'System Error Alarm (ALARM-003)', value: 'ALARM-003' }
+        ]);
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              take: 1000
+            })
+          })
+        );
+      });
     });
   });
 
