@@ -95,12 +95,12 @@ describe('AlarmsQueryEditor', () => {
     expect(mockOnRunQuery).not.toHaveBeenCalled();
   });
 
-  it('should initialize with AlarmsCount when queryType is undefined', () => {
+  it('should initialize with ListAlarms when queryType is undefined', () => {
     const query = buildQuery();
 
     renderElement(query);
 
-    expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ queryType: QueryType.AlarmsCount }));
+    expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ queryType: QueryType.ListAlarms }));
     expect(mockOnRunQuery).toHaveBeenCalled();
   });
 
