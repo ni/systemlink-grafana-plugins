@@ -4,13 +4,15 @@ import { PanelProps } from '@grafana/data';
 import { QRCodePanel } from './QRCodePanel';
 import { QRCodePanelOptions } from './types';
 
-jest.mock('react-qr-code', () =>
-    ({ value, ...props }: any) => (
+jest.mock('react-qr-code', () => {
+    const MockQRCode = ({ value, ...props }: any) => (
         <div data-testid="qrcode-code" value={value} {...props}>
             {value}
         </div>
-    )
-);
+    );
+    
+    return MockQRCode;
+});
 
 describe('QR Code Panel', () => {
     const createMockProps = (
