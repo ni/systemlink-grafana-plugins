@@ -1,10 +1,65 @@
 import { DataFrameDTO, DataQueryRequest, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
 import { AlarmsProperties, ListAlarmsQuery } from '../../types/ListAlarms.types';
-import { Alarm, AlarmsVariableQuery, QueryAlarmsRequest } from '../../types/types';
+import { Alarm, AlarmsVariableQuery, AlarmTransitionType, QueryAlarmsRequest } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { AlarmsPropertiesOptions } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from 'datasources/alarms/constants/SourceProperties.constants';
+const sampleAlarm: Alarm = {
+  instanceId: 'INST-001',
+  alarmId: 'ALARM-001',
+  workspace: 'Lab-1',
+  active: true,
+  clear: false,
+  acknowledged: true,
+  acknowledgedAt: '2025-09-16T10:30:00Z',
+  acknowledgedBy: 'user123',
+  occurredAt: '2025-09-16T09:00:00Z',
+  updatedAt: '2025-09-16T10:29:00Z',
+  createdBy: 'admin',
+  transitions: [
+    {
+      transitionType: AlarmTransitionType.Set,
+      occurredAt: '2025-09-16T09:00:00Z',
+      severityLevel: 3,
+      value: 'High',
+      condition: 'Temperature',
+      shortText: 'Temp High',
+      detailText: 'Temperature exceeded threshold',
+      keywords: ['temperature', 'high'],
+      properties: {
+        sensorId: 'SENSOR-12',
+      },
+    },
+    {
+      transitionType: AlarmTransitionType.Clear,
+      occurredAt: '2025-09-16T09:00:00Z',
+      severityLevel: 3,
+      value: 'High',
+      condition: 'Temperature',
+      shortText: 'Temp High',
+      detailText: 'Temperature exceeded threshold',
+      keywords: ['temperature', 'high'],
+      properties: {
+        sensorId: 'SENSOR-12',
+      },
+    },
+  ],
+  transitionOverflowCount: 0,
+  currentSeverityLevel: 3,
+  highestSeverityLevel: 3,
+  mostRecentSetOccurredAt: '2025-09-16T09:00:00Z',
+  mostRecentTransitionOccurredAt: '2025-09-16T10:00:00Z',
+  channel: 'Main',
+  condition: 'Temperature',
+  displayName: 'High Temperature Alarm',
+  description: 'Alarm triggered when temperature exceeds safe limit.',
+  keywords: ['temperature'],
+  properties: {
+    location: 'Lab-1',
+  },
+  resourceType: ''
+};
 
 export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultListAlarmsQuery;
@@ -14,8 +69,9 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
 
     // #AB:3449773 Map queryAlarmsData response to user-selected properties
     const alarmsResponse = await this.queryAlarmsData(query);
-    const mappedFields = await this.mapPropertiesToSelect(query.properties || [], alarmsResponse);
-
+    // const mappedFields = await this.mapPropertiesToSelect(query.properties || [], [sampleAlarm]);
+const flattenedAlarms = this.flattenAlarmsByTransitions([sampleAlarm]);
+const mappedFields = await this.mapPropertiesToSelect(query.properties || [], flattenedAlarms);
     return {
       refId: query.refId,
       name: query.refId,
@@ -55,6 +111,23 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       return [];
     }
   }
+
+  private flattenAlarmsByTransitions(alarms: Alarm[]): Alarm[] {
+  const flattened: Alarm[] = [];
+  for (const alarm of alarms) {
+    if (Array.isArray(alarm.transitions) && alarm.transitions.length > 0) {
+      for (const transition of alarm.transitions) {
+        flattened.push({
+          ...alarm,
+          ...transition,
+        });
+      }
+    } else {
+      flattened.push(alarm);
+    }
+  }
+  return flattened;
+}
 
   private async mapPropertiesToSelect(
     properties: AlarmsProperties[],
