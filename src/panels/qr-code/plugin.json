@@ -1,35 +1,14 @@
 {
-  "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
   "type": "panel",
   "name": "QR code",
-  "id": "betatech-qrcode-panel",
+  "id": "ni-qr-panel",
   "info": {
-    "keywords": ["panel"],
-    "description": "Render a QR code",
     "author": {
-      "name": "Beta Technologies"
+      "name": "NI"
     },
     "logos": {
       "small": "img/logo.svg",
       "large": "img/logo.svg"
-    },
-    "links": [
-      {
-        "name": "GitHub",
-        "url": "https://github.com/Beta-Technologies/grafana-panel-qrcode"
-      }
-    ],
-    "screenshots": [
-      {
-        "name": "Panel",
-        "path": "img/dashboard.png"
-      }
-    ],
-    "version": "%VERSION%",
-    "updated": "%TODAY%"
-  },
-  "dependencies": {
-    "grafanaDependency": ">=9.0.0",
-    "plugins": []
+    }
   }
 }

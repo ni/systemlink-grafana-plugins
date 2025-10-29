@@ -2,7 +2,7 @@ import React from 'react';
 import { PanelProps } from '@grafana/data';
 import { QRCodePanelOptions } from './types';
 import { css, cx } from '@emotion/css';
-import { useStyles2} from '@grafana/ui';
+import { useStyles2 } from '@grafana/ui';
 
 import QRCode from "react-qr-code";
 
@@ -34,8 +34,20 @@ const getStyles = () => {
   };
 };
 
-export const QRCodePanel: React.FC<Props> = ({ options, width, height, replaceVariables}) => {
 
+/**
+ * QRCodePanel is a Grafana panel plugin that generates QR codes from static text or dynamic dashboard variables.
+ * 
+ * The panel supports Grafana's variable substitution system, allowing users to create QR codes that update
+ * automatically when dashboard variables change. The QR code is rendered with a white background and scales
+ * to fit the panel dimensions.
+ * 
+ * @param options - Panel configuration options containing the value to encode
+ * @param width - Panel width in pixels
+ * @param height - Panel height in pixels  
+ * @param replaceVariables - Grafana function to resolve dashboard variables
+ */
+export const QRCodePanel: React.FC<Props> = ({ options, width, height, replaceVariables }) => {
   const styles = useStyles2(getStyles);
 
   let qrCodeValue = replaceVariables(options.value);

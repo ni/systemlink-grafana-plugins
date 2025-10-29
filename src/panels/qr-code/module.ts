@@ -7,7 +7,7 @@ export const plugin = new PanelPlugin<QRCodePanelOptions>(QRCodePanel).setPanelO
     .addTextInput({
       path: 'value',
       name: 'Value',
-      description: 'Value the QR code will encode',
+      description: 'Value that will be rendered as a QR code',
       defaultValue: 'https://ni.com'
     })
 });

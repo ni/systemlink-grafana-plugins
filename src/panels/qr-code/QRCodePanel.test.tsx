@@ -58,7 +58,6 @@ describe('QR Code Panel', () => {
     describe('Grafana Dashboard Variables', () => {
         it('should update from static value to variable value', () => {
             const mockReplaceVariables = jest.fn((str) => str);
-
             const props = createMockProps({}, mockReplaceVariables);
             const { rerender } = render(<QRCodePanel {...props} />);
 
@@ -66,11 +65,11 @@ describe('QR Code Panel', () => {
             expect(mockReplaceVariables).toHaveBeenCalledWith('https://ni.com');
 
             mockReplaceVariables.mockReturnValue('new-asset');
-
             const updatedProps = {
                 ...props,
                 options: { value: '${assetId}' },
             };
+
             rerender(<QRCodePanel {...updatedProps} />);
 
             expect(screen.getByTestId('qrcode-code')).toHaveAttribute('value', 'new-asset');
@@ -80,11 +79,8 @@ describe('QR Code Panel', () => {
 
         it('should call replaceVariables with the option value', () => {
             const mockReplaceVariables = jest.fn();
-
             mockReplaceVariables.mockReturnValueOnce('old-asset');
-
             const props = createMockProps({ value: '${assetId}' }, mockReplaceVariables);
-
             const { rerender } = render(<QRCodePanel {...props} />);
 
             expect(screen.getByTestId('qrcode-code')).toHaveAttribute('value', 'old-asset');
@@ -92,8 +88,8 @@ describe('QR Code Panel', () => {
             expect(mockReplaceVariables).toHaveBeenCalledTimes(1);
 
             mockReplaceVariables.mockReturnValueOnce('new-asset');
-
             const updatedProps = { ...props, renderCounter: 2 };
+            
             rerender(<QRCodePanel {...updatedProps} />);
 
             expect(screen.getByTestId('qrcode-code')).toHaveAttribute('value', 'new-asset');
