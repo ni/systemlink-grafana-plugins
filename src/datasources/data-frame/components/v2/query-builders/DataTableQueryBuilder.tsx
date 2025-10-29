@@ -62,7 +62,6 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
             ...DataTableQueryBuilderStaticFields,
             ...timeFields,
             workspaceField,
-            DataTableQueryBuilderFields.ID,
             DataTableQueryBuilderFields.NAME,
         ].map(field => {
             if (field.lookup?.dataSource) {

@@ -55,6 +55,7 @@ const mockListAssets = {
             properties: {},
             keywords: ['keyword'],
             lastUpdatedTimestamp: '2023-08-31T17:32:15.201Z',
+            scanCode: 'c44750b7-1f22-4fec-b475-73b10e966217',
         }
     ],
     totalCount: 4,

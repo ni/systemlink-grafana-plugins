@@ -55,6 +55,7 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
     saveCurrentQueryState();
     handleQueryChange({
       ...query,
+      queryType,
       ...config.defaultQuery,
       ...config.savedQuery,
       refId: query.refId,
@@ -63,9 +64,10 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
 
   useEffect(() => {
     if (!query.queryType) {
-      handleQueryTypeChange(QueryType.ListAlarms);
+      handleQueryTypeChange(DEFAULT_QUERY_TYPE);
     }
-  }, [query.queryType, handleQueryTypeChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Stack direction='column'>

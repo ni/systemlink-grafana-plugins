@@ -31,7 +31,11 @@ export function AssetVariableQueryEditor({ datasource, query, onChange }: Props)
   }));
 
   useEffect(() => {
-    Promise.all([assetListDatasource.current.areSystemsLoaded$, assetListDatasource.current.areLocationsLoaded$, assetListDatasource.current.areWorkspacesLoaded$]).then(() => {
+    Promise.all([
+      assetListDatasource.current.areWorkspacesLoaded$,
+      assetListDatasource.current.areSystemsLoaded$,
+      assetListDatasource.current.areLocationsLoaded$
+    ]).then(() => {
       setWorkspaces(Array.from(assetListDatasource.current.workspacesCache.values()));
       setSystems(Array.from(assetListDatasource.current.systemAliasCache.values()));
       setLocations(Array.from(assetListDatasource.current.locationCache.values()));
