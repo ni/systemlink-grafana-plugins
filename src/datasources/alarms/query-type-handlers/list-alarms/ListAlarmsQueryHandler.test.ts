@@ -5,6 +5,40 @@ import { DataQueryRequest, LegacyMetricFindQueryOptions } from '@grafana/data';
 import { QUERY_ALARMS_RELATIVE_PATH } from 'datasources/alarms/constants/QueryAlarms.constants';
 import { BackendSrv } from '@grafana/runtime';
 import { MockProxy } from 'jest-mock-extended';
+import { User } from 'shared/types/QueryUsers.types';
+
+jest.mock('shared/users.utils', () => {
+  return {
+    UsersUtils: jest.fn().mockImplementation(() => ({
+      getUsers: jest.fn().mockResolvedValue(
+        new Map([
+          ['user1@123.com', { 
+            id: '1',
+            firstName: 'User',
+            lastName: '1',
+            email: 'user1@123.com',
+            properties: {},
+            keywords: [],
+            created: '',
+            updated: '',
+            orgId: '',
+          }],
+          ['user2@123.com', { 
+            id: '2',
+            firstName: 'User',
+            lastName: '2',
+            email: 'user2@123.com',
+            properties: {},
+            keywords: [],
+            created: '',
+            updated: '',
+            orgId: '',
+          }],
+        ])
+      )
+    }))
+  };
+});
 
 let datastore: ListAlarmsQueryHandler, backendServer: MockProxy<BackendSrv>;
 
@@ -308,6 +342,98 @@ describe('ListAlarmsQueryHandler', () => {
   
         expect(result).toEqual([]);
         expect(backendServer.fetch).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('loadUsers', () => {
+    it('should return users', async () => {
+      const users = await (datastore as any).loadUsers();
+
+      expect(users).toEqual(
+        new Map([
+          [
+            'user1@123.com',
+            { 
+              id: '1',
+              firstName: 'User',
+              lastName: '1',
+              email: 'user1@123.com',
+              properties: {},
+              keywords: [],
+              created: '',
+              updated: '',
+              orgId: '',
+            },
+          ],
+          [
+            'user2@123.com',
+            { 
+              id: '2',
+              firstName: 'User',
+              lastName: '2',
+              email: 'user2@123.com',
+              properties: {},
+              keywords: [],
+              created: '',
+              updated: '',
+              orgId: '',
+            },
+          ],
+        ])
+      );
+    });
+
+    it('should return empty map on error', async () => {
+      (datastore as any).usersUtils.getUsers.mockRejectedValue(new Error('Error loading users'));
+
+      const users = await (datastore as any).loadUsers();
+
+      expect(users).toEqual(new Map<string, User>());
+    });
+
+    [
+      {
+        error: new Error('Request failed with status code: 404'),
+        expectedErrorDescription:
+          'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.',
+        case: '404 error',
+      },
+      {
+        error: new Error('Request failed with status code: 429'),
+        expectedErrorDescription:
+          'The query builder lookups failed due to too many requests. Please try again later.',
+        case: '429 error',
+      },
+      {
+        error: new Error('Request failed with status code: 504'),
+        expectedErrorDescription:
+          'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.',
+        case: '504 error',
+      },
+      {
+        error: new Error('Request failed with status code: 500, Error message: {"message": "Internal Server Error"}'),
+        expectedErrorDescription:
+          'Some values may not be available in the query builder lookups due to the following error: Internal Server Error.',
+        case: '500 error with message',
+      },
+      {
+        error: new Error('API failed'),
+        expectedErrorDescription:
+          'Some values may not be available in the query builder lookups due to an unknown error.',
+        case: 'Unknown error',
+      },
+    ].forEach(({ error, expectedErrorDescription, case: testCase }) => {
+      it(`should handle ${testCase}`, async () => {
+        const expectedErrorTitle = 'Warning during alarms query';
+        jest
+          .spyOn((datastore as any).usersUtils, 'getUsers')
+          .mockRejectedValue(error);
+
+        await (datastore as any).loadUsers();
+
+        expect(datastore.errorTitle).toBe(expectedErrorTitle);
+        expect(datastore.errorDescription).toBe(expectedErrorDescription);
       });
     });
   });
