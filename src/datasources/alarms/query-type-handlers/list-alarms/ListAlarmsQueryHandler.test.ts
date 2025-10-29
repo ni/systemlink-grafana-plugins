@@ -380,11 +380,11 @@ describe('ListAlarmsQueryHandler', () => {
         expect(backendServer.fetch).not.toHaveBeenCalled();
       });
 
-      it('should not call the API when take is greater than 1000', async () => {
+      it('should not call the API when take is greater than 10000', async () => {
         const query: AlarmsVariableQuery = {
           refId: 'A',
           filter: 'workspace = "Lab-1"',
-          take: 1001
+          take: 10001
         };
   
         const result = await datastore.metricFindQuery(query, options);

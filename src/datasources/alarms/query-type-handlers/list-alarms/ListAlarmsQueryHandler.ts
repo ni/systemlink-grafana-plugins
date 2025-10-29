@@ -47,15 +47,13 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       const orderByDescending = query.descending ?? DEFAULT_QUERY_EDITOR_DESCENDING;
       const returnMostRecentlyOccurredOnly = true;
       const requestBody = {filter, take, orderByDescending, returnMostRecentlyOccurredOnly}
-      const response = await this.queryAlarms(requestBody); // TODO: Update this once batching is implemented.
+      const alarms = await this.queryAlarmsInBatches(requestBody);
 
-      const alarmsOptions = response.alarms
-        ? response.alarms.map(alarm => ({
+      const alarmsOptions = alarms.map(alarm => ({
           text: `${alarm.displayName} (${alarm.alarmId})`,
           value: alarm.alarmId
-        }))
-        : [];
-      
+        }));
+
       const sortedOptions = alarmsOptions.sort((a, b) => a.text.localeCompare(b.text));
 
       return sortedOptions;
