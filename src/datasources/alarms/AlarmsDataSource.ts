@@ -6,6 +6,8 @@ import { AlarmsCountQueryHandler } from './query-type-handlers/alarms-count/Alar
 import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
 import { ListAlarmsQueryHandler } from './query-type-handlers/list-alarms/ListAlarmsQueryHandler';
 import { DEFAULT_QUERY_TYPE } from './constants/DefaultQueries.constants';
+import { AlarmsCountQuery } from './types/AlarmsCount.types';
+import { ListAlarmsQuery } from './types/ListAlarms.types';
 
 export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
   public readonly defaultQuery: Omit<AlarmsQuery, 'refId'>;
@@ -61,7 +63,7 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 
-  private initializeDefaultQuery() {
+  private initializeDefaultQuery(): Omit<ListAlarmsQuery, 'refId'> | Omit<AlarmsCountQuery, 'refId'> {
     switch (DEFAULT_QUERY_TYPE) {
       case QueryType.ListAlarms:
         return this.listAlarmsQueryHandler.defaultQuery;
