@@ -6,6 +6,7 @@ import { QUERY_ALARMS_RELATIVE_PATH } from 'datasources/alarms/constants/QueryAl
 import { BackendSrv } from '@grafana/runtime';
 import { MockProxy } from 'jest-mock-extended';
 import { User } from 'shared/types/QueryUsers.types';
+import { ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 
 jest.mock('shared/users.utils', () => {
   return {
@@ -92,7 +93,13 @@ const mockAlarmResponse: QueryAlarmsResponse = {
 };
 
 describe('ListAlarmsQueryHandler', () => {
+  let query: ListAlarmsQuery;
+  let options: DataQueryRequest;
+
   beforeEach(() => {
+    query = { refId: 'A', queryType: QueryType.ListAlarms };
+    options = {} as DataQueryRequest;
+
     [datastore, backendServer] = setupDataSource(ListAlarmsQueryHandler);
 
     backendServer.fetch
@@ -107,13 +114,55 @@ describe('ListAlarmsQueryHandler', () => {
   });
 
   describe('runQuery', () => {
-    const query = { refId: 'A', queryType: QueryType.ListAlarms };
-    const dataQueryRequest = {} as DataQueryRequest;
-
     it('should return empty value with refId and name from query', async () => {
-      const result = await datastore.runQuery(query, dataQueryRequest);
+      const result = await datastore.runQuery(query, options);
 
       expect(result).toEqual({ refId: 'A', name: 'A', fields: [{ name: 'A', values: [] }] });
+    });
+
+    it('should pass the transformed filter to the API', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
+      const filterQuery = { refId: 'A', filter: 'acknowledgedAt > "${__now:date}"'};
+
+      await datastore.runQuery(filterQuery, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            filter: 'acknowledgedAt > "2025-01-01T00:00:00.000Z"',
+          }),
+        })
+      );
+
+      jest.useRealTimers();
+    });
+  });
+
+  describe('queryAlarmsData', () => {
+    it('should default to empty filter when filter is not provided in query', async () => {
+      await datastore.runQuery(query, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            filter: '',
+          }),
+        })
+      );
+    });
+
+    it('should use the provided filter when querying alarms', async () => {
+      const filter = 'test-filter';
+
+      await datastore.runQuery({ ...query, filter }, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            filter,
+          }),
+        })
+      );
     });
   });
 

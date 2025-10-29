@@ -1,8 +1,9 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
 import { ListAlarmsQuery } from '../../types/ListAlarms.types';
-import { AlarmsVariableQuery } from '../../types/types';
+import { AlarmsVariableQuery, QueryAlarmsRequest } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
+import { Alarm } from 'datasources/alarms/types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { User } from 'shared/types/QueryUsers.types';
 import { UsersUtils } from 'shared/users.utils';
@@ -21,7 +22,12 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     this.usersUtils = new UsersUtils(this.instanceSettings, this.backendSrv);
   }
 
-  public async runQuery(query: ListAlarmsQuery, _options: DataQueryRequest): Promise<DataFrameDTO> {
+  public async runQuery(query: ListAlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
+
+    // #AB:3449773 Map queryAlarmsData response to user-selected properties
+    await this.queryAlarmsData(query);
+
     return {
       refId: query.refId,
       name: query.refId,
@@ -51,6 +57,14 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     } catch (error) {
       return [];
     }
+  }
+
+  private async queryAlarmsData(alarmsQuery: ListAlarmsQuery): Promise<Alarm[]> {
+    const alarmsRequestBody: QueryAlarmsRequest = {
+      filter: alarmsQuery.filter ?? '',
+    }
+
+    return this.queryAlarmsInBatches(alarmsRequestBody);
   }
 
   // @ts-ignore
