@@ -3,7 +3,7 @@ import { ListAlarmsQuery } from '../../types/ListAlarms.types';
 import { AlarmsVariableQuery } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.contants';
-import { DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TAKE } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TAKE, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 
 export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultListAlarmsQuery;
@@ -18,8 +18,12 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
 
   public async metricFindQuery(query: AlarmsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     try {
+      const take = query.take;
+      if (!this.isTakeValid(take)) {
+        return [];
+      } 
+      
       const filter = this.transformAlarmsQuery(options?.scopedVars || {}, query.filter) ?? '';
-      const take = query.take ?? DEFAULT_QUERY_EDITOR_TAKE;
       const orderByDescending = query.descending ?? DEFAULT_QUERY_EDITOR_DESCENDING;
       const returnMostRecentlyOccurredOnly = true;
       const requestBody = {filter, take, orderByDescending, returnMostRecentlyOccurredOnly}
@@ -38,5 +42,9 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     } catch (error) {
       return [];
     }
+  }
+
+  private isTakeValid(take?: number): boolean {
+    return take !== undefined && take >= QUERY_EDITOR_MIN_TAKE && take <= QUERY_EDITOR_MAX_TAKE;
   }
 }
