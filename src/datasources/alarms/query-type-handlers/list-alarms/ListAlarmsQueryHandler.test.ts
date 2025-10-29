@@ -138,7 +138,7 @@ describe('ListAlarmsQueryHandler', () => {
     });
   });
 
-  describe('queryAlarmsInBatches', () => {
+  describe('queryAlarmsData', () => {
     it('should default to empty filter when filter is not provided in query', async () => {
       await datastore.runQuery(query, options);
 
