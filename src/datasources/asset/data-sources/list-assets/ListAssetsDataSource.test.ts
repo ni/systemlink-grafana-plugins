@@ -110,7 +110,7 @@ describe('List assets location queries', () => {
 
         expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
             expect.objectContaining({
-                filter: "string.IsNullOrEmpty(Location.MinionId) && string.IsNullOrEmpty(Location.PhysicalLocation)"
+                filter: "(string.IsNullOrEmpty(Location.MinionId) && string.IsNullOrEmpty(Location.PhysicalLocation))"
             })
         );
     });
@@ -127,7 +127,7 @@ describe('List assets location queries', () => {
 
         expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
             expect.objectContaining({
-                filter: "!string.IsNullOrEmpty(Location.MinionId) || !string.IsNullOrEmpty(Location.PhysicalLocation)"
+                filter: "(!string.IsNullOrEmpty(Location.MinionId) || !string.IsNullOrEmpty(Location.PhysicalLocation))"
             })
         );
     });

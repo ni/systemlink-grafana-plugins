@@ -32,6 +32,7 @@ export function transformComputedFieldsQuery(
   for (const [field, transformation] of computedDataFields.entries()) {
     query = transformBasedOnComputedFieldSupportedOperations(query, field, transformation, options);
     query = transformBasedOnBlankOperations(query, field, transformation, options);
+    query = transformBasedOnContainsOperations(query, field, transformation, options);
   }
 
   return query;
@@ -53,6 +54,20 @@ function transformBasedOnBlankOperations(query: string, field: string, transform
         ? QueryBuilderOperations.IS_NOT_BLANK.name
         : QueryBuilderOperations.IS_BLANK.name;
       return transformation(field, operation, options?.get(field));
+    });
+}
+
+function transformBasedOnContainsOperations(query: string, field: string, transformation: ExpressionTransformFunction, options?: Map<string, Map<string, unknown>>) {
+    const containsRegex = new RegExp(`(?:!(\\(${field}\\.Contains\\("([^"]*)"\\)\\))|(${field}\\.Contains\\("([^"]*)"\\)))`, 'g');
+
+    return query.replace(containsRegex, (_match, _negatedMatch, negatedValue, _positiveMatch, positiveValue) => {
+        const isNegated = negatedValue !== undefined;
+        const extractedValue = negatedValue || positiveValue;
+        
+        const operation = isNegated
+          ? QueryBuilderOperations.DOES_NOT_CONTAIN.name
+          : QueryBuilderOperations.CONTAINS.name;
+      return transformation(extractedValue, operation, options?.get(field));
     });
 }
 

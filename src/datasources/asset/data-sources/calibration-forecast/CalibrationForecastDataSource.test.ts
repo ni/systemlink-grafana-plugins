@@ -608,7 +608,7 @@ describe('Asset calibration location queries', () => {
     expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
       expect.objectContaining({
         groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
-        filter: "string.IsNullOrEmpty(Location.MinionId) && string.IsNullOrEmpty(Location.PhysicalLocation)"
+        filter: "(string.IsNullOrEmpty(Location.MinionId) && string.IsNullOrEmpty(Location.PhysicalLocation))"
       }),
       expect.anything()
     );
@@ -627,7 +627,7 @@ describe('Asset calibration location queries', () => {
     expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
       expect.objectContaining({
         groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
-        filter: "!string.IsNullOrEmpty(Location.MinionId) || !string.IsNullOrEmpty(Location.PhysicalLocation)"
+        filter: "(!string.IsNullOrEmpty(Location.MinionId) || !string.IsNullOrEmpty(Location.PhysicalLocation))"
       }),
       expect.anything()
     );
