@@ -53,6 +53,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     }
 
     async queryTables(filter: string, take = TAKE_LIMIT): Promise<TableProperties[]> {
-        return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take })).tables;
+        return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take }, {}, true)).tables;
     }
 }
