@@ -64,7 +64,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       filter: alarmsQuery.filter ?? '',
     }
 
-    return await this.queryAlarmsInBatches(alarmsRequestBody);
+    return this.queryAlarmsInBatches(alarmsRequestBody);
   }
 
   // @ts-ignore

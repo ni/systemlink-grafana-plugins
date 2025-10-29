@@ -6,6 +6,7 @@ import { QUERY_ALARMS_RELATIVE_PATH } from 'datasources/alarms/constants/QueryAl
 import { BackendSrv } from '@grafana/runtime';
 import { MockProxy } from 'jest-mock-extended';
 import { User } from 'shared/types/QueryUsers.types';
+import { ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 
 jest.mock('shared/users.utils', () => {
   return {
@@ -92,10 +93,13 @@ const mockAlarmResponse: QueryAlarmsResponse = {
 };
 
 describe('ListAlarmsQueryHandler', () => {
-  const query = { refId: 'A', queryType: QueryType.ListAlarms };
-  const options = {} as DataQueryRequest;
+  let query: ListAlarmsQuery;
+  let options: DataQueryRequest;
 
   beforeEach(() => {
+    query = { refId: 'A', queryType: QueryType.ListAlarms };
+    options = {} as DataQueryRequest;
+
     [datastore, backendServer] = setupDataSource(ListAlarmsQueryHandler);
 
     backendServer.fetch

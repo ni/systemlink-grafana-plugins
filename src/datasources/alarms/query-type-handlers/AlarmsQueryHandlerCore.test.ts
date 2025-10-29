@@ -304,15 +304,15 @@ describe('AlarmsQueryHandlerCore', () => {
 
   describe('queryAlarmsInBatches', () => {
     it('queryRecord callback should call queryAlarms with correct parameters', async () => {
-      const requestBody = { filter: 'active = true', take: 100 };
+      const requestBody = { filter: 'active = "true"', take: 100 };
       const mockAlarmsResponse = {
         alarms: [{ id: '1' }, { id: '2' }],
-        continuationToken: 'token-123',
+        continuationToken: '',
         totalCount: 2
       };
       jest.spyOn(datastore as any, 'queryAlarms').mockResolvedValue(mockAlarmsResponse);
       (queryInBatches as jest.Mock).mockImplementation(async (queryRecord, _config, _take) => {
-        const result = await queryRecord(100, 'continuation-token');
+        const result = await queryRecord(requestBody.take, undefined);
         
         return { 
           data: result.data,
@@ -323,9 +323,9 @@ describe('AlarmsQueryHandlerCore', () => {
       const result = await datastore.queryAlarmsInBatchesWrapper(requestBody);
 
       expect((datastore as any).queryAlarms).toHaveBeenCalledWith({
-        filter: 'active = true',
+        filter: 'active = "true"',
         take: 100,
-        continuationToken: 'continuation-token',
+        continuationToken: undefined,
       });
       expect(result).toEqual(mockAlarmsResponse.alarms);
     });
