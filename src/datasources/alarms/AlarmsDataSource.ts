@@ -5,6 +5,7 @@ import { AlarmsQuery, AlarmsVariableQuery, QueryType } from './types/types';
 import { AlarmsCountQueryHandler } from './query-type-handlers/alarms-count/AlarmsCountQueryHandler';
 import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
 import { ListAlarmsQueryHandler } from './query-type-handlers/list-alarms/ListAlarmsQueryHandler';
+import { DEFAULT_QUERY_TYPE } from './constants/DefaultQueries.constants';
 
 export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
   public readonly defaultQuery: Omit<AlarmsQuery, 'refId'>;
@@ -22,7 +23,7 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     this._listAlarmsQueryHandler = new ListAlarmsQueryHandler(instanceSettings, backendSrv, templateSrv);
 
     // AB#3064461 - Update defaultQuery to use list alarms defaults when supported
-    this.defaultQuery = this._alarmsCountQueryHandler.defaultQuery;
+    this.defaultQuery = this.setDefaultQuery();
   }
 
   public async runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
@@ -51,12 +52,24 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     return this._listAlarmsQueryHandler;
   }
 
-  public async metricFindQuery(query: AlarmsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+  public async metricFindQuery(
+    query: AlarmsVariableQuery,
+    options?: LegacyMetricFindQueryOptions
+  ): Promise<MetricFindValue[]> {
     return this._listAlarmsQueryHandler.metricFindQuery(query, options);
   }
 
   public async testDatasource(): Promise<TestDataSourceResponse> {
     await this.post(`${this.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`, { take: 1 });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
+  }
+
+  private setDefaultQuery() {
+    switch (DEFAULT_QUERY_TYPE) {
+      case QueryType.ListAlarms:
+        return this.listAlarmsQueryHandler.defaultQuery;
+      case QueryType.AlarmsCount:
+        return this.alarmsCountQueryHandler.defaultQuery;
+    }
   }
 }

@@ -84,12 +84,12 @@ describe('AlarmsQueryEditor', () => {
     expect(mockOnRunQuery).not.toHaveBeenCalled();
   });
 
-  it('should initialize with ListAlarms when queryType is undefined', () => {
+  it('should initialize with AlarmsCount when queryType is undefined', () => {
     const query = buildQuery();
 
     renderElement(query);
 
-    expect(mockOnChange).toHaveBeenCalledWith({ refId: 'A', ...defaultListAlarmsQuery });
+    expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ queryType: QueryType.AlarmsCount }));
     expect(mockOnRunQuery).toHaveBeenCalled();
   });
 
@@ -194,7 +194,11 @@ describe('AlarmsQueryEditor', () => {
       await clickQueryTypeOption(QueryType.AlarmsCount);
 
       await waitFor(() => {
-        expect(mockOnChange).toHaveBeenCalledWith({ refId: 'A', ...defaultAlarmsCountQuery });
+        expect(mockOnChange).toHaveBeenCalledWith({
+          refId: 'A',
+          queryType: QueryType.AlarmsCount,
+          ...defaultAlarmsCountQuery,
+        });
         expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });

@@ -7,7 +7,7 @@ import { AlarmsCountQuery } from '../types/AlarmsCount.types';
 import { InlineField } from 'core/components/InlineField';
 import { CONTROL_WIDTH, LABEL_WIDTH, labels, tooltips } from '../constants/AlarmsQueryEditor.constants';
 import { Combobox, Stack } from '@grafana/ui';
-import { defaultAlarmsCountQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
+import { DEFAULT_QUERY_TYPE, defaultAlarmsCountQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
 
 type Props = QueryEditorProps<AlarmsDataSource, AlarmsQuery>;
 
@@ -36,6 +36,7 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
 
     handleQueryChange({
       ...query,
+      queryType,
       ...config.defaultQuery,
       refId: query.refId,
     });
@@ -43,9 +44,10 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
 
   useEffect(() => {
     if (!query.queryType) {
-      handleQueryTypeChange(QueryType.ListAlarms);
+      handleQueryTypeChange(DEFAULT_QUERY_TYPE);
     }
-  }, [query.queryType, handleQueryTypeChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Stack direction='column'>
@@ -71,6 +73,7 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
         />
       )}
       {query.queryType === QueryType.ListAlarms && (
+        //AB#3360455 Replace with ListAlarmsQueryEditor component implementation
         <span>List Alarms query editor</span>
       )}
     </Stack>
