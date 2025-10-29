@@ -6,8 +6,8 @@ import { QueryBuilderOption, Workspace } from 'core/types';
 import { extractErrorInfo } from 'core/errors';
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
-import { getWorkspaceName, postDataAsObservable } from 'core/utils';
-import { catchError, concatMap, forkJoin, from, lastValueFrom, map, Observable, of } from 'rxjs';
+import { getWorkspaceName } from 'core/utils';
+import { catchError, concatMap, forkJoin, lastValueFrom, map, Observable, of } from 'rxjs';
 
 export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   constructor(
@@ -63,7 +63,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     descending = false,
     returnCount = false
   ): Observable<QueryProductResponse> {
-    return postDataAsObservable<QueryProductResponse>(
+    return this.post$<QueryProductResponse>(
       this.backendSrv,
       this.queryProductsUrl,
       {
@@ -109,8 +109,8 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
 
   runQuery(query: ProductQuery, options: DataQueryRequest): Observable<DataFrameDTO> {
     return forkJoin([
-      from(this.workspaceLoadedPromise),
-      from(this.partNumberLoadedPromise),
+      this.workspaceLoadedPromise,
+      this.partNumberLoadedPromise
     ]).pipe(
       concatMap(() => {
         if (query.properties?.length === 0 || query.recordCount === undefined) {
@@ -158,7 +158,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
               refId: query.refId,
               name: query.refId,
               fields,
-            } as DataFrameDTO;
+            };
           })
         );
       })

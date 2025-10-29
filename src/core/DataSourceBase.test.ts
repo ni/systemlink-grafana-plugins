@@ -1,9 +1,11 @@
 import { DataQuery, DataSourceInstanceSettings, TestDataSourceResponse } from "@grafana/data";
 import { BackendSrv } from "@grafana/runtime";
+import { firstValueFrom, of } from "rxjs";
 
 jest.mock('./utils', () => ({
     get: jest.fn(),
     post: jest.fn(),
+    fetchDataAsObservable: jest.fn()
 }));
 
 describe('DataSourceBase', () => {
@@ -11,6 +13,7 @@ describe('DataSourceBase', () => {
     let dataSource: any;
     let mockGet: jest.Mock;
     let mockPost: jest.Mock;
+    let mockFetch: jest.Mock;
 
     const mockApiSession = {
         endpoint: 'http://api-ingress.com',
@@ -26,6 +29,7 @@ describe('DataSourceBase', () => {
         const { DataSourceBase } = await import('./DataSourceBase');
         const utils = await import('./utils');
 
+        mockFetch = utils.fetchDataAsObservable as jest.Mock;
         mockGet = utils.get as jest.Mock;
         mockPost = utils.post as jest.Mock;
         mockGet.mockResolvedValue('test');
@@ -160,6 +164,201 @@ describe('DataSourceBase', () => {
                 .rejects.toThrow('No session created');
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
             expect(mockPost).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('get$', () => {
+        it('should send GET$ request with correct parameters when useApiIngress is not set', async () => {
+            mockFetch.mockReturnValueOnce(of('observable-test'));
+
+            const response = await firstValueFrom(dataSource.get$(backendSrv, '/test-endpoint', { param1: 'value1' }));
+
+            expect(mockFetch).toHaveBeenCalledWith(
+                backendSrv,
+                { method: 'GET', url: '/test-endpoint', params: { param1: 'value1' } }
+            );
+            expect(response).toEqual('observable-test');
+        });
+
+        it('should send GET$ request with API ingress when useApiIngress is true', async () => {
+            mockFetch.mockReturnValueOnce(of('observable-test'));
+
+            const response$ = dataSource.get$(backendSrv, '/test-endpoint', { param1: 'value1' }, true);
+            const response = await firstValueFrom(response$);
+
+            expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
+            expect(mockFetch).toHaveBeenCalledWith(
+                backendSrv,
+                {
+                    method: 'GET',
+                    url: "http://api-ingress.com/test-endpoint",
+                    params: {
+                        'param1': 'value1',
+                        'x-ni-api-key': 'api-key-secret'
+                    }
+                }
+            );
+            expect(response).toEqual('observable-test');
+        });
+
+        it('should not send GET$ request if no API session is returned', async () => {
+            jest.clearAllMocks();
+            mockApiSessionUtils.createApiSession.mockRejectedValueOnce(new Error('No session created'));
+
+            const response$ = dataSource.get$(backendSrv, '/test-endpoint', { param1: 'value1' }, true);
+
+            await expect(firstValueFrom(response$)).rejects.toThrow('No session created');
+            expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
+            expect(mockFetch).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('post$', () => {
+        it('should send POST$ request with correct parameters when useApiIngress is not set', async () => {
+            mockFetch.mockReturnValueOnce(of('observable-test'));
+
+            const response = await firstValueFrom(dataSource.post$(backendSrv, '/test-endpoint', { body: 'body' }, { options: 'optionValue' }));
+
+            expect(mockFetch).toHaveBeenCalledWith(
+                backendSrv,
+                { method: 'POST', url: '/test-endpoint', data: { body: 'body' }, options: 'optionValue' }
+            );
+            expect(response).toEqual('observable-test');
+        });
+
+        it('should send POST$ request with API ingress when useApiIngress is true', async () => {
+            mockFetch.mockReturnValueOnce(of('observable-test'));
+
+            const response$ = dataSource.post$(
+                backendSrv,
+                '/test-endpoint',
+                { body: 'body' },
+                {
+                    headers: {
+                        testHeader: 'headerValue'
+                    }
+                },
+                true
+            );
+            const response = await firstValueFrom(response$);
+
+            expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
+            expect(mockFetch).toHaveBeenCalledWith(
+                backendSrv,
+                {
+                    method: 'POST',
+                    url: "http://api-ingress.com/test-endpoint",
+                    data: { body: 'body' },
+                    headers: {
+                        testHeader: 'headerValue',
+                        "x-ni-api-key": "api-key-secret"
+                    }
+                },
+            );
+            expect(response).toEqual('observable-test');
+        });
+
+        it('should not send POST$ request if no API session is returned', async () => {
+            jest.clearAllMocks();
+            mockApiSessionUtils.createApiSession.mockRejectedValueOnce(new Error('No session created'));
+
+            const response$ = dataSource.post$(backendSrv, '/test-endpoint', { options: 'optionValue' }, {}, true);
+
+            await expect(firstValueFrom(response$)).rejects.toThrow('No session created');
+            expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
+            expect(mockFetch).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('query', () => {
+        it('should run queries for all targets that should run', async () => {
+            const querySpy = jest.spyOn(dataSource, 'runQuery').mockResolvedValue('frame-data');
+            const prepareSpy = jest.spyOn(dataSource, 'prepareQuery');
+            const shouldRunSpy = jest.spyOn(dataSource, 'shouldRunQuery').mockReturnValue(true);
+
+            const request = {
+                targets: [
+                    { refId: 'A' }
+                ],
+            };
+
+            const response = await firstValueFrom(dataSource.query(request));
+
+            expect(prepareSpy).toHaveBeenCalledTimes(1);
+            expect(shouldRunSpy).toHaveBeenCalledTimes(1);
+            expect(querySpy).toHaveBeenCalledTimes(1);
+            expect(response).toEqual({
+                data: ['frame-data'],
+            });
+        });
+
+        it('should skip queries for targets that should not run', async () => {
+            const querySpy = jest.spyOn(dataSource, 'runQuery').mockResolvedValue('frame-data');
+            const prepareSpy = jest.spyOn(dataSource, 'prepareQuery');
+            const shouldRunSpy = jest.spyOn(dataSource, 'shouldRunQuery')
+                .mockReturnValueOnce(true)
+                .mockReturnValueOnce(false);
+
+            const request = {
+                targets: [
+                    { refId: 'A' }
+                ],
+            };
+
+            const response = await firstValueFrom(dataSource.query(request));
+
+            expect(prepareSpy).toHaveBeenCalledTimes(1);
+            expect(shouldRunSpy).toHaveBeenCalledTimes(1);
+            expect(querySpy).toHaveBeenCalledTimes(1);
+            expect(response).toEqual({
+                data: ['frame-data']
+            });
+        });
+
+        it('should return empty data if no targets should run', async () => {
+            const querySpy = jest.spyOn(dataSource, 'runQuery').mockResolvedValue('frame-data');
+            const prepareSpy = jest.spyOn(dataSource, 'prepareQuery');
+            const shouldRunSpy = jest.spyOn(dataSource, 'shouldRunQuery').mockReturnValue(false);
+
+            const request = {
+                targets: [
+                    { refId: 'A' }
+                ],
+            };
+
+            const response = await firstValueFrom(dataSource.query(request));
+
+            expect(prepareSpy).toHaveBeenCalledTimes(1);
+            expect(shouldRunSpy).toHaveBeenCalledTimes(1);
+            expect(querySpy).toHaveBeenCalledTimes(0);
+            expect(response).toEqual({
+                data: [],
+            });
+        });
+
+        it('should handle mixed Observable and Promise runQuery results', async () => {
+            const { of } = await import('rxjs');
+            const querySpy = jest.spyOn(dataSource, 'runQuery')
+                .mockImplementationOnce(() => Promise.resolve('async-frame-data'))
+                .mockImplementationOnce(() => of('observable-frame-data'));
+            const prepareSpy = jest.spyOn(dataSource, 'prepareQuery');
+            const shouldRunSpy = jest.spyOn(dataSource, 'shouldRunQuery').mockReturnValue(true);
+
+            const request = {
+                targets: [
+                    { refId: 'A' },
+                    { refId: 'B' },
+                ],
+            };
+
+            const response = await firstValueFrom(dataSource.query(request));
+
+            expect(prepareSpy).toHaveBeenCalledTimes(2);
+            expect(shouldRunSpy).toHaveBeenCalledTimes(2);
+            expect(querySpy).toHaveBeenCalledTimes(2);
+            expect(response).toEqual({
+                data: ['async-frame-data', 'observable-frame-data'],
+            });
         });
     });
 

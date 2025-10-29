@@ -273,19 +273,6 @@ export function get<T>(backendSrv: BackendSrv, url: string, params?: Record<stri
 }
 
 /**
- * Sends a GET request to the specified URL with the provided parameters.
- *
- * @template T - The expected response type.
- * @param backendSrv - The Backend Service instance {@link BackendSrv} used to make the request.
- * @param url - The endpoint URL to which the GET request is sent.
- * @param params - The query parameters to be included in the request.
- * @returns An observable emitting the response of type `T`.
- */
-export function getDataAsObservable<T>(backendSrv: BackendSrv, url: string, params?: Record<string, any>) {
-  return fetchDataAsObservable<T>(backendSrv, { method: 'GET', url, params });
-}
-
-/**
  * Sends a POST request to the specified URL with the provided request body and options.
  *
  * @template T - The expected response type.
@@ -301,21 +288,6 @@ export function post<T>(backendSrv: BackendSrv, url: string, body: Record<string
   return fetch<T>(backendSrv, { method: 'POST', url, data: body, ...options });
 }
 
-/**
- * Sends a POST request to the specified URL with the provided request body and options.
- *
- * @template T - The expected response type.
- * @param backendSrv - The Backend Service instance {@link BackendSrv} used to make the request.
- * @param url - The endpoint URL to which the POST request is sent.
- * @param body - The request payload as a key-value map.
- * @param options - Optional configuration for the request. This can include:
- *   - `showingErrorAlert` (boolean): If true, displays an error alert on request failure.
- *   - Any other properties supported by {@link BackendSrvRequest}, such as headers, credentials, etc.
- * @returns An observable emitting the response of type `T`.
- */
-export function postDataAsObservable<T>(backendSrv: BackendSrv, url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}) {
-  return fetchDataAsObservable<T>(backendSrv, { method: 'POST', url, data: body, ...options });
-}
 
 export const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]) => {
   return {
@@ -362,7 +334,7 @@ async function fetch<T>(backendSrv: BackendSrv, options: BackendSrvRequest, retr
   }
 }
 
-function fetchDataAsObservable<T>(
+export function fetchDataAsObservable<T>(
   backendSrv: BackendSrv,
   options: BackendSrvRequest,
   retries = 0
@@ -377,7 +349,7 @@ function fetchDataAsObservable<T>(
         const delayMs = Math.random() * 1000 * 2 ** retries;
         return timer(delayMs).pipe(
           delayWhen(() => of(null)),
-          mergeMap(() => fetchDataAsObservable<T>(backendSrv, options, retries + 1))
+          mergeMap(() => fetchDataAsObservable<T>(backendSrv, { ...options, url }, retries + 1))
         );
       }
 

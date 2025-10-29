@@ -10,8 +10,8 @@ import {
 import { BackendSrv, BackendSrvRequest, TemplateSrv, getAppEvents } from '@grafana/runtime';
 import { DataQuery } from '@grafana/schema';
 import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
-import { get, post } from './utils';
-import { forkJoin, map, Observable, of } from 'rxjs';
+import { fetchDataAsObservable, get, post } from './utils';
+import { forkJoin, from, map, Observable, of, switchMap } from 'rxjs';
 import { ApiSessionUtils } from '../shared/api-session.utils';
 
 export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData = DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
@@ -37,17 +37,17 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
   public abstract shouldRunQuery(query: TQuery): boolean;
 
   query(request: DataQueryRequest<TQuery>): Observable<DataQueryResponse> {
-    const perTarget$ = request.targets
+    const queries$ = request.targets
       .map(this.prepareQuery, this)
       .filter(this.shouldRunQuery, this)
       .map(q => this.runQuery(q, request), this);
     
-    if (perTarget$.length === 0) {
+    if (queries$.length === 0) {
       return of({ data: [] }); // emit empty response immediately
     }
     
-    return forkJoin(perTarget$).pipe(
-      map((data) => ({ data } as DataQueryResponse)),
+    return forkJoin(queries$).pipe(
+      map((data) => ({ data })),
     );
   }
 
@@ -70,6 +70,28 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     }
 
     return get<T>(this.backendSrv, url, params);
+  }
+ 
+  /**
+   * Sends a GET request to the specified URL with the provided parameters.
+   *
+   * @template T - The expected response type.
+   * @param backendSrv - The Backend Service instance {@link BackendSrv} used to make the request.
+   * @param url - The endpoint URL to which the GET request is sent.
+   * @param params - The query parameters to be included in the request.
+   * @param useApiIngress - If true, uses API ingress bypassing the UI ingress for the request.
+   * @returns An observable emitting the response of type `T`.
+   */
+  public get$<T>(backendSrv: BackendSrv, url: string, params?: Record<string, any>, useApiIngress = false) {
+    if (!useApiIngress) {
+      return fetchDataAsObservable<T>(backendSrv, { method: 'GET', url, params });
+    }
+  
+    return from(this.buildApiRequestConfig(url, params ?? {}, 'GET')).pipe(
+      switchMap(([url, params]) =>
+        fetchDataAsObservable<T>(backendSrv, { method: 'GET', url, params })
+      )
+    );
   }
 
   /**
@@ -95,6 +117,32 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     }
 
     return post<T>(this.backendSrv, url, body, options);
+  }
+
+  /**
+   * Sends a POST request to the specified URL with the provided request body and options.
+   *
+   * @template T - The expected response type.
+   * @param backendSrv - The Backend Service instance {@link BackendSrv} used to make the request.
+   * @param url - The endpoint URL to which the POST request is sent.
+   * @param body - The request payload as a key-value map.
+   * @param options - Optional configuration for the request. This can include:
+   *   - `showingErrorAlert` (boolean): If true, displays an error alert on request failure.
+   *   - Any other properties supported by {@link BackendSrvRequest}, such as headers, credentials, etc.
+   * @param useApiIngress - If true, uses API ingress bypassing the UI ingress for the request.
+   * @returns An observable emitting the response of type `T`.
+   */
+  public post$<T>(backendSrv: BackendSrv, url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}, useApiIngress = false) {
+    if (!useApiIngress) {
+      return fetchDataAsObservable<T>(backendSrv, { method: 'POST', url, data: body, ...options });
+    
+    }
+  
+    return from(this.buildApiRequestConfig(url, options, 'POST')).pipe(
+      switchMap(([url, newOptions]) =>
+        fetchDataAsObservable<T>(backendSrv, { method: 'POST', url, data: body, ...newOptions })
+      )
+    );
   }
 
   private static Workspaces: Workspace[];

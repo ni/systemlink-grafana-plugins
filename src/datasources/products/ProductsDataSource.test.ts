@@ -105,7 +105,7 @@ describe('queryProducts', () => {
   it('should throw error with unknown error when API returns error without status', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
-      .mockReturnValue(throwError(() => (new Error('Unknown error'))));
+      .mockReturnValue(throwError(() => (new Error('Error'))));
 
     await expect(firstValueFrom(datastore.queryProducts()))
       .rejects
