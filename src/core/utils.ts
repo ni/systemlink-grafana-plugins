@@ -3,7 +3,7 @@ import { useAsync } from 'react-use';
 import { DataSourceBase } from './DataSourceBase';
 import { BatchQueryConfig, QBField, QueryBuilderOption, QueryResponse, SystemLinkError, Workspace } from './types';
 import { BackendSrv, BackendSrvRequest, FetchError, isFetchError, TemplateSrv } from '@grafana/runtime';
-import { catchError, delayWhen, lastValueFrom, map, mergeMap, Observable, of, throwError, timer } from 'rxjs';
+import { catchError, lastValueFrom, map, mergeMap, Observable, throwError, timer } from 'rxjs';
 
 export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<SelectableValue<T>> {
   const RESULT = [];
