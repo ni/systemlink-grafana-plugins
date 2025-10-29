@@ -137,10 +137,10 @@ describe('ListAlarmsQueryHandler', () => {
           url: expect.stringContaining(QUERY_ALARMS_RELATIVE_PATH),
           method: 'POST',
           data: {
-            filter: undefined,
-            orderByDescending: undefined,
+            filter: '',
+            orderByDescending: true,
             returnMostRecentlyOccurredOnly: true,
-            take: undefined
+            take: 1000
           },
           showErrorAlert: false
         })

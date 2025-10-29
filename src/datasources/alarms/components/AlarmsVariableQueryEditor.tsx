@@ -6,7 +6,7 @@ import { Workspace } from 'core/types';
 import React, { useState, useEffect } from 'react';
 import { FloatingError } from 'core/errors';
 import { AlarmsVariableQuery } from '../types/types';
-import { DEFAULT_VARIABLE_QUERY_EDITOR_DESCENDING, DEFAULT_VARIABLE_QUERY_EDITOR_TAKE, ERROR_SEVERITY_WARNING, LABEL_WIDTH, labels, MAX_TAKE, MIN_TAKE, placeholders, takeErrorMessages, tooltips } from '../constants/AlarmsQueryEditor.constants';
+import { DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TAKE, ERROR_SEVERITY_WARNING, LABEL_WIDTH, labels, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, placeholders, takeErrorMessages, tooltips } from '../constants/AlarmsQueryEditor.constants';
 import { validateNumericInput } from 'core/utils';
 
 type Props = QueryEditorProps<AlarmsDataSource, AlarmsVariableQuery>;
@@ -16,8 +16,8 @@ export function AlarmsVariableQueryEditor({ query, onChange, datasource }: Props
   const [takeInvalidMessage, setTakeInvalidMessage] = useState<string>('');
   const { 
     filter = '',
-    take = DEFAULT_VARIABLE_QUERY_EDITOR_TAKE,
-    descending = DEFAULT_VARIABLE_QUERY_EDITOR_DESCENDING
+    take = DEFAULT_QUERY_EDITOR_TAKE,
+    descending = DEFAULT_QUERY_EDITOR_DESCENDING
   } = query;
 
   useEffect(() => {
@@ -41,10 +41,10 @@ export function AlarmsVariableQueryEditor({ query, onChange, datasource }: Props
   };
 
   const validateTakeValue = (value: number) => {
-    if (isNaN(value) || value < MIN_TAKE) {
+    if (isNaN(value) || value < QUERY_EDITOR_MIN_TAKE) {
       return { message: takeErrorMessages.minErrorMsg, take: value };
     }
-    if (value > MAX_TAKE) {
+    if (value > QUERY_EDITOR_MAX_TAKE) {
       return { message: takeErrorMessages.maxErrorMsg, take: value };
     }
     return {message: '', take: value };

@@ -3,6 +3,7 @@ import { ListAlarmsQuery } from '../../types/ListAlarms.types';
 import { AlarmsVariableQuery } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.contants';
+import { DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TAKE } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 
 export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultListAlarmsQuery;
@@ -17,12 +18,12 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
 
   public async metricFindQuery(query: AlarmsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     try {
-      const filter = this.transformAlarmsQuery(options?.scopedVars || {}, query.filter);
-      const take = query.take;
-      const orderByDescending = query.descending;
+      const filter = this.transformAlarmsQuery(options?.scopedVars || {}, query.filter) ?? '';
+      const take = query.take ?? DEFAULT_QUERY_EDITOR_TAKE;
+      const orderByDescending = query.descending ?? DEFAULT_QUERY_EDITOR_DESCENDING;
       const returnMostRecentlyOccurredOnly = true;
       const requestBody = {filter, take, orderByDescending, returnMostRecentlyOccurredOnly}
-      const response = await this.queryAlarms(requestBody);
+      const response = await this.queryAlarms(requestBody); // TODO: Update this once batching is implemented.
 
       const alarmsOptions = response.alarms
         ? response.alarms.map(alarm => ({

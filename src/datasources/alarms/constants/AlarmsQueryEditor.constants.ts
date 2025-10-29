@@ -2,10 +2,10 @@ import { AlertVariant } from '@grafana/ui';
 
 export const LABEL_WIDTH = 26;
 export const ERROR_SEVERITY_WARNING: AlertVariant = 'warning';
-export const MIN_TAKE = 1;
-export const MAX_TAKE = 1000;
-export const DEFAULT_VARIABLE_QUERY_EDITOR_TAKE = 1000;
-export const DEFAULT_VARIABLE_QUERY_EDITOR_DESCENDING = true;
+export const QUERY_EDITOR_MIN_TAKE = 1;
+export const QUERY_EDITOR_MAX_TAKE = 1000; // TODO: Update this once batching is implemented.
+export const DEFAULT_QUERY_EDITOR_TAKE = 1000;
+export const DEFAULT_QUERY_EDITOR_DESCENDING = true;
 
 export const labels = {
   queryBy: 'Query By',
@@ -20,8 +20,8 @@ export const tooltips = {
 };
 
 export const takeErrorMessages = {
-  minErrorMsg: `Enter a value greater than or equal to ${MIN_TAKE}`,
-  maxErrorMsg: `Enter a value less than or equal to ${MAX_TAKE}`,
+  minErrorMsg: `Enter a value greater than or equal to ${QUERY_EDITOR_MIN_TAKE}`,
+  maxErrorMsg: `Enter a value less than or equal to ${QUERY_EDITOR_MAX_TAKE}`,
 };
 
 export const placeholders = {
