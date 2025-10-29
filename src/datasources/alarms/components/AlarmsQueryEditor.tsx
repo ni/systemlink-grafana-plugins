@@ -75,7 +75,7 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
         />
       )}
       {query.queryType === QueryType.ListAlarms && (
-        //AB#3360455 Replace with ListAlarmsQueryEditor component implementation
+        // TODO(AB-3360455): Replace with ListAlarmsQueryEditor component implementation
         <span>List Alarms query editor</span>
       )}
     </Stack>
