@@ -756,7 +756,7 @@ describe('QueryResultsDataSource', () => {
           queryBy: 'string.IsNullOrEmpty(ProgramName)',
         });
         
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));
         
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -774,7 +774,7 @@ describe('QueryResultsDataSource', () => {
           queryBy: '!string.IsNullOrEmpty(ProgramName)',
         });
         
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));
         
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -792,7 +792,7 @@ describe('QueryResultsDataSource', () => {
           queryBy: 'ProgramName = "test"',
         });
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));
 
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -810,7 +810,7 @@ describe('QueryResultsDataSource', () => {
           queryBy: 'ProgramName != "test"',
         });
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));
 
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({

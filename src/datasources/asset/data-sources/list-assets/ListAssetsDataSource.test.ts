@@ -201,7 +201,7 @@ describe('shouldRunQuery', () => {
             hide: true
         });
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));
 
         expect(processlistAssetsQuerySpy).not.toHaveBeenCalled();
     });

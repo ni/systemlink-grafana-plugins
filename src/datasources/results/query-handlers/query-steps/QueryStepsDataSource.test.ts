@@ -1809,7 +1809,8 @@ describe('QueryStepsDataSource', () => {
         resultsQuery: 'string.IsNullOrEmpty(ProgramName)',
         stepsQuery: 'string.IsNullOrEmpty(name)',
       });
-      await datastore.query(query);
+      
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1829,7 +1830,8 @@ describe('QueryStepsDataSource', () => {
         resultsQuery: '!string.IsNullOrEmpty(ProgramName)',
         stepsQuery: '!string.IsNullOrEmpty(name)',
       });
-      await datastore.query(query);
+      
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1849,7 +1851,8 @@ describe('QueryStepsDataSource', () => {
         resultsQuery: 'programName = "name"',
         stepsQuery: 'name = "name"',
       });
-      await datastore.query(query);
+
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1869,7 +1872,8 @@ describe('QueryStepsDataSource', () => {
         resultsQuery: 'programName != "name"',
         stepsQuery: 'name != "name"',
       });
-      await datastore.query(query);
+      
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({

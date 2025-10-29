@@ -511,7 +511,7 @@ describe('query', () => {
         },
       );
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         {"data": {"field": "partNumber"}, "method": "POST", "showErrorAlert": false, "url": "/nitestmonitor/v2/query-product-values"}
@@ -528,7 +528,7 @@ describe('query', () => {
         },
       );
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         {"data": {"field": "partNumber"}, "method": "POST", "showErrorAlert": false, "url": "/nitestmonitor/v2/query-product-values"}
@@ -545,7 +545,7 @@ describe('query', () => {
         },
       );
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         {"data": {"field": "partNumber"}, "method": "POST", "showErrorAlert": false, "url": "/nitestmonitor/v2/query-product-values"}    
@@ -562,7 +562,7 @@ describe('query', () => {
         },
       );
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         {"data": {"field": "partNumber"}, "method": "POST", "showErrorAlert": false, "url": "/nitestmonitor/v2/query-product-values"}
