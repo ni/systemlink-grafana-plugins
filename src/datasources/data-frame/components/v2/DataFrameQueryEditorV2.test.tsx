@@ -254,11 +254,12 @@ describe("DataFrameQueryEditorV2", () => {
 
                 it("should call onChange when a decimation method is selected", async () => {
                     await user.click(decimationMethodField);
-                    await select(decimationMethodField, 'None', { container: document.body });
+                    await user.keyboard('{ArrowDown}');
+                    await user.keyboard('{Enter}');
 
                     await waitFor(() => {
                         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                            decimationMethod: 'NONE'
+                            decimationMethod: 'MAX_MIN'
                         }));
                         expect(onRunQuery).not.toHaveBeenCalled();
                     });
