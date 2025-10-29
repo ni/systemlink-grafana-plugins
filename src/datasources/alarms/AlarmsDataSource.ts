@@ -23,7 +23,7 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     this._listAlarmsQueryHandler = new ListAlarmsQueryHandler(instanceSettings, backendSrv, templateSrv);
 
     // AB#3064461 - Update defaultQuery to use list alarms defaults when supported
-    this.defaultQuery = this.setDefaultQuery();
+    this.defaultQuery = this.initializeDefaultQuery();
   }
 
   public async runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
@@ -52,10 +52,7 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     return this._listAlarmsQueryHandler;
   }
 
-  public async metricFindQuery(
-    query: AlarmsVariableQuery,
-    options?: LegacyMetricFindQueryOptions
-  ): Promise<MetricFindValue[]> {
+  public async metricFindQuery(query: AlarmsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     return this._listAlarmsQueryHandler.metricFindQuery(query, options);
   }
 
@@ -64,12 +61,14 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 
-  private setDefaultQuery() {
+  private initializeDefaultQuery() {
     switch (DEFAULT_QUERY_TYPE) {
       case QueryType.ListAlarms:
         return this.listAlarmsQueryHandler.defaultQuery;
       case QueryType.AlarmsCount:
         return this.alarmsCountQueryHandler.defaultQuery;
+      default:
+        throw new Error('Invalid query type');
     }
   }
 }

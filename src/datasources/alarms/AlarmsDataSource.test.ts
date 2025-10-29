@@ -17,7 +17,7 @@ describe('AlarmsDataSource', () => {
   });
 
   it('should initialize with AlarmsCount as the default query', () => {
-    expect(datastore.defaultQuery).toEqual(datastore.alarmsCountQueryHandler.defaultQuery);
+    expect(datastore.defaultQuery).toEqual({ filter: '' });
   });
 
   describe('AlarmsCountQueryHandler', () => {
