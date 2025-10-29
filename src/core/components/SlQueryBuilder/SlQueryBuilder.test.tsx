@@ -59,4 +59,39 @@ describe('SlQueryBuilder', () => {
 
     expect(queryBuilderFieldLabels).toEqual(expectedFieldLabels);
   });
+
+  it('should pass disabled prop to QueryBuilder', () => {
+    const queryBuilderSpy = jest.spyOn(QueryBuilderModule, "default").mockImplementation(jest.fn());
+    
+    const reactNode = React.createElement(SlQueryBuilder, { 
+      value: '', 
+      customOperations, 
+      fields, 
+      messages: {}, 
+      onChange: jest.fn(),
+      disabled: true 
+    });
+    render(reactNode);
+
+    const queryBuilderProps = queryBuilderSpy.mock.lastCall?.at(0);
+    expect(queryBuilderProps?.disabled).toBe(true);
+  });
+
+  it('should default disabled to false when not provided', () => {
+    const queryBuilderSpy = jest.spyOn(QueryBuilderModule, "default").mockImplementation(jest.fn());
+    
+    renderElement(customOperations, fields);
+
+    const queryBuilderProps = queryBuilderSpy.mock.lastCall?.at(0);
+    expect(queryBuilderProps?.disabled).toBe(false);
+  });
+
+  it('should default fieldsMode to static', () => {
+    const queryBuilderSpy = jest.spyOn(QueryBuilderModule, "default").mockImplementation(jest.fn());
+    
+    renderElement(customOperations, fields);
+
+    const queryBuilderProps = queryBuilderSpy.mock.lastCall?.at(0);
+    expect(queryBuilderProps?.fieldsMode).toBe('static');
+  });
 });
