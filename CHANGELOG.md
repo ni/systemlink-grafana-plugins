@@ -1,3 +1,9 @@
+## [4.33.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.32.0...v4.33.0) (2025-10-29)
+
+### Features
+
+* **alarms:** Add batching for query alarms API ([#466](https://github.com/ni/systemlink-grafana-plugins/issues/466)) ([2a90f21](https://github.com/ni/systemlink-grafana-plugins/commit/2a90f21f0dad1eec305a74fc3851eac32f8061ea))
+
 ## [4.32.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.31.0...v4.32.0) (2025-10-29)
 
 ### Features
