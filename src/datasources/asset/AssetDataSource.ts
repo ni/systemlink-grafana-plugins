@@ -110,14 +110,21 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
     const vendor = asset.vendorName ? asset.vendorName : asset.vendorNumber;
     const model = asset.modelName ? asset.modelName : asset.modelNumber;
     const serial = asset.serialNumber;
-    let assetValue: string;
-
     const assetName = !asset.name ? `${serial}` : `${asset.name} (${serial})`;
 
-    if (query.queryReturnType === AssetQueryReturnType.AssetId) {
-      assetValue = asset.id;
-    } else {
-      assetValue = `Assets.${vendor}.${model}.${serial}`;
+    let assetValue: string;
+
+    switch (query.queryReturnType) {
+      case AssetQueryReturnType.ScanCode:
+        assetValue = asset.scanCode;
+        break;
+      default:
+      case AssetQueryReturnType.AssetTagPath:
+        assetValue = `Assets.${vendor}.${model}.${serial}`;
+        break;
+      case AssetQueryReturnType.AssetId:
+        assetValue = asset.id;
+        break;
     }
 
     return { text: assetName, value: assetValue };
