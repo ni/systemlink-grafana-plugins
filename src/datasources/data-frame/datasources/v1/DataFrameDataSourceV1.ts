@@ -94,10 +94,10 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     });
   }
 
-  async queryTables(query: string): Promise<TableProperties[]> {
+  async queryTables(query: string, take = 5): Promise<TableProperties[]> {
     const filter = `name.Contains("${query}")`;
 
-    return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take: 5 })).tables;
+    return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take })).tables;
   }
 
   processQuery(query: DataFrameQueryV1): ValidDataFrameQueryV1 {

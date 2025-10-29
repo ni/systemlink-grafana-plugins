@@ -91,8 +91,28 @@ describe('DataFrameDataSourceV2', () => {
     });
 
     describe('queryTables', () => {
-        it('should throw "Method not implemented."', async () => {
-            await expect(ds.queryTables('')).rejects.toThrow('Method not implemented.');
+        let postMock: jest.SpyInstance;
+        const mockTables = [{ id: '1', name: 'Table 1' }, { id: '2', name: 'Table 2' }];
+
+        beforeEach(() => {
+            postMock = jest.spyOn(ds, 'post').mockResolvedValue({ tables: mockTables });
+        });
+
+        it('should make a POST request to the correct URL and return tables', async () => {
+            const filter = 'test-filter';
+            const take = 10;
+            const result = await ds.queryTables(filter, take);
+
+            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take });
+            expect(result).toBe(mockTables);
+        });
+
+        it('should use TAKE_LIMIT as default take value when not provided', async () => {
+            const filter = 'test-filter';
+            const result = await ds.queryTables(filter);
+
+            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take: 1000 });
+            expect(result).toBe(mockTables);
         });
     });
 });
