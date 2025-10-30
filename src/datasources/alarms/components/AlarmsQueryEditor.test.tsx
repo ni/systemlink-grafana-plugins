@@ -202,7 +202,10 @@ describe('AlarmsQueryEditor', () => {
 
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(
-          expect.objectContaining({ queryType: QueryType.ListAlarms, ...defaultListAlarmsQuery })
+          expect.objectContaining({
+            queryType: QueryType.ListAlarms,
+            ...defaultListAlarmsQuery
+          })
         );
         expect(mockOnRunQuery).toHaveBeenCalled();
       });
@@ -240,7 +243,11 @@ describe('AlarmsQueryEditor', () => {
 
       await waitFor(() => {
         expect(onChange).toHaveBeenCalledWith(
-          expect.objectContaining({ refId: 'A', queryType: QueryType.AlarmsCount, ...defaultAlarmsCountQuery })
+          expect.objectContaining({
+            refId: 'A',
+            queryType: QueryType.AlarmsCount,
+            ...defaultAlarmsCountQuery
+          })
         );
       });
 
@@ -341,7 +348,11 @@ describe('AlarmsQueryEditor', () => {
 
       await waitFor(() => {
         expect(onChange).toHaveBeenCalledWith(
-          expect.objectContaining({ refId: 'A', queryType: QueryType.ListAlarms, ...defaultListAlarmsQuery })
+          expect.objectContaining({
+            refId: 'A',
+            queryType: QueryType.ListAlarms,
+            ...defaultListAlarmsQuery
+          })
         );
       });
 
