@@ -1,3 +1,9 @@
+## [4.35.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.34.0...v4.35.0) (2025-10-30)
+
+### Features
+
+* **dataframe:** populate data table name options in query builder ([#469](https://github.com/ni/systemlink-grafana-plugins/issues/469)) ([94a3d86](https://github.com/ni/systemlink-grafana-plugins/commit/94a3d86b7a2f434f847ed14e5418db10696b9f6a))
+
 ## [4.34.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.33.0...v4.34.0) (2025-10-30)
 
 ### Features
