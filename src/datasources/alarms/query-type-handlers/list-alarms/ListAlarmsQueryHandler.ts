@@ -1,5 +1,5 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
-import { ListAlarmsQuery } from '../../types/ListAlarms.types';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
+import { AlarmsProperties, ListAlarmsQuery } from '../../types/ListAlarms.types';
 import { AlarmsVariableQuery, QueryAlarmsRequest } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
@@ -8,62 +8,6 @@ import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana
 import { User } from 'shared/types/QueryUsers.types';
 import { UsersUtils } from 'shared/users.utils';
 import { AlarmsPropertiesOptions } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
-import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from 'datasources/alarms/constants/SourceProperties.constants';
-const sampleAlarm: Alarm = {
-  instanceId: 'INST-001',
-  alarmId: 'ALARM-001',
-  workspace: 'Lab-1',
-  active: true,
-  clear: false,
-  acknowledged: true,
-  acknowledgedAt: '2025-09-16T10:30:00Z',
-  acknowledgedBy: 'user123',
-  occurredAt: '2025-09-16T09:00:00Z',
-  updatedAt: '2025-09-16T10:29:00Z',
-  createdBy: 'admin',
-  transitions: [
-    {
-      transitionType: AlarmTransitionType.Set,
-      occurredAt: '2025-09-16T09:00:00Z',
-      severityLevel: 3,
-      value: 'High',
-      condition: 'Temperature',
-      shortText: 'Temp High',
-      detailText: 'Temperature exceeded threshold',
-      keywords: ['temperature', 'high'],
-      properties: {
-        sensorId: 'SENSOR-12',
-      },
-    },
-    {
-      transitionType: AlarmTransitionType.Clear,
-      occurredAt: '2025-09-16T09:00:00Z',
-      severityLevel: 3,
-      value: 'High',
-      condition: 'Temperature',
-      shortText: 'Temp High',
-      detailText: 'Temperature exceeded threshold',
-      keywords: ['temperature', 'high'],
-      properties: {
-        sensorId: 'SENSOR-12',
-      },
-    },
-  ],
-  transitionOverflowCount: 0,
-  currentSeverityLevel: 3,
-  highestSeverityLevel: 3,
-  mostRecentSetOccurredAt: '2025-09-16T09:00:00Z',
-  mostRecentTransitionOccurredAt: '2025-09-16T10:00:00Z',
-  channel: 'Main',
-  condition: 'Temperature',
-  displayName: 'High Temperature Alarm',
-  description: 'Alarm triggered when temperature exceeds safe limit.',
-  keywords: ['temperature'],
-  properties: {
-    location: 'Lab-1',
-  },
-  resourceType: ''
-};
 
 export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultListAlarmsQuery;
@@ -80,24 +24,16 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   }
 
   public async runQuery(query: ListAlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
+    query.filter = this.transformAlarmsQuery(options.scopedVars || {}, query.filter);
 
-    // #AB:3449773 Map queryAlarmsData response to user-selected properties
-    await this.queryAlarmsData(query);
+    const alarmsResponse = await this.queryAlarmsData(query);
+    const mappedFields = await this.mapPropertiesToSelect(query.properties || [], alarmsResponse);
 
     return {
       refId: query.refId,
       name: query.refId,
       fields: mappedFields,
     };
-  }
-
-  private async queryAlarmsData(alarmsQuery: ListAlarmsQuery): Promise<Alarm[]> {
-    const alarmsRequestBody: QueryAlarmsRequest = {
-      filter: alarmsQuery.filter ?? '',
-    };
-
-    return await this.queryAlarmsInBatches(alarmsRequestBody);
   }
 
   public async metricFindQuery(
@@ -133,8 +69,6 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     return this.queryAlarmsInBatches(alarmsRequestBody);
   }
 
-  // @ts-ignore
-  // #AB:3249477 Suppress unused method warning until properties control support is implemented
   private async loadUsers(): Promise<Map<string, User>> {
     try {
       return await this.usersUtils.getUsers();
@@ -146,28 +80,12 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     }
   }
 
-  private flattenAlarmsByTransitions(alarms: Alarm[]): Alarm[] {
-  const flattened: Alarm[] = [];
-  for (const alarm of alarms) {
-    if (Array.isArray(alarm.transitions) && alarm.transitions.length > 0) {
-      for (const transition of alarm.transitions) {
-        flattened.push({
-          ...alarm,
-          ...transition,
-        });
-      }
-    } else {
-      flattened.push(alarm);
-    }
-  }
-  return flattened;
-}
-
   private async mapPropertiesToSelect(
     properties: AlarmsProperties[],
     alarms: Alarm[]
   ): Promise<DataFrameDTO['fields']> {
     const workspaces = await this.loadWorkspaces();
+    const users = await this.loadUsers();
 
     const mappedFields = properties.map(property => {
       const field = AlarmsPropertiesOptions[property];
@@ -175,23 +93,18 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       const fieldValue = field.value as keyof Alarm;
       const fieldType = this.isTimeField(fieldValue) ? FieldType.time : FieldType.string;
 
-      console.log('fieldType:', fieldType, fieldName);
-
       const mappedValues = alarms.map(alarm => {
         switch (property) {
           case AlarmsProperties.workspace:
             const workspace = workspaces.get(alarm.workspace);
             return workspace ? workspace.name : alarm.workspace;
-          case AlarmsProperties.currentSeverityLevel:
-          case AlarmsProperties.highestSeverityLevel:
-            return this.getSeverityLabel(alarm[fieldValue] as number);
-          case AlarmsProperties.source:
-            return this.getSource(alarm.properties);
-          case AlarmsProperties.state:
-            return this.getAlarmState(alarm.clear, alarm.acknowledged);
+          case AlarmsProperties.acknowledgedBy:
+            const userId = alarm.acknowledgedBy as string ?? '';
+            const user = users.get(userId);
+            return user ? UsersUtils.getUserFullName(user) : userId;
           case AlarmsProperties.keywords:
           case AlarmsProperties.properties:
-            return JSON.stringify(this.getSortedCustomProperties(alarm.properties));
+            return this.getSortedCustomProperties(alarm.properties);
           default:
             return fieldType === FieldType.time
               ? alarm[fieldValue] ?? null
@@ -204,43 +117,18 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     return mappedFields;
   }
 
-private getSortedCustomProperties(properties: { [key: string]: string }): Array<{ key: string; value: string }> {
-  return Object.entries(properties)
+  private getSortedCustomProperties(properties: { [key: string]: string }): string {
+    if (Object.keys(properties).length <= 0) {
+      return '';
+    }
+
+    const filteredEntries = Object.entries(properties)
     .filter(([key]) => !key.startsWith('nitag'))
-    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-    .map(([key, value]) => ({ key, value }));
-}
-  private getSeverityLabel(severityLevel: number): string {
-    switch (severityLevel) {
-      case -1:
-        return `Clear`;
-      case 1:
-        return `Low (1)`;
-      case 2:
-        return `Moderate (2)`;
-      case 3:
-        return `High (3)`;
-      default:
-        if (severityLevel >= 4) {
-          return `Critical (${severityLevel})`;
-        }
-        return '';
-    }
-  }
-
-  private getAlarmState(isCleared: boolean, isAcknowledged: boolean): string {
-    if (isCleared) {
-      return isAcknowledged ? 'Cleared' : 'Cleared; NotAcknowledged';
-    }
-    return isAcknowledged ? 'Acknowledged' : 'Set';
-  }
-
-  private getSource(properties: { [key: string]: string }): string {
-    if (Object.prototype.hasOwnProperty.call(properties, SYSTEM_CUSTOM_PROPERTY)) {
-      return properties[SYSTEM_CUSTOM_PROPERTY];
-    }
-    return Object.prototype.hasOwnProperty.call(properties, MINION_ID_CUSTOM_PROPERTY)
-      ? properties[MINION_ID_CUSTOM_PROPERTY]
-      : '';
+    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB));
+  
+    const sortedProperties = Object.fromEntries(filteredEntries);
+    
+    return JSON.stringify(sortedProperties);
   }
 }
+
