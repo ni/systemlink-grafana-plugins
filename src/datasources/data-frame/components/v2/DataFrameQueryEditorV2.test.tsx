@@ -23,7 +23,7 @@ jest.mock("./query-builders/DataTableQueryBuilder", () => ({
             };
 
             loadOptions();
-        }, [props.dataTableNameLookupCallback]);
+        }, [props]);
 
         return (
             <div data-testid="data-table-query-builder">
