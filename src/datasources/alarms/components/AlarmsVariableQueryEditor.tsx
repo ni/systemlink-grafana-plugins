@@ -12,6 +12,7 @@ import { validateNumericInput } from 'core/utils';
 type Props = QueryEditorProps<AlarmsDataSource, AlarmsVariableQuery>;
 
 export function AlarmsVariableQueryEditor({ query, onChange, datasource }: Props) {
+  query = datasource.prepareQuery(query);
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [takeInvalidMessage, setTakeInvalidMessage] = useState<string>('');
   const { 
