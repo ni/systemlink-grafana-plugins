@@ -74,7 +74,11 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
           maxWidth={CONTROL_WIDTH}
         />
       </InlineField>
-      <InlineField label={labels.queryBy} labelWidth={LABEL_WIDTH} tooltip={tooltips.queryBy}>
+      <InlineField
+        label={labels.queryBy}
+        labelWidth={LABEL_WIDTH}
+        tooltip={tooltips.queryBy}
+      >
         <AlarmsQueryBuilder
           filter={query.filter}
           globalVariableOptions={datasource.globalVariableOptions()}
