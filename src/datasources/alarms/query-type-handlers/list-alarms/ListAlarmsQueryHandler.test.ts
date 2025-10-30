@@ -110,7 +110,7 @@ describe('ListAlarmsQueryHandler', () => {
   it('should set defaultListAlarmsQuery to defaultQuery', () => {
     const defaultQuery = datastore.defaultQuery;
 
-    expect(defaultQuery).toEqual({ queryType: QueryType.ListAlarms });
+    expect(defaultQuery).toEqual({ filter: '' });
   });
 
   describe('runQuery', () => {
@@ -204,7 +204,9 @@ describe('ListAlarmsQueryHandler', () => {
     it('should return alarms in "displayName (alarmId)" format when no filter is provided', async () => {
       const query: AlarmsVariableQuery = {
         refId: 'A',
-        filter: undefined
+        filter: undefined,
+        descending: true,
+        take: 1000
       };
 
       const result = await datastore.metricFindQuery(query, options);
@@ -220,7 +222,10 @@ describe('ListAlarmsQueryHandler', () => {
           url: expect.stringContaining(QUERY_ALARMS_RELATIVE_PATH),
           method: 'POST',
           data: {
-            filter: undefined
+            filter: '',
+            orderByDescending: true,
+            returnMostRecentlyOccurredOnly: true,
+            take: 1000
           },
           showErrorAlert: false
         })
@@ -230,7 +235,8 @@ describe('ListAlarmsQueryHandler', () => {
     it('should return filtered alarms when filter is provided', async () => {
       const query: AlarmsVariableQuery = {
         refId: 'A',
-        filter: 'workspace = "Lab-1"'
+        filter: 'workspace = "Lab-1"',
+        take: 1000
       };
 
       const result = await datastore.metricFindQuery(query, options);
@@ -250,10 +256,30 @@ describe('ListAlarmsQueryHandler', () => {
       );
     });
 
+    it('should set `orderByDescending` to true when descending set to undefined', async () => {
+      const query: AlarmsVariableQuery = {
+        refId: 'A',
+        filter: 'workspace = "Lab-1"',
+        take: 1000,
+        descending: undefined
+      };
+
+       await datastore.metricFindQuery(query, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            orderByDescending: true
+          })
+        })
+      );
+    });
+
     it('should replace template variables in filter', async () => {
       const query: AlarmsVariableQuery = {
         refId: 'A',
-        filter: 'workspace = "$workspace"'
+        filter: 'workspace = "$workspace"',
+        take: 1000
       };
 
       jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "Lab-1"');
@@ -291,7 +317,8 @@ describe('ListAlarmsQueryHandler', () => {
 
       const query: AlarmsVariableQuery = {
         refId: 'A',
-        filter: 'workspace = "Lab-1"'
+        filter: 'workspace = "Lab-1"',
+        take: 1000
       };
 
       const result = await datastore.metricFindQuery(query, options);
@@ -315,7 +342,8 @@ describe('ListAlarmsQueryHandler', () => {
 
       const query: AlarmsVariableQuery = {
         refId: 'A',
-        filter: undefined
+        filter: undefined,
+        take: 1000
       };
 
       const result = await datastore.metricFindQuery(query, options);
@@ -330,7 +358,8 @@ describe('ListAlarmsQueryHandler', () => {
     it('should handle undefined options gracefully', async () => {
       const query: AlarmsVariableQuery = {
         refId: 'A',
-        filter: 'workspace = "Lab-1"'
+        filter: 'workspace = "Lab-1"',
+        take: 1000
       };
       const options = undefined;
 
@@ -343,25 +372,68 @@ describe('ListAlarmsQueryHandler', () => {
       ]);
     });
 
-    it('should not display duplicate alarms based on alarm id', async () => {
-      const duplicateAlarmsResponse: QueryAlarmsResponse = {
-        alarms: [
-          { ...sampleAlarm, instanceId: 'INST-001', displayName: 'High Temperature Alarm' },
-          { ...sampleAlarm, instanceId: 'INST-002', displayName: 'High Temperature Alarm' },
-          { ...sampleAlarm, instanceId: 'INST-003', displayName: 'High Temperature Alarm' }
-        ],
-        totalCount: 3
-      };
-      backendServer.fetch
-        .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
-        .mockReturnValue(createFetchResponse(duplicateAlarmsResponse));
+    describe('take', () => {
+      it('should not call the API when take is undefined', async () => {
+        const query: AlarmsVariableQuery = {
+          refId: 'A',
+          filter: 'workspace = "Lab-1"',
+          take: undefined
+        };
+  
+        const result = await datastore.metricFindQuery(query, options);
+  
+        expect(result).toEqual([]);
+        expect(backendServer.fetch).not.toHaveBeenCalled();
+      });
 
-      const query: AlarmsVariableQuery = {refId: 'A'};
-      const result = await datastore.metricFindQuery(query, options);
+      it('should not call the API when take is less than 1', async () => {
+        const query: AlarmsVariableQuery = {
+          refId: 'A',
+          filter: 'workspace = "Lab-1"',
+          take: 0
+        };
+  
+        const result = await datastore.metricFindQuery(query, options);
+  
+        expect(result).toEqual([]);
+        expect(backendServer.fetch).not.toHaveBeenCalled();
+      });
 
-      expect(result).toEqual([
-        { text: 'High Temperature Alarm (ALARM-001)', value: 'ALARM-001' }
-      ]);
+      it('should not call the API when take is greater than 10000', async () => {
+        const query: AlarmsVariableQuery = {
+          refId: 'A',
+          filter: 'workspace = "Lab-1"',
+          take: 10001
+        };
+  
+        const result = await datastore.metricFindQuery(query, options);
+  
+        expect(result).toEqual([]);
+        expect(backendServer.fetch).not.toHaveBeenCalled();
+      });
+
+      it('should call the API when take is valid', async () => {
+        const query: AlarmsVariableQuery = {
+          refId: 'A',
+          filter: 'workspace = "Lab-1"',
+          take: 1000
+        };
+  
+        const result = await datastore.metricFindQuery(query, options);
+
+        expect(result).toEqual([
+          { text: 'High Temperature Alarm (ALARM-001)', value: 'ALARM-001' },
+          { text: 'Low Pressure Alarm (ALARM-002)', value: 'ALARM-002' },
+          { text: 'System Error Alarm (ALARM-003)', value: 'ALARM-003' }
+        ]);
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              take: 1000
+            })
+          })
+        );
+      });
     });
   });
 

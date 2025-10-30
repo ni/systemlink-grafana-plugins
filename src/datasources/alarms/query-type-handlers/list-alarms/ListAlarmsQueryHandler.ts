@@ -2,6 +2,7 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetri
 import { ListAlarmsQuery } from '../../types/ListAlarms.types';
 import { AlarmsVariableQuery, QueryAlarmsRequest } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
+import { DEFAULT_QUERY_EDITOR_DESCENDING, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { Alarm } from 'datasources/alarms/types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
@@ -37,26 +38,34 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
 
   public async metricFindQuery(query: AlarmsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     try {
-      const filter = this.transformAlarmsQuery(options?.scopedVars || {}, query.filter);
-      const response = await this.queryAlarms({filter});
+      const take = query.take;
+      if (!this.isTakeValid(take)) {
+        return [];
+      } 
+      
+      const filter = this.transformAlarmsQuery(options?.scopedVars || {}, query.filter) ?? '';
+      const orderByDescending = query.descending ?? DEFAULT_QUERY_EDITOR_DESCENDING;
+      const returnMostRecentlyOccurredOnly = true;
+      const requestBody = { filter, take, orderByDescending, returnMostRecentlyOccurredOnly };
+      const alarms = await this.queryAlarmsInBatches(requestBody);
 
-      const alarmsOptions = response.alarms
-        ? response.alarms.map(alarm => ({
+      const alarmsOptions = alarms.map(alarm => ({
           text: `${alarm.displayName} (${alarm.alarmId})`,
           value: alarm.alarmId
-        }))
-        : [];
-      
-      const uniqueOptions = Array.from(
-        new Map(alarmsOptions.map(option => [option.value, option])).values()
-      );
-      
-      const sortedOptions = uniqueOptions.sort((a, b) => a.text.localeCompare(b.text));
+        }));
+
+      const sortedOptions = alarmsOptions.sort((a, b) => a.text.localeCompare(b.text));
 
       return sortedOptions;
     } catch (error) {
       return [];
     }
+  }
+
+  private isTakeValid(take?: number): boolean {
+    return take !== undefined
+      && take >= QUERY_EDITOR_MIN_TAKE
+      && take <= QUERY_EDITOR_MAX_TAKE;
   }
 
   private async queryAlarmsData(alarmsQuery: ListAlarmsQuery): Promise<Alarm[]> {
