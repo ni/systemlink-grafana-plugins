@@ -133,26 +133,6 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
     })
   );
 
-  private handleDependenciesError(error: unknown): void {
-    const errorDetails = extractErrorInfo((error as Error).message);
-    this.errorTitle = 'Warning during alarms query';
-    switch (errorDetails.statusCode) {
-      case '404':
-        this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
-        break;
-      case '429':
-        this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
-        break;
-      case '504':
-        this.errorDescription = 'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.';
-        break;
-      default:
-        this.errorDescription = errorDetails.message
-          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
-          : 'Some values may not be available in the query builder lookups due to an unknown error.';
-    }
-  }
-
   private getSourceTransformation(): ExpressionTransformFunction {
     return (value: string, operation: string) => {
       const systemExpression = multipleValuesQuery(`properties.${SYSTEM_CUSTOM_PROPERTY}`)(value, operation);
@@ -193,30 +173,5 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
 
   public testDatasource(): Promise<TestDataSourceResponse> {
     throw new Error('Method not implemented.');
-  }
-
-  protected async queryAlarmsInBatches(alarmsRequestBody: QueryAlarmsRequest): Promise<Alarm[]> {
-    const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<Alarm>> => {
-      const body = {
-        ...alarmsRequestBody,
-        take: currentTake,
-        continuationToken: token,
-      };
-      const response = await this.queryAlarms(body);
-
-      return {
-        data: response.alarms,
-        continuationToken: response.continuationToken,
-        totalCount: response.totalCount,
-      };
-    };
-
-    const batchQueryConfig = {
-      maxTakePerRequest: QUERY_ALARMS_MAXIMUM_TAKE,
-      requestsPerSecond: QUERY_ALARMS_REQUEST_PER_SECOND,
-    };
-    const response = await queryInBatches(queryRecord, batchQueryConfig, alarmsRequestBody.take);
-
-    return response.data;
-  }
+ }
 }

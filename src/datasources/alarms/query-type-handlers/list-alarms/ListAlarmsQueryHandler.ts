@@ -32,26 +32,25 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     return {
       refId: query.refId,
       name: query.refId,
-      fields: mappedFields,
+      fields: mappedFields ?? [],
     };
   }
 
-  public async metricFindQuery(
-    query: AlarmsVariableQuery,
-    options?: LegacyMetricFindQueryOptions
-  ): Promise<MetricFindValue[]> {
+  public async metricFindQuery(query: AlarmsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     try {
       const filter = this.transformAlarmsQuery(options?.scopedVars || {}, query.filter);
-      const response = await this.queryAlarms({ filter });
+      const response = await this.queryAlarms({filter});
 
       const alarmsOptions = response.alarms
         ? response.alarms.map(alarm => ({
-            text: `${alarm.displayName} (${alarm.alarmId})`,
-            value: alarm.alarmId,
-          }))
+          text: `${alarm.displayName} (${alarm.alarmId})`,
+          value: alarm.alarmId
+        }))
         : [];
 
-      const uniqueOptions = Array.from(new Map(alarmsOptions.map(option => [option.value, option])).values());
+      const uniqueOptions = Array.from(
+        new Map(alarmsOptions.map(option => [option.value, option])).values()
+      );
 
       const sortedOptions = uniqueOptions.sort((a, b) => a.text.localeCompare(b.text));
 
@@ -131,4 +130,3 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     return JSON.stringify(sortedProperties);
   }
 }
-
