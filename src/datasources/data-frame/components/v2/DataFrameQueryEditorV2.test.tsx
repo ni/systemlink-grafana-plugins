@@ -30,7 +30,6 @@ jest.mock("./query-builders/DataTableQueryBuilder", () => ({
 
         return (
             <div data-testid="data-table-query-builder">
-                <p>Filter: {props.filter}</p>
                 <input
                     type="text"
                     data-testid="filter-input"
@@ -201,7 +200,7 @@ describe("DataFrameQueryEditorV2", () => {
                     columnsField = screen.getAllByRole('combobox')[0];
                 });
 
-                it("should show the columns field", async () => {
+                it("should show the columns field", () => {
                     expect(columnsField).toBeInTheDocument();
                     expect(columnsField).toHaveAttribute('aria-expanded', 'false');
                     expect(columnsField).toHaveDisplayValue('');
@@ -280,7 +279,7 @@ describe("DataFrameQueryEditorV2", () => {
                     user = userEvent.setup();
                 });
 
-                it("should show the decimation method field", async () => {
+                it("should show the decimation method field", () => {
                     expect(decimationMethodField).toBeInTheDocument();
                     expect(decimationMethodField).toHaveAttribute('aria-expanded', 'false');
                     expect(decimationMethodField).toHaveDisplayValue('Lossy');
@@ -307,7 +306,7 @@ describe("DataFrameQueryEditorV2", () => {
                     xColumnField = screen.getAllByRole('combobox')[2];
                 });
 
-                it("should show the x-column field", async () => {
+                it("should show the x-column field", () => {
                     expect(xColumnField).toBeInTheDocument();
                     expect(xColumnField).toHaveAttribute('aria-expanded', 'false');
                     expect(xColumnField).toHaveDisplayValue('');
@@ -393,7 +392,7 @@ describe("DataFrameQueryEditorV2", () => {
                 });
             });
 
-            it('should render column properties select', async () => {
+            it('should render column properties select', () => {
                 expect(columnPropertiesField).toBeInTheDocument();
                 expect(columnPropertiesField).toHaveAttribute('aria-expanded', 'false');
                 expect(columnPropertiesField).toHaveDisplayValue('');
@@ -500,8 +499,8 @@ describe("DataFrameQueryEditorV2", () => {
             renderComponent({ dataTableFilter: "test filter" });
 
             await waitFor(() => {
-                const filterText = screen.getByText("Filter: test filter");
-                expect(filterText).toBeInTheDocument();
+                const filterInput = screen.getByTestId("filter-input");
+                expect(filterInput).toHaveValue("test filter");
             });
         });
 
