@@ -52,7 +52,7 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
 
     setIsPropertiesControlValid(selectedProperties.length > 0);
 
-    return handleQueryChange({ ...query, properties: selectedProperties });
+    handleQueryChange({ ...query, properties: selectedProperties });
   };
 
   return (

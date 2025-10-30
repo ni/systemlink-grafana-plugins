@@ -10,12 +10,12 @@ export const defaultAlarmsCountQuery: Omit<AlarmsCountQuery, 'refId'> = {
 
 export const defaultListAlarmsQuery: Omit<ListAlarmsQuery, 'refId'> = {
   filter: '',
-    properties: [
-        AlarmsProperties.displayName,
-        AlarmsProperties.currentSeverityLevel,
-        AlarmsProperties.occurredAt,
-        AlarmsProperties.source,
-        AlarmsProperties.state,
-        AlarmsProperties.workspace,
-    ]
+  properties: [
+    AlarmsProperties.displayName,
+    AlarmsProperties.currentSeverityLevel,
+    AlarmsProperties.occurredAt,
+    AlarmsProperties.source,
+    AlarmsProperties.state,
+    AlarmsProperties.workspace,
+  ]
 };

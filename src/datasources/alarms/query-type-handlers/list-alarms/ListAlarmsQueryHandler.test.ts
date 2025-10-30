@@ -111,7 +111,6 @@ describe('ListAlarmsQueryHandler', () => {
     const defaultQuery = datastore.defaultQuery;
 
     expect(defaultQuery).toEqual({
-     
       filter: '',
       properties: ['displayName', 'currentSeverityLevel', 'occurredAt', 'source', 'state', 'workspace'],
     });
