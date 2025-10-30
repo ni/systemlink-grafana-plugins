@@ -10,7 +10,7 @@ import {
 import { BackendSrv, BackendSrvRequest, TemplateSrv, getAppEvents } from '@grafana/runtime';
 import { DataQuery } from '@grafana/schema';
 import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
-import { fetchDataAsObservable, get, post } from './utils';
+import { get, get$, post, post$ } from './utils';
 import { forkJoin, from, map, Observable, of, switchMap } from 'rxjs';
 import { ApiSessionUtils } from '../shared/api-session.utils';
 
@@ -84,12 +84,12 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    */
   public get$<T>(backendSrv: BackendSrv, url: string, params?: Record<string, any>, useApiIngress = false) {
     if (!useApiIngress) {
-      return fetchDataAsObservable<T>(backendSrv, { method: 'GET', url, params });
+      return get$<T>(backendSrv, url, params);
     }
   
     return from(this.buildApiRequestConfig(url, params ?? {}, 'GET')).pipe(
       switchMap(([url, params]) =>
-        fetchDataAsObservable<T>(backendSrv, { method: 'GET', url, params })
+        get$<T>(backendSrv, url, params)
       )
     );
   }
@@ -134,13 +134,13 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    */
   public post$<T>(backendSrv: BackendSrv, url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}, useApiIngress = false) {
     if (!useApiIngress) {
-      return fetchDataAsObservable<T>(backendSrv, { method: 'POST', url, data: body, ...options });
+      return post$<T>(backendSrv, url, body, options);
     
     }
   
     return from(this.buildApiRequestConfig(url, options, 'POST')).pipe(
       switchMap(([url, newOptions]) =>
-        fetchDataAsObservable<T>(backendSrv, { method: 'POST', url, data: body, ...newOptions })
+        post$<T>(backendSrv, url, body, newOptions)
       )
     );
   }
