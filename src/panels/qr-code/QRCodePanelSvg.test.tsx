@@ -39,11 +39,12 @@ describe('QR Code SVG Generation', () => {
         const svgElement = document.querySelector('svg');
         const pathElements = document.querySelectorAll('path');
         const pathData = pathElements[0].getAttribute('d');
+        const qrCodeStartingPattern = /^M/;
 
         expect(svgElement).toBeInTheDocument();
         expect(pathElements.length).toBeGreaterThan(0);
         expect(pathElements[0]).toHaveAttribute('d');
-        expect(pathData?.trim()).toMatch(/^M/);
+        expect(pathData?.trim()).toMatch(qrCodeStartingPattern);
     });
 
     it('should generate different SVG paths for different values', () => {
