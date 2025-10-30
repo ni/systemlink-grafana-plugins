@@ -5,6 +5,41 @@ import { DataQueryRequest, LegacyMetricFindQueryOptions } from '@grafana/data';
 import { QUERY_ALARMS_RELATIVE_PATH } from 'datasources/alarms/constants/QueryAlarms.constants';
 import { BackendSrv } from '@grafana/runtime';
 import { MockProxy } from 'jest-mock-extended';
+import { User } from 'shared/types/QueryUsers.types';
+import { ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
+
+jest.mock('shared/users.utils', () => {
+  return {
+    UsersUtils: jest.fn().mockImplementation(() => ({
+      getUsers: jest.fn().mockResolvedValue(
+        new Map([
+          ['user1@123.com', { 
+            id: '1',
+            firstName: 'User',
+            lastName: '1',
+            email: 'user1@123.com',
+            properties: {},
+            keywords: [],
+            created: '',
+            updated: '',
+            orgId: '',
+          }],
+          ['user2@123.com', { 
+            id: '2',
+            firstName: 'User',
+            lastName: '2',
+            email: 'user2@123.com',
+            properties: {},
+            keywords: [],
+            created: '',
+            updated: '',
+            orgId: '',
+          }],
+        ])
+      )
+    }))
+  };
+});
 
 let datastore: ListAlarmsQueryHandler, backendServer: MockProxy<BackendSrv>;
 
@@ -58,7 +93,13 @@ const mockAlarmResponse: QueryAlarmsResponse = {
 };
 
 describe('ListAlarmsQueryHandler', () => {
+  let query: ListAlarmsQuery;
+  let options: DataQueryRequest;
+
   beforeEach(() => {
+    query = { refId: 'A', queryType: QueryType.ListAlarms };
+    options = {} as DataQueryRequest;
+
     [datastore, backendServer] = setupDataSource(ListAlarmsQueryHandler);
 
     backendServer.fetch
@@ -73,13 +114,55 @@ describe('ListAlarmsQueryHandler', () => {
   });
 
   describe('runQuery', () => {
-    const query = { refId: 'A', queryType: QueryType.ListAlarms };
-    const dataQueryRequest = {} as DataQueryRequest;
-
     it('should return empty value with refId and name from query', async () => {
-      const result = await datastore.runQuery(query, dataQueryRequest);
+      const result = await datastore.runQuery(query, options);
 
       expect(result).toEqual({ refId: 'A', name: 'A', fields: [{ name: 'A', values: [] }] });
+    });
+
+    it('should pass the transformed filter to the API', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
+      const filterQuery = { refId: 'A', filter: 'acknowledgedAt > "${__now:date}"'};
+
+      await datastore.runQuery(filterQuery, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            filter: 'acknowledgedAt > "2025-01-01T00:00:00.000Z"',
+          }),
+        })
+      );
+
+      jest.useRealTimers();
+    });
+  });
+
+  describe('queryAlarmsData', () => {
+    it('should default to empty filter when filter is not provided in query', async () => {
+      await datastore.runQuery(query, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            filter: '',
+          }),
+        })
+      );
+    });
+
+    it('should use the provided filter when querying alarms', async () => {
+      const filter = 'test-filter';
+
+      await datastore.runQuery({ ...query, filter }, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            filter,
+          }),
+        })
+      );
     });
   });
 
@@ -121,7 +204,9 @@ describe('ListAlarmsQueryHandler', () => {
     it('should return alarms in "displayName (alarmId)" format when no filter is provided', async () => {
       const query: AlarmsVariableQuery = {
         refId: 'A',
-        filter: undefined
+        filter: undefined,
+        descending: true,
+        take: 1000
       };
 
       const result = await datastore.metricFindQuery(query, options);
@@ -137,7 +222,10 @@ describe('ListAlarmsQueryHandler', () => {
           url: expect.stringContaining(QUERY_ALARMS_RELATIVE_PATH),
           method: 'POST',
           data: {
-            filter: undefined
+            filter: '',
+            orderByDescending: true,
+            returnMostRecentlyOccurredOnly: true,
+            take: 1000
           },
           showErrorAlert: false
         })
@@ -147,7 +235,8 @@ describe('ListAlarmsQueryHandler', () => {
     it('should return filtered alarms when filter is provided', async () => {
       const query: AlarmsVariableQuery = {
         refId: 'A',
-        filter: 'workspace = "Lab-1"'
+        filter: 'workspace = "Lab-1"',
+        take: 1000
       };
 
       const result = await datastore.metricFindQuery(query, options);
@@ -167,10 +256,30 @@ describe('ListAlarmsQueryHandler', () => {
       );
     });
 
+    it('should set `orderByDescending` to true when descending set to undefined', async () => {
+      const query: AlarmsVariableQuery = {
+        refId: 'A',
+        filter: 'workspace = "Lab-1"',
+        take: 1000,
+        descending: undefined
+      };
+
+       await datastore.metricFindQuery(query, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            orderByDescending: true
+          })
+        })
+      );
+    });
+
     it('should replace template variables in filter', async () => {
       const query: AlarmsVariableQuery = {
         refId: 'A',
-        filter: 'workspace = "$workspace"'
+        filter: 'workspace = "$workspace"',
+        take: 1000
       };
 
       jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "Lab-1"');
@@ -208,7 +317,8 @@ describe('ListAlarmsQueryHandler', () => {
 
       const query: AlarmsVariableQuery = {
         refId: 'A',
-        filter: 'workspace = "Lab-1"'
+        filter: 'workspace = "Lab-1"',
+        take: 1000
       };
 
       const result = await datastore.metricFindQuery(query, options);
@@ -232,7 +342,8 @@ describe('ListAlarmsQueryHandler', () => {
 
       const query: AlarmsVariableQuery = {
         refId: 'A',
-        filter: undefined
+        filter: undefined,
+        take: 1000
       };
 
       const result = await datastore.metricFindQuery(query, options);
@@ -247,7 +358,8 @@ describe('ListAlarmsQueryHandler', () => {
     it('should handle undefined options gracefully', async () => {
       const query: AlarmsVariableQuery = {
         refId: 'A',
-        filter: 'workspace = "Lab-1"'
+        filter: 'workspace = "Lab-1"',
+        take: 1000
       };
       const options = undefined;
 
@@ -260,25 +372,160 @@ describe('ListAlarmsQueryHandler', () => {
       ]);
     });
 
-    it('should not display duplicate alarms based on alarm id', async () => {
-      const duplicateAlarmsResponse: QueryAlarmsResponse = {
-        alarms: [
-          { ...sampleAlarm, instanceId: 'INST-001', displayName: 'High Temperature Alarm' },
-          { ...sampleAlarm, instanceId: 'INST-002', displayName: 'High Temperature Alarm' },
-          { ...sampleAlarm, instanceId: 'INST-003', displayName: 'High Temperature Alarm' }
-        ],
-        totalCount: 3
-      };
-      backendServer.fetch
-        .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
-        .mockReturnValue(createFetchResponse(duplicateAlarmsResponse));
+    describe('take', () => {
+      it('should not call the API when take is undefined', async () => {
+        const query: AlarmsVariableQuery = {
+          refId: 'A',
+          filter: 'workspace = "Lab-1"',
+          take: undefined
+        };
+  
+        const result = await datastore.metricFindQuery(query, options);
+  
+        expect(result).toEqual([]);
+        expect(backendServer.fetch).not.toHaveBeenCalled();
+      });
 
-      const query: AlarmsVariableQuery = {refId: 'A'};
-      const result = await datastore.metricFindQuery(query, options);
+      it('should not call the API when take is less than 1', async () => {
+        const query: AlarmsVariableQuery = {
+          refId: 'A',
+          filter: 'workspace = "Lab-1"',
+          take: 0
+        };
+  
+        const result = await datastore.metricFindQuery(query, options);
+  
+        expect(result).toEqual([]);
+        expect(backendServer.fetch).not.toHaveBeenCalled();
+      });
 
-      expect(result).toEqual([
-        { text: 'High Temperature Alarm (ALARM-001)', value: 'ALARM-001' }
-      ]);
+      it('should not call the API when take is greater than 10000', async () => {
+        const query: AlarmsVariableQuery = {
+          refId: 'A',
+          filter: 'workspace = "Lab-1"',
+          take: 10001
+        };
+  
+        const result = await datastore.metricFindQuery(query, options);
+  
+        expect(result).toEqual([]);
+        expect(backendServer.fetch).not.toHaveBeenCalled();
+      });
+
+      it('should call the API when take is valid', async () => {
+        const query: AlarmsVariableQuery = {
+          refId: 'A',
+          filter: 'workspace = "Lab-1"',
+          take: 1000
+        };
+  
+        const result = await datastore.metricFindQuery(query, options);
+
+        expect(result).toEqual([
+          { text: 'High Temperature Alarm (ALARM-001)', value: 'ALARM-001' },
+          { text: 'Low Pressure Alarm (ALARM-002)', value: 'ALARM-002' },
+          { text: 'System Error Alarm (ALARM-003)', value: 'ALARM-003' }
+        ]);
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              take: 1000
+            })
+          })
+        );
+      });
+    });
+  });
+
+  describe('loadUsers', () => {
+    it('should return users', async () => {
+      const users = await (datastore as any).loadUsers();
+
+      expect(users).toEqual(
+        new Map([
+          [
+            'user1@123.com',
+            { 
+              id: '1',
+              firstName: 'User',
+              lastName: '1',
+              email: 'user1@123.com',
+              properties: {},
+              keywords: [],
+              created: '',
+              updated: '',
+              orgId: '',
+            },
+          ],
+          [
+            'user2@123.com',
+            { 
+              id: '2',
+              firstName: 'User',
+              lastName: '2',
+              email: 'user2@123.com',
+              properties: {},
+              keywords: [],
+              created: '',
+              updated: '',
+              orgId: '',
+            },
+          ],
+        ])
+      );
+    });
+
+    it('should return empty map on error', async () => {
+      (datastore as any).usersUtils.getUsers.mockRejectedValue(new Error('Error loading users'));
+
+      const users = await (datastore as any).loadUsers();
+
+      expect(users).toEqual(new Map<string, User>());
+    });
+
+    [
+      {
+        error: new Error('Request failed with status code: 404'),
+        expectedErrorDescription:
+          'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.',
+        case: '404 error',
+      },
+      {
+        error: new Error('Request failed with status code: 429'),
+        expectedErrorDescription:
+          'The query builder lookups failed due to too many requests. Please try again later.',
+        case: '429 error',
+      },
+      {
+        error: new Error('Request failed with status code: 504'),
+        expectedErrorDescription:
+          'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.',
+        case: '504 error',
+      },
+      {
+        error: new Error('Request failed with status code: 500, Error message: {"message": "Internal Server Error"}'),
+        expectedErrorDescription:
+          'Some values may not be available in the query builder lookups due to the following error: Internal Server Error.',
+        case: '500 error with message',
+      },
+      {
+        error: new Error('API failed'),
+        expectedErrorDescription:
+          'Some values may not be available in the query builder lookups due to an unknown error.',
+        case: 'Unknown error',
+      },
+    ].forEach(({ error, expectedErrorDescription, case: testCase }) => {
+      it(`should handle ${testCase}`, async () => {
+        const expectedErrorTitle = 'Warning during alarms query';
+        jest
+          .spyOn((datastore as any).usersUtils, 'getUsers')
+          .mockRejectedValue(error);
+
+        await (datastore as any).loadUsers();
+
+        expect(datastore.errorTitle).toBe(expectedErrorTitle);
+        expect(datastore.errorDescription).toBe(expectedErrorDescription);
+      });
     });
   });
 });

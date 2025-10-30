@@ -50,6 +50,7 @@ export interface AssetModel {
   properties: Record<string, string>,
   keywords: string[],
   lastUpdatedTimestamp: string,
+  scanCode: string,
 }
 
 export interface ExternalCalibrationModel {
