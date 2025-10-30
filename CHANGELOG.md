@@ -1,3 +1,9 @@
+## [4.38.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.37.0...v4.38.0) (2025-10-30)
+
+### Features
+
+* **alarms:** Introduce list alarms editor and integrate query builder ([#457](https://github.com/ni/systemlink-grafana-plugins/issues/457)) ([5ff4878](https://github.com/ni/systemlink-grafana-plugins/commit/5ff48785521ef37918fa8a3b13c43766a3a1ac88))
+
 ## [4.37.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.36.0...v4.37.0) (2025-10-30)
 
 ### Features
