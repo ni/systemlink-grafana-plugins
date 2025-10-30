@@ -5,6 +5,9 @@ import { AlarmsQuery, AlarmsVariableQuery, QueryType } from './types/types';
 import { AlarmsCountQueryHandler } from './query-type-handlers/alarms-count/AlarmsCountQueryHandler';
 import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
 import { ListAlarmsQueryHandler } from './query-type-handlers/list-alarms/ListAlarmsQueryHandler';
+import { DEFAULT_QUERY_TYPE } from './constants/DefaultQueries.constants';
+import { AlarmsCountQuery } from './types/AlarmsCount.types';
+import { ListAlarmsQuery } from './types/ListAlarms.types';
 
 export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
   public readonly defaultQuery: Omit<AlarmsQuery, 'refId'>;
@@ -21,7 +24,8 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     this._alarmsCountQueryHandler = new AlarmsCountQueryHandler(instanceSettings, backendSrv, templateSrv);
     this._listAlarmsQueryHandler = new ListAlarmsQueryHandler(instanceSettings, backendSrv, templateSrv);
 
-    this.defaultQuery = this._listAlarmsQueryHandler.defaultQuery;
+    // AB#3064461 - Update defaultQuery to use list alarms defaults when supported
+    this.defaultQuery = this.initializeDefaultQuery();
   }
 
   public async runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
@@ -61,5 +65,16 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
   public async testDatasource(): Promise<TestDataSourceResponse> {
     await this.post(`${this.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`, { take: 1 });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
+  }
+
+  private initializeDefaultQuery(): Omit<ListAlarmsQuery, 'refId'> | Omit<AlarmsCountQuery, 'refId'> {
+    switch (DEFAULT_QUERY_TYPE) {
+      case QueryType.ListAlarms:
+        return this.listAlarmsQueryHandler.defaultQuery;
+      case QueryType.AlarmsCount:
+        return this.alarmsCountQueryHandler.defaultQuery;
+      default:
+        throw new Error('Invalid query type');
+    }
   }
 }
