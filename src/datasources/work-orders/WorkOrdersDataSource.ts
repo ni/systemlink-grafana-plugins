@@ -4,7 +4,7 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import { WorkOrdersQuery, OutputType, WorkOrderPropertiesOptions, OrderByOptions, WorkOrder, WorkOrderProperties, QueryWorkOrdersRequestBody, WorkOrdersResponse, WorkOrdersVariableQuery } from './types';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { transformComputedFieldsQuery, ExpressionTransformFunction, timeFieldsQuery, multipleValuesQuery } from 'core/query-builder.utils';
-import { getVariableOptions, queryInBatches } from 'core/utils';
+import { queryInBatches } from 'core/utils';
 import { QUERY_WORK_ORDERS_MAX_TAKE, QUERY_WORK_ORDERS_REQUEST_PER_SECOND } from './constants/QueryWorkOrders.constants';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { UsersUtils } from 'shared/users.utils';
@@ -44,7 +44,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
     take: 1000,
   };
 
-  readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
+  readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   async runQuery(query: WorkOrdersQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     if (query.queryBy) {

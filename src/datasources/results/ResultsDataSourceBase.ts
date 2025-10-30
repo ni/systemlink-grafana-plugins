@@ -2,7 +2,6 @@ import { DataSourceBase } from "core/DataSourceBase";
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse } from "@grafana/data";
 import { ProductProperties, QueryProductResponse, ResultsQuery } from "./types/types";
 import { QueryBuilderOption, Workspace } from "core/types";
-import { getVariableOptions } from "core/utils";
 import { extractErrorInfo } from "core/errors";
 import { ResultsPropertiesOptions } from "./types/QueryResults.types";
 
@@ -19,8 +18,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
   private static _productCache: Promise<QueryProductResponse> | null = null;
   private static _partNumbersCache: Promise<string[]> | null = null;
 
-  readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
-
+  readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   abstract runQuery(query: ResultsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
 

@@ -35,7 +35,12 @@ describe('DataFrameDataSourceBase', () => {
         backendSrv = {
             fetch: jest.fn(),
         } as any;
-        templateSrv = {} as any;
+        templateSrv = {
+            getVariables: jest.fn(() => [
+                { name: 'Var1' },
+                { name: 'Var2' },
+            ]),
+        } as any;
     });
 
     class TestDataFrameDataSource extends DataFrameDataSourceBase {
@@ -114,8 +119,8 @@ describe('DataFrameDataSourceBase', () => {
         const options = await ds.globalVariableOptions();
 
         expect(options).toEqual([
-            { label: 'Var1', value: 'Value1' },
-            { label: 'Var2', value: 'Value2' },
+            { label: '$Var1', value: '$Var1' },
+            { label: '$Var2', value: '$Var2' },
         ]);
     });
 

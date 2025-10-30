@@ -7,7 +7,7 @@ import { ExpressionTransformFunction, getConcatOperatorForMultiExpression, multi
 import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from '../constants/AlarmsQueryBuilder.constants';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
-import { getVariableOptions, queryInBatches } from 'core/utils';
+import { queryInBatches } from 'core/utils';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from '../constants/SourceProperties.constants';
 
@@ -28,7 +28,7 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
   }
 
   public abstract runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
-  public readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
+  public readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   protected async queryAlarms(alarmsRequestBody: QueryAlarmsRequest): Promise<QueryAlarmsResponse> {
     try {
@@ -53,7 +53,7 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
   public async loadWorkspaces(): Promise<Map<string, Workspace>> {
     try {
       return await this.workspaceUtils.getWorkspaces();
-    } catch (error){
+    } catch (error) {
       if (!this.errorTitle) {
         this.handleDependenciesError(error);
       }

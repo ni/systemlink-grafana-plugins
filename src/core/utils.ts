@@ -40,17 +40,11 @@ export function useWorkspaceOptions<DSType extends DataSourceBase<any, any>>(dat
   return useAsync(async () => {
     const workspaces = await datasource.getWorkspaces();
     const workspaceOptions = workspaces.map(w => ({ label: w.name, value: w.id }));
-    workspaceOptions?.unshift(...getVariableOptions(datasource))
+    workspaceOptions?.unshift(...datasource.getVariableOptions());
     return workspaceOptions;
   });
 }
 
-/** Gets Dashboard variables as an array of {@link SelectableValue}. */
-export function getVariableOptions<DSType extends DataSourceBase<any, any>>(datasource: DSType) {
-  return datasource.templateSrv
-    .getVariables()
-    .map(variable => ({ label: '$' + variable.name, value: '$' + variable.name }));
-}
 
 export function getWorkspaceName(workspaces: Workspace[], id: string) {
   return workspaces.find(w => w.id === id)?.name ?? id;

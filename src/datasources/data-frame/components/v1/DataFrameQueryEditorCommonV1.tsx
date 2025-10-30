@@ -1,6 +1,6 @@
 import { CoreApp, SelectableValue } from "@grafana/data";
 import { LoadOptionsCallback } from "@grafana/ui";
-import { getWorkspaceName, getVariableOptions } from "core/utils";
+import { getWorkspaceName } from "core/utils";
 import _ from "lodash";
 import { DataFrameQueryV1, DataFrameQueryType, PropsV1, ValidDataFrameQueryV1 } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
@@ -54,7 +54,7 @@ export class DataFrameQueryEditorCommonV1 {
 
   readonly handleLoadOptions = (query: string, cb?: LoadOptionsCallback<string>) => {
     if (!query || query.startsWith('$')) {
-      return cb?.(getVariableOptions(this.datasource).filter((v) => v.value?.includes(query)));
+      return cb?.(this.datasource.getVariableOptions().filter(v => v.value?.includes(query)));
     }
 
     this.loadTableOptions(query, cb);

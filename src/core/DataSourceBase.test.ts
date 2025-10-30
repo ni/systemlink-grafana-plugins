@@ -166,13 +166,28 @@ describe('DataSourceBase', () => {
         });
     });
 
+    describe('getVariableOptions', () => {
+        it('returns variables as SelectableValue array', () => {
+            expect(dataSource.getVariableOptions()).toEqual([
+                { label: '$var1', value: '$var1' },
+                { label: '$var2', value: '$var2' }
+            ]);
+        });
+    });
+
     function setupMockDataSource(DataSourceBase: any) {
         const instanceSettings = {
             url: 'http://api-example.com',
         } as DataSourceInstanceSettings;
+        const mockTemplateSrv = {
+            getVariables: () => [
+                { name: 'var1' },
+                { name: 'var2' }
+            ]
+        };
         class MockDataSource extends DataSourceBase<DataQuery> {
             public constructor() {
-                super(instanceSettings, backendSrv, {} as any);
+                super(instanceSettings, backendSrv, mockTemplateSrv);
             }
             public defaultQuery = {};
             public runQuery(_query: DataQuery, _options: any) {
