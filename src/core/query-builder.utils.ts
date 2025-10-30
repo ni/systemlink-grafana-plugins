@@ -218,7 +218,7 @@ export function multipleValuesQuery(field: string): ExpressionTransformFunction 
  * @returns The logical operator as a string.
  */
 export function getConcatOperatorForMultiExpression(operation: string): string {
-  return operation === QueryBuilderOperations.EQUALS.name || operation === QueryBuilderOperations.IS_NOT_BLANK.name
+  return operation === QueryBuilderOperations.EQUALS.name || operation === QueryBuilderOperations.CONTAINS.name || operation === QueryBuilderOperations.IS_NOT_BLANK.name
     ? '||'
     : '&&';
 }

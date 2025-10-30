@@ -5,7 +5,7 @@ import { defaultOrderBy, defaultProjection } from "../../system/constants";
 import { SystemProperties } from "../../system/types";
 import { parseErrorMessage } from "../../../core/errors";
 import { QueryBuilderOption, Workspace } from "../../../core/types";
-import { buildExpressionFromTemplate, ExpressionTransformFunction } from "../../../core/query-builder.utils";
+import { buildExpressionFromTemplate, ExpressionTransformFunction, getConcatOperatorForMultiExpression } from "../../../core/query-builder.utils";
 import { QueryBuilderOperations } from "../../../core/query-builder.constants";
 import { AllFieldNames, LocationFieldNames } from "../constants/constants";
 import { getVariableOptions } from "core/utils";
@@ -168,7 +168,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
       const expression = 
         values
           .map(val => buildExpressionFromTemplate(containsExpressionTemplate, field, val))
-          .join(` ${this.getLogicalOperator(operation)} `);
+          .join(` ${getConcatOperatorForMultiExpression(operation)} `);
       
       return `(${expression})`;
     }
@@ -190,7 +190,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
         if (blankExpressionTemplate) {
           const minionIdExpression = buildExpressionFromTemplate(blankExpressionTemplate, LocationFieldNames.MINION_ID);
           const physicalLocationExpression = buildExpressionFromTemplate(blankExpressionTemplate, LocationFieldNames.PHYSICAL_LOCATION);
-          return `(${minionIdExpression} ${this.getLogicalOperator(operation)} ${physicalLocationExpression})`;
+          return `(${minionIdExpression} ${getConcatOperatorForMultiExpression(operation)} ${physicalLocationExpression})`;
         }
 
         if (this.isMultiSelectValue(value)) {
@@ -198,7 +198,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
         }
 
         if (values.length > 1) {
-          return `(${values.map(val => `${LocationFieldNames.MINION_ID} ${operation} "${val}"`).join(` ${this.getLogicalOperator(operation)} `)})`;
+          return `(${values.map(val => `${LocationFieldNames.MINION_ID} ${operation} "${val}"`).join(` ${getConcatOperatorForMultiExpression(operation)} `)})`;
         }
 
         if (this.systemAliasCache?.has(value)) {
@@ -209,7 +209,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
           return `${LocationFieldNames.PHYSICAL_LOCATION} ${operation} "${value}"`
         }
 
-        return `Locations.Any(l => l.MinionId ${operation} "${value}" ${this.getLogicalOperator(operation)} l.PhysicalLocation ${operation} "${value}")`;
+        return `Locations.Any(l => l.MinionId ${operation} "${value}" ${getConcatOperatorForMultiExpression(operation)} l.PhysicalLocation ${operation} "${value}")`;
       }
     ]
   }
@@ -235,7 +235,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
       if (this.isMultiSelectValue(value)) {
         const query = this.getMultipleValuesArray(value)
           .map(val => `${field} ${operation} "${val}"`)
-          .join(` ${this.getLogicalOperator(operation)} `);
+          .join(` ${getConcatOperatorForMultiExpression(operation)} `);
         return `(${query})`;
       }
 
@@ -273,14 +273,5 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
     }
 
     return undefined;
-  }
-
-  private getLogicalOperator(operation: string): string {
-    return (
-      operation === QueryBuilderOperations.EQUALS.name ||
-      operation === QueryBuilderOperations.CONTAINS.name ||
-      operation === QueryBuilderOperations.IS_NOT_BLANK.name) ?
-      '||' :
-      '&&';
   }
 }

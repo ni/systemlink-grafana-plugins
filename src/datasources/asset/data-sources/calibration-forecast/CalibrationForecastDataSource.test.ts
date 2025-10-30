@@ -677,6 +677,166 @@ describe('Asset calibration location queries', () => {
   });
 });
 
+describe('Asset calibration "contains" queries', () => {
+  let processCalibrationForecastQuerySpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    processCalibrationForecastQuerySpy = jest.spyOn(datastore, 'processCalibrationForecastQuery').mockImplementation();
+  });
+
+  test('should transform ModelName, Name, VendorName field with single value', async () => {
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      type: AssetQueryType.CalibrationForecast,
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+      filter: `${AssetCalibrationFieldNames.MODEL_NAME}.Contains("ModelName1") && ${AssetCalibrationFieldNames.ASSET_NAME}.Contains("AssetName1") && ${AssetCalibrationFieldNames.VENDOR_NAME}.Contains("VendorName1")`,
+    });
+
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        filter: "ModelName.Contains(\"ModelName1\") && AssetName.Contains(\"AssetName1\") && VendorName.Contains(\"VendorName1\")"
+      }),
+      expect.anything()
+    );
+  });
+
+  test('should transform ModelName, Name, VendorName field with single value negated', async () => {
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      type: AssetQueryType.CalibrationForecast,
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+      filter: `!(${AssetCalibrationFieldNames.MODEL_NAME}.Contains("ModelName1")) && !(${AssetCalibrationFieldNames.ASSET_NAME}.Contains("AssetName1")) && !(${AssetCalibrationFieldNames.VENDOR_NAME}.Contains("VendorName1"))`,
+    });
+
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        filter: "!(ModelName.Contains(\"ModelName1\")) && !(AssetName.Contains(\"AssetName1\")) && !(VendorName.Contains(\"VendorName1\"))"
+      }),
+      expect.anything()
+    );
+  });
+
+  test('should transform ModelName field with multiple values', async () => {
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      type: AssetQueryType.CalibrationForecast,
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+      filter: `${AssetCalibrationFieldNames.MODEL_NAME}.Contains("{ModelName1,ModelName2}")`,
+    });
+
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        filter: "(ModelName.Contains(\"ModelName1\") || ModelName.Contains(\"ModelName2\"))"
+      }),
+      expect.anything()
+    );
+  });
+
+  test('should transform VendorName field with multiple values', async () => {
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      type: AssetQueryType.CalibrationForecast,
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+      filter: `${AssetCalibrationFieldNames.VENDOR_NAME}.Contains("{VendorName1,VendorName2}")`,
+    });
+
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        filter: "(VendorName.Contains(\"VendorName1\") || VendorName.Contains(\"VendorName2\"))"
+      }),
+      expect.anything()
+    );
+  });
+
+  test('should transform ModelName field with multiple values negated', async () => {
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      type: AssetQueryType.CalibrationForecast,
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+      filter: `!(${AssetCalibrationFieldNames.MODEL_NAME}.Contains("{ModelName1,ModelName2}"))`,
+    });
+
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        filter: "(!(ModelName.Contains(\"ModelName1\")) && !(ModelName.Contains(\"ModelName2\")))"
+      }),
+      expect.anything()
+    );
+  });
+
+  test('should transform AssetName field with multiple values', async () => {
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      type: AssetQueryType.CalibrationForecast,
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+      filter: `${AssetCalibrationFieldNames.ASSET_NAME}.Contains("{AssetName1,AssetName2}")`,
+    });
+
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        filter: "(AssetName.Contains(\"AssetName1\") || AssetName.Contains(\"AssetName2\"))"
+      }),
+      expect.anything()
+    );
+  });
+
+  test('should transform VendorName field with multiple values negated', async () => {
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      type: AssetQueryType.CalibrationForecast,
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+      filter: `!(${AssetCalibrationFieldNames.VENDOR_NAME}.Contains("{VendorName1,VendorName2}"))`,
+    });
+
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        filter: "(!(VendorName.Contains(\"VendorName1\")) && !(VendorName.Contains(\"VendorName2\")))"
+      }),
+      expect.anything()
+    );
+  });
+
+  test('should transform AssetName field with multiple values negated', async () => {
+    const query = buildCalibrationForecastQuery({
+      refId: '',
+      type: AssetQueryType.CalibrationForecast,
+      groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+      filter: `!(${AssetCalibrationFieldNames.ASSET_NAME}.Contains("{AssetName1,AssetName2}"))`,
+    });
+
+    await datastore.query(query);
+
+    expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        groupBy: [AssetCalibrationTimeBasedGroupByType.Month],
+        filter: "(!(AssetName.Contains(\"AssetName1\")) && !(AssetName.Contains(\"AssetName2\")))"
+      }),
+      expect.anything()
+    );
+  });
+})
+
 describe('Time based data links', () => {
   test('creates data links for Day grouping', async () => {
     const query = buildCalibrationForecastQuery(dayBasedCalibrationForecastQueryMock);
