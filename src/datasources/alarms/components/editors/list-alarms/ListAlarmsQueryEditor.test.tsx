@@ -120,6 +120,12 @@ describe('ListAlarmsQueryEditor', () => {
   });
 
   describe('Properties', () => {
+    it('should render the selected alarm properties in the UI', async () => {
+      await renderElement({ refId: 'A', queryType: QueryType.ListAlarms, properties: [AlarmsProperties.acknowledged] });
+
+      expect(screen.getByText(AlarmsPropertiesOptions[AlarmsProperties.acknowledged].label)).toBeInTheDocument();
+    });
+
     it('should call handleQueryChange with selected property when a property is selected', async () => {
       await renderElement();
       const propertiesControl = screen.getAllByRole('combobox')[0];
@@ -148,7 +154,6 @@ describe('ListAlarmsQueryEditor', () => {
       });
       await userEvent.click(removePropertyButton);
 
-      expect(removePropertyButton).toBeInTheDocument();
       expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
       expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ properties: [] }));
     });

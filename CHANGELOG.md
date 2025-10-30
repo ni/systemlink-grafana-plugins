@@ -1,3 +1,33 @@
+## [4.38.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.37.0...v4.38.0) (2025-10-30)
+
+### Features
+
+* **alarms:** Introduce list alarms editor and integrate query builder ([#457](https://github.com/ni/systemlink-grafana-plugins/issues/457)) ([5ff4878](https://github.com/ni/systemlink-grafana-plugins/commit/5ff48785521ef37918fa8a3b13c43766a3a1ac88))
+
+## [4.37.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.36.0...v4.37.0) (2025-10-30)
+
+### Features
+
+* **alarms:** Add query type control and its functionality ([#446](https://github.com/ni/systemlink-grafana-plugins/issues/446)) ([35d9e48](https://github.com/ni/systemlink-grafana-plugins/commit/35d9e48127e360ec4c99d489325d26d19be8ccc1))
+
+## [4.36.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.35.0...v4.36.0) (2025-10-30)
+
+### Features
+
+* **alarms:** Introduce `take` and `descending` in the alarms variable query editor ([#471](https://github.com/ni/systemlink-grafana-plugins/issues/471)) ([a99d294](https://github.com/ni/systemlink-grafana-plugins/commit/a99d294320929f8c7bd8ef11018ead500589aef4))
+
+## [4.35.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.34.0...v4.35.0) (2025-10-30)
+
+### Features
+
+* **dataframe:** populate data table name options in query builder ([#469](https://github.com/ni/systemlink-grafana-plugins/issues/469)) ([94a3d86](https://github.com/ni/systemlink-grafana-plugins/commit/94a3d86b7a2f434f847ed14e5418db10696b9f6a))
+
+## [4.34.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.33.0...v4.34.0) (2025-10-30)
+
+### Features
+
+* **core:** Add support for horizontal scrollbar in query-builder ([#455](https://github.com/ni/systemlink-grafana-plugins/issues/455)) ([1c32cdb](https://github.com/ni/systemlink-grafana-plugins/commit/1c32cdbec798e502441f7579b3219f5912ad5905))
+
 ## [4.33.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.32.0...v4.33.0) (2025-10-29)
 
 ### Features
