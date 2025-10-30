@@ -16,7 +16,7 @@ describe('AlarmsDataSource', () => {
     [datastore, backendServer] = setupDataSource(AlarmsDataSource);
   });
 
-  it('should initialize with AlarmsCount as the default query', () => {
+  it('should initialize with ListAlarms as the default query', () => {
     expect(datastore.defaultQuery).toEqual({ filter: '' });
   });
 

@@ -24,7 +24,6 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     this._alarmsCountQueryHandler = new AlarmsCountQueryHandler(instanceSettings, backendSrv, templateSrv);
     this._listAlarmsQueryHandler = new ListAlarmsQueryHandler(instanceSettings, backendSrv, templateSrv);
 
-    // AB#3064461 - Update defaultQuery to use list alarms defaults when supported
     this.defaultQuery = this.initializeDefaultQuery();
   }
 

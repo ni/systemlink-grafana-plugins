@@ -46,24 +46,19 @@ function renderElement(query: AlarmsQuery) {
 }
 
 describe('AlarmsQueryEditor', () => {
-  let originalOffsetHeight: PropertyDescriptor | undefined;
-
   beforeAll(() => {
-    originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
     // JSDOM provides offsetHeight as 0 by default.
     // Mocking it to return 30 because the ComboBox virtualization relies on this value
     // to correctly calculate and render the dropdown options.
-    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
-      get() {
-        return 30;
-      },
-    });
+    jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
   afterAll(() => {
-    if (originalOffsetHeight) {
-      Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
-    }
+    jest.restoreAllMocks();
   });
 
   it('should call onChange and onRunQuery on initialization', () => {
@@ -84,12 +79,12 @@ describe('AlarmsQueryEditor', () => {
     expect(mockOnRunQuery).not.toHaveBeenCalled();
   });
 
-  it('should initialize with AlarmsCount when queryType is undefined', () => {
+  it('should initialize with ListAlarms when queryType is undefined', () => {
     const query = buildQuery();
 
     renderElement(query);
 
-    expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ queryType: QueryType.AlarmsCount }));
+    expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ queryType: QueryType.ListAlarms }));
     expect(mockOnRunQuery).toHaveBeenCalled();
   });
 
@@ -117,7 +112,7 @@ describe('AlarmsQueryEditor', () => {
 
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
-        expect.objectContaining({ refId: 'A', hide: false, ...defaultListAlarmsQuery })
+        expect.objectContaining({ refId: 'A', hide: false, queryType: QueryType.ListAlarms, ...defaultListAlarmsQuery })
       );
     });
 
@@ -125,7 +120,7 @@ describe('AlarmsQueryEditor', () => {
 
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
-        expect.objectContaining({ refId: 'A', hide: false, ...defaultAlarmsCountQuery })
+        expect.objectContaining({ refId: 'A', hide: false, queryType: QueryType.AlarmsCount, ...defaultAlarmsCountQuery })
       );
     });
   });
@@ -135,21 +130,23 @@ describe('AlarmsQueryEditor', () => {
       const query = buildQuery({ queryType: QueryType.ListAlarms });
   
       renderElement(query);
-  
       const queryTypeControl = screen.getAllByRole('combobox')[0];
+
       expect(queryTypeControl).toBeInTheDocument();
       expect(queryTypeControl).toHaveDisplayValue(QueryType.ListAlarms);
       expect(screen.getByText('List Alarms query editor')).toBeInTheDocument();
     });
 
-    it('should call onChange with defaultListAlarmsQuery when switch to list alarms query type from other query type', async () => {
+    it('should call onChange with defaultListAlarmsQuery when switched to list alarms query type from other query type', async () => {
       const query = buildQuery({ queryType: QueryType.AlarmsCount });
 
       renderElement(query);
       await clickQueryTypeOption(QueryType.ListAlarms);
 
       await waitFor(() => {
-        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining(defaultListAlarmsQuery));
+        expect(mockOnChange).toHaveBeenCalledWith(
+          expect.objectContaining({ queryType: QueryType.ListAlarms, ...defaultListAlarmsQuery })
+        );
         expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
@@ -187,7 +184,7 @@ describe('AlarmsQueryEditor', () => {
       );
     });
 
-    it('should call onChange with defaultAlarmsCountQuery when switch to alarms count query type from other query type', async () => {
+    it('should call onChange with defaultAlarmsCountQuery when switched to alarms count query type from other query type', async () => {
       const query = buildQuery({ queryType: QueryType.ListAlarms });
 
       renderElement(query);
