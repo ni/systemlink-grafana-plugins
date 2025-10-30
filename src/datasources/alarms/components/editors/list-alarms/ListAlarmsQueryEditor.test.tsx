@@ -135,7 +135,6 @@ describe('ListAlarmsQueryEditor', () => {
           expect.objectContaining({
             properties: ['acknowledged'],
           }),
-          true
         );
       });
     });
@@ -151,7 +150,7 @@ describe('ListAlarmsQueryEditor', () => {
 
       expect(removePropertyButton).toBeInTheDocument();
       expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
-      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ properties: [] }), false);
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ properties: [] }));
     });
   });
 });
