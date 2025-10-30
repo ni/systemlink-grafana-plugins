@@ -9,6 +9,7 @@ import { takeErrorMessages } from '../constants/AlarmsQueryEditor.constants';
 const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
+  prepareQuery: jest.fn((query: AlarmsVariableQuery) => query),
   listAlarmsQueryHandler: {
     loadWorkspaces: jest.fn().mockResolvedValue(
       new Map([
