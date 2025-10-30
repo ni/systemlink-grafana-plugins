@@ -1,3 +1,33 @@
+## [4.33.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.32.0...v4.33.0) (2025-10-29)
+
+### Features
+
+* **alarms:** Add batching for query alarms API ([#466](https://github.com/ni/systemlink-grafana-plugins/issues/466)) ([2a90f21](https://github.com/ni/systemlink-grafana-plugins/commit/2a90f21f0dad1eec305a74fc3851eac32f8061ea))
+
+## [4.32.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.31.0...v4.32.0) (2025-10-29)
+
+### Features
+
+* **assets:** added scanCode return type ([#467](https://github.com/ni/systemlink-grafana-plugins/issues/467)) ([a5f619d](https://github.com/ni/systemlink-grafana-plugins/commit/a5f619d5ca771bf65002c14e8fc7f70e587a0f1f))
+
+## [4.31.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.30.0...v4.31.0) (2025-10-28)
+
+### Features
+
+* **alarms:** Add support for users with error handling ([#465](https://github.com/ni/systemlink-grafana-plugins/issues/465)) ([ca26460](https://github.com/ni/systemlink-grafana-plugins/commit/ca264601cf53d3bc042aa9bf11231aa0244a43be))
+
+## [4.30.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.29.0...v4.30.0) (2025-10-28)
+
+### Features
+
+* **dataframe:** Update data table Id field to show an input instead of dropdown ([#470](https://github.com/ni/systemlink-grafana-plugins/issues/470)) ([438ad3e](https://github.com/ni/systemlink-grafana-plugins/commit/438ad3e0d8929defcb2459fde8509ac94504e355))
+
+## [4.29.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.28.0...v4.29.0) (2025-10-28)
+
+### Features
+
+* **core:** Implement ApiSession and ApiSessionUtils with session management ([#434](https://github.com/ni/systemlink-grafana-plugins/issues/434)) ([3e5a2f4](https://github.com/ni/systemlink-grafana-plugins/commit/3e5a2f4ea6f67475f423cfd6004590612ebd4cba))
+
 ## [4.28.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.27.2...v4.28.0) (2025-10-26)
 
 ### Features

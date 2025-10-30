@@ -375,6 +375,16 @@ exports[`queries run metadata query 1`] = `
           "OK",
         ],
       },
+      {
+        "name": "scan code",
+        "type": "string",
+        "values": [
+          "7f6d0d74-bc75-4d78-9edd-00c253b3a0de",
+          "71fbef61-fae6-4364-82d4-29feb79c7146",
+          "cf1ac843-06a2-4713-ab43-f9d1d8dfdc32",
+          "456e8812-1da4-4818-afab-f0cd34f74567",
+        ],
+      },
     ],
     "name": "A",
     "refId": "A",

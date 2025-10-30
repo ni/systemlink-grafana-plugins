@@ -2,14 +2,14 @@ import { AlarmsCountQuery } from '../types/AlarmsCount.types';
 import { AlarmsProperties, ListAlarmsQuery } from '../types/ListAlarms.types';
 import { QueryType } from '../types/types';
 
+export const DEFAULT_QUERY_TYPE: QueryType = QueryType.ListAlarms;
+
 export const defaultAlarmsCountQuery: Omit<AlarmsCountQuery, 'refId'> = {
-    queryType: QueryType.AlarmsCount,
-    filter: '',
+  filter: '',
 };
 
 export const defaultListAlarmsQuery: Omit<ListAlarmsQuery, 'refId'> = {
-    queryType: QueryType.ListAlarms,
-    filter: '',
+  filter: '',
     properties: [
         AlarmsProperties.displayName,
         AlarmsProperties.currentSeverityLevel,

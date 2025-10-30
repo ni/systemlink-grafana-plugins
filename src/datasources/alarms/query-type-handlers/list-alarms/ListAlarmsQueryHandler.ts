@@ -1,8 +1,12 @@
-import { DataFrameDTO, DataQueryRequest, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
-import { AlarmsProperties, ListAlarmsQuery } from '../../types/ListAlarms.types';
-import { Alarm, AlarmsVariableQuery, AlarmTransitionType, QueryAlarmsRequest } from '../../types/types';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
+import { ListAlarmsQuery } from '../../types/ListAlarms.types';
+import { AlarmsVariableQuery, QueryAlarmsRequest } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
+import { Alarm } from 'datasources/alarms/types/types';
+import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
+import { User } from 'shared/types/QueryUsers.types';
+import { UsersUtils } from 'shared/users.utils';
 import { AlarmsPropertiesOptions } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from 'datasources/alarms/constants/SourceProperties.constants';
 const sampleAlarm: Alarm = {
@@ -64,14 +68,23 @@ const sampleAlarm: Alarm = {
 export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultListAlarmsQuery;
 
+  private readonly usersUtils: UsersUtils;
+
+  public constructor(
+    instanceSettings: DataSourceInstanceSettings,
+    backendSrv: BackendSrv = getBackendSrv(),
+    templateSrv: TemplateSrv = getTemplateSrv()
+  ) {
+    super(instanceSettings, backendSrv, templateSrv);
+    this.usersUtils = new UsersUtils(this.instanceSettings, this.backendSrv);
+  }
+
   public async runQuery(query: ListAlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
 
     // #AB:3449773 Map queryAlarmsData response to user-selected properties
-    const alarmsResponse = await this.queryAlarmsData(query);
-    // const mappedFields = await this.mapPropertiesToSelect(query.properties || [], [sampleAlarm]);
-const flattenedAlarms = this.flattenAlarmsByTransitions([sampleAlarm]);
-const mappedFields = await this.mapPropertiesToSelect(query.properties || [], flattenedAlarms);
+    await this.queryAlarmsData(query);
+
     return {
       refId: query.refId,
       name: query.refId,
@@ -109,6 +122,27 @@ const mappedFields = await this.mapPropertiesToSelect(query.properties || [], fl
       return sortedOptions;
     } catch (error) {
       return [];
+    }
+  }
+
+  private async queryAlarmsData(alarmsQuery: ListAlarmsQuery): Promise<Alarm[]> {
+    const alarmsRequestBody: QueryAlarmsRequest = {
+      filter: alarmsQuery.filter ?? '',
+    }
+
+    return this.queryAlarmsInBatches(alarmsRequestBody);
+  }
+
+  // @ts-ignore
+  // #AB:3249477 Suppress unused method warning until properties control support is implemented
+  private async loadUsers(): Promise<Map<string, User>> {
+    try {
+      return await this.usersUtils.getUsers();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, User>();
     }
   }
 

@@ -28,7 +28,7 @@ export enum AlarmsProperties {
   resourceType = 'resourceType',
   source = 'source',
   state = 'state',
-  //AB: 3356927 - Add transition property
+  // TODO(AB-3356927): Add transition property support
   transitionOverflowCount = 'transitionOverflowCount',
   updatedAt = 'updatedAt',
   workspace = 'workspace',

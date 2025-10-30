@@ -19,7 +19,7 @@ export const tooltips = {
 
 export const placeholders = {
   properties: 'Select the properties to query',
-}
+};
 
 export const PROPERTIES_ERROR_MESSAGE = 'You must select at least one property.';
 
