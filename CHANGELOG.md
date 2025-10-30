@@ -1,3 +1,9 @@
+## [4.34.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.33.0...v4.34.0) (2025-10-30)
+
+### Features
+
+* **core:** Add support for horizontal scrollbar in query-builder ([#455](https://github.com/ni/systemlink-grafana-plugins/issues/455)) ([1c32cdb](https://github.com/ni/systemlink-grafana-plugins/commit/1c32cdbec798e502441f7579b3219f5912ad5905))
+
 ## [4.33.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.32.0...v4.33.0) (2025-10-29)
 
 ### Features
