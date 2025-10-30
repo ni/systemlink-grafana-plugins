@@ -44,12 +44,12 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
     };
 
     const onDataTablePropertiesChange = (properties: Array<SelectableValue<DataTableProjections>>) => {
-        const dataTableProperties = properties.map(i => i.value) as DataTableProjections[];
+        const dataTableProperties = properties.map(property => property.value).filter(value => !!value);
         handleQueryChange({ ...migratedQuery, dataTableProperties }, false);
     };
 
     const onColumnPropertiesChange = (properties: Array<SelectableValue<DataTableProjections>>) => {
-        const columnProperties = properties.map(i => i.value) as DataTableProjections[];
+        const columnProperties = properties.map(property => property.value).filter(value => !!value);
         handleQueryChange({ ...migratedQuery, columnProperties }, false);
     };
 
@@ -62,7 +62,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
     };
 
     const onColumnsChange = (columns: Array<ComboboxOption<string>>) => {
-        handleQueryChange({ ...migratedQuery, columns: columns.map(i => i.value) }, false);
+        handleQueryChange({ ...migratedQuery, columns: columns.map(column => column.value) }, false);
     };
 
     const onIncludeIndexColumnsChange = (event: React.FormEvent<HTMLInputElement>) => {
