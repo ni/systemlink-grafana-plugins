@@ -46,7 +46,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       const filter = this.transformAlarmsQuery(options?.scopedVars || {}, query.filter) ?? '';
       const orderByDescending = query.descending ?? DEFAULT_QUERY_EDITOR_DESCENDING;
       const returnMostRecentlyOccurredOnly = true;
-      const requestBody = {filter, take, orderByDescending, returnMostRecentlyOccurredOnly}
+      const requestBody = { filter, take, orderByDescending, returnMostRecentlyOccurredOnly };
       const alarms = await this.queryAlarmsInBatches(requestBody);
 
       const alarmsOptions = alarms.map(alarm => ({

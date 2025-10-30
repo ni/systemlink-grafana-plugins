@@ -353,7 +353,7 @@ describe('ListAlarmsQueryHandler', () => {
       ]);
     });
 
-    describe('take parameter validation', () => {
+    describe('take', () => {
       it('should not call the API when take is undefined', async () => {
         const query: AlarmsVariableQuery = {
           refId: 'A',

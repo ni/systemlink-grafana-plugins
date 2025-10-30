@@ -272,7 +272,7 @@ describe('AlarmsVariableQueryEditor', () => {
       });
     });
 
-    it('should display minimum error message when take value is below 1', async () => {
+    it('should display minimum take error message when take value is below 1', async () => {
       await renderElement({ refId: 'A' });
 
       const takeInput = screen.getByRole('spinbutton');
@@ -283,7 +283,7 @@ describe('AlarmsVariableQueryEditor', () => {
       expect(screen.getByText(takeErrorMessages.minErrorMsg)).toBeInTheDocument();
     });
 
-    it('should display maximum error message when take value is above 1000', async () => {
+    it('should display maximum take error message when take value is above 1000', async () => {
       await renderElement({ refId: 'A' });
 
       const takeInput = screen.getByRole('spinbutton');
@@ -305,7 +305,7 @@ describe('AlarmsVariableQueryEditor', () => {
       expect(screen.getByText(takeErrorMessages.minErrorMsg)).toBeInTheDocument();
     });
 
-    it('should display minimum error message for NaN values', async () => {
+    it('should display minimum take error message for NaN values', async () => {
       await renderElement({ refId: 'A' });
 
       const takeInput = screen.getByRole('spinbutton');
@@ -316,7 +316,7 @@ describe('AlarmsVariableQueryEditor', () => {
       expect(screen.getByText(takeErrorMessages.minErrorMsg)).toBeInTheDocument();
     });
 
-    it('should display minimum error message for empty string', async () => {
+    it('should display minimum take error message for empty string', async () => {
       await renderElement({ refId: 'A' });
 
       const takeInput = screen.getByRole('spinbutton');

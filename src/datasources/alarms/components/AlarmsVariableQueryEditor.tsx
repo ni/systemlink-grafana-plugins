@@ -47,7 +47,7 @@ export function AlarmsVariableQueryEditor({ query, onChange, datasource }: Props
     if (value > QUERY_EDITOR_MAX_TAKE) {
       return { message: takeErrorMessages.maxErrorMsg, take: value };
     }
-    return {message: '', take: value };
+    return { message: '', take: value };
   };
   
   const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
