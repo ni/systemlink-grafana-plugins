@@ -14,6 +14,8 @@ import { ListAlarmsQueryEditor } from './editors/list-alarms/ListAlarmsQueryEdit
 type Props = QueryEditorProps<AlarmsDataSource, AlarmsQuery>;
 
 export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: Props) {
+  query = datasource.prepareQuery(query);
+
   const [listAlarmsQuery, setListAlarmsQuery] = useState<ListAlarmsQuery>();
   const [alarmsCountQuery, setAlarmsCountQuery] = useState<AlarmsCountQuery>();
 
