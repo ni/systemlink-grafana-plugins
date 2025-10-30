@@ -367,6 +367,8 @@ function fetch$<T>(
   options: BackendSrvRequest,
   retries = 0
 ): Observable<T> {
+  // URL is stored and reused for each retry to ensure consistency
+  // and prevent accidental URL changes during retries
   const url = options.url;
   const maxRetries = 3;
 

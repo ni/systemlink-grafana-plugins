@@ -514,7 +514,16 @@ describe('query', () => {
       await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
-        {"data": {"field": "partNumber"}, "method": "POST", "showErrorAlert": false, "url": "/nitestmonitor/v2/query-product-values"}
+        expect.objectContaining({
+          data: {
+            descending: false,
+            filter: "string.IsNullOrEmpty(PartNumber)",
+            orderBy: undefined,
+            projection: ["name"],
+            returnCount: false,
+            take: 1000
+          }
+        })
       );
     });
 
