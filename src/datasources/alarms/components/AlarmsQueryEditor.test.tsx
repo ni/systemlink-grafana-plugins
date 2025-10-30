@@ -56,6 +56,35 @@ function renderElement(query: AlarmsQuery) {
   return render(reactNode);
 }
 
+function renderAlarmsQueryEditorWithRerender(
+  initialQuery: AlarmsQuery,
+  datasource: AlarmsDataSource,
+  onRunQuery: jest.Mock
+) {
+  const onChange = jest.fn();
+  const renderResult = render(
+    <AlarmsQueryEditor
+      datasource={datasource}
+      query={initialQuery}
+      onChange={onChange}
+      onRunQuery={onRunQuery}
+    />
+  );
+
+  onChange.mockImplementation(newQuery => {
+    renderResult.rerender(
+      <AlarmsQueryEditor
+        datasource={datasource}
+        query={newQuery}
+        onChange={onChange}
+        onRunQuery={onRunQuery}
+      />
+    );
+  });
+
+  return { renderResult, onChange };
+}
+
 describe('AlarmsQueryEditor', () => {
   beforeAll(() => {
     // JSDOM provides offsetHeight as 0 by default.
@@ -120,19 +149,7 @@ describe('AlarmsQueryEditor', () => {
       queryType: QueryType.AlarmsCount,
       hide: false, // Base query property
     } as AlarmsQuery;
-
-    const onChange = jest.fn((newQuery) => {
-      let currentQuery = { refId: 'A' };
-      currentQuery = { ...currentQuery, ...newQuery };
-
-      renderResult.rerender(
-        React.createElement(AlarmsQueryEditor, { ...defaultProps, query: currentQuery, onChange })
-      );
-    });
-
-    const renderResult = render(
-      React.createElement(AlarmsQueryEditor, { ...defaultProps, query: initialAlarmsCountQuery, onChange })
-    );
+    const { onChange } = renderAlarmsQueryEditorWithRerender(initialAlarmsCountQuery, mockDatasource, mockOnRunQuery);
 
     await clickQueryTypeOption(QueryType.ListAlarms);
 
@@ -199,19 +216,7 @@ describe('AlarmsQueryEditor', () => {
         queryType: QueryType.ListAlarms,
         filter: 'filter-in-list-alarms',
       } as AlarmsQuery;
-
-      const onChange = jest.fn((newQuery) => {
-        let currentQuery = { refId: 'A' };
-        currentQuery = { ...currentQuery, ...newQuery };
-
-        renderResult.rerender(
-          React.createElement(AlarmsQueryEditor, { ...defaultProps, query: currentQuery, onChange })
-        );
-      });
-
-      const renderResult = render(
-        React.createElement(AlarmsQueryEditor, { ...defaultProps, query: initialListAlarmsQuery, onChange })
-      );
+      const { onChange } = renderAlarmsQueryEditorWithRerender(initialListAlarmsQuery, mockDatasource, mockOnRunQuery);
 
       await clickQueryTypeOption(QueryType.AlarmsCount);
 
@@ -306,19 +311,7 @@ describe('AlarmsQueryEditor', () => {
         queryType: QueryType.AlarmsCount,
         filter: 'filter-in-alarms-count',
       } as AlarmsQuery;
-
-      const onChange = jest.fn((newQuery) => {
-        let currentQuery = { refId: 'A' };
-        currentQuery = { ...currentQuery, ...newQuery };
-
-        renderResult.rerender(
-          React.createElement(AlarmsQueryEditor, { ...defaultProps, query: currentQuery, onChange })
-        );
-      });
-
-      const renderResult = render(
-        React.createElement(AlarmsQueryEditor, { ...defaultProps, query: initialAlarmsCountQuery, onChange })
-      );
+      const { onChange } = renderAlarmsQueryEditorWithRerender(initialAlarmsCountQuery, mockDatasource, mockOnRunQuery);
 
       await clickQueryTypeOption(QueryType.ListAlarms);
 
