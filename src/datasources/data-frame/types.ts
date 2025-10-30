@@ -89,7 +89,7 @@ export enum DataTableProjectionType {
   Column = 'column'
 }
 
-const defaultDatatableProperties: DataTableProjections[] = [
+export const defaultDatatableProperties: DataTableProjections[] = [
   DataTableProjections.Name,
   DataTableProjections.Id,
   DataTableProjections.RowCount,

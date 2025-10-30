@@ -10,9 +10,11 @@ import { select } from "react-select-event";
 jest.mock("./query-builders/DataTableQueryBuilder", () => ({
     DataTableQueryBuilder: (
         props: {
+            filter?: string;
             workspaces?: Workspace[];
             globalVariableOptions: QueryBuilderOption[];
             dataTableNameLookupCallback: DataSourceQBLookupCallback;
+            onChange: (event: { detail: { linq: string; }; }) => void;
         }
     ) => {
         const [options, setOptions] = React.useState<QueryBuilderOption[]>([]);
@@ -28,6 +30,13 @@ jest.mock("./query-builders/DataTableQueryBuilder", () => ({
 
         return (
             <div data-testid="data-table-query-builder">
+                <p>Filter: {props.filter}</p>
+                <input
+                    type="text"
+                    data-testid="filter-input"
+                    value={props.filter}
+                    onChange={(e) => props.onChange({ detail: { linq: e.target.value } })}
+                />
                 <ul data-testid="workspaces-list">
                     {props.workspaces?.map(workspace => (
                         <li key={workspace.id}>{workspace.name}</li>
@@ -293,11 +302,9 @@ describe("DataFrameQueryEditorV2", () => {
 
             describe("x-column field", () => {
                 let xColumnField: HTMLElement;
-                let user: UserEvent;
 
                 beforeEach(() => {
                     xColumnField = screen.getAllByRole('combobox')[2];
-                    user = userEvent.setup();
                 });
 
                 it("should show the x-column field", async () => {
@@ -489,6 +496,15 @@ describe("DataFrameQueryEditorV2", () => {
     });
 
     describe("DataTableQueryBuilder props", () => {
+        it("should pass the filter to the DataTableQueryBuilder component", async () => {
+            renderComponent({ dataTableFilter: "test filter" });
+
+            await waitFor(() => {
+                const filterText = screen.getByText("Filter: test filter");
+                expect(filterText).toBeInTheDocument();
+            });
+        });
+
         it("should pass the workspaces to the DataTableQueryBuilder component", async () => {
             renderComponent();
 
@@ -519,6 +535,21 @@ describe("DataFrameQueryEditorV2", () => {
                 expect(optionsList).toBeInTheDocument();
                 expect(within(optionsList).getByText("Table 1:Table 1")).toBeInTheDocument();
                 expect(within(optionsList).getByText("Table 2:Table 2")).toBeInTheDocument();
+            });
+        });
+
+        it("should call onChange when the data table filter is changed in the DataTableQueryBuilder component", async () => {
+            const { onChange } = renderComponent({ dataTableFilter: "" });
+            const filterInput = screen.getByTestId("filter-input");
+            const user = userEvent.setup();
+
+            await user.clear(filterInput);
+            await user.type(filterInput, "new filter");
+
+            await waitFor(() => {
+                expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                    dataTableFilter: "new filter",
+                }));
             });
         });
     });

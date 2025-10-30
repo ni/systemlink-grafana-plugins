@@ -1,7 +1,7 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
-import { DataFrameQuery, DataFrameQueryType, DataTableProjections, defaultQueryV2 } from '../../types';
+import { DataFrameQuery, DataFrameQueryType, DataTableProjections, defaultDatatableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
 import { TAKE_LIMIT } from 'datasources/data-frame/constants';
 
 describe('DataFrameDataSourceV2', () => {
@@ -52,10 +52,17 @@ describe('DataFrameDataSourceV2', () => {
             const query = {} as DataFrameQuery;
             const expectedQuery = {
                 type: DataFrameQueryType.Data,
+                dataTableFilter: '',
+                dataTableProperties: defaultDatatableProperties,
+                columnProperties: [],
+                take: TAKE_LIMIT,
                 columns: [],
                 decimationMethod: 'LOSSY',
+                xColumn: null,
+                includeIndexColumns: false,
+                filterNulls: false,
                 applyTimeFilters: false
-            } as any;
+            };
 
             const result = ds.processQuery(query);
 
@@ -66,10 +73,17 @@ describe('DataFrameDataSourceV2', () => {
             const query = { decimationMethod: 'MAX_MIN', applyTimeFilters: true } as DataFrameQuery;
             const expectedQuery = {
                 type: DataFrameQueryType.Data,
+                dataTableFilter: '',
+                dataTableProperties: defaultDatatableProperties,
+                columnProperties: [],
+                take: TAKE_LIMIT,
                 columns: [],
                 decimationMethod: 'MAX_MIN',
+                xColumn: null,
+                includeIndexColumns: false,
+                filterNulls: false,
                 applyTimeFilters: true
-            } as any;
+            };
 
             const result = ds.processQuery(query);
 
