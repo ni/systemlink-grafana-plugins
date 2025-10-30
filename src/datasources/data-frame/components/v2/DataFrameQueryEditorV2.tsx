@@ -7,6 +7,7 @@ import { decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants'
 import { SelectableValue } from '@grafana/data';
 import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
+import { DataTableQueryBuilderFieldNames } from './constants/DataTableQueryBuilder.constants';
 
 export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onRunQuery, datasource }: PropsV2) => {
     const migratedQuery = datasource.processQuery(query) as ValidDataFrameQueryV2;
@@ -85,6 +86,18 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
     const onUseTimeRangeChange = (event: React.FormEvent<HTMLInputElement>) => {
         const applyTimeFilters = event.currentTarget.checked;
         handleQueryChange({ ...migratedQuery, applyTimeFilters }, false);
+    };
+
+    const dataTableNameLookupCallback = async (query: string) => {
+        const filter = `${DataTableQueryBuilderFieldNames.Name}.Contains("${query}")`;
+        const response = await datasource.queryTables(filter, 5, [DataTableProjections.Name]);
+
+        if (response.length === 0) {
+            return [];
+        }
+
+        const uniqueNames = new Set(response.map(table => table.name));
+        return Array.from(uniqueNames).map(name => ({ label: name, value: name }));
     };
 
     useEffect(() => {
@@ -180,6 +193,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                             workspaces={workspaces}
                             globalVariableOptions={datasource.globalVariableOptions()}
                             onChange={onDataTableFilterChange}
+                            dataTableNameLookupCallback={dataTableNameLookupCallback}
                         />
                     </div>
 

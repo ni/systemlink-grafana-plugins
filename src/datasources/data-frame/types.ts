@@ -1,8 +1,9 @@
 import { DataQuery } from '@grafana/schema';
-import { SystemLinkError } from "../../core/types";
+import { QueryBuilderOption, SystemLinkError } from "../../core/types";
 import { DataSourceJsonData, QueryEditorProps } from '@grafana/data';
 import { DataFrameDataSource } from './DataFrameDataSource';
 import { TAKE_LIMIT } from './constants';
+import { QueryBuilderField } from 'smart-webcomponents-react';
 
 export enum DataFrameQueryType {
   Data = 'Data',
@@ -205,6 +206,17 @@ export type Props = PropsV1 | PropsV2;
 export type PropsV1 = QueryEditorProps<DataFrameDataSource, DataFrameQueryV1, DataFrameDataSourceOptions>;
 
 export type PropsV2 = QueryEditorProps<DataFrameDataSource, DataFrameQuery, DataFrameDataSourceOptions>;
+
+export type DataSourceQBLookupCallback = (query: string) => Promise<QueryBuilderOption[]>;
+
+export type QBFieldLookupCallback = (query: string, callback: Function) => Promise<void>;
+
+export interface QBFieldWithDataSourceCallback extends QueryBuilderField {
+  lookup?: {
+    readonly?: boolean;
+    dataSource?: QBFieldLookupCallback;
+  },
+}
 
 export interface Column {
   name: string;

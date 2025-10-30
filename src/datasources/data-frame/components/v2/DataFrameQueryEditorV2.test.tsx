@@ -2,7 +2,7 @@ import React from "react";
 import { render, RenderResult, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
-import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataSourceQBLookupCallback } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { select } from "react-select-event";
@@ -12,21 +12,40 @@ jest.mock("./query-builders/DataTableQueryBuilder", () => ({
         props: {
             workspaces?: Workspace[];
             globalVariableOptions: QueryBuilderOption[];
+            dataTableNameLookupCallback: DataSourceQBLookupCallback;
         }
-    ) => (
-        <div data-testid="data-table-query-builder">
-            <ul data-testid="workspaces-list">
-                {props.workspaces && props.workspaces.map(workspace => (
-                    <li key={workspace.id}>{workspace.name}</li>
-                ))}
-            </ul>
-            <ul data-testid="global-variable-options-list">
-                {props.globalVariableOptions && props.globalVariableOptions.map(option => (
-                    <li key={option.label}>{`${option.label}:${option.value}`}</li>
-                ))}
-            </ul>
-        </div>
-    )
+    ) => {
+        const [options, setOptions] = React.useState<QueryBuilderOption[]>([]);
+
+        React.useEffect(() => {
+            const loadOptions = async () => {
+                const result = await props.dataTableNameLookupCallback("test");
+                setOptions(result);
+            };
+
+            loadOptions();
+        }, [props]);
+
+        return (
+            <div data-testid="data-table-query-builder">
+                <ul data-testid="workspaces-list">
+                    {props.workspaces?.map(workspace => (
+                        <li key={workspace.id}>{workspace.name}</li>
+                    ))}
+                </ul>
+                <ul data-testid="global-variable-options-list">
+                    {props.globalVariableOptions?.map(option => (
+                        <li key={option.label}>{`${option.label}:${option.value}`}</li>
+                    ))}
+                </ul>
+                <ul data-testid="data-table-name-options-list">
+                    {options.map(option => (
+                        <li key={option.value}>{`${option.label}:${option.value}`}</li>
+                    ))}
+                </ul>
+            </div>
+        );
+    }
 }));
 
 const renderComponent = (
@@ -53,6 +72,12 @@ const renderComponent = (
             [
                 { label: 'Var1', value: 'Value1' },
                 { label: 'Var2', value: 'Value2' },
+            ]
+        ),
+        queryTables: jest.fn().mockResolvedValue(
+            [
+                { id: 'table1', name: 'Table 1' },
+                { id: 'table2', name: 'Table 2' },
             ]
         ),
     } as unknown as DataFrameDataSource;
@@ -483,6 +508,17 @@ describe("DataFrameQueryEditorV2", () => {
                 expect(optionsList).toBeInTheDocument();
                 expect(within(optionsList).getByText("Var1:Value1")).toBeInTheDocument();
                 expect(within(optionsList).getByText("Var2:Value2")).toBeInTheDocument();
+            });
+        });
+
+        it("should pass the dataTableNameLookupCallback to the DataTableQueryBuilder component", async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                const optionsList = screen.getByTestId("data-table-name-options-list");
+                expect(optionsList).toBeInTheDocument();
+                expect(within(optionsList).getByText("Table 1:Table 1")).toBeInTheDocument();
+                expect(within(optionsList).getByText("Table 2:Table 2")).toBeInTheDocument();
             });
         });
     });

@@ -41,3 +41,42 @@
     --smart-scroll-bar-button-background-active: var(--ni-grafana-focus-color);
     --smart-scroll-bar-button-color-active: var(--ni-grafana-text-primary);
 }
+
+.smart-input-drop-down-menu[theme=ni-grafana] {
+    /* Sets up the main drop-down menu container with ni-grafana theme. */
+    /* Enables scrolling if content overflows, limits height and width, and customizes scrollbar appearance. */
+    overflow: auto;
+    max-block-size: 197px;
+    max-width: 333px;
+    scrollbar-width: auto;
+
+    .smart-container {
+        /* Ensures the container adapts its width and height to fit its content. */
+        inline-size: max-content;
+        max-inline-size: max-content;
+        max-block-size: max-content;
+
+        .smart-scroll-viewer-container {
+            /* Maintains content-based sizing for the scroll viewer container. */
+            inline-size: max-content;
+            max-inline-size: max-content;
+
+            .smart-scroll-viewer-content-container {
+                /* Ensures the scrollable content container also sizes to its content. */
+                inline-size: max-content;
+                max-inline-size: max-content;
+
+                ul {
+                    /* Uses CSS grid to lay out list items, with columns sized to fit content. */
+                    display: grid;
+                    grid-auto-columns: max-content;
+
+                    li {
+                        /* Sets a minimum width for each list item based on a CSS variable, ensuring consistent sizing. */
+                        min-inline-size: calc(var(--smart-input-drop-down-menu-width));
+                    }
+                }
+            }
+        }
+    }
+}
