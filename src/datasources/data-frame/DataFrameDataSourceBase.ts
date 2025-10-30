@@ -10,7 +10,8 @@ import {
     ValidDataFrameQuery,
     TableProperties,
     TableDataRows,
-    Column
+    Column,
+    DataTableProjections
 } from './types';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { extractErrorInfo } from 'core/errors';
@@ -48,7 +49,7 @@ export abstract class DataFrameDataSourceBase<
         intervals?: number
     ): Promise<TableDataRows>;
 
-    public abstract queryTables(query: string): Promise<TableProperties[]>;
+    public abstract queryTables(query: string, take?: number, projection?: DataTableProjections[]): Promise<TableProperties[]>;
 
     public async testDatasource(): Promise<TestDataSourceResponse> {
         await this.get(`${this.baseUrl}/tables`, { params: { take: 1 } });

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { useTheme2 } from '@grafana/ui';
 import QueryBuilder, { QueryBuilderField, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
-import './SlQueryBuilder.css';
+import './SlQueryBuilder.scss';
 import { filterXSSLINQExpression } from 'core/utils';
 
 type SlQueryBuilderProps = QueryBuilderProps &
