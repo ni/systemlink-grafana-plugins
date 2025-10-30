@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
 import { AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineLabel, InlineSwitch, MultiCombobox, MultiSelect, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQueryV2, DataFrameQueryType, PropsV2, DataTableProjectionLabelLookup, DataTableProjectionType } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, PropsV2, DataTableProjectionLabelLookup, DataTableProjectionType, DataTableProjections } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import { SelectableValue } from '@grafana/data';
 import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
+import { DataTableQueryBuilderFieldNames } from './constants/DataTableQueryBuilder.constants';
 
 export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onRunQuery, datasource }: PropsV2) => {
     query = datasource.processQuery(query);
@@ -48,6 +49,18 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
     const onUseTimeRangeChange = (event: React.FormEvent<HTMLInputElement>) => {
         const value = event.currentTarget.checked;
         handleQueryChange({ ...query, applyTimeFilters: value }, false);
+    };
+
+    const dataTableNameLookupCallback = async (query: string) => {
+        const filter = `${DataTableQueryBuilderFieldNames.Name}.Contains("${query}")`;
+        const response = await datasource.queryTables(filter, 5, [DataTableProjections.Name]);
+
+        if (response.length === 0) {
+            return [];
+        }
+
+        const uniqueNames = new Set(response.map(table => table.name));
+        return Array.from(uniqueNames).map(name => ({ label: name, value: name }));
     };
 
     useEffect(() => {
@@ -146,6 +159,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                         <DataTableQueryBuilder
                             workspaces={workspaces}
                             globalVariableOptions={datasource.globalVariableOptions()}
+                            dataTableNameLookupCallback={dataTableNameLookupCallback}
                         />
                     </div>
 
