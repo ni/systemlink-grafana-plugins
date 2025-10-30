@@ -269,7 +269,7 @@ export async function queryUsingSkip<T>(
  * @returns A promise resolving to the response of type `T`.
  */
 export function get<T>(backendSrv: BackendSrv, url: string, options: Partial<BackendSrvRequest> = {}) {
-  return fetch<T>(backendSrv, { ...options, method: 'GET', url, });
+  return fetch<T>(backendSrv, { ...options, method: 'GET', url });
 }
 
 /**
