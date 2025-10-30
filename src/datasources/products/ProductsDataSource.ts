@@ -64,7 +64,6 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     returnCount = false
   ): Observable<QueryProductResponse> {
     return this.post$<QueryProductResponse>(
-      this.backendSrv,
       this.queryProductsUrl,
       {
         filter,

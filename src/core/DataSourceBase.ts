@@ -76,20 +76,19 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    * Sends a GET request to the specified URL with the provided parameters.
    *
    * @template T - The expected response type.
-   * @param backendSrv - The Backend Service instance {@link BackendSrv} used to make the request.
    * @param url - The endpoint URL to which the GET request is sent.
    * @param params - The query parameters to be included in the request.
    * @param useApiIngress - If true, uses API ingress bypassing the UI ingress for the request.
    * @returns An observable emitting the response of type `T`.
    */
-  public get$<T>(backendSrv: BackendSrv, url: string, params?: Record<string, any>, useApiIngress = false) {
+  public get$<T>(url: string, params?: Record<string, any>, useApiIngress = false) {
     if (!useApiIngress) {
-      return get$<T>(backendSrv, url, params);
+      return get$<T>(this.backendSrv, url, params);
     }
   
     return from(this.buildApiRequestConfig(url, params ?? {}, 'GET')).pipe(
       switchMap(([url, params]) =>
-        get$<T>(backendSrv, url, params)
+        get$<T>(this.backendSrv, url, params)
       )
     );
   }
@@ -123,7 +122,6 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    * Sends a POST request to the specified URL with the provided request body and options.
    *
    * @template T - The expected response type.
-   * @param backendSrv - The Backend Service instance {@link BackendSrv} used to make the request.
    * @param url - The endpoint URL to which the POST request is sent.
    * @param body - The request payload as a key-value map.
    * @param options - Optional configuration for the request. This can include:
@@ -132,15 +130,15 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    * @param useApiIngress - If true, uses API ingress bypassing the UI ingress for the request.
    * @returns An observable emitting the response of type `T`.
    */
-  public post$<T>(backendSrv: BackendSrv, url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}, useApiIngress = false) {
+  public post$<T>(url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}, useApiIngress = false) {
     if (!useApiIngress) {
-      return post$<T>(backendSrv, url, body, options);
+      return post$<T>(this.backendSrv, url, body, options);
     
     }
   
     return from(this.buildApiRequestConfig(url, options, 'POST')).pipe(
       switchMap(([url, newOptions]) =>
-        post$<T>(backendSrv, url, body, newOptions)
+        post$<T>(this.backendSrv, url, body, newOptions)
       )
     );
   }

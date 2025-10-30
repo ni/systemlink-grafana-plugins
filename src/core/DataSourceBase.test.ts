@@ -174,7 +174,7 @@ describe('DataSourceBase', () => {
         it('should send GET$ request with correct parameters when useApiIngress is not set', async () => {
             mockGet$.mockReturnValueOnce(of('observable-test'));
 
-            const response = await firstValueFrom(dataSource.get$(backendSrv, '/test-endpoint', { param1: 'value1' }));
+            const response = await firstValueFrom(dataSource.get$('/test-endpoint', { param1: 'value1' }));
 
             expect(mockGet$).toHaveBeenCalledWith(
                 backendSrv,
@@ -187,7 +187,7 @@ describe('DataSourceBase', () => {
         it('should send GET$ request with API ingress when useApiIngress is true', async () => {
             mockGet$.mockReturnValueOnce(of('observable-test'));
 
-            const response$ = dataSource.get$(backendSrv, '/test-endpoint', { param1: 'value1' }, true);
+            const response$ = dataSource.get$('/test-endpoint', { param1: 'value1' }, true);
             const response = await firstValueFrom(response$);
 
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
@@ -206,7 +206,7 @@ describe('DataSourceBase', () => {
             jest.clearAllMocks();
             mockApiSessionUtils.createApiSession.mockRejectedValueOnce(new Error('No session created'));
 
-            const response$ = dataSource.get$(backendSrv, '/test-endpoint', { param1: 'value1' }, true);
+            const response$ = dataSource.get$('/test-endpoint', { param1: 'value1' }, true);
 
             await expect(firstValueFrom(response$)).rejects.toThrow('No session created');
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
@@ -218,7 +218,7 @@ describe('DataSourceBase', () => {
         it('should send POST$ request with correct parameters when useApiIngress is not set', async () => {
             mockPost$.mockReturnValueOnce(of('observable-test'));
 
-            const response = await firstValueFrom(dataSource.post$(backendSrv, '/test-endpoint', { body: 'body' }, { options: 'optionValue' }));
+            const response = await firstValueFrom(dataSource.post$('/test-endpoint', { body: 'body' }, { options: 'optionValue' }));
 
             expect(mockPost$).toHaveBeenCalledWith(
                 backendSrv,
@@ -233,7 +233,6 @@ describe('DataSourceBase', () => {
             mockPost$.mockReturnValueOnce(of('observable-test'));
 
             const response$ = dataSource.post$(
-                backendSrv,
                 '/test-endpoint',
                 { body: 'body' },
                 {
@@ -264,7 +263,7 @@ describe('DataSourceBase', () => {
             jest.clearAllMocks();
             mockApiSessionUtils.createApiSession.mockRejectedValueOnce(new Error('No session created'));
 
-            const response$ = dataSource.post$(backendSrv, '/test-endpoint', { options: 'optionValue' }, {}, true);
+            const response$ = dataSource.post$('/test-endpoint', { options: 'optionValue' }, {}, true);
 
             await expect(firstValueFrom(response$)).rejects.toThrow('No session created');
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
