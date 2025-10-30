@@ -5,6 +5,7 @@ import {
 import { AssetQueryType } from "../../types/types";
 import { AssetSummaryDataSource } from "./AssetSummaryDataSource";
 import { AssetSummaryQuery } from "datasources/asset/types/AssetSummaryQuery.types";
+import { firstValueFrom } from "rxjs";
 
 let datastore: AssetSummaryDataSource;
 
@@ -30,7 +31,7 @@ describe('Process summary queries', () => {
             hide: false
         });
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));
 
         expect(processSummaryQuerySpy).toHaveBeenCalled();
     });
@@ -42,7 +43,7 @@ describe('Process summary queries', () => {
             hide: true
         });
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));
 
         expect(processSummaryQuerySpy).not.toHaveBeenCalled();
     });
