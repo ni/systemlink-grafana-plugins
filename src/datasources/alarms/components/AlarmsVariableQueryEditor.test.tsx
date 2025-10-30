@@ -255,6 +255,20 @@ describe('AlarmsVariableQueryEditor', () => {
       });
     });
 
+    it('should call onChange when take value is invalid', async () => {
+      await renderElement({ refId: 'A' });
+
+      const takeInput = screen.getByRole('spinbutton');
+      
+      fireEvent.change(takeInput, { target: { value: 'invalid' } });
+      fireEvent.blur(takeInput);
+
+      expect(mockOnChange).toHaveBeenCalledWith({
+        refId: 'A',
+        take: NaN
+      });
+    });
+
     it('should preserve other query properties when take changes', async () => {
       const initialQuery = { refId: 'A', filter: 'existing filter', descending: true };
       await renderElement(initialQuery);

@@ -20,7 +20,7 @@ export const tooltips = {
 };
 
 export const takeErrorMessages = {
-  minErrorMsg: `Enter a value greater than or equal to ${QUERY_EDITOR_MIN_TAKE}`,
+  minErrorMsg: `Enter a value greater than or equal to ${QUERY_EDITOR_MIN_TAKE.toLocaleString()}`,
   maxErrorMsg: `Enter a value less than or equal to ${QUERY_EDITOR_MAX_TAKE.toLocaleString()}`,
 };
 

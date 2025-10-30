@@ -94,8 +94,8 @@ export function AlarmsVariableQueryEditor({ query, onChange, datasource }: Props
             minWidth={LABEL_WIDTH}
             maxWidth={LABEL_WIDTH}
             type="number"
-            defaultValue={take}
-            onCommitChange={onTakeChange}
+            value={take}
+            onChange={onTakeChange}
             placeholder={placeholders.take}
             onKeyDown={event => {
               validateNumericInput(event);
