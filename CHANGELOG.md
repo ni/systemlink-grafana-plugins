@@ -1,3 +1,9 @@
+## [4.36.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.35.0...v4.36.0) (2025-10-30)
+
+### Features
+
+* **alarms:** Introduce `take` and `descending` in the alarms variable query editor ([#471](https://github.com/ni/systemlink-grafana-plugins/issues/471)) ([a99d294](https://github.com/ni/systemlink-grafana-plugins/commit/a99d294320929f8c7bd8ef11018ead500589aef4))
+
 ## [4.35.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.34.0...v4.35.0) (2025-10-30)
 
 ### Features
