@@ -24,7 +24,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   }
 
   public async runQuery(query: ListAlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    query.filter = this.transformAlarmsQuery(options.scopedVars || {}, query.filter);
+    query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
 
     const alarmsResponse = await this.queryAlarmsData(query);
     const mappedFields = await this.mapPropertiesToSelect(query.properties || [], alarmsResponse);
@@ -47,11 +47,11 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
           value: alarm.alarmId
         }))
         : [];
-
+      
       const uniqueOptions = Array.from(
         new Map(alarmsOptions.map(option => [option.value, option])).values()
       );
-
+      
       const sortedOptions = uniqueOptions.sort((a, b) => a.text.localeCompare(b.text));
 
       return sortedOptions;

@@ -173,5 +173,5 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
 
   public testDatasource(): Promise<TestDataSourceResponse> {
     throw new Error('Method not implemented.');
- }
+  }
 }
