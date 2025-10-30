@@ -7,16 +7,27 @@ import { AlarmsDataSource } from '../AlarmsDataSource';
 import { AlarmsCountQueryEditor } from './editors/alarms-count/AlarmsCountQueryEditor';
 import userEvent from '@testing-library/user-event';
 import { defaultAlarmsCountQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
+import { ListAlarmsQueryEditor } from './editors/list-alarms/ListAlarmsQueryEditor';
 
 jest.mock('./editors/alarms-count/AlarmsCountQueryEditor', () => ({
   AlarmsCountQueryEditor: jest.fn(() => <div data-testid="mock-alarms-count" />),
 }));
+jest.mock('./editors/list-alarms/ListAlarmsQueryEditor', () => ({
+  ListAlarmsQueryEditor: jest.fn(() => <div data-testid="mock-list-alarms" />),
+}));
 
+const mockAlarmsCountQueryHandler = {
+  defaultQuery: defaultAlarmsCountQuery,
+};
+const mockListAlarmsQueryHandler = {
+  defaultQuery: defaultListAlarmsQuery,
+};
 const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: AlarmsQuery) => query),
-  alarmsCountQueryHandler: {},
+  alarmsCountQueryHandler: mockAlarmsCountQueryHandler,
+  listAlarmsQueryHandler: mockListAlarmsQueryHandler,
 } as unknown as AlarmsDataSource;
 
 const defaultProps: QueryEditorProps<AlarmsDataSource, AlarmsQuery> = {
@@ -43,6 +54,35 @@ async function clickQueryTypeOption(option: QueryType) {
 function renderElement(query: AlarmsQuery) {
   const reactNode = React.createElement(AlarmsQueryEditor, { ...defaultProps, query });
   return render(reactNode);
+}
+
+function renderAlarmsQueryEditorWithRerender(
+  initialQuery: AlarmsQuery,
+  datasource: AlarmsDataSource,
+  onRunQuery: jest.Mock
+) {
+  const onChange = jest.fn();
+  const renderResult = render(
+    <AlarmsQueryEditor
+      datasource={datasource}
+      query={initialQuery}
+      onChange={onChange}
+      onRunQuery={onRunQuery}
+    />
+  );
+
+  onChange.mockImplementation(newQuery => {
+    renderResult.rerender(
+      <AlarmsQueryEditor
+        datasource={datasource}
+        query={newQuery}
+        onChange={onChange}
+        onRunQuery={onRunQuery}
+      />
+    );
+  });
+
+  return { renderResult, onChange };
 }
 
 describe('AlarmsQueryEditor', () => {
@@ -98,19 +138,7 @@ describe('AlarmsQueryEditor', () => {
       queryType: QueryType.AlarmsCount,
       hide: false, // Base query property
     } as AlarmsQuery;
-
-    const onChange = jest.fn((newQuery) => {
-      let currentQuery = { refId: 'A' };
-      currentQuery = { ...currentQuery, ...newQuery };
-
-      renderResult.rerender(
-        React.createElement(AlarmsQueryEditor, { ...defaultProps, query: currentQuery, onChange })
-      );
-    });
-
-    const renderResult = render(
-      React.createElement(AlarmsQueryEditor, { ...defaultProps, query: initialAlarmsCountQuery, onChange })
-    );
+    const { onChange } = renderAlarmsQueryEditorWithRerender(initialAlarmsCountQuery, mockDatasource, mockOnRunQuery);
 
     await clickQueryTypeOption(QueryType.ListAlarms);
 
@@ -148,7 +176,22 @@ describe('AlarmsQueryEditor', () => {
 
       expect(queryTypeControl).toBeInTheDocument();
       expect(queryTypeControl).toHaveDisplayValue(QueryType.ListAlarms);
-      expect(screen.getByText('List Alarms query editor')).toBeInTheDocument();
+      expect(screen.getByTestId('mock-list-alarms')).toBeInTheDocument();
+    });
+
+    it('should pass the correct props to ListAlarmsQueryEditor', () => {
+      const query = buildQuery({ queryType: QueryType.ListAlarms });
+
+      renderElement(query);
+
+      expect(ListAlarmsQueryEditor).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query,
+          handleQueryChange: expect.any(Function),
+          datasource: mockDatasource.listAlarmsQueryHandler
+        }),
+        expect.anything()
+      );
     });
 
     it('should call onChange with defaultListAlarmsQuery when switched to list alarms query type from other query type', async () => {
@@ -161,10 +204,64 @@ describe('AlarmsQueryEditor', () => {
         expect(mockOnChange).toHaveBeenCalledWith(
           expect.objectContaining({
             queryType: QueryType.ListAlarms,
-            ...defaultListAlarmsQuery,
+            ...defaultListAlarmsQuery
           })
         );
         expect(mockOnRunQuery).toHaveBeenCalled();
+      });
+    });
+
+    it('should not affect the same properties when switching between query types', async () => {
+      const query = buildQuery({
+        refId: 'A',
+        queryType: QueryType.ListAlarms, 
+        filter: 'initial-filter' 
+      } as AlarmsQuery);
+
+      renderElement(query);
+      await clickQueryTypeOption(QueryType.AlarmsCount);
+
+      await waitFor(() => {
+        expect(mockOnChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            filter: '',
+          })
+        );
+        expect(mockOnRunQuery).toHaveBeenCalled();
+      });
+    });
+
+    it('should preserve the current state of ListAlarmsQuery when switching from list alarms to other types', async () => {
+      const initialListAlarmsQuery = {
+        refId: 'A',
+        queryType: QueryType.ListAlarms,
+        filter: 'filter-in-list-alarms',
+      } as AlarmsQuery;
+      const { onChange } = renderAlarmsQueryEditorWithRerender(initialListAlarmsQuery, mockDatasource, mockOnRunQuery);
+
+      await clickQueryTypeOption(QueryType.AlarmsCount);
+
+      await waitFor(() => {
+        expect(onChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            refId: 'A',
+            queryType: QueryType.AlarmsCount,
+            ...defaultAlarmsCountQuery
+          })
+        );
+      });
+
+      await clickQueryTypeOption(QueryType.ListAlarms);
+
+      await waitFor(() => {
+        expect(onChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            refId: 'A',
+            queryType: QueryType.ListAlarms,
+            ...defaultListAlarmsQuery,
+            filter: 'filter-in-list-alarms',
+          })
+        );
       });
     });
   });
@@ -216,6 +313,60 @@ describe('AlarmsQueryEditor', () => {
           })
         );
         expect(mockOnRunQuery).toHaveBeenCalled();
+      });
+    });
+
+    it('should not affect the same properties when switching between query types', async () => {
+      const query = buildQuery({
+        refId: 'A',
+        queryType: QueryType.AlarmsCount, 
+        filter: 'initial-filter' 
+      } as AlarmsQuery);
+
+      renderElement(query);
+      await clickQueryTypeOption(QueryType.ListAlarms);
+
+      await waitFor(() => {
+        expect(mockOnChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            filter: ''
+          })
+        );
+        expect(mockOnRunQuery).toHaveBeenCalled();
+      });
+    });
+
+    it('should preserve the current state of AlarmsCountQuery when switching from alarms count to other types', async () => {
+      const initialAlarmsCountQuery = {
+        refId: 'A',
+        queryType: QueryType.AlarmsCount,
+        filter: 'filter-in-alarms-count',
+      } as AlarmsQuery;
+      const { onChange } = renderAlarmsQueryEditorWithRerender(initialAlarmsCountQuery, mockDatasource, mockOnRunQuery);
+
+      await clickQueryTypeOption(QueryType.ListAlarms);
+
+      await waitFor(() => {
+        expect(onChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            refId: 'A',
+            queryType: QueryType.ListAlarms,
+            ...defaultListAlarmsQuery
+          })
+        );
+      });
+
+      await clickQueryTypeOption(QueryType.AlarmsCount);
+
+      await waitFor(() => {
+        expect(onChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            refId: 'A',
+            queryType: QueryType.AlarmsCount,
+            ...defaultAlarmsCountQuery,
+            filter: 'filter-in-alarms-count',
+          })
+        );
       });
     });
   });
