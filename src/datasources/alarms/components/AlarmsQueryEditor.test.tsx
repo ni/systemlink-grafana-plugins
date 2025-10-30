@@ -138,19 +138,7 @@ describe('AlarmsQueryEditor', () => {
       queryType: QueryType.AlarmsCount,
       hide: false, // Base query property
     } as AlarmsQuery;
-
-    const onChange = jest.fn((newQuery) => {
-      let currentQuery = { refId: 'A' };
-      currentQuery = { ...currentQuery, ...newQuery };
-
-      renderResult.rerender(
-        React.createElement(AlarmsQueryEditor, { ...defaultProps, query: currentQuery, onChange })
-      );
-    });
-
-    const renderResult = render(
-      React.createElement(AlarmsQueryEditor, { ...defaultProps, query: initialAlarmsCountQuery, onChange })
-    );
+    const { onChange } = renderAlarmsQueryEditorWithRerender(initialAlarmsCountQuery, mockDatasource, mockOnRunQuery);
 
     await clickQueryTypeOption(QueryType.ListAlarms);
 
@@ -188,95 +176,22 @@ describe('AlarmsQueryEditor', () => {
 
       expect(queryTypeControl).toBeInTheDocument();
       expect(queryTypeControl).toHaveDisplayValue(QueryType.ListAlarms);
-      expect(screen.getByText('List Alarms query editor')).toBeInTheDocument();
-    });
-
-    it('should call onChange with defaultListAlarmsQuery when switched to list alarms query type from other query type', async () => {
-      const query = buildQuery({ queryType: QueryType.AlarmsCount });
-
-      renderElement(query);
-      await clickQueryTypeOption(QueryType.ListAlarms);
-
-      await waitFor(() => {
-        expect(mockOnChange).toHaveBeenCalledWith(
-          expect.objectContaining({
-            queryType: QueryType.ListAlarms,
-            ...defaultListAlarmsQuery,
-          })
-        );
-        expect(mockOnRunQuery).toHaveBeenCalled();
-      });
-    });
-  });
-
-  it('should not call onChange and onRunQuery after initialization', () => {
-    const query = buildQuery({ queryType: QueryType.ListAlarms });
-
-    renderElement(query);
-
-    expect(mockOnChange).not.toHaveBeenCalled();
-    expect(mockOnRunQuery).not.toHaveBeenCalled();
-  });
-
-  it('should initialize with ListAlarms when queryType is undefined', () => {
-    const query = buildQuery();
-
-    renderElement(query);
-
-    expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ queryType: QueryType.ListAlarms }));
-    expect(mockOnRunQuery).toHaveBeenCalled();
-  });
-
-  it('should pass the correct props to ListAlarmsQueryEditor', () => {
-    const query = buildQuery({ queryType: QueryType.ListAlarms });
-
-    renderElement(query);
-
-    expect(ListAlarmsQueryEditor).toHaveBeenCalledWith(
-      expect.objectContaining({
-        query,
-        handleQueryChange: expect.any(Function),
-        datasource: mockDatasource.listAlarmsQueryHandler
-      }),
-      expect.anything()
-    );
-  });
-
-  it('should preserve base query properties across query type changes', async () => {
-    const initialAlarmsCountQuery = {
-      refId: 'A',
-      queryType: QueryType.AlarmsCount,
-      hide: false, // Base query property
-    } as AlarmsQuery;
-    const { onChange } = renderAlarmsQueryEditorWithRerender(initialAlarmsCountQuery, mockDatasource, mockOnRunQuery);
-
-    await clickQueryTypeOption(QueryType.ListAlarms);
-
-    await waitFor(() => {
-      expect(onChange).toHaveBeenCalledWith(
-        expect.objectContaining({ refId: 'A', hide: false, queryType: QueryType.ListAlarms, ...defaultListAlarmsQuery })
-      );
-    });
-
-    await clickQueryTypeOption(QueryType.AlarmsCount);
-
-    await waitFor(() => {
-      expect(onChange).toHaveBeenCalledWith(
-        expect.objectContaining({ refId: 'A', hide: false, queryType: QueryType.AlarmsCount, ...defaultAlarmsCountQuery })
-      );
-    });
-  });
-
-  describe('ListAlarmsQueryEditor', () => {
-    it('should render list alarms query type and its editor in the UI', () => {
-      const query = buildQuery({ queryType: QueryType.ListAlarms });
-  
-      renderElement(query);
-      const queryTypeControl = screen.getAllByRole('combobox')[0];
-
-      expect(queryTypeControl).toBeInTheDocument();
-      expect(queryTypeControl).toHaveDisplayValue(QueryType.ListAlarms);
       expect(screen.getByTestId('mock-list-alarms')).toBeInTheDocument();
+    });
+
+    it('should pass the correct props to ListAlarmsQueryEditor', () => {
+      const query = buildQuery({ queryType: QueryType.ListAlarms });
+
+      renderElement(query);
+
+      expect(ListAlarmsQueryEditor).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query,
+          handleQueryChange: expect.any(Function),
+          datasource: mockDatasource.listAlarmsQueryHandler
+        }),
+        expect.anything()
+      );
     });
 
     it('should call onChange with defaultListAlarmsQuery when switched to list alarms query type from other query type', async () => {
@@ -304,7 +219,11 @@ describe('AlarmsQueryEditor', () => {
       await clickQueryTypeOption(QueryType.AlarmsCount);
 
       await waitFor(() => {
-        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ filter: '' }));
+        expect(mockOnChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            filter: '',
+          })
+        );
         expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
@@ -390,22 +309,6 @@ describe('AlarmsQueryEditor', () => {
       });
     });
 
-    it('should call onChange with defaultAlarmsCountQuery when switched to alarms count query type from other query type', async () => {
-      const query = buildQuery({ queryType: QueryType.ListAlarms });
-
-      renderElement(query);
-      await clickQueryTypeOption(QueryType.AlarmsCount);
-
-      await waitFor(() => {
-        expect(mockOnChange).toHaveBeenCalledWith({
-          refId: 'A',
-          queryType: QueryType.AlarmsCount,
-          ...defaultAlarmsCountQuery,
-        });
-        expect(mockOnRunQuery).toHaveBeenCalled();
-      });
-    });
-
     it('should not affect the same properties when switching between query types', async () => {
       const query = buildQuery({
         refId: 'A',
@@ -417,7 +320,11 @@ describe('AlarmsQueryEditor', () => {
       await clickQueryTypeOption(QueryType.ListAlarms);
 
       await waitFor(() => {
-        expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({ filter: '' }));
+        expect(mockOnChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            filter: ''
+          })
+        );
         expect(mockOnRunQuery).toHaveBeenCalled();
       });
     });
