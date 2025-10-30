@@ -7,13 +7,13 @@ import { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcompone
 import { expressionBuilderCallbackWithRef, expressionReaderCallbackWithRef } from "core/query-builder.utils";
 import { queryBuilderMessages, QueryBuilderOperations } from "core/query-builder.constants";
 import _ from "lodash";
-import { DataSourceCallback, DataTableDataSourceCallback, QBFieldWithDataSourceCallback } from "datasources/data-frame/types";
+import { QBFieldLookupCallback, DataSourceQBLookupCallback, QBFieldWithDataSourceCallback } from "datasources/data-frame/types";
 
 type DataTableQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
     filter?: string;
     workspaces: Workspace[];
     globalVariableOptions: QueryBuilderOption[];
-    dataTableNameDataSourceCallback: DataTableDataSourceCallback;
+    dataTableNameLookupCallback: DataSourceQBLookupCallback;
 };
 
 export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
@@ -21,16 +21,16 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
     onChange,
     workspaces,
     globalVariableOptions,
-    dataTableNameDataSourceCallback
+    dataTableNameLookupCallback
 }) => {
     const [fields, setFields] = useState<Array<QBField | QBFieldWithDataSourceCallback>>([]);
     const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
     const optionsRef = useRef<Record<string, QueryBuilderOption[]>>({});
 
     const dataTableNameField = useMemo(() => {
-        const dataTableNameDataSourceWithGlobalVariableOptionsCallback = (): DataSourceCallback => {
+        const dataTableNamesWithGlobalVariableOptionsCallback = (): QBFieldLookupCallback => {
             return _.debounce(async (query: string, callback: Function) => {
-                const options = await dataTableNameDataSourceCallback(query);
+                const options = await dataTableNameLookupCallback(query);
                 const optionsWithGlobalVariable = [...globalVariableOptions, ...options].map(filterXSSField);
                 callback(optionsWithGlobalVariable);
 
@@ -38,23 +38,19 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
                     ...optionsRef.current,
                     [DataTableQueryBuilderFieldNames.Name]: optionsWithGlobalVariable,
                 };
-            }, 300) as DataSourceCallback;
-        };
-
-        const getDataTableNameDatasource = (): DataSourceCallback => {
-            return dataTableNameDataSourceWithGlobalVariableOptionsCallback();
+            }, 300) as QBFieldLookupCallback;
         };
 
         const updatedField = {
             ...DataTableQueryBuilderFields.NAME,
             lookup: {
                 ...DataTableQueryBuilderFields.NAME.lookup,
-                dataSource: getDataTableNameDatasource()
+                dataSource: dataTableNamesWithGlobalVariableOptionsCallback()
             }
         };
 
         return updatedField;
-    }, [dataTableNameDataSourceCallback, globalVariableOptions]);
+    }, [dataTableNameLookupCallback, globalVariableOptions]);
 
     const workspaceField = useMemo(() => {
         if (workspaces.length === 0) {

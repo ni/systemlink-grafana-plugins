@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindValue, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryV2, defaultQueryV2, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2 } from "../../types";
+import { Column, DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryV2, DataTableProjections, defaultQueryV2, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2 } from "../../types";
 import { TAKE_LIMIT } from "datasources/data-frame/constants";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
@@ -52,7 +52,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         throw new Error('Method not implemented.');
     }
 
-    async queryTables(filter: string, take = TAKE_LIMIT): Promise<TableProperties[]> {
-        return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take }, {}, true)).tables;
+    async queryTables(filter: string, take = TAKE_LIMIT, projection?: DataTableProjections[]): Promise<TableProperties[]> {
+        const response = await this.post<TablePropertiesList>(
+            `${this.baseUrl}/query-tables`,
+            { filter, take, projection },
+            {},
+            true
+        );
+        return response.tables;
     }
 }

@@ -1,4 +1,4 @@
-import { act, render } from "@testing-library/react";
+import { render, waitFor } from "@testing-library/react";
 import { QueryBuilderOption, Workspace } from "core/types";
 import React from "react";
 import { QBFieldWithDataSourceCallback } from "datasources/data-frame/types";
@@ -7,11 +7,11 @@ import { SlQueryBuilder } from "core/components/SlQueryBuilder/SlQueryBuilder";
 jest.mock('core/components/SlQueryBuilder/SlQueryBuilder', () => {
     const actual = jest.requireActual('core/components/SlQueryBuilder/SlQueryBuilder');
     return {
-        ...actual,
         SlQueryBuilder: jest.fn(actual.SlQueryBuilder),
     };
 });
 
+import { DataTableQueryBuilder } from './DataTableQueryBuilder';
 
 describe('DataTableQueryBuilder', () => {
     const slQueryBuilderMock = SlQueryBuilder as unknown as jest.MockedFunction<typeof SlQueryBuilder>;
@@ -24,15 +24,13 @@ describe('DataTableQueryBuilder', () => {
         { label: 'Now', value: '${__now:date}' },
     ];
 
-    afterEach(() => {
+    beforeEach(() => {
         jest.clearAllMocks();
         slQueryBuilderMock.mockImplementation(actualSlQueryBuilder);
-        jest.useRealTimers();
     });
 
-    async function renderElement(filter: string, workspaces: Workspace[], globalVariableOptions: QueryBuilderOption[] = [], dataTableNameDataSourceCallback = jest.fn()) {
-        const DataTableQueryBuilder = (await import('./DataTableQueryBuilder')).DataTableQueryBuilder;
-        const reactNode = React.createElement(DataTableQueryBuilder, { filter, workspaces, globalVariableOptions: globalVariableOptions, onChange: jest.fn(), dataTableNameDataSourceCallback });
+    async function renderElement(filter: string, workspaces: Workspace[], globalVariableOptions: QueryBuilderOption[] = [], dataTableNameLookupCallback = jest.fn()) {
+        const reactNode = React.createElement(DataTableQueryBuilder, { filter, workspaces, globalVariableOptions: globalVariableOptions, onChange: jest.fn(), dataTableNameLookupCallback });
         const renderResult = render(reactNode);
         return {
             renderResult,
@@ -126,8 +124,6 @@ describe('DataTableQueryBuilder', () => {
     });
 
     it('should use dataTableNameDataSourceCallback to populate data table names', async () => {
-        jest.useFakeTimers();
-
         const queryBuilderCallback = jest.fn();
         const dataTableNameDataSourceCallback = jest.fn().mockImplementation(async (_query: string) => {
             return [
@@ -136,25 +132,24 @@ describe('DataTableQueryBuilder', () => {
             ];
         });
         let dataTableNameField: QBFieldWithDataSourceCallback | undefined;
-
         slQueryBuilderMock.mockImplementation((props: any) => {
             dataTableNameField = props.fields?.find((field: { dataField: string; }) => field.dataField === 'name') as QBFieldWithDataSourceCallback;
-            return React.createElement('div', {}, 'Query Builder');
+            return (<></>);
         });
-
-
         await renderElement('', [workspace], [], dataTableNameDataSourceCallback);
         const dataSource = dataTableNameField?.lookup?.dataSource as ((query: string, callback: Function) => void);
-        dataSource('data-', queryBuilderCallback);
-        await act(async () => {
-            jest.advanceTimersByTime(300);
-            await Promise.resolve();
-        });
 
-        expect(dataTableNameDataSourceCallback).toHaveBeenCalledWith('data-');
-        expect(queryBuilderCallback).toHaveBeenCalledWith([
-            { "label": "Data Table 1", "value": "data-table-1" },
-            { "label": "Data Table 2", "value": "data-table-2" }
-        ]);
+        // In the actual scenario dataSource will be called asynchronously,
+        // when user types a value in the data table name value field. Here the dataSource
+        // is called manually to simulate the user typing.
+        dataSource('data-', queryBuilderCallback);
+
+        await waitFor(() => {
+            expect(dataTableNameDataSourceCallback).toHaveBeenCalledWith('data-');
+            expect(queryBuilderCallback).toHaveBeenCalledWith([
+                { "label": "Data Table 1", "value": "data-table-1" },
+                { "label": "Data Table 2", "value": "data-table-2" }
+            ]);
+        });
     });
 });

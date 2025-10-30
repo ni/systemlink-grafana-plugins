@@ -1,7 +1,7 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
-import { DataFrameQuery, DataFrameQueryType, defaultQueryV2 } from '../../types';
+import { DataFrameQuery, DataFrameQueryType, DataTableProjections, defaultQueryV2 } from '../../types';
 import { TAKE_LIMIT } from 'datasources/data-frame/constants';
 
 describe('DataFrameDataSourceV2', () => {
@@ -102,9 +102,10 @@ describe('DataFrameDataSourceV2', () => {
         it('should call the `post` method with the expected arguments and return tables', async () => {
             const filter = 'test-filter';
             const take = 10;
-            const result = await ds.queryTables(filter, take);
+            const projection = [DataTableProjections.Name, DataTableProjections.Id];
+            const result = await ds.queryTables(filter, take, projection);
 
-            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take }, {}, true);
+            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take, projection }, {}, true);
             expect(result).toBe(mockTables);
         });
 
@@ -113,6 +114,15 @@ describe('DataFrameDataSourceV2', () => {
             const result = await ds.queryTables(filter);
 
             expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take: TAKE_LIMIT }, {}, true);
+            expect(result).toBe(mockTables);
+        });
+
+        it('should use undefined as default projection value when not provided', async () => {
+            const filter = 'test-filter';
+            const take = 15;
+            const result = await ds.queryTables(filter, take);
+
+            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take, projection: undefined }, {}, true);
             expect(result).toBe(mockTables);
         });
     });

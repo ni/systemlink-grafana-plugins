@@ -183,14 +183,14 @@ export type PropsV1 = QueryEditorProps<DataFrameDataSource, DataFrameQueryV1, Da
 
 export type PropsV2 = QueryEditorProps<DataFrameDataSource, DataFrameQuery, DataFrameDataSourceOptions>;
 
-export type DataTableDataSourceCallback = (query: string) => Promise<QueryBuilderOption[]>;
+export type DataSourceQBLookupCallback = (query: string) => Promise<QueryBuilderOption[]>;
 
-export type DataSourceCallback = (query: string, callback: Function) => Promise<void>;
+export type QBFieldLookupCallback = (query: string, callback: Function) => Promise<void>;
 
 export interface QBFieldWithDataSourceCallback extends QueryBuilderField {
   lookup?: {
     readonly?: boolean;
-    dataSource?: DataSourceCallback;
+    dataSource?: QBFieldLookupCallback;
   },
 }
 

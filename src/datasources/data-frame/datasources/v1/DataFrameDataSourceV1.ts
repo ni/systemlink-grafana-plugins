@@ -14,6 +14,7 @@ import {
   ValidDataFrameQueryV1,
   DataFrameQueryType,
   DataFrameDataSourceOptions,
+  DataTableProjections,
 } from '../../types';
 import { propertiesCacheTTL } from '../../constants';
 import _ from 'lodash';
@@ -94,10 +95,10 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     });
   }
 
-  async queryTables(query: string, take = 5): Promise<TableProperties[]> {
+  async queryTables(query: string, take = 5, projection?: DataTableProjections[]): Promise<TableProperties[]> {
     const filter = `name.Contains("${query}")`;
 
-    return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take })).tables;
+    return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take, projection })).tables;
   }
 
   processQuery(query: DataFrameQueryV1): ValidDataFrameQueryV1 {
