@@ -32,4 +32,5 @@ export interface SystemProperties {
   ip4Interfaces?: Record<string, string[]>;
   ip6Interfaces?: Record<string, string[]>;
   workspace: string;
+  scanCode: string;
 }
