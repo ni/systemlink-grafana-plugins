@@ -8,6 +8,7 @@ import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana
 import { User } from 'shared/types/QueryUsers.types';
 import { UsersUtils } from 'shared/users.utils';
 import { AlarmsPropertiesOptions } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from 'datasources/alarms/constants/SourceProperties.constants';
 
 export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultListAlarmsQuery;
@@ -101,9 +102,15 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
             const userId = alarm.acknowledgedBy as string ?? '';
             const user = users.get(userId);
             return user ? UsersUtils.getUserFullName(user) : userId;
-          case AlarmsProperties.keywords:
           case AlarmsProperties.properties:
             return this.getSortedCustomProperties(alarm.properties);
+          case AlarmsProperties.highestSeverityLevel:
+          case AlarmsProperties.currentSeverityLevel:
+            return this.getSeverityLabel(alarm.highestSeverityLevel);
+          case AlarmsProperties.state:
+            return this.getAlarmState(alarm.clear, alarm.acknowledged);
+          case AlarmsProperties.source:
+            return this.getSource(alarm.properties);
           default:
             return fieldType === FieldType.time
               ? alarm[fieldValue] ?? null
@@ -129,4 +136,39 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     
     return JSON.stringify(sortedProperties);
   }
+
+  private getSeverityLabel(severityLevel: number): string {
+    switch (severityLevel) {
+      case -1:
+        return `Clear`;
+      case 1:
+        return `Low (1)`;
+      case 2:
+        return `Moderate (2)`;
+      case 3:
+        return `High (3)`;
+      default:
+        if (severityLevel >= 4) {
+          return `Critical (${severityLevel})`;
+        }
+        return '';
+    }
+  }
+ 
+  private getAlarmState(isCleared: boolean, isAcknowledged: boolean): string {
+    if (isCleared) {
+      return isAcknowledged ? 'Cleared' : 'Cleared; NotAcknowledged';
+    }
+    return isAcknowledged ? 'Acknowledged' : 'Set';
+  }
+ 
+  private getSource(properties: { [key: string]: string }): string {
+    if (Object.prototype.hasOwnProperty.call(properties, SYSTEM_CUSTOM_PROPERTY)) {
+      return properties[SYSTEM_CUSTOM_PROPERTY];
+    }
+    return Object.prototype.hasOwnProperty.call(properties, MINION_ID_CUSTOM_PROPERTY)
+      ? properties[MINION_ID_CUSTOM_PROPERTY]
+      : '';
+  }
+ 
 }
