@@ -39,8 +39,7 @@ const getStyles = () => {
  * QRCodePanel is a Grafana panel plugin that generates QR codes from static text or dynamic dashboard variables.
  * 
  * The panel supports Grafana's variable substitution system, allowing users to create QR codes that update
- * automatically when dashboard variables change. The QR code is rendered with a white background and scales
- * to fit the panel dimensions.
+ * automatically when dashboard variables change.
  * 
  * @param options - Panel configuration options containing the value to encode
  * @param width - Panel width in pixels
