@@ -1,3 +1,9 @@
+## [4.37.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.36.0...v4.37.0) (2025-10-30)
+
+### Features
+
+* **alarms:** Add query type control and its functionality ([#446](https://github.com/ni/systemlink-grafana-plugins/issues/446)) ([35d9e48](https://github.com/ni/systemlink-grafana-plugins/commit/35d9e48127e360ec4c99d489325d26d19be8ccc1))
+
 ## [4.36.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.35.0...v4.36.0) (2025-10-30)
 
 ### Features
