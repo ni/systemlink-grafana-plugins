@@ -63,7 +63,9 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   }
 
   private isTakeValid(take?: number): boolean {
-    return take !== undefined && take >= QUERY_EDITOR_MIN_TAKE && take <= QUERY_EDITOR_MAX_TAKE;
+    return take !== undefined
+      && take >= QUERY_EDITOR_MIN_TAKE
+      && take <= QUERY_EDITOR_MAX_TAKE;
   }
 
   private async queryAlarmsData(alarmsQuery: ListAlarmsQuery): Promise<Alarm[]> {

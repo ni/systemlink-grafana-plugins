@@ -256,6 +256,25 @@ describe('ListAlarmsQueryHandler', () => {
       );
     });
 
+    it('should set `orderByDescending` to true when descending set to undefined', async () => {
+      const query: AlarmsVariableQuery = {
+        refId: 'A',
+        filter: 'workspace = "Lab-1"',
+        take: 1000,
+        descending: undefined
+      };
+
+       await datastore.metricFindQuery(query, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            orderByDescending: true
+          })
+        })
+      );
+    });
+
     it('should replace template variables in filter', async () => {
       const query: AlarmsVariableQuery = {
         refId: 'A',
@@ -401,6 +420,7 @@ describe('ListAlarmsQueryHandler', () => {
         };
   
         const result = await datastore.metricFindQuery(query, options);
+
         expect(result).toEqual([
           { text: 'High Temperature Alarm (ALARM-001)', value: 'ALARM-001' },
           { text: 'Low Pressure Alarm (ALARM-002)', value: 'ALARM-002' },
