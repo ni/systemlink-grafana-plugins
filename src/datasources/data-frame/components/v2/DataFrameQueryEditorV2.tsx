@@ -44,12 +44,12 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
     };
 
     const onDataTablePropertiesChange = (properties: Array<SelectableValue<DataTableProjections>>) => {
-        const dataTableProperties = properties.map(property => property.value).filter(value => !!value);
+        const dataTableProperties = properties.map(property => property.value) as DataTableProjections[];
         handleQueryChange({ ...migratedQuery, dataTableProperties }, false);
     };
 
     const onColumnPropertiesChange = (properties: Array<SelectableValue<DataTableProjections>>) => {
-        const columnProperties = properties.map(property => property.value).filter(value => !!value);
+        const columnProperties = properties.map(property => property.value) as DataTableProjections[];
         handleQueryChange({ ...migratedQuery, columnProperties }, false);
     };
 
