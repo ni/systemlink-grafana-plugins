@@ -5,7 +5,7 @@ import { AlarmsQuery, AlarmsVariableQuery, QueryType } from './types/types';
 import { AlarmsCountQueryHandler } from './query-type-handlers/alarms-count/AlarmsCountQueryHandler';
 import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
 import { ListAlarmsQueryHandler } from './query-type-handlers/list-alarms/ListAlarmsQueryHandler';
-import { DEFAULT_QUERY_TYPE } from './constants/DefaultQueries.constants';
+import { DEFAULT_QUERY_TYPE, defaultListAlarmsVariableQuery } from './constants/DefaultQueries.constants';
 
 export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
   public readonly defaultQuery: Omit<AlarmsQuery, 'refId'>;
@@ -62,6 +62,13 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
   public async testDatasource(): Promise<TestDataSourceResponse> {
     await this.post(`${this.instanceSettings.url}${QUERY_ALARMS_RELATIVE_PATH}`, { take: 1 });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
+  }
+
+  public prepareVariableQuery(query: AlarmsVariableQuery): AlarmsVariableQuery {
+    return {
+      ...defaultListAlarmsVariableQuery,
+      ...query,
+    };
   }
 
   private getDefaultQueryBasedOnQueryType(): Omit<AlarmsQuery, 'refId'> {

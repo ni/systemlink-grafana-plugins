@@ -7,6 +7,7 @@ import { QueryType, AlarmsVariableQuery } from './types/types';
 import { AlarmsCountQueryHandler } from './query-type-handlers/alarms-count/AlarmsCountQueryHandler';
 import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
 import { ListAlarmsQueryHandler } from './query-type-handlers/list-alarms/ListAlarmsQueryHandler';
+import { defaultListAlarmsVariableQuery } from './constants/DefaultQueries.constants';
 
 let datastore: AlarmsDataSource, backendServer: MockProxy<BackendSrv>;
 
@@ -136,6 +137,81 @@ describe('AlarmsDataSource', () => {
 
       expect(datastore.listAlarmsQueryHandler.metricFindQuery).toHaveBeenCalledWith(mockQuery, undefined);
       expect(result).toBe(mockResult);
+    });
+  });
+
+  describe('prepareVariableQuery', () => {
+    it('should return default variable query when input query is empty', () => {
+      const inputQuery: AlarmsVariableQuery = { refId: 'A' };
+
+      const result = datastore.prepareVariableQuery(inputQuery);
+
+      expect(result).toEqual({
+        ...defaultListAlarmsVariableQuery,
+        refId: 'A'
+      });
+    });
+
+    it('should preserve refId from input query', () => {
+      const inputQuery: AlarmsVariableQuery = { refId: 'B' };
+  
+      const result = datastore.prepareVariableQuery(inputQuery);
+  
+      expect(result.refId).toBe('B');
+      expect(result).toEqual({
+        ...defaultListAlarmsVariableQuery,
+        refId: 'B'
+      });
+    });
+  
+    it('should merge input query properties with defaults', () => {
+      const inputQuery: AlarmsVariableQuery = {
+        refId: 'A',
+        filter: 'custom filter',
+        take: 500
+      };
+  
+      const result = datastore.prepareVariableQuery(inputQuery);
+  
+      expect(result).toEqual({
+        ...defaultListAlarmsVariableQuery,
+        refId: 'A',
+        filter: 'custom filter',
+        take: 500
+      });
+    });
+  
+    it('should override default properties with input query properties', () => {
+      const inputQuery: AlarmsVariableQuery = {
+        refId: 'A',
+        descending: !defaultListAlarmsVariableQuery.descending, // Opposite of default
+        take: 999,
+        filter: 'override filter'
+      };
+  
+      const result = datastore.prepareVariableQuery(inputQuery);
+  
+      expect(result.descending).toBe(inputQuery.descending);
+      expect(result.take).toBe(inputQuery.take);
+      expect(result.filter).toBe(inputQuery.filter);
+      expect(result.refId).toBe(inputQuery.refId);
+    });
+  
+    it('should handle partial input query', () => {
+      const inputQuery: AlarmsVariableQuery = {
+        refId: 'C',
+        filter: 'partial query'
+      };
+  
+      const result = datastore.prepareVariableQuery(inputQuery);
+  
+      expect(result).toEqual({
+        ...defaultListAlarmsVariableQuery,
+        refId: 'C',
+        filter: 'partial query'
+      });
+      expect(result.take).toBe(defaultListAlarmsVariableQuery.take);
+      expect(result.descending).toBe(defaultListAlarmsVariableQuery.descending);
     });
   });
 
