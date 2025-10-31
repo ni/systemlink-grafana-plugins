@@ -21,8 +21,8 @@ export class WorkspaceDataSource extends DataSourceBase<WorkspaceQuery, DataSour
     return { fields: this.workspacesToFields( await this.getWorkspaces()) };
   }
 
-  shouldRunQuery(): boolean {
-    return true;
+  shouldRunQuery(query: WorkspaceQuery): boolean {
+    return !query.hide;
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

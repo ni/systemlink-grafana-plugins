@@ -539,6 +539,15 @@ describe('QueryResultsDataSource', () => {
         ]);
     });
 
+    test('should not run query if hidden', () => {
+      const query: QueryResults = {
+          hide: true,
+          refId: '',
+          outputType: OutputType.Data
+      };
+      expect(datastore.shouldRunQuery(query)).toBe(false);
+    });
+
     describe('Dependencies', () => {
     afterEach(() => {
       (ResultsDataSourceBase as any)._partNumbersCache = null;
