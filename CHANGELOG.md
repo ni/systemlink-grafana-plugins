@@ -1,3 +1,9 @@
+## [4.39.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.39.0...v4.39.1) (2025-10-31)
+
+### Bug Fixes
+
+* **alarms:** prepareVariableQuery for Alarms Variable Query Editor ([#486](https://github.com/ni/systemlink-grafana-plugins/issues/486)) ([abb666b](https://github.com/ni/systemlink-grafana-plugins/commit/abb666b52c3b794778aeeb526e9e9d6a29855145))
+
 ## [4.39.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.38.1...v4.39.0) (2025-10-31)
 
 ### Features
