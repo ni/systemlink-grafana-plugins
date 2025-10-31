@@ -8,7 +8,7 @@ import { Alarm } from 'datasources/alarms/types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { User } from 'shared/types/QueryUsers.types';
 import { UsersUtils } from 'shared/users.utils';
-import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from 'datasources/alarms/constants/SourceProperties.constants';
+import { MINION_ID_CUSTOM_PROPERTY, PROPERTY_PREFIX_TO_EXCLUDE, SYSTEM_CUSTOM_PROPERTY } from 'datasources/alarms/constants/AlarmProperties.constants';
 
 export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultListAlarmsQuery;
@@ -106,7 +106,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     const mappedFields = properties.map(property => {
       const field = AlarmsPropertiesOptions[property];
       const fieldName = field.label;
-      const fieldValue = field.value as keyof Alarm;
+      const fieldValue = field.value;
       const fieldType = this.isTimeField(fieldValue) ? FieldType.time : FieldType.string;
 
       const fieldValues = alarms.map(alarm => {
@@ -121,16 +121,19 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
           case AlarmsProperties.properties:
             return this.getSortedCustomProperties(alarm.properties);
           case AlarmsProperties.highestSeverityLevel:
+            return this.getSeverityLabel(alarm.highestSeverityLevel);
           case AlarmsProperties.currentSeverityLevel:
-            return this.getSeverityLabel(alarm[fieldValue] as number);
+            return this.getSeverityLabel(alarm.currentSeverityLevel);
           case AlarmsProperties.state:
             return this.getAlarmState(alarm.clear, alarm.acknowledged);
           case AlarmsProperties.source:
             return this.getSource(alarm.properties);
           default:
-            return fieldType === FieldType.time
-              ? alarm[fieldValue] ?? null
-              : alarm[fieldValue] ?? '';
+            const value = alarm[fieldValue as keyof Alarm];
+            if (fieldType === FieldType.time) {
+              return value ?? null;
+            }
+            return value ?? '';
         }
       });
       return { name: fieldName, values: fieldValues, type: fieldType };
@@ -145,8 +148,8 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     }
 
     const filteredEntries = Object.entries(properties)
-    .filter(([key]) => !key.startsWith('nitag'))
-    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB));
+      .filter(([key]) => !key.startsWith(PROPERTY_PREFIX_TO_EXCLUDE))
+      .sort(([keyA], [keyB]) => keyA.localeCompare(keyB));
   
     const sortedProperties = Object.fromEntries(filteredEntries);
     
@@ -156,13 +159,13 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   private getSeverityLabel(severityLevel: number): string {
     switch (severityLevel) {
       case -1:
-        return `Clear`;
+        return 'Clear';
       case 1:
-        return `Low (1)`;
+        return 'Low (1)';
       case 2:
-        return `Moderate (2)`;
+        return 'Moderate (2)';
       case 3:
-        return `High (3)`;
+        return 'High (3)';
       default:
         if (severityLevel >= 4) {
           return `Critical (${severityLevel})`;

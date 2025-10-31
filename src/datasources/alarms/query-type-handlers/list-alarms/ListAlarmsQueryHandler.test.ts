@@ -90,6 +90,14 @@ const workspaces: Workspace[] = [
   { id: 'Workspace2', name: 'Another Workspace Name', default: false, enabled: true  },
 ];
 
+function buildAlarmsResponse(alarms: Array<Partial<Alarm>>): Alarm[] {
+  return alarms.map((partialAlarm, index) => ({
+      ...sampleAlarm,
+      instanceId: `INST-${String(index + 1).padStart(3, '0')}`,
+      ...partialAlarm,
+    }));
+  }
+
 describe('ListAlarmsQueryHandler', () => {
   let query: ListAlarmsQuery;
   let options: DataQueryRequest;
@@ -137,7 +145,7 @@ describe('ListAlarmsQueryHandler', () => {
 
     it('should pass the transformed filter to the API', async () => {
       jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
-      const filterQuery = { refId: 'A', filter: 'acknowledgedAt > "${__now:date}"' };
+      const filterQuery = { refId: 'A', filter: 'acknowledgedAt > "${__now:date}"'};
 
       await datastore.runQuery(filterQuery, options);
 
@@ -153,7 +161,7 @@ describe('ListAlarmsQueryHandler', () => {
     });
 
     describe('Properties Mapping', () => {
-      it('should return empty fields when properties is an empty array', async () => {
+      it('should return empty fields when properties is invalid', async () => {
         const query = {
           refId: 'A',
           properties: [],
@@ -170,8 +178,9 @@ describe('ListAlarmsQueryHandler', () => {
           properties: [AlarmsProperties.acknowledged],
           filter: 'some-filter',
         };
-
-        jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce([]);
+        jest
+          .spyOn(datastore as any, 'queryAlarmsInBatches')
+          .mockResolvedValueOnce([]);
         const result = await datastore.runQuery(query, options);
 
         expect(result).toEqual({
@@ -186,16 +195,28 @@ describe('ListAlarmsQueryHandler', () => {
           refId: 'A',
           properties: [AlarmsProperties.workspace],
         };
-
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
-          .mockResolvedValueOnce([{ workspace: 'Workspace1' }, { workspace: 'Workspace2' }, { workspace: '1' }]);
+          .mockResolvedValueOnce(
+            buildAlarmsResponse([
+              { workspace: 'Workspace1' },
+              { workspace: 'Workspace2' },
+              { workspace: 'Unknown Workspace' },
+            ])
+          );
+
         const result = await datastore.runQuery(query, options);
 
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
-          fields: [{ name: 'Workspace', type: 'string', values: ['Workspace Name', 'Another Workspace Name', '1'] }],
+          fields: [
+            {
+              name: 'Workspace',
+              type: 'string',
+              values: ['Workspace Name', 'Another Workspace Name', 'Unknown Workspace'],
+            },
+          ],
         });
       });
 
@@ -204,10 +225,15 @@ describe('ListAlarmsQueryHandler', () => {
           refId: 'A',
           properties: [AlarmsProperties.acknowledgedBy],
         };
-
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
-          .mockResolvedValueOnce([{ acknowledgedBy: 'user1@123.com' }, { acknowledgedBy: 'unknownUserID' }]);
+          .mockResolvedValueOnce(
+            buildAlarmsResponse([
+              { acknowledgedBy: 'user1@123.com' },
+              { acknowledgedBy: 'unknownUserID' }
+            ])
+          );
+
         const result = await datastore.runQuery(query, options);
 
         expect(result).toEqual({
@@ -217,37 +243,22 @@ describe('ListAlarmsQueryHandler', () => {
         });
       });
 
-      it('should display the userId from response if user full name is not found', async () => {
-        const query = {
-          refId: 'A',
-          properties: [AlarmsProperties.acknowledgedBy],
-        };
-
-        jest
-          .spyOn(datastore as any, 'queryAlarmsInBatches')
-          .mockResolvedValueOnce([{ acknowledgedBy: ['1'] }, { acknowledgedBy: ['2'] }]);
-        const result = await datastore.runQuery(query, options);
-
-        expect(result).toEqual({
-          refId: 'A',
-          name: 'A',
-          fields: [{ name: 'Acknowledged by', type: 'string', values: [['1'], ['2']] }],
-        });
-      });
-
-      it('should map and sort and remove properties from custom properties to fields correctly', async () => {
+      it('should map and sort the custom properties field', async () => {
         const query = {
           refId: 'A',
           properties: [AlarmsProperties.properties],
         };
-
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
-          .mockResolvedValueOnce([
-            { properties: { zProp: 'valueZ', aProp: 'valueA' } },
-            { properties: { bProp: 'valueB', aProp: 'valueA2' } },
-          ]);
+          .mockResolvedValueOnce(
+            buildAlarmsResponse([
+              { properties: { zProp: 'valueZ', aProp: 'valueA' } },
+              { properties: { bProp: 'valueB', aProp: 'valueA2' } },
+            ])
+          );
+
         const result = await datastore.runQuery(query, options);
+
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
@@ -261,18 +272,22 @@ describe('ListAlarmsQueryHandler', () => {
         });
       });
 
-      it('should remove any custom properties that are starting with nitag from properties field', async () => {
+      it('should remove any custom properties that starts with nitag', async () => {
         const query = {
           refId: 'A',
           properties: [AlarmsProperties.properties],
         };
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
-          .mockResolvedValueOnce([
-            { properties: { nitag_internal: 'secret', normalProp: 'value1' } },
-            { properties: { anotherProp: 'value2', nitag_flag: 'true' } },
-          ]);
+          .mockResolvedValueOnce(
+            buildAlarmsResponse([
+              { properties: { nitag_internal: 'secret', normalProp: 'value1' } },
+              { properties: { anotherProp: 'value2', nitag_flag: 'true' } },
+            ])
+          );
+
         const result = await datastore.runQuery(query, options);
+
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
@@ -293,8 +308,15 @@ describe('ListAlarmsQueryHandler', () => {
         };
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
-          .mockResolvedValueOnce([{ properties: {} }, { properties: {} }]);
+          .mockResolvedValueOnce(
+            buildAlarmsResponse([
+              { properties: {} },
+              { properties: {} },
+            ])
+          );
+
         const result = await datastore.runQuery(query, options);
+
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
@@ -313,13 +335,23 @@ describe('ListAlarmsQueryHandler', () => {
           refId: 'A',
           properties: [AlarmsProperties.highestSeverityLevel, AlarmsProperties.currentSeverityLevel],
         };
-        jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce([
-          { highestSeverityLevel: 5, currentSeverityLevel: -1 },
-          { highestSeverityLevel: 4, currentSeverityLevel: 3 },
-          { highestSeverityLevel: 2, currentSeverityLevel: 1 },
-          { highestSeverityLevel: 99, currentSeverityLevel: -2 },
-        ]);
+        jest
+        .spyOn(datastore as any, 'queryAlarmsInBatches')
+        .mockResolvedValueOnce(
+          buildAlarmsResponse([
+            { highestSeverityLevel: -1, currentSeverityLevel: 100 },
+            { highestSeverityLevel: 4, currentSeverityLevel: -1 },
+            { highestSeverityLevel: 3, currentSeverityLevel: 0 },
+            { highestSeverityLevel: 2, currentSeverityLevel: 1 },
+            { highestSeverityLevel: 1, currentSeverityLevel: 2 },
+            { highestSeverityLevel: 0, currentSeverityLevel: 3 },
+            { highestSeverityLevel: -5, currentSeverityLevel: 4 },
+            { highestSeverityLevel: 99, currentSeverityLevel: 5 },
+          ])
+        );
+
         const result = await datastore.runQuery(query, options);
+
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
@@ -327,12 +359,30 @@ describe('ListAlarmsQueryHandler', () => {
             {
               name: 'Highest severity',
               type: 'string',
-              values: ['Critical (5)', 'Critical (4)', 'Moderate (2)', 'Critical (99)'],
+              values: [
+                'Clear',
+                'Critical (4)',
+                'High (3)',
+                'Moderate (2)',
+                'Low (1)',
+                '',
+                '',
+                'Critical (99)',
+              ],
             },
             {
               name: 'Current severity',
               type: 'string',
-              values: ['Clear', 'High (3)', 'Low (1)', ''],
+              values: [
+                'Critical (100)',
+                'Clear',
+                '',
+                'Low (1)',
+                'Moderate (2)',
+                'High (3)',
+                'Critical (4)',
+                'Critical (5)',
+              ],
             },
           ],
         });
@@ -343,13 +393,19 @@ describe('ListAlarmsQueryHandler', () => {
           refId: 'A',
           properties: [AlarmsProperties.state],
         };
-        jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce([
-          { clear: true, acknowledged: false },
-          { clear: false, acknowledged: true },
-          { clear: false, acknowledged: false },
-          { clear: true, acknowledged: true },
-        ]);
+        jest
+        .spyOn(datastore as any, 'queryAlarmsInBatches')
+        .mockResolvedValueOnce(
+          buildAlarmsResponse([
+            { clear: true, acknowledged: false },
+            { clear: false, acknowledged: true },
+            { clear: false, acknowledged: false },
+            { clear: true, acknowledged: true },
+          ])
+        );
+
         const result = await datastore.runQuery(query, options);
+
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
@@ -369,14 +425,18 @@ describe('ListAlarmsQueryHandler', () => {
           properties: [AlarmsProperties.source],
         };
         jest
-          .spyOn(datastore as any, 'queryAlarmsInBatches')
-          .mockResolvedValueOnce([
+        .spyOn(datastore as any, 'queryAlarmsInBatches')
+        .mockResolvedValueOnce(
+          buildAlarmsResponse([
             { properties: { system: 'Sensor A' } },
             { properties: { minionId: 'Minion-42' } },
             { properties: { system: 'Sensor B', minionId: 'Minion-43' } },
             { properties: { otherProp: 'value' } },
-          ]);
+          ])
+        );
+
         const result = await datastore.runQuery(query, options);
+
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
@@ -401,22 +461,33 @@ describe('ListAlarmsQueryHandler', () => {
             AlarmsProperties.mostRecentTransitionOccurredAt,
           ],
         };
-        jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce([
-          {
-            occurredAt: '2019-05-20T09:00:00Z',
-            acknowledgedAt: '2021-11-20T10:30:00Z',
-            mostRecentSetOccurredAt: '2001-09-09T09:00:00Z',
-            mostRecentTransitionOccurredAt: '2001-04-22T23:59:59Z',
-            updatedAt: '2025-10-31T23:59:59Z',
-          },
-          {
-            occurredAt: null,
-            acknowledgedAt: undefined,
-            mostRecentSetOccurredAt: null,
-            mostRecentTransitionOccurredAt: undefined,
-            updatedAt: null,
-          },
-        ]);
+        jest
+        .spyOn(datastore as any, 'queryAlarmsInBatches')
+        .mockResolvedValueOnce(
+          buildAlarmsResponse([
+            {
+              occurredAt: '2019-05-20T09:00:00Z',
+              acknowledgedAt: '2021-11-20T10:30:00Z',
+              mostRecentSetOccurredAt: '2001-09-09T09:00:00Z',
+              mostRecentTransitionOccurredAt: '2001-04-22T23:59:59Z',
+              updatedAt: '2025-10-31T23:59:59Z',
+            },
+            {
+              occurredAt: undefined,
+              acknowledgedAt: null, //nullable field
+              mostRecentSetOccurredAt: null, //nullable field
+              mostRecentTransitionOccurredAt: null, //nullable field
+              updatedAt: undefined,
+            },
+            {
+              occurredAt: undefined,
+              acknowledgedAt: undefined,
+              mostRecentSetOccurredAt: undefined,
+              mostRecentTransitionOccurredAt: undefined,
+              updatedAt: undefined,
+            },
+          ])
+        );
 
         const result = await datastore.runQuery(query, options);
 
@@ -427,27 +498,27 @@ describe('ListAlarmsQueryHandler', () => {
             {
               name: 'First occurrence',
               type: 'time',
-              values: ['2019-05-20T09:00:00Z', null],
+              values: ['2019-05-20T09:00:00Z', null, null],
             },
             {
               name: 'Acknowledged on',
               type: 'time',
-              values: ['2021-11-20T10:30:00Z', null],
+              values: ['2021-11-20T10:30:00Z', null, null],
             },
             {
               name: 'Updated',
               type: 'time',
-              values: ['2025-10-31T23:59:59Z', null],
+              values: ['2025-10-31T23:59:59Z', null, null],
             },
             {
               name: 'Last occurrence',
               type: 'time',
-              values: ['2001-09-09T09:00:00Z', null],
+              values: ['2001-09-09T09:00:00Z', null, null],
             },
             {
               name: 'Last transition occurrence',
               type: 'time',
-              values: ['2001-04-22T23:59:59Z', null],
+              values: ['2001-04-22T23:59:59Z', null, null],
             },
           ],
         });
@@ -459,13 +530,17 @@ describe('ListAlarmsQueryHandler', () => {
           properties: [AlarmsProperties.keywords],
         };
         jest
-          .spyOn(datastore as any, 'queryAlarmsInBatches')
-          .mockResolvedValueOnce([
+        .spyOn(datastore as any, 'queryAlarmsInBatches')
+        .mockResolvedValueOnce(
+          buildAlarmsResponse([
             { keywords: ['temperature', 'high'] },
             { keywords: ['pressure'] },
             { keywords: [] },
-          ]);
+          ])
+        );
+
         const result = await datastore.runQuery(query, options);
+
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
@@ -488,11 +563,14 @@ describe('ListAlarmsQueryHandler', () => {
           refId: 'A',
           properties: [AlarmsProperties.clear, AlarmsProperties.acknowledged, AlarmsProperties.active]
         };
-
-        jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce([
-          { clear: true, acknowledged: false, active: true },
-          { clear: false, acknowledged: true, active: false },
-        ]);
+        jest
+        .spyOn(datastore as any, 'queryAlarmsInBatches')
+        .mockResolvedValueOnce(
+          buildAlarmsResponse([
+            { clear: true, acknowledged: false, active: true },
+            { clear: false, acknowledged: true, active: false },
+          ])
+        );
 
         const result = await datastore.runQuery(query, options);
 
@@ -534,31 +612,34 @@ describe('ListAlarmsQueryHandler', () => {
             AlarmsProperties.transitionOverflowCount,
           ],
         };
-
-        jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce([
-          {
-            channel: 'Main',
-            alarmId: 'ALARM-001',
-            condition: 'Temperature',
-            createdBy: 'admin',
-            description: 'High temperature detected',
-            displayName: 'Temperature Alarm',
-            instanceId: 'INST-001',
-            resourceType: 'sensor',
-            transitionOverflowCount: 5,
-          },
-          {
-          channel: null,
-          alarmId: undefined,
-          condition: '',
-          createdBy: null,
-          description: undefined,
-          displayName: '',
-          instanceId: null,
-          resourceType: undefined,
-          transitionOverflowCount: 0,
-        },
-        ]);
+        jest
+        .spyOn(datastore as any, 'queryAlarmsInBatches')
+        .mockResolvedValueOnce(
+          buildAlarmsResponse([
+            {
+              channel: 'Main',
+              alarmId: 'ALARM-001',
+              condition: 'Temperature',
+              createdBy: 'admin',
+              description: 'High temperature detected',
+              displayName: 'Temperature Alarm',
+              instanceId: 'INST-001',
+              resourceType: 'sensor',
+              transitionOverflowCount: 5,
+            },
+            {
+              channel: undefined,
+              alarmId: undefined,
+              condition: '',
+              createdBy: undefined,
+              description: undefined,
+              displayName: '',
+              instanceId: undefined,
+              resourceType: undefined,
+              transitionOverflowCount: 0,
+            },
+          ])
+        );
 
         const result = await datastore.runQuery(query, options);
 
