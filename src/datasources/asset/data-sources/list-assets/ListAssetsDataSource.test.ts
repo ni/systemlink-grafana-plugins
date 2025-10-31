@@ -110,7 +110,7 @@ describe('List assets location queries', () => {
 
         expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
             expect.objectContaining({
-                filter: "string.IsNullOrEmpty(Location.MinionId) && string.IsNullOrEmpty(Location.PhysicalLocation)"
+                filter: "(string.IsNullOrEmpty(Location.MinionId) && string.IsNullOrEmpty(Location.PhysicalLocation))"
             })
         );
     });
@@ -127,7 +127,7 @@ describe('List assets location queries', () => {
 
         expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
             expect.objectContaining({
-                filter: "!string.IsNullOrEmpty(Location.MinionId) || !string.IsNullOrEmpty(Location.PhysicalLocation)"
+                filter: "(!string.IsNullOrEmpty(Location.MinionId) || !string.IsNullOrEmpty(Location.PhysicalLocation))"
             })
         );
     });
@@ -190,6 +190,154 @@ describe('List assets location queries', () => {
         );
     });
 });
+
+describe('List assets "contains" queries', () => {
+    let processlistAssetsQuerySpy: jest.SpyInstance;
+
+    beforeEach(() => {
+        processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery').mockImplementation();
+    });
+
+    describe('should transform single values for', () => {
+        test('ModelName, Name, VendorName field with single value', async () => {
+            const query = buildListAssetsQuery({
+                refId: '',
+                type: AssetQueryType.ListAssets,
+                outputType: OutputType.Properties,
+                filter: `${ListAssetsFieldNames.MODEL_NAME}.Contains("ModelName1") && ${ListAssetsFieldNames.ASSET_NAME}.Contains("AssetName1") && ${ListAssetsFieldNames.VENDOR_NAME}.Contains("VendorName1")`,
+            });
+
+            await datastore.query(query);
+
+            expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: "ModelName.Contains(\"ModelName1\") && AssetName.Contains(\"AssetName1\") && VendorName.Contains(\"VendorName1\")"
+                }),
+            );
+        });
+
+        test('ModelName, Name, VendorName field with single value negated', async () => {
+            const query = buildListAssetsQuery({
+                refId: '',
+                type: AssetQueryType.ListAssets,
+                outputType: OutputType.Properties,
+                filter: `!(${ListAssetsFieldNames.MODEL_NAME}.Contains("ModelName1")) && !(${ListAssetsFieldNames.ASSET_NAME}.Contains("AssetName1")) && !(${ListAssetsFieldNames.VENDOR_NAME}.Contains("VendorName1"))`,
+            });
+
+            await datastore.query(query);
+
+            expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: "!(ModelName.Contains(\"ModelName1\")) && !(AssetName.Contains(\"AssetName1\")) && !(VendorName.Contains(\"VendorName1\"))"
+                }),
+            );
+        });
+    });
+    
+    describe('should transform multiple values for', () => {
+        test('VendorName field', async () => {
+            const query = buildListAssetsQuery({
+                refId: '',
+                type: AssetQueryType.ListAssets,
+                outputType: OutputType.Properties,
+                filter: `${ListAssetsFieldNames.VENDOR_NAME}.Contains("{VendorName1,VendorName2}")`,
+            });
+
+            await datastore.query(query);
+
+            expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: "(VendorName.Contains(\"VendorName1\") || VendorName.Contains(\"VendorName2\"))"
+                }),
+            );
+        });
+
+        test('VendorName field negated', async () => {
+            const query = buildListAssetsQuery({
+                refId: '',
+                type: AssetQueryType.ListAssets,
+                outputType: OutputType.Properties,
+                filter: `!(${ListAssetsFieldNames.VENDOR_NAME}.Contains("{VendorName1,VendorName2}"))`,
+            });
+
+            await datastore.query(query);
+
+            expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: "(!(VendorName.Contains(\"VendorName1\")) && !(VendorName.Contains(\"VendorName2\")))"
+                }),
+            );
+        });
+
+        test('ModelName field', async () => {
+            const query = buildListAssetsQuery({
+                refId: '',
+                type: AssetQueryType.ListAssets,
+                outputType: OutputType.Properties,
+                filter: `${ListAssetsFieldNames.MODEL_NAME}.Contains("{ModelName1,ModelName2}")`,
+            });
+
+            await datastore.query(query);
+
+            expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: "(ModelName.Contains(\"ModelName1\") || ModelName.Contains(\"ModelName2\"))"
+                }),
+            );
+        });
+
+        test('ModelName field negated', async () => {
+            const query = buildListAssetsQuery({
+                refId: '',
+                type: AssetQueryType.ListAssets,
+                outputType: OutputType.Properties,
+                filter: `!(${ListAssetsFieldNames.MODEL_NAME}.Contains("{ModelName1,ModelName2}"))`,
+            });
+
+            await datastore.query(query);
+
+            expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: "(!(ModelName.Contains(\"ModelName1\")) && !(ModelName.Contains(\"ModelName2\")))"
+                }),
+            );
+        });
+
+        test('AssetName field', async () => {
+            const query = buildListAssetsQuery({
+                refId: '',
+                type: AssetQueryType.ListAssets,
+                outputType: OutputType.Properties,
+                filter: `${ListAssetsFieldNames.ASSET_NAME}.Contains("{AssetName1,AssetName2}")`,
+            });
+
+            await datastore.query(query);
+
+            expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: "(AssetName.Contains(\"AssetName1\") || AssetName.Contains(\"AssetName2\"))"
+                }),
+            );
+        });
+
+        test('AssetName negated', async () => {
+            const query = buildListAssetsQuery({
+                refId: '',
+                type: AssetQueryType.ListAssets,
+                outputType: OutputType.Properties,
+                filter: `!(${ListAssetsFieldNames.ASSET_NAME}.Contains("{AssetName1,AssetName2}"))`,
+            });
+
+            await datastore.query(query);
+
+            expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: "(!(AssetName.Contains(\"AssetName1\")) && !(AssetName.Contains(\"AssetName2\")))"
+                }),
+            );
+        });
+    });
+})
 
 describe('shouldRunQuery', () => {
     test('should not process query for hidden queries', async () => {

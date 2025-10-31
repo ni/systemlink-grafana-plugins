@@ -5,7 +5,7 @@ import { defaultOrderBy, defaultProjection } from "../../system/constants";
 import { SystemProperties } from "../../system/types";
 import { parseErrorMessage } from "../../../core/errors";
 import { QueryBuilderOption, Workspace } from "../../../core/types";
-import { buildExpressionFromTemplate, ExpressionTransformFunction } from "../../../core/query-builder.utils";
+import { buildExpressionFromTemplate, ExpressionTransformFunction, getConcatOperatorForMultiExpression } from "../../../core/query-builder.utils";
 import { QueryBuilderOperations } from "../../../core/query-builder.constants";
 import { AllFieldNames, LocationFieldNames } from "../constants/constants";
 import { getVariableOptions } from "core/utils";
@@ -132,17 +132,65 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
   ]);
 
   public readonly assetComputedDataFields = new Map<string, ExpressionTransformFunction>([
-    ...Object.values(AllFieldNames).map(field => [field, this.multipleValuesQuery(field)] as [string, ExpressionTransformFunction]),
-    [
+    ...this.getDefaultComputedDataFields(),
+    this.getOverrideLocationComputedField(),
+    this.getOverrideCalibrationDueDateComputedField(),
+  ]);
+
+  /**
+   * @returns Gathers all fields and applies the default transformation algorithm based on the operation type
+   */
+  private getDefaultComputedDataFields(): Array<[string, ExpressionTransformFunction]> {
+    return [...Object.values(AllFieldNames).map(field => [field, this.getDefaultComputedField(field)] as [string, ExpressionTransformFunction])];
+  }
+
+  private getDefaultComputedField(field: string): ExpressionTransformFunction {
+    return (value: string, operation: string, _options?: Map<string, unknown>) => {
+      switch (operation) {
+        case QueryBuilderOperations.CONTAINS.name:
+        case QueryBuilderOperations.DOES_NOT_CONTAIN.name:
+          return this.handleContainsExpression(field, value, operation);
+        default:
+          return this.multipleValuesQuery(field)(value, operation, _options);
+      }
+    }
+  }
+
+  private handleContainsExpression(field: string, value: string, operation: string): string {
+    let values = [value];
+    const containsExpressionTemplate = this.getContainsExpressionTemplate(operation);
+    
+    if (this.isMultiSelectValue(value)) {
+      values = this.getMultipleValuesArray(value);
+    }
+
+    if (values.length > 1) {
+      const expression = 
+        values
+          .map(val => buildExpressionFromTemplate(containsExpressionTemplate, field, val))
+          .join(` ${getConcatOperatorForMultiExpression(operation)} `);
+      
+      return `(${expression})`;
+    }
+
+    return buildExpressionFromTemplate(containsExpressionTemplate, field, values[0])!;
+  }
+
+  /**
+   * @returns Overrides the Location field algorithm to handle transformation for blank expressions, multi-select, 
+   * and determining whether the value is a system or location
+   */
+  private getOverrideLocationComputedField(): [string, ExpressionTransformFunction] {
+    return [
       AllFieldNames.LOCATION,
       (value: string, operation: string, options?: Map<string, unknown>) => {
         let values = [value];
 
-        const blankExpressionTemplate = this.getBlankExpressionTemplate(operation);        
+        const blankExpressionTemplate = this.getBlankExpressionTemplate(operation);
         if (blankExpressionTemplate) {
           const minionIdExpression = buildExpressionFromTemplate(blankExpressionTemplate, LocationFieldNames.MINION_ID);
           const physicalLocationExpression = buildExpressionFromTemplate(blankExpressionTemplate, LocationFieldNames.PHYSICAL_LOCATION);
-          return `${minionIdExpression} ${this.getLocicalOperator(operation)} ${physicalLocationExpression}`;
+          return `(${minionIdExpression} ${getConcatOperatorForMultiExpression(operation)} ${physicalLocationExpression})`;
         }
 
         if (this.isMultiSelectValue(value)) {
@@ -150,7 +198,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
         }
 
         if (values.length > 1) {
-          return `(${values.map(val => `${LocationFieldNames.MINION_ID} ${operation} "${val}"`).join(` ${this.getLocicalOperator(operation)} `)})`;
+          return `(${values.map(val => `${LocationFieldNames.MINION_ID} ${operation} "${val}"`).join(` ${getConcatOperatorForMultiExpression(operation)} `)})`;
         }
 
         if (this.systemAliasCache?.has(value)) {
@@ -161,26 +209,33 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
           return `${LocationFieldNames.PHYSICAL_LOCATION} ${operation} "${value}"`
         }
 
-        return `Locations.Any(l => l.MinionId ${operation} "${value}" ${this.getLocicalOperator(operation)} l.PhysicalLocation ${operation} "${value}")`;
-    }],
-    [
+        return `Locations.Any(l => l.MinionId ${operation} "${value}" ${getConcatOperatorForMultiExpression(operation)} l.PhysicalLocation ${operation} "${value}")`;
+      }
+    ]
+  }
+
+  /**
+   * @returns Overrides the Calibration Due date computed field to handle the Grafana built-in date variables
+   */
+  private getOverrideCalibrationDueDateComputedField(): [string, ExpressionTransformFunction] {
+    return [
       AllFieldNames.CALIBRATION_DUE_DATE,
-      (value: string, operation: string, options?: Map<string, unknown>) =>
-      {
-        if (value === '${__now:date}' )
-        {
+      (value: string, operation: string, options?: Map<string, unknown>) => {
+        if (value === '${__now:date}') {
           return `${AllFieldNames.CALIBRATION_DUE_DATE} ${operation} "${new Date().toISOString()}"`;
         }
 
         return `${AllFieldNames.CALIBRATION_DUE_DATE} ${operation} "${value}"`;
-      }]]);
+      }
+    ];
+  }
 
   protected multipleValuesQuery(field: string): ExpressionTransformFunction {
     return (value: string, operation: string, _options?: any) => {
       if (this.isMultiSelectValue(value)) {
         const query = this.getMultipleValuesArray(value)
           .map(val => `${field} ${operation} "${val}"`)
-          .join(` ${this.getLocicalOperator(operation)} `);
+          .join(` ${getConcatOperatorForMultiExpression(operation)} `);
         return `(${query})`;
       }
 
@@ -208,7 +263,15 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
     return undefined;
   }
 
-  private getLocicalOperator(operation: string): string {
-    return (operation === QueryBuilderOperations.EQUALS.name || operation === QueryBuilderOperations.IS_NOT_BLANK.name) ? '||' : '&&';
+  private getContainsExpressionTemplate(operation: string): string | undefined {
+    if (operation === QueryBuilderOperations.CONTAINS.name) {
+      return QueryBuilderOperations.CONTAINS.expressionTemplate;
+    }
+
+    if (operation === QueryBuilderOperations.DOES_NOT_CONTAIN.name) {
+      return QueryBuilderOperations.DOES_NOT_CONTAIN.expressionTemplate;
+    }
+
+    return undefined;
   }
 }

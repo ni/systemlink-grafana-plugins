@@ -52,6 +52,60 @@ describe('CalibrationForecastQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain("AssetIdentifier_123");
     })
 
+    it('should select asset name with contains in query builder', () => {
+      const { conditionsContainer } = renderElement([workspace], [system], [location], 'AssetName.Contains("Test_123")');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("Name");
+      expect(conditionsContainer.item(0)?.textContent).toContain("contains");
+      expect(conditionsContainer.item(0)?.textContent).toContain("Test_123");
+    });
+
+    it('should select asset vendor with contains in query builder', () => {
+      const { conditionsContainer } = renderElement([workspace], [system], [location], 'VendorName.Contains("VendorName_123")');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("Vendor Name");
+      expect(conditionsContainer.item(0)?.textContent).toContain("contains");
+      expect(conditionsContainer.item(0)?.textContent).toContain("VendorName_123");
+    });
+
+    it('should select asset model with contains in query builder', () => {
+      const { conditionsContainer } = renderElement([workspace], [system], [location], 'ModelName.Contains("ModelName_123")');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("Model Name");
+      expect(conditionsContainer.item(0)?.textContent).toContain("contains");
+      expect(conditionsContainer.item(0)?.textContent).toContain("ModelName_123");
+    });
+
+    it('should select asset name with does not containin query builder', () => {
+      const { conditionsContainer } = renderElement([workspace], [system], [location], '!(AssetName.Contains("Test_123"))');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("Name");
+      expect(conditionsContainer.item(0)?.textContent).toContain("does not contain");
+      expect(conditionsContainer.item(0)?.textContent).toContain("Test_123");
+    });
+
+    it('should select asset vendor with does not contain in query builder', () => {
+      const { conditionsContainer } = renderElement([workspace], [system], [location], '!(VendorName.Contains("VendorName_123"))');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("Vendor Name");
+      expect(conditionsContainer.item(0)?.textContent).toContain("does not contain");
+      expect(conditionsContainer.item(0)?.textContent).toContain("VendorName_123");
+    });
+
+    it('should select asset model with does not contain in query builder', () => {
+      const { conditionsContainer } = renderElement([workspace], [system], [location], '!(ModelName.Contains("ModelName_123"))');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("Model Name");
+      expect(conditionsContainer.item(0)?.textContent).toContain("does not contain");
+      expect(conditionsContainer.item(0)?.textContent).toContain("ModelName_123");
+    });
+
     it('should select system in query builder', () => {
       const { conditionsContainer } = renderElement([workspace], [system], [location], 'Location = "1"');
 

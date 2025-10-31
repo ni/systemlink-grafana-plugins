@@ -3,6 +3,7 @@ import { QBField } from "../types/CalibrationForecastQuery.types";
 import { AssetTypeOptions, BusTypeOptions } from "../types/types";
 
 export enum AssetCalibrationFieldNames {
+    ASSET_NAME = 'AssetName',
     ASSET_ID = 'AssetIdentifier',
     LOCATION = 'Location',
     WORKSPACE = 'Workspace',
@@ -20,6 +21,16 @@ export const AssetCalibrationFields: Record<string, QBField> = {
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name
+        ],
+    },
+    ASSET_NAME: {
+        label: 'Name',
+        dataField: AssetCalibrationFieldNames.ASSET_NAME,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name,
+            QueryBuilderOperations.CONTAINS.name,
+            QueryBuilderOperations.DOES_NOT_CONTAIN.name
         ],
     },
     LOCATION: {
@@ -51,7 +62,9 @@ export const AssetCalibrationFields: Record<string, QBField> = {
         dataField: AssetCalibrationFieldNames.MODEL_NAME,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
-            QueryBuilderOperations.DOES_NOT_EQUAL.name
+            QueryBuilderOperations.DOES_NOT_EQUAL.name,
+            QueryBuilderOperations.CONTAINS.name,
+            QueryBuilderOperations.DOES_NOT_CONTAIN.name
         ],
     },
     PART_NUMBER: {
@@ -67,7 +80,9 @@ export const AssetCalibrationFields: Record<string, QBField> = {
         dataField: AssetCalibrationFieldNames.VENDOR_NAME,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
-            QueryBuilderOperations.DOES_NOT_EQUAL.name
+            QueryBuilderOperations.DOES_NOT_EQUAL.name,
+            QueryBuilderOperations.CONTAINS.name,
+            QueryBuilderOperations.DOES_NOT_CONTAIN.name
         ],
     },
     BUS_TYPE: {
@@ -95,6 +110,7 @@ export const AssetCalibrationFields: Record<string, QBField> = {
 };
 
 export const AssetCalibrationStaticFields = [
+    AssetCalibrationFields.ASSET_NAME,
     AssetCalibrationFields.ASSET_ID,
     AssetCalibrationFields.MODEL_NAME,
     AssetCalibrationFields.VENDOR_NAME,
