@@ -207,7 +207,6 @@ describe('AlarmsDataSource', () => {
         refId: 'C',
         filter: 'partial query'
       });
-      
       expect(result.take).toBe(defaultListAlarmsVariableQuery.take);
       expect(result.descending).toBe(defaultListAlarmsVariableQuery.descending);
     });

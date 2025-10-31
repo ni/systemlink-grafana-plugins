@@ -10,7 +10,10 @@ import { defaultListAlarmsVariableQuery } from '../constants/DefaultQueries.cons
 const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
-  prepareVariableQuery: jest.fn((query: AlarmsVariableQuery) => ({ ...defaultListAlarmsVariableQuery, ...query })),
+  prepareVariableQuery: jest.fn((query: AlarmsVariableQuery) => ({
+    ...defaultListAlarmsVariableQuery,
+    ...query
+  })),
   listAlarmsQueryHandler: {
     loadWorkspaces: jest.fn().mockResolvedValue(
       new Map([
