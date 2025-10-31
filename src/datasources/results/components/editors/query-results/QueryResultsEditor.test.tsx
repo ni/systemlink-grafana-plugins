@@ -9,7 +9,7 @@ import { Workspace } from 'core/types';
 import { recordCountErrorMessages } from 'datasources/results/constants/ResultsQueryEditor.constants';
 import { ResultsProperties } from 'datasources/results/types/QueryResults.types';
 
-jest.mock('../../query-builders/query-results/ResultsQueryBuilder', () => ({
+jest.mock('shared/components/ResultsQueryBuilder/ResultsQueryBuilder', () => ({
   ResultsQueryBuilder: jest.fn(({ filter, partNumbers, workspaces, status, globalVariableOptions, onChange }) => {
     return (
       <div data-testid="results-query-builder">

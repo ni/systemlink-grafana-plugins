@@ -5,7 +5,7 @@ import {
   ResultsVariableQuery,
   StepsVariableQuery,
 } from 'datasources/results/types/QueryResults.types';
-import { ResultsQueryBuilder } from '../query-builders/query-results/ResultsQueryBuilder';
+import { ResultsQueryBuilder } from 'shared/components/ResultsQueryBuilder/ResultsQueryBuilder';
 import { AutoSizeInput, InlineField, RadioButtonGroup, Select } from '@grafana/ui';
 import { Workspace } from 'core/types';
 import { enumToOptions, validateNumericInput } from 'core/utils';

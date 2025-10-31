@@ -62,7 +62,7 @@ class FakeResultsDataSource extends ResultsDataSource {
   }
 }
 
-jest.mock('../query-builders/query-results/ResultsQueryBuilder', () => ({
+jest.mock('shared/components/ResultsQueryBuilder/ResultsQueryBuilder', () => ({
   ResultsQueryBuilder: jest.fn(({ workspaces, partNumber }) => {
     return (
       <div data-testid="results-query-builder">

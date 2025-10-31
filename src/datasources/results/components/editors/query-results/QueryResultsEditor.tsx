@@ -7,7 +7,7 @@ import { OutputType, TestMeasurementStatus } from 'datasources/results/types/typ
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
 import { Workspace } from 'core/types';
 import { QueryResultsDataSource } from 'datasources/results/query-handlers/query-results/QueryResultsDataSource';
-import { ResultsQueryBuilder } from '../../query-builders/query-results/ResultsQueryBuilder';
+import { ResultsQueryBuilder } from 'shared/components/ResultsQueryBuilder/ResultsQueryBuilder';
 import { FloatingError } from 'core/errors';
 import { TAKE_LIMIT } from 'datasources/test-plans/constants/QueryEditor.constants';
 import { recordCountErrorMessages } from 'datasources/results/constants/ResultsQueryEditor.constants';
