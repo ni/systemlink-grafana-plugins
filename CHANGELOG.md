@@ -1,3 +1,9 @@
+## [4.38.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.38.0...v4.38.1) (2025-10-31)
+
+### Bug Fixes
+
+* **tags:** fix repeat values for tags datasource ([#484](https://github.com/ni/systemlink-grafana-plugins/issues/484)) ([118bc8f](https://github.com/ni/systemlink-grafana-plugins/commit/118bc8f24a8d005d96d93acf8d1cef2745faffce))
+
 ## [4.38.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.37.0...v4.38.0) (2025-10-30)
 
 ### Features
