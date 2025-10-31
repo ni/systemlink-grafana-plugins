@@ -24,9 +24,10 @@ describe('SlQueryBuilder', () => {
     fields: QueryBuilderField[] = [],
     messages: any = {},
     value = '',
-    onChange = jest.fn()
+    onChange = jest.fn(),
+    disabled?: boolean
   ) {
-    const reactNode = React.createElement(SlQueryBuilder, { value, customOperations, fields, messages, onChange });
+    const reactNode = React.createElement(SlQueryBuilder, { value, customOperations, fields, messages, onChange, disabled });
     const renderResult = render(reactNode);
 
     return {
@@ -58,5 +59,32 @@ describe('SlQueryBuilder', () => {
     const queryBuilderFieldLabels = queryBuilderFields?.map((field: QueryBuilderField) => field.label);
 
     expect(queryBuilderFieldLabels).toEqual(expectedFieldLabels);
+  });
+
+  it('should pass disabled prop to QueryBuilder', () => {
+    const queryBuilderSpy = jest.spyOn(QueryBuilderModule, "default").mockImplementation(jest.fn());
+
+    renderElement(customOperations, fields, {}, '', jest.fn(), true);
+
+    const queryBuilderProps = queryBuilderSpy.mock.lastCall?.at(0);
+    expect(queryBuilderProps?.disabled).toBe(true);
+  });
+
+  it('should default disabled to false when not provided', () => {
+    const queryBuilderSpy = jest.spyOn(QueryBuilderModule, "default").mockImplementation(jest.fn());
+    
+    renderElement(customOperations, fields);
+
+    const queryBuilderProps = queryBuilderSpy.mock.lastCall?.at(0);
+    expect(queryBuilderProps?.disabled).toBe(false);
+  });
+
+  it('should default fieldsMode to static', () => {
+    const queryBuilderSpy = jest.spyOn(QueryBuilderModule, "default").mockImplementation(jest.fn());
+    
+    renderElement(customOperations, fields);
+
+    const queryBuilderProps = queryBuilderSpy.mock.lastCall?.at(0);
+    expect(queryBuilderProps?.fieldsMode).toBe('static');
   });
 });
