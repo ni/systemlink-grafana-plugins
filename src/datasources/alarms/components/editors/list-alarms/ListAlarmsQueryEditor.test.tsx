@@ -1,9 +1,12 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { QueryType } from 'datasources/alarms/types/types';
 import { ListAlarmsQueryHandler } from 'datasources/alarms/query-type-handlers/list-alarms/ListAlarmsQueryHandler';
-import { ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
+import { AlarmsProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 import { ListAlarmsQueryEditor } from './ListAlarmsQueryEditor';
+import userEvent from '@testing-library/user-event';
+import { AlarmsPropertiesOptions } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { select } from 'react-select-event';
 
 const mockHandleQueryChange = jest.fn();
 const mockGlobalVars = [{ label: '$var1', value: '$value1' }];
@@ -35,6 +38,21 @@ async function renderElement(query: ListAlarmsQuery = { ...defaultProps.query })
 }
 
 describe('ListAlarmsQueryEditor', () => {
+  beforeAll(() => { 
+    // JSDOM provides offsetHeight as 0 by default. 
+    // Mocking it to return 30 because the ComboBox virtualization relies on this value 
+    // to correctly calculate and render the dropdown options. 
+    jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30); 
+  }); 
+    
+  beforeEach(() => { 
+    jest.clearAllMocks(); 
+  }); 
+    
+  afterAll(() => { 
+    jest.restoreAllMocks(); 
+  });
+
   it('should render the query builder', async () => {
     await renderElement();
 
@@ -94,5 +112,45 @@ describe('ListAlarmsQueryEditor', () => {
 
     expect(screen.getByText('Test Error Title')).toBeInTheDocument();
     expect(screen.getByText('Test Error Description')).toBeInTheDocument();
+  });
+
+  describe('Properties', () => {
+    it('should render the selected alarm properties in the UI', async () => {
+      await renderElement({ refId: 'A', queryType: QueryType.ListAlarms, properties: [AlarmsProperties.acknowledged] });
+
+      expect(screen.getByText(AlarmsPropertiesOptions[AlarmsProperties.acknowledged].label)).toBeInTheDocument();
+    });
+
+    it('should call handleQueryChange with selected property when a property is selected', async () => {
+      await renderElement();
+      const propertiesControl = screen.getAllByRole('combobox')[0];
+
+      await userEvent.click(propertiesControl);
+      await select(propertiesControl, AlarmsPropertiesOptions[AlarmsProperties.acknowledged].label, {
+        container: document.body,
+      });
+
+      await waitFor(() => {
+        expect(mockHandleQueryChange).toHaveBeenCalledTimes(1);
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: ['acknowledged'],
+          }),
+        );
+      });
+    });
+
+    it('should display error message when all properties are removed', async () => {
+      const propertyToBeSelected = AlarmsProperties.acknowledged;
+
+      await renderElement({ refId: 'A', queryType: QueryType.ListAlarms, properties: [propertyToBeSelected] });
+      const removePropertyButton = screen.getByRole('button', {
+        name: `Remove ${AlarmsPropertiesOptions[propertyToBeSelected].label}`,
+      });
+      await userEvent.click(removePropertyButton);
+
+      expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ properties: [] }));
+    });
   });
 });

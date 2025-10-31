@@ -1,5 +1,5 @@
 import { AlarmsCountQuery } from '../types/AlarmsCount.types';
-import { ListAlarmsQuery } from '../types/ListAlarms.types';
+import { AlarmsProperties, ListAlarmsQuery } from '../types/ListAlarms.types';
 import { AlarmsVariableQuery, QueryType } from '../types/types';
 import { DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TAKE } from './AlarmsQueryEditor.constants';
 
@@ -11,6 +11,14 @@ export const defaultAlarmsCountQuery: Omit<AlarmsCountQuery, 'refId'> = {
 
 export const defaultListAlarmsQuery: Omit<ListAlarmsQuery, 'refId'> = {
   filter: '',
+  properties: [
+    AlarmsProperties.displayName,
+    AlarmsProperties.currentSeverityLevel,
+    AlarmsProperties.occurredAt,
+    AlarmsProperties.source,
+    AlarmsProperties.state,
+    AlarmsProperties.workspace,
+  ]
 };
 
 export const defaultListAlarmsVariableQuery: Omit<AlarmsVariableQuery, 'refId'> = {

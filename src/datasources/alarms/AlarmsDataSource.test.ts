@@ -19,7 +19,10 @@ describe('AlarmsDataSource', () => {
   });
 
   it('should initialize with ListAlarms as the default query', () => {
-    expect(datastore.defaultQuery).toEqual({ filter: '' });
+    expect(datastore.defaultQuery).toEqual({
+      filter: '',
+      properties: ['displayName', 'currentSeverityLevel', 'occurredAt', 'source', 'state', 'workspace'],
+    });
   });
 
   describe('AlarmsCountQueryHandler', () => {

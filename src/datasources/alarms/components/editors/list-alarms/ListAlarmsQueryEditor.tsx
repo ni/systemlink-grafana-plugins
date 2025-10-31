@@ -2,15 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { InlineField } from 'core/components/InlineField';
 import { AlarmsQueryBuilder } from '../../query-builder/AlarmsQueryBuilder';
 import {
+  AlarmsPropertiesOptions,
+  CONTROL_WIDTH,
   ERROR_SEVERITY_WARNING,
   LABEL_WIDTH,
   labels,
+  placeholders,
+  PROPERTIES_ERROR_MESSAGE,
   tooltips,
 } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
-import { ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
+import { AlarmsProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 import { ListAlarmsQueryHandler } from 'datasources/alarms/query-type-handlers/list-alarms/ListAlarmsQueryHandler';
+import { ComboboxOption, MultiCombobox, Stack } from '@grafana/ui';
 
 type Props = {
   query: ListAlarmsQuery;
@@ -20,6 +25,7 @@ type Props = {
 
 export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [isPropertiesControlValid, setIsPropertiesControlValid] = useState<boolean>(true);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -41,8 +47,33 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     }
   };
 
+  const onPropertiesChange = (properties: Array<ComboboxOption<AlarmsProperties>>) => {
+    const selectedProperties = properties.map(property => property.value);
+
+    setIsPropertiesControlValid(selectedProperties.length > 0);
+
+    handleQueryChange({ ...query, properties: selectedProperties });
+  };
+
   return (
-    <>
+    <Stack direction='column'>
+      <InlineField
+        label={labels.properties}
+        labelWidth={LABEL_WIDTH}
+        tooltip={tooltips.properties}
+        invalid={!isPropertiesControlValid}
+        error={PROPERTIES_ERROR_MESSAGE}
+      >
+        <MultiCombobox
+          placeholder={placeholders.properties}
+          options={Object.values(AlarmsPropertiesOptions)}
+          onChange={onPropertiesChange}
+          value={query.properties}
+          width='auto'
+          minWidth={CONTROL_WIDTH}
+          maxWidth={CONTROL_WIDTH}
+        />
+      </InlineField>
       <InlineField
         label={labels.queryBy}
         labelWidth={LABEL_WIDTH}
@@ -60,6 +91,6 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
         innerMessage={datasource.errorDescription}
         severity={ERROR_SEVERITY_WARNING}
       />
-    </>
+    </Stack>
   );
 }
