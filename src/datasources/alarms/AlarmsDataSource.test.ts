@@ -148,6 +148,14 @@ describe('AlarmsDataSource', () => {
       expect(datastore.listAlarmsQueryHandler.metricFindQuery).toHaveBeenCalledWith(mockQuery, undefined);
       expect(result).toBe(mockResult);
     });
+
+    it('should call listAlarmsQueryHandler.metricFindQuery with default query with invalid query param', async () => {
+      jest.spyOn(datastore.listAlarmsQueryHandler, 'metricFindQuery');
+
+      await datastore.metricFindQuery('' as any as AlarmsVariableQuery);
+
+      expect(datastore.listAlarmsQueryHandler.metricFindQuery).toHaveBeenCalledWith(defaultListAlarmsVariableQuery, undefined);
+    });
   });
 
   describe('prepareVariableQuery', () => {
