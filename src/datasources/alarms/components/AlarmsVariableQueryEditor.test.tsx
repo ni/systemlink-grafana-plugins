@@ -5,11 +5,12 @@ import { QueryEditorProps } from '@grafana/data';
 import React from 'react';
 import { AlarmsVariableQueryEditor } from './AlarmsVariableQueryEditor';
 import { takeErrorMessages } from '../constants/AlarmsQueryEditor.constants';
+import { defaultListAlarmsVariableQuery } from '../constants/DefaultQueries.constants';
 
 const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
-  prepareQuery: jest.fn((query: AlarmsVariableQuery) => query),
+  prepareVariableQuery: jest.fn((query: AlarmsVariableQuery) => ({ ...defaultListAlarmsVariableQuery, ...query })),
   listAlarmsQueryHandler: {
     loadWorkspaces: jest.fn().mockResolvedValue(
       new Map([
@@ -220,13 +221,15 @@ describe('AlarmsVariableQueryEditor', () => {
     
     expect(mockOnChange).toHaveBeenCalledWith({
       refId: 'A',
-      filter: 'test-filter'
+      filter: 'test-filter',
+      descending: true,
+      take: 1000
     });
   });
 
   describe('Take Control Tests', () => {
-    it('should render take input with value provided', async () => {
-      await renderElement({ refId: 'A', take: 1000 });
+    it('should render take input with 1000 as default value', async () => {
+      await renderElement({ refId: 'A' });
 
       const takeInput = screen.getByRole('spinbutton');
       expect(takeInput).toBeInTheDocument();
@@ -234,8 +237,16 @@ describe('AlarmsVariableQueryEditor', () => {
       expect(takeInput).toHaveValue(1000);
     });
 
+    it('should render take input with custom value', async () => {
+      const customTake = 500;
+      await renderElement({ refId: 'A', take: customTake });
+
+      const takeInput = screen.getByRole('spinbutton');
+      expect(takeInput).toHaveValue(customTake);
+    });
+
     it('should call onChange when take value is changed', async () => {
-      await renderElement({ refId: 'A', take: 1000 });
+      await renderElement({ refId: 'A' });
 
       const takeInput = screen.getByRole('spinbutton');
       
@@ -244,12 +255,14 @@ describe('AlarmsVariableQueryEditor', () => {
 
       expect(mockOnChange).toHaveBeenCalledWith({
         refId: 'A',
-        take: 250
+        take: 250,
+        descending: true,
+        filter: ""
       });
     });
 
     it('should call onChange when take value is invalid', async () => {
-      await renderElement({ refId: 'A', take: 1000 });
+      await renderElement({ refId: 'A' });
 
       const takeInput = screen.getByRole('spinbutton');
       
@@ -258,7 +271,9 @@ describe('AlarmsVariableQueryEditor', () => {
 
       expect(mockOnChange).toHaveBeenCalledWith({
         refId: 'A',
-        take: NaN
+        take: NaN,
+        descending: true,
+        filter: ""
       });
     });
 
@@ -280,7 +295,7 @@ describe('AlarmsVariableQueryEditor', () => {
     });
 
     it('should display minimum take error message when take value is below 1', async () => {
-      await renderElement({ refId: 'A', take: 1000 });
+      await renderElement({ refId: 'A' });
 
       const takeInput = screen.getByRole('spinbutton');
       
@@ -291,7 +306,7 @@ describe('AlarmsVariableQueryEditor', () => {
     });
 
     it('should display maximum take error message when take value is above 1000', async () => {
-      await renderElement({ refId: 'A', take: 1000 });
+      await renderElement({ refId: 'A' });
 
       const takeInput = screen.getByRole('spinbutton');
       
@@ -302,7 +317,7 @@ describe('AlarmsVariableQueryEditor', () => {
     });
 
     it('should display minimum error message for negative values', async () => {
-      await renderElement({ refId: 'A', take: 1000 });
+      await renderElement({ refId: 'A' });
 
       const takeInput = screen.getByRole('spinbutton');
       
@@ -313,7 +328,7 @@ describe('AlarmsVariableQueryEditor', () => {
     });
 
     it('should display minimum take error message for NaN values', async () => {
-      await renderElement({ refId: 'A', take: 1000 });
+      await renderElement({ refId: 'A' });
 
       const takeInput = screen.getByRole('spinbutton');
       
@@ -324,7 +339,7 @@ describe('AlarmsVariableQueryEditor', () => {
     });
 
     it('should display minimum take error message for empty string', async () => {
-      await renderElement({ refId: 'A', take: 1000 });
+      await renderElement({ refId: 'A' });
 
       const takeInput = screen.getByRole('spinbutton');
       
@@ -335,7 +350,7 @@ describe('AlarmsVariableQueryEditor', () => {
     });
 
     it('should clear error message when valid value is entered', async () => {
-      await renderElement({ refId: 'A', take: 1000 });
+      await renderElement({ refId: 'A' });
 
       const takeInput = screen.getByRole('spinbutton');
       
@@ -352,7 +367,7 @@ describe('AlarmsVariableQueryEditor', () => {
     });
 
     it('should maintain error message consistency across multiple invalid inputs', async () => {
-      await renderElement({ refId: 'A', take: 1000 });
+      await renderElement({ refId: 'A' });
 
       const takeInput = screen.getByRole('spinbutton');
       
@@ -379,8 +394,8 @@ describe('AlarmsVariableQueryEditor', () => {
   });
 
   describe('Descending Control Tests', () => {
-    it('should render descending switch with true', async () => {
-      await renderElement({ refId: 'A', descending: true });
+    it('should render descending switch with true as default value', async () => {
+      await renderElement({ refId: 'A' });
 
       const descendingSwitch = screen.getByRole('switch');
       expect(descendingSwitch).toBeInTheDocument();
@@ -388,7 +403,7 @@ describe('AlarmsVariableQueryEditor', () => {
       expect(descendingSwitch).toBeChecked();
     });
 
-    it('should render descending switch with false', async () => {
+    it('should render descending switch with custom value', async () => {
       await renderElement({ refId: 'A', descending: false });
 
       const descendingSwitch = screen.getByRole('switch');
@@ -405,7 +420,9 @@ describe('AlarmsVariableQueryEditor', () => {
 
       expect(mockOnChange).toHaveBeenCalledWith({
         refId: 'A',
-        descending: true
+        descending: true,
+        take: 1000,
+        filter: ''
       });
     });
 
