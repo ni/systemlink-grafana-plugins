@@ -56,7 +56,7 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
   }
 
   public async metricFindQuery(query: AlarmsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
-    return this._listAlarmsQueryHandler.metricFindQuery(query, options);
+    return this._listAlarmsQueryHandler.metricFindQuery(this.prepareVariableQuery(query), options);
   }
 
   public async testDatasource(): Promise<TestDataSourceResponse> {

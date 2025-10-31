@@ -111,7 +111,7 @@ describe('AlarmsDataSource', () => {
 
   describe('metricFindQuery', () => {
     it('should delegate to listAlarmsQueryHandler', async () => {
-      const mockQuery: AlarmsVariableQuery = { refId: 'A', filter: 'workspace = "Lab-1"' };
+      const mockQuery: AlarmsVariableQuery = { refId: 'A', filter: 'workspace = "Lab-1"', take: 1000, descending: true };
       const mockOptions = { scopedVars: {} };
       const mockResult = [
         { text: 'High Temperature Alarm (INST-001)', value: 'INST-001' }
@@ -126,7 +126,7 @@ describe('AlarmsDataSource', () => {
     });
 
     it('should work without options', async () => {
-      const mockQuery: AlarmsVariableQuery = { refId: 'A', filter: undefined };
+      const mockQuery: AlarmsVariableQuery = { refId: 'A', filter: undefined, take: 1000, descending: true };
       const mockResult = [
         { text: 'System Error Alarm (INST-002)', value: 'INST-002' }
       ];
