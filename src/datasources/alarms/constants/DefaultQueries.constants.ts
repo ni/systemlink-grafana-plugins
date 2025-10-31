@@ -18,7 +18,9 @@ export const defaultListAlarmsQuery: Omit<ListAlarmsQuery, 'refId'> = {
     AlarmsProperties.source,
     AlarmsProperties.state,
     AlarmsProperties.workspace,
-  ]
+  ],
+  take: DEFAULT_QUERY_EDITOR_TAKE,
+  descending: DEFAULT_QUERY_EDITOR_DESCENDING,
 };
 
 export const defaultListAlarmsVariableQuery: Omit<AlarmsVariableQuery, 'refId'> = {

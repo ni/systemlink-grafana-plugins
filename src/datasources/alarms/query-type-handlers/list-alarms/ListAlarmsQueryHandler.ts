@@ -24,10 +24,12 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   }
 
   public async runQuery(query: ListAlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
+    if(this.isTakeValid(query.take)) {
+      query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
 
-    // #AB:3449773 Map queryAlarmsData response to user-selected properties
-    await this.queryAlarmsData(query);
+      // #AB:3449773 Map queryAlarmsData response to user-selected properties
+      await this.queryAlarmsData(query);
+    }
 
     return {
       refId: query.refId,
@@ -71,6 +73,9 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   private async queryAlarmsData(alarmsQuery: ListAlarmsQuery): Promise<Alarm[]> {
     const alarmsRequestBody: QueryAlarmsRequest = {
       filter: alarmsQuery.filter ?? '',
+      take: alarmsQuery.take,
+      orderByDescending: alarmsQuery.descending ?? DEFAULT_QUERY_EDITOR_DESCENDING,
+      returnMostRecentlyOccurredOnly: true,
     }
 
     return this.queryAlarmsInBatches(alarmsRequestBody);

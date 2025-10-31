@@ -97,7 +97,7 @@ describe('ListAlarmsQueryHandler', () => {
   let options: DataQueryRequest;
 
   beforeEach(() => {
-    query = { refId: 'A', queryType: QueryType.ListAlarms };
+    query = { refId: 'A', queryType: QueryType.ListAlarms, take: 1000 };
     options = {} as DataQueryRequest;
 
     [datastore, backendServer] = setupDataSource(ListAlarmsQueryHandler);
@@ -113,6 +113,8 @@ describe('ListAlarmsQueryHandler', () => {
     expect(defaultQuery).toEqual({
       filter: '',
       properties: ['displayName', 'currentSeverityLevel', 'occurredAt', 'source', 'state', 'workspace'],
+      take: 1000,
+      descending: true,
     });
   });
 
@@ -125,7 +127,7 @@ describe('ListAlarmsQueryHandler', () => {
 
     it('should pass the transformed filter to the API', async () => {
       jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
-      const filterQuery = { refId: 'A', filter: 'acknowledgedAt > "${__now:date}"'};
+      const filterQuery = { refId: 'A', filter: 'acknowledgedAt > "${__now:date}"', take: 1000};
 
       await datastore.runQuery(filterQuery, options);
 
