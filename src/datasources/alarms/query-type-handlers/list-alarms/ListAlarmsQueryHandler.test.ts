@@ -137,7 +137,7 @@ describe('ListAlarmsQueryHandler', () => {
 
     it('should pass the transformed filter to the API', async () => {
       jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
-      const filterQuery = { refId: 'A', filter: 'acknowledgedAt > "${__now:date}"' };
+      const filterQuery = { refId: 'A', filter: 'acknowledgedAt > "${__now:date}"'};
 
       await datastore.runQuery(filterQuery, options);
 
@@ -170,8 +170,9 @@ describe('ListAlarmsQueryHandler', () => {
           properties: [AlarmsProperties.acknowledged],
           filter: 'some-filter',
         };
-
-        jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce([]);
+        jest
+          .spyOn(datastore as any, 'queryAlarmsInBatches')
+          .mockResolvedValueOnce([]);
         const result = await datastore.runQuery(query, options);
 
         expect(result).toEqual({
@@ -186,16 +187,26 @@ describe('ListAlarmsQueryHandler', () => {
           refId: 'A',
           properties: [AlarmsProperties.workspace],
         };
-
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
-          .mockResolvedValueOnce([{ workspace: 'Workspace1' }, { workspace: 'Workspace2' }, { workspace: '1' }]);
+          .mockResolvedValueOnce([
+            { workspace: 'Workspace1' },
+            { workspace: 'Workspace2' },
+            { workspace: 'Unknown Workspace' },
+          ]);
+
         const result = await datastore.runQuery(query, options);
 
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
-          fields: [{ name: 'Workspace', type: 'string', values: ['Workspace Name', 'Another Workspace Name', '1'] }],
+          fields: [
+            {
+              name: 'Workspace',
+              type: 'string',
+              values: ['Workspace Name', 'Another Workspace Name', 'Unknown Workspace'],
+            },
+          ],
         });
       });
 
@@ -204,10 +215,10 @@ describe('ListAlarmsQueryHandler', () => {
           refId: 'A',
           properties: [AlarmsProperties.acknowledgedBy],
         };
-
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
           .mockResolvedValueOnce([{ acknowledgedBy: 'user1@123.com' }, { acknowledgedBy: 'unknownUserID' }]);
+
         const result = await datastore.runQuery(query, options);
 
         expect(result).toEqual({
@@ -217,37 +228,20 @@ describe('ListAlarmsQueryHandler', () => {
         });
       });
 
-      it('should display the userId from response if user full name is not found', async () => {
-        const query = {
-          refId: 'A',
-          properties: [AlarmsProperties.acknowledgedBy],
-        };
-
-        jest
-          .spyOn(datastore as any, 'queryAlarmsInBatches')
-          .mockResolvedValueOnce([{ acknowledgedBy: ['1'] }, { acknowledgedBy: ['2'] }]);
-        const result = await datastore.runQuery(query, options);
-
-        expect(result).toEqual({
-          refId: 'A',
-          name: 'A',
-          fields: [{ name: 'Acknowledged by', type: 'string', values: [['1'], ['2']] }],
-        });
-      });
-
-      it('should map and sort and remove properties from custom properties to fields correctly', async () => {
+      it('should map and sort the custom properties field', async () => {
         const query = {
           refId: 'A',
           properties: [AlarmsProperties.properties],
         };
-
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
           .mockResolvedValueOnce([
             { properties: { zProp: 'valueZ', aProp: 'valueA' } },
             { properties: { bProp: 'valueB', aProp: 'valueA2' } },
           ]);
+
         const result = await datastore.runQuery(query, options);
+
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
@@ -261,7 +255,7 @@ describe('ListAlarmsQueryHandler', () => {
         });
       });
 
-      it('should remove any custom properties that are starting with nitag from properties field', async () => {
+      it('should remove any custom properties that starts with nitag', async () => {
         const query = {
           refId: 'A',
           properties: [AlarmsProperties.properties],
@@ -272,7 +266,9 @@ describe('ListAlarmsQueryHandler', () => {
             { properties: { nitag_internal: 'secret', normalProp: 'value1' } },
             { properties: { anotherProp: 'value2', nitag_flag: 'true' } },
           ]);
+
         const result = await datastore.runQuery(query, options);
+
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
@@ -294,7 +290,9 @@ describe('ListAlarmsQueryHandler', () => {
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
           .mockResolvedValueOnce([{ properties: {} }, { properties: {} }]);
+
         const result = await datastore.runQuery(query, options);
+
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
@@ -319,7 +317,9 @@ describe('ListAlarmsQueryHandler', () => {
           { highestSeverityLevel: 2, currentSeverityLevel: 1 },
           { highestSeverityLevel: 99, currentSeverityLevel: -2 },
         ]);
+
         const result = await datastore.runQuery(query, options);
+
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
@@ -349,7 +349,9 @@ describe('ListAlarmsQueryHandler', () => {
           { clear: false, acknowledged: false },
           { clear: true, acknowledged: true },
         ]);
+
         const result = await datastore.runQuery(query, options);
+
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
@@ -376,7 +378,9 @@ describe('ListAlarmsQueryHandler', () => {
             { properties: { system: 'Sensor B', minionId: 'Minion-43' } },
             { properties: { otherProp: 'value' } },
           ]);
+
         const result = await datastore.runQuery(query, options);
+
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
@@ -465,7 +469,9 @@ describe('ListAlarmsQueryHandler', () => {
             { keywords: ['pressure'] },
             { keywords: [] },
           ]);
+
         const result = await datastore.runQuery(query, options);
+
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
@@ -488,7 +494,6 @@ describe('ListAlarmsQueryHandler', () => {
           refId: 'A',
           properties: [AlarmsProperties.clear, AlarmsProperties.acknowledged, AlarmsProperties.active]
         };
-
         jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce([
           { clear: true, acknowledged: false, active: true },
           { clear: false, acknowledged: true, active: false },
