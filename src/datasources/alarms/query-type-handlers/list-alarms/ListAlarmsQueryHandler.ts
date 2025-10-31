@@ -31,7 +31,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     const alarmsResponse = await this.queryAlarmsData(query);
 
     if (this.isPropertiesValid(query.properties)) {
-      mappedFields = await this.mapPropertiesToSelect(query.properties || [], alarmsResponse);
+      mappedFields = await this.mapPropertiesToSelect(query.properties!, alarmsResponse);
     }
 
     return {

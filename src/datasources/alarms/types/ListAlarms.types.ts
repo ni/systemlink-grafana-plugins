@@ -19,13 +19,13 @@ export enum AlarmsProperties {
   description = 'description',
   displayName = 'displayName',
   highestSeverityLevel = 'highestSeverityLevel',
-  instanceId = 'instanceId', 
+  instanceId = 'instanceId',
   keywords = 'keywords',
   mostRecentSetOccurredAt = 'mostRecentSetOccurredAt',
   mostRecentTransitionOccurredAt = 'mostRecentTransitionOccurredAt',
   occurredAt = 'occurredAt',
   properties = 'properties',
-  resourceType = 'resourceType', 
+  resourceType = 'resourceType',
    // The Source field is derived from properties.system, with a fallback to
    // properties.minionId. If neither property is available, the source defaults to
    // an empty string.
