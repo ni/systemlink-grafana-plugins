@@ -111,7 +111,12 @@ describe('AlarmsDataSource', () => {
 
   describe('metricFindQuery', () => {
     it('should delegate to listAlarmsQueryHandler', async () => {
-      const mockQuery: AlarmsVariableQuery = { refId: 'A', filter: 'workspace = "Lab-1"' };
+      const mockQuery: AlarmsVariableQuery = {
+        refId: 'A',
+        filter: 'workspace = "Lab-1"',
+        take: 1000,
+        descending: true
+      };
       const mockOptions = { scopedVars: {} };
       const mockResult = [
         { text: 'High Temperature Alarm (INST-001)', value: 'INST-001' }
@@ -126,7 +131,12 @@ describe('AlarmsDataSource', () => {
     });
 
     it('should work without options', async () => {
-      const mockQuery: AlarmsVariableQuery = { refId: 'A', filter: undefined };
+      const mockQuery: AlarmsVariableQuery = {
+        refId: 'A',
+        filter: undefined,
+        take: 1000,
+        descending: true
+      };
       const mockResult = [
         { text: 'System Error Alarm (INST-002)', value: 'INST-002' }
       ];
@@ -137,6 +147,14 @@ describe('AlarmsDataSource', () => {
 
       expect(datastore.listAlarmsQueryHandler.metricFindQuery).toHaveBeenCalledWith(mockQuery, undefined);
       expect(result).toBe(mockResult);
+    });
+
+    it('should call listAlarmsQueryHandler.metricFindQuery with default query with invalid query param', async () => {
+      jest.spyOn(datastore.listAlarmsQueryHandler, 'metricFindQuery');
+
+      await datastore.metricFindQuery('' as any as AlarmsVariableQuery);
+
+      expect(datastore.listAlarmsQueryHandler.metricFindQuery).toHaveBeenCalledWith(defaultListAlarmsVariableQuery, undefined);
     });
   });
 
