@@ -95,7 +95,7 @@ describe('AssetQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain("ModelName_123");
     });
 
-    it('should select asset name with does not containin query builder', () => {
+    it('should select asset name with does not contain in query builder', () => {
       const { conditionsContainer } = renderElement([workspace], [system], [location], '!(AssetName.Contains("Test_123"))');
 
       expect(conditionsContainer?.length).toBe(1);
