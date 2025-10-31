@@ -38,24 +38,19 @@ async function renderElement(query: ListAlarmsQuery = { ...defaultProps.query })
 }
 
 describe('ListAlarmsQueryEditor', () => {
-  let originalOffsetHeight: PropertyDescriptor | undefined;
-
-  beforeAll(() => {
-    originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
-    // JSDOM provides offsetHeight as 0 by default.
-    // Mocking it to return 30 because the ComboBox virtualization relies on this value
-    // to correctly calculate and render the dropdown options.
-    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
-      get() {
-        return 30;
-      },
-    });
-  });
-
-  afterAll(() => {
-    if (originalOffsetHeight) {
-      Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
-    }
+  beforeAll(() => { 
+    // JSDOM provides offsetHeight as 0 by default. 
+    // Mocking it to return 30 because the ComboBox virtualization relies on this value 
+    // to correctly calculate and render the dropdown options. 
+    jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30); 
+  }); 
+    
+  beforeEach(() => { 
+    jest.clearAllMocks(); 
+  }); 
+    
+  afterAll(() => { 
+    jest.restoreAllMocks(); 
   });
 
   it('should render the query builder', async () => {
