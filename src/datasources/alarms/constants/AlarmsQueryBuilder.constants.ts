@@ -175,13 +175,6 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
   }
 };
 
-export const ALARMS_TIME_FIELDS = [
-  AlarmsQueryBuilderFields.FIRST_OCCURRENCE.dataField,
-  AlarmsQueryBuilderFields.ACKNOWLEDGED_ON.dataField,
-  AlarmsQueryBuilderFields.LAST_TRANSITION_OCCURRENCE.dataField,
-  AlarmsQueryBuilderFields.LAST_OCCURRENCE.dataField,
-];
-
 export const AlarmsQueryBuilderStaticFields: QBField[] = [
   AlarmsQueryBuilderFields.ACKNOWLEDGED,
   AlarmsQueryBuilderFields.ACTIVE,
