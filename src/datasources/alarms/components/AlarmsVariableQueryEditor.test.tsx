@@ -428,7 +428,7 @@ describe('AlarmsVariableQueryEditor', () => {
     });
 
     it('should preserve other query properties when descending changes', async () => {
-      const initialQuery = { refId: 'A', filter: 'test filter', take: 500, descending: true };
+      const initialQuery = { refId: 'A', filter: 'test filter', take: 500 };
       await renderElement(initialQuery);
 
       const descendingSwitch = screen.getByRole('switch');
