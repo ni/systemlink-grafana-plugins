@@ -7,52 +7,7 @@ import { BackendSrv } from '@grafana/runtime';
 import { MockProxy } from 'jest-mock-extended';
 import { User } from 'shared/types/QueryUsers.types';
 import { AlarmsProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
-
-jest.mock('shared/users.utils', () => {
-  return {
-    UsersUtils: jest.fn().mockImplementation(() => ({
-      getUsers: jest.fn().mockResolvedValue(
-        new Map([
-          ['user1@123.com', { 
-            id: '1',
-            firstName: 'User',
-            lastName: '1',
-            email: 'user1@123.com',
-            properties: {},
-            keywords: [],
-            created: '',
-            updated: '',
-            orgId: '',
-          }],
-          ['user2@123.com', { 
-            id: '2',
-            firstName: 'User',
-            lastName: '2',
-            email: 'user2@123.com',
-            properties: {},
-            keywords: [],
-            created: '',
-            updated: '',
-            orgId: '',
-          }],
-        ])
-      )
-    }))
-  };
-});
-
-jest.mock('shared/workspace.utils', () => {
-  return {
-    WorkspaceUtils: jest.fn().mockImplementation(() => ({
-      getWorkspaces: jest.fn().mockResolvedValue(
-        new Map([
-          ['Workspace1', { id: 'Workspace1', name: 'Workspace Name' }],
-          ['Workspace2', { id: 'Workspace2', name: 'Another Workspace Name' }],
-        ])
-      )
-    }))
-  };
-});
+import { Workspace } from 'core/types';
 
 let datastore: ListAlarmsQueryHandler, backendServer: MockProxy<BackendSrv>;
 
@@ -105,6 +60,36 @@ const mockAlarmResponse: QueryAlarmsResponse = {
   continuationToken: '',
 };
 
+const mockUsers: User[] = [
+  {
+    id: '1',
+    firstName: 'User',
+    lastName: '1',
+    email: 'user1@123.com',
+    properties: {},
+    keywords: [],
+    created: '',
+    updated: '',
+    orgId: '',
+  },
+  {
+    id: '2',
+    firstName: 'User',
+    lastName: '2',
+    email: 'user2@123.com',
+    properties: {},
+    keywords: [],
+    created: '',
+    updated: '',
+    orgId: '',
+  }
+];
+
+const workspaces: Workspace[] = [
+  { id: 'Workspace1', name: 'Workspace Name', default: false, enabled: true },
+  { id: 'Workspace2', name: 'Another Workspace Name', default: false, enabled: true  },
+];
+
 describe('ListAlarmsQueryHandler', () => {
   let query: ListAlarmsQuery;
   let options: DataQueryRequest;
@@ -118,6 +103,20 @@ describe('ListAlarmsQueryHandler', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
       .mockReturnValue(createFetchResponse(mockAlarmResponse));
+    
+    jest.spyOn((datastore as any).usersUtils, 'getUsers').mockResolvedValue(
+      new Map([
+        ['user1@123.com', mockUsers[0]],
+        ['user2@123.com', mockUsers[1]],
+      ])
+    );
+
+    jest.spyOn((datastore as any).workspaceUtils, 'getWorkspaces').mockResolvedValue(
+      new Map([
+        ['Workspace1', workspaces[0]],
+        ['Workspace2', workspaces[1]],
+      ])
+    );
   });
 
   it('should set defaultListAlarmsQuery to defaultQuery', () => {
@@ -208,13 +207,13 @@ describe('ListAlarmsQueryHandler', () => {
 
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
-          .mockResolvedValueOnce([{ acknowledgedBy: 'user1' }, { acknowledgedBy: '2' }]);
+          .mockResolvedValueOnce([{ acknowledgedBy: 'user1@123.com' }, { acknowledgedBy: 'unknownUserID' }]);
         const result = await datastore.runQuery(query, options);
 
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
-          fields: [{ name: 'Acknowledged by', type: 'string', values: ['User 1', 'User 2'] }],
+          fields: [{ name: 'Acknowledged by', type: 'string', values: ['User 1', 'unknownUserID'] }],
         });
       });
 

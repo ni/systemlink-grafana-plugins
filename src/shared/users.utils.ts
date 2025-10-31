@@ -39,6 +39,7 @@ export class UsersUtils {
    * @returns The full name of the user.
    */
   public static getUserFullName(user: User): string {
+    console.log('calling', user)
     return `${user.firstName} ${user.lastName}`;
   }
 
