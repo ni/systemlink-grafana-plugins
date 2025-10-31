@@ -404,7 +404,8 @@ describe('AlarmsVariableQueryEditor', () => {
     });
 
     it('should render descending switch with custom value', async () => {
-      await renderElement({ refId: 'A', descending: false });
+      const customDescending = false;
+      await renderElement({ refId: 'A', descending: customDescending });
 
       const descendingSwitch = screen.getByRole('switch');
       expect(descendingSwitch).not.toBeChecked();
