@@ -2,13 +2,12 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, 
 import { AlarmsProperties, ListAlarmsQuery } from '../../types/ListAlarms.types';
 import { AlarmsVariableQuery, QueryAlarmsRequest } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
-import { DEFAULT_QUERY_EDITOR_DESCENDING, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { Alarm } from 'datasources/alarms/types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { User } from 'shared/types/QueryUsers.types';
 import { UsersUtils } from 'shared/users.utils';
-import { AlarmsPropertiesOptions } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from 'datasources/alarms/constants/SourceProperties.constants';
 
 export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
@@ -26,10 +25,14 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   }
 
   public async runQuery(query: ListAlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
+    let mappedFields: DataFrameDTO['fields'] | undefined;
 
+    query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
     const alarmsResponse = await this.queryAlarmsData(query);
-    const mappedFields = await this.mapPropertiesToSelect(query.properties || [], alarmsResponse);
+
+    if (this.isPropertiesValid(query.properties)) {
+      mappedFields = await this.mapPropertiesToSelect(query.properties || [], alarmsResponse);
+    }
 
     return {
       refId: query.refId,
@@ -70,6 +73,10 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       && take <= QUERY_EDITOR_MAX_TAKE;
   }
 
+  private isPropertiesValid(properties?: AlarmsProperties[]): boolean {
+    return !!properties && properties.length > 0;
+  }
+
   private async queryAlarmsData(alarmsQuery: ListAlarmsQuery): Promise<Alarm[]> {
     const alarmsRequestBody: QueryAlarmsRequest = {
       filter: alarmsQuery.filter ?? '',
@@ -102,7 +109,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       const fieldValue = field.value as keyof Alarm;
       const fieldType = this.isTimeField(fieldValue) ? FieldType.time : FieldType.string;
 
-      const mappedValues = alarms.map(alarm => {
+      const fieldValues = alarms.map(alarm => {
         switch (property) {
           case AlarmsProperties.workspace:
             const workspace = workspaces.get(alarm.workspace);
@@ -115,7 +122,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
             return this.getSortedCustomProperties(alarm.properties);
           case AlarmsProperties.highestSeverityLevel:
           case AlarmsProperties.currentSeverityLevel:
-            return this.getSeverityLabel(alarm.highestSeverityLevel);
+            return this.getSeverityLabel(alarm[fieldValue] as number);
           case AlarmsProperties.state:
             return this.getAlarmState(alarm.clear, alarm.acknowledged);
           case AlarmsProperties.source:
@@ -126,7 +133,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
               : alarm[fieldValue] ?? '';
         }
       });
-      return { name: fieldName, values: mappedValues, type: fieldType };
+      return { name: fieldName, values: fieldValues, type: fieldType };
     });
 
     return mappedFields;
@@ -179,5 +186,4 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       ? properties[MINION_ID_CUSTOM_PROPERTY]
       : '';
   }
- 
 }
