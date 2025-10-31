@@ -110,7 +110,7 @@ describe('ListAlarmsQueryHandler', () => {
   it('should set defaultListAlarmsQuery to defaultQuery', () => {
     const defaultQuery = datastore.defaultQuery;
 
-    expect(defaultQuery).toEqual({ filter: '' });
+    expect(defaultQuery).toEqual({ filter: '', descending: true, take: 1000 });
   });
 
   describe('runQuery', () => {
