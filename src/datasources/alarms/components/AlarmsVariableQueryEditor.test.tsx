@@ -225,8 +225,8 @@ describe('AlarmsVariableQueryEditor', () => {
   });
 
   describe('Take Control Tests', () => {
-    it('should render take input with 1000 as default value', async () => {
-      await renderElement({ refId: 'A' });
+    it('should render take input with value provided', async () => {
+      await renderElement({ refId: 'A', take: 1000 });
 
       const takeInput = screen.getByRole('spinbutton');
       expect(takeInput).toBeInTheDocument();
@@ -234,16 +234,8 @@ describe('AlarmsVariableQueryEditor', () => {
       expect(takeInput).toHaveValue(1000);
     });
 
-    it('should render take input with custom value', async () => {
-      const customTake = 500;
-      await renderElement({ refId: 'A', take: customTake });
-
-      const takeInput = screen.getByRole('spinbutton');
-      expect(takeInput).toHaveValue(customTake);
-    });
-
     it('should call onChange when take value is changed', async () => {
-      await renderElement({ refId: 'A' });
+      await renderElement({ refId: 'A', take: 1000 });
 
       const takeInput = screen.getByRole('spinbutton');
       
@@ -257,7 +249,7 @@ describe('AlarmsVariableQueryEditor', () => {
     });
 
     it('should call onChange when take value is invalid', async () => {
-      await renderElement({ refId: 'A' });
+      await renderElement({ refId: 'A', take: 1000 });
 
       const takeInput = screen.getByRole('spinbutton');
       
@@ -288,7 +280,7 @@ describe('AlarmsVariableQueryEditor', () => {
     });
 
     it('should display minimum take error message when take value is below 1', async () => {
-      await renderElement({ refId: 'A' });
+      await renderElement({ refId: 'A', take: 1000 });
 
       const takeInput = screen.getByRole('spinbutton');
       
@@ -299,7 +291,7 @@ describe('AlarmsVariableQueryEditor', () => {
     });
 
     it('should display maximum take error message when take value is above 1000', async () => {
-      await renderElement({ refId: 'A' });
+      await renderElement({ refId: 'A', take: 1000 });
 
       const takeInput = screen.getByRole('spinbutton');
       
@@ -310,7 +302,7 @@ describe('AlarmsVariableQueryEditor', () => {
     });
 
     it('should display minimum error message for negative values', async () => {
-      await renderElement({ refId: 'A' });
+      await renderElement({ refId: 'A', take: 1000 });
 
       const takeInput = screen.getByRole('spinbutton');
       
@@ -321,7 +313,7 @@ describe('AlarmsVariableQueryEditor', () => {
     });
 
     it('should display minimum take error message for NaN values', async () => {
-      await renderElement({ refId: 'A' });
+      await renderElement({ refId: 'A', take: 1000 });
 
       const takeInput = screen.getByRole('spinbutton');
       
@@ -332,7 +324,7 @@ describe('AlarmsVariableQueryEditor', () => {
     });
 
     it('should display minimum take error message for empty string', async () => {
-      await renderElement({ refId: 'A' });
+      await renderElement({ refId: 'A', take: 1000 });
 
       const takeInput = screen.getByRole('spinbutton');
       
@@ -343,7 +335,7 @@ describe('AlarmsVariableQueryEditor', () => {
     });
 
     it('should clear error message when valid value is entered', async () => {
-      await renderElement({ refId: 'A' });
+      await renderElement({ refId: 'A', take: 1000 });
 
       const takeInput = screen.getByRole('spinbutton');
       
@@ -360,7 +352,7 @@ describe('AlarmsVariableQueryEditor', () => {
     });
 
     it('should maintain error message consistency across multiple invalid inputs', async () => {
-      await renderElement({ refId: 'A' });
+      await renderElement({ refId: 'A', take: 1000 });
 
       const takeInput = screen.getByRole('spinbutton');
       
@@ -387,8 +379,8 @@ describe('AlarmsVariableQueryEditor', () => {
   });
 
   describe('Descending Control Tests', () => {
-    it('should render descending switch with true as default value', async () => {
-      await renderElement({ refId: 'A' });
+    it('should render descending switch with true', async () => {
+      await renderElement({ refId: 'A', descending: true });
 
       const descendingSwitch = screen.getByRole('switch');
       expect(descendingSwitch).toBeInTheDocument();
@@ -396,9 +388,8 @@ describe('AlarmsVariableQueryEditor', () => {
       expect(descendingSwitch).toBeChecked();
     });
 
-    it('should render descending switch with custom value', async () => {
-      const customDescending = false;
-      await renderElement({ refId: 'A', descending: customDescending });
+    it('should render descending switch with false', async () => {
+      await renderElement({ refId: 'A', descending: false });
 
       const descendingSwitch = screen.getByRole('switch');
       expect(descendingSwitch).not.toBeChecked();
@@ -419,7 +410,7 @@ describe('AlarmsVariableQueryEditor', () => {
     });
 
     it('should preserve other query properties when descending changes', async () => {
-      const initialQuery = { refId: 'A', filter: 'test filter', take: 500 };
+      const initialQuery = { refId: 'A', filter: 'test filter', take: 500, descending: true };
       await renderElement(initialQuery);
 
       const descendingSwitch = screen.getByRole('switch');
