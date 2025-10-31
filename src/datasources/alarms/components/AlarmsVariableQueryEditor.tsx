@@ -6,7 +6,7 @@ import { Workspace } from 'core/types';
 import React, { useState, useEffect } from 'react';
 import { FloatingError } from 'core/errors';
 import { AlarmsVariableQuery } from '../types/types';
-import { DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TAKE, ERROR_SEVERITY_WARNING, LABEL_WIDTH, labels, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, placeholders, takeErrorMessages, tooltips } from '../constants/AlarmsQueryEditor.constants';
+import { ERROR_SEVERITY_WARNING, LABEL_WIDTH, labels, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, placeholders, takeErrorMessages, tooltips } from '../constants/AlarmsQueryEditor.constants';
 import { validateNumericInput } from 'core/utils';
 
 type Props = QueryEditorProps<AlarmsDataSource, AlarmsVariableQuery>;
@@ -15,11 +15,7 @@ export function AlarmsVariableQueryEditor({ query, onChange, datasource }: Props
   query = datasource.prepareQuery(query);
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [takeInvalidMessage, setTakeInvalidMessage] = useState<string>('');
-  const { 
-    filter = '',
-    take = DEFAULT_QUERY_EDITOR_TAKE,
-    descending = DEFAULT_QUERY_EDITOR_DESCENDING
-  } = query;
+  const preparedQuery = query as AlarmsVariableQuery;
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -31,14 +27,14 @@ export function AlarmsVariableQueryEditor({ query, onChange, datasource }: Props
   }, [datasource]);
 
   const onFilterChange = (filter: string) => {
-    if (query.filter !== filter) {
-      query.filter = filter;
-      onChange({ ...query, filter });
+    if (preparedQuery.filter !== filter) {
+      preparedQuery.filter = filter;
+      onChange({ ...preparedQuery, filter });
     }
   };
 
   const onDescendingChange = (isDescendingChecked: boolean) => {
-    onChange({ ...query, descending: isDescendingChecked });
+    onChange({ ...preparedQuery, descending: isDescendingChecked });
   };
 
   const validateTakeValue = (value: number) => {
@@ -56,7 +52,7 @@ export function AlarmsVariableQueryEditor({ query, onChange, datasource }: Props
     const { message, take } = validateTakeValue(value);
 
     setTakeInvalidMessage(message);
-    onChange({ ...query, take });
+    onChange({ ...preparedQuery, take });
   };
 
   return (
@@ -68,7 +64,7 @@ export function AlarmsVariableQueryEditor({ query, onChange, datasource }: Props
           tooltip={tooltips.queryBy}
         >
           <AlarmsQueryBuilder
-            filter={filter}
+            filter={preparedQuery.filter}
             onChange={(event: any) => onFilterChange(event.detail.linq)}
             workspaces={workspaces}
             globalVariableOptions={datasource.listAlarmsQueryHandler.globalVariableOptions()}
@@ -81,7 +77,7 @@ export function AlarmsVariableQueryEditor({ query, onChange, datasource }: Props
         >
           <InlineSwitch
             onChange={event => onDescendingChange(event.currentTarget.checked)}
-            value={descending}
+            value={preparedQuery.descending}
           />
         </InlineField>
         <InlineField
@@ -95,7 +91,7 @@ export function AlarmsVariableQueryEditor({ query, onChange, datasource }: Props
             minWidth={LABEL_WIDTH}
             maxWidth={LABEL_WIDTH}
             type="number"
-            value={take}
+            value={preparedQuery.take}
             onChange={onTakeChange}
             placeholder={placeholders.take}
             onKeyDown={event => {
