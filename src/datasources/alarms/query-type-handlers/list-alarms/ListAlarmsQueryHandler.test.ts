@@ -8,6 +8,7 @@ import { MockProxy } from 'jest-mock-extended';
 import { User } from 'shared/types/QueryUsers.types';
 import { AlarmsProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 import { Workspace } from 'core/types';
+import { Properties } from 'datasources/products/types';
 
 let datastore: ListAlarmsQueryHandler, backendServer: MockProxy<BackendSrv>;
 
@@ -478,6 +479,138 @@ describe('ListAlarmsQueryHandler', () => {
                 ['pressure'],
                 [],
               ],
+            },
+          ],
+        });
+      });
+
+      it('should map boolean values fields to the properties', async () => {
+        const query = {
+          refId: 'A',
+          properties: [AlarmsProperties.clear, AlarmsProperties.acknowledged, AlarmsProperties.active]
+        };
+
+        jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce([
+          { clear: true, acknowledged: false, active: true },
+          { clear: false, acknowledged: true, active: false },
+        ]);
+
+        const result = await datastore.runQuery(query, options);
+
+        expect(result).toEqual({
+          refId: 'A',
+          name: 'A',
+          fields: [
+            {
+              name: 'Clear',
+              type: 'string',
+              values: [true, false],
+            },
+            {
+              name: 'Acknowledged',
+              type: 'string', 
+              values: [false, true],
+            },
+            {
+              name: 'Active',
+              type: 'string',
+              values: [true, false],
+            },
+          ],
+        });
+      });
+
+      it('should map string and number based properties', async () => {
+        const query = {
+          refId: 'A',
+          properties: [
+            AlarmsProperties.channel,
+            AlarmsProperties.alarmId,
+            AlarmsProperties.condition,
+            AlarmsProperties.createdBy,
+            AlarmsProperties.description,
+            AlarmsProperties.displayName,
+            AlarmsProperties.instanceId,
+            AlarmsProperties.resourceType,
+            AlarmsProperties.transitionOverflowCount,
+          ],
+        };
+
+        jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce([
+          {
+            channel: 'Main',
+            alarmId: 'ALARM-001',
+            condition: 'Temperature',
+            createdBy: 'admin',
+            description: 'High temperature detected',
+            displayName: 'Temperature Alarm',
+            instanceId: 'INST-001',
+            resourceType: 'sensor',
+            transitionOverflowCount: 5,
+          },
+          {
+          channel: null,
+          alarmId: undefined,
+          condition: '',
+          createdBy: null,
+          description: undefined,
+          displayName: '',
+          instanceId: null,
+          resourceType: undefined,
+          transitionOverflowCount: 0,
+        },
+        ]);
+
+        const result = await datastore.runQuery(query, options);
+
+        expect(result).toEqual({
+          refId: 'A',
+          name: 'A',
+          fields: [
+            {
+              name: 'Channel',
+              type: 'string',
+              values: ['Main', ''],
+            },
+            {
+              name: 'Alarm ID',
+              type: 'string',
+              values: ['ALARM-001', ''],
+            },
+            {
+              name: 'Condition',
+              type: 'string',
+              values: ['Temperature', ''],
+            },
+            {
+              name: 'Created by',
+              type: 'string',
+              values: ['admin', ''],
+            },
+            {
+              name: 'Description',
+              type: 'string',
+              values: ['High temperature detected',''],
+            },
+            {
+              name: 'Alarm name',
+              type: 'string',
+              values: ['Temperature Alarm', ''],
+            },
+            {
+              name: 'Instance ID',
+              type: 'string',
+              values: ['INST-001', ''],
+            },
+            {
+              name: 'Resource type',
+              type: 'string',
+              values: ['sensor', ''],
+            },
+            {
+              name: 'Transition overflow count',
+              type: 'string',
+              values: [5, 0],
             },
           ],
         });

@@ -10,22 +10,22 @@ export enum AlarmsProperties {
   acknowledgedAt = 'acknowledgedAt',
   acknowledgedBy = 'acknowledgedBy',
   active = 'active',
-  alarmId = 'alarmId',
-  channel = 'channel',
+  alarmId = 'alarmId', // n
+  channel = 'channel',  // n
   clear = 'clear',
-  condition = 'condition',
-  createdBy = 'createdBy',
+  condition = 'condition', // n
+  createdBy = 'createdBy', //n
   currentSeverityLevel = 'currentSeverityLevel',
-  description = 'description',
-  displayName = 'displayName',
+  description = 'description',// n 
+  displayName = 'displayName',// n 
   highestSeverityLevel = 'highestSeverityLevel',
-  instanceId = 'instanceId',
+  instanceId = 'instanceId', //n 
   keywords = 'keywords',
   mostRecentSetOccurredAt = 'mostRecentSetOccurredAt',
   mostRecentTransitionOccurredAt = 'mostRecentTransitionOccurredAt',
   occurredAt = 'occurredAt',
   properties = 'properties',
-  resourceType = 'resourceType',
+  resourceType = 'resourceType', //n 
    // The Source field is derived from properties.system, with a fallback to
    // properties.minionId. If neither property is available, the source defaults to
    // an empty string.
@@ -33,7 +33,7 @@ export enum AlarmsProperties {
   // The State column is determined using the values of clear and acknowledged.
   state = 'state',
   // TODO(AB-3356927): Add transition property support
-  transitionOverflowCount = 'transitionOverflowCount',
+  transitionOverflowCount = 'transitionOverflowCount', //n 
   updatedAt = 'updatedAt',
   workspace = 'workspace',
 }
