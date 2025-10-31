@@ -136,7 +136,6 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
             case PropertiesProjectionMap.ASSIGNED_TO.label:
             case PropertiesProjectionMap.CREATED_BY.label:
             case PropertiesProjectionMap.UPDATED_BY.label:
-              console.log(users);
               const user = users.get(value);
               return user ? UsersUtils.getUserFullName(user) : '';
             case PropertiesProjectionMap.PROPERTIES.label:

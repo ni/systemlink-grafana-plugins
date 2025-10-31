@@ -8,7 +8,6 @@ import { MockProxy } from 'jest-mock-extended';
 import { User } from 'shared/types/QueryUsers.types';
 import { AlarmsProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 import { Workspace } from 'core/types';
-import { Properties } from 'datasources/products/types';
 
 let datastore: ListAlarmsQueryHandler, backendServer: MockProxy<BackendSrv>;
 

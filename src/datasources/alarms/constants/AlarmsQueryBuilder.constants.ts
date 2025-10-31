@@ -1,6 +1,5 @@
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { QBField } from 'core/types';
-import { AlarmsProperties } from '../types/ListAlarms.types';
 
 const BOOLEAN_FILTER_OPERATIONS = [
   QueryBuilderOperations.EQUALS.name, 
@@ -175,18 +174,6 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
     filterOperations: BOOLEAN_FILTER_OPERATIONS,
   }
 };
-
-export const ALARMS_TIME_FIELDS = [
-  AlarmsQueryBuilderFields.FIRST_OCCURRENCE.dataField,
-  AlarmsQueryBuilderFields.ACKNOWLEDGED_ON.dataField,
-  AlarmsQueryBuilderFields.LAST_TRANSITION_OCCURRENCE.dataField,
-  AlarmsQueryBuilderFields.LAST_OCCURRENCE.dataField,
-];
-
-export const EXTENDED_ALARMS_TIME_FIELDS = [
-  ...ALARMS_TIME_FIELDS,
-  AlarmsProperties.updatedAt,
-]
 
 export const AlarmsQueryBuilderStaticFields: QBField[] = [
   AlarmsQueryBuilderFields.ACKNOWLEDGED,

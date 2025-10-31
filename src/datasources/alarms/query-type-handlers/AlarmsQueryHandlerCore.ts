@@ -4,12 +4,14 @@ import { Alarm, AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from '../
 import { extractErrorInfo } from 'core/errors';
 import { QUERY_ALARMS_MAXIMUM_TAKE, QUERY_ALARMS_RELATIVE_PATH, QUERY_ALARMS_REQUEST_PER_SECOND } from '../constants/QueryAlarms.constants';
 import { ExpressionTransformFunction, getConcatOperatorForMultiExpression, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
-import { AlarmsQueryBuilderFields, EXTENDED_ALARMS_TIME_FIELDS } from '../constants/AlarmsQueryBuilder.constants';
+import { AlarmsQueryBuilderFields } from '../constants/AlarmsQueryBuilder.constants';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { getVariableOptions, queryInBatches } from 'core/utils';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from '../constants/SourceProperties.constants';
+import { ALARMS_TIME_FIELDS } from '../constants/AlarmsQueryEditor.constants';
+import { AlarmsProperties } from '../types/ListAlarms.types';
 
 export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery> {
   public errorTitle?: string;
@@ -113,7 +115,7 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
   }
 
   protected isTimeField(field: string): boolean {
-    return EXTENDED_ALARMS_TIME_FIELDS.includes(field);
+    return ALARMS_TIME_FIELDS.includes(field as AlarmsProperties);
   }
 
   private readonly computedDataFields = new Map<string, ExpressionTransformFunction>(
