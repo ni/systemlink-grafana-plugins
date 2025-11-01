@@ -141,6 +141,31 @@ describe('ListAlarmsQueryHandler', () => {
 
       jest.useRealTimers();
     });
+
+    [0, -5, 9999999, undefined].forEach(invalidTake => {
+      it('should return empty result when take is invalid', async () => {
+        const invalidTakeQuery = { refId: 'A', take: invalidTake };
+        const spy = jest.spyOn(datastore as any, 'queryAlarmsData');
+
+        const result = await datastore.runQuery(invalidTakeQuery, options);
+
+        expect(result).toEqual({ refId: 'A', name: 'A', fields: [{ name: 'A', values: [] }] });
+        expect(spy).not.toHaveBeenCalled();
+      });
+    });
+
+    it('should call queryAlarmsData when take is valid', async () => {
+      const validTakeQuery = { refId: 'A', take: 500 };
+      const spy = jest.spyOn(datastore as any, 'queryAlarmsData');
+
+      await datastore.runQuery(validTakeQuery, options);
+
+      expect(spy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          take: 500,
+        })
+      );
+    });
   });
 
   describe('queryAlarmsData', () => {
@@ -169,8 +194,56 @@ describe('ListAlarmsQueryHandler', () => {
         })
       );
     });
-  });
 
+    it('should pass take from query to the API', async () => {
+      const take = 500;
+      await datastore.runQuery({ ...query, take }, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            take: 500,
+          }),
+        })
+      );
+    });
+
+    it('should pass descending from query to the API', async () => {
+      await datastore.runQuery({ ...query, descending: false }, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            orderByDescending: false,
+          }),
+        })
+      );
+    });
+
+    it('should pass true for returnMostRecentlyOccurredOnly to the API', async () => {
+      await datastore.runQuery({ ...query }, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            returnMostRecentlyOccurredOnly: true,
+          }),
+        })
+      );
+    });
+
+    it('should default to descending order when descending is not provided in query', async () => {
+      await datastore.runQuery({ ...query, descending: undefined }, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            orderByDescending: true,
+          }),
+        })
+      );
+    });
+  });
 
   describe('metricFindQuery', () => {
     let options: LegacyMetricFindQueryOptions;
