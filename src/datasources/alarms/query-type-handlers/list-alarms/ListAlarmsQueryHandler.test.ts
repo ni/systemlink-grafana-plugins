@@ -232,7 +232,7 @@ describe('ListAlarmsQueryHandler', () => {
       );
     });
 
-    it('should default to descending order when descending is not provided in query', async () => {
+    it('should default to true for descending order when it is not provided in query', async () => {
       await datastore.runQuery({ ...query, descending: undefined }, options);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
