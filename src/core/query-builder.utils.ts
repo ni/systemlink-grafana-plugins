@@ -39,7 +39,7 @@ export function transformComputedFieldsQuery(
 }
 
 function transformBasedOnComputedFieldSupportedOperations(query: string, field: string, transformation: ExpressionTransformFunction, options?: Map<string, Map<string, unknown>>) {
-    const regex = new RegExp(`\\b${field}\\s*(${computedFieldsupportedOperations.join('|')})\\s*"([^"]*)"`, 'g');
+    const regex = new RegExp(String.raw`\b${field}\s*(${computedFieldsupportedOperations.join('|')})\s*"([^"]*)"`, 'g');
 
     return query.replace(regex, (_match, operation, value) => {
       return transformation(value, operation, options?.get(field));
@@ -47,7 +47,7 @@ function transformBasedOnComputedFieldSupportedOperations(query: string, field: 
 }
 
 function transformBasedOnBlankOperations(query: string, field: string, transformation: ExpressionTransformFunction, options?: Map<string, Map<string, unknown>>) {
-    const nullOrEmptyRegex = new RegExp(`(!)?string\\.IsNullOrEmpty\\(${field}\\)`, 'g');
+    const nullOrEmptyRegex = new RegExp(String.raw`(!)?string\.IsNullOrEmpty\(${field}\)`, 'g');
 
     return query.replace(nullOrEmptyRegex, (_match, negation) => {
       const operation = negation
@@ -58,7 +58,7 @@ function transformBasedOnBlankOperations(query: string, field: string, transform
 }
 
 function transformBasedOnContainsOperations(query: string, field: string, transformation: ExpressionTransformFunction, options?: Map<string, Map<string, unknown>>) {
-    const containsRegex = new RegExp(`(?:!(\\(${field}\\.Contains\\("([^"]*)"\\)\\))|(${field}\\.Contains\\("([^"]*)"\\)))`, 'g');
+    const containsRegex = new RegExp(String.raw`(?:!(\(${field}\.Contains\("([^"]*)"\)\))|(${field}\.Contains\("([^"]*)"\)))`, 'g');
 
     return query.replace(containsRegex, (_match, _negatedMatch, negatedValue, _positiveMatch, positiveValue) => {
         const isNegated = negatedValue !== undefined;
