@@ -1,3 +1,9 @@
+## [4.40.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.39.1...v4.40.0) (2025-11-03)
+
+### Features
+
+* **dataframe:** Add default values and change handler to the fields ([#478](https://github.com/ni/systemlink-grafana-plugins/issues/478)) ([e777ad2](https://github.com/ni/systemlink-grafana-plugins/commit/e777ad28375a9e0bd6e39ed28618d92352924131))
+
 ## [4.39.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.39.0...v4.39.1) (2025-10-31)
 
 ### Bug Fixes
