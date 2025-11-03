@@ -198,7 +198,6 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
       messages={queryBuilderMessages}
       onChange={(event) => onFilterChange((event as CustomEvent<{ linq: string }>).detail.linq)}
       value={sanitizedFilter}
-      fieldsMode="static"
       disabled={disableQueryBuilder}
     />
   );
