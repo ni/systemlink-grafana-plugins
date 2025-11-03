@@ -1,3 +1,9 @@
+## [4.42.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.41.0...v4.42.0) (2025-11-03)
+
+### Features
+
+* **system:** add scan code field to System datasource properties ([#482](https://github.com/ni/systemlink-grafana-plugins/issues/482)) ([a340c64](https://github.com/ni/systemlink-grafana-plugins/commit/a340c64c0e634c44d38d92372ee335d5d1823340))
+
 ## [4.41.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.40.0...v4.41.0) (2025-11-03)
 
 ### Features
