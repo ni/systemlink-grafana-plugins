@@ -55,13 +55,13 @@ describe('DataFrameDataSourceV2', () => {
                 dataTableFilter: '',
                 dataTableProperties: defaultDatatableProperties,
                 columnProperties: [],
-                take: TAKE_LIMIT,
                 columns: [],
-                decimationMethod: 'LOSSY',
-                xColumn: null,
                 includeIndexColumns: false,
                 filterNulls: false,
-                applyTimeFilters: false
+                decimationMethod: 'LOSSY',
+                xColumn: null,
+                applyTimeFilters: false,
+                take: TAKE_LIMIT
             };
 
             const result = ds.processQuery(query);
@@ -76,13 +76,13 @@ describe('DataFrameDataSourceV2', () => {
                 dataTableFilter: '',
                 dataTableProperties: defaultDatatableProperties,
                 columnProperties: [],
-                take: TAKE_LIMIT,
                 columns: [],
-                decimationMethod: 'MAX_MIN',
-                xColumn: null,
                 includeIndexColumns: false,
                 filterNulls: false,
-                applyTimeFilters: true
+                decimationMethod: 'MAX_MIN',
+                xColumn: null,
+                applyTimeFilters: true,
+                take: TAKE_LIMIT
             };
 
             const result = ds.processQuery(query);

@@ -2,7 +2,7 @@ import React from "react";
 import { render, RenderResult, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
-import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataSourceQBLookupCallback } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataSourceQBLookupCallback, DataTableProperties } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { select } from "react-select-event";
@@ -152,31 +152,27 @@ describe("DataFrameQueryEditorV2", () => {
         let onRunQuery: jest.Mock;
 
         beforeEach(() => {
-            ({ onChange, onRunQuery } = renderComponent({ type: DataFrameQueryType.Data }));
+            const result = renderComponent({ type: DataFrameQueryType.Data });
+            onChange = result.onChange;
+            onRunQuery = result.onRunQuery;
         });
 
         describe("hidden fields", () => {
-            it("should hide the data table properties field when the query type is data", async () => {
-                await waitFor(() => {
-                    expect(screen.queryByText("Select data table properties to fetch")).not.toBeInTheDocument();
-                });
+            it("should hide the data table properties", async () => {
+                expect(screen.queryByText("Data table properties")).not.toBeInTheDocument();
             });
 
-            it("should hide the column properties field when the query type is data", async () => {
-                await waitFor(() => {
-                    expect(screen.queryByText("Select column properties to fetch")).not.toBeInTheDocument();
-                });
+            it("should hide the column properties", async () => {
+                expect(screen.queryByText("Column properties")).not.toBeInTheDocument();
             });
 
-            it("should hide the take field when the query type is data", async () => {
-                await waitFor(() => {
-                    expect(screen.queryByPlaceholderText("Enter record count")).not.toBeInTheDocument();
-                });
+            it("should hide the take", async () => {
+                expect(screen.queryByText("Take")).not.toBeInTheDocument();
             });
         });
 
-        describe("data table querybuilder", () => {
-            it("should show the 'DataTableQueryBuilder' component when the query type is data", async () => {
+        describe("data table query builder", () => {
+            it("should show the 'DataTableQueryBuilder' component", async () => {
                 await waitFor(() => {
                     expect(screen.getByTestId("data-table-query-builder")).toBeInTheDocument();
                 });
@@ -184,7 +180,7 @@ describe("DataFrameQueryEditorV2", () => {
         });
 
         describe("column configuration controls", () => {
-            it("should show the column configuration controls when the query type is data", async () => {
+            it("should show the column configuration fields", async () => {
                 await waitFor(() => {
                     expect(screen.getByText("Column configurations")).toBeInTheDocument();
                     expect(screen.getByText("Columns")).toBeInTheDocument();
@@ -261,7 +257,7 @@ describe("DataFrameQueryEditorV2", () => {
         });
 
         describe("decimation settings controls", () => {
-            it("should show the decimation settings controls when the query type is data", async () => {
+            it("should show the decimation settings fields", async () => {
                 await waitFor(() => {
                     expect(screen.getByText("Decimation settings")).toBeInTheDocument();
                     expect(screen.getByText("Decimation method")).toBeInTheDocument();
@@ -279,7 +275,7 @@ describe("DataFrameQueryEditorV2", () => {
                     user = userEvent.setup();
                 });
 
-                it("should show the decimation method field", () => {
+                it("should show the decimation method field with default value", () => {
                     expect(decimationMethodField).toBeInTheDocument();
                     expect(decimationMethodField).toHaveAttribute('aria-expanded', 'false');
                     expect(decimationMethodField).toHaveDisplayValue('Lossy');
@@ -354,20 +350,42 @@ describe("DataFrameQueryEditorV2", () => {
             columnPropertiesField = renderResult.getAllByRole('combobox')[1];
         });
 
-        describe("properties fields", () => {
-            it('should render datatable properties select', () => {
+        describe("hidden fields", () => {
+            it("should hide the column configuration fields", async () => {
+                expect(screen.queryByText("Column configurations")).not.toBeInTheDocument();
+                expect(screen.queryByPlaceholderText("Select columns")).not.toBeInTheDocument();
+                expect(screen.queryByText("Include index columns")).not.toBeInTheDocument();
+                expect(screen.queryByText("Filter nulls")).not.toBeInTheDocument();
+            });
+
+            it("should hide the decimation settings fields", async () => {
+                expect(screen.queryByText("Decimation settings")).not.toBeInTheDocument();
+                expect(screen.queryByText("Decimation method")).not.toBeInTheDocument();
+                expect(screen.queryByText("X-column")).not.toBeInTheDocument();
+                expect(screen.queryByText("Use time range")).not.toBeInTheDocument();
+            });
+        });
+
+        describe("data table properties fields", () => {
+            it('should render data table properties select with default value', () => {
                 expect(dataTablePropertiesField).toBeInTheDocument();
                 expect(dataTablePropertiesField).toHaveAttribute('aria-expanded', 'false');
                 expect(dataTablePropertiesField).toHaveDisplayValue('');
+                expect(document.body).toHaveTextContent("Data table name");
+                expect(document.body).toHaveTextContent("Data table ID");
+                expect(document.body).toHaveTextContent("Rows");
+                expect(document.body).toHaveTextContent("Columns");
+                expect(document.body).toHaveTextContent("Created");
+                expect(document.body).toHaveTextContent("Workspace");
             });
 
-            it('should call onChange with datatable properties when user selects properties', async () => {
+            it('should call onChange with data table properties when user selects properties', async () => {
                 await userEvent.click(dataTablePropertiesField);
                 await select(dataTablePropertiesField, DataTableProjectionLabelLookup.Properties.label, { container: document.body });
 
                 await waitFor(() => {
                     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                        dataTableProperties: expect.arrayContaining([DataTableProjectionLabelLookup.Properties.projection])
+                        dataTableProperties: expect.arrayContaining([DataTableProperties.Properties])
                     }));
                     expect(onRunQuery).not.toHaveBeenCalled();
                 });
@@ -378,12 +396,6 @@ describe("DataFrameQueryEditorV2", () => {
                 await userEvent.click(dataTablePropertiesField);
 
                 await waitFor(() => {
-                    expect(document.body).toHaveTextContent("Data table name");
-                    expect(document.body).toHaveTextContent("Data table ID");
-                    expect(document.body).toHaveTextContent("Rows");
-                    expect(document.body).toHaveTextContent("Columns");
-                    expect(document.body).toHaveTextContent("Created");
-                    expect(document.body).toHaveTextContent("Workspace");
                     expect(document.body).toHaveTextContent("Metadata modified");
                     expect(document.body).toHaveTextContent("Metadata revision");
                     expect(document.body).toHaveTextContent("Rows modified");
@@ -391,7 +403,9 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(document.body).toHaveTextContent("Data table properties");
                 });
             });
+        });
 
+        describe("column properties fields", () => {
             it('should render column properties select', () => {
                 expect(columnPropertiesField).toBeInTheDocument();
                 expect(columnPropertiesField).toHaveAttribute('aria-expanded', 'false');
@@ -404,7 +418,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                 await waitFor(() => {
                     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                        columnProperties: expect.arrayContaining([DataTableProjectionLabelLookup.ColumnType.projection])
+                        columnProperties: expect.arrayContaining([DataTableProperties.ColumnType])
                     }));
                     expect(onRunQuery).not.toHaveBeenCalled();
                 });
