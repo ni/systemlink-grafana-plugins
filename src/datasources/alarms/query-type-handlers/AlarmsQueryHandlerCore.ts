@@ -3,7 +3,7 @@ import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, Scop
 import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from '../types/types';
 import { extractErrorInfo } from 'core/errors';
 import { QUERY_ALARMS_RELATIVE_PATH } from '../constants/QueryAlarms.constants';
-import { ExpressionTransformFunction, getConcatOperatorForMultiExpression, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { ExpressionTransformFunction, getConcatOperatorForMultiExpression, listFieldQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from '../constants/AlarmsQueryBuilder.constants';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
@@ -92,12 +92,15 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
       const dataField = field.dataField as string;
       let callback;
 
-      if (dataField === AlarmsQueryBuilderFields.SOURCE.dataField) {
-        callback = this.getSourceTransformation();
-      } else if (this.isTimeField(dataField)) {
-        callback = timeFieldsQuery(dataField);
-      } else {
-        callback = multipleValuesQuery(dataField);
+      switch (dataField) {
+        case AlarmsQueryBuilderFields.SOURCE.dataField:
+          callback = this.getSourceTransformation();
+          break;
+        case AlarmsQueryBuilderFields.KEYWORD.dataField:
+          callback = listFieldQuery(dataField);
+          break;
+        default:
+          callback = this.isTimeField(dataField) ? timeFieldsQuery(dataField) : multipleValuesQuery(dataField);
       }
 
       return [dataField, callback];

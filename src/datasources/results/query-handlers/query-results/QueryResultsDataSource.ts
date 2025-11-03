@@ -3,7 +3,7 @@ import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase
 import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents, DataSourceInstanceSettings } from "@grafana/data";
 import { OutputType } from "datasources/results/types/types";
 import { defaultResultsQuery } from "datasources/results/defaultQueries";
-import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
+import { ExpressionTransformFunction, listFieldQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
 import { TAKE_LIMIT } from "datasources/results/constants/QuerySteps.constants";
 import { extractErrorInfo } from "core/errors";
@@ -185,12 +185,23 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
    * It dynamically processes and formats query expressions based on the field type.
    */
   readonly resultsComputedDataFields = new Map<string, ExpressionTransformFunction>(
-    Object.values(ResultsQueryBuilderFieldNames).map(field => [
-      field,
-      field === (ResultsQueryBuilderFieldNames.UPDATED_AT) || field === (ResultsQueryBuilderFieldNames.STARTED_AT)
-        ? timeFieldsQuery(field)
-        : multipleValuesQuery(field),
-    ])
+    Object.values(ResultsQueryBuilderFieldNames).map(field => {
+      let callback;
+      
+      switch (field) {
+        case ResultsQueryBuilderFieldNames.UPDATED_AT:
+        case ResultsQueryBuilderFieldNames.STARTED_AT:
+          callback = timeFieldsQuery(field);
+          break;
+        case ResultsQueryBuilderFieldNames.KEYWORDS:
+          callback = listFieldQuery(field);
+          break;
+        default:
+          callback = multipleValuesQuery(field);
+      }
+
+      return [field, callback];
+    })
   );
 
   async metricFindQuery(query: ResultsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {

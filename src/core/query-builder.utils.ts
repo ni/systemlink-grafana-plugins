@@ -15,6 +15,7 @@ export type ExpressionTransformFunction = (value: string, operation: string, opt
  * Supported operations for computed fields
  */
 export const computedFieldsupportedOperations = ['=', '!=', '>', '>=', '<', '<='];
+const startEndOperations = ['StartsWith', 'EndsWith'];
 
 /**
  * The function will replace the computed fields with their transformation
@@ -32,6 +33,9 @@ export function transformComputedFieldsQuery(
   for (const [field, transformation] of computedDataFields.entries()) {
     query = transformBasedOnComputedFieldSupportedOperations(query, field, transformation, options);
     query = transformBasedOnBlankOperations(query, field, transformation, options);
+    query = transformBasedOnContainsOperations(query, field, transformation, options);
+    query = transformBasedOnStartEndOperations(query, field, transformation, options);
+    query = transformBasedOnAnyOperation(query, field, transformation, options);
   }
 
   return query;
@@ -56,6 +60,52 @@ function transformBasedOnBlankOperations(query: string, field: string, transform
     });
 }
 
+function transformBasedOnContainsOperations(query: string, field: string, transformation: ExpressionTransformFunction, options?: Map<string, Map<string, unknown>>) {
+  const containsRegex = new RegExp(`(?:!(\\(${field}\\.Contains\\("([^"]*)"\\)\\))|(${field}\\.Contains\\("([^"]*)"\\)))`, 'g');
+
+  return query.replace(containsRegex, (_match, _negatedMatch, negatedValue, _positiveMatch, positiveValue) => {
+      const isNegated = negatedValue !== undefined;
+      const extractedValue = negatedValue || positiveValue;
+      
+      const operation = isNegated
+        ? QueryBuilderOperations.DOES_NOT_CONTAIN.name
+        : QueryBuilderOperations.CONTAINS.name;
+    return transformation(extractedValue, operation, options?.get(field));
+  });
+}
+
+function transformBasedOnAnyOperation(
+  query: string,
+  field: string,
+  transformation: ExpressionTransformFunction,
+  options?: Map<string, Map<string, unknown>>
+) {
+  const anyRegex = new RegExp(`\\b${field}\\.Any\\s*\\((.*)\\)`, 'g');
+
+  return query.replace(anyRegex, (_match, innerPredicate: string) => {
+    options = options ?? new Map<string, Map<string, unknown>>();
+    options.set('it', new Map<string, unknown>([['subField', 'it']]));
+    const innerTransformation = transformBasedOnContainsOperations(innerPredicate, 'it', transformation, options);
+    return `${field}.Any(${innerTransformation})`;
+  });
+}
+
+function transformBasedOnStartEndOperations(
+  query: string,
+  field: string,
+  transformation: ExpressionTransformFunction,
+  options?: Map<string, Map<string, unknown>>
+) {
+  const regex = new RegExp(`\\b${field}\\.(${startEndOperations.join('|')})\\s*\\("([^"]*)"\\)`, 'g');
+
+  return query.replace(regex, (_match, operation, value) => {
+    const operationName = operation === 'StartsWith'
+      ? QueryBuilderOperations.STARTS_WITH.name
+      : QueryBuilderOperations.ENDS_WITH.name;
+    return transformation(value, operationName, options?.get(field));
+  });
+}
+
 /**
  * Builds the expression from the provided template
  * @param expressionTemplate The expression template of the @see QueryBuilderCustomOperation
@@ -63,7 +113,7 @@ function transformBasedOnBlankOperations(query: string, field: string, transform
  * @param value The value to be used in the expression
  * @returns The built expression
  */
-export function buildExpressionFromTemplate(expressionTemplate: string | undefined, field: string, value?: string) {
+export function buildExpressionFromTemplate(expressionTemplate: string | undefined, field: string, value?: string): string | undefined {
   return expressionTemplate?.replace('{0}', field).replace('{1}', value ?? '');
 }
 
@@ -160,6 +210,19 @@ export function timeFieldsQuery(field: string): ExpressionTransformFunction {
   };
 }
 
+export function listFieldQuery(field: string): ExpressionTransformFunction {
+  return (value: string, operation: string, options?: Map<string, unknown>) => {
+    // if (operation === QueryBuilderOperations.LIST_CONTAINS.name) {
+    //   return multipleValuesQuery('it')(value, QueryBuilderOperations.CONTAINS.name);
+    // } else if (operation === QueryBuilderOperations.LIST_DOES_NOT_CONTAIN.name) {
+    //   return multipleValuesQuery('it')(value, QueryBuilderOperations.DOES_NOT_CONTAIN.name);
+    // }
+    const subField = options?.get('subField') as string ?? field;
+    
+    return multipleValuesQuery(subField)(value, operation);
+  };
+}
+
 /**
  * Transforms a field query to support both single and multi-value inputs.
  * Returns a function that builds the correct query expression for the given field, value(s), and operation.
@@ -202,8 +265,14 @@ export function multipleValuesQuery(field: string): ExpressionTransformFunction 
  * @param operation The operation to be checked.
  * @returns The logical operator as a string.
  */
-export function getConcatOperatorForMultiExpression(operation: string): string {
-  return operation === QueryBuilderOperations.EQUALS.name || operation === QueryBuilderOperations.IS_NOT_BLANK.name
+export function getConcatOperatorForMultiExpression(operation: string, negation = false): string {
+  return (
+    operation === QueryBuilderOperations.EQUALS.name
+    || operation === QueryBuilderOperations.IS_NOT_BLANK.name
+    || operation === QueryBuilderOperations.CONTAINS.name
+    || operation === QueryBuilderOperations.STARTS_WITH.name
+    || operation === QueryBuilderOperations.ENDS_WITH.name
+  )
     ? '||'
     : '&&';
 }
