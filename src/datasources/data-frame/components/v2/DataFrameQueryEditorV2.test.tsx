@@ -339,15 +339,11 @@ describe("DataFrameQueryEditorV2", () => {
 
     describe("when the query type is properties", () => {
         let renderResult: RenderResult;
-        let dataTablePropertiesField: HTMLElement;
-        let columnPropertiesField: HTMLElement;
         let onChange: jest.Mock;
         let onRunQuery: jest.Mock;
 
         beforeEach(() => {
             ({ renderResult, onChange, onRunQuery } = renderComponent({ type: DataFrameQueryType.Properties }));
-            dataTablePropertiesField = renderResult.getAllByRole('combobox')[0];
-            columnPropertiesField = renderResult.getAllByRole('combobox')[1];
         });
 
         describe("hidden fields", () => {
@@ -367,6 +363,12 @@ describe("DataFrameQueryEditorV2", () => {
         });
 
         describe("data table properties fields", () => {
+            let dataTablePropertiesField: HTMLElement;
+
+            beforeEach(() => {
+                dataTablePropertiesField = renderResult.getAllByRole('combobox')[0];
+            });
+
             it('should render data table properties select with default value', () => {
                 expect(dataTablePropertiesField).toBeInTheDocument();
                 expect(dataTablePropertiesField).toHaveAttribute('aria-expanded', 'false');
@@ -406,6 +408,12 @@ describe("DataFrameQueryEditorV2", () => {
         });
 
         describe("column properties fields", () => {
+            let columnPropertiesField: HTMLElement;
+
+            beforeEach(() => {
+                columnPropertiesField = renderResult.getAllByRole('combobox')[1];
+            });
+
             it('should render column properties select', () => {
                 expect(columnPropertiesField).toBeInTheDocument();
                 expect(columnPropertiesField).toHaveAttribute('aria-expanded', 'false');
