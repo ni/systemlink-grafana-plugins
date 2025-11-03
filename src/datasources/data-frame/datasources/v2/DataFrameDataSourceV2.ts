@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, MetricFindValue, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryType, DataFrameQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProjectionType, DataTableProperties, defaultQueryV2, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2 } from "../../types";
+import { Column, DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryType, DataFrameQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProjectionType, DataTableProperties, defaultQueryV2, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQuery, ValidDataFrameQueryV2 } from "../../types";
 import { TAKE_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { getWorkspaceName } from "core/utils";
@@ -32,7 +32,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
 
         const propertiesToQuery = [...processedQuery.dataTableProperties, ...processedQuery.columnProperties];
 
-        if (processedQuery.type === DataFrameQueryType.Properties && propertiesToQuery.length > 0 && processedQuery.take > 0) {
+        if (processedQuery.type === DataFrameQueryType.Properties && propertiesToQuery.length > 0 && processedQuery.take > 0 && processedQuery.take <= TAKE_LIMIT) {
             const projections = propertiesToQuery.map(property => DataTableProjectionLabelLookup[property].projection);
             const projectionExcludingId = projections.filter(projection => projection !== DataTableProjections.Id);
             const tables = await this.queryTables(processedQuery.dataTableFilter, processedQuery.take, projectionExcludingId);
@@ -41,7 +41,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 const values = this.getDataTableFieldValues(tables, property, workspaces);
                 return {
                     name: property,
-                    type: this.isTimeField(property) ? FieldType.time : FieldType.string,
+                    type: this.getFieldType(property),
                     values
                 };
             });
@@ -61,7 +61,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         return [];
     }
 
-    shouldRunQuery(query: ValidDataFrameQueryV2): boolean {
+    shouldRunQuery(query: ValidDataFrameQuery): boolean {
         const processedQuery = this.processQuery(query);
         return processedQuery.type === DataFrameQueryType.Properties;
     }
@@ -102,7 +102,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         Object.values(DataTableProperties).map(field =>
             [
                 field,
-                this.isTimeField(field) ? timeFieldsQuery(field)
+                this.isTimeField(field)
+                    ? timeFieldsQuery(field)
                     : multipleValuesQuery(field)
             ]
         )
@@ -117,33 +118,61 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         return timeFields.includes(field as DataTableProperties);
     };
 
+    private isNumberField(field: string): boolean {
+        const numberFields = [
+            DataTableProperties.ColumnCount,
+            DataTableProperties.RowCount,
+            DataTableProperties.MetadataRevision
+        ];
+        return numberFields.includes(field as DataTableProperties);
+    };
+
+    private isBooleanField(field: string): boolean {
+        return field === DataTableProperties.SupportsAppend;
+    };
+
+    private isListOrObjectField(field: string): boolean {
+        const fields = [
+            DataTableProperties.ColumnName,
+            DataTableProperties.ColumnDataType,
+            DataTableProperties.ColumnType,
+            DataTableProperties.ColumnProperties,
+            DataTableProperties.Properties,
+        ];
+        return fields.includes(field as DataTableProperties);
+    };
+
+    private getFieldType(property: DataTableProperties): FieldType {
+        switch (true) {
+            case this.isTimeField(property):
+                return FieldType.time;
+            case this.isNumberField(property):
+                return FieldType.number;
+            case this.isBooleanField(property):
+                return FieldType.boolean;
+            case this.isListOrObjectField(property):
+                return FieldType.other;
+            default:
+                return FieldType.string;
+        }
+    }
+
     private getDataTableFieldValues(
         tables: TableProperties[],
         property: DataTableProperties,
         workspaces: Map<string, Workspace>
-    ): string[] | number[] {
+    ): any {
         return tables.map(table => {
             const value = DataTableProjectionLabelLookup[property].type === DataTableProjectionType.Column
                 ? table.columns.map(column => (column as any)[DataTableProjectionLabelLookup[property].field])
                 : (table as any)[DataTableProjectionLabelLookup[property].field];
 
-            switch (property) {
-                case DataTableProperties.Workspace:
-                    const workspace = workspaces.get(value);
-                    return workspace ? getWorkspaceName([workspace], value) : value;
-
-                case DataTableProperties.ColumnCount, DataTableProperties.RowCount:
-                    return value as number;
-
-                case DataTableProperties.ColumnName, DataTableProperties.ColumnDataType, DataTableProperties.ColumnType:
-                    return value.toString();
-
-                case DataTableProperties.Properties, DataTableProperties.ColumnProperties:
-                    return JSON.stringify(value);
-
-                default:
-                    return value;
+            if (property === DataTableProperties.Workspace) {
+                const workspace = workspaces.get(value);
+                return workspace ? getWorkspaceName([workspace], value) : value;
             }
+
+            return value;
         });
     }
 }
