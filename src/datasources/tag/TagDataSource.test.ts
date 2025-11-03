@@ -496,17 +496,6 @@ describe('queries', () => {
     expect(result.data).toMatchSnapshot();
   });
 
-  test('attempts to replace variables in history query', async () => {
-    const workspaceVariable = '$workspace';
-    backendSrv.fetch.mockReturnValueOnce(createQueryTagsResponse());
-    templateSrv.replace.calledWith(workspaceVariable).mockReturnValue('1');
-
-    await ds.query(buildQuery({ path: 'my.tag', workspace: workspaceVariable }));
-
-    expect(templateSrv.replace).toHaveBeenCalledTimes(1);
-    expect(templateSrv.replace.mock.calls[0][0]).toBe(workspaceVariable);
-  });
-
   test('supports legacy tag service property "workspace_id"', async () => {
     backendSrv.fetch
       .mockReturnValueOnce(
@@ -782,7 +771,7 @@ describe('parseMultiSelectValues', () => {
     templateSrv.replace
       .calledWith(
         '$my_variable',
-        undefined,
+        expect.any(Object),
         expect.any(Function)
       )
       .mockReturnValue('my.tag');
@@ -802,7 +791,7 @@ describe('parseMultiSelectValues', () => {
     templateSrv.replace
       .calledWith(
         'localhost.Health.CPU.$cpu.UsePercentage',
-        undefined,
+        expect.any(Object),
         expect.any(Function)
       )
       .mockReturnValue('localhost.Health.CPU.{1,2}.UsePercentage');
@@ -830,7 +819,7 @@ describe('parseMultiSelectValues', () => {
     templateSrv.replace
       .calledWith(
         'localhost.Health.$var1.$var2',
-        undefined,
+        expect.any(Object),
         expect.any(Function)
       )
       .mockReturnValue('localhost.Health.{Disk,Memory}.{Used,Total}');
@@ -890,13 +879,16 @@ describe('parseMultiSelectValues', () => {
 
   test('attempts to replace variables in history query', async () => {
     const workspaceVariable = '$workspace';
+    const selectedWorkspace = '1';
+    const tagPath = 'my.tag';
     backendSrv.fetch.mockReturnValueOnce(createQueryTagsResponse());
-    templateSrv.replace.calledWith(workspaceVariable).mockReturnValue('1');
+    templateSrv.replace.calledWith(workspaceVariable, expect.any(Object)).mockReturnValue(selectedWorkspace);
 
-    await ds.query(buildQuery({ path: 'my.tag', workspace: workspaceVariable }));
+    await ds.query(buildQuery({ path: tagPath, workspace: workspaceVariable }));
 
-    expect(templateSrv.replace).toHaveBeenCalledTimes(1);
-    expect(templateSrv.replace.mock.calls[0][0]).toBe(workspaceVariable);
+    expect(templateSrv.replace).toHaveBeenCalledTimes(2);
+    expect(templateSrv.replace.mock.calls[0][0]).toBe(tagPath);
+    expect(templateSrv.replace.mock.calls[1][0]).toBe(workspaceVariable);
   });
 
   test('supports legacy tag service property "datatype"', async () => {

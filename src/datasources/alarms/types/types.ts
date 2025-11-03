@@ -6,6 +6,8 @@ export interface AlarmsQuery extends DataQuery {
 
 export interface AlarmsVariableQuery extends AlarmsQuery {
   filter?: string;
+  descending?: boolean;
+  take?: number;
 }
 
 export enum QueryType {
@@ -21,6 +23,7 @@ export interface QueryAlarmsRequest {
   orderByDescending?: boolean;
   continuationToken?: string;
   returnCount?: boolean;
+  returnMostRecentlyOccurredOnly?: boolean;
 }
 
 export interface QueryAlarmsResponse {

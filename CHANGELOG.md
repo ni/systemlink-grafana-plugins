@@ -1,3 +1,39 @@
+## [4.39.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.39.0...v4.39.1) (2025-10-31)
+
+### Bug Fixes
+
+* **alarms:** prepareVariableQuery for Alarms Variable Query Editor ([#486](https://github.com/ni/systemlink-grafana-plugins/issues/486)) ([abb666b](https://github.com/ni/systemlink-grafana-plugins/commit/abb666b52c3b794778aeeb526e9e9d6a29855145))
+
+## [4.39.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.38.1...v4.39.0) (2025-10-31)
+
+### Features
+
+* **alarms:** Add UI support for properties ([#468](https://github.com/ni/systemlink-grafana-plugins/issues/468)) ([58da9a3](https://github.com/ni/systemlink-grafana-plugins/commit/58da9a354728c759666c32bf6da2ce469245878a))
+
+## [4.38.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.38.0...v4.38.1) (2025-10-31)
+
+### Bug Fixes
+
+* **tags:** fix repeat values for tags datasource ([#484](https://github.com/ni/systemlink-grafana-plugins/issues/484)) ([118bc8f](https://github.com/ni/systemlink-grafana-plugins/commit/118bc8f24a8d005d96d93acf8d1cef2745faffce))
+
+## [4.38.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.37.0...v4.38.0) (2025-10-30)
+
+### Features
+
+* **alarms:** Introduce list alarms editor and integrate query builder ([#457](https://github.com/ni/systemlink-grafana-plugins/issues/457)) ([5ff4878](https://github.com/ni/systemlink-grafana-plugins/commit/5ff48785521ef37918fa8a3b13c43766a3a1ac88))
+
+## [4.37.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.36.0...v4.37.0) (2025-10-30)
+
+### Features
+
+* **alarms:** Add query type control and its functionality ([#446](https://github.com/ni/systemlink-grafana-plugins/issues/446)) ([35d9e48](https://github.com/ni/systemlink-grafana-plugins/commit/35d9e48127e360ec4c99d489325d26d19be8ccc1))
+
+## [4.36.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.35.0...v4.36.0) (2025-10-30)
+
+### Features
+
+* **alarms:** Introduce `take` and `descending` in the alarms variable query editor ([#471](https://github.com/ni/systemlink-grafana-plugins/issues/471)) ([a99d294](https://github.com/ni/systemlink-grafana-plugins/commit/a99d294320929f8c7bd8ef11018ead500589aef4))
+
 ## [4.35.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.34.0...v4.35.0) (2025-10-30)
 
 ### Features

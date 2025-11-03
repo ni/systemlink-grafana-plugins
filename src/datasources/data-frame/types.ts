@@ -26,13 +26,13 @@ export interface DataFrameQueryV2 extends DataQuery {
   dataTableFilter?: string;
   dataTableProperties?: DataTableProperties[];
   columnProperties?: DataTableProperties[];
-  take?: number;
   columns?: string[];
-  decimationMethod?: string;
-  xColumn?: string | null;
   includeIndexColumns?: boolean;
   filterNulls?: boolean;
+  decimationMethod?: string;
+  xColumn?: string | null;
   applyTimeFilters?: boolean;
+  take?: number;
 }
 
 export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
@@ -103,13 +103,13 @@ export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   dataTableFilter: '',
   dataTableProperties: defaultDatatableProperties,
   columnProperties: [],
-  take: TAKE_LIMIT,
   columns: [],
-  decimationMethod: 'LOSSY',
-  xColumn: null,
   includeIndexColumns: false,
   filterNulls: false,
-  applyTimeFilters: false
+  decimationMethod: 'LOSSY',
+  xColumn: null,
+  applyTimeFilters: false,
+  take: TAKE_LIMIT
 };
 
 export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
