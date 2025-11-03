@@ -30,6 +30,7 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
   onChange,
   value,
   showIcons,
+  disabled = false,
   validateOnInput = false,
 }) => {
   const theme = useTheme2();
@@ -70,6 +71,8 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
       value={sanitizedFilter}
       validateOnInput={validateOnInput}
       showIcons={showIcons}
+      disabled={disabled}
+      fieldsMode='static'
       theme='ni-grafana'
     />
   );
