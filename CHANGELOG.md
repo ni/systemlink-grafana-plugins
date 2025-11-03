@@ -1,3 +1,9 @@
+## [4.41.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.40.0...v4.41.0) (2025-11-03)
+
+### Features
+
+* **asset:** contains filter to properties ([#483](https://github.com/ni/systemlink-grafana-plugins/issues/483)) ([06f9e67](https://github.com/ni/systemlink-grafana-plugins/commit/06f9e6756c576d12b3ee8d398f1f56bce2755cd0))
+
 ## [4.40.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.39.1...v4.40.0) (2025-11-03)
 
 ### Features
