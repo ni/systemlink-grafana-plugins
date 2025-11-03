@@ -24,8 +24,8 @@ export interface DataFrameQueryV1 extends DataQuery {
 export interface DataFrameQueryV2 extends DataQuery {
   type: DataFrameQueryType;
   dataTableFilter?: string;
-  dataTableProperties?: DataTableProjections[];
-  columnProperties?: DataTableProjections[];
+  dataTableProperties?: DataTableProperties[];
+  columnProperties?: DataTableProperties[];
   take?: number;
   columns?: string[];
   decimationMethod?: string;
@@ -70,7 +70,7 @@ export enum DataTableProjections {
   Name = 'NAME',
   Id = 'ID',
   RowCount = 'ROW_COUNT',
-  columnCount = 'COLUMN_COUNT',
+  ColumnCount = 'COLUMN_COUNT',
   CreatedAt = 'CREATED_AT',
   Workspace = 'WORKSPACE',
   MetadataModifiedAt = 'METADATA_MODIFIED_AT',
@@ -89,13 +89,13 @@ export enum DataTableProjectionType {
   Column = 'column'
 }
 
-export const defaultDatatableProperties: DataTableProjections[] = [
-  DataTableProjections.Name,
-  DataTableProjections.Id,
-  DataTableProjections.RowCount,
-  DataTableProjections.columnCount,
-  DataTableProjections.CreatedAt,
-  DataTableProjections.Workspace
+export const defaultDatatableProperties: DataTableProperties[] = [
+  DataTableProperties.Name,
+  DataTableProperties.Id,
+  DataTableProperties.RowCount,
+  DataTableProperties.ColumnCount,
+  DataTableProperties.CreatedAt,
+  DataTableProperties.Workspace
 ];
 
 export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
@@ -115,84 +115,101 @@ export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
 export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
   label: string,
   projection: DataTableProjections,
-  type: DataTableProjectionType;
+  type: DataTableProjectionType,
+  field: string;
 }> = {
   [DataTableProperties.Name]: {
     label: 'Data table name',
     projection: DataTableProjections.Name,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'name'
   },
   [DataTableProperties.Id]: {
     label: 'Data table ID',
     projection: DataTableProjections.Id,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'id'
   },
   [DataTableProperties.RowCount]: {
     label: 'Rows',
     projection: DataTableProjections.RowCount,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'rowCount'
   },
   [DataTableProperties.ColumnCount]: {
     label: 'Columns',
-    projection: DataTableProjections.columnCount,
-    type: DataTableProjectionType.DataTable
+    projection: DataTableProjections.ColumnCount,
+    type: DataTableProjectionType.DataTable,
+    field: 'columnCount'
   },
   [DataTableProperties.CreatedAt]: {
     label: 'Created',
     projection: DataTableProjections.CreatedAt,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'createdAt'
   },
   [DataTableProperties.Workspace]: {
     label: 'Workspace',
     projection: DataTableProjections.Workspace,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'workspace'
   },
   [DataTableProperties.MetadataModifiedAt]: {
     label: 'Metadata modified',
     projection: DataTableProjections.MetadataModifiedAt,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'metadataModifiedAt'
   },
   [DataTableProperties.MetadataRevision]: {
     label: 'Metadata revision',
     projection: DataTableProjections.MetadataRevision,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'metadataRevision'
   },
   [DataTableProperties.RowsModifiedAt]: {
     label: 'Rows modified',
     projection: DataTableProjections.RowsModifiedAt,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'rowsModifiedAt'
   },
   [DataTableProperties.ColumnName]: {
     label: 'Column name',
     projection: DataTableProjections.ColumnName,
-    type: DataTableProjectionType.Column
+    type: DataTableProjectionType.Column,
+    field: 'name'
   },
   [DataTableProperties.ColumnDataType]: {
     label: 'Column data type',
     projection: DataTableProjections.ColumnDataType,
-    type: DataTableProjectionType.Column
+    type: DataTableProjectionType.Column,
+    field: 'dataType'
   },
   [DataTableProperties.ColumnType]: {
     label: 'Column type',
     projection: DataTableProjections.ColumnType,
-    type: DataTableProjectionType.Column
+    type: DataTableProjectionType.Column,
+    field: 'columnType'
   },
   [DataTableProperties.ColumnProperties]: {
     label: 'Column properties',
     projection: DataTableProjections.ColumnProperties,
-    type: DataTableProjectionType.Column
+    type: DataTableProjectionType.Column,
+    field: 'properties'
   },
   [DataTableProperties.SupportsAppend]: {
     label: 'Supports append',
     projection: DataTableProjections.SupportsAppend,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'supportsAppend'
   },
   [DataTableProperties.Properties]: {
     label: 'Data table properties',
     projection: DataTableProjections.Properties,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'properties'
   },
 };
+
 export type ValidDataFrameQuery = ValidDataFrameQueryV1 | ValidDataFrameQueryV2;
 
 export type ValidDataFrameQueryV1 = DataFrameQueryV1 & Required<Omit<DataFrameQueryV1, keyof DataQuery>>;

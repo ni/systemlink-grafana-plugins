@@ -1,8 +1,11 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindValue, TimeRange } from "@grafana/data";
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, MetricFindValue, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryV2, DataTableProjections, defaultQueryV2, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2 } from "../../types";
+import { Column, DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryType, DataFrameQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProjectionType, DataTableProperties, defaultQueryV2, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2 } from "../../types";
 import { TAKE_LIMIT } from "datasources/data-frame/constants";
+import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
+import { getWorkspaceName } from "core/utils";
+import { Workspace } from "core/types";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
     defaultQuery = defaultQueryV2;
@@ -15,8 +18,41 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         super(instanceSettings, backendSrv, templateSrv);
     }
 
-    async runQuery(_query: DataFrameQueryV2, _options: DataQueryRequest<DataFrameQueryV2>): Promise<DataFrameDTO> {
-        // TODO: Implement logic to fetch and return DataFrameDTO based on the query and options.
+    async runQuery(query: DataFrameQueryV2, options: DataQueryRequest<DataFrameQueryV2>): Promise<DataFrameDTO> {
+        const processedQuery = this.processQuery(query);
+        const workspaces = await this.loadWorkspaces();
+        let fields = [];
+
+        if (processedQuery.dataTableFilter) {
+            processedQuery.dataTableFilter = transformComputedFieldsQuery(
+                this.templateSrv.replace(processedQuery.dataTableFilter, options.scopedVars),
+                this.dataTableComputedDataFields,
+            );
+        }
+
+        const propertiesToQuery = [...processedQuery.dataTableProperties, ...processedQuery.columnProperties];
+
+        if (processedQuery.type === DataFrameQueryType.Properties && propertiesToQuery.length > 0 && processedQuery.take > 0) {
+            const projections = propertiesToQuery.map(property => DataTableProjectionLabelLookup[property].projection);
+            const projectionExcludingId = projections.filter(projection => projection !== DataTableProjections.Id);
+            const tables = await this.queryTables(processedQuery.dataTableFilter, processedQuery.take, projectionExcludingId);
+
+            fields = propertiesToQuery.map(property => {
+                const values = this.getDataTableFieldValues(tables, property, workspaces);
+                return {
+                    name: property,
+                    type: this.isTimeField(property) ? FieldType.time : FieldType.string,
+                    values
+                };
+            });
+
+            return {
+                refId: query.refId,
+                name: query.refId,
+                fields: fields,
+            };
+        }
+
         return { fields: [] };
     }
 
@@ -25,9 +61,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         return [];
     }
 
-    shouldRunQuery(_query: ValidDataFrameQueryV2): boolean {
-        // TODO: Implement logic to determine if the query should run. Currently always returns false.
-        return false;
+    shouldRunQuery(query: ValidDataFrameQueryV2): boolean {
+        const processedQuery = this.processQuery(query);
+        return processedQuery.type === DataFrameQueryType.Properties;
     }
 
     processQuery(query: DataFrameQuery): ValidDataFrameQueryV2 {
@@ -60,5 +96,54 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             true
         );
         return response.tables;
+    }
+
+    private readonly dataTableComputedDataFields = new Map<string, ExpressionTransformFunction>(
+        Object.values(DataTableProperties).map(field =>
+            [
+                field,
+                this.isTimeField(field) ? timeFieldsQuery(field)
+                    : multipleValuesQuery(field)
+            ]
+        )
+    );
+
+    private isTimeField(field: string): boolean {
+        const timeFields = [
+            DataTableProperties.CreatedAt,
+            DataTableProperties.MetadataModifiedAt,
+            DataTableProperties.RowsModifiedAt
+        ];
+        return timeFields.includes(field as DataTableProperties);
+    };
+
+    private getDataTableFieldValues(
+        tables: TableProperties[],
+        property: DataTableProperties,
+        workspaces: Map<string, Workspace>
+    ): string[] | number[] {
+        return tables.map(table => {
+            const value = DataTableProjectionLabelLookup[property].type === DataTableProjectionType.Column
+                ? table.columns.map(column => (column as any)[DataTableProjectionLabelLookup[property].field])
+                : (table as any)[DataTableProjectionLabelLookup[property].field];
+
+            switch (property) {
+                case DataTableProperties.Workspace:
+                    const workspace = workspaces.get(value);
+                    return workspace ? getWorkspaceName([workspace], value) : value;
+
+                case DataTableProperties.ColumnCount, DataTableProperties.RowCount:
+                    return value as number;
+
+                case DataTableProperties.ColumnName, DataTableProperties.ColumnDataType, DataTableProperties.ColumnType:
+                    return value.toString();
+
+                case DataTableProperties.Properties, DataTableProperties.ColumnProperties:
+                    return JSON.stringify(value);
+
+                default:
+                    return value;
+            }
+        });
     }
 }

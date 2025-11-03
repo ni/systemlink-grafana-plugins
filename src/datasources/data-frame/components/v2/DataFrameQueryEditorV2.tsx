@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
 import { AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineLabel, InlineSwitch, MultiCombobox, MultiSelect, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQueryV2, DataFrameQueryType, PropsV2, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProjections } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, PropsV2, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProjections, DataTableProperties } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import { SelectableValue } from '@grafana/data';
@@ -18,10 +18,10 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
 
-    const getPropertiesOptions = (type: DataTableProjectionType): Array<SelectableValue<DataTableProjections>> =>
+    const getPropertiesOptions = (type: DataTableProjectionType): Array<SelectableValue<DataTableProperties>> =>
         Object.entries(DataTableProjectionLabelLookup)
             .filter(([_, value]) => value.type === type)
-            .map(([_, value]) => ({ label: value.label, value: value.projection }));
+            .map(([key, value]) => ({ label: value.label, value: key as DataTableProperties }));
 
     const datatablePropertiesOptions = getPropertiesOptions(DataTableProjectionType.DataTable);
     const columnPropertiesOptions = getPropertiesOptions(DataTableProjectionType.Column);
@@ -36,21 +36,21 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
     );
 
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
-        handleQueryChange({ ...migratedQuery, type: queryType }, false);
+        handleQueryChange({ ...migratedQuery, type: queryType });
     };
 
     const onDataTableFilterChange = (event: any) => {
-        handleQueryChange({ ...migratedQuery, dataTableFilter: event.detail.linq }, false);
+        handleQueryChange({ ...migratedQuery, dataTableFilter: event.detail.linq });
     };
 
-    const onDataTablePropertiesChange = (properties: Array<SelectableValue<DataTableProjections>>) => {
-        const dataTableProperties = properties.map(property => property.value) as DataTableProjections[];
-        handleQueryChange({ ...migratedQuery, dataTableProperties }, false);
+    const onDataTablePropertiesChange = (properties: Array<SelectableValue<DataTableProperties>>) => {
+        const dataTableProperties = properties.map(property => property.value) as DataTableProperties[];
+        handleQueryChange({ ...migratedQuery, dataTableProperties });
     };
 
-    const onColumnPropertiesChange = (properties: Array<SelectableValue<DataTableProjections>>) => {
-        const columnProperties = properties.map(property => property.value) as DataTableProjections[];
-        handleQueryChange({ ...migratedQuery, columnProperties }, false);
+    const onColumnPropertiesChange = (properties: Array<SelectableValue<DataTableProperties>>) => {
+        const columnProperties = properties.map(property => property.value) as DataTableProperties[];
+        handleQueryChange({ ...migratedQuery, columnProperties });
     };
 
     const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -58,7 +58,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
         const message = validateTakeValue(value, TAKE_LIMIT);
 
         setRecordCountInvalidMessage(message);
-        handleQueryChange({ ...migratedQuery, take: value }, false);
+        handleQueryChange({ ...migratedQuery, take: value });
     };
 
     const onColumnsChange = (columns: Array<ComboboxOption<string>>) => {
