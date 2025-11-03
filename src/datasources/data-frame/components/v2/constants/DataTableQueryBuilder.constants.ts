@@ -1,5 +1,6 @@
 import { QueryBuilderOperations } from "core/query-builder.constants";
 import { QBField } from "core/types";
+import { QBFieldWithDataSourceCallback } from "datasources/data-frame/types";
 
 export enum DataTableQueryBuilderFieldNames {
     CreatedAt = 'createdAt',
@@ -13,7 +14,7 @@ export enum DataTableQueryBuilderFieldNames {
     Workspace = 'workspace'
 }
 
-export const DataTableQueryBuilderFields: Record<string, QBField> = {
+export const DataTableQueryBuilderFields: Record<string, QBField | QBFieldWithDataSourceCallback> = {
     CREATED_AT: {
         label: 'Created',
         dataField: DataTableQueryBuilderFieldNames.CreatedAt,
@@ -46,10 +47,7 @@ export const DataTableQueryBuilderFields: Record<string, QBField> = {
             QueryBuilderOperations.DOES_NOT_EQUAL.name,
             QueryBuilderOperations.CONTAINS.name,
             QueryBuilderOperations.DOES_NOT_CONTAIN.name
-        ],
-        lookup: {
-            dataSource: []
-        }
+        ]
     },
     PROPERTIES: {
         label: 'Properties',
@@ -110,4 +108,4 @@ export const DataTableQueryBuilderStaticFields = [
     DataTableQueryBuilderFields.PROPERTIES,
     DataTableQueryBuilderFields.ROW_COUNT,
     DataTableQueryBuilderFields.SUPPORTS_APPEND
-];
+] as QBField[];

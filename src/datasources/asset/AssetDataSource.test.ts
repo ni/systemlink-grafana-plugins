@@ -98,7 +98,8 @@ const assetsResponseMock: AssetsResponse =
       "lastUpdatedTimestamp": "2024-02-21T12:54:20.069Z",
       "fileIds": [],
       "supportsSelfTest": false,
-      "supportsReset": false
+      "supportsReset": false,
+      "scanCode": "7f6d0d74-bc75-4d78-9edd-00c253b3a0de"
     },
     {
       "modelName": "AI 0-15",
@@ -137,7 +138,8 @@ const assetsResponseMock: AssetsResponse =
       "lastUpdatedTimestamp": "2024-02-21T12:54:20.072Z",
       "fileIds": [],
       "supportsSelfTest": false,
-      "supportsReset": false
+      "supportsReset": false,
+      "scanCode": "71fbef61-fae6-4364-82d4-29feb79c7146"
     },
     {
       "modelName": "AO 0-3",
@@ -176,7 +178,8 @@ const assetsResponseMock: AssetsResponse =
       "lastUpdatedTimestamp": "2024-02-21T12:54:20.076Z",
       "fileIds": [],
       "supportsSelfTest": false,
-      "supportsReset": false
+      "supportsReset": false,
+      "scanCode": "cf1ac843-06a2-4713-ab43-f9d1d8dfdc32"
     },
     {
       "modelName": "DIO 0-3",
@@ -227,7 +230,8 @@ const assetsResponseMock: AssetsResponse =
         "resolvedDueDate": "2025-02-21T12:54:20.078Z",
         "entryType": "AUTOMATIC",
         "updatedBy": "user-id"
-      }
+      },
+      "scanCode": "456e8812-1da4-4818-afab-f0cd34f74567"
     }
   ],
   "totalCount": 4
@@ -272,7 +276,8 @@ const assetsWithoutNameResponseMock: AssetsResponse =
       "lastUpdatedTimestamp": "2024-02-21T12:54:20.069Z",
       "fileIds": [],
       "supportsSelfTest": false,
-      "supportsReset": false
+      "supportsReset": false,
+      "scanCode": "7f6d0d74-bc75-4d78-9edd-00c253b3a0de"
     },
     {
       "modelName": "",
@@ -310,7 +315,8 @@ const assetsWithoutNameResponseMock: AssetsResponse =
       "lastUpdatedTimestamp": "2024-02-21T12:54:20.069Z",
       "fileIds": [],
       "supportsSelfTest": false,
-      "supportsReset": false
+      "supportsReset": false,
+      "scanCode": "7f6d0d74-bc75-4d78-9edd-00c253b3a0de"
     }
   ],
   "totalCount": 2

@@ -51,6 +51,7 @@ test('query properties for all systems', async () => {
         { name: 'operating system', values: ['nilrt', 'Microsoft Windows 10 Enterprise'] },
         { name: 'ip address', values: ['172.17.0.1', 'fe80::280:2fff:fe24:fcfa'] },
         { name: 'workspace', values: ['Default workspace', 'Other workspace'] },
+        { name: 'scan code', values: ['ABC123DEF456', 'ABC123DEF457'] },
       ],
       refId: 'A',
     },
@@ -79,6 +80,7 @@ test('query properties for one system', async () => {
         { name: 'operating system', values: ['nilrt'] },
         { name: 'ip address', values: ['172.17.0.1'] },
         { name: 'workspace', values: ['Default workspace'] },
+        { name: 'scan code', values: ['ABC123DEF456'] },
       ],
       refId: 'A',
     },
@@ -157,6 +159,7 @@ const fakeSystems: SystemProperties[] = [
     systemStartTime: '2023-07-18T10:19:46Z',
     model: 'NI cRIO-9033',
     vendor: 'National Instruments',
+    scanCode: 'ABC123DEF456',
     osFullName: 'nilrt',
     ip4Interfaces: {
       cali816305ba9ce: [],
@@ -188,6 +191,7 @@ const fakeSystems: SystemProperties[] = [
     systemStartTime: '2023-03-02T18:48:09Z',
     model: '20LCS0X700',
     vendor: 'LENOVO',
+    scanCode: 'ABC123DEF457',
     osFullName: 'Microsoft Windows 10 Enterprise',
     ip4Interfaces: {
       usb0: [],

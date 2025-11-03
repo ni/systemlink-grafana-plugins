@@ -69,7 +69,7 @@ describe('AlarmsCountQueryHandler', () => {
   it('should set defaultAlarmsCountQuery to defaultQuery', () => {
     const defaultQuery = datastore.defaultQuery;
     
-    expect(defaultQuery).toEqual({ queryType: 'Alarms Count', filter: '' });
+    expect(defaultQuery).toEqual({ filter: '' });
   });
 
   describe('runQuery', () => {
