@@ -1,4 +1,3 @@
-import { useTheme2 } from '@grafana/ui';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallbackWithRef, expressionReaderCallbackWithRef } from 'core/query-builder.utils';
 import { Workspace, QueryBuilderOption, QBField } from 'core/types';
@@ -7,11 +6,6 @@ import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 
-import 'smart-webcomponents-react/source/styles/smart.dark-orange.css';
-import 'smart-webcomponents-react/source/styles/smart.orange.css';
-import 'smart-webcomponents-react/source/styles/components/smart.base.css';
-import 'smart-webcomponents-react/source/styles/components/smart.common.css';
-import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
 import { StepsQueryBuilderFields, StepsQueryBuilderStaticFields } from 'datasources/results/constants/StepsQueryBuilder.constants';
 import { StepPath } from 'datasources/results/types/QuerySteps.types';
 import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
@@ -36,8 +30,6 @@ export const StepsQueryBuilder: React.FC<StepsQueryBuilderProps> = ({
   onFilterChange,
   disableQueryBuilder
 }) => {
-  const theme = useTheme2();
-  document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
 
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
