@@ -32,11 +32,14 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
   public abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;
 
   // TODO: AB#3442981 - Make this return type Observable
-  abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrameDTO> | Observable<DataFrameDTO>;
+  public abstract runQuery(
+    query: TQuery,
+    options: DataQueryRequest
+  ): Promise<DataFrameDTO> | Observable<DataFrameDTO>;
 
   public abstract shouldRunQuery(query: TQuery): boolean;
 
-  query(request: DataQueryRequest<TQuery>): Observable<DataQueryResponse> {
+  public query(request: DataQueryRequest<TQuery>): Observable<DataQueryResponse> {
     const queries$ = request.targets
       .map(this.prepareQuery, this)
       .filter(this.shouldRunQuery, this)
@@ -130,10 +133,14 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    * @param useApiIngress - If true, uses API ingress bypassing the UI ingress for the request.
    * @returns An observable emitting the response of type `T`.
    */
-  public post$<T>(url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}, useApiIngress = false) {
+  public post$<T>(
+    url: string,
+    body: Record<string, any>,
+    options: Partial<BackendSrvRequest> = {},
+    useApiIngress = false
+  ) {
     if (!useApiIngress) {
       return post$<T>(this.backendSrv, url, body, options);
-    
     }
   
     return from(this.buildApiRequestConfig(url, options, 'POST')).pipe(

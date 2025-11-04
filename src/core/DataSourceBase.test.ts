@@ -37,6 +37,8 @@ describe('DataSourceBase', () => {
         mockPost$ = utils.post$ as jest.Mock;
         mockGet.mockResolvedValue('test');
         mockPost.mockResolvedValue('test');
+        mockGet$.mockReturnValue(of('observable-test'));
+        mockPost$.mockReturnValue(of('observable-test'));
 
         backendSrv = {} as BackendSrv;
 
@@ -172,8 +174,6 @@ describe('DataSourceBase', () => {
 
     describe('get$', () => {
         it('should send GET$ request with correct parameters when useApiIngress is not set', async () => {
-            mockGet$.mockReturnValueOnce(of('observable-test'));
-
             const response = await firstValueFrom(dataSource.get$('/test-endpoint', { param1: 'value1' }));
 
             expect(mockGet$).toHaveBeenCalledWith(
@@ -185,10 +185,9 @@ describe('DataSourceBase', () => {
         });
 
         it('should send GET$ request with API ingress when useApiIngress is true', async () => {
-            mockGet$.mockReturnValueOnce(of('observable-test'));
-
-            const response$ = dataSource.get$('/test-endpoint', { param1: 'value1' }, true);
-            const response = await firstValueFrom(response$);
+            const response = await firstValueFrom(
+                dataSource.get$('/test-endpoint', { param1: 'value1' }, true)
+            );
 
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
             expect(mockGet$).toHaveBeenCalledWith(
@@ -206,19 +205,37 @@ describe('DataSourceBase', () => {
             jest.clearAllMocks();
             mockApiSessionUtils.createApiSession.mockRejectedValueOnce(new Error('No session created'));
 
-            const response$ = dataSource.get$('/test-endpoint', { param1: 'value1' }, true);
+            const response = firstValueFrom(dataSource.get$('/test-endpoint', { param1: 'value1' }, true));
 
-            await expect(firstValueFrom(response$)).rejects.toThrow('No session created');
+            await expect(response).rejects.toThrow('No session created');
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
             expect(mockGet$).not.toHaveBeenCalled();
+        });
+
+        it('should send GET$ request with API ingress endpoints and api key when useApiIngress is true and params is empty', async () => {
+            const response = await firstValueFrom(dataSource.get$('/test-endpoint', {}, true));
+
+            expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
+            expect(mockGet$).toHaveBeenCalledWith(
+                backendSrv,
+                "http://api-ingress.com/test-endpoint",
+                {
+                    'x-ni-api-key': 'api-key-secret'
+                }
+            );
+            expect(response).toEqual('observable-test');
         });
     });
 
     describe('post$', () => {
         it('should send POST$ request with correct parameters when useApiIngress is not set', async () => {
-            mockPost$.mockReturnValueOnce(of('observable-test'));
-
-            const response = await firstValueFrom(dataSource.post$('/test-endpoint', { body: 'body' }, { options: 'optionValue' }));
+            const response = await firstValueFrom(
+                dataSource.post$(
+                    '/test-endpoint',
+                    { body: 'body' },
+                    { options: 'optionValue' }
+                )
+            );
 
             expect(mockPost$).toHaveBeenCalledWith(
                 backendSrv,
@@ -230,19 +247,47 @@ describe('DataSourceBase', () => {
         });
 
         it('should send POST$ request with API ingress when useApiIngress is true', async () => {
-            mockPost$.mockReturnValueOnce(of('observable-test'));
+            const options = {
+                headers: {
+                    testHeader: 'headerValue'
+                }
+            };
 
-            const response$ = dataSource.post$(
-                '/test-endpoint',
-                { body: 'body' },
-                {
-                    headers: {
-                        testHeader: 'headerValue'
-                    }
-                },
-                true
+            const response = await firstValueFrom(
+                dataSource.post$(
+                    '/test-endpoint',
+                    { body: 'body' },
+                    options,
+                    true
+                )
             );
-            const response = await firstValueFrom(response$);
+
+            expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
+            const updatedOptions = {
+                ...options,
+                headers: {
+                    ...options.headers,
+                    "x-ni-api-key": "api-key-secret"
+                }
+            };
+            expect(mockPost$).toHaveBeenCalledWith(
+                backendSrv,
+                "http://api-ingress.com/test-endpoint",
+                { body: 'body' },
+                updatedOptions,
+            );
+            expect(response).toEqual('observable-test');
+        });
+
+        it('should send POST$ request with API ingress endpoints and api key when useApiIngress is true and no options are provided', async () => {
+            const response = await firstValueFrom(
+                dataSource.post$(
+                    '/test-endpoint',
+                    { body: 'body' },
+                    {},
+                    true
+                )
+            );
 
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
             expect(mockPost$).toHaveBeenCalledWith(
@@ -251,7 +296,6 @@ describe('DataSourceBase', () => {
                 { body: 'body' },
                 {
                     headers: {
-                        testHeader: 'headerValue',
                         "x-ni-api-key": "api-key-secret"
                     }
                 }

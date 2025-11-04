@@ -154,3 +154,23 @@ exports[`queryProducts returns data when there are valid queries 1`] = `
   "totalCount": 2,
 }
 `;
+
+exports[`queryProducts$ returns data when there are valid queries 1`] = `
+{
+  "continuationToken": "",
+  "products": [
+    {
+      "family": "Family 1",
+      "id": "1",
+      "name": "Product 1",
+      "partNumber": "123",
+      "properties": {
+        "prop1": "value1",
+      },
+      "updatedAt": "2021-08-01T00:00:00Z",
+      "workspace": "Workspace 1",
+    },
+  ],
+  "totalCount": 2,
+}
+`;

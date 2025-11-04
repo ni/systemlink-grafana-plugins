@@ -55,7 +55,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   private workspacesLoaded!: () => void;
   private partNumberLoaded!: () => void;
 
-  queryProducts(
+  queryProducts$(
     orderBy?: string,
     projection?: Properties[],
     filter?: string,
@@ -127,7 +127,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
           );
         }
   
-        return this.queryProducts(
+        return this.queryProducts$(
           query.orderBy,
           query.properties,
           query.queryBy,
@@ -196,7 +196,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       )
       : undefined;
 
-      const metadata = await lastValueFrom(this.queryProducts(
+      const metadata = await lastValueFrom(this.queryProducts$(
         PropertiesOptions.PART_NUMBER,
         [Properties.partNumber, Properties.name],
         filter

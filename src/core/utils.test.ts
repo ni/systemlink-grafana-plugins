@@ -583,6 +583,7 @@ describe('get', () => {
   });
 
   it('should retry up to 3 times on 429 before succeeding', async () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0.001);
     (mockBackendSrv.fetch as jest.Mock)
       .mockReturnValueOnce(throwError(() => ({ status: 429, data: {} })))
       .mockReturnValueOnce(throwError(() => ({ status: 429, data: {} })))
@@ -657,6 +658,16 @@ describe('get$', () => {
     expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(4);
     jest.spyOn(Math, 'random').mockRestore();
   });
+
+  it('should handle 504 errors without retrying', async () => {
+    (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => ({ status: 504, data: {} })));
+
+    const response = firstValueFrom(get$(mockBackendSrv, url, params));
+
+    await expect(response).rejects.toThrow('Request to url \"/api/test\" failed with status code: 504.');
+    expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(1);
+    jest.spyOn(Math, 'random').mockRestore();
+  });
 });
 
 describe('post', () => {
@@ -687,6 +698,7 @@ describe('post', () => {
   });
 
   it('should retry up to 3 times on 429 before succeeding', async () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0.001);
     (mockBackendSrv.fetch as jest.Mock)
       .mockReturnValueOnce(throwError(() => ({ status: 429, data: {} })))
       .mockReturnValueOnce(throwError(() => ({ status: 429, data: {} })))
@@ -759,6 +771,16 @@ describe('post$', () => {
 
     await expect(response).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
     expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(4);
+    jest.spyOn(Math, 'random').mockRestore();
+  });
+
+  it('should handle 504 errors without retrying', async () => {
+    (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => ({ status: 504, data: {} })));
+
+    const response = firstValueFrom(post$(mockBackendSrv, url, body));
+
+    await expect(response).rejects.toThrow('Request to url \"/api/test\" failed with status code: 504.');
+    expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(1);
     jest.spyOn(Math, 'random').mockRestore();
   });
 });
