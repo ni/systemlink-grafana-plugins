@@ -1,6 +1,6 @@
 import { AlarmsCountQuery } from '../types/AlarmsCount.types';
 import { AlarmsProperties, ListAlarmsQuery } from '../types/ListAlarms.types';
-import { AlarmsVariableQuery, QueryType, TransitionInclusionOption } from '../types/types';
+import { AlarmsVariableQuery, QueryType } from '../types/types';
 import { DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TAKE, DEFAULT_QUERY_EDITOR_TRANSITION } from './AlarmsQueryEditor.constants';
 
 export const DEFAULT_QUERY_TYPE: QueryType = QueryType.ListAlarms;
