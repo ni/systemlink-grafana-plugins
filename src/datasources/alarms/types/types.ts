@@ -61,7 +61,7 @@ export interface Alarm {
   resourceType: string;
 }
 
-enum TransitionInclusionOption {
+export enum TransitionInclusionOption {
   None = 'NONE',
   MostRecentOnly = 'MOST_RECENT_ONLY',
   All = 'ALL',

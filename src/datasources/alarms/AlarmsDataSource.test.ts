@@ -22,6 +22,7 @@ describe('AlarmsDataSource', () => {
     expect(datastore.defaultQuery).toEqual({
       filter: '',
       properties: ['displayName', 'currentSeverityLevel', 'occurredAt', 'source', 'state', 'workspace'],
+      transition: 'NONE',
     });
   });
 

@@ -1,5 +1,6 @@
 import { AlertVariant } from '@grafana/ui';
 import { AlarmsProperties } from '../types/ListAlarms.types';
+import { TransitionInclusionOption } from '../types/types';
 
 export const LABEL_WIDTH = 26;
 export const CONTROL_WIDTH = 65;
@@ -15,6 +16,7 @@ export const labels = {
   properties: 'Properties',
   descending: 'Descending',
   take: 'Take',
+  transition: 'Include Transition',
 };
 
 export const tooltips = {
@@ -22,7 +24,8 @@ export const tooltips = {
   queryBy: 'This optional field specifies the query filters.',
   properties: 'This field specifies the properties to use in the query.',
   descending: 'This toggle returns the alarms query in descending order.',
-  take: 'This field specifies the maximum number of alarms to return.'
+  take: 'This field specifies the maximum number of alarms to return.',
+  transition: 'This field specifies whether to include all transitions, only the most recent, or none.',
 };
 
 export const takeErrorMessages = {
@@ -145,3 +148,24 @@ export const AlarmsPropertiesOptions: Record<
     value: AlarmsProperties.workspace,
   },
 }
+
+export const AlarmsTransitionsOptions: Record<
+  TransitionInclusionOption,
+  {
+    label: string;
+    value: TransitionInclusionOption;
+  }
+> = {
+  [TransitionInclusionOption.None]: {
+    label: 'None',
+    value: TransitionInclusionOption.None,
+  },
+  [TransitionInclusionOption.MostRecentOnly]: {
+    label: 'Most recent only',
+    value: TransitionInclusionOption.MostRecentOnly,
+  },
+  [TransitionInclusionOption.All]: {
+    label: 'All',
+    value: TransitionInclusionOption.All,
+  },
+};

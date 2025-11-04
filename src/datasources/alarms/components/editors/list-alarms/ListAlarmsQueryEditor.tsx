@@ -3,6 +3,7 @@ import { InlineField } from 'core/components/InlineField';
 import { AlarmsQueryBuilder } from '../../query-builder/AlarmsQueryBuilder';
 import {
   AlarmsPropertiesOptions,
+  AlarmsTransitionsOptions,
   CONTROL_WIDTH,
   ERROR_SEVERITY_WARNING,
   LABEL_WIDTH,
@@ -15,7 +16,8 @@ import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
 import { AlarmsProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 import { ListAlarmsQueryHandler } from 'datasources/alarms/query-type-handlers/list-alarms/ListAlarmsQueryHandler';
-import { ComboboxOption, MultiCombobox, Stack } from '@grafana/ui';
+import { Combobox, ComboboxOption, MultiCombobox, Stack } from '@grafana/ui';
+import { TransitionInclusionOption } from 'datasources/alarms/types/types';
 
 type Props = {
   query: ListAlarmsQuery;
@@ -55,6 +57,10 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     handleQueryChange({ ...query, properties: selectedProperties });
   };
 
+  const onTransitionChange = (option: ComboboxOption<TransitionInclusionOption>) => {
+    handleQueryChange({ ...query, transition: option.value });
+  };
+
   return (
     <Stack direction='column'>
       <InlineField
@@ -74,18 +80,34 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
           maxWidth={CONTROL_WIDTH}
         />
       </InlineField>
-      <InlineField
-        label={labels.queryBy}
-        labelWidth={LABEL_WIDTH}
-        tooltip={tooltips.queryBy}
-      >
-        <AlarmsQueryBuilder
-          filter={query.filter}
-          globalVariableOptions={datasource.globalVariableOptions()}
-          workspaces={workspaces}
-          onChange={onFilterChange}
-        />
-      </InlineField>
+      <Stack justifyContent={'flex-start'}>
+        <InlineField
+          label={labels.queryBy}
+          labelWidth={LABEL_WIDTH}
+          tooltip={tooltips.queryBy}
+        >
+          <AlarmsQueryBuilder
+            filter={query.filter}
+            globalVariableOptions={datasource.globalVariableOptions()}
+            workspaces={workspaces}
+            onChange={onFilterChange}
+          />
+        </InlineField>
+        <Stack direction='column'>
+          <InlineField
+            label={labels.transition}
+            labelWidth={LABEL_WIDTH}
+            tooltip={tooltips.transition}
+          >
+            <Combobox
+              options={Object.values(AlarmsTransitionsOptions)}
+              value={query.transition}
+              width={CONTROL_WIDTH}
+              onChange={onTransitionChange}
+            />
+          </InlineField>
+        </Stack>
+      </Stack>
       <FloatingError
         message={datasource.errorTitle}
         innerMessage={datasource.errorDescription}

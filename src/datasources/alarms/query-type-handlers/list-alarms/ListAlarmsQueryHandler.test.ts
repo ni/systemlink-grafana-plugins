@@ -113,6 +113,7 @@ describe('ListAlarmsQueryHandler', () => {
     expect(defaultQuery).toEqual({
       filter: '',
       properties: ['displayName', 'currentSeverityLevel', 'occurredAt', 'source', 'state', 'workspace'],
+      transition: 'NONE',
     });
   });
 
