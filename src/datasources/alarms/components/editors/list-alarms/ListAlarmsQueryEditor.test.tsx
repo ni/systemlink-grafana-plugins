@@ -1,11 +1,11 @@
 import React from 'react';
 import { act, render, screen, waitFor } from '@testing-library/react';
-import { QueryType } from 'datasources/alarms/types/types';
+import { QueryType, TransitionInclusionOption } from 'datasources/alarms/types/types';
 import { ListAlarmsQueryHandler } from 'datasources/alarms/query-type-handlers/list-alarms/ListAlarmsQueryHandler';
 import { AlarmsProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 import { ListAlarmsQueryEditor } from './ListAlarmsQueryEditor';
 import userEvent from '@testing-library/user-event';
-import { AlarmsPropertiesOptions } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { AlarmsPropertiesOptions, AlarmsTransitionsOptions } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { select } from 'react-select-event';
 
 const mockHandleQueryChange = jest.fn();
@@ -151,6 +151,39 @@ describe('ListAlarmsQueryEditor', () => {
 
       expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
       expect(mockHandleQueryChange).toHaveBeenCalledWith(expect.objectContaining({ properties: [] }));
+    });
+  });
+
+  describe('Transition', () => {
+    it('should render the selected transition option in the UI', async () => {
+      const container = await renderElement({
+        refId: 'A',
+        queryType: QueryType.ListAlarms,
+        transition: TransitionInclusionOption.MostRecentOnly,
+      });
+      const transitionCombobox = container.getAllByRole('combobox')[1];
+
+      expect(transitionCombobox).toBeInTheDocument();
+      expect(transitionCombobox).toHaveValue(AlarmsTransitionsOptions[TransitionInclusionOption.MostRecentOnly].label);
+    });
+
+    it('should call handleQueryChange with selected transition option when a transition option is selected', async () => {
+      const container = await renderElement();
+      const transitionCombobox = container.getAllByRole('combobox')[1];
+
+      await userEvent.click(transitionCombobox);
+      await select(transitionCombobox, AlarmsTransitionsOptions[TransitionInclusionOption.All].label, {
+        container: document.body,
+      });
+
+      await waitFor(() => {
+        expect(mockHandleQueryChange).toHaveBeenCalledTimes(1);
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            transition: TransitionInclusionOption.All,
+          }),
+        );
+      });
     });
   });
 });

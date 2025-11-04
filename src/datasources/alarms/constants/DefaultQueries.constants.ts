@@ -1,7 +1,7 @@
 import { AlarmsCountQuery } from '../types/AlarmsCount.types';
 import { AlarmsProperties, ListAlarmsQuery } from '../types/ListAlarms.types';
 import { AlarmsVariableQuery, QueryType, TransitionInclusionOption } from '../types/types';
-import { DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TAKE } from './AlarmsQueryEditor.constants';
+import { DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TAKE, DEFAULT_QUERY_EDITOR_TRANSITION } from './AlarmsQueryEditor.constants';
 
 export const DEFAULT_QUERY_TYPE: QueryType = QueryType.ListAlarms;
 
@@ -19,7 +19,7 @@ export const defaultListAlarmsQuery: Omit<ListAlarmsQuery, 'refId'> = {
     AlarmsProperties.state,
     AlarmsProperties.workspace,
   ],
-  transition: TransitionInclusionOption.None,
+  transition: DEFAULT_QUERY_EDITOR_TRANSITION,
 };
 
 export const defaultListAlarmsVariableQuery: Omit<AlarmsVariableQuery, 'refId'> = {

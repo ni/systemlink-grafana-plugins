@@ -10,6 +10,8 @@ import {
   labels,
   placeholders,
   PROPERTIES_ERROR_MESSAGE,
+  SECONDARY_CONTROL_WIDTH,
+  SECONDARY_LABEL_WIDTH,
   tooltips,
 } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { Workspace } from 'core/types';
@@ -96,13 +98,13 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
         <Stack direction='column'>
           <InlineField
             label={labels.transition}
-            labelWidth={LABEL_WIDTH}
+            labelWidth={SECONDARY_LABEL_WIDTH}
             tooltip={tooltips.transition}
           >
             <Combobox
               options={Object.values(AlarmsTransitionsOptions)}
               value={query.transition}
-              width={CONTROL_WIDTH}
+              width={SECONDARY_CONTROL_WIDTH}
               onChange={onTransitionChange}
             />
           </InlineField>

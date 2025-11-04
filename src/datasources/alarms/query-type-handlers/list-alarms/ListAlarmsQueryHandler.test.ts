@@ -1,6 +1,6 @@
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { ListAlarmsQueryHandler } from './ListAlarmsQueryHandler';
-import { Alarm, AlarmsVariableQuery, AlarmTransitionType, QueryAlarmsResponse, QueryType } from '../../types/types';
+import { Alarm, AlarmsVariableQuery, AlarmTransitionType, QueryAlarmsResponse, QueryType, TransitionInclusionOption } from '../../types/types';
 import { DataQueryRequest, LegacyMetricFindQueryOptions } from '@grafana/data';
 import { QUERY_ALARMS_RELATIVE_PATH } from 'datasources/alarms/constants/QueryAlarms.constants';
 import { BackendSrv } from '@grafana/runtime';
@@ -164,6 +164,32 @@ describe('ListAlarmsQueryHandler', () => {
         expect.objectContaining({
           data: expect.objectContaining({
             filter,
+          }),
+        })
+      );
+    });
+
+    it('should use transition inclusion option and call API with correct transition parameter', async () => {
+      const transition = TransitionInclusionOption.MostRecentOnly;
+
+      await datastore.runQuery({ ...query, transition }, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            'transitionInclusionOption': transition,
+          }),
+        })
+      );
+    });
+
+    it('should default to NONE transition inclusion option when not provided', async () => {
+      await datastore.runQuery(query, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            'transitionInclusionOption': TransitionInclusionOption.None,
           }),
         })
       );
