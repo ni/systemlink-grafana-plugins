@@ -75,7 +75,6 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       filter: alarmsQuery.filter ?? '',
       take: alarmsQuery.take,
       orderByDescending: alarmsQuery.descending ?? DEFAULT_QUERY_EDITOR_DESCENDING,
-      returnMostRecentlyOccurredOnly: true,
     }
 
     return this.queryAlarmsInBatches(alarmsRequestBody);

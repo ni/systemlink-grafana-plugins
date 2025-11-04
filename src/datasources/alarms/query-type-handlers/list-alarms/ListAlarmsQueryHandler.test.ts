@@ -220,18 +220,6 @@ describe('ListAlarmsQueryHandler', () => {
       );
     });
 
-    it('should pass true for returnMostRecentlyOccurredOnly to the API', async () => {
-      await datastore.runQuery({ ...query }, options);
-
-      expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            returnMostRecentlyOccurredOnly: true,
-          }),
-        })
-      );
-    });
-
     it('should default to true for descending order when it is not provided in query', async () => {
       await datastore.runQuery({ ...query, descending: undefined }, options);
 

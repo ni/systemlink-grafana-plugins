@@ -103,7 +103,7 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
           maxWidth={CONTROL_WIDTH}
         />
       </InlineField>
-      <Stack justifyContent={'flex-start'}>
+      <Stack>
         <InlineField
           label={labels.queryBy}
           labelWidth={LABEL_WIDTH}
