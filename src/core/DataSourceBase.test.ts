@@ -37,8 +37,6 @@ describe('DataSourceBase', () => {
         mockPost$ = utils.post$ as jest.Mock;
         mockGet.mockResolvedValue('test');
         mockPost.mockResolvedValue('test');
-        mockGet$.mockReturnValue(of('observable-test'));
-        mockPost$.mockReturnValue(of('observable-test'));
 
         backendSrv = {} as BackendSrv;
 
@@ -174,6 +172,7 @@ describe('DataSourceBase', () => {
 
     describe('get$', () => {
         it('should send GET$ request with correct parameters when useApiIngress is not set', async () => {
+            mockGet$.mockReturnValueOnce(of('observable-test'));
             const response = await firstValueFrom(dataSource.get$('/test-endpoint', { param1: 'value1' }));
 
             expect(mockGet$).toHaveBeenCalledWith(
@@ -185,6 +184,7 @@ describe('DataSourceBase', () => {
         });
 
         it('should send GET$ request with API ingress when useApiIngress is true', async () => {
+            mockGet$.mockReturnValueOnce(of('observable-test'));
             const response = await firstValueFrom(
                 dataSource.get$('/test-endpoint', { param1: 'value1' }, true)
             );
@@ -213,6 +213,7 @@ describe('DataSourceBase', () => {
         });
 
         it('should send GET$ request with API ingress endpoints and api key when useApiIngress is true and params is empty', async () => {
+            mockGet$.mockReturnValueOnce(of('observable-test'));
             const response = await firstValueFrom(dataSource.get$('/test-endpoint', {}, true));
 
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
@@ -229,6 +230,7 @@ describe('DataSourceBase', () => {
 
     describe('post$', () => {
         it('should send POST$ request with correct parameters when useApiIngress is not set', async () => {
+            mockPost$.mockReturnValueOnce(of('observable-test'));
             const response = await firstValueFrom(
                 dataSource.post$(
                     '/test-endpoint',
@@ -247,6 +249,7 @@ describe('DataSourceBase', () => {
         });
 
         it('should send POST$ request with API ingress when useApiIngress is true', async () => {
+            mockPost$.mockReturnValueOnce(of('observable-test'));
             const options = {
                 headers: {
                     testHeader: 'headerValue'
@@ -280,6 +283,7 @@ describe('DataSourceBase', () => {
         });
 
         it('should send POST$ request with API ingress endpoints and api key when useApiIngress is true and no options are provided', async () => {
+            mockPost$.mockReturnValueOnce(of('observable-test'));
             const response = await firstValueFrom(
                 dataSource.post$(
                     '/test-endpoint',
@@ -307,9 +311,9 @@ describe('DataSourceBase', () => {
             jest.clearAllMocks();
             mockApiSessionUtils.createApiSession.mockRejectedValueOnce(new Error('No session created'));
 
-            const response$ = dataSource.post$('/test-endpoint', { options: 'optionValue' }, {}, true);
+            const response = firstValueFrom(dataSource.post$('/test-endpoint', { options: 'optionValue' }, {}, true));
 
-            await expect(firstValueFrom(response$)).rejects.toThrow('No session created');
+            await expect(response).rejects.toThrow('No session created');
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
             expect(mockPost$).not.toHaveBeenCalled();
         });
