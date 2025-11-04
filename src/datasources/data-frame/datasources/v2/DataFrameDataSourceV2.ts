@@ -4,10 +4,42 @@ import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana
 import { Column, DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryV2, DataTableProjections, defaultQueryV2, QueryResultsRequest, QueryResultsResponse, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2 } from "../../types";
 import { TAKE_LIMIT } from "datasources/data-frame/constants";
 import { buildCombinedFilter } from "./utils";
+import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
+import { ColumnsQueryBuilderFieldNames } from "../../components/v2/constants/ColumnsQueryBuilder.constants";
+import { DataTableQueryBuilderFieldNames, DATA_TABLE_TIME_FIELDS } from "../../components/v2/constants/DataTableQueryBuilder.constants";
+import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
     defaultQuery = defaultQueryV2;
     public resultsBaseUrl = this.instanceSettings.url + '/nitestmonitor/v2';
+
+    // Computed fields for transforming results filter - dynamically built based on field types
+    private readonly computedResultsFields = new Map<string, ExpressionTransformFunction>(
+        Object.values(ResultsQueryBuilderFieldNames).map(field => [
+            field,
+            field === ResultsQueryBuilderFieldNames.UPDATED_AT || field === ResultsQueryBuilderFieldNames.STARTED_AT
+                ? timeFieldsQuery(field)
+                : multipleValuesQuery(field)
+        ])
+    );
+
+    // Computed fields for transforming data table filter - dynamically built based on field types
+    private readonly computedDataTableFields = new Map<string, ExpressionTransformFunction>(
+        Object.values(DataTableQueryBuilderFieldNames).map(field => [
+            field,
+            DATA_TABLE_TIME_FIELDS.includes(field)
+                ? timeFieldsQuery(field)
+                : multipleValuesQuery(field)
+        ])
+    );
+
+    // Computed fields for transforming columns filter
+    private readonly computedColumnsFields = new Map<string, ExpressionTransformFunction>(
+        Object.values(ColumnsQueryBuilderFieldNames).map(field => [
+            field,
+            multipleValuesQuery(field)
+        ])
+    );
 
     public constructor(
         public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
@@ -91,20 +123,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         return { statusCode: '', message: '' };
     }
 
-    async runQuery(query: DataFrameQueryV2, _options: DataQueryRequest<DataFrameQueryV2>): Promise<DataFrameDTO> {
+    async runQuery(query: DataFrameQueryV2, options: DataQueryRequest<DataFrameQueryV2>): Promise<DataFrameDTO> {
         // TODO: Implement logic to fetch and return DataFrameDTO based on the query and options.
+        
+        // Transform query filters with template variables
+        const transformedQuery = this.transformQuery(query, options.scopedVars);
         
         // Step 1: Get result IDs if resultsFilter is present
         let resultIds: string[] = [];
-        if (query.resultsFilter && query.resultsFilter.trim() !== '') {
-            resultIds = await this.queryResults(query.resultsFilter);
+        if (transformedQuery.resultsFilter && transformedQuery.resultsFilter.trim() !== '') {
+            resultIds = await this.queryResults(transformedQuery.resultsFilter);
         }
 
         // Step 2: Build combined filter
         const combinedFilterResult = buildCombinedFilter(
             resultIds,
-            query.dataTableFilter,
-            query.columnsFilter
+            transformedQuery.dataTableFilter,
+            transformedQuery.columnsFilter
         );
 
         if (!combinedFilterResult.isValid) {
@@ -130,17 +165,20 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     async metricFindQuery(query: DataFrameQueryV2): Promise<MetricFindValue[]> {
         // TODO: Implement logic to fetch and return metric find values based on the query.
         
+        // Transform query filters with template variables (using empty scopedVars for metricFindQuery)
+        const transformedQuery = this.transformQuery(query, {});
+        
         // Step 1: Get result IDs if resultsFilter is present
         let resultIds: string[] = [];
-        if (query.resultsFilter && query.resultsFilter.trim() !== '') {
-            resultIds = await this.queryResults(query.resultsFilter);
+        if (transformedQuery.resultsFilter && transformedQuery.resultsFilter.trim() !== '') {
+            resultIds = await this.queryResults(transformedQuery.resultsFilter);
         }
 
         // Step 2: Build combined filter
         const combinedFilterResult = buildCombinedFilter(
             resultIds,
-            query.dataTableFilter,
-            query.columnsFilter
+            transformedQuery.dataTableFilter,
+            transformedQuery.columnsFilter
         );
 
         if (!combinedFilterResult.isValid) {
@@ -170,6 +208,39 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     shouldRunQuery(_query: ValidDataFrameQueryV2): boolean {
         // TODO: Implement logic to determine if the query should run. Currently always returns false.
         return true;
+    }
+
+    /**
+     * Transform query filters with template variable replacement and computed field transformations
+     * @param query - The original query
+     * @param scopedVars - Scoped variables for template replacement
+     * @returns Query with transformed filters
+     */
+    private transformQuery(query: DataFrameQueryV2, scopedVars: any): DataFrameQueryV2 {
+        // Replace template variables
+        let resultsFilter = query.resultsFilter ? this.templateSrv.replace(query.resultsFilter, scopedVars) : query.resultsFilter;
+        let dataTableFilter = query.dataTableFilter ? this.templateSrv.replace(query.dataTableFilter, scopedVars) : query.dataTableFilter;
+        let columnsFilter = query.columnsFilter ? this.templateSrv.replace(query.columnsFilter, scopedVars) : query.columnsFilter;
+        
+        // Apply computed field transformations for multi-value variables
+        if (resultsFilter) {
+            resultsFilter = transformComputedFieldsQuery(resultsFilter, this.computedResultsFields);
+        }
+        
+        if (dataTableFilter) {
+            dataTableFilter = transformComputedFieldsQuery(dataTableFilter, this.computedDataTableFields);
+        }
+        
+        if (columnsFilter) {
+            columnsFilter = transformComputedFieldsQuery(columnsFilter, this.computedColumnsFields);
+        }
+        
+        return {
+            ...query,
+            resultsFilter,
+            dataTableFilter,
+            columnsFilter,
+        };
     }
 
     processQuery(query: DataFrameQuery): ValidDataFrameQueryV2 {

@@ -109,3 +109,9 @@ export const DataTableQueryBuilderStaticFields = [
     DataTableQueryBuilderFields.ROW_COUNT,
     DataTableQueryBuilderFields.SUPPORTS_APPEND
 ] as QBField[];
+
+export const DATA_TABLE_TIME_FIELDS = [
+    DataTableQueryBuilderFieldNames.CreatedAt,
+    DataTableQueryBuilderFieldNames.MetadataModifiedAt,
+    DataTableQueryBuilderFieldNames.RowsModifiedAt
+];
