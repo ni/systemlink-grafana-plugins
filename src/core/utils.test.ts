@@ -557,7 +557,7 @@ describe('queryUsingSkip', () => {
 
 describe('get', () => {
   const url = '/api/test';
-  const params = { key: 'value' };
+  const options = { params: { key: 'value' } };
   const expectedResponse = { data: 'test' };
   const errorMessage = 'Network error';
 
@@ -566,20 +566,20 @@ describe('get', () => {
     jest.resetAllMocks();
   });
 
-  it('should call backendSrv.fetch with correct URL and params', async () => {
+  it('should call backendSrv.fetch with correct URL and options', async () => {
     (mockBackendSrv.fetch as jest.Mock).mockReturnValue(of(expectedResponse));
 
-    const response = await get(mockBackendSrv, url, params);
+    const response = await get(mockBackendSrv, url, options);
 
-    expect(mockBackendSrv.fetch).toHaveBeenCalledWith({ method: 'GET', url, params });
+    expect(mockBackendSrv.fetch).toHaveBeenCalledWith({ method: 'GET', url, ...options });
     expect(response).toEqual('test');
   });
 
   it('should handle errors from backendSrv.fetch', async () => {
     (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => new Error(errorMessage)));
 
-    await expect(get(mockBackendSrv, url, params)).rejects.toThrow(errorMessage);
-    expect(mockBackendSrv.fetch).toHaveBeenCalledWith({ method: 'GET', url, params });
+    await expect(get(mockBackendSrv, url, options)).rejects.toThrow(errorMessage);
+    expect(mockBackendSrv.fetch).toHaveBeenCalledWith({ method: 'GET', url, ...options });
   });
 
   it('should retry up to 3 times on 429 before succeeding', async () => {
@@ -589,7 +589,7 @@ describe('get', () => {
       .mockReturnValueOnce(throwError(() => ({ status: 429, data: {} })))
       .mockReturnValueOnce(of(expectedResponse));
 
-    const response = await get(mockBackendSrv, url, params);
+    const response = await get(mockBackendSrv, url, options);
 
     expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(3);
     expect(response).toEqual('test');
@@ -599,7 +599,7 @@ describe('get', () => {
     jest.spyOn(Math, 'random').mockReturnValue(0.001);
     (mockBackendSrv.fetch as jest.Mock).mockReturnValue(throwError(() => ({ status: 429, data: {} })));
 
-    await expect(get(mockBackendSrv, url, params)).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
+    await expect(get(mockBackendSrv, url, options)).rejects.toThrow('Request to url \"/api/test\" failed with status code: 429. Error message: {}');
     expect(mockBackendSrv.fetch).toHaveBeenCalledTimes(4);
     jest.spyOn(Math, 'random').mockRestore();
   });
@@ -681,7 +681,7 @@ describe('post', () => {
     jest.resetAllMocks();
   });
 
-  it('should call backendSrv.fetch with correct URL and params', async () => {
+  it('should call backendSrv.fetch with correct URL and options', async () => {
     (mockBackendSrv.fetch as jest.Mock).mockReturnValue(of(expectedResponse));
 
     const response = await post(mockBackendSrv, url, body);

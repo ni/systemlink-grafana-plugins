@@ -1,3 +1,9 @@
+## [4.43.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.42.0...v4.43.0) (2025-11-03)
+
+### Features
+
+* **SlQueryBuilder:** Add disabled functionality and set fields mode to static ([#476](https://github.com/ni/systemlink-grafana-plugins/issues/476)) ([c0b6a36](https://github.com/ni/systemlink-grafana-plugins/commit/c0b6a366dd9656c99c8eb7c988f47460bf70541b))
+
 ## [4.42.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.41.0...v4.42.0) (2025-11-03)
 
 ### Features
