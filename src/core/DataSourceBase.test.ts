@@ -312,7 +312,7 @@ describe('DataSourceBase', () => {
             jest.clearAllMocks();
             mockApiSessionUtils.createApiSession.mockRejectedValueOnce(new Error('No session created'));
 
-            const response = firstValueFrom(dataSource.post$('/test-endpoint', { options: 'optionValue' }, {}, true));
+            const response = firstValueFrom(dataSource.post$('/test-endpoint', { options: 'optionValue' }, { useApiIngress: true }));
 
             await expect(response).rejects.toThrow('No session created');
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
