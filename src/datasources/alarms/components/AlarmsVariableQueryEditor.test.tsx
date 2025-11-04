@@ -5,10 +5,15 @@ import { QueryEditorProps } from '@grafana/data';
 import React from 'react';
 import { AlarmsVariableQueryEditor } from './AlarmsVariableQueryEditor';
 import { takeErrorMessages } from '../constants/AlarmsQueryEditor.constants';
+import { defaultListAlarmsVariableQuery } from '../constants/DefaultQueries.constants';
 
 const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
+  prepareVariableQuery: jest.fn((query: AlarmsVariableQuery) => ({
+    ...defaultListAlarmsVariableQuery,
+    ...query
+  })),
   listAlarmsQueryHandler: {
     loadWorkspaces: jest.fn().mockResolvedValue(
       new Map([
@@ -219,7 +224,9 @@ describe('AlarmsVariableQueryEditor', () => {
     
     expect(mockOnChange).toHaveBeenCalledWith({
       refId: 'A',
-      filter: 'test-filter'
+      filter: 'test-filter',
+      descending: true,
+      take: 1000
     });
   });
 
@@ -251,7 +258,9 @@ describe('AlarmsVariableQueryEditor', () => {
 
       expect(mockOnChange).toHaveBeenCalledWith({
         refId: 'A',
-        take: 250
+        take: 250,
+        descending: true,
+        filter: ""
       });
     });
 
@@ -265,7 +274,9 @@ describe('AlarmsVariableQueryEditor', () => {
 
       expect(mockOnChange).toHaveBeenCalledWith({
         refId: 'A',
-        take: NaN
+        take: NaN,
+        descending: true,
+        filter: ""
       });
     });
 
@@ -413,7 +424,9 @@ describe('AlarmsVariableQueryEditor', () => {
 
       expect(mockOnChange).toHaveBeenCalledWith({
         refId: 'A',
-        descending: true
+        descending: true,
+        take: 1000,
+        filter: ''
       });
     });
 

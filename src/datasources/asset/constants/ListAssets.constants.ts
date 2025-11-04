@@ -3,6 +3,7 @@ import { QBField } from "../types/CalibrationForecastQuery.types";
 import { AssetTypeOptions, BusTypeOptions } from "../types/types";
 
 export enum ListAssetsFieldNames {
+    ASSET_NAME = 'AssetName',
     ASSET_ID = 'AssetIdentifier',
     LOCATION = 'Location',
     WORKSPACE = 'Workspace',
@@ -21,6 +22,16 @@ export const ListAssetsFields: Record<string, QBField> = {
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name
+        ],
+    },
+    ASSET_NAME: {
+        label: 'Name',
+        dataField: ListAssetsFieldNames.ASSET_NAME,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name,
+            QueryBuilderOperations.CONTAINS.name,
+            QueryBuilderOperations.DOES_NOT_CONTAIN.name
         ],
     },
     LOCATION: {
@@ -52,7 +63,9 @@ export const ListAssetsFields: Record<string, QBField> = {
         dataField: ListAssetsFieldNames.MODEL_NAME,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
-            QueryBuilderOperations.DOES_NOT_EQUAL.name
+            QueryBuilderOperations.DOES_NOT_EQUAL.name,
+            QueryBuilderOperations.CONTAINS.name,
+            QueryBuilderOperations.DOES_NOT_CONTAIN.name
         ],
     },
     PART_NUMBER: {
@@ -68,7 +81,9 @@ export const ListAssetsFields: Record<string, QBField> = {
         dataField: ListAssetsFieldNames.VENDOR_NAME,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
-            QueryBuilderOperations.DOES_NOT_EQUAL.name
+            QueryBuilderOperations.DOES_NOT_EQUAL.name,
+            QueryBuilderOperations.CONTAINS.name,
+            QueryBuilderOperations.DOES_NOT_CONTAIN.name
         ],
     },
     BUS_TYPE: {
@@ -110,6 +125,7 @@ export const ListAssetsFields: Record<string, QBField> = {
 
 export const ListAssetsStaticFields = [
     ListAssetsFields.ASSET_ID,
+    ListAssetsFields.ASSET_NAME,
     ListAssetsFields.MODEL_NAME,
     ListAssetsFields.VENDOR_NAME,
     ListAssetsFields.ASSET_TYPE,

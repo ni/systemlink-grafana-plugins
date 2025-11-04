@@ -31,6 +31,8 @@ export const AlarmsQueryBuilder: React.FC<AlarmsQueryBuilderProps> = ({ filter, 
     return [
       addOptionsToLookup(AlarmsQueryBuilderFields.ACKNOWLEDGED_ON, TIME_OPTIONS),
       addOptionsToLookup(AlarmsQueryBuilderFields.FIRST_OCCURRENCE, TIME_OPTIONS),
+      addOptionsToLookup(AlarmsQueryBuilderFields.LAST_TRANSITION_OCCURRENCE, TIME_OPTIONS),
+      addOptionsToLookup(AlarmsQueryBuilderFields.LAST_OCCURRENCE, TIME_OPTIONS),
     ];
   }, []);
 
