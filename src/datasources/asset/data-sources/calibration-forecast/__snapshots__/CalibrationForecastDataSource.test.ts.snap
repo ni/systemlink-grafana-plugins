@@ -231,7 +231,7 @@ exports[`queries calibration forecast with minion ID location groupBy 1`] = `
       {
         "name": "Group",
         "values": [
-          "Minion1",
+          "Minion1-alias",
           "Minion2",
           "Minion3",
         ],

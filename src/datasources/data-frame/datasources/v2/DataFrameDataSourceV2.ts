@@ -102,8 +102,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             const response = await this.post<TablePropertiesList>(
                 `${this.baseUrl}/query-tables`,
                 { filter, take, projection },
-                {},
-                true
+                { useApiIngress: true }
             );
             return response.tables;
         } catch (error) {

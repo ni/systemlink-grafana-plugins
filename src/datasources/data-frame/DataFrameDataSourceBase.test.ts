@@ -85,7 +85,7 @@ describe('DataFrameDataSourceBase', () => {
 
         const result = await ds.testDatasource();
 
-        expect(ds.get).toHaveBeenCalledWith('http://localhost/nidataframe/v1/tables', { take: 1 });
+        expect(ds.get).toHaveBeenCalledWith('http://localhost/nidataframe/v1/tables', { params: { take: 1 } });
         expect(result).toEqual({
             status: 'success',
             message: 'Data source connected and authentication successful!',
