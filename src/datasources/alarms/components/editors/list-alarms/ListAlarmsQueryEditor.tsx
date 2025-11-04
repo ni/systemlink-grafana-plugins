@@ -3,7 +3,7 @@ import { InlineField } from 'core/components/InlineField';
 import { AlarmsQueryBuilder } from '../../query-builder/AlarmsQueryBuilder';
 import {
   AlarmsPropertiesOptions,
-  AlarmsTransitionsOptions,
+  AlarmsTransitionInclusionOptions,
   CONTROL_WIDTH,
   ERROR_SEVERITY_WARNING,
   LABEL_WIDTH,
@@ -59,8 +59,8 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     handleQueryChange({ ...query, properties: selectedProperties });
   };
 
-  const onTransitionChange = (option: ComboboxOption<TransitionInclusionOption>) => {
-    handleQueryChange({ ...query, transition: option.value });
+  const onTransitionInclusionChange = (option: ComboboxOption<TransitionInclusionOption>) => {
+    handleQueryChange({ ...query, transitionInclusionOption: option.value });
   };
 
   return (
@@ -82,7 +82,7 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
           maxWidth={CONTROL_WIDTH}
         />
       </InlineField>
-      <Stack justifyContent={'flex-start'}>
+      <Stack>
         <InlineField
           label={labels.queryBy}
           labelWidth={LABEL_WIDTH}
@@ -97,15 +97,15 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
         </InlineField>
         <Stack direction='column'>
           <InlineField
-            label={labels.transition}
+            label={labels.transitionInclusion}
             labelWidth={SECONDARY_LABEL_WIDTH}
-            tooltip={tooltips.transition}
+            tooltip={tooltips.transitionInclusion}
           >
             <Combobox
-              options={Object.values(AlarmsTransitionsOptions)}
-              value={query.transition}
+              options={Object.values(AlarmsTransitionInclusionOptions)}
+              value={query.transitionInclusionOption}
               width={SECONDARY_CONTROL_WIDTH}
-              onChange={onTransitionChange}
+              onChange={onTransitionInclusionChange}
             />
           </InlineField>
         </Stack>

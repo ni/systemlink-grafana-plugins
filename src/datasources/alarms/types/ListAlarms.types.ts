@@ -3,7 +3,7 @@ import { AlarmsQuery, TransitionInclusionOption } from './types';
 export interface ListAlarmsQuery extends AlarmsQuery {
   filter?: string;
   properties?: AlarmsProperties[];
-  transition?: TransitionInclusionOption;
+  transitionInclusionOption?: TransitionInclusionOption;
 }
 
 export enum AlarmsProperties {

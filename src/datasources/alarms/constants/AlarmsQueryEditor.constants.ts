@@ -11,7 +11,7 @@ export const QUERY_EDITOR_MIN_TAKE = 1;
 export const QUERY_EDITOR_MAX_TAKE = 10000;
 export const DEFAULT_QUERY_EDITOR_TAKE = 1000;
 export const DEFAULT_QUERY_EDITOR_DESCENDING = true;
-export const DEFAULT_QUERY_EDITOR_TRANSITION = TransitionInclusionOption.None;
+export const DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION = TransitionInclusionOption.None;
 
 export const labels = {
   queryType: 'Query Type',
@@ -19,7 +19,7 @@ export const labels = {
   properties: 'Properties',
   descending: 'Descending',
   take: 'Take',
-  transition: 'Include Transition',
+  transitionInclusion: 'Include Transition',
 };
 
 export const tooltips = {
@@ -28,7 +28,7 @@ export const tooltips = {
   properties: 'This field specifies the properties to use in the query.',
   descending: 'This toggle returns the alarms query in descending order.',
   take: 'This field specifies the maximum number of alarms to return.',
-  transition: 'This field specifies whether to include all transitions, only the most recent, or none.',
+  transitionInclusion: 'This field specifies whether to include all transitions, only the most recent, or none.',
 };
 
 export const takeErrorMessages = {
@@ -152,7 +152,7 @@ export const AlarmsPropertiesOptions: Record<
   },
 }
 
-export const AlarmsTransitionsOptions: Record<
+export const AlarmsTransitionInclusionOptions: Record<
   TransitionInclusionOption,
   {
     label: string;

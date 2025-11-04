@@ -113,7 +113,7 @@ describe('ListAlarmsQueryHandler', () => {
     expect(defaultQuery).toEqual({
       filter: '',
       properties: ['displayName', 'currentSeverityLevel', 'occurredAt', 'source', 'state', 'workspace'],
-      transition: 'NONE',
+      transitionInclusionOption: 'NONE',
     });
   });
 
@@ -170,14 +170,14 @@ describe('ListAlarmsQueryHandler', () => {
     });
 
     it('should use transition inclusion option and call API with correct transition parameter', async () => {
-      const transition = TransitionInclusionOption.MostRecentOnly;
+      const transitionInclusionOption = TransitionInclusionOption.MostRecentOnly;
 
-      await datastore.runQuery({ ...query, transition }, options);
+      await datastore.runQuery({ ...query, transitionInclusionOption }, options);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            'transitionInclusionOption': transition,
+            transitionInclusionOption
           }),
         })
       );

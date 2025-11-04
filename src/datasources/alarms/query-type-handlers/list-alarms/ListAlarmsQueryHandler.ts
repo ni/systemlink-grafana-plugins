@@ -2,7 +2,7 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetri
 import { ListAlarmsQuery } from '../../types/ListAlarms.types';
 import { AlarmsVariableQuery, QueryAlarmsRequest } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
-import { DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { Alarm } from 'datasources/alarms/types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
@@ -71,7 +71,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   private async queryAlarmsData(alarmsQuery: ListAlarmsQuery): Promise<Alarm[]> {
     const alarmsRequestBody: QueryAlarmsRequest = {
       filter: alarmsQuery.filter ?? '',
-      transitionInclusionOption: alarmsQuery.transition ?? DEFAULT_QUERY_EDITOR_TRANSITION,
+      transitionInclusionOption: alarmsQuery.transitionInclusionOption ?? DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION,
     }
 
     return this.queryAlarmsInBatches(alarmsRequestBody);

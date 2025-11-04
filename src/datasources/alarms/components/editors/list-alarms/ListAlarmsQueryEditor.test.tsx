@@ -5,7 +5,7 @@ import { ListAlarmsQueryHandler } from 'datasources/alarms/query-type-handlers/l
 import { AlarmsProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 import { ListAlarmsQueryEditor } from './ListAlarmsQueryEditor';
 import userEvent from '@testing-library/user-event';
-import { AlarmsPropertiesOptions, AlarmsTransitionsOptions } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { AlarmsPropertiesOptions, AlarmsTransitionInclusionOptions } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { select } from 'react-select-event';
 
 const mockHandleQueryChange = jest.fn();
@@ -154,25 +154,25 @@ describe('ListAlarmsQueryEditor', () => {
     });
   });
 
-  describe('Transition', () => {
-    it('should render the selected transition option in the UI', async () => {
+  describe('Transition Inclusion', () => {
+    it('should render the selected transition inclusion option in the UI', async () => {
       const container = await renderElement({
         refId: 'A',
         queryType: QueryType.ListAlarms,
-        transition: TransitionInclusionOption.MostRecentOnly,
+        transitionInclusionOption: TransitionInclusionOption.MostRecentOnly,
       });
-      const transitionCombobox = container.getAllByRole('combobox')[1];
+      const transitionInclusionCombobox = container.getAllByRole('combobox')[1];
 
-      expect(transitionCombobox).toBeInTheDocument();
-      expect(transitionCombobox).toHaveValue(AlarmsTransitionsOptions[TransitionInclusionOption.MostRecentOnly].label);
+      expect(transitionInclusionCombobox).toBeInTheDocument();
+      expect(transitionInclusionCombobox).toHaveValue(AlarmsTransitionInclusionOptions[TransitionInclusionOption.MostRecentOnly].label);
     });
 
-    it('should call handleQueryChange with selected transition option when a transition option is selected', async () => {
+    it('should call handleQueryChange with selected transition inclusion option when it is updated in the UI', async () => {
       const container = await renderElement();
-      const transitionCombobox = container.getAllByRole('combobox')[1];
+      const transitionInclusionCombobox = container.getAllByRole('combobox')[1];
 
-      await userEvent.click(transitionCombobox);
-      await select(transitionCombobox, AlarmsTransitionsOptions[TransitionInclusionOption.All].label, {
+      await userEvent.click(transitionInclusionCombobox);
+      await select(transitionInclusionCombobox, AlarmsTransitionInclusionOptions[TransitionInclusionOption.All].label, {
         container: document.body,
       });
 
@@ -180,7 +180,7 @@ describe('ListAlarmsQueryEditor', () => {
         expect(mockHandleQueryChange).toHaveBeenCalledTimes(1);
         expect(mockHandleQueryChange).toHaveBeenCalledWith(
           expect.objectContaining({
-            transition: TransitionInclusionOption.All,
+            transitionInclusionOption: TransitionInclusionOption.All,
           }),
         );
       });
