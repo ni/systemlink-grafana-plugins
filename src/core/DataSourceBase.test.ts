@@ -318,43 +318,57 @@ describe('DataSourceBase', () => {
     describe('query', () => {
         it('should run queries for all targets that should run', async () => {
             const querySpy = jest.spyOn(dataSource, 'runQuery').mockResolvedValue('frame-data');
-            const prepareSpy = jest.spyOn(dataSource, 'prepareQuery');
+            const prepareSpy = jest.spyOn(dataSource, 'prepareQuery').mockReturnValueOnce({ key: 'value' });
             const shouldRunSpy = jest.spyOn(dataSource, 'shouldRunQuery').mockReturnValue(true);
 
             const request = {
                 targets: [
-                    { refId: 'A' }
+                    { refId: 'A' },
+                    { refId: 'B' }
                 ],
             };
 
             const response = await firstValueFrom(dataSource.query(request));
 
-            expect(prepareSpy).toHaveBeenCalledTimes(1);
-            expect(shouldRunSpy).toHaveBeenCalledTimes(1);
-            expect(querySpy).toHaveBeenCalledTimes(1);
+            expect(prepareSpy).toHaveBeenCalledTimes(2);
+            expect(shouldRunSpy).toHaveBeenCalledTimes(2);
+            expect(querySpy).toHaveBeenCalledTimes(2);
+            expect(querySpy).toHaveBeenCalledWith(
+                { key: 'value' },
+                {
+                    targets: [ { refId: 'A' }, { refId: 'B' } ]
+                }
+            );
             expect(response).toEqual({
-                data: ['frame-data'],
+                data: ['frame-data', 'frame-data'],
             });
         });
 
         it('should skip queries for targets that should not run', async () => {
             const querySpy = jest.spyOn(dataSource, 'runQuery').mockResolvedValue('frame-data');
-            const prepareSpy = jest.spyOn(dataSource, 'prepareQuery');
+            const prepareSpy = jest.spyOn(dataSource, 'prepareQuery').mockReturnValue({ key: 'value' });
             const shouldRunSpy = jest.spyOn(dataSource, 'shouldRunQuery')
                 .mockReturnValueOnce(true)
                 .mockReturnValueOnce(false);
 
             const request = {
                 targets: [
-                    { refId: 'A' }
+                    { refId: 'A' },
+                    { refId: 'B' }
                 ],
             };
 
             const response = await firstValueFrom(dataSource.query(request));
 
-            expect(prepareSpy).toHaveBeenCalledTimes(1);
-            expect(shouldRunSpy).toHaveBeenCalledTimes(1);
+            expect(prepareSpy).toHaveBeenCalledTimes(2);
+            expect(shouldRunSpy).toHaveBeenCalledTimes(2);
             expect(querySpy).toHaveBeenCalledTimes(1);
+            expect(querySpy).toHaveBeenCalledWith(
+                { key: 'value' },
+                {
+                    targets: [ { refId: 'A' }, { refId: 'B' } ]
+                }
+            );
             expect(response).toEqual({
                 data: ['frame-data']
             });
@@ -367,14 +381,14 @@ describe('DataSourceBase', () => {
 
             const request = {
                 targets: [
-                    { refId: 'A' }
+                    { refId: 'A' }, { refId: 'B' }
                 ],
             };
 
             const response = await firstValueFrom(dataSource.query(request));
 
-            expect(prepareSpy).toHaveBeenCalledTimes(1);
-            expect(shouldRunSpy).toHaveBeenCalledTimes(1);
+            expect(prepareSpy).toHaveBeenCalledTimes(2);
+            expect(shouldRunSpy).toHaveBeenCalledTimes(2);
             expect(querySpy).toHaveBeenCalledTimes(0);
             expect(response).toEqual({
                 data: [],
@@ -382,7 +396,6 @@ describe('DataSourceBase', () => {
         });
 
         it('should handle mixed Observable and Promise runQuery results', async () => {
-            const { of } = await import('rxjs');
             const querySpy = jest.spyOn(dataSource, 'runQuery')
                 .mockImplementationOnce(() => Promise.resolve('async-frame-data'))
                 .mockImplementationOnce(() => of('observable-frame-data'));
