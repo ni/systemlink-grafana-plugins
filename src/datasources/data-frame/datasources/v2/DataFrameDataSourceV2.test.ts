@@ -16,7 +16,7 @@ describe('DataFrameDataSourceV2', () => {
         templateSrv = {} as any;
         ds = new DataFrameDataSourceV2(instanceSettings, backendSrv, templateSrv);
         const publishMock = jest.fn();
-        ds.appEvents = { publish: publishMock } as unknown as EventBus;
+        (ds as any)['appEvents'] = { publish: publishMock } as unknown as EventBus;
     });
 
     it('should be constructed with instanceSettings, backendSrv, and templateSrv', () => {
@@ -151,7 +151,7 @@ describe('DataFrameDataSourceV2', () => {
             await expect(ds.queryTables('filter')).rejects.toThrow(
                 `The query failed due to the following error: (status ${statusCode}) ${errorMessage}.`
             );
-            expect(ds.appEvents.publish).toHaveBeenCalledWith({
+            expect((ds as any).appEvents.publish).toHaveBeenCalledWith({
                 type: 'alert-error',
                 payload: [
                     'Error querying tables',
@@ -169,7 +169,7 @@ describe('DataFrameDataSourceV2', () => {
             await expect(ds.queryTables('bad-filter')).rejects.toThrow(
                 'The query failed due to an unknown error.'
             );
-            expect(ds.appEvents.publish).toHaveBeenCalledWith({
+            expect((ds as any).appEvents.publish).toHaveBeenCalledWith({
                 type: 'alert-error',
                 payload: [
                     'Error querying tables',
