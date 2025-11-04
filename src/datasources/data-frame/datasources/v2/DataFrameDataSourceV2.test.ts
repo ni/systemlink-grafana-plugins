@@ -1,5 +1,5 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
-import { DataSourceInstanceSettings } from '@grafana/data';
+import { DataSourceInstanceSettings, EventBus } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { DataFrameQuery, DataFrameQueryType, DataTableProjections, defaultDatatableProperties, defaultQueryV2 } from '../../types';
 import { TAKE_LIMIT } from 'datasources/data-frame/constants';
@@ -15,6 +15,8 @@ describe('DataFrameDataSourceV2', () => {
         backendSrv = {} as any;
         templateSrv = {} as any;
         ds = new DataFrameDataSourceV2(instanceSettings, backendSrv, templateSrv);
+        const publishMock = jest.fn();
+        ds.appEvents = { publish: publishMock } as unknown as EventBus;
     });
 
     it('should be constructed with instanceSettings, backendSrv, and templateSrv', () => {
@@ -140,12 +142,10 @@ describe('DataFrameDataSourceV2', () => {
             expect(result).toBe(mockTables);
         });
 
-        it('should handle errors and throw with formatted error message', async () => {
+        it('should handle errors and throw with formatted error message when status code is present', async () => {
             const statusCode = '504';
             const errorMessage = 'Not found';
             const error = new Error(`Request failed with status code: ${statusCode}, url "https://example.com/api", Error message: ${errorMessage}`);
-
-            ds.appEvents = { publish: jest.fn() } as any;
             postMock.mockRejectedValue(error);
 
             await expect(ds.queryTables('filter')).rejects.toThrow(
@@ -160,12 +160,10 @@ describe('DataFrameDataSourceV2', () => {
             });
         });
 
-        it('should handle errors with empty statusCode and throw generic error message', async () => {
-             const statusCode = '';
+        it('should handle errors and throw generic error message when status code is empty', async () => {
+            const statusCode = '';
             const errorMessage = 'Not found';
             const error = new Error(`Request failed with status code: ${statusCode}, url "https://example.com/api", Error message: ${errorMessage}`);
-        
-            ds.appEvents = { publish: jest.fn() } as any;
             postMock.mockRejectedValue(error);
 
             await expect(ds.queryTables('bad-filter')).rejects.toThrow(

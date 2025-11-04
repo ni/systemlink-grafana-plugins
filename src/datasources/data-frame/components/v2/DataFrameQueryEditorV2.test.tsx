@@ -209,7 +209,7 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(columnsField).toHaveDisplayValue('');
                 });
 
-                it('loads columns combobox options when filter changes', async () => {
+                it('should load columns combobox options when filter changes', async () => {
                     const filterInput = screen.getByTestId("filter-input");
                     const user = userEvent.setup();
 
