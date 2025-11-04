@@ -4,7 +4,7 @@ import { QRCodePanelOptions } from './types';
 import { css, cx } from '@emotion/css';
 import { useStyles2 } from '@grafana/ui';
 
-import QRCode from "react-qr-code";
+import { QRCodeSVG } from "qrcode.react";
 
 interface Props extends PanelProps<QRCodePanelOptions> { }
 
@@ -62,7 +62,7 @@ export const QRCodePanel: React.FC<Props> = ({ options, width, height, replaceVa
       )}
     >
       <div className={styles.qrContainer}>
-        <QRCode data-testid="qrcode-code" style={{ height: "100%", width: "100%" }}
+        <QRCodeSVG data-testid="qrcode-code" style={{ height: "100%", width: "100%" }}
           value={qrCodeValue} />
       </div>
     </div>

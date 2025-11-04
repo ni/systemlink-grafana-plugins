@@ -30,7 +30,6 @@ describe('QR Code SVG Generation', () => {
         eventBus: {} as any,
     });
 
-
     it('should render SVG path elements', () => {
         const props = createMockProps();
 

@@ -4,15 +4,13 @@ import { PanelProps } from '@grafana/data';
 import { QRCodePanel } from './QRCodePanel';
 import { QRCodePanelOptions } from './types';
 
-jest.mock('react-qr-code', () => {
-    const MockQRCode = ({ value, ...props }: any) => (
+jest.mock('qrcode.react', () => ({
+    QRCodeSVG: ({ value, ...props }: any) => (
         <div data-testid="qrcode-code" value={value} {...props}>
             {value}
         </div>
-    );
-    
-    return MockQRCode;
-});
+    ),
+}));
 
 describe('QR Code Panel', () => {
     const createMockProps = (
@@ -89,7 +87,7 @@ describe('QR Code Panel', () => {
 
             mockReplaceVariables.mockReturnValueOnce('new-asset');
             const updatedProps = { ...props, renderCounter: 2 };
-            
+
             rerender(<QRCodePanel {...updatedProps} />);
 
             expect(screen.getByTestId('qrcode-code')).toHaveAttribute('value', 'new-asset');
