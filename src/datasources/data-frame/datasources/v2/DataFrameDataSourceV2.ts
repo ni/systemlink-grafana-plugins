@@ -135,14 +135,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     }
 
     private readonly dataTableComputedDataFields = new Map<string, ExpressionTransformFunction>(
-        Object.values(DataTableProperties).map(field =>
-            [
-                field,
-                this.isTimeField(field)
-                    ? timeFieldsQuery(field)
-                    : multipleValuesQuery(field)
-            ]
-        )
+        Object.values(DataTableProperties).map(property => {
+            const fieldName = DataTableProjectionLabelLookup[property].field;
+
+            return [
+                fieldName,
+                this.isTimeField(property)
+                    ? timeFieldsQuery(fieldName)
+                    : multipleValuesQuery(fieldName)
+            ];
+        })
     );
 
     private isTimeField(field: string): boolean {

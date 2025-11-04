@@ -1,7 +1,7 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
-import { DataFrameQuery, DataFrameQueryType, DataFrameQueryV2, DataTableProjections, DataTableProperties, defaultDatatableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
+import { DataFrameQuery, DataFrameQueryType, DataFrameQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultDatatableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
 import { TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 
@@ -22,11 +22,16 @@ describe('DataFrameDataSourceV2', () => {
     let ds: DataFrameDataSourceV2;
 
     beforeEach(() => {
+        jest.clearAllMocks();
+        const actualQueryBuilderUtils = jest.requireActual('core/query-builder.utils');
+        (queryBuilderUtils.transformComputedFieldsQuery as jest.Mock).mockImplementation(actualQueryBuilderUtils.transformComputedFieldsQuery);
+        (queryBuilderUtils.timeFieldsQuery as jest.Mock).mockImplementation(actualQueryBuilderUtils.timeFieldsQuery);
+        (queryBuilderUtils.multipleValuesQuery as jest.Mock).mockImplementation(actualQueryBuilderUtils.multipleValuesQuery);
+
         instanceSettings = { id: 1, name: 'test', type: 'test', url: '', jsonData: {} } as any;
         backendSrv = {} as any;
         templateSrv = { replace: jest.fn((value: string) => value) } as any;
         ds = new DataFrameDataSourceV2(instanceSettings, backendSrv, templateSrv);
-        jest.clearAllMocks();
     });
 
     it('should be constructed with instanceSettings, backendSrv, and templateSrv', () => {
@@ -92,7 +97,9 @@ describe('DataFrameDataSourceV2', () => {
 
             const dataTableComputedDataFields = transformComputedFieldsQuerySpy.mock.calls[0][1];
             const transformedFields = Object.values(DataTableProperties).map(field => {
-                const expressionTransformationFunction = dataTableComputedDataFields.get(field);
+                const expressionTransformationFunction = dataTableComputedDataFields.get(
+                    DataTableProjectionLabelLookup[field].field
+                );
                 return { field, value: expressionTransformationFunction() };
             });
             expect(transformedFields).toEqual([
