@@ -566,7 +566,16 @@ describe('query', () => {
       await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
-        {"data": {"field": "partNumber"}, "method": "POST", "showErrorAlert": false, "url": "/nitestmonitor/v2/query-product-values"}    
+        expect.objectContaining({
+          data: {
+            descending: false,
+            filter: "PartNumber == \"Test\"",
+            orderBy: undefined,
+            projection: ["partNumber"],
+            returnCount: false,
+            take: 1000
+          }
+        })
       );
     });
 
@@ -583,7 +592,16 @@ describe('query', () => {
       await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
-        {"data": {"field": "partNumber"}, "method": "POST", "showErrorAlert": false, "url": "/nitestmonitor/v2/query-product-values"}
+        expect.objectContaining({
+          data: {
+            descending: false,
+            filter: "PartNumber != \"Obsolete\"",
+            orderBy: undefined,
+            projection: ["partNumber"],
+            returnCount: false,
+            take: 1000
+          }
+        })
       );
     });
   });
