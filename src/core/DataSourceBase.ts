@@ -13,6 +13,16 @@ import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
 import { get, post } from './utils';
 import { ApiSessionUtils } from '../shared/api-session.utils';
 
+/**
+ * Represents the options for making a backend service request.
+ * Extends {@link BackendSrvRequest} with optional properties, allowing for partial specification.
+ *
+ * @property useApiIngress - If set to `true`, the request will be routed through the API ingress.
+ */
+interface RequestOptions extends Partial<BackendSrvRequest> {
+  useApiIngress?: boolean;
+}
+
 export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData = DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
   public readonly apiKeyHeader = 'x-ni-api-key';
   public appEvents: EventBus;
@@ -52,16 +62,12 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    *
    * @template T - The expected response type.
    * @param url - The endpoint URL for the GET request.
-   * @param params - Optional query parameters as a key-value map.
-   * @param useApiIngress - If true, uses API ingress bypassing the UI ingress for the request.
+   * @param options - Optional configurations for the request.
    * @returns A promise resolving to the response of type `T`.
    */
-  public async get<T>(url: string, params?: Record<string, any>, useApiIngress = false) {
-    if (useApiIngress) {
-      [url, params] = await this.buildApiRequestConfig(url, params ?? {}, 'GET');
-    }
-
-    return get<T>(this.backendSrv, url, params);
+  public async get<T>(url: string, options: RequestOptions = {}) {
+    [url, options] = await this.buildApiRequestConfig(url, options, 'GET');
+    return get<T>(this.backendSrv, url, options);
   }
 
   /**
@@ -70,22 +76,15 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    * @template T - The expected response type.
    * @param url - The endpoint URL to which the POST request is sent.
    * @param body - The request payload as a key-value map.
-   * @param options - Optional configuration for the request. This can include:
-   *   - `showingErrorAlert` (boolean): If true, displays an error alert on request failure.
-   *   - Any other properties supported by {@link BackendSrvRequest}, such as headers, credentials, etc.
-   * @param useApiIngress - If true, uses API ingress bypassing the UI ingress for the request.
+   * @param options - Optional configurations for the request. 
    * @returns A promise resolving to the response of type `T`.
    */
   public async post<T>(
     url: string,
     body: Record<string, any>,
-    options: Partial<BackendSrvRequest> = {},
-    useApiIngress = false
+    options: RequestOptions = {},
   ) {
-    if (useApiIngress) {
-      [url, options] = await this.buildApiRequestConfig(url, options, 'POST');
-    }
-
+    [url, options] = await this.buildApiRequestConfig(url, options, 'POST');
     return post<T>(this.backendSrv, url, body, options);
   }
 
@@ -116,28 +115,42 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
 
   private async buildApiRequestConfig(
     url: string,
-    options: Partial<BackendSrvRequest>,
+    options: RequestOptions,
     method: 'GET' | 'POST'
   ): Promise<[string, Partial<BackendSrvRequest>]> {
-    let updatedOptions: Partial<BackendSrvRequest> | Record<string, any>;
+    const { useApiIngress, ...remainingOptions } = options;
+    if (!useApiIngress) {
+      return [url, remainingOptions];
+    }
 
     const apiSession = await this.apiSessionUtils.createApiSession();
     url = this.constructApiUrl(apiSession.endpoint, url);
 
-    if (method === 'POST') {
-      updatedOptions = {
-        ...options,
-        headers: {
-          ...options.headers,
-          [this.apiKeyHeader]: apiSession.sessionKey.secret,
-        },
-      };
-    } else {
-      updatedOptions = {
-        ...options,
-        [this.apiKeyHeader]: apiSession.sessionKey.secret,
-      };
+    let requestOptions;
+
+    switch (method) {
+      case 'POST':
+        requestOptions = {
+          ...remainingOptions,
+          headers: {
+            ...remainingOptions.headers,
+            [this.apiKeyHeader]: apiSession.sessionKey.secret,
+          },
+        };
+        break;
+      case 'GET':
+        requestOptions = {
+          ...remainingOptions,
+          params: {
+            ...remainingOptions.params,
+            [this.apiKeyHeader]: apiSession.sessionKey.secret,
+          }
+        };
+        break;
+      default:
+        requestOptions = { ...remainingOptions };
+        break;
     }
-    return [url, updatedOptions];
+    return [url, requestOptions];
   }
 }
