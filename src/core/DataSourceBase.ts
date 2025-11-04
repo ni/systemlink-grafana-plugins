@@ -56,7 +56,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
       .map(q => this.runQuery(q, request), this);
     
     if (queries$.length === 0) {
-      return of({ data: [] }); // emit empty response immediately
+      return of({ data: [] });
     }
     
     return forkJoin(queries$).pipe(
@@ -135,7 +135,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
       )
     );
   }
-  
+
   /**
    * Retrieves a list of variable options from the template service.
    * Each option is an object containing a `label` and `value` property,
