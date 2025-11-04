@@ -205,7 +205,7 @@ describe('ListAlarmsQueryEditor', () => {
       expect(screen.getByText(takeErrorMessages.minErrorMsg)).toBeInTheDocument();
     });
 
-    it('should display maximum take error message when take value is above 1000', async () => {
+    it('should display maximum take error message when take value is above 10,000', async () => {
       await renderElement({ refId: 'A' });
 
       const takeInput = screen.getByRole('spinbutton');

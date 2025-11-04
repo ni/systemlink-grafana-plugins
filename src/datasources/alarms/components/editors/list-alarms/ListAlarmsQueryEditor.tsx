@@ -11,6 +11,8 @@ import {
   PROPERTIES_ERROR_MESSAGE,
   QUERY_EDITOR_MAX_TAKE,
   QUERY_EDITOR_MIN_TAKE,
+  SECONDARY_CONTROL_WIDTH,
+  SECONDARY_LABEL_WIDTH,
   takeErrorMessages,
   tooltips,
 } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
@@ -117,7 +119,7 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
         <Stack direction='column'>
           <InlineField
             label={labels.descending}
-            labelWidth={LABEL_WIDTH}
+            labelWidth={SECONDARY_LABEL_WIDTH}
             tooltip={tooltips.descending}
           >
             <InlineSwitch
@@ -127,14 +129,14 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
           </InlineField>
           <InlineField
             label={labels.take}
-            labelWidth={LABEL_WIDTH}
+            labelWidth={SECONDARY_LABEL_WIDTH}
             tooltip={tooltips.take}
             invalid={!!takeInvalidMessage}
             error={takeInvalidMessage}
           >
             <AutoSizeInput
-              minWidth={LABEL_WIDTH}
-              maxWidth={LABEL_WIDTH}
+              minWidth={SECONDARY_CONTROL_WIDTH}
+              maxWidth={SECONDARY_CONTROL_WIDTH}
               type="number"
               value={query.take}
               onChange={onTakeChange}
