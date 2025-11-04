@@ -405,7 +405,7 @@ describe('AlarmsQueryEditor', () => {
         expect.objectContaining({
           query,
           handleQueryChange: expect.any(Function),
-          datasource: mockDatasource.alarmsCountQueryHandler,
+          datasource: mockDatasource.alarmsTrendQueryHandler,
         }),
         expect.anything()
       );
