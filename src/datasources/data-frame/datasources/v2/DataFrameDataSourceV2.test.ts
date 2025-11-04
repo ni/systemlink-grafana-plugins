@@ -139,5 +139,45 @@ describe('DataFrameDataSourceV2', () => {
             expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take, projection: undefined }, { useApiIngress: true });
             expect(result).toBe(mockTables);
         });
+
+        it('should handle errors and throw with formatted error message', async () => {
+            const statusCode = '504';
+            const errorMessage = 'Not found';
+            const error = new Error(`Request failed with status code: ${statusCode}, url "https://example.com/api", Error message: ${errorMessage}`);
+
+            ds.appEvents = { publish: jest.fn() } as any;
+            postMock.mockRejectedValue(error);
+
+            await expect(ds.queryTables('filter')).rejects.toThrow(
+                `The query failed due to the following error: (status ${statusCode}) ${errorMessage}.`
+            );
+            expect(ds.appEvents.publish).toHaveBeenCalledWith({
+                type: 'alert-error',
+                payload: [
+                    'Error querying tables',
+                    `The query failed due to the following error: (status ${statusCode}) ${errorMessage}.`
+                ]
+            });
+        });
+
+        it('should handle errors with empty statusCode and throw generic error message', async () => {
+             const statusCode = '';
+            const errorMessage = 'Not found';
+            const error = new Error(`Request failed with status code: ${statusCode}, url "https://example.com/api", Error message: ${errorMessage}`);
+        
+            ds.appEvents = { publish: jest.fn() } as any;
+            postMock.mockRejectedValue(error);
+
+            await expect(ds.queryTables('bad-filter')).rejects.toThrow(
+                'The query failed due to an unknown error.'
+            );
+            expect(ds.appEvents.publish).toHaveBeenCalledWith({
+                type: 'alert-error',
+                payload: [
+                    'Error querying tables',
+                    'The query failed due to an unknown error.'
+                ]
+            });
+        });
     });
 });

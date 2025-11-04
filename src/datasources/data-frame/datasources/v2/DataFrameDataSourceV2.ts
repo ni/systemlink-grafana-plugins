@@ -1,8 +1,9 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindValue, TimeRange } from "@grafana/data";
+import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindValue, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryV2, DataTableProjections, defaultQueryV2, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2 } from "../../types";
 import { TAKE_LIMIT } from "datasources/data-frame/constants";
+import { extractErrorInfo } from "core/errors";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
     defaultQuery = defaultQueryV2;
@@ -53,11 +54,32 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     }
 
     async queryTables(filter: string, take = TAKE_LIMIT, projection?: DataTableProjections[]): Promise<TableProperties[]> {
-        const response = await this.post<TablePropertiesList>(
-            `${this.baseUrl}/query-tables`,
-            { filter, take, projection },
-            { useApiIngress: true }
-        );
-        return response.tables;
+        try {
+            const response = await this.post<TablePropertiesList>(
+                `${this.baseUrl}/query-tables`,
+                { filter, take, projection },
+                { useApiIngress: true }
+            );
+            return response.tables;
+        } catch (error) {
+            const errorDetails = extractErrorInfo((error as Error).message);
+            let errorMessage: string;
+
+            switch (errorDetails.statusCode) {
+                case '':
+                    errorMessage = 'The query failed due to an unknown error.';
+                    break;
+                default:
+                    errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+                    break;
+            }
+
+            this.appEvents?.publish?.({
+                type: AppEvents.alertError.name,
+                payload: ['Error querying tables', errorMessage],
+            });
+
+            throw new Error(errorMessage);
+        }
     }
 }

@@ -42,27 +42,20 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
     );
 
     const fetchAndSetColumnOptions = async (filter: string) => {
-      if (filter !== '') {
-        try {
-          const tables = await datasource.queryTables(filter, TAKE_LIMIT, [
+        if (!filter) {
+            setColumnOptions([]);
+            return;
+        }
+        const tables = await datasource.queryTables(filter, TAKE_LIMIT, [
             DataTableProjections.Name,
             DataTableProjections.ColumnName,
             DataTableProjections.ColumnDataType,
             DataTableProjections.ColumnType,
-          ]);
-          const columnsSet = new Set<string>();
-          tables.forEach(table => {
-            table.columns?.forEach((col: { name?: string }) => {
-              if (col?.name) {
-                columnsSet.add(col.name);
-              }
-            });
-          });
-          setColumnOptions(Array.from(columnsSet).map(name => ({ label: name, value: name })));
-        } catch (error) {
-          setColumnOptions([]);
-        }
-      }
+        ]);
+        const columns = tables.flatMap(table =>
+            table.columns?.map(col => col?.name).filter(Boolean) ?? []
+        );
+        setColumnOptions(columns.map(name => ({ label: name, value: name })));
     };
 
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
