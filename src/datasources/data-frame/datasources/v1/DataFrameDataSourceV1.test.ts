@@ -246,7 +246,7 @@ it('returns table properties for properties query', async () => {
   expect(response.data[0].fields).toEqual([
     { name: 'hello', values: ['world'] },
     { name: 'foo', values: ['bar'] },
-  ])
+  ]);
 });
 
 it('should migrate legacy metadata type to properties type', () => {
@@ -317,6 +317,13 @@ const fakePropertiesResponse: TableProperties = {
   properties: { hello: 'world', foo: 'bar' },
   name: 'Test Table',
   workspace: '_',
+  columnCount: 6,
+  createdAt: '2022-09-14T06:01:00.0000000Z',
+  metadataModifiedAt: '2022-09-14T06:01:00.0000000Z',
+  metadataRevision: 1,
+  rowCount: 2,
+  rowsModifiedAt: '2022-09-14T06:01:00.0000000Z',
+  supportsAppend: true
 };
 
 const fakePropertiesResponseNoProperties: TableProperties = {
@@ -325,6 +332,13 @@ const fakePropertiesResponseNoProperties: TableProperties = {
   properties: {},
   name: 'Test Table no properties',
   workspace: '_',
+  columnCount: 1,
+  createdAt: '2022-09-14T06:01:00.0000000Z',
+  metadataModifiedAt: '2022-09-14T06:01:00.0000000Z',
+  metadataRevision: 1,
+  rowCount: 2,
+  rowsModifiedAt: '2022-09-14T06:01:00.0000000Z',
+  supportsAppend: true
 };
 
 const fakeData: Record<string, string[]> = {
@@ -342,7 +356,7 @@ function getFakeDataResponse(columns: string[]): TableDataRows {
       columns,
       data: [columns.map(c => fakeData[c][0]), columns.map(c => fakeData[c][1])]
     }
-  }
+  };
 };
 
 const defaultQuery: DataQueryRequest<DataFrameQueryV1> = {

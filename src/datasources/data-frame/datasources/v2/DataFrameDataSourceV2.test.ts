@@ -3,7 +3,6 @@ import { DataQueryRequest, DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { DataFrameQuery, DataFrameQueryType, DataFrameQueryV2, DataTableProjections, DataTableProperties, defaultDatatableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
 import { TAKE_LIMIT } from 'datasources/data-frame/constants';
-import { Workspace } from 'core/types';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 
 jest.mock('core/query-builder.utils', () => {
@@ -43,102 +42,86 @@ describe('DataFrameDataSourceV2', () => {
     describe('runQuery', () => {
         const query = {
             type: DataFrameQueryType.Data,
-            dataTableFilter: 'name = "Test Table"',
+            dataTableFilter: 'name = "${name}"',
             dataTableProperties: [DataTableProperties.Name],
             take: 1000
         } as DataFrameQueryV2;
-        const options = { scopedVars: {} } as DataQueryRequest<DataFrameQueryV2>;
-        const workspaces = new Map<string, Workspace>(
-            [
-                ['workspace-1', { id: 'workspace-1', name: 'Workspace 1' } as Workspace],
-                ['workspace-2', { id: 'workspace-2', name: 'Workspace 2' } as Workspace],
-            ]
-        );
-        let processQuerySpy: jest.SpyInstance;
-        let loadWorkspacesSpy: jest.SpyInstance;
-        let transformComputedFieldsQuerySpy: jest.SpyInstance;
-        let timeFieldsQuery: jest.SpyInstance;
-        let multipleValuesQuery: jest.SpyInstance;
-        let queryTablesSpy: jest.SpyInstance;
-
-        function getProcessedQuery(overrides?: Partial<DataFrameQueryV2>): DataFrameQueryV2 {
-            return {
-                refId: 'A',
-                ...defaultQueryV2,
-                ...overrides,
-            };
-        }
-
-        beforeEach(() => {
-            processQuerySpy = jest.spyOn(ds, 'processQuery');
-            loadWorkspacesSpy = jest.spyOn(ds, 'loadWorkspaces').mockResolvedValue(workspaces);
-            queryTablesSpy = jest.spyOn(ds, 'queryTables');
-            transformComputedFieldsQuerySpy = queryBuilderUtils.transformComputedFieldsQuery as jest.Mock;
-            timeFieldsQuery = queryBuilderUtils.timeFieldsQuery as jest.Mock;
-            multipleValuesQuery = queryBuilderUtils.multipleValuesQuery as jest.Mock;
-        });
+        const options = {
+            scopedVars: {
+                name: { value: 'Test Table' }
+            }
+        } as unknown as DataQueryRequest<DataFrameQueryV2>;
 
         it('should call processQuery with the provided query', async () => {
+            const processQuerySpy = jest.spyOn(ds, 'processQuery');
             await ds.runQuery(query, options);
 
             expect(processQuerySpy).toHaveBeenCalledWith(query);
         });
 
         it('should call loadWorkspaces', async () => {
+            const loadWorkspacesSpy = jest.spyOn(ds, 'loadWorkspaces');
             await ds.runQuery(query, options);
 
             expect(loadWorkspacesSpy).toHaveBeenCalled();
         });
 
         it('should call transformComputedFieldsQuery when dataTableFilter is present', async () => {
-            const processedQuery = getProcessedQuery(query);
-            processQuerySpy.mockReturnValue(processedQuery);
             templateSrv.replace.mockReturnValue('name = "Test Table"');
 
             await ds.runQuery(query, options);
 
-            expect(templateSrv.replace).toHaveBeenCalledWith('name = "Test Table"', expect.any(Object));
-            expect(transformComputedFieldsQuerySpy).toHaveBeenCalledWith(
+            expect(templateSrv.replace).toHaveBeenCalledWith('name = "${name}"', options.scopedVars);
+            expect(queryBuilderUtils.transformComputedFieldsQuery).toHaveBeenCalledWith(
                 'name = "Test Table"',
                 expect.any(Object)
             );
         });
 
-        it('should use expected `ExpressionTransformFunction` for the fields', async () => {
+        it('should use expected ExpressionTransformFunction for the fields', async () => {
+            const transformComputedFieldsQuerySpy = queryBuilderUtils.transformComputedFieldsQuery as jest.Mock;
+            const timeFieldsQuery = queryBuilderUtils.timeFieldsQuery as jest.Mock;
+            const multipleValuesQuery = queryBuilderUtils.multipleValuesQuery as jest.Mock;
             const mockTimeFieldsExpressionTransformFunction = jest.fn().mockReturnValue("transformed-time-expressions");
             const mockMultipleValuesExpressionTransformFunction = jest.fn().mockReturnValue("transformed-multiple-values");
-            const processedQuery = getProcessedQuery(query);
             timeFieldsQuery.mockReturnValue(mockTimeFieldsExpressionTransformFunction);
             multipleValuesQuery.mockReturnValue(mockMultipleValuesExpressionTransformFunction);
             ds = new DataFrameDataSourceV2(instanceSettings, backendSrv, templateSrv);
-            processQuerySpy.mockReturnValue(processedQuery);
+
             await ds.runQuery(query, options);
 
             const dataTableComputedDataFields = transformComputedFieldsQuerySpy.mock.calls[0][1];
-            Object.values(DataTableProperties).forEach(field => {
+            const transformedFields = Object.values(DataTableProperties).map(field => {
                 const expressionTransformationFunction = dataTableComputedDataFields.get(field);
-                const timeFieldProperties = [
-                    DataTableProperties.CreatedAt,
-                    DataTableProperties.MetadataModifiedAt,
-                    DataTableProperties.RowsModifiedAt
-                ];
-
-                if (timeFieldProperties.includes(field)) {
-                    expect(expressionTransformationFunction()).toBe("transformed-time-expressions");
-                } else {
-                    expect(expressionTransformationFunction()).toBe("transformed-multiple-values");
-                }
+                return { field, value: expressionTransformationFunction() };
             });
+            expect(transformedFields).toEqual([
+                { field: DataTableProperties.Name, value: "transformed-multiple-values" },
+                { field: DataTableProperties.Id, value: "transformed-multiple-values" },
+                { field: DataTableProperties.RowCount, value: "transformed-multiple-values" },
+                { field: DataTableProperties.ColumnCount, value: "transformed-multiple-values" },
+                { field: DataTableProperties.CreatedAt, value: "transformed-time-expressions" },
+                { field: DataTableProperties.Workspace, value: "transformed-multiple-values" },
+                { field: DataTableProperties.MetadataModifiedAt, value: "transformed-time-expressions" },
+                { field: DataTableProperties.MetadataRevision, value: "transformed-multiple-values" },
+                { field: DataTableProperties.RowsModifiedAt, value: "transformed-time-expressions" },
+                { field: DataTableProperties.ColumnName, value: "transformed-multiple-values" },
+                { field: DataTableProperties.ColumnDataType, value: "transformed-multiple-values" },
+                { field: DataTableProperties.ColumnType, value: "transformed-multiple-values" },
+                { field: DataTableProperties.ColumnProperties, value: "transformed-multiple-values" },
+                { field: DataTableProperties.SupportsAppend, value: "transformed-multiple-values" },
+                { field: DataTableProperties.Properties, value: "transformed-multiple-values" }
+            ]);
         });
 
         describe("when query type is data", () => {
             const dataQuery = {
                 type: DataFrameQueryType.Data,
             } as DataFrameQueryV2;
+            let queryTablesSpy: jest.SpyInstance;
 
             beforeEach(() => {
-                const processedQuery = getProcessedQuery(dataQuery);
-                processQuerySpy.mockReturnValue(processedQuery);
+                queryTablesSpy = jest.spyOn(ds, 'queryTables');
             });
 
             it('should return an object with empty fields array', async () => {
@@ -155,6 +138,12 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         describe("when query type is properties", () => {
+            let queryTablesSpy: jest.SpyInstance;
+
+            beforeEach(() => {
+                queryTablesSpy = jest.spyOn(ds, 'queryTables');
+            });
+
             describe('when dataTableProperties and columnProperties are empty', () => {
                 const queryWithEmptyProperties = {
                     type: DataFrameQueryType.Properties,
@@ -163,11 +152,6 @@ describe('DataFrameDataSourceV2', () => {
                     take: 1000,
                     refId: 'A',
                 } as DataFrameQueryV2;
-
-                beforeEach(() => {
-                    const processedQuery = getProcessedQuery(queryWithEmptyProperties);
-                    processQuerySpy.mockReturnValue(processedQuery);
-                });
 
                 it('should not call queryTables', async () => {
                     await ds.runQuery(queryWithEmptyProperties, options);
@@ -193,11 +177,6 @@ describe('DataFrameDataSourceV2', () => {
                         take: takeValue,
                         refId: 'A',
                     } as DataFrameQueryV2;
-
-                    beforeEach(() => {
-                        const processedQuery = getProcessedQuery(queryWithInvalidTake);
-                        processQuerySpy.mockReturnValue(processedQuery);
-                    });
 
                     it(`should not call queryTables for take value: ${takeValue}`, async () => {
                         await ds.runQuery(queryWithInvalidTake, options);
@@ -227,10 +206,7 @@ describe('DataFrameDataSourceV2', () => {
                         { id: 'table-1', name: 'Table 1' },
                         { id: 'table-2', name: 'Table 2' }
                     ];
-                    const processedQuery = getProcessedQuery(validQuery);
-                    processQuerySpy.mockReturnValue(processedQuery);
                     queryTablesSpy.mockResolvedValue(mockTables);
-                    transformComputedFieldsQuerySpy.mockImplementation((queryStr, _) => queryStr);
 
                     const result = await ds.runQuery(validQuery, options);
 
@@ -239,7 +215,6 @@ describe('DataFrameDataSourceV2', () => {
                         1000,
                         [DataTableProjections.Name]
                     );
-                    console.log('Result:', result);
                     expect(result).toEqual({
                         refId: 'A',
                         name: 'A',
@@ -283,22 +258,63 @@ describe('DataFrameDataSourceV2', () => {
                     };
                     const mockTables = [
                         {
-                            id: 'table-1', name: 'Table 1', rowCount: 100, columnCount: 2, createdAt: '2023-01-01T00:00:00Z',
-                            workspace: 'Workspace 1', metadataModifiedAt: '2023-01-02T00:00:00Z', metadataRevision: 2,
-                            rowsModifiedAt: '2023-01-03T00:00:00Z', supportsAppend: true, properties: { key: 'value' },
+                            id: 'table-1',
+                            name: 'Table 1',
+                            rowCount: 100,
+                            columnCount: 2,
+                            createdAt: '2023-01-01T00:00:00Z',
+                            workspace: 'Workspace 1',
+                            metadataModifiedAt: '2023-01-02T00:00:00Z',
+                            metadataRevision: 2,
+                            rowsModifiedAt: '2023-01-03T00:00:00Z',
+                            supportsAppend: true,
+                            properties: { key: 'value' },
                             columns: [
-                                { name: 'Column 1', dataType: 'string', columnType: 'dimension', properties: { colKey: 'colValue' } },
-                                { name: 'Column 2', dataType: 'number', columnType: 'measure', properties: { colKey2: 'colValue2' } }
+                                {
+                                    name: 'Column 1',
+                                    dataType: 'string',
+                                    columnType: 'dimension',
+                                    properties: { colKey: 'colValue' }
+                                },
+                                {
+                                    name: 'Column 2',
+                                    dataType: 'number',
+                                    columnType: 'measure',
+                                    properties: { colKey2: 'colValue2' }
+                                }
                             ]
                         },
                         {
-                            id: 'table-2', name: 'Table 2', rowCount: 200, columnCount: 3, createdAt: '2023-01-04T00:00:00Z',
-                            workspace: 'Workspace 2', metadataModifiedAt: '2023-01-05T00:00:00Z', metadataRevision: 1,
-                            rowsModifiedAt: '2023-01-06T00:00:00Z', supportsAppend: false, properties: { key: 'value2' },
+                            id: 'table-2',
+                            name: 'Table 2',
+                            rowCount: 200,
+                            columnCount: 3,
+                            createdAt: '2023-01-04T00:00:00Z',
+                            workspace: 'Workspace 2',
+                            metadataModifiedAt: '2023-01-05T00:00:00Z',
+                            metadataRevision: 1,
+                            rowsModifiedAt: '2023-01-06T00:00:00Z',
+                            supportsAppend: false,
+                            properties: { key: 'value2' },
                             columns: [
-                                { name: 'Column 1', dataType: 'string', columnType: 'dimension', properties: { colKey: 'colValue' } },
-                                { name: 'Column 2', dataType: 'number', columnType: 'measure', properties: { colKey2: 'colValue2' } },
-                                { name: 'Column 3', dataType: 'boolean', columnType: 'dimension', properties: { colKey3: 'colValue3' } }
+                                {
+                                    name: 'Column 1',
+                                    dataType: 'string',
+                                    columnType: 'dimension',
+                                    properties: { colKey: 'colValue' }
+                                },
+                                {
+                                    name: 'Column 2',
+                                    dataType: 'number',
+                                    columnType: 'measure',
+                                    properties: { colKey2: 'colValue2' }
+                                },
+                                {
+                                    name: 'Column 3',
+                                    dataType: 'boolean',
+                                    columnType: 'dimension',
+                                    properties: { colKey3: 'colValue3' }
+                                }
                             ]
                         }
                     ];
@@ -322,86 +338,116 @@ describe('DataFrameDataSourceV2', () => {
                         {
                             name: DataTableProperties.Name,
                             type: 'string',
-                            values: ['Table 1', 'Table 2']
+                            values: ['Table 1', 'Table 1', 'Table 2', 'Table 2', 'Table 2']
                         },
                         {
                             name: DataTableProperties.Id,
                             type: 'string',
-                            values: ['table-1', 'table-2']
+                            values: ['table-1', 'table-1', 'table-2', 'table-2', 'table-2']
                         },
                         {
                             name: DataTableProperties.RowCount,
                             type: 'number',
-                            values: [100, 200]
+                            values: [100, 100, 200, 200, 200]
                         },
                         {
                             name: DataTableProperties.ColumnCount,
                             type: 'number',
-                            values: [2, 3]
+                            values: [2, 2, 3, 3, 3]
                         },
                         {
                             name: DataTableProperties.CreatedAt,
                             type: 'time',
-                            values: ['2023-01-01T00:00:00Z', '2023-01-04T00:00:00Z']
+                            values: [
+                                '2023-01-01T00:00:00Z',
+                                '2023-01-01T00:00:00Z',
+                                '2023-01-04T00:00:00Z',
+                                '2023-01-04T00:00:00Z',
+                                '2023-01-04T00:00:00Z'
+                            ]
                         },
                         {
                             name: DataTableProperties.Workspace,
                             type: 'string',
-                            values: ['Workspace 1', 'Workspace 2']
+                            values: [
+                                'Workspace 1',
+                                'Workspace 1',
+                                'Workspace 2',
+                                'Workspace 2',
+                                'Workspace 2'
+                            ]
                         },
                         {
                             name: DataTableProperties.MetadataModifiedAt,
                             type: 'time',
-                            values: ['2023-01-02T00:00:00Z', '2023-01-05T00:00:00Z']
+                            values: [
+                                '2023-01-02T00:00:00Z',
+                                '2023-01-02T00:00:00Z',
+                                '2023-01-05T00:00:00Z',
+                                '2023-01-05T00:00:00Z',
+                                '2023-01-05T00:00:00Z'
+                            ]
                         },
                         {
                             name: DataTableProperties.MetadataRevision,
                             type: 'number',
-                            values: [2, 1]
+                            values: [2, 2, 1, 1, 1]
                         },
                         {
                             name: DataTableProperties.RowsModifiedAt,
                             type: 'time',
-                            values: ['2023-01-03T00:00:00Z', '2023-01-06T00:00:00Z']
+                            values: [
+                                '2023-01-03T00:00:00Z',
+                                '2023-01-03T00:00:00Z',
+                                '2023-01-06T00:00:00Z',
+                                '2023-01-06T00:00:00Z',
+                                '2023-01-06T00:00:00Z'
+                            ]
                         },
                         {
                             name: DataTableProperties.SupportsAppend,
                             type: 'boolean',
-                            values: [true, false]
+                            values: [true, true, false, false, false]
                         },
                         {
                             name: DataTableProperties.Properties,
                             type: 'other',
-                            values: [{ key: 'value' }, { key: 'value2' }]
+                            values: [
+                                { key: 'value' },
+                                { key: 'value' },
+                                { key: 'value2' },
+                                { key: 'value2' },
+                                { key: 'value2' }
+                            ]
                         },
                         {
                             name: DataTableProperties.ColumnName,
-                            type: 'other',
-                            values: [['Column 1', 'Column 2'], ['Column 1', 'Column 2', 'Column 3']]
+                            type: 'string',
+                            values: ['Column 1', 'Column 2', 'Column 1', 'Column 2', 'Column 3']
                         },
                         {
                             name: DataTableProperties.ColumnDataType,
-                            type: 'other',
-                            values: [['string', 'number'], ['string', 'number', 'boolean']]
+                            type: 'string',
+                            values: ['string', 'number', 'string', 'number', 'boolean']
                         },
                         {
                             name: DataTableProperties.ColumnType,
-                            type: 'other',
-                            values: [['dimension', 'measure'], ['dimension', 'measure', 'dimension']]
+                            type: 'string',
+                            values: ['dimension', 'measure', 'dimension', 'measure', 'dimension']
                         },
                         {
                             name: DataTableProperties.ColumnProperties,
                             type: 'other',
                             values: [
-                                [{ colKey: 'colValue' }, { colKey2: 'colValue2' }],
-                                [{ colKey: 'colValue' }, { colKey2: 'colValue2' }, { colKey3: 'colValue3' }]
+                                { colKey: 'colValue' },
+                                { colKey2: 'colValue2' },
+                                { colKey: 'colValue' },
+                                { colKey2: 'colValue2' },
+                                { colKey3: 'colValue3' }
                             ]
                         }
                     ];
-                    const processedQuery = getProcessedQuery(queryWithAllProperties);
-                    processQuerySpy.mockReturnValue(processedQuery);
                     queryTablesSpy.mockResolvedValue(mockTables);
-                    transformComputedFieldsQuerySpy.mockImplementation((queryStr, _) => queryStr);
 
                     const result = await ds.runQuery(queryWithAllProperties, options);
 
@@ -442,22 +488,20 @@ describe('DataFrameDataSourceV2', () => {
             expect(processQuerySpy).toHaveBeenCalledWith(query);
         });
 
-        it('should return true when processed query type is Properties', () => {
+        it('should return true when query type is Properties', () => {
             const query = {
                 type: DataFrameQueryType.Properties,
             } as ValidDataFrameQueryV2;
-            jest.spyOn(ds, 'processQuery').mockReturnValue(query);
 
             const result = ds.shouldRunQuery(query);
 
             expect(result).toBe(true);
         });
 
-        it('should return false when processed query type is not Properties', () => {
+        it('should return false when query type is not Properties', () => {
             const query = {
                 type: DataFrameQueryType.Data,
             } as ValidDataFrameQueryV2;
-            jest.spyOn(ds, 'processQuery').mockReturnValue(query);
 
             const result = ds.shouldRunQuery(query);
 
@@ -527,6 +571,12 @@ describe('DataFrameDataSourceV2', () => {
         let postMock: jest.SpyInstance;
         const mockTables = [{ id: '1', name: 'Table 1' }, { id: '2', name: 'Table 2' }];
 
+        function createQueryTablesError(status: number) {
+            return new Error(
+                `Request to url "${ds.baseUrl}/query-tables" failed with status code: ${status}. Error message: "Error"`
+            );
+        }
+
         beforeEach(() => {
             postMock = jest.spyOn(ds, 'post').mockResolvedValue({ tables: mockTables });
         });
@@ -556,6 +606,53 @@ describe('DataFrameDataSourceV2', () => {
 
             expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take, projection: undefined }, {}, true);
             expect(result).toBe(mockTables);
+        });
+
+        it('throws error on failed request', async () => {
+            postMock.mockRejectedValueOnce(new Error('Request failed'));
+
+            await expect(ds.queryTables('test-filter'))
+                .rejects.toThrow('The query failed due to an unknown error.');
+        });
+
+        it('should throw timeOut error when API returns 504 status', async () => {
+            postMock.mockRejectedValueOnce(createQueryTablesError(504));
+
+            await expect(ds.queryTables('test-filter')).rejects.toThrow(
+                'The query to fetch data tables experienced a timeout error. Narrow your query with a more specific filter and try again.'
+            );
+        });
+
+        it('should throw too many requests error when API returns 429 status', async () => {
+            postMock.mockRejectedValueOnce(createQueryTablesError(429));
+
+            await expect(ds.queryTables('test-filter')).rejects.toThrow(
+                'The query to fetch data tables failed due to too many requests. Please try again later.'
+            );
+        });
+
+        it('should throw error with unknown error when API returns error without status', async () => {
+            postMock.mockRejectedValueOnce(new Error('Some unknown error'));
+
+            await expect(ds.queryTables('test-filter')).rejects.toThrow(
+                'The query failed due to an unknown error.'
+            );
+        });
+
+        it('should publish alertError event when error occurs', async () => {
+            const publishMock = jest.fn();
+            (ds as any).appEvents = { publish: publishMock };
+            postMock.mockRejectedValueOnce(createQueryTablesError(429));
+
+            await expect(ds.queryTables('test-filter')).rejects.toThrow();
+
+            expect(publishMock).toHaveBeenCalledWith({
+                type: 'alert-error',
+                payload: [
+                    'Error during data tables query',
+                    'The query to fetch data tables failed due to too many requests. Please try again later.'
+                ],
+            });
         });
     });
 });

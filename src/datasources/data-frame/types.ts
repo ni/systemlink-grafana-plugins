@@ -176,13 +176,13 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
     label: 'Column name',
     projection: DataTableProjections.ColumnName,
     type: DataTableProjectionType.Column,
-    field: 'name'
+    field: 'columnName'
   },
   [DataTableProperties.ColumnDataType]: {
     label: 'Column data type',
     projection: DataTableProjections.ColumnDataType,
     type: DataTableProjectionType.Column,
-    field: 'dataType'
+    field: 'columnDataType'
   },
   [DataTableProperties.ColumnType]: {
     label: 'Column type',
@@ -194,7 +194,7 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
     label: 'Column properties',
     projection: DataTableProjections.ColumnProperties,
     type: DataTableProjectionType.Column,
-    field: 'properties'
+    field: 'columnProperties'
   },
   [DataTableProperties.SupportsAppend]: {
     label: 'Supports append',
@@ -257,11 +257,36 @@ export interface ColumnFilter {
 }
 
 export interface TableProperties {
-  columns: Column[];
   id: string;
   name: string;
+  columnCount: number;
+  columns: Column[];
+  createdAt: string;
+  metadataModifiedAt: string;
+  metadataRevision: number;
+  rowCount: number;
+  rowsModifiedAt: string;
+  supportsAppend: boolean;
   workspace: string;
   properties: Record<string, string>;
+}
+
+export interface FlattenedTableProperties {
+  id?: string;
+  name?: string;
+  columnCount?: number;
+  createdAt?: string;
+  metadataModifiedAt?: string;
+  metadataRevision?: number;
+  rowCount?: number;
+  rowsModifiedAt?: string;
+  supportsAppend?: boolean;
+  workspace?: string;
+  properties?: Record<string, string>;
+  columnName?: string;
+  columnDataType?: ColumnDataType;
+  columnType?: 'INDEX' | 'NULLABLE' | 'NORMAL';
+  columnProperties?: Record<string, string>;
 }
 
 export interface TablePropertiesList {
