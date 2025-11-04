@@ -11,7 +11,7 @@ export const DataFrameVariableQueryEditorWrapper = (props: Props) => {
 
   return (
     dataFrameFeatures.current.queryByDataTableProperties
-      ? <DataFrameVariableQueryEditorV2 />
+      ? <DataFrameVariableQueryEditorV2 {...props as any} />
       : <DataFrameVariableQueryEditorV1 {...props as PropsV1} />
   )
 }

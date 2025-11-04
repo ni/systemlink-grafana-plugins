@@ -14,6 +14,7 @@ type DataTableQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Eleme
     workspaces: Workspace[];
     globalVariableOptions: QueryBuilderOption[];
     dataTableNameLookupCallback: DataSourceQBLookupCallback;
+    resultIds?: string[];
 };
 
 export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
@@ -21,7 +22,8 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
     onChange,
     workspaces,
     globalVariableOptions,
-    dataTableNameLookupCallback
+    dataTableNameLookupCallback,
+    resultIds = []
 }) => {
     const [fields, setFields] = useState<Array<QBField | QBFieldWithDataSourceCallback>>([]);
     const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);

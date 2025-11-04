@@ -23,7 +23,9 @@ export interface DataFrameQueryV1 extends DataQuery {
 
 export interface DataFrameQueryV2 extends DataQuery {
   type: DataFrameQueryType;
+  resultsFilter?: string;
   dataTableFilter?: string;
+  columnsFilter?: string;
   dataTableProperties?: DataTableProperties[];
   columnProperties?: DataTableProperties[];
   columns?: string[];
@@ -100,7 +102,9 @@ export const defaultDatatableProperties: DataTableProperties[] = [
 
 export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   type: DataFrameQueryType.Data,
+  resultsFilter: '',
   dataTableFilter: '',
+  columnsFilter: '',
   dataTableProperties: defaultDatatableProperties,
   columnProperties: [],
   columns: [],
@@ -266,4 +270,32 @@ export interface DataFrameDataSourceOptions extends DataSourceJsonData {
 
 export function isSystemLinkError(error: any): error is SystemLinkError {
   return Boolean(error?.error?.code) && Boolean(error?.error?.name);
+}
+
+export interface QueryResultsRequest {
+  filter?: string;
+  orderBy?: string;
+  descending?: boolean;
+  take?: number;
+  projection?: string[];
+}
+
+export interface QueryResultsResponse {
+  results: ResultInfo[];
+  continuationToken?: string;
+}
+
+export interface ResultInfo {
+  id: string;
+  programName?: string;
+  systemId?: string;
+  status?: {
+    statusType?: string;
+  };
+  startedAt?: string;
+  updatedAt?: string;
+  partNumber?: string;
+  serialNumber?: string;
+  operator?: string;
+  workspace?: string;
 }

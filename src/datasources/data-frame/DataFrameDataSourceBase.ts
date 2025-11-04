@@ -50,7 +50,7 @@ export abstract class DataFrameDataSourceBase<
         intervals?: number
     ): Promise<TableDataRows>;
 
-    public abstract queryTables(query: string, take?: number, projection?: DataTableProjections[]): Promise<TableProperties[]>;
+    public abstract queryTables(query: string, take?: number, projection?: DataTableProjections[], substitutions?: string[]): Promise<TableProperties[]>;
 
     public async testDatasource(): Promise<TestDataSourceResponse> {
         await this.get(`${this.baseUrl}/tables`, { take: 1 });

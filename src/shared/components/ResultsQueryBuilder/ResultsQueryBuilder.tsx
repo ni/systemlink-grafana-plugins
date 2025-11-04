@@ -1,17 +1,12 @@
-import { useTheme2 } from '@grafana/ui';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
-import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
+import { expressionBuilderCallbackWithRef, expressionReaderCallbackWithRef } from 'core/query-builder.utils';
 import { Workspace, QueryBuilderOption, QBField } from 'core/types';
-import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
+import { filterXSSField } from 'core/utils';
+import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
 
-import React, { useState, useEffect, useMemo } from 'react';
-import QueryBuilder, { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 
-import 'smart-webcomponents-react/source/styles/smart.dark-orange.css';
-import 'smart-webcomponents-react/source/styles/smart.orange.css';
-import 'smart-webcomponents-react/source/styles/components/smart.base.css';
-import 'smart-webcomponents-react/source/styles/components/smart.common.css';
-import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
 import {
   ResultsQueryBuilderFields,
   ResultsQueryBuilderStaticFields,
@@ -34,15 +29,9 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
   status,
   globalVariableOptions,
 }) => {
-  const theme = useTheme2();
-  document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
-
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
-
-  const sanitizedFilter = useMemo(() => {
-    return filterXSSLINQExpression(filter);
-  }, [filter]);
+  const optionsRef = useRef<Record<string, QueryBuilderOption[]>>({});
 
   const workspaceField = useMemo(() => {
     const workspaceField = ResultsQueryBuilderFields.WORKSPACE;
@@ -126,8 +115,15 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
     };
   }, [partNumbers]);
 
+  const callbacks = useMemo(() => {
+    return {
+      expressionBuilderCallback: expressionBuilderCallbackWithRef(optionsRef),
+      expressionReaderCallback: expressionReaderCallbackWithRef(optionsRef),
+    };
+  }, []);
+
   useEffect(() => {
-    if(!workspaceField || !partNumberField) {
+    if (!workspaceField || !partNumberField) {
       return;
     }
 
@@ -155,17 +151,14 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
     setFields(updatedFields);
 
     const options = Object.values(updatedFields).reduce((accumulator, fieldConfig) => {
-      if (fieldConfig.lookup) {
-        accumulator[fieldConfig.dataField!] = fieldConfig.lookup.dataSource;
+      if (fieldConfig.lookup && fieldConfig.dataField) {
+        accumulator[fieldConfig.dataField] = fieldConfig.lookup.dataSource;
       }
 
       return accumulator;
     }, {} as Record<string, QueryBuilderOption[]>);
 
-    const callbacks = {
-      expressionBuilderCallback: expressionBuilderCallback(options),
-      expressionReaderCallback: expressionReaderCallback(options),
-    };
+    optionsRef.current = options;
 
     const customOperations = [
       QueryBuilderOperations.EQUALS,
@@ -207,16 +200,15 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
     ];
 
     setOperations([...customOperations, ...keyValueOperations]);
-  }, [workspaceField, startedAtField, updatedAtField, partNumberField, globalVariableOptions, statusField]);
+  }, [workspaceField, startedAtField, updatedAtField, partNumberField, globalVariableOptions, statusField, callbacks]);
 
   return (
-    <QueryBuilder
+    <SlQueryBuilder
       customOperations={operations}
       fields={fields}
       messages={queryBuilderMessages}
       onChange={onChange}
-      value={sanitizedFilter}
-      fieldsMode="static"
+      value={filter}
     />
   );
 };
