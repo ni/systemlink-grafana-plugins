@@ -25,14 +25,14 @@ interface RequestOptions extends Partial<BackendSrvRequest> {
 }
 
 export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends DataSourceJsonData = DataSourceJsonData> extends DataSourceApi<TQuery, TOptions> {
-  public readonly apiKeyHeader = 'x-ni-api-key';
-  public appEvents: EventBus;
-  public apiSessionUtils: ApiSessionUtils;
+  private readonly apiKeyHeader = 'x-ni-api-key';
+  protected appEvents: EventBus;
+  private apiSessionUtils: ApiSessionUtils;
 
-  public constructor(
-    public readonly instanceSettings: DataSourceInstanceSettings<TOptions>,
-    public readonly backendSrv: BackendSrv,
-    public readonly templateSrv: TemplateSrv
+  protected constructor(
+    protected readonly instanceSettings: DataSourceInstanceSettings<TOptions>,
+    protected readonly backendSrv: BackendSrv,
+    protected readonly templateSrv: TemplateSrv
   ) {
     super(instanceSettings);
     this.appEvents = getAppEvents();
@@ -134,6 +134,20 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
         post$<T>(this.backendSrv, url, body, newOptions)
       )
     );
+  }
+  
+  /**
+   * Retrieves a list of variable options from the template service.
+   * Each option is an object containing a `label` and `value` property,
+   * both formatted as `'$' + variable.name`.
+   *
+   * @returns An array of objects representing the available variables,
+   *          each with `label` and `value` properties.
+   */
+  public getVariableOptions() {
+    return this.templateSrv
+      .getVariables()
+      .map(variable => ({ label: '$' + variable.name, value: '$' + variable.name }));
   }
 
   private static Workspaces: Workspace[];
