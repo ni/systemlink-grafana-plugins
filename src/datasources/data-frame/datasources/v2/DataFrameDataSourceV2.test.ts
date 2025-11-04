@@ -55,13 +55,13 @@ describe('DataFrameDataSourceV2', () => {
                 dataTableFilter: '',
                 dataTableProperties: defaultDatatableProperties,
                 columnProperties: [],
-                take: TAKE_LIMIT,
                 columns: [],
-                decimationMethod: 'LOSSY',
-                xColumn: null,
                 includeIndexColumns: false,
                 filterNulls: false,
-                applyTimeFilters: false
+                decimationMethod: 'LOSSY',
+                xColumn: null,
+                applyTimeFilters: false,
+                take: TAKE_LIMIT
             };
 
             const result = ds.processQuery(query);
@@ -76,13 +76,13 @@ describe('DataFrameDataSourceV2', () => {
                 dataTableFilter: '',
                 dataTableProperties: defaultDatatableProperties,
                 columnProperties: [],
-                take: TAKE_LIMIT,
                 columns: [],
-                decimationMethod: 'MAX_MIN',
-                xColumn: null,
                 includeIndexColumns: false,
                 filterNulls: false,
-                applyTimeFilters: true
+                decimationMethod: 'MAX_MIN',
+                xColumn: null,
+                applyTimeFilters: true,
+                take: TAKE_LIMIT
             };
 
             const result = ds.processQuery(query);
@@ -119,7 +119,7 @@ describe('DataFrameDataSourceV2', () => {
             const projection = [DataTableProjections.Name, DataTableProjections.Id];
             const result = await ds.queryTables(filter, take, projection);
 
-            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take, projection }, {}, true);
+            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take, projection }, { useApiIngress: true });
             expect(result).toBe(mockTables);
         });
 
@@ -127,7 +127,7 @@ describe('DataFrameDataSourceV2', () => {
             const filter = 'test-filter';
             const result = await ds.queryTables(filter);
 
-            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take: TAKE_LIMIT }, {}, true);
+            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take: TAKE_LIMIT }, { useApiIngress: true });
             expect(result).toBe(mockTables);
         });
 
@@ -136,7 +136,7 @@ describe('DataFrameDataSourceV2', () => {
             const take = 15;
             const result = await ds.queryTables(filter, take);
 
-            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take, projection: undefined }, {}, true);
+            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take, projection: undefined }, { useApiIngress: true });
             expect(result).toBe(mockTables);
         });
     });

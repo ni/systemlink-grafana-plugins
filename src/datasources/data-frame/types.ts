@@ -24,15 +24,15 @@ export interface DataFrameQueryV1 extends DataQuery {
 export interface DataFrameQueryV2 extends DataQuery {
   type: DataFrameQueryType;
   dataTableFilter?: string;
-  dataTableProperties?: DataTableProjections[];
-  columnProperties?: DataTableProjections[];
-  take?: number;
+  dataTableProperties?: DataTableProperties[];
+  columnProperties?: DataTableProperties[];
   columns?: string[];
-  decimationMethod?: string;
-  xColumn?: string | null;
   includeIndexColumns?: boolean;
   filterNulls?: boolean;
+  decimationMethod?: string;
+  xColumn?: string | null;
   applyTimeFilters?: boolean;
+  take?: number;
 }
 
 export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
@@ -70,7 +70,7 @@ export enum DataTableProjections {
   Name = 'NAME',
   Id = 'ID',
   RowCount = 'ROW_COUNT',
-  columnCount = 'COLUMN_COUNT',
+  ColumnCount = 'COLUMN_COUNT',
   CreatedAt = 'CREATED_AT',
   Workspace = 'WORKSPACE',
   MetadataModifiedAt = 'METADATA_MODIFIED_AT',
@@ -89,13 +89,13 @@ export enum DataTableProjectionType {
   Column = 'column'
 }
 
-export const defaultDatatableProperties: DataTableProjections[] = [
-  DataTableProjections.Name,
-  DataTableProjections.Id,
-  DataTableProjections.RowCount,
-  DataTableProjections.columnCount,
-  DataTableProjections.CreatedAt,
-  DataTableProjections.Workspace
+export const defaultDatatableProperties: DataTableProperties[] = [
+  DataTableProperties.Name,
+  DataTableProperties.Id,
+  DataTableProperties.RowCount,
+  DataTableProperties.ColumnCount,
+  DataTableProperties.CreatedAt,
+  DataTableProperties.Workspace
 ];
 
 export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
@@ -103,13 +103,13 @@ export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   dataTableFilter: '',
   dataTableProperties: defaultDatatableProperties,
   columnProperties: [],
-  take: TAKE_LIMIT,
   columns: [],
-  decimationMethod: 'LOSSY',
-  xColumn: null,
   includeIndexColumns: false,
   filterNulls: false,
-  applyTimeFilters: false
+  decimationMethod: 'LOSSY',
+  xColumn: null,
+  applyTimeFilters: false,
+  take: TAKE_LIMIT
 };
 
 export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
@@ -134,7 +134,7 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
   },
   [DataTableProperties.ColumnCount]: {
     label: 'Columns',
-    projection: DataTableProjections.columnCount,
+    projection: DataTableProjections.ColumnCount,
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.CreatedAt]: {

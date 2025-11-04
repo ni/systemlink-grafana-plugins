@@ -1,3 +1,45 @@
+## [4.43.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.42.0...v4.43.0) (2025-11-03)
+
+### Features
+
+* **SlQueryBuilder:** Add disabled functionality and set fields mode to static ([#476](https://github.com/ni/systemlink-grafana-plugins/issues/476)) ([c0b6a36](https://github.com/ni/systemlink-grafana-plugins/commit/c0b6a366dd9656c99c8eb7c988f47460bf70541b))
+
+## [4.42.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.41.0...v4.42.0) (2025-11-03)
+
+### Features
+
+* **system:** add scan code field to System datasource properties ([#482](https://github.com/ni/systemlink-grafana-plugins/issues/482)) ([a340c64](https://github.com/ni/systemlink-grafana-plugins/commit/a340c64c0e634c44d38d92372ee335d5d1823340))
+
+## [4.41.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.40.0...v4.41.0) (2025-11-03)
+
+### Features
+
+* **asset:** contains filter to properties ([#483](https://github.com/ni/systemlink-grafana-plugins/issues/483)) ([06f9e67](https://github.com/ni/systemlink-grafana-plugins/commit/06f9e6756c576d12b3ee8d398f1f56bce2755cd0))
+
+## [4.40.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.39.1...v4.40.0) (2025-11-03)
+
+### Features
+
+* **dataframe:** Add default values and change handler to the fields ([#478](https://github.com/ni/systemlink-grafana-plugins/issues/478)) ([e777ad2](https://github.com/ni/systemlink-grafana-plugins/commit/e777ad28375a9e0bd6e39ed28618d92352924131))
+
+## [4.39.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.39.0...v4.39.1) (2025-10-31)
+
+### Bug Fixes
+
+* **alarms:** prepareVariableQuery for Alarms Variable Query Editor ([#486](https://github.com/ni/systemlink-grafana-plugins/issues/486)) ([abb666b](https://github.com/ni/systemlink-grafana-plugins/commit/abb666b52c3b794778aeeb526e9e9d6a29855145))
+
+## [4.39.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.38.1...v4.39.0) (2025-10-31)
+
+### Features
+
+* **alarms:** Add UI support for properties ([#468](https://github.com/ni/systemlink-grafana-plugins/issues/468)) ([58da9a3](https://github.com/ni/systemlink-grafana-plugins/commit/58da9a354728c759666c32bf6da2ce469245878a))
+
+## [4.38.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.38.0...v4.38.1) (2025-10-31)
+
+### Bug Fixes
+
+* **tags:** fix repeat values for tags datasource ([#484](https://github.com/ni/systemlink-grafana-plugins/issues/484)) ([118bc8f](https://github.com/ni/systemlink-grafana-plugins/commit/118bc8f24a8d005d96d93acf8d1cef2745faffce))
+
 ## [4.38.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.37.0...v4.38.0) (2025-10-30)
 
 ### Features
