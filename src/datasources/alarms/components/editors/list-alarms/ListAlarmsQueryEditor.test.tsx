@@ -161,7 +161,7 @@ describe('ListAlarmsQueryEditor', () => {
         queryType: QueryType.ListAlarms,
         transitionInclusionOption: TransitionInclusionOption.MostRecentOnly,
       });
-      const transitionInclusionCombobox = container.getAllByRole('combobox')[1];
+      const transitionInclusionCombobox = container.getByRole('combobox', { name: 'Include Transition' });
 
       expect(transitionInclusionCombobox).toBeInTheDocument();
       expect(transitionInclusionCombobox).toHaveValue(AlarmsTransitionInclusionOptions[TransitionInclusionOption.MostRecentOnly].label);
@@ -169,7 +169,7 @@ describe('ListAlarmsQueryEditor', () => {
 
     it('should call handleQueryChange with selected transition inclusion option when it is updated in the UI', async () => {
       const container = await renderElement();
-      const transitionInclusionCombobox = container.getAllByRole('combobox')[1];
+      const transitionInclusionCombobox = container.getByRole('combobox', { name: 'Include Transition' });
 
       await userEvent.click(transitionInclusionCombobox);
       await select(transitionInclusionCombobox, AlarmsTransitionInclusionOptions[TransitionInclusionOption.All].label, {
