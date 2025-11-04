@@ -1,5 +1,5 @@
 import React from "react";
-import { render, RenderResult, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, RenderResult, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
 import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataSourceQBLookupCallback } from "../../types";
@@ -205,6 +205,58 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(columnsField).toHaveAttribute('aria-expanded', 'false');
                     expect(columnsField).toHaveDisplayValue('');
                 });
+
+                    it("should load and show column options when filter is changed via query builder", async () => {
+                            // Mock tables with columns to be returned by queryTables
+                            const mockTables = [
+                                {
+                                    id: 'table1',
+                                    name: 'Table 1',
+                                    columns: [
+                                        { name: 'ColA' },
+                                        { name: 'ColB' },
+                                        { name: 'ColC' }
+                                    ]
+                                },
+                                {
+                                    id: 'table2',
+                                    name: 'Table 2',
+                                    columns: [
+                                        { name: 'ColD' },
+                                        { name: 'ColE' }
+                                    ]
+                                }
+                            ];
+                            const datasource = {
+                                processQuery: jest.fn(q => q),
+                                loadWorkspaces: jest.fn().mockResolvedValue([
+                                    { id: '1', name: 'WorkspaceName' },
+                                    { id: '2', name: 'AnotherWorkspaceName' },
+                                ]),
+                                globalVariableOptions: jest.fn().mockReturnValue([
+                                    { label: 'Var1', value: 'Value1' },
+                                    { label: 'Var2', value: 'Value2' },
+                                ]),
+                                queryTables: jest.fn().mockResolvedValue(mockTables),
+                            };
+                            const onChange = jest.fn();
+                            const onRunQuery = jest.fn();
+                            render(
+                                <DataFrameQueryEditorV2
+                                    datasource={datasource as any}
+                                    query={{ refId: 'A', type: DataFrameQueryType.Data, columns: [] }}
+                                    onChange={onChange}
+                                    onRunQuery={onRunQuery}
+                                />
+                            );
+                            // Simulate filter change via query builder mock
+                            const filterInputs = screen.getByTestId('data-table-query-builder');
+                            fireEvent.change(filterInputs, { target: { value: 'new filter' } });
+                            
+                            // Wait for columns to be loaded and dropdown to show options
+                            const columnsCombobox = screen.getAllByRole('combobox')[0];
+                            await userEvent.click(columnsCombobox);
+                    });
             });
 
             describe("include index columns", () => {

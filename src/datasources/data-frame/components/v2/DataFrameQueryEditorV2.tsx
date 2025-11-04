@@ -17,6 +17,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
     const [isDecimationSettingsSectionOpen, setIsDecimationSettingsSectionOpen] = useState(true);
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+    const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
 
     const getPropertiesOptions = (type: DataTableProjectionType): Array<SelectableValue<DataTableProjections>> =>
         Object.entries(DataTableProjectionLabelLookup)
@@ -39,8 +40,34 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
         handleQueryChange({ ...migratedQuery, type: queryType }, false);
     };
 
-    const onDataTableFilterChange = (event: any) => {
-        handleQueryChange({ ...migratedQuery, dataTableFilter: event.detail.linq }, false);
+    const fetchAndSetColumnOptions = async (filter: string) => {
+      if (filter !== '') {
+        try {
+          const tables = await datasource.queryTables(filter, TAKE_LIMIT, [
+            DataTableProjections.Name,
+            DataTableProjections.ColumnName,
+            DataTableProjections.ColumnDataType,
+            DataTableProjections.ColumnType,
+          ]);
+          const columnsSet = new Set<string>();
+          tables.forEach(table => {
+            table.columns?.forEach((col: { name?: string }) => {
+              if (col?.name) {
+                columnsSet.add(col.name);
+              }
+            });
+          });
+          setColumnOptions(Array.from(columnsSet).map(name => ({ label: name, value: name })));
+        } catch (error) {
+          setColumnOptions([]);
+        }
+      }
+    };
+
+    const onDataTableFilterChange = async (event: any) => {
+      const filter = event.detail.linq;
+      handleQueryChange({ ...migratedQuery, dataTableFilter: filter }, false);
+      await fetchAndSetColumnOptions(filter);
     };
 
     const onDataTablePropertiesChange = (properties: Array<SelectableValue<DataTableProjections>>) => {
@@ -237,11 +264,12 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                         >
                             <MultiCombobox
                                 placeholder={placeholders.columns}
-                                width={inlineLabelWidth}
+                                width={40}
                                 value={migratedQuery.columns}
                                 onChange={onColumnsChange}
-                                options={[]}
+                                options={columnOptions}
                                 createCustomValue={false}
+                                isClearable={true}
                             />
                         </InlineField>
                         <InlineField
