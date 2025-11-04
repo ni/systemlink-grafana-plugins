@@ -41,6 +41,79 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
         }, [onChange, onRunQuery]
     );
 
+    /**
+     * Aggregates columns from all tables into a map of column name to set of data types.
+     */
+    const getColumnTypeMap = (tables: any[]): Record<string, Set<string>> => {
+        const columnTypeMap: Record<string, Set<string>> = {};
+        tables.forEach(table => {
+            table.columns?.forEach((col: { name: string; dataType: string }) => {
+                if (col?.name && col?.dataType) {
+                    if (!columnTypeMap[col.name]) {
+                        columnTypeMap[col.name] = new Set();
+                    }
+                    columnTypeMap[col.name].add(col.dataType);
+                }
+            });
+        });
+        return columnTypeMap;
+    };
+
+    /**
+     * Converts a string to sentence case (e.g., 'TIMESTAMP' -> 'Timestamp').
+     */
+    const toSentenceCase = (str: string) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+
+    /**
+     * Formats column options for the dropdown, grouping numeric types and formatting labels.
+     */
+    const getFormattedColumnOptions = (
+        columnTypeMap: Record<string, Set<string>>
+    ): Array<{ label: string; value: string; rawName: string; rawType: string }> => {
+        const NUMERIC_TYPES = new Set(['INT32', 'INT64', 'FLOAT32', 'FLOAT64']);
+        const options: Array<{ label: string; value: string; rawName: string; rawType: string }> = [];
+
+        Object.entries(columnTypeMap).forEach(([name, types]) => {
+            const typeArr = Array.from(types);
+            const nonNumericTypes = typeArr.filter(type => !NUMERIC_TYPES.has(type));
+
+            if (typeArr.length === 1) {
+                // Single type: show just the name
+                const onlyType = typeArr[0];
+                const label = name;
+                const value = name;
+                const rawType = NUMERIC_TYPES.has(onlyType) ? 'Numeric' : onlyType;
+                options.push({ label, value, rawName: name, rawType });
+            } else {
+                // Multiple types: group numeric, show others in sentence case
+                let addedNumeric = false;
+                typeArr.forEach(type => {
+                    if (NUMERIC_TYPES.has(type)) {
+                        if (!addedNumeric) {
+                            options.push({ label: `${name} (Numeric)`, value: `${name}-Numeric`, rawName: name, rawType: 'Numeric' });
+                            addedNumeric = true;
+                        }
+                    }
+                });
+                Array.from(new Set(nonNumericTypes)).forEach(type => {
+                    const sentenceCaseType = toSentenceCase(type);
+                    options.push({ label: `${name} (${sentenceCaseType})`, value: `${name}-${sentenceCaseType}`, rawName: name, rawType: type });
+                });
+            }
+        });
+        return options;
+    };
+
+    /**
+     * Limits the number of column options to a maximum value.
+     */
+    const getLimitedColumnOptions = <T,>(columns: T[], max: number): T[] => {
+        return columns.slice(0, max);
+    };
+
+    /**
+     * Fetches tables, aggregates and formats column options, and sets dropdown state.
+     */
     const fetchAndSetColumnOptions = async (filter: string) => {
         if (!filter) {
             setColumnOptions([]);
@@ -52,10 +125,10 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
             DataTableProjections.ColumnDataType,
             DataTableProjections.ColumnType,
         ]);
-        const columns = tables.flatMap(table =>
-            table.columns?.map(col => col?.name).filter(Boolean) ?? []
-        );
-        setColumnOptions(columns.map(name => ({ label: name, value: name })));
+        const columnTypeMap = getColumnTypeMap(tables);
+        const formattedOptions = getFormattedColumnOptions(columnTypeMap);
+        const limitedOptions = getLimitedColumnOptions(formattedOptions, 10000);
+        setColumnOptions(limitedOptions.map(col => ({ label: col.label, value: col.value })));
     };
 
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
