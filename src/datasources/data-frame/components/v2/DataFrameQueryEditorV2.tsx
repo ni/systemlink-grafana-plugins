@@ -60,7 +60,9 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
         const columnNames = tables
           .map(table => table.columns ?? [])
           .flatMap(columns => {
-            return columns.filter(column => column.name !== undefined).map(column => column.name);
+            return columns
+                    .filter(column => column.name !== undefined)
+                    .map(column => column.name);
           });
         setColumnOptions(columnNames.map(name => ({ label: name, value: name })));
     };
