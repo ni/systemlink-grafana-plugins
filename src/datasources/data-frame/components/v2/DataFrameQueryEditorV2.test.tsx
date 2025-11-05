@@ -84,8 +84,8 @@ const renderComponent = (
         ),
         queryTables: jest.fn().mockResolvedValue(
             [
-                { id: 'table1', name: 'Table 1' },
-                { id: 'table2', name: 'Table 2' },
+                { id: 'table1', name: 'Table 1', columns: [{ name: 'ColumnA' }, {name: 'ColumnB'}] },
+                { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, {name: 'ColumnE'}] },
             ]
         ),
     } as unknown as DataFrameDataSource;
@@ -150,6 +150,13 @@ describe("DataFrameQueryEditorV2", () => {
     describe("when the query type is data", () => {
         let onChange: jest.Mock;
         let onRunQuery: jest.Mock;
+        
+        beforeAll(() => { 
+            // JSDOM provides offsetHeight as 0 by default. 
+            // Mocking it to return 30 because the ComboBox virtualization relies on this value 
+            // to correctly calculate and render the dropdown options. 
+            jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30); 
+        });
 
         beforeEach(() => {
             const result = renderComponent({ type: DataFrameQueryType.Data });
@@ -200,6 +207,40 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(columnsField).toBeInTheDocument();
                     expect(columnsField).toHaveAttribute('aria-expanded', 'false');
                     expect(columnsField).toHaveDisplayValue('');
+                });
+
+                it('should load columns combobox options when filter changes', async () => {
+                    const filterInput = screen.getByTestId("filter-input");
+                    const user = userEvent.setup();
+
+                    await user.clear(filterInput);
+                    await user.type(filterInput, "new filter");
+
+                    await waitFor(() => {
+                        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                            dataTableFilter: "new filter",
+                        }));
+                    });
+
+                    // Click on column combobox to load options
+                    const columnsCombobox = screen.getAllByRole('combobox')[0];
+                    await userEvent.click(columnsCombobox);
+
+                    // Find all option controls by role 'option'
+                    const optionControls = within(document.body).getAllByRole('option');
+                    const optionTexts = optionControls.map(opt => opt.textContent);
+                    expect(optionTexts).toEqual(expect.arrayContaining(['ColumnA', 'ColumnB', 'ColumnD', 'ColumnE']));
+                });
+
+                it('should not load column options when filter is empty', async () => {
+                    renderComponent({ dataTableFilter: "" });
+                
+                    // Click on column combobox to load options
+                    const columnsCombobox = screen.getAllByRole('combobox')[0];
+                    await userEvent.click(columnsCombobox);
+                
+                    // Assert that no options are shown
+                    expect(within(document.body).queryAllByRole('option').length).toBe(0);
                 });
             });
 

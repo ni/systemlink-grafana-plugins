@@ -27,6 +27,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
     const [isDecimationSettingsSectionOpen, setIsDecimationSettingsSectionOpen] = useState(true);
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+    const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
 
     const getPropertiesOptions = (
         type: DataTableProjectionType
@@ -50,14 +51,42 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
         }, [onChange, onRunQuery]
     );
 
+    const fetchAndSetColumnOptions = async (filter: string) => {
+        if (!filter) {
+            setColumnOptions([]);
+            return;
+        }
+
+        const tables = await datasource.queryTables(
+            filter,
+            TAKE_LIMIT,
+            [
+                DataTableProjections.Name,
+                DataTableProjections.ColumnName,
+                DataTableProjections.ColumnDataType,
+                DataTableProjections.ColumnType,
+            ]
+        );
+        const columnNames = tables
+          .map(table => table.columns ?? [])
+          .flatMap(columns => {
+            return columns
+                    .filter(column => column.name !== undefined)
+                    .map(column => column.name);
+          });
+        setColumnOptions(columnNames.map(name => ({ label: name, value: name })));
+    };
+
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
         handleQueryChange({ ...migratedQuery, type: queryType }, false);
     };
 
-    const onDataTableFilterChange = (event?: Event | React.FormEvent<Element>) => {
+    const onDataTableFilterChange = async (event?: Event | React.FormEvent<Element>) => {
         if (event) {
-            handleQueryChange({ ...migratedQuery, dataTableFilter: (event as CustomEvent).detail.linq }, false);
-        }
+            const dataTableFilter = (event as CustomEvent).detail.linq;
+            handleQueryChange({ ...migratedQuery, dataTableFilter }, false);
+            await fetchAndSetColumnOptions(dataTableFilter);
+      }
     };
 
     const onDataTablePropertiesChange = (properties: Array<SelectableValue<DataTableProperties>>) => {
@@ -258,11 +287,12 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                         >
                             <MultiCombobox
                                 placeholder={placeholders.columns}
-                                width={INLINE_LABEL_WIDTH}
+                                width={40}
                                 value={migratedQuery.columns}
                                 onChange={onColumnsChange}
-                                options={[]}
+                                options={columnOptions}
                                 createCustomValue={false}
+                                isClearable={true}
                             />
                         </InlineField>
                         <InlineField

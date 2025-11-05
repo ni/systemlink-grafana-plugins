@@ -1,6 +1,6 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindValue, TimeRange } from "@grafana/data";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, DataFrameDataSourceOptions, DataFrameQuery, DataTableProjections, TableDataRows, TableProperties, ValidDataFrameQuery } from "./types";
+import { Column, DataFrameDataSourceOptions, DataFrameFeatureTogglesDefaults, DataFrameQuery, DataTableProjections, TableDataRows, TableProperties, ValidDataFrameQuery } from "./types";
 import { DataFrameDataSourceBase } from "./DataFrameDataSourceBase";
 import { DataFrameDataSourceV1 } from "./datasources/v1/DataFrameDataSourceV1";
 import { DataFrameDataSourceV2 } from "./datasources/v2/DataFrameDataSourceV2";
@@ -17,7 +17,9 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
   ) {
     super(instanceSettings, backendSrv, templateSrv);
 
-    this.queryByTablePropertiesFeatureEnabled = instanceSettings.jsonData?.featureToggles?.queryByDataTableProperties ?? false;
+    const featureToggles = instanceSettings.jsonData?.featureToggles;
+    this.queryByTablePropertiesFeatureEnabled = featureToggles?.queryByDataTableProperties ?? DataFrameFeatureTogglesDefaults.queryByDataTableProperties;
+
     if (this.queryByTablePropertiesFeatureEnabled) {
       this.datasource = new DataFrameDataSourceV2(instanceSettings, backendSrv, templateSrv);
     } else {
