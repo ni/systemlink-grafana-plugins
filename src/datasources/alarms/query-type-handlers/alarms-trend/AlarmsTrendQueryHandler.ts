@@ -7,7 +7,6 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultAlarmsTrendQuery;
 
   public async runQuery(query: AlarmsTrendQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-
     // TODO: alarms trend query logic will be implemented here in future
     return {
       refId: query.refId,
