@@ -4,12 +4,14 @@ import { Alarm, AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from '../
 import { extractErrorInfo } from 'core/errors';
 import { QUERY_ALARMS_MAXIMUM_TAKE, QUERY_ALARMS_RELATIVE_PATH, QUERY_ALARMS_REQUEST_PER_SECOND } from '../constants/QueryAlarms.constants';
 import { ExpressionTransformFunction, getConcatOperatorForMultiExpression, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
-import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from '../constants/AlarmsQueryBuilder.constants';
+import { AlarmsQueryBuilderFields } from '../constants/AlarmsQueryBuilder.constants';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { queryInBatches } from 'core/utils';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
-import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from '../constants/SourceProperties.constants';
+import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from '../constants/AlarmProperties.constants';
+import { ALARMS_TIME_FIELDS } from '../constants/AlarmsQueryEditor.constants';
+import { AlarmsProperties } from '../types/ListAlarms.types';
 
 export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery> {
   public errorTitle?: string;
@@ -112,6 +114,10 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
       : undefined;
   }
 
+  protected isTimeField(field: AlarmsProperties): boolean {
+    return ALARMS_TIME_FIELDS.includes(field);
+  }
+
   private readonly computedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(AlarmsQueryBuilderFields).map(field => {
       const dataField = field.dataField as string;
@@ -119,7 +125,7 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
 
       if (dataField === AlarmsQueryBuilderFields.SOURCE.dataField) {
         callback = this.getSourceTransformation();
-      } else if (this.isTimeField(dataField)) {
+      } else if (this.isTimeField(dataField as AlarmsProperties)) {
         callback = timeFieldsQuery(dataField);
       } else {
         callback = multipleValuesQuery(dataField);
@@ -128,10 +134,6 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
       return [dataField, callback];
     })
   );
-
-  private isTimeField(field: string): boolean {
-    return ALARMS_TIME_FIELDS.includes(field);
-  }
 
   private getSourceTransformation(): ExpressionTransformFunction {
     return (value: string, operation: string) => {
