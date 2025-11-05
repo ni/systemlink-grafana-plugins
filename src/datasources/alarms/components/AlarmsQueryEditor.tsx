@@ -7,9 +7,11 @@ import { AlarmsCountQuery } from '../types/AlarmsCount.types';
 import { InlineField } from 'core/components/InlineField';
 import { CONTROL_WIDTH, LABEL_WIDTH, labels, tooltips } from '../constants/AlarmsQueryEditor.constants';
 import { Combobox, Stack } from '@grafana/ui';
-import { DEFAULT_QUERY_TYPE, defaultAlarmsCountQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
+import { DEFAULT_QUERY_TYPE, defaultAlarmsCountQuery, defaultAlarmsTrendQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
 import { ListAlarmsQuery } from '../types/ListAlarms.types';
 import { ListAlarmsQueryEditor } from './editors/list-alarms/ListAlarmsQueryEditor';
+import { AlarmsTrendQueryEditor } from './editors/alarms-trend/AlarmsTrendQueryEditor';
+import { AlarmsTrendQuery } from '../types/AlarmsTrend.types';
 
 type Props = QueryEditorProps<AlarmsDataSource, AlarmsQuery>;
 
@@ -18,6 +20,7 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
 
   const [listAlarmsQuery, setListAlarmsQuery] = useState<ListAlarmsQuery>();
   const [alarmsCountQuery, setAlarmsCountQuery] = useState<AlarmsCountQuery>();
+  const [alarmsTrendQuery, setAlarmsTrendQuery] = useState<AlarmsTrendQuery>();
 
   const QUERY_TYPE_CONFIG = useMemo(() => ({
     [QueryType.ListAlarms]: {
@@ -28,7 +31,11 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
       defaultQuery: defaultAlarmsCountQuery,
       savedQuery: alarmsCountQuery,
     },
-  }), [listAlarmsQuery, alarmsCountQuery]);
+    [QueryType.AlarmsTrend]: {
+      defaultQuery: defaultAlarmsTrendQuery,
+      savedQuery: alarmsTrendQuery,
+    },
+  }), [listAlarmsQuery, alarmsCountQuery, alarmsTrendQuery]);
 
   const handleQueryChange = useCallback(
     (query: AlarmsQuery, runQuery = true): void => {
@@ -47,6 +54,9 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
         break;
       case QueryType.AlarmsCount:
         setAlarmsCountQuery(query as AlarmsCountQuery);
+        break;
+      case QueryType.AlarmsTrend:
+        setAlarmsTrendQuery(query as AlarmsTrendQuery);
         break;
     }
   }, [query]);
@@ -99,6 +109,13 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
           query={query as ListAlarmsQuery}
           handleQueryChange={handleQueryChange}
           datasource={datasource.listAlarmsQueryHandler}
+        />
+      )}
+      {query.queryType === QueryType.AlarmsTrend && (
+        <AlarmsTrendQueryEditor
+          query={query as AlarmsTrendQuery}
+          handleQueryChange={handleQueryChange}
+          datasource={datasource.alarmsTrendQueryHandler}
         />
       )}
     </Stack>
