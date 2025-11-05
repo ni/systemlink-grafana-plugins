@@ -27,13 +27,11 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public async runQuery(query: ListAlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     let mappedFields: DataFrameDTO['fields'] | undefined;
 
-    if (this.isTakeValid(query.take)) {
+    if (this.isTakeValid(query.take) && this.isPropertiesValid(query.properties)) {
       query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
-    const alarmsResponse = await this.queryAlarmsData(query);
+      const alarmsResponse = await this.queryAlarmsData(query);
 
-      if (this.isPropertiesValid(query.properties)) {
-        mappedFields = await this.mapPropertiesToSelect(query.properties, alarmsResponse);
-      }
+      mappedFields = await this.mapPropertiesToSelect(query.properties, alarmsResponse);
     }
 
     return {
