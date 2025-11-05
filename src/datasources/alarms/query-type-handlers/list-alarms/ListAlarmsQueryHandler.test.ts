@@ -109,11 +109,9 @@ function buildAlarmsQuery(query?: Partial<ListAlarmsQuery>): ListAlarmsQuery {
 }
 
 describe('ListAlarmsQueryHandler', () => {
-  let query: ListAlarmsQuery;
   let options: DataQueryRequest;
 
   beforeEach(() => {
-    query = buildAlarmsQuery();
     options = {} as DataQueryRequest;
 
     [datastore, backendServer] = setupDataSource(ListAlarmsQueryHandler);
