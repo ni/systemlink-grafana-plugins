@@ -2,6 +2,7 @@ import { DataQuery } from '@grafana/schema';
 import { QueryBuilderOption, SystemLinkError } from "../../core/types";
 import { DataSourceJsonData, QueryEditorProps } from '@grafana/data';
 import { DataFrameDataSource } from './DataFrameDataSource';
+import { TAKE_LIMIT } from './constants';
 import { QueryBuilderField } from 'smart-webcomponents-react';
 
 export enum DataFrameQueryType {
@@ -22,9 +23,16 @@ export interface DataFrameQueryV1 extends DataQuery {
 
 export interface DataFrameQueryV2 extends DataQuery {
   type: DataFrameQueryType;
+  dataTableFilter?: string;
+  dataTableProperties?: DataTableProperties[];
+  columnProperties?: DataTableProperties[];
   columns?: string[];
+  includeIndexColumns?: boolean;
+  filterNulls?: boolean;
   decimationMethod?: string;
+  xColumn?: string | null;
   applyTimeFilters?: boolean;
+  take?: number;
 }
 
 export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
@@ -33,13 +41,6 @@ export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
   columns: [],
   decimationMethod: 'LOSSY',
   filterNulls: false,
-  applyTimeFilters: false
-};
-
-export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
-  type: DataFrameQueryType.Data,
-  columns: [],
-  decimationMethod: 'LOSSY',
   applyTimeFilters: false
 };
 
@@ -69,7 +70,7 @@ export enum DataTableProjections {
   Name = 'NAME',
   Id = 'ID',
   RowCount = 'ROW_COUNT',
-  columnCount = 'COLUMN_COUNT',
+  ColumnCount = 'COLUMN_COUNT',
   CreatedAt = 'CREATED_AT',
   Workspace = 'WORKSPACE',
   MetadataModifiedAt = 'METADATA_MODIFIED_AT',
@@ -88,84 +89,107 @@ export enum DataTableProjectionType {
   Column = 'column'
 }
 
+export const defaultDatatableProperties: DataTableProperties[] = [
+  DataTableProperties.Name,
+  DataTableProperties.Id,
+  DataTableProperties.RowCount,
+  DataTableProperties.ColumnCount,
+  DataTableProperties.CreatedAt,
+  DataTableProperties.Workspace
+];
+
+export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
+  type: DataFrameQueryType.Data,
+  dataTableFilter: '',
+  dataTableProperties: defaultDatatableProperties,
+  columnProperties: [],
+  columns: [],
+  includeIndexColumns: false,
+  filterNulls: false,
+  decimationMethod: 'LOSSY',
+  xColumn: null,
+  applyTimeFilters: false,
+  take: TAKE_LIMIT
+};
+
 export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
   label: string,
-  projection: readonly DataTableProjections[],
+  projection: DataTableProjections,
   type: DataTableProjectionType;
 }> = {
   [DataTableProperties.Name]: {
     label: 'Data table name',
-    projection: [DataTableProjections.Name],
+    projection: DataTableProjections.Name,
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.Id]: {
     label: 'Data table ID',
-    projection: [DataTableProjections.Id],
+    projection: DataTableProjections.Id,
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.RowCount]: {
     label: 'Rows',
-    projection: [DataTableProjections.RowCount],
+    projection: DataTableProjections.RowCount,
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.ColumnCount]: {
     label: 'Columns',
-    projection: [DataTableProjections.columnCount],
+    projection: DataTableProjections.ColumnCount,
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.CreatedAt]: {
     label: 'Created',
-    projection: [DataTableProjections.CreatedAt],
+    projection: DataTableProjections.CreatedAt,
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.Workspace]: {
     label: 'Workspace',
-    projection: [DataTableProjections.Workspace],
+    projection: DataTableProjections.Workspace,
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.MetadataModifiedAt]: {
     label: 'Metadata modified',
-    projection: [DataTableProjections.MetadataModifiedAt],
+    projection: DataTableProjections.MetadataModifiedAt,
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.MetadataRevision]: {
     label: 'Metadata revision',
-    projection: [DataTableProjections.MetadataRevision],
+    projection: DataTableProjections.MetadataRevision,
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.RowsModifiedAt]: {
     label: 'Rows modified',
-    projection: [DataTableProjections.RowsModifiedAt],
+    projection: DataTableProjections.RowsModifiedAt,
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.ColumnName]: {
     label: 'Column name',
-    projection: [DataTableProjections.ColumnName],
+    projection: DataTableProjections.ColumnName,
     type: DataTableProjectionType.Column
   },
   [DataTableProperties.ColumnDataType]: {
     label: 'Column data type',
-    projection: [DataTableProjections.ColumnDataType],
+    projection: DataTableProjections.ColumnDataType,
     type: DataTableProjectionType.Column
   },
   [DataTableProperties.ColumnType]: {
     label: 'Column type',
-    projection: [DataTableProjections.ColumnType],
+    projection: DataTableProjections.ColumnType,
     type: DataTableProjectionType.Column
   },
   [DataTableProperties.ColumnProperties]: {
     label: 'Column properties',
-    projection: [DataTableProjections.ColumnProperties],
+    projection: DataTableProjections.ColumnProperties,
     type: DataTableProjectionType.Column
   },
   [DataTableProperties.SupportsAppend]: {
     label: 'Supports append',
-    projection: [DataTableProjections.SupportsAppend],
+    projection: DataTableProjections.SupportsAppend,
     type: DataTableProjectionType.DataTable
   },
   [DataTableProperties.Properties]: {
     label: 'Data table properties',
-    projection: [DataTableProjections.Properties],
+    projection: DataTableProjections.Properties,
     type: DataTableProjectionType.DataTable
   },
 };

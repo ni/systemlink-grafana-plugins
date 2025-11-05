@@ -10,6 +10,7 @@ export const defaultProjection = [
   'grains.data.ip4_interfaces as ip4Interfaces',
   'grains.data.ip6_interfaces as ip6Interfaces',
   'workspace',
+  'scanCode',
 ];
 
 export const defaultOrderBy = 'createdTimeStamp DESC';

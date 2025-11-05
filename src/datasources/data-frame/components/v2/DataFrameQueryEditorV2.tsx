@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
 import { AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineLabel, InlineSwitch, MultiCombobox, MultiSelect, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQueryV2, DataFrameQueryType, PropsV2, DataTableProjectionLabelLookup, DataTableProjectionType, DataTableProjections } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, PropsV2, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProjections, DataTableProperties } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import { SelectableValue } from '@grafana/data';
@@ -10,7 +10,7 @@ import { FloatingError } from 'core/errors';
 import { DataTableQueryBuilderFieldNames } from './constants/DataTableQueryBuilder.constants';
 
 export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onRunQuery, datasource }: PropsV2) => {
-    query = datasource.processQuery(query);
+    const migratedQuery = datasource.processQuery(query) as ValidDataFrameQueryV2;
 
     const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
     const [isColumnConfigurationSectionOpen, setIsColumnConfigurationSectionOpen] = useState(true);
@@ -18,11 +18,17 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
 
-    const getPropertiesOptions = (type: DataTableProjectionType) => Object.entries(DataTableProjectionLabelLookup)
-        .filter(([_, value]) => value.type === type)
-        .map(([key, value]) => ({ label: value.label, value: key })) as SelectableValue[];
+    const getPropertiesOptions = (
+        type: DataTableProjectionType
+    ): Array<SelectableValue<DataTableProperties>> =>
+        Object.entries(DataTableProjectionLabelLookup)
+            .filter(([_, value]) => value.type === type)
+            .map(([key, value]) => ({
+                label: value.label,
+                value: key as DataTableProperties
+            }));
 
-    const datatablePropertiesOptions = getPropertiesOptions(DataTableProjectionType.DataTable);
+    const dataTablePropertiesOptions = getPropertiesOptions(DataTableProjectionType.DataTable);
     const columnPropertiesOptions = getPropertiesOptions(DataTableProjectionType.Column);
 
     const handleQueryChange = useCallback(
@@ -35,20 +41,62 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
     );
 
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
-        handleQueryChange({ ...query, type: queryType }, false);
+        handleQueryChange({ ...migratedQuery, type: queryType }, false);
+    };
+
+    const onDataTableFilterChange = (event?: Event | React.FormEvent<Element>) => {
+        if (event) {
+            handleQueryChange({ ...migratedQuery, dataTableFilter: (event as CustomEvent).detail.linq }, false);
+        }
+    };
+
+    const onDataTablePropertiesChange = (properties: Array<SelectableValue<DataTableProperties>>) => {
+        const dataTableProperties = properties
+            .filter(property => property.value !== undefined)
+            .map(property => property.value as DataTableProperties);
+        handleQueryChange({ ...migratedQuery, dataTableProperties }, false);
+    };
+
+    const onColumnPropertiesChange = (properties: Array<SelectableValue<DataTableProperties>>) => {
+        const columnProperties = properties
+            .filter(property => property.value !== undefined)
+            .map(property => property.value as DataTableProperties);
+        handleQueryChange({ ...migratedQuery, columnProperties }, false);
+    };
+
+    const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
+        const value = parseInt((event.target as HTMLInputElement).value, 10);
+        const message = validateTakeValue(value, TAKE_LIMIT);
+
+        setRecordCountInvalidMessage(message);
+        handleQueryChange({ ...migratedQuery, take: value }, false);
     };
 
     const onColumnsChange = (columns: Array<ComboboxOption<string>>) => {
-        handleQueryChange({ ...query, columns: columns.map(i => i.value) }, false);
+        handleQueryChange({ ...migratedQuery, columns: columns.map(column => column.value) }, false);
+    };
+
+    const onIncludeIndexColumnsChange = (event: React.FormEvent<HTMLInputElement>) => {
+        const includeIndexColumns = event.currentTarget.checked;
+        handleQueryChange({ ...migratedQuery, includeIndexColumns }, false);
+    };
+
+    const onFilterNullsChange = (event: React.FormEvent<HTMLInputElement>) => {
+        const filterNulls = event.currentTarget.checked;
+        handleQueryChange({ ...migratedQuery, filterNulls }, false);
     };
 
     const onDecimationMethodChange = (option: ComboboxOption<string>) => {
-        handleQueryChange({ ...query, decimationMethod: option.value }, false);
+        handleQueryChange({ ...migratedQuery, decimationMethod: option.value }, false);
+    };
+
+    const onXColumnChange = (option: ComboboxOption<string>) => {
+        handleQueryChange({ ...migratedQuery, xColumn: option.value }, false);
     };
 
     const onUseTimeRangeChange = (event: React.FormEvent<HTMLInputElement>) => {
-        const value = event.currentTarget.checked;
-        handleQueryChange({ ...query, applyTimeFilters: value }, false);
+        const applyTimeFilters = event.currentTarget.checked;
+        handleQueryChange({ ...migratedQuery, applyTimeFilters }, false);
     };
 
     const dataTableNameLookupCallback = async (query: string) => {
@@ -83,13 +131,6 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
         return '';
     }
 
-    function onTakeChange(event: React.FormEvent<HTMLInputElement>) {
-        const value = parseInt((event.target as HTMLInputElement).value, 10);
-        const message = validateTakeValue(value, TAKE_LIMIT);
-
-        setRecordCountInvalidMessage(message);
-    };
-
     return (
         <>
             <InlineField
@@ -99,23 +140,24 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
             >
                 <RadioButtonGroup
                     options={enumToOptions(DataFrameQueryType)}
-                    value={query.type}
+                    value={migratedQuery.type}
                     onChange={onQueryTypeChange}
                 />
             </InlineField>
 
-            {query.type === DataFrameQueryType.Properties && (
+            {migratedQuery.type === DataFrameQueryType.Properties && (
                 <>
                     <InlineField
-                        label={labels.datatableProperties}
+                        label={labels.dataTableProperties}
                         labelWidth={inlineLabelWidth}
-                        tooltip={tooltips.datatableProperties}
+                        tooltip={tooltips.dataTableProperties}
                     >
                         <MultiSelect
-                            placeholder={placeholders.datatableProperties}
+                            placeholder={placeholders.dataTableProperties}
                             width={valueFieldWidth}
-                            onChange={(): void => { }}
-                            options={datatablePropertiesOptions}
+                            value={migratedQuery.dataTableProperties}
+                            onChange={onDataTablePropertiesChange}
+                            options={dataTablePropertiesOptions}
                             allowCustomValue={false}
                             closeMenuOnSelect={false}
                         />
@@ -128,7 +170,8 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                         <MultiSelect
                             placeholder={placeholders.columnProperties}
                             width={valueFieldWidth}
-                            onChange={(): void => { }}
+                            value={migratedQuery.columnProperties}
+                            onChange={onColumnPropertiesChange}
                             options={columnPropertiesOptions}
                             allowCustomValue={false}
                             closeMenuOnSelect={false}
@@ -148,22 +191,24 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                 >
                     <InlineLabel
                         width={valueFieldWidth}
-                        tooltip={tooltips.queryByDatatableProperties}
+                        tooltip={tooltips.queryByDataTableProperties}
                     >
-                        {labels.queryByDatatableProperties}
+                        {labels.queryByDataTableProperties}
                     </InlineLabel>
                     <div style={{
                         width: getValuesInPixels(valueFieldWidth),
                         marginBottom: getValuesInPixels(defaultMarginBottom)
                     }}>
                         <DataTableQueryBuilder
+                            filter={migratedQuery.dataTableFilter}
                             workspaces={workspaces}
                             globalVariableOptions={datasource.globalVariableOptions()}
+                            onChange={onDataTableFilterChange}
                             dataTableNameLookupCallback={dataTableNameLookupCallback}
                         />
                     </div>
 
-                    {query.type === DataFrameQueryType.Properties && (
+                    {migratedQuery.type === DataFrameQueryType.Properties && (
                         <InlineField
                             label={labels.take}
                             labelWidth={inlineLabelWidth}
@@ -176,6 +221,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                                 maxWidth={26}
                                 type="number"
                                 placeholder={placeholders.take}
+                                value={migratedQuery.take}
                                 onChange={onTakeChange}
                                 onKeyDown={(event) => { validateNumericInput(event); }}
                             />
@@ -185,7 +231,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                 </Collapse>
             </div >
 
-            {query.type === DataFrameQueryType.Data && (
+            {migratedQuery.type === DataFrameQueryType.Data && (
                 <div
                     style={{ width: getValuesInPixels(sectionWidth) }}
                 >
@@ -203,6 +249,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                             <MultiCombobox
                                 placeholder={placeholders.columns}
                                 width={inlineLabelWidth}
+                                value={migratedQuery.columns}
                                 onChange={onColumnsChange}
                                 options={[]}
                                 createCustomValue={false}
@@ -214,6 +261,8 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                             tooltip={tooltips.includeIndexColumns}
                         >
                             <InlineSwitch
+                                value={migratedQuery.includeIndexColumns}
+                                onChange={onIncludeIndexColumnsChange}
                             />
                         </InlineField>
                         <InlineField
@@ -222,6 +271,8 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                             tooltip={tooltips.filterNulls}
                         >
                             <InlineSwitch
+                                value={migratedQuery.filterNulls}
+                                onChange={onFilterNullsChange}
                             />
                         </InlineField>
                     </Collapse>
@@ -239,6 +290,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                         >
                             <Combobox
                                 width={inlineLabelWidth}
+                                value={migratedQuery.decimationMethod}
                                 onChange={onDecimationMethodChange}
                                 options={decimationMethods}
                                 createCustomValue={false}
@@ -252,7 +304,8 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                             <Combobox
                                 placeholder={placeholders.xColumn}
                                 width={inlineLabelWidth}
-                                onChange={() => { }}
+                                value={migratedQuery.xColumn}
+                                onChange={onXColumnChange}
                                 options={[]}
                                 createCustomValue={false}
                             />
@@ -263,6 +316,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                             tooltip={tooltips.useTimeRange}
                         >
                             <InlineSwitch
+                                value={migratedQuery.applyTimeFilters}
                                 onChange={onUseTimeRangeChange}
                             />
                         </InlineField>
@@ -280,12 +334,12 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
 
 const labels = {
     queryType: 'Query type',
-    datatableProperties: 'Data table properties',
+    dataTableProperties: 'Data table properties',
     columnProperties: 'Column properties',
     queryConfigurations: 'Query configurations',
     columnConfigurations: 'Column configurations',
     decimationSettings: 'Decimation settings',
-    queryByDatatableProperties: 'Query by data table properties',
+    queryByDataTableProperties: 'Query by data table properties',
     columns: 'Columns',
     filterNulls: 'Filter nulls',
     includeIndexColumns: 'Include index columns',
@@ -296,12 +350,12 @@ const labels = {
 };
 const tooltips = {
     queryType: 'This field specifies the type for the query that searches the data tables. The query can retrieve row data or metadata.',
-    queryByDatatableProperties: 'This optional field applies a filter to a query while searching the data tables.',
+    queryByDataTableProperties: 'This optional field applies a filter to a query while searching the data tables.',
     take: 'This field sets the maximum number of records to return from the query.',
     columns: 'Specifies the columns to include in the response data.',
     filterNulls: `Specifies whether to filter out null and NaN values before decimating the data.`,
     includeIndexColumns: 'Specifies whether to include index columns in the response data.',
-    datatableProperties: 'This field specifies the data table properties to be queried.',
+    dataTableProperties: 'This field specifies the data table properties to be queried.',
     columnProperties: 'This field specifies the column properties to be queried.',
     decimationMethod: 'Specifies the method used to decimate the data.',
     xColumn: 'Specifies the column to use for the x-axis when decimating the data.',
@@ -309,7 +363,7 @@ const tooltips = {
                 table index is a timestamp. Enable when interacting with your data on a graph.`,
 };
 const placeholders = {
-    datatableProperties: 'Select data table properties to fetch',
+    dataTableProperties: 'Select data table properties to fetch',
     columnProperties: 'Select column properties to fetch',
     take: 'Enter record count',
     columns: 'Select columns',

@@ -11,6 +11,14 @@ export const QUERY_EDITOR_MAX_TAKE = 10000;
 export const DEFAULT_QUERY_EDITOR_TAKE = 1000;
 export const DEFAULT_QUERY_EDITOR_DESCENDING = true;
 
+export const ALARMS_TIME_FIELDS = [
+  AlarmsProperties.occurredAt,
+  AlarmsProperties.acknowledgedAt,
+  AlarmsProperties.mostRecentSetOccurredAt,
+  AlarmsProperties.mostRecentTransitionOccurredAt,
+  AlarmsProperties.updatedAt,
+];
+
 export const labels = {
   queryType: 'Query Type',
   queryBy: 'Query By',

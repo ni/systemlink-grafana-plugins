@@ -4,15 +4,18 @@ import { buildExpressionFromTemplate, expressionBuilderCallback, expressionBuild
 describe('QueryBuilderUtils', () => {
   describe('transformComputedFieldsQuery', () => {
     const mockTransformation: ExpressionTransformFunction = (value, operation, _options) => {
-      if (operation === QueryBuilderOperations.IS_BLANK.name) {
-        return `string.IsNullOrEmpty(obj.prop1)`;
+      switch (operation) {
+        case QueryBuilderOperations.IS_BLANK.name:
+          return `string.IsNullOrEmpty(obj.prop1)`;
+        case QueryBuilderOperations.IS_NOT_BLANK.name:
+          return `!string.IsNullOrEmpty(obj.prop1)`;
+        case QueryBuilderOperations.CONTAINS.name:
+          return `obj.prop1.Contains(${value})`;
+        case QueryBuilderOperations.DOES_NOT_CONTAIN.name:
+          return `!(obj.prop1.Contains(${value}))`;
+        default:
+          return `obj.prop1 ${operation} ${value}`;
       }
-
-      if (operation === QueryBuilderOperations.IS_NOT_BLANK.name) {
-        return `!string.IsNullOrEmpty(obj.prop1)`;
-      }
-
-      return `obj.prop1 ${operation} ${value}`;
     };
 
     const computedDataFields = new Map<string, ExpressionTransformFunction>([
@@ -53,6 +56,18 @@ describe('QueryBuilderUtils', () => {
 
     it('should handle string.IsNullOrEmpty operations correctly if no computed fields are present', () => {
       const query = 'string.IsNullOrEmpty(field1) OR !string.IsNullOrEmpty(field2)';
+      const result = transformComputedFieldsQuery(query, computedDataFields);
+      expect(result).toBe(query);
+    });
+
+    it('should handle Contains operations correctly with computed fields', () => {
+      const query = 'Object1.Contains("value1") OR !(Object2.Contains("value2"))';
+      const result = transformComputedFieldsQuery(query, computedDataFields);
+      expect(result).toBe('obj.prop1.Contains(value1) OR !(obj.prop1.Contains(value2))');
+    });
+
+    it('should handle Contains operations correctly if no computed fields are present', () => {
+      const query = 'field1.Contains("value1") OR !(field2.Contains("value2"))';
       const result = transformComputedFieldsQuery(query, computedDataFields);
       expect(result).toBe(query);
     });
@@ -339,6 +354,10 @@ describe('QueryBuilderUtils', () => {
         name: 'is not blank',
         operator: 'isnotblank',
       },
+      {
+        name: 'contains',
+        operator: 'contains',
+      }
     ].forEach(testCase => {
       it(`should return OR for ${testCase.name} operator`, () => {
         const result = getConcatOperatorForMultiExpression(testCase.operator);
