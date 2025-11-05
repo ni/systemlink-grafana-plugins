@@ -65,7 +65,7 @@ export const ColumnsQueryBuilder: React.FC<ColumnsQueryBuilderProps> = ({
             QueryBuilderOperations.GREATER_THAN,
             QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO,
             QueryBuilderOperations.IS_BLANK,
-            QueryBuilderOperations.IS_NOT_BLANK
+            QueryBuilderOperations.IS_NOT_BLANK,
         ].map((operation) => {
             return {
                 ...operation,
@@ -77,7 +77,12 @@ export const ColumnsQueryBuilder: React.FC<ColumnsQueryBuilderProps> = ({
             QueryBuilderOperations.KEY_VALUE_MATCH,
             QueryBuilderOperations.KEY_VALUE_DOES_NOT_MATCH,
             QueryBuilderOperations.KEY_VALUE_CONTAINS,
-            QueryBuilderOperations.KEY_VALUE_DOES_NOT_CONTAINS
+            QueryBuilderOperations.KEY_VALUE_DOES_NOT_CONTAINS,
+            
+            QueryBuilderOperations.COLLECTION_PROPERTY_EQUALS,
+            QueryBuilderOperations.COLLECTION_PROPERTY_DOES_NOT_EQUAL,
+            QueryBuilderOperations.COLLECTION_PROPERTY_CONTAINS,
+            QueryBuilderOperations.COLLECTION_PROPERTY_DOES_NOT_CONTAIN
         ];
 
         setOperations([...customOperations, ...keyValueOperations]);

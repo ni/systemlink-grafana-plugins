@@ -74,12 +74,39 @@ function transformBasedOnContainsOperations(query: string, field: string, transf
 /**
  * Builds the expression from the provided template
  * @param expressionTemplate The expression template of the @see QueryBuilderCustomOperation
- * @param field The field to be used in the expression
- * @param value The value to be used in the expression
+ * @param field The field to be used in the expression (replaces {0})
+ * @param value The value to be used in the expression (replaces {1} or {2} depending on template)
+ * @param additionalParam Optional additional parameter for templates with 3+ placeholders (replaces {2})
  * @returns The built expression
  */
-export function buildExpressionFromTemplate(expressionTemplate: string | undefined, field: string, value?: string) {
-  return expressionTemplate?.replace('{0}', field).replace('{1}', value ?? '');
+export function buildExpressionFromTemplate(expressionTemplate: string | undefined, field: string, value?: string, additionalParam?: string) {
+  if (!expressionTemplate) {
+    return '';
+  }
+
+  // For collection property expressions like '{0}.Any(it.{1} = "{2}")'
+  // field format should be 'collection.property' which we need to split
+  if (expressionTemplate.includes('{2}')) {
+    const parts = field.split('.');
+    if (parts.length === 2) {
+      // field is in format 'collection.property'
+      const [collection, property] = parts;
+      return expressionTemplate
+        .replace('{0}', collection)
+        .replace('{1}', property)
+        .replace('{2}', value ?? '');
+    }
+    // Fallback: if additionalParam is provided, use it
+    if (additionalParam !== undefined) {
+      return expressionTemplate
+        .replace('{0}', field)
+        .replace('{1}', value ?? '')
+        .replace('{2}', additionalParam);
+    }
+  }
+
+  // Standard two-placeholder template
+  return expressionTemplate.replace('{0}', field).replace('{1}', value ?? '');
 }
 
 /**

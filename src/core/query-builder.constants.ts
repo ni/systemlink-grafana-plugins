@@ -114,6 +114,10 @@ export enum QueryOperationEnum {
   DATE_TIME_IS_BEFORE = 'DATE_TIME_IS_BEFORE',
   DATE_TIME_IS_BLANK = 'DATE_TIME_IS_BLANK',
   DATE_TIME_IS_NOT_BLANK = 'DATE_TIME_IS_NOT_BLANK',
+  COLLECTION_PROPERTY_EQUALS = 'COLLECTION_PROPERTY_EQUALS',
+  COLLECTION_PROPERTY_DOES_NOT_EQUAL = 'COLLECTION_PROPERTY_DOES_NOT_EQUAL',
+  COLLECTION_PROPERTY_CONTAINS = 'COLLECTION_PROPERTY_CONTAINS',
+  COLLECTION_PROPERTY_DOES_NOT_CONTAIN = 'COLLECTION_PROPERTY_DOES_NOT_CONTAIN',
 }
 
 export const QueryBuilderOperations: Record<QueryOperationEnum, QueryOperation> = {
@@ -379,6 +383,27 @@ export const QueryBuilderOperations: Record<QueryOperationEnum, QueryOperation> 
     expressionTemplate: FilterExpressions.DateTimeIsNotBlank,
     expressionBuilderCallback: dateTimeExpressionBuilderCallback,
     hideValue: true,
+  },
+  // Collection property expressions 
+  COLLECTION_PROPERTY_EQUALS: {
+    label: 'equals',
+    name: 'collectionpropertyequals',
+    expressionTemplate: '{0}.Any(it.{1} = "{2}")',
+  },
+  COLLECTION_PROPERTY_DOES_NOT_EQUAL: {
+    label: 'does not equal',
+    name: 'collectionpropertynotequals',
+    expressionTemplate: '{0}.Any(it.{1} != "{2}")',
+  },
+  COLLECTION_PROPERTY_CONTAINS: {
+    label: 'contains',
+    name: 'collectionpropertycontains',
+    expressionTemplate: '{0}.Any(it.{1}.Contains("{2}"))',
+  },
+  COLLECTION_PROPERTY_DOES_NOT_CONTAIN: {
+    label: 'does not contain',
+    name: 'collectionpropertynotcontains',
+    expressionTemplate: '{0}.Any(!it.{1}.Contains("{2}"))',
   },
 };
 
