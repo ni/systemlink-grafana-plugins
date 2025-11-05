@@ -69,35 +69,30 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
      */
     const getFormattedColumnOptions = (
         columnTypeMap: Record<string, Set<string>>
-    ): Array<{ label: string; value: string; rawName: string; rawType: string }> => {
+    ): Array<{ label: string; value: string; name: string; dataType: string }> => {
         const NUMERIC_TYPES = new Set(['INT32', 'INT64', 'FLOAT32', 'FLOAT64']);
-        const options: Array<{ label: string; value: string; rawName: string; rawType: string }> = [];
+        const options: Array<{ label: string; value: string; name: string; dataType: string }> = [];
 
-        Object.entries(columnTypeMap).forEach(([name, types]) => {
-            const typeArr = Array.from(types);
-            const nonNumericTypes = typeArr.filter(type => !NUMERIC_TYPES.has(type));
+        Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
+            const columnDataType = Array.from(dataTypes);
+            const nonNumericTypes = columnDataType.filter(type => !NUMERIC_TYPES.has(type));
 
-            if (typeArr.length === 1) {
+            if (columnDataType.length === 1) {
                 // Single type: show just the name
-                const onlyType = typeArr[0];
                 const label = name;
                 const value = name;
-                const rawType = NUMERIC_TYPES.has(onlyType) ? 'Numeric' : onlyType;
-                options.push({ label, value, rawName: name, rawType });
+                const dataType = columnDataType[0];
+                const type = NUMERIC_TYPES.has(dataType) ? 'Numeric' : dataType;
+                options.push({ label, value, name, dataType: type });
             } else {
                 // Multiple types: group numeric, show others in sentence case
-                let addedNumeric = false;
-                typeArr.forEach(type => {
-                    if (NUMERIC_TYPES.has(type)) {
-                        if (!addedNumeric) {
-                            options.push({ label: `${name} (Numeric)`, value: `${name}-Numeric`, rawName: name, rawType: 'Numeric' });
-                            addedNumeric = true;
-                        }
-                    }
-                });
+                const hasNumericType = columnDataType.some(type => NUMERIC_TYPES.has(type));
+                if (hasNumericType) {
+                    options.push({ label: `${name} (Numeric)`, value: `${name}-Numeric`, name, dataType: 'Numeric' });
+                }
                 Array.from(new Set(nonNumericTypes)).forEach(type => {
                     const sentenceCaseType = toSentenceCase(type);
-                    options.push({ label: `${name} (${sentenceCaseType})`, value: `${name}-${sentenceCaseType}`, rawName: name, rawType: type });
+                    options.push({ label: `${name} (${sentenceCaseType})`, value: `${name}-${sentenceCaseType}`, name: name, dataType: type });
                 });
             }
         });
@@ -340,7 +335,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                         >
                             <MultiCombobox
                                 placeholder={placeholders.columns}
-                                width={inlineLabelWidth}
+                                width={inlineLabelWidth + 30}
                                 value={migratedQuery.columns}
                                 onChange={onColumnsChange}
                                 options={columnOptions}
