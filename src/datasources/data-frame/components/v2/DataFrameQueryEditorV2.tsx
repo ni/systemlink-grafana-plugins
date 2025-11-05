@@ -9,17 +9,16 @@ import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
 import { DataTableQueryBuilderFieldNames } from './constants/DataTableQueryBuilder.constants';
 import {
-    getValuesInPixels,
+    errorMessages,
     INLINE_LABEL_WIDTH,
     VALUE_FIELD_WIDTH,
-    DEFAULT_MARGIN_BOTTOM,
+    getValuesInPixels,
     SECTION_WIDTH,
+    DEFAULT_MARGIN_BOTTOM,
     labels,
-    tooltips,
     placeholders,
-    errorMessages
-} from './constants/DataFrameQueryEditorV2.constants';
-
+    tooltips,
+} from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onRunQuery, datasource }: PropsV2) => {
     const migratedQuery = datasource.processQuery(query) as ValidDataFrameQueryV2;
 
