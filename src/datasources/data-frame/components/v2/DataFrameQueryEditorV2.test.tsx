@@ -231,6 +231,17 @@ describe("DataFrameQueryEditorV2", () => {
                     const optionTexts = optionControls.map(opt => opt.textContent);
                     expect(optionTexts).toEqual(expect.arrayContaining(['ColumnA', 'ColumnB', 'ColumnD', 'ColumnE']));
                 });
+
+                it('should not load column options when filter is empty', async () => {
+                    renderComponent({ dataTableFilter: "" });
+                
+                    // Click on column combobox to load options
+                    const columnsCombobox = screen.getAllByRole('combobox')[0];
+                    await userEvent.click(columnsCombobox);
+                
+                    // Assert that no options are shown
+                    expect(within(document.body).queryAllByRole('option').length).toBe(0);
+                });
             });
 
             describe("include index columns", () => {
