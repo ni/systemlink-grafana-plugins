@@ -4,6 +4,7 @@ import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { DataFrameQuery, DataFrameQueryType, DataFrameQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultDatatableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
 import { TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
+import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
 
 jest.mock('core/query-builder.utils', () => {
     const actual = jest.requireActual('core/query-builder.utils');
@@ -64,13 +65,6 @@ describe('DataFrameDataSourceV2', () => {
             expect(processQuerySpy).toHaveBeenCalledWith(query);
         });
 
-        it('should call loadWorkspaces', async () => {
-            const loadWorkspacesSpy = jest.spyOn(ds, 'loadWorkspaces');
-            await ds.runQuery(query, options);
-
-            expect(loadWorkspacesSpy).toHaveBeenCalled();
-        });
-
         it('should call transformComputedFieldsQuery when dataTableFilter is present', async () => {
             templateSrv.replace.mockReturnValue('name = "Test Table"');
 
@@ -95,29 +89,23 @@ describe('DataFrameDataSourceV2', () => {
 
             await ds.runQuery(query, options);
 
-            const dataTableComputedDataFields = transformComputedFieldsQuerySpy.mock.calls[0][1];
-            const transformedFields = Object.values(DataTableProperties).map(field => {
-                const expressionTransformationFunction = dataTableComputedDataFields.get(
-                    DataTableProjectionLabelLookup[field].field
-                );
-                return { field, value: expressionTransformationFunction() };
-            });
+            const dataTableComputedDataFields = transformComputedFieldsQuerySpy
+                .mock.calls[0][1] as Map<string, queryBuilderUtils.ExpressionTransformFunction>;
+            const transformedFields = Array.from(dataTableComputedDataFields.entries())
+                .map(([field, expressionTransformFunction]) => ({
+                    field,
+                    value: expressionTransformFunction('123', '=')
+                }));
             expect(transformedFields).toEqual([
-                { field: DataTableProperties.Name, value: "transformed-multiple-values" },
-                { field: DataTableProperties.Id, value: "transformed-multiple-values" },
-                { field: DataTableProperties.RowCount, value: "transformed-multiple-values" },
-                { field: DataTableProperties.ColumnCount, value: "transformed-multiple-values" },
-                { field: DataTableProperties.CreatedAt, value: "transformed-time-expressions" },
-                { field: DataTableProperties.Workspace, value: "transformed-multiple-values" },
-                { field: DataTableProperties.MetadataModifiedAt, value: "transformed-time-expressions" },
-                { field: DataTableProperties.MetadataRevision, value: "transformed-multiple-values" },
-                { field: DataTableProperties.RowsModifiedAt, value: "transformed-time-expressions" },
-                { field: DataTableProperties.ColumnName, value: "transformed-multiple-values" },
-                { field: DataTableProperties.ColumnDataType, value: "transformed-multiple-values" },
-                { field: DataTableProperties.ColumnType, value: "transformed-multiple-values" },
-                { field: DataTableProperties.ColumnProperties, value: "transformed-multiple-values" },
-                { field: DataTableProperties.SupportsAppend, value: "transformed-multiple-values" },
-                { field: DataTableProperties.Properties, value: "transformed-multiple-values" }
+                { field: DataTableQueryBuilderFieldNames.Name, value: "transformed-multiple-values" },
+                { field: DataTableQueryBuilderFieldNames.Id, value: "transformed-multiple-values" },
+                { field: DataTableQueryBuilderFieldNames.RowCount, value: "transformed-multiple-values" },
+                { field: DataTableQueryBuilderFieldNames.CreatedAt, value: "transformed-time-expressions" },
+                { field: DataTableQueryBuilderFieldNames.Workspace, value: "transformed-multiple-values" },
+                { field: DataTableQueryBuilderFieldNames.MetadataModifiedAt, value: "transformed-time-expressions" },
+                { field: DataTableQueryBuilderFieldNames.RowsModifiedAt, value: "transformed-time-expressions" },
+                { field: DataTableQueryBuilderFieldNames.SupportsAppend, value: "transformed-multiple-values" },
+                { field: DataTableQueryBuilderFieldNames.Properties, value: "transformed-multiple-values" }
             ]);
         });
 
@@ -135,6 +123,14 @@ describe('DataFrameDataSourceV2', () => {
                 const result = await ds.runQuery(dataQuery, options);
 
                 expect(result).toEqual({ fields: [] });
+            });
+
+            it('should not call loadWorkspaces', async () => {
+                const loadWorkspacesSpy = jest.spyOn(ds, 'loadWorkspaces');
+
+                await ds.runQuery(dataQuery, options);
+
+                expect(loadWorkspacesSpy).not.toHaveBeenCalled();
             });
 
             it('should not call queryTables', async () => {
@@ -159,6 +155,14 @@ describe('DataFrameDataSourceV2', () => {
                     take: 1000,
                     refId: 'A',
                 } as DataFrameQueryV2;
+
+                it('should not call loadWorkspaces', async () => {
+                    const loadWorkspacesSpy = jest.spyOn(ds, 'loadWorkspaces');
+
+                    await ds.runQuery(queryWithEmptyProperties, options);
+
+                    expect(loadWorkspacesSpy).not.toHaveBeenCalled();
+                });
 
                 it('should not call queryTables', async () => {
                     await ds.runQuery(queryWithEmptyProperties, options);
@@ -185,6 +189,14 @@ describe('DataFrameDataSourceV2', () => {
                         refId: 'A',
                     } as DataFrameQueryV2;
 
+                    it(`should not call loadWorkspaces for take value: ${takeValue}`, async () => {
+                        const loadWorkspacesSpy = jest.spyOn(ds, 'loadWorkspaces');
+
+                        await ds.runQuery(queryWithInvalidTake, options);
+
+                        expect(loadWorkspacesSpy).not.toHaveBeenCalled();
+                    });
+
                     it(`should not call queryTables for take value: ${takeValue}`, async () => {
                         await ds.runQuery(queryWithInvalidTake, options);
 
@@ -200,15 +212,29 @@ describe('DataFrameDataSourceV2', () => {
             });
 
             describe('when dataTableProperties, columnProperties and a valid take are provided', () => {
+                const validQuery = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableFilter: 'name = "Test Table"',
+                    dataTableProperties: [DataTableProperties.Name],
+                    columnProperties: [],
+                    take: 1000,
+                    refId: 'A',
+                };
+
+                it('should call loadWorkspaces', async () => {
+                    const loadWorkspacesSpy = jest.spyOn(ds, 'loadWorkspaces');
+                    const mockTables = [
+                        { id: 'table-1', name: 'Table 1' },
+                        { id: 'table-2', name: 'Table 2' }
+                    ];
+                    queryTablesSpy.mockResolvedValue(mockTables);
+
+                    await ds.runQuery(validQuery, options);
+
+                    expect(loadWorkspacesSpy).toHaveBeenCalled();
+                });
+
                 it('should call queryTables with expected arguments and return fields', async () => {
-                    const validQuery = {
-                        type: DataFrameQueryType.Properties,
-                        dataTableFilter: 'name = "Test Table"',
-                        dataTableProperties: [DataTableProperties.Name],
-                        columnProperties: [],
-                        take: 1000,
-                        refId: 'A',
-                    };
                     const mockTables = [
                         { id: 'table-1', name: 'Table 1' },
                         { id: 'table-2', name: 'Table 2' }
@@ -513,6 +539,28 @@ describe('DataFrameDataSourceV2', () => {
             const result = ds.shouldRunQuery(query);
 
             expect(result).toBe(false);
+        });
+
+        it('should return false when hide is true', () => {
+            const query = {
+                type: DataFrameQueryType.Properties,
+                hide: true
+            } as ValidDataFrameQueryV2;
+
+            const result = ds.shouldRunQuery(query);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return true when hide is false', () => {
+            const query = {
+                type: DataFrameQueryType.Properties,
+                hide: false
+            } as ValidDataFrameQueryV2;
+
+            const result = ds.shouldRunQuery(query);
+
+            expect(result).toBe(true);
         });
     });
 

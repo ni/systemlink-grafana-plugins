@@ -7,6 +7,7 @@ import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, tran
 import { getWorkspaceName } from "core/utils";
 import { Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
+import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
     defaultQuery = defaultQueryV2;
@@ -19,13 +20,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         super(instanceSettings, backendSrv, templateSrv);
     }
 
-    async runQuery(query: DataFrameQueryV2, options: DataQueryRequest<DataFrameQueryV2>): Promise<DataFrameDTO> {
+    async runQuery(
+        query: DataFrameQueryV2,
+        options: DataQueryRequest<DataFrameQueryV2>
+    ): Promise<DataFrameDTO> {
         const processedQuery = this.processQuery(query);
-        const workspaces = await this.loadWorkspaces();
-        const propertiesToQuery = [
-            ...processedQuery.dataTableProperties,
-            ...processedQuery.columnProperties
-        ];
 
         if (processedQuery.dataTableFilter) {
             processedQuery.dataTableFilter = transformComputedFieldsQuery(
@@ -34,31 +33,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             );
         }
 
-        if (
-            processedQuery.type === DataFrameQueryType.Properties
-            && propertiesToQuery.length > 0
-            && processedQuery.take > 0
-            && processedQuery.take <= TAKE_LIMIT
-        ) {
-            const projections = propertiesToQuery.map(property => DataTableProjectionLabelLookup[property].projection);
-            const projectionExcludingId = projections.filter(projection => projection !== DataTableProjections.Id);
-            const tables = await this.queryTables(processedQuery.dataTableFilter, processedQuery.take, projectionExcludingId);
-            const flattenedTablesWithColumns = this.flattenTablesWithColumns(tables);
-
-            const fields = propertiesToQuery.map(property => {
-                const values = this.getDataTableFieldValues(flattenedTablesWithColumns, property, workspaces);
-                return {
-                    name: property,
-                    type: this.getFieldType(property),
-                    values
-                };
-            });
-
-            return {
-                refId: query.refId,
-                name: query.refId,
-                fields: fields,
-            };
+        if (this.shouldQueryForProperties(processedQuery)) {
+            return this.getFieldsForPropertiesQuery(processedQuery);
         }
 
         return { fields: [] };
@@ -72,7 +48,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     shouldRunQuery(query: ValidDataFrameQuery): boolean {
         const processedQuery = this.processQuery(query);
 
-        return processedQuery.type === DataFrameQueryType.Properties;
+        return !processedQuery.hide && processedQuery.type === DataFrameQueryType.Properties;
     }
 
     processQuery(query: DataFrameQuery): ValidDataFrameQueryV2 {
@@ -133,47 +109,66 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         }
     }
 
-    private readonly dataTableComputedDataFields = new Map<string, ExpressionTransformFunction>(
-        Object.values(DataTableProperties).map(property => {
+    private shouldQueryForProperties(query: ValidDataFrameQueryV2): boolean {
+        const isDataTableOrColumnPropertiesSelected = (
+            query.dataTableProperties.length > 0
+            || query.columnProperties.length > 0
+        );
+        const isTakeValid = query.take > 0 && query.take <= TAKE_LIMIT;
+
+        return (
+            query.type === DataFrameQueryType.Properties
+            && isDataTableOrColumnPropertiesSelected
+            && isTakeValid
+        );
+    }
+
+    private get dataTableComputedDataFields(): Map<string, ExpressionTransformFunction> {
+        const computedFields = new Map<string, ExpressionTransformFunction>();
+        const queryBuilderFieldNames = new Set(Object.values(DataTableQueryBuilderFieldNames));
+
+        for (const property of Object.values(DataTableProperties)) {
             const fieldName = DataTableProjectionLabelLookup[property].field;
 
-            return [
-                fieldName,
-                this.isTimeField(property)
-                    ? timeFieldsQuery(fieldName)
-                    : multipleValuesQuery(fieldName)
-            ];
-        })
-    );
+            if (queryBuilderFieldNames.has(fieldName as DataTableQueryBuilderFieldNames)) {
+                computedFields.set(
+                    fieldName,
+                    this.isTimeField(property) ? timeFieldsQuery(fieldName) : multipleValuesQuery(fieldName)
+                );
+            }
+        }
 
-    private isTimeField(field: string): boolean {
+        return computedFields;
+    }
+
+    private isTimeField(field: DataTableProperties): boolean {
         const timeFields = [
             DataTableProperties.CreatedAt,
             DataTableProperties.MetadataModifiedAt,
             DataTableProperties.RowsModifiedAt
         ];
-        return timeFields.includes(field as DataTableProperties);
+        return timeFields.includes(field);
     };
 
-    private isNumberField(field: string): boolean {
+    private isNumberField(field: DataTableProperties): boolean {
         const numberFields = [
             DataTableProperties.ColumnCount,
             DataTableProperties.RowCount,
             DataTableProperties.MetadataRevision
         ];
-        return numberFields.includes(field as DataTableProperties);
+        return numberFields.includes(field);
     };
 
-    private isBooleanField(field: string): boolean {
+    private isBooleanField(field: DataTableProperties): boolean {
         return field === DataTableProperties.SupportsAppend;
     };
 
-    private isObjectField(field: string): boolean {
+    private isObjectField(field: DataTableProperties): boolean {
         const fields = [
             DataTableProperties.ColumnProperties,
             DataTableProperties.Properties,
         ];
-        return fields.includes(field as DataTableProperties);
+        return fields.includes(field);
     };
 
     private getFieldType(property: DataTableProperties): FieldType {
@@ -219,20 +214,58 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         });
     }
 
-    private getDataTableFieldValues(
+    private getFieldValues(
         tables: FlattenedTableProperties[],
         property: DataTableProperties,
         workspaces: Map<string, Workspace>
     ): any {
         return tables.map(table => {
-            const value = (table as any)[DataTableProjectionLabelLookup[property].field];
+            const field = DataTableProjectionLabelLookup[property].field;
+            const value = table[field];
 
             if (property === DataTableProperties.Workspace) {
-                const workspace = workspaces.get(value);
-                return workspace ? getWorkspaceName([workspace], value) : value;
+                const workspace = workspaces.get(value as string);
+                return workspace ? getWorkspaceName([workspace], value as string) : value;
             }
 
             return value;
         });
+    }
+
+    private async getFieldsForPropertiesQuery(processedQuery: ValidDataFrameQueryV2): Promise<DataFrameDTO> {
+        const propertiesToQuery = [
+            ...processedQuery.dataTableProperties,
+            ...processedQuery.columnProperties
+        ];
+        const projections = propertiesToQuery
+            .map(property => DataTableProjectionLabelLookup[property].projection);
+        const projectionExcludingId = projections
+            .filter(projection => projection !== DataTableProjections.Id);
+        const tables = await this.queryTables(
+            processedQuery.dataTableFilter,
+            processedQuery.take,
+            projectionExcludingId
+        );
+        const flattenedTablesWithColumns = this.flattenTablesWithColumns(tables);
+        const workspaces = await this.loadWorkspaces();
+
+        const fields = propertiesToQuery.map(property => {
+            const values = this.getFieldValues(
+                flattenedTablesWithColumns,
+                property,
+                workspaces
+            );
+            return {
+                name: property,
+                type: this.getFieldType(property),
+                values
+            };
+        });
+
+        return {
+            refId: processedQuery.refId,
+            name: processedQuery.refId,
+            fields: fields,
+        };
     }
 }

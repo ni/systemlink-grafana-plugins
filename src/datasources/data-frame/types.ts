@@ -116,7 +116,7 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
   label: string,
   projection: DataTableProjections,
   type: DataTableProjectionType,
-  field: string;
+  field: keyof FlattenedTableProperties;
 }> = {
   [DataTableProperties.Name]: {
     label: 'Data table name',
@@ -271,18 +271,7 @@ export interface TableProperties {
   properties: Record<string, string>;
 }
 
-export interface FlattenedTableProperties {
-  id?: string;
-  name?: string;
-  columnCount?: number;
-  createdAt?: string;
-  metadataModifiedAt?: string;
-  metadataRevision?: number;
-  rowCount?: number;
-  rowsModifiedAt?: string;
-  supportsAppend?: boolean;
-  workspace?: string;
-  properties?: Record<string, string>;
+export interface FlattenedTableProperties extends Partial<Omit<TableProperties, 'columns'>> {
   columnName?: string;
   columnDataType?: ColumnDataType;
   columnType?: 'INDEX' | 'NULLABLE' | 'NORMAL';
