@@ -31,7 +31,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     const alarmsResponse = await this.queryAlarmsData(query);
 
     if (this.isPropertiesValid(query.properties)) {
-      mappedFields = await this.mapPropertiesToSelect(query.properties!, alarmsResponse);
+      mappedFields = await this.mapPropertiesToSelect(query.properties, alarmsResponse);
     }
 
     return {
@@ -73,7 +73,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       && take <= QUERY_EDITOR_MAX_TAKE;
   }
 
-  private isPropertiesValid(properties?: AlarmsProperties[]): boolean {
+  private isPropertiesValid(properties?: AlarmsProperties[]): properties is AlarmsProperties[] {
     return !!properties && properties.length > 0;
   }
 
@@ -115,15 +115,14 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
             const workspace = workspaces.get(alarm.workspace);
             return workspace ? workspace.name : alarm.workspace;
           case AlarmsProperties.acknowledgedBy:
-            const userId = alarm.acknowledgedBy as string ?? '';
+            const userId = alarm.acknowledgedBy ?? '';
             const user = users.get(userId);
             return user ? UsersUtils.getUserFullName(user) : userId;
           case AlarmsProperties.properties:
             return this.getSortedCustomProperties(alarm.properties);
           case AlarmsProperties.highestSeverityLevel:
-            return this.getSeverityLabel(alarm.highestSeverityLevel);
           case AlarmsProperties.currentSeverityLevel:
-            return this.getSeverityLabel(alarm.currentSeverityLevel);
+            return this.getSeverityLabel(alarm[property]);
           case AlarmsProperties.state:
             return this.getAlarmState(alarm.clear, alarm.acknowledged);
           case AlarmsProperties.source:
@@ -182,10 +181,10 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   }
  
   private getSource(properties: { [key: string]: string }): string {
-    if (Object.prototype.hasOwnProperty.call(properties, SYSTEM_CUSTOM_PROPERTY)) {
+    if (properties?.hasOwnProperty(SYSTEM_CUSTOM_PROPERTY)) {
       return properties[SYSTEM_CUSTOM_PROPERTY];
     }
-    return Object.prototype.hasOwnProperty.call(properties, MINION_ID_CUSTOM_PROPERTY)
+    return properties?.hasOwnProperty(MINION_ID_CUSTOM_PROPERTY)
       ? properties[MINION_ID_CUSTOM_PROPERTY]
       : '';
   }

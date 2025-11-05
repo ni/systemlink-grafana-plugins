@@ -114,8 +114,8 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
       : undefined;
   }
 
-  protected isTimeField(field: string): boolean {
-    return ALARMS_TIME_FIELDS.includes(field as AlarmsProperties);
+  protected isTimeField(field: AlarmsProperties): boolean {
+    return ALARMS_TIME_FIELDS.includes(field);
   }
 
   private readonly computedDataFields = new Map<string, ExpressionTransformFunction>(
@@ -125,7 +125,7 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
 
       if (dataField === AlarmsQueryBuilderFields.SOURCE.dataField) {
         callback = this.getSourceTransformation();
-      } else if (this.isTimeField(dataField)) {
+      } else if (this.isTimeField(dataField as AlarmsProperties)) {
         callback = timeFieldsQuery(dataField);
       } else {
         callback = multipleValuesQuery(dataField);
