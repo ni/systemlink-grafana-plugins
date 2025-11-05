@@ -8,6 +8,7 @@ import { AlarmsCountQueryHandler } from './query-type-handlers/alarms-count/Alar
 import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
 import { ListAlarmsQueryHandler } from './query-type-handlers/list-alarms/ListAlarmsQueryHandler';
 import { defaultListAlarmsVariableQuery } from './constants/DefaultQueries.constants';
+import { AlarmsTrendQueryHandler } from './query-type-handlers/alarms-trend/AlarmsTrendQueryHandler';
 
 let datastore: AlarmsDataSource, backendServer: MockProxy<BackendSrv>;
 
@@ -84,6 +85,38 @@ describe('AlarmsDataSource', () => {
         const result = datastore.shouldRunQuery(query);
 
         expect(listAlarmsQueryHandler.shouldRunQuery).toHaveBeenCalled();
+        expect(result).toBe(true);
+      });
+    });
+  });
+
+  describe('AlarmsTrendQueryHandler', () => {
+    const query = { refId: 'A', queryType: QueryType.AlarmsTrend };
+
+    let alarmsTrendQueryHandler: AlarmsTrendQueryHandler;
+
+    beforeEach(() => {
+      alarmsTrendQueryHandler = datastore.alarmsTrendQueryHandler;
+    });
+
+    describe('runQuery', () => {
+      it('should call AlarmsTrendQueryHandler runQuery when queryType is AlarmsTrend', async () => {
+        alarmsTrendQueryHandler.runQuery = jest.fn().mockResolvedValue({ refId: 'A', fields: [] });
+
+        const result = await datastore.runQuery(query, dataQueryRequest);
+
+        expect(alarmsTrendQueryHandler.runQuery).toHaveBeenCalledWith(query, dataQueryRequest);
+        expect(result).toEqual({ refId: 'A', fields: [] });
+      });
+    });
+
+    describe('shouldRunQuery', () => {
+      it('should call AlarmsTrendQueryHandler shouldRunQuery when queryType is AlarmsTrend', () => {
+        alarmsTrendQueryHandler.shouldRunQuery = jest.fn().mockReturnValue(true);
+
+        const result = datastore.shouldRunQuery(query);
+
+        expect(alarmsTrendQueryHandler.shouldRunQuery).toHaveBeenCalled();
         expect(result).toBe(true);
       });
     });

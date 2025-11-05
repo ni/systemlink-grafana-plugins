@@ -195,28 +195,5 @@ describe('StepsQueryBuilder', () => {
       expect(filterContainer.item(0)?.textContent).toContain('Operator'); //operator
       expect(filterContainer.item(0)?.textContent).toContain('Value'); //value
     });
-
-    describe('theme', () => {
-      const mockUseTheme = jest.spyOn(require('@grafana/ui'), 'useTheme2');
-
-      beforeEach(() => {
-        jest.spyOn(document.body, 'setAttribute');
-      });
-
-      it('should set light theme when isDark is false', () => {
-        mockUseTheme.mockReturnValue({ isDark: false });
-
-        renderElement('', [], [], [], [], false);
-
-        expect(document.body.setAttribute).toHaveBeenCalledWith('theme', 'orange');
-      });
-      it('should set dark theme when isDark is true', () => {
-        mockUseTheme.mockReturnValue({ isDark: true });
-
-        renderElement('', [], [], [], [], false);
-
-        expect(document.body.setAttribute).toHaveBeenCalledWith('theme', 'dark-orange');
-      });
-    });
   });
 });

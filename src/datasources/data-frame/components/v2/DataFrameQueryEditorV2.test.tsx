@@ -229,7 +229,11 @@ describe("DataFrameQueryEditorV2", () => {
 
                     beforeEach(() => {
                         cleanup();
-                        jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30); 
+
+                        // JSDOM provides offsetHeight as 0 by default. 
+                        // Mocking it to return 30 because the ComboBox virtualization relies on this value 
+                        // to correctly calculate and render the dropdown options.
+                        jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
                     });
 
                     it('should set column options to empty array when there are no tables', async () => {
@@ -362,7 +366,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                     it('should limit the number of column options to 10000', async () => {
                         jest.clearAllMocks();
-                        // Extend the offsetHeight to simulate a very tall container
+                        // Extend the offsetHeight to simulate a very tall container to show 10000 columns
                         jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(3000000); 
 
                         // Create 10001 columns

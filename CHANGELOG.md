@@ -1,3 +1,15 @@
+## [4.45.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.44.0...v4.45.0) (2025-11-05)
+
+### Features
+
+* add missing code owners ([#488](https://github.com/ni/systemlink-grafana-plugins/issues/488)) ([e8491d5](https://github.com/ni/systemlink-grafana-plugins/commit/e8491d5b298f5bb2220fbf0ee0de42df6fa6e454))
+
+## [4.44.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.43.0...v4.44.0) (2025-11-05)
+
+### Features
+
+* **alarms:** Implement property mapping ([#477](https://github.com/ni/systemlink-grafana-plugins/issues/477)) ([335ce7a](https://github.com/ni/systemlink-grafana-plugins/commit/335ce7a3515d8ba0488e5f119cad54ee0632992b))
+
 ## [4.43.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.42.0...v4.43.0) (2025-11-03)
 
 ### Features

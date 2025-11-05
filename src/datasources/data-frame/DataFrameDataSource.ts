@@ -17,7 +17,9 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
   ) {
     super(instanceSettings, backendSrv, templateSrv);
 
-    this.queryByTablePropertiesFeatureEnabled = instanceSettings.jsonData?.featureToggles?.queryByDataTableProperties ?? DataFrameFeatureTogglesDefaults.queryByDataTableProperties;
+    const featureToggles = instanceSettings.jsonData?.featureToggles;
+    this.queryByTablePropertiesFeatureEnabled = featureToggles?.queryByDataTableProperties ?? DataFrameFeatureTogglesDefaults.queryByDataTableProperties;
+
     if (this.queryByTablePropertiesFeatureEnabled) {
       this.datasource = new DataFrameDataSourceV2(instanceSettings, backendSrv, templateSrv);
     } else {
