@@ -120,12 +120,12 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
 
   private readonly computedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(AlarmsQueryBuilderFields).map(field => {
-      const dataField = field.dataField as AlarmsProperties;
+      const dataField = field.dataField as string;
       let callback;
 
       if (dataField === AlarmsQueryBuilderFields.SOURCE.dataField) {
         callback = this.getSourceTransformation();
-      } else if (this.isTimeField(dataField)) {
+      } else if (this.isTimeField(dataField as AlarmsProperties)) {
         callback = timeFieldsQuery(dataField);
       } else {
         callback = multipleValuesQuery(dataField);

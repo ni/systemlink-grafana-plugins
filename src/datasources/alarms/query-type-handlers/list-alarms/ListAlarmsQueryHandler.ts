@@ -107,7 +107,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       const field = AlarmsPropertiesOptions[property];
       const fieldName = field.label;
       const fieldValue = field.value;
-      const fieldType = this.isTimeField(fieldValue) ? FieldType.time : FieldType.string;
+      const fieldType = this.getFieldType(property);
 
       const fieldValues = alarms.map(alarm => {
         switch (property) {
@@ -139,6 +139,20 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     });
 
     return mappedFields;
+  }
+
+  private getFieldType(property: AlarmsProperties): FieldType {
+    if (this.isNumericField(property)) {
+      return FieldType.number;
+    } else if (this.isTimeField(property)) {
+      return FieldType.time;
+    } else {
+      return FieldType.string;
+    }
+  }
+
+  private isNumericField(field: AlarmsProperties): boolean {
+    return field === AlarmsProperties.transitionOverflowCount;
   }
 
   private getSortedCustomProperties(properties: { [key: string]: string }): string {

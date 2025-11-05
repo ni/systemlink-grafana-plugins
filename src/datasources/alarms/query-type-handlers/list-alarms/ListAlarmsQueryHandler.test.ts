@@ -689,7 +689,7 @@ describe('ListAlarmsQueryHandler', () => {
             },
             {
               name: 'Transition overflow count',
-              type: 'string',
+              type: 'number',
               values: [5, 0],
             },
           ],
