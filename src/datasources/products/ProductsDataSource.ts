@@ -227,12 +227,6 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     });
   }
 
-  private getVariableOptions() {
-    return this.templateSrv
-      .getVariables()
-      .map(variable => ({ label: '$' + variable.name, value: '$' + variable.name }));
-  }
-
   private async loadWorkspaces(): Promise<void> {
     if (this.workspacesCache.size > 0) {
       return;

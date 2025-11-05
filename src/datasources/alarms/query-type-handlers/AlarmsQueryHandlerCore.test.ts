@@ -6,7 +6,7 @@ import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { QUERY_ALARMS_RELATIVE_PATH } from '../constants/QueryAlarms.constants';
 import { Workspace } from 'core/types';
-import { getVariableOptions, queryInBatches } from 'core/utils';
+import { queryInBatches } from 'core/utils';
 
 jest.mock('core/utils', () => ({
   getVariableOptions: jest.fn(),
@@ -61,16 +61,9 @@ describe('AlarmsQueryHandlerCore', () => {
 
   describe('globalVariableOptions', () => {
     it('should get variable options', () => {
-      const mockOptions = [
-        { label: 'Variable 1', value: '$var1' },
-        { label: 'Variable 2', value: '$var2' },
-      ];
-      (getVariableOptions as jest.Mock).mockReturnValue(mockOptions);
-
-      const result = datastore.globalVariableOptions();
-
-      expect(getVariableOptions).toHaveBeenCalledWith(datastore);
-      expect(result).toEqual(mockOptions);
+      expect(datastore.globalVariableOptions()).toEqual([
+        { label: '$test_var', value: '$test_var' },
+      ]);
     });
   });
 
