@@ -120,6 +120,12 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
             DataTableProjections.ColumnDataType,
             DataTableProjections.ColumnType,
         ]);
+    
+        if (tables.length === 0) {
+            setColumnOptions([]);
+            return;
+        }
+    
         const columnTypeMap = getColumnTypeMap(tables);
         const formattedOptions = getFormattedColumnOptions(columnTypeMap);
         const limitedOptions = getLimitedColumnOptions(formattedOptions, 10000);

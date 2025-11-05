@@ -1,5 +1,5 @@
 import React from "react";
-import { render, RenderResult, screen, waitFor, within } from "@testing-library/react";
+import { render, RenderResult, screen, waitFor, within, cleanup } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
 import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataSourceQBLookupCallback, DataTableProperties } from "../../types";
@@ -59,7 +59,11 @@ jest.mock("./query-builders/DataTableQueryBuilder", () => ({
 const renderComponent = (
     queryOverrides: Partial<DataFrameQueryV2> = {},
     errorTitle = '',
-    errorDescription = ''
+    errorDescription = '',
+    mockDataTables = [
+        { tableName: 'Table 1', columns: [{ name: 'ColumnA', dataType: 'INT32' }, { name: 'ColumnB', dataType: 'STRING' }] },
+        { tableName: 'Table 2', columns: [{ name: 'ColumnD', dataType: 'FLOAT64' }, { name: 'ColumnE', dataType: 'BOOLEAN' }] },
+    ]
 ) => {
     const onChange = jest.fn();
     const onRunQuery = jest.fn();
@@ -83,10 +87,11 @@ const renderComponent = (
             ]
         ),
         queryTables: jest.fn().mockResolvedValue(
-            [
-                { id: 'table1', name: 'Table 1', columns: [{ name: 'ColumnA' }, {name: 'ColumnB'}] },
-                { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, {name: 'ColumnE'}] },
-            ]
+            mockDataTables.map((table, i) => ({
+                id: `table${i + 1}`,
+                name: table.tableName,
+                columns: table.columns,
+            }))
         ),
     } as unknown as DataFrameDataSource;
 
@@ -150,13 +155,6 @@ describe("DataFrameQueryEditorV2", () => {
     describe("when the query type is data", () => {
         let onChange: jest.Mock;
         let onRunQuery: jest.Mock;
-        
-        beforeAll(() => { 
-            // JSDOM provides offsetHeight as 0 by default. 
-            // Mocking it to return 30 because the ComboBox virtualization relies on this value 
-            // to correctly calculate and render the dropdown options. 
-            jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30); 
-        });
 
         beforeEach(() => {
             const result = renderComponent({ type: DataFrameQueryType.Data });
@@ -209,27 +207,179 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(columnsField).toHaveDisplayValue('');
                 });
 
-                it('should load columns combobox options when filter changes', async () => {
-                    const filterInput = screen.getByTestId("filter-input");
-                    const user = userEvent.setup();
+                describe('column combobox options', () => {
+                    async function getColumnOptions() {
+                      //Clear and type in filter input to trigger options load
+                      const filterInput = screen.getByTestId('filter-input');
+                      const user = userEvent.setup();
 
-                    await user.clear(filterInput);
-                    await user.type(filterInput, "new filter");
+                      await user.clear(filterInput);
+                      await user.type(filterInput, 'new filter');
 
-                    await waitFor(() => {
-                        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                            dataTableFilter: "new filter",
-                        }));
+                      // Click on column combobox to load options
+                      const columnsCombobox = screen.getAllByRole('combobox')[0];
+                      await userEvent.click(columnsCombobox);
+
+                      // Find all option controls by role 'option'
+                      const optionControls = within(document.body).getAllByRole('option');
+                      const optionTexts = optionControls.map(opt => opt.textContent);
+
+                      return optionTexts;
+                    }
+
+                    beforeEach(() => {
+                        cleanup();
+                        jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30); 
                     });
 
-                    // Click on column combobox to load options
-                    const columnsCombobox = screen.getAllByRole('combobox')[0];
-                    await userEvent.click(columnsCombobox);
+                    it('should set column options to empty array when there are no tables', async () => {
+                        renderComponent({ dataTableFilter: '' }, '', '', []);
 
-                    // Find all option controls by role 'option'
-                    const optionControls = within(document.body).getAllByRole('option');
-                    const optionTexts = optionControls.map(opt => opt.textContent);
-                    expect(optionTexts).toEqual(expect.arrayContaining(['ColumnA', 'ColumnB', 'ColumnD', 'ColumnE']));
+                        // Click on column combobox to load options
+                        const columnsCombobox = screen.getAllByRole('combobox')[0];
+                        await userEvent.click(columnsCombobox);
+                    
+                        // Assert that no options are shown
+                        expect(within(document.body).queryAllByRole('option').length).toBe(0);
+                    });
+
+                    it('should aggregate columns and show only the name when column names do not repeat', async () => {
+                      renderComponent({ dataTableFilter: '' }, '', '', [
+                        {
+                          tableName: 'Table1',
+                          columns: [
+                            { name: 'ColumnA', dataType: 'INT32' },
+                            { name: 'ColumnB', dataType: 'FLOAT64' },
+                          ],
+                        },
+                        {
+                          tableName: 'Table2',
+                          columns: [
+                            { name: 'ColumnC', dataType: 'STRING' },
+                            { name: 'ColumnD', dataType: 'TIMESTAMP' },
+                          ],
+                        },
+                      ]);
+
+                      const options = await getColumnOptions();
+
+                      expect(options).toEqual(['ColumnA', 'ColumnB', 'ColumnC', 'ColumnD']);
+                      expect(options.length).toBe(4);
+                    });
+
+                    describe('when column names repeat but data type differs', () => {
+                        it('should group all the numeric types as Numeric and show the column name only once', async () => {
+                            renderComponent({ dataTableFilter: '' }, '', '', [
+                                {
+                                    tableName: 'Table1',
+                                    columns: [
+                                        { name: 'ColumnA', dataType: 'INT32' },
+                                        { name: 'ColumnB', dataType: 'FLOAT64' },
+                                        { name: 'ColumnC', dataType: 'FLOAT32' },
+                                        { name: 'ColumnD', dataType: 'INT64' },
+                                    ],
+                                },
+                                {
+                                    tableName: 'Table2',
+                                    columns: [
+                                        { name: 'ColumnA', dataType: 'INT32' },
+                                        { name: 'ColumnB', dataType: 'FLOAT64' },
+                                        { name: 'ColumnC', dataType: 'FLOAT32' },
+                                        { name: 'ColumnD', dataType: 'INT64' },
+                                    ],
+                                },
+                            ]);
+
+                            const options = await getColumnOptions();
+
+                            expect(options).toEqual(
+                                [ 
+                                    'ColumnA',
+                                    'ColumnB',
+                                    'ColumnC',
+                                    'ColumnD'
+                                ]);
+                            expect(options.length).toBe(4);
+                        });
+
+                        it('should show name with type suffixes for non-numeric types', async () => {
+                            renderComponent({ dataTableFilter: '' }, '', '', [
+                                {
+                                    tableName: 'Table1',
+                                    columns: [
+                                        { name: 'ColumnA', dataType: 'STRING' },
+                                        { name: 'ColumnB', dataType: 'BOOLEAN' },
+                                    ]
+                                },
+                                {
+                                    tableName: 'Table2',
+                                    columns: [
+                                        { name: 'ColumnA', dataType: 'TIMESTAMP' },
+                                        { name: 'ColumnB', dataType: 'STRING' },
+                                    ]
+                                }
+                            ]);
+
+                            const options = await getColumnOptions();
+                            expect(options).toEqual([
+                                'ColumnA (String)',
+                                'ColumnA (Timestamp)',
+                                'ColumnB (Boolean)',
+                                'ColumnB (String)',
+                            ])
+                            expect(options.length).toBe(4);
+                        });
+
+                        it('should show name with type suffixes for mixed numeric and non-numeric types', async () => {
+                            renderComponent({ dataTableFilter: '' }, '', '', [
+                                {
+                                    tableName: 'Table1',
+                                    columns: [
+                                        { name: 'ColumnA', dataType: 'INT32' },
+                                        { name: 'ColumnB', dataType: 'STRING' },
+                                        { name: 'ColumnC', dataType: 'FLOAT32' },
+                                    ]
+                                },
+                                {
+                                    tableName: 'Table2',
+                                    columns: [
+                                        { name: 'ColumnA', dataType: 'FLOAT64' },
+                                        { name: 'ColumnB', dataType: 'BOOLEAN' },
+                                        { name: 'ColumnC', dataType: 'INT64' },
+                                    ]
+                        
+                                }
+                            ]);
+                            const options = await getColumnOptions();
+                            expect(options).toEqual([
+                                'ColumnA (Numeric)',
+                                'ColumnB (String)',
+                                'ColumnB (Boolean)',
+                                'ColumnC (Numeric)',
+                            ]);
+                        });
+                    });
+
+                    it('should limit the number of column options to 10000', async () => {
+                        jest.clearAllMocks();
+                        // Extend the offsetHeight to simulate a very tall container
+                        jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(3000000); 
+
+                        // Create 10001 columns
+                        const manyColumns = Array.from({ length: 10001 }, (_, i) => ({
+                            name: `Column${i}`,
+                            dataType: 'INT32',
+                        }));
+                        renderComponent({dataTableFilter:''}, '', '', [
+                            { tableName: 'Table1', columns: [...manyColumns] },
+                        ]);
+
+                        const options = await getColumnOptions();
+
+                        expect(options.length).toBe(10000);
+                        expect(options).toContain('Column10000');
+                        expect(options).not.toContain('Column10001');       
+                    });
                 });
             });
 
@@ -625,4 +775,4 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
     });
-});
+})
