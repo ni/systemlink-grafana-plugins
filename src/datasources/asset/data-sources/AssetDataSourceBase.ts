@@ -8,7 +8,6 @@ import { QueryBuilderOption, Workspace } from "../../../core/types";
 import { buildExpressionFromTemplate, ExpressionTransformFunction, getConcatOperatorForMultiExpression } from "../../../core/query-builder.utils";
 import { QueryBuilderOperations } from "../../../core/query-builder.constants";
 import { AllFieldNames, LocationFieldNames } from "../constants/constants";
-import { getVariableOptions } from "core/utils";
 import { ListLocationsResponse, LocationModel } from "../types/ListLocations.types";
 
 export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
@@ -71,7 +70,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
     return Array.from(this.workspacesCache.values());
   }
 
-  public readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
+  public readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   public async loadDependencies(): Promise<void> {
     this.error = '';

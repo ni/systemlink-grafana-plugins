@@ -50,28 +50,32 @@ describe('DataSourceBase', () => {
         });
 
         it('should send GET request with API ingress when useApiIngress is true', async () => {
-            const response = await dataSource.get('/test-endpoint', { param1: 'value1' }, true);
+            const response = await dataSource.get('/test-endpoint', { params: { param1: 'value1' }, useApiIngress: true });
 
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
             expect(mockGet).toHaveBeenCalledWith(
                 backendSrv,
                 "http://api-ingress.com/test-endpoint",
                 {
-                    'param1': 'value1',
-                    'x-ni-api-key': 'api-key-secret'
+                    params: {
+                        'param1': 'value1',
+                        'x-ni-api-key': 'api-key-secret'
+                    }
                 },
             );
             expect(response).toEqual('test');
         });
 
         it('should send GET request with API ingress endpoints and api key when useApiIngress is true and params is empty', async () => {
-            const response = await dataSource.get('/test-endpoint', {}, true);
+            const response = await dataSource.get('/test-endpoint', { useApiIngress: true });
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
             expect(mockGet).toHaveBeenCalledWith(
                 backendSrv,
                 "http://api-ingress.com/test-endpoint",
                 {
-                    'x-ni-api-key': 'api-key-secret'
+                    params: {
+                        'x-ni-api-key': 'api-key-secret'
+                    }
                 },
             );
             expect(response).toEqual('test');
@@ -81,7 +85,7 @@ describe('DataSourceBase', () => {
             jest.clearAllMocks();
             mockApiSessionUtils.createApiSession.mockRejectedValueOnce(new Error('No session created'));
 
-            await expect(dataSource.get('/test-endpoint', { param1: 'value1' }, true))
+            await expect(dataSource.get('/test-endpoint', { param1: 'value1', useApiIngress: true }))
                 .rejects.toThrow('No session created');
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
             expect(mockGet).not.toHaveBeenCalled();
@@ -108,9 +112,9 @@ describe('DataSourceBase', () => {
                 {
                     headers: {
                         testHeader: 'headerValue'
-                    }
+                    },
+                    useApiIngress: true
                 },
-                true
             );
 
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
@@ -134,8 +138,7 @@ describe('DataSourceBase', () => {
             const response = await dataSource.post(
                 '/test-endpoint',
                 { body: 'body' },
-                {},
-                true
+                { useApiIngress: true }
             );
 
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
@@ -156,10 +159,19 @@ describe('DataSourceBase', () => {
             jest.clearAllMocks();
             mockApiSessionUtils.createApiSession.mockRejectedValueOnce(new Error('No session created'));
 
-            await expect(dataSource.post('/test-endpoint', { options: 'optionValue' }, {}, true))
+            await expect(dataSource.post('/test-endpoint', { options: 'optionValue' }, { useApiIngress: true }))
                 .rejects.toThrow('No session created');
             expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
             expect(mockPost).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('getVariableOptions', () => {
+        it('returns variables as SelectableValue array', () => {
+            expect(dataSource.getVariableOptions()).toEqual([
+                { label: '$var1', value: '$var1' },
+                { label: '$var2', value: '$var2' }
+            ]);
         });
     });
 
@@ -167,9 +179,15 @@ describe('DataSourceBase', () => {
         const instanceSettings = {
             url: 'http://api-example.com',
         } as DataSourceInstanceSettings;
+        const mockTemplateSrv = {
+            getVariables: () => [
+                { name: 'var1' },
+                { name: 'var2' }
+            ]
+        };
         class MockDataSource extends DataSourceBase<DataQuery> {
             public constructor() {
-                super(instanceSettings, backendSrv, {} as any);
+                super(instanceSettings, backendSrv, mockTemplateSrv);
             }
             public defaultQuery = {};
             public runQuery(_query: DataQuery, _options: any) {
