@@ -13,6 +13,7 @@ import {
   SECONDARY_CONTROL_WIDTH,
   SECONDARY_LABEL_WIDTH,
   tooltips,
+  TRANSITION_ONLY_PROPERTIES,
 } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
@@ -61,6 +62,16 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
 
   const onTransitionInclusionChange = (option: ComboboxOption<TransitionInclusionOption>) => {
     handleQueryChange({ ...query, transitionInclusionOption: option.value });
+  };
+
+  const getFilteredPropertiesOptions = (transitionInclusionOption?: TransitionInclusionOption) => {
+    const allOptions = Object.values(AlarmsPropertiesOptions);
+    
+    if (transitionInclusionOption === TransitionInclusionOption.None || !transitionInclusionOption) {
+      return allOptions.filter(option => !TRANSITION_ONLY_PROPERTIES.includes(option.value));
+    }
+    
+    return allOptions;
   };
 
   return (

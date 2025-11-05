@@ -150,6 +150,42 @@ export const AlarmsPropertiesOptions: Record<
     label: 'Transition overflow count',
     value: AlarmsProperties.transitionOverflowCount,
   },
+  [AlarmsProperties.transitionCondition]: {
+    label: 'Transition condition',
+    value: AlarmsProperties.transitionCondition,
+  },
+  [AlarmsProperties.transitionDetail]: {
+    label: 'Transition detail',
+    value: AlarmsProperties.transitionDetail,
+  },
+  [AlarmsProperties.transitionKeywords]: {
+    label: 'Transition keywords',
+    value: AlarmsProperties.transitionKeywords,
+  },
+  [AlarmsProperties.transitionOccurredAt]: {
+    label: 'Transition occurred at',
+    value: AlarmsProperties.transitionOccurredAt,
+  },
+  [AlarmsProperties.transitionProperties]: {
+    label: 'Transition properties',
+    value: AlarmsProperties.transitionProperties,
+  },
+  [AlarmsProperties.transitionSeverity]: {
+    label: 'Transition severity',
+    value: AlarmsProperties.transitionSeverity,
+  },
+  [AlarmsProperties.transitionShortText]: {
+    label: 'Transition short text',
+    value: AlarmsProperties.transitionShortText,
+  },
+  [AlarmsProperties.transitionType]: {
+    label: 'Transition type',
+    value: AlarmsProperties.transitionType,
+  },
+  [AlarmsProperties.transitionValue]: {
+    label: 'Transition value',
+    value: AlarmsProperties.transitionValue,
+  },
   [AlarmsProperties.updatedAt]: {
     label: 'Updated',
     value: AlarmsProperties.updatedAt,
@@ -180,3 +216,15 @@ export const AlarmsTransitionInclusionOptions: Record<
     value: TransitionInclusionOption.All,
   },
 };
+
+export const TRANSITION_ONLY_PROPERTIES = [
+  AlarmsProperties.transitionCondition,
+  AlarmsProperties.transitionDetail,
+  AlarmsProperties.transitionKeywords,
+  AlarmsProperties.transitionOccurredAt,
+  AlarmsProperties.transitionProperties,
+  AlarmsProperties.transitionSeverity,
+  AlarmsProperties.transitionShortText,
+  AlarmsProperties.transitionType,
+  AlarmsProperties.transitionValue,
+];
