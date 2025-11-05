@@ -62,13 +62,13 @@ export interface Alarm {
   resourceType: string;
 }
 
-enum TransitionInclusionOption {
+export enum TransitionInclusionOption {
   None = 'NONE',
   MostRecentOnly = 'MOST_RECENT_ONLY',
   All = 'ALL',
 };
 
-interface AlarmTransition {
+export interface AlarmTransition {
   transitionType: AlarmTransitionType;
   occurredAt: string;
   severityLevel: number;
@@ -80,6 +80,7 @@ interface AlarmTransition {
   properties: {
     [key: string]: string;
   };
+  [key: string]: any;
 }
 
 export enum AlarmTransitionType {
