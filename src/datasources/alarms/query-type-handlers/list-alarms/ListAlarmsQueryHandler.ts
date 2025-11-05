@@ -1,6 +1,6 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
 import { AlarmsProperties, ListAlarmsQuery } from '../../types/ListAlarms.types';
-import { AlarmsVariableQuery, QueryAlarmsRequest } from '../../types/types';
+import { AlarmsVariableQuery, AlarmTransition, QueryAlarmsRequest } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
 import { AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
@@ -103,6 +103,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   ): Promise<DataFrameDTO['fields']> {
     const workspaces = await this.loadWorkspaces();
     const users = await this.loadUsers();
+    const flattenedRows = this.flattenAlarmsWithTransitions(alarms);
 
     const mappedFields = properties.map(property => {
       const field = AlarmsPropertiesOptions[property];
@@ -110,7 +111,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       const fieldValue = field.value;
       const fieldType = this.isTimeField(fieldValue) ? FieldType.time : FieldType.string;
 
-      const fieldValues = alarms.map(alarm => {
+      const fieldValues = flattenedRows.map(({ alarm, transition }) => {
         switch (property) {
           case AlarmsProperties.workspace:
             const workspace = workspaces.get(alarm.workspace);
@@ -128,8 +129,13 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
             return this.getAlarmState(alarm.clear, alarm.acknowledged);
           case AlarmsProperties.source:
             return this.getSource(alarm.properties);
+          case AlarmsProperties.transitionSeverity:
+            return transition ? this.getSeverityLabel(transition.severityLevel) : '';
+          case AlarmsProperties.transitionProperties:
+            return transition ? this.getSortedCustomProperties(transition.properties) : '';
           default:
             const value = alarm[fieldValue as keyof Alarm];
+            console.log(fieldValue, value);
             if (fieldType === FieldType.time) {
               return value ?? null;
             }
@@ -140,6 +146,22 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     });
 
     return mappedFields;
+  }
+
+  private flattenAlarmsWithTransitions(alarms: Alarm[]): Array<{ alarm: Alarm; transition?: AlarmTransition }> {
+    const flattenedRows: Array<{ alarm: Alarm; transition: AlarmTransition }> = [];
+
+    alarms.forEach(alarm => {
+      if (alarm.transitions.length > 0) {
+        alarm.transitions.forEach(transition => {
+          flattenedRows.push({ alarm, transition });
+        });
+      } else {
+        flattenedRows.push({ alarm, transition: [] as unknown as AlarmTransition });
+      }
+    });
+
+    return flattenedRows;
   }
 
   private getSortedCustomProperties(properties: { [key: string]: string }): string {

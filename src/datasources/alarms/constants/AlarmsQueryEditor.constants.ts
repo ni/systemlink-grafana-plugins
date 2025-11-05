@@ -19,6 +19,7 @@ export const ALARMS_TIME_FIELDS = [
   AlarmsProperties.mostRecentSetOccurredAt,
   AlarmsProperties.mostRecentTransitionOccurredAt,
   AlarmsProperties.updatedAt,
+  AlarmsProperties.transitionOccurredAt,
 ];
 
 export const labels = {
