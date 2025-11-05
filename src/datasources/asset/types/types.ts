@@ -31,7 +31,8 @@ export const AssetFeatureTogglesDefaults: AssetFeatureToggles = {
 
 export enum AssetQueryReturnType {
   AssetTagPath = 'Asset Tag Path',
-  AssetId = 'Asset Id'
+  AssetId = 'Asset Id',
+  ScanCode = 'Scan Code',
 }
 
 export enum BusType {

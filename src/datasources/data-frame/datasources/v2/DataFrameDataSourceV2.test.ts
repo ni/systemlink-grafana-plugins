@@ -1,7 +1,8 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
-import { DataFrameQuery, DataFrameQueryType, defaultQueryV2 } from '../../types';
+import { DataFrameQuery, DataFrameQueryType, DataTableProjections, defaultDatatableProperties, defaultQueryV2 } from '../../types';
+import { TAKE_LIMIT } from 'datasources/data-frame/constants';
 
 describe('DataFrameDataSourceV2', () => {
     let instanceSettings: DataSourceInstanceSettings<any>;
@@ -51,10 +52,17 @@ describe('DataFrameDataSourceV2', () => {
             const query = {} as DataFrameQuery;
             const expectedQuery = {
                 type: DataFrameQueryType.Data,
+                dataTableFilter: '',
+                dataTableProperties: defaultDatatableProperties,
+                columnProperties: [],
                 columns: [],
+                includeIndexColumns: false,
+                filterNulls: false,
                 decimationMethod: 'LOSSY',
-                applyTimeFilters: false
-            } as any;
+                xColumn: null,
+                applyTimeFilters: false,
+                take: TAKE_LIMIT
+            };
 
             const result = ds.processQuery(query);
 
@@ -65,10 +73,17 @@ describe('DataFrameDataSourceV2', () => {
             const query = { decimationMethod: 'MAX_MIN', applyTimeFilters: true } as DataFrameQuery;
             const expectedQuery = {
                 type: DataFrameQueryType.Data,
+                dataTableFilter: '',
+                dataTableProperties: defaultDatatableProperties,
+                columnProperties: [],
                 columns: [],
+                includeIndexColumns: false,
+                filterNulls: false,
                 decimationMethod: 'MAX_MIN',
-                applyTimeFilters: true
-            } as any;
+                xColumn: null,
+                applyTimeFilters: true,
+                take: TAKE_LIMIT
+            };
 
             const result = ds.processQuery(query);
 
@@ -91,8 +106,38 @@ describe('DataFrameDataSourceV2', () => {
     });
 
     describe('queryTables', () => {
-        it('should throw "Method not implemented."', async () => {
-            await expect(ds.queryTables('')).rejects.toThrow('Method not implemented.');
+        let postMock: jest.SpyInstance;
+        const mockTables = [{ id: '1', name: 'Table 1' }, { id: '2', name: 'Table 2' }];
+
+        beforeEach(() => {
+            postMock = jest.spyOn(ds, 'post').mockResolvedValue({ tables: mockTables });
+        });
+
+        it('should call the `post` method with the expected arguments and return tables', async () => {
+            const filter = 'test-filter';
+            const take = 10;
+            const projection = [DataTableProjections.Name, DataTableProjections.Id];
+            const result = await ds.queryTables(filter, take, projection);
+
+            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take, projection }, { useApiIngress: true });
+            expect(result).toBe(mockTables);
+        });
+
+        it('should use TAKE_LIMIT as default take value when not provided', async () => {
+            const filter = 'test-filter';
+            const result = await ds.queryTables(filter);
+
+            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take: TAKE_LIMIT }, { useApiIngress: true });
+            expect(result).toBe(mockTables);
+        });
+
+        it('should use undefined as default projection value when not provided', async () => {
+            const filter = 'test-filter';
+            const take = 15;
+            const result = await ds.queryTables(filter, take);
+
+            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take, projection: undefined }, { useApiIngress: true });
+            expect(result).toBe(mockTables);
         });
     });
 });

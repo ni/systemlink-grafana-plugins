@@ -40,17 +40,11 @@ export function useWorkspaceOptions<DSType extends DataSourceBase<any, any>>(dat
   return useAsync(async () => {
     const workspaces = await datasource.getWorkspaces();
     const workspaceOptions = workspaces.map(w => ({ label: w.name, value: w.id }));
-    workspaceOptions?.unshift(...getVariableOptions(datasource))
+    workspaceOptions?.unshift(...datasource.getVariableOptions());
     return workspaceOptions;
   });
 }
 
-/** Gets Dashboard variables as an array of {@link SelectableValue}. */
-export function getVariableOptions<DSType extends DataSourceBase<any, any>>(datasource: DSType) {
-  return datasource.templateSrv
-    .getVariables()
-    .map(variable => ({ label: '$' + variable.name, value: '$' + variable.name }));
-}
 
 export function getWorkspaceName(workspaces: Workspace[], id: string) {
   return workspaces.find(w => w.id === id)?.name ?? id;
@@ -265,11 +259,11 @@ export async function queryUsingSkip<T>(
  * @template T - The expected response type.
  * @param backendSrv - The Backend Service instance {@link BackendSrv} used to make the request.
  * @param url - The endpoint URL to which the GET request is sent.
- * @param params - The query parameters to be included in the request.
+ * @param options - Optional configurations for the request.
  * @returns A promise resolving to the response of type `T`.
  */
-export function get<T>(backendSrv: BackendSrv, url: string, params?: Record<string, any>) {
-  return fetch<T>(backendSrv, { method: 'GET', url, params });
+export function get<T>(backendSrv: BackendSrv, url: string, options: Partial<BackendSrvRequest> = {}) {
+  return fetch<T>(backendSrv, { ...options, method: 'GET', url });
 }
 
 /**
@@ -279,13 +273,11 @@ export function get<T>(backendSrv: BackendSrv, url: string, params?: Record<stri
  * @param backendSrv - The Backend Service instance {@link BackendSrv} used to make the request.
  * @param url - The endpoint URL to which the POST request is sent.
  * @param body - The request payload as a key-value map.
- * @param options - Optional configuration for the request. This can include:
- *   - `showingErrorAlert` (boolean): If true, displays an error alert on request failure.
- *   - Any other properties supported by {@link BackendSrvRequest}, such as headers, credentials, etc.
+ * @param options - Optional configurations for the request.
  * @returns A promise resolving to the response of type `T`.
  */
 export function post<T>(backendSrv: BackendSrv, url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}) {
-  return fetch<T>(backendSrv, { method: 'POST', url, data: body, ...options });
+  return fetch<T>(backendSrv, { ...options, method: 'POST', url, data: body });
 }
 
 export const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]) => {

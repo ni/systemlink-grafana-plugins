@@ -1,12 +1,12 @@
-import { AlarmsCountDataSource } from './AlarmsCountDataSource';
+import { AlarmsCountQueryHandler } from './AlarmsCountQueryHandler';
 import { createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { DataQueryRequest } from '@grafana/data';
-import { QueryAlarmsResponse, QueryType, Alarm, AlarmTransitionType } from 'datasources/alarms/types/types';
+import { QueryAlarmsResponse, Alarm, AlarmTransitionType } from 'datasources/alarms/types/types';
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv } from '@grafana/runtime';
 import { QUERY_ALARMS_RELATIVE_PATH } from 'datasources/alarms/constants/QueryAlarms.constants';
 
-let datastore: AlarmsCountDataSource, backendServer: MockProxy<BackendSrv>;
+let datastore: AlarmsCountQueryHandler, backendServer: MockProxy<BackendSrv>;
 
 const sampleAlarm: Alarm = {
   instanceId: 'INST-001',
@@ -57,9 +57,9 @@ const mockAlarmResponse: QueryAlarmsResponse = {
   continuationToken: '',
 };
 
-describe('AlarmsCountDataSource', () => {
+describe('AlarmsCountQueryHandler', () => {
   beforeEach(() => {
-    [datastore, backendServer] = setupDataSource(AlarmsCountDataSource);
+    [datastore, backendServer] = setupDataSource(AlarmsCountQueryHandler);
 
     backendServer.fetch
     .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
@@ -69,7 +69,7 @@ describe('AlarmsCountDataSource', () => {
   it('should set defaultAlarmsCountQuery to defaultQuery', () => {
     const defaultQuery = datastore.defaultQuery;
     
-    expect(defaultQuery).toEqual({ queryType: QueryType.AlarmsCount });
+    expect(defaultQuery).toEqual({ filter: '' });
   });
 
   describe('runQuery', () => {
@@ -129,7 +129,7 @@ describe('AlarmsCountDataSource', () => {
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            filter: `acknowledgedAt > "2025-01-01T00:00:00.000Z"`,
+            filter: 'acknowledgedAt > "2025-01-01T00:00:00.000Z"',
           }),
         })
       );

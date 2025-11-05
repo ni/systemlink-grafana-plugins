@@ -1,14 +1,16 @@
-import { AlarmsDataSourceCore } from './AlarmsDataSourceCore';
+import { AlarmsQueryHandlerCore } from './AlarmsQueryHandlerCore';
 import { DataFrameDTO, DataQueryRequest, ScopedVars } from '@grafana/data';
-import { AlarmsQuery, QueryAlarmsRequest, QueryType } from './types/types';
+import { AlarmsQuery, QueryAlarmsRequest, QueryType } from '../types/types';
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
-import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
+import { QUERY_ALARMS_RELATIVE_PATH } from '../constants/QueryAlarms.constants';
 import { Workspace } from 'core/types';
+import { queryInBatches } from 'core/utils';
 
 jest.mock('core/utils', () => ({
   getVariableOptions: jest.fn(),
+  queryInBatches: jest.fn(),
 }));
 
 jest.mock('shared/workspace.utils', () => {
@@ -23,13 +25,8 @@ jest.mock('shared/workspace.utils', () => {
     }))
   };
 });
-import { getVariableOptions } from 'core/utils';
 
-jest.mock('core/utils', () => ({
-  getVariableOptions: jest.fn(),
-}));
-
-class TestAlarmsDataSource extends AlarmsDataSourceCore {
+class TestAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   async runQuery(query: AlarmsQuery, _: DataQueryRequest): Promise<DataFrameDTO> {
 
     return {
@@ -46,30 +43,27 @@ class TestAlarmsDataSource extends AlarmsDataSourceCore {
     return this.transformAlarmsQuery(scopedVars, query);
   }
 
+  async queryAlarmsInBatchesWrapper(alarmsRequest: QueryAlarmsRequest){
+    return this.queryAlarmsInBatches(alarmsRequest);
+  }
+
   readonly defaultQuery = {
     queryType: QueryType.AlarmsCount,
   };
 }
 
-describe('AlarmsDataSourceCore', () => {
-  let datastore: TestAlarmsDataSource, backendServer: MockProxy<BackendSrv>;
+describe('AlarmsQueryHandlerCore', () => {
+  let datastore: TestAlarmsQueryHandler, backendServer: MockProxy<BackendSrv>;
 
   beforeEach(() => {
-    [datastore, backendServer] = setupDataSource(TestAlarmsDataSource);
+    [datastore, backendServer] = setupDataSource(TestAlarmsQueryHandler);
   });
 
   describe('globalVariableOptions', () => {
     it('should get variable options', () => {
-      const mockOptions = [
-        { label: 'Variable 1', value: '$var1' },
-        { label: 'Variable 2', value: '$var2' },
-      ];
-      (getVariableOptions as jest.Mock).mockReturnValue(mockOptions);
-
-      const result = datastore.globalVariableOptions();
-
-      expect(getVariableOptions).toHaveBeenCalledWith(datastore);
-      expect(result).toEqual(mockOptions);
+      expect(datastore.globalVariableOptions()).toEqual([
+        { label: '$test_var', value: '$test_var' },
+      ]);
     });
   });
 
@@ -298,6 +292,50 @@ describe('AlarmsDataSourceCore', () => {
           );
         });
       });
+    });
+  });
+
+  describe('queryAlarmsInBatches', () => {
+    it('queryRecord callback should call queryAlarms with correct parameters', async () => {
+      const requestBody = { filter: 'active = "true"', take: 100 };
+      const mockAlarmsResponse = {
+        alarms: [{ id: '1' }, { id: '2' }],
+        continuationToken: null,
+        totalCount: null,
+      };
+      jest.spyOn(datastore as any, 'queryAlarms').mockResolvedValue(mockAlarmsResponse);
+      (queryInBatches as jest.Mock).mockImplementation(async (queryRecord, _config, _take) => {
+        const result = await queryRecord(requestBody.take, undefined);
+        
+        return { 
+          data: result.data,
+          totalCount: result.totalCount
+        };
+      });
+
+      const result = await datastore.queryAlarmsInBatchesWrapper(requestBody);
+
+      expect((datastore as any).queryAlarms).toHaveBeenCalledWith({
+        filter: 'active = "true"',
+        take: 100,
+        continuationToken: undefined,
+      });
+      expect(result).toEqual(mockAlarmsResponse.alarms);
+    });
+
+    it('should pass correct batch configuration and take to queryInBatches', async () => {
+      (queryInBatches as jest.Mock).mockResolvedValueOnce([]);
+
+      await datastore.queryAlarmsInBatchesWrapper({ take: 500 });
+
+      expect(queryInBatches).toHaveBeenCalledWith(
+        expect.any(Function),
+        {
+          maxTakePerRequest: 1000,
+          requestsPerSecond: 5,
+        },
+        500
+      );
     });
   });
 

@@ -1,17 +1,19 @@
-import { DataSourceBase } from "core/DataSourceBase";
-import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, ScopedVars, DataSourceInstanceSettings } from "@grafana/data";
-import { AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from "./types/types";
-import { extractErrorInfo } from "core/errors";
-import { QUERY_ALARMS_RELATIVE_PATH } from "./constants/QueryAlarms.constants";
-import { ExpressionTransformFunction, getConcatOperatorForMultiExpression, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
-import { ALARMS_TIME_FIELDS, AlarmsQueryBuilderFields } from "./constants/AlarmsQueryBuilder.constants";
-import { QueryBuilderOption, Workspace } from "core/types";
-import { WorkspaceUtils } from "shared/workspace.utils";
-import { getVariableOptions } from "core/utils";
-import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
-import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from "./constants/SourceProperties.constants";
+import { DataSourceBase } from 'core/DataSourceBase';
+import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, ScopedVars, DataSourceInstanceSettings } from '@grafana/data';
+import { Alarm, AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from '../types/types';
+import { extractErrorInfo } from 'core/errors';
+import { QUERY_ALARMS_MAXIMUM_TAKE, QUERY_ALARMS_RELATIVE_PATH, QUERY_ALARMS_REQUEST_PER_SECOND } from '../constants/QueryAlarms.constants';
+import { ExpressionTransformFunction, getConcatOperatorForMultiExpression, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { AlarmsQueryBuilderFields } from '../constants/AlarmsQueryBuilder.constants';
+import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
+import { WorkspaceUtils } from 'shared/workspace.utils';
+import { queryInBatches } from 'core/utils';
+import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
+import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from '../constants/AlarmProperties.constants';
+import { ALARMS_TIME_FIELDS } from '../constants/AlarmsQueryEditor.constants';
+import { AlarmsProperties } from '../types/ListAlarms.types';
 
-export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
+export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery> {
   public errorTitle?: string;
   public errorDescription?: string;
 
@@ -28,7 +30,7 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   }
 
   public abstract runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
-  public readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
+  public readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   protected async queryAlarms(alarmsRequestBody: QueryAlarmsRequest): Promise<QueryAlarmsResponse> {
     try {
@@ -53,7 +55,7 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   public async loadWorkspaces(): Promise<Map<string, Workspace>> {
     try {
       return await this.workspaceUtils.getWorkspaces();
-    } catch (error){
+    } catch (error) {
       if (!this.errorTitle) {
         this.handleDependenciesError(error);
       }
@@ -61,30 +63,7 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
     }
   }
 
-  protected transformAlarmsQuery(scopedVars: ScopedVars, query?: string): string | undefined {
-    return query
-      ? transformComputedFieldsQuery(this.templateSrv.replace(query, scopedVars), this.computedDataFields)
-      : undefined;
-  }
-
-  private readonly computedDataFields = new Map<string, ExpressionTransformFunction>(
-    Object.values(AlarmsQueryBuilderFields).map(field => {
-      const dataField = field.dataField as string;
-      let callback;
-
-      if (dataField === AlarmsQueryBuilderFields.SOURCE.dataField) {
-        callback = this.getSourceTransformation();
-      } else if (this.isTimeField(dataField)) {
-        callback = timeFieldsQuery(dataField);
-      } else {
-        callback = multipleValuesQuery(dataField);
-      }
-
-      return [dataField, callback];
-    })
-  );
-
-  private handleDependenciesError(error: unknown): void {
+  protected handleDependenciesError(error: unknown): void {
     const errorDetails = extractErrorInfo((error as Error).message);
     this.errorTitle = 'Warning during alarms query';
     switch (errorDetails.statusCode) {
@@ -95,7 +74,7 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
         this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
         break;
       case '504':
-        this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
+        this.errorDescription = 'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.';
         break;
       default:
         this.errorDescription = errorDetails.message
@@ -104,9 +83,57 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
     }
   }
 
-  private isTimeField(field: string): boolean {
+  protected async queryAlarmsInBatches(alarmsRequestBody: QueryAlarmsRequest): Promise<Alarm[]> {
+    const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<Alarm>> => {
+      const body = {
+        ...alarmsRequestBody,
+        take: currentTake,
+        continuationToken: token,
+      };
+      const response = await this.queryAlarms(body);
+
+      return {
+        data: response.alarms,
+        continuationToken: response.continuationToken,
+        totalCount: response.totalCount,
+      };
+    };
+
+    const batchQueryConfig = {
+      maxTakePerRequest: QUERY_ALARMS_MAXIMUM_TAKE,
+      requestsPerSecond: QUERY_ALARMS_REQUEST_PER_SECOND,
+    };
+    const response = await queryInBatches(queryRecord, batchQueryConfig, alarmsRequestBody.take);
+
+    return response.data;
+  }
+
+  protected transformAlarmsQuery(scopedVars: ScopedVars, query?: string): string | undefined {
+    return query
+      ? transformComputedFieldsQuery(this.templateSrv.replace(query, scopedVars), this.computedDataFields)
+      : undefined;
+  }
+
+  protected isTimeField(field: AlarmsProperties): boolean {
     return ALARMS_TIME_FIELDS.includes(field);
   }
+
+  private readonly computedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(AlarmsQueryBuilderFields).map(field => {
+      const dataField = field.dataField as string;
+      let callback;
+
+      if (dataField === AlarmsQueryBuilderFields.SOURCE.dataField) {
+        callback = this.getSourceTransformation();
+      } else if (this.isTimeField(dataField as AlarmsProperties)) {
+        callback = timeFieldsQuery(dataField);
+      } else {
+        callback = multipleValuesQuery(dataField);
+      }
+
+      return [dataField, callback];
+    })
+  );
 
   private getSourceTransformation(): ExpressionTransformFunction {
     return (value: string, operation: string) => {
@@ -147,6 +174,6 @@ export abstract class AlarmsDataSourceCore extends DataSourceBase<AlarmsQuery> {
   }
 
   public testDatasource(): Promise<TestDataSourceResponse> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 }

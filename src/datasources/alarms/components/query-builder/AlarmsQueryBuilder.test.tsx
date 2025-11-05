@@ -174,6 +174,24 @@ describe('AlarmsQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain('is after');
       expect(conditionsContainer.item(0)?.textContent).toContain(label);
     });
+
+    it(`should select ${ label } for last transition occurrence`, () => {
+      const { conditionsContainer } = renderElement(`mostRecentTransitionOccurredAt > \"${ value }\"`, []);
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain('Last transition occurrence');
+      expect(conditionsContainer.item(0)?.textContent).toContain('is after');
+      expect(conditionsContainer.item(0)?.textContent).toContain(label);
+    });
+
+    it(`should select ${ label } for last occurrence`, () => {
+      const { conditionsContainer } = renderElement(`mostRecentSetOccurredAt > \"${ value }\"`, []);
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain('Last occurrence');
+      expect(conditionsContainer.item(0)?.textContent).toContain('is after');
+      expect(conditionsContainer.item(0)?.textContent).toContain(label);
+    });
   });
 
   it('should select keywords in query builder', () => {
@@ -187,7 +205,7 @@ describe('AlarmsQueryBuilder', () => {
   });
 
   it('should select key and value for properties', () => {
-    const { conditionsContainer } = renderElement("properties[\"key\"] = \"value\"");
+    const { conditionsContainer } = renderElement('properties["key"] = "value"');
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain('Properties');

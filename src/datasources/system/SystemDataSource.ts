@@ -63,6 +63,7 @@ export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJson
             values: properties.map(m => NetworkUtils.getIpAddressFromInterfaces(m.ip4Interfaces, m.ip6Interfaces)),
           },
           { name: 'workspace', values: properties.map(m => getWorkspaceName(workspaces, m.workspace)) },
+          { name: 'scan code', values: properties.map(m => m.scanCode) }
         ],
       };
     }

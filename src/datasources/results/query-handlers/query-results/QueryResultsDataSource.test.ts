@@ -569,7 +569,7 @@ describe('QueryResultsDataSource', () => {
       backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
       .mockReturnValue(createFetchResponse(mockQueryResultsValuesResponse));
-      const promise = datastore.getPartNumbers();
+      const promise = await datastore.getPartNumbers();
       expect(promise).not.toBeNull();
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' })

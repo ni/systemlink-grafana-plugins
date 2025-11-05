@@ -1,10 +1,10 @@
 import { DataFrameDTO, DataQueryRequest, FieldType } from '@grafana/data';
-import { AlarmsDataSourceCore } from 'datasources/alarms/AlarmsDataSourceCore';
-import { defaultAlarmsCountQuery } from 'datasources/alarms/constants/defaultQueries';
+import { AlarmsQueryHandlerCore } from 'datasources/alarms/query-type-handlers/AlarmsQueryHandlerCore';
+import { defaultAlarmsCountQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { MINIMUM_TAKE } from 'datasources/alarms/constants/QueryAlarms.constants';
 import { AlarmsCountQuery } from 'datasources/alarms/types/AlarmsCount.types';
 
-export class AlarmsCountDataSource extends AlarmsDataSourceCore {
+export class AlarmsCountQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultAlarmsCountQuery;
 
   public async runQuery(query: AlarmsCountQuery, options: DataQueryRequest): Promise<DataFrameDTO> {

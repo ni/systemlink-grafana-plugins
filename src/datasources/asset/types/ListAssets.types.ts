@@ -45,6 +45,7 @@ export enum AssetFilterPropertiesOption {
     IsSystemController = 'IsSystemController',
     Workspace = 'Workspace',
     CalibrationStatus = 'CalibrationStatus',
+    ScanCode = 'ScanCode',
 }
 
 export enum EntityType {
@@ -207,5 +208,9 @@ export const AssetFilterProperties: Record<AssetFilterPropertiesOption, {
         value: AssetFilterPropertiesOption.CalibrationStatus,
         field: 'calibrationStatus',
     },
-
+    [AssetFilterPropertiesOption.ScanCode]: {
+        label: 'scan code',
+        value: AssetFilterPropertiesOption.ScanCode,
+        field: 'scanCode',
+    },
 }
