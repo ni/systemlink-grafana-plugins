@@ -23,6 +23,7 @@ import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { Workspace } from 'core/types';
 import { DataSourceBase } from 'core/DataSourceBase';
+import { firstValueFrom } from 'rxjs';
 
 const mockSteps = Array(1000).fill({ stepId: '1', name: 'Step 1' });
 const mockPaths = Array(1000).fill({ path: 'path1' });
@@ -172,7 +173,7 @@ describe('QueryStepsDataSource', () => {
         outputType: OutputType.Data,
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       expect(response.data).toHaveLength(1);
       expect(response.data).toMatchSnapshot();
@@ -185,7 +186,7 @@ describe('QueryStepsDataSource', () => {
         properties: [],
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       expect(response.data).toMatchSnapshot();
     });
@@ -196,7 +197,7 @@ describe('QueryStepsDataSource', () => {
         outputType: OutputType.Data,
       });
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -216,7 +217,7 @@ describe('QueryStepsDataSource', () => {
         useTimeRange: true,
       });
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -249,7 +250,7 @@ describe('QueryStepsDataSource', () => {
         properties: [StepsProperties.properties],
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       expect(response.data[0].fields).toEqual([
         { name: 'Properties', values: [''], type: 'string' }
@@ -278,7 +279,7 @@ describe('QueryStepsDataSource', () => {
         properties: [StepsProperties.properties, StepsProperties.data],
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       expect(response.data[0].fields).toEqual([
         { name: 'Properties', values: ['{"key1":"value1","key2":"value2"}'], type: 'string' },
@@ -307,7 +308,7 @@ describe('QueryStepsDataSource', () => {
         properties: [StepsProperties.keywords],
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       expect(response.data[0].fields).toEqual([{ name: 'Keywords', values: [''], type: 'string' }]);
     });
@@ -333,7 +334,7 @@ describe('QueryStepsDataSource', () => {
         properties: [StepsProperties.keywords],
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       expect(response.data[0].fields).toEqual([
         { name: 'Keywords', values: ['keyword1,keyword2'], type: 'string' }
@@ -346,7 +347,7 @@ describe('QueryStepsDataSource', () => {
         outputType: OutputType.TotalCount,
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       expect(response.data).toHaveLength(1);
       expect(response.data).toMatchSnapshot();
@@ -369,7 +370,7 @@ describe('QueryStepsDataSource', () => {
         properties: [StepsProperties.stepId],
         recordCount: 1,
       });
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       expect(response.data).toMatchSnapshot();
     });
@@ -384,7 +385,7 @@ describe('QueryStepsDataSource', () => {
         outputType: OutputType.Data,
       });
 
-      await expect(datastore.query(query)).rejects.toThrow(
+      await expect(firstValueFrom(datastore.query(query))).rejects.toThrow(
         'The query failed due to the following error: (status 400) "Error".'
       );
     });
@@ -396,7 +397,7 @@ describe('QueryStepsDataSource', () => {
         properties: [StepsPropertiesOptions.PROPERTIES as StepsProperties],
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       const fields = response.data[0].fields as Field[];
       expect(fields).toMatchSnapshot();
@@ -415,7 +416,7 @@ describe('QueryStepsDataSource', () => {
         properties: [StepsProperties.workspace],
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       const fields = response.data[0].fields as Field[];
       expect(fields).toMatchSnapshot();
@@ -435,7 +436,7 @@ describe('QueryStepsDataSource', () => {
         properties: [StepsProperties.workspace],
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       const fields = response.data[0].fields as Field[];
       expect(fields).toMatchSnapshot();
@@ -508,7 +509,7 @@ describe('QueryStepsDataSource', () => {
             properties: [StepsProperties.stepId],
           });
 
-          const response = await datastore.query(query);
+          const response = await firstValueFrom(datastore.query(query));
 
           const fields = response.data[0].fields as Field[];
           expect(fields).toMatchSnapshot();
@@ -522,7 +523,7 @@ describe('QueryStepsDataSource', () => {
             properties: [StepsProperties.stepId, StepsProperties.inputs, StepsProperties.outputs],
           });
 
-          const response = await datastore.query(query);
+          const response = await firstValueFrom(datastore.query(query));
 
           const fields = response.data[0].fields as Field[];
           expect(fields).toMatchSnapshot();
@@ -561,7 +562,7 @@ describe('QueryStepsDataSource', () => {
           properties: [StepsProperties.stepId],
         });
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));
 
         const fields = response.data[0].fields as Field[];
         expect(fields).toMatchSnapshot();
@@ -599,7 +600,7 @@ describe('QueryStepsDataSource', () => {
           properties: [StepsProperties.stepId],
         });
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));
 
         const fields = response.data[0].fields as Field[];
         expect(fields).toMatchSnapshot();
@@ -651,7 +652,7 @@ describe('QueryStepsDataSource', () => {
           showMeasurements: true,
         });
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));
 
         const fields = response.data[0].fields as Field[];
         expect(fields).toMatchSnapshot();
@@ -665,7 +666,7 @@ describe('QueryStepsDataSource', () => {
           showMeasurements: true,
         });
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));
 
         const fields = response.data[0].fields as Field[];
         expect(fields).toMatchSnapshot();
@@ -693,7 +694,7 @@ describe('QueryStepsDataSource', () => {
           properties: [StepsProperties.inputs, StepsProperties.outputs],
         });
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));
 
         expect(response.data[0].fields).toEqual([]);
       });
@@ -750,7 +751,7 @@ describe('QueryStepsDataSource', () => {
           showMeasurements: true,
         });
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));
 
         const fields = response.data[0].fields as Field[];
         expect(fields).toMatchSnapshot();
@@ -764,7 +765,7 @@ describe('QueryStepsDataSource', () => {
           showMeasurements: true,
         });
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));
 
         const fields = response.data[0].fields as Field[];
         expect(fields).toMatchSnapshot();
@@ -778,7 +779,7 @@ describe('QueryStepsDataSource', () => {
           showMeasurements: true,
         });
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));
 
         const fields = response.data[0].fields as Field[];
         expect(fields).toMatchSnapshot();
@@ -833,7 +834,7 @@ describe('QueryStepsDataSource', () => {
         showMeasurements: true,
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       const fields = response.data[0].fields as Field[];
       expect(fields).toMatchSnapshot();
@@ -906,7 +907,7 @@ describe('QueryStepsDataSource', () => {
         useTimeRange: true,
       });
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(templateSrv.replace).toHaveBeenCalledWith(filter, expect.anything());
       expect(backendServer.fetch).toHaveBeenCalledWith(
@@ -935,7 +936,7 @@ describe('QueryStepsDataSource', () => {
         properties: [StepsPropertiesOptions.PROPERTIES] as StepsProperties[],
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
       const fields = response.data[0].fields as Field[];
       expect(fields).toEqual([{ name: 'Properties', values: [''], type: 'string' }]);
     });
@@ -965,7 +966,7 @@ describe('QueryStepsDataSource', () => {
         useTimeRange: true,
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       const fields = response.data[0].fields as Field[];
       expect(fields).toEqual([{ name: 'A', values: [5000] }]);
@@ -1045,7 +1046,7 @@ describe('QueryStepsDataSource', () => {
       resultsQuery: '',
     });
 
-    const response = await datastore.query(query);
+    const response = await firstValueFrom(datastore.query(query));
 
     const fields = response.data[0].fields as Field[];
     expect(fields).toEqual([]);
@@ -1738,7 +1739,7 @@ describe('QueryStepsDataSource', () => {
         resultsQuery: `${ResultsQueryBuilderFieldNames.PROGRAM_NAME} = "name1"`,
         stepsQuery: `${StepsQueryBuilderFieldNames.TYPE} = "Type1"`,
       });
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1757,7 +1758,7 @@ describe('QueryStepsDataSource', () => {
         outputType: OutputType.Data,
         resultsQuery: `${ResultsQueryBuilderFieldNames.PROGRAM_NAME} = "{name1,name2}"`,
       });
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1777,7 +1778,7 @@ describe('QueryStepsDataSource', () => {
         stepsQuery: 'StartedAt = "${__now:date}"',
       });
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1798,7 +1799,7 @@ describe('QueryStepsDataSource', () => {
         stepsQuery: `(${StepsQueryBuilderFieldNames.TYPE} = "123" || ${StepsQueryBuilderFieldNames.KEYWORDS} != "456") && ${StepsQueryBuilderFieldNames.NAME} contains "Test"`,
       });
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1818,7 +1819,8 @@ describe('QueryStepsDataSource', () => {
         resultsQuery: 'string.IsNullOrEmpty(ProgramName)',
         stepsQuery: 'string.IsNullOrEmpty(name)',
       });
-      await datastore.query(query);
+      
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1838,7 +1840,8 @@ describe('QueryStepsDataSource', () => {
         resultsQuery: '!string.IsNullOrEmpty(ProgramName)',
         stepsQuery: '!string.IsNullOrEmpty(name)',
       });
-      await datastore.query(query);
+      
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1858,7 +1861,8 @@ describe('QueryStepsDataSource', () => {
         resultsQuery: 'programName = "name"',
         stepsQuery: 'name = "name"',
       });
-      await datastore.query(query);
+
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1878,7 +1882,8 @@ describe('QueryStepsDataSource', () => {
         resultsQuery: 'programName != "name"',
         stepsQuery: 'name != "name"',
       });
-      await datastore.query(query);
+      
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({

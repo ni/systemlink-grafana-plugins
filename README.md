@@ -28,6 +28,7 @@ Tools](https://grafana.github.io/plugin-tools/).
 ### Panels
 
 - [Plotly.js chart](src/panels/plotly/)
+- [QRCode](src/panels/qr-code/)
 
 ## Contributing
 

@@ -3,7 +3,7 @@ import { useAsync } from 'react-use';
 import { DataSourceBase } from './DataSourceBase';
 import { BatchQueryConfig, QBField, QueryBuilderOption, QueryResponse, SystemLinkError, Workspace } from './types';
 import { BackendSrv, BackendSrvRequest, FetchError, isFetchError, TemplateSrv } from '@grafana/runtime';
-import { lastValueFrom } from 'rxjs';
+import { catchError, lastValueFrom, map, Observable, switchMap, throwError, timer } from 'rxjs';
 
 export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<SelectableValue<T>> {
   const RESULT = [];
@@ -267,6 +267,19 @@ export function get<T>(backendSrv: BackendSrv, url: string, options: Partial<Bac
 }
 
 /**
+ * Sends a GET request to the specified URL with the provided parameters.
+ *
+ * @template T - The expected response type.
+ * @param backendSrv - The Backend Service instance {@link BackendSrv} used to make the request.
+ * @param url - The endpoint URL to which the GET request is sent.
+ * @param options - Optional configurations for the request.
+ * @returns An observable emitting the response of type `T`.
+ */
+export function get$<T>(backendSrv: BackendSrv, url: string, options: Partial<BackendSrvRequest> = {}) {
+  return fetch$<T>(backendSrv, { ...options, method: 'GET', url });
+}
+
+/**
  * Sends a POST request to the specified URL with the provided request body and options.
  *
  * @template T - The expected response type.
@@ -278,6 +291,20 @@ export function get<T>(backendSrv: BackendSrv, url: string, options: Partial<Bac
  */
 export function post<T>(backendSrv: BackendSrv, url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}) {
   return fetch<T>(backendSrv, { ...options, method: 'POST', url, data: body });
+}
+
+/**
+ * Sends a POST request to the specified URL with the provided request body and options.
+ *
+ * @template T - The expected response type.
+ * @param backendSrv - The Backend Service instance {@link BackendSrv} used to make the request.
+ * @param url - The endpoint URL to which the POST request is sent.
+ * @param body - The request payload as a key-value map.
+ * @param options - Optional configurations for the request.
+ * @returns An observable emitting the response of type `T`.
+ */
+export function post$<T>(backendSrv: BackendSrv, url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}) {
+  return fetch$<T>(backendSrv, { ...options, method: 'POST', url, data: body });
 }
 
 export const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]) => {
@@ -323,4 +350,45 @@ async function fetch<T>(backendSrv: BackendSrv, options: BackendSrvRequest, retr
     }
     throw error;
   }
+}
+
+function fetch$<T>(
+  backendSrv: BackendSrv,
+  options: BackendSrvRequest,
+  retries = 0
+): Observable<T> {
+  // URL is stored and reused for each retry to ensure consistency
+  // and prevent accidental URL changes during retries
+  const url = options.url;
+  const maxRetries = 3;
+
+  return backendSrv.fetch<T>(options).pipe(
+    map((response) => response.data),
+    catchError((error) => {
+      if (isFetchError(error) && error.status === 429 && retries < maxRetries) {
+        const delayMs = Math.random() * 1000 * 2 ** retries;
+        return timer(delayMs).pipe(
+          switchMap(() => fetch$<T>(backendSrv, { ...options, url }, retries + 1))
+        );
+      }
+
+      if (isFetchError(error)) {
+        const fetchError = error as FetchError;
+        const statusCode = fetchError.status;
+        const genericErrorMessage = `Request to url "${url}" failed with status code: ${statusCode}.`;
+
+        if (statusCode === 504) {
+          return throwError(() => new Error(genericErrorMessage));
+        } else {
+          const data = fetchError.data;
+          const errorMessage = data?.error?.message || JSON.stringify(data);
+          return throwError(
+            () => new Error(`${genericErrorMessage} Error message: ${errorMessage}`)
+          );
+        }
+      }
+
+      return throwError(() => error);
+    })
+  );
 }

@@ -1,8 +1,8 @@
-import { of, Observable } from 'rxjs';
+import { of, Observable, firstValueFrom } from 'rxjs';
 import { DataQueryRequest, DataSourceInstanceSettings, dateTime, Field, FieldType } from '@grafana/data';
 import { BackendSrvRequest, FetchResponse } from '@grafana/runtime';
 
-import { DataFrameDataSourceOptions, DataFrameQueryV1, DataFrameQueryType, TableDataRows, TableProperties } from '../../types';
+import { DataFrameDataSourceOptions, DataFrameQueryV1, DataFrameQueryType, TableDataRows, TableProperties, ColumnType } from '../../types';
 import { DataFrameDataSourceV1 } from './DataFrameDataSourceV1';
 import { LEGACY_METADATA_TYPE } from 'core/types';
 
@@ -45,7 +45,7 @@ it('should return no data if there are no valid queries', async () => {
     { refId: 'B', type: DataFrameQueryType.Data, tableId: '_', columns: [] }, // state after entering a table id, but no columns selected
   ]);
 
-  const response = await ds.query(query);
+  const response = await firstValueFrom(ds.query(query));
 
   expect(response.data).toHaveLength(0);
 });
@@ -56,7 +56,7 @@ it('should return data ignoring invalid queries', async () => {
     { refId: 'B', type: DataFrameQueryType.Data, tableId: '1', columns: ['float'] },
   ]);
 
-  await ds.query(query);
+  await firstValueFrom(ds.query(query));
 
   expect(fetchMock).toHaveBeenCalledTimes(2);
   expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/nidataframe/v1/tables/1/query-decimated-data' }));
@@ -68,7 +68,7 @@ it('should return data for multiple targets', async () => {
     { refId: 'B', type: DataFrameQueryType.Data, tableId: '1', columns: ['float'] },
   ]);
 
-  const response = await ds.query(query);
+  const response = await firstValueFrom(ds.query(query));
 
   expect(fetchMock).toHaveBeenCalledTimes(4);
   expect(response.data).toHaveLength(2);
@@ -84,7 +84,7 @@ it('should convert columns to Grafana fields', async () => {
     },
   ]);
 
-  const response = await ds.query(query);
+  const response = await firstValueFrom(ds.query(query));
 
   const fields = response.data[0].fields as Field[];
   expect(fields).toEqual([
@@ -111,7 +111,7 @@ it('should automatically apply time filters when index column is a timestamp', a
   const to = dateTime('2022-09-16T00:00:00Z');
   query.range = { from, to, raw: { from, to } };
 
-  await ds.query(query);
+  await firstValueFrom(ds.query(query));
 
   expect(fetchMock).toHaveBeenCalledWith(
     expect.objectContaining({
@@ -136,7 +136,7 @@ it('should apply null and NaN filters', async () => {
     },
   ]);
 
-  await ds.query(query);
+  await firstValueFrom(ds.query(query));
 
   expect(fetchMock).toHaveBeenCalledWith(
     expect.objectContaining({
@@ -163,7 +163,7 @@ it('should provide decimation parameters correctly', async () => {
   ]);
   query.maxDataPoints = 300;
 
-  await ds.query(query);
+  await firstValueFrom(ds.query(query));
 
   expect(fetchMock).toHaveBeenCalledWith(
     expect.objectContaining({
@@ -177,12 +177,12 @@ it('should provide decimation parameters correctly', async () => {
 it('should cache table properties for subsequent requests', async () => {
   const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Data, tableId: '1', columns: ['int'] }]);
 
-  await ds.query(query);
+  await firstValueFrom(ds.query(query));
 
   expect(fetchMock).toHaveBeenCalledTimes(2);
   expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/nidataframe/v1/tables/1' }));
 
-  await ds.query(query);
+  await firstValueFrom(ds.query(query));
 
   expect(fetchMock).toHaveBeenCalledTimes(3);
 });
@@ -190,7 +190,7 @@ it('should cache table properties for subsequent requests', async () => {
 it('should return error if query columns do not match table properties', async () => {
   const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Data, tableId: '1', columns: ['nonexistent'] }]);
 
-  await expect(ds.query(query)).rejects.toEqual(expect.anything());
+  await expect(firstValueFrom(ds.query(query))).rejects.toEqual(expect.anything());
 });
 
 it('should migrate queries using columns of arrays of objects', async () => {
@@ -198,11 +198,11 @@ it('should migrate queries using columns of arrays of objects', async () => {
     {
       refId: 'B',
       tableId: '1',
-      columns: [{ name: 'float', dataType: 'FLOAT32', columnType: 'NORMAL' }],
+      columns: [{ name: 'float', dataType: 'FLOAT32', columnType: ColumnType.Normal }],
     } as unknown as DataFrameQueryV1,
   ]);
 
-  await ds.query(query);
+  await firstValueFrom(ds.query(query));
 
   expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ columns: ['float'] }) }));
 });
@@ -219,7 +219,7 @@ it('attempts to replace variables in properties query', async () => {
 it('attempts to replace variables in data query', async () => {
   const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Data, tableId: '$tableId', columns: ['$columns'] }]);
 
-  await ds.query(query);
+  await firstValueFrom(ds.query(query));
 
   expect(replaceMock).toHaveBeenCalledTimes(3);
   expect(replaceMock).toHaveBeenCalledWith(query.targets[0].tableId, expect.anything());
@@ -240,13 +240,13 @@ it('metricFindQuery returns table columns', async () => {
 it('returns table properties for properties query', async () => {
   const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Properties, tableId: '1' }]);
 
-  const response = await ds.query(query);
+  const response = await firstValueFrom(ds.query(query));
 
   expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/nidataframe/v1/tables/1' }));
   expect(response.data[0].fields).toEqual([
     { name: 'hello', values: ['world'] },
     { name: 'foo', values: ['bar'] },
-  ])
+  ]);
 });
 
 it('should migrate legacy metadata type to properties type', () => {
@@ -259,7 +259,7 @@ it('should migrate legacy metadata type to properties type', () => {
 it('handles properties query when table has no properties', async () => {
   const query = buildQuery([{ refId: 'A', type: DataFrameQueryType.Properties, tableId: '2' }]);
 
-  const response = await ds.query(query);
+  const response = await firstValueFrom(ds.query(query));
 
   expect(fetchMock).toHaveBeenCalledWith(expect.objectContaining({ url: '_/nidataframe/v1/tables/2' }));
   expect(response.data[0].fields).toEqual([]);
@@ -306,25 +306,39 @@ const createFetchResponse = <T>(data: T): FetchResponse<T> => {
 
 const fakePropertiesResponse: TableProperties = {
   columns: [
-    { name: 'time', dataType: 'TIMESTAMP', columnType: 'INDEX', properties: {} },
-    { name: 'int', dataType: 'INT32', columnType: 'NORMAL', properties: {} },
-    { name: 'float', dataType: 'FLOAT32', columnType: 'NULLABLE', properties: {} },
-    { name: 'string', dataType: 'STRING', columnType: 'NULLABLE', properties: {} },
-    { name: 'bool', dataType: 'BOOL', columnType: 'NORMAL', properties: {} },
-    { name: 'Value', dataType: 'STRING', columnType: 'NULLABLE', properties: {} },
+    { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Index, properties: {} },
+    { name: 'int', dataType: 'INT32', columnType: ColumnType.Normal, properties: {} },
+    { name: 'float', dataType: 'FLOAT32', columnType: ColumnType.Nullable, properties: {} },
+    { name: 'string', dataType: 'STRING', columnType: ColumnType.Nullable, properties: {} },
+    { name: 'bool', dataType: 'BOOL', columnType: ColumnType.Normal, properties: {} },
+    { name: 'Value', dataType: 'STRING', columnType: ColumnType.Nullable, properties: {} },
   ],
   id: '_',
   properties: { hello: 'world', foo: 'bar' },
   name: 'Test Table',
   workspace: '_',
+  columnCount: 6,
+  createdAt: '2022-09-14T06:01:00.0000000Z',
+  metadataModifiedAt: '2022-09-14T06:01:00.0000000Z',
+  metadataRevision: 1,
+  rowCount: 2,
+  rowsModifiedAt: '2022-09-14T06:01:00.0000000Z',
+  supportsAppend: true
 };
 
 const fakePropertiesResponseNoProperties: TableProperties = {
-  columns: [{ name: 'time', dataType: 'TIMESTAMP', columnType: 'INDEX', properties: {} }],
+  columns: [{ name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Index, properties: {} }],
   id: '_',
   properties: {},
   name: 'Test Table no properties',
   workspace: '_',
+  columnCount: 1,
+  createdAt: '2022-09-14T06:01:00.0000000Z',
+  metadataModifiedAt: '2022-09-14T06:01:00.0000000Z',
+  metadataRevision: 1,
+  rowCount: 2,
+  rowsModifiedAt: '2022-09-14T06:01:00.0000000Z',
+  supportsAppend: true
 };
 
 const fakeData: Record<string, string[]> = {
@@ -342,7 +356,7 @@ function getFakeDataResponse(columns: string[]): TableDataRows {
       columns,
       data: [columns.map(c => fakeData[c][0]), columns.map(c => fakeData[c][1])]
     }
-  }
+  };
 };
 
 const defaultQuery: DataQueryRequest<DataFrameQueryV1> = {
