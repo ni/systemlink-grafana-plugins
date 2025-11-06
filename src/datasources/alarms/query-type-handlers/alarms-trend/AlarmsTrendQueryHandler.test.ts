@@ -124,8 +124,8 @@ describe('AlarmsTrendQueryHandler', () => {
 
   it('should set defaultAlarmsTrendQuery to defaultQuery', () => {
     const defaultQuery = datastore.defaultQuery;
-    
-    expect(defaultQuery).toEqual({ filter: '' });
+
+    expect(defaultQuery).toEqual({ filter: '', groupBySeverity: true });
   });
 
   describe('runQuery', () => {

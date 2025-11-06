@@ -137,7 +137,6 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
   private countActiveAlarmsPerIntervalBySeverity(alarms: Alarm[], startTime: number, endTime: number, intervalMs: number): Map<number, Map<string, number>> {
     const intervalCountsBySeverity = new Map<number, Map<string, number>>();
     const events = this.extractEvents(alarms, endTime);
-
     const alarmStates = new Map<string, { isActive: boolean; severityLevel: AlarmTransitionSeverityLevel }>();
     let eventIndex = 0;
 
@@ -152,7 +151,6 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
       }
       
       const severityCounts = new Map<string, number>();
-
       Object.values(AlarmTrendSeverityLevelLabel).forEach(label => {
         severityCounts.set(label, 0);
       });
