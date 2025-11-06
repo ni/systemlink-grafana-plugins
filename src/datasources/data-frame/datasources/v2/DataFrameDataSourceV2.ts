@@ -2,7 +2,8 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindV
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryV2, DataTableProjections, defaultQueryV2, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2 } from "../../types";
-import { TAKE_LIMIT } from "datasources/data-frame/constants";
+import { COLUMN_OPTION_LIMIT, TAKE_LIMIT } from "datasources/data-frame/constants";
+import { ComboboxOption } from "@grafana/ui";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
     defaultQuery = defaultQueryV2;
@@ -60,4 +61,77 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         );
         return response.tables;
     }
+
+    public async getColumnOption(filter: string): Promise<ComboboxOption[]> {
+        const tables = await this.queryTables(filter, TAKE_LIMIT, [
+            DataTableProjections.Name,
+            DataTableProjections.ColumnName,
+            DataTableProjections.ColumnDataType,
+            DataTableProjections.ColumnType,
+        ]);
+
+        if (tables.length === 0 || !tables.some(table => table.columns && table.columns.length > 0)) {
+            return [];
+        }
+
+        const columnTypeMap = this.createColumnTypeMap(tables);
+        const formattedOptions = this.formatColumnOptions(columnTypeMap);
+        const limitedOptions = this.limitColumnOptions(formattedOptions, COLUMN_OPTION_LIMIT);
+
+        return limitedOptions.map(column => ({ label: column.label, value: column.value }));
+    }
+
+    /**
+     * Aggregates columns from all tables into a map of column name to set of data types.
+     */
+    private createColumnTypeMap(tables: TableProperties[]): Record<string, Set<string>>  {
+        const columnTypeMap: Record<string, Set<string>> = {};
+        tables.forEach(table => {
+            table.columns?.forEach((column: { name: string; dataType: string }) => {
+                if (column?.name && column?.dataType) {
+                    const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(column.dataType)
+                        ? 'Numeric'
+                        : this.toSentenceCase(column.dataType);
+                    (columnTypeMap[column.name] ??= new Set()).add(type);
+                }
+            });
+        });
+        return columnTypeMap;
+    };
+
+    /**
+     * Formats column options for the dropdown, grouping numeric types and formatting labels.
+     */
+    private formatColumnOptions(columnTypeMap: Record<string, Set<string>>): ComboboxOption[] {
+        const options: ComboboxOption[] = [];
+
+        Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
+            const columnDataType = Array.from(dataTypes);
+
+            if (columnDataType.length === 1) {
+                // Single type: show just the name as label and value as name with type in sentence case
+                options.push({ label: name, value: `${name}-${columnDataType[0]}` }); 
+            } else {
+                // Multiple types: group numeric, show others in sentence case
+                Array.from(new Set(columnDataType)).forEach(type => {
+                    options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
+                });
+            }
+        });
+        return options;
+    };
+
+    /**
+     * Converts a string to sentence case (e.g., 'TIMESTAMP' -> 'Timestamp').
+     */
+    private toSentenceCase(str: string) {
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+    };
+    
+    /**
+     * Limits the number of column options to a maximum value.
+     */
+    private limitColumnOptions<T,>(columns: T[], max: number): T[] {
+        return columns.slice(0, max);
+    };
 }

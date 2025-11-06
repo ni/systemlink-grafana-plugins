@@ -51,95 +51,13 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
         }, [onChange, onRunQuery]
     );
 
-    /**
-     * Aggregates columns from all tables into a map of column name to set of data types.
-     */
-    const getColumnTypeMap = (tables: any[]): Record<string, Set<string>> => {
-        const columnTypeMap: Record<string, Set<string>> = {};
-        tables.forEach(table => {
-            table.columns?.forEach((column: { name: string; dataType: string }) => {
-                if (column?.name && column?.dataType) {
-                    if (!columnTypeMap[column.name]) {
-                        columnTypeMap[column.name] = new Set();
-                    }
-                    columnTypeMap[column.name].add(column.dataType);
-                }
-            });
-        });
-        return columnTypeMap;
-    };
-
-    /**
-     * Converts a string to sentence case (e.g., 'TIMESTAMP' -> 'Timestamp').
-     */
-    const toSentenceCase = (str: string) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-
-    /**
-     * Formats column options for the dropdown, grouping numeric types and formatting labels.
-     */
-    const getFormattedColumnOptions = (
-        columnTypeMap: Record<string, Set<string>>
-    ): Array<{ label: string; value: string; name: string; dataType: string }> => {
-        const NUMERIC_TYPES = new Set(['INT32', 'INT64', 'FLOAT32', 'FLOAT64']);
-        const options: Array<{ label: string; value: string; name: string; dataType: string }> = [];
-
-        Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
-            const columnDataType = Array.from(dataTypes);
-            const nonNumericTypes = columnDataType.filter(type => !NUMERIC_TYPES.has(type));
-
-            if (columnDataType.length === 1) {
-                // Single type: show just the name
-                const label = name;
-                const value = name;
-                const dataType = columnDataType[0];
-                const type = NUMERIC_TYPES.has(dataType) ? 'Numeric' : dataType;
-                options.push({ label, value, name, dataType: type });
-            } else {
-                // Multiple types: group numeric, show others in sentence case
-                const hasNumericType = columnDataType.some(type => NUMERIC_TYPES.has(type));
-                if (hasNumericType) {
-                    options.push({ label: `${name} (Numeric)`, value: `${name}-Numeric`, name, dataType: 'Numeric' });
-                }
-                Array.from(new Set(nonNumericTypes)).forEach(type => {
-                    const sentenceCaseType = toSentenceCase(type);
-                    options.push({ label: `${name} (${sentenceCaseType})`, value: `${name}-${sentenceCaseType}`, name: name, dataType: type });
-                });
-            }
-        });
-        return options;
-    };
-
-    /**
-     * Limits the number of column options to a maximum value.
-     */
-    const getLimitedColumnOptions = <T,>(columns: T[], max: number): T[] => {
-        return columns.slice(0, max);
-    };
-
-    /**
-     * Fetches tables, aggregates and formats column options, and sets dropdown state.
-     */
     const fetchAndSetColumnOptions = async (filter: string) => {
         if (!filter) {
             setColumnOptions([]);
             return;
         }
-        const tables = await datasource.queryTables(filter, TAKE_LIMIT, [
-            DataTableProjections.Name,
-            DataTableProjections.ColumnName,
-            DataTableProjections.ColumnDataType,
-            DataTableProjections.ColumnType,
-        ]);
-    
-        if (tables.length === 0) {
-            setColumnOptions([]);
-            return;
-        }
-    
-        const columnTypeMap = getColumnTypeMap(tables);
-        const formattedOptions = getFormattedColumnOptions(columnTypeMap);
-        const limitedOptions = getLimitedColumnOptions(formattedOptions, 10000);
-        setColumnOptions(limitedOptions.map(column => ({ label: column.label, value: column.value })));
+        const columnOptions = await datasource.getColumnOption(filter);
+        setColumnOptions(columnOptions);
     };
 
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
