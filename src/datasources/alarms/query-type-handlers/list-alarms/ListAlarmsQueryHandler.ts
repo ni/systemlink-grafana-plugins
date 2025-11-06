@@ -30,15 +30,11 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     if (this.isTakeValid(query.take) && this.isPropertiesValid(query.properties)) {
       query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
       const alarmsResponse = await this.queryAlarmsData(query);
+      const alarmsToProcess = query.transitionInclusionOption === TransitionInclusionOption.All
+        ? this.duplicateAlarmsByTransitions(alarmsResponse)
+        : alarmsResponse;
 
-      if (this.isPropertiesValid(query.properties)) {
-        const alarmsToProcess =
-        query.transitionInclusionOption === TransitionInclusionOption.All
-          ? this.duplicateAlarmsByTransitions(alarmsResponse)
-          : alarmsResponse;
-
-        mappedFields = await this.mapPropertiesToSelect(query.properties, alarmsToProcess);
-      }
+      mappedFields = await this.mapPropertiesToSelect(query.properties, alarmsToProcess);
     }
 
     return {
@@ -120,7 +116,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       const fieldType = this.isTimeField(fieldValue as AlarmsProperties) ? FieldType.time : FieldType.string;
 
       const fieldValues = alarms.map(alarm => {
-        const transition = alarm.transitions[0]; // For flattened alarms, there will be only one transition
+        const transition = alarm.transitions?.[0]; // For flattened alarms, there will be only one transition
 
         switch (property) {
           case AlarmsProperties.workspace:
@@ -140,13 +136,13 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
           case AlarmsProperties.source:
             return this.getSource(alarm.properties);
           case AlarmsProperties.transitionSeverityLevel:
-            return this.getSeverityLabel(transition.severityLevel);
+            return transition ? this.getSeverityLabel(transition.severityLevel) : '';
           case AlarmsProperties.transitionProperties:
-            return this.getSortedCustomProperties(transition.properties);
+            return transition ? this.getSortedCustomProperties(transition.properties) : '';
           default:
             let value;
             if(TRANSITION_SPECIFIC_PROPERTIES.includes(property)) {
-              value = transition[fieldValue as keyof AlarmTransition];
+              value = transition?.[fieldValue as keyof AlarmTransition];
             } else {
               value = alarm[fieldValue as keyof Alarm];
             }
