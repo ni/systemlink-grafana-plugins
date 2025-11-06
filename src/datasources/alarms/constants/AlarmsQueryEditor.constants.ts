@@ -23,6 +23,7 @@ export const labels = {
   properties: 'Properties',
   descending: 'Descending',
   take: 'Take',
+  groupBySeverity: 'Group by Severity',
 };
 
 export const tooltips = {
@@ -30,7 +31,8 @@ export const tooltips = {
   queryBy: 'This optional field specifies the query filters.',
   properties: 'This field specifies the properties to use in the query.',
   descending: 'This toggle returns the alarms query in descending order.',
-  take: 'This field specifies the maximum number of alarms to return.'
+  take: 'This field specifies the maximum number of alarms to return.',
+  groupBySeverity: 'This toggle returns the alarms query grouped by severity.',
 };
 
 export const takeErrorMessages = {

@@ -1,37 +1,41 @@
 import { DataFrameDTO, DataQueryRequest, FieldType } from '@grafana/data';
 import { AlarmsQueryHandlerCore } from 'datasources/alarms/query-type-handlers/AlarmsQueryHandlerCore';
 import { defaultAlarmsTrendQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
-import { AlarmsTrendQuery } from 'datasources/alarms/types/AlarmsTrend.types';
-import { Alarm, AlarmTransition, AlarmTransitionType, TransitionInclusionOption } from 'datasources/alarms/types/types';
+import { AlarmsTrendQuery, AlarmTrendSeverityLevelLabel } from 'datasources/alarms/types/AlarmsTrend.types';
+import { Alarm, AlarmTransition, AlarmTransitionSeverityLevel, AlarmTransitionType, TransitionInclusionOption } from 'datasources/alarms/types/types';
+
+interface AlarmEvent {
+  timestamp: number;
+  alarmId: string;
+  newState: boolean;
+  severityLevel: AlarmTransitionSeverityLevel;
+};
 
 export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultAlarmsTrendQuery;
 
   public async runQuery(query: AlarmsTrendQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    const start = new Date(this.templateSrv.replace('${__from:date}', options.scopedVars));
-    const end = new Date(this.templateSrv.replace('${__to:date}', options.scopedVars));
-    const intervalInMs = options.intervalMs;
+    const { start, end, intervalMs } = this.extractTimeParameters(options);
+    const startTime = start.getTime();
+    const endTime = end.getTime();
     const filter = this.getTrendQueryFilter(query, start, end);
     const alarms = await this.queryAlarmsUntilComplete({ filter, transitionInclusionOption: TransitionInclusionOption.All });
     const alarmsWithTimestamp = this.enrichTransitionsWithTimestamp(alarms);
-    const trendData = this.countActiveAlarmsPerInterval(alarmsWithTimestamp, start, end, intervalInMs);
 
-    return {
-      refId: query.refId,
-      name: 'Alarms Trend',
-      fields: [
-        {
-          name: 'Time',
-          type: FieldType.time,
-          values: Array.from(trendData.keys())
-        },
-        {
-          name: 'Alarms Count',
-          type: FieldType.number,
-          values: Array.from(trendData.values())
-        }
-      ]
-    };
+    if (query.groupBySeverity) {
+      const trendDataBySeverity = this.countActiveAlarmsPerIntervalBySeverity(alarmsWithTimestamp, startTime, endTime, intervalMs);
+      return this.buildGroupedDataFrameBySeverity(query.refId, trendDataBySeverity);
+    }
+
+    const trendData = this.countActiveAlarmsPerInterval(alarmsWithTimestamp, startTime, endTime, intervalMs);
+    return this.buildGroupedDataFrame(query.refId, trendData);
+  }
+
+  private extractTimeParameters(options: DataQueryRequest) {
+    const start = new Date(this.templateSrv.replace('${__from:date}', options.scopedVars));
+    const end = new Date(this.templateSrv.replace('${__to:date}', options.scopedVars));
+    const intervalMs = options.intervalMs;
+    return { start, end, intervalMs };
   }
 
   private getTrendQueryFilter(query: AlarmsTrendQuery, start: Date, end: Date): string {
@@ -60,16 +64,8 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
     }));
   }
 
-  private countActiveAlarmsPerInterval(alarms: Alarm[], start: Date, end: Date, intervalMs: number): Map<number, number> {
-    const intervalCounts = new Map<number, number>();
-    const startTime = start.getTime();
-    const endTime = end.getTime();
-    
-    const events: Array<{
-      timestamp: number;
-      alarmId: string;
-      newState: boolean;
-    }> = [];
+  private extractEvents(alarms: Alarm[], endTime: number): AlarmEvent[] {
+    const events: AlarmEvent[] = [];
 
     alarms.forEach(alarm => {
       for (const transition of alarm.transitions) {
@@ -82,13 +78,20 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
         events.push({
           timestamp,
           alarmId: alarm.alarmId,
-          newState: transition.transitionType === AlarmTransitionType.Set
+          newState: transition.transitionType === AlarmTransitionType.Set,
+          severityLevel: transition.severityLevel
         });
       }
     });
 
     events.sort((a, b) => a.timestamp - b.timestamp);
 
+    return events;
+  }
+
+  private countActiveAlarmsPerInterval(alarms: Alarm[], startTime: number, endTime: number, intervalMs: number): Map<number, number> {
+    const intervalCounts = new Map<number, number>();
+    const events = this.extractEvents(alarms, endTime);
     const alarmStates = new Map<string, boolean>();
     let eventIndex = 0;
 
@@ -110,5 +113,106 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
     }
     
     return intervalCounts;
+  }
+
+  private buildGroupedDataFrame(refId: string, trendData: Map<number, number>): DataFrameDTO {
+    return {
+      refId: refId,
+      name: 'Alarms Trend',
+      fields: [
+        {
+          name: 'Time',
+          type: FieldType.time,
+          values: Array.from(trendData.keys())
+        },
+        {
+          name: 'Alarms Count',
+          type: FieldType.number,
+          values: Array.from(trendData.values())
+        }
+      ]
+    }
+  }
+
+  private countActiveAlarmsPerIntervalBySeverity(alarms: Alarm[], startTime: number, endTime: number, intervalMs: number): Map<number, Map<string, number>> {
+    const intervalCountsBySeverity = new Map<number, Map<string, number>>();
+    const events = this.extractEvents(alarms, endTime);
+
+    const alarmStates = new Map<string, { isActive: boolean; severityLevel: AlarmTransitionSeverityLevel }>();
+    let eventIndex = 0;
+
+    for (let intervalStart = startTime; intervalStart < endTime; intervalStart += intervalMs) {
+      while (eventIndex < events.length && events[eventIndex].timestamp < intervalStart) {
+        const event = events[eventIndex];
+        alarmStates.set(event.alarmId, {
+          isActive: event.newState,
+          severityLevel: event.severityLevel
+        });
+        eventIndex++;
+      }
+      
+      const severityCounts = new Map<string, number>();
+
+      Object.values(AlarmTrendSeverityLevelLabel).forEach(label => {
+        severityCounts.set(label, 0);
+      });
+      
+      alarmStates.forEach(({ isActive, severityLevel }) => {
+        const severityGroup = this.getSeverityGroup(severityLevel);
+        if (isActive && severityGroup !== undefined) {
+          const currentCount = severityCounts.get(severityGroup) ?? 0;
+          severityCounts.set(severityGroup, currentCount + 1);
+        }
+      });
+      
+      intervalCountsBySeverity.set(intervalStart, severityCounts);
+    }
+    
+    return intervalCountsBySeverity;
+  }
+
+  private buildGroupedDataFrameBySeverity(refId: string, trendDataBySeverity: Map<number, Map<string, number>>): DataFrameDTO {
+    const timeValues = Array.from(trendDataBySeverity.keys());
+    const fields = [
+      {
+        name: 'Time',
+        type: FieldType.time,
+        values: timeValues
+      }
+    ];
+    
+    Object.values(AlarmTrendSeverityLevelLabel).forEach(group => {
+      fields.push({
+        name: group,
+        type: FieldType.number,
+        values: timeValues.map(timestamp => {
+          const severityCounts = trendDataBySeverity.get(timestamp);
+          return severityCounts?.get(group) || 0;
+        })
+      });
+    });
+    
+    return {
+      refId,
+      name: 'Alarms Trend by Severity',
+      fields
+    };
+  }
+
+  private getSeverityGroup(severityLevel: AlarmTransitionSeverityLevel): string | undefined {
+    if (severityLevel >= AlarmTransitionSeverityLevel.Critical) {
+      return AlarmTrendSeverityLevelLabel.Critical;
+    }
+
+    switch (severityLevel) {
+      case AlarmTransitionSeverityLevel.Low:
+        return AlarmTrendSeverityLevelLabel.Low;
+      case AlarmTransitionSeverityLevel.Moderate:
+        return AlarmTrendSeverityLevelLabel.Moderate;
+      case AlarmTransitionSeverityLevel.High:
+        return AlarmTrendSeverityLevelLabel.High;
+      default:
+        return undefined
+    }
   }
 }

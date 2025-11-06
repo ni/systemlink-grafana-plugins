@@ -71,7 +71,7 @@ export enum TransitionInclusionOption {
 export interface AlarmTransition {
   transitionType: AlarmTransitionType;
   occurredAt: string;
-  severityLevel: number;
+  severityLevel: AlarmTransitionSeverityLevel;
   value: string;
   condition: string;
   shortText: string;
@@ -87,3 +87,11 @@ export enum AlarmTransitionType {
   Clear = 'CLEAR',
   Set = 'SET',
 };
+
+export enum AlarmTransitionSeverityLevel {
+  Clear = -1,
+  Low = 1,
+  Moderate = 2,
+  High = 3,
+  Critical = 4,
+}

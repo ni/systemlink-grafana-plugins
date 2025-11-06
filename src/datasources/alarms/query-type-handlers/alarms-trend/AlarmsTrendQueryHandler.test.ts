@@ -1,7 +1,7 @@
 import { AlarmsTrendQueryHandler } from './AlarmsTrendQueryHandler';
 import { createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { DataQueryRequest, FieldType } from '@grafana/data';
-import { QueryAlarmsResponse, Alarm, AlarmTransitionType, TransitionInclusionOption } from 'datasources/alarms/types/types';
+import { QueryAlarmsResponse, Alarm, AlarmTransitionType, TransitionInclusionOption, AlarmTransitionSeverityLevel } from 'datasources/alarms/types/types';
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv } from '@grafana/runtime';
 import { QUERY_ALARMS_RELATIVE_PATH } from 'datasources/alarms/constants/QueryAlarms.constants';
@@ -38,7 +38,7 @@ const sampleAlarm: Alarm = {
     {
       transitionType: AlarmTransitionType.Clear,
       occurredAt: '2025-01-01T10:45:00.000Z',
-      severityLevel: 0,
+      severityLevel: AlarmTransitionSeverityLevel.Low,
       value: 'Normal',
       condition: 'Temperature',
       shortText: 'Temp Normal',
@@ -216,7 +216,7 @@ describe('AlarmsTrendQueryHandler', () => {
             {
               transitionType: AlarmTransitionType.Set,
               occurredAt: '2025-01-01T10:10:00.000Z',
-              severityLevel: 0,
+              severityLevel: AlarmTransitionSeverityLevel.High,
               value: '',
               condition: '',
               shortText: '',
@@ -232,7 +232,7 @@ describe('AlarmsTrendQueryHandler', () => {
             {
               transitionType: AlarmTransitionType.Set,
               occurredAt: '2025-01-01T10:20:00.000Z',
-              severityLevel: 0,
+              severityLevel: AlarmTransitionSeverityLevel.High,
               value: '',
               condition: '',
               shortText: '',
@@ -243,7 +243,7 @@ describe('AlarmsTrendQueryHandler', () => {
             {
               transitionType: AlarmTransitionType.Clear,
               occurredAt: '2025-01-01T10:40:00.000Z',
-              severityLevel: 0,
+              severityLevel: AlarmTransitionSeverityLevel.Low,
               value: '',
               condition: '',
               shortText: '',
@@ -311,7 +311,7 @@ describe('AlarmsTrendQueryHandler', () => {
             {
               transitionType: AlarmTransitionType.Set,
               occurredAt: '2025-01-01T10:10:00.000Z',
-              severityLevel: 3,
+              severityLevel: AlarmTransitionSeverityLevel.High,
               value: 'High',
               condition: 'Temperature',
               shortText: 'Temp High',
@@ -322,7 +322,7 @@ describe('AlarmsTrendQueryHandler', () => {
             {
               transitionType: AlarmTransitionType.Clear,
               occurredAt: '2025-01-01T10:30:00.000Z',
-              severityLevel: 0,
+              severityLevel: AlarmTransitionSeverityLevel.High,
               value: 'Normal',
               condition: 'Temperature',
               shortText: 'Temp Normal',
