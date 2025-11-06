@@ -569,7 +569,7 @@ describe('DataFrameDataSourceV2', () => {
 
     describe('metricFindQuery', () => {
         it('should return an empty array', async () => {
-            const result = await ds.metricFindQuery({} as any);
+            const result = await ds.metricFindQuery({} as any, {} as any);
             expect(result).toEqual([]);
         });
     });
