@@ -1020,7 +1020,7 @@ describe('DataFrameDataSourceV2', () => {
             expect(result).toEqual(
                 Array.from({ length: COLUMN_OPTION_LIMIT }, (_, i) => ({
                     label: `Column ${i + 1}`,
-                    value: `Column ${i + 1}`
+                    value: `Column ${i + 1}-String`
                 }))
             );
         });
