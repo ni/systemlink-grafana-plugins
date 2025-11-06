@@ -1,8 +1,8 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
 import { AlarmsProperties, ListAlarmsQuery } from '../../types/ListAlarms.types';
-import { AlarmsVariableQuery, AlarmTransition, QueryAlarmsRequest } from '../../types/types';
+import { AlarmsVariableQuery, AlarmTransition, QueryAlarmsRequest, TransitionInclusionOption } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
-import { AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, TRANSITION_ONLY_PROPERTIES } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { Alarm } from 'datasources/alarms/types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
@@ -31,7 +31,12 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     const alarmsResponse = await this.queryAlarmsData(query);
 
     if (this.isPropertiesValid(query.properties)) {
-      mappedFields = await this.mapPropertiesToSelect(query.properties, alarmsResponse);
+      if(query.transitionInclusionOption === TransitionInclusionOption.All) {
+        const flattenedRows = this.flattenAlarmsWithTransitions(alarmsResponse);
+        mappedFields = await this.mapPropertiesToSelect(query.properties, flattenedRows);
+      } else {
+        mappedFields = await this.mapPropertiesToSelect(query.properties, alarmsResponse);
+      }
     }
 
     return {
@@ -103,15 +108,16 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   ): Promise<DataFrameDTO['fields']> {
     const workspaces = await this.loadWorkspaces();
     const users = await this.loadUsers();
-    const flattenedRows = this.flattenAlarmsWithTransitions(alarms);
-
+    
     const mappedFields = properties.map(property => {
       const field = AlarmsPropertiesOptions[property];
       const fieldName = field.label;
-      const fieldValue = field.value;
-      const fieldType = this.isTimeField(fieldValue) ? FieldType.time : FieldType.string;
+      const fieldValue = field.field;
+      const fieldType = this.isTimeField(fieldValue as AlarmsProperties) ? FieldType.time : FieldType.string;
 
-      const fieldValues = flattenedRows.map(({ alarm, transition }) => {
+      const fieldValues = alarms.map(alarm => {
+        const transition = alarm.transitions[0]; // For flattened alarms, there will be only one transition
+
         switch (property) {
           case AlarmsProperties.workspace:
             const workspace = workspaces.get(alarm.workspace);
@@ -129,13 +135,17 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
             return this.getAlarmState(alarm.clear, alarm.acknowledged);
           case AlarmsProperties.source:
             return this.getSource(alarm.properties);
-          case AlarmsProperties.transitionSeverity:
-            return transition ? this.getSeverityLabel(transition.severityLevel) : '';
+          case AlarmsProperties.transitionSeverityLevel:
+            return this.getSeverityLabel(transition.severityLevel);
           case AlarmsProperties.transitionProperties:
-            return transition ? this.getSortedCustomProperties(transition.properties) : '';
+            return this.getSortedCustomProperties(transition.properties);
           default:
-            const value = alarm[fieldValue as keyof Alarm];
-            console.log(fieldValue, value);
+            let value;
+            if(TRANSITION_ONLY_PROPERTIES.includes(property)) {
+              value = transition[fieldValue as keyof AlarmTransition];
+            } else {
+              value = alarm[fieldValue as keyof Alarm];
+            }
             if (fieldType === FieldType.time) {
               return value ?? null;
             }
@@ -148,20 +158,28 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     return mappedFields;
   }
 
-  private flattenAlarmsWithTransitions(alarms: Alarm[]): Array<{ alarm: Alarm; transition?: AlarmTransition }> {
-    const flattenedRows: Array<{ alarm: Alarm; transition: AlarmTransition }> = [];
+  private flattenAlarmsWithTransitions(alarms: Alarm[]): Alarm[] {
+    const flattenedAlarms: Alarm[] = [];
 
     alarms.forEach(alarm => {
-      if (alarm.transitions.length > 0) {
+      if (alarm.transitions && alarm.transitions.length > 0) {
         alarm.transitions.forEach(transition => {
-          flattenedRows.push({ alarm, transition });
+          const duplicatedAlarm: Alarm = {
+            ...alarm, // Duplicate all alarm properties
+            transitions: [transition] // Only include the current transition
+          };
+          flattenedAlarms.push(duplicatedAlarm);
         });
       } else {
-        flattenedRows.push({ alarm, transition: [] as unknown as AlarmTransition });
+        const alarmWithEmptyTransitions: Alarm = {
+          ...alarm,
+          transitions: []
+        };
+        flattenedAlarms.push(alarmWithEmptyTransitions);
       }
     });
 
-    return flattenedRows;
+    return flattenedAlarms;
   }
 
   private getSortedCustomProperties(properties: { [key: string]: string }): string {

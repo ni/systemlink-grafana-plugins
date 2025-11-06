@@ -185,5 +185,51 @@ describe('ListAlarmsQueryEditor', () => {
         );
       });
     });
+
+    it('should show transition properties in dropdown when transition inclusion is All or MostRecentOnly', async () => {
+      const container = await renderElement({
+        refId: 'A',
+        queryType: QueryType.ListAlarms,
+        transitionInclusionOption: TransitionInclusionOption.All,
+      });
+
+      const propertiesCombobox = container.getAllByRole('combobox')[0];
+
+      await userEvent.click(propertiesCombobox);      
+      await userEvent.type(propertiesCombobox, 'Transition condition');
+      expect(screen.getByText('Transition condition')).toBeInTheDocument();
+
+      await userEvent.clear(propertiesCombobox);
+      await userEvent.type(propertiesCombobox, 'Transition detail');
+      expect(screen.getByText('Transition detail')).toBeInTheDocument();
+
+      await userEvent.clear(propertiesCombobox);
+      await userEvent.type(propertiesCombobox, 'Transition keywords');
+      expect(screen.getByText('Transition keywords')).toBeInTheDocument();
+
+      await userEvent.clear(propertiesCombobox);
+      await userEvent.type(propertiesCombobox, 'Transition occurred at');
+      expect(screen.getByText('Transition occurred at')).toBeInTheDocument();
+
+      await userEvent.clear(propertiesCombobox);
+      await userEvent.type(propertiesCombobox, 'Transition properties');
+      expect(screen.getByText('Transition properties')).toBeInTheDocument();
+
+      await userEvent.clear(propertiesCombobox);
+      await userEvent.type(propertiesCombobox, 'Transition severity');
+      expect(screen.getByText('Transition severity')).toBeInTheDocument();
+
+      await userEvent.clear(propertiesCombobox);
+      await userEvent.type(propertiesCombobox, 'Transition short text');
+      expect(screen.getByText('Transition short text')).toBeInTheDocument();
+
+      await userEvent.clear(propertiesCombobox);
+      await userEvent.type(propertiesCombobox, 'Transition type');
+      expect(screen.getByText('Transition type')).toBeInTheDocument();
+
+      await userEvent.clear(propertiesCombobox);
+      await userEvent.type(propertiesCombobox, 'Transition value');
+      expect(screen.getByText('Transition value')).toBeInTheDocument();
+    });
   });
 });
