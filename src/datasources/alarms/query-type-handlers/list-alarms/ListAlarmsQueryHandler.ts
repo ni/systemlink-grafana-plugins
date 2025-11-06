@@ -31,13 +31,14 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
       const alarmsResponse = await this.queryAlarmsData(query);
 
-    if (this.isPropertiesValid(query.properties)) {
-      const alarmsToProcess =
-      query.transitionInclusionOption === TransitionInclusionOption.All
-        ? this.duplicateAlarmsByTransitions(alarmsResponse)
-        : alarmsResponse;
+      if (this.isPropertiesValid(query.properties)) {
+        const alarmsToProcess =
+        query.transitionInclusionOption === TransitionInclusionOption.All
+          ? this.duplicateAlarmsByTransitions(alarmsResponse)
+          : alarmsResponse;
 
-      mappedFields = await this.mapPropertiesToSelect(query.properties, alarmsToProcess);
+        mappedFields = await this.mapPropertiesToSelect(query.properties, alarmsToProcess);
+      }
     }
 
     return {
@@ -111,7 +112,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   ): Promise<DataFrameDTO['fields']> {
     const workspaces = await this.loadWorkspaces();
     const users = await this.loadUsers();
-    
+
     const mappedFields = properties.map(property => {
       const field = AlarmsPropertiesOptions[property];
       const fieldName = field.label;

@@ -102,11 +102,11 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
   const propertiesOptions = useMemo(() => {
     const transitionInclusionOption = query.transitionInclusionOption;
     const allOptions = Object.values(AlarmsPropertiesOptions);
-    
-    if (transitionInclusionOption === TransitionInclusionOption.None || !transitionInclusionOption) {
+
+    if (transitionInclusionOption === TransitionInclusionOption.None) {
       return allOptions.filter(option => !TRANSITION_SPECIFIC_PROPERTIES.includes(option.value));
     }
-    
+
     return allOptions;
   }, [query.transitionInclusionOption]);
 

@@ -332,7 +332,9 @@ describe('ListAlarmsQueryEditor', () => {
       const transitionInclusionCombobox = container.getByRole('combobox', { name: 'Include Transition' });
 
       expect(transitionInclusionCombobox).toBeInTheDocument();
-      expect(transitionInclusionCombobox).toHaveValue(AlarmsTransitionInclusionOptions[TransitionInclusionOption.MostRecentOnly].label);
+      expect(transitionInclusionCombobox).toHaveValue(
+        AlarmsTransitionInclusionOptions[TransitionInclusionOption.MostRecentOnly].label
+      );
     });
 
     it('should call handleQueryChange with selected transition inclusion option when it is updated in the UI', async () => {
@@ -340,9 +342,12 @@ describe('ListAlarmsQueryEditor', () => {
       const transitionInclusionCombobox = container.getByRole('combobox', { name: 'Include Transition' });
 
       await userEvent.click(transitionInclusionCombobox);
-      await select(transitionInclusionCombobox, AlarmsTransitionInclusionOptions[TransitionInclusionOption.All].label, {
-        container: document.body,
-      });
+      await select(transitionInclusionCombobox,
+        AlarmsTransitionInclusionOptions[TransitionInclusionOption.All].label,
+        {
+          container: document.body,
+        }
+      );
 
       await waitFor(() => {
         expect(mockHandleQueryChange).toHaveBeenCalledTimes(1);
@@ -404,7 +409,7 @@ describe('ListAlarmsQueryEditor', () => {
       await select(transitionInclusionCombobox,
         AlarmsTransitionInclusionOptions[TransitionInclusionOption.None].label,
         {
-        container: document.body,
+          container: document.body,
         }
       );
 

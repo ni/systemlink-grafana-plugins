@@ -6,7 +6,6 @@ export interface ListAlarmsQuery extends AlarmsQuery {
   descending?: boolean;
   take?: number;
   transitionInclusionOption?: TransitionInclusionOption;
-  transitionInclusionOption?: TransitionInclusionOption;
 }
 
 export enum AlarmsProperties {
