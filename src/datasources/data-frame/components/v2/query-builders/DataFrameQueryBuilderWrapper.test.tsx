@@ -63,8 +63,8 @@ const renderComponent = (
   const datasource = {
     loadWorkspaces: jest.fn().mockResolvedValue(
       new Map([
-        ['1', 'WorkspaceName'],
-        ['2', 'AnotherWorkspaceName'],
+        ['1', { id: '1', name: 'WorkspaceName', default: false, enabled: true }],
+        ['2', { id: '2', name: 'AnotherWorkspaceName', default: false, enabled: true }],
       ])
     ),
     globalVariableOptions: jest.fn().mockReturnValue(
