@@ -272,11 +272,11 @@ export function get<T>(backendSrv: BackendSrv, url: string, options: Partial<Bac
  * @template T - The expected response type.
  * @param backendSrv - The Backend Service instance {@link BackendSrv} used to make the request.
  * @param url - The endpoint URL to which the GET request is sent.
- * @param params - The query parameters to be included in the request.
+ * @param options - Optional configurations for the request.
  * @returns An observable emitting the response of type `T`.
  */
-export function get$<T>(backendSrv: BackendSrv, url: string, params?: Record<string, any>) {
-  return fetch$<T>(backendSrv, { method: 'GET', url, params });
+export function get$<T>(backendSrv: BackendSrv, url: string, options: Partial<BackendSrvRequest> = {}) {
+  return fetch$<T>(backendSrv, { ...options, method: 'GET', url });
 }
 
 /**
@@ -306,7 +306,7 @@ export function post<T>(backendSrv: BackendSrv, url: string, body: Record<string
  * @returns An observable emitting the response of type `T`.
  */
 export function post$<T>(backendSrv: BackendSrv, url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}) {
-  return fetch$<T>(backendSrv, { method: 'POST', url, data: body, ...options });
+  return fetch$<T>(backendSrv, { ...options, method: 'POST', url, data: body });
 }
 
 export const addOptionsToLookup = (field: QBField, options: QueryBuilderOption[]) => {

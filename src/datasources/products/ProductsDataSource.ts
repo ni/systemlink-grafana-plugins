@@ -7,7 +7,7 @@ import { extractErrorInfo } from 'core/errors';
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
 import { getWorkspaceName } from 'core/utils';
-import { catchError, concatMap, forkJoin, lastValueFrom, map, Observable, of } from 'rxjs';
+import { catchError, forkJoin, lastValueFrom, map, Observable, of, switchMap } from 'rxjs';
 
 export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   constructor(
@@ -111,7 +111,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       this.workspaceLoadedPromise,
       this.partNumberLoadedPromise
     ]).pipe(
-      concatMap(() => {
+      switchMap(() => {
         if (query.properties?.length === 0 || query.recordCount === undefined) {
           return of({
             refId: query.refId,

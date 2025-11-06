@@ -91,8 +91,8 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    */
   public get$<T>(url: string, options: RequestOptions = {}) {
     return from(this.buildApiRequestConfig(url, options, 'GET')).pipe(
-      switchMap(([url, params]) =>
-        get$<T>(this.backendSrv, url, params)
+      switchMap(([updatedUrl, updatedOptions]) =>
+        get$<T>(this.backendSrv, updatedUrl, updatedOptions)
       )
     );
   }
@@ -130,8 +130,8 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     options: RequestOptions = {}
   ) {
     return from(this.buildApiRequestConfig(url, options, 'POST')).pipe(
-      switchMap(([url, newOptions]) =>
-        post$<T>(this.backendSrv, url, body, newOptions)
+      switchMap(([updatedUrl, updatedOptions]) =>
+        post$<T>(this.backendSrv, updatedUrl, body, updatedOptions)
       )
     );
   }
