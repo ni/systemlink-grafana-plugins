@@ -6,11 +6,12 @@ import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { QUERY_ALARMS_RELATIVE_PATH } from '../constants/QueryAlarms.constants';
 import { Workspace } from 'core/types';
-import { queryInBatches } from 'core/utils';
+import { queryInBatches, queryUntilComplete } from 'core/utils';
 
 jest.mock('core/utils', () => ({
   getVariableOptions: jest.fn(),
   queryInBatches: jest.fn(),
+  queryUntilComplete: jest.fn(),
 }));
 
 jest.mock('shared/workspace.utils', () => {
@@ -45,6 +46,10 @@ class TestAlarmsQueryHandler extends AlarmsQueryHandlerCore {
 
   async queryAlarmsInBatchesWrapper(alarmsRequest: QueryAlarmsRequest){
     return this.queryAlarmsInBatches(alarmsRequest);
+  }
+
+  async queryAlarmsUntilCompleteWrapper(alarmsRequest: QueryAlarmsRequest){
+    return this.queryAlarmsUntilComplete(alarmsRequest);
   }
 
   readonly defaultQuery = {
@@ -336,6 +341,120 @@ describe('AlarmsQueryHandlerCore', () => {
         },
         500
       );
+    });
+  });
+
+  describe('queryAlarmsUntilComplete', () => {
+    it('queryRecord callback should call queryAlarms with correct parameters when take is provided', async () => {
+      const requestBody = { filter: 'active = "true"', take: 100 };
+      const mockAlarmsResponse = {
+        alarms: [{ id: '1' }, { id: '2' }],
+        continuationToken: null,
+        totalCount: null,
+      };
+      jest.spyOn(datastore as any, 'queryAlarms').mockResolvedValue(mockAlarmsResponse);
+      (queryUntilComplete as jest.Mock).mockImplementation(async (queryRecord, _config, _take) => {
+        const result = await queryRecord(requestBody.take, undefined);
+        
+        return { 
+          data: result.data,
+          totalCount: result.totalCount
+        };
+      });
+
+      const result = await datastore.queryAlarmsUntilCompleteWrapper(requestBody);
+
+      expect((datastore as any).queryAlarms).toHaveBeenCalledWith({
+        filter: 'active = "true"',
+        take: 100,
+        continuationToken: undefined,
+      });
+      expect(result).toEqual(mockAlarmsResponse.alarms);
+    });
+
+    it('queryRecord callback should call queryAlarms with correct parameters when take is not provided', async () => {
+      const requestBody = { filter: 'severity = "HIGH"' };
+      const mockAlarmsResponse = {
+        alarms: [{ id: '1' }, { id: '2' }, { id: '3' }],
+        continuationToken: null,
+        totalCount: 3,
+      };
+      jest.spyOn(datastore as any, 'queryAlarms').mockResolvedValue(mockAlarmsResponse);
+      (queryUntilComplete as jest.Mock).mockImplementation(async (queryRecord) => {
+        const result = await queryRecord(undefined, undefined);
+        return { data: result.data, totalCount: result.totalCount };
+      });
+
+      const result = await datastore.queryAlarmsUntilCompleteWrapper(requestBody);
+
+      expect((datastore as any).queryAlarms).toHaveBeenCalledWith({
+        filter: 'severity = "HIGH"',
+        take: undefined,
+        continuationToken: undefined,
+      });
+      expect(result).toEqual(mockAlarmsResponse.alarms);
+    });
+
+    it('should pass correct batch configuration and take to queryUntilComplete', async () => {
+      (queryUntilComplete as jest.Mock).mockResolvedValueOnce([]);
+
+      await datastore.queryAlarmsUntilCompleteWrapper({});
+
+      expect(queryUntilComplete).toHaveBeenCalledWith(
+        expect.any(Function),
+        {
+          maxTakePerRequest: 1000,
+          requestsPerSecond: 5,
+        }
+      );
+    });
+
+    it('should handle large take values', async () => {
+      const requestBody = { filter: 'active = "true"', take: 5000 };
+      const mockAlarmsResponse = {
+        alarms: Array(5000).fill(null).map((_, i) => ({ id: `alarm-${i}` })),
+        continuationToken: null,
+        totalCount: 5000,
+      };
+      jest.spyOn(datastore as any, 'queryAlarms').mockResolvedValue(mockAlarmsResponse);
+      (queryUntilComplete as jest.Mock).mockImplementation(async (queryRecord) => {
+        const result = await queryRecord(5000, undefined);
+        return { data: result.data, totalCount: result.totalCount };
+      });
+
+      const result = await datastore.queryAlarmsUntilCompleteWrapper(requestBody);
+
+      expect(queryUntilComplete).toHaveBeenCalledWith(
+        expect.any(Function),
+        {
+          maxTakePerRequest: 1000,
+          requestsPerSecond: 5,
+        }
+      );
+      expect(result).toHaveLength(5000);
+    });
+
+    it('should handle queryRecord function with continuation token', async () => {
+      const requestBody = { filter: 'channel = "test"', take: 100 };
+      const mockAlarmsResponse = {
+        alarms: [{ id: '1' }, { id: '2' }],
+        continuationToken: 'next-page-token',
+        totalCount: 150,
+      };
+      jest.spyOn(datastore as any, 'queryAlarms').mockResolvedValue(mockAlarmsResponse);
+      (queryUntilComplete as jest.Mock).mockImplementation(async (queryRecord) => {
+        await queryRecord(100, undefined);
+        const result = await queryRecord(100, 'next-page-token');
+        return { data: result.data, totalCount: result.totalCount };
+      });
+
+      await datastore.queryAlarmsUntilCompleteWrapper(requestBody);
+
+      expect((datastore as any).queryAlarms).toHaveBeenLastCalledWith({
+        filter: 'channel = "test"',
+        take: 100,
+        continuationToken: 'next-page-token',
+      });
     });
   });
 
