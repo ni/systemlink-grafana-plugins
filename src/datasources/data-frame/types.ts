@@ -116,7 +116,7 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
   label: string,
   projection: DataTableProjections,
   type: DataTableProjectionType,
-  field: keyof FlattenedTableProperties;
+  field: keyof FlattenedTableProperties
 }> = {
   [DataTableProperties.Name]: {
     label: 'Data table name',
