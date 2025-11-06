@@ -115,84 +115,101 @@ export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
 export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
   label: string,
   projection: DataTableProjections,
-  type: DataTableProjectionType;
+  type: DataTableProjectionType,
+  field: keyof FlattenedTableProperties
 }> = {
   [DataTableProperties.Name]: {
     label: 'Data table name',
     projection: DataTableProjections.Name,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'name'
   },
   [DataTableProperties.Id]: {
     label: 'Data table ID',
     projection: DataTableProjections.Id,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'id'
   },
   [DataTableProperties.RowCount]: {
     label: 'Rows',
     projection: DataTableProjections.RowCount,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'rowCount'
   },
   [DataTableProperties.ColumnCount]: {
     label: 'Columns',
     projection: DataTableProjections.ColumnCount,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'columnCount'
   },
   [DataTableProperties.CreatedAt]: {
     label: 'Created',
     projection: DataTableProjections.CreatedAt,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'createdAt'
   },
   [DataTableProperties.Workspace]: {
     label: 'Workspace',
     projection: DataTableProjections.Workspace,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'workspace'
   },
   [DataTableProperties.MetadataModifiedAt]: {
     label: 'Metadata modified',
     projection: DataTableProjections.MetadataModifiedAt,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'metadataModifiedAt'
   },
   [DataTableProperties.MetadataRevision]: {
     label: 'Metadata revision',
     projection: DataTableProjections.MetadataRevision,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'metadataRevision'
   },
   [DataTableProperties.RowsModifiedAt]: {
     label: 'Rows modified',
     projection: DataTableProjections.RowsModifiedAt,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'rowsModifiedAt'
   },
   [DataTableProperties.ColumnName]: {
     label: 'Column name',
     projection: DataTableProjections.ColumnName,
-    type: DataTableProjectionType.Column
+    type: DataTableProjectionType.Column,
+    field: 'columnName'
   },
   [DataTableProperties.ColumnDataType]: {
     label: 'Column data type',
     projection: DataTableProjections.ColumnDataType,
-    type: DataTableProjectionType.Column
+    type: DataTableProjectionType.Column,
+    field: 'columnDataType'
   },
   [DataTableProperties.ColumnType]: {
     label: 'Column type',
     projection: DataTableProjections.ColumnType,
-    type: DataTableProjectionType.Column
+    type: DataTableProjectionType.Column,
+    field: 'columnType'
   },
   [DataTableProperties.ColumnProperties]: {
     label: 'Column properties',
     projection: DataTableProjections.ColumnProperties,
-    type: DataTableProjectionType.Column
+    type: DataTableProjectionType.Column,
+    field: 'columnProperties'
   },
   [DataTableProperties.SupportsAppend]: {
     label: 'Supports append',
     projection: DataTableProjections.SupportsAppend,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'supportsAppend'
   },
   [DataTableProperties.Properties]: {
     label: 'Data table properties',
     projection: DataTableProjections.Properties,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'properties'
   },
 };
+
 export type ValidDataFrameQuery = ValidDataFrameQueryV1 | ValidDataFrameQueryV2;
 
 export type ValidDataFrameQueryV1 = DataFrameQueryV1 & Required<Omit<DataFrameQueryV1, keyof DataQuery>>;
@@ -218,10 +235,16 @@ export interface QBFieldWithDataSourceCallback extends QueryBuilderField {
   },
 }
 
+export enum ColumnType {
+  Index = 'INDEX',
+  Nullable = 'NULLABLE',
+  Normal = 'NORMAL',
+}
+
 export interface Column {
   name: string;
   dataType: ColumnDataType;
-  columnType: 'INDEX' | 'NULLABLE' | 'NORMAL';
+  columnType: ColumnType;
   properties: Record<string, string>;
 }
 
@@ -240,11 +263,25 @@ export interface ColumnFilter {
 }
 
 export interface TableProperties {
-  columns: Column[];
   id: string;
   name: string;
+  columnCount: number;
+  columns: Column[];
+  createdAt: string;
+  metadataModifiedAt: string;
+  metadataRevision: number;
+  rowCount: number;
+  rowsModifiedAt: string;
+  supportsAppend: boolean;
   workspace: string;
   properties: Record<string, string>;
+}
+
+export interface FlattenedTableProperties extends Partial<Omit<TableProperties, 'columns'>> {
+  columnName?: string;
+  columnDataType?: ColumnDataType;
+  columnType?: ColumnType;
+  columnProperties?: Record<string, string>;
 }
 
 export interface TablePropertiesList {

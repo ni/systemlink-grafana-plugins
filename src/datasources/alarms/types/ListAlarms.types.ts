@@ -3,6 +3,9 @@ import { AlarmsQuery, TransitionInclusionOption } from './types';
 export interface ListAlarmsQuery extends AlarmsQuery {
   filter?: string;
   properties?: AlarmsProperties[];
+  descending?: boolean;
+  take?: number;
+  transitionInclusionOption?: TransitionInclusionOption;
   transitionInclusionOption?: TransitionInclusionOption;
 }
 

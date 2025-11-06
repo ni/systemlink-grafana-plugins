@@ -10,8 +10,11 @@ import {
   labels,
   placeholders,
   PROPERTIES_ERROR_MESSAGE,
+  QUERY_EDITOR_MAX_TAKE,
+  QUERY_EDITOR_MIN_TAKE,
   SECONDARY_CONTROL_WIDTH,
   SECONDARY_LABEL_WIDTH,
+  takeErrorMessages,
   tooltips,
   TRANSITION_SPECIFIC_PROPERTIES,
 } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
@@ -19,7 +22,8 @@ import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
 import { AlarmsProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 import { ListAlarmsQueryHandler } from 'datasources/alarms/query-type-handlers/list-alarms/ListAlarmsQueryHandler';
-import { Combobox, ComboboxOption, MultiCombobox, Stack } from '@grafana/ui';
+import { AutoSizeInput, Combobox, ComboboxOption, InlineSwitch, MultiCombobox, Stack } from '@grafana/ui';
+import { validateNumericInput } from 'core/utils';
 import { TransitionInclusionOption } from 'datasources/alarms/types/types';
 
 type Props = {
@@ -31,6 +35,7 @@ type Props = {
 export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [isPropertiesControlValid, setIsPropertiesControlValid] = useState<boolean>(true);
+  const [takeInvalidMessage, setTakeInvalidMessage] = useState<string>('');
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -58,6 +63,28 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     setIsPropertiesControlValid(selectedProperties.length > 0);
 
     handleQueryChange({ ...query, properties: selectedProperties });
+  };
+
+  const onDescendingChange = (descending: boolean) => {
+    handleQueryChange({ ...query, descending });
+  };
+
+  const validateTakeValue = (take: number) => {
+    if (isNaN(take) || take < QUERY_EDITOR_MIN_TAKE) {
+      return { message: takeErrorMessages.minErrorMsg, take };
+    }
+    if (take > QUERY_EDITOR_MAX_TAKE) {
+      return { message: takeErrorMessages.maxErrorMsg, take };
+    }
+    return { message: '', take };
+  };
+  
+  const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
+    const value = parseInt((event.target as HTMLInputElement).value, 10);
+    const { message, take } = validateTakeValue(value);
+
+    setTakeInvalidMessage(message);
+    handleQueryChange({ ...query, take });
   };
 
   const onTransitionInclusionChange = (option: ComboboxOption<TransitionInclusionOption>) => {
@@ -126,6 +153,35 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
               value={query.transitionInclusionOption}
               width={SECONDARY_CONTROL_WIDTH}
               onChange={onTransitionInclusionChange}
+            />
+          </InlineField>
+          <InlineField
+            label={labels.descending}
+            labelWidth={SECONDARY_LABEL_WIDTH}
+            tooltip={tooltips.descending}
+          >
+            <InlineSwitch
+              onChange={event => onDescendingChange(event.currentTarget.checked)}
+              value={query.descending}
+            />
+          </InlineField>
+          <InlineField
+            label={labels.take}
+            labelWidth={SECONDARY_LABEL_WIDTH}
+            tooltip={tooltips.take}
+            invalid={!!takeInvalidMessage}
+            error={takeInvalidMessage}
+          >
+            <AutoSizeInput
+              minWidth={SECONDARY_CONTROL_WIDTH}
+              maxWidth={SECONDARY_CONTROL_WIDTH}
+              type="number"
+              value={query.take}
+              onChange={onTakeChange}
+              placeholder={placeholders.take}
+              onKeyDown={event => {
+                validateNumericInput(event);
+              }}
             />
           </InlineField>
         </Stack>

@@ -1,3 +1,33 @@
+## [4.49.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.48.0...v4.49.0) (2025-11-06)
+
+### Features
+
+* **alarms:** Add support for Include transition control ([#493](https://github.com/ni/systemlink-grafana-plugins/issues/493)) ([a342193](https://github.com/ni/systemlink-grafana-plugins/commit/a34219375cf9069964ba981a612324d3023f0813))
+
+## [4.48.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.47.0...v4.48.0) (2025-11-06)
+
+### Features
+
+* **alarms:** Support take and descending in list alarms ([#487](https://github.com/ni/systemlink-grafana-plugins/issues/487)) ([788d1da](https://github.com/ni/systemlink-grafana-plugins/commit/788d1da60bda21354c96082713739758fcc9aa80))
+
+## [4.47.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.46.0...v4.47.0) (2025-11-06)
+
+### Features
+
+* **dataframe:** Pull data for properties query type ([#489](https://github.com/ni/systemlink-grafana-plugins/issues/489)) ([8243823](https://github.com/ni/systemlink-grafana-plugins/commit/824382379a4c3486201a66361b1c419ae2fb5b4f))
+
+## [4.46.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.45.0...v4.46.0) (2025-11-05)
+
+### Features
+
+* **dataframe:** Populate column options from filtered data tables ([#494](https://github.com/ni/systemlink-grafana-plugins/issues/494)) ([6c0db11](https://github.com/ni/systemlink-grafana-plugins/commit/6c0db111073e6077d719bce1169995fda61c1380))
+
+## [4.45.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.44.0...v4.45.0) (2025-11-05)
+
+### Features
+
+* add missing code owners ([#488](https://github.com/ni/systemlink-grafana-plugins/issues/488)) ([e8491d5](https://github.com/ni/systemlink-grafana-plugins/commit/e8491d5b298f5bb2220fbf0ee0de42df6fa6e454))
+
 ## [4.44.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.43.0...v4.44.0) (2025-11-05)
 
 ### Features
