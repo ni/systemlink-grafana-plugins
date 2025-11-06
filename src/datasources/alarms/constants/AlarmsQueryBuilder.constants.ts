@@ -159,14 +159,7 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
   SOURCE: {
     label: 'Source',
     dataField: AlarmsProperties.source,
-    filterOperations: [
-      QueryBuilderOperations.EQUALS.name, 
-      QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.IS_BLANK.name,
-      QueryBuilderOperations.IS_NOT_BLANK.name,
-      QueryBuilderOperations.CONTAINS.name, 
-      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
-    ],
+    filterOperations: EXTENDED_STRING_FILTER_OPERATIONS,
   },
   WORKSPACE: {
     label: 'Workspace',

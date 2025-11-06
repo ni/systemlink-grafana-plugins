@@ -238,6 +238,16 @@ describe('AlarmsQueryHandlerCore', () => {
             input: '!string.IsNullOrEmpty(source)',
             expected: '(!string.IsNullOrEmpty(properties.system) || !string.IsNullOrEmpty(properties.minionId))',
           },
+          {
+            name: 'source contains',
+            input: 'source.Contains("test-source")',
+            expected: '(properties.system.Contains("test-source") || properties.minionId.Contains("test-source"))',
+          },
+          {
+            name: 'source does not contain',
+            input: '!(source.Contains("test-source"))',
+            expected: '(!(properties.system.Contains("test-source")) && !(properties.minionId.Contains("test-source")))',
+          },
         ].forEach(({ name, input, expected }) => {
           it(`should transform ${name} filter`, () => {
             const result = datastore.transformAlarmsQueryWrapper({}, input);
