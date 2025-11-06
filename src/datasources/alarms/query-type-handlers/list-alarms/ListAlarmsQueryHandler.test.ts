@@ -108,16 +108,6 @@ function buildAlarmsQuery(query?: Partial<ListAlarmsQuery>): ListAlarmsQuery {
   };
 }
 
-function buildAlarmsQuery(query?: Partial<ListAlarmsQuery>): ListAlarmsQuery {
-  return {
-    refId: 'A',
-    queryType: QueryType.ListAlarms,
-    take: 1000,
-    properties: [AlarmsProperties.displayName],
-    ...query,
-  };
-}
-
 describe('ListAlarmsQueryHandler', () => {
   let options: DataQueryRequest;
 
@@ -775,20 +765,22 @@ describe('ListAlarmsQueryHandler', () => {
     });
 
     it('should use transition inclusion option and call API with correct transition parameter', async () => {
-      const transitionInclusionOption = TransitionInclusionOption.MostRecentOnly;
+      const query = buildAlarmsQuery({ transitionInclusionOption: TransitionInclusionOption.MostRecentOnly });
 
-      await datastore.runQuery({ ...query, transitionInclusionOption }, options);
+      await datastore.runQuery(query, options);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            transitionInclusionOption
+            transitionInclusionOption: TransitionInclusionOption.MostRecentOnly,
           }),
         })
       );
     });
 
     it('should default to NONE transition inclusion option when not provided', async () => {
+      const query = buildAlarmsQuery({ transitionInclusionOption: undefined });
+
       await datastore.runQuery(query, options);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
