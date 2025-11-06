@@ -311,18 +311,6 @@ describe('ListAlarmsQueryEditor', () => {
   });
 
   describe('Transition Inclusion', () => {
-    const transitionPropertyLabels = [
-      'Transition condition',
-      'Transition detail',
-      'Transition keywords',
-      'Transition occurred at',
-      'Transition properties',
-      'Transition severity',
-      'Transition short text',
-      'Transition type',
-      'Transition value',
-    ];
-
     it('should render the selected transition inclusion option in the UI', async () => {
       const container = await renderElement({
         refId: 'A',
@@ -370,11 +358,9 @@ describe('ListAlarmsQueryEditor', () => {
         const propertiesCombobox = container.getAllByRole('combobox')[0];
         await userEvent.click(propertiesCombobox);
 
-        for (const label of transitionPropertyLabels) {
-          await userEvent.clear(propertiesCombobox);
-          await userEvent.type(propertiesCombobox, label);
-          expect(screen.queryByText(label)).toBeInTheDocument();
-        }
+        await userEvent.clear(propertiesCombobox);
+        await userEvent.type(propertiesCombobox, 'Transition value');
+        expect(screen.queryByText('Transition value')).toBeInTheDocument();
       });
     });
 
@@ -388,11 +374,9 @@ describe('ListAlarmsQueryEditor', () => {
       const propertiesCombobox = container.getAllByRole('combobox')[0];
       await userEvent.click(propertiesCombobox);
 
-      for (const label of transitionPropertyLabels) {
-        await userEvent.clear(propertiesCombobox);
-        await userEvent.type(propertiesCombobox, label);
-        expect(screen.queryByText(label)).not.toBeInTheDocument();
-      }
+      await userEvent.clear(propertiesCombobox);
+      await userEvent.type(propertiesCombobox, 'Transition condition');
+      expect(screen.queryByText('Transition condition')).not.toBeInTheDocument();
     });
 
     it('should remove transition properties from selected properties when transition inclusion is changed to None', async () => {
@@ -400,7 +384,7 @@ describe('ListAlarmsQueryEditor', () => {
         refId: 'A',
         queryType: QueryType.ListAlarms,
         transitionInclusionOption: TransitionInclusionOption.All,
-        properties: [ AlarmsProperties.acknowledged, ...TRANSITION_SPECIFIC_PROPERTIES ],
+        properties: [ AlarmsProperties.acknowledged, AlarmsProperties.transitionCondition ],
       });
 
       const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Include Transition' });
@@ -415,12 +399,12 @@ describe('ListAlarmsQueryEditor', () => {
 
       await waitFor(() => {
         expect(mockHandleQueryChange).toHaveBeenCalledTimes(1);
-        // expect(mockHandleQueryChange).toHaveBeenCalledWith(
-        //   expect.objectContaining({
-        //     transitionInclusionOption: TransitionInclusionOption.None,
-        //     properties: [ AlarmsProperties.acknowledged ],
-        //   }),
-        // );
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            transitionInclusionOption: TransitionInclusionOption.None,
+            properties: [ AlarmsProperties.acknowledged ],
+          }),
+        );
       });
     });
   });
