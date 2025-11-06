@@ -111,17 +111,17 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
       </InlineField>
       <Stack>
         <InlineField
-            label={labels.queryBy}
-            labelWidth={LABEL_WIDTH}
-            tooltip={tooltips.queryBy}
-          >
-            <AlarmsQueryBuilder
-              filter={query.filter}
-              globalVariableOptions={datasource.globalVariableOptions()}
-              workspaces={workspaces}
-              onChange={onFilterChange}
-            />
-          </InlineField>
+          label={labels.queryBy}
+          labelWidth={LABEL_WIDTH}
+          tooltip={tooltips.queryBy}
+        >
+          <AlarmsQueryBuilder
+            filter={query.filter}
+            globalVariableOptions={datasource.globalVariableOptions()}
+            workspaces={workspaces}
+            onChange={onFilterChange}
+          />
+        </InlineField>
         <Stack direction='column'>
           <InlineField
             label={labels.transitionInclusion}
