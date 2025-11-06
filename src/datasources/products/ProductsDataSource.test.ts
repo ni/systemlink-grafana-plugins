@@ -741,6 +741,14 @@ describe('query', () => {
       ]);
     });
 
+    test('should run query if not hidden', () => {
+      const query: ProductQuery = {
+        hide: false,
+        refId: ''
+      };
+      expect(datastore.shouldRunQuery(query)).toBe(true);
+    });
+
     test('should not run query if hidden', () => {
       const query: ProductQuery = {
         hide: true,

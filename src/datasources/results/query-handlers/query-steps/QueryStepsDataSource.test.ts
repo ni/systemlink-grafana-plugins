@@ -442,6 +442,16 @@ describe('QueryStepsDataSource', () => {
       expect(fields).toMatchSnapshot();
     });
 
+    test('should run query if NOT hidden', () => {
+      const query: QuerySteps = {
+          hide: false,
+          refId: '',
+          outputType: OutputType.Data,
+          resultsQuery: ''
+      };
+      expect(datastore.shouldRunQuery(query)).toBe(true);
+    });
+
     test('should not run query if hidden', () => {
       const query: QuerySteps = {
           hide: true,

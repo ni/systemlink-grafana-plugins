@@ -1126,6 +1126,14 @@ describe('runQuery', () => {
     expect(result).toMatchSnapshot();
   });
 
+  test('should run query if not hidden', () => {
+    const query: TestPlansQuery = {
+      hide: false,
+      refId: ''
+    };
+    expect(datastore.shouldRunQuery(query)).toBe(true);
+  });
+
   test('should not run query if hidden', () => {
     const query: TestPlansQuery = {
       hide: true,

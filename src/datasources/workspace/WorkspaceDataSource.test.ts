@@ -58,6 +58,13 @@ describe('queries', () => {
     ]);
   });
 
+  test('should run query if not hidden', () => {
+    const query: WorkspaceQuery = {
+        hide: false,
+        refId: ''
+    };
+    expect(ds.shouldRunQuery(query)).toBe(true);
+  });
 
   test('should not run query if hidden', () => {
     const query: WorkspaceQuery = {

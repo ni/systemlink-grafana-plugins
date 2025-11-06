@@ -618,6 +618,14 @@ describe('WorkOrdersDataSource', () => {
       expect(result.fields).toHaveLength(0);
     });
 
+    test('should run query if not hidden', () => {
+      const query: WorkOrdersQuery = {
+        hide: false,
+        refId: ''
+      };
+      expect(datastore.shouldRunQuery(query)).toBe(true);
+    });
+
     test('should not run query if hidden', () => {
       const query: WorkOrdersQuery = {
         hide: true,

@@ -540,6 +540,15 @@ describe('QueryResultsDataSource', () => {
         ]);
     });
 
+    test('should run query if NOT hidden', () => {
+      const query: QueryResults = {
+          hide: false,
+          refId: '',
+          outputType: OutputType.Data
+      };
+      expect(datastore.shouldRunQuery(query)).toBe(true);
+    });
+
     test('should not run query if hidden', () => {
       const query: QueryResults = {
           hide: true,
