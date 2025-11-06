@@ -1,6 +1,6 @@
 import { DataQuery, DataSourceInstanceSettings, TestDataSourceResponse } from "@grafana/data";
 import { BackendSrv } from "@grafana/runtime";
-import { firstValueFrom, of } from "rxjs";
+import { firstValueFrom, map, of, timer } from "rxjs";
 
 jest.mock('./utils', () => ({
     get: jest.fn(),
@@ -422,6 +422,48 @@ describe('DataSourceBase', () => {
             expect(response).toEqual({
                 data: ['async-frame-data', 'observable-frame-data'],
             });
+        });
+
+        it('should wait for the longest running Observable to complete before emitting the final value', async () => {
+            jest.useFakeTimers();
+            jest.spyOn(dataSource, 'prepareQuery');
+            jest.spyOn(dataSource, 'shouldRunQuery').mockReturnValue(true);            
+            const querySpy = jest.spyOn(dataSource, 'runQuery')
+                .mockImplementationOnce(() => {
+                    return timer(50).pipe(map(() => 'Data-A-Slow'));
+                })
+                .mockImplementationOnce(() => {
+                    return timer(10).pipe(map(() => 'Data-B-Fast'));
+                });
+
+            const request = {
+                targets: [{ refId: 'A' }, { refId: 'B' }],
+            };
+
+            let responseResolved = false;
+            const responsePromise = firstValueFrom(dataSource.query(request))
+                .then(res => {
+                    responseResolved = true;
+                    return res;
+                });
+
+            jest.advanceTimersByTime(10);
+            expect(responseResolved).toBe(false);
+    
+            jest.advanceTimersByTime(39);
+            expect(responseResolved).toBe(false);
+    
+            jest.advanceTimersByTime(1);
+            await Promise.resolve();
+            expect(responseResolved).toBe(true);
+    
+            const response = await responsePromise;
+    
+            expect(querySpy).toHaveBeenCalledTimes(2);
+            expect(response).toEqual({
+                data: ['Data-A-Slow', 'Data-B-Fast'],
+            });
+            jest.useRealTimers();
         });
     });
     
