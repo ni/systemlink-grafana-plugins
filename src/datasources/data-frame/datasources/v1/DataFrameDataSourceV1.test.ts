@@ -2,7 +2,7 @@ import { of, Observable } from 'rxjs';
 import { DataQueryRequest, DataSourceInstanceSettings, dateTime, Field, FieldType } from '@grafana/data';
 import { BackendSrvRequest, FetchResponse } from '@grafana/runtime';
 
-import { DataFrameDataSourceOptions, DataFrameQueryV1, DataFrameQueryType, TableDataRows, TableProperties } from '../../types';
+import { DataFrameDataSourceOptions, DataFrameQueryV1, DataFrameQueryType, TableDataRows, TableProperties, ColumnType } from '../../types';
 import { DataFrameDataSourceV1 } from './DataFrameDataSourceV1';
 import { LEGACY_METADATA_TYPE } from 'core/types';
 
@@ -198,7 +198,7 @@ it('should migrate queries using columns of arrays of objects', async () => {
     {
       refId: 'B',
       tableId: '1',
-      columns: [{ name: 'float', dataType: 'FLOAT32', columnType: 'NORMAL' }],
+      columns: [{ name: 'float', dataType: 'FLOAT32', columnType: ColumnType.Normal }],
     } as unknown as DataFrameQueryV1,
   ]);
 
@@ -306,12 +306,12 @@ const createFetchResponse = <T>(data: T): FetchResponse<T> => {
 
 const fakePropertiesResponse: TableProperties = {
   columns: [
-    { name: 'time', dataType: 'TIMESTAMP', columnType: 'INDEX', properties: {} },
-    { name: 'int', dataType: 'INT32', columnType: 'NORMAL', properties: {} },
-    { name: 'float', dataType: 'FLOAT32', columnType: 'NULLABLE', properties: {} },
-    { name: 'string', dataType: 'STRING', columnType: 'NULLABLE', properties: {} },
-    { name: 'bool', dataType: 'BOOL', columnType: 'NORMAL', properties: {} },
-    { name: 'Value', dataType: 'STRING', columnType: 'NULLABLE', properties: {} },
+    { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Index, properties: {} },
+    { name: 'int', dataType: 'INT32', columnType: ColumnType.Normal, properties: {} },
+    { name: 'float', dataType: 'FLOAT32', columnType: ColumnType.Nullable, properties: {} },
+    { name: 'string', dataType: 'STRING', columnType: ColumnType.Nullable, properties: {} },
+    { name: 'bool', dataType: 'BOOL', columnType: ColumnType.Normal, properties: {} },
+    { name: 'Value', dataType: 'STRING', columnType: ColumnType.Nullable, properties: {} },
   ],
   id: '_',
   properties: { hello: 'world', foo: 'bar' },
@@ -327,7 +327,7 @@ const fakePropertiesResponse: TableProperties = {
 };
 
 const fakePropertiesResponseNoProperties: TableProperties = {
-  columns: [{ name: 'time', dataType: 'TIMESTAMP', columnType: 'INDEX', properties: {} }],
+  columns: [{ name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Index, properties: {} }],
   id: '_',
   properties: {},
   name: 'Test Table no properties',

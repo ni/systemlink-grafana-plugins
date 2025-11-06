@@ -237,7 +237,9 @@ describe("DataFrameQueryEditorV2", () => {
                     // Find all option controls by role 'option'
                     const optionControls = within(document.body).getAllByRole('option');
                     const optionTexts = optionControls.map(opt => opt.textContent);
-                    expect(optionTexts).toEqual(expect.arrayContaining(['ColumnA', 'ColumnB', 'ColumnD', 'ColumnE']));
+                    expect(optionTexts).toEqual(expect.arrayContaining(
+                        ['ColumnA', 'ColumnB', 'ColumnD', 'ColumnE']
+                    ));
                 });
 
                 it('should not load column options when filter is empty', async () => {
@@ -392,7 +394,9 @@ describe("DataFrameQueryEditorV2", () => {
         let onRunQuery: jest.Mock;
 
         beforeEach(() => {
-            ({ renderResult, onChange, onRunQuery } = renderComponent({ type: DataFrameQueryType.Properties }));
+            ({ renderResult, onChange, onRunQuery } = renderComponent(
+                { type: DataFrameQueryType.Properties }
+            ));
         });
 
         describe("hidden fields", () => {
@@ -432,7 +436,11 @@ describe("DataFrameQueryEditorV2", () => {
 
             it('should call onChange with data table properties when user selects properties', async () => {
                 await userEvent.click(dataTablePropertiesField);
-                await select(dataTablePropertiesField, DataTableProjectionLabelLookup.Properties.label, { container: document.body });
+                await select(
+                    dataTablePropertiesField,
+                    DataTableProjectionLabelLookup.Properties.label,
+                    { container: document.body }
+                );
 
                 await waitFor(() => {
                     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
@@ -443,7 +451,11 @@ describe("DataFrameQueryEditorV2", () => {
 
             it('should call onRunQuery when user selects properties', async () => {
                 await userEvent.click(dataTablePropertiesField);
-                await select(dataTablePropertiesField, DataTableProjectionLabelLookup.Properties.label, { container: document.body });
+                await select(
+                    dataTablePropertiesField,
+                    DataTableProjectionLabelLookup.Properties.label,
+                    { container: document.body }
+                );
 
                 await waitFor(() => {
                     expect(onRunQuery).toHaveBeenCalled();
@@ -479,7 +491,11 @@ describe("DataFrameQueryEditorV2", () => {
 
             it('should call onChange with columns properties when user selects properties', async () => {
                 await userEvent.click(columnPropertiesField);
-                await select(columnPropertiesField, DataTableProjectionLabelLookup.ColumnType.label, { container: document.body });
+                await select(
+                    columnPropertiesField,
+                    DataTableProjectionLabelLookup.ColumnType.label,
+                    { container: document.body }
+                );
 
                 await waitFor(() => {
                     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
@@ -490,7 +506,11 @@ describe("DataFrameQueryEditorV2", () => {
 
             it('should call onRunQuery when user selects properties', async () => {
                 await userEvent.click(columnPropertiesField);
-                await select(columnPropertiesField, DataTableProjectionLabelLookup.ColumnType.label, { container: document.body });
+                await select(
+                    columnPropertiesField,
+                    DataTableProjectionLabelLookup.ColumnType.label,
+                    { container: document.body }
+                );
 
                 await waitFor(() => {
                     expect(onRunQuery).toHaveBeenCalled();
@@ -544,7 +564,8 @@ describe("DataFrameQueryEditorV2", () => {
                 await user.type(takeInput, "0");
 
                 await waitFor(() => {
-                    expect(screen.getByText("The take value must be greater than or equal to 0.")).toBeInTheDocument();
+                    expect(screen.getByText("The take value must be greater than or equal to 0."))
+                        .toBeInTheDocument();
                 });
             });
 
@@ -553,7 +574,8 @@ describe("DataFrameQueryEditorV2", () => {
                 await user.type(takeInput, "5000");
 
                 await waitFor(() => {
-                    expect(screen.getByText("The take value must be less than or equal to 1000.")).toBeInTheDocument();
+                    expect(screen.getByText("The take value must be less than or equal to 1000."))
+                        .toBeInTheDocument();
                 });
             });
 
@@ -562,8 +584,10 @@ describe("DataFrameQueryEditorV2", () => {
                 await user.type(takeInput, "500");
 
                 await waitFor(() => {
-                    expect(screen.queryByText("The take value must be greater than or equal to 0.")).not.toBeInTheDocument();
-                    expect(screen.queryByText("The take value must be less than or equal to 1000.")).not.toBeInTheDocument();
+                    expect(screen.queryByText("The take value must be greater than or equal to 0."))
+                        .not.toBeInTheDocument();
+                    expect(screen.queryByText("The take value must be less than or equal to 1000."))
+                        .not.toBeInTheDocument();
                 });
             });
 

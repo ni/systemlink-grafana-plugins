@@ -235,10 +235,16 @@ export interface QBFieldWithDataSourceCallback extends QueryBuilderField {
   },
 }
 
+export enum ColumnType {
+  Index = 'INDEX',
+  Nullable = 'NULLABLE',
+  Normal = 'NORMAL',
+}
+
 export interface Column {
   name: string;
   dataType: ColumnDataType;
-  columnType: 'INDEX' | 'NULLABLE' | 'NORMAL';
+  columnType: ColumnType;
   properties: Record<string, string>;
 }
 
@@ -274,7 +280,7 @@ export interface TableProperties {
 export interface FlattenedTableProperties extends Partial<Omit<TableProperties, 'columns'>> {
   columnName?: string;
   columnDataType?: ColumnDataType;
-  columnType?: 'INDEX' | 'NULLABLE' | 'NORMAL';
+  columnType?: ColumnType;
   columnProperties?: Record<string, string>;
 }
 

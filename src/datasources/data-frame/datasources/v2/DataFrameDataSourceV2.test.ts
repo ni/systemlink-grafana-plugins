@@ -1,18 +1,19 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
-import { DataFrameQuery, DataFrameQueryType, DataFrameQueryV2, DataTableProjections, DataTableProperties, defaultDatatableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
+import { DataFrameQuery, DataFrameQueryType, DataFrameQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultDatatableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
 import { TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
+import { Workspace } from 'core/types';
 
 jest.mock('core/query-builder.utils', () => {
-    const actual = jest.requireActual('core/query-builder.utils');
+    const actualQueryBuilderUtils = jest.requireActual('core/query-builder.utils');
     return {
-        ...actual,
-        transformComputedFieldsQuery: jest.fn(actual.transformComputedFieldsQuery),
-        timeFieldsQuery: jest.fn(actual.timeFieldsQuery),
-        multipleValuesQuery: jest.fn(actual.multipleValuesQuery),
+        ...actualQueryBuilderUtils,
+        transformComputedFieldsQuery: jest.fn(actualQueryBuilderUtils.transformComputedFieldsQuery),
+        timeFieldsQuery: jest.fn(actualQueryBuilderUtils.timeFieldsQuery),
+        multipleValuesQuery: jest.fn(actualQueryBuilderUtils.multipleValuesQuery),
     };
 });
 
@@ -112,6 +113,7 @@ describe('DataFrameDataSourceV2', () => {
         describe("when query type is data", () => {
             const dataQuery = {
                 type: DataFrameQueryType.Data,
+                refId: 'A'
             } as DataFrameQueryV2;
             let queryTablesSpy: jest.SpyInstance;
 
@@ -122,7 +124,13 @@ describe('DataFrameDataSourceV2', () => {
             it('should return an object with empty fields array', async () => {
                 const result = await ds.runQuery(dataQuery, options);
 
-                expect(result).toEqual({ fields: [] });
+                expect(result).toEqual(
+                    {
+                        refId: 'A',
+                        name: 'A',
+                        fields: []
+                    }
+                );
             });
 
             it('should not call loadWorkspaces', async () => {
@@ -173,7 +181,13 @@ describe('DataFrameDataSourceV2', () => {
                 it('should return an object with empty fields array', async () => {
                     const result = await ds.runQuery(queryWithEmptyProperties, options);
 
-                    expect(result).toEqual({ fields: [] });
+                    expect(result).toEqual(
+                        {
+                            refId: 'A',
+                            name: 'A',
+                            fields: []
+                        }
+                    );
                 });
             });
 
@@ -206,7 +220,13 @@ describe('DataFrameDataSourceV2', () => {
                     it(`should return an object with empty fields array for take value: ${takeValue}`, async () => {
                         const result = await ds.runQuery(queryWithInvalidTake, options);
 
-                        expect(result).toEqual({ fields: [] });
+                        expect(result).toEqual(
+                            {
+                                refId: 'A',
+                                name: 'A',
+                                fields: []
+                            }
+                        );
                     });
                 });
             });
@@ -253,7 +273,7 @@ describe('DataFrameDataSourceV2', () => {
                         name: 'A',
                         fields: [
                             {
-                                name: DataTableProperties.Name,
+                                name: DataTableProjectionLabelLookup[DataTableProperties.Name].label,
                                 type: 'string',
                                 values: ['Table 1', 'Table 2']
                             }
@@ -296,7 +316,7 @@ describe('DataFrameDataSourceV2', () => {
                             rowCount: 100,
                             columnCount: 2,
                             createdAt: '2023-01-01T00:00:00Z',
-                            workspace: 'Workspace 1',
+                            workspace: 'workspace-1',
                             metadataModifiedAt: '2023-01-02T00:00:00Z',
                             metadataRevision: 2,
                             rowsModifiedAt: '2023-01-03T00:00:00Z',
@@ -323,7 +343,7 @@ describe('DataFrameDataSourceV2', () => {
                             rowCount: 200,
                             columnCount: 3,
                             createdAt: '2023-01-04T00:00:00Z',
-                            workspace: 'Workspace 2',
+                            workspace: 'workspace-2',
                             metadataModifiedAt: '2023-01-05T00:00:00Z',
                             metadataRevision: 1,
                             rowsModifiedAt: '2023-01-06T00:00:00Z',
@@ -369,27 +389,33 @@ describe('DataFrameDataSourceV2', () => {
                     ];
                     const expectedFields = [
                         {
-                            name: DataTableProperties.Name,
+                            name: DataTableProjectionLabelLookup[DataTableProperties.Name].label,
                             type: 'string',
                             values: ['Table 1', 'Table 1', 'Table 2', 'Table 2', 'Table 2']
                         },
                         {
-                            name: DataTableProperties.Id,
+                            name: DataTableProjectionLabelLookup[DataTableProperties.Id].label,
                             type: 'string',
                             values: ['table-1', 'table-1', 'table-2', 'table-2', 'table-2']
                         },
                         {
-                            name: DataTableProperties.RowCount,
+                            name: DataTableProjectionLabelLookup[
+                                DataTableProperties.RowCount
+                            ].label,
                             type: 'number',
                             values: [100, 100, 200, 200, 200]
                         },
                         {
-                            name: DataTableProperties.ColumnCount,
+                            name: DataTableProjectionLabelLookup[
+                                DataTableProperties.ColumnCount
+                            ].label,
                             type: 'number',
                             values: [2, 2, 3, 3, 3]
                         },
                         {
-                            name: DataTableProperties.CreatedAt,
+                            name: DataTableProjectionLabelLookup[
+                                DataTableProperties.CreatedAt
+                            ].label,
                             type: 'time',
                             values: [
                                 '2023-01-01T00:00:00Z',
@@ -400,7 +426,9 @@ describe('DataFrameDataSourceV2', () => {
                             ]
                         },
                         {
-                            name: DataTableProperties.Workspace,
+                            name: DataTableProjectionLabelLookup[
+                                DataTableProperties.Workspace
+                            ].label,
                             type: 'string',
                             values: [
                                 'Workspace 1',
@@ -411,7 +439,9 @@ describe('DataFrameDataSourceV2', () => {
                             ]
                         },
                         {
-                            name: DataTableProperties.MetadataModifiedAt,
+                            name: DataTableProjectionLabelLookup[
+                                DataTableProperties.MetadataModifiedAt
+                            ].label,
                             type: 'time',
                             values: [
                                 '2023-01-02T00:00:00Z',
@@ -422,12 +452,16 @@ describe('DataFrameDataSourceV2', () => {
                             ]
                         },
                         {
-                            name: DataTableProperties.MetadataRevision,
+                            name: DataTableProjectionLabelLookup[
+                                DataTableProperties.MetadataRevision
+                            ].label,
                             type: 'number',
                             values: [2, 2, 1, 1, 1]
                         },
                         {
-                            name: DataTableProperties.RowsModifiedAt,
+                            name: DataTableProjectionLabelLookup[
+                                DataTableProperties.RowsModifiedAt
+                            ].label,
                             type: 'time',
                             values: [
                                 '2023-01-03T00:00:00Z',
@@ -438,12 +472,16 @@ describe('DataFrameDataSourceV2', () => {
                             ]
                         },
                         {
-                            name: DataTableProperties.SupportsAppend,
+                            name: DataTableProjectionLabelLookup[
+                                DataTableProperties.SupportsAppend
+                            ].label,
                             type: 'boolean',
                             values: [true, true, false, false, false]
                         },
                         {
-                            name: DataTableProperties.Properties,
+                            name: DataTableProjectionLabelLookup[
+                                DataTableProperties.Properties
+                            ].label,
                             type: 'other',
                             values: [
                                 { key: 'value' },
@@ -454,22 +492,30 @@ describe('DataFrameDataSourceV2', () => {
                             ]
                         },
                         {
-                            name: DataTableProperties.ColumnName,
+                            name: DataTableProjectionLabelLookup[
+                                DataTableProperties.ColumnName
+                            ].label,
                             type: 'string',
                             values: ['Column 1', 'Column 2', 'Column 1', 'Column 2', 'Column 3']
                         },
                         {
-                            name: DataTableProperties.ColumnDataType,
+                            name: DataTableProjectionLabelLookup[
+                                DataTableProperties.ColumnDataType
+                            ].label,
                             type: 'string',
                             values: ['string', 'number', 'string', 'number', 'boolean']
                         },
                         {
-                            name: DataTableProperties.ColumnType,
+                            name: DataTableProjectionLabelLookup[
+                                DataTableProperties.ColumnType
+                            ].label,
                             type: 'string',
                             values: ['dimension', 'measure', 'dimension', 'measure', 'dimension']
                         },
                         {
-                            name: DataTableProperties.ColumnProperties,
+                            name: DataTableProjectionLabelLookup[
+                                DataTableProperties.ColumnProperties
+                            ].label,
                             type: 'other',
                             values: [
                                 { colKey: 'colValue' },
@@ -480,7 +526,29 @@ describe('DataFrameDataSourceV2', () => {
                             ]
                         }
                     ];
+                    const mockWorkspaces = new Map<string, Workspace>([
+                        [
+                            'workspace-1',
+                            {
+                                id: 'workspace-1',
+                                name: 'Workspace 1',
+                                default: false,
+                                enabled: true
+                            }
+                        ],
+                        [
+                            'workspace-2',
+                            {
+                                id: 'workspace-2',
+                                name: 'Workspace 2',
+                                default: false,
+                                enabled: true
+                            }
+                        ]
+                    ]);
+                    const loadWorkspacesSpy = jest.spyOn(ds, 'loadWorkspaces');
                     queryTablesSpy.mockResolvedValue(mockTables);
+                    loadWorkspacesSpy.mockResolvedValue(mockWorkspaces);
 
                     const result = await ds.runQuery(queryWithAllProperties, options);
 
@@ -663,18 +731,11 @@ describe('DataFrameDataSourceV2', () => {
             expect(result).toBe(mockTables);
         });
 
-        it('throws error on failed request', async () => {
-            postMock.mockRejectedValueOnce(new Error('Request failed'));
-
-            await expect(ds.queryTables('test-filter'))
-                .rejects.toThrow('The query failed due to an unknown error.');
-        });
-
-        it('should throw timeOut error when API returns 504 status', async () => {
-            postMock.mockRejectedValueOnce(createQueryTablesError(504));
+        it('should throw error with unknown error when API returns error without status', async () => {
+            postMock.mockRejectedValueOnce(new Error('Some unknown error'));
 
             await expect(ds.queryTables('test-filter')).rejects.toThrow(
-                'The query to fetch data tables experienced a timeout error. Narrow your query with a more specific filter and try again.'
+                'The query failed due to an unknown error.'
             );
         });
 
@@ -686,11 +747,19 @@ describe('DataFrameDataSourceV2', () => {
             );
         });
 
-        it('should throw error with unknown error when API returns error without status', async () => {
-            postMock.mockRejectedValueOnce(new Error('Some unknown error'));
+        it('should throw timeOut error when API returns 504 status', async () => {
+            postMock.mockRejectedValueOnce(createQueryTablesError(504));
 
             await expect(ds.queryTables('test-filter')).rejects.toThrow(
-                'The query failed due to an unknown error.'
+                'The query to fetch data tables experienced a timeout error. Narrow your query with a more specific filter and try again.'
+            );
+        });
+
+        it('should throw error with status code and message when API returns 500 status', async () => {
+            postMock.mockRejectedValueOnce(createQueryTablesError(500));
+
+            await expect(ds.queryTables('test-filter')).rejects.toThrow(
+                'The query failed due to the following error: (status 500) "Error".'
             );
         });
 

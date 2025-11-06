@@ -4,7 +4,6 @@ import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana
 import { Column, DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryType, DataFrameQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQuery, ValidDataFrameQueryV2 } from "../../types";
 import { TAKE_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
-import { getWorkspaceName } from "core/utils";
 import { Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
@@ -37,7 +36,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             return this.getFieldsForPropertiesQuery(processedQuery);
         }
 
-        return { fields: [] };
+        return {
+            refId: processedQuery.refId,
+            name: processedQuery.refId,
+            fields: []
+        };
     }
 
     async metricFindQuery(_query: DataFrameQueryV2): Promise<MetricFindValue[]> {
@@ -133,7 +136,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             if (queryBuilderFieldNames.has(fieldName as DataTableQueryBuilderFieldNames)) {
                 computedFields.set(
                     fieldName,
-                    this.isTimeField(property) ? timeFieldsQuery(fieldName) : multipleValuesQuery(fieldName)
+                    this.isTimeField(property)
+                        ? timeFieldsQuery(fieldName)
+                        : multipleValuesQuery(fieldName)
                 );
             }
         }
@@ -150,7 +155,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         return timeFields.includes(field);
     };
 
-    private isNumberField(field: DataTableProperties): boolean {
+    private isNumericField(field: DataTableProperties): boolean {
         const numberFields = [
             DataTableProperties.ColumnCount,
             DataTableProperties.RowCount,
@@ -175,7 +180,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         switch (true) {
             case this.isTimeField(property):
                 return FieldType.time;
-            case this.isNumberField(property):
+            case this.isNumericField(property):
                 return FieldType.number;
             case this.isBooleanField(property):
                 return FieldType.boolean;
@@ -218,14 +223,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         tables: FlattenedTableProperties[],
         property: DataTableProperties,
         workspaces: Map<string, Workspace>
-    ): any {
+    ): Array<string | number | boolean | Record<string, string> | undefined> {
+        const field = DataTableProjectionLabelLookup[property].field;
         return tables.map(table => {
-            const field = DataTableProjectionLabelLookup[property].field;
             const value = table[field];
 
             if (property === DataTableProperties.Workspace) {
                 const workspace = workspaces.get(value as string);
-                return workspace ? getWorkspaceName([workspace], value as string) : value;
+                return workspace ? workspace.name : value;
             }
 
             return value;
@@ -256,7 +261,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 workspaces
             );
             return {
-                name: property,
+                name: DataTableProjectionLabelLookup[property].label,
                 type: this.getFieldType(property),
                 values
             };
