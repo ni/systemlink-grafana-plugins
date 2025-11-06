@@ -15,6 +15,8 @@ import {
   DataFrameQueryType,
   DataFrameDataSourceOptions,
   DataTableProjections,
+  DataFrameVariableQuery,
+  ValidDataFrameVariableQuery,
 } from '../../types';
 import { propertiesCacheTTL } from '../../constants';
 import _ from 'lodash';
@@ -118,9 +120,13 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     return deepEqual(migratedQuery, query) ? (query as ValidDataFrameQueryV1) : migratedQuery;
   }
 
-  async metricFindQuery(tableQuery: DataFrameQueryV1): Promise<MetricFindValue[]> {
-    const tableProperties = await this.getTableProperties(tableQuery.tableId);
+  async metricFindQuery(tableQuery: DataFrameVariableQuery): Promise<MetricFindValue[]> {
+    const tableProperties = await this.getTableProperties((tableQuery as DataFrameQueryV1).tableId);
     return tableProperties.columns.map(col => ({ text: col.name, value: col.name }));
+  }
+
+  public processVariableQuery(_query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
+    throw new Error('Method not implemented.');
   }
 
   private getColumnTypes(columnNames: string[], tableProperties: Column[]): Column[] {

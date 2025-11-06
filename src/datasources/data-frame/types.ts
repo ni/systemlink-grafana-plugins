@@ -10,7 +10,15 @@ export enum DataFrameQueryType {
   Properties = 'Properties',
 }
 
-export type DataFrameQuery = DataFrameQueryV1 | DataFrameQueryV2;
+export enum DataFrameVariableQueryType {
+  ListDataTables = 'ListDataTables',
+  ListColumns = 'ListColumns',
+}
+
+export type DataFrameDataQuery = DataFrameQueryV1 | DataFrameQueryV2;
+export type DataFrameVariableQuery = DataFrameQueryV1 | DataFrameVariableQueryV2;
+export type DataFrameQuery = DataFrameDataQuery | DataFrameVariableQuery;
+
 
 export interface DataFrameQueryV1 extends DataQuery {
   type: DataFrameQueryType;
@@ -34,6 +42,16 @@ export interface DataFrameQueryV2 extends DataQuery {
   applyTimeFilters?: boolean;
   take?: number;
 }
+
+export interface DataFrameVariableQueryV2 extends DataQuery {
+  queryType: DataFrameVariableQueryType;
+  dataTableFilter?: string;
+}
+
+export const defaultVariableQueryV2: Omit<DataFrameVariableQueryV2, 'refId'> = {
+  queryType: DataFrameVariableQueryType.ListDataTables,
+  dataTableFilter: ''
+};
 
 export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
   type: DataFrameQueryType.Data,
@@ -212,17 +230,15 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
 
 export type ValidDataFrameQuery = ValidDataFrameQueryV1 | ValidDataFrameQueryV2;
 
+export type ValidDataFrameVariableQuery = Required<Omit<DataFrameVariableQueryV2, keyof DataQuery>>;
+
 export type ValidDataFrameQueryV1 = DataFrameQueryV1 & Required<Omit<DataFrameQueryV1, keyof DataQuery>>;
 
 export type ValidDataFrameQueryV2 = DataFrameQueryV2 & Required<Omit<DataFrameQueryV2, keyof DataQuery>>;
 
 export type ColumnDataType = 'BOOL' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64' | 'STRING' | 'TIMESTAMP';
 
-export type Props = PropsV1 | PropsV2;
-
-export type PropsV1 = QueryEditorProps<DataFrameDataSource, DataFrameQueryV1, DataFrameDataSourceOptions>;
-
-export type PropsV2 = QueryEditorProps<DataFrameDataSource, DataFrameQuery, DataFrameDataSourceOptions>;
+export type Props = QueryEditorProps<DataFrameDataSource, DataFrameQuery, DataFrameDataSourceOptions>;
 
 export type DataSourceQBLookupCallback = (query: string) => Promise<QueryBuilderOption[]>;
 
