@@ -253,7 +253,7 @@ export const AlarmsTransitionInclusionOptions: Record<
   },
 };
 
-export const TRANSITION_ONLY_PROPERTIES = [
+export const TRANSITION_SPECIFIC_PROPERTIES = [
   AlarmsProperties.transitionCondition,
   AlarmsProperties.transitionDetailText,
   AlarmsProperties.transitionKeywords,

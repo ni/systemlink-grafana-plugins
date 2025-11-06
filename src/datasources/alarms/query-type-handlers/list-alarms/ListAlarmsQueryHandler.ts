@@ -2,7 +2,7 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, 
 import { AlarmsProperties, ListAlarmsQuery } from '../../types/ListAlarms.types';
 import { AlarmsVariableQuery, AlarmTransition, QueryAlarmsRequest, TransitionInclusionOption } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
-import { AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, TRANSITION_ONLY_PROPERTIES } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, TRANSITION_SPECIFIC_PROPERTIES } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { Alarm } from 'datasources/alarms/types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
@@ -31,12 +31,12 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     const alarmsResponse = await this.queryAlarmsData(query);
 
     if (this.isPropertiesValid(query.properties)) {
-      if(query.transitionInclusionOption === TransitionInclusionOption.All) {
-        const flattenedRows = this.flattenAlarmsWithTransitions(alarmsResponse);
-        mappedFields = await this.mapPropertiesToSelect(query.properties, flattenedRows);
-      } else {
-        mappedFields = await this.mapPropertiesToSelect(query.properties, alarmsResponse);
-      }
+      const alarmsToProcess =
+      query.transitionInclusionOption === TransitionInclusionOption.All
+        ? this.duplicateAlarmsByTransitions(alarmsResponse)
+        : alarmsResponse;
+
+      mappedFields = await this.mapPropertiesToSelect(query.properties, alarmsToProcess);
     }
 
     return {
@@ -141,7 +141,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
             return this.getSortedCustomProperties(transition.properties);
           default:
             let value;
-            if(TRANSITION_ONLY_PROPERTIES.includes(property)) {
+            if(TRANSITION_SPECIFIC_PROPERTIES.includes(property)) {
               value = transition[fieldValue as keyof AlarmTransition];
             } else {
               value = alarm[fieldValue as keyof Alarm];
@@ -158,7 +158,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     return mappedFields;
   }
 
-  private flattenAlarmsWithTransitions(alarms: Alarm[]): Alarm[] {
+  private duplicateAlarmsByTransitions(alarms: Alarm[]): Alarm[] {
     const flattenedAlarms: Alarm[] = [];
 
     alarms.forEach(alarm => {
@@ -171,11 +171,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
           flattenedAlarms.push(duplicatedAlarm);
         });
       } else {
-        const alarmWithEmptyTransitions: Alarm = {
-          ...alarm,
-          transitions: []
-        };
-        flattenedAlarms.push(alarmWithEmptyTransitions);
+        flattenedAlarms.push(alarm);
       }
     });
 

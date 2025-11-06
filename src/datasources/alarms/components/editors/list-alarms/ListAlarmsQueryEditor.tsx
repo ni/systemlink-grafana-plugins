@@ -13,7 +13,7 @@ import {
   SECONDARY_CONTROL_WIDTH,
   SECONDARY_LABEL_WIDTH,
   tooltips,
-  TRANSITION_ONLY_PROPERTIES,
+  TRANSITION_SPECIFIC_PROPERTIES,
 } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
@@ -64,7 +64,7 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     let updatedProperties = query.properties || [];
     
     if (option.value === TransitionInclusionOption.None) {
-      updatedProperties = updatedProperties.filter(prop => !TRANSITION_ONLY_PROPERTIES.includes(prop));
+      updatedProperties = updatedProperties.filter(prop => !TRANSITION_SPECIFIC_PROPERTIES.includes(prop));
     }
 
     setIsPropertiesControlValid(updatedProperties.length > 0);
@@ -77,7 +77,7 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     const allOptions = Object.values(AlarmsPropertiesOptions);
     
     if (transitionInclusionOption === TransitionInclusionOption.None || !transitionInclusionOption) {
-      return allOptions.filter(option => !TRANSITION_ONLY_PROPERTIES.includes(option.value));
+      return allOptions.filter(option => !TRANSITION_SPECIFIC_PROPERTIES.includes(option.value));
     }
     
     return allOptions;

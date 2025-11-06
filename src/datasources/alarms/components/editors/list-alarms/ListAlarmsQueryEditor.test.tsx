@@ -5,7 +5,7 @@ import { ListAlarmsQueryHandler } from 'datasources/alarms/query-type-handlers/l
 import { AlarmsProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 import { ListAlarmsQueryEditor } from './ListAlarmsQueryEditor';
 import userEvent from '@testing-library/user-event';
-import { AlarmsPropertiesOptions, AlarmsTransitionInclusionOptions } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { AlarmsPropertiesOptions, AlarmsTransitionInclusionOptions, TRANSITION_SPECIFIC_PROPERTIES } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { select } from 'react-select-event';
 
 const mockHandleQueryChange = jest.fn();
@@ -155,6 +155,18 @@ describe('ListAlarmsQueryEditor', () => {
   });
 
   describe('Transition Inclusion', () => {
+    const transitionPropertyLabels = [
+      'Transition condition',
+      'Transition detail',
+      'Transition keywords',
+      'Transition occurred at',
+      'Transition properties',
+      'Transition severity',
+      'Transition short text',
+      'Transition type',
+      'Transition value',
+    ];
+
     it('should render the selected transition inclusion option in the UI', async () => {
       const container = await renderElement({
         refId: 'A',
@@ -186,50 +198,69 @@ describe('ListAlarmsQueryEditor', () => {
       });
     });
 
-    it('should show transition properties in dropdown when transition inclusion is All or MostRecentOnly', async () => {
+    [TransitionInclusionOption.All, TransitionInclusionOption.MostRecentOnly].forEach((option) => {
+      it(`should show transition properties in dropdown when transition inclusion is ${option}`, async () => {
+        const container = await renderElement({
+          refId: 'A',
+          queryType: QueryType.ListAlarms,
+          transitionInclusionOption: option,
+        });
+
+        const propertiesCombobox = container.getAllByRole('combobox')[0];
+        await userEvent.click(propertiesCombobox);
+
+        for (const label of transitionPropertyLabels) {
+          await userEvent.clear(propertiesCombobox);
+          await userEvent.type(propertiesCombobox, label);
+          expect(screen.queryByText(label)).toBeInTheDocument();
+        }
+      });
+    });
+
+    it('should not show transition properties in dropdown when transition inclusion is None', async () => {
       const container = await renderElement({
         refId: 'A',
         queryType: QueryType.ListAlarms,
-        transitionInclusionOption: TransitionInclusionOption.All,
+        transitionInclusionOption: TransitionInclusionOption.None,
       });
 
       const propertiesCombobox = container.getAllByRole('combobox')[0];
+      await userEvent.click(propertiesCombobox);
 
-      await userEvent.click(propertiesCombobox);      
-      await userEvent.type(propertiesCombobox, 'Transition condition');
-      expect(screen.getByText('Transition condition')).toBeInTheDocument();
+      for (const label of transitionPropertyLabels) {
+        await userEvent.clear(propertiesCombobox);
+        await userEvent.type(propertiesCombobox, label);
+        expect(screen.queryByText(label)).not.toBeInTheDocument();
+      }
+    });
 
-      await userEvent.clear(propertiesCombobox);
-      await userEvent.type(propertiesCombobox, 'Transition detail');
-      expect(screen.getByText('Transition detail')).toBeInTheDocument();
+    it('should remove transition properties from selected properties when transition inclusion is changed to None', async () => {
+      await renderElement({
+        refId: 'A',
+        queryType: QueryType.ListAlarms,
+        transitionInclusionOption: TransitionInclusionOption.All,
+        properties: [ AlarmsProperties.acknowledged, ...TRANSITION_SPECIFIC_PROPERTIES ],
+      });
 
-      await userEvent.clear(propertiesCombobox);
-      await userEvent.type(propertiesCombobox, 'Transition keywords');
-      expect(screen.getByText('Transition keywords')).toBeInTheDocument();
+      const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Include Transition' });
 
-      await userEvent.clear(propertiesCombobox);
-      await userEvent.type(propertiesCombobox, 'Transition occurred at');
-      expect(screen.getByText('Transition occurred at')).toBeInTheDocument();
+      await userEvent.click(transitionInclusionCombobox);
+      await select(transitionInclusionCombobox,
+        AlarmsTransitionInclusionOptions[TransitionInclusionOption.None].label,
+        {
+        container: document.body,
+        }
+      );
 
-      await userEvent.clear(propertiesCombobox);
-      await userEvent.type(propertiesCombobox, 'Transition properties');
-      expect(screen.getByText('Transition properties')).toBeInTheDocument();
-
-      await userEvent.clear(propertiesCombobox);
-      await userEvent.type(propertiesCombobox, 'Transition severity');
-      expect(screen.getByText('Transition severity')).toBeInTheDocument();
-
-      await userEvent.clear(propertiesCombobox);
-      await userEvent.type(propertiesCombobox, 'Transition short text');
-      expect(screen.getByText('Transition short text')).toBeInTheDocument();
-
-      await userEvent.clear(propertiesCombobox);
-      await userEvent.type(propertiesCombobox, 'Transition type');
-      expect(screen.getByText('Transition type')).toBeInTheDocument();
-
-      await userEvent.clear(propertiesCombobox);
-      await userEvent.type(propertiesCombobox, 'Transition value');
-      expect(screen.getByText('Transition value')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(mockHandleQueryChange).toHaveBeenCalledTimes(1);
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            transitionInclusionOption: TransitionInclusionOption.None,
+            properties: [ AlarmsProperties.acknowledged ],
+          }),
+        );
+      });
     });
   });
 });
