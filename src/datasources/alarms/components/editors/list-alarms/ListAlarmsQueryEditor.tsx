@@ -66,14 +66,14 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     handleQueryChange({ ...query, descending });
   };
 
-  const validateTakeValue = (value: number) => {
-    if (isNaN(value) || value < QUERY_EDITOR_MIN_TAKE) {
-      return { message: takeErrorMessages.minErrorMsg, take: value };
+  const validateTakeValue = (take: number) => {
+    if (isNaN(take) || take < QUERY_EDITOR_MIN_TAKE) {
+      return { message: takeErrorMessages.minErrorMsg, take };
     }
-    if (value > QUERY_EDITOR_MAX_TAKE) {
-      return { message: takeErrorMessages.maxErrorMsg, take: value };
+    if (take > QUERY_EDITOR_MAX_TAKE) {
+      return { message: takeErrorMessages.maxErrorMsg, take };
     }
-    return { message: '', take: value };
+    return { message: '', take };
   };
   
   const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
