@@ -2,7 +2,7 @@ import { of, Observable } from 'rxjs';
 import { DataQueryRequest, DataSourceInstanceSettings, dateTime, Field, FieldType } from '@grafana/data';
 import { BackendSrvRequest, FetchResponse } from '@grafana/runtime';
 
-import { DataFrameDataSourceOptions, DataFrameQueryV1, DataFrameQueryType, TableDataRows, TableProperties } from '../../types';
+import { DataFrameDataSourceOptions, DataFrameQueryV1, DataFrameQueryType, TableDataRows, TableProperties, ColumnType } from '../../types';
 import { DataFrameDataSourceV1 } from './DataFrameDataSourceV1';
 import { LEGACY_METADATA_TYPE } from 'core/types';
 
@@ -198,7 +198,7 @@ it('should migrate queries using columns of arrays of objects', async () => {
     {
       refId: 'B',
       tableId: '1',
-      columns: [{ name: 'float', dataType: 'FLOAT32', columnType: 'NORMAL' }],
+      columns: [{ name: 'float', dataType: 'FLOAT32', columnType: ColumnType.Normal }],
     } as unknown as DataFrameQueryV1,
   ]);
 
@@ -246,7 +246,7 @@ it('returns table properties for properties query', async () => {
   expect(response.data[0].fields).toEqual([
     { name: 'hello', values: ['world'] },
     { name: 'foo', values: ['bar'] },
-  ])
+  ]);
 });
 
 it('should migrate legacy metadata type to properties type', () => {
@@ -306,25 +306,39 @@ const createFetchResponse = <T>(data: T): FetchResponse<T> => {
 
 const fakePropertiesResponse: TableProperties = {
   columns: [
-    { name: 'time', dataType: 'TIMESTAMP', columnType: 'INDEX', properties: {} },
-    { name: 'int', dataType: 'INT32', columnType: 'NORMAL', properties: {} },
-    { name: 'float', dataType: 'FLOAT32', columnType: 'NULLABLE', properties: {} },
-    { name: 'string', dataType: 'STRING', columnType: 'NULLABLE', properties: {} },
-    { name: 'bool', dataType: 'BOOL', columnType: 'NORMAL', properties: {} },
-    { name: 'Value', dataType: 'STRING', columnType: 'NULLABLE', properties: {} },
+    { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Index, properties: {} },
+    { name: 'int', dataType: 'INT32', columnType: ColumnType.Normal, properties: {} },
+    { name: 'float', dataType: 'FLOAT32', columnType: ColumnType.Nullable, properties: {} },
+    { name: 'string', dataType: 'STRING', columnType: ColumnType.Nullable, properties: {} },
+    { name: 'bool', dataType: 'BOOL', columnType: ColumnType.Normal, properties: {} },
+    { name: 'Value', dataType: 'STRING', columnType: ColumnType.Nullable, properties: {} },
   ],
   id: '_',
   properties: { hello: 'world', foo: 'bar' },
   name: 'Test Table',
   workspace: '_',
+  columnCount: 6,
+  createdAt: '2022-09-14T06:01:00.0000000Z',
+  metadataModifiedAt: '2022-09-14T06:01:00.0000000Z',
+  metadataRevision: 1,
+  rowCount: 2,
+  rowsModifiedAt: '2022-09-14T06:01:00.0000000Z',
+  supportsAppend: true
 };
 
 const fakePropertiesResponseNoProperties: TableProperties = {
-  columns: [{ name: 'time', dataType: 'TIMESTAMP', columnType: 'INDEX', properties: {} }],
+  columns: [{ name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Index, properties: {} }],
   id: '_',
   properties: {},
   name: 'Test Table no properties',
   workspace: '_',
+  columnCount: 1,
+  createdAt: '2022-09-14T06:01:00.0000000Z',
+  metadataModifiedAt: '2022-09-14T06:01:00.0000000Z',
+  metadataRevision: 1,
+  rowCount: 2,
+  rowsModifiedAt: '2022-09-14T06:01:00.0000000Z',
+  supportsAppend: true
 };
 
 const fakeData: Record<string, string[]> = {
@@ -342,7 +356,7 @@ function getFakeDataResponse(columns: string[]): TableDataRows {
       columns,
       data: [columns.map(c => fakeData[c][0]), columns.map(c => fakeData[c][1])]
     }
-  }
+  };
 };
 
 const defaultQuery: DataQueryRequest<DataFrameQueryV1> = {
