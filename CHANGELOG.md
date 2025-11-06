@@ -1,3 +1,9 @@
+## [4.48.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.47.0...v4.48.0) (2025-11-06)
+
+### Features
+
+* **alarms:** Support take and descending in list alarms ([#487](https://github.com/ni/systemlink-grafana-plugins/issues/487)) ([788d1da](https://github.com/ni/systemlink-grafana-plugins/commit/788d1da60bda21354c96082713739758fcc9aa80))
+
 ## [4.47.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.46.0...v4.47.0) (2025-11-06)
 
 ### Features
