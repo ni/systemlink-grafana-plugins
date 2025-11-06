@@ -108,8 +108,12 @@ describe('AlarmsTrendQueryHandler', () => {
 
     jest.spyOn(datastore.templateSrv, 'replace')
       .mockImplementation((template?: string) => {
-        if (template === '${__from:date}') return '2025-01-01T10:00:00.000Z';
-        if (template === '${__to:date}') return '2025-01-01T11:00:00.000Z';
+        if (template === '${__from:date}') {
+          return '2025-01-01T10:00:00.000Z';
+        }
+        if (template === '${__to:date}') {
+          return '2025-01-01T11:00:00.000Z';
+        }
         return template || '';
       });
   });
