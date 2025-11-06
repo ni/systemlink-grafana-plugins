@@ -57,4 +57,20 @@ describe('queries', () => {
       { value: '2', text: 'Other workspace' }
     ]);
   });
+
+  test('should run query if not hidden', () => {
+    const query: WorkspaceQuery = {
+        hide: false,
+        refId: ''
+    };
+    expect(ds.shouldRunQuery(query)).toBe(true);
+  });
+
+  test('should not run query if hidden', () => {
+    const query: WorkspaceQuery = {
+        hide: true,
+        refId: ''
+    };
+    expect(ds.shouldRunQuery(query)).toBe(false);
+  });
 });

@@ -57,7 +57,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
   }
 
   shouldRunQuery(query: AssetQuery): boolean {
-    return !query?.hide;
+    return !query.hide;
   }
 
   async processListAssetsQuery(query: ListAssetsQuery) {

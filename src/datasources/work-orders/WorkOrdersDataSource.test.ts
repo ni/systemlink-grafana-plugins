@@ -2,7 +2,7 @@ import { BackendSrv } from '@grafana/runtime';
 import { MockProxy } from 'jest-mock-extended';
 import { setupDataSource, requestMatching, createFetchResponse, createFetchError } from 'test/fixtures';
 import { WorkOrdersDataSource } from './WorkOrdersDataSource';
-import { OrderByOptions, OutputType, State, Type, WorkOrder, WorkOrderPropertiesOptions, WorkOrdersVariableQuery } from './types';
+import { OrderByOptions, OutputType, State, Type, WorkOrder, WorkOrderPropertiesOptions, WorkOrdersQuery, WorkOrdersVariableQuery } from './types';
 import { DataQueryRequest, Field, FieldType, LegacyMetricFindQueryOptions } from '@grafana/data';
 import { QUERY_WORK_ORDERS_MAX_TAKE, QUERY_WORK_ORDERS_REQUEST_PER_SECOND } from './constants/QueryWorkOrders.constants';
 import { queryInBatches } from 'core/utils';
@@ -616,6 +616,22 @@ describe('WorkOrdersDataSource', () => {
       const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
 
       expect(result.fields).toHaveLength(0);
+    });
+
+    test('should run query if not hidden', () => {
+      const query: WorkOrdersQuery = {
+        hide: false,
+        refId: ''
+      };
+      expect(datastore.shouldRunQuery(query)).toBe(true);
+    });
+
+    test('should not run query if hidden', () => {
+      const query: WorkOrdersQuery = {
+        hide: true,
+        refId: ''
+      };
+      expect(datastore.shouldRunQuery(query)).toBe(false);
     });
   });
 
