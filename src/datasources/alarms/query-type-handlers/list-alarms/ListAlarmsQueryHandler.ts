@@ -27,10 +27,10 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public async runQuery(query: ListAlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     let mappedFields: DataFrameDTO['fields'] | undefined;
 
-    query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
-    const alarmsResponse = await this.queryAlarmsData(query);
+    if (this.isTakeValid(query.take) && this.isPropertiesValid(query.properties)) {
+      query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
+      const alarmsResponse = await this.queryAlarmsData(query);
 
-    if (this.isPropertiesValid(query.properties)) {
       mappedFields = await this.mapPropertiesToSelect(query.properties, alarmsResponse);
     }
 
@@ -80,6 +80,8 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   private async queryAlarmsData(alarmsQuery: ListAlarmsQuery): Promise<Alarm[]> {
     const alarmsRequestBody: QueryAlarmsRequest = {
       filter: alarmsQuery.filter ?? '',
+      take: alarmsQuery.take,
+      orderByDescending: alarmsQuery.descending ?? DEFAULT_QUERY_EDITOR_DESCENDING,
     }
 
     return this.queryAlarmsInBatches(alarmsRequestBody);

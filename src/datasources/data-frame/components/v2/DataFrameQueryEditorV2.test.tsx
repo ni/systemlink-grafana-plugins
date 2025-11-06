@@ -144,7 +144,7 @@ describe("DataFrameQueryEditorV2", () => {
 
     it("should update the query type when a different option is selected", async () => {
         const user = userEvent.setup();
-        const { onChange, onRunQuery } = renderComponent();
+        const { onChange } = renderComponent();
 
         await user.click(screen.getByRole("radio", { name: DataFrameQueryType.Properties }));
 
@@ -153,7 +153,15 @@ describe("DataFrameQueryEditorV2", () => {
                 type: DataFrameQueryType.Properties,
             }));
         });
-        expect(onRunQuery).not.toHaveBeenCalled();
+    });
+
+    it("should call onRunQuery when the query type is changed", async () => {
+        const user = userEvent.setup();
+        const { onRunQuery } = renderComponent();
+
+        await user.click(screen.getByRole("radio", { name: DataFrameQueryType.Properties }));
+
+        expect(onRunQuery).toHaveBeenCalled();
     });
 
     describe("when the query type is data", () => {
@@ -401,7 +409,9 @@ describe("DataFrameQueryEditorV2", () => {
         let onRunQuery: jest.Mock;
 
         beforeEach(() => {
-            ({ renderResult, onChange, onRunQuery } = renderComponent({ type: DataFrameQueryType.Properties }));
+            ({ renderResult, onChange, onRunQuery } = renderComponent(
+                { type: DataFrameQueryType.Properties }
+            ));
         });
 
         describe("hidden fields", () => {
@@ -441,13 +451,29 @@ describe("DataFrameQueryEditorV2", () => {
 
             it('should call onChange with data table properties when user selects properties', async () => {
                 await userEvent.click(dataTablePropertiesField);
-                await select(dataTablePropertiesField, DataTableProjectionLabelLookup.Properties.label, { container: document.body });
+                await select(
+                    dataTablePropertiesField,
+                    DataTableProjectionLabelLookup.Properties.label,
+                    { container: document.body }
+                );
 
                 await waitFor(() => {
                     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
                         dataTableProperties: expect.arrayContaining([DataTableProperties.Properties])
                     }));
-                    expect(onRunQuery).not.toHaveBeenCalled();
+                });
+            });
+
+            it('should call onRunQuery when user selects properties', async () => {
+                await userEvent.click(dataTablePropertiesField);
+                await select(
+                    dataTablePropertiesField,
+                    DataTableProjectionLabelLookup.Properties.label,
+                    { container: document.body }
+                );
+
+                await waitFor(() => {
+                    expect(onRunQuery).toHaveBeenCalled();
                 });
             });
 
@@ -480,13 +506,29 @@ describe("DataFrameQueryEditorV2", () => {
 
             it('should call onChange with columns properties when user selects properties', async () => {
                 await userEvent.click(columnPropertiesField);
-                await select(columnPropertiesField, DataTableProjectionLabelLookup.ColumnType.label, { container: document.body });
+                await select(
+                    columnPropertiesField,
+                    DataTableProjectionLabelLookup.ColumnType.label,
+                    { container: document.body }
+                );
 
                 await waitFor(() => {
                     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
                         columnProperties: expect.arrayContaining([DataTableProperties.ColumnType])
                     }));
-                    expect(onRunQuery).not.toHaveBeenCalled();
+                });
+            });
+
+            it('should call onRunQuery when user selects properties', async () => {
+                await userEvent.click(columnPropertiesField);
+                await select(
+                    columnPropertiesField,
+                    DataTableProjectionLabelLookup.ColumnType.label,
+                    { container: document.body }
+                );
+
+                await waitFor(() => {
+                    expect(onRunQuery).toHaveBeenCalled();
                 });
             });
 
@@ -537,7 +579,8 @@ describe("DataFrameQueryEditorV2", () => {
                 await user.type(takeInput, "0");
 
                 await waitFor(() => {
-                    expect(screen.getByText("The take value must be greater than or equal to 0.")).toBeInTheDocument();
+                    expect(screen.getByText("The take value must be greater than or equal to 0."))
+                        .toBeInTheDocument();
                 });
             });
 
@@ -546,7 +589,8 @@ describe("DataFrameQueryEditorV2", () => {
                 await user.type(takeInput, "5000");
 
                 await waitFor(() => {
-                    expect(screen.getByText("The take value must be less than or equal to 1000.")).toBeInTheDocument();
+                    expect(screen.getByText("The take value must be less than or equal to 1000."))
+                        .toBeInTheDocument();
                 });
             });
 
@@ -555,8 +599,10 @@ describe("DataFrameQueryEditorV2", () => {
                 await user.type(takeInput, "500");
 
                 await waitFor(() => {
-                    expect(screen.queryByText("The take value must be greater than or equal to 0.")).not.toBeInTheDocument();
-                    expect(screen.queryByText("The take value must be less than or equal to 1000.")).not.toBeInTheDocument();
+                    expect(screen.queryByText("The take value must be greater than or equal to 0."))
+                        .not.toBeInTheDocument();
+                    expect(screen.queryByText("The take value must be less than or equal to 1000."))
+                        .not.toBeInTheDocument();
                 });
             });
 
@@ -568,7 +614,15 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
                         take: 500,
                     }));
-                    expect(onRunQuery).not.toHaveBeenCalled();
+                });
+            });
+
+            it("should call onRunQuery when a valid take value is entered", async () => {
+                await user.clear(takeInput);
+                await user.type(takeInput, "500");
+
+                await waitFor(() => {
+                    expect(onRunQuery).toHaveBeenCalled();
                 });
             });
         });
@@ -629,6 +683,19 @@ describe("DataFrameQueryEditorV2", () => {
                 expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
                     dataTableFilter: "new filter",
                 }));
+            });
+        });
+
+        it("should call onRunQuery when the data table filter is changed in the DataTableQueryBuilder component", async () => {
+            const { onRunQuery } = renderComponent({ dataTableFilter: "" });
+            const filterInput = screen.getByTestId("filter-input");
+            const user = userEvent.setup();
+
+            await user.clear(filterInput);
+            await user.type(filterInput, "new filter");
+
+            await waitFor(() => {
+                expect(onRunQuery).toHaveBeenCalled();
             });
         });
     });
