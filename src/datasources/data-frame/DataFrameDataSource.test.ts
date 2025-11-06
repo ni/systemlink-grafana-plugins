@@ -120,23 +120,23 @@ describe('DataFrameDataSource', () => {
         expect(dsV2.defaultQuery).toEqual(expectedV2Default);
     });
 
-    describe('getColumnOption', () => {
-        it('should delegate getColumnOption to DataFrameDataSourceV1 when feature toggle is false', async () => {
+    describe('loadColumnOption', () => {
+        it('should delegate loadColumnOption to DataFrameDataSourceV1 when feature toggle is false', async () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(false));
-            v1Mock.getColumnOption = jest.fn().mockResolvedValue(['v1-columnOption'] as any);
+            v1Mock.loadColumnOption = jest.fn().mockResolvedValue(['v1-columnOption'] as any);
 
-            await expect(ds.getColumnOption('test-filter')).resolves.toEqual(['v1-columnOption']);
+            await expect(ds.loadColumnOption('test-filter')).resolves.toEqual(['v1-columnOption']);
 
-            expect(v1Mock.getColumnOption).toHaveBeenCalledWith('test-filter');
+            expect(v1Mock.loadColumnOption).toHaveBeenCalledWith('test-filter');
         });
 
-        it('should delegate getColumnOption to DataFrameDataSourceV2 when feature toggle is true', async () => {
+        it('should delegate loadColumnOption to DataFrameDataSourceV2 when feature toggle is true', async () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(true));
-            v2Mock.getColumnOption = jest.fn().mockResolvedValue(['v2-columnOption'] as any);
+            v2Mock.loadColumnOption = jest.fn().mockResolvedValue(['v2-columnOption'] as any);
 
-            await expect(ds.getColumnOption('another-filter')).resolves.toEqual(['v2-columnOption']);
+            await expect(ds.loadColumnOption('another-filter')).resolves.toEqual(['v2-columnOption']);
 
-            expect(v2Mock.getColumnOption).toHaveBeenCalledWith('another-filter');
+            expect(v2Mock.loadColumnOption).toHaveBeenCalledWith('another-filter');
         });
     });
 });

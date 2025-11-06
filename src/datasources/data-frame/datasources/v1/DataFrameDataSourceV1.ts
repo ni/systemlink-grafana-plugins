@@ -124,7 +124,7 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     return tableProperties.columns.map(col => ({ text: col.name, value: col.name }));
   }
 
-  async getColumnOption(_filter: string): Promise<ComboboxOption[]> {
+  async loadColumnOption(_filter: string): Promise<ComboboxOption[]> {
     throw new Error('Method not implemented.');
   }
 

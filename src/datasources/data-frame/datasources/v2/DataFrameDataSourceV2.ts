@@ -62,7 +62,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         return response.tables;
     }
 
-    public async getColumnOption(filter: string): Promise<ComboboxOption[]> {
+    public async loadColumnOption(filter: string): Promise<ComboboxOption[]> {
         const tables = await this.queryTables(filter, TAKE_LIMIT, [
             DataTableProjections.Name,
             DataTableProjections.ColumnName,
@@ -112,7 +112,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 // Single type: show just the name as label and value as name with type in sentence case
                 options.push({ label: name, value: `${name}-${columnDataType[0]}` }); 
             } else {
-                // Multiple types: group numeric, show others in sentence case
+                // Multiple types: group numeric, show each type in label and value
                 Array.from(new Set(columnDataType)).forEach(type => {
                     options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
                 });

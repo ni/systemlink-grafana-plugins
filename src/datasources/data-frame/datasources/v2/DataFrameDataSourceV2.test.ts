@@ -146,7 +146,7 @@ describe('DataFrameDataSourceV2', () => {
         });
     });
 
-    describe('getColumnOption', () => {
+    describe('loadColumnOption', () => {
         let queryTablesMock: jest.SpyInstance;
 
         beforeEach(() => {
@@ -160,7 +160,7 @@ describe('DataFrameDataSourceV2', () => {
         it('should return an empty array when no tables are found', async () => {
             queryTablesMock.mockResolvedValue([]);
 
-            const result = await ds.getColumnOption('some-filter');
+            const result = await ds.loadColumnOption('some-filter');
 
             expect(result).toEqual([]);
         });
@@ -171,7 +171,7 @@ describe('DataFrameDataSourceV2', () => {
                 { id: '2', name: 'Table 2' },
             ]);
 
-            const result = await ds.getColumnOption('some-filter');
+            const result = await ds.loadColumnOption('some-filter');
 
             expect(result).toEqual([]);
         });
@@ -209,7 +209,7 @@ describe('DataFrameDataSourceV2', () => {
                 }
             ]);
 
-            const result = await ds.getColumnOption('some-filter');
+            const result = await ds.loadColumnOption('some-filter');
             expect(result).toEqual([
                 { label: 'Column 1', value: 'Column 1-Numeric' },
                 { label: 'Column 2', value: 'Column 2-Numeric' },
@@ -240,7 +240,7 @@ describe('DataFrameDataSourceV2', () => {
                     }
                 ]);
 
-                const result = await ds.getColumnOption('some-filter');
+                const result = await ds.loadColumnOption('some-filter');
 
                 expect(result).toEqual([
                     { label: 'Column 1', value: 'Column 1-String' },
@@ -270,15 +270,15 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     },
                     {
-                        id: '5',
-                        name: 'Table 5',
+                        id: '3',
+                        name: 'Table 3',
                         columns: [
                             { name: 'Column 1', dataType: 'STRING' },
                         ]
                     }
                 ]);
 
-                const result = await ds.getColumnOption('some-filter');
+                const result = await ds.loadColumnOption('some-filter');
 
                 expect(result).toEqual([
                     { label: 'Column 1 (Numeric)', value: 'Column 1-Numeric' },
@@ -311,7 +311,7 @@ describe('DataFrameDataSourceV2', () => {
                     }
                 ]);
 
-                const result = await ds.getColumnOption('some-filter');
+                const result = await ds.loadColumnOption('some-filter');
 
                 expect(result).toEqual([
                     { label: 'Column A (String)', value: 'Column A-String' },
@@ -351,7 +351,7 @@ describe('DataFrameDataSourceV2', () => {
                     }
                 ]);
 
-                const result = await ds.getColumnOption('some-filter');
+                const result = await ds.loadColumnOption('some-filter');
 
                 expect(result).toEqual([
                     { label: 'Column A', value: 'Column A-String' },
@@ -375,7 +375,7 @@ describe('DataFrameDataSourceV2', () => {
                 }
             ]);
 
-            const result = await ds.getColumnOption('some-filter');
+            const result = await ds.loadColumnOption('some-filter');
 
             expect(result.length).toBe(COLUMN_OPTION_LIMIT);
             expect(result).toEqual(

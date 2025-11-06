@@ -62,7 +62,7 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.processQuery(query);
   }
 
-  public async getColumnOption(filter: string): Promise<ComboboxOption[]> {
-    return this.datasource.getColumnOption(filter);
+  public async loadColumnOption(filter: string): Promise<ComboboxOption[]> {
+    return this.datasource.loadColumnOption(filter);
   }
 }
