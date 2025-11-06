@@ -1,20 +1,17 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
-import { AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineLabel, InlineSwitch, MultiCombobox, MultiSelect, RadioButtonGroup } from "@grafana/ui";
+import React, { useCallback, useState } from 'react';
+import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
+import { AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, MultiSelect, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQueryV2, DataFrameQueryType, PropsV2, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProjections, DataTableProperties } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import { SelectableValue } from '@grafana/data';
-import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
-import { DataTableQueryBuilderFieldNames } from './constants/DataTableQueryBuilder.constants';
 import {
     errorMessages,
     INLINE_LABEL_WIDTH,
     VALUE_FIELD_WIDTH,
     getValuesInPixels,
     SECTION_WIDTH,
-    DEFAULT_MARGIN_BOTTOM,
     labels,
     placeholders,
     tooltips,
@@ -26,7 +23,6 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
     const [isColumnConfigurationSectionOpen, setIsColumnConfigurationSectionOpen] = useState(true);
     const [isDecimationSettingsSectionOpen, setIsDecimationSettingsSectionOpen] = useState(true);
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
-    const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
     const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
 
     const getPropertiesOptions = (
@@ -138,27 +134,6 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
         handleQueryChange({ ...migratedQuery, applyTimeFilters }, false);
     };
 
-    const dataTableNameLookupCallback = async (query: string) => {
-        const filter = `${DataTableQueryBuilderFieldNames.Name}.Contains("${query}")`;
-        const response = await datasource.queryTables(filter, 5, [DataTableProjections.Name]);
-
-        if (response.length === 0) {
-            return [];
-        }
-
-        const uniqueNames = new Set(response.map(table => table.name));
-        return Array.from(uniqueNames).map(name => ({ label: name, value: name }));
-    };
-
-    useEffect(() => {
-        const loadWorkspaces = async () => {
-            const workspaces = await datasource.loadWorkspaces();
-            setWorkspaces(Array.from(workspaces.values()));
-        };
-
-        loadWorkspaces();
-    }, [datasource]);
-
     function validateTakeValue(value: number, TAKE_LIMIT: number) {
         if (isNaN(value) || value <= 0) {
             return errorMessages.take.greaterOrEqualToZero;
@@ -228,24 +203,11 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                     collapsible={true}
                     onToggle={() => setIsQueryConfigurationSectionOpen(!isQueryConfigurationSectionOpen)}
                 >
-                    <InlineLabel
-                        width={VALUE_FIELD_WIDTH}
-                        tooltip={tooltips.queryByDataTableProperties}
-                    >
-                        {labels.queryByDataTableProperties}
-                    </InlineLabel>
-                    <div style={{
-                        width: getValuesInPixels(VALUE_FIELD_WIDTH),
-                        marginBottom: getValuesInPixels(DEFAULT_MARGIN_BOTTOM)
-                    }}>
-                        <DataTableQueryBuilder
-                            filter={migratedQuery.dataTableFilter}
-                            workspaces={workspaces}
-                            globalVariableOptions={datasource.globalVariableOptions()}
-                            onChange={onDataTableFilterChange}
-                            dataTableNameLookupCallback={dataTableNameLookupCallback}
-                        />
-                    </div>
+                    <DataFrameQueryBuilderWrapper
+                        datasource={datasource}
+                        dataTableFilter={migratedQuery.dataTableFilter}
+                        onDataTableFilterChange={onDataTableFilterChange}
+                    />
 
                     {migratedQuery.type === DataFrameQueryType.Properties && (
                         <InlineField

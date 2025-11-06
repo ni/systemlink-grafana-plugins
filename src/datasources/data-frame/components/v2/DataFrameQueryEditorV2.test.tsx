@@ -2,58 +2,13 @@ import React from "react";
 import { render, RenderResult, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
-import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataSourceQBLookupCallback, DataTableProperties } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
-import { QueryBuilderOption, Workspace } from "core/types";
 import { select } from "react-select-event";
+import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 
-jest.mock("./query-builders/DataTableQueryBuilder", () => ({
-    DataTableQueryBuilder: (
-        props: {
-            filter?: string;
-            workspaces?: Workspace[];
-            globalVariableOptions: QueryBuilderOption[];
-            dataTableNameLookupCallback: DataSourceQBLookupCallback;
-            onChange: (event: { detail: { linq: string; }; }) => void;
-        }
-    ) => {
-        const [options, setOptions] = React.useState<QueryBuilderOption[]>([]);
-
-        React.useEffect(() => {
-            const loadOptions = async () => {
-                const result = await props.dataTableNameLookupCallback("test");
-                setOptions(result);
-            };
-
-            loadOptions();
-        }, [props]);
-
-        return (
-            <div data-testid="data-table-query-builder">
-                <input
-                    type="text"
-                    data-testid="filter-input"
-                    value={props.filter}
-                    onChange={(e) => props.onChange({ detail: { linq: e.target.value } })}
-                />
-                <ul data-testid="workspaces-list">
-                    {props.workspaces?.map(workspace => (
-                        <li key={workspace.id}>{workspace.name}</li>
-                    ))}
-                </ul>
-                <ul data-testid="global-variable-options-list">
-                    {props.globalVariableOptions?.map(option => (
-                        <li key={option.label}>{`${option.label}:${option.value}`}</li>
-                    ))}
-                </ul>
-                <ul data-testid="data-table-name-options-list">
-                    {options.map(option => (
-                        <li key={option.value}>{`${option.label}:${option.value}`}</li>
-                    ))}
-                </ul>
-            </div>
-        );
-    }
+jest.mock("./query-builders/DataFrameQueryBuilderWrapper", () => ({
+    DataFrameQueryBuilderWrapper: jest.fn(() => <div data-testid="mock-data-frame-query-builder-wrapper" />)
 }));
 
 const renderComponent = (
@@ -70,24 +25,20 @@ const renderComponent = (
         errorTitle,
         errorDescription,
         processQuery,
-        loadWorkspaces: jest.fn().mockResolvedValue(
-            [
-                { id: '1', name: 'WorkspaceName' },
-                { id: '2', name: 'AnotherWorkspaceName' },
-            ]
-        ),
-        globalVariableOptions: jest.fn().mockReturnValue(
-            [
-                { label: 'Var1', value: 'Value1' },
-                { label: 'Var2', value: 'Value2' },
-            ]
-        ),
         queryTables: jest.fn().mockResolvedValue(
             [
                 { id: 'table1', name: 'Table 1', columns: [{ name: 'ColumnA' }, {name: 'ColumnB'}] },
                 { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, {name: 'ColumnE'}] },
             ]
         ),
+        globalVariableOptions: jest.fn().mockReturnValue([
+            { label: 'Var1', value: 'Value1' },
+            { label: 'Var2', value: 'Value2' },
+        ]),
+        loadWorkspaces: jest.fn().mockResolvedValue(new Map([
+            ['1', { id: '1', name: 'WorkspaceName', default: false, enabled: true }],
+            ['2', { id: '2', name: 'AnotherWorkspaceName', default: false, enabled: true }],
+        ])),
     } as unknown as DataFrameDataSource;
 
     const initialQuery = {
@@ -175,14 +126,6 @@ describe("DataFrameQueryEditorV2", () => {
 
             it("should hide the take", async () => {
                 expect(screen.queryByText("Take")).not.toBeInTheDocument();
-            });
-        });
-
-        describe("data table query builder", () => {
-            it("should show the 'DataTableQueryBuilder' component", async () => {
-                await waitFor(() => {
-                    expect(screen.getByTestId("data-table-query-builder")).toBeInTheDocument();
-                });
             });
         });
 
@@ -485,14 +428,6 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
-        describe("data table query builder", () => {
-            it("should show the DataTableQueryBuilder component", async () => {
-                await waitFor(() => {
-                    expect(renderResult.getByTestId("data-table-query-builder")).toBeInTheDocument();
-                });
-            });
-        });
-
         describe("take field", () => {
             let takeInput: HTMLElement;
             let user: UserEvent;
@@ -556,66 +491,51 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
     });
+    
+    describe("query builder wrapper integration", () => {
+    it("should render the query builder wrapper and forward the props", async () => {
+        renderComponent({ type: DataFrameQueryType.Data, dataTableFilter: 'InitialFilter' });
 
-    describe("DataTableQueryBuilder props", () => {
-        it("should pass the filter to the DataTableQueryBuilder component", async () => {
-            renderComponent({ dataTableFilter: "test filter" });
+        expect(screen.getByTestId("mock-data-frame-query-builder-wrapper")).toBeInTheDocument();
+        expect(DataFrameQueryBuilderWrapper).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dataTableFilter: 'InitialFilter',
+                datasource: expect.any(Object),
+                onDataTableFilterChange: expect.any(Function),
+            }),
+            expect.anything() // React context
+        );
+    });
 
-            await waitFor(() => {
-                const filterInput = screen.getByTestId("filter-input");
-                expect(filterInput).toHaveValue("test filter");
-            });
-        });
+    it("should call onChange with updated dataTableFilter when filter changes", async () => {
+        const { onChange } = renderComponent({ type: DataFrameQueryType.Data });
 
-        it("should pass the workspaces to the DataTableQueryBuilder component", async () => {
-            renderComponent();
+        // Get the onDataTableFilterChange callback from the mock
+        const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+        const { onDataTableFilterChange } = props;
 
-            await waitFor(() => {
-                const workspacesList = screen.getByTestId("workspaces-list");
-                expect(workspacesList).toBeInTheDocument();
-                expect(within(workspacesList).getByText("WorkspaceName")).toBeInTheDocument();
-                expect(within(workspacesList).getByText("AnotherWorkspaceName")).toBeInTheDocument();
-            });
-        });
+        // Simulate the filter change event
+        const mockEvent = { 
+            detail: { linq: "NewFilter" } 
+        } as Event & { detail: { linq: string } };
+        
+        onDataTableFilterChange(mockEvent);
 
-        it("should pass the global variable options to the DataTableQueryBuilder component", async () => {
-            renderComponent();
-
-            await waitFor(() => {
-                const optionsList = screen.getByTestId("global-variable-options-list");
-                expect(optionsList).toBeInTheDocument();
-                expect(within(optionsList).getByText("Var1:Value1")).toBeInTheDocument();
-                expect(within(optionsList).getByText("Var2:Value2")).toBeInTheDocument();
-            });
-        });
-
-        it("should pass the dataTableNameLookupCallback to the DataTableQueryBuilder component", async () => {
-            renderComponent();
-
-            await waitFor(() => {
-                const optionsList = screen.getByTestId("data-table-name-options-list");
-                expect(optionsList).toBeInTheDocument();
-                expect(within(optionsList).getByText("Table 1:Table 1")).toBeInTheDocument();
-                expect(within(optionsList).getByText("Table 2:Table 2")).toBeInTheDocument();
-            });
-        });
-
-        it("should call onChange when the data table filter is changed in the DataTableQueryBuilder component", async () => {
-            const { onChange } = renderComponent({ dataTableFilter: "" });
-            const filterInput = screen.getByTestId("filter-input");
-            const user = userEvent.setup();
-
-            await user.clear(filterInput);
-            await user.type(filterInput, "new filter");
-
-            await waitFor(() => {
-                expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                    dataTableFilter: "new filter",
-                }));
-            });
+        await waitFor(() => {
+            expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ 
+                dataTableFilter: 'NewFilter' 
+            }));
         });
     });
 
+    it("should verify dataTableFilter is passed correctly", () => {
+        renderComponent({ type: DataFrameQueryType.Data, dataTableFilter: 'TestFilter' });
+
+        const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+
+        expect(props.dataTableFilter).toBe('TestFilter');
+    });
+});
     describe("floating error", () => {
         it("should not be rendered when there is no error", async () => {
             renderComponent();
