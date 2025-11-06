@@ -1,6 +1,6 @@
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { ListAlarmsQueryHandler } from './ListAlarmsQueryHandler';
-import { Alarm, AlarmsVariableQuery, AlarmTransitionType, QueryAlarmsResponse, QueryType } from '../../types/types';
+import { Alarm, AlarmsVariableQuery, AlarmTransitionType, QueryAlarmsResponse, QueryType, TransitionInclusionOption } from '../../types/types';
 import { DataQueryRequest, LegacyMetricFindQueryOptions } from '@grafana/data';
 import { QUERY_ALARMS_RELATIVE_PATH } from 'datasources/alarms/constants/QueryAlarms.constants';
 import { BackendSrv } from '@grafana/runtime';
@@ -143,6 +143,7 @@ describe('ListAlarmsQueryHandler', () => {
       properties: ['displayName', 'currentSeverityLevel', 'occurredAt', 'source', 'state', 'workspace'],
       take: 1000,
       descending: true,
+      transitionInclusionOption: 'NONE',
     });
   });
 
@@ -758,6 +759,34 @@ describe('ListAlarmsQueryHandler', () => {
         expect.objectContaining({
           data: expect.objectContaining({
             filter: 'test-filter',
+          }),
+        })
+      );
+    });
+
+    it('should use transition inclusion option and call API with correct transition parameter', async () => {
+      const query = buildAlarmsQuery({ transitionInclusionOption: TransitionInclusionOption.MostRecentOnly });
+
+      await datastore.runQuery(query, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            transitionInclusionOption: TransitionInclusionOption.MostRecentOnly,
+          }),
+        })
+      );
+    });
+
+    it('should default to NONE transition inclusion option when not provided', async () => {
+      const query = buildAlarmsQuery({ transitionInclusionOption: undefined });
+
+      await datastore.runQuery(query, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            'transitionInclusionOption': TransitionInclusionOption.None,
           }),
         })
       );
