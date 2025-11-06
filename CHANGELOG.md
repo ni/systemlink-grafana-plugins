@@ -1,3 +1,9 @@
+## [4.51.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.50.1...v4.51.0) (2025-11-06)
+
+### Features
+
+* **qr-code:** add code owners for qr-code panel plugin ([#501](https://github.com/ni/systemlink-grafana-plugins/issues/501)) ([d2246f7](https://github.com/ni/systemlink-grafana-plugins/commit/d2246f70050038c3e55187333dc4fa3af45e92d4))
+
 ## [4.50.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.50.0...v4.50.1) (2025-11-06)
 
 ### Bug Fixes
