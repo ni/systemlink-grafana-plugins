@@ -300,9 +300,7 @@ export function post<T>(backendSrv: BackendSrv, url: string, body: Record<string
  * @param backendSrv - The Backend Service instance {@link BackendSrv} used to make the request.
  * @param url - The endpoint URL to which the POST request is sent.
  * @param body - The request payload as a key-value map.
- * @param options - Optional configuration for the request. This can include:
- *   - `showingErrorAlert` (boolean): If true, displays an error alert on request failure.
- *   - Any other properties supported by {@link BackendSrvRequest}, such as headers, credentials, etc.
+ * @param options - Optional configurations for the request.
  * @returns An observable emitting the response of type `T`.
  */
 export function post$<T>(backendSrv: BackendSrv, url: string, body: Record<string, any>, options: Partial<BackendSrvRequest> = {}) {

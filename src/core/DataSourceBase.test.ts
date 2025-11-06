@@ -206,17 +206,6 @@ describe('DataSourceBase', () => {
             expect(response).toEqual('observable-test');
         });
 
-        it('should not send GET$ request if no API session is returned', async () => {
-            jest.clearAllMocks();
-            mockApiSessionUtils.createApiSession.mockRejectedValueOnce(new Error('No session created'));
-
-            const response = firstValueFrom(dataSource.get$('/test-endpoint', { params: { param1: 'value1' }, useApiIngress: true }));
-
-            await expect(response).rejects.toThrow('No session created');
-            expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
-            expect(mockGet$).not.toHaveBeenCalled();
-        });
-
         it('should send GET$ request with API ingress endpoints and api key when useApiIngress is true and params is empty', async () => {
             const response = await firstValueFrom(dataSource.get$('/test-endpoint', { useApiIngress: true}));
 
@@ -231,6 +220,17 @@ describe('DataSourceBase', () => {
                 }
             );
             expect(response).toEqual('observable-test');
+        });
+
+        it('should not send GET$ request if no API session is returned', async () => {
+            jest.clearAllMocks();
+            mockApiSessionUtils.createApiSession.mockRejectedValueOnce(new Error('No session created'));
+
+            const response = firstValueFrom(dataSource.get$('/test-endpoint', { params: { param1: 'value1' }, useApiIngress: true }));
+
+            await expect(response).rejects.toThrow('No session created');
+            expect(mockApiSessionUtils.createApiSession).toHaveBeenCalled();
+            expect(mockGet$).not.toHaveBeenCalled();
         });
     });
 
@@ -323,7 +323,7 @@ describe('DataSourceBase', () => {
     describe('query', () => {
         it('should run queries for all targets that should run', async () => {
             const querySpy = jest.spyOn(dataSource, 'runQuery').mockResolvedValue('frame-data');
-            const prepareSpy = jest.spyOn(dataSource, 'prepareQuery').mockReturnValueOnce({ key: 'value' });
+            const prepareSpy = jest.spyOn(dataSource, 'prepareQuery').mockReturnValue({ key: 'value' });
             const shouldRunSpy = jest.spyOn(dataSource, 'shouldRunQuery').mockReturnValue(true);
 
             const request = {
@@ -336,13 +336,36 @@ describe('DataSourceBase', () => {
             const response = await firstValueFrom(dataSource.query(request));
 
             expect(prepareSpy).toHaveBeenCalledTimes(2);
+            expect(prepareSpy).toHaveBeenNthCalledWith(
+                1, {refId: "A"}, 0, request.targets
+            );
+            expect(prepareSpy).toHaveBeenNthCalledWith(
+                2, {refId: "B"}, 1, request.targets
+            );
             expect(shouldRunSpy).toHaveBeenCalledTimes(2);
+            expect(shouldRunSpy).toHaveBeenNthCalledWith(
+                1, 
+                { key: "value" }, 
+                0, 
+                [{ key: "value"}, { key: "value" }]
+            );
+            expect(shouldRunSpy).toHaveBeenNthCalledWith(
+                2, 
+                { key: "value" }, 
+                1, 
+                [{ key: "value"}, { key: "value" }]
+            );
+
             expect(querySpy).toHaveBeenCalledTimes(2);
-            expect(querySpy).toHaveBeenCalledWith(
+            expect(querySpy).toHaveBeenNthCalledWith(
+                1,
                 { key: 'value' },
-                {
-                    targets: [ { refId: 'A' }, { refId: 'B' } ]
-                }
+                request
+            );
+            expect(querySpy).toHaveBeenNthCalledWith(
+                2,
+                { key: 'value' },
+                request
             );
             expect(response).toEqual({
                 data: ['frame-data', 'frame-data'],
@@ -366,13 +389,28 @@ describe('DataSourceBase', () => {
             const response = await firstValueFrom(dataSource.query(request));
 
             expect(prepareSpy).toHaveBeenCalledTimes(2);
+            expect(prepareSpy).toHaveBeenNthCalledWith(
+                1, {refId: "A"}, 0, request.targets
+            );
+            expect(prepareSpy).toHaveBeenNthCalledWith(
+                2, {refId: "B"}, 1, request.targets
+            );
             expect(shouldRunSpy).toHaveBeenCalledTimes(2);
+            expect(shouldRunSpy).toHaveBeenNthCalledWith(
+                1, 
+                { key: "value" }, 
+                0, 
+                [{ key: "value"}, { key: "value" }]
+            );
+            expect(shouldRunSpy).toHaveBeenNthCalledWith(
+                2, 
+                { key: "value" }, 
+                1, 
+                [{ key: "value"}, { key: "value" }]
+            );
             expect(querySpy).toHaveBeenCalledTimes(1);
             expect(querySpy).toHaveBeenCalledWith(
-                { key: 'value' },
-                {
-                    targets: [ { refId: 'A' }, { refId: 'B' } ]
-                }
+                { key: 'value' }, request
             );
             expect(response).toEqual({
                 data: ['frame-data']
@@ -427,7 +465,7 @@ describe('DataSourceBase', () => {
         it('should wait for the longest running Observable to complete before emitting the final value', async () => {
             jest.useFakeTimers();
             jest.spyOn(dataSource, 'prepareQuery');
-            jest.spyOn(dataSource, 'shouldRunQuery').mockReturnValue(true);            
+            jest.spyOn(dataSource, 'shouldRunQuery').mockReturnValue(true);
             const querySpy = jest.spyOn(dataSource, 'runQuery')
                 .mockImplementationOnce(() => {
                     return timer(50).pipe(map(() => 'Data-A-Slow'));
