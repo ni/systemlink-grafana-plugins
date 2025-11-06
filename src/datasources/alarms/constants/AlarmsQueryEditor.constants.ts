@@ -4,8 +4,8 @@ import { TransitionInclusionOption } from '../types/types';
 
 export const LABEL_WIDTH = 26;
 export const CONTROL_WIDTH = 65;
-export const SECONDARY_CONTROL_WIDTH = 26;
 export const SECONDARY_LABEL_WIDTH = 20;
+export const SECONDARY_CONTROL_WIDTH = 26;
 export const ERROR_SEVERITY_WARNING: AlertVariant = 'warning';
 export const QUERY_EDITOR_MIN_TAKE = 1;
 export const QUERY_EDITOR_MAX_TAKE = 10000;

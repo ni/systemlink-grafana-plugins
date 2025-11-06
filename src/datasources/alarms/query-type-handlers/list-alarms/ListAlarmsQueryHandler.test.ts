@@ -98,12 +98,30 @@ function buildAlarmsResponse(alarms: Array<Partial<Alarm>>): Alarm[] {
     }));
   }
 
+function buildAlarmsQuery(query?: Partial<ListAlarmsQuery>): ListAlarmsQuery {
+  return {
+    refId: 'A',
+    queryType: QueryType.ListAlarms,
+    take: 1000,
+    properties: [AlarmsProperties.displayName],
+    ...query,
+  };
+}
+
+function buildAlarmsQuery(query?: Partial<ListAlarmsQuery>): ListAlarmsQuery {
+  return {
+    refId: 'A',
+    queryType: QueryType.ListAlarms,
+    take: 1000,
+    properties: [AlarmsProperties.displayName],
+    ...query,
+  };
+}
+
 describe('ListAlarmsQueryHandler', () => {
-  let query: ListAlarmsQuery;
   let options: DataQueryRequest;
 
   beforeEach(() => {
-    query = { refId: 'A', queryType: QueryType.ListAlarms };
     options = {} as DataQueryRequest;
 
     [datastore, backendServer] = setupDataSource(ListAlarmsQueryHandler);
@@ -133,12 +151,16 @@ describe('ListAlarmsQueryHandler', () => {
     expect(defaultQuery).toEqual({
       filter: '',
       properties: ['displayName', 'currentSeverityLevel', 'occurredAt', 'source', 'state', 'workspace'],
+      take: 1000,
+      descending: true,
       transitionInclusionOption: 'NONE',
     });
   });
 
   describe('runQuery', () => {
     it('should return empty value with refId and name from query when properties is undefined', async () => {
+      const query = buildAlarmsQuery({ properties: undefined });
+
       const result = await datastore.runQuery(query, options);
 
       expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
@@ -146,7 +168,9 @@ describe('ListAlarmsQueryHandler', () => {
 
     it('should pass the transformed filter to the API', async () => {
       jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
-      const filterQuery = { refId: 'A', filter: 'acknowledgedAt > "${__now:date}"'};
+      const filterQuery = buildAlarmsQuery({
+        filter: 'acknowledgedAt > "${__now:date}"'
+      });
 
       await datastore.runQuery(filterQuery, options);
 
@@ -174,11 +198,9 @@ describe('ListAlarmsQueryHandler', () => {
       });
 
       it('should return field without values when no alarms are returned from API', async () => {
-        const query = {
-          refId: 'A',
-          properties: [AlarmsProperties.acknowledged],
-          filter: 'some-filter',
-        };
+        const query = buildAlarmsQuery({
+          properties: [AlarmsProperties.acknowledged]
+        });
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
           .mockResolvedValueOnce([]);
@@ -192,10 +214,9 @@ describe('ListAlarmsQueryHandler', () => {
       });
 
       it('should convert workspaceIds to workspace names for workspace field', async () => {
-        const query = {
-          refId: 'A',
-          properties: [AlarmsProperties.workspace],
-        };
+        const query = buildAlarmsQuery({
+          properties: [AlarmsProperties.workspace]
+        });
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
           .mockResolvedValueOnce(
@@ -222,10 +243,9 @@ describe('ListAlarmsQueryHandler', () => {
       });
 
       it('should convert acknowledgedBy userIds to user full names for acknowledgedBy field', async () => {
-        const query = {
-          refId: 'A',
-          properties: [AlarmsProperties.acknowledgedBy],
-        };
+        const query = buildAlarmsQuery({ 
+          properties: [AlarmsProperties.acknowledgedBy]
+        });
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
           .mockResolvedValueOnce(
@@ -245,10 +265,9 @@ describe('ListAlarmsQueryHandler', () => {
       });
 
       it('should map and sort the custom properties field', async () => {
-        const query = {
-          refId: 'A',
+        const query = buildAlarmsQuery({
           properties: [AlarmsProperties.properties],
-        };
+        });
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
           .mockResolvedValueOnce(
@@ -274,10 +293,9 @@ describe('ListAlarmsQueryHandler', () => {
       });
 
       it('should remove any custom properties that starts with nitag', async () => {
-        const query = {
-          refId: 'A',
+        const query = buildAlarmsQuery({
           properties: [AlarmsProperties.properties],
-        };
+        });
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
           .mockResolvedValueOnce(
@@ -303,10 +321,10 @@ describe('ListAlarmsQueryHandler', () => {
       });
 
       it('should return empty strings for properties field when no custom properties exist on the alarms', async () => {
-        const query = {
+        const query = buildAlarmsQuery({
           refId: 'A',
           properties: [AlarmsProperties.properties],
-        };
+        });
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
           .mockResolvedValueOnce(
@@ -332,10 +350,9 @@ describe('ListAlarmsQueryHandler', () => {
       });
 
       it('should map severity level properties correctly', async () => {
-        const query = {
-          refId: 'A',
+        const query = buildAlarmsQuery({
           properties: [AlarmsProperties.highestSeverityLevel, AlarmsProperties.currentSeverityLevel],
-        };
+        });
         jest
         .spyOn(datastore as any, 'queryAlarmsInBatches')
         .mockResolvedValueOnce(
@@ -390,10 +407,9 @@ describe('ListAlarmsQueryHandler', () => {
       });
 
       it('should map state property correctly', async () => {
-        const query = {
-          refId: 'A',
+        const query = buildAlarmsQuery({
           properties: [AlarmsProperties.state],
-        };
+        });
         jest
         .spyOn(datastore as any, 'queryAlarmsInBatches')
         .mockResolvedValueOnce(
@@ -421,10 +437,9 @@ describe('ListAlarmsQueryHandler', () => {
       });
 
       it('should map source property correctly', async () => {
-        const query = {
-          refId: 'A',
+        const query = buildAlarmsQuery({
           properties: [AlarmsProperties.source],
-        };
+        });
         jest
         .spyOn(datastore as any, 'queryAlarmsInBatches')
         .mockResolvedValueOnce(
@@ -452,8 +467,7 @@ describe('ListAlarmsQueryHandler', () => {
       });
 
       it('should map time-fields properly', async () => {
-        const query = {
-          refId: 'A',
+        const query = buildAlarmsQuery({
           properties: [
             AlarmsProperties.occurredAt,
             AlarmsProperties.acknowledgedAt,
@@ -461,7 +475,7 @@ describe('ListAlarmsQueryHandler', () => {
             AlarmsProperties.mostRecentSetOccurredAt,
             AlarmsProperties.mostRecentTransitionOccurredAt,
           ],
-        };
+        });
         jest
         .spyOn(datastore as any, 'queryAlarmsInBatches')
         .mockResolvedValueOnce(
@@ -526,10 +540,9 @@ describe('ListAlarmsQueryHandler', () => {
       });
 
       it('should map keyword property correctly', async () => {
-        const query = {
-          refId: 'A',
+        const query = buildAlarmsQuery({
           properties: [AlarmsProperties.keywords],
-        };
+        });
         jest
         .spyOn(datastore as any, 'queryAlarmsInBatches')
         .mockResolvedValueOnce(
@@ -560,10 +573,9 @@ describe('ListAlarmsQueryHandler', () => {
       });
 
       it('should map boolean values fields to the properties', async () => {
-        const query = {
-          refId: 'A',
+        const query = buildAlarmsQuery({
           properties: [AlarmsProperties.clear, AlarmsProperties.acknowledged, AlarmsProperties.active]
-        };
+        });
         jest
         .spyOn(datastore as any, 'queryAlarmsInBatches')
         .mockResolvedValueOnce(
@@ -599,8 +611,7 @@ describe('ListAlarmsQueryHandler', () => {
       });
 
       it('should map string and number based properties', async () => {
-        const query = {
-          refId: 'A',
+        const query = buildAlarmsQuery({
           properties: [
             AlarmsProperties.channel,
             AlarmsProperties.alarmId,
@@ -612,7 +623,7 @@ describe('ListAlarmsQueryHandler', () => {
             AlarmsProperties.resourceType,
             AlarmsProperties.transitionOverflowCount,
           ],
-        };
+        });
         jest
         .spyOn(datastore as any, 'queryAlarmsInBatches')
         .mockResolvedValueOnce(
@@ -697,10 +708,47 @@ describe('ListAlarmsQueryHandler', () => {
         });
       });
     });
+
+    [0, -5, 9999999, undefined].forEach(invalidTake => {
+      it(`should return empty result when take is invalid(${invalidTake})`, async () => {
+        const invalidTakeQuery = buildAlarmsQuery({ take: invalidTake });
+        const spy = jest.spyOn(datastore as any, 'queryAlarmsData');
+
+        const result = await datastore.runQuery(invalidTakeQuery, options);
+
+        expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
+        expect(spy).not.toHaveBeenCalled();
+      });
+    });
+
+    it('should not call queryAlarmsData when take is invalid', async () => {
+      const invalidTakeQuery = buildAlarmsQuery({ take: 0 });
+      const spy = jest.spyOn(datastore as any, 'queryAlarmsData');
+
+      const result = await datastore.runQuery(invalidTakeQuery, options);
+
+      expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should call queryAlarmsData when take is valid', async () => {
+      const validTakeQuery = buildAlarmsQuery({ take: 500 });
+      const spy = jest.spyOn(datastore as any, 'queryAlarmsData');
+
+      await datastore.runQuery(validTakeQuery, options);
+
+      expect(spy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          take: 500,
+        })
+      );
+    });
   });
 
   describe('queryAlarmsData', () => {
     it('should default to empty filter when filter is not provided in query', async () => {
+      const query = buildAlarmsQuery({ filter: undefined });
+
       await datastore.runQuery(query, options);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
@@ -713,14 +761,14 @@ describe('ListAlarmsQueryHandler', () => {
     });
 
     it('should use the provided filter when querying alarms', async () => {
-      const filter = 'test-filter';
+      const query = buildAlarmsQuery({ filter: 'test-filter' });
 
-      await datastore.runQuery({ ...query, filter }, options);
+      await datastore.runQuery(query, options);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            filter,
+            filter: 'test-filter',
           }),
         })
       );
@@ -751,8 +799,49 @@ describe('ListAlarmsQueryHandler', () => {
         })
       );
     });
-  });
 
+    it('should pass take from query to the API', async () => {
+      const query = buildAlarmsQuery({ take: 500 });
+
+      await datastore.runQuery(query, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            take: 500,
+          }),
+        })
+      );
+    });
+
+    it('should pass descending from query to the API', async () => {
+      const query = buildAlarmsQuery({ descending: false });
+
+      await datastore.runQuery(query, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            orderByDescending: false,
+          }),
+        })
+      );
+    });
+
+    it('should default to true for descending order when it is not provided in query', async () => {
+      const query = buildAlarmsQuery({ descending: undefined });
+
+      await datastore.runQuery(query, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            orderByDescending: true,
+          }),
+        })
+      );
+    });
+  });
 
   describe('metricFindQuery', () => {
     let options: LegacyMetricFindQueryOptions;
