@@ -3,7 +3,7 @@ import { useAsync } from 'react-use';
 import { DataSourceBase } from './DataSourceBase';
 import { BatchQueryConfig, QBField, QueryBuilderOption, QueryResponse, SystemLinkError, Workspace } from './types';
 import { BackendSrv, BackendSrvRequest, FetchError, isFetchError, TemplateSrv } from '@grafana/runtime';
-import { catchError, lastValueFrom, map, mergeMap, Observable, throwError, timer } from 'rxjs';
+import { catchError, lastValueFrom, map, Observable, switchMap, throwError, timer } from 'rxjs';
 
 export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<SelectableValue<T>> {
   const RESULT = [];
@@ -370,7 +370,7 @@ function fetch$<T>(
       if (isFetchError(error) && error.status === 429 && retries < maxRetries) {
         const delayMs = Math.random() * 1000 * 2 ** retries;
         return timer(delayMs).pipe(
-          mergeMap(() => fetch$<T>(backendSrv, { ...options, url }, retries + 1))
+          switchMap(() => fetch$<T>(backendSrv, { ...options, url }, retries + 1))
         );
       }
 
