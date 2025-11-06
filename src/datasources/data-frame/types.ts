@@ -230,7 +230,7 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
 
 export type ValidDataFrameQuery = ValidDataFrameQueryV1 | ValidDataFrameQueryV2;
 
-export type ValidDataFrameVariableQuery = Required<Omit<DataFrameVariableQueryV2, keyof DataQuery>>;
+export type ValidDataFrameVariableQuery = DataFrameVariableQueryV2 & Required<Omit<DataFrameVariableQueryV2, keyof DataQuery>>;
 
 export type ValidDataFrameQueryV1 = DataFrameQueryV1 & Required<Omit<DataFrameQueryV1, keyof DataQuery>>;
 
