@@ -447,14 +447,13 @@ describe('DataSourceBase', () => {
                     return res;
                 });
 
-            jest.advanceTimersByTime(10);
+            await jest.advanceTimersByTimeAsync(10);
             expect(responseResolved).toBe(false);
     
-            jest.advanceTimersByTime(39);
+            await jest.advanceTimersByTimeAsync(39);
             expect(responseResolved).toBe(false);
     
-            jest.advanceTimersByTime(1);
-            await Promise.resolve();
+            await jest.advanceTimersByTimeAsync(1);
             expect(responseResolved).toBe(true);
     
             const response = await responsePromise;
