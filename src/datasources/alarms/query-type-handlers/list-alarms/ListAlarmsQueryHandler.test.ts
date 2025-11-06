@@ -699,7 +699,7 @@ describe('ListAlarmsQueryHandler', () => {
     });
 
     [0, -5, 9999999, undefined].forEach(invalidTake => {
-      it('should return empty result when take is invalid', async () => {
+      it(`should return empty result when take is invalid(${invalidTake})`, async () => {
         const invalidTakeQuery = buildAlarmsQuery({ take: invalidTake });
         const spy = jest.spyOn(datastore as any, 'queryAlarmsData');
 
@@ -708,6 +708,16 @@ describe('ListAlarmsQueryHandler', () => {
         expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
         expect(spy).not.toHaveBeenCalled();
       });
+    });
+
+    it('should not call queryAlarmsData when take is invalid', async () => {
+      const invalidTakeQuery = buildAlarmsQuery({ take: 0 });
+      const spy = jest.spyOn(datastore as any, 'queryAlarmsData');
+
+      const result = await datastore.runQuery(invalidTakeQuery, options);
+
+      expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
+      expect(spy).not.toHaveBeenCalled();
     });
 
     it('should call queryAlarmsData when take is valid', async () => {

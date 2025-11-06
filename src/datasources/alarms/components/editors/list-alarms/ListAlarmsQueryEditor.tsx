@@ -62,8 +62,8 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     handleQueryChange({ ...query, properties: selectedProperties });
   };
 
-  const onDescendingChange = (isDescendingChecked: boolean) => {
-    handleQueryChange({ ...query, descending: isDescendingChecked });
+  const onDescendingChange = (descending: boolean) => {
+    handleQueryChange({ ...query, descending });
   };
 
   const validateTakeValue = (value: number) => {
