@@ -694,7 +694,7 @@ describe('Asset calibration "contains" queries', () => {
         filter: `${AssetCalibrationFieldNames.MODEL_NAME}.Contains("ModelName1") && ${AssetCalibrationFieldNames.ASSET_NAME}.Contains("AssetName1") && ${AssetCalibrationFieldNames.VENDOR_NAME}.Contains("VendorName1")`,
       });
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -713,7 +713,7 @@ describe('Asset calibration "contains" queries', () => {
         filter: `!(${AssetCalibrationFieldNames.MODEL_NAME}.Contains("ModelName1")) && !(${AssetCalibrationFieldNames.ASSET_NAME}.Contains("AssetName1")) && !(${AssetCalibrationFieldNames.VENDOR_NAME}.Contains("VendorName1"))`,
       });
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -734,7 +734,7 @@ describe('Asset calibration "contains" queries', () => {
         filter: `${AssetCalibrationFieldNames.VENDOR_NAME}.Contains("{VendorName1,VendorName2}")`,
       });
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -753,7 +753,7 @@ describe('Asset calibration "contains" queries', () => {
         filter: `!(${AssetCalibrationFieldNames.VENDOR_NAME}.Contains("{VendorName1,VendorName2}"))`,
       });
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -772,7 +772,7 @@ describe('Asset calibration "contains" queries', () => {
         filter: `${AssetCalibrationFieldNames.MODEL_NAME}.Contains("{ModelName1,ModelName2}")`,
       });
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -791,7 +791,7 @@ describe('Asset calibration "contains" queries', () => {
         filter: `!(${AssetCalibrationFieldNames.MODEL_NAME}.Contains("{ModelName1,ModelName2}"))`,
       });
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -810,7 +810,7 @@ describe('Asset calibration "contains" queries', () => {
         filter: `${AssetCalibrationFieldNames.ASSET_NAME}.Contains("{AssetName1,AssetName2}")`,
       });
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -829,7 +829,7 @@ describe('Asset calibration "contains" queries', () => {
         filter: `!(${AssetCalibrationFieldNames.ASSET_NAME}.Contains("{AssetName1,AssetName2}"))`,
       });
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(processCalibrationForecastQuerySpy).toHaveBeenCalledWith(
         expect.objectContaining({

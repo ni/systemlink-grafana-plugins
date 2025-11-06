@@ -208,7 +208,7 @@ describe('List assets "contains" queries', () => {
                 filter: `${ListAssetsFieldNames.MODEL_NAME}.Contains("ModelName1") && ${ListAssetsFieldNames.ASSET_NAME}.Contains("AssetName1") && ${ListAssetsFieldNames.VENDOR_NAME}.Contains("VendorName1")`,
             });
 
-            await datastore.query(query);
+            await firstValueFrom(datastore.query(query));
 
             expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -225,7 +225,7 @@ describe('List assets "contains" queries', () => {
                 filter: `!(${ListAssetsFieldNames.MODEL_NAME}.Contains("ModelName1")) && !(${ListAssetsFieldNames.ASSET_NAME}.Contains("AssetName1")) && !(${ListAssetsFieldNames.VENDOR_NAME}.Contains("VendorName1"))`,
             });
 
-            await datastore.query(query);
+            await firstValueFrom(datastore.query(query));
 
             expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -244,7 +244,7 @@ describe('List assets "contains" queries', () => {
                 filter: `${ListAssetsFieldNames.VENDOR_NAME}.Contains("{VendorName1,VendorName2}")`,
             });
 
-            await datastore.query(query);
+            await firstValueFrom(datastore.query(query));
 
             expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -261,7 +261,7 @@ describe('List assets "contains" queries', () => {
                 filter: `!(${ListAssetsFieldNames.VENDOR_NAME}.Contains("{VendorName1,VendorName2}"))`,
             });
 
-            await datastore.query(query);
+            await firstValueFrom(datastore.query(query));
 
             expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -278,7 +278,7 @@ describe('List assets "contains" queries', () => {
                 filter: `${ListAssetsFieldNames.MODEL_NAME}.Contains("{ModelName1,ModelName2}")`,
             });
 
-            await datastore.query(query);
+            await firstValueFrom(datastore.query(query));
 
             expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -295,7 +295,7 @@ describe('List assets "contains" queries', () => {
                 filter: `!(${ListAssetsFieldNames.MODEL_NAME}.Contains("{ModelName1,ModelName2}"))`,
             });
 
-            await datastore.query(query);
+            await firstValueFrom(datastore.query(query));
 
             expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -312,7 +312,7 @@ describe('List assets "contains" queries', () => {
                 filter: `${ListAssetsFieldNames.ASSET_NAME}.Contains("{AssetName1,AssetName2}")`,
             });
 
-            await datastore.query(query);
+            await firstValueFrom(datastore.query(query));
 
             expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -329,7 +329,7 @@ describe('List assets "contains" queries', () => {
                 filter: `!(${ListAssetsFieldNames.ASSET_NAME}.Contains("{AssetName1,AssetName2}"))`,
             });
 
-            await datastore.query(query);
+            await firstValueFrom(datastore.query(query));
 
             expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
                 expect.objectContaining({
