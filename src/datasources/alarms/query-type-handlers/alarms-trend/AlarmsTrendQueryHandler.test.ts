@@ -300,7 +300,7 @@ describe('AlarmsTrendQueryHandler', () => {
 
       const result = await datastore.runQuery(query, shortIntervalOptions);
 
-      expect(result.fields?.[0]?.values?.length).toEqual(120); // 1 hour / 30 seconds = 120 intervals
+      expect(result.fields?.[0]?.values?.length).toEqual(121); // 1 hour / 30 seconds = 120 intervals + 1(last edge point);
     });
 
     it('should maintain alarm state transitions over time intervals', async () => {

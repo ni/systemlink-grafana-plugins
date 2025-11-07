@@ -92,8 +92,8 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
     const alarmStates = new Map<string, boolean>();
     let eventIndex = 0;
 
-    for (let intervalStart = startTime; intervalStart < endTime; intervalStart += intervalMs) {
-      while (eventIndex < events.length && events[eventIndex].timestamp < intervalStart) {
+    for (let intervalStart = startTime; intervalStart <= endTime; intervalStart += intervalMs) {
+      while (eventIndex < events.length && events[eventIndex].timestamp <= intervalStart) {
         const event = events[eventIndex];
         alarmStates.set(event.alarmId, event.newState);
         eventIndex++;
