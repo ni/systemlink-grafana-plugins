@@ -31,14 +31,6 @@ const renderComponent = (
                 { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, {name: 'ColumnE'}] },
             ]
         ),
-        globalVariableOptions: jest.fn().mockReturnValue([
-            { label: 'Var1', value: 'Value1' },
-            { label: 'Var2', value: 'Value2' },
-        ]),
-        loadWorkspaces: jest.fn().mockResolvedValue(new Map([
-            ['1', { id: '1', name: 'WorkspaceName', default: false, enabled: true }],
-            ['2', { id: '2', name: 'AnotherWorkspaceName', default: false, enabled: true }],
-        ])),
     } as unknown as DataFrameDataSource;
 
     const initialQuery = {
@@ -153,17 +145,18 @@ describe("DataFrameQueryEditorV2", () => {
                 });
 
                 it('should load columns combobox options when filter changes', async () => {
-                    const filterInput = screen.getByTestId("filter-input");
-                    const user = userEvent.setup();
+                    renderComponent({ type: DataFrameQueryType.Data });
 
-                    await user.clear(filterInput);
-                    await user.type(filterInput, "new filter");
+                    // Get the onDataTableFilterChange callback from the mock
+                    const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                    const { onDataTableFilterChange } = props;
 
-                    await waitFor(() => {
-                        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                            dataTableFilter: "new filter",
-                        }));
-                    });
+                    // Simulate the filter change event
+                    const mockEvent = { 
+                        detail: { linq: "NewFilter" } 
+                    } as Event & { detail: { linq: string } };
+                    
+                    onDataTableFilterChange(mockEvent);
 
                     // Click on column combobox to load options
                     const columnsCombobox = screen.getAllByRole('combobox')[0];
