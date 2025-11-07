@@ -80,7 +80,6 @@ export interface AlarmTransition {
   properties: {
     [key: string]: string;
   };
-  [key: string]: any;
 }
 
 export enum AlarmTransitionType {

@@ -1,20 +1,18 @@
 import { DataFrameDTO, DataQueryRequest, FieldType } from '@grafana/data';
 import { AlarmsQueryHandlerCore } from 'datasources/alarms/query-type-handlers/AlarmsQueryHandlerCore';
 import { defaultAlarmsTrendQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
-import { AlarmsTrendQuery } from 'datasources/alarms/types/AlarmsTrend.types';
+import { AlarmsTrendQuery, AlarmTransitionEvent, AlarmTransitionWithNumericTime } from 'datasources/alarms/types/AlarmsTrend.types';
 import { Alarm, AlarmTransitionType, TransitionInclusionOption } from 'datasources/alarms/types/types';
 
 export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultAlarmsTrendQuery;
 
   public async runQuery(query: AlarmsTrendQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    const start = new Date(this.templateSrv.replace('${__from:date}', options.scopedVars));
-    const end = new Date(this.templateSrv.replace('${__to:date}', options.scopedVars));
-    const intervalInMs = options.intervalMs;
+    const { start, end, intervalMs } = this.extractTimeParameters(options);
     const filter = this.getTrendQueryFilter(query, start, end);
     const alarms = await this.queryAlarmsUntilComplete({ filter, transitionInclusionOption: TransitionInclusionOption.All });
     const alarmsWithTimestamp = this.enrichTransitionsWithTimestamp(alarms);
-    const trendData = this.countActiveAlarmsPerInterval(alarmsWithTimestamp, start, end, intervalInMs);
+    const trendData = this.countActiveAlarmsPerInterval(alarmsWithTimestamp, start, end, intervalMs);
 
     return {
       refId: query.refId,
@@ -32,6 +30,13 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
         }
       ]
     };
+  }
+
+  private extractTimeParameters(options: DataQueryRequest) {
+    const start = new Date(this.templateSrv.replace('${__from:date}', options.scopedVars));
+    const end = new Date(this.templateSrv.replace('${__to:date}', options.scopedVars));
+    const intervalMs = options.intervalMs;
+    return { start, end, intervalMs };
   }
 
   private getTrendQueryFilter(query: AlarmsTrendQuery, start: Date, end: Date): string {
@@ -55,8 +60,8 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
       ...alarm,
       transitions: (alarm.transitions?.map(transition => ({
         ...transition,
-        timestamp: new Date(transition.occurredAt).getTime(),
-      })) ?? []).sort((a, b) => a.timestamp - b.timestamp)
+        occurredAtAsNumber: new Date(transition.occurredAt).getTime(),
+      })) ?? []).sort((a, b) => a.occurredAtAsNumber - b.occurredAtAsNumber) as AlarmTransitionWithNumericTime[]
     }));
   }
 
@@ -65,43 +70,39 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
     const startTime = start.getTime();
     const endTime = end.getTime();
     
-    const events: Array<{
-      timestamp: number;
-      alarmId: string;
-      newState: boolean;
-    }> = [];
+    const alarmTransitionEvents: AlarmTransitionEvent[] = [];
 
     alarms.forEach(alarm => {
       for (const transition of alarm.transitions) {
-        const timestamp = transition.timestamp;
+        const occurredAtAsNumber = (transition as AlarmTransitionWithNumericTime).occurredAtAsNumber;
         
-        if (timestamp > endTime) {
+        if (occurredAtAsNumber > endTime) {
           break;
         }
         
-        events.push({
-          timestamp,
+        alarmTransitionEvents.push({
+          occurredAtAsNumber,
           alarmId: alarm.alarmId,
-          newState: transition.transitionType === AlarmTransitionType.Set
+          type: transition.transitionType
         });
       }
     });
 
-    events.sort((a, b) => a.timestamp - b.timestamp);
+    alarmTransitionEvents.sort((a, b) => a.occurredAtAsNumber - b.occurredAtAsNumber);
 
-    const alarmStates = new Map<string, boolean>();
+    const alarmStates = new Map<string, AlarmTransitionType>();
     let eventIndex = 0;
 
     for (let intervalStart = startTime; intervalStart <= endTime; intervalStart += intervalMs) {
-      while (eventIndex < events.length && events[eventIndex].timestamp <= intervalStart) {
-        const event = events[eventIndex];
-        alarmStates.set(event.alarmId, event.newState);
+      while (eventIndex < alarmTransitionEvents.length && alarmTransitionEvents[eventIndex].occurredAtAsNumber <= intervalStart) {
+        const event = alarmTransitionEvents[eventIndex];
+        alarmStates.set(event.alarmId, event.type);
         eventIndex++;
       }
       
       let activeCount = 0;
-      alarmStates.forEach(isActive => {
-        if (isActive) {
+      alarmStates.forEach(type => {
+        if (type === AlarmTransitionType.Set) {
           activeCount++;
         }
       });
