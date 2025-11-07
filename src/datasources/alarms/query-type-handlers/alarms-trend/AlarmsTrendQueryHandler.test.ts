@@ -5,7 +5,7 @@ import { QueryAlarmsResponse, Alarm, AlarmTransitionType, TransitionInclusionOpt
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv } from '@grafana/runtime';
 import { QUERY_ALARMS_RELATIVE_PATH } from 'datasources/alarms/constants/QueryAlarms.constants';
-import { AlarmsTrendQuery } from 'datasources/alarms/types/AlarmsTrend.types';
+import { AlarmsTrendQuery, AlarmTrendSeverityLevelLabel } from 'datasources/alarms/types/AlarmsTrend.types';
 
 let datastore: AlarmsTrendQueryHandler, backendServer: MockProxy<BackendSrv>;
 
@@ -25,7 +25,7 @@ const sampleAlarm: Alarm = {
     {
       transitionType: AlarmTransitionType.Set,
       occurredAt: '2025-01-01T10:15:00.000Z',
-      severityLevel: 3,
+      severityLevel: AlarmTransitionSeverityLevel.High,
       value: 'High',
       condition: 'Temperature',
       shortText: 'Temp High',
@@ -174,118 +174,338 @@ describe('AlarmsTrendQueryHandler', () => {
       );
     });
 
-    it('should return correct data frame structure for trend query', async () => {
-      const result = await datastore.runQuery(query, options);
-
-      expect(result).toEqual({
-        refId: 'A',
-        name: 'Alarms Trend',
-        fields: [
-          {
-            name: 'Time',
-            type: FieldType.time,
-            values: expect.any(Array)
-          },
-          {
-            name: 'Alarms Count',
-            type: FieldType.number,
-            values: expect.any(Array)
-          }
-        ]
+    describe('groupBySeverity is false', () => {
+      beforeEach(() => {
+        query.groupBySeverity = false;
       });
-      expect(result.fields?.[0]?.values?.length).toBe(result.fields?.[1]?.values?.length);
-    });
 
-    it('should handle empty alarms response', async () => {
-      backendServer.fetch
-        .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
-        .mockReturnValue(createFetchResponse({ alarms: [], totalCount: 0, continuationToken: '' }));
-
-      const result = await datastore.runQuery(query, options);
-
-      expect(result.fields?.[0]?.values?.length).toBeGreaterThan(0);
-      expect(result.fields?.[1]?.values?.every((count: number) => count === 0)).toBe(true);
-      expect(result.fields?.[0]?.values?.length).toBe(result.fields?.[1]?.values?.length);
-    });
-
-    it('should process multiple alarms with different transitions', async () => {
-      const multipleAlarms = buildAlarmsResponse([
-        {
-          alarmId: 'ALARM-001',
-          transitions: [
+      it('should return correct data frame structure for trend query', async () => {
+        const result = await datastore.runQuery(query, options);
+  
+        expect(result).toEqual({
+          refId: 'A',
+          name: 'Alarms Trend',
+          fields: [
             {
-              transitionType: AlarmTransitionType.Set,
-              occurredAt: '2025-01-01T10:10:00.000Z',
-              severityLevel: AlarmTransitionSeverityLevel.High,
-              value: '',
-              condition: '',
-              shortText: '',
-              detailText: '',
-              keywords: [],
-              properties: {}
-            }
-          ]
-        },
-        {
-          alarmId: 'ALARM-002',
-          transitions: [
-            {
-              transitionType: AlarmTransitionType.Set,
-              occurredAt: '2025-01-01T10:20:00.000Z',
-              severityLevel: AlarmTransitionSeverityLevel.High,
-              value: '',
-              condition: '',
-              shortText: '',
-              detailText: '',
-              keywords: [],
-              properties: {}
+              name: 'Time',
+              type: FieldType.time,
+              values: expect.any(Array)
             },
             {
-              transitionType: AlarmTransitionType.Clear,
-              occurredAt: '2025-01-01T10:40:00.000Z',
-              severityLevel: AlarmTransitionSeverityLevel.Low,
-              value: '',
-              condition: '',
-              shortText: '',
-              detailText: '',
-              keywords: [],
-              properties: {}
+              name: 'Alarms Count',
+              type: FieldType.number,
+              values: expect.any(Array)
             }
           ]
-        }
-      ]);
+        });
+        expect(result.fields?.[0]?.values?.length).toBe(result.fields?.[1]?.values?.length);
+      });
+  
+      it('should handle empty alarms response', async () => {
+        backendServer.fetch
+          .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
+          .mockReturnValue(createFetchResponse({ alarms: [], totalCount: 0, continuationToken: '' }));
+  
+        const result = await datastore.runQuery(query, options);
+  
+        expect(result.fields?.[0]?.values?.length).toBeGreaterThan(0);
+        expect(result.fields?.[1]?.values?.every((count: number) => count === 0)).toBe(true);
+        expect(result.fields?.[0]?.values?.length).toBe(result.fields?.[1]?.values?.length);
+      });
 
-      backendServer.fetch
-        .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
-        .mockReturnValue(createFetchResponse({ alarms: multipleAlarms, totalCount: 2, continuationToken: '' }));
+      it('should process multiple alarms with different transitions', async () => {
+        const multipleAlarms = buildAlarmsResponse([
+          {
+            alarmId: 'ALARM-001',
+            transitions: [
+              {
+                transitionType: AlarmTransitionType.Set,
+                occurredAt: '2025-01-01T10:10:00.000Z',
+                severityLevel: AlarmTransitionSeverityLevel.High,
+                value: '',
+                condition: '',
+                shortText: '',
+                detailText: '',
+                keywords: [],
+                properties: {}
+              }
+            ]
+          },
+          {
+            alarmId: 'ALARM-002',
+            transitions: [
+              {
+                transitionType: AlarmTransitionType.Set,
+                occurredAt: '2025-01-01T10:20:00.000Z',
+                severityLevel: AlarmTransitionSeverityLevel.High,
+                value: '',
+                condition: '',
+                shortText: '',
+                detailText: '',
+                keywords: [],
+                properties: {}
+              },
+              {
+                transitionType: AlarmTransitionType.Clear,
+                occurredAt: '2025-01-01T10:40:00.000Z',
+                severityLevel: AlarmTransitionSeverityLevel.Low,
+                value: '',
+                condition: '',
+                shortText: '',
+                detailText: '',
+                keywords: [],
+                properties: {}
+              }
+            ]
+          }
+        ]);
 
-      const result = await datastore.runQuery(query, options);
+        backendServer.fetch
+          .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
+          .mockReturnValue(createFetchResponse({ alarms: multipleAlarms, totalCount: 2, continuationToken: '' }));
 
-      const actualCounts = result.fields[1].values as number[];
-      const maxCount = Math.max(...actualCounts);
-      expect(actualCounts.some(count => count > 0)).toBe(true);
-      expect(maxCount).toBeLessThanOrEqual(2);
+        const result = await datastore.runQuery(query, options);
+
+        const actualCounts = result.fields[1].values as number[];
+        const maxCount = Math.max(...actualCounts);
+        expect(actualCounts.some(count => count > 0)).toBe(true);
+        expect(maxCount).toBeLessThanOrEqual(2);
+      });
     });
 
-    it('should handle alarms without transitions', async () => {
-      const alarmsWithoutTransitions = buildAlarmsResponse([
-        { alarmId: 'ALARM-001', transitions: [] },
-        { alarmId: 'ALARM-002', transitions: undefined }
-      ]);
-      backendServer.fetch
-        .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
-        .mockReturnValue(createFetchResponse({ 
-          alarms: alarmsWithoutTransitions, 
-          totalCount: 2, 
-          continuationToken: '' 
-        }));
+    describe('groupBySeverity is true', () => {
+      beforeEach(() => {
+        query.groupBySeverity = true;
+      });
 
-      const result = await datastore.runQuery(query, options);
+      it('should return correct data frame structure for severity grouped trend query', async () => {
+        const result = await datastore.runQuery(query, options);
 
-      expect(result.refId).toBe('A');
-      expect(result.fields?.[0]?.values?.length).toBeGreaterThan(0);
-      expect(result.fields?.[1]?.values?.every((count: number) => count === 0)).toBe(true);
-      expect(result.fields?.[0]?.values?.length).toBe(result.fields?.[1]?.values?.length);
+        expect(result).toEqual({
+          refId: 'A',
+          name: 'Alarms Trend by Severity',
+          fields: [
+            {
+              name: 'Time',
+              type: FieldType.time,
+              values: expect.any(Array)
+            },
+            {
+              name: AlarmTrendSeverityLevelLabel.Low,
+              type: FieldType.number,
+              values: expect.any(Array)
+            },
+            {
+              name: AlarmTrendSeverityLevelLabel.Moderate,
+              type: FieldType.number,
+              values: expect.any(Array)
+            },
+            {
+              name: AlarmTrendSeverityLevelLabel.High,
+              type: FieldType.number,
+              values: expect.any(Array)
+            },
+            {
+              name: AlarmTrendSeverityLevelLabel.Critical,
+              type: FieldType.number,
+              values: expect.any(Array)
+            }
+          ]
+        });
+        const fieldLengths = result.fields?.map(field => field.values?.length);
+        expect(new Set(fieldLengths).size).toBe(1);
+      });
+
+      it('should initialize all severity groups to zero when no alarms', async () => {
+        backendServer.fetch
+          .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
+          .mockReturnValue(createFetchResponse({ alarms: [], totalCount: 0, continuationToken: '' }));
+
+        const result = await datastore.runQuery(query, options);
+
+        const severityFields = result.fields?.slice(1);
+        expect(severityFields?.length).toBe(4);
+        severityFields?.forEach(field => {
+          expect(field.values?.every((count: number) => count === 0)).toBe(true);
+        });
+      });
+
+      it('should correctly group alarms with different severity levels', async () => {
+        const alarmsWithDifferentSeverities = buildAlarmsResponse([
+          {
+            alarmId: 'ALARM-001',
+            transitions: [
+              {
+                transitionType: AlarmTransitionType.Set,
+                occurredAt: '2025-01-01T10:10:00.000Z',
+                severityLevel: AlarmTransitionSeverityLevel.Low,
+                value: 'Low',
+                condition: 'Temperature',
+                shortText: 'Temp Low',
+                detailText: 'Low temperature alert',
+                keywords: ['temperature', 'low'],
+                properties: {}
+              }
+            ]
+          },
+          {
+            alarmId: 'ALARM-002',
+            transitions: [
+              {
+                transitionType: AlarmTransitionType.Set,
+                occurredAt: '2025-01-01T10:15:00.000Z',
+                severityLevel: AlarmTransitionSeverityLevel.High,
+                value: 'High',
+                condition: 'Pressure',
+                shortText: 'Pressure High',
+                detailText: 'High pressure detected',
+                keywords: ['pressure', 'high'],
+                properties: {}
+              }
+            ]
+          },
+          {
+            alarmId: 'ALARM-003',
+            transitions: [
+              {
+                transitionType: AlarmTransitionType.Set,
+                occurredAt: '2025-01-01T10:20:00.000Z',
+                severityLevel: AlarmTransitionSeverityLevel.Critical,
+                value: 'Critical',
+                condition: 'System',
+                shortText: 'System Critical',
+                detailText: 'Critical system failure',
+                keywords: ['system', 'critical'],
+                properties: {}
+              }
+            ]
+          }
+        ]);
+        backendServer.fetch
+          .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
+          .mockReturnValue(createFetchResponse({ 
+            alarms: alarmsWithDifferentSeverities, 
+            totalCount: 3, 
+            continuationToken: '' 
+          }));
+
+        const result = await datastore.runQuery(query, options);
+
+        const lowField = result.fields?.find(f => f.name === AlarmTrendSeverityLevelLabel.Low);
+        const highField = result.fields?.find(f => f.name === AlarmTrendSeverityLevelLabel.High);
+        const criticalField = result.fields?.find(f => f.name === AlarmTrendSeverityLevelLabel.Critical);
+        expect(lowField?.values?.some((count: number) => count > 0)).toBe(true);
+        expect(highField?.values?.some((count: number) => count > 0)).toBe(true);
+        expect(criticalField?.values?.some((count: number) => count > 0)).toBe(true);
+      });
+
+      it('should handle severity level transitions correctly', async () => {
+        const alarmWithSeverityTransitions = buildAlarmsResponse([
+          {
+            alarmId: 'ALARM-001',
+            transitions: [
+              {
+                transitionType: AlarmTransitionType.Set,
+                occurredAt: '2025-01-01T10:10:00.000Z',
+                severityLevel: AlarmTransitionSeverityLevel.Low,
+                value: 'Low',
+                condition: 'Temperature',
+                shortText: 'Temp Low',
+                detailText: 'Low temperature alert',
+                keywords: ['temperature', 'low'],
+                properties: {}
+              },
+              {
+                transitionType: AlarmTransitionType.Set,
+                occurredAt: '2025-01-01T10:30:00.000Z',
+                severityLevel: AlarmTransitionSeverityLevel.High,
+                value: 'High',
+                condition: 'Temperature',
+                shortText: 'Temp High',
+                detailText: 'Temperature escalated to high',
+                keywords: ['temperature', 'high'],
+                properties: {}
+              },
+              {
+                transitionType: AlarmTransitionType.Clear,
+                occurredAt: '2025-01-01T10:50:00.000Z',
+                severityLevel: AlarmTransitionSeverityLevel.Clear,
+                value: 'Clear',
+                condition: 'Temperature',
+                shortText: 'Temp Clear',
+                detailText: 'Temperature returned to normal',
+                keywords: ['temperature', 'clear'],
+                properties: {}
+              }
+            ]
+          }
+        ]);
+
+        backendServer.fetch
+          .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
+          .mockReturnValue(createFetchResponse({ 
+            alarms: alarmWithSeverityTransitions, 
+            totalCount: 1, 
+            continuationToken: '' 
+          }));
+
+        const result = await datastore.runQuery(query, options);
+
+        const lowField = result.fields?.find(f => f.name === AlarmTrendSeverityLevelLabel.Low);
+        const highField = result.fields?.find(f => f.name === AlarmTrendSeverityLevelLabel.High);
+        expect(lowField?.values?.some((count: number) => count > 0)).toBe(true);
+        expect(highField?.values?.some((count: number) => count > 0)).toBe(true);
+      });
+
+      it('should handle edge severity levels correctly', async () => {
+        const alarmsWithEdgeSeverities = buildAlarmsResponse([
+          {
+            alarmId: 'ALARM-001',
+            transitions: [
+              {
+                transitionType: AlarmTransitionType.Set,
+                occurredAt: '2025-01-01T10:10:00.000Z',
+                severityLevel: -1, // Clear
+                value: 'Clear',
+                condition: 'Test',
+                shortText: 'Test Clear',
+                detailText: 'Test clear condition',
+                keywords: ['test'],
+                properties: {}
+              }
+            ]
+          },
+          {
+            alarmId: 'ALARM-002',
+            transitions: [
+              {
+                transitionType: AlarmTransitionType.Set,
+                occurredAt: '2025-01-01T10:15:00.000Z',
+                severityLevel: 5 as AlarmTransitionSeverityLevel,
+                value: 'Ultra Critical',
+                condition: 'System',
+                shortText: 'System Ultra Critical',
+                detailText: 'Ultra critical system failure',
+                keywords: ['system'],
+                properties: {}
+              }
+            ]
+          }
+        ]);
+
+        backendServer.fetch
+          .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
+          .mockReturnValue(createFetchResponse({ 
+            alarms: alarmsWithEdgeSeverities, 
+            totalCount: 2, 
+            continuationToken: '' 
+          }));
+
+        const result = await datastore.runQuery(query, options);
+
+        const criticalField = result.fields?.find(f => f.name === AlarmTrendSeverityLevelLabel.Critical);
+        expect(criticalField?.values?.some((count: number) => count > 0)).toBe(true);
+      });
     });
 
     it('should use template service for time range replacement', async () => {
@@ -322,7 +542,7 @@ describe('AlarmsTrendQueryHandler', () => {
             {
               transitionType: AlarmTransitionType.Clear,
               occurredAt: '2025-01-01T10:30:00.000Z',
-              severityLevel: AlarmTransitionSeverityLevel.High,
+              severityLevel: AlarmTransitionSeverityLevel.Clear,
               value: 'Normal',
               condition: 'Temperature',
               shortText: 'Temp Normal',
@@ -333,7 +553,7 @@ describe('AlarmsTrendQueryHandler', () => {
             {
               transitionType: AlarmTransitionType.Set,
               occurredAt: '2025-01-01T10:50:00.000Z',
-              severityLevel: 2,
+              severityLevel: AlarmTransitionSeverityLevel.Critical,
               value: 'Medium',
               condition: 'Temperature',
               shortText: 'Temp Medium',
@@ -352,12 +572,44 @@ describe('AlarmsTrendQueryHandler', () => {
           continuationToken: '' 
         }));
 
+      query.groupBySeverity = false;
       const result = await datastore.runQuery(query, options);
 
       const counts = result.fields[1].values as number[];
       expect(counts).toEqual(expect.arrayContaining([0, 1]));
       expect(counts.length).toBeGreaterThan(0);
       expect(new Set(counts).size).toBe(2);
+    });
+
+    it('should handle alarms without transitions', async () => {
+      const alarmsWithoutTransitions = buildAlarmsResponse([
+        { alarmId: 'ALARM-001', transitions: [] },
+        { alarmId: 'ALARM-002', transitions: undefined }
+      ]);
+      backendServer.fetch
+        .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
+        .mockReturnValue(createFetchResponse({ 
+          alarms: alarmsWithoutTransitions, 
+          totalCount: 2, 
+          continuationToken: '' 
+        }));
+
+      query.groupBySeverity = false;
+      const ungroupedResult = await datastore.runQuery(query, options);
+
+      expect(ungroupedResult.refId).toBe('A');
+      expect(ungroupedResult.fields?.[0]?.values?.length).toBeGreaterThan(0);
+      expect(ungroupedResult.fields?.[1]?.values?.every((count: number) => count === 0)).toBe(true);
+      expect(ungroupedResult.fields?.[0]?.values?.length).toBe(ungroupedResult.fields?.[1]?.values?.length);
+
+      query.groupBySeverity = true;
+      const groupedResult = await datastore.runQuery(query, options);
+
+      expect(groupedResult.refId).toBe('A');
+      expect(groupedResult.fields?.length).toBe(5);
+      groupedResult.fields?.slice(1).forEach(field => {
+        expect(field.values?.every((count: number) => count === 0)).toBe(true);
+      });
     });
   });
 });
