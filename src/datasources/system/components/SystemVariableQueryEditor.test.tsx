@@ -14,7 +14,8 @@ test('renders with NO workspace selected', async () => {
 
   await workspacesLoaded();
 
-  expect(screen.getByRole('combobox')).toHaveAccessibleDescription('Any workspace');
+  const workspaceSelect = screen.getAllByRole('combobox')[0];
+  expect(workspaceSelect).toHaveAccessibleDescription('Any workspace');
 });
 
 test('renders with workspace selected', async () => {
@@ -30,7 +31,8 @@ test('user selects new workspace', async () => {
 
   await workspacesLoaded();
 
-  await select(screen.getByRole('combobox'), 'Other workspace', { container: document.body });
+  const workspaceSelect = screen.getAllByRole('combobox')[0];
+  await select(workspaceSelect, 'Other workspace', { container: document.body });
   expect(onChange).toHaveBeenCalledWith({ workspace: '2' });
 });
 
