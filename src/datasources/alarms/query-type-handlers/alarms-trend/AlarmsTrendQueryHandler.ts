@@ -53,7 +53,7 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
   private enrichTransitionsWithTimestamp(alarms: Alarm[]): Alarm[] {
     return alarms.map(alarm => ({
       ...alarm,
-      transitions: (alarm.transitions?.map((transition: AlarmTransition, index: number) => ({
+      transitions: (alarm.transitions?.map(transition => ({
         ...transition,
         timestamp: new Date(transition.occurredAt).getTime(),
       })) ?? []).sort((a, b) => a.timestamp - b.timestamp)
