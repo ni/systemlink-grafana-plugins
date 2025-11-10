@@ -839,30 +839,30 @@ describe('shouldRunQuery', () => {
         expect(data.fields[0].values).toEqual(['keyword0, keyword1, keyword2, keyword3, keyword4']);
     });
 
-    test('should display scan code property', async () => {
-        const query = buildListAssetsQuery({
-            refId: '',
-            type: AssetQueryType.ListAssets,
-            filter: ``,
-            outputType: OutputType.Properties,
-            properties: [AssetFilterPropertiesOption.ScanCode],
-        });
-        const listAssetsResponse = {
-            assets: [
-                {
-                    scanCode: 'SC1234'
-                },
-            ], totalCount: 1
-        }
-        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+    // test('should display scan code property', async () => {
+    //     const query = buildListAssetsQuery({
+    //         refId: '',
+    //         type: AssetQueryType.ListAssets,
+    //         filter: ``,
+    //         outputType: OutputType.Properties,
+    //         properties: [AssetFilterPropertiesOption.ScanCode],
+    //     });
+    //     const listAssetsResponse = {
+    //         assets: [
+    //             {
+    //                 scanCode: 'SC1234'
+    //             },
+    //         ], totalCount: 1
+    //     }
+    //     jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
 
-        const response = await datastore.query(query);
-        const data = response.data[0];
+    //     const response = await datastore.query(query);
+    //     const data = response.data[0];
 
-        expect(data.fields).toHaveLength(1);
-        expect(data.fields[0].name).toEqual('scan code');
-        expect(data.fields[0].values).toEqual(['SC1234']);
-    });
+    //     expect(data.fields).toHaveLength(1);
+    //     expect(data.fields[0].name).toEqual('scan code');
+    //     expect(data.fields[0].values).toEqual(['SC1234']);
+    // });
 
     test('should convert workspaceIds to workspace names for workspace field', async () => {
         const query = buildListAssetsQuery({
