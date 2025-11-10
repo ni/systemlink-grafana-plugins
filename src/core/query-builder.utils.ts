@@ -61,17 +61,17 @@ function transformBasedOnBlankOperations(query: string, field: string, transform
 }
 
 function transformBasedOnContainsOperations(query: string, field: string, transformation: ExpressionTransformFunction, options?: Map<string, Map<string, unknown>>) {
-  const containsRegex = new RegExp(String.raw`(?:!(\(${field}\.Contains\("([^"]*)"\)\))|(${field}\.Contains\("([^"]*)"\)))`, 'g');
+    const containsRegex = new RegExp(String.raw`(?:!(\(${field}\.Contains\("([^"]*)"\)\))|(${field}\.Contains\("([^"]*)"\)))`, 'g');
 
-  return query.replace(containsRegex, (_match, _negatedMatch, negatedValue, _positiveMatch, positiveValue) => {
-      const isNegated = negatedValue !== undefined;
-      const extractedValue = negatedValue || positiveValue;
-      
-      const operation = isNegated
-        ? QueryBuilderOperations.DOES_NOT_CONTAIN.name
-        : QueryBuilderOperations.CONTAINS.name;
-    return transformation(extractedValue, operation, options?.get(field));
-  });
+    return query.replace(containsRegex, (_match, _negatedMatch, negatedValue, _positiveMatch, positiveValue) => {
+        const isNegated = negatedValue !== undefined;
+        const extractedValue = negatedValue || positiveValue;
+        
+        const operation = isNegated
+          ? QueryBuilderOperations.DOES_NOT_CONTAIN.name
+          : QueryBuilderOperations.CONTAINS.name;
+      return transformation(extractedValue, operation, options?.get(field));
+    });
 }
 
 function transformBasedOnAnyOperation(
@@ -113,7 +113,7 @@ function transformBasedOnStartEndOperations(
  * @param value The value to be used in the expression
  * @returns The built expression
  */
-export function buildExpressionFromTemplate(expressionTemplate: string | undefined, field: string, value?: string): string | undefined {
+export function buildExpressionFromTemplate(expressionTemplate: string | undefined, field: string, value?: string) {
   return expressionTemplate?.replace('{0}', field).replace('{1}', value ?? '');
 }
 
@@ -268,8 +268,8 @@ export function multipleValuesQuery(field: string): ExpressionTransformFunction 
 export function getConcatOperatorForMultiExpression(operation: string, negation = false): string {
   return (
     operation === QueryBuilderOperations.EQUALS.name
-    || operation === QueryBuilderOperations.IS_NOT_BLANK.name
     || operation === QueryBuilderOperations.CONTAINS.name
+    || operation === QueryBuilderOperations.IS_NOT_BLANK.name
     || operation === QueryBuilderOperations.STARTS_WITH.name
     || operation === QueryBuilderOperations.ENDS_WITH.name
   )
