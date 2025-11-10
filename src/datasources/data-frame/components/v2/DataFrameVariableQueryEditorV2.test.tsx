@@ -2,7 +2,7 @@ import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource"
 import { DataFrameVariableQuery, DataFrameVariableQueryType, defaultVariableQueryV2, ValidDataFrameVariableQuery } from "datasources/data-frame/types";
 import { DataFrameVariableQueryEditorV2 } from "./DataFrameVariableQueryEditorV2";
 import React from "react";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 const renderComponent = (
@@ -49,6 +49,13 @@ const renderComponent = (
 };
 
 describe('DataFrameVariableQueryEditorV2', () => {
+    beforeAll(() => {
+        // JSDOM provides offsetHeight as 0 by default. 
+        // Mocking it to return 30 because the ComboBox virtualization relies on this value 
+        // to correctly calculate and render the dropdown options. 
+        jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+    });
+
     describe('Query Type Combobox', () => {
         it('should call processVariableQuery on render', () => {
             const { processVariableQuery } = renderComponent();
@@ -61,6 +68,21 @@ describe('DataFrameVariableQueryEditorV2', () => {
             const combobox = screen.getByRole('combobox') as HTMLSelectElement;
 
             expect(combobox.value).toBe('List Data tables');
+        });
+
+        it('should show the expected options in the query type combobox', async () => {
+            renderComponent();
+            const combobox = screen.getByRole('combobox');
+            const user = userEvent.setup();
+
+            await user.click(combobox);
+
+            const optionControls = within(document.body).getAllByRole('option');
+            const optionValues = optionControls.map(option => option.textContent);
+            expect(optionValues).toEqual([
+                'List Data tables',
+                'List Data table columns'
+            ]);
         });
 
         it('should call onChange when query type is changed', async () => {
