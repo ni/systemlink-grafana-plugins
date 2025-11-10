@@ -1,13 +1,6 @@
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { ListAlarmsQueryHandler } from './ListAlarmsQueryHandler';
-import {
-  Alarm,
-  AlarmsVariableQuery,
-  AlarmTransitionType,
-  QueryAlarmsResponse,
-  QueryType,
-  TransitionInclusionOption,
-} from '../../types/types';
+import { Alarm, AlarmsVariableQuery, AlarmTransitionType, QueryAlarmsResponse, QueryType, TransitionInclusionOption } from '../../types/types';
 import { DataQueryRequest, LegacyMetricFindQueryOptions } from '@grafana/data';
 import { QUERY_ALARMS_RELATIVE_PATH } from 'datasources/alarms/constants/QueryAlarms.constants';
 import { BackendSrv } from '@grafana/runtime';
@@ -57,7 +50,9 @@ const sampleAlarm: Alarm = {
   occurredAt: '2025-09-16T09:00:00Z',
   updatedAt: '2025-09-16T10:29:00Z',
   createdBy: 'admin',
-  transitions: [mockTransition1],
+  transitions: [
+    mockTransition1,
+  ],
   transitionOverflowCount: 0,
   currentSeverityLevel: 3,
   highestSeverityLevel: 3,
@@ -71,7 +66,7 @@ const sampleAlarm: Alarm = {
   properties: {
     location: 'Lab-1',
   },
-  resourceType: '',
+  resourceType: ''
 };
 
 const mockAlarmResponse: QueryAlarmsResponse = {
@@ -102,21 +97,21 @@ const mockUsers: User[] = [
     created: '',
     updated: '',
     orgId: '',
-  },
+  }
 ];
 
 const workspaces: Workspace[] = [
   { id: 'Workspace1', name: 'Workspace Name', default: false, enabled: true },
-  { id: 'Workspace2', name: 'Another Workspace Name', default: false, enabled: true },
+  { id: 'Workspace2', name: 'Another Workspace Name', default: false, enabled: true  },
 ];
 
 function buildAlarmsResponse(alarms: Array<Partial<Alarm>>): Alarm[] {
   return alarms.map((partialAlarm, index) => ({
-    ...sampleAlarm,
-    instanceId: `INST-${String(index + 1).padStart(3, '0')}`,
-    ...partialAlarm,
-  }));
-}
+      ...sampleAlarm,
+      instanceId: `INST-${String(index + 1).padStart(3, '0')}`,
+      ...partialAlarm,
+    }));
+  }
 
 function buildAlarmsQuery(query?: Partial<ListAlarmsQuery>): ListAlarmsQuery {
   return {
@@ -139,7 +134,7 @@ describe('ListAlarmsQueryHandler', () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
       .mockReturnValue(createFetchResponse(mockAlarmResponse));
-
+    
     jest.spyOn((datastore as any).usersUtils, 'getUsers').mockResolvedValue(
       new Map([
         ['user1@123.com', mockUsers[0]],
@@ -179,7 +174,7 @@ describe('ListAlarmsQueryHandler', () => {
     it('should pass the transformed filter to the API', async () => {
       jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
       const filterQuery = buildAlarmsQuery({
-        filter: 'acknowledgedAt > "${__now:date}"',
+        filter: 'acknowledgedAt > "${__now:date}"'
       });
 
       await datastore.runQuery(filterQuery, options);
@@ -209,9 +204,11 @@ describe('ListAlarmsQueryHandler', () => {
 
       it('should return field without values when no alarms are returned from API', async () => {
         const query = buildAlarmsQuery({
-          properties: [AlarmsProperties.acknowledged],
+          properties: [AlarmsProperties.acknowledged]
         });
-        jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce([]);
+        jest
+          .spyOn(datastore as any, 'queryAlarmsInBatches')
+          .mockResolvedValueOnce([]);
         const result = await datastore.runQuery(query, options);
 
         expect(result).toEqual({
@@ -223,7 +220,7 @@ describe('ListAlarmsQueryHandler', () => {
 
       it('should convert workspaceIds to workspace names for workspace field', async () => {
         const query = buildAlarmsQuery({
-          properties: [AlarmsProperties.workspace],
+          properties: [AlarmsProperties.workspace]
         });
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
@@ -251,13 +248,16 @@ describe('ListAlarmsQueryHandler', () => {
       });
 
       it('should convert acknowledgedBy userIds to user full names for acknowledgedBy field', async () => {
-        const query = buildAlarmsQuery({
-          properties: [AlarmsProperties.acknowledgedBy],
+        const query = buildAlarmsQuery({ 
+          properties: [AlarmsProperties.acknowledgedBy]
         });
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
           .mockResolvedValueOnce(
-            buildAlarmsResponse([{ acknowledgedBy: 'user1@123.com' }, { acknowledgedBy: 'unknownUserID' }])
+            buildAlarmsResponse([
+              { acknowledgedBy: 'user1@123.com' },
+              { acknowledgedBy: 'unknownUserID' }
+            ])
           );
 
         const result = await datastore.runQuery(query, options);
@@ -332,7 +332,12 @@ describe('ListAlarmsQueryHandler', () => {
         });
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
-          .mockResolvedValueOnce(buildAlarmsResponse([{ properties: {} }, { properties: {} }]));
+          .mockResolvedValueOnce(
+            buildAlarmsResponse([
+              { properties: {} },
+              { properties: {} },
+            ])
+          );
 
         const result = await datastore.runQuery(query, options);
 
@@ -353,7 +358,9 @@ describe('ListAlarmsQueryHandler', () => {
         const query = buildAlarmsQuery({
           properties: [AlarmsProperties.highestSeverityLevel, AlarmsProperties.currentSeverityLevel],
         });
-        jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+        jest
+        .spyOn(datastore as any, 'queryAlarmsInBatches')
+        .mockResolvedValueOnce(
           buildAlarmsResponse([
             { highestSeverityLevel: -1, currentSeverityLevel: 100 },
             { highestSeverityLevel: 4, currentSeverityLevel: -1 },
@@ -375,7 +382,16 @@ describe('ListAlarmsQueryHandler', () => {
             {
               name: 'Highest severity',
               type: 'string',
-              values: ['Clear', 'Critical (4)', 'High (3)', 'Moderate (2)', 'Low (1)', '', '', 'Critical (99)'],
+              values: [
+                'Clear',
+                'Critical (4)',
+                'High (3)',
+                'Moderate (2)',
+                'Low (1)',
+                '',
+                '',
+                'Critical (99)',
+              ],
             },
             {
               name: 'Current severity',
@@ -399,7 +415,9 @@ describe('ListAlarmsQueryHandler', () => {
         const query = buildAlarmsQuery({
           properties: [AlarmsProperties.state],
         });
-        jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+        jest
+        .spyOn(datastore as any, 'queryAlarmsInBatches')
+        .mockResolvedValueOnce(
           buildAlarmsResponse([
             { clear: true, acknowledged: false },
             { clear: false, acknowledged: true },
@@ -428,15 +446,15 @@ describe('ListAlarmsQueryHandler', () => {
           properties: [AlarmsProperties.source],
         });
         jest
-          .spyOn(datastore as any, 'queryAlarmsInBatches')
-          .mockResolvedValueOnce(
-            buildAlarmsResponse([
-              { properties: { system: 'Sensor A' } },
-              { properties: { minionId: 'Minion-42' } },
-              { properties: { system: 'Sensor B', minionId: 'Minion-43' } },
-              { properties: { otherProp: 'value' } },
-            ])
-          );
+        .spyOn(datastore as any, 'queryAlarmsInBatches')
+        .mockResolvedValueOnce(
+          buildAlarmsResponse([
+            { properties: { system: 'Sensor A' } },
+            { properties: { minionId: 'Minion-42' } },
+            { properties: { system: 'Sensor B', minionId: 'Minion-43' } },
+            { properties: { otherProp: 'value' } },
+          ])
+        );
 
         const result = await datastore.runQuery(query, options);
 
@@ -463,7 +481,9 @@ describe('ListAlarmsQueryHandler', () => {
             AlarmsProperties.mostRecentTransitionOccurredAt,
           ],
         });
-        jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+        jest
+        .spyOn(datastore as any, 'queryAlarmsInBatches')
+        .mockResolvedValueOnce(
           buildAlarmsResponse([
             {
               occurredAt: '2019-05-20T09:00:00Z',
@@ -529,10 +549,14 @@ describe('ListAlarmsQueryHandler', () => {
           properties: [AlarmsProperties.keywords],
         });
         jest
-          .spyOn(datastore as any, 'queryAlarmsInBatches')
-          .mockResolvedValueOnce(
-            buildAlarmsResponse([{ keywords: ['temperature', 'high'] }, { keywords: ['pressure'] }, { keywords: [] }])
-          );
+        .spyOn(datastore as any, 'queryAlarmsInBatches')
+        .mockResolvedValueOnce(
+          buildAlarmsResponse([
+            { keywords: ['temperature', 'high'] },
+            { keywords: ['pressure'] },
+            { keywords: [] },
+          ])
+        );
 
         const result = await datastore.runQuery(query, options);
 
@@ -543,7 +567,11 @@ describe('ListAlarmsQueryHandler', () => {
             {
               name: 'Keywords',
               type: 'string',
-              values: [['temperature', 'high'], ['pressure'], []],
+              values: [
+                ['temperature', 'high'],
+                ['pressure'],
+                [],
+              ],
             },
           ],
         });
@@ -551,9 +579,11 @@ describe('ListAlarmsQueryHandler', () => {
 
       it('should map boolean values fields to the properties', async () => {
         const query = buildAlarmsQuery({
-          properties: [AlarmsProperties.clear, AlarmsProperties.acknowledged, AlarmsProperties.active],
+          properties: [AlarmsProperties.clear, AlarmsProperties.acknowledged, AlarmsProperties.active]
         });
-        jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+        jest
+        .spyOn(datastore as any, 'queryAlarmsInBatches')
+        .mockResolvedValueOnce(
           buildAlarmsResponse([
             { clear: true, acknowledged: false, active: true },
             { clear: false, acknowledged: true, active: false },
@@ -573,7 +603,7 @@ describe('ListAlarmsQueryHandler', () => {
             },
             {
               name: 'Acknowledged',
-              type: 'string',
+              type: 'string', 
               values: [false, true],
             },
             {
@@ -599,7 +629,9 @@ describe('ListAlarmsQueryHandler', () => {
             AlarmsProperties.transitionOverflowCount,
           ],
         });
-        jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+        jest
+        .spyOn(datastore as any, 'queryAlarmsInBatches')
+        .mockResolvedValueOnce(
           buildAlarmsResponse([
             {
               channel: 'Main',
@@ -655,7 +687,7 @@ describe('ListAlarmsQueryHandler', () => {
             {
               name: 'Description',
               type: 'string',
-              values: ['High temperature detected', ''],
+              values: ['High temperature detected',''],
             },
             {
               name: 'Alarm name',
@@ -753,8 +785,11 @@ describe('ListAlarmsQueryHandler', () => {
             buildAlarmsResponse([
               {
                 displayName: 'Alarm 1',
-                transitions: [mockTransition1, mockTransition2],
-              },
+                transitions: [
+                  mockTransition1,
+                  mockTransition2,
+                ]
+              }
             ])
           );
 
@@ -796,7 +831,10 @@ describe('ListAlarmsQueryHandler', () => {
               {
                 name: 'Transition properties',
                 type: 'string',
-                values: ['{"sensorId":"SENSOR-12"}', '{"sensorId":"SENSOR-90"}'],
+                values: [
+                  '{"sensorId":"SENSOR-12"}',
+                  '{"sensorId":"SENSOR-90"}',
+                ],
               },
               {
                 name: 'Transition severity',
@@ -1048,7 +1086,7 @@ describe('ListAlarmsQueryHandler', () => {
             ],
             transitionInclusionOption: TransitionInclusionOption.All,
             take: 500,
-          });
+          });  
           jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
             buildAlarmsResponse([
               {
@@ -1062,7 +1100,7 @@ describe('ListAlarmsQueryHandler', () => {
                     value: '',
                   },
                 ],
-              },
+              }
             ])
           );
 
@@ -1096,7 +1134,7 @@ describe('ListAlarmsQueryHandler', () => {
                 name: 'Transition type',
                 type: 'string',
                 values: ['SET', 'CLEAR'],
-              },
+              }
             ],
           });
         });
@@ -1137,7 +1175,7 @@ describe('ListAlarmsQueryHandler', () => {
                     severityLevel: 5,
                   },
                 ],
-              },
+              }
             ])
           );
 
@@ -1150,7 +1188,15 @@ describe('ListAlarmsQueryHandler', () => {
               {
                 name: 'Transition severity',
                 type: 'string',
-                values: ['High (3)', 'Clear', '', 'Low (1)', 'Moderate (2)', 'Critical (4)', 'Critical (5)'],
+                values: [
+                  "High (3)",
+                  "Clear",
+                  "",
+                  "Low (1)",
+                  "Moderate (2)",
+                  "Critical (4)",
+                  "Critical (5)",
+                ]
               },
             ],
           });
@@ -1172,7 +1218,9 @@ describe('ListAlarmsQueryHandler', () => {
               {
                 name: 'Transition occurred at',
                 type: 'time',
-                values: ['2025-09-16T09:00:00Z'],
+                values: [
+                  '2025-09-16T09:00:00Z',
+                ],
               },
             ],
           });
@@ -1198,7 +1246,7 @@ describe('ListAlarmsQueryHandler', () => {
                     keywords: ['single keyword'],
                   },
                 ],
-              },
+              }
             ])
           );
 
@@ -1211,7 +1259,11 @@ describe('ListAlarmsQueryHandler', () => {
               {
                 name: 'Transition keywords',
                 type: 'string',
-                values: [['temperature', 'high'], [], ['single keyword']],
+                values: [
+                  ['temperature', 'high'],
+                  [],
+                  ['single keyword'],
+                ],
               },
             ],
           });
@@ -1254,7 +1306,12 @@ describe('ListAlarmsQueryHandler', () => {
               {
                 name: 'Transition properties',
                 type: 'string',
-                values: ['{"sensorId":"SENSOR-12"}', '', '{"aProp":"value2","zProp":"value1"}', '{"aProp2":"value2"}'],
+                values: [
+                  '{"sensorId":"SENSOR-12"}',
+                  '',
+                  '{"aProp":"value2","zProp":"value1"}',
+                  '{"aProp2":"value2"}',
+                ],
               },
             ],
           });
@@ -1282,6 +1339,19 @@ describe('ListAlarmsQueryHandler', () => {
 
       expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
       expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should call queryAlarmsData when take is valid', async () => {
+      const validTakeQuery = buildAlarmsQuery({ take: 500 });
+      const spy = jest.spyOn(datastore as any, 'queryAlarmsData');
+
+      await datastore.runQuery(validTakeQuery, options);
+
+      expect(spy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          take: 500,
+        })
+      );
     });
 
     it('should not call queryAlarmsData when take is invalid for the ALL transition inclusion option', async () => {
@@ -1324,19 +1394,6 @@ describe('ListAlarmsQueryHandler', () => {
           })
         );
       });
-    });
-
-    it('should call queryAlarmsData when take is valid', async () => {
-      const validTakeQuery = buildAlarmsQuery({ take: 500 });
-      const spy = jest.spyOn(datastore as any, 'queryAlarmsData');
-
-      await datastore.runQuery(validTakeQuery, options);
-
-      expect(spy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          take: 500,
-        })
-      );
     });
   });
 
@@ -1391,7 +1448,7 @@ describe('ListAlarmsQueryHandler', () => {
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            transitionInclusionOption: TransitionInclusionOption.None,
+            'transitionInclusionOption': TransitionInclusionOption.None,
           }),
         })
       );
@@ -1459,14 +1516,14 @@ describe('ListAlarmsQueryHandler', () => {
           ...sampleAlarm,
           alarmId: 'ALARM-003',
           displayName: 'System Error Alarm',
-        },
+        }
       ],
-      totalCount: 3,
+      totalCount: 3
     };
 
     beforeEach(() => {
       options = {
-        scopedVars: { workspace: { value: 'Lab-1' } },
+        scopedVars: { workspace: { value: 'Lab-1' } }
       };
 
       backendServer.fetch
@@ -1479,7 +1536,7 @@ describe('ListAlarmsQueryHandler', () => {
         refId: 'A',
         filter: undefined,
         descending: true,
-        take: 1000,
+        take: 1000
       };
 
       const result = await datastore.metricFindQuery(query, options);
@@ -1487,7 +1544,7 @@ describe('ListAlarmsQueryHandler', () => {
       expect(result).toEqual([
         { text: 'High Temperature Alarm (ALARM-001)', value: 'ALARM-001' },
         { text: 'Low Pressure Alarm (ALARM-002)', value: 'ALARM-002' },
-        { text: 'System Error Alarm (ALARM-003)', value: 'ALARM-003' },
+        { text: 'System Error Alarm (ALARM-003)', value: 'ALARM-003' }
       ]);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
@@ -1498,9 +1555,9 @@ describe('ListAlarmsQueryHandler', () => {
             filter: '',
             orderByDescending: true,
             returnMostRecentlyOccurredOnly: true,
-            take: 1000,
+            take: 1000
           },
-          showErrorAlert: false,
+          showErrorAlert: false
         })
       );
     });
@@ -1509,7 +1566,7 @@ describe('ListAlarmsQueryHandler', () => {
       const query: AlarmsVariableQuery = {
         refId: 'A',
         filter: 'workspace = "Lab-1"',
-        take: 1000,
+        take: 1000
       };
 
       const result = await datastore.metricFindQuery(query, options);
@@ -1517,14 +1574,14 @@ describe('ListAlarmsQueryHandler', () => {
       expect(result).toEqual([
         { text: 'High Temperature Alarm (ALARM-001)', value: 'ALARM-001' },
         { text: 'Low Pressure Alarm (ALARM-002)', value: 'ALARM-002' },
-        { text: 'System Error Alarm (ALARM-003)', value: 'ALARM-003' },
+        { text: 'System Error Alarm (ALARM-003)', value: 'ALARM-003' }
       ]);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            filter: 'workspace = "Lab-1"',
-          }),
+            filter: 'workspace = "Lab-1"'
+          })
         })
       );
     });
@@ -1534,16 +1591,16 @@ describe('ListAlarmsQueryHandler', () => {
         refId: 'A',
         filter: 'workspace = "Lab-1"',
         take: 1000,
-        descending: undefined,
+        descending: undefined
       };
 
-      await datastore.metricFindQuery(query, options);
+       await datastore.metricFindQuery(query, options);
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            orderByDescending: true,
-          }),
+            orderByDescending: true
+          })
         })
       );
     });
@@ -1552,7 +1609,7 @@ describe('ListAlarmsQueryHandler', () => {
       const query: AlarmsVariableQuery = {
         refId: 'A',
         filter: 'workspace = "$workspace"',
-        take: 1000,
+        take: 1000
       };
 
       jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('workspace = "Lab-1"');
@@ -1562,8 +1619,8 @@ describe('ListAlarmsQueryHandler', () => {
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            filter: 'workspace = "Lab-1"',
-          }),
+            filter: 'workspace = "Lab-1"'
+          })
         })
       );
     });
@@ -1575,7 +1632,7 @@ describe('ListAlarmsQueryHandler', () => {
 
       const query: AlarmsVariableQuery = {
         refId: 'A',
-        filter: 'nonexistent = "filter"',
+        filter: 'nonexistent = "filter"'
       };
 
       const result = await datastore.metricFindQuery(query, options);
@@ -1591,7 +1648,7 @@ describe('ListAlarmsQueryHandler', () => {
       const query: AlarmsVariableQuery = {
         refId: 'A',
         filter: 'workspace = "Lab-1"',
-        take: 1000,
+        take: 1000
       };
 
       const result = await datastore.metricFindQuery(query, options);
@@ -1604,9 +1661,9 @@ describe('ListAlarmsQueryHandler', () => {
         alarms: [
           { ...sampleAlarm, alarmId: 'ALARM-003', displayName: 'Z Last Alarm' },
           { ...sampleAlarm, alarmId: 'ALARM-001', displayName: 'A First Alarm' },
-          { ...sampleAlarm, alarmId: 'ALARM-002', displayName: 'M Middle Alarm' },
+          { ...sampleAlarm, alarmId: 'ALARM-002', displayName: 'M Middle Alarm' }
         ],
-        totalCount: 3,
+        totalCount: 3
       };
 
       backendServer.fetch
@@ -1616,7 +1673,7 @@ describe('ListAlarmsQueryHandler', () => {
       const query: AlarmsVariableQuery = {
         refId: 'A',
         filter: undefined,
-        take: 1000,
+        take: 1000
       };
 
       const result = await datastore.metricFindQuery(query, options);
@@ -1624,7 +1681,7 @@ describe('ListAlarmsQueryHandler', () => {
       expect(result).toEqual([
         { text: 'A First Alarm (ALARM-001)', value: 'ALARM-001' },
         { text: 'M Middle Alarm (ALARM-002)', value: 'ALARM-002' },
-        { text: 'Z Last Alarm (ALARM-003)', value: 'ALARM-003' },
+        { text: 'Z Last Alarm (ALARM-003)', value: 'ALARM-003' }
       ]);
     });
 
@@ -1632,7 +1689,7 @@ describe('ListAlarmsQueryHandler', () => {
       const query: AlarmsVariableQuery = {
         refId: 'A',
         filter: 'workspace = "Lab-1"',
-        take: 1000,
+        take: 1000
       };
       const options = undefined;
 
@@ -1641,7 +1698,7 @@ describe('ListAlarmsQueryHandler', () => {
       expect(result).toEqual([
         { text: 'High Temperature Alarm (ALARM-001)', value: 'ALARM-001' },
         { text: 'Low Pressure Alarm (ALARM-002)', value: 'ALARM-002' },
-        { text: 'System Error Alarm (ALARM-003)', value: 'ALARM-003' },
+        { text: 'System Error Alarm (ALARM-003)', value: 'ALARM-003' }
       ]);
     });
 
@@ -1650,11 +1707,11 @@ describe('ListAlarmsQueryHandler', () => {
         const query: AlarmsVariableQuery = {
           refId: 'A',
           filter: 'workspace = "Lab-1"',
-          take: undefined,
+          take: undefined
         };
-
+  
         const result = await datastore.metricFindQuery(query, options);
-
+  
         expect(result).toEqual([]);
         expect(backendServer.fetch).not.toHaveBeenCalled();
       });
@@ -1663,11 +1720,11 @@ describe('ListAlarmsQueryHandler', () => {
         const query: AlarmsVariableQuery = {
           refId: 'A',
           filter: 'workspace = "Lab-1"',
-          take: 0,
+          take: 0
         };
-
+  
         const result = await datastore.metricFindQuery(query, options);
-
+  
         expect(result).toEqual([]);
         expect(backendServer.fetch).not.toHaveBeenCalled();
       });
@@ -1676,11 +1733,11 @@ describe('ListAlarmsQueryHandler', () => {
         const query: AlarmsVariableQuery = {
           refId: 'A',
           filter: 'workspace = "Lab-1"',
-          take: 10001,
+          take: 10001
         };
-
+  
         const result = await datastore.metricFindQuery(query, options);
-
+  
         expect(result).toEqual([]);
         expect(backendServer.fetch).not.toHaveBeenCalled();
       });
@@ -1689,21 +1746,21 @@ describe('ListAlarmsQueryHandler', () => {
         const query: AlarmsVariableQuery = {
           refId: 'A',
           filter: 'workspace = "Lab-1"',
-          take: 1000,
+          take: 1000
         };
-
+  
         const result = await datastore.metricFindQuery(query, options);
 
         expect(result).toEqual([
           { text: 'High Temperature Alarm (ALARM-001)', value: 'ALARM-001' },
           { text: 'Low Pressure Alarm (ALARM-002)', value: 'ALARM-002' },
-          { text: 'System Error Alarm (ALARM-003)', value: 'ALARM-003' },
+          { text: 'System Error Alarm (ALARM-003)', value: 'ALARM-003' }
         ]);
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
             data: expect.objectContaining({
-              take: 1000,
-            }),
+              take: 1000
+            })
           })
         );
       });
@@ -1718,7 +1775,7 @@ describe('ListAlarmsQueryHandler', () => {
         new Map([
           [
             'user1@123.com',
-            {
+            { 
               id: '1',
               firstName: 'User',
               lastName: '1',
@@ -1732,7 +1789,7 @@ describe('ListAlarmsQueryHandler', () => {
           ],
           [
             'user2@123.com',
-            {
+            { 
               id: '2',
               firstName: 'User',
               lastName: '2',
@@ -1765,7 +1822,8 @@ describe('ListAlarmsQueryHandler', () => {
       },
       {
         error: new Error('Request failed with status code: 429'),
-        expectedErrorDescription: 'The query builder lookups failed due to too many requests. Please try again later.',
+        expectedErrorDescription:
+          'The query builder lookups failed due to too many requests. Please try again later.',
         case: '429 error',
       },
       {
@@ -1789,7 +1847,9 @@ describe('ListAlarmsQueryHandler', () => {
     ].forEach(({ error, expectedErrorDescription, case: testCase }) => {
       it(`should handle ${testCase}`, async () => {
         const expectedErrorTitle = 'Warning during alarms query';
-        jest.spyOn((datastore as any).usersUtils, 'getUsers').mockRejectedValue(error);
+        jest
+          .spyOn((datastore as any).usersUtils, 'getUsers')
+          .mockRejectedValue(error);
 
         await (datastore as any).loadUsers();
 
