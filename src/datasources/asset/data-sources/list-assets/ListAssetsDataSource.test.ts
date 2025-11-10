@@ -872,8 +872,8 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.Properties,
             properties: [AssetFilterPropertiesOption.Workspace],
         });
-        const result = await datastore.query(query);
-        const data = result.data[0];
+        const response = await datastore.query(query);
+        const data = response.data[0];
 
         expect(data.fields).toHaveLength(1);
         expect(data.fields[0].name).toEqual('workspace');
