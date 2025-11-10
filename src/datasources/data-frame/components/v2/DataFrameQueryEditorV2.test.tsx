@@ -1,11 +1,12 @@
 import React from "react";
-import { render, RenderResult, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, RenderResult, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
 import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataSourceQBLookupCallback, DataTableProperties } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { select } from "react-select-event";
+import { errorMessages } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
 
 jest.mock("./query-builders/DataTableQueryBuilder", () => ({
     DataTableQueryBuilder: (
@@ -59,7 +60,8 @@ jest.mock("./query-builders/DataTableQueryBuilder", () => ({
 const renderComponent = (
     queryOverrides: Partial<DataFrameQueryV2> = {},
     errorTitle = '',
-    errorDescription = ''
+    errorDescription = '',
+    isColumnLimitExceeded = false
 ) => {
     const onChange = jest.fn();
     const onRunQuery = jest.fn();
@@ -69,6 +71,7 @@ const renderComponent = (
     const datasource = {
         errorTitle,
         errorDescription,
+        isColumnLimitExceeded,
         processQuery,
         loadWorkspaces: jest.fn().mockResolvedValue(
             [
@@ -192,6 +195,53 @@ describe("DataFrameQueryEditorV2", () => {
 
             it("should hide the take", async () => {
                 expect(screen.queryByText("Take")).not.toBeInTheDocument();
+            });
+        });
+
+        describe('warning alert', () => {
+            beforeEach(() => {
+                cleanup();
+            });
+            describe('column limit', () => {
+                it('should render a warning alert when column limit is exceeded', async () => {
+                  renderComponent({}, '', '', true);
+    
+                  await waitFor(() => {
+                    const alert = screen.getByRole('alert');
+                    expect(alert).toBeInTheDocument();
+                    expect(within(alert).getByText(/Warning/i)).toBeInTheDocument();
+                    expect(within(alert).getByText(errorMessages.columnLimitExceeded)).toBeInTheDocument();
+                  });
+                });
+    
+                it('should not render a warning alert when column limit is not exceeded', async () => {
+                  renderComponent({}, '', '', false);
+                  await waitFor(() => {
+                    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+                  });
+                });
+    
+                it('should hide the warning alert when filter is removed', async () => {
+                  cleanup();
+                  renderComponent({ dataTableFilter: 'test filter' }, '', '', true);
+                  const filterInput = screen.getByTestId('filter-input');
+                  const user = userEvent.setup();
+    
+                  await waitFor(() => {
+                    const alert = screen.getByRole('alert');
+    
+                    expect(alert).toBeInTheDocument();
+                    expect(within(alert).getByText(/Warning/i)).toBeInTheDocument();
+                    expect(within(alert).getByText(errorMessages.columnLimitExceeded)).toBeInTheDocument();
+                  });
+    
+                  await user.clear(filterInput);
+                  await user.type(filterInput, ' ');
+    
+                  await waitFor(() => {
+                    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+                  });
+                });
             });
         });
 

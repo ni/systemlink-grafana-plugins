@@ -1001,7 +1001,7 @@ describe('DataFrameDataSourceV2', () => {
             });
         });
 
-        it('should limit the number of returned options to COLUMN_OPTION_LIMIT', async () => {
+        it('should limit the number of returned options to COLUMN_OPTION_LIMIT and mark limit exceeded when total columns exceed limit', async () => {
             const mockColumns = [];
             for (let i = 0; i < 20; i++) {
                 mockColumns.push({ name: `Column ${i + 1}`, dataType: 'STRING' });
@@ -1023,6 +1023,24 @@ describe('DataFrameDataSourceV2', () => {
                     value: `Column ${i + 1}-String`
                 }))
             );
+            expect(ds.isColumnLimitExceeded).toBe(true);
+        });
+
+        it('should not mark column limit exceeded when total columns are within limit', async () => {
+            queryTablesMock.mockResolvedValue([
+                {
+                    id: '1',
+                    name: 'Table 1',
+                    columns: [
+                        { name: 'Column 1', dataType: 'STRING' },
+                        { name: 'Column 2', dataType: 'STRING' }
+                    ]
+                }
+            ]);
+
+            const result = await ds.loadColumnOption('some-filter');
+            expect(result.length).toBe(2);
+            expect(ds.isColumnLimitExceeded).toBe(false);
         });
     });
 });
