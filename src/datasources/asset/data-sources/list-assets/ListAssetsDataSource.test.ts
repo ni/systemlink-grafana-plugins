@@ -847,7 +847,46 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.Properties,
             properties: [AssetFilterPropertiesOption.ScanCode],
         });
-        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(mockListAssets as unknown as AssetsResponse)
+        const listAssetsResponse = {
+            assets: [
+                {
+                    scanCode: 'c44750b7-1f22-4fec-b475-73b10e966217',
+                    id: '',
+                    serialNumber: '',
+                    modelName: '',
+                    modelNumber: 0,
+                    vendorName: '',
+                    vendorNumber: 0,
+                    name: '',
+                    assetType: '',
+                    firmwareVersion: '',
+                    visaResourceName: '',
+                    partNumber: '',
+                    lastUpdatedTimestamp: '',
+                    busType: '',
+                    isNIAsset: false,
+                    keywords: [],
+                    properties: {},
+                    location: {
+                        minionId: '',
+                        parent: '',
+                        resourceUri: '',
+                        slotNumber: 0,
+                        state: { assetPresence: 'PRESENT' },
+                        physicalLocation: ''
+                    },
+                    supportsSelfCalibration: false,
+                    discoveryType: '',
+                    supportsSelfTest: false,
+                    supportsReset: false,
+                    supportsExternalCalibration: false,
+                    isSystemController: false,
+                    workspace: '',
+                    calibrationStatus: ''
+                },
+            ], totalCount: 1
+        }
+        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
 
         const response = await datastore.query(query);
         const data = response.data[0];
