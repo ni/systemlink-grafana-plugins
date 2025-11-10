@@ -281,7 +281,7 @@ describe('ListAlarmsQueryEditor', () => {
       expect(screen.getByText(takeErrorMessages.transitionAllMaxErrorMsg)).toBeInTheDocument();
     });
 
-    it('should display no error message when take value is 500 with transition inclusion set to All', async () => {
+    it('should display no error message when take value is less than or equal to 500 with transition inclusion set to All', async () => {
       await renderElement({ refId: 'A', transitionInclusionOption: TransitionInclusionOption.All });
 
       const takeInput = screen.getByRole('spinbutton');
