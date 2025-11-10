@@ -1,3 +1,9 @@
+## [4.53.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.52.0...v4.53.0) (2025-11-10)
+
+### Features
+
+* **dataframes:** Add columns query builder component ([#497](https://github.com/ni/systemlink-grafana-plugins/issues/497)) ([cbb226f](https://github.com/ni/systemlink-grafana-plugins/commit/cbb226f9c330f44f197d05cce6580a099e4c02d3))
+
 ## [4.52.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.51.1...v4.52.0) (2025-11-10)
 
 ### Features
