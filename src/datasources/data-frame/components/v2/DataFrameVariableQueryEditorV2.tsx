@@ -1,5 +1,6 @@
 import { Combobox, ComboboxOption } from "@grafana/ui";
 import { InlineField } from "core/components/InlineField";
+import { FloatingError } from "core/errors";
 import { INLINE_LABEL_WIDTH } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
 import { DataFrameVariableQuery, DataFrameVariableQueryType, Props } from "datasources/data-frame/types";
 import React from "react";
@@ -16,20 +17,26 @@ export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChang
     };
 
     return (
-        <InlineField
-            label={label}
-            tooltip={tooltip}
-            labelWidth={INLINE_LABEL_WIDTH}
-        >
-            <Combobox
-                value={migratedQuery.queryType}
-                onChange={onQueryTypeChange}
-                options={queryTypeOptions}
-                placeholder={placeholder}
-                width={40}
+        <>
+            <InlineField
+                label={label}
+                tooltip={tooltip}
+                labelWidth={INLINE_LABEL_WIDTH}
+            >
+                <Combobox
+                    value={migratedQuery.queryType}
+                    onChange={onQueryTypeChange}
+                    options={queryTypeOptions}
+                    placeholder={placeholder}
+                    width={40} />
+            </InlineField>
+            {/* TODO: #3463943 - Integrate query builder wrapper to variable query editor */}
+            <FloatingError
+                message={datasource.errorTitle}
+                innerMessage={datasource.errorDescription}
+                severity="warning"
             />
-        </InlineField>
-        // TODO: #3463943 - Integrate query builder wrapper to variable query editor
+        </>
     );
 };
 
