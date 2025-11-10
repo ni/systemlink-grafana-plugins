@@ -34,7 +34,10 @@ jest.mock("datasources/data-frame/components/v2/query-builders/DataTableQueryBui
                     type="text"
                     data-testid="filter-input"
                     value={inputValue}
-                    onChange={(e) => { setInputValue(e.target.value); props.onChange({ dataTableFilter: e.target.value }); }}
+                    onChange={(e) => { 
+                      setInputValue(e.target.value); 
+                      props.onChange({ dataTableFilter: e.target.value }); 
+                    }}
                 />
                 <ul data-testid="workspaces-list">
                     {props.workspaces?.map(workspace => (
@@ -93,64 +96,64 @@ const renderComponent = (
 };
 
 describe('DataFrameQueryBuilderWrapper', () => {
-    describe("DataTableQueryBuilder", () => {
-        it("should show the 'DataTableQueryBuilder' component", async () => {
+    describe('DataTableQueryBuilder', () => {
+        it('should show the DataTableQueryBuilder component', async () => {
             renderComponent();
 
             await waitFor(() => {
-                expect(screen.getByTestId("data-table-query-builder")).toBeInTheDocument();
+                expect(screen.getByTestId('data-table-query-builder')).toBeInTheDocument();
             });
         });
 
-        it("should pass the filter to the DataTableQueryBuilder component", async () => {
-            renderComponent("test filter");
+        it('should pass the filter to the DataTableQueryBuilder component', async () => {
+            renderComponent('test filter');
 
             await waitFor(() => {
-                const filterInput = screen.getByTestId("filter-input");
-                expect(filterInput).toHaveValue("test filter");
+                const filterInput = screen.getByTestId('filter-input');
+                expect(filterInput).toHaveValue('test filter');
             });
         });
 
-        it("should pass the workspaces to the DataTableQueryBuilder component", async () => {
+        it('should pass the workspaces to the DataTableQueryBuilder component', async () => {
             renderComponent();
 
             await waitFor(() => {
-                const workspacesList = screen.getByTestId("workspaces-list");
+                const workspacesList = screen.getByTestId('workspaces-list');
                 expect(workspacesList).toBeInTheDocument();
-                expect(within(workspacesList).getByText("WorkspaceName")).toBeInTheDocument();
-                expect(within(workspacesList).getByText("AnotherWorkspaceName")).toBeInTheDocument();
+                expect(within(workspacesList).getByText('WorkspaceName')).toBeInTheDocument();
+                expect(within(workspacesList).getByText('AnotherWorkspaceName')).toBeInTheDocument();
             });
         });
 
-        it("should pass the global variable options to the DataTableQueryBuilder component", async () => {
+        it('should pass the global variable options to the DataTableQueryBuilder component', async () => {
             renderComponent();
 
             await waitFor(() => {
-                const optionsList = screen.getByTestId("global-variable-options-list");
+                const optionsList = screen.getByTestId('global-variable-options-list');
                 expect(optionsList).toBeInTheDocument();
-                expect(within(optionsList).getByText("Var1:Value1")).toBeInTheDocument();
-                expect(within(optionsList).getByText("Var2:Value2")).toBeInTheDocument();
+                expect(within(optionsList).getByText('Var1:Value1')).toBeInTheDocument();
+                expect(within(optionsList).getByText('Var2:Value2')).toBeInTheDocument();
             });
         });
 
-        it("should pass the dataTableNameLookupCallback to the DataTableQueryBuilder component", async () => {
+        it('should pass the dataTableNameLookupCallback to the DataTableQueryBuilder component', async () => {
             renderComponent();
 
             await waitFor(() => {
-                const optionsList = screen.getByTestId("data-table-name-options-list");
+                const optionsList = screen.getByTestId('data-table-name-options-list');
                 expect(optionsList).toBeInTheDocument();
-                expect(within(optionsList).getByText("Table 1:Table 1")).toBeInTheDocument();
-                expect(within(optionsList).getByText("Table 2:Table 2")).toBeInTheDocument();
+                expect(within(optionsList).getByText('Table 1:Table 1')).toBeInTheDocument();
+                expect(within(optionsList).getByText('Table 2:Table 2')).toBeInTheDocument();
             });
         });
 
-        it("should call onDataTableFilterChange when the data table filter is changed in the DataTableQueryBuilder component", async () => {
+        it('should call onDataTableFilterChange when the data table filter is changed in the DataTableQueryBuilder component', async () => {
             const { onDataTableFilterChange } = renderComponent('');
-            const filterInput = screen.getByTestId("filter-input");
+            const filterInput = screen.getByTestId('filter-input');
             const user = userEvent.setup();
 
             await user.clear(filterInput);
-            await user.type(filterInput, "new filter");
+            await user.type(filterInput, 'new filter');
 
             await waitFor(() => {
                 expect(onDataTableFilterChange).toHaveBeenCalled();
