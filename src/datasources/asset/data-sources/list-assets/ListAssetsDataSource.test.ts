@@ -233,7 +233,7 @@ describe('List assets "contains" queries', () => {
             );
         });
     });
-
+    
     describe('should transform multiple values for', () => {
         test('VendorName field', async () => {
             const query = buildListAssetsQuery({
@@ -886,36 +886,7 @@ describe('shouldRunQuery', () => {
             type: AssetQueryType.ListAssets,
             filter: ``,
             outputType: OutputType.Properties,
-            properties: [AssetFilterPropertiesOption.AssetIdentifier,
-            AssetFilterPropertiesOption.SerialNumber,
-            AssetFilterPropertiesOption.ModelName,
-            AssetFilterPropertiesOption.ModelNumber,
-            AssetFilterPropertiesOption.VendorName,
-            AssetFilterPropertiesOption.VendorNumber,
-            AssetFilterPropertiesOption.AssetName,
-            AssetFilterPropertiesOption.AssetType,
-            AssetFilterPropertiesOption.FirmwareVersion,
-            AssetFilterPropertiesOption.VisaResourceName,
-            AssetFilterPropertiesOption.PartNumber,
-            AssetFilterPropertiesOption.LastUpdatedTimestamp,
-            AssetFilterPropertiesOption.BusType,
-            AssetFilterPropertiesOption.IsNIAsset,
-            AssetFilterPropertiesOption.Keywords,
-            AssetFilterPropertiesOption.Properties,
-            AssetFilterPropertiesOption.Location,
-            AssetFilterPropertiesOption.MinionId,
-            AssetFilterPropertiesOption.ParentName,
-            AssetFilterPropertiesOption.SupportsSelfCalibration,
-            AssetFilterPropertiesOption.DiscoveryType,
-            AssetFilterPropertiesOption.SupportsSelfTest,
-            AssetFilterPropertiesOption.SupportsReset,
-            AssetFilterPropertiesOption.SelfCalibration,
-            AssetFilterPropertiesOption.SupportsExternalCalibration,
-            AssetFilterPropertiesOption.ExternalCalibrationDate,
-            AssetFilterPropertiesOption.IsSystemController,
-            AssetFilterPropertiesOption.Workspace,
-            AssetFilterPropertiesOption.CalibrationStatus,
-            AssetFilterPropertiesOption.ScanCode],
+            properties: [...Object.values(AssetFilterPropertiesOption)]
         });
         jest.spyOn(datastore, 'queryAssets');
 
