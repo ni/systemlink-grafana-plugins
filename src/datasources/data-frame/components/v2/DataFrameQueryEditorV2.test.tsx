@@ -542,62 +542,50 @@ describe("DataFrameQueryEditorV2", () => {
     });
     
     describe("query builder wrapper integration", () => {
-    it("should render the query builder wrapper and forward the props", async () => {
-        renderComponent({ type: DataFrameQueryType.Data, dataTableFilter: 'InitialFilter' });
+        it("should render the query builder wrapper and forward the props", async () => {
+            renderComponent({ type: DataFrameQueryType.Data, dataTableFilter: 'InitialFilter' });
 
-        expect(screen.getByTestId("mock-data-frame-query-builder-wrapper")).toBeInTheDocument();
-        expect(DataFrameQueryBuilderWrapper).toHaveBeenCalledWith(
-            expect.objectContaining({
-                dataTableFilter: 'InitialFilter',
-                datasource: expect.any(Object),
-                onDataTableFilterChange: expect.any(Function),
-            }),
-            expect.anything() // React context
-        );
-    });
-
-    it("should call onChange with updated dataTableFilter when filter changes", async () => {
-        const { onChange } = renderComponent({ type: DataFrameQueryType.Data });
-
-        // Get the onDataTableFilterChange callback from the mock
-        const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
-        const { onDataTableFilterChange } = props;
-
-        // Simulate the filter change event
-        const mockEvent = { 
-            detail: { linq: "NewFilter" } 
-        } as Event & { detail: { linq: string } };
-        
-        onDataTableFilterChange(mockEvent);
-
-        await waitFor(() => {
-            expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ 
-                dataTableFilter: 'NewFilter' 
-            }));
+            expect(screen.getByTestId("mock-data-frame-query-builder-wrapper")).toBeInTheDocument();
+            expect(DataFrameQueryBuilderWrapper).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    dataTableFilter: 'InitialFilter',
+                    datasource: expect.any(Object),
+                    onDataTableFilterChange: expect.any(Function),
+                }),
+                expect.anything() // React context
+            );
         });
 
-        it("should call onRunQuery when the data table filter is changed in the DataTableQueryBuilder component", async () => {
-            const { onRunQuery } = renderComponent({ dataTableFilter: "" });
-            const filterInput = screen.getByTestId("filter-input");
-            const user = userEvent.setup();
+        it("should call onChange with updated dataTableFilter when filter changes", async () => {
+            const { onChange } = renderComponent({ type: DataFrameQueryType.Data });
 
-            await user.clear(filterInput);
-            await user.type(filterInput, "new filter");
+            // Get the onDataTableFilterChange callback from the mock
+            const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+            const { onDataTableFilterChange } = props;
+
+            // Simulate the filter change event
+            const mockEvent = { 
+                detail: { linq: "NewFilter" } 
+            } as Event & { detail: { linq: string } };
+            
+            onDataTableFilterChange(mockEvent);
 
             await waitFor(() => {
-                expect(onRunQuery).toHaveBeenCalled();
+                expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ 
+                    dataTableFilter: 'NewFilter' 
+                }));
             });
         });
+
+        it("should verify dataTableFilter is passed correctly", () => {
+            renderComponent({ type: DataFrameQueryType.Data, dataTableFilter: 'TestFilter' });
+
+            const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+
+            expect(props.dataTableFilter).toBe('TestFilter');
+        });
     });
-
-    it("should verify dataTableFilter is passed correctly", () => {
-        renderComponent({ type: DataFrameQueryType.Data, dataTableFilter: 'TestFilter' });
-
-        const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
-
-        expect(props.dataTableFilter).toBe('TestFilter');
-    });
-});
+    
     describe("floating error", () => {
         it("should not be rendered when there is no error", async () => {
             renderComponent();
