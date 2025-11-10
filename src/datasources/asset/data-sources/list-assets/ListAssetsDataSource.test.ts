@@ -10,7 +10,7 @@ import { AssetFilterPropertiesOption, ListAssetsQuery, OutputType } from "../../
 import { ListAssetsFieldNames } from "../../constants/ListAssets.constants";
 import { MockProxy } from "jest-mock-extended";
 import { BackendSrv } from "@grafana/runtime";
-import { Field } from "@grafana/data";
+import { DataQueryResponse, Field } from "@grafana/data";
 import { AssetsResponse } from "datasources/asset-common/types";
 import { QUERY_LIMIT } from "datasources/asset/constants/constants";
 
@@ -233,7 +233,7 @@ describe('List assets "contains" queries', () => {
             );
         });
     });
-    
+
     describe('should transform multiple values for', () => {
         test('VendorName field', async () => {
             const query = buildListAssetsQuery({
@@ -839,30 +839,30 @@ describe('shouldRunQuery', () => {
         expect(data.fields[0].values).toEqual(['keyword0, keyword1, keyword2, keyword3, keyword4']);
     });
 
-    // test('should display scan code property', async () => {
-    //     const query = buildListAssetsQuery({
-    //         refId: '',
-    //         type: AssetQueryType.ListAssets,
-    //         filter: ``,
-    //         outputType: OutputType.Properties,
-    //         properties: [AssetFilterPropertiesOption.ScanCode],
-    //     });
-    //     const listAssetsResponse = {
-    //         assets: [
-    //             {
-    //                 scanCode: 'SC1234'
-    //             },
-    //         ], totalCount: 1
-    //     }
-    //     jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+    test('should display scan code property', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            properties: [AssetFilterPropertiesOption.ScanCode],
+        });
+        const listAssetsResponse = {
+            assets: [
+                {
+                    scanCode: 'SC1234'
+                },
+            ], totalCount: 1
+        }
+        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
 
-    //     const response = await datastore.query(query);
-    //     const data = response.data[0];
+        const response: DataQueryResponse = await datastore.query(query);
+        const data = response.data[0];
 
-    //     expect(data.fields).toHaveLength(1);
-    //     expect(data.fields[0].name).toEqual('scan code');
-    //     expect(data.fields[0].values).toEqual(['SC1234']);
-    // });
+        expect(data.fields).toHaveLength(1);
+        expect(data.fields[0].name).toEqual('scan code');
+        expect(data.fields[0].values).toEqual(['SC1234']);
+    });
 
     test('should convert workspaceIds to workspace names for workspace field', async () => {
         const query = buildListAssetsQuery({
