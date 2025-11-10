@@ -12,7 +12,7 @@ import {
   PROPERTIES_ERROR_MESSAGE,
   QUERY_EDITOR_MAX_TAKE,
   QUERY_EDITOR_MIN_TAKE,
-  QUERY_EDITOR_TRANSITION_MAX_TAKE,
+  QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL,
   SECONDARY_CONTROL_WIDTH,
   SECONDARY_LABEL_WIDTH,
   takeErrorMessages,
@@ -78,7 +78,7 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
 
     const { maxTake, errorMsg } =
       transitionInclusionOption === TransitionInclusionOption.All
-        ? { maxTake: QUERY_EDITOR_TRANSITION_MAX_TAKE, errorMsg: takeErrorMessages.transitionMaxErrorMsg }
+        ? { maxTake: QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL, errorMsg: takeErrorMessages.transitionAllMaxErrorMsg }
         : { maxTake: QUERY_EDITOR_MAX_TAKE, errorMsg: takeErrorMessages.maxErrorMsg };
 
     if (take > maxTake) {

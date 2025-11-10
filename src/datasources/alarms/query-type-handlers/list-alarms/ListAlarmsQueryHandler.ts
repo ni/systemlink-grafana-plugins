@@ -2,7 +2,7 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, 
 import { AlarmsProperties, ListAlarmsQuery } from '../../types/ListAlarms.types';
 import { AlarmsVariableQuery, AlarmTransition, QueryAlarmsRequest, TransitionInclusionOption } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
-import { AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, QUERY_EDITOR_TRANSITION_MAX_TAKE, TRANSITION_SPECIFIC_PROPERTIES } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL, TRANSITION_SPECIFIC_PROPERTIES } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { Alarm } from 'datasources/alarms/types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
@@ -73,15 +73,16 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   }
 
   private isTakeValid(take?: number, transitionInclusionOption?: TransitionInclusionOption): boolean {
-    if (take !== undefined && take >= QUERY_EDITOR_MIN_TAKE) {
-      const maxTake =
-        transitionInclusionOption === TransitionInclusionOption.All
-          ? QUERY_EDITOR_TRANSITION_MAX_TAKE
-          : QUERY_EDITOR_MAX_TAKE;
-      return take <= maxTake;
+    if (!take || take < QUERY_EDITOR_MIN_TAKE) {
+      return false;
     }
 
-    return false;
+    const maxTake =
+      transitionInclusionOption === TransitionInclusionOption.All
+        ? QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL
+        : QUERY_EDITOR_MAX_TAKE;
+
+    return take <= maxTake;
   }
 
   private isPropertiesValid(properties?: AlarmsProperties[]): properties is AlarmsProperties[] {

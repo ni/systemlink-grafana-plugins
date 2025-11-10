@@ -278,7 +278,7 @@ describe('ListAlarmsQueryEditor', () => {
       fireEvent.change(takeInput, { target: { value: '5000' } });
       fireEvent.blur(takeInput);
 
-      expect(screen.getByText(takeErrorMessages.transitionMaxErrorMsg)).toBeInTheDocument();
+      expect(screen.getByText(takeErrorMessages.transitionAllMaxErrorMsg)).toBeInTheDocument();
     });
 
     it('should display no error message when take value is 500 with transition inclusion set to All', async () => {
@@ -288,7 +288,7 @@ describe('ListAlarmsQueryEditor', () => {
 
       fireEvent.change(takeInput, { target: { value: '500' } });
       fireEvent.blur(takeInput);
-      expect(screen.queryByText(takeErrorMessages.transitionMaxErrorMsg)).not.toBeInTheDocument();
+      expect(screen.queryByText(takeErrorMessages.transitionAllMaxErrorMsg)).not.toBeInTheDocument();
     });
   });
 
