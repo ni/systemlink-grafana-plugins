@@ -9,13 +9,11 @@ import { ColumnsQueryBuilderStaticFields } from "../../constants/ColumnsQueryBui
 
 type ColumnsQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
     filter?: string;
-    globalVariableOptions: QueryBuilderOption[];
 };
 
 export const ColumnsQueryBuilder: React.FC<ColumnsQueryBuilderProps> = ({
     filter,
-    onChange,
-    globalVariableOptions
+    onChange
 }) => {
     const [fields, setFields] = useState<QBField[]>([]);
     const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
@@ -34,7 +32,7 @@ export const ColumnsQueryBuilder: React.FC<ColumnsQueryBuilderProps> = ({
                 return {
                     ...field,
                     lookup: {
-                        dataSource: [...globalVariableOptions, ...field.lookup.dataSource].map(filterXSSField),
+                        dataSource: [...field.lookup.dataSource].map(filterXSSField),
                     },
                 };
             }
@@ -65,8 +63,7 @@ export const ColumnsQueryBuilder: React.FC<ColumnsQueryBuilderProps> = ({
             };
         });
         setOperations([...customOperations]);
-
-    }, [globalVariableOptions, callbacks]);
+    }, [callbacks]);
 
     return (
         <SlQueryBuilder
