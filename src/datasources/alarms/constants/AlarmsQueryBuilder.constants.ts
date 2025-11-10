@@ -159,15 +159,7 @@ export const AlarmsQueryBuilderFields: Record<string, QBField> = {
   SOURCE: {
     label: 'Source',
     dataField: AlarmsProperties.source,
-    filterOperations: [
-      QueryBuilderOperations.EQUALS.name, 
-      QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.IS_BLANK.name,
-      QueryBuilderOperations.IS_NOT_BLANK.name,
-      /* #AB#3422087 - Switch to BASIC_STRING_FILTER_OPERATIONS 
-      once transformation support for "contains" and "does not contain" 
-      is implemented */
-    ],
+    filterOperations: EXTENDED_STRING_FILTER_OPERATIONS,
   },
   WORKSPACE: {
     label: 'Workspace',

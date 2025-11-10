@@ -25,6 +25,7 @@ describe('AlarmsDataSource', () => {
       properties: ['displayName', 'currentSeverityLevel', 'occurredAt', 'source', 'state', 'workspace'],
       take: 1000,
       descending: true,
+      transitionInclusionOption: 'NONE',
     });
   });
 

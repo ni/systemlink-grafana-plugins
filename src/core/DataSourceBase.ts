@@ -10,7 +10,8 @@ import {
 import { BackendSrv, BackendSrvRequest, TemplateSrv, getAppEvents } from '@grafana/runtime';
 import { DataQuery } from '@grafana/schema';
 import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
-import { get, post } from './utils';
+import { get, get$, post, post$ } from './utils';
+import { forkJoin, from, map, Observable, of, switchMap } from 'rxjs';
 import { ApiSessionUtils } from '../shared/api-session.utils';
 
 /**
@@ -40,17 +41,27 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
 
   public abstract defaultQuery: Partial<TQuery> & Omit<TQuery, 'refId'>;
 
-  public abstract runQuery(query: TQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
+  // TODO: AB#3442981 - Make this return type Observable
+  public abstract runQuery(
+    query: TQuery,
+    options: DataQueryRequest
+  ): Promise<DataFrameDTO> | Observable<DataFrameDTO>;
 
   public abstract shouldRunQuery(query: TQuery): boolean;
 
-  public query(request: DataQueryRequest<TQuery>): Promise<DataQueryResponse> {
-    const promises = request.targets
+  public query(request: DataQueryRequest<TQuery>): Observable<DataQueryResponse> {
+    const queries$ = request.targets
       .map(this.prepareQuery, this)
       .filter(this.shouldRunQuery, this)
       .map(q => this.runQuery(q, request), this);
-
-    return Promise.all(promises).then(data => ({ data }));
+    
+    if (queries$.length === 0) {
+      return of({ data: [] });
+    }
+    
+    return forkJoin(queries$).pipe(
+      map((data) => ({ data })),
+    );
   }
 
   public prepareQuery(query: TQuery): TQuery {
@@ -69,6 +80,22 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     [url, options] = await this.buildApiRequestConfig(url, options, 'GET');
     return get<T>(this.backendSrv, url, options);
   }
+ 
+  /**
+   * Sends a GET request to the specified URL with the provided parameters.
+   *
+   * @template T - The expected response type.
+   * @param url - The endpoint URL to which the GET request is sent.
+   * @param options - Optional configurations for the request.
+   * @returns An observable emitting the response of type `T`.
+   */
+  public get$<T>(url: string, options: RequestOptions = {}) {
+    return from(this.buildApiRequestConfig(url, options, 'GET')).pipe(
+      switchMap(([updatedUrl, updatedOptions]) =>
+        get$<T>(this.backendSrv, updatedUrl, updatedOptions)
+      )
+    );
+  }
 
   /**
    * Sends a POST request to the specified URL with the provided request body and options.
@@ -86,6 +113,27 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
   ) {
     [url, options] = await this.buildApiRequestConfig(url, options, 'POST');
     return post<T>(this.backendSrv, url, body, options);
+  }
+
+  /**
+   * Sends a POST request to the specified URL with the provided request body and options.
+   *
+   * @template T - The expected response type.
+   * @param url - The endpoint URL to which the POST request is sent.
+   * @param body - The request payload as a key-value map.
+   * @param options - Optional configurations for the request.
+   * @returns An observable emitting the response of type `T`.
+   */
+  public post$<T>(
+    url: string,
+    body: Record<string, any>,
+    options: RequestOptions = {}
+  ) {
+    return from(this.buildApiRequestConfig(url, options, 'POST')).pipe(
+      switchMap(([updatedUrl, updatedOptions]) =>
+        post$<T>(this.backendSrv, updatedUrl, body, updatedOptions)
+      )
+    );
   }
 
   /**

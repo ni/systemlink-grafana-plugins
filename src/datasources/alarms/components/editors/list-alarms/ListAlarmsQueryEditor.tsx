@@ -3,6 +3,7 @@ import { InlineField } from 'core/components/InlineField';
 import { AlarmsQueryBuilder } from '../../query-builder/AlarmsQueryBuilder';
 import {
   AlarmsPropertiesOptions,
+  AlarmsTransitionInclusionOptions,
   CONTROL_WIDTH,
   ERROR_SEVERITY_WARNING,
   LABEL_WIDTH,
@@ -20,8 +21,9 @@ import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
 import { AlarmsProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 import { ListAlarmsQueryHandler } from 'datasources/alarms/query-type-handlers/list-alarms/ListAlarmsQueryHandler';
-import { AutoSizeInput, ComboboxOption, InlineSwitch, MultiCombobox, Stack } from '@grafana/ui';
+import { AutoSizeInput, Combobox, ComboboxOption, InlineSwitch, MultiCombobox, Stack } from '@grafana/ui';
 import { validateNumericInput } from 'core/utils';
+import { TransitionInclusionOption } from 'datasources/alarms/types/types';
 
 type Props = {
   query: ListAlarmsQuery;
@@ -84,6 +86,10 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     handleQueryChange({ ...query, take });
   };
 
+  const onTransitionInclusionChange = (option: ComboboxOption<TransitionInclusionOption>) => {
+    handleQueryChange({ ...query, transitionInclusionOption: option.value });
+  };
+
   return (
     <Stack direction='column'>
       <InlineField
@@ -117,6 +123,18 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
           />
         </InlineField>
         <Stack direction='column'>
+          <InlineField
+            label={labels.transitionInclusion}
+            labelWidth={SECONDARY_LABEL_WIDTH}
+            tooltip={tooltips.transitionInclusion}
+          >
+            <Combobox
+              options={Object.values(AlarmsTransitionInclusionOptions)}
+              value={query.transitionInclusionOption}
+              width={SECONDARY_CONTROL_WIDTH}
+              onChange={onTransitionInclusionChange}
+            />
+          </InlineField>
           <InlineField
             label={labels.descending}
             labelWidth={SECONDARY_LABEL_WIDTH}
