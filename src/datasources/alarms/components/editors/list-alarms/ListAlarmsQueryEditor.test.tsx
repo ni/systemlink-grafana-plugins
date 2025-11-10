@@ -330,7 +330,8 @@ describe('ListAlarmsQueryEditor', () => {
       const transitionInclusionCombobox = container.getByRole('combobox', { name: 'Include Transition' });
 
       await userEvent.click(transitionInclusionCombobox);
-      await select(transitionInclusionCombobox,
+      await select(
+        transitionInclusionCombobox,
         AlarmsTransitionInclusionOptions[TransitionInclusionOption.All].label,
         {
           container: document.body,
@@ -357,9 +358,9 @@ describe('ListAlarmsQueryEditor', () => {
 
         const propertiesCombobox = container.getAllByRole('combobox')[0];
         await userEvent.click(propertiesCombobox);
-
         await userEvent.clear(propertiesCombobox);
         await userEvent.type(propertiesCombobox, 'Transition value');
+
         expect(screen.queryByText('Transition value')).toBeInTheDocument();
       });
     });

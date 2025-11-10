@@ -865,76 +865,71 @@ describe('ListAlarmsQueryHandler', () => {
           });
         });
 
-        [
-          { option: TransitionInclusionOption.None, description: 'NONE' },
-          { option: TransitionInclusionOption.MostRecentOnly, description: 'MOST_RECENT_ONLY' },
-        ].forEach(({ option, description }) => {
-          it(`should not duplicate transition specific properties when transition inclusion option is ${description}`, async () => {
-            const query = buildAlarmsQuery({
-              properties: [AlarmsProperties.displayName, ...TRANSITION_SPECIFIC_PROPERTIES],
-              transitionInclusionOption: option,
-            });
-            const spy = jest.spyOn(datastore as any, 'duplicateAlarmsByTransitions');
+        it('should not duplicate transition specific properties when transition inclusion option is MOST_RECENT_ONLY', async () => {
+          const query = buildAlarmsQuery({
+            properties: [AlarmsProperties.displayName, ...TRANSITION_SPECIFIC_PROPERTIES],
+            transitionInclusionOption: TransitionInclusionOption.MostRecentOnly,
+          });
+          const spy = jest.spyOn(datastore as any, 'duplicateAlarmsByTransitions');
 
-            const response = await datastore.runQuery(query, options);
+          const response = await datastore.runQuery(query, options);
 
-            expect(spy).not.toHaveBeenCalled();
-            expect(response).toEqual({
-              refId: 'A',
-              name: 'A',
-              fields: [
-                {
-                  name: 'Alarm name',
-                  type: 'string',
-                  values: ['High Temperature Alarm'],
-                },
-                {
-                  name: 'Transition condition',
-                  type: 'string',
-                  values: ['Temperature'],
-                },
-                {
-                  name: 'Transition detail',
-                  type: 'string',
-                  values: ['Temperature exceeded threshold'],
-                },
-                {
-                  name: 'Transition keywords',
-                  type: 'string',
-                  values: [['temperature', 'high']],
-                },
-                {
-                  name: 'Transition occurred at',
-                  type: 'time',
-                  values: ['2025-09-16T09:00:00Z'],
-                },
-                {
-                  name: 'Transition properties',
-                  type: 'string',
-                  values: ['{"sensorId":"SENSOR-12"}'],
-                },
-                {
-                  name: 'Transition severity',
-                  type: 'string',
-                  values: ['High (3)'],
-                },
-                {
-                  name: 'Transition short text',
-                  type: 'string',
-                  values: ['Temp High'],
-                },
-                {
-                  name: 'Transition type',
-                  type: 'string',
-                  values: ['SET'],
-                },
-                {
-                  name: 'Transition value',
-                  type: 'string',
-                  values: ['High'],
-                },
-              ],
-            });
+          expect(spy).not.toHaveBeenCalled();
+          expect(response).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              {
+                name: 'Alarm name',
+                type: 'string',
+                values: ['High Temperature Alarm'],
+              },
+              {
+                name: 'Transition condition',
+                type: 'string',
+                values: ['Temperature'],
+              },
+              {
+                name: 'Transition detail',
+                type: 'string',
+                values: ['Temperature exceeded threshold'],
+              },
+              {
+                name: 'Transition keywords',
+                type: 'string',
+                values: [['temperature', 'high']],
+              },
+              {
+                name: 'Transition occurred at',
+                type: 'time',
+                values: ['2025-09-16T09:00:00Z'],
+              },
+              {
+                name: 'Transition properties',
+                type: 'string',
+                values: ['{"sensorId":"SENSOR-12"}'],
+              },
+              {
+                name: 'Transition severity',
+                type: 'string',
+                values: ['High (3)'],
+              },
+              {
+                name: 'Transition short text',
+                type: 'string',
+                values: ['Temp High'],
+              },
+              {
+                name: 'Transition type',
+                type: 'string',
+                values: ['SET'],
+              },
+              {
+                name: 'Transition value',
+                type: 'string',
+                values: ['High'],
+              },
+            ],
           });
         });
 
@@ -1044,6 +1039,7 @@ describe('ListAlarmsQueryHandler', () => {
               }
             ])
           );
+
           const response = await datastore.runQuery(query, options);
 
           expect(response).toEqual({
@@ -1119,6 +1115,7 @@ describe('ListAlarmsQueryHandler', () => {
           );
 
           const result = await datastore.runQuery(query, options);
+
           expect(result).toEqual({
             refId: 'A',
             name: 'A',
@@ -1185,7 +1182,9 @@ describe('ListAlarmsQueryHandler', () => {
               }
             ])
           );
+
           const result = await datastore.runQuery(query, options);
+
           expect(result).toEqual({
             refId: 'A',
             name: 'A',

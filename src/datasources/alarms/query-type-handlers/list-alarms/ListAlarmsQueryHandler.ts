@@ -30,9 +30,11 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     if (this.isTakeValid(query.take) && this.isPropertiesValid(query.properties)) {
       query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
       const alarmsResponse = await this.queryAlarmsData(query);
-      const alarmsToProcess = query.transitionInclusionOption === TransitionInclusionOption.All
-        ? this.duplicateAlarmsByTransitions(alarmsResponse)
-        : alarmsResponse;
+      const alarmsToProcess =
+        query.transitionInclusionOption === TransitionInclusionOption.All &&
+        this.hasTransitionProperties(query.properties)
+          ? this.duplicateAlarmsByTransitions(alarmsResponse)
+          : alarmsResponse;
 
       mappedFields = await this.mapPropertiesToSelect(query.properties, alarmsToProcess);
     }
@@ -158,24 +160,18 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     return mappedFields;
   }
 
+  private hasTransitionProperties(properties: AlarmsProperties[]): boolean {
+    return properties.some(prop =>
+      TRANSITION_SPECIFIC_PROPERTIES.includes(prop)
+    );
+  }
+
   private duplicateAlarmsByTransitions(alarms: Alarm[]): Alarm[] {
-    const flattenedAlarms: Alarm[] = [];
-
-    alarms.forEach(alarm => {
-      if (alarm.transitions && alarm.transitions.length > 0) {
-        alarm.transitions.forEach(transition => {
-          const duplicatedAlarm: Alarm = {
-            ...alarm, // Duplicate all alarm properties
-            transitions: [transition] // Only include the current transition
-          };
-          flattenedAlarms.push(duplicatedAlarm);
-        });
-      } else {
-        flattenedAlarms.push(alarm);
-      }
-    });
-
-    return flattenedAlarms;
+    return alarms.flatMap(alarm => 
+      alarm.transitions?.length 
+        ? alarm.transitions.map(transition => ({ ...alarm, transitions: [transition] }))
+        : alarm
+    );
   }
 
   private getSortedCustomProperties(properties: { [key: string]: string }): string {
