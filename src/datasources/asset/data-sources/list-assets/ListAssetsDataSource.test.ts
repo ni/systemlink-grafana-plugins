@@ -848,21 +848,14 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.Properties,
             properties: [AssetFilterPropertiesOption.ScanCode],
         });
-        const listAssetsResponse = {
-            assets: [
-                {
-                    scanCode: "ABC123"
-                },
-            ], totalCount: 1
-        }
-        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(mockListAssets)
 
         const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
 
         expect(data.fields).toHaveLength(1);
         expect(data.fields[0].name).toEqual('scan code');
-        expect(data.fields[0].values).toEqual(['ABC123']);
+        expect(data.fields[0].values).toEqual(['c44750b7-1f22-4fec-b475-73b10e966217']);
     });
 
     test('should convert workspaceIds to workspace names for workspace field', async () => {
@@ -887,10 +880,40 @@ describe('shouldRunQuery', () => {
             type: AssetQueryType.ListAssets,
             filter: ``,
             outputType: OutputType.Properties,
-            properties: [...Object.values(AssetFilterPropertiesOption)]
+            properties: [AssetFilterPropertiesOption.AssetIdentifier,
+            AssetFilterPropertiesOption.SerialNumber,
+            AssetFilterPropertiesOption.ModelName,
+            AssetFilterPropertiesOption.ModelNumber,
+            AssetFilterPropertiesOption.VendorName,
+            AssetFilterPropertiesOption.VendorNumber,
+            AssetFilterPropertiesOption.AssetName,
+            AssetFilterPropertiesOption.AssetType,
+            AssetFilterPropertiesOption.FirmwareVersion,
+            AssetFilterPropertiesOption.VisaResourceName,
+            AssetFilterPropertiesOption.PartNumber,
+            AssetFilterPropertiesOption.LastUpdatedTimestamp,
+            AssetFilterPropertiesOption.BusType,
+            AssetFilterPropertiesOption.IsNIAsset,
+            AssetFilterPropertiesOption.Keywords,
+            AssetFilterPropertiesOption.Properties,
+            AssetFilterPropertiesOption.Location,
+            AssetFilterPropertiesOption.MinionId,
+            AssetFilterPropertiesOption.ParentName,
+            AssetFilterPropertiesOption.SupportsSelfCalibration,
+            AssetFilterPropertiesOption.DiscoveryType,
+            AssetFilterPropertiesOption.SupportsSelfTest,
+            AssetFilterPropertiesOption.SupportsReset,
+            AssetFilterPropertiesOption.SelfCalibration,
+            AssetFilterPropertiesOption.SupportsExternalCalibration,
+            AssetFilterPropertiesOption.ExternalCalibrationDate,
+            AssetFilterPropertiesOption.IsSystemController,
+            AssetFilterPropertiesOption.Workspace,
+            AssetFilterPropertiesOption.CalibrationStatus,
+            AssetFilterPropertiesOption.ScanCode],
         });
         jest.spyOn(datastore, 'queryAssets');
 
+        const expectedNumberOfFields = Object.values(AssetFilterPropertiesOption).length
         const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
 
@@ -924,6 +947,7 @@ describe('shouldRunQuery', () => {
         expect(data.fields[27].name).toEqual('workspace');
         expect(data.fields[28].name).toEqual('calibration status');
         expect(data.fields[29].name).toEqual('scan code');
-        expect(data.fields.length).toBe(30);
+        expect(data.fields.length).toBe(expectedNumberOfFields)
+        
     })
 });
