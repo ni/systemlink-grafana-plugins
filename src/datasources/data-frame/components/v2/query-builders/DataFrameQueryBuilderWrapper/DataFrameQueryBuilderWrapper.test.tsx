@@ -59,8 +59,34 @@ jest.mock("datasources/data-frame/components/v2/query-builders/DataTableQueryBui
     }
 }));
 
+jest.mock("datasources/data-frame/components/v2/query-builders/ColumnsQueryBuilder/ColumnsQueryBuilder", () => ({
+    ColumnsQueryBuilder: (
+        props: {
+            filter?: string;
+            onChange: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
+        }
+    ) => {
+        const [inputValue, setInputValue] = React.useState(props.filter || '');
+
+        return (
+            <div data-testid="columns-query-builder">
+                <input
+                    type="text"
+                    data-testid="columns-filter-input"
+                    value={inputValue}
+                    onChange={(e) => { 
+                      setInputValue(e.target.value); 
+                      props.onChange(e); 
+                    }}
+                />
+            </div>
+        );
+    }
+}));
+
 const renderComponent = (
-    dataTableFilter = ''
+    dataTableFilter = '',
+    columnsFilter = ''
 ) => {
     const onDataTableFilterChange = jest.fn();
     const datasource = {
@@ -88,6 +114,7 @@ const renderComponent = (
         <DataFrameQueryBuilderWrapper
             datasource={datasource}
             dataTableFilter={dataTableFilter}
+            columnsFilter={columnsFilter}
             onDataTableFilterChange={onDataTableFilterChange}
         />
     );
@@ -159,6 +186,52 @@ describe('DataFrameQueryBuilderWrapper', () => {
                 expect(onDataTableFilterChange).toHaveBeenCalled();
                 const lastCall = onDataTableFilterChange.mock.calls[onDataTableFilterChange.mock.calls.length - 1][0];
                 expect(lastCall).toEqual(expect.objectContaining({ dataTableFilter: "new filter" }));
+            });
+        });
+    });
+
+    describe('ColumnsQueryBuilder', () => {
+        it('should show the ColumnsQueryBuilder component', async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                expect(screen.getByTestId('columns-query-builder')).toBeInTheDocument();
+            });
+        });
+
+        it('should pass the filter to the ColumnsQueryBuilder component', async () => {
+            renderComponent('', 'test columns filter');
+
+            await waitFor(() => {
+                const filterInput = screen.getByTestId('columns-filter-input');
+                expect(filterInput).toHaveValue('test columns filter');
+            });
+        });
+
+        it('should render ColumnsQueryBuilder with empty filter when no filter is provided', async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                const filterInput = screen.getByTestId('columns-filter-input');
+                expect(filterInput).toHaveValue('');
+            });
+        });
+    });
+
+    describe('Labels and tooltips', () => {
+        it('should show the data table query builder label', async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                expect(screen.getByTestId('data-frame-query-builder-label')).toBeInTheDocument();
+            });
+        });
+
+        it('should show the columns query builder label', async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                expect(screen.getByTestId('columns-query-builder-label')).toBeInTheDocument();
             });
         });
     });

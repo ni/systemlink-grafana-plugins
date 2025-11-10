@@ -6,22 +6,25 @@ import { Workspace } from 'core/types';
 import { DataTableProjections } from 'datasources/data-frame/types';
 import { DataTableQueryBuilderFieldNames } from '../../constants/DataTableQueryBuilder.constants';
 import {
-  VALUE_FIELD_WIDTH,
-  labels,
-  tooltips,
-  DEFAULT_MARGIN_BOTTOM,
-  getValuesInPixels,
+    VALUE_FIELD_WIDTH,
+    labels,
+    tooltips,
+    DEFAULT_MARGIN_BOTTOM,
+    getValuesInPixels,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
+import { ColumnsQueryBuilder } from '../ColumnsQueryBuilder/ColumnsQueryBuilder';
 
 interface WrapperProps {
     datasource: DataFrameDataSource;
     dataTableFilter?: string;
+    columnsFilter?: string;
     onDataTableFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
 }
 
 export const DataFrameQueryBuilderWrapper: React.FC<WrapperProps> = ({
     datasource,
     dataTableFilter,
+    columnsFilter,
     onDataTableFilterChange,
 }) => {
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -66,6 +69,24 @@ export const DataFrameQueryBuilderWrapper: React.FC<WrapperProps> = ({
                     globalVariableOptions={datasource.globalVariableOptions()}
                     onChange={onDataTableFilterChange}
                     dataTableNameLookupCallback={dataTableNameLookupCallback}
+                />
+            </div>
+            <InlineLabel
+                width={VALUE_FIELD_WIDTH}
+                tooltip={tooltips.querryByColumnProperties}
+                data-testid="columns-query-builder-label"
+            >
+                {labels.querryByColumnProperties}
+            </InlineLabel>
+            <div
+                style={{
+                    width: getValuesInPixels(VALUE_FIELD_WIDTH),
+                    marginBottom: getValuesInPixels(DEFAULT_MARGIN_BOTTOM),
+                }}
+            >
+                <ColumnsQueryBuilder
+                    filter={columnsFilter}
+                    onChange={()=>{}}
                 />
             </div>
         </>
