@@ -584,7 +584,7 @@ describe('DataFrameDataSourceV2', () => {
             queryTablesSpy = jest.spyOn(ds, 'queryTables').mockResolvedValue([]);
         });
 
-        fit('should call processVariableQuery with the provided query', async () => {
+        it('should call processVariableQuery with the provided query', async () => {
             const processVariableQuerySpy = jest.spyOn(ds, 'processVariableQuery');
 
             await ds.metricFindQuery(query, options);
@@ -592,7 +592,7 @@ describe('DataFrameDataSourceV2', () => {
             expect(processVariableQuerySpy).toHaveBeenCalledWith(query);
         });
 
-        fit('should call transformComputedFieldsQuery when dataTableFilter is present', async () => {
+        it('should call transformComputedFieldsQuery when dataTableFilter is present', async () => {
             templateSrv.replace.mockReturnValue('name = "Test Table"');
 
             await ds.metricFindQuery(query, options);
@@ -604,7 +604,7 @@ describe('DataFrameDataSourceV2', () => {
             );
         });
 
-        fit('should use expected ExpressionTransformFunction for the fields', async () => {
+        it('should use expected ExpressionTransformFunction for the fields', async () => {
             const transformComputedFieldsQuerySpy = queryBuilderUtils
                 .transformComputedFieldsQuery as jest.Mock;
             const timeFieldsQuery = queryBuilderUtils.timeFieldsQuery as jest.Mock;
