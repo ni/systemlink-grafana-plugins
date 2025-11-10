@@ -2,7 +2,7 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, 
 import { AlarmsProperties, ListAlarmsQuery } from '../../types/ListAlarms.types';
 import { AlarmsVariableQuery, QueryAlarmsRequest } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
-import { AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { Alarm } from 'datasources/alarms/types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
@@ -27,10 +27,10 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public async runQuery(query: ListAlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     let mappedFields: DataFrameDTO['fields'] | undefined;
 
-    query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
-    const alarmsResponse = await this.queryAlarmsData(query);
+    if (this.isTakeValid(query.take) && this.isPropertiesValid(query.properties)) {
+      query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
+      const alarmsResponse = await this.queryAlarmsData(query);
 
-    if (this.isPropertiesValid(query.properties)) {
       mappedFields = await this.mapPropertiesToSelect(query.properties, alarmsResponse);
     }
 
@@ -80,6 +80,9 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   private async queryAlarmsData(alarmsQuery: ListAlarmsQuery): Promise<Alarm[]> {
     const alarmsRequestBody: QueryAlarmsRequest = {
       filter: alarmsQuery.filter ?? '',
+      take: alarmsQuery.take,
+      orderByDescending: alarmsQuery.descending ?? DEFAULT_QUERY_EDITOR_DESCENDING,
+      transitionInclusionOption: alarmsQuery.transitionInclusionOption ?? DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION,
     }
 
     return this.queryAlarmsInBatches(alarmsRequestBody);

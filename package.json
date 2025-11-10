@@ -1,6 +1,6 @@
 {
   "name": "systemlink-grafana-plugins",
-  "version": "4.46.0",
+  "version": "4.51.1",
   "description": "Plugins for visualizing data from SystemLink services",
   "private": true,
   "scripts": {
@@ -85,8 +85,10 @@
     "file-saver": "^2.0.5",
     "jsdom-testing-mocks": "^1.13.1",
     "plotly.js-basic-dist-min": "^2.24.3",
+    "qrcode.react": "^4.2.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-native-svg": "^15.6.0",
     "react-plotly.js": "^2.6.0",
     "react-router-dom": "^5.3.3",
     "rxjs": "7.8.1",

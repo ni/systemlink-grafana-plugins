@@ -647,7 +647,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     return query.resultsQuery !== '' && query.recordCount !== undefined && query.properties!.length > 0;
   }
 
-  shouldRunQuery(_: QuerySteps): boolean {
-    return true;
+  shouldRunQuery(query: QuerySteps): boolean {
+    return !query.hide;
   }
 }

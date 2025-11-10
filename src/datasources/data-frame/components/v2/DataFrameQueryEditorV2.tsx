@@ -64,39 +64,39 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
             ]
         );
         const columnNames = tables
-          .map(table => table.columns ?? [])
-          .flatMap(columns => {
-            return columns
+            .map(table => table.columns ?? [])
+            .flatMap(columns => {
+                return columns
                     .filter(column => column.name !== undefined)
                     .map(column => column.name);
-          });
+            });
         setColumnOptions(columnNames.map(name => ({ label: name, value: name })));
     };
 
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
-        handleQueryChange({ ...migratedQuery, type: queryType }, false);
+        handleQueryChange({ ...migratedQuery, type: queryType });
     };
 
     const onDataTableFilterChange = async (event?: Event | React.FormEvent<Element>) => {
         if (event) {
             const dataTableFilter = (event as CustomEvent).detail.linq;
-            handleQueryChange({ ...migratedQuery, dataTableFilter }, false);
+            handleQueryChange({ ...migratedQuery, dataTableFilter });
             await fetchAndSetColumnOptions(dataTableFilter);
-      }
+        }
     };
 
     const onDataTablePropertiesChange = (properties: Array<SelectableValue<DataTableProperties>>) => {
         const dataTableProperties = properties
             .filter(property => property.value !== undefined)
             .map(property => property.value as DataTableProperties);
-        handleQueryChange({ ...migratedQuery, dataTableProperties }, false);
+        handleQueryChange({ ...migratedQuery, dataTableProperties });
     };
 
     const onColumnPropertiesChange = (properties: Array<SelectableValue<DataTableProperties>>) => {
         const columnProperties = properties
             .filter(property => property.value !== undefined)
             .map(property => property.value as DataTableProperties);
-        handleQueryChange({ ...migratedQuery, columnProperties }, false);
+        handleQueryChange({ ...migratedQuery, columnProperties });
     };
 
     const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -104,7 +104,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
         const message = validateTakeValue(value, TAKE_LIMIT);
 
         setRecordCountInvalidMessage(message);
-        handleQueryChange({ ...migratedQuery, take: value }, false);
+        handleQueryChange({ ...migratedQuery, take: value });
     };
 
     const onColumnsChange = (columns: Array<ComboboxOption<string>>) => {
