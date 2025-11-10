@@ -139,4 +139,18 @@ describe('DataFrameDataSource', () => {
             expect(v2Mock.loadColumnOption).toHaveBeenCalledWith('another-filter');
         });
     });
+
+    describe('isColumnLimitExceeded', () => {
+        it('should get isColumnLimitExceeded from DataFrameDataSourceV1 when feature toggle is false', () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(false));
+            v1Mock.isColumnLimitExceeded = true;
+            expect(ds.isColumnLimitExceeded).toBe(false);
+        });
+
+        it('should get isColumnLimitExceeded from DataFrameDataSourceV2 when feature toggle is true', () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(true));
+            v2Mock.isColumnLimitExceeded = false;
+            expect(ds.isColumnLimitExceeded).toBe(false);
+        });
+    });
 });
