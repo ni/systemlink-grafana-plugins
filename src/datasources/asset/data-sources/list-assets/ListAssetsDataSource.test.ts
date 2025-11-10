@@ -839,6 +839,31 @@ describe('shouldRunQuery', () => {
         expect(data.fields[0].values).toEqual(['keyword0, keyword1, keyword2, keyword3, keyword4']);
     });
 
+    test('should display scan code property', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: ``,
+            outputType: OutputType.Properties,
+            properties: [AssetFilterPropertiesOption.ScanCode],
+        });
+        const listAssetsResponse = {
+            assets: [
+                {
+                    scanCode: 'SC1234'
+                },
+            ], totalCount: 1
+        }
+        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+
+        const response = await datastore.query(query);
+        const data = response.data[0];
+
+        expect(data.fields).toHaveLength(1);
+        expect(data.fields[0].name).toEqual('scan code');
+        expect(data.fields[0].values).toEqual(['SC1234']);
+    });
+
     test('should convert workspaceIds to workspace names for workspace field', async () => {
         const query = buildListAssetsQuery({
             refId: '',
@@ -861,37 +886,7 @@ describe('shouldRunQuery', () => {
             type: AssetQueryType.ListAssets,
             filter: ``,
             outputType: OutputType.Properties,
-            properties: [
-                AssetFilterPropertiesOption.AssetIdentifier,
-                AssetFilterPropertiesOption.AssetName,
-                AssetFilterPropertiesOption.VendorName,
-                AssetFilterPropertiesOption.VendorNumber,
-                AssetFilterPropertiesOption.ModelName,
-                AssetFilterPropertiesOption.ModelNumber,
-                AssetFilterPropertiesOption.SerialNumber,
-                AssetFilterPropertiesOption.BusType,
-                AssetFilterPropertiesOption.AssetType,
-                AssetFilterPropertiesOption.IsNIAsset,
-                AssetFilterPropertiesOption.PartNumber,
-                AssetFilterPropertiesOption.CalibrationStatus,
-                AssetFilterPropertiesOption.IsSystemController,
-                AssetFilterPropertiesOption.LastUpdatedTimestamp,
-                AssetFilterPropertiesOption.Location,
-                AssetFilterPropertiesOption.MinionId,
-                AssetFilterPropertiesOption.ParentName,
-                AssetFilterPropertiesOption.Workspace,
-                AssetFilterPropertiesOption.SupportsSelfCalibration,
-                AssetFilterPropertiesOption.SupportsExternalCalibration,
-                AssetFilterPropertiesOption.VisaResourceName,
-                AssetFilterPropertiesOption.FirmwareVersion,
-                AssetFilterPropertiesOption.DiscoveryType,
-                AssetFilterPropertiesOption.SupportsSelfTest,
-                AssetFilterPropertiesOption.SupportsReset,
-                AssetFilterPropertiesOption.Properties,
-                AssetFilterPropertiesOption.Keywords,
-                AssetFilterPropertiesOption.SelfCalibration,
-                AssetFilterPropertiesOption.ExternalCalibrationDate
-            ]
+            properties: [...Object.values(AssetFilterPropertiesOption)]
         });
         jest.spyOn(datastore, 'queryAssets');
 
@@ -899,33 +894,35 @@ describe('shouldRunQuery', () => {
         const data = response.data[0];
 
         expect(data.fields[0].name).toEqual('id');
-        expect(data.fields[1].name).toEqual('name');
-        expect(data.fields[2].name).toEqual('vendor name');
-        expect(data.fields[3].name).toEqual('vendor number');
-        expect(data.fields[4].name).toEqual('model name');
-        expect(data.fields[5].name).toEqual('model number');
-        expect(data.fields[6].name).toEqual('serial number');
-        expect(data.fields[7].name).toEqual('bus type');
-        expect(data.fields[8].name).toEqual('asset type');
-        expect(data.fields[9].name).toEqual('is NI asset');
+        expect(data.fields[1].name).toEqual('serial number');
+        expect(data.fields[2].name).toEqual('model name');
+        expect(data.fields[3].name).toEqual('model number');
+        expect(data.fields[4].name).toEqual('vendor name');
+        expect(data.fields[5].name).toEqual('vendor number');
+        expect(data.fields[6].name).toEqual('name');
+        expect(data.fields[7].name).toEqual('asset type');
+        expect(data.fields[8].name).toEqual('firmware version');
+        expect(data.fields[9].name).toEqual('visa resource name');
         expect(data.fields[10].name).toEqual('part number');
-        expect(data.fields[11].name).toEqual('calibration status');
-        expect(data.fields[12].name).toEqual('is system controller');
-        expect(data.fields[13].name).toEqual('last updated timestamp');
-        expect(data.fields[14].name).toEqual('location');
-        expect(data.fields[15].name).toEqual('minionId');
-        expect(data.fields[16].name).toEqual('parent name');
-        expect(data.fields[17].name).toEqual('workspace');
-        expect(data.fields[18].name).toEqual('supports self calibration');
-        expect(data.fields[19].name).toEqual('supports external calibration');
-        expect(data.fields[20].name).toEqual('visa resource name');
-        expect(data.fields[21].name).toEqual('firmware version');
-        expect(data.fields[22].name).toEqual('discovery type');
-        expect(data.fields[23].name).toEqual('supports self test');
-        expect(data.fields[24].name).toEqual('supports reset');
-        expect(data.fields[25].name).toEqual('properties');
-        expect(data.fields[26].name).toEqual('keywords');
-        expect(data.fields[27].name).toEqual('self calibration');
-        expect(data.fields[28].name).toEqual('calibration due date');
+        expect(data.fields[11].name).toEqual('last updated timestamp');
+        expect(data.fields[12].name).toEqual('bus type');
+        expect(data.fields[13].name).toEqual('is NI asset');
+        expect(data.fields[14].name).toEqual('keywords');
+        expect(data.fields[15].name).toEqual('properties');
+        expect(data.fields[16].name).toEqual('location');
+        expect(data.fields[17].name).toEqual('minionId');
+        expect(data.fields[18].name).toEqual('parent name');
+        expect(data.fields[19].name).toEqual('supports self calibration');
+        expect(data.fields[20].name).toEqual('discovery type');
+        expect(data.fields[21].name).toEqual('supports self test');
+        expect(data.fields[22].name).toEqual('supports reset');
+        expect(data.fields[23].name).toEqual('self calibration');
+        expect(data.fields[24].name).toEqual('supports external calibration');
+        expect(data.fields[25].name).toEqual('calibration due date');
+        expect(data.fields[26].name).toEqual('is system controller');
+        expect(data.fields[27].name).toEqual('workspace');
+        expect(data.fields[28].name).toEqual('calibration status');
+        expect(data.fields[29].name).toEqual('scan code');
+        expect(data.fields.length).toBe(30);
     })
 });
