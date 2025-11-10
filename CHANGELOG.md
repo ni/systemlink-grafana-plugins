@@ -1,3 +1,9 @@
+## [4.52.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.51.1...v4.52.0) (2025-11-10)
+
+### Features
+
+* **alarms:** support contains and doesn't contain filter for source in QB ([#500](https://github.com/ni/systemlink-grafana-plugins/issues/500)) ([d4709ca](https://github.com/ni/systemlink-grafana-plugins/commit/d4709ca81588324c7cf1fd45d6a67e91c4ee5f51))
+
 ## [4.51.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.51.0...v4.51.1) (2025-11-06)
 
 ### Bug Fixes
