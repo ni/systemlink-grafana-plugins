@@ -5,7 +5,7 @@ import { ListAlarmsQueryHandler } from 'datasources/alarms/query-type-handlers/l
 import { AlarmsProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 import { ListAlarmsQueryEditor } from './ListAlarmsQueryEditor';
 import userEvent from '@testing-library/user-event';
-import { AlarmsPropertiesOptions, takeErrorMessages, AlarmsTransitionInclusionOptions } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { AlarmsPropertiesOptions, takeErrorMessages, AlarmsTransitionInclusionOptions, PROPERTIES_ERROR_MESSAGE } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { select } from 'react-select-event';
 
 const mockHandleQueryChange = jest.fn();
@@ -407,6 +407,27 @@ describe('ListAlarmsQueryEditor', () => {
           }),
         );
       });
+    });
+
+    it('should display error if transition property is selected and transition inclusion option is updated to None', async () => {
+      await renderElement({
+        refId: 'A',
+        queryType: QueryType.ListAlarms,
+        transitionInclusionOption: TransitionInclusionOption.All,
+        properties: [ AlarmsProperties.transitionCondition ],
+      });
+
+      const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Include Transition' });
+
+      await userEvent.click(transitionInclusionCombobox);
+      await select(transitionInclusionCombobox,
+        AlarmsTransitionInclusionOptions[TransitionInclusionOption.None].label,
+        {
+          container: document.body,
+        }
+      );
+
+      expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
     });
   });
 });
