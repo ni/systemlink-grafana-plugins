@@ -9,6 +9,7 @@ export const SECONDARY_CONTROL_WIDTH = 26;
 export const ERROR_SEVERITY_WARNING: AlertVariant = 'warning';
 export const QUERY_EDITOR_MIN_TAKE = 1;
 export const QUERY_EDITOR_MAX_TAKE = 10000;
+export const QUERY_EDITOR_TRANSITION_MAX_TAKE = 500;
 export const DEFAULT_QUERY_EDITOR_TAKE = 1000;
 export const DEFAULT_QUERY_EDITOR_DESCENDING = true;
 export const DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION = TransitionInclusionOption.None;
@@ -43,6 +44,7 @@ export const tooltips = {
 export const takeErrorMessages = {
   minErrorMsg: `Enter a value greater than or equal to ${QUERY_EDITOR_MIN_TAKE.toLocaleString()}`,
   maxErrorMsg: `Enter a value less than or equal to ${QUERY_EDITOR_MAX_TAKE.toLocaleString()}`,
+  transitionMaxErrorMsg: `Enter a value less than or equal to ${QUERY_EDITOR_TRANSITION_MAX_TAKE.toLocaleString()}`,
 };
 
 export const PROPERTIES_ERROR_MESSAGE = 'You must select at least one property.';

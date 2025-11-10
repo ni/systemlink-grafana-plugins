@@ -269,6 +269,49 @@ describe('ListAlarmsQueryEditor', () => {
         expect(screen.queryByText(takeErrorMessages.minErrorMsg)).not.toBeInTheDocument();
       }
     });
+
+    it('should display transition max take error message when take value is above 500 with transition inclusion set to All', async () => {
+      await renderElement({ refId: 'A', transitionInclusionOption: TransitionInclusionOption.All });
+
+      const takeInput = screen.getByRole('spinbutton');
+
+      fireEvent.change(takeInput, { target: { value: '5000' } });
+      fireEvent.blur(takeInput);
+
+      expect(screen.getByText(takeErrorMessages.transitionMaxErrorMsg)).toBeInTheDocument();
+    });
+
+    it('should display no error message when take value is 500 with transition inclusion set to All', async () => {
+      await renderElement({ refId: 'A', transitionInclusionOption: TransitionInclusionOption.All });
+
+      const takeInput = screen.getByRole('spinbutton');
+
+      fireEvent.change(takeInput, { target: { value: '500' } });
+      fireEvent.blur(takeInput);
+      expect(screen.queryByText(takeErrorMessages.transitionMaxErrorMsg)).not.toBeInTheDocument();
+    });
+
+    it('should validate take value again when transition inclusion option changes', async () => {
+      await renderElement({ refId: 'A', transitionInclusionOption: TransitionInclusionOption.None, take: 6000 });
+
+      const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Include Transition' });
+      const takeInput = screen.getByRole('spinbutton');
+
+      await userEvent.click(transitionInclusionCombobox);
+      await select(transitionInclusionCombobox,
+        AlarmsTransitionInclusionOptions[TransitionInclusionOption.All].label,
+        {
+          container: document.body,
+        }
+      );
+
+      expect(screen.getByText(takeErrorMessages.transitionMaxErrorMsg)).toBeInTheDocument();
+
+      fireEvent.change(takeInput, { target: { value: '500' } });
+      fireEvent.blur(takeInput);
+
+      expect(screen.getByText(takeErrorMessages.transitionMaxErrorMsg)).not.toBeInTheDocument();
+    });
   });
 
   describe('Descending', () => {
