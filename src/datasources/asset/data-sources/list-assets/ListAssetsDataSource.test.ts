@@ -10,7 +10,7 @@ import { AssetFilterPropertiesOption, ListAssetsQuery, OutputType } from "../../
 import { ListAssetsFieldNames } from "../../constants/ListAssets.constants";
 import { MockProxy } from "jest-mock-extended";
 import { BackendSrv } from "@grafana/runtime";
-import { DataQueryResponse, Field } from "@grafana/data";
+import { Field } from "@grafana/data";
 import { AssetsResponse } from "datasources/asset-common/types";
 import { QUERY_LIMIT } from "datasources/asset/constants/constants";
 
@@ -856,7 +856,7 @@ describe('shouldRunQuery', () => {
         }
         jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
 
-        const response: DataQueryResponse = await datastore.query(query);
+        const response = await datastore.query(query);
         const data = response.data[0];
 
         expect(data.fields).toHaveLength(1);
