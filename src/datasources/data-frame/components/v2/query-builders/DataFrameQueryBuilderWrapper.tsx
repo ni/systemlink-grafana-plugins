@@ -26,14 +26,14 @@ export const DataFrameQueryBuilderWrapper: React.FC<WrapperProps> = ({
 }) => {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
 
-    useEffect(() => {
-        const loadWorkspaces = async () => {
-            const workspaces = await datasource.loadWorkspaces();
-            setWorkspaces(Array.from(workspaces.values()));
-        };
+  useEffect(() => {
+    const loadWorkspaces = async () => {
+      const workspaces = await datasource.loadWorkspaces();
+      setWorkspaces(Array.from(workspaces.values()));
+    };
 
-        loadWorkspaces();
-    }, [datasource]);
+    loadWorkspaces();
+  }, [datasource]);
 
   const dataTableNameLookupCallback = useCallback(async (query: string) => {
     const filter = `${DataTableQueryBuilderFieldNames.Name}.Contains("${query}")`;
