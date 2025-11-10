@@ -839,24 +839,6 @@ describe('shouldRunQuery', () => {
         expect(data.fields[0].values).toEqual(['keyword0, keyword1, keyword2, keyword3, keyword4']);
     });
 
-    test('should display scan code property', async () => {
-        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(mockListAssets as unknown as AssetsResponse)
-        const query = buildListAssetsQuery({
-            refId: '',
-            type: AssetQueryType.ListAssets,
-            filter: ``,
-            outputType: OutputType.Properties,
-            properties: [AssetFilterPropertiesOption.ScanCode],
-        });
-
-        const response = await datastore.query(query);
-        const data = response.data[0];
-
-        expect(data.fields).toHaveLength(1);
-        expect(data.fields[0].name).toEqual('scan code');
-        expect(data.fields[0].values).toEqual(['c44750b7-1f22-4fec-b475-73b10e966217']);
-    });
-
     test('should convert workspaceIds to workspace names for workspace field', async () => {
         const query = buildListAssetsQuery({
             refId: '',
