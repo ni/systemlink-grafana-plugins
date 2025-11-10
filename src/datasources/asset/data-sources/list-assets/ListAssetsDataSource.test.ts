@@ -847,14 +847,7 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.Properties,
             properties: [AssetFilterPropertiesOption.ScanCode],
         });
-        const listAssetsResponse = {
-            assets: [
-                {
-                    scanCode: 'c44750b7-1f22-4fec-b475-73b10e966217'
-                },
-            ], totalCount: 1
-        }
-        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(mockListAssets as unknown as AssetsResponse)
 
         const response = await datastore.query(query);
         const data = response.data[0];
