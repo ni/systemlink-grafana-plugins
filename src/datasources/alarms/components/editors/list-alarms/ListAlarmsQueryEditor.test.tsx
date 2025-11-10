@@ -5,7 +5,7 @@ import { ListAlarmsQueryHandler } from 'datasources/alarms/query-type-handlers/l
 import { AlarmsProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 import { ListAlarmsQueryEditor } from './ListAlarmsQueryEditor';
 import userEvent from '@testing-library/user-event';
-import { AlarmsPropertiesOptions, takeErrorMessages, AlarmsTransitionInclusionOptions, PROPERTIES_ERROR_MESSAGE } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { AlarmsPropertiesOptions, takeErrorMessages, AlarmsTransitionInclusionOptions } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { select } from 'react-select-event';
 
 const mockHandleQueryChange = jest.fn();
