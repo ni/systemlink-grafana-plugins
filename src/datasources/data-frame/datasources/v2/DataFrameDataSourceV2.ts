@@ -11,6 +11,7 @@ import { ComboboxOption } from "@grafana/ui";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
     defaultQuery = defaultQueryV2;
+    filteredTables: TableProperties[] = [];
     isColumnLimitExceeded = false;
 
     public constructor(
@@ -115,18 +116,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     }
 
     public async loadColumnOption(filter: string): Promise<ComboboxOption[]> {
-        const tables = await this.queryTables(filter, TAKE_LIMIT, [
+        this.filteredTables = await this.queryTables(filter, TAKE_LIMIT, [
             DataTableProjections.Name,
             DataTableProjections.ColumnName,
             DataTableProjections.ColumnDataType,
             DataTableProjections.ColumnType,
         ]);
 
-        if (tables.length === 0 || !tables.some(table => table.columns && table.columns.length > 0)) {
+        if (this.filteredTables.length === 0 || !this.filteredTables.some(table => table.columns && table.columns.length > 0)) {
             return [];
         }
 
-        const columnTypeMap = this.createColumnTypeMap(tables);
+        const columnTypeMap = this.createColumnTypeMap(this.filteredTables);
         const formattedOptions = this.formatColumnOptions(columnTypeMap);
         const limitedOptions = this.limitColumnOptions(formattedOptions, COLUMN_OPTION_LIMIT);
 
