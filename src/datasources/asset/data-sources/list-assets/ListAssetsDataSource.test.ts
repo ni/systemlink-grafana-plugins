@@ -850,7 +850,7 @@ describe('shouldRunQuery', () => {
         const listAssetsResponse = {
             assets: [
                 {
-                    scanCode: 'SC1234'
+                    scanCode: 'c44750b7-1f22-4fec-b475-73b10e966217'
                 },
             ], totalCount: 1
         }
@@ -861,7 +861,7 @@ describe('shouldRunQuery', () => {
 
         expect(data.fields).toHaveLength(1);
         expect(data.fields[0].name).toEqual('scan code');
-        expect(data.fields[0].values).toEqual(['SC1234']);
+        expect(data.fields[0].values).toEqual(['c44750b7-1f22-4fec-b475-73b10e966217']);
     });
 
     test('should convert workspaceIds to workspace names for workspace field', async () => {
