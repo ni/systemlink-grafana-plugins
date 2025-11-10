@@ -12,7 +12,8 @@ export interface AlarmsVariableQuery extends AlarmsQuery {
 
 export enum QueryType {
   AlarmsCount = 'Alarms Count',
-  ListAlarms = 'List Alarms'
+  ListAlarms = 'List Alarms',
+  AlarmsTrend = 'Alarms Trend'
 }
 
 export interface QueryAlarmsRequest {
@@ -61,7 +62,7 @@ export interface Alarm {
   resourceType: string;
 }
 
-enum TransitionInclusionOption {
+export enum TransitionInclusionOption {
   None = 'NONE',
   MostRecentOnly = 'MOST_RECENT_ONLY',
   All = 'ALL',

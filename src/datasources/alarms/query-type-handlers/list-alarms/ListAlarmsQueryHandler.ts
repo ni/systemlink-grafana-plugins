@@ -1,13 +1,14 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
-import { ListAlarmsQuery } from '../../types/ListAlarms.types';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
+import { AlarmsProperties, ListAlarmsQuery } from '../../types/ListAlarms.types';
 import { AlarmsVariableQuery, QueryAlarmsRequest } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
-import { DEFAULT_QUERY_EDITOR_DESCENDING, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { Alarm } from 'datasources/alarms/types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { User } from 'shared/types/QueryUsers.types';
 import { UsersUtils } from 'shared/users.utils';
+import { MINION_ID_CUSTOM_PROPERTY, PROPERTY_PREFIX_TO_EXCLUDE, SYSTEM_CUSTOM_PROPERTY } from 'datasources/alarms/constants/AlarmProperties.constants';
 
 export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultListAlarmsQuery;
@@ -24,15 +25,19 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   }
 
   public async runQuery(query: ListAlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
+    let mappedFields: DataFrameDTO['fields'] | undefined;
 
-    // #AB:3449773 Map queryAlarmsData response to user-selected properties
-    await this.queryAlarmsData(query);
+    if (this.isTakeValid(query.take) && this.isPropertiesValid(query.properties)) {
+      query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
+      const alarmsResponse = await this.queryAlarmsData(query);
+
+      mappedFields = await this.mapPropertiesToSelect(query.properties, alarmsResponse);
+    }
 
     return {
       refId: query.refId,
       name: query.refId,
-      fields: [{ name: query.refId, values: [] }],
+      fields: mappedFields ?? [],
     };
   }
 
@@ -68,16 +73,21 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       && take <= QUERY_EDITOR_MAX_TAKE;
   }
 
+  private isPropertiesValid(properties?: AlarmsProperties[]): properties is AlarmsProperties[] {
+    return !!properties && properties.length > 0;
+  }
+
   private async queryAlarmsData(alarmsQuery: ListAlarmsQuery): Promise<Alarm[]> {
     const alarmsRequestBody: QueryAlarmsRequest = {
       filter: alarmsQuery.filter ?? '',
+      take: alarmsQuery.take,
+      orderByDescending: alarmsQuery.descending ?? DEFAULT_QUERY_EDITOR_DESCENDING,
+      transitionInclusionOption: alarmsQuery.transitionInclusionOption ?? DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION,
     }
 
     return this.queryAlarmsInBatches(alarmsRequestBody);
   }
 
-  // @ts-ignore
-  // #AB:3249477 Suppress unused method warning until properties control support is implemented
   private async loadUsers(): Promise<Map<string, User>> {
     try {
       return await this.usersUtils.getUsers();
@@ -87,5 +97,98 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       }
       return new Map<string, User>();
     }
+  }
+
+  private async mapPropertiesToSelect(
+    properties: AlarmsProperties[],
+    alarms: Alarm[]
+  ): Promise<DataFrameDTO['fields']> {
+    const workspaces = await this.loadWorkspaces();
+    const users = await this.loadUsers();
+
+    const mappedFields = properties.map(property => {
+      const field = AlarmsPropertiesOptions[property];
+      const fieldName = field.label;
+      const fieldValue = field.value;
+      const fieldType = this.isTimeField(fieldValue) ? FieldType.time : FieldType.string;
+
+      const fieldValues = alarms.map(alarm => {
+        switch (property) {
+          case AlarmsProperties.workspace:
+            const workspace = workspaces.get(alarm.workspace);
+            return workspace ? workspace.name : alarm.workspace;
+          case AlarmsProperties.acknowledgedBy:
+            const userId = alarm.acknowledgedBy ?? '';
+            const user = users.get(userId);
+            return user ? UsersUtils.getUserFullName(user) : userId;
+          case AlarmsProperties.properties:
+            return this.getSortedCustomProperties(alarm.properties);
+          case AlarmsProperties.highestSeverityLevel:
+          case AlarmsProperties.currentSeverityLevel:
+            return this.getSeverityLabel(alarm[property]);
+          case AlarmsProperties.state:
+            return this.getAlarmState(alarm.clear, alarm.acknowledged);
+          case AlarmsProperties.source:
+            return this.getSource(alarm.properties);
+          default:
+            const value = alarm[fieldValue as keyof Alarm];
+            if (fieldType === FieldType.time) {
+              return value ?? null;
+            }
+            return value ?? '';
+        }
+      });
+      return { name: fieldName, values: fieldValues, type: fieldType };
+    });
+
+    return mappedFields;
+  }
+
+  private getSortedCustomProperties(properties: { [key: string]: string }): string {
+    if (Object.keys(properties).length <= 0) {
+      return '';
+    }
+
+    const filteredEntries = Object.entries(properties)
+      .filter(([key]) => !key.startsWith(PROPERTY_PREFIX_TO_EXCLUDE))
+      .sort(([keyA], [keyB]) => keyA.localeCompare(keyB));
+  
+    const sortedProperties = Object.fromEntries(filteredEntries);
+    
+    return JSON.stringify(sortedProperties);
+  }
+
+  private getSeverityLabel(severityLevel: number): string {
+    switch (severityLevel) {
+      case -1:
+        return 'Clear';
+      case 1:
+        return 'Low (1)';
+      case 2:
+        return 'Moderate (2)';
+      case 3:
+        return 'High (3)';
+      default:
+        if (severityLevel >= 4) {
+          return `Critical (${severityLevel})`;
+        }
+        return '';
+    }
+  }
+ 
+  private getAlarmState(isCleared: boolean, isAcknowledged: boolean): string {
+    if (isCleared) {
+      return isAcknowledged ? 'Cleared' : 'Cleared; NotAcknowledged';
+    }
+    return isAcknowledged ? 'Acknowledged' : 'Set';
+  }
+ 
+  private getSource(properties: { [key: string]: string }): string {
+    if (properties?.hasOwnProperty(SYSTEM_CUSTOM_PROPERTY)) {
+      return properties[SYSTEM_CUSTOM_PROPERTY];
+    }
+    return properties?.hasOwnProperty(MINION_ID_CUSTOM_PROPERTY)
+      ? properties[MINION_ID_CUSTOM_PROPERTY]
+      : '';
   }
 }
