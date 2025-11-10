@@ -11,6 +11,7 @@ import { ComboboxOption } from "@grafana/ui";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
     defaultQuery = defaultQueryV2;
+    isColumnLimitExceeded = false;
 
     public constructor(
         public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
@@ -183,6 +184,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
      * Limits the number of column options to a maximum value.
      */
     private limitColumnOptions<T,>(columns: T[], max: number): T[] {
+        this.isColumnLimitExceeded = columns.length > max ? true : false;
         return columns.slice(0, max);
     };
 

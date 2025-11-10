@@ -65,4 +65,8 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
   public async loadColumnOption(filter: string): Promise<ComboboxOption[]> {
     return this.datasource.loadColumnOption(filter);
   }
+
+  public get isColumnLimitExceeded(): boolean {
+    return this.datasource.isColumnLimitExceeded;
+  }
 }

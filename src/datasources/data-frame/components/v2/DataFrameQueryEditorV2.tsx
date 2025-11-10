@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
-import { AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineLabel, InlineSwitch, MultiCombobox, MultiSelect, RadioButtonGroup } from "@grafana/ui";
+import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineLabel, InlineSwitch, MultiCombobox, MultiSelect, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQueryV2, DataFrameQueryType, PropsV2, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProjections, DataTableProperties } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
@@ -28,6 +28,11 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
     const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
+    const [isColumnLimitExceeded, setIsColumnLimitExceeded] = useState<boolean>(false);
+
+    useEffect(() => {
+        setIsColumnLimitExceeded(datasource.isColumnLimitExceeded);
+    }, [datasource.isColumnLimitExceeded]);
 
     const getPropertiesOptions = (
         type: DataTableProjectionType
@@ -53,6 +58,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
 
     const fetchAndSetColumnOptions = async (filter: string) => {
         if (!filter) {
+            setIsColumnLimitExceeded(false);
             setColumnOptions([]);
             return;
         }
@@ -211,6 +217,13 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                     collapsible={true}
                     onToggle={() => setIsQueryConfigurationSectionOpen(!isQueryConfigurationSectionOpen)}
                 >
+                    {migratedQuery.type === DataFrameQueryType.Data && (
+                        <>
+                            {isColumnLimitExceeded && (
+                                <Alert title='Warning' severity='warning'>{errorMessages.columnLimitExceeded}</Alert>
+                            )}
+                        </>
+                    )}
                     <InlineLabel
                         width={VALUE_FIELD_WIDTH}
                         tooltip={tooltips.queryByDataTableProperties}
