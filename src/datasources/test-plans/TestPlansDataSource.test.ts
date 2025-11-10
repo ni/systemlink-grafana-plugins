@@ -2,7 +2,7 @@ import { MockProxy } from "jest-mock-extended";
 import { TestPlansDataSource } from "./TestPlansDataSource";
 import { BackendSrv } from "@grafana/runtime";
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from "test/fixtures";
-import { OrderByOptions, OutputType, Projections, Properties, QueryTestPlansResponse, TestPlansVariableQuery } from "./types";
+import { OrderByOptions, OutputType, Projections, Properties, QueryTestPlansResponse, TestPlansQuery, TestPlansVariableQuery } from "./types";
 import { DataQueryRequest, FieldType, LegacyMetricFindQueryOptions } from "@grafana/data";
 
 let datastore: TestPlansDataSource, backendServer: MockProxy<BackendSrv>;
@@ -1124,6 +1124,22 @@ describe('runQuery', () => {
     const result = await datastore.runQuery(mockQuery, {} as DataQueryRequest);
 
     expect(result).toMatchSnapshot();
+  });
+
+  test('should run query if not hidden', () => {
+    const query: TestPlansQuery = {
+      hide: false,
+      refId: ''
+    };
+    expect(datastore.shouldRunQuery(query)).toBe(true);
+  });
+
+  test('should not run query if hidden', () => {
+    const query: TestPlansQuery = {
+      hide: true,
+      refId: ''
+    };
+    expect(datastore.shouldRunQuery(query)).toBe(false);
   });
 });
 

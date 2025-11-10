@@ -135,7 +135,7 @@ exports[`queryProductValues returns data when there are valid queries 1`] = `
 ]
 `;
 
-exports[`queryProducts returns data when there are valid queries 1`] = `
+exports[`queryProducts$ returns data when there are valid queries 1`] = `
 {
   "continuationToken": "",
   "products": [
