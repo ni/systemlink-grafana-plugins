@@ -3,6 +3,7 @@ import { SystemDataSource } from './SystemDataSource';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { createFetchResponse, getQueryBuilder, requestMatching, setupDataSource } from 'test/fixtures';
 import { SystemProperties, SystemQuery, SystemQueryType } from './types';
+import { firstValueFrom } from 'rxjs';
 
 let ds: SystemDataSource, backendSrv: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
 
@@ -17,7 +18,7 @@ test('query for summary counts', async () => {
     .calledWith(requestMatching({ url: '/nisysmgmt/v1/get-systems-summary' }))
     .mockReturnValue(createFetchResponse({ connectedCount: 1, disconnectedCount: 2 }));
 
-  const result = await ds.query(buildQuery({ queryKind: SystemQueryType.Summary }));
+  const result = await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Summary })));
 
   expect(result.data).toEqual([
     {
@@ -35,7 +36,7 @@ test('query properties for all systems', async () => {
     .calledWith(requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { filter: '' } }))
     .mockReturnValue(createFetchResponse({ data: fakeSystems }));
 
-  const result = await ds.query(buildQuery({ queryKind: SystemQueryType.Properties }));
+  const result = await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties })));
 
   expect(result.data).toEqual([
     {
@@ -50,6 +51,7 @@ test('query properties for all systems', async () => {
         { name: 'operating system', values: ['nilrt', 'Microsoft Windows 10 Enterprise'] },
         { name: 'ip address', values: ['172.17.0.1', 'fe80::280:2fff:fe24:fcfa'] },
         { name: 'workspace', values: ['Default workspace', 'Other workspace'] },
+        { name: 'scan code', values: ['ABC123DEF456', 'ABC123DEF457'] },
       ],
       refId: 'A',
     },
@@ -63,7 +65,7 @@ test('query properties for one system', async () => {
     )
     .mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
 
-  const result = await ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: 'system-1' }));
+  const result = await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: 'system-1' })));
 
   expect(result.data).toEqual([
     {
@@ -78,6 +80,7 @@ test('query properties for one system', async () => {
         { name: 'operating system', values: ['nilrt'] },
         { name: 'ip address', values: ['172.17.0.1'] },
         { name: 'workspace', values: ['Default workspace'] },
+        { name: 'scan code', values: ['ABC123DEF456'] },
       ],
       refId: 'A',
     },
@@ -88,7 +91,7 @@ test('query properties with templated system name', async () => {
   templateSrv.replace.calledWith('$system_id').mockReturnValue('system-1');
   backendSrv.fetch.mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
 
-  await ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: '$system_id' }));
+  await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: '$system_id' })));
 
   expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('filter', 'id = "system-1" || alias = "system-1"');
 });
@@ -119,7 +122,7 @@ test('attempts to replace variables in properties query', async () => {
   backendSrv.fetch.mockReturnValue(createFetchResponse({ data: fakeSystems }));
   templateSrv.replace.calledWith(workspaceVariable).mockReturnValue('1');
 
-  await ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: 'system', workspace: workspaceVariable }));
+  await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: 'system', workspace: workspaceVariable })));
 
   expect(templateSrv.replace).toHaveBeenCalledTimes(2);
   expect(templateSrv.replace.mock.calls[1][0]).toBe(workspaceVariable);
@@ -156,6 +159,7 @@ const fakeSystems: SystemProperties[] = [
     systemStartTime: '2023-07-18T10:19:46Z',
     model: 'NI cRIO-9033',
     vendor: 'National Instruments',
+    scanCode: 'ABC123DEF456',
     osFullName: 'nilrt',
     ip4Interfaces: {
       cali816305ba9ce: [],
@@ -187,6 +191,7 @@ const fakeSystems: SystemProperties[] = [
     systemStartTime: '2023-03-02T18:48:09Z',
     model: '20LCS0X700',
     vendor: 'LENOVO',
+    scanCode: 'ABC123DEF457',
     osFullName: 'Microsoft Windows 10 Enterprise',
     ip4Interfaces: {
       usb0: [],

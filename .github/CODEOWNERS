@@ -4,11 +4,13 @@
 
 /src/datasources/notebook @CiprianAnton @kkerezsi @saradei-ni
 /src/datasources/tag @CiprianAnton @kkerezsi @saradei-ni
-/src/datasources/asset @CiprianAnton @kkerezsi @saradei-ni
-/src/datasources/asset-common @CiprianAnton @kkerezsi @saradei-ni
+/src/datasources/asset @CiprianAnton @kkerezsi @saradei-ni @BlankaOnodi
+/src/datasources/asset-common @CiprianAnton @kkerezsi @saradei-ni @BlankaOnodi
 /src/datasources/products @richie-ni @hemkumarrao-ni @kartheeswaran-ni
 /src/datasources/results @richie-ni @hemkumarrao-ni @kartheeswaran-ni
 /src/datasources/work-orders @priya-ni @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni
 /src/datasources/test-plans @priya-ni @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni
 /src/datasources/alarms @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni
 /src/datasources/data-frame @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni @cameronwaterman
+/src/datasources/system @chotea @stefanc18
+/src/panels/qr-code @CiprianAnton @kkerezsi @saradei-ni @BlankaOnodi @OliverCosma

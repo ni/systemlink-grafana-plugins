@@ -1,12 +1,36 @@
 import { AlarmsCountQuery } from '../types/AlarmsCount.types';
-import { ListAlarmsQuery } from '../types/ListAlarms.types';
-import { QueryType } from '../types/types';
+import { AlarmsTrendQuery } from '../types/AlarmsTrend.types';
+import { AlarmsProperties, ListAlarmsQuery } from '../types/ListAlarms.types';
+import { AlarmsVariableQuery, QueryType } from '../types/types';
+import { DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TAKE, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION } from './AlarmsQueryEditor.constants';
+
+export const DEFAULT_QUERY_TYPE: QueryType = QueryType.ListAlarms;
 
 export const defaultAlarmsCountQuery: Omit<AlarmsCountQuery, 'refId'> = {
-    queryType: QueryType.AlarmsCount,
-    filter: '',
+  filter: '',
 };
 
 export const defaultListAlarmsQuery: Omit<ListAlarmsQuery, 'refId'> = {
-    queryType: QueryType.ListAlarms,
+  filter: '',
+  properties: [
+    AlarmsProperties.displayName,
+    AlarmsProperties.currentSeverityLevel,
+    AlarmsProperties.occurredAt,
+    AlarmsProperties.source,
+    AlarmsProperties.state,
+    AlarmsProperties.workspace,
+  ],
+  take: DEFAULT_QUERY_EDITOR_TAKE,
+  descending: DEFAULT_QUERY_EDITOR_DESCENDING,
+  transitionInclusionOption: DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION,
+};
+
+export const defaultAlarmsTrendQuery: Omit<AlarmsTrendQuery, 'refId'> = {
+  filter: '',
+};
+
+export const defaultListAlarmsVariableQuery: Omit<AlarmsVariableQuery, 'refId'> = {
+  filter: '',
+  take: DEFAULT_QUERY_EDITOR_TAKE,
+  descending: DEFAULT_QUERY_EDITOR_DESCENDING,
 };

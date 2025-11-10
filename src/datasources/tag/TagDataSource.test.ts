@@ -13,6 +13,7 @@ import {
 } from 'test/fixtures';
 import { TagDataSource } from './TagDataSource';
 import { TagQuery, TagQueryType, TagWithValue, TagDataType, TagDataSourceOptions } from './types';
+import { firstValueFrom } from 'rxjs';
 
 let ds: TagDataSource, backendSrv: MockProxy<BackendSrv>, templateSrv: MockProxy<TemplateSrv>;
 let tagOptions: TagDataSourceOptions = {
@@ -59,7 +60,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/nitag/v2/fetch-tags-with-values', data: { paths: ['my.tag'], workspaces: ["*"] } }))
       .mockReturnValue(createQueryTagsResponse());
 
-    const result = await ds.query(buildQuery({ path: 'my.tag' }));
+    const result = await firstValueFrom(ds.query(buildQuery({ path: 'my.tag' })));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -67,7 +68,7 @@ describe('queries', () => {
   test('applies query defaults when missing fields', async () => {
     backendSrv.fetch.mockReturnValue(createQueryTagsResponse());
 
-    const result = await ds.query({ ...defaultQueryOptions, targets: [{ path: 'my.tag', refId: 'A' } as TagQuery] });
+    const result = await firstValueFrom(ds.query({ ...defaultQueryOptions, targets: [{ path: 'my.tag', refId: 'A' } as TagQuery] }));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -75,7 +76,7 @@ describe('queries', () => {
   test('should process query if query is not hidden', async () => {
     backendSrv.fetch.mockReturnValue(createQueryTagsResponse());
 
-    await ds.query({ ...defaultQueryOptions, targets: [{ path: 'my.tag', refId: 'A', hide: false } as TagQuery], });
+    await firstValueFrom(ds.query({ ...defaultQueryOptions, targets: [{ path: 'my.tag', refId: 'A', hide: false } as TagQuery], }));
 
     expect(backendSrv.fetch).toHaveBeenCalledTimes(1);
   });
@@ -83,7 +84,7 @@ describe('queries', () => {
   test('should not process query if query is hidden', async () => {
     backendSrv.fetch.mockReturnValue(createQueryTagsResponse());
 
-    await ds.query({ ...defaultQueryOptions, targets: [{ path: 'my.tag', refId: 'A', hide: true } as TagQuery], });
+    await firstValueFrom(ds.query({ ...defaultQueryOptions, targets: [{ path: 'my.tag', refId: 'A', hide: true } as TagQuery], }));
 
     expect(backendSrv.fetch).toHaveBeenCalledTimes(0);
   });
@@ -91,7 +92,7 @@ describe('queries', () => {
   test('uses displayName property', async () => {
     backendSrv.fetch.mockReturnValue(createQueryTagsResponse([{ tag: { properties: { displayName: 'My cool tag' } } }]));
 
-    const result = await ds.query(buildQuery({ path: 'my.tag' }));
+    const result = await firstValueFrom(ds.query(buildQuery({ path: 'my.tag' })));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -102,7 +103,7 @@ describe('queries', () => {
       { tag: { path: 'my.2.tag', properties: { unit: 'A' } }, current: { value: { value: '41.3' } } }
     ]));
 
-    const result = await ds.query(buildQuery({ path: 'my.*.tag', properties: true }));
+    const result = await firstValueFrom(ds.query(buildQuery({ path: 'my.*.tag', properties: true })));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -113,7 +114,7 @@ describe('queries', () => {
       { tag: { path: 'my.2.tag', properties: { unit: 'A' } }, current: { value: { value: '41.3' } } }
     ]));
 
-    const result = await ds.query(buildQuery({ path: 'my.*.tag', properties: true }));
+    const result = await firstValueFrom(ds.query(buildQuery({ path: 'my.*.tag', properties: true })));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -121,7 +122,7 @@ describe('queries', () => {
   test('handles null tag properties', async () => {
     backendSrv.fetch.mockReturnValue(createQueryTagsResponse([{ tag: { properties: null } }]));
 
-    const result = await ds.query(buildQuery({ path: 'my.tag' }));
+    const result = await firstValueFrom(ds.query(buildQuery({ path: 'my.tag' })));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -129,7 +130,7 @@ describe('queries', () => {
   test('handles tag with no current value', async () => {
     backendSrv.fetch.mockReturnValue(createQueryTagsResponse([{ tag: {}, current: null }]));
 
-    const result = await ds.query(buildQuery({ path: 'my.tag' }));
+    const result = await firstValueFrom(ds.query(buildQuery({ path: 'my.tag' })));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -142,7 +143,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ data: { paths: ['my.tag2'], workspaces: ["*"] }}))
       .mockReturnValue(createQueryTagsResponse([{ tag: { path: 'my.tag2' }, current: { value: { value: '41.3' } } }]));
 
-    const result = await ds.query(buildQuery({ path: 'my.tag1' }, { path: '' }, { path: 'my.tag2' }));
+    const result = await firstValueFrom(ds.query(buildQuery({ path: 'my.tag1' }, { path: '' }, { path: 'my.tag2' })));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -172,9 +173,9 @@ describe('queries', () => {
         }])
       );
 
-    const result = await ds.query(
+    const result = await firstValueFrom(ds.query(
       buildQuery({ path: 'tag1' }, { path: 'tag2' }, { path: 'tag3' }, { path: 'tag4' }, { path: 'tag5' })
-    );
+    ));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -182,7 +183,7 @@ describe('queries', () => {
   test('throw when no tags matched', async () => {
     backendSrv.fetch.mockReturnValue(createQueryTagsResponse([]));
 
-    await expect(ds.query(buildQuery({ path: 'my.tag' }))).rejects.toThrow("No tags matched the path 'my.tag'");
+    await expect(firstValueFrom(ds.query(buildQuery({ path: 'my.tag' })))).rejects.toThrow("No tags matched the path 'my.tag'");
   });
 
   test('numeric tag history', async () => {
@@ -218,7 +219,7 @@ describe('queries', () => {
         ])
       );
 
-    const result = await ds.query(queryRequest);
+    const result = await firstValueFrom(ds.query(queryRequest));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -276,7 +277,7 @@ describe('queries', () => {
         ])
       );
 
-    const result = await ds.query(queryRequest);
+    const result = await firstValueFrom(ds.query(queryRequest));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -296,7 +297,7 @@ describe('queries', () => {
       ])
     );
 
-    const result = await ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag' }));
+    const result = await firstValueFrom(ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag' })));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -398,7 +399,7 @@ describe('queries', () => {
         ])
       )
 
-    const result = await ds.query(queryRequest);
+    const result = await firstValueFrom(ds.query(queryRequest));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -422,7 +423,7 @@ describe('queries', () => {
       ])
     );
 
-    await ds.query(queryRequest);
+    await firstValueFrom(ds.query(queryRequest));
 
     expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('decimation', 1000);
   });
@@ -434,7 +435,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ url: '/nitag/v2/fetch-tags-with-values', data: { paths: ['my.tag'], workspaces: ["*"] } }))
       .mockReturnValue(createQueryTagsResponse());
 
-    const result = await ds.query(buildQuery({ type: TagQueryType.Current, path: '$my_variable' }));
+    const result = await firstValueFrom(ds.query(buildQuery({ type: TagQueryType.Current, path: '$my_variable' })));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -448,7 +449,7 @@ describe('queries', () => {
     }
     ]));
 
-    await ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag', workspace: '2' }));
+    await firstValueFrom(ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag', workspace: '2' })));
 
     expect(backendSrv.fetch.mock.calls[0][0].data).toHaveProperty('paths', ["my.tag"]);
     expect(backendSrv.fetch.mock.calls[0][0].data).toHaveProperty('take', 100);
@@ -465,7 +466,7 @@ describe('queries', () => {
       values: []
     }]));
 
-    await ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag' }));
+    await firstValueFrom(ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag' })));
 
     expect(backendSrv.fetch).toHaveBeenCalledTimes(3);
   });
@@ -474,7 +475,7 @@ describe('queries', () => {
     backendSrv.fetch.mockReturnValueOnce(createQueryTagsResponse());
     backendSrv.fetch.mockReturnValue(createFetchError(429));
 
-    await expect(ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag' }))).rejects.toThrow(
+    await expect(firstValueFrom(ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag' })))).rejects.toThrow(
       'Request to url "/nitaghistorian/v2/tags/query-decimated-history" failed with status code: 429. Error message: "Error"'
     );
 
@@ -491,20 +492,9 @@ describe('queries', () => {
       }
     }]));
 
-    const result = await ds.query(buildQuery({ path: 'my.tag', properties: true }));
+    const result = await firstValueFrom(ds.query(buildQuery({ path: 'my.tag', properties: true })));
 
     expect(result.data).toMatchSnapshot();
-  });
-
-  test('attempts to replace variables in history query', async () => {
-    const workspaceVariable = '$workspace';
-    backendSrv.fetch.mockReturnValueOnce(createQueryTagsResponse());
-    templateSrv.replace.calledWith(workspaceVariable).mockReturnValue('1');
-
-    await ds.query(buildQuery({ path: 'my.tag', workspace: workspaceVariable }));
-
-    expect(templateSrv.replace).toHaveBeenCalledTimes(1);
-    expect(templateSrv.replace.mock.calls[0][0]).toBe(workspaceVariable);
   });
 
   test('supports legacy tag service property "workspace_id"', async () => {
@@ -516,7 +506,7 @@ describe('queries', () => {
       )
       .mockReturnValueOnce(createTagHistoryResponse([{ path: 'my.tag', type: TagDataType.DOUBLE, values: [] }]));
 
-    await ds.query(buildQuery({ path: 'my.tag', type: TagQueryType.History }));
+    await firstValueFrom(ds.query(buildQuery({ path: 'my.tag', type: TagQueryType.History })));
 
     expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('workspace', '1');
   });
@@ -533,7 +523,7 @@ describe('queries', () => {
       })
     );
 
-    const result = await ds.query(buildQuery({ path: 'my.tag' }));
+    const result = await firstValueFrom(ds.query(buildQuery({ path: 'my.tag' })));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -545,7 +535,7 @@ describe('parseMultiSelectValues', () => {
       .calledWith(requestMatching({ url: '/nitag/v2/fetch-tags-with-values', data: { paths: ['my.tag'], workspaces: ["*"] } }))
       .mockReturnValue(createQueryTagsResponse());
 
-    const result = await ds.query(buildQuery({ path: 'my.tag' }));
+    const result = await firstValueFrom(ds.query(buildQuery({ path: 'my.tag' })));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -553,7 +543,7 @@ describe('parseMultiSelectValues', () => {
   test('handles tag with no current value', async () => {
     backendSrv.fetch.mockReturnValue(createQueryTagsResponse([{ tag: {}, current: null }]));
 
-    const result = await ds.query(buildQuery({ path: 'my.tag' }));
+    const result = await firstValueFrom(ds.query(buildQuery({ path: 'my.tag' })));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -566,7 +556,7 @@ describe('parseMultiSelectValues', () => {
       .calledWith(requestMatching({  data: { paths: ['my.tag2'], workspaces: ["*"] } }))
       .mockReturnValue(createQueryTagsResponse([{ tag: { path: 'my.tag2' }, current: { value: { value: '41.3' } } }]));
 
-    const result = await ds.query(buildQuery({ path: 'my.tag1' }, { path: '' }, { path: 'my.tag2' }));
+    const result = await firstValueFrom(ds.query(buildQuery({ path: 'my.tag1' }, { path: '' }, { path: 'my.tag2' })));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -574,7 +564,7 @@ describe('parseMultiSelectValues', () => {
   test('throw when no tags matched', async () => {
     backendSrv.fetch.mockReturnValue(createQueryTagsResponse([]));
 
-    await expect(ds.query(buildQuery({ path: 'my.tag' }))).rejects.toThrow("No tags matched the path 'my.tag'");
+    await expect(firstValueFrom(ds.query(buildQuery({ path: 'my.tag' })))).rejects.toThrow("No tags matched the path 'my.tag'");
   });
 
   test('numeric tag history', async () => {
@@ -610,7 +600,7 @@ describe('parseMultiSelectValues', () => {
         ])
       );
 
-    const result = await ds.query(queryRequest);
+    const result = await firstValueFrom(ds.query(queryRequest));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -668,7 +658,7 @@ describe('parseMultiSelectValues', () => {
         ])
       );
 
-    const result = await ds.query(queryRequest);
+    const result = await firstValueFrom(ds.query(queryRequest));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -770,7 +760,7 @@ describe('parseMultiSelectValues', () => {
         ])
       )
 
-    const result = await ds.query(queryRequest);
+    const result = await firstValueFrom(ds.query(queryRequest));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -782,7 +772,7 @@ describe('parseMultiSelectValues', () => {
     templateSrv.replace
       .calledWith(
         '$my_variable',
-        undefined,
+        expect.any(Object),
         expect.any(Function)
       )
       .mockReturnValue('my.tag');
@@ -790,7 +780,7 @@ describe('parseMultiSelectValues', () => {
       .calledWith(requestMatching({ url: '/nitag/v2/fetch-tags-with-values', data: { paths: ['my.tag'], workspaces: ["*"] } }))
       .mockReturnValue(createQueryTagsResponse());
 
-    const result = await ds.query(buildQuery({ type: TagQueryType.Current, path: '$my_variable' }));
+    const result = await firstValueFrom(ds.query(buildQuery({ type: TagQueryType.Current, path: '$my_variable' })));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -802,7 +792,7 @@ describe('parseMultiSelectValues', () => {
     templateSrv.replace
       .calledWith(
         'localhost.Health.CPU.$cpu.UsePercentage',
-        undefined,
+        expect.any(Object),
         expect.any(Function)
       )
       .mockReturnValue('localhost.Health.CPU.{1,2}.UsePercentage');
@@ -815,10 +805,10 @@ describe('parseMultiSelectValues', () => {
       }))
       .mockReturnValue(createQueryTagsResponse());
 
-    const result = await ds.query(buildQuery({
+    const result = await firstValueFrom(ds.query(buildQuery({
       type: TagQueryType.Current,
       path: 'localhost.Health.CPU.$cpu.UsePercentage'
-    }));
+    })));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -830,7 +820,7 @@ describe('parseMultiSelectValues', () => {
     templateSrv.replace
       .calledWith(
         'localhost.Health.$var1.$var2',
-        undefined,
+        expect.any(Object),
         expect.any(Function)
       )
       .mockReturnValue('localhost.Health.{Disk,Memory}.{Used,Total}');
@@ -848,10 +838,10 @@ describe('parseMultiSelectValues', () => {
       }))
       .mockReturnValue(createQueryTagsResponse());
 
-    const result = await ds.query(buildQuery({
+    const result = await firstValueFrom(ds.query(buildQuery({
       type: TagQueryType.Current,
       path: 'localhost.Health.$var1.$var2'
-    }));
+    })));
 
     expect(result.data).toMatchSnapshot();
   });
@@ -865,7 +855,7 @@ describe('parseMultiSelectValues', () => {
     }
     ]));
 
-    await ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag', workspace: '2' }));
+    await firstValueFrom(ds.query(buildQuery({ type: TagQueryType.History, path: 'my.tag', workspace: '2' })));
 
     expect(backendSrv.fetch.mock.calls[0][0].data).toHaveProperty('paths', ["my.tag"]);
     expect(backendSrv.fetch.mock.calls[0][0].data).toHaveProperty('take', 100);
@@ -883,20 +873,23 @@ describe('parseMultiSelectValues', () => {
       }
     }]));
 
-    const result = await ds.query(buildQuery({ path: 'my.tag', properties: true }));
+    const result = await firstValueFrom(ds.query(buildQuery({ path: 'my.tag', properties: true })));
 
     expect(result.data).toMatchSnapshot();
   });
 
   test('attempts to replace variables in history query', async () => {
     const workspaceVariable = '$workspace';
+    const selectedWorkspace = '1';
+    const tagPath = 'my.tag';
     backendSrv.fetch.mockReturnValueOnce(createQueryTagsResponse());
-    templateSrv.replace.calledWith(workspaceVariable).mockReturnValue('1');
+    templateSrv.replace.calledWith(workspaceVariable, expect.any(Object)).mockReturnValue(selectedWorkspace);
 
-    await ds.query(buildQuery({ path: 'my.tag', workspace: workspaceVariable }));
+    await firstValueFrom(ds.query(buildQuery({ path: tagPath, workspace: workspaceVariable })));
 
-    expect(templateSrv.replace).toHaveBeenCalledTimes(1);
-    expect(templateSrv.replace.mock.calls[0][0]).toBe(workspaceVariable);
+    expect(templateSrv.replace).toHaveBeenCalledTimes(2);
+    expect(templateSrv.replace.mock.calls[0][0]).toBe(tagPath);
+    expect(templateSrv.replace.mock.calls[1][0]).toBe(workspaceVariable);
   });
 
   test('supports legacy tag service property "datatype"', async () => {
@@ -911,7 +904,7 @@ describe('parseMultiSelectValues', () => {
       })
     );
 
-    const result = await ds.query(buildQuery({ path: 'my.tag' }));
+    const result = await firstValueFrom(ds.query(buildQuery({ path: 'my.tag' })));
 
     expect(result.data).toMatchSnapshot();
   });

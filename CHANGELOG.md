@@ -1,3 +1,159 @@
+## [4.53.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.52.0...v4.53.0) (2025-11-10)
+
+### Features
+
+* **dataframes:** Add columns query builder component ([#497](https://github.com/ni/systemlink-grafana-plugins/issues/497)) ([cbb226f](https://github.com/ni/systemlink-grafana-plugins/commit/cbb226f9c330f44f197d05cce6580a099e4c02d3))
+
+## [4.52.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.51.1...v4.52.0) (2025-11-10)
+
+### Features
+
+* **alarms:** support contains and doesn't contain filter for source in QB ([#500](https://github.com/ni/systemlink-grafana-plugins/issues/500)) ([d4709ca](https://github.com/ni/systemlink-grafana-plugins/commit/d4709ca81588324c7cf1fd45d6a67e91c4ee5f51))
+
+## [4.51.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.51.0...v4.51.1) (2025-11-06)
+
+### Bug Fixes
+
+* support hidden queries consistently ([#456](https://github.com/ni/systemlink-grafana-plugins/issues/456)) ([3efe18b](https://github.com/ni/systemlink-grafana-plugins/commit/3efe18ba573672c56144db52b57b0ddc4edc29da))
+
+## [4.51.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.50.1...v4.51.0) (2025-11-06)
+
+### Features
+
+* **qr-code:** add code owners for qr-code panel plugin ([#501](https://github.com/ni/systemlink-grafana-plugins/issues/501)) ([d2246f7](https://github.com/ni/systemlink-grafana-plugins/commit/d2246f70050038c3e55187333dc4fa3af45e92d4))
+
+## [4.50.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.50.0...v4.50.1) (2025-11-06)
+
+### Bug Fixes
+
+* **ProductsDataSources:** Cancel the current request before progressing refresh ([#430](https://github.com/ni/systemlink-grafana-plugins/issues/430)) ([4ff76a3](https://github.com/ni/systemlink-grafana-plugins/commit/4ff76a3b47859a12e629ec67f2619c4d33a8e1bc))
+
+## [4.50.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.49.0...v4.50.0) (2025-11-06)
+
+### Features
+
+* add QR code panel plugin ([#474](https://github.com/ni/systemlink-grafana-plugins/issues/474)) ([40f352f](https://github.com/ni/systemlink-grafana-plugins/commit/40f352f307e00e7f668923b1ae2e5f7685ead3e7))
+
+## [4.49.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.48.0...v4.49.0) (2025-11-06)
+
+### Features
+
+* **alarms:** Add support for Include transition control ([#493](https://github.com/ni/systemlink-grafana-plugins/issues/493)) ([a342193](https://github.com/ni/systemlink-grafana-plugins/commit/a34219375cf9069964ba981a612324d3023f0813))
+
+## [4.48.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.47.0...v4.48.0) (2025-11-06)
+
+### Features
+
+* **alarms:** Support take and descending in list alarms ([#487](https://github.com/ni/systemlink-grafana-plugins/issues/487)) ([788d1da](https://github.com/ni/systemlink-grafana-plugins/commit/788d1da60bda21354c96082713739758fcc9aa80))
+
+## [4.47.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.46.0...v4.47.0) (2025-11-06)
+
+### Features
+
+* **dataframe:** Pull data for properties query type ([#489](https://github.com/ni/systemlink-grafana-plugins/issues/489)) ([8243823](https://github.com/ni/systemlink-grafana-plugins/commit/824382379a4c3486201a66361b1c419ae2fb5b4f))
+
+## [4.46.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.45.0...v4.46.0) (2025-11-05)
+
+### Features
+
+* **dataframe:** Populate column options from filtered data tables ([#494](https://github.com/ni/systemlink-grafana-plugins/issues/494)) ([6c0db11](https://github.com/ni/systemlink-grafana-plugins/commit/6c0db111073e6077d719bce1169995fda61c1380))
+
+## [4.45.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.44.0...v4.45.0) (2025-11-05)
+
+### Features
+
+* add missing code owners ([#488](https://github.com/ni/systemlink-grafana-plugins/issues/488)) ([e8491d5](https://github.com/ni/systemlink-grafana-plugins/commit/e8491d5b298f5bb2220fbf0ee0de42df6fa6e454))
+
+## [4.44.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.43.0...v4.44.0) (2025-11-05)
+
+### Features
+
+* **alarms:** Implement property mapping ([#477](https://github.com/ni/systemlink-grafana-plugins/issues/477)) ([335ce7a](https://github.com/ni/systemlink-grafana-plugins/commit/335ce7a3515d8ba0488e5f119cad54ee0632992b))
+
+## [4.43.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.42.0...v4.43.0) (2025-11-03)
+
+### Features
+
+* **SlQueryBuilder:** Add disabled functionality and set fields mode to static ([#476](https://github.com/ni/systemlink-grafana-plugins/issues/476)) ([c0b6a36](https://github.com/ni/systemlink-grafana-plugins/commit/c0b6a366dd9656c99c8eb7c988f47460bf70541b))
+
+## [4.42.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.41.0...v4.42.0) (2025-11-03)
+
+### Features
+
+* **system:** add scan code field to System datasource properties ([#482](https://github.com/ni/systemlink-grafana-plugins/issues/482)) ([a340c64](https://github.com/ni/systemlink-grafana-plugins/commit/a340c64c0e634c44d38d92372ee335d5d1823340))
+
+## [4.41.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.40.0...v4.41.0) (2025-11-03)
+
+### Features
+
+* **asset:** contains filter to properties ([#483](https://github.com/ni/systemlink-grafana-plugins/issues/483)) ([06f9e67](https://github.com/ni/systemlink-grafana-plugins/commit/06f9e6756c576d12b3ee8d398f1f56bce2755cd0))
+
+## [4.40.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.39.1...v4.40.0) (2025-11-03)
+
+### Features
+
+* **dataframe:** Add default values and change handler to the fields ([#478](https://github.com/ni/systemlink-grafana-plugins/issues/478)) ([e777ad2](https://github.com/ni/systemlink-grafana-plugins/commit/e777ad28375a9e0bd6e39ed28618d92352924131))
+
+## [4.39.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.39.0...v4.39.1) (2025-10-31)
+
+### Bug Fixes
+
+* **alarms:** prepareVariableQuery for Alarms Variable Query Editor ([#486](https://github.com/ni/systemlink-grafana-plugins/issues/486)) ([abb666b](https://github.com/ni/systemlink-grafana-plugins/commit/abb666b52c3b794778aeeb526e9e9d6a29855145))
+
+## [4.39.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.38.1...v4.39.0) (2025-10-31)
+
+### Features
+
+* **alarms:** Add UI support for properties ([#468](https://github.com/ni/systemlink-grafana-plugins/issues/468)) ([58da9a3](https://github.com/ni/systemlink-grafana-plugins/commit/58da9a354728c759666c32bf6da2ce469245878a))
+
+## [4.38.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.38.0...v4.38.1) (2025-10-31)
+
+### Bug Fixes
+
+* **tags:** fix repeat values for tags datasource ([#484](https://github.com/ni/systemlink-grafana-plugins/issues/484)) ([118bc8f](https://github.com/ni/systemlink-grafana-plugins/commit/118bc8f24a8d005d96d93acf8d1cef2745faffce))
+
+## [4.38.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.37.0...v4.38.0) (2025-10-30)
+
+### Features
+
+* **alarms:** Introduce list alarms editor and integrate query builder ([#457](https://github.com/ni/systemlink-grafana-plugins/issues/457)) ([5ff4878](https://github.com/ni/systemlink-grafana-plugins/commit/5ff48785521ef37918fa8a3b13c43766a3a1ac88))
+
+## [4.37.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.36.0...v4.37.0) (2025-10-30)
+
+### Features
+
+* **alarms:** Add query type control and its functionality ([#446](https://github.com/ni/systemlink-grafana-plugins/issues/446)) ([35d9e48](https://github.com/ni/systemlink-grafana-plugins/commit/35d9e48127e360ec4c99d489325d26d19be8ccc1))
+
+## [4.36.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.35.0...v4.36.0) (2025-10-30)
+
+### Features
+
+* **alarms:** Introduce `take` and `descending` in the alarms variable query editor ([#471](https://github.com/ni/systemlink-grafana-plugins/issues/471)) ([a99d294](https://github.com/ni/systemlink-grafana-plugins/commit/a99d294320929f8c7bd8ef11018ead500589aef4))
+
+## [4.35.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.34.0...v4.35.0) (2025-10-30)
+
+### Features
+
+* **dataframe:** populate data table name options in query builder ([#469](https://github.com/ni/systemlink-grafana-plugins/issues/469)) ([94a3d86](https://github.com/ni/systemlink-grafana-plugins/commit/94a3d86b7a2f434f847ed14e5418db10696b9f6a))
+
+## [4.34.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.33.0...v4.34.0) (2025-10-30)
+
+### Features
+
+* **core:** Add support for horizontal scrollbar in query-builder ([#455](https://github.com/ni/systemlink-grafana-plugins/issues/455)) ([1c32cdb](https://github.com/ni/systemlink-grafana-plugins/commit/1c32cdbec798e502441f7579b3219f5912ad5905))
+
+## [4.33.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.32.0...v4.33.0) (2025-10-29)
+
+### Features
+
+* **alarms:** Add batching for query alarms API ([#466](https://github.com/ni/systemlink-grafana-plugins/issues/466)) ([2a90f21](https://github.com/ni/systemlink-grafana-plugins/commit/2a90f21f0dad1eec305a74fc3851eac32f8061ea))
+
+## [4.32.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.31.0...v4.32.0) (2025-10-29)
+
+### Features
+
+* **assets:** added scanCode return type ([#467](https://github.com/ni/systemlink-grafana-plugins/issues/467)) ([a5f619d](https://github.com/ni/systemlink-grafana-plugins/commit/a5f619d5ca771bf65002c14e8fc7f70e587a0f1f))
+
 ## [4.31.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.30.0...v4.31.0) (2025-10-28)
 
 ### Features

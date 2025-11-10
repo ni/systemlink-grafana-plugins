@@ -6,10 +6,11 @@ import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { QUERY_ALARMS_RELATIVE_PATH } from '../constants/QueryAlarms.constants';
 import { Workspace } from 'core/types';
-import { getVariableOptions } from 'core/utils';
+import { queryInBatches } from 'core/utils';
 
 jest.mock('core/utils', () => ({
   getVariableOptions: jest.fn(),
+  queryInBatches: jest.fn(),
 }));
 
 jest.mock('shared/workspace.utils', () => {
@@ -42,6 +43,10 @@ class TestAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     return this.transformAlarmsQuery(scopedVars, query);
   }
 
+  async queryAlarmsInBatchesWrapper(alarmsRequest: QueryAlarmsRequest){
+    return this.queryAlarmsInBatches(alarmsRequest);
+  }
+
   readonly defaultQuery = {
     queryType: QueryType.AlarmsCount,
   };
@@ -56,16 +61,9 @@ describe('AlarmsQueryHandlerCore', () => {
 
   describe('globalVariableOptions', () => {
     it('should get variable options', () => {
-      const mockOptions = [
-        { label: 'Variable 1', value: '$var1' },
-        { label: 'Variable 2', value: '$var2' },
-      ];
-      (getVariableOptions as jest.Mock).mockReturnValue(mockOptions);
-
-      const result = datastore.globalVariableOptions();
-
-      expect(getVariableOptions).toHaveBeenCalledWith(datastore);
-      expect(result).toEqual(mockOptions);
+      expect(datastore.globalVariableOptions()).toEqual([
+        { label: '$test_var', value: '$test_var' },
+      ]);
     });
   });
 
@@ -240,6 +238,16 @@ describe('AlarmsQueryHandlerCore', () => {
             input: '!string.IsNullOrEmpty(source)',
             expected: '(!string.IsNullOrEmpty(properties.system) || !string.IsNullOrEmpty(properties.minionId))',
           },
+          {
+            name: 'source contains',
+            input: 'source.Contains("test-source")',
+            expected: '(properties.system.Contains("test-source") || properties.minionId.Contains("test-source"))',
+          },
+          {
+            name: 'source does not contain',
+            input: '!(source.Contains("test-source"))',
+            expected: '(!(properties.system.Contains("test-source")) && !(properties.minionId.Contains("test-source")))',
+          },
         ].forEach(({ name, input, expected }) => {
           it(`should transform ${name} filter`, () => {
             const result = datastore.transformAlarmsQueryWrapper({}, input);
@@ -294,6 +302,50 @@ describe('AlarmsQueryHandlerCore', () => {
           );
         });
       });
+    });
+  });
+
+  describe('queryAlarmsInBatches', () => {
+    it('queryRecord callback should call queryAlarms with correct parameters', async () => {
+      const requestBody = { filter: 'active = "true"', take: 100 };
+      const mockAlarmsResponse = {
+        alarms: [{ id: '1' }, { id: '2' }],
+        continuationToken: null,
+        totalCount: null,
+      };
+      jest.spyOn(datastore as any, 'queryAlarms').mockResolvedValue(mockAlarmsResponse);
+      (queryInBatches as jest.Mock).mockImplementation(async (queryRecord, _config, _take) => {
+        const result = await queryRecord(requestBody.take, undefined);
+        
+        return { 
+          data: result.data,
+          totalCount: result.totalCount
+        };
+      });
+
+      const result = await datastore.queryAlarmsInBatchesWrapper(requestBody);
+
+      expect((datastore as any).queryAlarms).toHaveBeenCalledWith({
+        filter: 'active = "true"',
+        take: 100,
+        continuationToken: undefined,
+      });
+      expect(result).toEqual(mockAlarmsResponse.alarms);
+    });
+
+    it('should pass correct batch configuration and take to queryInBatches', async () => {
+      (queryInBatches as jest.Mock).mockResolvedValueOnce([]);
+
+      await datastore.queryAlarmsInBatchesWrapper({ take: 500 });
+
+      expect(queryInBatches).toHaveBeenCalledWith(
+        expect.any(Function),
+        {
+          maxTakePerRequest: 1000,
+          requestsPerSecond: 5,
+        },
+        500
+      );
     });
   });
 

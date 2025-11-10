@@ -2,7 +2,7 @@ import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, 
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { Asset, OrderByOptions, OutputType, Projections, Properties, PropertiesProjectionMap, QueryTemplatesResponse, QueryTestPlansResponse, TemplateResponseProperties, TestPlanResponseProperties, TestPlansQuery, TestPlansVariableQuery } from './types';
-import { getWorkspaceName, getVariableOptions, queryInBatches } from 'core/utils';
+import { getWorkspaceName, queryInBatches } from 'core/utils';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { isTimeField, transformDuration } from './utils';
 import { QUERY_TEMPLATES_BATCH_SIZE, QUERY_TEMPLATES_REQUEST_PER_SECOND, QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
@@ -60,7 +60,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     recordCount: 1000
   };
 
-  readonly globalVariableOptions = (): QueryBuilderOption[] => getVariableOptions(this);
+  readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   async runQuery(query: TestPlansQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     const workspaces = await this.loadWorkspaces();
@@ -226,7 +226,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   shouldRunQuery(query: TestPlansQuery): boolean {
-    return true;
+    return !query.hide;
   }
 
   private transformDurationFilters(query: string): string {

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { useTheme2 } from '@grafana/ui';
 import QueryBuilder, { QueryBuilderField, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
-import './SlQueryBuilder.css';
+import './SlQueryBuilder.scss';
 import { filterXSSLINQExpression } from 'core/utils';
 
 type SlQueryBuilderProps = QueryBuilderProps &
@@ -30,6 +30,7 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
   onChange,
   value,
   showIcons,
+  disabled = false,
   validateOnInput = false,
 }) => {
   const theme = useTheme2();
@@ -70,6 +71,8 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
       value={sanitizedFilter}
       validateOnInput={validateOnInput}
       showIcons={showIcons}
+      disabled={disabled}
+      fieldsMode='static'
       theme='ni-grafana'
     />
   );

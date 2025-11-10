@@ -35,7 +35,12 @@ describe('DataFrameDataSourceBase', () => {
         backendSrv = {
             fetch: jest.fn(),
         } as any;
-        templateSrv = {} as any;
+        templateSrv = {
+            getVariables: jest.fn(() => [
+                { name: 'Var1' },
+                { name: 'Var2' },
+            ]),
+        } as any;
     });
 
     class TestDataFrameDataSource extends DataFrameDataSourceBase {
@@ -85,7 +90,7 @@ describe('DataFrameDataSourceBase', () => {
 
         const result = await ds.testDatasource();
 
-        expect(ds.get).toHaveBeenCalledWith('http://localhost/nidataframe/v1/tables', { take: 1 });
+        expect(ds.get).toHaveBeenCalledWith('http://localhost/nidataframe/v1/tables', { params: { take: 1 } });
         expect(result).toEqual({
             status: 'success',
             message: 'Data source connected and authentication successful!',
@@ -114,8 +119,8 @@ describe('DataFrameDataSourceBase', () => {
         const options = await ds.globalVariableOptions();
 
         expect(options).toEqual([
-            { label: 'Var1', value: 'Value1' },
-            { label: 'Var2', value: 'Value2' },
+            { label: '$Var1', value: '$Var1' },
+            { label: '$Var2', value: '$Var2' },
         ]);
     });
 

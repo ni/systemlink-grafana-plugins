@@ -13,6 +13,7 @@ import { BackendSrv } from "@grafana/runtime";
 import { Field } from "@grafana/data";
 import { AssetsResponse } from "datasources/asset-common/types";
 import { QUERY_LIMIT } from "datasources/asset/constants/constants";
+import { firstValueFrom } from "rxjs";
 
 let datastore: ListAssetsDataSource, backendServer: MockProxy<BackendSrv>;
 const mockListAssets = {
@@ -55,6 +56,7 @@ const mockListAssets = {
             properties: {},
             keywords: ['keyword'],
             lastUpdatedTimestamp: '2023-08-31T17:32:15.201Z',
+            scanCode: 'c44750b7-1f22-4fec-b475-73b10e966217',
         }
     ],
     totalCount: 4,
@@ -88,7 +90,7 @@ describe('List assets location queries', () => {
             outputType: OutputType.Properties,
         });
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));;
 
         expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -105,11 +107,11 @@ describe('List assets location queries', () => {
             outputType: OutputType.Properties,
         });
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));;
 
         expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
             expect.objectContaining({
-                filter: "string.IsNullOrEmpty(Location.MinionId) && string.IsNullOrEmpty(Location.PhysicalLocation)"
+                filter: "(string.IsNullOrEmpty(Location.MinionId) && string.IsNullOrEmpty(Location.PhysicalLocation))"
             })
         );
     });
@@ -122,11 +124,11 @@ describe('List assets location queries', () => {
             outputType: OutputType.Properties,
         });
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));;
 
         expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
             expect.objectContaining({
-                filter: "!string.IsNullOrEmpty(Location.MinionId) || !string.IsNullOrEmpty(Location.PhysicalLocation)"
+                filter: "(!string.IsNullOrEmpty(Location.MinionId) || !string.IsNullOrEmpty(Location.PhysicalLocation))"
             })
         );
     });
@@ -141,7 +143,7 @@ describe('List assets location queries', () => {
             outputType: OutputType.Properties,
         });
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));;
 
         expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -161,7 +163,7 @@ describe('List assets location queries', () => {
             outputType: OutputType.Properties,
         });
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));;
 
         expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -180,7 +182,7 @@ describe('List assets location queries', () => {
             outputType: OutputType.Properties,
         });
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));;
 
         expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -189,6 +191,154 @@ describe('List assets location queries', () => {
         );
     });
 });
+
+describe('List assets "contains" queries', () => {
+    let processlistAssetsQuerySpy: jest.SpyInstance;
+
+    beforeEach(() => {
+        processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery').mockImplementation();
+    });
+
+    describe('should transform single values for', () => {
+        test('ModelName, Name, VendorName field with single value', async () => {
+            const query = buildListAssetsQuery({
+                refId: '',
+                type: AssetQueryType.ListAssets,
+                outputType: OutputType.Properties,
+                filter: `${ListAssetsFieldNames.MODEL_NAME}.Contains("ModelName1") && ${ListAssetsFieldNames.ASSET_NAME}.Contains("AssetName1") && ${ListAssetsFieldNames.VENDOR_NAME}.Contains("VendorName1")`,
+            });
+
+            await firstValueFrom(datastore.query(query));
+
+            expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: "ModelName.Contains(\"ModelName1\") && AssetName.Contains(\"AssetName1\") && VendorName.Contains(\"VendorName1\")"
+                }),
+            );
+        });
+
+        test('ModelName, Name, VendorName field with single value negated', async () => {
+            const query = buildListAssetsQuery({
+                refId: '',
+                type: AssetQueryType.ListAssets,
+                outputType: OutputType.Properties,
+                filter: `!(${ListAssetsFieldNames.MODEL_NAME}.Contains("ModelName1")) && !(${ListAssetsFieldNames.ASSET_NAME}.Contains("AssetName1")) && !(${ListAssetsFieldNames.VENDOR_NAME}.Contains("VendorName1"))`,
+            });
+
+            await firstValueFrom(datastore.query(query));
+
+            expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: "!(ModelName.Contains(\"ModelName1\")) && !(AssetName.Contains(\"AssetName1\")) && !(VendorName.Contains(\"VendorName1\"))"
+                }),
+            );
+        });
+    });
+    
+    describe('should transform multiple values for', () => {
+        test('VendorName field', async () => {
+            const query = buildListAssetsQuery({
+                refId: '',
+                type: AssetQueryType.ListAssets,
+                outputType: OutputType.Properties,
+                filter: `${ListAssetsFieldNames.VENDOR_NAME}.Contains("{VendorName1,VendorName2}")`,
+            });
+
+            await firstValueFrom(datastore.query(query));
+
+            expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: "(VendorName.Contains(\"VendorName1\") || VendorName.Contains(\"VendorName2\"))"
+                }),
+            );
+        });
+
+        test('VendorName field negated', async () => {
+            const query = buildListAssetsQuery({
+                refId: '',
+                type: AssetQueryType.ListAssets,
+                outputType: OutputType.Properties,
+                filter: `!(${ListAssetsFieldNames.VENDOR_NAME}.Contains("{VendorName1,VendorName2}"))`,
+            });
+
+            await firstValueFrom(datastore.query(query));
+
+            expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: "(!(VendorName.Contains(\"VendorName1\")) && !(VendorName.Contains(\"VendorName2\")))"
+                }),
+            );
+        });
+
+        test('ModelName field', async () => {
+            const query = buildListAssetsQuery({
+                refId: '',
+                type: AssetQueryType.ListAssets,
+                outputType: OutputType.Properties,
+                filter: `${ListAssetsFieldNames.MODEL_NAME}.Contains("{ModelName1,ModelName2}")`,
+            });
+
+            await firstValueFrom(datastore.query(query));
+
+            expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: "(ModelName.Contains(\"ModelName1\") || ModelName.Contains(\"ModelName2\"))"
+                }),
+            );
+        });
+
+        test('ModelName field negated', async () => {
+            const query = buildListAssetsQuery({
+                refId: '',
+                type: AssetQueryType.ListAssets,
+                outputType: OutputType.Properties,
+                filter: `!(${ListAssetsFieldNames.MODEL_NAME}.Contains("{ModelName1,ModelName2}"))`,
+            });
+
+            await firstValueFrom(datastore.query(query));
+
+            expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: "(!(ModelName.Contains(\"ModelName1\")) && !(ModelName.Contains(\"ModelName2\")))"
+                }),
+            );
+        });
+
+        test('AssetName field', async () => {
+            const query = buildListAssetsQuery({
+                refId: '',
+                type: AssetQueryType.ListAssets,
+                outputType: OutputType.Properties,
+                filter: `${ListAssetsFieldNames.ASSET_NAME}.Contains("{AssetName1,AssetName2}")`,
+            });
+
+            await firstValueFrom(datastore.query(query));
+
+            expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: "(AssetName.Contains(\"AssetName1\") || AssetName.Contains(\"AssetName2\"))"
+                }),
+            );
+        });
+
+        test('AssetName negated', async () => {
+            const query = buildListAssetsQuery({
+                refId: '',
+                type: AssetQueryType.ListAssets,
+                outputType: OutputType.Properties,
+                filter: `!(${ListAssetsFieldNames.ASSET_NAME}.Contains("{AssetName1,AssetName2}"))`,
+            });
+
+            await firstValueFrom(datastore.query(query));
+
+            expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: "(!(AssetName.Contains(\"AssetName1\")) && !(AssetName.Contains(\"AssetName2\")))"
+                }),
+            );
+        });
+    });
+})
 
 describe('shouldRunQuery', () => {
     test('should not process query for hidden queries', async () => {
@@ -200,7 +350,7 @@ describe('shouldRunQuery', () => {
             hide: true
         });
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));
 
         expect(processlistAssetsQuerySpy).not.toHaveBeenCalled();
     });
@@ -215,7 +365,7 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.Properties,
         });
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));;
 
         expect(processlistAssetsQuerySpy).toHaveBeenCalled();
     });
@@ -230,7 +380,7 @@ describe('shouldRunQuery', () => {
         });
         const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));;
 
         expect(queryAssetSpy).toHaveBeenCalledWith('', 1, true, [AssetFilterPropertiesOption.AssetIdentifier]);
     })
@@ -245,7 +395,7 @@ describe('shouldRunQuery', () => {
         });
         const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));;
 
         expect(queryAssetSpy).toHaveBeenCalledWith('', QUERY_LIMIT, false, ["AssetIdentifier"]);
     })
@@ -259,7 +409,7 @@ describe('shouldRunQuery', () => {
             filter: ``,
             outputType: OutputType.TotalCount,
         });
-        const result = await datastore.query(query);
+        const result = await firstValueFrom(datastore.query(query));;
         const data = result.data[0];
 
         expect(data.fields[0].values[0]).toBe(4);
@@ -275,7 +425,7 @@ describe('shouldRunQuery', () => {
             filter: ``,
             outputType: OutputType.Properties,
         });
-        const result = await datastore.query(query);
+        const result = await firstValueFrom(datastore.query(query));;
         const data = result.data[0];
 
         expect(data.fields.length).toBeGreaterThan(0);
@@ -292,7 +442,7 @@ describe('shouldRunQuery', () => {
         });
         const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));;
 
         expect(queryAssetSpy).toHaveBeenCalledWith('', 1000, false, ["AssetIdentifier"]);
     })
@@ -306,7 +456,7 @@ describe('shouldRunQuery', () => {
             take: undefined,
         });
         const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
-        const result = await datastore.query(query);
+        const result = await firstValueFrom(datastore.query(query));;
         const data = result.data[0];
 
         expect(data.fields.length).toBe(0);
@@ -322,7 +472,7 @@ describe('shouldRunQuery', () => {
             take: -1,
         });
         const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
-        const result = await datastore.query(query);
+        const result = await firstValueFrom(datastore.query(query));;
         const data = result.data[0];
 
         expect(data.fields.length).toBe(0);
@@ -338,7 +488,7 @@ describe('shouldRunQuery', () => {
             take: 10001,
         });
         const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
-        const result = await datastore.query(query);
+        const result = await firstValueFrom(datastore.query(query));;
         const data = result.data[0];
 
         expect(data.fields.length).toBe(0);
@@ -355,7 +505,7 @@ describe('shouldRunQuery', () => {
         });
         jest.spyOn(datastore, 'queryAssets');
 
-        const result = await datastore.query(query);
+        const result = await firstValueFrom(datastore.query(query));;
         const data = result.data[0];
 
         expect(data).toMatchSnapshot();
@@ -371,7 +521,7 @@ describe('shouldRunQuery', () => {
         });
         jest.spyOn(datastore, 'queryAssets');
 
-        const result = await datastore.query(query);
+        const result = await firstValueFrom(datastore.query(query));
         const data = result.data[0];
 
         expect(data).toMatchSnapshot();
@@ -387,7 +537,7 @@ describe('shouldRunQuery', () => {
         });
         jest.spyOn(datastore, 'queryAssets');
 
-        const result = await datastore.query(query);
+        const result = await firstValueFrom(datastore.query(query));;
         const data = result.data[0];
 
         expect(data).toMatchSnapshot();
@@ -403,7 +553,7 @@ describe('shouldRunQuery', () => {
         });
         jest.spyOn(datastore, 'queryAssets');
 
-        const result = await datastore.query(query);
+        const result = await firstValueFrom(datastore.query(query));;
         const data = result.data[0];
 
         expect(data).toMatchSnapshot();
@@ -418,7 +568,7 @@ describe('shouldRunQuery', () => {
         });
         const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));;
 
         expect(queryAssetSpy).toHaveBeenCalledWith('', QUERY_LIMIT, false, Object.values(AssetFilterPropertiesOption));
     })
@@ -431,7 +581,7 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.Properties,
             properties: [AssetFilterPropertiesOption.AssetIdentifier, AssetFilterPropertiesOption.AssetName],
         });
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));;
         const fields = response.data[0].fields as Field[];
 
         expect(fields).toMatchSnapshot();
@@ -453,7 +603,7 @@ describe('shouldRunQuery', () => {
         }
         jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
 
         expect(data.fields).toHaveLength(1);
@@ -479,7 +629,7 @@ describe('shouldRunQuery', () => {
         }
         jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
 
         expect(data.fields).toHaveLength(1);
@@ -515,7 +665,7 @@ describe('shouldRunQuery', () => {
         }
         jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
 
         expect(data.fields).toHaveLength(1);
@@ -549,7 +699,7 @@ describe('shouldRunQuery', () => {
         }
         jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
 
         expect(data.fields).toHaveLength(1);
@@ -584,7 +734,7 @@ describe('shouldRunQuery', () => {
         }
         jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
 
         expect(data.fields).toHaveLength(1);
@@ -613,7 +763,7 @@ describe('shouldRunQuery', () => {
         }
         jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
 
         expect(data.fields).toHaveLength(1);
@@ -652,7 +802,7 @@ describe('shouldRunQuery', () => {
         }
         jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
 
         expect(data.fields).toHaveLength(1);
@@ -682,7 +832,7 @@ describe('shouldRunQuery', () => {
         }
         jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
 
         expect(data.fields).toHaveLength(1);
@@ -698,7 +848,7 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.Properties,
             properties: [AssetFilterPropertiesOption.Workspace],
         });
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
 
         expect(data.fields).toHaveLength(1);
@@ -746,7 +896,7 @@ describe('shouldRunQuery', () => {
         });
         jest.spyOn(datastore, 'queryAssets');
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
 
         expect(data.fields[0].name).toEqual('id');

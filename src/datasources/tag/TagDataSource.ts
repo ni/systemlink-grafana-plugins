@@ -37,7 +37,7 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
 
   async runQuery(query: TagQuery, { range, maxDataPoints, scopedVars }: DataQueryRequest): Promise<DataFrameDTO> {
     const tagsWithValues = await this.getMostRecentTagsByMultiplePaths(
-      this.generatePathsFromTemplate(query),
+      this.generatePathsFromTemplate(query, scopedVars),
       this.templateSrv.replace(query.workspace, scopedVars)
     );
 
@@ -52,16 +52,17 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
    * @param query - The query object containing the path to be expanded, multiple values are separated by commas. (ex: 0,1,2)
    * @returns An array of paths generated from the template string.
    **/
-  private generatePathsFromTemplate(query: TagQuery) {
+  private generatePathsFromTemplate(query: TagQuery, scopedVars: Record<string, any>): string[] {
     let paths: string[] = [query.path];
-    if (this.templateSrv.containsTemplate(query.path)) {
-      const replacedPath = this.templateSrv.replace(
-        query.path,
-        undefined,
-        (v: string | string[]): string => `{${v}}`
-      );
-      paths = expandMultipleValueVariable(replacedPath);
-    }
+    
+    const replacedPath = this.templateSrv.replace(
+      query.path,
+      scopedVars,
+      (v: string | string[]): string => `{${v}}`
+    );
+    
+    paths = expandMultipleValueVariable(replacedPath);
+    
     return paths;
   }
 
@@ -77,7 +78,7 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
   }
 
   shouldRunQuery(query: TagQuery): boolean {
-    return Boolean(query.path) && !query.hide;
+    return !query.hide && Boolean(query.path);
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

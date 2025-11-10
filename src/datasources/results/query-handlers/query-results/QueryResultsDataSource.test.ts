@@ -9,6 +9,7 @@ import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/Res
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { Workspace } from 'core/types';
 import { DataSourceBase } from 'core/DataSourceBase';
+import { firstValueFrom } from 'rxjs';
 
 const mockQueryResultsResponse: QueryResultsResponse = {
   results: [
@@ -133,7 +134,7 @@ describe('QueryResultsDataSource', () => {
         outputType: OutputType.Data,
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       expect(response.data).toHaveLength(1);
       expect(response.data).toMatchSnapshot();
@@ -146,7 +147,7 @@ describe('QueryResultsDataSource', () => {
         properties: []
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       expect(response.data).toMatchSnapshot();
     });
@@ -157,7 +158,7 @@ describe('QueryResultsDataSource', () => {
         outputType: OutputType.Data
       });
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledTimes(1);
       expect(backendServer.fetch).toHaveBeenCalledWith(
@@ -177,7 +178,7 @@ describe('QueryResultsDataSource', () => {
         useTimeRange: true,
       });
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledTimes(1);
       expect(backendServer.fetch).toHaveBeenCalledWith(
@@ -208,7 +209,7 @@ describe('QueryResultsDataSource', () => {
         properties: [ResultsProperties.properties, ResultsProperties.statusTypeSummary]
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       expect(response.data[0].fields).toEqual([
         { name: 'Properties', values: [''], type: 'string' },
@@ -235,7 +236,7 @@ describe('QueryResultsDataSource', () => {
         properties: [ResultsProperties.properties, ResultsProperties.statusTypeSummary]
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       expect(response.data[0].fields).toEqual([
         { name: 'Properties', values: ['{"key1":"value1","key2":"value2"}'], type: 'string' },
@@ -263,7 +264,7 @@ describe('QueryResultsDataSource', () => {
         properties: [ResultsProperties.keywords, ResultsProperties.fileIds, ResultsProperties.dataTableIds]
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       expect(response.data[0].fields).toEqual([
         { name: 'Keywords', values: [''], type: 'string' },
@@ -292,7 +293,7 @@ describe('QueryResultsDataSource', () => {
         properties: [ResultsProperties.keywords, ResultsProperties.fileIds, ResultsProperties.dataTableIds]
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       expect(response.data[0].fields).toEqual([
         { name: 'Keywords', values: ['keyword1,keyword2'], type: 'string' },
@@ -307,7 +308,7 @@ describe('QueryResultsDataSource', () => {
         outputType: OutputType.TotalCount
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       expect(response.data).toHaveLength(1);
       expect(response.data).toMatchSnapshot();
@@ -326,7 +327,7 @@ describe('QueryResultsDataSource', () => {
         outputType: OutputType.TotalCount
       });
 
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       expect(response.data[0].fields).toEqual([{ name: 'A', values: [0] }]);
       expect(response.data[0].refId).toBe('A');
@@ -352,7 +353,7 @@ describe('QueryResultsDataSource', () => {
           properties: [ResultsProperties.id]
         },
       );
-      const response = await datastore.query(query);
+      const response = await firstValueFrom(datastore.query(query));
 
       expect(response.data).toMatchSnapshot();
     });
@@ -369,7 +370,7 @@ describe('QueryResultsDataSource', () => {
           },
         );
 
-        await expect(datastore.query(query))
+        await expect(firstValueFrom(datastore.query(query)))
         .rejects
         .toThrow('The query failed due to the following error: (status 400) \"Error\"');
     });
@@ -382,7 +383,7 @@ describe('QueryResultsDataSource', () => {
           },
         );
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));
 
         const fields = response.data[0].fields as Field[];
         expect(fields).toMatchSnapshot();
@@ -404,7 +405,7 @@ describe('QueryResultsDataSource', () => {
             },
           );
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));
 
         const fields = response.data[0].fields as Field[];
         expect(fields).toMatchSnapshot();
@@ -426,7 +427,7 @@ describe('QueryResultsDataSource', () => {
             },
           );
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));
 
         const fields = response.data[0].fields as Field[];
         expect(fields).toMatchSnapshot();
@@ -500,7 +501,7 @@ describe('QueryResultsDataSource', () => {
           },
         );
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(templateSrv.replace).toHaveBeenCalledWith(filter, expect.anything());
       expect(backendServer.fetch).toHaveBeenCalledWith(
@@ -532,11 +533,29 @@ describe('QueryResultsDataSource', () => {
           },
         );
 
-        const response = await datastore.query(query);
+        const response = await firstValueFrom(datastore.query(query));
         const fields = response.data[0].fields as Field[];
         expect(fields).toEqual([
           { name: 'Properties', values: [""], type: 'string' },
         ]);
+    });
+
+    test('should run query if NOT hidden', () => {
+      const query: QueryResults = {
+          hide: false,
+          refId: '',
+          outputType: OutputType.Data
+      };
+      expect(datastore.shouldRunQuery(query)).toBe(true);
+    });
+
+    test('should not run query if hidden', () => {
+      const query: QueryResults = {
+          hide: true,
+          refId: '',
+          outputType: OutputType.Data
+      };
+      expect(datastore.shouldRunQuery(query)).toBe(false);
     });
 
     describe('Dependencies', () => {
@@ -560,7 +579,7 @@ describe('QueryResultsDataSource', () => {
       backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-result-values', method: 'POST' }))
       .mockReturnValue(createFetchResponse(mockQueryResultsValuesResponse));
-      const promise = datastore.getPartNumbers();
+      const promise = await datastore.getPartNumbers();
       expect(promise).not.toBeNull();
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({ url: '/nitestmonitor/v2/query-result-values' })
@@ -667,7 +686,7 @@ describe('QueryResultsDataSource', () => {
           },
         );
   
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));
   
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -690,7 +709,7 @@ describe('QueryResultsDataSource', () => {
           },
         );
   
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));
   
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -715,7 +734,7 @@ describe('QueryResultsDataSource', () => {
           },
         );
       
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));
       
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -737,7 +756,7 @@ describe('QueryResultsDataSource', () => {
           },
         );
       
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));
       
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -755,7 +774,7 @@ describe('QueryResultsDataSource', () => {
           queryBy: 'string.IsNullOrEmpty(ProgramName)',
         });
         
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));
         
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -773,7 +792,7 @@ describe('QueryResultsDataSource', () => {
           queryBy: '!string.IsNullOrEmpty(ProgramName)',
         });
         
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));
         
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -791,7 +810,7 @@ describe('QueryResultsDataSource', () => {
           queryBy: 'ProgramName = "test"',
         });
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));
 
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -809,7 +828,7 @@ describe('QueryResultsDataSource', () => {
           queryBy: 'ProgramName != "test"',
         });
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));
 
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -837,7 +856,7 @@ describe('QueryResultsDataSource', () => {
         });
         const expectedFilter = `${queryBy} && ${replacedFilter}`;
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));
       
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -858,7 +877,7 @@ describe('QueryResultsDataSource', () => {
         });
         const expectedFilter = `${queryBy}`;
 
-        await datastore.query(query);
+        await firstValueFrom(datastore.query(query));
       
         expect(backendServer.fetch).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -880,7 +899,7 @@ describe('QueryResultsDataSource', () => {
         useTimeRange: true,
       });
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
