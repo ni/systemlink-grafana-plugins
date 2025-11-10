@@ -74,8 +74,8 @@ export const placeholders = {
  */
 export const errorMessages = {
     take: {
-        greaterOrEqualToZero: 'Enter a take value of 0 or higher.',
-        lessOrEqualToTakeLimit: `Enter a take value no greater than ${TAKE_LIMIT}.`
+        greaterOrEqualToZero: 'The take value must be greater than or equal to 0.',
+        lessOrEqualToTakeLimit: `The take value must be less than or equal to ${TAKE_LIMIT}.`
     },
     columnLimitExceeded: `The tables query returned too many columns. Only the first ${TAKE_LIMIT} columns are shown in the selection list.`,
 };
