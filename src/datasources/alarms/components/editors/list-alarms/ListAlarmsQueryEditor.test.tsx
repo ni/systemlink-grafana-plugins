@@ -270,7 +270,7 @@ describe('ListAlarmsQueryEditor', () => {
       }
     });
 
-    it('should display transition max take error message when take value is above 500 with transition inclusion set to All', async () => {
+    it('should display appropriate error message when take exceeds the limit for transition inclusion All', async () => {
       await renderElement({ refId: 'A', transitionInclusionOption: TransitionInclusionOption.All });
 
       const takeInput = screen.getByRole('spinbutton');
@@ -281,7 +281,7 @@ describe('ListAlarmsQueryEditor', () => {
       expect(screen.getByText(takeErrorMessages.transitionAllMaxErrorMsg)).toBeInTheDocument();
     });
 
-    it('should display no error message when take value is less than or equal to 500 with transition inclusion set to All', async () => {
+    it('should display no error message when take is valid for transition inclusion All', async () => {
       await renderElement({ refId: 'A', transitionInclusionOption: TransitionInclusionOption.All });
 
       const takeInput = screen.getByRole('spinbutton');
