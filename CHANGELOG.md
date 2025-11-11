@@ -1,3 +1,27 @@
+## [4.53.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.52.0...v4.53.0) (2025-11-10)
+
+### Features
+
+* **dataframes:** Add columns query builder component ([#497](https://github.com/ni/systemlink-grafana-plugins/issues/497)) ([cbb226f](https://github.com/ni/systemlink-grafana-plugins/commit/cbb226f9c330f44f197d05cce6580a099e4c02d3))
+
+## [4.52.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.51.1...v4.52.0) (2025-11-10)
+
+### Features
+
+* **alarms:** support contains and doesn't contain filter for source in QB ([#500](https://github.com/ni/systemlink-grafana-plugins/issues/500)) ([d4709ca](https://github.com/ni/systemlink-grafana-plugins/commit/d4709ca81588324c7cf1fd45d6a67e91c4ee5f51))
+
+## [4.51.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.51.0...v4.51.1) (2025-11-06)
+
+### Bug Fixes
+
+* support hidden queries consistently ([#456](https://github.com/ni/systemlink-grafana-plugins/issues/456)) ([3efe18b](https://github.com/ni/systemlink-grafana-plugins/commit/3efe18ba573672c56144db52b57b0ddc4edc29da))
+
+## [4.51.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.50.1...v4.51.0) (2025-11-06)
+
+### Features
+
+* **qr-code:** add code owners for qr-code panel plugin ([#501](https://github.com/ni/systemlink-grafana-plugins/issues/501)) ([d2246f7](https://github.com/ni/systemlink-grafana-plugins/commit/d2246f70050038c3e55187333dc4fa3af45e92d4))
+
 ## [4.50.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.50.0...v4.50.1) (2025-11-06)
 
 ### Bug Fixes

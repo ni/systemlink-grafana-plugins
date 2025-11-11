@@ -5,7 +5,6 @@ import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
 import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataSourceQBLookupCallback, DataTableProperties } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { QueryBuilderOption, Workspace } from "core/types";
-import { select } from "react-select-event";
 
 jest.mock("./query-builders/DataTableQueryBuilder", () => ({
     DataTableQueryBuilder: (
@@ -84,8 +83,8 @@ const renderComponent = (
         ),
         queryTables: jest.fn().mockResolvedValue(
             [
-                { id: 'table1', name: 'Table 1', columns: [{ name: 'ColumnA' }, {name: 'ColumnB'}] },
-                { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, {name: 'ColumnE'}] },
+                { id: 'table1', name: 'Table 1', columns: [{ name: 'ColumnA' }, { name: 'ColumnB' }] },
+                { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, { name: 'ColumnE' }] },
             ]
         ),
     } as unknown as DataFrameDataSource;
@@ -392,11 +391,36 @@ describe("DataFrameQueryEditorV2", () => {
         let renderResult: RenderResult;
         let onChange: jest.Mock;
         let onRunQuery: jest.Mock;
+        let user: UserEvent;
+
+        async function selectProperty(
+            container: HTMLElement,
+            propertyLabel: string,
+            user: UserEvent
+        ) {
+            await user.click(container);
+
+            // Find all option controls by role 'option'
+            const optionControls = within(document.body).getAllByRole('option');
+            const targetOption = optionControls.find(opt => opt.textContent === propertyLabel);
+            
+            if (targetOption) {
+                await user.click(targetOption);
+            }
+        }
+
+        beforeAll(() => {
+            // JSDOM provides offsetHeight as 0 by default.
+            // Mocking it to return 250 because the MultiCombobox virtualization relies on this value
+            // to correctly calculate and render the dropdown options.
+            jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(250);
+        });
 
         beforeEach(() => {
             ({ renderResult, onChange, onRunQuery } = renderComponent(
                 { type: DataFrameQueryType.Properties }
             ));
+            user = userEvent.setup();
         });
 
         describe("hidden fields", () => {
@@ -422,24 +446,28 @@ describe("DataFrameQueryEditorV2", () => {
                 dataTablePropertiesField = renderResult.getAllByRole('combobox')[0];
             });
 
-            it('should render data table properties select with default value', () => {
+            it('should render data table properties select with default value', async () => {
                 expect(dataTablePropertiesField).toBeInTheDocument();
                 expect(dataTablePropertiesField).toHaveAttribute('aria-expanded', 'false');
                 expect(dataTablePropertiesField).toHaveDisplayValue('');
-                expect(document.body).toHaveTextContent("Data table name");
-                expect(document.body).toHaveTextContent("Data table ID");
-                expect(document.body).toHaveTextContent("Rows");
-                expect(document.body).toHaveTextContent("Columns");
-                expect(document.body).toHaveTextContent("Created");
-                expect(document.body).toHaveTextContent("Workspace");
+
+                await user.click(dataTablePropertiesField);
+
+                await waitFor(() => {
+                    expect(document.body).toHaveTextContent("Data table name");
+                    expect(document.body).toHaveTextContent("Data table ID");
+                    expect(document.body).toHaveTextContent("Rows");
+                    expect(document.body).toHaveTextContent("Columns");
+                    expect(document.body).toHaveTextContent("Created");
+                    expect(document.body).toHaveTextContent("Workspace");
+                });
             });
 
             it('should call onChange with data table properties when user selects properties', async () => {
-                await userEvent.click(dataTablePropertiesField);
-                await select(
+                await selectProperty(
                     dataTablePropertiesField,
                     DataTableProjectionLabelLookup.Properties.label,
-                    { container: document.body }
+                    user
                 );
 
                 await waitFor(() => {
@@ -450,11 +478,10 @@ describe("DataFrameQueryEditorV2", () => {
             });
 
             it('should call onRunQuery when user selects properties', async () => {
-                await userEvent.click(dataTablePropertiesField);
-                await select(
+                await selectProperty(
                     dataTablePropertiesField,
                     DataTableProjectionLabelLookup.Properties.label,
-                    { container: document.body }
+                    user
                 );
 
                 await waitFor(() => {
@@ -463,16 +490,23 @@ describe("DataFrameQueryEditorV2", () => {
             });
 
             it("should show the expected options in the data table properties field", async () => {
-                const dataTablePropertiesField = screen.getAllByRole('combobox')[0];
-                await userEvent.click(dataTablePropertiesField);
+                await user.click(dataTablePropertiesField);
 
-                await waitFor(() => {
-                    expect(document.body).toHaveTextContent("Metadata modified");
-                    expect(document.body).toHaveTextContent("Metadata revision");
-                    expect(document.body).toHaveTextContent("Rows modified");
-                    expect(document.body).toHaveTextContent("Supports append");
-                    expect(document.body).toHaveTextContent("Data table properties");
-                });
+                const optionControls = within(document.body).getAllByRole('option');
+                const optionTexts = optionControls.map(opt => opt.textContent);
+                expect(optionTexts).toEqual(expect.arrayContaining([
+                    "Data table name",
+                    "Data table ID",
+                    "Rows",
+                    "Columns",
+                    "Created",
+                    "Workspace",
+                    "Metadata modified",
+                    "Metadata revision",
+                    "Rows modified",
+                    "Supports append",
+                    "Data table properties"
+                ]));
             });
         });
 
@@ -490,11 +524,10 @@ describe("DataFrameQueryEditorV2", () => {
             });
 
             it('should call onChange with columns properties when user selects properties', async () => {
-                await userEvent.click(columnPropertiesField);
-                await select(
+                selectProperty(
                     columnPropertiesField,
                     DataTableProjectionLabelLookup.ColumnType.label,
-                    { container: document.body }
+                    user
                 );
 
                 await waitFor(() => {
@@ -505,11 +538,10 @@ describe("DataFrameQueryEditorV2", () => {
             });
 
             it('should call onRunQuery when user selects properties', async () => {
-                await userEvent.click(columnPropertiesField);
-                await select(
+                selectProperty(
                     columnPropertiesField,
                     DataTableProjectionLabelLookup.ColumnType.label,
-                    { container: document.body }
+                    user
                 );
 
                 await waitFor(() => {
@@ -518,14 +550,16 @@ describe("DataFrameQueryEditorV2", () => {
             });
 
             it("should show the expected options in the column properties field", async () => {
-                await userEvent.click(columnPropertiesField);
+                await user.click(columnPropertiesField);
 
-                await waitFor(() => {
-                    expect(document.body).toHaveTextContent("Column name");
-                    expect(document.body).toHaveTextContent("Column data type");
-                    expect(document.body).toHaveTextContent("Column type");
-                    expect(document.body).toHaveTextContent("Column properties");
-                });
+                const optionControls = within(document.body).getAllByRole('option');
+                const optionTexts = optionControls.map(opt => opt.textContent);
+                expect(optionTexts).toEqual(expect.arrayContaining([
+                    "Column name",
+                    "Column data type",
+                    "Column type",
+                    "Column properties"
+                ]));
             });
         });
 
