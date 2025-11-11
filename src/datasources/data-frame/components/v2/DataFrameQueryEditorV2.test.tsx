@@ -30,6 +30,15 @@ const renderComponent = (
                 { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, { name: 'ColumnE' }] },
             ]
         ),
+        getColumnOptions: jest.fn().mockResolvedValue(
+            [
+                { label: 'ColumnA', value: 'ColumnA' },
+                { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
+                { label: 'ColumnB (String)', value: 'ColumnB-String' },
+                { label: 'ColumnD (String)', value: 'ColumnD-String' },
+                { label: 'ColumnE', value: 'ColumnE' },
+            ]
+        )
     } as unknown as DataFrameDataSource;
 
     const initialQuery = {
@@ -171,7 +180,13 @@ describe("DataFrameQueryEditorV2", () => {
                     const optionControls = within(document.body).getAllByRole('option');
                     const optionTexts = optionControls.map(opt => opt.textContent);
                     expect(optionTexts).toEqual(expect.arrayContaining(
-                        ['ColumnA', 'ColumnB', 'ColumnD', 'ColumnE']
+                        [
+                            'ColumnA',
+                            'ColumnB (Numeric)',
+                            'ColumnB (String)',
+                            'ColumnD (String)',
+                            'ColumnE'
+                        ]
                     ));
                 });
 

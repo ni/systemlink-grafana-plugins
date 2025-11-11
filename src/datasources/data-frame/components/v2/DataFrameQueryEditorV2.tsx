@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProjections, DataTableProperties, Props, DataFrameDataQuery } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import { FloatingError } from 'core/errors';
@@ -51,25 +51,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             setColumnOptions([]);
             return;
         }
-
-        const tables = await datasource.queryTables(
-            filter,
-            TAKE_LIMIT,
-            [
-                DataTableProjections.Name,
-                DataTableProjections.ColumnName,
-                DataTableProjections.ColumnDataType,
-                DataTableProjections.ColumnType,
-            ]
-        );
-        const columnNames = tables
-            .map(table => table.columns ?? [])
-            .flatMap(columns => {
-                return columns
-                    .filter(column => column.name !== undefined)
-                    .map(column => column.name);
-            });
-        setColumnOptions(columnNames.map(name => ({ label: name, value: name })));
+        const columnOptions = await datasource.getColumnOptions(filter);
+        setColumnOptions(columnOptions);
     };
 
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
