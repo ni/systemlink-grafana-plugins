@@ -1,7 +1,7 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
-import { DataFrameQuery, DataFrameQueryType, DataFrameQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultDatatableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
+import { DataFrameDataQuery, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultDatatableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
 import { TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
@@ -568,9 +568,143 @@ describe('DataFrameDataSourceV2', () => {
     });
 
     describe('metricFindQuery', () => {
-        it('should return an empty array', async () => {
-            const result = await ds.metricFindQuery({} as any);
-            expect(result).toEqual([]);
+        const query = {
+            queryType: DataFrameVariableQueryType.ListDataTables,
+            dataTableFilter: 'name = "${name}"',
+            refId: 'A'
+        } as DataFrameVariableQuery;
+        const options = {
+            scopedVars: {
+                name: { value: 'Test Table' }
+            }
+        };
+        let queryTablesSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            queryTablesSpy = jest.spyOn(ds, 'queryTables').mockResolvedValue([]);
+        });
+
+        it('should call processVariableQuery with the provided query', async () => {
+            const processVariableQuerySpy = jest.spyOn(ds, 'processVariableQuery');
+
+            await ds.metricFindQuery(query, options);
+
+            expect(processVariableQuerySpy).toHaveBeenCalledWith(query);
+        });
+
+        it('should call transformComputedFieldsQuery when dataTableFilter is present', async () => {
+            templateSrv.replace.mockReturnValue('name = "Test Table"');
+
+            await ds.metricFindQuery(query, options);
+
+            expect(templateSrv.replace).toHaveBeenCalledWith('name = "${name}"', options.scopedVars);
+            expect(queryBuilderUtils.transformComputedFieldsQuery).toHaveBeenCalledWith(
+                'name = "Test Table"',
+                expect.any(Object)
+            );
+        });
+
+        it('should use expected ExpressionTransformFunction for the fields', async () => {
+            const transformComputedFieldsQuerySpy = queryBuilderUtils
+                .transformComputedFieldsQuery as jest.Mock;
+            const timeFieldsQuery = queryBuilderUtils.timeFieldsQuery as jest.Mock;
+            const multipleValuesQuery = queryBuilderUtils.multipleValuesQuery as jest.Mock;
+            const mockTimeFieldsExpressionTransformFunction = jest.fn().mockReturnValue(
+                "transformed-time-expressions"
+            );
+            const mockMultipleValuesExpressionTransformFunction = jest.fn().mockReturnValue(
+                "transformed-multiple-values"
+            );
+            timeFieldsQuery.mockReturnValue(mockTimeFieldsExpressionTransformFunction);
+            multipleValuesQuery.mockReturnValue(mockMultipleValuesExpressionTransformFunction);
+            ds = new DataFrameDataSourceV2(instanceSettings, backendSrv, templateSrv);
+            queryTablesSpy = jest.spyOn(ds, 'queryTables').mockResolvedValue([]);
+
+            await ds.metricFindQuery(query, options);
+
+            const dataTableComputedDataFields = transformComputedFieldsQuerySpy
+                .mock.calls[0][1] as Map<string, queryBuilderUtils.ExpressionTransformFunction>;
+            const transformedFields = Array.from(dataTableComputedDataFields.entries())
+                .map(([field, expressionTransformFunction]) => ({
+                    field,
+                    value: expressionTransformFunction('123', '=')
+                }));
+            expect(transformedFields).toEqual([
+                {
+                    field: DataTableQueryBuilderFieldNames.Name,
+                    value: "transformed-multiple-values"
+                },
+                {
+                    field: DataTableQueryBuilderFieldNames.Id,
+                    value: "transformed-multiple-values"
+                },
+                {
+                    field: DataTableQueryBuilderFieldNames.RowCount,
+                    value: "transformed-multiple-values"
+                },
+                {
+                    field: DataTableQueryBuilderFieldNames.CreatedAt,
+                    value: "transformed-time-expressions"
+                },
+                {
+                    field: DataTableQueryBuilderFieldNames.Workspace,
+                    value: "transformed-multiple-values"
+                },
+                {
+                    field: DataTableQueryBuilderFieldNames.MetadataModifiedAt,
+                    value: "transformed-time-expressions"
+                },
+                {
+                    field: DataTableQueryBuilderFieldNames.RowsModifiedAt,
+                    value: "transformed-time-expressions"
+                },
+                {
+                    field: DataTableQueryBuilderFieldNames.SupportsAppend,
+                    value: "transformed-multiple-values"
+                },
+                {
+                    field: DataTableQueryBuilderFieldNames.Properties,
+                    value: "transformed-multiple-values"
+                }
+            ]);
+        });
+
+        describe('when queryType is ListDataTables', () => {
+            it('should call queryTables with expected arguments and return mapped tables', async () => {
+                templateSrv.replace.mockReturnValue('name = "Test Table"');
+                const mockTables = [
+                    { id: 'table-1', name: 'Table 1' },
+                    { id: 'table-2', name: 'Table 2' }
+                ];
+                queryTablesSpy.mockResolvedValue(mockTables);
+
+                const result = await ds.metricFindQuery(query, options);
+
+                expect(queryTablesSpy).toHaveBeenCalledWith(
+                    'name = "Test Table"',
+                    1000,
+                    [DataTableProjections.Name]
+                );
+                expect(result).toEqual([
+                    { text: 'Table 1', value: 'table-1' },
+                    { text: 'Table 2', value: 'table-2' }
+                ]);
+            });
+        });
+
+        describe('when queryType is ListColumns', () => {
+            it('should not call queryTables and should return empty list', async () => {
+                const query = {
+                    queryType: DataFrameVariableQueryType.ListColumns,
+                    dataTableFilter: 'name = "${name}"',
+                    refId: 'A'
+                } as DataFrameVariableQuery;
+
+                const result = await ds.metricFindQuery(query, options);
+
+                expect(queryTablesSpy).not.toHaveBeenCalled();
+                expect(result).toEqual([]);
+            });
         });
     });
 
@@ -634,7 +768,7 @@ describe('DataFrameDataSourceV2', () => {
 
     describe('processQuery', () => {
         it('should return the query with default values when all the fields from `ValidDataFrameQueryV2` are missing', () => {
-            const query = {} as DataFrameQuery;
+            const query = {} as DataFrameDataQuery;
             const expectedQuery = {
                 type: DataFrameQueryType.Data,
                 dataTableFilter: '',
@@ -655,7 +789,7 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         it('should return the query with default values for missing fields when some of the fields from `ValidDataFrameQueryV2` are missing', () => {
-            const query = { decimationMethod: 'MAX_MIN', applyTimeFilters: true } as DataFrameQuery;
+            const query = { decimationMethod: 'MAX_MIN', applyTimeFilters: true } as DataFrameDataQuery;
             const expectedQuery = {
                 type: DataFrameQueryType.Data,
                 dataTableFilter: '',
@@ -673,6 +807,25 @@ describe('DataFrameDataSourceV2', () => {
             const result = ds.processQuery(query);
 
             expect(result).toEqual(expectedQuery);
+        });
+    });
+
+    describe('processVariableQuery', () => {
+        it('should return the query with default values when all the fields from `ValidDataFrameVariableQueryV2` are missing', () => {
+            const result = ds.processVariableQuery({} as DataFrameVariableQuery);
+            expect(result).toEqual({
+                queryType: DataFrameVariableQueryType.ListDataTables,
+                dataTableFilter: ''
+            });
+        });
+
+        it('should return the query with default values for missing fields when some of the fields from `ValidDataFrameVariableQueryV2` are missing', () => {
+            const query = { dataTableFilter: 'name = "test table"' } as DataFrameVariableQuery;
+            const result = ds.processVariableQuery(query);
+            expect(result).toEqual({
+                queryType: DataFrameVariableQueryType.ListDataTables,
+                dataTableFilter: 'name = "test table"'
+            });
         });
     });
 
