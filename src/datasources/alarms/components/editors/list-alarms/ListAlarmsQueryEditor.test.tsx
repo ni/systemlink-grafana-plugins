@@ -278,7 +278,7 @@ describe('ListAlarmsQueryEditor', () => {
       fireEvent.change(takeInput, { target: { value: '5000' } });
       fireEvent.blur(takeInput);
 
-      expect(screen.getByText(takeErrorMessages.transitionAllMaxErrorMsg)).toBeInTheDocument();
+      expect(screen.getByText(takeErrorMessages.transitionAllMaxTakeErrorMsg)).toBeInTheDocument();
     });
 
     it('should display no error message when take is valid for transition inclusion All', async () => {
@@ -288,7 +288,23 @@ describe('ListAlarmsQueryEditor', () => {
 
       fireEvent.change(takeInput, { target: { value: '500' } });
       fireEvent.blur(takeInput);
-      expect(screen.queryByText(takeErrorMessages.transitionAllMaxErrorMsg)).not.toBeInTheDocument();
+      expect(screen.queryByText(takeErrorMessages.transitionAllMaxTakeErrorMsg)).not.toBeInTheDocument();
+    });
+
+    it('should display error message when transition inclusion is changed from None to All and take exceeds the limit', async () => {
+      await renderElement({ refId: 'A', take: 2000, transitionInclusionOption: TransitionInclusionOption.None });
+
+      const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Include Transition' });
+
+      await userEvent.click(transitionInclusionCombobox);
+      await select(transitionInclusionCombobox,
+        AlarmsTransitionInclusionOptions[TransitionInclusionOption.All].label,
+        {
+          container: document.body,
+        }
+      );
+
+      expect(screen.getByText(takeErrorMessages.transitionAllMaxTakeErrorMsg)).toBeInTheDocument();
     });
   });
 

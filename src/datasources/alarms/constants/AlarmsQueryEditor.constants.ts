@@ -44,7 +44,7 @@ export const tooltips = {
 export const takeErrorMessages = {
   minErrorMsg: `Enter a value greater than or equal to ${QUERY_EDITOR_MIN_TAKE.toLocaleString()}`,
   maxErrorMsg: `Enter a value less than or equal to ${QUERY_EDITOR_MAX_TAKE.toLocaleString()}`,
-  transitionAllMaxErrorMsg: `Enter a value less than or equal to ${QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL.toLocaleString()}`,
+  transitionAllMaxTakeErrorMsg: `Enter a value less than or equal to ${QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL.toLocaleString()}`,
 };
 
 export const PROPERTIES_ERROR_MESSAGE = 'You must select at least one property.';

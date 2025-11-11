@@ -78,7 +78,7 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
 
     const { maxTake, errorMsg } =
       transitionInclusionOption === TransitionInclusionOption.All
-        ? { maxTake: QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL, errorMsg: takeErrorMessages.transitionAllMaxErrorMsg }
+        ? { maxTake: QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL, errorMsg: takeErrorMessages.transitionAllMaxTakeErrorMsg }
         : { maxTake: QUERY_EDITOR_MAX_TAKE, errorMsg: takeErrorMessages.maxErrorMsg };
 
     if (take > maxTake) {
