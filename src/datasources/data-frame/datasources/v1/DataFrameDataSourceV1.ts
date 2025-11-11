@@ -26,7 +26,6 @@ import { ComboboxOption } from '@grafana/ui';
 export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQueryV1> {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
   defaultQuery = defaultQueryV1;
-  isColumnLimitExceeded = false;
 
   public constructor(
     public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,

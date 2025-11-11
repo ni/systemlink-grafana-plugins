@@ -7,7 +7,7 @@ import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { DataFrameQuery, DataFrameQueryType, DataFrameQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultDatatableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
-import { COLUMN_OPTION_LIMIT, TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
 import { Workspace } from 'core/types';
@@ -999,48 +999,6 @@ describe('DataFrameDataSourceV2', () => {
                     { label: 'Column D', value: 'Column D-Numeric' },
                 ]);
             });
-        });
-
-        it('should limit the number of returned options to COLUMN_OPTION_LIMIT and mark limit exceeded when total columns exceed limit', async () => {
-            const mockColumns = [];
-            for (let i = 0; i < 20; i++) {
-                mockColumns.push({ name: `Column ${i + 1}`, dataType: 'STRING' });
-            }
-            queryTablesMock.mockResolvedValue([
-                {
-                    id: '1',
-                    name: 'Table 1',
-                    columns: mockColumns
-                }
-            ]);
-
-            const result = await ds.loadColumnOption('some-filter');
-
-            expect(result.length).toBe(COLUMN_OPTION_LIMIT);
-            expect(result).toEqual(
-                Array.from({ length: COLUMN_OPTION_LIMIT }, (_, i) => ({
-                    label: `Column ${i + 1}`,
-                    value: `Column ${i + 1}-String`
-                }))
-            );
-            expect(ds.isColumnLimitExceeded).toBe(true);
-        });
-
-        it('should not mark column limit exceeded when total columns are within limit', async () => {
-            queryTablesMock.mockResolvedValue([
-                {
-                    id: '1',
-                    name: 'Table 1',
-                    columns: [
-                        { name: 'Column 1', dataType: 'STRING' },
-                        { name: 'Column 2', dataType: 'STRING' }
-                    ]
-                }
-            ]);
-
-            const result = await ds.loadColumnOption('some-filter');
-            expect(result.length).toBe(2);
-            expect(ds.isColumnLimitExceeded).toBe(false);
         });
     });
 });

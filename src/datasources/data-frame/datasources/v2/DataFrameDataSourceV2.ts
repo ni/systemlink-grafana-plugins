@@ -2,7 +2,7 @@ import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, 
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryType, DataFrameQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQuery, ValidDataFrameQueryV2 } from "../../types";
-import { COLUMN_OPTION_LIMIT, TAKE_LIMIT } from "datasources/data-frame/constants";
+import { TAKE_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
@@ -11,8 +11,6 @@ import { ComboboxOption } from "@grafana/ui";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
     defaultQuery = defaultQueryV2;
-    filteredTables: TableProperties[] = [];
-    isColumnLimitExceeded = false;
 
     public constructor(
         public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
@@ -116,22 +114,21 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     }
 
     public async loadColumnOption(filter: string): Promise<ComboboxOption[]> {
-        this.filteredTables = await this.queryTables(filter, TAKE_LIMIT, [
+        const tables = await this.queryTables(filter, TAKE_LIMIT, [
             DataTableProjections.Name,
             DataTableProjections.ColumnName,
             DataTableProjections.ColumnDataType,
             DataTableProjections.ColumnType,
         ]);
 
-        if (this.filteredTables.length === 0 || !this.filteredTables.some(table => table.columns && table.columns.length > 0)) {
+        if (tables.length === 0 || !tables.some(table => table.columns && table.columns.length > 0)) {
             return [];
         }
 
-        const columnTypeMap = this.createColumnTypeMap(this.filteredTables);
+        const columnTypeMap = this.createColumnTypeMap(tables);
         const formattedOptions = this.formatColumnOptions(columnTypeMap);
-        const limitedOptions = this.limitColumnOptions(formattedOptions, COLUMN_OPTION_LIMIT);
 
-        return limitedOptions.map(column => ({ label: column.label, value: column.value }));
+        return formattedOptions.map(column => ({ label: column.label, value: column.value }));
     }
 
     /**
@@ -179,14 +176,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
      */
     private toSentenceCase(str: string) {
         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
-    };
-    
-    /**
-     * Limits the number of column options to a maximum value.
-     */
-    private limitColumnOptions<T,>(columns: T[], max: number): T[] {
-        this.isColumnLimitExceeded = columns.length > max ? true : false;
-        return columns.slice(0, max);
     };
 
     private shouldQueryForProperties(query: ValidDataFrameQueryV2): boolean {
