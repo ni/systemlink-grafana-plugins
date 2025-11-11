@@ -155,7 +155,7 @@ describe("DataFrameQueryEditorV2", () => {
                     // Get the onDataTableFilterChange callback from the mock
                     const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
                     const { onDataTableFilterChange } = props;
-                    
+
                     // Simulate the filter change event
                     const mockEvent = { 
                         detail: { linq: "NewFilter" } 
