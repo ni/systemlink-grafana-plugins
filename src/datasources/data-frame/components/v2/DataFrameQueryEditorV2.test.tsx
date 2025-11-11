@@ -5,9 +5,9 @@ import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
 import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { select } from "react-select-event";
-import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper/DataFrameQueryBuilderWrapper";
+import { DataFrameQueryBuilderWrapper } from "./query-builders/data-frame-query-builder-wrapper/DataFrameQueryBuilderWrapper";
 
-jest.mock("./query-builders/DataFrameQueryBuilderWrapper/DataFrameQueryBuilderWrapper", () => ({
+jest.mock("./query-builders/data-frame-query-builder-wrapper/DataFrameQueryBuilderWrapper", () => ({
     DataFrameQueryBuilderWrapper: jest.fn(() => <div data-testid="mock-data-frame-query-builder-wrapper" />)
 }));
 
@@ -153,8 +153,6 @@ describe("DataFrameQueryEditorV2", () => {
                 });
 
                 it('should load columns combobox options when filter changes', async () => {
-                    renderComponent({ type: DataFrameQueryType.Data });
-
                     // Get the onDataTableFilterChange callback from the mock
                     const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
                     const { onDataTableFilterChange } = props;
