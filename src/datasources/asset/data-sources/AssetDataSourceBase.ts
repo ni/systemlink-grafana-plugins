@@ -159,17 +159,17 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
   private handleContainsExpression(field: string, value: string, operation: string): string {
     let values = [value];
     const containsExpressionTemplate = this.getContainsExpressionTemplate(operation);
-    
+
     if (this.isMultiSelectValue(value)) {
       values = this.getMultipleValuesArray(value);
     }
 
     if (values.length > 1) {
-      const expression = 
+      const expression =
         values
           .map(val => buildExpressionFromTemplate(containsExpressionTemplate, field, val))
           .join(` ${getConcatOperatorForMultiExpression(operation)} `);
-      
+
       return `(${expression})`;
     }
 

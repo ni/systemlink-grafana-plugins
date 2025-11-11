@@ -948,6 +948,5 @@ describe('shouldRunQuery', () => {
         expect(data.fields[28].name).toEqual('calibration status');
         expect(data.fields[29].name).toEqual('scan code');
         expect(data.fields.length).toBe(expectedNumberOfFields)
-        
     })
 });
