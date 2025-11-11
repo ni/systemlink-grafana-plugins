@@ -24,7 +24,7 @@ export class AssetSummaryDataSource extends AssetDataSourceBase {
 
     runQuery(query: AssetQuery, options: DataQueryRequest): Observable<DataFrameDTO> {
         return forkJoin([this.getAssetSummary()]).pipe(
-            switchMap(([assetSummary] : [AssetSummaryResponse]) => {
+            switchMap(([assetSummary]: [AssetSummaryResponse]) => {
                 return of(this.processSummaryQuery(query, assetSummary));
             })
         );

@@ -63,7 +63,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
     return !query.hide;
   }
 
-  processListAssetsQuery$(query: ListAssetsQuery) : Observable<DataFrameDTO> {
+  processListAssetsQuery$(query: ListAssetsQuery): Observable<DataFrameDTO> {
     return this.queryAssets$(query.filter, query.take, false, query.properties).pipe(
       switchMap((assetsResponse: AssetsResponse) => {
         const assets = assetsResponse.assets;
