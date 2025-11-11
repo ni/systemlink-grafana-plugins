@@ -2,7 +2,7 @@ import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, 
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryType, DataFrameQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQuery, ValidDataFrameQueryV2 } from "../../types";
-import { COLUMN_OPTION_LIMIT, TAKE_LIMIT } from "datasources/data-frame/constants";
+import { TAKE_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
@@ -127,9 +127,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
 
         const columnTypeMap = this.createColumnTypeMap(tables);
         const formattedOptions = this.formatColumnOptions(columnTypeMap);
-        const limitedOptions = this.limitColumnOptions(formattedOptions, COLUMN_OPTION_LIMIT);
 
-        return limitedOptions.map(column => ({ label: column.label, value: column.value }));
+        return formattedOptions.map(column => ({ label: column.label, value: column.value }));
     }
 
     /**
@@ -177,13 +176,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
      */
     private toSentenceCase(str: string) {
         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
-    };
-    
-    /**
-     * Limits the number of column options to a maximum value.
-     */
-    private limitColumnOptions<T,>(columns: T[], max: number): T[] {
-        return columns.slice(0, max);
     };
 
     private shouldQueryForProperties(query: ValidDataFrameQueryV2): boolean {
