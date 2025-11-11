@@ -5,7 +5,7 @@ import { AssetDataSourceBase } from '../AssetDataSourceBase';
 import { AssetCalibrationForecastKey, AssetCalibrationTimeBasedGroupByType, CalibrationForecastQuery, CalibrationForecastResponse, ColumnDescriptorType, FieldDTOWithDescriptor } from '../../types/CalibrationForecastQuery.types';
 import { transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
 import { AssetModel, AssetsResponse } from '../../../asset-common/types';
-import { forkJoin, map, Observable, switchMap } from 'rxjs';
+import { from, map, Observable, switchMap } from 'rxjs';
 
 export class CalibrationForecastDataSource extends AssetDataSourceBase {
     private dependenciesLoadedPromise: Promise<void>;
@@ -43,7 +43,7 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
     runQuery(query: AssetQuery, options: DataQueryRequest): Observable<DataFrameDTO> {
         const calibrationForecastQuery = query as CalibrationForecastQuery;
 
-        return forkJoin([this.dependenciesLoadedPromise]).pipe(
+        return from(this.dependenciesLoadedPromise).pipe(
             switchMap(() => {
                 this.validateQueryRange(calibrationForecastQuery, options);
 

@@ -5,7 +5,7 @@ import { AssetSummaryResponse } from 'datasources/asset/types/AssetSummaryQuery.
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
 import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../types/types';
 import { assetSummaryFields } from '../../constants/AssetSummaryQuery.constants';
-import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
+import { catchError, map, Observable, throwError } from 'rxjs';
 
 export class AssetSummaryDataSource extends AssetDataSourceBase {
   constructor(
@@ -23,9 +23,9 @@ export class AssetSummaryDataSource extends AssetDataSourceBase {
   };
 
   runQuery(query: AssetQuery, options: DataQueryRequest): Observable<DataFrameDTO> {
-    return forkJoin([this.getAssetSummary()]).pipe(
-      switchMap(([assetSummary]: [AssetSummaryResponse]) => {
-        return of(this.processSummaryQuery(query, assetSummary));
+    return this.getAssetSummary().pipe(
+      map((assetSummary: AssetSummaryResponse) => {
+        return this.processSummaryQuery(query, assetSummary);
       })
     );
   }

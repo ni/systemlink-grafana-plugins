@@ -8,7 +8,7 @@ import { transformComputedFieldsQuery } from '../../../../core/query-builder.uti
 import { defaultListAssetsQuery, defaultListAssetsQueryForOldPannels } from 'datasources/asset/defaults';
 import { TAKE_LIMIT } from 'datasources/asset/constants/ListAssets.constants';
 import { getWorkspaceName } from 'core/utils';
-import { forkJoin, Observable, of, switchMap } from 'rxjs';
+import { from, Observable, of, switchMap } from 'rxjs';
 
 export class ListAssetsDataSource extends AssetDataSourceBase {
   private dependenciesLoadedPromise: Promise<void>;
@@ -33,7 +33,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
   runQuery(query: AssetQuery, options: DataQueryRequest): Observable<DataFrameDTO> {
     const listAssetsQuery = this.patchListAssetQuery(query);
 
-    return forkJoin([this.dependenciesLoadedPromise]).pipe(
+    return from(this.dependenciesLoadedPromise).pipe(
       switchMap(() => {
         if (listAssetsQuery.filter) {
           listAssetsQuery.filter = transformComputedFieldsQuery(
