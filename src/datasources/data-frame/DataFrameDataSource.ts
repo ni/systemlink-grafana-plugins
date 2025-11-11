@@ -1,4 +1,4 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindValue, TimeRange } from "@grafana/data";
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetricFindQueryOptions, MetricFindValue, TimeRange } from "@grafana/data";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameFeatureTogglesDefaults, DataFrameVariableQuery, DataTableProjections, TableDataRows, TableProperties, ValidDataFrameQuery, ValidDataFrameVariableQuery } from "./types";
 import { DataFrameDataSourceBase } from "./DataFrameDataSourceBase";
@@ -36,8 +36,11 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.shouldRunQuery(query as any);
   }
 
-  public metricFindQuery(query: DataFrameVariableQuery): Promise<MetricFindValue[]> {
-    return this.datasource.metricFindQuery(query);
+  public metricFindQuery(
+    query: DataFrameVariableQuery,
+    options: LegacyMetricFindQueryOptions
+  ): Promise<MetricFindValue[]> {
+    return this.datasource.metricFindQuery(query, options);
   }
 
   public async getTableProperties(id?: string): Promise<TableProperties> {

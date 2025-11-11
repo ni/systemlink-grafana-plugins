@@ -63,7 +63,7 @@ describe('DataFrameDataSource', () => {
         expect(ds.shouldRunQuery({} as any)).toBe(true);
         expect(v1Mock.shouldRunQuery).toHaveBeenCalled();
 
-        await expect(ds.metricFindQuery({} as any)).resolves.toEqual(['v1-metric']);
+        await expect(ds.metricFindQuery({} as any, {} as any)).resolves.toEqual(['v1-metric']);
         expect(v1Mock.metricFindQuery).toHaveBeenCalled();
 
         await expect(ds.getTableProperties('id')).resolves.toBe('v1-tableProps');
@@ -93,7 +93,7 @@ describe('DataFrameDataSource', () => {
         expect(ds.shouldRunQuery({} as any)).toBe(false);
         expect(v2Mock.shouldRunQuery).toHaveBeenCalled();
 
-        await expect(ds.metricFindQuery({} as any)).resolves.toEqual(['v2-metric']);
+        await expect(ds.metricFindQuery({} as any, {} as any)).resolves.toEqual(['v2-metric']);
         expect(v2Mock.metricFindQuery).toHaveBeenCalled();
 
         await expect(ds.getTableProperties('id')).resolves.toBe('v2-tableProps');
