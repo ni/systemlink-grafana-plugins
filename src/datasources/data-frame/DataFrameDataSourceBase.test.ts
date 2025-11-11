@@ -213,4 +213,59 @@ describe('DataFrameDataSourceBase', () => {
             );
         });
     });
+
+    describe('loadPartNumbers', () => {
+        let ds: DataFrameDataSourceBase;
+
+        beforeEach(() => {
+            ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+            // Clear the cache before each test
+            DataFrameDataSourceBase._partNumbersCache = undefined as any;
+        });
+
+        it('should return part numbers from API', async () => {
+            const mockPartNumbers = ['PN-001', 'PN-002', 'PN-003'];
+            ds.post = jest.fn().mockResolvedValue(mockPartNumbers);
+
+            const result = await ds.loadPartNumbers();
+
+            expect(ds.post).toHaveBeenCalledWith(
+                'http://localhost/nitestmonitor/v2/query-result-values',
+                {
+                    field: 'partNumber',
+                    filter: undefined,
+                },
+                { showErrorAlert: false }
+            );
+            expect(result).toEqual(mockPartNumbers);
+        });
+
+        it('should cache part numbers and not call API on subsequent requests', async () => {
+            const mockPartNumbers = ['PN-001', 'PN-002'];
+            ds.post = jest.fn().mockResolvedValue(mockPartNumbers);
+
+            const result1 = await ds.loadPartNumbers();
+            const result2 = await ds.loadPartNumbers();
+
+            expect(ds.post).toHaveBeenCalledTimes(1);
+            expect(result1).toEqual(mockPartNumbers);
+            expect(result2).toEqual(mockPartNumbers);
+        });
+
+        it('should call post with correct parameters', async () => {
+            const mockPartNumbers = ['PN-001'];
+            ds.post = jest.fn().mockResolvedValue(mockPartNumbers);
+
+            await ds.loadPartNumbers();
+
+            expect(ds.post).toHaveBeenCalledWith(
+                'http://localhost/nitestmonitor/v2/query-result-values',
+                {
+                    field: 'partNumber',
+                    filter: undefined,
+                },
+                { showErrorAlert: false }
+            );
+        });
+    });
 });
