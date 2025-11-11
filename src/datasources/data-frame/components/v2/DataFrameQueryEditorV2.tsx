@@ -3,7 +3,7 @@ import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineLabel, InlineSwitch, MultiCombobox, MultiSelect, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQueryV2, DataFrameQueryType, PropsV2, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProjections, DataTableProperties } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
-import { decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_OPTION_LIMIT, decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import { SelectableValue } from '@grafana/data';
 import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
@@ -59,7 +59,14 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
             return;
         }
         const columnOptions = await datasource.getColumnOptions(filter);
-        setColumnOptions(columnOptions);
+        const limitedColumnOptions = limitColumnOptions(columnOptions, COLUMN_OPTION_LIMIT);
+        setColumnOptions(limitedColumnOptions);
+    };
+
+    const limitColumnOptions = (options: Array<ComboboxOption<string>>, limit: number): Array<ComboboxOption<string>> => {
+        const limitedOptions = options.slice(0, limit);
+        setIsColumnLimitExceeded(options.length > limit);
+        return limitedOptions;
     };
 
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
@@ -279,7 +286,9 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
                         >
                             <MultiCombobox
                                 placeholder={placeholders.columns}
-                                width={40}
+                                width='auto'
+                                minWidth={40}
+                                maxWidth={40}
                                 value={migratedQuery.columns}
                                 onChange={onColumnsChange}
                                 options={columnOptions}
