@@ -6,7 +6,9 @@ import { DataFrameVariableQueryEditorV2 } from './v2/DataFrameVariableQueryEdito
 export const DataFrameVariableQueryEditorWrapper = (props: Props) => {
   const dataFrameFeatures = useRef<DataFrameFeatureToggles>({
     queryByDataTableProperties: props.datasource.instanceSettings.jsonData?.featureToggles?.queryByDataTableProperties
-      ?? DataFrameFeatureTogglesDefaults.queryByDataTableProperties
+      ?? DataFrameFeatureTogglesDefaults.queryByDataTableProperties,
+    queryByResultAndColumnProperties: props.datasource.instanceSettings.jsonData?.featureToggles?.queryByResultAndColumnProperties
+      ?? DataFrameFeatureTogglesDefaults.queryByResultAndColumnProperties
   });
 
   return (

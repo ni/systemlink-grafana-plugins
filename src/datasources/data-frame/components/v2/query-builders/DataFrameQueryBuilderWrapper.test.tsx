@@ -62,7 +62,8 @@ jest.mock("datasources/data-frame/components/v2/query-builders/columns-query-bui
 
 const renderComponent = (
     dataTableFilter = '',
-    columnsFilter = ''
+    columnsFilter = '',
+    queryByResultAndColumnProperties = true
 ) => {
     const onDataTableFilterChange = jest.fn();
     const onColumnsFilterChange = jest.fn();
@@ -85,6 +86,9 @@ const renderComponent = (
                 { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, { name: 'ColumnE' }] },
             ]
         ),
+        instanceSettings: {
+            jsonData: { featureToggles: { queryByResultAndColumnProperties } },
+        },
     } as unknown as DataFrameDataSource;
 
     const renderResult = render(
@@ -210,6 +214,14 @@ describe('DataFrameQueryBuilderWrapper', () => {
            await waitFor(() => {
                expect(onColumnsFilterChange).toHaveBeenCalledWith({ detail: eventDetail });
            });
+        });
+
+        it('should not render the ColumnsQueryBuilder when feature flag is false', async () => {
+            renderComponent('', '', false);
+
+            await waitFor(() => {
+                expect(screen.queryByTestId('mock-data-frame-query-builder-wrapper')).not.toBeInTheDocument();
+            });
         });
     });
 });

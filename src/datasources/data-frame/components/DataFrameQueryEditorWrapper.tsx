@@ -6,7 +6,9 @@ import { DataFrameQueryEditorV1 } from './v1/DataFrameQueryEditorV1';
 export const DataFrameQueryEditorWrapper = (props: Props) => {
   const dataFrameFeatures = useRef<DataFrameFeatureToggles>({
     queryByDataTableProperties: props.datasource.instanceSettings.jsonData?.featureToggles?.queryByDataTableProperties
-      ?? DataFrameFeatureTogglesDefaults.queryByDataTableProperties
+      ?? DataFrameFeatureTogglesDefaults.queryByDataTableProperties,
+    queryByResultAndColumnProperties: props.datasource.instanceSettings.jsonData?.featureToggles?.queryByResultAndColumnProperties
+      ?? DataFrameFeatureTogglesDefaults.queryByResultAndColumnProperties
   });
 
   return (

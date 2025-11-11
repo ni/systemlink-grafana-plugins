@@ -74,23 +74,27 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
                     dataTableNameLookupCallback={dataTableNameLookupCallback}
                 />
             </div>
-            <InlineLabel
-                width={VALUE_FIELD_WIDTH}
-                tooltip={tooltips.querryByColumnProperties}
-            >
-                {labels.querryByColumnProperties}
-            </InlineLabel>
-            <div
-                style={{
-                    width: getValuesInPixels(VALUE_FIELD_WIDTH),
-                    marginBottom: getValuesInPixels(DEFAULT_MARGIN_BOTTOM),
-                }}
-            >
-                <ColumnsQueryBuilder
-                    filter={columnsFilter}
-                    onChange={onColumnsFilterChange}
-                />
-            </div>
+            {datasource.instanceSettings.jsonData.featureToggles.queryByResultAndColumnProperties && (
+                <>
+                    <InlineLabel
+                        width={VALUE_FIELD_WIDTH}
+                        tooltip={tooltips.queryByColumnProperties}
+                    >
+                        {labels.queryByColumnProperties}
+                    </InlineLabel>
+                    <div
+                        style={{
+                            width: getValuesInPixels(VALUE_FIELD_WIDTH),
+                            marginBottom: getValuesInPixels(DEFAULT_MARGIN_BOTTOM),
+                        }}
+                    >
+                        <ColumnsQueryBuilder
+                            filter={columnsFilter}
+                            onChange={onColumnsFilterChange}
+                        />
+                    </div>
+                </>
+            )}
         </>
     );
 };

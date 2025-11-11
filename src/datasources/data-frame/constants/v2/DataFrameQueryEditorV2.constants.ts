@@ -31,7 +31,7 @@ export const labels = {
     columnConfigurations: 'Column configurations',
     decimationSettings: 'Decimation settings',
     queryByDataTableProperties: 'Query by data table properties',
-    querryByColumnProperties: 'Query by column properties',
+    queryByColumnProperties: 'Query by column properties',
     columns: 'Columns',
     filterNulls: 'Filter nulls',
     includeIndexColumns: 'Include index columns',
@@ -47,7 +47,7 @@ export const labels = {
 export const tooltips = {
     queryType: 'This field specifies the type for the query that searches the data tables. The query can retrieve row data or metadata.',
     queryByDataTableProperties: 'This optional field applies a filter to a query while searching the data tables.',
-    querryByColumnProperties: 'This optional field applies a filter to a columns query while searching the data tables.',
+    queryByColumnProperties: 'This optional field applies a filter to a columns query while searching the data tables.',
     take: 'This field sets the maximum number of records to return from the query.',
     columns: 'Specifies the columns to include in the response data.',
     filterNulls: `Specifies whether to filter out null and NaN values before decimating the data.`,
