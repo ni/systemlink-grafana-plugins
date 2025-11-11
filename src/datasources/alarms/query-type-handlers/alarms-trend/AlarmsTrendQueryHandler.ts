@@ -1,15 +1,8 @@
 import { DataFrameDTO, DataQueryRequest, FieldType } from '@grafana/data';
 import { AlarmsQueryHandlerCore } from 'datasources/alarms/query-type-handlers/AlarmsQueryHandlerCore';
 import { defaultAlarmsTrendQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
-import { AlarmsTrendQuery, AlarmTrendSeverityLevelLabel } from 'datasources/alarms/types/AlarmsTrend.types';
-import { Alarm, AlarmTransition, AlarmTransitionSeverityLevel, AlarmTransitionType, TransitionInclusionOption } from 'datasources/alarms/types/types';
-
-interface AlarmEvent {
-  timestamp: number;
-  alarmId: string;
-  newState: boolean;
-  severityLevel: AlarmTransitionSeverityLevel;
-};
+import { Alarm, AlarmTransitionSeverityLevel, AlarmTransitionType, TransitionInclusionOption } from 'datasources/alarms/types/types';
+import { AlarmsTrendQuery, AlarmTransitionEvent, AlarmTransitionWithNumericTime, AlarmTrendSeverityLevelLabel } from 'datasources/alarms/types/AlarmsTrend.types';
 
 export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultAlarmsTrendQuery;
@@ -57,54 +50,54 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
   private enrichTransitionsWithTimestamp(alarms: Alarm[]): Alarm[] {
     return alarms.map(alarm => ({
       ...alarm,
-      transitions: (alarm.transitions?.map((transition: AlarmTransition, index: number) => ({
+      transitions: (alarm.transitions?.map(transition => ({
         ...transition,
-        timestamp: new Date(transition.occurredAt).getTime(),
-      })) ?? []).sort((a, b) => a.timestamp - b.timestamp)
+        occurredAtAsNumber: new Date(transition.occurredAt).getTime(),
+      })) ?? []).sort((a, b) => a.occurredAtAsNumber - b.occurredAtAsNumber) as AlarmTransitionWithNumericTime[]
     }));
   }
 
-  private extractEvents(alarms: Alarm[], endTime: number): AlarmEvent[] {
-    const events: AlarmEvent[] = [];
+  private extractEvents(alarms: Alarm[], endTime: number): AlarmTransitionEvent[] {
+    const alarmTransitionEvents: AlarmTransitionEvent[] = [];
 
     alarms.forEach(alarm => {
       for (const transition of alarm.transitions) {
-        const timestamp = transition.timestamp;
+        const occurredAtAsNumber = (transition as AlarmTransitionWithNumericTime).occurredAtAsNumber;
         
-        if (timestamp > endTime) {
+        if (occurredAtAsNumber > endTime) {
           break;
         }
         
-        events.push({
-          timestamp,
+        alarmTransitionEvents.push({
+          occurredAtAsNumber,
           alarmId: alarm.alarmId,
-          newState: transition.transitionType === AlarmTransitionType.Set,
-          severityLevel: transition.severityLevel
+          severityLevel: transition.severityLevel,
+          type: transition.transitionType
         });
       }
     });
 
-    events.sort((a, b) => a.timestamp - b.timestamp);
+    alarmTransitionEvents.sort((a, b) => a.occurredAtAsNumber - b.occurredAtAsNumber);
 
-    return events;
+    return alarmTransitionEvents;
   }
 
   private countActiveAlarmsPerInterval(alarms: Alarm[], startTime: number, endTime: number, intervalMs: number): Map<number, number> {
     const intervalCounts = new Map<number, number>();
-    const events = this.extractEvents(alarms, endTime);
-    const alarmStates = new Map<string, boolean>();
+    const alarmTransitionEvents = this.extractEvents(alarms, endTime);
+    const alarmStates = new Map<string, AlarmTransitionType>();
     let eventIndex = 0;
 
-    for (let intervalStart = startTime; intervalStart < endTime; intervalStart += intervalMs) {
-      while (eventIndex < events.length && events[eventIndex].timestamp < intervalStart) {
-        const event = events[eventIndex];
-        alarmStates.set(event.alarmId, event.newState);
+    for (let intervalStart = startTime; intervalStart <= endTime; intervalStart += intervalMs) {
+      while (eventIndex < alarmTransitionEvents.length && alarmTransitionEvents[eventIndex].occurredAtAsNumber <= intervalStart) {
+        const event = alarmTransitionEvents[eventIndex];
+        alarmStates.set(event.alarmId, event.type);
         eventIndex++;
       }
       
       let activeCount = 0;
-      alarmStates.forEach(isActive => {
-        if (isActive) {
+      alarmStates.forEach(type => {
+        if (type === AlarmTransitionType.Set) {
           activeCount++;
         }
       });
@@ -136,15 +129,15 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
 
   private countActiveAlarmsPerIntervalBySeverity(alarms: Alarm[], startTime: number, endTime: number, intervalMs: number): Map<number, Map<string, number>> {
     const intervalCountsBySeverity = new Map<number, Map<string, number>>();
-    const events = this.extractEvents(alarms, endTime);
-    const alarmStates = new Map<string, { isActive: boolean; severityLevel: AlarmTransitionSeverityLevel }>();
+    const alarmTransitionEvents = this.extractEvents(alarms, endTime);
+    const alarmStates = new Map<string, { type: AlarmTransitionType; severityLevel: AlarmTransitionSeverityLevel }>();
     let eventIndex = 0;
 
-    for (let intervalStart = startTime; intervalStart < endTime; intervalStart += intervalMs) {
-      while (eventIndex < events.length && events[eventIndex].timestamp < intervalStart) {
-        const event = events[eventIndex];
+    for (let intervalStart = startTime; intervalStart <= endTime; intervalStart += intervalMs) {
+      while (eventIndex < alarmTransitionEvents.length && alarmTransitionEvents[eventIndex].occurredAtAsNumber <= intervalStart) {
+        const event = alarmTransitionEvents[eventIndex];
         alarmStates.set(event.alarmId, {
-          isActive: event.newState,
+          type: event.type,
           severityLevel: event.severityLevel
         });
         eventIndex++;
@@ -155,9 +148,9 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
         severityCounts.set(label, 0);
       });
       
-      alarmStates.forEach(({ isActive, severityLevel }) => {
+      alarmStates.forEach(({ type, severityLevel }) => {
         const severityGroup = this.getSeverityGroup(severityLevel);
-        if (isActive && severityGroup !== undefined) {
+        if (type === AlarmTransitionType.Set && severityGroup !== undefined) {
           const currentCount = severityCounts.get(severityGroup) ?? 0;
           severityCounts.set(severityGroup, currentCount + 1);
         }

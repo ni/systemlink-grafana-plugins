@@ -271,6 +271,339 @@ describe('AlarmsTrendQueryHandler', () => {
         expect(actualCounts.some(count => count > 0)).toBe(true);
         expect(maxCount).toBeLessThanOrEqual(2);
       });
+
+      it('should handle edge cases including boundary conditions, out-of-range transitions, and timing scenarios', async () => {
+        const startTime = new Date('2025-01-01T10:00:00.000Z');
+        const endTime = new Date('2025-01-01T11:00:00.000Z');
+        const intervalMs = 300000; // 5 minutes
+        
+        jest.spyOn(datastore.templateSrv, 'replace')
+          .mockImplementation((template?: string) => {
+            if (template === '${__from:date}') {
+              return startTime.toISOString();
+            }
+            if (template === '${__to:date}') {
+              return endTime.toISOString();
+            }
+            return template || '';
+          });
+
+        const edgeCaseAlarms = buildAlarmsResponse([
+          // Case 1: Alarm set exactly at start boundary
+          {
+            alarmId: 'BOUNDARY-START-SET',
+            transitions: [
+              {
+                transitionType: AlarmTransitionType.Set,
+                occurredAt: '2025-01-01T10:00:00.000Z', // Exactly at start
+                severityLevel: AlarmTransitionSeverityLevel.High,
+                value: 'Low',
+                condition: 'Boundary Start Set',
+                shortText: 'Set at start',
+                detailText: 'Alarm set exactly at query start time',
+                keywords: ['boundary', 'start'],
+                properties: {}
+              }
+            ]
+          },
+          
+          // Case 2: Alarm cleared exactly at end boundary
+          {
+            alarmId: 'BOUNDARY-END-CLEAR',
+            transitions: [
+              {
+                transitionType: AlarmTransitionType.Set,
+                occurredAt: '2025-01-01T09:30:00.000Z', // Before range
+                severityLevel: AlarmTransitionSeverityLevel.Moderate,
+                value: 'Moderate',
+                condition: 'Pre-range Set',
+                shortText: 'Set before range',
+                detailText: 'Alarm set before query range',
+                keywords: ['pre-range'],
+                properties: {}
+              },
+              {
+                transitionType: AlarmTransitionType.Clear,
+                occurredAt: '2025-01-01T11:00:00.000Z', // Exactly at end
+                severityLevel: AlarmTransitionSeverityLevel.Clear,
+                value: 'Clear',
+                condition: 'Boundary End Clear',
+                shortText: 'Clear at end',
+                detailText: 'Alarm cleared exactly at query end time',
+                keywords: ['boundary', 'end'],
+                properties: {}
+              }
+            ]
+          },
+
+          // Case 3: Alarm created outside range, transitioned within range
+          {
+            alarmId: 'OUTSIDE-TO-INSIDE',
+            transitions: [
+              {
+                transitionType: AlarmTransitionType.Set,
+                occurredAt: '2025-01-01T09:00:00.000Z', // Way before range
+                severityLevel: 3,
+                value: 'High',
+                condition: 'Outside Creation',
+                shortText: 'Created outside',
+                detailText: 'Alarm created outside query range',
+                keywords: ['outside'],
+                properties: {}
+              },
+              {
+                transitionType: AlarmTransitionType.Clear,
+                occurredAt: '2025-01-01T10:30:00.000Z', // Within range
+                severityLevel: AlarmTransitionSeverityLevel.Clear,
+                value: 'Clear',
+                condition: 'Inside Clear',
+                shortText: 'Cleared inside',
+                detailText: 'Alarm cleared within query range',
+                keywords: ['inside'],
+                properties: {}
+              },
+              {
+                transitionType: AlarmTransitionType.Set,
+                occurredAt: '2025-01-01T10:45:00.000Z', // Within range
+                severityLevel: AlarmTransitionSeverityLevel.Moderate,
+                value: 'Moderate',
+                condition: 'Inside Set',
+                shortText: 'Set inside',
+                detailText: 'Alarm set again within query range',
+                keywords: ['inside'],
+                properties: {}
+              }
+            ]
+          },
+
+          // Case 4: Alarm created within range, transitioned after range
+          {
+            alarmId: 'INSIDE-TO-OUTSIDE',
+            transitions: [
+              {
+                transitionType: AlarmTransitionType.Set,
+                occurredAt: '2025-01-01T10:15:00.000Z', // Within range
+                severityLevel: AlarmTransitionSeverityLevel.Critical,
+                value: 'Critical',
+                condition: 'Inside Creation',
+                shortText: 'Created inside',
+                detailText: 'Alarm created within query range',
+                keywords: ['inside'],
+                properties: {}
+              },
+              {
+                transitionType: AlarmTransitionType.Clear,
+                occurredAt: '2025-01-01T12:00:00.000Z', // After range
+                severityLevel: AlarmTransitionSeverityLevel.Clear,
+                value: 'Clear',
+                condition: 'Outside Clear',
+                shortText: 'Cleared outside',
+                detailText: 'Alarm cleared after query range',
+                keywords: ['outside'],
+                properties: {}
+              }
+            ]
+          },
+
+          // Case 5: Multiple rapid transitions at same timestamp
+          {
+            alarmId: 'RAPID-TRANSITIONS',
+            transitions: [
+              {
+                transitionType: AlarmTransitionType.Set,
+                occurredAt: '2025-01-01T10:20:00.000Z',
+                severityLevel: AlarmTransitionSeverityLevel.Low,
+                value: 'Low',
+                condition: 'Rapid 1',
+                shortText: 'Rapid set 1',
+                detailText: 'First rapid transition',
+                keywords: ['rapid'],
+                properties: {}
+              },
+              {
+                transitionType: AlarmTransitionType.Clear,
+                occurredAt: '2025-01-01T10:20:00.000Z', // Same timestamp
+                severityLevel: AlarmTransitionSeverityLevel.Clear,
+                value: 'Clear',
+                condition: 'Rapid Clear',
+                shortText: 'Rapid clear',
+                detailText: 'Rapid clear transition',
+                keywords: ['rapid'],
+                properties: {}
+              },
+              {
+                transitionType: AlarmTransitionType.Set,
+                occurredAt: '2025-01-01T10:20:00.000Z', // Same timestamp
+                severityLevel: AlarmTransitionSeverityLevel.High,
+                value: 'High',
+                condition: 'Rapid 2',
+                shortText: 'Rapid set 2',
+                detailText: 'Second rapid transition',
+                keywords: ['rapid'],
+                properties: {}
+              }
+            ]
+          },
+
+          // Case 6: Alarm with transitions only outside the range
+          {
+            alarmId: 'COMPLETELY-OUTSIDE',
+            transitions: [
+              {
+                transitionType: AlarmTransitionType.Set,
+                occurredAt: '2025-01-01T08:00:00.000Z', // Before range
+                severityLevel: AlarmTransitionSeverityLevel.Moderate,
+                value: 'Moderate',
+                condition: 'Outside Set',
+                shortText: 'Set outside',
+                detailText: 'Set before range',
+                keywords: ['outside'],
+                properties: {}
+              },
+              {
+                transitionType: AlarmTransitionType.Clear,
+                occurredAt: '2025-01-01T12:30:00.000Z', // After range
+                severityLevel: AlarmTransitionSeverityLevel.Clear,
+                value: 'Clear',
+                condition: 'Outside Clear',
+                shortText: 'Clear outside',
+                detailText: 'Cleared after range',
+                keywords: ['outside'],
+                properties: {}
+              }
+            ]
+          },
+
+          // Case 7: Alarm at exact interval boundaries
+          {
+            alarmId: 'INTERVAL-BOUNDARY',
+            transitions: [
+              {
+                transitionType: AlarmTransitionType.Set,
+                occurredAt: '2025-01-01T10:05:00.000Z', // Exactly at interval boundary (5min)
+                severityLevel: AlarmTransitionSeverityLevel.Low,
+                value: 'Low',
+                condition: 'Interval Boundary',
+                shortText: 'Set at interval',
+                detailText: 'Set exactly at interval boundary',
+                keywords: ['interval'],
+                properties: {}
+              },
+              {
+                transitionType: AlarmTransitionType.Clear,
+                occurredAt: '2025-01-01T10:35:00.000Z', // Exactly at another interval boundary
+                severityLevel: AlarmTransitionSeverityLevel.Clear,
+                value: 'Clear',
+                condition: 'Interval Boundary Clear',
+                shortText: 'Clear at interval',
+                detailText: 'Cleared exactly at interval boundary',
+                keywords: ['interval'],
+                properties: {}
+              }
+            ]
+          },
+
+          // Case 8: Alarm with no transitions (edge case)
+          {
+            alarmId: 'NO-TRANSITIONS',
+            transitions: []
+          },
+
+          // Case 9: Alarm with single transition exactly at query end
+          {
+            alarmId: 'END-BOUNDARY-SET',
+            transitions: [
+              {
+                transitionType: AlarmTransitionType.Set,
+                occurredAt: '2025-01-01T11:00:00.000Z', // Exactly at end
+                severityLevel: AlarmTransitionSeverityLevel.Moderate,
+                value: 'Moderate',
+                condition: 'End Boundary',
+                shortText: 'Set at end',
+                detailText: 'Set exactly at query end',
+                keywords: ['boundary'],
+                properties: {}
+              }
+            ]
+          }
+        ]);
+
+        backendServer.fetch
+          .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
+          .mockReturnValue(createFetchResponse({ 
+            alarms: edgeCaseAlarms, 
+            totalCount: edgeCaseAlarms.length, 
+            continuationToken: '' 
+          }));
+
+        const testOptions = {
+          ...options,
+          intervalMs: intervalMs
+        };
+
+        const result = await datastore.runQuery(query, testOptions);
+
+        expect(result.refId).toBe('A');
+        expect(result.fields).toHaveLength(2);
+        expect(result.fields[0].name).toBe('Time');
+        expect(result.fields[1].name).toBe('Alarms Count');
+
+        const timeValues = result.fields[0].values as number[];
+        const countValues = result.fields[1].values as number[];
+        expect(timeValues).toHaveLength(13);
+        expect(countValues).toHaveLength(13);
+
+        // Verify time values align with expected intervals
+        expect(timeValues[0]).toBe(startTime.getTime());
+        expect(timeValues[timeValues.length - 1]).toBe(endTime.getTime());
+
+        // Test specific edge case expectations based on the test data:
+
+        // 1. At start (10:00): 
+        // - BOUNDARY-START-SET becomes active at exactly 10:00
+        // - BOUNDARY-END-CLEAR was set at 09:30 (before range) so already active
+        // - OUTSIDE-TO-INSIDE was set at 09:00 (before range) so already active  
+        // - COMPLETELY-OUTSIDE was set at 08:00 (before range) so already active
+        expect(countValues[0]).toBe(4);
+
+        // 2. Around 10:05 interval: INTERVAL-BOUNDARY should become active
+        expect(countValues[1]).toBe(countValues[0] + 1);
+
+        // 3. Around 10:10 interval: State should remain same as 10:05, no new transitions
+        expect(countValues[2]).toBe(countValues[1]);
+
+        // 4. Around 10:15 interval: INSIDE-TO-OUTSIDE should become active
+        expect(countValues[3]).toBe(countValues[2] + 1);
+
+        // 5. Around 10:20 interval: RAPID-TRANSITIONS final state should be Set (after Set->Clear->Set at same time)
+        expect(countValues[4]).toBe(countValues[3] + 1);
+
+        // 6. Around 10:25 interval: All alarms from previous intervals should still be active
+        expect(countValues[5]).toBe(countValues[4]);
+
+        // 7. Around 10:30 interval: OUTSIDE-TO-INSIDE should be cleared
+        expect(countValues[6]).toBe(countValues[4] - 1);
+
+        // 8. Around 10:35 interval: INTERVAL-BOUNDARY should be cleared  
+        expect(countValues[7]).toBe(countValues[6] - 1);
+
+        // 9. Around 10:40 interval: State should remain same as 10:35, no new transitions
+        expect(countValues[8]).toBe(countValues[7]);
+
+        // 10. Around 10:45 interval: OUTSIDE-TO-INSIDE should be set again
+        expect(countValues[9]).toBe(countValues[7] + 1);
+
+        // 11. Around 10:50 interval: State should remain same as 10:45, no new transitions
+        expect(countValues[10]).toBe(countValues[9]);
+
+        // 12. Around 10:55 interval: State should remain same as 10:50, no new transitions
+        expect(countValues[11]).toBe(countValues[10]);
+
+        // 13. At end (11:00): 
+        // - BOUNDARY-END-CLEAR should be cleared at exactly 11:00
+        // - END-BOUNDARY-SET occurs at exactly 11:00
+        expect(countValues[12]).toBe(countValues[11]);
+      });
     });
 
     describe('groupBySeverity is true', () => {
@@ -520,7 +853,7 @@ describe('AlarmsTrendQueryHandler', () => {
 
       const result = await datastore.runQuery(query, shortIntervalOptions);
 
-      expect(result.fields?.[0]?.values?.length).toEqual(120); // 1 hour / 30 seconds = 120 intervals
+      expect(result.fields?.[0]?.values?.length).toEqual(121); // 1 hour / 30 seconds = 120 intervals + 1(last edge point);
     });
 
     it('should maintain alarm state transitions over time intervals', async () => {
