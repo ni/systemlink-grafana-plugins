@@ -6,6 +6,7 @@ import { AssetSummaryResponse } from 'datasources/asset/types/AssetSummaryQuery.
 import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from 'datasources/asset/types/types';
 import { AssetSummaryDataSource } from '../../../data-sources/asset-summary/AssetSummaryDataSource';
 import { assetSummaryFields } from '../../../constants/AssetSummaryQuery.constants';
+import { firstValueFrom, of, throwError } from 'rxjs';
 
 describe('AssetSummaryDataSource', () => {
   let dataSource: AssetSummaryDataSource;
@@ -41,16 +42,16 @@ describe('AssetSummaryDataSource', () => {
   });
 
   it('should get asset summary correctly', async () => {
-    jest.spyOn(dataSource, 'get').mockResolvedValue(assetSummary);
+    jest.spyOn(dataSource, 'get$').mockImplementation(() => of(assetSummary));
 
-    const result = await dataSource.getAssetSummary();
+    const result = await firstValueFrom(dataSource.getAssetSummary());
 
     expect(result).toEqual(assetSummary);
   });
 
   it('should handle error in getAssetSummary', async () => {
-    jest.spyOn(dataSource, 'get').mockRejectedValue(new Error('Network error'));
+    jest.spyOn(dataSource, 'get$').mockReturnValue(throwError(() => (new Error('Network error'))));
 
-    await expect(dataSource.getAssetSummary()).rejects.toThrow('Network error');
+    await expect(firstValueFrom(dataSource.getAssetSummary())).rejects.toThrow('Network error');
   });
 });

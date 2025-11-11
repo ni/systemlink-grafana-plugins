@@ -10,7 +10,7 @@ import { AssetFilterPropertiesOption, ListAssetsQuery, OutputType } from "../../
 import { ListAssetsFieldNames } from "../../constants/ListAssets.constants";
 import { MockProxy } from "jest-mock-extended";
 import { BackendSrv } from "@grafana/runtime";
-import { Field } from "@grafana/data";
+import { DataFrameDTO, Field } from "@grafana/data";
 import { AssetsResponse } from "datasources/asset-common/types";
 import { QUERY_LIMIT } from "datasources/asset/constants/constants";
 import { firstValueFrom, of } from "rxjs";
@@ -79,7 +79,7 @@ describe('List assets location queries', () => {
     let processlistAssetsQuerySpy: jest.SpyInstance;
 
     beforeEach(() => {
-        processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery$').mockImplementation();
+        processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery$').mockImplementation(() => of({} as DataFrameDTO));
     });
 
     test('should transform LOCATION field with single value', async () => {
@@ -196,7 +196,7 @@ describe('List assets "contains" queries', () => {
     let processlistAssetsQuerySpy: jest.SpyInstance;
 
     beforeEach(() => {
-        processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery$').mockImplementation();
+        processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery$').mockImplementation(() => of({} as DataFrameDTO));
     });
 
     describe('should transform single values for', () => {
@@ -342,7 +342,7 @@ describe('List assets "contains" queries', () => {
 
 describe('shouldRunQuery', () => {
     test('should not process query for hidden queries', async () => {
-        const processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery$').mockImplementation();
+        const processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery$').mockImplementation(() => of({} as DataFrameDTO));
         const query = buildListAssetsQuery({
             refId: '',
             type: AssetQueryType.ListAssets,
@@ -356,7 +356,7 @@ describe('shouldRunQuery', () => {
     });
 
     test('should process query for non-hidden queries', async () => {
-        const processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery$').mockImplementation();
+        const processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery$').mockImplementation(() => of({} as DataFrameDTO));
         const query = buildListAssetsQuery({
             refId: '',
             type: AssetQueryType.ListAssets,
@@ -818,7 +818,7 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.Properties,
             properties: [AssetFilterPropertiesOption.Keywords],
         });
-        const listAssetsResponse = of({
+        const listAssetsResponse = {
             assets: [
                 {
                     keywords: [
@@ -829,7 +829,7 @@ describe('shouldRunQuery', () => {
                         'keyword4',]
                 },
             ], totalCount: 1
-        })
+        }
         jest.spyOn(datastore, 'queryAssets$').mockImplementation(() => of(listAssetsResponse as unknown as AssetsResponse));
 
         const response = await firstValueFrom(datastore.query(query));;

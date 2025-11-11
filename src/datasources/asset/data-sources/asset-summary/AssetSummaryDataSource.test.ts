@@ -4,8 +4,8 @@ import {
 } from "test/fixtures";
 import { AssetQueryType } from "../../types/types";
 import { AssetSummaryDataSource } from "./AssetSummaryDataSource";
-import { AssetSummaryQuery } from "datasources/asset/types/AssetSummaryQuery.types";
-import { firstValueFrom } from "rxjs";
+import { AssetSummaryQuery, AssetSummaryResponse } from "datasources/asset/types/AssetSummaryQuery.types";
+import { firstValueFrom, of } from "rxjs";
 
 let datastore: AssetSummaryDataSource;
 
@@ -21,6 +21,7 @@ describe('Process summary queries', () => {
     let processSummaryQuerySpy: jest.SpyInstance;
 
     beforeEach(() => {
+        jest.spyOn(datastore, 'getAssetSummary').mockImplementation(() => of({} as AssetSummaryResponse));
         processSummaryQuerySpy = jest.spyOn(datastore, 'processSummaryQuery').mockImplementation();
     });
 
