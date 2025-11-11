@@ -23,7 +23,7 @@ export const labels = {
   properties: 'Properties',
   descending: 'Descending',
   take: 'Take',
-  groupBySeverity: 'Group by Severity',
+  groupBySeverity: 'Group by severity',
 };
 
 export const tooltips = {

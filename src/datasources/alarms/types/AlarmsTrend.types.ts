@@ -18,5 +18,5 @@ export interface AlarmTransitionEvent {
   occurredAtAsNumber: number;
   alarmId: string;
   type: AlarmTransitionType;
-  severityLevel: AlarmTransitionSeverityLevel
+  severityLevel: AlarmTransitionSeverityLevel;
 }
