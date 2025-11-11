@@ -223,7 +223,7 @@ describe("DataFrameQueryEditorV2", () => {
                 });
             });
 
-            describe("columns field", () => {
+            describe('columns field', () => {
               let columnsField: HTMLElement;
               let user: UserEvent;
 
@@ -288,60 +288,59 @@ describe("DataFrameQueryEditorV2", () => {
                 // Assert that no options are shown
                 expect(within(document.body).queryAllByRole('option').length).toBe(0);
               });
-              
+
               describe('column limit', () => {
-                  it('should not render warning alert when column limit is not exceeded', async () => {
+                it('should not render warning alert when column limit is not exceeded', async () => {
+                  await changeFilterValue();
+                  await clickColumnOptions();
+                  const optionTexts = getColumnOptionTexts();
+
+                  expect(optionTexts.length).toBeLessThanOrEqual(COLUMN_OPTION_LIMIT);
+                  await waitFor(() => {
+                    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+                  });
+                });
+
+                describe('when column limit is exceeded', () => {
+                  beforeEach(async () => {
+                    cleanup();
+                    const columnOptions = Array.from({ length: COLUMN_OPTION_LIMIT + 25 }, (_, i) => ({
+                      label: `Column${i + 1}`,
+                      value: `Column${i + 1}`,
+                    }));
+
+                    // Increase offsetHeight to allow more options to be rendered in the test environment
+                    jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(200);
+                    renderComponent({ dataTableFilter: ' ' }, '', '', columnOptions);
+
                     await changeFilterValue();
+                  });
+
+                  it(`should limit the number of column options to ${COLUMN_OPTION_LIMIT}`, async () => {
                     await clickColumnOptions();
                     const optionTexts = getColumnOptionTexts();
-                    
-                    expect(optionTexts.length).toBeLessThanOrEqual(COLUMN_OPTION_LIMIT);
+                    expect(optionTexts.length).toBe(COLUMN_OPTION_LIMIT);
+                  });
+
+                  it('should render warning alert when column limit is exceeded', async () => {
+                    await waitFor(() => {
+                      const alert = screen.getByRole('alert');
+                      expect(alert).toBeInTheDocument();
+                      expect(within(alert).getByText(/Warning/i)).toBeInTheDocument();
+                      expect(within(alert).getByText(errorMessages.columnLimitExceeded)).toBeInTheDocument();
+                    });
+                  });
+
+                  it('should hide the warning alert when filter is removed', async () => {
+                    user.clear(screen.getByTestId('filter-input'));
+                    user.type(screen.getByTestId('filter-input'), ' ');
+
                     await waitFor(() => {
                       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
                     });
                   });
-
-                  describe('when column limit is exceeded', () => {
-                    beforeEach(async () => {
-                      cleanup();
-                      const columnOptions = Array.from({ length: COLUMN_OPTION_LIMIT + 25 }, (_, i) => ({
-                        label: `Column${i + 1}`,
-                        value: `Column${i + 1}`,
-                      }));
-
-                      // Increase offsetHeight to allow more options to be rendered in the test environment
-                      jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(200);
-                      renderComponent({ dataTableFilter: ' ' }, '', '', columnOptions);
-
-                      await changeFilterValue();
-                    });
-
-                    it(`should limit the number of column options to ${COLUMN_OPTION_LIMIT}`, async () => {
-                      await clickColumnOptions();
-                      const optionTexts = getColumnOptionTexts();
-                      expect(optionTexts.length).toBe(COLUMN_OPTION_LIMIT);
-                    });
-
-                    it('should render warning alert when column limit is exceeded', async () => {
-                      await waitFor(() => {
-                        const alert = screen.getByRole('alert');
-                        expect(alert).toBeInTheDocument();
-                        expect(within(alert).getByText(/Warning/i)).toBeInTheDocument();
-                        expect(within(alert).getByText(errorMessages.columnLimitExceeded)).toBeInTheDocument();
-                      });
-                    });
-
-                    it('should hide the warning alert when filter is removed', async () => {
-                      user.clear(screen.getByTestId('filter-input'));
-                      user.type(screen.getByTestId('filter-input'), ' ');
-
-                      await waitFor(() => {
-                        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-                      });
-                    });
-                  });
+                });
               });
-
             });
 
             describe("include index columns", () => {
