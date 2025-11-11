@@ -34,6 +34,7 @@ describe('DataFrameDataSource', () => {
             getDecimatedTableData: jest.fn().mockResolvedValue('v1-decimated'),
             queryTables: jest.fn().mockResolvedValue(['v1-tables']),
             processQuery: jest.fn().mockReturnValue('v1-processed'),
+            processVariableQuery: jest.fn().mockReturnValue('v1-processed'),
         } as any;
 
         v2Mock = {
@@ -44,6 +45,7 @@ describe('DataFrameDataSource', () => {
             getDecimatedTableData: jest.fn().mockResolvedValue('v2-decimated'),
             queryTables: jest.fn().mockResolvedValue(['v2-tables']),
             processQuery: jest.fn().mockReturnValue('v2-processed'),
+            processVariableQuery: jest.fn().mockReturnValue('v2-processed'),
         } as any;
 
         (DataFrameDataSourceV1 as unknown as jest.Mock).mockImplementation(() => v1Mock);
@@ -75,6 +77,9 @@ describe('DataFrameDataSource', () => {
 
         expect(ds.processQuery({} as any)).toBe('v1-processed');
         expect(v1Mock.processQuery).toHaveBeenCalled();
+
+        expect(ds.processVariableQuery({} as any)).toBe('v1-processed');
+        expect(v1Mock.processVariableQuery).toHaveBeenCalled();
     });
 
     it('should use DataFrameDataSourceV2 if feature toggle is true', async () => {
@@ -102,6 +107,9 @@ describe('DataFrameDataSource', () => {
 
         expect(ds.processQuery({} as any)).toBe('v2-processed');
         expect(v2Mock.processQuery).toHaveBeenCalled();
+
+        expect(ds.processVariableQuery({} as any)).toBe('v2-processed');
+        expect(v2Mock.processVariableQuery).toHaveBeenCalled();
     });
 
     it('should set defaultQuery to defaultQueryV1 when datasource is DataFrameDataSourceV1 with refId "A"', () => {

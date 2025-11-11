@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TimeRange } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { DataFrameDataSourceBase } from './DataFrameDataSourceBase';
-import { DataFrameQuery, DataFrameDataSourceOptions, TableProperties, TableDataRows, Column } from './types';
+import { DataFrameQuery, DataFrameDataSourceOptions, TableProperties, TableDataRows, Column, DataFrameVariableQuery, ValidDataFrameVariableQuery, DataFrameDataQuery } from './types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { Workspace } from 'core/types';
 
@@ -46,7 +46,7 @@ describe('DataFrameDataSourceBase', () => {
     class TestDataFrameDataSource extends DataFrameDataSourceBase {
         defaultQuery = {} as DataFrameQuery;
 
-        runQuery(_query: DataFrameQuery, _options: DataQueryRequest): Promise<DataFrameDTO> {
+        runQuery(_query: DataFrameDataQuery, _options: DataQueryRequest): Promise<DataFrameDTO> {
             throw new Error('Method not implemented.');
         }
 
@@ -54,8 +54,12 @@ describe('DataFrameDataSourceBase', () => {
             throw new Error('Method not implemented.');
         }
 
-        public processQuery(query: DataFrameQuery) {
+        public processQuery(query: DataFrameDataQuery) {
             return query as any;
+        }
+
+        public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
+            return query as ValidDataFrameVariableQuery;
         }
 
         public getTableProperties(_id?: string): Promise<TableProperties> {
@@ -63,7 +67,7 @@ describe('DataFrameDataSourceBase', () => {
         }
 
         public getDecimatedTableData(
-            _query: DataFrameQuery,
+            _query: DataFrameDataQuery,
             _columns: Column[],
             _timeRange: TimeRange,
             _intervals?: number
@@ -108,9 +112,10 @@ describe('DataFrameDataSourceBase', () => {
     it('should call abstract methods without error', async () => {
         const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
 
-        expect(ds.processQuery({} as DataFrameQuery)).toEqual({});
+        expect(ds.processQuery({} as DataFrameDataQuery)).toEqual({});
+        expect(ds.processVariableQuery({} as DataFrameVariableQuery)).toEqual({});
         await expect(ds.getTableProperties()).resolves.toEqual({});
-        await expect(ds.getDecimatedTableData({} as DataFrameQuery, [], {} as TimeRange)).resolves.toEqual([]);
+        await expect(ds.getDecimatedTableData({} as DataFrameDataQuery, [], {} as TimeRange)).resolves.toEqual([]);
         await expect(ds.queryTables('')).resolves.toEqual([]);
     });
 

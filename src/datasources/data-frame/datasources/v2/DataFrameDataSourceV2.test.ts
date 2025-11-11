@@ -1,7 +1,7 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
-import { DataFrameQuery, DataFrameQueryType, DataFrameQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultDatatableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
+import { DataFrameDataQuery, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultDatatableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
 import { TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
@@ -634,7 +634,7 @@ describe('DataFrameDataSourceV2', () => {
 
     describe('processQuery', () => {
         it('should return the query with default values when all the fields from `ValidDataFrameQueryV2` are missing', () => {
-            const query = {} as DataFrameQuery;
+            const query = {} as DataFrameDataQuery;
             const expectedQuery = {
                 type: DataFrameQueryType.Data,
                 dataTableFilter: '',
@@ -655,7 +655,7 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         it('should return the query with default values for missing fields when some of the fields from `ValidDataFrameQueryV2` are missing', () => {
-            const query = { decimationMethod: 'MAX_MIN', applyTimeFilters: true } as DataFrameQuery;
+            const query = { decimationMethod: 'MAX_MIN', applyTimeFilters: true } as DataFrameDataQuery;
             const expectedQuery = {
                 type: DataFrameQueryType.Data,
                 dataTableFilter: '',
@@ -673,6 +673,25 @@ describe('DataFrameDataSourceV2', () => {
             const result = ds.processQuery(query);
 
             expect(result).toEqual(expectedQuery);
+        });
+    });
+
+    describe('processVariableQuery', () => {
+        it('should return the query with default values when all the fields from `ValidDataFrameVariableQueryV2` are missing', () => {
+            const result = ds.processVariableQuery({} as DataFrameVariableQuery);
+            expect(result).toEqual({
+                queryType: DataFrameVariableQueryType.ListDataTables,
+                dataTableFilter: ''
+            });
+        });
+
+        it('should return the query with default values for missing fields when some of the fields from `ValidDataFrameVariableQueryV2` are missing', () => {
+            const query = { dataTableFilter: 'name = "test table"' } as DataFrameVariableQuery;
+            const result = ds.processVariableQuery(query);
+            expect(result).toEqual({
+                queryType: DataFrameVariableQueryType.ListDataTables,
+                dataTableFilter: 'name = "test table"'
+            });
         });
     });
 
