@@ -74,6 +74,21 @@ function transformBasedOnContainsOperations(query: string, field: string, transf
     });
 }
 
+/**
+ * The function will replace inner query with Any operation with their transformation.
+ * 
+ * Use Cases:
+ * 1. List-based operations: Handles operations like 'Contains' for instance of the list fields.
+ *   Example: keywords.Any(it.Contains({ "key1", "key2" })) => keywords.Any(it.Contains("key1") || it.Contains("key2"))
+ * 2. Negated list-based operations: Handles negated operations like 'NotContains' for instance of the list fields.
+ *   Example: keywords.Any(!it.Contains({ "key1", "key2" })) => !keywords.Any(it.Contains("key1") || it.Contains("key2"))
+ * 
+ * @param query Query string containing one or more instances of the Any operation to be transformed.
+ * @param field Name of the field on which the Any operation is performed.
+ * @param transformation callback function that transforms the value based on the operation.
+ * @param options The options to be used in the transformation
+ * @returns Transformed query string with Any operations processed.
+ */
 function transformBasedOnAnyOperation(
   query: string,
   field: string,
@@ -83,10 +98,15 @@ function transformBasedOnAnyOperation(
   const anyRegex = new RegExp(`\\b${field}\\.Any\\s*\\((.*)\\)`, 'g');
 
   return query.replace(anyRegex, (_match, innerPredicate: string) => {
-    options = options ?? new Map<string, Map<string, unknown>>();
-    options.set('it', new Map<string, unknown>([['subField', 'it']]));
-    const innerTransformation = transformBasedOnContainsOperations(innerPredicate, 'it', transformation, options);
-    return `${field}.Any(${innerTransformation})`;
+    const containsRegex = new RegExp(String.raw`(?:!(it\.Contains\("([^"]*)"\))|(it\.Contains\("([^"]*)"\)))`, 'g');
+    const transformedPredicate = innerPredicate.replace(containsRegex, (_match, _negatedMatch, negatedValue, _positiveMatch, positiveValue) => {
+        const extractedValue = negatedValue || positiveValue;
+
+        return transformation(extractedValue, QueryBuilderOperations.LIST_CONTAINS.name, options?.get(field));
+    });
+
+    const isNegated = innerPredicate.includes('!');
+    return isNegated ? `!${field}.Any(${transformedPredicate})` : `${field}.Any(${transformedPredicate})`;
   });
 }
 
@@ -210,16 +230,20 @@ export function timeFieldsQuery(field: string): ExpressionTransformFunction {
   };
 }
 
+/**
+ * Returns a function that builds a query expression for list fields.
+ * When the operation is listcontains, it transforms it to a Contains operation on the inner field named'it'.
+ * 
+ * @param field - The name of the list field to be queried.
+ * @returns Callback function that builds a query expression for list fields.
+ */
 export function listFieldQuery(field: string): ExpressionTransformFunction {
   return (value: string, operation: string, options?: Map<string, unknown>) => {
-    // if (operation === QueryBuilderOperations.LIST_CONTAINS.name) {
-    //   return multipleValuesQuery('it')(value, QueryBuilderOperations.CONTAINS.name);
-    // } else if (operation === QueryBuilderOperations.LIST_DOES_NOT_CONTAIN.name) {
-    //   return multipleValuesQuery('it')(value, QueryBuilderOperations.DOES_NOT_CONTAIN.name);
-    // }
-    const subField = options?.get('subField') as string ?? field;
+    const [updatedFieldName, updatedOperation] = operation === QueryBuilderOperations.LIST_CONTAINS.name
+      ? ['it', QueryBuilderOperations.CONTAINS.name]
+      : [field, operation];
     
-    return multipleValuesQuery(subField)(value, operation);
+    return multipleValuesQuery(updatedFieldName)(value, updatedOperation);
   };
 }
 
@@ -265,7 +289,7 @@ export function multipleValuesQuery(field: string): ExpressionTransformFunction 
  * @param operation The operation to be checked.
  * @returns The logical operator as a string.
  */
-export function getConcatOperatorForMultiExpression(operation: string, negation = false): string {
+export function getConcatOperatorForMultiExpression(operation: string): string {
   return (
     operation === QueryBuilderOperations.EQUALS.name
     || operation === QueryBuilderOperations.CONTAINS.name
