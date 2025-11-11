@@ -67,7 +67,7 @@ describe('DataFrameVariableQueryEditorV2', () => {
             renderComponent();
             const combobox = screen.getByRole('combobox') as HTMLSelectElement;
 
-            expect(combobox.value).toBe('List Data tables');
+            expect(combobox.value).toBe('List data tables');
         });
 
         it('should show the expected options in the query type combobox', async () => {
@@ -80,8 +80,8 @@ describe('DataFrameVariableQueryEditorV2', () => {
             const optionControls = within(document.body).getAllByRole('option');
             const optionValues = optionControls.map(option => option.textContent);
             expect(optionValues).toEqual([
-                'List Data tables',
-                'List Data table columns'
+                'List data tables',
+                'List data table columns'
             ]);
         });
 

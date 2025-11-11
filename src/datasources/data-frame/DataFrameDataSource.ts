@@ -36,7 +36,10 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.shouldRunQuery(query as any);
   }
 
-  public metricFindQuery(query: DataFrameVariableQuery, options: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
+  public metricFindQuery(
+    query: DataFrameVariableQuery,
+    options: LegacyMetricFindQueryOptions
+  ): Promise<MetricFindValue[]> {
     return this.datasource.metricFindQuery(query, options);
   }
 

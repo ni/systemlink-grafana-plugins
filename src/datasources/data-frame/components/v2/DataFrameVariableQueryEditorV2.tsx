@@ -6,10 +6,10 @@ import { DataFrameVariableQuery, DataFrameVariableQueryType, Props } from "datas
 import React from "react";
 
 export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChange, datasource }: Props) => {
-    const migratedQuery = datasource.processVariableQuery(query) as DataFrameVariableQuery;
+    const migratedQuery = datasource.processVariableQuery(query);
     const queryTypeOptions = [
-        { label: 'List Data tables', value: DataFrameVariableQueryType.ListDataTables },
-        { label: 'List Data table columns', value: DataFrameVariableQueryType.ListColumns },
+        { label: 'List data tables', value: DataFrameVariableQueryType.ListDataTables },
+        { label: 'List data table columns', value: DataFrameVariableQueryType.ListColumns },
     ];
 
     const onQueryTypeChange = (option: ComboboxOption<string>) => {
