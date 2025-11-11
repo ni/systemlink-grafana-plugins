@@ -125,8 +125,8 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     return tableProperties.columns.map(col => ({ text: col.name, value: col.name }));
   }
 
-  public processVariableQuery(_query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
-    throw new Error('Method not implemented.');
+  public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
+    return query as ValidDataFrameVariableQuery;
   }
 
   private getColumnTypes(columnNames: string[], tableProperties: Column[]): Column[] {
