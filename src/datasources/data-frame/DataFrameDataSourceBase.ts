@@ -68,7 +68,7 @@ export abstract class DataFrameDataSourceBase<
         }
     }
 
-    public getColumnOptions(_filter: string): Promise<ComboboxOption[]> {
+    public async getColumnOptions(filter: string): Promise<ComboboxOption[]> {
         return Promise.resolve([]);
     }
 
