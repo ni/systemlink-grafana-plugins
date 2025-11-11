@@ -153,7 +153,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     };
 
     /**
-     * Formats column options for the dropdown, formatting labels with data types.
+     * Formats column options for the dropdown.
      */
     private formatColumnOptions(columnTypeMap: Record<string, Set<string>>): ComboboxOption[] {
         const options: ComboboxOption[] = [];
@@ -165,7 +165,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 // Single type: show just the name as label and value as name with type in sentence case
                 options.push({ label: name, value: `${name}-${columnDataType[0]}` }); 
             } else {
-                // Multiple types: show each type in label and value
+                // Multiple types: show type in label and value
                 columnDataType.forEach(type => {
                     options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
                 });

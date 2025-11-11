@@ -1,8 +1,3 @@
-jest.mock('datasources/data-frame/constants', () => ({
-    COLUMN_OPTION_LIMIT: 10,
-    TAKE_LIMIT: 1000
-}));
-
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
