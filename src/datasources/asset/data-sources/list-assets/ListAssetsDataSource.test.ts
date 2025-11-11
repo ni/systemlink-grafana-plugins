@@ -848,7 +848,7 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.Properties,
             properties: [AssetFilterPropertiesOption.ScanCode],
         });
-        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(mockListAssets)
+        jest.spyOn(datastore, 'queryAssets$').mockImplementation(() => of(mockListAssets));
 
         const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
