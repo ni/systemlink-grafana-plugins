@@ -121,14 +121,17 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             DataTableProjections.ColumnType,
         ]);
 
-        if (tables.length === 0 || !tables.some(table => table.columns && table.columns.length > 0)) {
+        const hasColumns = tables.some(
+            table => Array.isArray(table.columns)
+                && table.columns.length > 0
+        );
+        if (!hasColumns) {
             return [];
         }
 
         const columnTypeMap = this.createColumnTypeMap(tables);
-        const formattedOptions = this.formatColumnOptions(columnTypeMap);
 
-        return formattedOptions.map(column => ({ label: column.label, value: column.value }));
+        return this.formatColumnOptions(columnTypeMap);
     }
 
     /**
@@ -150,7 +153,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     };
 
     /**
-     * Formats column options for the dropdown, grouping numeric types and formatting labels.
+     * Formats column options for the dropdown, formatting labels with data types.
      */
     private formatColumnOptions(columnTypeMap: Record<string, Set<string>>): ComboboxOption[] {
         const options: ComboboxOption[] = [];
@@ -162,8 +165,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 // Single type: show just the name as label and value as name with type in sentence case
                 options.push({ label: name, value: `${name}-${columnDataType[0]}` }); 
             } else {
-                // Multiple types: group numeric, show each type in label and value
-                Array.from(new Set(columnDataType)).forEach(type => {
+                // Multiple types: show each type in label and value
+                columnDataType.forEach(type => {
                     options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
                 });
             }
