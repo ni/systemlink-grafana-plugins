@@ -1,3 +1,8 @@
+jest.mock('datasources/data-frame/constants', () => {
+    const actual = jest.requireActual('datasources/data-frame/constants');
+    return { ...actual, COLUMN_OPTION_LIMIT: 10 }; // reduce column option limit for these tests
+});
+
 import React from "react";
 import { cleanup, render, RenderResult, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
@@ -6,6 +11,8 @@ import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQue
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { QueryBuilderOption, Workspace } from "core/types";
 import { select } from "react-select-event";
+import { COLUMN_OPTION_LIMIT } from "datasources/data-frame/constants";
+import { ComboboxOption } from "@grafana/ui";
 import { errorMessages } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
 
 jest.mock("./query-builders/DataTableQueryBuilder", () => ({
@@ -61,7 +68,7 @@ const renderComponent = (
     queryOverrides: Partial<DataFrameQueryV2> = {},
     errorTitle = '',
     errorDescription = '',
-    isColumnLimitExceeded = false
+    columnOptions: ComboboxOption[]= []
 ) => {
     const onChange = jest.fn();
     const onRunQuery = jest.fn();
@@ -71,7 +78,6 @@ const renderComponent = (
     const datasource = {
         errorTitle,
         errorDescription,
-        isColumnLimitExceeded,
         processQuery,
         loadWorkspaces: jest.fn().mockResolvedValue(
             [
@@ -98,6 +104,7 @@ const renderComponent = (
                 { label: 'ColumnB (String)', value: 'ColumnB-String' },
                 { label: 'ColumnD (String)', value: 'ColumnD-String' },
                 { label: 'ColumnE', value: 'ColumnE' },
+                ...columnOptions
             ]
         )
     } as unknown as DataFrameDataSource;
@@ -198,53 +205,6 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
-        describe('warning alert', () => {
-            beforeEach(() => {
-                cleanup();
-            });
-            describe('column limit', () => {
-                it('should render a warning alert when column limit is exceeded', async () => {
-                  renderComponent({}, '', '', true);
-    
-                  await waitFor(() => {
-                    const alert = screen.getByRole('alert');
-                    expect(alert).toBeInTheDocument();
-                    expect(within(alert).getByText(/Warning/i)).toBeInTheDocument();
-                    expect(within(alert).getByText(errorMessages.columnLimitExceeded)).toBeInTheDocument();
-                  });
-                });
-    
-                it('should not render a warning alert when column limit is not exceeded', async () => {
-                  renderComponent({}, '', '', false);
-                  await waitFor(() => {
-                    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-                  });
-                });
-    
-                it('should hide the warning alert when filter is removed', async () => {
-                  cleanup();
-                  renderComponent({ dataTableFilter: 'test filter' }, '', '', true);
-                  const filterInput = screen.getByTestId('filter-input');
-                  const user = userEvent.setup();
-    
-                  await waitFor(() => {
-                    const alert = screen.getByRole('alert');
-    
-                    expect(alert).toBeInTheDocument();
-                    expect(within(alert).getByText(/Warning/i)).toBeInTheDocument();
-                    expect(within(alert).getByText(errorMessages.columnLimitExceeded)).toBeInTheDocument();
-                  });
-    
-                  await user.clear(filterInput);
-                  await user.type(filterInput, ' ');
-    
-                  await waitFor(() => {
-                    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-                  });
-                });
-            });
-        });
-
         describe("data table query builder", () => {
             it("should show the 'DataTableQueryBuilder' component", async () => {
                 await waitFor(() => {
@@ -264,59 +224,124 @@ describe("DataFrameQueryEditorV2", () => {
             });
 
             describe("columns field", () => {
-                let columnsField: HTMLElement;
+              let columnsField: HTMLElement;
+              let user: UserEvent;
 
-                beforeEach(() => {
-                    columnsField = screen.getAllByRole('combobox')[0];
+              async function changeFilterValue() {
+                const filterInput = screen.getByTestId('filter-input');
+                user = userEvent.setup();
+
+                await user.clear(filterInput);
+                await user.type(filterInput, 'new filter');
+              }
+
+              // Helper function to get column option texts
+              async function clickColumnOptions() {
+                const columnsCombobox = screen.getAllByRole('combobox')[0];
+                await userEvent.click(columnsCombobox);
+              }
+
+              function getColumnOptionTexts() {
+                const optionControls = within(document.body).getAllByRole('option');
+                return optionControls.map(opt => opt.textContent);
+              }
+
+              beforeEach(() => {
+                columnsField = screen.getAllByRole('combobox')[0];
+              });
+
+              it('should show the columns field', () => {
+                expect(columnsField).toBeInTheDocument();
+                expect(columnsField).toHaveAttribute('aria-expanded', 'false');
+                expect(columnsField).toHaveDisplayValue('');
+              });
+
+              it('should load columns combobox options when filter changes', async () => {
+                await changeFilterValue();
+
+                await waitFor(() => {
+                  expect(onChange).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                      dataTableFilter: 'new filter',
+                    })
+                  );
                 });
 
-                it("should show the columns field", () => {
-                    expect(columnsField).toBeInTheDocument();
-                    expect(columnsField).toHaveAttribute('aria-expanded', 'false');
-                    expect(columnsField).toHaveDisplayValue('');
-                });
+                await clickColumnOptions();
+                const optionTexts = getColumnOptionTexts();
+                expect(optionTexts).toEqual(
+                  expect.arrayContaining([
+                    'ColumnA',
+                    'ColumnB (Numeric)',
+                    'ColumnB (String)',
+                    'ColumnD (String)',
+                    'ColumnE',
+                  ])
+                );
+              });
 
-                it('should load columns combobox options when filter changes', async () => {
-                    const filterInput = screen.getByTestId("filter-input");
-                    const user = userEvent.setup();
+              it('should not load column options when filter is empty', async () => {
+                renderComponent({ dataTableFilter: '' });
 
-                    await user.clear(filterInput);
-                    await user.type(filterInput, "new filter");
+                await clickColumnOptions();
 
+                // Assert that no options are shown
+                expect(within(document.body).queryAllByRole('option').length).toBe(0);
+              });
+              
+              describe('column limit', () => {
+                  it('should not render warning alert when column limit is not exceeded', async () => {
+                    await changeFilterValue();
+                    await clickColumnOptions();
+                    const optionTexts = getColumnOptionTexts();
+                    
+                    expect(optionTexts.length).toBeLessThanOrEqual(COLUMN_OPTION_LIMIT);
                     await waitFor(() => {
-                        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                            dataTableFilter: "new filter",
-                        }));
+                      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+                    });
+                  });
+
+                  describe('when column limit is exceeded', () => {
+                    beforeEach(async () => {
+                      cleanup();
+                      const columnOptions = Array.from({ length: COLUMN_OPTION_LIMIT + 25 }, (_, i) => ({
+                        label: `Column${i + 1}`,
+                        value: `Column${i + 1}`,
+                      }));
+
+                      // Increase offsetHeight to allow more options to be rendered in the test environment
+                      jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(200);
+                      renderComponent({ dataTableFilter: ' ' }, '', '', columnOptions);
+
+                      await changeFilterValue();
                     });
 
-                    // Click on column combobox to load options
-                    const columnsCombobox = screen.getAllByRole('combobox')[0];
-                    await userEvent.click(columnsCombobox);
+                    it(`should limit the number of column options to ${COLUMN_OPTION_LIMIT}`, async () => {
+                      await clickColumnOptions();
+                      const optionTexts = getColumnOptionTexts();
+                      expect(optionTexts.length).toBe(COLUMN_OPTION_LIMIT);
+                    });
 
-                    // Find all option controls by role 'option'
-                    const optionControls = within(document.body).getAllByRole('option');
-                    const optionTexts = optionControls.map(opt => opt.textContent);
-                    expect(optionTexts).toEqual(expect.arrayContaining(
-                        [
-                            'ColumnA',
-                            'ColumnB (Numeric)',
-                            'ColumnB (String)',
-                            'ColumnD (String)',
-                            'ColumnE'
-                        ]
-                    ));
-                });
+                    it('should render warning alert when column limit is exceeded', async () => {
+                      await waitFor(() => {
+                        const alert = screen.getByRole('alert');
+                        expect(alert).toBeInTheDocument();
+                        expect(within(alert).getByText(/Warning/i)).toBeInTheDocument();
+                        expect(within(alert).getByText(errorMessages.columnLimitExceeded)).toBeInTheDocument();
+                      });
+                    });
 
-                it('should not load column options when filter is empty', async () => {
-                    renderComponent({ dataTableFilter: "" });
-                
-                    // Click on column combobox to load options
-                    const columnsCombobox = screen.getAllByRole('combobox')[0];
-                    await userEvent.click(columnsCombobox);
-                
-                    // Assert that no options are shown
-                    expect(within(document.body).queryAllByRole('option').length).toBe(0);
-                });
+                    it('should hide the warning alert when filter is removed', async () => {
+                      user.clear(screen.getByTestId('filter-input'));
+                      user.type(screen.getByTestId('filter-input'), ' ');
+
+                      await waitFor(() => {
+                        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+                      });
+                    });
+                  });
+              });
+
             });
 
             describe("include index columns", () => {
