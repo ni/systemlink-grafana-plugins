@@ -5,6 +5,7 @@ import { AssetDataSourceBase } from '../AssetDataSourceBase';
 import { AssetCalibrationForecastKey, AssetCalibrationTimeBasedGroupByType, CalibrationForecastQuery, CalibrationForecastResponse, ColumnDescriptorType, FieldDTOWithDescriptor } from '../../types/CalibrationForecastQuery.types';
 import { transformComputedFieldsQuery } from '../../../../core/query-builder.utils';
 import { AssetModel, AssetsResponse } from '../../../asset-common/types';
+import { forkJoin, map, Observable, switchMap } from 'rxjs';
 
 export class CalibrationForecastDataSource extends AssetDataSourceBase {
     private dependenciesLoadedPromise: Promise<void>;
@@ -39,20 +40,23 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
         ...AssetTypeOptions.map(assetType => [assetType.value, assetType.label]) as Array<[AssetType, string]>
     ]);
 
-    async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    runQuery(query: AssetQuery, options: DataQueryRequest): Observable<DataFrameDTO> {
         const calibrationForecastQuery = query as CalibrationForecastQuery;
-        await this.dependenciesLoadedPromise;
-        this.validateQueryRange(calibrationForecastQuery, options);
 
-        if (calibrationForecastQuery.filter) {
-            calibrationForecastQuery.filter = transformComputedFieldsQuery(
-                this.templateSrv.replace(calibrationForecastQuery.filter, options.scopedVars),
-                this.assetComputedDataFields,
-                this.queryTransformationOptions
-            );
-        }
+        return forkJoin([this.dependenciesLoadedPromise]).pipe(
+            switchMap(() => {
+                this.validateQueryRange(calibrationForecastQuery, options);
 
-        return await this.processCalibrationForecastQuery(calibrationForecastQuery, options);
+                if (calibrationForecastQuery.filter) {
+                    calibrationForecastQuery.filter = transformComputedFieldsQuery(
+                        this.templateSrv.replace(calibrationForecastQuery.filter, options.scopedVars),
+                        this.assetComputedDataFields,
+                        this.queryTransformationOptions
+                    );
+                }
+
+                return this.processCalibrationForecastQuery$(calibrationForecastQuery, options);
+            }));
     }
 
     shouldRunQuery(query: CalibrationForecastQuery): boolean {
@@ -64,28 +68,28 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
         return { status: 'success', message: 'Data source connected and authentication successful!' };
     }
 
-    async processCalibrationForecastQuery(query: CalibrationForecastQuery, options: DataQueryRequest) {
+    processCalibrationForecastQuery$(query: CalibrationForecastQuery, options: DataQueryRequest): Observable<DataFrameDTO> {
         const result: DataFrameDTO = { refId: query.refId, fields: [] };
         const from = options.range!.from.utc().toISOString();
         const to = options.range!.to.utc().toISOString();
 
-        const calibrationForecastResponse: CalibrationForecastResponse = await this.queryCalibrationForecast(
+        return this.queryCalibrationForecast$(
             query.groupBy,
             from,
             to,
             query.filter
-        );
+        ).pipe(
+            map((calibrationForecastResponse: CalibrationForecastResponse) => {
+                result.fields = calibrationForecastResponse.calibrationForecast.columns || [];
 
-        result.fields = calibrationForecastResponse.calibrationForecast.columns || [];
+                const timeGrouping = this.getTimeGroup(query);
+                if (timeGrouping) {
+                    this.processResultsGroupedByTime(result, timeGrouping, options)
+                } else {
+                    this.processResultsGroupedByProperties(result)
+                }
 
-        const timeGrouping = this.getTimeGroup(query);
-        if (timeGrouping) {
-            this.processResultsGroupedByTime(result, timeGrouping, options)
-        } else {
-            this.processResultsGroupedByProperties(result)
-        }
-
-        return result;
+                return result;}));
     }
 
     getTimeGroup(query: CalibrationForecastQuery) {
@@ -240,10 +244,10 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
         }
     }
 
-    async queryCalibrationForecast(groupBy: string[], startTime: string, endTime: string, filter = '', includeOnlyDataInTimeRange = true): Promise<CalibrationForecastResponse> {
+    queryCalibrationForecast$(groupBy: string[], startTime: string, endTime: string, filter = '', includeOnlyDataInTimeRange = true): Observable<CalibrationForecastResponse> {
         let data = { groupBy, startTime, endTime, filter, includeOnlyDataInTimeRange };
         try {
-            let response = await this.post<CalibrationForecastResponse>(this.baseUrl + '/assets/calibration-forecast', data);
+            let response = this.post$<CalibrationForecastResponse>(this.baseUrl + '/assets/calibration-forecast', data);
             return response;
         } catch (error) {
             throw new Error(`An error occurred while querying assets calibration forecast: ${error}`);

@@ -9,6 +9,7 @@ import { buildExpressionFromTemplate, ExpressionTransformFunction, getConcatOper
 import { QueryBuilderOperations } from "../../../core/query-builder.constants";
 import { AllFieldNames, LocationFieldNames } from "../constants/constants";
 import { ListLocationsResponse, LocationModel } from "../types/ListLocations.types";
+import { Observable } from "rxjs";
 
 export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
   private systemsLoaded!: () => void;
@@ -26,7 +27,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
   public readonly workspacesCache = new Map<string, Workspace>([]);
 
 
-  abstract runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
+  abstract runQuery(query: AssetQuery, options: DataQueryRequest): Observable<DataFrameDTO>;
 
   abstract shouldRunQuery(query: AssetQuery): boolean;
 

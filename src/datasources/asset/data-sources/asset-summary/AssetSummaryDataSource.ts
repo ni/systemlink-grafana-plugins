@@ -5,6 +5,8 @@ import { AssetSummaryResponse } from 'datasources/asset/types/AssetSummaryQuery.
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
 import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../types/types';
 import { assetSummaryFields } from '../../constants/AssetSummaryQuery.constants';
+import { forkJoin, Observable, of, switchMap } from 'rxjs';
+
 export class AssetSummaryDataSource extends AssetDataSourceBase {
     constructor(
         readonly instanceSettings: DataSourceInstanceSettings<AssetDataSourceOptions>,
@@ -20,17 +22,19 @@ export class AssetSummaryDataSource extends AssetDataSourceBase {
         type: AssetQueryType.AssetSummary,
     };
 
-    async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-        return this.processSummaryQuery(query as AssetQuery);
+    runQuery(query: AssetQuery, options: DataQueryRequest): Observable<DataFrameDTO> {
+        return forkJoin([this.getAssetSummary()]).pipe(
+            switchMap(([assetSummary] : [AssetSummaryResponse]) => {
+                return of(this.processSummaryQuery(query, assetSummary));
+            })
+        );
     }
 
     shouldRunQuery(query: AssetQuery): boolean {
         return !query.hide;
     }
 
-    async processSummaryQuery(query: AssetQuery) {
-        const assets: AssetSummaryResponse = await this.getAssetSummary();
-
+    processSummaryQuery(query: AssetQuery, assets: AssetSummaryResponse) {
         return {
             refId: query.refId,
             fields: [
@@ -43,9 +47,9 @@ export class AssetSummaryDataSource extends AssetDataSourceBase {
         };
     }
 
-    async getAssetSummary(): Promise<AssetSummaryResponse> {
+    getAssetSummary(): Observable<AssetSummaryResponse> {
         try {
-            return await this.get<AssetSummaryResponse>(this.baseUrl + '/asset-summary');
+            return this.get$<AssetSummaryResponse>(this.baseUrl + '/asset-summary');
         } catch (error) {
             throw new Error(`An error occurred while getting asset summary: ${error}`);
         }

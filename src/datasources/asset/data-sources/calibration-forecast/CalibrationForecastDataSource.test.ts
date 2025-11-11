@@ -574,7 +574,7 @@ describe('Asset calibration location queries', () => {
   let processCalibrationForecastQuerySpy: jest.SpyInstance;
 
   beforeEach(() => {
-    processCalibrationForecastQuerySpy = jest.spyOn(datastore, 'processCalibrationForecastQuery').mockImplementation();
+    processCalibrationForecastQuerySpy = jest.spyOn(datastore, 'processCalibrationForecastQuery$').mockImplementation();
   });
 
   test('should transform LOCATION field with single value', async () => {
@@ -682,7 +682,7 @@ describe('Asset calibration "contains" queries', () => {
   let processCalibrationForecastQuerySpy: jest.SpyInstance;
 
   beforeEach(() => {
-    processCalibrationForecastQuerySpy = jest.spyOn(datastore, 'processCalibrationForecastQuery').mockImplementation();
+    processCalibrationForecastQuerySpy = jest.spyOn(datastore, 'processCalibrationForecastQuery$').mockImplementation();
   });
 
   describe('should transform single values for', () => {
