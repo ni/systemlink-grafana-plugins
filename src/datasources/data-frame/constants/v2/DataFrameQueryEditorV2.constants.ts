@@ -31,7 +31,7 @@ export const labels = {
     columnConfigurations: 'Column configurations',
     decimationSettings: 'Decimation settings',
     queryByDataTableProperties: 'Query by data table properties',
-    queryByResults: 'Query by results',
+    queryByResults: 'Query by results properties',
     queryByColumnProperties: 'Query by column properties',
     columns: 'Columns',
     filterNulls: 'Filter nulls',
