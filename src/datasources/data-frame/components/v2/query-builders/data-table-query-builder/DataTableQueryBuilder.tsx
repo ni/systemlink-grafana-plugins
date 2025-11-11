@@ -1,6 +1,6 @@
 import { SlQueryBuilder } from "core/components/SlQueryBuilder/SlQueryBuilder";
 import React, { useEffect, useMemo, useState, useRef } from "react";
-import { DataTableQueryBuilderFieldNames, DataTableQueryBuilderFields, DataTableQueryBuilderStaticFields } from "../constants/DataTableQueryBuilder.constants";
+import { DataTableQueryBuilderFieldNames, DataTableQueryBuilderFields, DataTableQueryBuilderStaticFields } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import { QBField, QueryBuilderOption, Workspace } from "core/types";
 import { addOptionsToLookup, filterXSSField } from "core/utils";
 import { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
