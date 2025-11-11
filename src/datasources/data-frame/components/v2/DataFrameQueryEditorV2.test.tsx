@@ -88,7 +88,7 @@ const renderComponent = (
                 { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, {name: 'ColumnE'}] },
             ]
         ),
-        loadColumnOption: jest.fn().mockResolvedValue(
+        getColumnOptions: jest.fn().mockResolvedValue(
             [
                 { label: 'ColumnA', value: 'ColumnA' },
                 { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },

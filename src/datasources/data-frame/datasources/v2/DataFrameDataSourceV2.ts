@@ -113,7 +113,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         }
     }
 
-    public async loadColumnOption(filter: string): Promise<ComboboxOption[]> {
+    public async getColumnOptions(filter: string): Promise<ComboboxOption[]> {
         const tables = await this.queryTables(filter, TAKE_LIMIT, [
             DataTableProjections.Name,
             DataTableProjections.ColumnName,

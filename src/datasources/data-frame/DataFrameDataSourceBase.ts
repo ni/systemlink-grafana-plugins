@@ -17,6 +17,7 @@ import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { extractErrorInfo } from 'core/errors';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
+import { ComboboxOption } from '@grafana/ui';
 
 export abstract class DataFrameDataSourceBase<
     TQuery extends DataFrameQuery = DataFrameQuery,
@@ -65,6 +66,10 @@ export abstract class DataFrameDataSourceBase<
             }
             return new Map<string, Workspace>();
         }
+    }
+
+    public getColumnOptions(_filter: string): Promise<ComboboxOption[]> {
+        return Promise.resolve([]);
     }
 
     private handleDependenciesError(error: unknown): void {
