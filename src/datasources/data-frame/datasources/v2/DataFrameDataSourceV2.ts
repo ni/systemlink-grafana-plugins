@@ -1,7 +1,7 @@
-import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, MetricFindValue, TimeRange } from "@grafana/data";
+import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryType, DataFrameQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQuery, ValidDataFrameQueryV2 } from "../../types";
+import { Column, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQuery, ValidDataFrameQueryV2, ValidDataFrameVariableQuery } from "../../types";
 import { TAKE_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { Workspace } from "core/types";
@@ -44,8 +44,34 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         };
     }
 
-    async metricFindQuery(_query: DataFrameQueryV2): Promise<MetricFindValue[]> {
-        // TODO: Implement logic to fetch and return metric find values based on the query.
+    async metricFindQuery(
+        query: DataFrameVariableQuery,
+        options: LegacyMetricFindQueryOptions
+    ): Promise<MetricFindValue[]> {
+        const processedQuery = this.processVariableQuery(query);
+
+        if (processedQuery.dataTableFilter) {
+            processedQuery.dataTableFilter = transformComputedFieldsQuery(
+                this.templateSrv.replace(processedQuery.dataTableFilter, options.scopedVars),
+                this.dataTableComputedDataFields,
+            );
+        }
+
+        if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {
+            const tables = await this.queryTables(
+                processedQuery.dataTableFilter,
+                TAKE_LIMIT,
+                [DataTableProjections.Name]
+            );
+
+            return tables.map(table => ({
+                text: table.name,
+                value: table.id,
+            }));
+        }
+
+        // TODO: #3463941 - Support querying list of data table columns
+
         return [];
     }
 
@@ -55,12 +81,20 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         return !processedQuery.hide && processedQuery.type === DataFrameQueryType.Properties;
     }
 
-    processQuery(query: DataFrameQuery): ValidDataFrameQueryV2 {
+    processQuery(query: DataFrameDataQuery): ValidDataFrameQueryV2 {
         // TODO: #3259801 - Implement Migration of DataFrameQueryV1 to ValidDataFrameQueryV2.
         return {
             ...defaultQueryV2,
             ...query
         } as ValidDataFrameQueryV2;
+    }
+
+    public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
+        // TODO: #3259801 - Implement Migration of DataFrameQueryV1 to ValidDataFrameVariableQuery.
+        return {
+            ...defaultVariableQueryV2,
+            ...query
+        } as ValidDataFrameVariableQuery;
     }
 
     async getTableProperties(_id?: string): Promise<TableProperties> {
@@ -115,10 +149,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
 
     public async getColumnOptions(filter: string): Promise<ComboboxOption[]> {
         const tables = await this.queryTables(filter, TAKE_LIMIT, [
-            DataTableProjections.Name,
             DataTableProjections.ColumnName,
             DataTableProjections.ColumnDataType,
-            DataTableProjections.ColumnType,
         ]);
 
         const hasColumns = tables.some(
@@ -129,33 +161,32 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             return [];
         }
 
-        const columnTypeMap = this.createColumnTypeMap(tables);
+        const columnTypeMap = this.createColumnNameDataTypesMap(tables);
 
-        return this.formatColumnOptions(columnTypeMap);
+        return this.createColumnOptions(columnTypeMap);
     }
 
-    /**
-     * Aggregates columns from all tables into a map of column name to set of data types.
-     */
-    private createColumnTypeMap(tables: TableProperties[]): Record<string, Set<string>>  {
-        const columnTypeMap: Record<string, Set<string>> = {};
+    private transformColumnType(dataType: string): string {
+        const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType)
+                        ? 'Numeric'
+                        : this.toSentenceCase(dataType);
+        return type;
+    }
+
+    private createColumnNameDataTypesMap(tables: TableProperties[]): Record<string, Set<string>>  {
+        const columnNameDataTypeMap: Record<string, Set<string>> = {};
         tables.forEach(table => {
             table.columns?.forEach((column: { name: string; dataType: string }) => {
-                if (column?.name && column?.dataType) {
-                    const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(column.dataType)
-                        ? 'Numeric'
-                        : this.toSentenceCase(column.dataType);
-                    (columnTypeMap[column.name] ??= new Set()).add(type);
+                if (column?.name && column.dataType) {
+                    const dataType = this.transformColumnType(column.dataType);
+                    (columnNameDataTypeMap[column.name] ??= new Set()).add(dataType);
                 }
             });
         });
-        return columnTypeMap;
+        return columnNameDataTypeMap;
     };
 
-    /**
-     * Formats column options for the dropdown.
-     */
-    private formatColumnOptions(columnTypeMap: Record<string, Set<string>>): ComboboxOption[] {
+    private createColumnOptions(columnTypeMap: Record<string, Set<string>>): ComboboxOption[] {
         const options: ComboboxOption[] = [];
 
         Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
