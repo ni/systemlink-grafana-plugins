@@ -557,7 +557,7 @@ describe("DataFrameQueryEditorV2", () => {
         });
 
         it("should call onChange with updated dataTableFilter when filter changes", async () => {
-            const { onChange } = renderComponent({ type: DataFrameQueryType.Data });
+            const { onChange, onRunQuery } = renderComponent({ type: DataFrameQueryType.Data });
 
             // Get the onDataTableFilterChange callback from the mock
             const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
@@ -574,6 +574,7 @@ describe("DataFrameQueryEditorV2", () => {
                 expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ 
                     dataTableFilter: 'NewFilter' 
                 }));
+                expect(onRunQuery).toHaveBeenCalled();
             });
         });
 

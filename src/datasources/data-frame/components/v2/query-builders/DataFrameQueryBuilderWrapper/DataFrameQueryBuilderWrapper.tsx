@@ -6,20 +6,20 @@ import { Workspace } from 'core/types';
 import { DataTableProjections } from 'datasources/data-frame/types';
 import { DataTableQueryBuilderFieldNames } from '../../constants/DataTableQueryBuilder.constants';
 import {
-  VALUE_FIELD_WIDTH,
-  labels,
-  tooltips,
-  DEFAULT_MARGIN_BOTTOM,
-  getValuesInPixels,
+    VALUE_FIELD_WIDTH,
+    labels,
+    tooltips,
+    DEFAULT_MARGIN_BOTTOM,
+    getValuesInPixels,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 
-interface WrapperProps {
+interface DataFrameQueryBuilderWrapperProps {
     datasource: DataFrameDataSource;
     dataTableFilter?: string;
     onDataTableFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
 }
 
-export const DataFrameQueryBuilderWrapper: React.FC<WrapperProps> = ({
+export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapperProps> = ({
     datasource,
     dataTableFilter,
     onDataTableFilterChange,
@@ -38,9 +38,11 @@ export const DataFrameQueryBuilderWrapper: React.FC<WrapperProps> = ({
     const dataTableNameLookupCallback = useCallback(async (query: string) => {
         const filter = `${DataTableQueryBuilderFieldNames.Name}.Contains("${query}")`;
         const response = await datasource.queryTables(filter, 5, [DataTableProjections.Name]);
+
         if (response.length === 0) {
             return [];
         }
+
         const uniqueNames = new Set(response.map(table => table.name));
         return Array.from(uniqueNames).map(name => ({ label: name, value: name }));
     }, [datasource]);
@@ -50,7 +52,6 @@ export const DataFrameQueryBuilderWrapper: React.FC<WrapperProps> = ({
             <InlineLabel
                 width={VALUE_FIELD_WIDTH}
                 tooltip={tooltips.queryByDataTableProperties}
-                data-testid="data-frame-query-builder-label"
             >
                 {labels.queryByDataTableProperties}
             </InlineLabel>

@@ -13,11 +13,10 @@ jest.mock("datasources/data-frame/components/v2/query-builders/DataTableQueryBui
             workspaces?: Workspace[];
             globalVariableOptions: QueryBuilderOption[];
             dataTableNameLookupCallback: DataSourceQBLookupCallback;
-            onChange: (event: { dataTableFilter: string }) => void;
+            onChange: (event: { detail: { linq: string; }; }) => void;
         }
     ) => {
         const [options, setOptions] = React.useState<QueryBuilderOption[]>([]);
-        const [inputValue, setInputValue] = React.useState(props.filter || '');
 
         React.useEffect(() => {
             const loadOptions = async () => {
@@ -33,11 +32,8 @@ jest.mock("datasources/data-frame/components/v2/query-builders/DataTableQueryBui
                 <input
                     type="text"
                     data-testid="filter-input"
-                    value={inputValue}
-                    onChange={(e) => { 
-                      setInputValue(e.target.value); 
-                      props.onChange({ dataTableFilter: e.target.value }); 
-                    }}
+                    value={props.filter}
+                    onChange={(e) => props.onChange({ detail: { linq: e.target.value } })}
                 />
                 <ul data-testid="workspaces-list">
                     {props.workspaces?.map(workspace => (
@@ -158,7 +154,7 @@ describe('DataFrameQueryBuilderWrapper', () => {
             await waitFor(() => {
                 expect(onDataTableFilterChange).toHaveBeenCalled();
                 const lastCall = onDataTableFilterChange.mock.calls[onDataTableFilterChange.mock.calls.length - 1][0];
-                expect(lastCall).toEqual(expect.objectContaining({ dataTableFilter: "new filter" }));
+                expect(lastCall).toEqual(expect.objectContaining({ detail: { linq: 'new filter' } }));
             });
         });
     });
