@@ -21,7 +21,6 @@ import _ from 'lodash';
 import { DataFrameDataSourceBase } from '../../DataFrameDataSourceBase';
 import { replaceVariables } from 'core/utils';
 import { LEGACY_METADATA_TYPE } from 'core/types';
-import { ComboboxOption } from '@grafana/ui';
 
 export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQueryV1> {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
@@ -122,10 +121,6 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
   async metricFindQuery(tableQuery: DataFrameQueryV1): Promise<MetricFindValue[]> {
     const tableProperties = await this.getTableProperties(tableQuery.tableId);
     return tableProperties.columns.map(col => ({ text: col.name, value: col.name }));
-  }
-
-  async loadColumnOption(_filter: string): Promise<ComboboxOption[]> {
-    throw new Error('Method not implemented.');
   }
 
   private getColumnTypes(columnNames: string[], tableProperties: Column[]): Column[] {

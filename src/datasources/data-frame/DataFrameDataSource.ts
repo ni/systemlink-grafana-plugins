@@ -4,7 +4,6 @@ import { Column, DataFrameDataSourceOptions, DataFrameFeatureTogglesDefaults, Da
 import { DataFrameDataSourceBase } from "./DataFrameDataSourceBase";
 import { DataFrameDataSourceV1 } from "./datasources/v1/DataFrameDataSourceV1";
 import { DataFrameDataSourceV2 } from "./datasources/v2/DataFrameDataSourceV2";
-import { ComboboxOption } from "@grafana/ui";
 
 export class DataFrameDataSource extends DataFrameDataSourceBase {
   private queryByTablePropertiesFeatureEnabled = false;
@@ -60,9 +59,5 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
 
   public processQuery(query: DataFrameQuery): ValidDataFrameQuery {
     return this.datasource.processQuery(query);
-  }
-
-  public async loadColumnOption(filter: string): Promise<ComboboxOption[]> {
-    return this.datasource.loadColumnOption(filter);
   }
 }

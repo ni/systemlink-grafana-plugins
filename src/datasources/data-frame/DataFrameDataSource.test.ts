@@ -119,24 +119,4 @@ describe('DataFrameDataSource', () => {
         const expectedV2Default = v2Mock.defaultQuery ? { ...v2Mock.defaultQuery, refId: 'A' } : { refId: 'A' };
         expect(dsV2.defaultQuery).toEqual(expectedV2Default);
     });
-
-    describe('loadColumnOption', () => {
-        it('should delegate loadColumnOption to DataFrameDataSourceV1 when feature toggle is false', async () => {
-            const ds = new DataFrameDataSource(mockInstanceSettings(false));
-            v1Mock.loadColumnOption = jest.fn().mockResolvedValue(['v1-columnOption'] as any);
-
-            await expect(ds.loadColumnOption('test-filter')).resolves.toEqual(['v1-columnOption']);
-
-            expect(v1Mock.loadColumnOption).toHaveBeenCalledWith('test-filter');
-        });
-
-        it('should delegate loadColumnOption to DataFrameDataSourceV2 when feature toggle is true', async () => {
-            const ds = new DataFrameDataSource(mockInstanceSettings(true));
-            v2Mock.loadColumnOption = jest.fn().mockResolvedValue(['v2-columnOption'] as any);
-
-            await expect(ds.loadColumnOption('another-filter')).resolves.toEqual(['v2-columnOption']);
-
-            expect(v2Mock.loadColumnOption).toHaveBeenCalledWith('another-filter');
-        });
-    });
 });

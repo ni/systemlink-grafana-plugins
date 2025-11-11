@@ -265,17 +265,6 @@ it('handles properties query when table has no properties', async () => {
   expect(response.data[0].fields).toEqual([]);
 });
 
-describe('loadColumnOption', () => {
-  it('should throw "Method not implemented."', async () => {
-    await expect(ds.loadColumnOption('test')).rejects.toThrow('Method not implemented.');
-  });
-
-  it('should always reject regardless of input', async () => {
-    await expect(ds.loadColumnOption('')).rejects.toThrow();
-    await expect(ds.loadColumnOption('any-filter')).rejects.toThrow();
-  });
-});
-
 const buildQuery = (targets: DataFrameQueryV1[]): DataQueryRequest<DataFrameQueryV1> => {
   return {
     ...defaultQuery,

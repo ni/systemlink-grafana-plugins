@@ -58,7 +58,7 @@ export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onR
             setColumnOptions([]);
             return;
         }
-        const columnOptions = await datasource.loadColumnOption(filter);
+        const columnOptions = await datasource.getColumnOptions(filter);
         setColumnOptions(columnOptions);
     };
 
