@@ -115,10 +115,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
 
     public async getColumnOptions(filter: string): Promise<ComboboxOption[]> {
         const tables = await this.queryTables(filter, TAKE_LIMIT, [
-            DataTableProjections.Name,
             DataTableProjections.ColumnName,
             DataTableProjections.ColumnDataType,
-            DataTableProjections.ColumnType,
         ]);
 
         const hasColumns = tables.some(
@@ -129,33 +127,32 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             return [];
         }
 
-        const columnTypeMap = this.createColumnTypeMap(tables);
+        const columnTypeMap = this.createColumnNameDataTypesMap(tables);
 
-        return this.formatColumnOptions(columnTypeMap);
+        return this.createColumnOptions(columnTypeMap);
     }
 
-    /**
-     * Aggregates columns from all tables into a map of column name to set of data types.
-     */
-    private createColumnTypeMap(tables: TableProperties[]): Record<string, Set<string>>  {
+    private transformColumnType(dataType: string): string {
+        const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType)
+                        ? 'Numeric'
+                        : this.toSentenceCase(dataType);
+        return type;
+    }
+
+    private createColumnNameDataTypesMap(tables: TableProperties[]): Record<string, Set<string>>  {
         const columnTypeMap: Record<string, Set<string>> = {};
         tables.forEach(table => {
             table.columns?.forEach((column: { name: string; dataType: string }) => {
-                if (column?.name && column?.dataType) {
-                    const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(column.dataType)
-                        ? 'Numeric'
-                        : this.toSentenceCase(column.dataType);
-                    (columnTypeMap[column.name] ??= new Set()).add(type);
+                if (column?.name && column.dataType) {
+                    const dataType = this.transformColumnType(column.dataType);
+                    (columnTypeMap[column.name] ??= new Set()).add(dataType);
                 }
             });
         });
         return columnTypeMap;
     };
 
-    /**
-     * Formats column options for the dropdown.
-     */
-    private formatColumnOptions(columnTypeMap: Record<string, Set<string>>): ComboboxOption[] {
+    private createColumnOptions(columnTypeMap: Record<string, Set<string>>): ComboboxOption[] {
         const options: ComboboxOption[] = [];
 
         Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {

@@ -780,7 +780,7 @@ describe('DataFrameDataSourceV2', () => {
         });
     });
 
-    describe('loadColumnOption', () => {
+    describe('getColumnOptions', () => {
         let queryTablesMock: jest.SpyInstance;
 
         beforeEach(() => {
