@@ -6,7 +6,7 @@ import { Workspace, QueryBuilderOption } from 'core/types';
 import { DataSourceQBLookupCallback } from 'datasources/data-frame/types';
 import userEvent from '@testing-library/user-event';
 
-jest.mock("datasources/data-frame/components/v2/query-builders/DataTableQueryBuilder/DataTableQueryBuilder", () => ({
+jest.mock("datasources/data-frame/components/v2/query-builders/data-table-query-builder/DataTableQueryBuilder", () => ({
     DataTableQueryBuilder: (
         props: {
             filter?: string;
@@ -88,6 +88,16 @@ const renderComponent = (
         />
     );
 
+    onDataTableFilterChange.mockImplementation((event) => {
+        renderResult.rerender(
+            <DataFrameQueryBuilderWrapper
+                datasource={datasource}
+                dataTableFilter={event.detail.linq}
+                onDataTableFilterChange={onDataTableFilterChange}
+            />
+        );
+    });
+
     return { renderResult, onDataTableFilterChange };
 };
 
@@ -152,9 +162,7 @@ describe('DataFrameQueryBuilderWrapper', () => {
             await user.type(filterInput, 'new filter');
 
             await waitFor(() => {
-                expect(onDataTableFilterChange).toHaveBeenCalled();
-                const lastCall = onDataTableFilterChange.mock.calls[onDataTableFilterChange.mock.calls.length - 1][0];
-                expect(lastCall).toEqual(expect.objectContaining({ detail: { linq: 'new filter' } }));
+                expect(onDataTableFilterChange).toHaveBeenCalledWith({ detail: { linq: 'new filter' } });
             });
         });
     });
