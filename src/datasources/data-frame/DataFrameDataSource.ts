@@ -1,6 +1,6 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, MetricFindValue, TimeRange } from "@grafana/data";
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetricFindQueryOptions, MetricFindValue, TimeRange } from "@grafana/data";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, DataFrameDataSourceOptions, DataFrameFeatureTogglesDefaults, DataFrameQuery, DataTableProjections, TableDataRows, TableProperties, ValidDataFrameQuery } from "./types";
+import { Column, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameFeatureTogglesDefaults, DataFrameVariableQuery, DataTableProjections, TableDataRows, TableProperties, ValidDataFrameQuery, ValidDataFrameVariableQuery } from "./types";
 import { DataFrameDataSourceBase } from "./DataFrameDataSourceBase";
 import { DataFrameDataSourceV1 } from "./datasources/v1/DataFrameDataSourceV1";
 import { DataFrameDataSourceV2 } from "./datasources/v2/DataFrameDataSourceV2";
@@ -28,7 +28,7 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     this.defaultQuery = { ...this.datasource.defaultQuery, refId: 'A' };
   }
 
-  public async runQuery(query: DataFrameQuery, options: DataQueryRequest<DataFrameQuery>): Promise<DataFrameDTO> {
+  public async runQuery(query: DataFrameDataQuery, options: DataQueryRequest<DataFrameDataQuery>): Promise<DataFrameDTO> {
     return this.datasource.runQuery(query, options);
   }
 
@@ -36,8 +36,11 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.shouldRunQuery(query as any);
   }
 
-  public metricFindQuery(query: DataFrameQuery): Promise<MetricFindValue[]> {
-    return this.datasource.metricFindQuery(query);
+  public metricFindQuery(
+    query: DataFrameVariableQuery,
+    options: LegacyMetricFindQueryOptions
+  ): Promise<MetricFindValue[]> {
+    return this.datasource.metricFindQuery(query, options);
   }
 
   public async getTableProperties(id?: string): Promise<TableProperties> {
@@ -45,7 +48,7 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
   }
 
   public async getDecimatedTableData(
-    query: DataFrameQuery,
+    query: DataFrameDataQuery,
     columns: Column[],
     timeRange: TimeRange,
     intervals?: number
@@ -57,7 +60,11 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.queryTables(query, take, projection);
   }
 
-  public processQuery(query: DataFrameQuery): ValidDataFrameQuery {
+  public processQuery(query: DataFrameDataQuery): ValidDataFrameQuery {
     return this.datasource.processQuery(query);
+  }
+
+  public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
+    return this.datasource.processVariableQuery(query);
   }
 }
