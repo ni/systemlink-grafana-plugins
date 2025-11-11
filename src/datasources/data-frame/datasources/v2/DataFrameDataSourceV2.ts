@@ -140,16 +140,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     }
 
     private createColumnNameDataTypesMap(tables: TableProperties[]): Record<string, Set<string>>  {
-        const columnTypeMap: Record<string, Set<string>> = {};
+        const columnNameDataTypeMap: Record<string, Set<string>> = {};
         tables.forEach(table => {
             table.columns?.forEach((column: { name: string; dataType: string }) => {
                 if (column?.name && column.dataType) {
                     const dataType = this.transformColumnType(column.dataType);
-                    (columnTypeMap[column.name] ??= new Set()).add(dataType);
+                    (columnNameDataTypeMap[column.name] ??= new Set()).add(dataType);
                 }
             });
         });
-        return columnTypeMap;
+        return columnNameDataTypeMap;
     };
 
     private createColumnOptions(columnTypeMap: Record<string, Set<string>>): ComboboxOption[] {
