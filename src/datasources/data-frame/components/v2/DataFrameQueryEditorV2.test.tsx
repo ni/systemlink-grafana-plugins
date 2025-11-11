@@ -554,7 +554,7 @@ describe("DataFrameQueryEditorV2", () => {
             );
         });
 
-        it("should call onChange with updated dataTableFilter when filter changes", async () => {
+        it("should call onChange and onRunQuery with updated dataTableFilter when filter changes", async () => {
             const { onChange, onRunQuery } = renderComponent({ type: DataFrameQueryType.Data });
 
             // Get the onDataTableFilterChange callback from the mock
