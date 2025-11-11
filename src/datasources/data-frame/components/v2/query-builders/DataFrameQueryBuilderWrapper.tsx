@@ -4,7 +4,7 @@ import { DataFrameDataSource } from 'datasources/data-frame/DataFrameDataSource'
 import { DataTableQueryBuilder } from 'datasources/data-frame/components/v2/query-builders/data-table-query-builder/DataTableQueryBuilder';
 import { Workspace } from 'core/types';
 import { DataTableProjections } from 'datasources/data-frame/types';
-import { DataTableQueryBuilderFieldNames } from '../../constants/DataTableQueryBuilder.constants';
+import { DataTableQueryBuilderFieldNames } from '../constants/DataTableQueryBuilder.constants';
 import {
     VALUE_FIELD_WIDTH,
     labels,

@@ -4,9 +4,9 @@ import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
 import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
-import { DataFrameQueryBuilderWrapper } from "./query-builders/data-frame-query-builder-wrapper/DataFrameQueryBuilderWrapper";
+import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 
-jest.mock("./query-builders/data-frame-query-builder-wrapper/DataFrameQueryBuilderWrapper", () => ({
+jest.mock("./query-builders/DataFrameQueryBuilderWrapper", () => ({
     DataFrameQueryBuilderWrapper: jest.fn(() => <div data-testid="mock-data-frame-query-builder-wrapper" />)
 }));
 

@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { DataFrameQueryBuilderWrapper } from "./query-builders/data-frame-query-builder-wrapper/DataFrameQueryBuilderWrapper";
+import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProjections, DataTableProperties, Props, DataFrameDataQuery } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
