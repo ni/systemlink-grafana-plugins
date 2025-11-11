@@ -11,7 +11,10 @@ import {
     TableProperties,
     TableDataRows,
     Column,
-    DataTableProjections
+    DataTableProjections,
+    ValidDataFrameVariableQuery,
+    DataFrameDataQuery,
+    DataFrameVariableQuery
 } from './types';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { extractErrorInfo } from 'core/errors';
@@ -38,12 +41,14 @@ export abstract class DataFrameDataSourceBase<
         this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
     }
 
-    public abstract processQuery(query: TQuery): ValidDataFrameQuery;
+    public abstract processQuery(query: DataFrameDataQuery): ValidDataFrameQuery;
+
+    public abstract processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery;
 
     public abstract getTableProperties(id?: string): Promise<TableProperties>;
 
     public abstract getDecimatedTableData(
-        query: TQuery,
+        query: DataFrameDataQuery,
         columns: Column[],
         timeRange: TimeRange,
         intervals?: number

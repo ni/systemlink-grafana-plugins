@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { DataTableQueryBuilder } from "./query-builders/DataTableQueryBuilder";
 import { AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineLabel, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQueryV2, DataFrameQueryType, PropsV2, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProjections, DataTableProperties } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProjections, DataTableProperties, Props, DataFrameDataQuery } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import { Workspace } from 'core/types';
@@ -18,8 +18,8 @@ import {
     placeholders,
     tooltips,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
-export const DataFrameQueryEditorV2: React.FC<PropsV2> = ({ query, onChange, onRunQuery, datasource }: PropsV2) => {
-    const migratedQuery = datasource.processQuery(query) as ValidDataFrameQueryV2;
+export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRunQuery, datasource }: Props) => {
+    const migratedQuery = datasource.processQuery(query as DataFrameDataQuery) as ValidDataFrameQueryV2;
 
     const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
     const [isColumnConfigurationSectionOpen, setIsColumnConfigurationSectionOpen] = useState(true);
