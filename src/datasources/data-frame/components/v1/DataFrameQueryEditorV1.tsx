@@ -8,11 +8,11 @@ import { InlineField, InlineSwitch, MultiSelect, Select, AsyncSelect, RadioButto
 import { enumToOptions } from "core/utils";
 import { getTemplateSrv } from "@grafana/runtime";
 import { DataFrameQueryEditorCommonV1 } from "./DataFrameQueryEditorCommonV1";
-import { DataFrameQueryType, PropsV1 } from "../../types";
+import { DataFrameQueryType, Props } from "../../types";
 import { isValidId } from "datasources/data-frame/utils";
 import { decimationMethods } from "datasources/data-frame/constants";
 
-export const DataFrameQueryEditorV1 = (props: PropsV1) => {
+export const DataFrameQueryEditorV1 = (props: Props) => {
     const [errorMsg, setErrorMsg] = useState<string | undefined>('');
     const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
     const common = new DataFrameQueryEditorCommonV1(props, handleError);
@@ -26,7 +26,7 @@ export const DataFrameQueryEditorV1 = (props: PropsV1) => {
         const columnOptions = (tableProperties.value?.columns ?? []).map(c => toOption(c.name));
         columnOptions.unshift(...getVariableOptions());
         return columnOptions;
-    }
+    };
 
     return (
         <div style={{ position: 'relative' }}>

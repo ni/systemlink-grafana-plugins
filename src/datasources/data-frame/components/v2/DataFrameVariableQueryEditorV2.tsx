@@ -1,6 +1,7 @@
+import { Props } from "datasources/data-frame/types";
 import React from "react";
 
-export const DataFrameVariableQueryEditorV2 = () => {
+export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChange, datasource }: Props) => {
     // TODO AB#3259790: Add `Data table properties` Query Builder
 
     return (

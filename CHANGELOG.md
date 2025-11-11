@@ -1,3 +1,9 @@
+## [4.54.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.53.0...v4.54.0) (2025-11-11)
+
+### Features
+
+* **dataframe:** Replace multi select component with multi combobox ([#512](https://github.com/ni/systemlink-grafana-plugins/issues/512)) ([aff72e2](https://github.com/ni/systemlink-grafana-plugins/commit/aff72e26f43b7359ed458fa4e55861c6d6446a53))
+
 ## [4.53.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.52.0...v4.53.0) (2025-11-10)
 
 ### Features
