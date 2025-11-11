@@ -12,7 +12,8 @@ export enum ListAssetsFieldNames {
     VENDOR_NAME = 'VendorName',
     BUS_TYPE = 'BusType',
     ASSET_TYPE = 'AssetType',
-    CALIBRATION_DUE_DATE = 'ExternalCalibration.NextRecommendedDate'
+    CALIBRATION_DUE_DATE = 'ExternalCalibration.NextRecommendedDate',
+    SCAN_CODE = 'ScanCode'
 }
 
 export const ListAssetsFields: Record<string, QBField> = {
@@ -120,7 +121,15 @@ export const ListAssetsFields: Record<string, QBField> = {
         lookup: {
             dataSource: []
         }
-    }
+    },
+    SCAN_CODE: {
+        label: 'Scan Code',
+        dataField: ListAssetsFieldNames.SCAN_CODE,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name,
+        ],
+    },
 };
 
 export const ListAssetsStaticFields = [
@@ -130,7 +139,8 @@ export const ListAssetsStaticFields = [
     ListAssetsFields.VENDOR_NAME,
     ListAssetsFields.ASSET_TYPE,
     ListAssetsFields.BUS_TYPE,
-    ListAssetsFields.PART_NUMBER
+    ListAssetsFields.PART_NUMBER,
+    ListAssetsFields.SCAN_CODE,
 ];
 
 export const tooltips = {
