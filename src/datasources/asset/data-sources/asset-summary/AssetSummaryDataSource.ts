@@ -5,7 +5,7 @@ import { AssetSummaryResponse } from 'datasources/asset/types/AssetSummaryQuery.
 import { AssetDataSourceBase } from '../AssetDataSourceBase';
 import { AssetDataSourceOptions, AssetQuery, AssetQueryType } from '../../types/types';
 import { assetSummaryFields } from '../../constants/AssetSummaryQuery.constants';
-import { forkJoin, Observable, of, switchMap } from 'rxjs';
+import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 
 export class AssetSummaryDataSource extends AssetDataSourceBase {
     constructor(
@@ -48,10 +48,9 @@ export class AssetSummaryDataSource extends AssetDataSourceBase {
     }
 
     getAssetSummary(): Observable<AssetSummaryResponse> {
-        try {
-            return this.get$<AssetSummaryResponse>(this.baseUrl + '/asset-summary');
-        } catch (error) {
-            throw new Error(`An error occurred while getting asset summary: ${error}`);
-        }
-    }
+    return this.get$<AssetSummaryResponse>(this.baseUrl + '/asset-summary').pipe(
+        catchError(error => {
+            return throwError(() => new Error(`An error occurred while getting asset summary: ${error}`));
+        }));
+}
 }
