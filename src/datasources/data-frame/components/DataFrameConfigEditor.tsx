@@ -56,5 +56,5 @@ export const DataFrameConfigEditor: React.FC<Props> = ({ options, onOptionsChang
 const labels = {
     features: 'Features',
     datatableQueryBuilder: 'Datatable query builder',
-    resultAndColumnQueryBuilder: 'Results and column query builders',
+    resultAndColumnQueryBuilder: 'Results and columns query builders',
 };
