@@ -174,6 +174,109 @@ describe('AlarmsTrendQueryHandler', () => {
       );
     });
 
+    it('should use template service for time range replacement', async () => {
+      await datastore.runQuery(query, options);
+
+      expect(datastore.templateSrv.replace).toHaveBeenCalledWith('${__from:date}', options.scopedVars);
+      expect(datastore.templateSrv.replace).toHaveBeenCalledWith('${__to:date}', options.scopedVars);
+    });
+
+    it('should handle different interval sizes', async () => {
+      const shortIntervalOptions = { ...options, intervalMs: 30000 };
+
+      const result = await datastore.runQuery(query, shortIntervalOptions);
+
+      expect(result.fields?.[0]?.values?.length).toEqual(121); // 1 hour / 30 seconds = 120 intervals + 1(last edge point);
+    });
+
+    it('should maintain alarm state transitions over time intervals', async () => {
+      const alarmWithMultipleTransitions = buildAlarmsResponse([
+        {
+          alarmId: 'ALARM-001',
+          transitions: [
+            {
+              transitionType: AlarmTransitionType.Set,
+              occurredAt: '2025-01-01T10:10:00.000Z',
+              severityLevel: AlarmTransitionSeverityLevel.High,
+              value: 'High',
+              condition: 'Temperature',
+              shortText: 'Temp High',
+              detailText: 'Temperature exceeded threshold',
+              keywords: ['temperature', 'high'],
+              properties: { sensorId: 'SENSOR-12' }
+            },
+            {
+              transitionType: AlarmTransitionType.Clear,
+              occurredAt: '2025-01-01T10:30:00.000Z',
+              severityLevel: AlarmTransitionSeverityLevel.Clear,
+              value: 'Normal',
+              condition: 'Temperature',
+              shortText: 'Temp Normal',
+              detailText: 'Temperature returned to normal',
+              keywords: ['temperature', 'normal'],
+              properties: { sensorId: 'SENSOR-12' }
+            },
+            {
+              transitionType: AlarmTransitionType.Set,
+              occurredAt: '2025-01-01T10:50:00.000Z',
+              severityLevel: AlarmTransitionSeverityLevel.Critical,
+              value: 'Medium',
+              condition: 'Temperature',
+              shortText: 'Temp Medium',
+              detailText: 'Temperature above normal but below high threshold',
+              keywords: ['temperature', 'medium'],
+              properties: { sensorId: 'SENSOR-12' }
+            }
+          ]
+        }
+      ]);
+      backendServer.fetch
+        .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
+        .mockReturnValue(createFetchResponse({ 
+          alarms: alarmWithMultipleTransitions, 
+          totalCount: 1, 
+          continuationToken: '' 
+        }));
+
+      query.groupBySeverity = false;
+      const result = await datastore.runQuery(query, options);
+
+      const counts = result.fields[1].values as number[];
+      expect(counts).toEqual(expect.arrayContaining([0, 1]));
+      expect(counts.length).toBe(61);  // 1 hour / 60 seconds = 60 intervals + 1 edge point
+    });
+
+    it('should handle alarms without transitions', async () => {
+      const alarmsWithoutTransitions = buildAlarmsResponse([
+        { alarmId: 'ALARM-001', transitions: [] },
+        { alarmId: 'ALARM-002', transitions: undefined }
+      ]);
+      backendServer.fetch
+        .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
+        .mockReturnValue(createFetchResponse({ 
+          alarms: alarmsWithoutTransitions, 
+          totalCount: 2, 
+          continuationToken: '' 
+        }));
+
+      query.groupBySeverity = false;
+      const ungroupedResult = await datastore.runQuery(query, options);
+
+      expect(ungroupedResult.refId).toBe('A');
+      expect(ungroupedResult.fields?.[0]?.values?.length).toBeGreaterThan(0);
+      expect(ungroupedResult.fields?.[1]?.values?.every((count: number) => count === 0)).toBe(true);
+      expect(ungroupedResult.fields?.[0]?.values?.length).toBe(ungroupedResult.fields?.[1]?.values?.length);
+
+      query.groupBySeverity = true;
+      const groupedResult = await datastore.runQuery(query, options);
+
+      expect(groupedResult.refId).toBe('A');
+      expect(groupedResult.fields?.length).toBe(5);
+      groupedResult.fields?.slice(1).forEach(field => {
+        expect(field.values?.every((count: number) => count === 0)).toBe(true);
+      });
+    });
+
     describe('groupBySeverity is false', () => {
       beforeEach(() => {
         query.groupBySeverity = false;
@@ -1212,109 +1315,6 @@ describe('AlarmsTrendQueryHandler', () => {
         expect(moderateValues[12]).toBe(moderateValues[11] - 1); // BOUNDARY-END-CLEAR cleared from Moderate
         expect(highValues[12]).toBe(highValues[11]); // No change in high severity
         expect(criticalValues[12]).toBe(criticalValues[11]); // No change in critical severity
-      });
-    });
-
-    it('should use template service for time range replacement', async () => {
-      await datastore.runQuery(query, options);
-
-      expect(datastore.templateSrv.replace).toHaveBeenCalledWith('${__from:date}', options.scopedVars);
-      expect(datastore.templateSrv.replace).toHaveBeenCalledWith('${__to:date}', options.scopedVars);
-    });
-
-    it('should handle different interval sizes', async () => {
-      const shortIntervalOptions = { ...options, intervalMs: 30000 };
-
-      const result = await datastore.runQuery(query, shortIntervalOptions);
-
-      expect(result.fields?.[0]?.values?.length).toEqual(121); // 1 hour / 30 seconds = 120 intervals + 1(last edge point);
-    });
-
-    it('should maintain alarm state transitions over time intervals', async () => {
-      const alarmWithMultipleTransitions = buildAlarmsResponse([
-        {
-          alarmId: 'ALARM-001',
-          transitions: [
-            {
-              transitionType: AlarmTransitionType.Set,
-              occurredAt: '2025-01-01T10:10:00.000Z',
-              severityLevel: AlarmTransitionSeverityLevel.High,
-              value: 'High',
-              condition: 'Temperature',
-              shortText: 'Temp High',
-              detailText: 'Temperature exceeded threshold',
-              keywords: ['temperature', 'high'],
-              properties: { sensorId: 'SENSOR-12' }
-            },
-            {
-              transitionType: AlarmTransitionType.Clear,
-              occurredAt: '2025-01-01T10:30:00.000Z',
-              severityLevel: AlarmTransitionSeverityLevel.Clear,
-              value: 'Normal',
-              condition: 'Temperature',
-              shortText: 'Temp Normal',
-              detailText: 'Temperature returned to normal',
-              keywords: ['temperature', 'normal'],
-              properties: { sensorId: 'SENSOR-12' }
-            },
-            {
-              transitionType: AlarmTransitionType.Set,
-              occurredAt: '2025-01-01T10:50:00.000Z',
-              severityLevel: AlarmTransitionSeverityLevel.Critical,
-              value: 'Medium',
-              condition: 'Temperature',
-              shortText: 'Temp Medium',
-              detailText: 'Temperature above normal but below high threshold',
-              keywords: ['temperature', 'medium'],
-              properties: { sensorId: 'SENSOR-12' }
-            }
-          ]
-        }
-      ]);
-      backendServer.fetch
-        .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
-        .mockReturnValue(createFetchResponse({ 
-          alarms: alarmWithMultipleTransitions, 
-          totalCount: 1, 
-          continuationToken: '' 
-        }));
-
-      query.groupBySeverity = false;
-      const result = await datastore.runQuery(query, options);
-
-      const counts = result.fields[1].values as number[];
-      expect(counts).toEqual(expect.arrayContaining([0, 1]));
-      expect(counts.length).toBe(61);  // 1 hour / 60 seconds = 60 intervals + 1 edge point
-    });
-
-    it('should handle alarms without transitions', async () => {
-      const alarmsWithoutTransitions = buildAlarmsResponse([
-        { alarmId: 'ALARM-001', transitions: [] },
-        { alarmId: 'ALARM-002', transitions: undefined }
-      ]);
-      backendServer.fetch
-        .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
-        .mockReturnValue(createFetchResponse({ 
-          alarms: alarmsWithoutTransitions, 
-          totalCount: 2, 
-          continuationToken: '' 
-        }));
-
-      query.groupBySeverity = false;
-      const ungroupedResult = await datastore.runQuery(query, options);
-
-      expect(ungroupedResult.refId).toBe('A');
-      expect(ungroupedResult.fields?.[0]?.values?.length).toBeGreaterThan(0);
-      expect(ungroupedResult.fields?.[1]?.values?.every((count: number) => count === 0)).toBe(true);
-      expect(ungroupedResult.fields?.[0]?.values?.length).toBe(ungroupedResult.fields?.[1]?.values?.length);
-
-      query.groupBySeverity = true;
-      const groupedResult = await datastore.runQuery(query, options);
-
-      expect(groupedResult.refId).toBe('A');
-      expect(groupedResult.fields?.length).toBe(5);
-      groupedResult.fields?.slice(1).forEach(field => {
-        expect(field.values?.every((count: number) => count === 0)).toBe(true);
       });
     });
   });
