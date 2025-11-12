@@ -59,15 +59,20 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         setColumnOptions(limitedColumnOptions);
     };
 
-    const onQueryTypeChange = (queryType: DataFrameQueryType) => {
+    const onQueryTypeChange = async (queryType: DataFrameQueryType) => {
         handleQueryChange({ ...migratedQuery, type: queryType });
+        if(queryType === DataFrameQueryType.Data && migratedQuery.dataTableFilter !== '') {
+            await fetchAndSetColumnOptions(migratedQuery.dataTableFilter);
+        }
     };
 
     const onDataTableFilterChange = async (event?: Event | React.FormEvent<Element>) => {
         if (event) {
             const dataTableFilter = (event as CustomEvent).detail.linq;
             handleQueryChange({ ...migratedQuery, dataTableFilter });
-            await fetchAndSetColumnOptions(dataTableFilter);
+            if (migratedQuery.type === DataFrameQueryType.Data) {
+                await fetchAndSetColumnOptions(dataTableFilter);
+            }
         }
     };
 
