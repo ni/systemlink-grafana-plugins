@@ -10,7 +10,8 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
   public async runQuery(query: AlarmsTrendQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     const { start, end, intervalMs } = this.extractTimeParameters(options);
     const filter = this.getTrendQueryFilter(query, start, end);
-    const alarms = await this.queryAlarmsUntilComplete({ filter, transitionInclusionOption: TransitionInclusionOption.All });
+    const requestBody = { filter, transitionInclusionOption: TransitionInclusionOption.All };
+    const alarms = await this.queryAlarmsUntilComplete(requestBody);
     const alarmsWithTimestamp = this.enrichTransitionsWithTimestamp(alarms);
     const trendData = this.countActiveAlarmsPerInterval(alarmsWithTimestamp, start, end, intervalMs);
 
@@ -42,15 +43,15 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
   private getTrendQueryFilter(query: AlarmsTrendQuery, start: Date, end: Date): string {
     const startIso = start.toISOString();
     const endIso = end.toISOString();
-    const activeAndCreatedBeforeStartFilter = `(active = "true" && mostRecentSetOccurredAt < "${startIso}")`;
+    const activeAndTransitionedBeforeStartFilter = `(active = "true" && mostRecentSetOccurredAt < "${startIso}")`;
+    const createdBeforeStartAndTransitionedAfterEndFilter = `(occurredAt < "${startIso}" && mostRecentTransitionOccurredAt > "${endIso}")`;
     const occurredBetweenStartAndEndFilter = `(occurredAt >= "${startIso}" && occurredAt <= "${endIso}")`;
     const transitionedBetweenStartAndEndFilter = `(mostRecentTransitionOccurredAt >= "${startIso}" && mostRecentTransitionOccurredAt <= "${endIso}")`;
-    const createdBeforeStartAndClearedAfterEndFilter = `(occurredAt < "${startIso}" && mostRecentTransitionOccurredAt > "${endIso}")`;
     const defaultTrendQueryFilter = `(${[
-      activeAndCreatedBeforeStartFilter,
+      activeAndTransitionedBeforeStartFilter,
+      createdBeforeStartAndTransitionedAfterEndFilter,
       occurredBetweenStartAndEndFilter,
-      transitionedBetweenStartAndEndFilter,
-      createdBeforeStartAndClearedAfterEndFilter
+      transitionedBetweenStartAndEndFilter
     ].join(' || ')})`;
 
     if (query.filter && query.filter.trim() !== '') {
@@ -70,7 +71,12 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
     }));
   }
 
-  private countActiveAlarmsPerInterval(alarms: AlarmWithNumericTimeInTransitions[], start: Date, end: Date, intervalMs: number): Map<number, number> {
+  private countActiveAlarmsPerInterval(
+    alarms: AlarmWithNumericTimeInTransitions[],
+    start: Date,
+    end: Date,
+    intervalMs: number
+  ): Map<number, number> {
     const intervalCounts = new Map<number, number>();
     const startTime = start.getTime();
     const endTime = end.getTime();
@@ -94,7 +100,10 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
     let eventIndex = 0;
 
     for (let intervalStart = startTime; intervalStart <= endTime; intervalStart += intervalMs) {
-      while (eventIndex < alarmTransitionEvents.length && alarmTransitionEvents[eventIndex].occurredAtAsNumber <= intervalStart) {
+      while (
+        eventIndex < alarmTransitionEvents.length
+        && alarmTransitionEvents[eventIndex].occurredAtAsNumber <= intervalStart
+      ) {
         const event = alarmTransitionEvents[eventIndex];
         alarmStates.set(event.alarmId, event.type);
         eventIndex++;
