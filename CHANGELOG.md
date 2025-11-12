@@ -1,3 +1,9 @@
+## [4.57.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.56.0...v4.57.0) (2025-11-12)
+
+### Features
+
+* **dataframe:** Limit and handle too many columns  ([#508](https://github.com/ni/systemlink-grafana-plugins/issues/508)) ([12ec72f](https://github.com/ni/systemlink-grafana-plugins/commit/12ec72f17ed1642b7294c91a7d8359157368fa52))
+
 ## [4.56.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.55.0...v4.56.0) (2025-11-11)
 
 ### Features
