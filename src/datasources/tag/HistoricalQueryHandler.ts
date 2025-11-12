@@ -3,7 +3,7 @@ import { PostFn, QueryHandler, TagHistoryResponse, TagWithValue, TimeAndTagTypeV
 import { convertTagValue } from "./utils";
 import { getWorkspaceName } from "core/utils";
 import { Workspace } from "core/types";
-import { map, merge, Observable, switchMap } from "rxjs";
+import { map, merge, Observable, of, switchMap } from "rxjs";
 
 export class HistoricalQueryHandler extends QueryHandler {
     constructor(
@@ -138,10 +138,7 @@ export class HistoricalQueryHandler extends QueryHandler {
                     )
                 )
             ),
-            new Observable<TagHistoryResponse>(subscriber => {
-                subscriber.next(aggregatedResults);
-                subscriber.complete();
-            }));
+            of(aggregatedResults));
     }
 
     private getTagHistoryValues(paths: string[], workspace: string, range: TimeRange, intervals: number): Observable<TagHistoryResponse> {
