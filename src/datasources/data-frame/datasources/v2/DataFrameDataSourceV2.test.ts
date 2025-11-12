@@ -1169,7 +1169,6 @@ describe('DataFrameDataSourceV2', () => {
                     }
                 ]);
 
-                // Act
                 await ds.getColumnOptions('name = "${var1}"');
 
                 expect(templateSrv.replace).toHaveBeenCalledWith('name = "${var1}"', scopedVars);
