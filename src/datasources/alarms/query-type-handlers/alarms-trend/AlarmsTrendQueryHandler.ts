@@ -17,11 +17,21 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
     const alarmsWithTimestamp = this.enrichTransitionsWithTimestamp(alarms);
 
     if (query.groupBySeverity) {
-      const trendDataBySeverity = this.countActiveAlarmsPerIntervalBySeverity(alarmsWithTimestamp, startTime, endTime, intervalMs);
+      const trendDataBySeverity = this.countActiveAlarmsPerIntervalBySeverity(
+        alarmsWithTimestamp,
+        startTime,
+        endTime,
+        intervalMs
+      );
       return this.buildGroupedDataFrameBySeverity(query.refId, trendDataBySeverity);
     }
 
-    const trendData = this.countActiveAlarmsPerInterval(alarmsWithTimestamp, startTime, endTime, intervalMs);
+    const trendData = this.countActiveAlarmsPerInterval(
+      alarmsWithTimestamp,
+      startTime,
+      endTime,
+      intervalMs
+    );
     return this.buildGroupedDataFrame(query.refId, trendData);
   }
 
@@ -81,7 +91,11 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
       .sort((a, b) => a.occurredAtAsNumber - b.occurredAtAsNumber);
   }
 
-  private countActiveAlarmsPerInterval(alarms: AlarmWithNumericTimeInTransitions[], startTime: number, endTime: number, intervalMs: number): Map<number, number> {
+  private countActiveAlarmsPerInterval(
+    alarms: AlarmWithNumericTimeInTransitions[],
+    startTime: number,
+    endTime: number,
+    intervalMs: number): Map<number, number> {
     const intervalCounts = new Map<number, number>();
     const alarmTransitionEvents = this.extractEvents(alarms, endTime);
     const alarmStates = new Map<string, AlarmTransitionType>();
@@ -129,7 +143,11 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
     };
   }
 
-  private countActiveAlarmsPerIntervalBySeverity(alarms: AlarmWithNumericTimeInTransitions[], startTime: number, endTime: number, intervalMs: number): Map<number, Map<string, number>> {
+  private countActiveAlarmsPerIntervalBySeverity(
+    alarms: AlarmWithNumericTimeInTransitions[],
+    startTime: number,
+    endTime: number,
+    intervalMs: number): Map<number, Map<string, number>> {
     const intervalCountsBySeverity = new Map<number, Map<string, number>>();
     const alarmTransitionEvents = this.extractEvents(alarms, endTime);
     const alarmStates = new Map<string, { type: AlarmTransitionType; severityLevel: AlarmTransitionSeverityLevel }>();
@@ -164,7 +182,9 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
     return intervalCountsBySeverity;
   }
 
-  private buildGroupedDataFrameBySeverity(refId: string, trendDataBySeverity: Map<number, Map<string, number>>): DataFrameDTO {
+  private buildGroupedDataFrameBySeverity(
+    refId: string,
+    trendDataBySeverity: Map<number, Map<string, number>>): DataFrameDTO {
     const timeValues = Array.from(trendDataBySeverity.keys());
     const fields = [
       {
