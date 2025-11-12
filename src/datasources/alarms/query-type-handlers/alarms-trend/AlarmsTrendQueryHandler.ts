@@ -126,7 +126,7 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
           values: Array.from(trendData.values())
         }
       ]
-    }
+    };
   }
 
   private countActiveAlarmsPerIntervalBySeverity(alarms: AlarmWithNumericTimeInTransitions[], startTime: number, endTime: number, intervalMs: number): Map<number, Map<string, number>> {
