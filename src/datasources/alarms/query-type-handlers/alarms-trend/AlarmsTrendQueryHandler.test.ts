@@ -203,7 +203,7 @@ describe('AlarmsTrendQueryHandler', () => {
 
       const result = await datastore.runQuery(query, options);
 
-      expect(result.fields?.[0]?.values?.length).toBeGreaterThan(0);
+      expect(result.fields?.[0]?.values?.length).toBe(61);  // 1 hour / 60 seconds = 60 intervals + 1 edge point
       expect(result.fields?.[1]?.values?.every((count: number) => count === 0)).toBe(true);
       expect(result.fields?.[0]?.values?.length).toBe(result.fields?.[1]?.values?.length);
     });
@@ -283,7 +283,7 @@ describe('AlarmsTrendQueryHandler', () => {
       const result = await datastore.runQuery(query, options);
 
       expect(result.refId).toBe('A');
-      expect(result.fields?.[0]?.values?.length).toBeGreaterThan(0);
+      expect(result.fields?.[0]?.values?.length).toBe(61);  // 1 hour / 60 seconds = 60 intervals + 1 edge point
       expect(result.fields?.[1]?.values?.every((count: number) => count === 0)).toBe(true);
       expect(result.fields?.[0]?.values?.length).toBe(result.fields?.[1]?.values?.length);
     });
@@ -356,8 +356,7 @@ describe('AlarmsTrendQueryHandler', () => {
 
       const counts = result.fields[1].values as number[];
       expect(counts).toEqual(expect.arrayContaining([0, 1]));
-      expect(counts.length).toBeGreaterThan(0);
-      expect(new Set(counts).size).toBe(2);
+      expect(counts.length).toBe(61);  // 1 hour / 60 seconds = 60 intervals + 1 edge point
     });
 
     it('should handle edge cases including boundary conditions, out-of-range transitions, and timing scenarios', async () => {
