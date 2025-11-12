@@ -2,7 +2,7 @@ import { Combobox, ComboboxOption } from "@grafana/ui";
 import { InlineField } from "core/components/InlineField";
 import { FloatingError } from "core/errors";
 import { INLINE_LABEL_WIDTH } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
-import { DataFrameVariableQuery, DataFrameVariableQueryType, Props } from "datasources/data-frame/types";
+import { DataFrameVariableQueryType, Props } from "datasources/data-frame/types";
 import React from "react";
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 
@@ -14,13 +14,13 @@ export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChang
     ];
 
     const onQueryTypeChange = (option: ComboboxOption<string>) => {
-        onChange({ ...migratedQuery, queryType: option.value } as DataFrameVariableQuery);
+        onChange({ ...migratedQuery, queryType: option.value as DataFrameVariableQueryType });
     };
 
     const onDataTableFilterChange = (event?: Event | React.FormEvent<Element>) => {
         if (event) {
             const dataTableFilter = (event as CustomEvent).detail.linq;
-            onChange({ ...migratedQuery, dataTableFilter } as DataFrameVariableQuery);
+            onChange({ ...migratedQuery, dataTableFilter });
         }
     };
 
