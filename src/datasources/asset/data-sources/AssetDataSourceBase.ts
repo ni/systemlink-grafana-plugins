@@ -9,6 +9,7 @@ import { buildExpressionFromTemplate, ExpressionTransformFunction, getConcatOper
 import { QueryBuilderOperations } from "../../../core/query-builder.constants";
 import { AllFieldNames, LocationFieldNames } from "../constants/constants";
 import { ListLocationsResponse, LocationModel } from "../types/ListLocations.types";
+import { Observable } from "rxjs";
 
 export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
   private systemsLoaded!: () => void;
@@ -26,7 +27,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
   public readonly workspacesCache = new Map<string, Workspace>([]);
 
 
-  abstract runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
+  abstract runQuery(query: AssetQuery, options: DataQueryRequest): Observable<DataFrameDTO>;
 
   abstract shouldRunQuery(query: AssetQuery): boolean;
 
@@ -158,17 +159,17 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
   private handleContainsExpression(field: string, value: string, operation: string): string {
     let values = [value];
     const containsExpressionTemplate = this.getContainsExpressionTemplate(operation);
-    
+
     if (this.isMultiSelectValue(value)) {
       values = this.getMultipleValuesArray(value);
     }
 
     if (values.length > 1) {
-      const expression = 
+      const expression =
         values
           .map(val => buildExpressionFromTemplate(containsExpressionTemplate, field, val))
           .join(` ${getConcatOperatorForMultiExpression(operation)} `);
-      
+
       return `(${expression})`;
     }
 
