@@ -319,6 +319,11 @@ export interface DataFrameDataSourceOptions extends DataSourceJsonData {
   featureToggles: DataFrameFeatureToggles;
 }
 
+export interface Option {
+  label: string;
+  value: string;
+}
+
 export function isSystemLinkError(error: any): error is SystemLinkError {
   return Boolean(error?.error?.code) && Boolean(error?.error?.name);
 }

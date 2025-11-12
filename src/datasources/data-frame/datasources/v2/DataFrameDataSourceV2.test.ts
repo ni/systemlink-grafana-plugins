@@ -693,17 +693,46 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         describe('when queryType is ListColumns', () => {
-            it('should not call queryTables and should return empty list', async () => {
+            it('should call getColumnOptions and should return the expected columns', async () => {
+                templateSrv.replace.mockReturnValue('name = "Test Table"');
                 const query = {
                     queryType: DataFrameVariableQueryType.ListColumns,
                     dataTableFilter: 'name = "${name}"',
                     refId: 'A'
                 } as DataFrameVariableQuery;
+                const mockColumns = [
+                    { label: 'Column 1', value: 'Column 1' },
+                    { label: 'Column 2', value: 'Column 2' }
+                ];
+                const expectedColumns = mockColumns.map(column => ({
+                    text: column.label,
+                    value: column.value
+                }));
+                jest.spyOn(ds, 'getColumnOptions').mockResolvedValue(mockColumns);
 
                 const result = await ds.metricFindQuery(query, options);
 
-                expect(queryTablesSpy).not.toHaveBeenCalled();
-                expect(result).toEqual([]);
+                expect(ds.getColumnOptions).toHaveBeenCalledWith('name = "Test Table"');
+                expect(result).toEqual(expectedColumns);
+            });
+
+            it('should return only 10000 columns when getColumnOptions returns more than 10000 columns', async () => {
+                templateSrv.replace.mockReturnValue('name = "Test Table"');
+                const query = {
+                    queryType: DataFrameVariableQueryType.ListColumns,
+                    dataTableFilter: 'name = "${name}"',
+                    refId: 'A'
+                } as DataFrameVariableQuery;
+                const mockColumns = Array.from({ length: 10001 }, (_, i) => ({
+                    label: `Column ${i + 1}`,
+                    value: `Column ${i + 1}`
+                }));
+                jest.spyOn(ds, 'getColumnOptions').mockResolvedValue(mockColumns);
+
+                const result = await ds.metricFindQuery(query, options);
+
+                expect(ds.getColumnOptions).toHaveBeenCalledWith('name = "Test Table"');
+                expect(result.length).toEqual(10000);
             });
         });
     });
