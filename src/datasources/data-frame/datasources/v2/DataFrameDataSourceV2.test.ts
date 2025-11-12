@@ -1162,7 +1162,7 @@ describe('DataFrameDataSourceV2', () => {
                 queryTablesMock.mockResolvedValue([
                     {
                         id: '1',
-                        name: 'T1',
+                        name: 'Table 1',
                         columns: [
                             { name: 'Column1', dataType: 'STRING' }
                         ]
