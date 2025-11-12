@@ -205,7 +205,7 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
       case AlarmTransitionSeverityLevel.High:
         return AlarmTrendSeverityLevelLabel.High;
       default:
-        return undefined
+        return undefined;
     }
   }
 }
