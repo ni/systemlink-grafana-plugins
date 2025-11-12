@@ -2,7 +2,7 @@ import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, 
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, ColumnOption, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQuery, ValidDataFrameQueryV2, ValidDataFrameVariableQuery } from "../../types";
-import { MAXIMUM_NUMBER_OF_COLUMNS, TAKE_LIMIT } from "datasources/data-frame/constants";
+import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
@@ -70,7 +70,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         }
 
         const columns = await this.getColumnOptions(processedQuery.dataTableFilter);
-        const limitedColumns = columns.splice(0, MAXIMUM_NUMBER_OF_COLUMNS);
+        const limitedColumns = columns.splice(0, COLUMN_OPTIONS_LIMIT);
 
         return limitedColumns.map(column => ({
             text: column.label,
@@ -171,15 +171,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
 
     private transformColumnType(dataType: string): string {
         const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType)
-                        ? 'Numeric'
-                        : this.toSentenceCase(dataType);
+            ? 'Numeric'
+            : this.toSentenceCase(dataType);
         return type;
     }
 
-    private createColumnNameDataTypesMap(tables: TableProperties[]): Record<string, Set<string>>  {
+    private createColumnNameDataTypesMap(tables: TableProperties[]): Record<string, Set<string>> {
         const columnNameDataTypeMap: Record<string, Set<string>> = {};
         tables.forEach(table => {
-            table.columns?.forEach((column: { name: string; dataType: string }) => {
+            table.columns?.forEach((column: { name: string; dataType: string; }) => {
                 if (column?.name && column.dataType) {
                     const dataType = this.transformColumnType(column.dataType);
                     (columnNameDataTypeMap[column.name] ??= new Set()).add(dataType);
@@ -197,7 +197,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
 
             if (columnDataType.length === 1) {
                 // Single type: show just the name as label and value as name with type in sentence case
-                options.push({ label: name, value: `${name}-${columnDataType[0]}` }); 
+                options.push({ label: name, value: `${name}-${columnDataType[0]}` });
             } else {
                 // Multiple types: show type in label and value
                 columnDataType.forEach(type => {
