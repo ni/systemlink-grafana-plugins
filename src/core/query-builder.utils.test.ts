@@ -339,33 +339,25 @@ describe('QueryBuilderUtils', () => {
   describe('listFieldsQuery', () => {
     it('should build expression for list field with single value when operation is listcontains', () => {
       const transform = listFieldsQuery('listField');
-
       const result = transform('value1', 'listcontains');
-
       expect(result).toBe('it.Contains(\"value1\")');
     });
 
     it('should build expression for list field with single value', () => {
       const transform = listFieldsQuery('listField');
-
       const result = transform('{value1}', 'contains');
-
       expect(result).toBe('(listField.Contains("value1"))');
     });
 
     it('should build expression for list field with multiple values when operation is listcontains', () => {
       const transform = listFieldsQuery('listField');
-
       const result = transform('{value1,value2}', 'contains');
-
       expect(result).toBe('(listField.Contains(\"value1\") || listField.Contains(\"value2\"))');
     });
 
     it('should build expression for list field with multiple values', () => {
       const transform = listFieldsQuery('listField');
-
       const result = transform('{value1}', 'contains');
-
       expect(result).toBe('(listField.Contains("value1"))');
     });
   });

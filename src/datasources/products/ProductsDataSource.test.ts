@@ -604,16 +604,17 @@ describe('query', () => {
         })
       );
     });
-
-    test('should transform fields with `starts with` operation', async () => {
+  
+    test('should handle transformation for single-variable in startswith operation', async () => {
       const query = buildQuery(
         {
           refId: 'A',
           properties: [PropertiesOptions.PART_NUMBER] as Properties[],
-          queryBy: 'PartNumber.StartsWith("123")',
+          queryBy: 'PartNumber.StartsWith("${query}")',
           descending: false
         },
       );
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValueOnce('PartNumber.StartsWith("123")');
 
       await firstValueFrom(datastore.query(query));
 
@@ -631,41 +632,16 @@ describe('query', () => {
       );
     });
 
-    test('should transform fields with `ends with` operation', async () => {
+    test('should handle transformation for multi-variable in startswith operation', async () => {
       const query = buildQuery(
         {
           refId: 'A',
           properties: [PropertiesOptions.PART_NUMBER] as Properties[],
-          queryBy: 'PartNumber.EndsWith("789")',
+          queryBy: 'PartNumber.StartsWith("${query}")',
           descending: false
         },
       );
-
-      await firstValueFrom(datastore.query(query));
-
-      expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: {
-            descending: false,
-            filter: "PartNumber.EndsWith(\"789\")",
-            orderBy: undefined,
-            projection: ["partNumber"],
-            returnCount: false,
-            take: 1000
-          }
-        })
-      );
-    });
-
-    it('should transform fields with `starts with` with multiple values', async () => {
-      const query = buildQuery(
-        {
-          refId: 'A',
-          properties: [PropertiesOptions.PART_NUMBER] as Properties[],
-          queryBy: `${ProductsQueryBuilderFieldNames.PART_NUMBER}.StartsWith("{partNumber1,partNumber2}")`,
-          descending: false
-        },
-      );
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValueOnce('PartNumber.StartsWith("{partNumber1,partNumber2}")');
 
       await firstValueFrom(datastore.query(query));
 
@@ -683,15 +659,43 @@ describe('query', () => {
       );
     });
 
-    it('should transform fields with `ends with` with multiple values', async () => {
+    test('should handle transformation for single-variable in endswith operation', async () => {
       const query = buildQuery(
         {
           refId: 'A',
           properties: [PropertiesOptions.PART_NUMBER] as Properties[],
-          queryBy: `${ProductsQueryBuilderFieldNames.PART_NUMBER}.EndsWith("{partNumber1,partNumber2}")`,
+          queryBy: 'PartNumber.EndsWith("${query}")',
           descending: false
         },
       );
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValueOnce('PartNumber.EndsWith("123")');
+
+      await firstValueFrom(datastore.query(query));
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            descending: false,
+            filter: "PartNumber.EndsWith(\"123\")",
+            orderBy: undefined,
+            projection: ["partNumber"],
+            returnCount: false,
+            take: 1000
+          }
+        })
+      );
+    });
+
+    test('should handle transformation for multi-variable in endswith operation', async () => {
+      const query = buildQuery(
+        {
+          refId: 'A',
+          properties: [PropertiesOptions.PART_NUMBER] as Properties[],
+          queryBy: 'PartNumber.EndsWith("${query}")',
+          descending: false
+        },
+      );
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValueOnce('PartNumber.EndsWith("{partNumber1,partNumber2}")');
 
       await firstValueFrom(datastore.query(query));
 

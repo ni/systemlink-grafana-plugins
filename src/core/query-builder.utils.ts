@@ -15,6 +15,7 @@ export type ExpressionTransformFunction = (value: string, operation: string, opt
  * Supported operations for computed fields
  */
 export const computedFieldsupportedOperations = ['=', '!=', '>', '>=', '<', '<='];
+
 const startEndOperations = ['StartsWith', 'EndsWith'];
 
 /**
@@ -34,8 +35,8 @@ export function transformComputedFieldsQuery(
     query = transformBasedOnComputedFieldSupportedOperations(query, field, transformation, options);
     query = transformBasedOnBlankOperations(query, field, transformation, options);
     query = transformBasedOnContainsOperations(query, field, transformation, options);
-    query = transformBasedOnAnyOperation(query, field, transformation, options);
-    query = transformBasedOnStartEndOperations(query, field, transformation, options);
+    query = transformBasedOnAnyOperations(query, field, transformation, options);
+    query = transformBasedOnStartAndEndOperations(query, field, transformation, options);
   }
 
   return query;
@@ -76,12 +77,14 @@ function transformBasedOnContainsOperations(query: string, field: string, transf
 
 /**
  * The function will replace inner query with Any operation with their transformation.
+ * This will handle @see QueryBuilderOperations.LIST_CONTAINS and @see QueryBuilderOperations.LIST_DOES_NOT_CONTAIN operations.
+ *
+ * for example:
+ * Input: keywords.Any(it.Contains({ "key1", "key2" }))
+ * Output: keywords.Any(it.Contains("key1") || it.Contains("key2"))
  * 
- * Use Cases:
- * 1. List-based operations: Handles operations like 'Contains' for instance of the list fields.
- *   Example: keywords.Any(it.Contains({ "key1", "key2" })) => keywords.Any(it.Contains("key1") || it.Contains("key2"))
- * 2. Negated list-based operations: Handles negated operations like 'NotContains' for instance of the list fields.
- *   Example: keywords.Any(!it.Contains({ "key1", "key2" })) => !keywords.Any(it.Contains("key1") || it.Contains("key2"))
+ * Input: keywords.Any(!it.Contains({ "key1", "key2" }))
+ * Output: !keywords.Any(it.Contains("key1") || it.Contains("key2"))
  * 
  * @param query Query string containing one or more instances of the Any operation to be transformed.
  * @param field Name of the field on which the Any operation is performed.
@@ -89,7 +92,7 @@ function transformBasedOnContainsOperations(query: string, field: string, transf
  * @param options The options to be used in the transformation
  * @returns Transformed query string with Any operations processed.
  */
-function transformBasedOnAnyOperation(
+function transformBasedOnAnyOperations(
   query: string,
   field: string,
   transformation: ExpressionTransformFunction,
@@ -99,9 +102,9 @@ function transformBasedOnAnyOperation(
 
   return query.replace(anyRegex, (_match, innerPredicate: string) => {
     const containsRegex = new RegExp(String.raw`(?:!(it\.Contains\("([^"]*)"\))|(it\.Contains\("([^"]*)"\)))`, 'g');
+    
     const transformedPredicate = innerPredicate.replace(containsRegex, (_match, _negatedMatch, negatedValue, _positiveMatch, positiveValue) => {
         const extractedValue = negatedValue || positiveValue;
-
         return transformation(extractedValue, QueryBuilderOperations.LIST_CONTAINS.name, options?.get(field));
     });
 
@@ -110,7 +113,16 @@ function transformBasedOnAnyOperation(
   });
 }
 
-function transformBasedOnStartEndOperations(
+/** 
+ * The function will replace fields with StartsWith and EndsWith operations with their transformation.
+ * 
+ * @param query Query string containing one or more instances of the Any operation to be transformed.
+ * @param field Name of the field on which the Any operation is performed.
+ * @param transformation callback function that transforms the value based on the operation.
+ * @param options The options to be used in the transformation
+ * @returns Transformed query string with Any operations processed.
+ */
+function transformBasedOnStartAndEndOperations(
   query: string,
   field: string,
   transformation: ExpressionTransformFunction,
@@ -232,7 +244,11 @@ export function timeFieldsQuery(field: string): ExpressionTransformFunction {
 
 /**
  * Returns a function that builds a query expression for list fields.
- * When the operation is listcontains, it transforms it to a Contains operation on the inner field named'it'.
+ * When the operation is listcontains, it transforms it to a Contains operation on the inner field named 'it'.
+ * 
+ * for example:
+ * Input: field = "keywords", value = "{key1,key2}", operation = "listcontains"
+ * Output: (it.Contains("key1") || it.Contains("key2"))
  * 
  * @param field - The name of the list field to be queried.
  * @returns Callback function that builds a query expression for list fields.

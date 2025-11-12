@@ -2008,8 +2008,7 @@ describe('QueryStepsDataSource', () => {
         outputType: OutputType.Data,
         stepsQuery: 'path.StartsWith("${query}")',
       });
-      jest.spyOn(datastore.templateSrv, 'replace')
-        .mockReturnValueOnce('path.StartsWith("path")');
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValueOnce('path.StartsWith("path")');
 
       await firstValueFrom(datastore.query(query));
 
@@ -2029,8 +2028,7 @@ describe('QueryStepsDataSource', () => {
         outputType: OutputType.Data,
         stepsQuery: 'path.StartsWith("${query}")',
       });
-      jest.spyOn(datastore.templateSrv, 'replace')
-        .mockReturnValueOnce('path.StartsWith("path1") || path.StartsWith("path2")');
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValueOnce('path.StartsWith("path1") || path.StartsWith("path2")');
 
       await firstValueFrom(datastore.query(query));
 

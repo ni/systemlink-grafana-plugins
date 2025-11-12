@@ -992,7 +992,7 @@ describe('QueryResultsDataSource', () => {
         );
       });
 
-      test('should handle transformation for single-variable in starts with operation', async () => {
+      test('should handle transformation for single-variable in startswith operation', async () => {
         const query = buildQuery({
           refId: 'A',
           queryBy: 'PartNumber.StartsWith("${query0}")',
@@ -1011,7 +1011,7 @@ describe('QueryResultsDataSource', () => {
         );
       });
 
-      test('should handle transformation for single-variable in ends with operation', async () => {
+      test('should handle transformation for single-variable in endswith operation', async () => {
         const query = buildQuery({
           refId: 'A',
           queryBy: 'PartNumber.EndsWith("${query0}")',
@@ -1030,7 +1030,7 @@ describe('QueryResultsDataSource', () => {
         );
       });
 
-      test('should handle transformation for multi-variable in starts with operation', async () => {
+      test('should handle transformation for multi-variable in startswith operation', async () => {
         const query = buildQuery({
           refId: 'A',
           queryBy: 'PartNumber.StartsWith("${query0}")',
@@ -1049,7 +1049,7 @@ describe('QueryResultsDataSource', () => {
         );
       });
 
-      test('should handle transformation for multi-variable in ends with operation', async () => {
+      test('should handle transformation for multi-variable in endswith operation', async () => {
         const query = buildQuery({
           refId: 'A',
           queryBy: 'PartNumber.EndsWith("${query0}")',
