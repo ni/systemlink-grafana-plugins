@@ -68,7 +68,7 @@ export enum TransitionInclusionOption {
   All = 'ALL',
 };
 
-interface AlarmTransition {
+export interface AlarmTransition {
   transitionType: AlarmTransitionType;
   occurredAt: string;
   severityLevel: number;
