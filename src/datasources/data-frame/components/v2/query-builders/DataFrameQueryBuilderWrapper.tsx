@@ -12,17 +12,22 @@ import {
     DEFAULT_MARGIN_BOTTOM,
     getValuesInPixels,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
+import { ColumnsQueryBuilder } from './columns-query-builder/ColumnsQueryBuilder';
 
 interface DataFrameQueryBuilderWrapperProps {
     datasource: DataFrameDataSource;
     dataTableFilter?: string;
+    columnsFilter?: string;
     onDataTableFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
+    onColumnsFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
 }
 
 export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapperProps> = ({
     datasource,
     dataTableFilter,
+    columnsFilter,
     onDataTableFilterChange,
+    onColumnsFilterChange,
 }) => {
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
 
@@ -69,6 +74,27 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
                     dataTableNameLookupCallback={dataTableNameLookupCallback}
                 />
             </div>
+            {datasource.instanceSettings.jsonData.featureToggles.queryByResultAndColumnProperties && (
+                <>
+                    <InlineLabel
+                        width={VALUE_FIELD_WIDTH}
+                        tooltip={tooltips.queryByColumnProperties}
+                    >
+                        {labels.queryByColumnProperties}
+                    </InlineLabel>
+                    <div
+                        style={{
+                            width: getValuesInPixels(VALUE_FIELD_WIDTH),
+                            marginBottom: getValuesInPixels(DEFAULT_MARGIN_BOTTOM),
+                        }}
+                    >
+                        <ColumnsQueryBuilder
+                            filter={columnsFilter}
+                            onChange={onColumnsFilterChange}
+                        />
+                    </div>
+                </>
+            )}
         </>
     );
 };

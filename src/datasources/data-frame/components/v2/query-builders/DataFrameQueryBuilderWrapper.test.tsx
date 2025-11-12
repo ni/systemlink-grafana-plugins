@@ -5,6 +5,7 @@ import { DataFrameDataSource } from 'datasources/data-frame/DataFrameDataSource'
 import { Workspace, QueryBuilderOption } from 'core/types';
 import { DataSourceQBLookupCallback } from 'datasources/data-frame/types';
 import userEvent from '@testing-library/user-event';
+import { ColumnsQueryBuilder } from './columns-query-builder/ColumnsQueryBuilder';
 
 jest.mock("datasources/data-frame/components/v2/query-builders/data-table-query-builder/DataTableQueryBuilder", () => ({
     DataTableQueryBuilder: (
@@ -55,10 +56,17 @@ jest.mock("datasources/data-frame/components/v2/query-builders/data-table-query-
     }
 }));
 
+jest.mock("datasources/data-frame/components/v2/query-builders/columns-query-builder/ColumnsQueryBuilder", () => ({
+   ColumnsQueryBuilder: jest.fn(() => <div data-testid="mock-data-frame-query-builder-wrapper" />)
+}));
+
 const renderComponent = (
-    dataTableFilter = ''
+    dataTableFilter = '',
+    columnsFilter = '',
+    queryByResultAndColumnProperties = true
 ) => {
     const onDataTableFilterChange = jest.fn();
+    const onColumnsFilterChange = jest.fn();
     const datasource = {
         loadWorkspaces: jest.fn().mockResolvedValue(
             new Map([
@@ -78,13 +86,18 @@ const renderComponent = (
                 { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, { name: 'ColumnE' }] },
             ]
         ),
+        instanceSettings: {
+            jsonData: { featureToggles: { queryByResultAndColumnProperties } },
+        },
     } as unknown as DataFrameDataSource;
 
     const renderResult = render(
         <DataFrameQueryBuilderWrapper
             datasource={datasource}
             dataTableFilter={dataTableFilter}
+            columnsFilter={columnsFilter}
             onDataTableFilterChange={onDataTableFilterChange}
+            onColumnsFilterChange={onColumnsFilterChange}
         />
     );
 
@@ -93,12 +106,14 @@ const renderComponent = (
             <DataFrameQueryBuilderWrapper
                 datasource={datasource}
                 dataTableFilter={event.detail.linq}
+                columnsFilter={columnsFilter}
                 onDataTableFilterChange={onDataTableFilterChange}
+                onColumnsFilterChange={onColumnsFilterChange}
             />
         );
     });
 
-    return { renderResult, onDataTableFilterChange };
+    return { renderResult, onDataTableFilterChange, onColumnsFilterChange };
 };
 
 describe('DataFrameQueryBuilderWrapper', () => {
@@ -163,6 +178,49 @@ describe('DataFrameQueryBuilderWrapper', () => {
 
             await waitFor(() => {
                 expect(onDataTableFilterChange).toHaveBeenCalledWith({ detail: { linq: 'new filter' } });
+            });
+        });
+    });
+
+    describe('ColumnsQueryBuilder', () => {
+        it('should show the ColumnsQueryBuilder component', async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                expect(screen.getByTestId('mock-data-frame-query-builder-wrapper')).toBeInTheDocument();
+            });
+        });
+
+        it('should pass the filter to the ColumnsQueryBuilder component', async () => {
+            renderComponent('', 'column filter');
+
+            expect(screen.getByTestId('mock-data-frame-query-builder-wrapper')).toBeInTheDocument();
+            expect(ColumnsQueryBuilder).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    filter: 'column filter',
+                }),
+                {}
+            );
+        });
+
+        it('should call onColumnsFilterChange when the columns filter is changed in the ColumnsQueryBuilder component', async () => {
+           const { onColumnsFilterChange } = renderComponent();
+           const [[props]] = (ColumnsQueryBuilder as jest.Mock).mock.calls;
+
+           // Simulate a change event
+           const eventDetail = { linq: 'new column filter' };
+           await props.onChange({ detail: eventDetail });
+
+           await waitFor(() => {
+               expect(onColumnsFilterChange).toHaveBeenCalledWith({ detail: eventDetail });
+           });
+        });
+
+        it('should not render the ColumnsQueryBuilder when feature flag is false', async () => {
+            renderComponent('', '', false);
+
+            await waitFor(() => {
+                expect(screen.queryByTestId('mock-data-frame-query-builder-wrapper')).not.toBeInTheDocument();
             });
         });
     });

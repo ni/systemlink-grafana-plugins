@@ -38,7 +38,7 @@ const sampleAlarm: Alarm = {
     {
       transitionType: AlarmTransitionType.Clear,
       occurredAt: '2025-01-01T10:45:00.000Z',
-      severityLevel: AlarmTransitionSeverityLevel.Low,
+      severityLevel: AlarmTransitionSeverityLevel.Clear,
       value: 'Normal',
       condition: 'Temperature',
       shortText: 'Temp Normal',
