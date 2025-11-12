@@ -84,9 +84,9 @@ export class CalibrationForecastDataSource extends AssetDataSourceBase {
 
                 const timeGrouping = this.getTimeGroup(query);
                 if (timeGrouping) {
-                    this.processResultsGroupedByTime(result, timeGrouping, options)
+                    this.processResultsGroupedByTime(result, timeGrouping, options);
                 } else {
-                    this.processResultsGroupedByProperties(result)
+                    this.processResultsGroupedByProperties(result);
                 }
 
                 return result;}));

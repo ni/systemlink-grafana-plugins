@@ -8,7 +8,7 @@ import { transformComputedFieldsQuery } from '../../../../core/query-builder.uti
 import { defaultListAssetsQuery, defaultListAssetsQueryForOldPannels } from 'datasources/asset/defaults';
 import { TAKE_LIMIT } from 'datasources/asset/constants/ListAssets.constants';
 import { getWorkspaceName } from 'core/utils';
-import { from, Observable, of, switchMap } from 'rxjs';
+import { from, map, Observable, of, switchMap } from 'rxjs';
 
 export class ListAssetsDataSource extends AssetDataSourceBase {
   private dependenciesLoadedPromise: Promise<void>;
@@ -65,7 +65,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
 
   processListAssetsQuery$(query: ListAssetsQuery): Observable<DataFrameDTO> {
     return this.queryAssets$(query.filter, query.take, false, query.properties).pipe(
-      switchMap((assetsResponse: AssetsResponse) => {
+      map((assetsResponse: AssetsResponse) => {
         const assets = assetsResponse.assets;
         const workspaces = this.getCachedWorkspaces();
         const mappedFields = query.properties?.map(property => {
@@ -98,24 +98,24 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
           return { name: label, values: fieldValues, type: fieldType };
         });
 
-        return of({
+        return {
           refId: query.refId,
           name: query.refId,
           fields: mappedFields ?? [],
-        });
+        };
       })
     );
   }
 
   processTotalCountAssetsQuery$(query: ListAssetsQuery): Observable<DataFrameDTO> {
     return this.queryAssets$(query.filter, 1, true, [AssetFilterPropertiesOption.AssetIdentifier]).pipe(
-      switchMap((response: AssetsResponse) => {
+      map((response: AssetsResponse) => {
         const result: DataFrameDTO = {
           refId: query.refId,
           fields: [{ name: 'Total count', values: [response.totalCount] }],
         };
 
-        return of(result);
+        return result;
       })
     );
   }
