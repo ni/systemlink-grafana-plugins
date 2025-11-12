@@ -2,7 +2,7 @@ import { DataFrameDTO, DataQueryRequest, FieldType } from '@grafana/data';
 import { AlarmsQueryHandlerCore } from 'datasources/alarms/query-type-handlers/AlarmsQueryHandlerCore';
 import { defaultAlarmsTrendQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { Alarm, AlarmTransitionSeverityLevel, AlarmTransitionType, TransitionInclusionOption } from 'datasources/alarms/types/types';
-import { AlarmsTrendQuery, AlarmTransitionEvent, AlarmTransitionWithNumericTime, AlarmTrendSeverityLevelLabel } from 'datasources/alarms/types/AlarmsTrend.types';
+import { AlarmsTrendQuery, AlarmTransitionEvent, AlarmTrendSeverityLevelLabel, AlarmWithNumericTimeInTransitions } from 'datasources/alarms/types/AlarmsTrend.types';
 
 export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultAlarmsTrendQuery;
@@ -32,13 +32,18 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
   }
 
   private getTrendQueryFilter(query: AlarmsTrendQuery, start: Date, end: Date): string {
-    const defaultTrendQueryFilter = 
-      `(` +
-        `(active = "true" && mostRecentSetOccurredAt < "${start.toISOString()}") || ` +
-        `(occurredAt > "${start.toISOString()}" && occurredAt < "${end.toISOString()}") ||` +
-        `(mostRecentTransitionOccurredAt > "${start.toISOString()}" && mostRecentTransitionOccurredAt < "${end.toISOString()}") || ` +
-        `(occurredAt < "${start.toISOString()}" && mostRecentTransitionOccurredAt > "${end.toISOString()}")` +
-      `)`;
+    const startIso = start.toISOString();
+    const endIso = end.toISOString();
+    const activeAndCreatedBeforeStartFilter = `(active = "true" && mostRecentSetOccurredAt < "${startIso}")`;
+    const occurredBetweenStartAndEndFilter = `(occurredAt >= "${startIso}" && occurredAt <= "${endIso}")`;
+    const transitionedBetweenStartAndEndFilter = `(mostRecentTransitionOccurredAt >= "${startIso}" && mostRecentTransitionOccurredAt <= "${endIso}")`;
+    const createdBeforeStartAndClearedAfterEndFilter = `(occurredAt < "${startIso}" && mostRecentTransitionOccurredAt > "${endIso}")`;
+    const defaultTrendQueryFilter = `(${[
+      activeAndCreatedBeforeStartFilter,
+      occurredBetweenStartAndEndFilter,
+      transitionedBetweenStartAndEndFilter,
+      createdBeforeStartAndClearedAfterEndFilter
+    ].join(' || ')})`;
 
     if (query.filter && query.filter.trim() !== '') {
       return `${defaultTrendQueryFilter} && (${query.filter})`;
@@ -47,42 +52,35 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
     return defaultTrendQueryFilter;
   }
 
-  private enrichTransitionsWithTimestamp(alarms: Alarm[]): Alarm[] {
+  private enrichTransitionsWithTimestamp(alarms: Alarm[]): AlarmWithNumericTimeInTransitions[] {
     return alarms.map(alarm => ({
       ...alarm,
       transitions: (alarm.transitions?.map(transition => ({
         ...transition,
         occurredAtAsNumber: new Date(transition.occurredAt).getTime(),
-      })) ?? []).sort((a, b) => a.occurredAtAsNumber - b.occurredAtAsNumber) as AlarmTransitionWithNumericTime[]
+      })) ?? []).sort((a, b) => a.occurredAtAsNumber - b.occurredAtAsNumber)
     }));
   }
 
-  private extractEvents(alarms: Alarm[], endTime: number): AlarmTransitionEvent[] {
-    const alarmTransitionEvents: AlarmTransitionEvent[] = [];
-
-    alarms.forEach(alarm => {
-      for (const transition of alarm.transitions) {
-        const occurredAtAsNumber = (transition as AlarmTransitionWithNumericTime).occurredAtAsNumber;
-        
-        if (occurredAtAsNumber > endTime) {
-          break;
-        }
-        
-        alarmTransitionEvents.push({
-          occurredAtAsNumber,
-          alarmId: alarm.alarmId,
-          severityLevel: transition.severityLevel,
-          type: transition.transitionType
-        });
-      }
-    });
-
-    alarmTransitionEvents.sort((a, b) => a.occurredAtAsNumber - b.occurredAtAsNumber);
-
-    return alarmTransitionEvents;
+  private extractEvents(alarms: AlarmWithNumericTimeInTransitions[], endTime: number): AlarmTransitionEvent[] {
+    return alarms
+      .flatMap(alarm => 
+        alarm.transitions
+          .map(transition => {
+            const occurredAtAsNumber = transition.occurredAtAsNumber;
+            return occurredAtAsNumber <= endTime ? {
+              occurredAtAsNumber,
+              alarmId: alarm.alarmId,
+              type: transition.transitionType,
+              severityLevel: transition.severityLevel
+            } : null;
+          })
+          .filter((event): event is AlarmTransitionEvent => event !== null)
+      )
+      .sort((a, b) => a.occurredAtAsNumber - b.occurredAtAsNumber);
   }
 
-  private countActiveAlarmsPerInterval(alarms: Alarm[], startTime: number, endTime: number, intervalMs: number): Map<number, number> {
+  private countActiveAlarmsPerInterval(alarms: AlarmWithNumericTimeInTransitions[], startTime: number, endTime: number, intervalMs: number): Map<number, number> {
     const intervalCounts = new Map<number, number>();
     const alarmTransitionEvents = this.extractEvents(alarms, endTime);
     const alarmStates = new Map<string, AlarmTransitionType>();
@@ -119,7 +117,7 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
           values: Array.from(trendData.keys())
         },
         {
-          name: 'Alarms Count',
+          name: 'Count',
           type: FieldType.number,
           values: Array.from(trendData.values())
         }
@@ -127,7 +125,7 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
     }
   }
 
-  private countActiveAlarmsPerIntervalBySeverity(alarms: Alarm[], startTime: number, endTime: number, intervalMs: number): Map<number, Map<string, number>> {
+  private countActiveAlarmsPerIntervalBySeverity(alarms: AlarmWithNumericTimeInTransitions[], startTime: number, endTime: number, intervalMs: number): Map<number, Map<string, number>> {
     const intervalCountsBySeverity = new Map<number, Map<string, number>>();
     const alarmTransitionEvents = this.extractEvents(alarms, endTime);
     const alarmStates = new Map<string, { type: AlarmTransitionType; severityLevel: AlarmTransitionSeverityLevel }>();

@@ -1,4 +1,4 @@
-import { AlarmsQuery, AlarmTransition, AlarmTransitionSeverityLevel, AlarmTransitionType } from './types';
+import { AlarmsQuery, AlarmTransition, AlarmTransitionSeverityLevel, AlarmTransitionType, Alarm } from './types';
 
 export interface AlarmsTrendQuery extends AlarmsQuery {
   filter?: string;
@@ -12,7 +12,9 @@ export enum AlarmTrendSeverityLevelLabel {
   Critical = 'Critical',
 }
 
-export type AlarmTransitionWithNumericTime = AlarmTransition & { occurredAtAsNumber: number };
+export type AlarmWithNumericTimeInTransitions = { transitions: AlarmTransitionWithNumericTime[] } & Alarm;
+
+export type AlarmTransitionWithNumericTime = { occurredAtAsNumber: number } & AlarmTransition;
 
 export interface AlarmTransitionEvent {
   occurredAtAsNumber: number;
