@@ -1,3 +1,27 @@
+## [4.59.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.58.0...v4.59.0) (2025-11-12)
+
+### Features
+
+* **dataframes:** Add dummy columns query builder ([#510](https://github.com/ni/systemlink-grafana-plugins/issues/510)) ([3822622](https://github.com/ni/systemlink-grafana-plugins/commit/38226221a53431da951e41ebcfb0664859f96192))
+
+## [4.58.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.57.0...v4.58.0) (2025-11-12)
+
+### Features
+
+* **assets:** Cancel the current request before progressing refresh ([#513](https://github.com/ni/systemlink-grafana-plugins/issues/513)) ([f631933](https://github.com/ni/systemlink-grafana-plugins/commit/f631933b83430daafa621763c495ce342ca95219))
+
+## [4.57.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.56.0...v4.57.0) (2025-11-12)
+
+### Features
+
+* **dataframe:** Limit and handle too many columns  ([#508](https://github.com/ni/systemlink-grafana-plugins/issues/508)) ([12ec72f](https://github.com/ni/systemlink-grafana-plugins/commit/12ec72f17ed1642b7294c91a7d8359157368fa52))
+
+## [4.56.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.55.0...v4.56.0) (2025-11-11)
+
+### Features
+
+* **dataframe:** Show unique column name formatted by type ([#498](https://github.com/ni/systemlink-grafana-plugins/issues/498)) ([d7de433](https://github.com/ni/systemlink-grafana-plugins/commit/d7de4335c156f3730bcb0731b3b39a2f81539cf4))
+
 ## [4.55.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.54.0...v4.55.0) (2025-11-11)
 
 ### Features

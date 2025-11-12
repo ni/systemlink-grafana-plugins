@@ -74,6 +74,7 @@ const renderComponent = (
     const onResultsFilterChange = jest.fn();
     const onDataTableFilterChange = jest.fn();
     const onColumnsFilterChange = jest.fn();
+    const onColumnsFilterChange = jest.fn();
     const datasource = {
         loadWorkspaces: jest.fn().mockResolvedValue(
             new Map([
@@ -97,6 +98,9 @@ const renderComponent = (
         instanceSettings: {
             jsonData: { featureToggles: { queryByResultAndColumnProperties } },
         },
+        instanceSettings: {
+            jsonData: { featureToggles: { queryByResultAndColumnProperties } },
+        },
     } as unknown as DataFrameDataSource;
 
     const renderResult = render(
@@ -107,6 +111,7 @@ const renderComponent = (
             columnsFilter={columnsFilter}
             onResultsFilterChange={onResultsFilterChange}
             onDataTableFilterChange={onDataTableFilterChange}
+            onColumnsFilterChange={onColumnsFilterChange}
             onColumnsFilterChange={onColumnsFilterChange}
         />
     );
@@ -120,6 +125,7 @@ const renderComponent = (
                 columnsFilter={columnsFilter}
                 onResultsFilterChange={onResultsFilterChange}
                 onDataTableFilterChange={onDataTableFilterChange}
+                onColumnsFilterChange={onColumnsFilterChange}
                 onColumnsFilterChange={onColumnsFilterChange}
             />
         );

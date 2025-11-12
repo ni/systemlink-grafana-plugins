@@ -8,12 +8,12 @@ import {
   setupDataSource,
 } from "test/fixtures";
 import { SystemProperties } from "datasources/system/types";
-import { dateTime } from "@grafana/data";
+import { DataFrameDTO, dateTime } from "@grafana/data";
 import { AssetCalibrationForecastKey, AssetCalibrationPropertyGroupByType, AssetCalibrationTimeBasedGroupByType, CalibrationForecastQuery, CalibrationForecastResponse, ColumnDescriptorType } from "../../types/CalibrationForecastQuery.types";
 import { CalibrationForecastDataSource } from "./CalibrationForecastDataSource";
 import { AssetQueryType, AssetType, BusType } from "../../types/types";
 import { AssetCalibrationFieldNames } from "../../constants/CalibrationForecastQuery.constants";
-import { firstValueFrom } from "rxjs";
+import { firstValueFrom, of } from "rxjs";
 
 let datastore: CalibrationForecastDataSource, backendServer: MockProxy<BackendSrv>
 
@@ -574,7 +574,7 @@ describe('Asset calibration location queries', () => {
   let processCalibrationForecastQuerySpy: jest.SpyInstance;
 
   beforeEach(() => {
-    processCalibrationForecastQuerySpy = jest.spyOn(datastore, 'processCalibrationForecastQuery').mockImplementation();
+    processCalibrationForecastQuerySpy = jest.spyOn(datastore, 'processCalibrationForecastQuery$').mockImplementation(() => of({} as DataFrameDTO));
   });
 
   test('should transform LOCATION field with single value', async () => {
@@ -682,7 +682,7 @@ describe('Asset calibration "contains" queries', () => {
   let processCalibrationForecastQuerySpy: jest.SpyInstance;
 
   beforeEach(() => {
-    processCalibrationForecastQuerySpy = jest.spyOn(datastore, 'processCalibrationForecastQuery').mockImplementation();
+    processCalibrationForecastQuerySpy = jest.spyOn(datastore, 'processCalibrationForecastQuery$').mockImplementation(() => of({} as DataFrameDTO));
   });
 
   describe('should transform single values for', () => {

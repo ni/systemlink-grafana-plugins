@@ -7,6 +7,7 @@ import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, tran
 import { Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
+import { ComboboxOption } from "@grafana/ui";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
     defaultQuery = defaultQueryV2;
@@ -145,6 +146,71 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             throw new Error(errorMessage);
         }
     }
+
+    public async getColumnOptions(filter: string): Promise<ComboboxOption[]> {
+        const tables = await this.queryTables(filter, TAKE_LIMIT, [
+            DataTableProjections.ColumnName,
+            DataTableProjections.ColumnDataType,
+        ]);
+
+        const hasColumns = tables.some(
+            table => Array.isArray(table.columns)
+                && table.columns.length > 0
+        );
+        if (!hasColumns) {
+            return [];
+        }
+
+        const columnTypeMap = this.createColumnNameDataTypesMap(tables);
+
+        return this.createColumnOptions(columnTypeMap);
+    }
+
+    private transformColumnType(dataType: string): string {
+        const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType)
+                        ? 'Numeric'
+                        : this.toSentenceCase(dataType);
+        return type;
+    }
+
+    private createColumnNameDataTypesMap(tables: TableProperties[]): Record<string, Set<string>>  {
+        const columnNameDataTypeMap: Record<string, Set<string>> = {};
+        tables.forEach(table => {
+            table.columns?.forEach((column: { name: string; dataType: string }) => {
+                if (column?.name && column.dataType) {
+                    const dataType = this.transformColumnType(column.dataType);
+                    (columnNameDataTypeMap[column.name] ??= new Set()).add(dataType);
+                }
+            });
+        });
+        return columnNameDataTypeMap;
+    };
+
+    private createColumnOptions(columnTypeMap: Record<string, Set<string>>): ComboboxOption[] {
+        const options: ComboboxOption[] = [];
+
+        Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
+            const columnDataType = Array.from(dataTypes);
+
+            if (columnDataType.length === 1) {
+                // Single type: show just the name as label and value as name with type in sentence case
+                options.push({ label: name, value: `${name}-${columnDataType[0]}` }); 
+            } else {
+                // Multiple types: show type in label and value
+                columnDataType.forEach(type => {
+                    options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
+                });
+            }
+        });
+        return options;
+    };
+
+    /**
+     * Converts a string to sentence case (e.g., 'TIMESTAMP' -> 'Timestamp').
+     */
+    private toSentenceCase(str: string) {
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+    };
 
     private shouldQueryForProperties(query: ValidDataFrameQueryV2): boolean {
         const isDataTableOrColumnPropertiesSelected = (

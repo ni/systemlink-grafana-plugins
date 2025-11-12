@@ -1,9 +1,9 @@
 import React, { useCallback, useState } from 'react';
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
-import { AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProjections, DataTableProperties, Props, DataFrameDataQuery } from "../../types";
+import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
+import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
-import { decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import { FloatingError } from 'core/errors';
 import {
     errorMessages,
@@ -23,6 +23,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const [isDecimationSettingsSectionOpen, setIsDecimationSettingsSectionOpen] = useState(true);
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
     const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
+    const [isColumnLimitExceeded, setIsColumnLimitExceeded] = useState<boolean>(false);
 
     const getPropertiesOptions = (
         type: DataTableProjectionType
@@ -48,28 +49,14 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
     const fetchAndSetColumnOptions = async (filter: string) => {
         if (!filter) {
+            setIsColumnLimitExceeded(false);
             setColumnOptions([]);
             return;
         }
-
-        const tables = await datasource.queryTables(
-            filter,
-            TAKE_LIMIT,
-            [
-                DataTableProjections.Name,
-                DataTableProjections.ColumnName,
-                DataTableProjections.ColumnDataType,
-                DataTableProjections.ColumnType,
-            ]
-        );
-        const columnNames = tables
-            .map(table => table.columns ?? [])
-            .flatMap(columns => {
-                return columns
-                    .filter(column => column.name !== undefined)
-                    .map(column => column.name);
-            });
-        setColumnOptions(columnNames.map(name => ({ label: name, value: name })));
+        const columnOptions = await datasource.getColumnOptions(filter);
+        const limitedColumnOptions = columnOptions.slice(0, COLUMN_OPTIONS_LIMIT);
+        setIsColumnLimitExceeded(columnOptions.length > COLUMN_OPTIONS_LIMIT);
+        setColumnOptions(limitedColumnOptions);
     };
 
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
@@ -202,6 +189,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                     collapsible={true}
                     onToggle={() => setIsQueryConfigurationSectionOpen(!isQueryConfigurationSectionOpen)}
                 >
+                    {migratedQuery.type === DataFrameQueryType.Data && (
+                        <>
+                            {isColumnLimitExceeded && (
+                                <Alert title='Warning' severity='warning'>{errorMessages.columnLimitExceeded}</Alert>
+                            )}
+                        </>
+                    )}
                     <DataFrameQueryBuilderWrapper
                         datasource={datasource}
                         dataTableFilter={migratedQuery.dataTableFilter}
@@ -248,7 +242,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                         >
                             <MultiCombobox
                                 placeholder={placeholders.columns}
-                                width={40}
+                                width='auto'
+                                minWidth={40}
+                                maxWidth={40}
                                 value={migratedQuery.columns}
                                 onChange={onColumnsChange}
                                 options={columnOptions}
