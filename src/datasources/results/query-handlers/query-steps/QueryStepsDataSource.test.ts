@@ -23,7 +23,7 @@ import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types
 import { ResultsDataSourceBase } from 'datasources/results/ResultsDataSourceBase';
 import { Workspace } from 'core/types';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { firstValueFrom, single } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 const mockSteps = Array(1000).fill({ stepId: '1', name: 'Step 1' });
 const mockPaths = Array(1000).fill({ path: 'path1' });
