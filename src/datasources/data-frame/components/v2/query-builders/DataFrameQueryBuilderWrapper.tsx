@@ -25,7 +25,6 @@ interface DataFrameQueryBuilderWrapperProps {
     onResultsFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
     onDataTableFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
     onColumnsFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
-    onColumnsFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
 }
 
 export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapperProps> = ({
@@ -35,7 +34,6 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
     columnsFilter,
     onResultsFilterChange,
     onDataTableFilterChange,
-    onColumnsFilterChange,
     onColumnsFilterChange,
 }) => {
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -118,27 +116,6 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
                     dataTableNameLookupCallback={dataTableNameLookupCallback}
                 />
             </div>
-            {datasource.instanceSettings.jsonData.featureToggles.queryByResultAndColumnProperties && (
-                <>
-                    <InlineLabel
-                        width={VALUE_FIELD_WIDTH}
-                        tooltip={tooltips.queryByColumnProperties}
-                    >
-                        {labels.queryByColumnProperties}
-                    </InlineLabel>
-                    <div
-                        style={{
-                            width: getValuesInPixels(VALUE_FIELD_WIDTH),
-                            marginBottom: getValuesInPixels(DEFAULT_MARGIN_BOTTOM),
-                        }}
-                    >
-                        <ColumnsQueryBuilder
-                            filter={columnsFilter}
-                            onChange={onColumnsFilterChange}
-                        />
-                    </div>
-                </>
-            )}
             {datasource.instanceSettings.jsonData.featureToggles.queryByResultAndColumnProperties && (
                 <>
                     <InlineLabel
