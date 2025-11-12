@@ -18,15 +18,6 @@ export const defaultOrderBy = 'createdTimeStamp DESC';
 export const systemFields = {
   ID: 'id',
   ALIAS: 'alias',
-  STATE: 'state',
-  LOCKED: 'locked',
-  SYSTEM_START_TIME: 'systemStartTime',
-  MODEL: 'model',
-  VENDOR: 'vendor',
-  OS_FULL_NAME: 'osFullName',
-  IP4_INTERFACES: 'ip4Interfaces',
-  IP6_INTERFACES: 'ip6Interfaces',
-  WORKSPACE: 'workspace',
   SCAN_CODE: 'scanCode',
 } as const;
 

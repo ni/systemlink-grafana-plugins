@@ -92,7 +92,7 @@ export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJson
     let systemValue: string;
 
     if (query.queryReturnType === SystemQueryReturnType.ScanCode) {
-      systemValue = system.scanCode ?? system.id;
+      systemValue = system.scanCode!;
     } else {
       systemValue = system.id;
     }

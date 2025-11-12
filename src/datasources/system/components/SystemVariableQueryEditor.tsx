@@ -36,7 +36,6 @@ export function SystemVariableQueryEditor({ onChange, query, datasource }: Props
       </InlineField>
       <InlineField
         label="Return Type"
-        labelWidth={25}
         tooltip={"This field specifies the return type of the query."}
       >
         <Select
@@ -46,7 +45,6 @@ export function SystemVariableQueryEditor({ onChange, query, datasource }: Props
           onChange={(item) => {
             changeQueryReturnType(item.value!);
           }}
-          width={26}
         />
       </InlineField>
     </Stack>
