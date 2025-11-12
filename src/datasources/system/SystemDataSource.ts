@@ -8,9 +8,9 @@ import {
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { defaultOrderBy, defaultProjection } from './constants';
+import { defaultOrderBy, defaultProjection, systemFields } from './constants';
 import { NetworkUtils } from './network-utils';
-import { SystemQuery, SystemQueryType, SystemSummary, SystemVariableQuery, SystemQueryReturnType } from './types';
+import { SystemQuery, SystemQueryType, SystemSummary, SystemVariableQuery, SystemQueryReturnType, SystemProperties } from './types';
 import { getWorkspaceName } from 'core/utils';
 
 export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJsonData> {
@@ -83,16 +83,16 @@ export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJson
   }
 
   async metricFindQuery({ workspace, queryReturnType }: SystemVariableQuery): Promise<MetricFindValue[]> {
-    const properties = await this.getSystemProperties('', ['id', 'alias', 'scanCode'], this.templateSrv.replace(workspace));
+    const properties = await this.getSystemProperties('', [systemFields.ID, systemFields.ALIAS, systemFields.SCAN_CODE], this.templateSrv.replace(workspace));
     return properties.map(system => this.getSystemNameForMetricQuery({ queryReturnType }, system));
   }
 
-  private getSystemNameForMetricQuery(query: { queryReturnType?: SystemQueryReturnType }, system: any): MetricFindValue {
+  private getSystemNameForMetricQuery(query: { queryReturnType?: SystemQueryReturnType }, system: SystemProperties): MetricFindValue {
     const displayName = system.alias ?? system.id;
     let systemValue: string;
 
     if (query.queryReturnType === SystemQueryReturnType.ScanCode) {
-      systemValue = system.scanCode;
+      systemValue = system.scanCode ?? system.id;
     } else {
       systemValue = system.id;
     }

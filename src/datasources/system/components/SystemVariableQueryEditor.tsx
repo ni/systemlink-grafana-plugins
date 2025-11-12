@@ -24,32 +24,31 @@ export function SystemVariableQueryEditor({ onChange, query, datasource }: Props
   }
   return (
     <Stack direction="column">
-    <InlineField label="Workspace">
-      <Select
-        isClearable
-        isLoading={workspaces.loading}
-        onChange={(option?: SelectableValue<string>) => onChange({ workspace: option?.value ?? '' })}
-        options={workspaces.value}
-        placeholder="Any workspace"
-        value={query.workspace}
-      />
-    </InlineField>
-    <InlineField
-      label="Return Type"
-      labelWidth={25}
-      tooltip={"This field specifies the return type of the query."}
-    >
-      <Select
-        options={returnTypeOptions}
-        defaultValue={SystemQueryReturnType.MinionId}
-        value={SystemVariableQuery.queryReturnType || SystemQueryReturnType.MinionId}
-        onChange={(item) => {
-          changeQueryReturnType(item.value!);
-        }}
-        width={26}
+      <InlineField label="Workspace">
+        <Select
+          isClearable
+          isLoading={workspaces.loading}
+          onChange={(option?: SelectableValue<string>) => onChange({ workspace: option?.value ?? '' })}
+          options={workspaces.value}
+          placeholder="Any workspace"
+          value={query.workspace}
         />
-    </InlineField>
-      
+      </InlineField>
+      <InlineField
+        label="Return Type"
+        labelWidth={25}
+        tooltip={"This field specifies the return type of the query."}
+      >
+        <Select
+          options={returnTypeOptions}
+          defaultValue={SystemQueryReturnType.MinionId}
+          value={SystemVariableQuery.queryReturnType || SystemQueryReturnType.MinionId}
+          onChange={(item) => {
+            changeQueryReturnType(item.value!);
+          }}
+          width={26}
+        />
+      </InlineField>
     </Stack>
   );
 }
