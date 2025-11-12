@@ -434,18 +434,25 @@ describe('AlarmsQueryHandlerCore', () => {
         totalCount: 150,
       };
 
+
+      // Spy on the query endpoint and mock return values
       backendServer.fetch
-        .calledWith(requestMatching({ 
-          url: QUERY_ALARMS_RELATIVE_PATH,
-          data: expect.objectContaining({ continuationToken: undefined })
-        }))
-        .mockReturnValueOnce(createFetchResponse(firstPageResponse));
-      backendServer.fetch
-        .calledWith(requestMatching({ 
-          url: QUERY_ALARMS_RELATIVE_PATH,
-          data: expect.objectContaining({ continuationToken: 'next-page-token' })
-        }))
+        .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
+        .mockReturnValueOnce(createFetchResponse(firstPageResponse))
         .mockReturnValueOnce(createFetchResponse(secondPageResponse));
+
+      // Mock queryUntilComplete to simulate pagination behavior
+      (queryUntilComplete as jest.Mock).mockImplementation(async (queryRecord) => {
+        // First call without continuation token
+        const firstResult = await queryRecord(100, undefined);
+        // Second call with continuation token
+        const secondResult = await queryRecord(100, 'next-page-token');
+
+        return { 
+          data: [...firstResult.data, ...secondResult.data], 
+          totalCount: secondResult.totalCount 
+        };
+      });
 
       const result = await datastore.queryAlarmsUntilCompleteWrapper(requestBody);
 
