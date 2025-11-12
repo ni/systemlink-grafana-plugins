@@ -109,7 +109,7 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
   private buildGroupedDataFrame(refId: string, trendData: Map<number, number>): DataFrameDTO {
     return {
       refId: refId,
-      name: 'Alarms Trend',
+      name: refId,
       fields: [
         {
           name: 'Time',
@@ -183,7 +183,7 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
     
     return {
       refId,
-      name: 'Alarms Trend by Severity',
+      name: refId,
       fields
     };
   }
