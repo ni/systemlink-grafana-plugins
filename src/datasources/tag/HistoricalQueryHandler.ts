@@ -43,7 +43,7 @@ export class HistoricalQueryHandler extends QueryHandler {
 
                 return result;
             }
-        ));
+            ));
     }
 
     private countTagPaths(tagsWithValues: TagWithValue[]): Record<string, number> {
