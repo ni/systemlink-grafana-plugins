@@ -463,6 +463,50 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
+        describe("alert", () => {
+            it('should render error alert when no properties are selected', async () => {
+                ({ renderResult, onChange, onRunQuery } = renderComponent(
+                    {
+                        type: DataFrameQueryType.Properties,
+                        dataTableProperties: [],
+                        columnProperties: []
+                    }
+                ));
+                const alert = screen.queryByRole('alert');
+
+                expect(alert).toBeInTheDocument();
+                expect(alert).toHaveTextContent(errorMessages.propertiesNotSelected);
+            });
+
+            it('should not render error alert when at least one data tabe property is selected', async () => {
+                const dataTablePropertiesField = renderResult.getAllByRole('combobox')[0];
+
+                await selectProperty(
+                    dataTablePropertiesField,
+                    DataTableProjectionLabelLookup.Properties.label,
+                    user
+                );
+
+                await waitFor(() => {
+                    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+                });
+            });
+
+            it('should not render error alert when at least one column property is selected', async () => {
+                const columnPropertiesField = renderResult.getAllByRole('combobox')[1];
+
+                await selectProperty(
+                    columnPropertiesField,
+                    DataTableProjectionLabelLookup.ColumnType.label,
+                    user
+                );
+
+                await waitFor(() => {
+                    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+                });
+            });
+        });
+
         describe("data table properties fields", () => {
             let dataTablePropertiesField: HTMLElement;
 
