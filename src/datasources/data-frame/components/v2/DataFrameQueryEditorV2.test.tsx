@@ -33,12 +33,6 @@ const renderComponent = (
         errorTitle,
         errorDescription,
         processQuery,
-        queryTables: jest.fn().mockResolvedValue(
-            [
-                { id: 'table1', name: 'Table 1', columns: [{ name: 'ColumnA' }, { name: 'ColumnB' }] },
-                { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, { name: 'ColumnE' }] },
-            ]
-        ),
         getColumnOptions: jest.fn().mockResolvedValue(
             [
                 { label: 'ColumnA', value: 'ColumnA' },
