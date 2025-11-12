@@ -1,65 +1,28 @@
+jest.mock('datasources/data-frame/constants', () => {
+    const actual = jest.requireActual('datasources/data-frame/constants');
+    return { ...actual, COLUMN_OPTIONS_LIMIT: 10 }; // reduce column option limit for tests
+});
+
 import React from "react";
-import { render, RenderResult, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, RenderResult, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
-import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataSourceQBLookupCallback, DataTableProperties } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
-import { QueryBuilderOption, Workspace } from "core/types";
-import { select } from "react-select-event";
+import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
+import { COLUMN_OPTIONS_LIMIT } from "datasources/data-frame/constants";
+import { ComboboxOption } from "@grafana/ui";
+import { errorMessages } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
 
-jest.mock("./query-builders/DataTableQueryBuilder", () => ({
-    DataTableQueryBuilder: (
-        props: {
-            filter?: string;
-            workspaces?: Workspace[];
-            globalVariableOptions: QueryBuilderOption[];
-            dataTableNameLookupCallback: DataSourceQBLookupCallback;
-            onChange: (event: { detail: { linq: string; }; }) => void;
-        }
-    ) => {
-        const [options, setOptions] = React.useState<QueryBuilderOption[]>([]);
-
-        React.useEffect(() => {
-            const loadOptions = async () => {
-                const result = await props.dataTableNameLookupCallback("test");
-                setOptions(result);
-            };
-
-            loadOptions();
-        }, [props]);
-
-        return (
-            <div data-testid="data-table-query-builder">
-                <input
-                    type="text"
-                    data-testid="filter-input"
-                    value={props.filter}
-                    onChange={(e) => props.onChange({ detail: { linq: e.target.value } })}
-                />
-                <ul data-testid="workspaces-list">
-                    {props.workspaces?.map(workspace => (
-                        <li key={workspace.id}>{workspace.name}</li>
-                    ))}
-                </ul>
-                <ul data-testid="global-variable-options-list">
-                    {props.globalVariableOptions?.map(option => (
-                        <li key={option.label}>{`${option.label}:${option.value}`}</li>
-                    ))}
-                </ul>
-                <ul data-testid="data-table-name-options-list">
-                    {options.map(option => (
-                        <li key={option.value}>{`${option.label}:${option.value}`}</li>
-                    ))}
-                </ul>
-            </div>
-        );
-    }
+jest.mock("./query-builders/DataFrameQueryBuilderWrapper", () => ({
+    DataFrameQueryBuilderWrapper: jest.fn(() => <div data-testid="mock-data-frame-query-builder-wrapper" />)
 }));
 
 const renderComponent = (
     queryOverrides: Partial<DataFrameQueryV2> = {},
     errorTitle = '',
-    errorDescription = ''
+    errorDescription = '',
+    columnOptions: ComboboxOption[]= []
 ) => {
     const onChange = jest.fn();
     const onRunQuery = jest.fn();
@@ -70,24 +33,22 @@ const renderComponent = (
         errorTitle,
         errorDescription,
         processQuery,
-        loadWorkspaces: jest.fn().mockResolvedValue(
-            [
-                { id: '1', name: 'WorkspaceName' },
-                { id: '2', name: 'AnotherWorkspaceName' },
-            ]
-        ),
-        globalVariableOptions: jest.fn().mockReturnValue(
-            [
-                { label: 'Var1', value: 'Value1' },
-                { label: 'Var2', value: 'Value2' },
-            ]
-        ),
         queryTables: jest.fn().mockResolvedValue(
             [
-                { id: 'table1', name: 'Table 1' },
-                { id: 'table2', name: 'Table 2' },
+                { id: 'table1', name: 'Table 1', columns: [{ name: 'ColumnA' }, { name: 'ColumnB' }] },
+                { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, { name: 'ColumnE' }] },
             ]
         ),
+        getColumnOptions: jest.fn().mockResolvedValue(
+            [
+                { label: 'ColumnA', value: 'ColumnA' },
+                { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
+                { label: 'ColumnB (String)', value: 'ColumnB-String' },
+                { label: 'ColumnD (String)', value: 'ColumnD-String' },
+                { label: 'ColumnE', value: 'ColumnE' },
+                ...columnOptions
+            ]
+        )
     } as unknown as DataFrameDataSource;
 
     const initialQuery = {
@@ -135,7 +96,7 @@ describe("DataFrameQueryEditorV2", () => {
 
     it("should update the query type when a different option is selected", async () => {
         const user = userEvent.setup();
-        const { onChange, onRunQuery } = renderComponent();
+        const { onChange } = renderComponent();
 
         await user.click(screen.getByRole("radio", { name: DataFrameQueryType.Properties }));
 
@@ -144,12 +105,27 @@ describe("DataFrameQueryEditorV2", () => {
                 type: DataFrameQueryType.Properties,
             }));
         });
-        expect(onRunQuery).not.toHaveBeenCalled();
+    });
+
+    it("should call onRunQuery when the query type is changed", async () => {
+        const user = userEvent.setup();
+        const { onRunQuery } = renderComponent();
+
+        await user.click(screen.getByRole("radio", { name: DataFrameQueryType.Properties }));
+
+        expect(onRunQuery).toHaveBeenCalled();
     });
 
     describe("when the query type is data", () => {
         let onChange: jest.Mock;
         let onRunQuery: jest.Mock;
+        
+        beforeAll(() => { 
+            // JSDOM provides offsetHeight as 0 by default. 
+            // Mocking it to return 30 because the ComboBox virtualization relies on this value 
+            // to correctly calculate and render the dropdown options. 
+            jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30); 
+        });
 
         beforeEach(() => {
             const result = renderComponent({ type: DataFrameQueryType.Data });
@@ -171,14 +147,6 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
-        describe("data table query builder", () => {
-            it("should show the 'DataTableQueryBuilder' component", async () => {
-                await waitFor(() => {
-                    expect(screen.getByTestId("data-table-query-builder")).toBeInTheDocument();
-                });
-            });
-        });
-
         describe("column configuration controls", () => {
             it("should show the column configuration fields", async () => {
                 await waitFor(() => {
@@ -189,18 +157,124 @@ describe("DataFrameQueryEditorV2", () => {
                 });
             });
 
-            describe("columns field", () => {
-                let columnsField: HTMLElement;
+            describe('columns field', () => {
+              let columnsField: HTMLElement;
 
-                beforeEach(() => {
-                    columnsField = screen.getAllByRole('combobox')[0];
+              async function changeFilterValue(filterValue = 'NewFilter') {
+                // Get the onDataTableFilterChange callback from the mock
+                const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                const { onDataTableFilterChange } = props;
+
+                // Simulate the filter change event
+                const mockEvent = {
+                  detail: { linq: filterValue },
+                } as Event & { detail: { linq: string } };
+
+                onDataTableFilterChange(mockEvent);
+              }
+
+              async function clickColumnOptions() {
+                const columnsCombobox = screen.getAllByRole('combobox')[0];
+                await userEvent.click(columnsCombobox);
+              }
+
+              function getColumnOptionTexts() {
+                const optionControls = within(document.body).getAllByRole('option');
+                return optionControls.map(opt => opt.textContent);
+              }
+
+              beforeEach(() => {
+                columnsField = screen.getAllByRole('combobox')[0];
+              });
+
+              it('should show the columns field', () => {
+                expect(columnsField).toBeInTheDocument();
+                expect(columnsField).toHaveAttribute('aria-expanded', 'false');
+                expect(columnsField).toHaveDisplayValue('');
+              });
+
+                it('should load columns combobox options when filter changes', async () => {
+                    await changeFilterValue();
+                    await clickColumnOptions();
+
+                    const optionTexts = getColumnOptionTexts();
+                    expect(optionTexts).toEqual(expect.arrayContaining(
+                        [
+                            'ColumnA',
+                            'ColumnB (Numeric)',
+                            'ColumnB (String)',
+                            'ColumnD (String)',
+                            'ColumnE'
+                        ]
+                    ));
                 });
 
-                it("should show the columns field", () => {
-                    expect(columnsField).toBeInTheDocument();
-                    expect(columnsField).toHaveAttribute('aria-expanded', 'false');
-                    expect(columnsField).toHaveDisplayValue('');
+              it('should not load column options when filter is empty', async () => {
+                renderComponent({ dataTableFilter: '' });
+
+                await clickColumnOptions();
+
+                // Assert that no options are shown
+                expect(within(document.body).queryAllByRole('option').length).toBe(0);
+              });
+
+              describe('column limit', () => {
+                it('should not render warning alert when column limit is not exceeded', async () => {
+                   await changeFilterValue();
+                   await clickColumnOptions();
+
+                   const optionTexts = getColumnOptionTexts();
+                   expect(optionTexts.length).toBeLessThanOrEqual(COLUMN_OPTIONS_LIMIT);
+                   await waitFor(() => {
+                     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+                   });
                 });
+
+                describe('when column limit is exceeded', () => {
+                  beforeEach(async () => {
+                    cleanup();
+                    jest.clearAllMocks();
+
+                    const columnOptions = Array.from({ length: COLUMN_OPTIONS_LIMIT + 25 }, (_, i) => ({
+                      label: `Column${i + 1}`,
+                      value: `Column${i + 1}`,
+                    }));
+
+                    // Increase offsetHeight to allow more options to be rendered in the test environment
+                    jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(200);
+                    renderComponent({ dataTableFilter: ' ' }, '', '', columnOptions);
+
+                    await changeFilterValue();
+                  });
+
+                  it(`should limit the number of column options to ${COLUMN_OPTIONS_LIMIT}`, async () => {
+                    await clickColumnOptions();
+                    const optionTexts = getColumnOptionTexts();
+                    expect(optionTexts.length).toBe(COLUMN_OPTIONS_LIMIT);
+                  });
+
+                  it('should render warning alert when column limit is exceeded', async () => {
+                    await waitFor(() => {
+                      const alert = screen.getByRole('alert');
+                      expect(alert).toBeInTheDocument();
+                      expect(within(alert).getByText(/Warning/i)).toBeInTheDocument();
+                      expect(within(alert).getByText(errorMessages.columnLimitExceeded)).toBeInTheDocument();
+                    });
+                  });
+
+                  it('should hide the warning alert when filter is removed', async () => {
+                    await changeFilterValue();
+                    const alert = screen.getByRole('alert');
+                    expect(alert).toBeInTheDocument();
+
+                    await changeFilterValue('');
+
+                    await waitFor(() => {
+                      expect(alert).not.toBeInTheDocument();
+                    });
+                  });
+                });
+              });
             });
 
             describe("include index columns", () => {
@@ -341,9 +415,36 @@ describe("DataFrameQueryEditorV2", () => {
         let renderResult: RenderResult;
         let onChange: jest.Mock;
         let onRunQuery: jest.Mock;
+        let user: UserEvent;
+
+        async function selectProperty(
+            container: HTMLElement,
+            propertyLabel: string,
+            user: UserEvent
+        ) {
+            await user.click(container);
+
+            // Find all option controls by role 'option'
+            const optionControls = within(document.body).getAllByRole('option');
+            const targetOption = optionControls.find(opt => opt.textContent === propertyLabel);
+            
+            if (targetOption) {
+                await user.click(targetOption);
+            }
+        }
+
+        beforeAll(() => {
+            // JSDOM provides offsetHeight as 0 by default.
+            // Mocking it to return 250 because the MultiCombobox virtualization relies on this value
+            // to correctly calculate and render the dropdown options.
+            jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(250);
+        });
 
         beforeEach(() => {
-            ({ renderResult, onChange, onRunQuery } = renderComponent({ type: DataFrameQueryType.Properties }));
+            ({ renderResult, onChange, onRunQuery } = renderComponent(
+                { type: DataFrameQueryType.Properties }
+            ));
+            user = userEvent.setup();
         });
 
         describe("hidden fields", () => {
@@ -369,41 +470,67 @@ describe("DataFrameQueryEditorV2", () => {
                 dataTablePropertiesField = renderResult.getAllByRole('combobox')[0];
             });
 
-            it('should render data table properties select with default value', () => {
+            it('should render data table properties select with default value', async () => {
                 expect(dataTablePropertiesField).toBeInTheDocument();
                 expect(dataTablePropertiesField).toHaveAttribute('aria-expanded', 'false');
                 expect(dataTablePropertiesField).toHaveDisplayValue('');
-                expect(document.body).toHaveTextContent("Data table name");
-                expect(document.body).toHaveTextContent("Data table ID");
-                expect(document.body).toHaveTextContent("Rows");
-                expect(document.body).toHaveTextContent("Columns");
-                expect(document.body).toHaveTextContent("Created");
-                expect(document.body).toHaveTextContent("Workspace");
+
+                await user.click(dataTablePropertiesField);
+
+                await waitFor(() => {
+                    expect(document.body).toHaveTextContent("Data table name");
+                    expect(document.body).toHaveTextContent("Data table ID");
+                    expect(document.body).toHaveTextContent("Rows");
+                    expect(document.body).toHaveTextContent("Columns");
+                    expect(document.body).toHaveTextContent("Created");
+                    expect(document.body).toHaveTextContent("Workspace");
+                });
             });
 
             it('should call onChange with data table properties when user selects properties', async () => {
-                await userEvent.click(dataTablePropertiesField);
-                await select(dataTablePropertiesField, DataTableProjectionLabelLookup.Properties.label, { container: document.body });
+                await selectProperty(
+                    dataTablePropertiesField,
+                    DataTableProjectionLabelLookup.Properties.label,
+                    user
+                );
 
                 await waitFor(() => {
                     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
                         dataTableProperties: expect.arrayContaining([DataTableProperties.Properties])
                     }));
-                    expect(onRunQuery).not.toHaveBeenCalled();
+                });
+            });
+
+            it('should call onRunQuery when user selects properties', async () => {
+                await selectProperty(
+                    dataTablePropertiesField,
+                    DataTableProjectionLabelLookup.Properties.label,
+                    user
+                );
+
+                await waitFor(() => {
+                    expect(onRunQuery).toHaveBeenCalled();
                 });
             });
 
             it("should show the expected options in the data table properties field", async () => {
-                const dataTablePropertiesField = screen.getAllByRole('combobox')[0];
-                await userEvent.click(dataTablePropertiesField);
+                await user.click(dataTablePropertiesField);
 
-                await waitFor(() => {
-                    expect(document.body).toHaveTextContent("Metadata modified");
-                    expect(document.body).toHaveTextContent("Metadata revision");
-                    expect(document.body).toHaveTextContent("Rows modified");
-                    expect(document.body).toHaveTextContent("Supports append");
-                    expect(document.body).toHaveTextContent("Data table properties");
-                });
+                const optionControls = within(document.body).getAllByRole('option');
+                const optionTexts = optionControls.map(opt => opt.textContent);
+                expect(optionTexts).toEqual(expect.arrayContaining([
+                    "Data table name",
+                    "Data table ID",
+                    "Rows",
+                    "Columns",
+                    "Created",
+                    "Workspace",
+                    "Metadata modified",
+                    "Metadata revision",
+                    "Rows modified",
+                    "Supports append",
+                    "Data table properties"
+                ]));
             });
         });
 
@@ -421,33 +548,39 @@ describe("DataFrameQueryEditorV2", () => {
             });
 
             it('should call onChange with columns properties when user selects properties', async () => {
-                await userEvent.click(columnPropertiesField);
-                await select(columnPropertiesField, DataTableProjectionLabelLookup.ColumnType.label, { container: document.body });
+                selectProperty(
+                    columnPropertiesField,
+                    DataTableProjectionLabelLookup.ColumnType.label,
+                    user
+                );
 
                 await waitFor(() => {
                     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
                         columnProperties: expect.arrayContaining([DataTableProperties.ColumnType])
                     }));
-                    expect(onRunQuery).not.toHaveBeenCalled();
+                });
+            });
+
+            it('should call onRunQuery when user selects properties', async () => {
+                selectProperty(
+                    columnPropertiesField,
+                    DataTableProjectionLabelLookup.ColumnType.label,
+                    user
+                );
+
+                await waitFor(() => {
+                    expect(onRunQuery).toHaveBeenCalled();
                 });
             });
 
             it("should show the expected options in the column properties field", async () => {
-                await userEvent.click(columnPropertiesField);
+                await user.click(columnPropertiesField);
 
                 await waitFor(() => {
                     expect(document.body).toHaveTextContent("Column name");
                     expect(document.body).toHaveTextContent("Column data type");
                     expect(document.body).toHaveTextContent("Column type");
                     expect(document.body).toHaveTextContent("Column properties");
-                });
-            });
-        });
-
-        describe("data table query builder", () => {
-            it("should show the DataTableQueryBuilder component", async () => {
-                await waitFor(() => {
-                    expect(renderResult.getByTestId("data-table-query-builder")).toBeInTheDocument();
                 });
             });
         });
@@ -479,7 +612,8 @@ describe("DataFrameQueryEditorV2", () => {
                 await user.type(takeInput, "0");
 
                 await waitFor(() => {
-                    expect(screen.getByText("The take value must be greater than or equal to 0.")).toBeInTheDocument();
+                    expect(screen.getByText("The take value must be greater than or equal to 0."))
+                        .toBeInTheDocument();
                 });
             });
 
@@ -488,7 +622,8 @@ describe("DataFrameQueryEditorV2", () => {
                 await user.type(takeInput, "5000");
 
                 await waitFor(() => {
-                    expect(screen.getByText("The take value must be less than or equal to 1000.")).toBeInTheDocument();
+                    expect(screen.getByText("The take value must be less than or equal to 1000."))
+                        .toBeInTheDocument();
                 });
             });
 
@@ -497,8 +632,10 @@ describe("DataFrameQueryEditorV2", () => {
                 await user.type(takeInput, "500");
 
                 await waitFor(() => {
-                    expect(screen.queryByText("The take value must be greater than or equal to 0.")).not.toBeInTheDocument();
-                    expect(screen.queryByText("The take value must be less than or equal to 1000.")).not.toBeInTheDocument();
+                    expect(screen.queryByText("The take value must be greater than or equal to 0."))
+                        .not.toBeInTheDocument();
+                    expect(screen.queryByText("The take value must be less than or equal to 1000."))
+                        .not.toBeInTheDocument();
                 });
             });
 
@@ -510,71 +647,66 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
                         take: 500,
                     }));
-                    expect(onRunQuery).not.toHaveBeenCalled();
+                });
+            });
+
+            it("should call onRunQuery when a valid take value is entered", async () => {
+                await user.clear(takeInput);
+                await user.type(takeInput, "500");
+
+                await waitFor(() => {
+                    expect(onRunQuery).toHaveBeenCalled();
                 });
             });
         });
     });
+    
+    describe("query builder wrapper integration", () => {
+        it("should render the query builder wrapper and forward the props", async () => {
+            renderComponent({ type: DataFrameQueryType.Data, dataTableFilter: 'InitialFilter' });
 
-    describe("DataTableQueryBuilder props", () => {
-        it("should pass the filter to the DataTableQueryBuilder component", async () => {
-            renderComponent({ dataTableFilter: "test filter" });
-
-            await waitFor(() => {
-                const filterInput = screen.getByTestId("filter-input");
-                expect(filterInput).toHaveValue("test filter");
-            });
+            expect(screen.getByTestId("mock-data-frame-query-builder-wrapper")).toBeInTheDocument();
+            expect(DataFrameQueryBuilderWrapper).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    dataTableFilter: 'InitialFilter',
+                    datasource: expect.any(Object),
+                    onDataTableFilterChange: expect.any(Function),
+                }),
+                expect.anything() // React context
+            );
         });
 
-        it("should pass the workspaces to the DataTableQueryBuilder component", async () => {
-            renderComponent();
+        it("should call onChange and onRunQuery with updated dataTableFilter when filter changes", async () => {
+            const { onChange, onRunQuery } = renderComponent({ type: DataFrameQueryType.Data });
+
+            // Get the onDataTableFilterChange callback from the mock
+            const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+            const { onDataTableFilterChange } = props;
+
+            // Simulate the filter change event
+            const mockEvent = { 
+                detail: { linq: "NewFilter" } 
+            } as Event & { detail: { linq: string } };
+            
+            onDataTableFilterChange(mockEvent);
 
             await waitFor(() => {
-                const workspacesList = screen.getByTestId("workspaces-list");
-                expect(workspacesList).toBeInTheDocument();
-                expect(within(workspacesList).getByText("WorkspaceName")).toBeInTheDocument();
-                expect(within(workspacesList).getByText("AnotherWorkspaceName")).toBeInTheDocument();
-            });
-        });
-
-        it("should pass the global variable options to the DataTableQueryBuilder component", async () => {
-            renderComponent();
-
-            await waitFor(() => {
-                const optionsList = screen.getByTestId("global-variable-options-list");
-                expect(optionsList).toBeInTheDocument();
-                expect(within(optionsList).getByText("Var1:Value1")).toBeInTheDocument();
-                expect(within(optionsList).getByText("Var2:Value2")).toBeInTheDocument();
-            });
-        });
-
-        it("should pass the dataTableNameLookupCallback to the DataTableQueryBuilder component", async () => {
-            renderComponent();
-
-            await waitFor(() => {
-                const optionsList = screen.getByTestId("data-table-name-options-list");
-                expect(optionsList).toBeInTheDocument();
-                expect(within(optionsList).getByText("Table 1:Table 1")).toBeInTheDocument();
-                expect(within(optionsList).getByText("Table 2:Table 2")).toBeInTheDocument();
-            });
-        });
-
-        it("should call onChange when the data table filter is changed in the DataTableQueryBuilder component", async () => {
-            const { onChange } = renderComponent({ dataTableFilter: "" });
-            const filterInput = screen.getByTestId("filter-input");
-            const user = userEvent.setup();
-
-            await user.clear(filterInput);
-            await user.type(filterInput, "new filter");
-
-            await waitFor(() => {
-                expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                    dataTableFilter: "new filter",
+                expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ 
+                    dataTableFilter: 'NewFilter' 
                 }));
+                expect(onRunQuery).toHaveBeenCalled();
             });
+        });
+
+        it("should verify dataTableFilter is passed correctly", () => {
+            renderComponent({ type: DataFrameQueryType.Data, dataTableFilter: 'TestFilter' });
+
+            const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+
+            expect(props.dataTableFilter).toBe('TestFilter');
         });
     });
-
+    
     describe("floating error", () => {
         it("should not be rendered when there is no error", async () => {
             renderComponent();

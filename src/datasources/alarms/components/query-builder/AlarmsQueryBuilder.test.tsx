@@ -87,12 +87,20 @@ describe('AlarmsQueryBuilder', () => {
   });
 
   it('should select source in query builder', () => {
-    const { conditionsContainer } = renderElement('source = "test-source"', [], [workspace]);
+    let { conditionsContainer } = renderElement('source = "test-source"', [], [workspace]);
 
     expect(conditionsContainer?.length).toBe(1);
-    const conditionText = conditionsContainer.item(0)?.textContent;
+    let conditionText = conditionsContainer.item(0)?.textContent;
     expect(conditionText).toContain('Source');
     expect(conditionText).toContain('equals');
+    expect(conditionText).toContain('test-source');
+
+    conditionsContainer = renderElement('source.Contains("test-source")', [], [workspace]).conditionsContainer;
+  
+    expect(conditionsContainer?.length).toBe(1);
+    conditionText = conditionsContainer.item(0)?.textContent;
+    expect(conditionText).toContain('Source');
+    expect(conditionText).toContain('contains');
     expect(conditionText).toContain('test-source');
   });
 

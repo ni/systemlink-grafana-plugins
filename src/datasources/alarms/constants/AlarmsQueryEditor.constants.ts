@@ -1,13 +1,17 @@
 import { AlertVariant } from '@grafana/ui';
 import { AlarmsProperties } from '../types/ListAlarms.types';
+import { TransitionInclusionOption } from '../types/types';
 
 export const LABEL_WIDTH = 26;
 export const CONTROL_WIDTH = 65;
+export const SECONDARY_LABEL_WIDTH = 20;
+export const SECONDARY_CONTROL_WIDTH = 26;
 export const ERROR_SEVERITY_WARNING: AlertVariant = 'warning';
 export const QUERY_EDITOR_MIN_TAKE = 1;
 export const QUERY_EDITOR_MAX_TAKE = 10000;
 export const DEFAULT_QUERY_EDITOR_TAKE = 1000;
 export const DEFAULT_QUERY_EDITOR_DESCENDING = true;
+export const DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION = TransitionInclusionOption.None;
 
 export const ALARMS_TIME_FIELDS = [
   AlarmsProperties.occurredAt,
@@ -24,6 +28,7 @@ export const labels = {
   descending: 'Descending',
   take: 'Take',
   groupBySeverity: 'Group by severity',
+  transitionInclusion: 'Include Transition',
 };
 
 export const tooltips = {
@@ -33,6 +38,7 @@ export const tooltips = {
   descending: 'This toggle returns the alarms query in descending order.',
   take: 'This field specifies the maximum number of alarms to return.',
   groupBySeverity: 'This toggle returns the alarms trend grouped by severity.',
+  transitionInclusion: 'This field specifies whether to include all transitions, only the most recent, or none.',
 };
 
 export const takeErrorMessages = {
@@ -155,3 +161,24 @@ export const AlarmsPropertiesOptions: Record<
     value: AlarmsProperties.workspace,
   },
 }
+
+export const AlarmsTransitionInclusionOptions: Record<
+  TransitionInclusionOption,
+  {
+    label: string;
+    value: TransitionInclusionOption;
+  }
+> = {
+  [TransitionInclusionOption.None]: {
+    label: 'None',
+    value: TransitionInclusionOption.None,
+  },
+  [TransitionInclusionOption.MostRecentOnly]: {
+    label: 'Most recent only',
+    value: TransitionInclusionOption.MostRecentOnly,
+  },
+  [TransitionInclusionOption.All]: {
+    label: 'All',
+    value: TransitionInclusionOption.All,
+  },
+};

@@ -10,7 +10,15 @@ export enum DataFrameQueryType {
   Properties = 'Properties',
 }
 
-export type DataFrameQuery = DataFrameQueryV1 | DataFrameQueryV2;
+export enum DataFrameVariableQueryType {
+  ListDataTables = 'ListDataTables',
+  ListColumns = 'ListColumns',
+}
+
+export type DataFrameDataQuery = DataFrameQueryV1 | DataFrameQueryV2;
+export type DataFrameVariableQuery = DataFrameQueryV1 | DataFrameVariableQueryV2;
+export type DataFrameQuery = DataFrameDataQuery | DataFrameVariableQuery;
+
 
 export interface DataFrameQueryV1 extends DataQuery {
   type: DataFrameQueryType;
@@ -34,6 +42,16 @@ export interface DataFrameQueryV2 extends DataQuery {
   applyTimeFilters?: boolean;
   take?: number;
 }
+
+export interface DataFrameVariableQueryV2 extends DataQuery {
+  queryType: DataFrameVariableQueryType;
+  dataTableFilter?: string;
+}
+
+export const defaultVariableQueryV2: Omit<DataFrameVariableQueryV2, 'refId'> = {
+  queryType: DataFrameVariableQueryType.ListDataTables,
+  dataTableFilter: ''
+};
 
 export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
   type: DataFrameQueryType.Data,
@@ -115,85 +133,104 @@ export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
 export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
   label: string,
   projection: DataTableProjections,
-  type: DataTableProjectionType;
+  type: DataTableProjectionType,
+  field: keyof FlattenedTableProperties
 }> = {
   [DataTableProperties.Name]: {
     label: 'Data table name',
     projection: DataTableProjections.Name,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'name'
   },
   [DataTableProperties.Id]: {
     label: 'Data table ID',
     projection: DataTableProjections.Id,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'id'
   },
   [DataTableProperties.RowCount]: {
     label: 'Rows',
     projection: DataTableProjections.RowCount,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'rowCount'
   },
   [DataTableProperties.ColumnCount]: {
     label: 'Columns',
     projection: DataTableProjections.ColumnCount,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'columnCount'
   },
   [DataTableProperties.CreatedAt]: {
     label: 'Created',
     projection: DataTableProjections.CreatedAt,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'createdAt'
   },
   [DataTableProperties.Workspace]: {
     label: 'Workspace',
     projection: DataTableProjections.Workspace,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'workspace'
   },
   [DataTableProperties.MetadataModifiedAt]: {
     label: 'Metadata modified',
     projection: DataTableProjections.MetadataModifiedAt,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'metadataModifiedAt'
   },
   [DataTableProperties.MetadataRevision]: {
     label: 'Metadata revision',
     projection: DataTableProjections.MetadataRevision,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'metadataRevision'
   },
   [DataTableProperties.RowsModifiedAt]: {
     label: 'Rows modified',
     projection: DataTableProjections.RowsModifiedAt,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'rowsModifiedAt'
   },
   [DataTableProperties.ColumnName]: {
     label: 'Column name',
     projection: DataTableProjections.ColumnName,
-    type: DataTableProjectionType.Column
+    type: DataTableProjectionType.Column,
+    field: 'columnName'
   },
   [DataTableProperties.ColumnDataType]: {
     label: 'Column data type',
     projection: DataTableProjections.ColumnDataType,
-    type: DataTableProjectionType.Column
+    type: DataTableProjectionType.Column,
+    field: 'columnDataType'
   },
   [DataTableProperties.ColumnType]: {
     label: 'Column type',
     projection: DataTableProjections.ColumnType,
-    type: DataTableProjectionType.Column
+    type: DataTableProjectionType.Column,
+    field: 'columnType'
   },
   [DataTableProperties.ColumnProperties]: {
     label: 'Column properties',
     projection: DataTableProjections.ColumnProperties,
-    type: DataTableProjectionType.Column
+    type: DataTableProjectionType.Column,
+    field: 'columnProperties'
   },
   [DataTableProperties.SupportsAppend]: {
     label: 'Supports append',
     projection: DataTableProjections.SupportsAppend,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'supportsAppend'
   },
   [DataTableProperties.Properties]: {
     label: 'Data table properties',
     projection: DataTableProjections.Properties,
-    type: DataTableProjectionType.DataTable
+    type: DataTableProjectionType.DataTable,
+    field: 'properties'
   },
 };
+
 export type ValidDataFrameQuery = ValidDataFrameQueryV1 | ValidDataFrameQueryV2;
+
+export type ValidDataFrameVariableQuery = DataFrameVariableQueryV2 & Required<Omit<DataFrameVariableQueryV2, keyof DataQuery>>;
 
 export type ValidDataFrameQueryV1 = DataFrameQueryV1 & Required<Omit<DataFrameQueryV1, keyof DataQuery>>;
 
@@ -201,11 +238,7 @@ export type ValidDataFrameQueryV2 = DataFrameQueryV2 & Required<Omit<DataFrameQu
 
 export type ColumnDataType = 'BOOL' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64' | 'STRING' | 'TIMESTAMP';
 
-export type Props = PropsV1 | PropsV2;
-
-export type PropsV1 = QueryEditorProps<DataFrameDataSource, DataFrameQueryV1, DataFrameDataSourceOptions>;
-
-export type PropsV2 = QueryEditorProps<DataFrameDataSource, DataFrameQuery, DataFrameDataSourceOptions>;
+export type Props = QueryEditorProps<DataFrameDataSource, DataFrameQuery, DataFrameDataSourceOptions>;
 
 export type DataSourceQBLookupCallback = (query: string) => Promise<QueryBuilderOption[]>;
 
@@ -218,10 +251,16 @@ export interface QBFieldWithDataSourceCallback extends QueryBuilderField {
   },
 }
 
+export enum ColumnType {
+  Index = 'INDEX',
+  Nullable = 'NULLABLE',
+  Normal = 'NORMAL',
+}
+
 export interface Column {
   name: string;
   dataType: ColumnDataType;
-  columnType: 'INDEX' | 'NULLABLE' | 'NORMAL';
+  columnType: ColumnType;
   properties: Record<string, string>;
 }
 
@@ -240,11 +279,25 @@ export interface ColumnFilter {
 }
 
 export interface TableProperties {
-  columns: Column[];
   id: string;
   name: string;
+  columnCount: number;
+  columns: Column[];
+  createdAt: string;
+  metadataModifiedAt: string;
+  metadataRevision: number;
+  rowCount: number;
+  rowsModifiedAt: string;
+  supportsAppend: boolean;
   workspace: string;
   properties: Record<string, string>;
+}
+
+export interface FlattenedTableProperties extends Partial<Omit<TableProperties, 'columns'>> {
+  columnName?: string;
+  columnDataType?: ColumnDataType;
+  columnType?: ColumnType;
+  columnProperties?: Record<string, string>;
 }
 
 export interface TablePropertiesList {

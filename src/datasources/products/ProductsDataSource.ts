@@ -7,6 +7,7 @@ import { extractErrorInfo } from 'core/errors';
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
 import { getWorkspaceName } from 'core/utils';
+import { catchError, forkJoin, lastValueFrom, map, Observable, of, switchMap } from 'rxjs';
 
 export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   constructor(
@@ -54,46 +55,45 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   private workspacesLoaded!: () => void;
   private partNumberLoaded!: () => void;
 
-  async queryProducts(
+  queryProducts$(
     orderBy?: string,
     projection?: Properties[],
     filter?: string,
     take?: number,
     descending = false,
     returnCount = false
-  ): Promise<QueryProductResponse> {
-    try {
-      const response = await this.post<QueryProductResponse>(
-        this.queryProductsUrl,
-        {
-          filter,
-          orderBy,
-          descending,
-          projection,
-          take,
-          returnCount
-        },
-        { showErrorAlert: false },// suppress default error alert since we handle errors manually
-      );
-      return response;
-    } catch (error) {
-      const errorDetails = extractErrorInfo((error as Error).message);
-      let errorMessage: string;
-      if (!errorDetails.statusCode) {
-        errorMessage = 'The query failed due to an unknown error.';
-      } else if (errorDetails.statusCode === '504') {
-        errorMessage = 'The query to fetch products experienced a timeout error. Narrow your query with a more specific filter and try again.';
-      } else {
-        errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
-      }
-
-      this.appEvents?.publish?.({
-        type: AppEvents.alertError.name,
-        payload: ['Error during product query', errorMessage],
-      });
-
-      throw new Error(errorMessage);
-    }
+  ): Observable<QueryProductResponse> {
+    return this.post$<QueryProductResponse>(
+      this.queryProductsUrl,
+      {
+        filter,
+        orderBy,
+        descending,
+        projection,
+        take,
+        returnCount
+      },
+      { showErrorAlert: false },// suppress default error alert since we handle errors manually
+    ).pipe(
+      catchError((error) => {
+        const errorDetails = extractErrorInfo((error as Error).message);
+        let errorMessage: string;
+        if (!errorDetails.statusCode) {
+          errorMessage = 'The query failed due to an unknown error.';
+        } else if (errorDetails.statusCode === '504') {
+          errorMessage = 'The query to fetch products experienced a timeout error. Narrow your query with a more specific filter and try again.';
+        } else {
+          errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+        }
+  
+        this.appEvents?.publish?.({
+          type: AppEvents.alertError.name,
+          payload: ['Error during product query', errorMessage],
+        });
+  
+        throw new Error(errorMessage);
+      })
+    );
   }
 
   async queryProductValues(fieldName: string): Promise<string[]> {
@@ -106,60 +106,66 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     );
   }
 
-  async runQuery(query: ProductQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    await this.workspaceLoadedPromise;
-    await this.partNumberLoadedPromise;
+  runQuery(query: ProductQuery, options: DataQueryRequest): Observable<DataFrameDTO> {
+    return forkJoin([
+      this.workspaceLoadedPromise,
+      this.partNumberLoadedPromise
+    ]).pipe(
+      switchMap(() => {
+        if (query.properties?.length === 0 || query.recordCount === undefined) {
+          return of({
+            refId: query.refId,
+            name: query.refId,
+            fields: [],
+          });
+        }
 
-    if( query.properties?.length === 0 || query.recordCount === undefined ) {
-      return {
-        refId: query.refId,
-        name: query.refId,
-        fields: [],
-      }
-    }
+        if (query.queryBy) {
+          query.queryBy = transformComputedFieldsQuery(
+            this.templateSrv.replace(query.queryBy, options.scopedVars),
+            this.productsComputedDataFields,
+          );
+        }
+  
+        return this.queryProducts$(
+          query.orderBy,
+          query.properties,
+          query.queryBy,
+          query.recordCount,
+          query.descending
+        ).pipe(
+          map(({ products }) => {
+            const selectedFields =
+              products && products.length > 0
+                ? query.properties?.filter(
+                    (field: Properties) => field in products[0]
+                  ) ?? []
+                : query.properties ?? [];
 
-    if (query.queryBy) {
-      query.queryBy = transformComputedFieldsQuery(
-        this.templateSrv.replace(query.queryBy, options.scopedVars),
-        this.productsComputedDataFields,
-      );
-    }
+            const fields = selectedFields.map((field) => {
+              const isTimeField = field === PropertiesOptions.UPDATEDAT;
+              const fieldType = isTimeField ? FieldType.time : FieldType.string;
 
-    const products = (
-      await this.queryProducts(
-        query.orderBy,
-        query.properties,
-        query.queryBy,
-        query.recordCount,
-        query.descending
-      )).products;
+              return {
+                name: productsProjectionLabelLookup[field].label,
+                values: this.getFieldValues(products, field),
+                type: fieldType,
+              };
+            });
 
-    const selectedFields = (products && products.length > 0)
-      ? (query.properties?.filter(
-        (field: Properties) => field in products[0]
-      ) ?? [])
-      : (query.properties ?? []);
-    const fields = selectedFields.map((field) => {
-      const isTimeField = field === PropertiesOptions.UPDATEDAT;
-      const fieldType = isTimeField
-        ? FieldType.time
-        : FieldType.string;
-
-      return {
-        name: productsProjectionLabelLookup[field].label,
-        values: this.getFieldValues(products, field),
-        type: fieldType
-      };
-    });
-    return {
-      refId: query.refId,
-      name: query.refId,
-      fields: fields,
-    };
+            return {
+              refId: query.refId,
+              name: query.refId,
+              fields,
+            };
+          })
+        );
+      })
+    );
   }
 
   shouldRunQuery(query: ProductQuery): boolean {
-    return true;
+    return !query.hide;
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
@@ -190,15 +196,15 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       )
       : undefined;
 
-    const metadata = (await this.queryProducts(
-      PropertiesOptions.PART_NUMBER,
-      [Properties.partNumber, Properties.name],
-      filter
-    )).products;
-
-    const productOptions = metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.partNumber})`, value: frame.partNumber })) : [];
-    return productOptions.sort((a, b) => a.text.localeCompare(b.text));  
-  }
+      const metadata = await lastValueFrom(this.queryProducts$(
+        PropertiesOptions.PART_NUMBER,
+        [Properties.partNumber, Properties.name],
+        filter
+      ).pipe(map(response => response.products)));
+  
+      const productOptions = metadata ? metadata.map(frame => ({ text: `${frame.name} (${frame.partNumber})`, value: frame.partNumber })) : [];
+      return productOptions.sort((a, b) => a.text.localeCompare(b.text));  
+    }
 
   readonly productsComputedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(ProductsQueryBuilderFieldNames).map(field => [
