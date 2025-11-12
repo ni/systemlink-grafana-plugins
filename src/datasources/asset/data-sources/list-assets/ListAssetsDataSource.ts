@@ -8,6 +8,7 @@ import { transformComputedFieldsQuery } from '../../../../core/query-builder.uti
 import { defaultListAssetsQuery, defaultListAssetsQueryForOldPannels } from 'datasources/asset/defaults';
 import { TAKE_LIMIT } from 'datasources/asset/constants/ListAssets.constants';
 import { getWorkspaceName } from 'core/utils';
+import { from, map, Observable, of, switchMap } from 'rxjs';
 
 export class ListAssetsDataSource extends AssetDataSourceBase {
   private dependenciesLoadedPromise: Promise<void>;
@@ -29,90 +30,101 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
     take: 1000,
   };
 
-  async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+  runQuery(query: AssetQuery, options: DataQueryRequest): Observable<DataFrameDTO> {
     const listAssetsQuery = this.patchListAssetQuery(query);
-    await this.dependenciesLoadedPromise;
 
-    if (listAssetsQuery.filter) {
-      listAssetsQuery.filter = transformComputedFieldsQuery(
-        this.templateSrv.replace(listAssetsQuery.filter, options.scopedVars),
-        this.assetComputedDataFields,
-        this.queryTransformationOptions
-      );
-    }
+    return from(this.dependenciesLoadedPromise).pipe(
+      switchMap(() => {
+        if (listAssetsQuery.filter) {
+          listAssetsQuery.filter = transformComputedFieldsQuery(
+            this.templateSrv.replace(listAssetsQuery.filter, options.scopedVars),
+            this.assetComputedDataFields,
+            this.queryTransformationOptions
+          );
+        }
 
-    if (listAssetsQuery.outputType === OutputType.TotalCount) {
-      return this.processTotalCountAssetsQuery(listAssetsQuery);
-    };
+        if (listAssetsQuery.outputType === OutputType.TotalCount) {
+          return this.processTotalCountAssetsQuery$(listAssetsQuery);
+        }
 
-    if (listAssetsQuery.outputType === OutputType.Properties && this.isTakeValid(listAssetsQuery)) {
-      return this.processListAssetsQuery(listAssetsQuery);
-    }
+        if (listAssetsQuery.outputType === OutputType.Properties && this.isTakeValid(listAssetsQuery)) {
+          return this.processListAssetsQuery$(listAssetsQuery);
+        }
 
-    return {
-      refId: query.refId,
-      name: query.refId,
-      fields: [],
-    };
+        return of({
+          refId: query.refId,
+          name: query.refId,
+          fields: [],
+        });
+      }));
   }
 
   shouldRunQuery(query: AssetQuery): boolean {
     return !query.hide;
   }
 
-  async processListAssetsQuery(query: ListAssetsQuery) {
-    const assetsResponse: AssetsResponse = await this.queryAssets(query.filter, query.take, false, query.properties);
-    const assets = assetsResponse.assets;
-    const workspaces = this.getCachedWorkspaces();
-    const mappedFields = query.properties?.map(property => {
-      const { field, label, value } = AssetFilterProperties[property];
-      const fieldType = FieldType.string;
+  processListAssetsQuery$(query: ListAssetsQuery): Observable<DataFrameDTO> {
+    return this.queryAssets$(query.filter, query.take, false, query.properties).pipe(
+      map((assetsResponse: AssetsResponse) => {
+        const assets = assetsResponse.assets;
+        const workspaces = this.getCachedWorkspaces();
+        const mappedFields = query.properties?.map(property => {
+          const { field, label, value } = AssetFilterProperties[property];
+          const fieldType = FieldType.string;
 
-      const fieldValues = assets.map(asset => {
-        switch (value) {
-          case AssetFilterPropertiesOption.Workspace:
-            return getWorkspaceName(workspaces, asset.workspace)
-          case AssetFilterPropertiesOption.Location:
-            return this.getLocationFromAsset(asset)
-          case AssetFilterPropertiesOption.Properties:
-            return JSON.stringify(asset.properties);
-          case AssetFilterPropertiesOption.MinionId:
-            return asset.location.minionId
-          case AssetFilterPropertiesOption.ParentName:
-            return asset.location.parent
-          case AssetFilterPropertiesOption.SelfCalibration:
-            return asset.selfCalibration?.date ?? '';
-          case AssetFilterPropertiesOption.ExternalCalibrationDate:
-            return asset.externalCalibration?.resolvedDueDate
-          case AssetFilterPropertiesOption.Keywords:
-            return asset.keywords.join(', ')
-          default:
-            return asset[field];
-        }
-      });
+          const fieldValues = assets.map(asset => {
+            switch (value) {
+              case AssetFilterPropertiesOption.Workspace:
+                return getWorkspaceName(workspaces, asset.workspace);
+              case AssetFilterPropertiesOption.Location:
+                return this.getLocationFromAsset(asset);
+              case AssetFilterPropertiesOption.Properties:
+                return JSON.stringify(asset.properties);
+              case AssetFilterPropertiesOption.MinionId:
+                return asset.location.minionId;
+              case AssetFilterPropertiesOption.ParentName:
+                return asset.location.parent;
+              case AssetFilterPropertiesOption.SelfCalibration:
+                return asset.selfCalibration?.date ?? '';
+              case AssetFilterPropertiesOption.ExternalCalibrationDate:
+                return asset.externalCalibration?.resolvedDueDate;
+              case AssetFilterPropertiesOption.Keywords:
+                return asset.keywords.join(', ');
+              default:
+                return asset[field];
+            }
+          });
 
-      return { name: label, values: fieldValues, type: fieldType };
-    });
+          return { name: label, values: fieldValues, type: fieldType };
+        });
 
-    return {
-      refId: query.refId,
-      name: query.refId,
-      fields: mappedFields ?? [],
-    };
+        return {
+          refId: query.refId,
+          name: query.refId,
+          fields: mappedFields ?? [],
+        };
+      })
+    );
   }
 
-  async processTotalCountAssetsQuery(query: ListAssetsQuery) {
-    const response: AssetsResponse = await this.queryAssets(query.filter, 1, true, [AssetFilterPropertiesOption.AssetIdentifier]);
-    const result: DataFrameDTO = { refId: query.refId, fields: [{ name: "Total count", values: [response.totalCount] }] };
-    return result;
+  processTotalCountAssetsQuery$(query: ListAssetsQuery): Observable<DataFrameDTO> {
+    return this.queryAssets$(query.filter, 1, true, [AssetFilterPropertiesOption.AssetIdentifier]).pipe(
+      map((response: AssetsResponse) => {
+        const result: DataFrameDTO = {
+          refId: query.refId,
+          fields: [{ name: 'Total count', values: [response.totalCount] }],
+        };
+
+        return result;
+      })
+    );
   }
 
-  async queryAssets(filter = '', take = -1, returnCount = false, projectionFields?: string[]): Promise<AssetsResponse> {
+  queryAssets$(filter = '', take = -1, returnCount = false, projectionFields?: string[]): Observable<AssetsResponse> {
     const projection = `new(${projectionFields})`;
     let data: QueryListAssetRequestBody = { filter, take, returnCount, projection };
     try {
-      const response = await this.post<AssetsResponse>(this.baseUrl + '/query-assets', data);
-      return response;
+      return this.post$<AssetsResponse>(this.baseUrl + '/query-assets', data);
     } catch (error) {
       throw new Error(`An error occurred while querying assets: ${error}`);
     }
@@ -126,7 +138,7 @@ export class ListAssetsDataSource extends AssetDataSourceBase {
   }
 
   public patchListAssetQuery(query: AssetQuery): ListAssetsQuery {
-    const newQuery = query as ListAssetsQuery
+    const newQuery = query as ListAssetsQuery;
     if (!newQuery.properties) {
       return { ...defaultListAssetsQueryForOldPannels, ...query } as ListAssetsQuery;
     }
