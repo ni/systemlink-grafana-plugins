@@ -1,3 +1,9 @@
+## [4.60.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.59.0...v4.60.0) (2025-11-12)
+
+### Features
+
+* **alarms:** Implement logics for trends ([#499](https://github.com/ni/systemlink-grafana-plugins/issues/499)) ([c559f09](https://github.com/ni/systemlink-grafana-plugins/commit/c559f0940c0f9f9ed336433bc39d56b844c949c2))
+
 ## [4.59.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.58.0...v4.59.0) (2025-11-12)
 
 ### Features
