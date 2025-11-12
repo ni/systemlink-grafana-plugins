@@ -4,9 +4,9 @@ export interface AlarmsTrendQuery extends AlarmsQuery {
   filter?: string;
 }
 
-export type AlarmWithNumericTimeInTransitions = Alarm & { transitions: AlarmTransitionWithNumericTime[] };
+export type AlarmWithNumericTimeInTransitions = { transitions: AlarmTransitionWithNumericTime[] } & Alarm;
 
-export type AlarmTransitionWithNumericTime = AlarmTransition & { occurredAtAsNumber: number };
+export type AlarmTransitionWithNumericTime = { occurredAtAsNumber: number } & AlarmTransition;
 
 export interface AlarmTransitionEvent {
   occurredAtAsNumber: number;

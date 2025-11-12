@@ -70,7 +70,7 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
     }));
   }
 
-  private countActiveAlarmsPerInterval(alarms: Alarm[], start: Date, end: Date, intervalMs: number): Map<number, number> {
+  private countActiveAlarmsPerInterval(alarms: AlarmWithNumericTimeInTransitions[], start: Date, end: Date, intervalMs: number): Map<number, number> {
     const intervalCounts = new Map<number, number>();
     const startTime = start.getTime();
     const endTime = end.getTime();
@@ -79,7 +79,7 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
       .flatMap(alarm => 
         alarm.transitions
           .map(transition => {
-            const occurredAtAsNumber = (transition as AlarmTransitionWithNumericTime).occurredAtAsNumber;
+            const occurredAtAsNumber = transition.occurredAtAsNumber;
             return occurredAtAsNumber <= endTime ? {
               occurredAtAsNumber,
               alarmId: alarm.alarmId,
