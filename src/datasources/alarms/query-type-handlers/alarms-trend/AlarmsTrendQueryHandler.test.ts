@@ -727,9 +727,27 @@ describe('AlarmsTrendQueryHandler', () => {
         const lowField = result.fields?.find(f => f.name === AlarmTrendSeverityLevelLabel.Low);
         const highField = result.fields?.find(f => f.name === AlarmTrendSeverityLevelLabel.High);
         const criticalField = result.fields?.find(f => f.name === AlarmTrendSeverityLevelLabel.Critical);
-        expect(lowField?.values?.some((count: number) => count > 0)).toBe(true);
-        expect(highField?.values?.some((count: number) => count > 0)).toBe(true);
-        expect(criticalField?.values?.some((count: number) => count > 0)).toBe(true);
+        
+        // Calculate exact expected counts:
+        // - ALARM-001 (Low): Set at 10:10:00, active for 50 minutes (from 10:10 to 11:00)
+        // - ALARM-002 (High): Set at 10:15:00, active for 45 minutes (from 10:15 to 11:00) 
+        // - ALARM-003 (Critical): Set at 10:20:00, active for 40 minutes (from 10:20 to 11:00)
+        
+        const lowCounts = lowField?.values as number[];
+        const highCounts = highField?.values as number[];
+        const criticalCounts = criticalField?.values as number[];
+        
+        // Low severity: should be 1 from interval 10 onwards (50 intervals + 1 end point = 51)
+        expect(lowCounts.filter(count => count === 1).length).toBe(51);
+        expect(lowCounts.filter(count => count === 0).length).toBe(10); // First 10 intervals
+        
+        // High severity: should be 1 from interval 15 onwards (45 intervals + 1 end point = 46) 
+        expect(highCounts.filter(count => count === 1).length).toBe(46);
+        expect(highCounts.filter(count => count === 0).length).toBe(15); // First 15 intervals
+        
+        // Critical severity: should be 1 from interval 20 onwards (40 intervals + 1 end point = 41)
+        expect(criticalCounts.filter(count => count === 1).length).toBe(41);
+        expect(criticalCounts.filter(count => count === 0).length).toBe(20); // First 20 intervals
       });
 
       it('should handle severity level transitions correctly', async () => {

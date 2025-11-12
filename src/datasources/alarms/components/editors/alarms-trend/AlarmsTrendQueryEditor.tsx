@@ -2,7 +2,7 @@ import { AlarmsTrendQuery } from 'datasources/alarms/types/AlarmsTrend.types';
 import React, { useEffect, useState } from 'react';
 import { InlineField } from 'core/components/InlineField';
 import { AlarmsQueryBuilder } from '../../query-builder/AlarmsQueryBuilder';
-import { ERROR_SEVERITY_WARNING, LABEL_WIDTH, labels, tooltips } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { ERROR_SEVERITY_WARNING, LABEL_WIDTH, labels, SECONDARY_LABEL_WIDTH, tooltips } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { AlarmsTrendQueryHandler } from 'datasources/alarms/query-type-handlers/alarms-trend/AlarmsTrendQueryHandler';
 import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
@@ -58,7 +58,7 @@ export function AlarmsTrendQueryEditor({ query, handleQueryChange, datasource }:
         </InlineField>
         <InlineField
           label={labels.groupBySeverity}
-          labelWidth={LABEL_WIDTH}
+          labelWidth={SECONDARY_LABEL_WIDTH}
           tooltip={tooltips.groupBySeverity}
         >
           <InlineSwitch
