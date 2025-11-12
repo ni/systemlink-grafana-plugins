@@ -29,30 +29,6 @@ exports[`parseMultiSelectValues add workspace prefix only when a tag with the sa
         ],
       },
       {
-        "name": "time",
-        "type": "time",
-        "values": [
-          1672531200000,
-          1672531260000,
-        ],
-      },
-      {
-        "config": {},
-        "name": "Default workspace.my.tag.1",
-        "values": [
-          1,
-          2,
-        ],
-      },
-      {
-        "config": {},
-        "name": "Default workspace.my.tag.2",
-        "values": [
-          2,
-          3,
-        ],
-      },
-      {
         "config": {},
         "name": "Other workspace.my.tag.1",
         "values": [
@@ -455,30 +431,6 @@ exports[`queries add workspace prefix only when a tag with the same path exists 
 [
   {
     "fields": [
-      {
-        "name": "time",
-        "type": "time",
-        "values": [
-          1672531200000,
-          1672531260000,
-        ],
-      },
-      {
-        "config": {},
-        "name": "Default workspace.my.tag.1",
-        "values": [
-          1,
-          2,
-        ],
-      },
-      {
-        "config": {},
-        "name": "Default workspace.my.tag.2",
-        "values": [
-          2,
-          3,
-        ],
-      },
       {
         "name": "time",
         "type": "time",
