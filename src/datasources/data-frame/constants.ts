@@ -26,3 +26,5 @@ export const errorCodes: { [key: number]: string } = {
 export const propertiesCacheTTL = 1000 * 60 * 5; // 5 minutes
 
 export const TAKE_LIMIT = 1000;
+
+export const MAXIMUM_NUMBER_OF_COLUMNS = 10000;

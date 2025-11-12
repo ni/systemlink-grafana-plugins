@@ -693,17 +693,27 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         describe('when queryType is ListColumns', () => {
-            it('should not call queryTables and should return empty list', async () => {
+            it('should call getColumnOptions and should return the expected columns', async () => {
+                templateSrv.replace.mockReturnValue('name = "Test Table"');
                 const query = {
                     queryType: DataFrameVariableQueryType.ListColumns,
                     dataTableFilter: 'name = "${name}"',
                     refId: 'A'
                 } as DataFrameVariableQuery;
+                const mockColumns = [
+                    { label: 'Column 1', value: 'Column 1' },
+                    { label: 'Column 2', value: 'Column 2' }
+                ];
+                const expectedColumns = [
+                    { text: 'Column 1', value: 'Column 1' },
+                    { text: 'Column 2', value: 'Column 2' }
+                ];
+                jest.spyOn(ds, 'getColumnOptions').mockResolvedValue(mockColumns);
 
                 const result = await ds.metricFindQuery(query, options);
 
-                expect(queryTablesSpy).not.toHaveBeenCalled();
-                expect(result).toEqual([]);
+                expect(ds.getColumnOptions).toHaveBeenCalledWith('name = "Test Table"');
+                expect(result).toEqual(expectedColumns);
             });
         });
     });
