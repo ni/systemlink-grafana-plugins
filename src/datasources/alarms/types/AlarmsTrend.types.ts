@@ -1,8 +1,10 @@
-import { AlarmsQuery, AlarmTransition, AlarmTransitionType } from './types';
+import { Alarm, AlarmsQuery, AlarmTransition, AlarmTransitionType } from './types';
 
 export interface AlarmsTrendQuery extends AlarmsQuery {
   filter?: string;
 }
+
+export type AlarmWithNumericTimeInTransitions = Alarm & { transitions: AlarmTransitionWithNumericTime[] };
 
 export type AlarmTransitionWithNumericTime = AlarmTransition & { occurredAtAsNumber: number };
 

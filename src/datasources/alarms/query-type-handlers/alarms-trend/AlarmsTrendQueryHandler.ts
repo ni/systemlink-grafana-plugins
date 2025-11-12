@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, FieldType } from '@grafana/data';
 import { AlarmsQueryHandlerCore } from 'datasources/alarms/query-type-handlers/AlarmsQueryHandlerCore';
 import { defaultAlarmsTrendQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
-import { AlarmsTrendQuery, AlarmTransitionEvent, AlarmTransitionWithNumericTime } from 'datasources/alarms/types/AlarmsTrend.types';
+import { AlarmsTrendQuery, AlarmTransitionEvent, AlarmTransitionWithNumericTime, AlarmWithNumericTimeInTransitions } from 'datasources/alarms/types/AlarmsTrend.types';
 import { Alarm, AlarmTransitionType, TransitionInclusionOption } from 'datasources/alarms/types/types';
 
 export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
@@ -24,7 +24,7 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
           values: Array.from(trendData.keys())
         },
         {
-          name: 'Alarms Count',
+          name: 'Count',
           type: FieldType.number,
           values: Array.from(trendData.values())
         }
@@ -40,13 +40,18 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
   }
 
   private getTrendQueryFilter(query: AlarmsTrendQuery, start: Date, end: Date): string {
-    const defaultTrendQueryFilter = 
-      `(` +
-        `(active = "true" && mostRecentSetOccurredAt < "${start.toISOString()}") || ` +
-        `(occurredAt > "${start.toISOString()}" && occurredAt < "${end.toISOString()}") ||` +
-        `(mostRecentTransitionOccurredAt > "${start.toISOString()}" && mostRecentTransitionOccurredAt < "${end.toISOString()}") || ` +
-        `(occurredAt < "${start.toISOString()}" && mostRecentTransitionOccurredAt > "${end.toISOString()}")` +
-      `)`;
+    const startIso = start.toISOString();
+    const endIso = end.toISOString();
+    const activeAndCreatedBeforeStartFilter = `(active = "true" && mostRecentSetOccurredAt < "${startIso}")`;
+    const occurredBetweenStartAndEndFilter = `(occurredAt >= "${startIso}" && occurredAt <= "${endIso}")`;
+    const transitionedBetweenStartAndEndFilter = `(mostRecentTransitionOccurredAt >= "${startIso}" && mostRecentTransitionOccurredAt <= "${endIso}")`;
+    const createdBeforeStartAndClearedAfterEndFilter = `(occurredAt < "${startIso}" && mostRecentTransitionOccurredAt > "${endIso}")`;
+    const defaultTrendQueryFilter = `(${[
+      activeAndCreatedBeforeStartFilter,
+      occurredBetweenStartAndEndFilter,
+      transitionedBetweenStartAndEndFilter,
+      createdBeforeStartAndClearedAfterEndFilter
+    ].join(' || ')})`;
 
     if (query.filter && query.filter.trim() !== '') {
       return `${defaultTrendQueryFilter} && (${query.filter})`;
@@ -55,13 +60,13 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
     return defaultTrendQueryFilter;
   }
 
-  private enrichTransitionsWithTimestamp(alarms: Alarm[]): Alarm[] {
+  private enrichTransitionsWithTimestamp(alarms: Alarm[]): AlarmWithNumericTimeInTransitions[] {
     return alarms.map(alarm => ({
       ...alarm,
       transitions: (alarm.transitions?.map(transition => ({
         ...transition,
         occurredAtAsNumber: new Date(transition.occurredAt).getTime(),
-      })) ?? []).sort((a, b) => a.occurredAtAsNumber - b.occurredAtAsNumber) as AlarmTransitionWithNumericTime[]
+      })) ?? []).sort((a, b) => a.occurredAtAsNumber - b.occurredAtAsNumber)
     }));
   }
 
@@ -70,25 +75,20 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
     const startTime = start.getTime();
     const endTime = end.getTime();
     
-    const alarmTransitionEvents: AlarmTransitionEvent[] = [];
-
-    alarms.forEach(alarm => {
-      for (const transition of alarm.transitions) {
-        const occurredAtAsNumber = (transition as AlarmTransitionWithNumericTime).occurredAtAsNumber;
-        
-        if (occurredAtAsNumber > endTime) {
-          break;
-        }
-        
-        alarmTransitionEvents.push({
-          occurredAtAsNumber,
-          alarmId: alarm.alarmId,
-          type: transition.transitionType
-        });
-      }
-    });
-
-    alarmTransitionEvents.sort((a, b) => a.occurredAtAsNumber - b.occurredAtAsNumber);
+    const alarmTransitionEvents: AlarmTransitionEvent[] = alarms
+      .flatMap(alarm => 
+        alarm.transitions
+          .map(transition => {
+            const occurredAtAsNumber = (transition as AlarmTransitionWithNumericTime).occurredAtAsNumber;
+            return occurredAtAsNumber <= endTime ? {
+              occurredAtAsNumber,
+              alarmId: alarm.alarmId,
+              type: transition.transitionType
+            } : null;
+          })
+          .filter((event): event is AlarmTransitionEvent => event !== null)
+      )
+      .sort((a, b) => a.occurredAtAsNumber - b.occurredAtAsNumber);
 
     const alarmStates = new Map<string, AlarmTransitionType>();
     let eventIndex = 0;
