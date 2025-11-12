@@ -15,7 +15,7 @@ import {
     ValidDataFrameVariableQuery,
     DataFrameDataQuery,
     DataFrameVariableQuery,
-    ColumnOption
+    Option
 } from './types';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { extractErrorInfo } from 'core/errors';
@@ -73,7 +73,7 @@ export abstract class DataFrameDataSourceBase<
         }
     }
 
-    public async getColumnOptions(filter: string): Promise<ColumnOption[]> {
+    public async getColumnOptions(filter: string): Promise<Option[]> {
         return Promise.resolve([]);
     }
 

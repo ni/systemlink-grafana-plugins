@@ -317,7 +317,7 @@ export interface DataFrameDataSourceOptions extends DataSourceJsonData {
   featureToggles: DataFrameFeatureToggles;
 }
 
-export interface ColumnOption {
+export interface Option {
   label: string;
   value: string;
 }
