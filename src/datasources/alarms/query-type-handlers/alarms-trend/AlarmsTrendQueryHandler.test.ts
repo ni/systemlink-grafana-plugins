@@ -179,7 +179,7 @@ describe('AlarmsTrendQueryHandler', () => {
 
       expect(result).toEqual({
         refId: 'A',
-        name: 'Alarms Trend',
+        name: 'A',
         fields: [
           {
             name: 'Time',

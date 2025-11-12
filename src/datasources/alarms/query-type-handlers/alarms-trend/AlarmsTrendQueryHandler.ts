@@ -16,7 +16,7 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
 
     return {
       refId: query.refId,
-      name: 'Alarms Trend',
+      name: query.refId,
       fields: [
         {
           name: 'Time',
