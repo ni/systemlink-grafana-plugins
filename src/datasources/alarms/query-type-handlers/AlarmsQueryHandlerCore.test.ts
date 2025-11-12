@@ -434,7 +434,6 @@ describe('AlarmsQueryHandlerCore', () => {
         totalCount: 150,
       };
 
-
       // Spy on the query endpoint and mock return values
       backendServer.fetch
         .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
