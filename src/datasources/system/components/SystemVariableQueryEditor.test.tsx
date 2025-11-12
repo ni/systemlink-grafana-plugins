@@ -1,9 +1,10 @@
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import React from 'react';
 import { select } from 'react-select-event';
 import { setupDataSource } from 'test/fixtures';
 import { SystemDataSource } from '../SystemDataSource';
 import { SystemVariableQueryEditor } from './SystemVariableQueryEditor';
+import { SystemQueryReturnType } from '../types';
 
 const onChange = jest.fn();
 const [datasource] = setupDataSource(SystemDataSource);
@@ -31,12 +32,19 @@ test('user selects new workspace', async () => {
 
   await workspacesLoaded();
 
-  // Get the first combobox (Workspace). The second one [1] is Return Type
   const workspaceSelect = screen.getAllByRole('combobox')[0];
   await select(workspaceSelect, 'Other workspace', { container: document.body });
+
   expect(onChange).toHaveBeenCalledWith({ workspace: '2' });
 });
+test('renders the return type selector', async () => {
+  render(<SystemVariableQueryEditor {...{ onChange, datasource, query: { workspace: '1' } }} />);
 
+  await workspacesLoaded();
+
+  await waitFor(() => expect(screen.getByText('Return Type')).toBeInTheDocument());
+  await waitFor(() => expect(screen.getByText(SystemQueryReturnType.MinionId)).toBeInTheDocument());
+})
 test('populates workspace drop-down with variables', async () => {
   render(<SystemVariableQueryEditor {...{ onChange, datasource, query: { workspace: '$test_var' } }} />);
 
@@ -58,8 +66,19 @@ test('user changes return type to Scan Code', async () => {
 
   await workspacesLoaded();
   const returnTypeSelect = screen.getAllByRole('combobox')[1];
-  await select(returnTypeSelect, 'Scan Code', { container: document.body });
-  
-  expect(onChange).toHaveBeenCalledWith({ workspace: '', queryReturnType: 'Scan Code' });
+  await select(returnTypeSelect, SystemQueryReturnType.ScanCode, { container: document.body });
+
+  expect(onChange).toHaveBeenCalledWith({ workspace: '', queryReturnType: SystemQueryReturnType.ScanCode });
 });
 
+test('should call onChange when return type is changed', async () => {
+  render(<SystemVariableQueryEditor {...{ onChange, datasource, query: { workspace: '' } }} />);
+  await workspacesLoaded();
+  
+  const returnTypeSelect = screen.getAllByRole('combobox')[1];
+  await select(returnTypeSelect, SystemQueryReturnType.ScanCode, { container: document.body });
+
+  expect(onChange).toHaveBeenCalledWith(
+    expect.objectContaining({ queryReturnType: SystemQueryReturnType.ScanCode })
+  );
+});
