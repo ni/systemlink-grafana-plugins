@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, FieldType } from '@grafana/data';
 import { AlarmsQueryHandlerCore } from 'datasources/alarms/query-type-handlers/AlarmsQueryHandlerCore';
 import { defaultAlarmsTrendQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
-import { AlarmsTrendQuery, AlarmTransitionEvent, AlarmTransitionWithNumericTime, AlarmWithNumericTimeInTransitions } from 'datasources/alarms/types/AlarmsTrend.types';
+import { AlarmsTrendQuery, AlarmTransitionEvent, AlarmWithNumericTimeInTransitions } from 'datasources/alarms/types/AlarmsTrend.types';
 import { Alarm, AlarmTransitionType, TransitionInclusionOption } from 'datasources/alarms/types/types';
 
 export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
