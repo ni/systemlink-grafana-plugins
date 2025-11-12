@@ -82,8 +82,9 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
       workspaces: workspaceQuery,
       take: 100,
     }).pipe(
-      map((res: TagsWithValues) => { return res.tagsWithValues }),
-      map((tagsWithValues: TagWithValue[]) => { return tagsWithValues.length ? tagsWithValues : Throw(`No tags matched the path '${paths}'`) })
+      map((res: TagsWithValues) => {
+        return res.tagsWithValues.length ? res.tagsWithValues : Throw(`No tags matched the path '${paths}'`);
+      })
     );
 
     return response;
