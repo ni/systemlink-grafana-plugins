@@ -1,3 +1,9 @@
+## [4.59.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.58.0...v4.59.0) (2025-11-12)
+
+### Features
+
+* **dataframes:** Add dummy columns query builder ([#510](https://github.com/ni/systemlink-grafana-plugins/issues/510)) ([3822622](https://github.com/ni/systemlink-grafana-plugins/commit/38226221a53431da951e41ebcfb0664859f96192))
+
 ## [4.58.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.57.0...v4.58.0) (2025-11-12)
 
 ### Features
