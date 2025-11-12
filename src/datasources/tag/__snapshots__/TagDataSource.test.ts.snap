@@ -29,6 +29,30 @@ exports[`parseMultiSelectValues add workspace prefix only when a tag with the sa
         ],
       },
       {
+        "name": "time",
+        "type": "time",
+        "values": [
+          1672531200000,
+          1672531260000,
+        ],
+      },
+      {
+        "config": {},
+        "name": "Default workspace.my.tag.1",
+        "values": [
+          1,
+          2,
+        ],
+      },
+      {
+        "config": {},
+        "name": "Default workspace.my.tag.2",
+        "values": [
+          2,
+          3,
+        ],
+      },
+      {
         "config": {},
         "name": "Other workspace.my.tag.1",
         "values": [
@@ -427,6 +451,96 @@ exports[`parseMultiSelectValues tag current value 1`] = `
 ]
 `;
 
+exports[`queries add workspace prefix only when a tag with the same path exists in multiple workspaces 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "time",
+        "type": "time",
+        "values": [
+          1672531200000,
+          1672531260000,
+        ],
+      },
+      {
+        "config": {},
+        "name": "Default workspace.my.tag.1",
+        "values": [
+          1,
+          2,
+        ],
+      },
+      {
+        "config": {},
+        "name": "Default workspace.my.tag.2",
+        "values": [
+          2,
+          3,
+        ],
+      },
+      {
+        "name": "time",
+        "type": "time",
+        "values": [
+          1672531200000,
+          1672531260000,
+        ],
+      },
+      {
+        "config": {},
+        "name": "Default workspace.my.tag.1",
+        "values": [
+          1,
+          2,
+        ],
+      },
+      {
+        "config": {},
+        "name": "Default workspace.my.tag.2",
+        "values": [
+          2,
+          3,
+        ],
+      },
+      {
+        "config": {},
+        "name": "Other workspace.my.tag.1",
+        "values": [
+          1,
+          2,
+        ],
+      },
+      {
+        "config": {},
+        "name": "Other workspace.my.tag.2",
+        "values": [
+          2,
+          3,
+        ],
+      },
+      {
+        "config": {},
+        "name": "my.tag.3",
+        "values": [
+          3,
+          4,
+        ],
+      },
+      {
+        "config": {},
+        "name": "my.tag.4",
+        "values": [
+          4,
+          5,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
 exports[`queries appends tag properties to query result 1`] = `
 [
   {
@@ -701,48 +815,6 @@ exports[`queries handles tag with no current value 1`] = `
 ]
 `;
 
-exports[`queries multiple current values with properties 1`] = `
-[
-  {
-    "fields": [
-      {
-        "name": "name",
-        "values": [
-          "my.1.tag",
-          "my.2.tag",
-        ],
-      },
-      {
-        "name": "value",
-        "values": [
-          3.14,
-          41.3,
-        ],
-      },
-      {
-        "config": {
-          "unit": "dateTimeFromNow",
-        },
-        "name": "updated",
-        "type": "time",
-        "values": [
-          "2023-10-04T00:00:00.000000Z",
-          "2023-10-04T00:00:00.000000Z",
-        ],
-      },
-      {
-        "name": "unit",
-        "values": [
-          "A",
-          "A",
-        ],
-      },
-    ],
-    "refId": "A",
-  },
-]
-`;
-
 exports[`queries multiple current values with different properties 1`] = `
 [
   {
@@ -783,6 +855,48 @@ exports[`queries multiple current values with different properties 1`] = `
         "name": "unit",
         "values": [
           "",
+          "A",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries multiple current values with properties 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "name",
+        "values": [
+          "my.1.tag",
+          "my.2.tag",
+        ],
+      },
+      {
+        "name": "value",
+        "values": [
+          3.14,
+          41.3,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+      {
+        "name": "unit",
+        "values": [
+          "A",
           "A",
         ],
       },
@@ -851,32 +965,6 @@ exports[`queries multiple targets - skips invalid queries 1`] = `
 ]
 `;
 
-exports[`queries numeric tag history 1`] = `
-[
-  {
-    "fields": [
-      {
-        "name": "time",
-        "type": "time",
-        "values": [
-          1672531200000,
-          1672531260000,
-        ],
-      },
-      {
-        "config": {},
-        "name": "my.tag",
-        "values": [
-          1,
-          2,
-        ],
-      },
-    ],
-    "refId": "A",
-  },
-]
-`;
-
 exports[`queries numeric multiple tags history 1`] = `
 [
   {
@@ -915,6 +1003,32 @@ exports[`queries numeric multiple tags history 1`] = `
           3,
           null,
           4,
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
+exports[`queries numeric tag history 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "time",
+        "type": "time",
+        "values": [
+          1672531200000,
+          1672531260000,
+        ],
+      },
+      {
+        "config": {},
+        "name": "my.tag",
+        "values": [
+          1,
+          2,
         ],
       },
     ],
@@ -1069,72 +1183,6 @@ exports[`queries uses displayName property 1`] = `
         "type": "time",
         "values": [
           "2023-10-04T00:00:00.000000Z",
-        ],
-      },
-    ],
-    "refId": "A",
-  },
-]
-`;
-
-exports[`queries add workspace prefix only when a tag with the same path exists in multiple workspaces 1`] = `
-[
-  {
-    "fields": [
-      {
-        "name": "time",
-        "type": "time",
-        "values": [
-          1672531200000,
-          1672531260000,
-        ],
-      },
-      {
-        "config": {},
-        "name": "Default workspace.my.tag.1",
-        "values": [
-          1,
-          2,
-        ],
-      },
-      {
-        "config": {},
-        "name": "Default workspace.my.tag.2",
-        "values": [
-          2,
-          3,
-        ],
-      },
-      {
-        "config": {},
-        "name": "Other workspace.my.tag.1",
-        "values": [
-          1,
-          2,
-        ],
-      },
-      {
-        "config": {},
-        "name": "Other workspace.my.tag.2",
-        "values": [
-          2,
-          3,
-        ],
-      },
-      {
-        "config": {},
-        "name": "my.tag.3",
-        "values": [
-          3,
-          4,
-        ],
-      },
-      {
-        "config": {},
-        "name": "my.tag.4",
-        "values": [
-          4,
-          5,
         ],
       },
     ],

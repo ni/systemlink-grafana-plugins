@@ -3,7 +3,7 @@ import { HistoricalQueryHandler } from "./HistoricalQueryHandler";
 import { PostFn, QueryHandler, TagQueryType } from "./types";
 
 export class QueryHandlerFactory {
-    constructor(private post: PostFn, private baseUrl?: string) {}
+    constructor(private post: PostFn, private baseUrl?: string) { }
 
     public createQueryHandler(queryType: TagQueryType): QueryHandler {
         switch (queryType) {
