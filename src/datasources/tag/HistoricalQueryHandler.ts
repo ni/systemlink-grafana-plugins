@@ -106,7 +106,7 @@ export class HistoricalQueryHandler extends QueryHandler {
         });
 
         return merge(...observables$)
-            .pipe(map(() => { return tagsDecimatedHistory; }));
+            .pipe(map(() => tagsDecimatedHistory));
     }
 
     private getTagHistoryWithChunks$(paths: TagWithValue[], workspace: string, range: TimeRange, intervals: number): Observable<TagHistoryResponse> {
