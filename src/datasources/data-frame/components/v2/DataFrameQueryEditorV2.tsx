@@ -3,7 +3,7 @@ import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBui
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
-import { COLUMN_OPTION_LIMIT, decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import { FloatingError } from 'core/errors';
 import {
     errorMessages,
@@ -54,14 +54,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             return;
         }
         const columnOptions = await datasource.getColumnOptions(filter);
-        const limitedColumnOptions = limitColumnOptions(columnOptions, COLUMN_OPTION_LIMIT);
+        const limitedColumnOptions = columnOptions.slice(0, COLUMN_OPTIONS_LIMIT);
+        setIsColumnLimitExceeded(columnOptions.length > COLUMN_OPTIONS_LIMIT);
         setColumnOptions(limitedColumnOptions);
-    };
-
-    const limitColumnOptions = (options: Array<ComboboxOption<string>>, limit: number): Array<ComboboxOption<string>> => {
-        const limitedOptions = options.slice(0, limit);
-        setIsColumnLimitExceeded(options.length > limit);
-        return limitedOptions;
     };
 
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {

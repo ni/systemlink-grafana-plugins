@@ -1,4 +1,4 @@
-import { COLUMN_OPTION_LIMIT, TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT } from 'datasources/data-frame/constants';
 
 /**
  * Converts Grafana grid units to pixels
@@ -77,5 +77,5 @@ export const errorMessages = {
         greaterOrEqualToZero: 'The take value must be greater than or equal to 0.',
         lessOrEqualToTakeLimit: `The take value must be less than or equal to ${TAKE_LIMIT}.`
     },
-    columnLimitExceeded: `The tables query returned too many columns. Only the first ${COLUMN_OPTION_LIMIT} columns are shown in the selection list.`,
+    columnLimitExceeded: `The tables query returned too many columns. Only the first ${COLUMN_OPTIONS_LIMIT} columns are shown in the selection list.`,
 };

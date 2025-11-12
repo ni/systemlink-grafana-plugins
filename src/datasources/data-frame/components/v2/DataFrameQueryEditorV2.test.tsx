@@ -1,6 +1,6 @@
 jest.mock('datasources/data-frame/constants', () => {
     const actual = jest.requireActual('datasources/data-frame/constants');
-    return { ...actual, COLUMN_OPTION_LIMIT: 10 }; // reduce column option limit for these tests
+    return { ...actual, COLUMN_OPTIONS_LIMIT: 10 }; // reduce column option limit for tests
 });
 
 import React from "react";
@@ -10,7 +10,7 @@ import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
 import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
-import { COLUMN_OPTION_LIMIT } from "datasources/data-frame/constants";
+import { COLUMN_OPTIONS_LIMIT } from "datasources/data-frame/constants";
 import { ComboboxOption } from "@grafana/ui";
 import { errorMessages } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
 
@@ -159,17 +159,20 @@ describe("DataFrameQueryEditorV2", () => {
 
             describe('columns field', () => {
               let columnsField: HTMLElement;
-              let user: UserEvent;
 
-              async function changeFilterValue() {
-                const filterInput = screen.getByTestId('filter-input');
-                user = userEvent.setup();
+              async function changeFilterValue(filterValue = 'NewFilter') {
+                // Get the onDataTableFilterChange callback from the mock
+                const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                const { onDataTableFilterChange } = props;
 
-                await user.clear(filterInput);
-                await user.type(filterInput, 'new filter');
+                // Simulate the filter change event
+                const mockEvent = {
+                  detail: { linq: filterValue },
+                } as Event & { detail: { linq: string } };
+
+                onDataTableFilterChange(mockEvent);
               }
 
-              // Helper function to get column option texts
               async function clickColumnOptions() {
                 const columnsCombobox = screen.getAllByRole('combobox')[0];
                 await userEvent.click(columnsCombobox);
@@ -191,24 +194,10 @@ describe("DataFrameQueryEditorV2", () => {
               });
 
                 it('should load columns combobox options when filter changes', async () => {
-                    // Get the onDataTableFilterChange callback from the mock
-                    const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
-                    const { onDataTableFilterChange } = props;
+                    await changeFilterValue();
+                    await clickColumnOptions();
 
-                    // Simulate the filter change event
-                    const mockEvent = { 
-                        detail: { linq: "NewFilter" } 
-                    } as Event & { detail: { linq: string } };
-                    
-                    onDataTableFilterChange(mockEvent);
-
-                    // Click on column combobox to load options
-                    const columnsCombobox = screen.getAllByRole('combobox')[0];
-                    await userEvent.click(columnsCombobox);
-
-                    // Find all option controls by role 'option'
-                    const optionControls = within(document.body).getAllByRole('option');
-                    const optionTexts = optionControls.map(opt => opt.textContent);
+                    const optionTexts = getColumnOptionTexts();
                     expect(optionTexts).toEqual(expect.arrayContaining(
                         [
                             'ColumnA',
@@ -231,20 +220,22 @@ describe("DataFrameQueryEditorV2", () => {
 
               describe('column limit', () => {
                 it('should not render warning alert when column limit is not exceeded', async () => {
-                  await changeFilterValue();
-                  await clickColumnOptions();
-                  const optionTexts = getColumnOptionTexts();
+                   await changeFilterValue();
+                   await clickColumnOptions();
 
-                  expect(optionTexts.length).toBeLessThanOrEqual(COLUMN_OPTION_LIMIT);
-                  await waitFor(() => {
-                    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-                  });
+                   const optionTexts = getColumnOptionTexts();
+                   expect(optionTexts.length).toBeLessThanOrEqual(COLUMN_OPTIONS_LIMIT);
+                   await waitFor(() => {
+                     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+                   });
                 });
 
                 describe('when column limit is exceeded', () => {
                   beforeEach(async () => {
                     cleanup();
-                    const columnOptions = Array.from({ length: COLUMN_OPTION_LIMIT + 25 }, (_, i) => ({
+                    jest.clearAllMocks();
+
+                    const columnOptions = Array.from({ length: COLUMN_OPTIONS_LIMIT + 25 }, (_, i) => ({
                       label: `Column${i + 1}`,
                       value: `Column${i + 1}`,
                     }));
@@ -256,10 +247,10 @@ describe("DataFrameQueryEditorV2", () => {
                     await changeFilterValue();
                   });
 
-                  it(`should limit the number of column options to ${COLUMN_OPTION_LIMIT}`, async () => {
+                  it(`should limit the number of column options to ${COLUMN_OPTIONS_LIMIT}`, async () => {
                     await clickColumnOptions();
                     const optionTexts = getColumnOptionTexts();
-                    expect(optionTexts.length).toBe(COLUMN_OPTION_LIMIT);
+                    expect(optionTexts.length).toBe(COLUMN_OPTIONS_LIMIT);
                   });
 
                   it('should render warning alert when column limit is exceeded', async () => {
@@ -272,11 +263,14 @@ describe("DataFrameQueryEditorV2", () => {
                   });
 
                   it('should hide the warning alert when filter is removed', async () => {
-                    user.clear(screen.getByTestId('filter-input'));
-                    user.type(screen.getByTestId('filter-input'), ' ');
+                    await changeFilterValue();
+                    const alert = screen.getByRole('alert');
+                    expect(alert).toBeInTheDocument();
+
+                    await changeFilterValue('');
 
                     await waitFor(() => {
-                      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+                      expect(alert).not.toBeInTheDocument();
                     });
                   });
                 });
