@@ -149,7 +149,7 @@ describe('AlarmsTrendQueryHandler', () => {
 
       await datastore.runQuery(emptyFilterQuery, options);
 
-      const expectedFilterPattern = /^\(\(active = "true" && mostRecentSetOccurredAt < "2025-01-01T10:00:00\.000Z"\) \|\| \(occurredAt >= "2025-01-01T10:00:00\.000Z" && occurredAt <= "2025-01-01T11:00:00\.000Z"\) \|\| \(mostRecentTransitionOccurredAt >= "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt <= "2025-01-01T11:00:00\.000Z"\) \|\| \(occurredAt < "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt > "2025-01-01T11:00:00\.000Z"\)\)$/;
+      const expectedFilterPattern = /^\(\(active = "true" && mostRecentSetOccurredAt < "2025-01-01T10:00:00\.000Z"\) \|\| \(occurredAt < "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt > "2025-01-01T11:00:00\.000Z"\) \|\| \(occurredAt >= "2025-01-01T10:00:00\.000Z" && occurredAt <= "2025-01-01T11:00:00\.000Z"\) \|\| \(mostRecentTransitionOccurredAt >= "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt <= "2025-01-01T11:00:00\.000Z"\)\)$/;
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
@@ -164,7 +164,7 @@ describe('AlarmsTrendQueryHandler', () => {
 
       await datastore.runQuery(customFilterQuery, options);
 
-      const expectedFilterPattern = /^\(\(active = "true" && mostRecentSetOccurredAt < "2025-01-01T10:00:00\.000Z"\) \|\| \(occurredAt >= "2025-01-01T10:00:00\.000Z" && occurredAt <= "2025-01-01T11:00:00\.000Z"\) \|\| \(mostRecentTransitionOccurredAt >= "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt <= "2025-01-01T11:00:00\.000Z"\) \|\| \(occurredAt < "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt > "2025-01-01T11:00:00\.000Z"\)\) && \(severity = "HIGH"\)$/;
+      const expectedFilterPattern = /^\(\(active = "true" && mostRecentSetOccurredAt < "2025-01-01T10:00:00\.000Z"\) \|\| \(occurredAt < "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt > "2025-01-01T11:00:00\.000Z"\) \|\| \(occurredAt >= "2025-01-01T10:00:00\.000Z" && occurredAt <= "2025-01-01T11:00:00\.000Z"\) \|\| \(mostRecentTransitionOccurredAt >= "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt <= "2025-01-01T11:00:00\.000Z"\)\) && \(severity = "HIGH"\)$/;
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
