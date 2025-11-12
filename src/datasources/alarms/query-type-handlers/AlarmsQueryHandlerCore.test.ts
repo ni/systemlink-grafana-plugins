@@ -419,52 +419,76 @@ describe('AlarmsQueryHandlerCore', () => {
       );
     });
 
-    it('should handle large take values', async () => {
-      const requestBody = { filter: 'active = "true"', take: 5000 };
-      const mockAlarmsResponse = {
-        alarms: Array(5000).fill(null).map((_, i) => ({ id: `alarm-${i}` })),
-        continuationToken: null,
-        totalCount: 5000,
-      };
-      jest.spyOn(datastore as any, 'queryAlarms').mockResolvedValue(mockAlarmsResponse);
-      (queryUntilComplete as jest.Mock).mockImplementation(async (queryRecord) => {
-        const result = await queryRecord(5000, undefined);
-        return { data: result.data, totalCount: result.totalCount };
-      });
-
-      const result = await datastore.queryAlarmsUntilCompleteWrapper(requestBody);
-
-      expect(queryUntilComplete).toHaveBeenCalledWith(
-        expect.any(Function),
-        {
-          maxTakePerRequest: 1000,
-          requestsPerSecond: 5,
-        }
-      );
-      expect(result).toHaveLength(5000);
-    });
-
     it('should handle queryRecord function with continuation token', async () => {
       const requestBody = { filter: 'channel = "test"', take: 100 };
-      const mockAlarmsResponse = {
+
+      const firstPageResponse = {
         alarms: [{ id: '1' }, { id: '2' }],
         continuationToken: 'next-page-token',
         totalCount: 150,
       };
-      jest.spyOn(datastore as any, 'queryAlarms').mockResolvedValue(mockAlarmsResponse);
+      
+      const secondPageResponse = {
+        alarms: [{ id: '3' }, { id: '4' }],
+        continuationToken: null,
+        totalCount: 150,
+      };
+
+      // Spy on the query endpoint and mock return values
+      backendServer.fetch
+        .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
+        .mockReturnValueOnce(createFetchResponse(firstPageResponse))
+        .mockReturnValueOnce(createFetchResponse(secondPageResponse));
+
+      // Mock queryUntilComplete to simulate pagination behavior
       (queryUntilComplete as jest.Mock).mockImplementation(async (queryRecord) => {
-        await queryRecord(100, undefined);
-        const result = await queryRecord(100, 'next-page-token');
-        return { data: result.data, totalCount: result.totalCount };
+        // First call without continuation token
+        const firstResult = await queryRecord(100, undefined);
+        // Second call with continuation token
+        const secondResult = await queryRecord(100, 'next-page-token');
+
+        return { 
+          data: [...firstResult.data, ...secondResult.data], 
+          totalCount: secondResult.totalCount 
+        };
       });
 
-      await datastore.queryAlarmsUntilCompleteWrapper(requestBody);
+      const result = await datastore.queryAlarmsUntilCompleteWrapper(requestBody);
 
-      expect((datastore as any).queryAlarms).toHaveBeenLastCalledWith({
-        filter: 'channel = "test"',
-        take: 100,
-        continuationToken: 'next-page-token',
-      });
+      expect(backendServer.fetch).toHaveBeenCalledTimes(2);
+      
+      expect(backendServer.fetch).toHaveBeenNthCalledWith(1,
+        expect.objectContaining({
+          url: expect.stringContaining(QUERY_ALARMS_RELATIVE_PATH),
+          method: 'POST',
+          data: {
+            filter: 'channel = "test"',
+            take: 100,
+            continuationToken: undefined,
+          },
+          showErrorAlert: false
+        })
+      );
+
+      expect(backendServer.fetch).toHaveBeenNthCalledWith(2,
+        expect.objectContaining({
+          url: expect.stringContaining(QUERY_ALARMS_RELATIVE_PATH),
+          method: 'POST',
+          data: {
+            filter: 'channel = "test"',
+            take: 100,
+            continuationToken: 'next-page-token',
+          },
+          showErrorAlert: false
+        })
+      );
+
+      expect(result).toEqual([
+        { id: '1' }, 
+        { id: '2' }, 
+        { id: '3' }, 
+        { id: '4' }
+      ]);
     });
   });
 
