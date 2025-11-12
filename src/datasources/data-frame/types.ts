@@ -64,6 +64,7 @@ export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
 
 export const DataFrameFeatureTogglesDefaults: DataFrameFeatureToggles = {
   queryByDataTableProperties: false,
+  queryByResultAndColumnProperties: false,
 };
 
 export enum DataTableProperties {
@@ -311,6 +312,7 @@ export interface TableDataRows {
 
 export interface DataFrameFeatureToggles {
   queryByDataTableProperties: boolean;
+  queryByResultAndColumnProperties: boolean;
 }
 
 export interface DataFrameDataSourceOptions extends DataSourceJsonData {
