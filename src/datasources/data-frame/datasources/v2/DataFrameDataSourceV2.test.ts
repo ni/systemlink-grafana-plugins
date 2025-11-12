@@ -1157,7 +1157,8 @@ describe('DataFrameDataSourceV2', () => {
                 const scopedVars = { var1: { value: 'VarValue' } } as any;
                 await ds.runQuery({ type: DataFrameQueryType.Data, refId: 'A' } as DataFrameQueryV2, { scopedVars } as any);
 
-                templateSrv.replace.mockImplementation((target?: string, vars?: any) => (target ?? '').replace('${var1}', vars.var1.value));
+                templateSrv.replace.mockImplementation(
+                    (target?: string, vars?: any) => (target ?? '').replace('${var1}', vars.var1.value));
 
                 queryTablesMock.mockResolvedValue([
                     {

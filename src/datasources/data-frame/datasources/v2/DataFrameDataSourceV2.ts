@@ -208,9 +208,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 });
             }
         });
-
-        const variableOptions = this.getVariableOptions();
-        const columnOptionsWithVars = [...variableOptions, ...options];
+        const columnOptionsWithVars = [...this.getVariableOptions(), ...options];
         return columnOptionsWithVars;
     };
 
