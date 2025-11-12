@@ -1,10 +1,18 @@
+jest.mock('datasources/data-frame/constants', () => {
+    const actual = jest.requireActual('datasources/data-frame/constants');
+    return { ...actual, COLUMN_OPTIONS_LIMIT: 10 }; // reduce column option limit for tests
+});
+
 import React from "react";
-import { render, RenderResult, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, RenderResult, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
 import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
+import { COLUMN_OPTIONS_LIMIT } from "datasources/data-frame/constants";
+import { ComboboxOption } from "@grafana/ui";
+import { errorMessages } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
 
 jest.mock("./query-builders/DataFrameQueryBuilderWrapper", () => ({
     DataFrameQueryBuilderWrapper: jest.fn(() => <div data-testid="mock-data-frame-query-builder-wrapper" />)
@@ -13,7 +21,8 @@ jest.mock("./query-builders/DataFrameQueryBuilderWrapper", () => ({
 const renderComponent = (
     queryOverrides: Partial<DataFrameQueryV2> = {},
     errorTitle = '',
-    errorDescription = ''
+    errorDescription = '',
+    columnOptions: ComboboxOption[]= []
 ) => {
     const onChange = jest.fn();
     const onRunQuery = jest.fn();
@@ -37,6 +46,7 @@ const renderComponent = (
                 { label: 'ColumnB (String)', value: 'ColumnB-String' },
                 { label: 'ColumnD (String)', value: 'ColumnD-String' },
                 { label: 'ColumnE', value: 'ColumnE' },
+                ...columnOptions
             ]
         )
     } as unknown as DataFrameDataSource;
@@ -147,38 +157,47 @@ describe("DataFrameQueryEditorV2", () => {
                 });
             });
 
-            describe("columns field", () => {
-                let columnsField: HTMLElement;
+            describe('columns field', () => {
+              let columnsField: HTMLElement;
 
-                beforeEach(() => {
-                    columnsField = screen.getAllByRole('combobox')[0];
-                });
+              async function changeFilterValue(filterValue = 'NewFilter') {
+                // Get the onDataTableFilterChange callback from the mock
+                const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                const { onDataTableFilterChange } = props;
 
-                it("should show the columns field", () => {
-                    expect(columnsField).toBeInTheDocument();
-                    expect(columnsField).toHaveAttribute('aria-expanded', 'false');
-                    expect(columnsField).toHaveDisplayValue('');
-                });
+                // Simulate the filter change event
+                const mockEvent = {
+                  detail: { linq: filterValue },
+                } as Event & { detail: { linq: string } };
+
+                onDataTableFilterChange(mockEvent);
+              }
+
+              async function clickColumnOptions() {
+                const columnsCombobox = screen.getAllByRole('combobox')[0];
+                await userEvent.click(columnsCombobox);
+              }
+
+              function getColumnOptionTexts() {
+                const optionControls = within(document.body).getAllByRole('option');
+                return optionControls.map(opt => opt.textContent);
+              }
+
+              beforeEach(() => {
+                columnsField = screen.getAllByRole('combobox')[0];
+              });
+
+              it('should show the columns field', () => {
+                expect(columnsField).toBeInTheDocument();
+                expect(columnsField).toHaveAttribute('aria-expanded', 'false');
+                expect(columnsField).toHaveDisplayValue('');
+              });
 
                 it('should load columns combobox options when filter changes', async () => {
-                    // Get the onDataTableFilterChange callback from the mock
-                    const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
-                    const { onDataTableFilterChange } = props;
+                    await changeFilterValue();
+                    await clickColumnOptions();
 
-                    // Simulate the filter change event
-                    const mockEvent = { 
-                        detail: { linq: "NewFilter" } 
-                    } as Event & { detail: { linq: string } };
-                    
-                    onDataTableFilterChange(mockEvent);
-
-                    // Click on column combobox to load options
-                    const columnsCombobox = screen.getAllByRole('combobox')[0];
-                    await userEvent.click(columnsCombobox);
-
-                    // Find all option controls by role 'option'
-                    const optionControls = within(document.body).getAllByRole('option');
-                    const optionTexts = optionControls.map(opt => opt.textContent);
+                    const optionTexts = getColumnOptionTexts();
                     expect(optionTexts).toEqual(expect.arrayContaining(
                         [
                             'ColumnA',
@@ -190,16 +209,72 @@ describe("DataFrameQueryEditorV2", () => {
                     ));
                 });
 
-                it('should not load column options when filter is empty', async () => {
-                    renderComponent({ dataTableFilter: "" });
-                
-                    // Click on column combobox to load options
-                    const columnsCombobox = screen.getAllByRole('combobox')[0];
-                    await userEvent.click(columnsCombobox);
-                
-                    // Assert that no options are shown
-                    expect(within(document.body).queryAllByRole('option').length).toBe(0);
+              it('should not load column options when filter is empty', async () => {
+                renderComponent({ dataTableFilter: '' });
+
+                await clickColumnOptions();
+
+                // Assert that no options are shown
+                expect(within(document.body).queryAllByRole('option').length).toBe(0);
+              });
+
+              describe('column limit', () => {
+                it('should not render warning alert when column limit is not exceeded', async () => {
+                   await changeFilterValue();
+                   await clickColumnOptions();
+
+                   const optionTexts = getColumnOptionTexts();
+                   expect(optionTexts.length).toBeLessThanOrEqual(COLUMN_OPTIONS_LIMIT);
+                   await waitFor(() => {
+                     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+                   });
                 });
+
+                describe('when column limit is exceeded', () => {
+                  beforeEach(async () => {
+                    cleanup();
+                    jest.clearAllMocks();
+
+                    const columnOptions = Array.from({ length: COLUMN_OPTIONS_LIMIT + 25 }, (_, i) => ({
+                      label: `Column${i + 1}`,
+                      value: `Column${i + 1}`,
+                    }));
+
+                    // Increase offsetHeight to allow more options to be rendered in the test environment
+                    jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(200);
+                    renderComponent({ dataTableFilter: ' ' }, '', '', columnOptions);
+
+                    await changeFilterValue();
+                  });
+
+                  it(`should limit the number of column options to ${COLUMN_OPTIONS_LIMIT}`, async () => {
+                    await clickColumnOptions();
+                    const optionTexts = getColumnOptionTexts();
+                    expect(optionTexts.length).toBe(COLUMN_OPTIONS_LIMIT);
+                  });
+
+                  it('should render warning alert when column limit is exceeded', async () => {
+                    await waitFor(() => {
+                      const alert = screen.getByRole('alert');
+                      expect(alert).toBeInTheDocument();
+                      expect(within(alert).getByText(/Warning/i)).toBeInTheDocument();
+                      expect(within(alert).getByText(errorMessages.columnLimitExceeded)).toBeInTheDocument();
+                    });
+                  });
+
+                  it('should hide the warning alert when filter is removed', async () => {
+                    await changeFilterValue();
+                    const alert = screen.getByRole('alert');
+                    expect(alert).toBeInTheDocument();
+
+                    await changeFilterValue('');
+
+                    await waitFor(() => {
+                      expect(alert).not.toBeInTheDocument();
+                    });
+                  });
+                });
+              });
             });
 
             describe("include index columns", () => {
