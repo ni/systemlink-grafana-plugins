@@ -149,7 +149,7 @@ describe('AlarmsTrendQueryHandler', () => {
 
       await datastore.runQuery(emptyFilterQuery, options);
 
-      const expectedFilterPattern = /^\(\(active = "true" && mostRecentSetOccurredAt < "2025-01-01T10:00:00\.000Z"\) \|\| \(occurredAt > "2025-01-01T10:00:00\.000Z" && occurredAt < "2025-01-01T11:00:00\.000Z"\) \|\|\(mostRecentTransitionOccurredAt > "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt < "2025-01-01T11:00:00\.000Z"\) \|\| \(occurredAt < "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt > "2025-01-01T11:00:00\.000Z"\)\)$/;
+      const expectedFilterPattern = /^\(\(active = "true" && mostRecentSetOccurredAt < "2025-01-01T10:00:00\.000Z"\) \|\| \(occurredAt >= "2025-01-01T10:00:00\.000Z" && occurredAt <= "2025-01-01T11:00:00\.000Z"\) \|\| \(mostRecentTransitionOccurredAt >= "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt <= "2025-01-01T11:00:00\.000Z"\) \|\| \(occurredAt < "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt > "2025-01-01T11:00:00\.000Z"\)\)$/;
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
@@ -164,7 +164,7 @@ describe('AlarmsTrendQueryHandler', () => {
 
       await datastore.runQuery(customFilterQuery, options);
 
-      const expectedFilterPattern = /^\(\(active = "true" && mostRecentSetOccurredAt < "2025-01-01T10:00:00\.000Z"\) \|\| \(occurredAt > "2025-01-01T10:00:00\.000Z" && occurredAt < "2025-01-01T11:00:00\.000Z"\) \|\|\(mostRecentTransitionOccurredAt > "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt < "2025-01-01T11:00:00\.000Z"\) \|\| \(occurredAt < "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt > "2025-01-01T11:00:00\.000Z"\)\) && \(severity = "HIGH"\)$/;
+      const expectedFilterPattern = /^\(\(active = "true" && mostRecentSetOccurredAt < "2025-01-01T10:00:00\.000Z"\) \|\| \(occurredAt >= "2025-01-01T10:00:00\.000Z" && occurredAt <= "2025-01-01T11:00:00\.000Z"\) \|\| \(mostRecentTransitionOccurredAt >= "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt <= "2025-01-01T11:00:00\.000Z"\) \|\| \(occurredAt < "2025-01-01T10:00:00\.000Z" && mostRecentTransitionOccurredAt > "2025-01-01T11:00:00\.000Z"\)\) && \(severity = "HIGH"\)$/;
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
@@ -187,7 +187,7 @@ describe('AlarmsTrendQueryHandler', () => {
             values: expect.any(Array)
           },
           {
-            name: 'Alarms Count',
+            name: 'Count',
             type: FieldType.number,
             values: expect.any(Array)
           }
@@ -634,7 +634,7 @@ describe('AlarmsTrendQueryHandler', () => {
       expect(result.refId).toBe('A');
       expect(result.fields).toHaveLength(2);
       expect(result.fields[0].name).toBe('Time');
-      expect(result.fields[1].name).toBe('Alarms Count');
+      expect(result.fields[1].name).toBe('Count');
 
       const timeValues = result.fields[0].values as number[];
       const countValues = result.fields[1].values as number[];
