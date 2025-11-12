@@ -25,6 +25,7 @@ import { transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { AssetVariableQuery } from './types/AssetVariableQuery.types';
 import { defaultListAssetsVariable, defaultProjectionForListAssetsVariable } from './defaults';
 import { TAKE_LIMIT } from './constants/ListAssets.constants';
+import { firstValueFrom, Observable } from 'rxjs';
 
 export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceOptions> {
   private assetSummaryDataSource: AssetSummaryDataSource;
@@ -48,7 +49,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
     type: AssetQueryType.None,
   };
 
-  async runQuery(query: AssetQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+  runQuery(query: AssetQuery, options: DataQueryRequest): Observable<DataFrameDTO> {
     if (query.type === AssetQueryType.AssetSummary) {
       return this.getAssetSummarySource().runQuery(query as AssetSummaryQuery, options);
     }
@@ -102,7 +103,7 @@ export class AssetDataSource extends DataSourceBase<AssetQuery, AssetDataSourceO
       this.listAssetsDataSource.assetComputedDataFields,
       this.listAssetsDataSource.queryTransformationOptions
     );
-    const assetsResponse: AssetsResponse = await this.listAssetsDataSource.queryAssets(assetFilter, listAssetsTake, false, defaultProjectionForListAssetsVariable);
+    const assetsResponse: AssetsResponse = await firstValueFrom(this.listAssetsDataSource.queryAssets$(assetFilter, listAssetsTake, false, defaultProjectionForListAssetsVariable));
     return assetsResponse.assets.map((asset) => this.getAssetNameForMetricQuery(query, asset));
   }
 
