@@ -1,3 +1,9 @@
+## [4.61.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.60.0...v4.61.0) (2025-11-12)
+
+### Features
+
+* **dataframe:** Add support for list columns variable query ([#515](https://github.com/ni/systemlink-grafana-plugins/issues/515)) ([9babdc0](https://github.com/ni/systemlink-grafana-plugins/commit/9babdc06630e79060f6523b3f41e9da782f2404d))
+
 ## [4.60.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.59.0...v4.60.0) (2025-11-12)
 
 ### Features
