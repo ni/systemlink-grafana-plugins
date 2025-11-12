@@ -839,6 +839,234 @@ describe('QueryResultsDataSource', () => {
           })
         );
       });
+
+      test('should handle transformation for single-variable in list equals operation', async () => {
+        const query = buildQuery({
+          refId: 'A',
+          queryBy: 'Keywords.Contains("${query0}")',
+        });
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('Keywords.Contains("name1")');
+
+        await firstValueFrom(datastore.query(query));
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: 'Keywords.Contains("name1")',
+            }),
+          })
+        );
+      });
+
+      test('should handle transformation for single-variable in list not equals operation', async () => {
+        const query = buildQuery({
+          refId: 'A',
+          queryBy: '!Keywords.Contains("${query0}")',
+        });
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('!Keywords.Contains("name1")');
+
+        await firstValueFrom(datastore.query(query));
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: '!Keywords.Contains("name1")',
+            }),
+          })
+        );
+      });
+
+      test('should handle transformation for multi-variable in list equals operation', async () => {
+        const query = buildQuery({
+          refId: 'A',
+          queryBy: 'Keywords.Contains("${query0}")',
+        });
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('Keywords.Contains("{name1,name2}")');
+
+        await firstValueFrom(datastore.query(query));
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: '(Keywords.Contains("name1") || Keywords.Contains("name2"))',
+            }),
+          })
+        );
+      });
+
+      test('should handle transformation for multi-variable in list not equals operation', async () => {
+        const query = buildQuery({
+          refId: 'A',
+          queryBy: '!Keywords.Contains("${query0}")',
+        });
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('!Keywords.Contains("{name1,name2}")');
+
+        await firstValueFrom(datastore.query(query));
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: '!(Keywords.Contains("name1") || Keywords.Contains("name2"))',
+            }),
+          })
+        );
+      });
+
+      test('should handle transformation for single-variable in list contains operation', async () => {
+        const query = buildQuery({
+          refId: 'A',
+          queryBy: 'Keywords.Any(it.Contains("${query0}"))',
+        });
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('Keywords.Any(it.Contains("name1"))');
+
+        await firstValueFrom(datastore.query(query));
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: 'Keywords.Any(it.Contains("name1"))',
+            }),
+          })
+        );
+      });
+
+      test('should handle transformation for single-variable in list not contains operation', async () => {
+        const query = buildQuery({
+          refId: 'A',
+          queryBy: 'Keywords.Any(!it.Contains("${query0}"))',
+        });
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('Keywords.Any(!it.Contains("name1"))');
+
+        await firstValueFrom(datastore.query(query));
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: '!Keywords.Any(it.Contains("name1"))',
+            }),
+          })
+        );
+      });
+
+      test('should handle transformation for multi-variable in list contains operation', async () => {
+        const query = buildQuery({
+          refId: 'A',
+          queryBy: 'Keywords.Any(it.Contains("${query0}"))',
+        });
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('Keywords.Any(it.Contains("{name1,name2}"))');
+
+        await firstValueFrom(datastore.query(query));
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: 'Keywords.Any((it.Contains("name1") || it.Contains("name2")))',
+            }),
+          })
+        );
+      });
+
+      test('should handle transformation for multi-variable in list not contains operation', async () => {
+        const query = buildQuery({
+          refId: 'A',
+          queryBy: 'Keywords.Any(!it.Contains("${query0}"))',
+        });
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('Keywords.Any(!it.Contains("{name1,name2}"))');
+
+        await firstValueFrom(datastore.query(query));
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: '!Keywords.Any((it.Contains("name1") || it.Contains("name2")))',
+            }),
+          })
+        );
+      });
+
+      test('should handle transformation for single-variable in starts with operation', async () => {
+        const query = buildQuery({
+          refId: 'A',
+          queryBy: 'PartNumber.StartsWith("${query0}")',
+        });
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('PartNumber.StartsWith("name1")');
+
+        await firstValueFrom(datastore.query(query));
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: 'PartNumber.StartsWith("name1")',
+            }),
+          })
+        );
+      });
+
+      test('should handle transformation for single-variable in ends with operation', async () => {
+        const query = buildQuery({
+          refId: 'A',
+          queryBy: 'PartNumber.EndsWith("${query0}")',
+        });
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('PartNumber.EndsWith("name1")');
+
+        await firstValueFrom(datastore.query(query));
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: 'PartNumber.EndsWith("name1")',
+            }),
+          })
+        );
+      });
+
+      test('should handle transformation for multi-variable in starts with operation', async () => {
+        const query = buildQuery({
+          refId: 'A',
+          queryBy: 'PartNumber.StartsWith("${query0}")',
+        });
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('PartNumber.StartsWith("{name1,name2}")');
+
+        await firstValueFrom(datastore.query(query));
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: '(PartNumber.StartsWith("name1") || PartNumber.StartsWith("name2"))',
+            }),
+          })
+        );
+      });
+
+      test('should handle transformation for multi-variable in ends with operation', async () => {
+        const query = buildQuery({
+          refId: 'A',
+          queryBy: 'PartNumber.EndsWith("${query0}")',
+        });
+        jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('PartNumber.EndsWith("{name1,name2}")');
+
+        await firstValueFrom(datastore.query(query));
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: '/nitestmonitor/v2/query-results',
+            data: expect.objectContaining({
+              filter: '(PartNumber.EndsWith("name1") || PartNumber.EndsWith("name2"))',
+            }),
+          })
+        );
+      });
     });
 
     describe('buildQueryFilter', () => {

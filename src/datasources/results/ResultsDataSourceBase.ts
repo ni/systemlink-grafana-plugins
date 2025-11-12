@@ -4,7 +4,7 @@ import { ProductProperties, QueryProductResponse, ResultsQuery } from "./types/t
 import { QueryBuilderOption, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { ResultsPropertiesOptions } from "./types/QueryResults.types";
-import { ExpressionTransformFunction, timeFieldsQuery, listFieldQuery, multipleValuesQuery } from "core/query-builder.utils";
+import { ExpressionTransformFunction, timeFieldsQuery, listFieldsQuery, multipleValuesQuery } from "core/query-builder.utils";
 import { ResultsQueryBuilderFieldNames } from "./constants/ResultsQueryBuilder.constants";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
@@ -175,7 +175,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
           callback = timeFieldsQuery(field);
           break;
         case ResultsQueryBuilderFieldNames.KEYWORDS:
-          callback = listFieldQuery(field);
+          callback = listFieldsQuery(field);
           break;
         default:
           callback = multipleValuesQuery(field);

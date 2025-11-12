@@ -604,6 +604,110 @@ describe('query', () => {
         })
       );
     });
+
+    test('should transform fields with `starts with` operation', async () => {
+      const query = buildQuery(
+        {
+          refId: 'A',
+          properties: [PropertiesOptions.PART_NUMBER] as Properties[],
+          queryBy: 'PartNumber.StartsWith("123")',
+          descending: false
+        },
+      );
+
+      await firstValueFrom(datastore.query(query));
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            descending: false,
+            filter: "PartNumber.StartsWith(\"123\")",
+            orderBy: undefined,
+            projection: ["partNumber"],
+            returnCount: false,
+            take: 1000
+          }
+        })
+      );
+    });
+
+    test('should transform fields with `ends with` operation', async () => {
+      const query = buildQuery(
+        {
+          refId: 'A',
+          properties: [PropertiesOptions.PART_NUMBER] as Properties[],
+          queryBy: 'PartNumber.EndsWith("789")',
+          descending: false
+        },
+      );
+
+      await firstValueFrom(datastore.query(query));
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            descending: false,
+            filter: "PartNumber.EndsWith(\"789\")",
+            orderBy: undefined,
+            projection: ["partNumber"],
+            returnCount: false,
+            take: 1000
+          }
+        })
+      );
+    });
+
+    it('should transform fields with `starts with` with multiple values', async () => {
+      const query = buildQuery(
+        {
+          refId: 'A',
+          properties: [PropertiesOptions.PART_NUMBER] as Properties[],
+          queryBy: `${ProductsQueryBuilderFieldNames.PART_NUMBER}.StartsWith("{partNumber1,partNumber2}")`,
+          descending: false
+        },
+      );
+
+      await firstValueFrom(datastore.query(query));
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            descending: false,
+            filter: "(PartNumber.StartsWith(\"partNumber1\") || PartNumber.StartsWith(\"partNumber2\"))",
+            orderBy: undefined,
+            projection: ["partNumber"],
+            returnCount: false,
+            take: 1000
+          }
+        })
+      );
+    });
+
+    it('should transform fields with `ends with` with multiple values', async () => {
+      const query = buildQuery(
+        {
+          refId: 'A',
+          properties: [PropertiesOptions.PART_NUMBER] as Properties[],
+          queryBy: `${ProductsQueryBuilderFieldNames.PART_NUMBER}.EndsWith("{partNumber1,partNumber2}")`,
+          descending: false
+        },
+      );
+
+      await firstValueFrom(datastore.query(query));
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            descending: false,
+            filter: "(PartNumber.EndsWith(\"partNumber1\") || PartNumber.EndsWith(\"partNumber2\"))",
+            orderBy: undefined,
+            projection: ["partNumber"],
+            returnCount: false,
+            take: 1000
+          }
+        })
+      );
+    });
   });
 
   describe('metricFindQuery', () => {

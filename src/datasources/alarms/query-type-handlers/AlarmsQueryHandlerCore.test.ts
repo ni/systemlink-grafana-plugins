@@ -302,6 +302,77 @@ describe('AlarmsQueryHandlerCore', () => {
           );
         });
       });
+
+      describe('list fields', () => {
+        [
+          {
+            name: 'list equals for single value',
+            input: 'keywords.Contains("test-keyword")',
+            expected: 'keywords.Contains("test-keyword")'
+          },
+          {
+            name: 'list equals for multiple values',
+            input: 'keywords.Contains("{keyword1,keyword2}")',
+            expected: '(keywords.Contains("keyword1") || keywords.Contains("keyword2"))'
+          },
+          {
+            name: 'list not equals for single value',
+            input: '!keywords.Contains("test-keyword")',
+            expected: '!keywords.Contains("test-keyword")'
+          },
+          {
+            name: 'list not equals for multiple values',
+            input: '!keywords.Contains("{keyword1,keyword2}")',
+            expected: '!(keywords.Contains("keyword1") || keywords.Contains("keyword2"))'
+          },
+          {
+            name: 'list contains for single value',
+            input: 'keywords.Any(it.Contains("test-keyword"))',
+            expected: 'keywords.Any(it.Contains("test-keyword"))'
+          },
+          {
+            name: 'list contains for multiple values',
+            input: 'keywords.Any(it.Contains("{keyword1,keyword2}"))',
+            expected: 'keywords.Any((it.Contains("keyword1") || it.Contains("keyword2")))'
+          },
+          {
+            name: 'list not contains for single value',
+            input: 'keywords.Any(!it.Contains("test-keyword"))',
+            expected: '!keywords.Any(it.Contains("test-keyword"))'
+          },
+          {
+            name: 'list not contains for multiple values',
+            input: 'keywords.Any(!it.Contains("{keyword1,keyword2}"))',
+            expected: '!keywords.Any((it.Contains("keyword1") || it.Contains("keyword2")))'
+          }
+        ].forEach(({ name, input, expected }) => {
+          it(`should transform ${name} filter`, () => {
+            const result = datastore.transformAlarmsQueryWrapper({}, input);
+
+            expect(result).toBe(expected);
+          });
+        });
+
+        it('should replace single value variable in the list filter', () => {
+          const mockQueryBy = 'keywords.Any(!it.Contains("${query0}"))';
+          jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('keywords.Any(!it.Contains("keyword1"))');
+
+          const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockQueryBy);
+
+          expect(datastore.templateSrv.replace).toHaveBeenCalledWith('keywords.Any(!it.Contains("${query0}"))', {});
+          expect(transformQuery).toBe('!keywords.Any(it.Contains("keyword1"))');
+        });
+
+        it('should handle transformation for multi-variable in the list filter', () => {
+          const mockQueryBy = 'keywords.Any(!it.Contains("${query0}"))';
+          jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('keywords.Any(!it.Contains("{keyword1,keyword2}"))');
+
+          const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockQueryBy);
+
+          expect(datastore.templateSrv.replace).toHaveBeenCalledWith('keywords.Any(!it.Contains("${query0}"))', {});
+          expect(transformQuery).toBe('!keywords.Any((it.Contains("keyword1") || it.Contains("keyword2")))');
+        });
+      });
     });
   });
 

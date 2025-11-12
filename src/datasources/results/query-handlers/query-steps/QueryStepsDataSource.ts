@@ -29,7 +29,7 @@ import {
   TAKE_LIMIT,
 } from 'datasources/results/constants/QuerySteps.constants';
 import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/StepsQueryBuilder.constants';
-import { ExpressionTransformFunction, listFieldQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
 import { QueryResponse, Workspace } from 'core/types';
@@ -581,7 +581,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
           callback = timeFieldsQuery(field);
           break;
         case StepsQueryBuilderFieldNames.KEYWORDS:
-          callback = listFieldQuery(field);
+          callback = listFieldsQuery(field);
           break;
         default:
           callback = multipleValuesQuery(field);

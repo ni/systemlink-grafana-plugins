@@ -237,7 +237,7 @@ export function timeFieldsQuery(field: string): ExpressionTransformFunction {
  * @param field - The name of the list field to be queried.
  * @returns Callback function that builds a query expression for list fields.
  */
-export function listFieldQuery(field: string): ExpressionTransformFunction {
+export function listFieldsQuery(field: string): ExpressionTransformFunction {
   return (value: string, operation: string, options?: Map<string, unknown>) => {
     const [updatedFieldName, updatedOperation] = operation === QueryBuilderOperations.LIST_CONTAINS.name
       ? ['it', QueryBuilderOperations.CONTAINS.name]
