@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { AlarmsTrendQueryEditor } from './AlarmsTrendQueryEditor';
 import { QueryType } from 'datasources/alarms/types/types';
 import { AlarmsTrendQuery } from 'datasources/alarms/types/AlarmsTrend.types';
@@ -41,6 +41,74 @@ describe('AlarmsTrendQueryEditor', () => {
     expect(screen.getAllByText('Property').length).toBe(1);
     expect(screen.getAllByText('Operator').length).toBe(1);
     expect(screen.getAllByText('Value').length).toBe(1);
+  });
+
+  it('should render the group by severity toggle', async () => {
+    await renderElement();
+
+    const groupBySeveritySwitch = screen.getByRole('switch');
+    expect(groupBySeveritySwitch).toBeInTheDocument();
+    expect(groupBySeveritySwitch).toHaveAttribute('type', 'checkbox');
+  });
+
+  it('should render group by severity toggle as checked when groupBySeverity is true', async () => {
+    await renderElement({ 
+      refId: 'A', 
+      queryType: QueryType.AlarmsTrend, 
+      groupBySeverity: true 
+    });
+
+    const groupBySeveritySwitch = screen.getByRole('switch');
+    expect(groupBySeveritySwitch).toBeChecked();
+  });
+
+  it('should render group by severity toggle as unchecked when groupBySeverity is false', async () => {
+    await renderElement({ 
+      refId: 'A', 
+      queryType: QueryType.AlarmsTrend, 
+      groupBySeverity: false 
+    });
+
+    const groupBySeveritySwitch = screen.getByRole('switch');
+    expect(groupBySeveritySwitch).not.toBeChecked();
+  });
+
+  it('should call handleQueryChange with false when group by severity toggle is unchecked', async () => {
+    await renderElement({ 
+      refId: 'A', 
+      queryType: QueryType.AlarmsTrend, 
+      groupBySeverity: true 
+    });
+
+    const groupBySeveritySwitch = screen.getByRole('switch');
+    fireEvent.click(groupBySeveritySwitch);
+
+    expect(mockHandleQueryChange).toHaveBeenCalledWith(
+      expect.objectContaining({ 
+        refId: 'A',
+        queryType: QueryType.AlarmsTrend,
+        groupBySeverity: false 
+      })
+    );
+  });
+
+  it('should call handleQueryChange with true when group by severity toggle is checked', async () => {
+    await renderElement({ 
+      refId: 'A', 
+      queryType: QueryType.AlarmsTrend, 
+      groupBySeverity: false 
+    });
+
+    const groupBySeveritySwitch = screen.getByRole('switch');
+    fireEvent.click(groupBySeveritySwitch);
+
+    expect(mockHandleQueryChange).toHaveBeenCalledWith(
+      expect.objectContaining({ 
+        refId: 'A',
+        queryType: QueryType.AlarmsTrend,
+        groupBySeverity: true
+      })
+    );
   });
 
   it('should call handleQueryChange when filter changes', async () => {
@@ -90,5 +158,25 @@ describe('AlarmsTrendQueryEditor', () => {
 
     expect(screen.getByText('Test Error Title')).toBeInTheDocument();
     expect(screen.getByText('Test Error Description')).toBeInTheDocument();
+  });
+
+  it('should preserve groupBySeverity when filter changes', async () => {
+    const container = await renderElement({ 
+      refId: 'A', 
+      queryType: QueryType.AlarmsTrend, 
+      groupBySeverity: true,
+      filter: 'old-query'
+    });
+    const queryBuilder = container.getByRole('dialog');
+    const event = { detail: { linq: 'new-query' } };
+
+    queryBuilder?.dispatchEvent(new CustomEvent('change', event));
+
+    expect(mockHandleQueryChange).toHaveBeenCalledWith(
+      expect.objectContaining({ 
+        filter: 'new-query',
+        groupBySeverity: true
+      })
+    );
   });
 });
