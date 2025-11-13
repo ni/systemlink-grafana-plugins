@@ -70,10 +70,10 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     handleQueryChange({ ...query, descending });
   };
 
-  const validateTakeValue = (take: number, transitionInclusionOption: TransitionInclusionOption) => {
+  const updateTakeInvalidMessage = (take: number, transitionInclusionOption: TransitionInclusionOption) => {
     if (isNaN(take) || take < QUERY_EDITOR_MIN_TAKE) {
       setTakeInvalidMessage(takeErrorMessages.minErrorMsg);
-      return take;
+      return;
     }
 
     const { maxTake, errorMsg } =
@@ -83,16 +83,16 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
 
     if (take > maxTake) {
       setTakeInvalidMessage(errorMsg);
-      return take;
+      return;
     }
 
     setTakeInvalidMessage('');
-    return take;
+    return;
   };
   
   const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
-    const value = parseInt((event.target as HTMLInputElement).value, 10);
-    const take = validateTakeValue(value, query.transitionInclusionOption!);
+    const take = parseInt((event.target as HTMLInputElement).value, 10);
+    updateTakeInvalidMessage(take, query.transitionInclusionOption!);
 
     handleQueryChange({ ...query, take });
   };
@@ -105,7 +105,7 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     }
 
     setIsPropertiesControlValid(updatedProperties.length > 0);
-    validateTakeValue(query.take!, option.value);
+    updateTakeInvalidMessage(query.take!, option.value);
 
     handleQueryChange({
       ...query,

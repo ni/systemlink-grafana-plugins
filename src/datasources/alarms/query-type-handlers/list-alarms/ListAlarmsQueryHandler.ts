@@ -27,7 +27,10 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public async runQuery(query: ListAlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     let mappedFields: DataFrameDTO['fields'] | undefined;
 
-    if (this.isTakeValid(query.take, query.transitionInclusionOption) && this.isPropertiesValid(query.properties)) {
+    if (
+      this.isTakeValid(query.take, query.transitionInclusionOption) &&
+      this.isPropertiesValid(query.properties)
+    ) {
       query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
       const alarmsResponse = await this.queryAlarmsData(query);
       const flattenedAlarms  =

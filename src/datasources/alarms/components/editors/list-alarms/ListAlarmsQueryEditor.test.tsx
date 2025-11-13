@@ -274,7 +274,6 @@ describe('ListAlarmsQueryEditor', () => {
       await renderElement({ refId: 'A', transitionInclusionOption: TransitionInclusionOption.All });
 
       const takeInput = screen.getByRole('spinbutton');
-
       fireEvent.change(takeInput, { target: { value: '5000' } });
       fireEvent.blur(takeInput);
 
@@ -285,9 +284,9 @@ describe('ListAlarmsQueryEditor', () => {
       await renderElement({ refId: 'A', transitionInclusionOption: TransitionInclusionOption.All });
 
       const takeInput = screen.getByRole('spinbutton');
-
       fireEvent.change(takeInput, { target: { value: '500' } });
       fireEvent.blur(takeInput);
+
       expect(screen.queryByText(takeErrorMessages.transitionAllMaxTakeErrorMsg)).not.toBeInTheDocument();
     });
 
@@ -295,9 +294,9 @@ describe('ListAlarmsQueryEditor', () => {
       await renderElement({ refId: 'A', take: 2000, transitionInclusionOption: TransitionInclusionOption.None });
 
       const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Include Transition' });
-
       await userEvent.click(transitionInclusionCombobox);
-      await select(transitionInclusionCombobox,
+      await select(
+        transitionInclusionCombobox,
         AlarmsTransitionInclusionOptions[TransitionInclusionOption.All].label,
         {
           container: document.body,
@@ -426,7 +425,6 @@ describe('ListAlarmsQueryEditor', () => {
       });
 
       const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Include Transition' });
-
       await userEvent.click(transitionInclusionCombobox);
       await select(
         transitionInclusionCombobox,
@@ -456,9 +454,9 @@ describe('ListAlarmsQueryEditor', () => {
       });
 
       const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Include Transition' });
-
       await userEvent.click(transitionInclusionCombobox);
-      await select(transitionInclusionCombobox,
+      await select(
+        transitionInclusionCombobox,
         AlarmsTransitionInclusionOptions[TransitionInclusionOption.None].label,
         {
           container: document.body,
