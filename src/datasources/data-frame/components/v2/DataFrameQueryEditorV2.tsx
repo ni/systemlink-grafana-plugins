@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery } from "../../types";
@@ -24,6 +24,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
     const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isColumnLimitExceeded, setIsColumnLimitExceeded] = useState<boolean>(false);
+    const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
 
     const getPropertiesOptions = (
         type: DataTableProjectionType
@@ -58,6 +59,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         setIsColumnLimitExceeded(columnOptions.length > COLUMN_OPTIONS_LIMIT);
         setColumnOptions(limitedColumnOptions);
     };
+
+    useEffect(() => {
+        const isDataTablePropertiesEmpty = migratedQuery.dataTableProperties.length === 0;
+        const isColumnPropertiesEmpty = migratedQuery.columnProperties.length === 0;
+
+        setIsPropertiesNotSelected(isDataTablePropertiesEmpty && isColumnPropertiesEmpty);
+    }, [migratedQuery.dataTableProperties, migratedQuery.columnProperties]);
 
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
         handleQueryChange({ ...migratedQuery, type: queryType });
@@ -147,6 +155,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
             {migratedQuery.type === DataFrameQueryType.Properties && (
                 <>
+                    {isPropertiesNotSelected && (
+                        <Alert title='Error' severity='error'>
+                            {errorMessages.propertiesNotSelected}
+                        </Alert>
+                    )}
                     <InlineField
                         label={labels.dataTableProperties}
                         labelWidth={INLINE_LABEL_WIDTH}
