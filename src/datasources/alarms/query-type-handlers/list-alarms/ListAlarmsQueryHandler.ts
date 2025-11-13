@@ -30,13 +30,13 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     if (this.isTakeValid(query.take) && this.isPropertiesValid(query.properties)) {
       query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
       const alarmsResponse = await this.queryAlarmsData(query);
-      const alarmsToProcess =
-        query.transitionInclusionOption === TransitionInclusionOption.All &&
-        this.hasTransitionProperties(query.properties)
+      const flattenedAlarms  =
+        query.transitionInclusionOption === TransitionInclusionOption.All
+        && this.hasTransitionProperties(query.properties)
           ? this.duplicateAlarmsByTransitions(alarmsResponse)
           : alarmsResponse;
 
-      mappedFields = await this.mapPropertiesToSelect(query.properties, alarmsToProcess);
+      mappedFields = await this.mapPropertiesToSelect(query.properties, flattenedAlarms);
     }
 
     return {
@@ -106,7 +106,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
 
   private async mapPropertiesToSelect(
     properties: AlarmsProperties[],
-    alarms: Alarm[]
+    flattenedAlarms: Alarm[]
   ): Promise<DataFrameDTO['fields']> {
     const workspaces = await this.loadWorkspaces();
     const users = await this.loadUsers();
@@ -117,8 +117,8 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       const fieldValue = field.field;
       const fieldType = this.isTimeField(fieldValue as AlarmsProperties) ? FieldType.time : FieldType.string;
 
-      const fieldValues = alarms.map(alarm => {
-        const transition = alarm.transitions?.[0]; // For flattened alarms, there will be only one transition
+      const fieldValues = flattenedAlarms.map(alarm => {
+        const transition = alarm.transitions?.[0];
 
         switch (property) {
           case AlarmsProperties.workspace:
@@ -143,7 +143,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
             return transition ? this.getSortedCustomProperties(transition.properties) : '';
           default:
             let value;
-            if(TRANSITION_SPECIFIC_PROPERTIES.includes(property)) {
+            if (TRANSITION_SPECIFIC_PROPERTIES.includes(property)) {
               value = transition?.[fieldValue as keyof AlarmTransition];
             } else {
               value = alarm[fieldValue as keyof Alarm];

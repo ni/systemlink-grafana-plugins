@@ -96,7 +96,11 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
 
     setIsPropertiesControlValid(updatedProperties.length > 0);
 
-    handleQueryChange({ ...query, transitionInclusionOption: option.value, properties: updatedProperties });
+    handleQueryChange({
+      ...query,
+      transitionInclusionOption: option.value,
+      properties: updatedProperties,
+    });
   };
 
   const propertiesOptions = useMemo(() => {

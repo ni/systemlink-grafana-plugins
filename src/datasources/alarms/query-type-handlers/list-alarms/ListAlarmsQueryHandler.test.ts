@@ -714,6 +714,66 @@ describe('ListAlarmsQueryHandler', () => {
       });
 
       describe('Transition Properties', () => {
+        it('should map alarm and transition properties without overlap', async () => {
+          const query = buildAlarmsQuery({
+            properties: Object.values(AlarmsProperties),
+            transitionInclusionOption: TransitionInclusionOption.MostRecentOnly,
+            take: 10,
+          });
+          jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+            buildAlarmsResponse([
+              {
+                transitions: [
+                  mockTransition2,
+                ]
+              }
+            ])
+          );
+
+          const response = await datastore.runQuery(query, options);
+
+          expect(response).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              { name: 'Acknowledged', type: 'string', values: [true] },
+              { name: 'Acknowledged on', type: 'time', values: ['2025-09-16T10:30:00Z'] },
+              { name: 'Acknowledged by', type: 'string', values: ['user123'] },
+              { name: 'Active', type: 'string', values: [true] },
+              { name: 'Alarm ID', type: 'string', values: ['ALARM-001'] },
+              { name: 'Channel', type: 'string', values: ['Main'] },
+              { name: 'Clear', type: 'string', values: [false] },
+              { name: 'Condition', type: 'string', values: ['Temperature'] },
+              { name: 'Created by', type: 'string', values: ['admin'] },
+              { name: 'Current severity', type: 'string', values: ['High (3)'] },
+              { name: 'Description', type: 'string', values: ['Alarm triggered when temperature exceeds safe limit.'] },
+              { name: 'Alarm name', type: 'string', values: ['High Temperature Alarm'] },
+              { name: 'Highest severity', type: 'string', values: ['High (3)'] },
+              { name: 'Instance ID', type: 'string', values: ['INST-001'] },
+              { name: 'Keywords', type: 'string', values: [['temperature']] },
+              { name: 'Last occurrence', type: 'time', values: ['2025-09-16T09:00:00Z'] },
+              { name: 'Last transition occurrence', type: 'time', values: ['2025-09-16T10:00:00Z'] },
+              { name: 'First occurrence', type: 'time', values: ['2025-09-16T09:00:00Z'] },
+              { name: 'Properties', type: 'string', values: ['{"location":"Lab-1"}'] },
+              { name: 'Resource type', type: 'string', values: [''] },
+              { name: 'Source', type: 'string', values: [''] },
+              { name: 'State', type: 'string', values: ['Acknowledged'] },
+              { name: 'Transition condition', type: 'string', values: ['Humidity'] },
+              { name: 'Transition detail', type: 'string', values: ['Humidity back to normal'] },
+              { name: 'Transition keywords', type: 'string', values: [['humidity', 'normal']] },
+              { name: 'Transition occurred at', type: 'time', values: ['2025-09-16T10:00:00Z'] },
+              { name: 'Transition overflow count', type: 'string', values: [0] },
+              { name: 'Transition properties', type: 'string', values: ['{"sensorId":"SENSOR-90"}'] },
+              { name: 'Transition severity', type: 'string', values: [''] },
+              { name: 'Transition short text', type: 'string', values: ['Humidity Normal'] },
+              { name: 'Transition type', type: 'string', values: ['CLEAR'] },
+              { name: 'Transition value', type: 'string', values: ['Clear'] },
+              { name: 'Updated', type: 'time', values: ['2025-09-16T10:29:00Z'] },
+              { name: 'Workspace', type: 'string', values: ['Lab-1'] },
+            ],
+          });
+        });
+
         it('should duplicate transition specific properties when transition inclusion option is ALL', async () => {
           const query = buildAlarmsQuery({
             properties: [AlarmsProperties.displayName, ...TRANSITION_SPECIFIC_PROPERTIES],
