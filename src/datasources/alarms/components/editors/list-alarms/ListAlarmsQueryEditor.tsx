@@ -87,7 +87,6 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     }
 
     setTakeInvalidMessage('');
-    return;
   };
   
   const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
