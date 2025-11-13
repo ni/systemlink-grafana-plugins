@@ -1,3 +1,9 @@
+## [4.64.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.63.0...v4.64.0) (2025-11-13)
+
+### Features
+
+* **dataframe:** Show error when no properties are selected ([#522](https://github.com/ni/systemlink-grafana-plugins/issues/522)) ([c5ce731](https://github.com/ni/systemlink-grafana-plugins/commit/c5ce73179dcba9b5a55aff2ba308c9c006a52698))
+
 ## [4.63.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.62.0...v4.63.0) (2025-11-13)
 
 ### Features
