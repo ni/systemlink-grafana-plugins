@@ -465,6 +465,7 @@ describe("DataFrameQueryEditorV2", () => {
 
         describe("alert", () => {
             beforeEach(() => {
+                cleanup();
                 renderComponent(
                     {
                         type: DataFrameQueryType.Properties,
@@ -472,6 +473,7 @@ describe("DataFrameQueryEditorV2", () => {
                         columnProperties: []
                     }
                 );
+                user = userEvent.setup();
             });
 
             it('should render error alert when no properties are selected', async () => {
