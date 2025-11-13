@@ -12,9 +12,12 @@ import {
   FieldType,
   toUtc,
   TestDataSourceResponse,
+  DataQueryResponse,
 } from '@grafana/data';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
+import { Observable, forkJoin, of, from } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
   NotebookQuery,
   NotebookDataSourceOptions,
@@ -69,7 +72,23 @@ export class DataSource extends DataSourceBase<NotebookQuery, NotebookDataSource
     return !query.hide && Boolean(query.id) && Boolean(query.workspace);
   }
 
-  async runQuery(query: NotebookQuery, options: DataQueryRequest<NotebookQuery>): Promise<DataFrameDTO> {
+  // Override query method to handle multiple frames per query
+  query(request: DataQueryRequest<NotebookQuery>): Observable<DataQueryResponse> {
+    const queries$ = request.targets
+      .map(this.prepareQuery, this)
+      .filter(this.shouldRunQuery, this)
+      .map(q => from(this.runQueryInternal(q, request)), this);
+
+    if (queries$.length === 0) {
+      return of({ data: [] });
+    }
+
+    return forkJoin(queries$).pipe(
+      map((results) => ({ data: results.flat() })),
+    );
+  }
+
+  private async runQueryInternal(query: NotebookQuery, options: DataQueryRequest<NotebookQuery>): Promise<DataFrameDTO[]> {
     const parameters = this.replaceParameterVariables(query.parameters, options);
     const execution = await this.executeNotebook(query.id, query.workspace, parameters, query.cacheTimeout);
 
@@ -92,6 +111,11 @@ export class DataSource extends DataSourceBase<NotebookQuery, NotebookDataSource
     }
 
     const frames = this.transformResultToDataFrames(result, query);
+    return frames.length > 0 ? frames : [{ refId: query.refId, fields: [] }];
+  }
+
+  async runQuery(query: NotebookQuery, options: DataQueryRequest<NotebookQuery>): Promise<DataFrameDTO> {
+    const frames = await this.runQueryInternal(query, options);
     return frames[0] || { refId: query.refId, fields: [] };
   }
 
@@ -248,16 +272,19 @@ export class DataSource extends DataSourceBase<NotebookQuery, NotebookDataSource
 
   async getNotebookMetadata(id: string): Promise<{ metadata: any; parameters: any }> {
     let response;
+    try {
+      response = await this.get<{ metadata: any; parameters: any }>(
+        `${this.parserUrl}/notebook/${id}`
+      );
 
-    response = await this.get<{ metadata: any; parameters: any }>(
-      `${this.parserUrl}/notebook/${id}`
-    );
+      if (!this.validateMetadata(response)) {
+        throw new Error('The metadata of the notebook does not match the expected SystemLink format.');
+      }
 
-    if (!this.validateMetadata(response)) {
-      throw new Error('The metadata of the notebook does not match the expected SystemLink format.');
+      return { metadata: response.metadata, parameters: response.parameters };
+    } catch (error) {
+      throw new Error(`The query for notebook metadata failed with error ${error}.`);
     }
-
-    return { metadata: response.metadata, parameters: response.parameters };
   }
 
   async queryTestResultValues(field: string, startsWith: string): Promise<string[]> {
