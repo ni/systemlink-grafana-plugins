@@ -705,6 +705,61 @@ describe("DataFrameQueryEditorV2", () => {
 
             expect(props.dataTableFilter).toBe('TestFilter');
         });
+
+        describe('query type & filter interaction', () => {
+            beforeAll(() => {
+                // Mock offsetHeight for combobox virtualization so options render in tests
+                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(120);
+            });
+            it('should fetch column options when switching to Data query type with existing non-empty filter', async () => {
+                const user = userEvent.setup();
+                const { onChange } = renderComponent({ type: DataFrameQueryType.Properties, dataTableFilter: 'ExistingFilter' });
+                const [[initialProps]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                expect(initialProps.dataTableFilter).toBe('ExistingFilter');
+
+                // Switch query type to Data
+                await user.click(screen.getByRole('radio', { name: DataFrameQueryType.Data }));
+
+                // Open columns combobox to trigger display of options
+                const columnsCombobox = screen.getAllByRole('combobox')[0];
+                await user.click(columnsCombobox);
+
+                // Assert that column options were loaded (virtualized list contains at least one known option)
+                await waitFor(() => {
+                    const optionControls = within(document.body).getAllByRole('option');
+                    const texts = optionControls.map(o => o.textContent);
+                    expect(texts).toEqual(expect.arrayContaining(['ColumnA']));
+                });
+
+                // Ensure query type changed and filter remained
+                expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ type: DataFrameQueryType.Data }));
+                expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ dataTableFilter: 'ExistingFilter' }));
+            });
+
+            it('should NOT fetch column options when filter changes while in Properties query type', async () => {
+                const user = userEvent.setup();
+                renderComponent({ type: DataFrameQueryType.Properties, dataTableFilter: 'InitialFilter' });
+                const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                const { onDataTableFilterChange } = props;
+
+                // Simulate filter change while still in Properties type
+                const mockEvent = { detail: { linq: 'UpdatedFilter' } } as Event & { detail: { linq: string } };
+                onDataTableFilterChange(mockEvent);
+
+                // Re-open the MultiCombobox for DataTableProperties (first combobox) - should not show column options since still Properties type
+                const dataTablePropertiesCombobox = screen.getAllByRole('combobox')[0];
+                await user.click(dataTablePropertiesCombobox);
+
+                // Column options list should not have been rendered (no ColumnA, ColumnB etc.)
+                await waitFor(() => {
+                    // Only data table property labels should appear, ensure no column option labels
+                    const optionControls = within(document.body).getAllByRole('option');
+                    const texts = optionControls.map(o => o.textContent);
+                    expect(texts.some(t => t?.startsWith('ColumnA'))).toBe(false);
+                    expect(texts.some(t => t?.startsWith('ColumnB'))).toBe(false);
+                });
+            });
+        });
     });
     
     describe("floating error", () => {
