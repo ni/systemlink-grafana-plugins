@@ -3,7 +3,7 @@ import { PostFn, QueryHandler, TagHistoryResponse, TagWithValue, TimeAndTagTypeV
 import { convertTagValue } from "./utils";
 import { getWorkspaceName } from "core/utils";
 import { Workspace } from "core/types";
-import { forkJoin, map, Observable, of, switchMap, tap } from "rxjs";
+import { forkJoin, map, Observable, tap } from "rxjs";
 
 export class HistoricalQueryHandler extends QueryHandler {
     constructor(
@@ -121,24 +121,19 @@ export class HistoricalQueryHandler extends QueryHandler {
 
         const chunkResults = pathChunks.map((chunk) => this.getTagHistoryValues(chunk.map(({ tag }) => tag.path), workspace, range, intervals))
 
-        return chunkResults.reduce((acc$, chunk$) =>
-            acc$.pipe(
-                switchMap(aggregated =>
-                    chunk$.pipe(
-                        map(chunkResult => {
-                            for (const [path, data] of Object.entries(chunkResult.results)) {
-                                if (!aggregated.results[path]) {
-                                    aggregated.results[path] = data;
-                                } else {
-                                    aggregated.results[path].values.push(...data.values);
-                                }
-                            }
-                            return aggregated;
-                        })
-                    )
-                )
-            ),
-            of(aggregatedResults)
+        return forkJoin(chunkResults).pipe(
+            map(results => {
+                for (const chunkResult of results) {
+                    for (const [path, data] of Object.entries(chunkResult.results)) {
+                        if (!aggregatedResults.results[path]) {
+                            aggregatedResults.results[path] = data;
+                        } else {
+                            aggregatedResults.results[path].values.push(...data.values);
+                        }
+                    }
+                }
+                return aggregatedResults;
+            })
         );
     }
 
