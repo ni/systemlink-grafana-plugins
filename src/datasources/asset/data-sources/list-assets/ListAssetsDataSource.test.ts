@@ -10,10 +10,10 @@ import { AssetFilterPropertiesOption, ListAssetsQuery, OutputType } from "../../
 import { ListAssetsFieldNames } from "../../constants/ListAssets.constants";
 import { MockProxy } from "jest-mock-extended";
 import { BackendSrv } from "@grafana/runtime";
-import { Field } from "@grafana/data";
+import { DataFrameDTO, Field } from "@grafana/data";
 import { AssetsResponse } from "datasources/asset-common/types";
 import { QUERY_LIMIT } from "datasources/asset/constants/constants";
-import { firstValueFrom } from "rxjs";
+import { firstValueFrom, of } from "rxjs";
 
 let datastore: ListAssetsDataSource, backendServer: MockProxy<BackendSrv>;
 const mockListAssets = {
@@ -68,7 +68,7 @@ beforeEach(() => {
         .calledWith(requestMatching({ url: '/niapm/v1/query-assets', method: 'POST' }))
         .mockReturnValue(createFetchResponse(mockListAssets));
 
-    jest.spyOn(datastore, 'processListAssetsQuery');
+    jest.spyOn(datastore, 'processListAssetsQuery$');
 });
 
 const buildListAssetsQuery = getQueryBuilder<ListAssetsQuery>()({
@@ -79,7 +79,7 @@ describe('List assets location queries', () => {
     let processlistAssetsQuerySpy: jest.SpyInstance;
 
     beforeEach(() => {
-        processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery').mockImplementation();
+        processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery$').mockImplementation(() => of({} as DataFrameDTO));
     });
 
     test('should transform LOCATION field with single value', async () => {
@@ -196,7 +196,7 @@ describe('List assets "contains" queries', () => {
     let processlistAssetsQuerySpy: jest.SpyInstance;
 
     beforeEach(() => {
-        processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery').mockImplementation();
+        processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery$').mockImplementation(() => of({} as DataFrameDTO));
     });
 
     describe('should transform single values for', () => {
@@ -342,7 +342,7 @@ describe('List assets "contains" queries', () => {
 
 describe('shouldRunQuery', () => {
     test('should not process query for hidden queries', async () => {
-        const processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery').mockImplementation();
+        const processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery$').mockImplementation(() => of({} as DataFrameDTO));
         const query = buildListAssetsQuery({
             refId: '',
             type: AssetQueryType.ListAssets,
@@ -356,7 +356,7 @@ describe('shouldRunQuery', () => {
     });
 
     test('should process query for non-hidden queries', async () => {
-        const processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery').mockImplementation();
+        const processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery$').mockImplementation(() => of({} as DataFrameDTO));
         const query = buildListAssetsQuery({
             refId: '',
             type: AssetQueryType.ListAssets,
@@ -378,7 +378,7 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.TotalCount,
             properties: [AssetFilterPropertiesOption.AssetIdentifier],
         });
-        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
+        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets$');
 
         await firstValueFrom(datastore.query(query));;
 
@@ -393,7 +393,7 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.Properties,
             properties: [AssetFilterPropertiesOption.AssetIdentifier],
         });
-        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
+        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets$');
 
         await firstValueFrom(datastore.query(query));;
 
@@ -401,7 +401,7 @@ describe('shouldRunQuery', () => {
     })
 
     test('should match snapshot for TotalCount outputType', async () => {
-        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(mockListAssets);
+        jest.spyOn(datastore, 'queryAssets$').mockImplementation(() => of(mockListAssets));
 
         const query = buildListAssetsQuery({
             refId: '',
@@ -417,7 +417,7 @@ describe('shouldRunQuery', () => {
     })
 
     test('should match snapshot for Properties outputType', async () => {
-        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(mockListAssets);
+        jest.spyOn(datastore, 'queryAssets$').mockImplementation(() => of(mockListAssets));
 
         const query = buildListAssetsQuery({
             refId: '',
@@ -440,7 +440,7 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.Properties,
             properties: [AssetFilterPropertiesOption.AssetIdentifier],
         });
-        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
+        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets$');
 
         await firstValueFrom(datastore.query(query));;
 
@@ -455,7 +455,7 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.Properties,
             take: undefined,
         });
-        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
+        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets$');
         const result = await firstValueFrom(datastore.query(query));;
         const data = result.data[0];
 
@@ -471,7 +471,7 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.Properties,
             take: -1,
         });
-        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
+        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets$');
         const result = await firstValueFrom(datastore.query(query));;
         const data = result.data[0];
 
@@ -487,7 +487,7 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.Properties,
             take: 10001,
         });
-        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
+        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets$');
         const result = await firstValueFrom(datastore.query(query));;
         const data = result.data[0];
 
@@ -503,7 +503,7 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.Properties,
             take: 0,
         });
-        jest.spyOn(datastore, 'queryAssets');
+        jest.spyOn(datastore, 'queryAssets$');
 
         const result = await firstValueFrom(datastore.query(query));;
         const data = result.data[0];
@@ -519,7 +519,7 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.Properties,
             take: 1,
         });
-        jest.spyOn(datastore, 'queryAssets');
+        jest.spyOn(datastore, 'queryAssets$');
 
         const result = await firstValueFrom(datastore.query(query));
         const data = result.data[0];
@@ -535,7 +535,7 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.Properties,
             take: 1000,
         });
-        jest.spyOn(datastore, 'queryAssets');
+        jest.spyOn(datastore, 'queryAssets$');
 
         const result = await firstValueFrom(datastore.query(query));;
         const data = result.data[0];
@@ -551,7 +551,7 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.Properties,
             take: 10000,
         });
-        jest.spyOn(datastore, 'queryAssets');
+        jest.spyOn(datastore, 'queryAssets$');
 
         const result = await firstValueFrom(datastore.query(query));;
         const data = result.data[0];
@@ -566,7 +566,7 @@ describe('shouldRunQuery', () => {
             filter: ``,
             outputType: OutputType.Properties,
         });
-        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets');
+        const queryAssetSpy = jest.spyOn(datastore, 'queryAssets$');
 
         await firstValueFrom(datastore.query(query));;
 
@@ -601,7 +601,7 @@ describe('shouldRunQuery', () => {
                 { properties: { bbbb: '22222', cccc: '33333' } },
             ], totalCount: 2
         }
-        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+        jest.spyOn(datastore, 'queryAssets$').mockImplementation(() => of(listAssetsResponse as unknown as AssetsResponse));
 
         const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
@@ -627,7 +627,7 @@ describe('shouldRunQuery', () => {
                 { properties: {} },
             ], totalCount: 1
         }
-        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+        jest.spyOn(datastore, 'queryAssets$').mockImplementation(() => of(listAssetsResponse as unknown as AssetsResponse));
 
         const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
@@ -663,7 +663,7 @@ describe('shouldRunQuery', () => {
                 },
             ], totalCount: 1
         }
-        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+        jest.spyOn(datastore, 'queryAssets$').mockImplementation(() => of(listAssetsResponse as unknown as AssetsResponse));
 
         const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
@@ -697,7 +697,7 @@ describe('shouldRunQuery', () => {
                 },
             ], totalCount: 1
         }
-        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+        jest.spyOn(datastore, 'queryAssets$').mockImplementation(() => of(listAssetsResponse as unknown as AssetsResponse));
 
         const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
@@ -732,7 +732,7 @@ describe('shouldRunQuery', () => {
                 },
             ], totalCount: 1
         }
-        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+        jest.spyOn(datastore, 'queryAssets$').mockImplementation(() => of(listAssetsResponse as unknown as AssetsResponse));
 
         const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
@@ -761,7 +761,7 @@ describe('shouldRunQuery', () => {
                 },
             ], totalCount: 1
         }
-        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+        jest.spyOn(datastore, 'queryAssets$').mockImplementation(() => of(listAssetsResponse as unknown as AssetsResponse));
 
         const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
@@ -800,7 +800,7 @@ describe('shouldRunQuery', () => {
                 },
             ], totalCount: 1
         }
-        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+        jest.spyOn(datastore, 'queryAssets$').mockImplementation(() => of(listAssetsResponse as unknown as AssetsResponse));
 
         const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
@@ -830,7 +830,7 @@ describe('shouldRunQuery', () => {
                 },
             ], totalCount: 1
         }
-        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(listAssetsResponse as unknown as AssetsResponse)
+        jest.spyOn(datastore, 'queryAssets$').mockImplementation(() => of(listAssetsResponse as unknown as AssetsResponse));
 
         const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
@@ -848,7 +848,7 @@ describe('shouldRunQuery', () => {
             outputType: OutputType.Properties,
             properties: [AssetFilterPropertiesOption.ScanCode],
         });
-        jest.spyOn(datastore, 'queryAssets').mockResolvedValue(mockListAssets)
+        jest.spyOn(datastore, 'queryAssets$').mockImplementation(() => of(mockListAssets));
 
         const response = await firstValueFrom(datastore.query(query));;
         const data = response.data[0];
@@ -911,7 +911,7 @@ describe('shouldRunQuery', () => {
             AssetFilterPropertiesOption.CalibrationStatus,
             AssetFilterPropertiesOption.ScanCode],
         });
-        jest.spyOn(datastore, 'queryAssets');
+        jest.spyOn(datastore, 'queryAssets$');
 
         const expectedNumberOfFields = Object.values(AssetFilterPropertiesOption).length
         const response = await firstValueFrom(datastore.query(query));;
@@ -948,7 +948,6 @@ describe('shouldRunQuery', () => {
         expect(data.fields[28].name).toEqual('calibration status');
         expect(data.fields[29].name).toEqual('scan code');
         expect(data.fields.length).toBe(expectedNumberOfFields)
-
     })
 });
 
@@ -956,7 +955,7 @@ describe('List assets scan code queries', () => {
     let processlistAssetsQuerySpy: jest.SpyInstance;
 
     beforeEach(() => {
-        processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery').mockImplementation();
+        processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery$').mockImplementation();
     });
 
     test('should transform SCAN_CODE field with equals operator', async () => {

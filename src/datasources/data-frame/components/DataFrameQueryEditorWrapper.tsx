@@ -1,17 +1,17 @@
 import React, { useRef } from 'react';
-import { DataFrameFeatureToggles, DataFrameFeatureTogglesDefaults, Props, PropsV1, PropsV2 } from '../types';
+import { DataFrameFeatureToggles, DataFrameFeatureTogglesDefaults, Props } from '../types';
 import { DataFrameQueryEditorV2 } from './v2/DataFrameQueryEditorV2';
 import { DataFrameQueryEditorV1 } from './v1/DataFrameQueryEditorV1';
 
 export const DataFrameQueryEditorWrapper = (props: Props) => {
-  const dataFrameFeatures = useRef<DataFrameFeatureToggles>({
+  const dataFrameFeatures = useRef<Partial<DataFrameFeatureToggles>>({
     queryByDataTableProperties: props.datasource.instanceSettings.jsonData?.featureToggles?.queryByDataTableProperties
       ?? DataFrameFeatureTogglesDefaults.queryByDataTableProperties
   });
 
   return (
     dataFrameFeatures.current.queryByDataTableProperties
-      ? <DataFrameQueryEditorV2 {...props as PropsV2} />
-      : <DataFrameQueryEditorV1 {...props as PropsV1} />
+      ? <DataFrameQueryEditorV2 {...props} />
+      : <DataFrameQueryEditorV1 {...props} />
   );
 };

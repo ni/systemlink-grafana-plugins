@@ -11,7 +11,11 @@ import {
     TableProperties,
     TableDataRows,
     Column,
-    DataTableProjections
+    DataTableProjections,
+    ValidDataFrameVariableQuery,
+    DataFrameDataQuery,
+    DataFrameVariableQuery,
+    Option
 } from './types';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { extractErrorInfo } from 'core/errors';
@@ -38,12 +42,14 @@ export abstract class DataFrameDataSourceBase<
         this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
     }
 
-    public abstract processQuery(query: TQuery): ValidDataFrameQuery;
+    public abstract processQuery(query: DataFrameDataQuery): ValidDataFrameQuery;
+
+    public abstract processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery;
 
     public abstract getTableProperties(id?: string): Promise<TableProperties>;
 
     public abstract getDecimatedTableData(
-        query: TQuery,
+        query: DataFrameDataQuery,
         columns: Column[],
         timeRange: TimeRange,
         intervals?: number
@@ -65,6 +71,10 @@ export abstract class DataFrameDataSourceBase<
             }
             return new Map<string, Workspace>();
         }
+    }
+
+    public async getColumnOptions(filter: string): Promise<Option[]> {
+        return Promise.resolve([]);
     }
 
     private handleDependenciesError(error: unknown): void {

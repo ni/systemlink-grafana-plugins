@@ -27,7 +27,7 @@ export const DataFrameConfigEditor: React.FC<Props> = ({ options, onOptionsChang
                     <Text element="h6">{labels.features}</Text>
                 </div>
                 <InlineSegmentGroup>
-                    <InlineField label={labels.datatableQueryBuilder} labelWidth={25}>
+                    <InlineField label={labels.datatableQueryBuilder} labelWidth={30}>
                         <InlineSwitch
                             value={
                                 options.jsonData?.featureToggles?.queryByDataTableProperties
@@ -37,6 +37,17 @@ export const DataFrameConfigEditor: React.FC<Props> = ({ options, onOptionsChang
                         />
                     </InlineField>
                 </InlineSegmentGroup>
+                <InlineSegmentGroup>
+                    <InlineField label={labels.resultAndColumnQueryBuilder} labelWidth={30}>
+                        <InlineSwitch
+                            value={
+                                options.jsonData?.featureToggles?.queryByResultAndColumnProperties
+                                ?? DataFrameFeatureTogglesDefaults.queryByResultAndColumnProperties
+                            }
+                            onChange={handleFeatureChange('queryByResultAndColumnProperties')}
+                    />
+                    </InlineField>
+                </InlineSegmentGroup>
             </>
         </>
     );
@@ -44,5 +55,6 @@ export const DataFrameConfigEditor: React.FC<Props> = ({ options, onOptionsChang
 
 const labels = {
     features: 'Features',
-    datatableQueryBuilder: 'Datatable query builder'
+    datatableQueryBuilder: 'Datatable query builder',
+    resultAndColumnQueryBuilder: 'Results and columns query builders',
 };
