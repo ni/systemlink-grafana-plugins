@@ -263,7 +263,7 @@ describe('AlarmsTrendQueryHandler', () => {
       const ungroupedResult = await datastore.runQuery(query, options);
 
       expect(ungroupedResult.refId).toBe('A');
-      expect(ungroupedResult.fields?.[0]?.values?.length).toBeGreaterThan(0);
+      expect(ungroupedResult.fields?.[0]?.values?.length).toBe(61);
       expect(ungroupedResult.fields?.[1]?.values?.every((count: number) => count === 0)).toBe(true);
       expect(ungroupedResult.fields?.[0]?.values?.length).toBe(ungroupedResult.fields?.[1]?.values?.length);
 
@@ -311,7 +311,7 @@ describe('AlarmsTrendQueryHandler', () => {
   
         const result = await datastore.runQuery(query, options);
   
-        expect(result.fields?.[0]?.values?.length).toBeGreaterThan(0);
+        expect(result.fields?.[0]?.values?.length).toBe(61);
         expect(result.fields?.[1]?.values?.every((count: number) => count === 0)).toBe(true);
         expect(result.fields?.[0]?.values?.length).toBe(result.fields?.[1]?.values?.length);
       });
