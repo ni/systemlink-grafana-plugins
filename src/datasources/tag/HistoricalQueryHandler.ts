@@ -3,7 +3,7 @@ import { PostFn, QueryHandler, TagHistoryResponse, TagWithValue, TimeAndTagTypeV
 import { convertTagValue } from "./utils";
 import { getWorkspaceName } from "core/utils";
 import { Workspace } from "core/types";
-import { forkJoin, map, Observable, of, switchMap } from "rxjs";
+import { forkJoin, map, Observable, of, switchMap, tap } from "rxjs";
 
 export class HistoricalQueryHandler extends QueryHandler {
     constructor(
@@ -90,9 +90,9 @@ export class HistoricalQueryHandler extends QueryHandler {
     ): Observable<Record<string, TypeAndValues>> {
         const tagsDecimatedHistory: Record<string, TypeAndValues> = {};
 
-        const observables$ = Object.entries(workspaceTagMap).map(([workspace, tags]) => {
+        const observables = Object.entries(workspaceTagMap).map(([workspace, tags]) => {
             return this.getTagHistoryWithChunks$(tags, workspace, range, maxDataPoints || 0).pipe(
-                map(tagHistoryResponse => {
+                tap(tagHistoryResponse => {
                     for (const path in tagHistoryResponse.results) {
                         const prefixedPath =
                             tagPathCount[path] > 1
@@ -105,7 +105,7 @@ export class HistoricalQueryHandler extends QueryHandler {
             );
         });
 
-        return forkJoin(observables$)
+        return forkJoin(observables)
             .pipe(map(() => tagsDecimatedHistory));
     }
 
@@ -119,9 +119,9 @@ export class HistoricalQueryHandler extends QueryHandler {
         const aggregatedResults: TagHistoryResponse = { results: {} };
 
 
-        const chunkResults$ = pathChunks.map((chunk) => this.getTagHistoryValues(chunk.map(({ tag }) => tag.path), workspace, range, intervals))
+        const chunkResults = pathChunks.map((chunk) => this.getTagHistoryValues(chunk.map(({ tag }) => tag.path), workspace, range, intervals))
 
-        return chunkResults$.reduce((acc$, chunk$) =>
+        return chunkResults.reduce((acc$, chunk$) =>
             acc$.pipe(
                 switchMap(aggregated =>
                     chunk$.pipe(
