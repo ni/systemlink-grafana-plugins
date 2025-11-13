@@ -960,7 +960,6 @@ describe('List assets scan code queries', () => {
     });
 
     test('should transform SCAN_CODE field with equals operator', async () => {
-         const processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery').mockImplementation();
         const query = buildListAssetsQuery({
             refId: '',
             type: AssetQueryType.ListAssets,
@@ -978,7 +977,6 @@ describe('List assets scan code queries', () => {
     });
 
     test('should transform SCAN_CODE field with does not equal operator', async () => {
-        const processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery').mockImplementation();
         const query = buildListAssetsQuery({
             refId: '',
             type: AssetQueryType.ListAssets,
