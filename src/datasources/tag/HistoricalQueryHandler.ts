@@ -119,7 +119,7 @@ export class HistoricalQueryHandler extends QueryHandler {
         const aggregatedResults: TagHistoryResponse = { results: {} };
 
 
-        const chunkResults = pathChunks.map((chunk) => this.getTagHistoryValues(chunk.map(({ tag }) => tag.path), workspace, range, intervals))
+        const chunkResults = pathChunks.map((chunk) => this.getTagHistoryValues$(chunk.map(({ tag }) => tag.path), workspace, range, intervals))
 
         return forkJoin(chunkResults).pipe(
             map(results => {
@@ -137,7 +137,7 @@ export class HistoricalQueryHandler extends QueryHandler {
         );
     }
 
-    private getTagHistoryValues(paths: string[], workspace: string, range: TimeRange, intervals: number): Observable<TagHistoryResponse> {
+    private getTagHistoryValues$(paths: string[], workspace: string, range: TimeRange, intervals: number): Observable<TagHistoryResponse> {
         const tagHistoryUrl = this.baseUrl + '/nitaghistorian/v2/tags';
         return this.post$<TagHistoryResponse>(`${tagHistoryUrl}/query-decimated-history`, {
             paths,
