@@ -214,7 +214,6 @@ export class DataSource extends DataSourceBase<NotebookQuery, NotebookDataSource
 
       return this.handleNotebookExecution(response.executions[0].id);
     } catch (e) {
-      console.log(e)
       throw new Error(
         `The request to execute the notebook failed with error: ${(e as Error).message}`
       );

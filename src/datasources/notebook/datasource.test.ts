@@ -65,18 +65,18 @@ describe('Notebook data source', () => {
 
   beforeEach(() => {
     [ds, backendSrv] = setupDataSource(DataSource, () => instanceSettings);
-    
+
     // Mock backendSrv.fetch to handle POST and GET requests
     backendSrv.fetch.mockImplementation((options: any) => {
       const url = options.url;
       const method = options.method;
-      
+
       // POST to /executions - create execution
       if (method === 'POST' && url.includes('/executions')) {
         const notebookId = options.data?.[0]?.notebookId;
         return createFetchResponse(createExecutionResponse(notebookId));
       }
-      
+
       // GET execution status
       if (method === 'GET' && url.includes('/executions/')) {
         if (url.includes(successfulNotebookPath)) {
@@ -89,7 +89,7 @@ describe('Notebook data source', () => {
           return createFetchResponse(invalidExecutionResponse);
         }
       }
-      
+
       return createFetchResponse({});
     });
   });
