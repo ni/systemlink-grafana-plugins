@@ -1,5 +1,14 @@
 import { DataQuery, DataSourceJsonData } from '@grafana/data';
 
+export enum ExecutionStatus {
+  QUEUED = 'QUEUED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  FAILED = 'FAILED',
+  SUCCEEDED = 'SUCCEEDED',
+  CANCELED = 'CANCELED',
+  TIMED_OUT = 'TIMED_OUT',
+}
+
 export interface NotebookQuery extends DataQuery {
   id: string;
   workspace: string;
@@ -43,7 +52,7 @@ export const isNotebookWithMeta = (notebook: Notebook | NotebookWithMetadata): n
 export interface Execution {
   notebookId: string;
   parameters: { [key: string]: any };
-  status: 'QUEUED' | 'IN_PROGRESS' | 'FAILED' | 'SUCCEEDED' | 'CANCELED' | 'TIMED_OUT';
+  status: ExecutionStatus;
   result: any;
   cachedResult: boolean;
   exception: string | undefined;
@@ -61,4 +70,15 @@ export interface Parameter {
   display_name: string;
   type: string;
   options?: string[];
+}
+
+export enum ResultType {
+  DATA_FRAME = 'data_frame',
+  ARRAY = 'array',
+  SCALAR = 'scalar',
+}
+
+export enum DataFrameFormat {
+  XY = 'XY',
+  INDEX = 'INDEX',
 }
