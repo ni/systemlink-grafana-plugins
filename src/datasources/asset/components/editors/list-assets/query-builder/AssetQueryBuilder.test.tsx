@@ -33,7 +33,7 @@ describe('AssetQueryBuilder', () => {
 
     it('should render empty query builder', () => {
       const { renderResult, conditionsContainer } = renderElement([], [], [], '');
-      
+
       expect(conditionsContainer.length).toBe(1);
       expect(renderResult.findByLabelText('Empty condition row')).toBeTruthy();
     });
@@ -61,7 +61,7 @@ describe('AssetQueryBuilder', () => {
 
     it('should select global variable option', () => {
       const globalVariableOption = { label: 'Global variable', value: 'global_variable' };
-      
+
       const { conditionsContainer } = renderElement([workspace], [system], [], 'AssetType = \"global_variable\"', [globalVariableOption]);
 
       expect(conditionsContainer?.length).toBe(1);
@@ -144,5 +144,13 @@ describe('AssetQueryBuilder', () => {
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain("AssetIdentifier_123");
     })
+
+    it('should select scan code in query builder', () => {
+      const { conditionsContainer } = renderElement([workspace], [system], [], 'ScanCode = "c44750b7-1f22-4fec-b475-73b10e966217"');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("Scan Code");
+      expect(conditionsContainer.item(0)?.textContent).toContain("c44750b7-1f22-4fec-b475-73b10e966217");
+    });
   });
 });
