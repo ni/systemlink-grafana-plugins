@@ -6,6 +6,7 @@ import { TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
 import { Workspace } from 'core/types';
+import { lastValueFrom, of, throwError } from 'rxjs';
 
 jest.mock('core/query-builder.utils', () => {
     const actualQueryBuilderUtils = jest.requireActual('core/query-builder.utils');
@@ -61,7 +62,7 @@ describe('DataFrameDataSourceV2', () => {
 
         it('should call processQuery with the provided query', async () => {
             const processQuerySpy = jest.spyOn(ds, 'processQuery');
-            await ds.runQuery(query, options);
+            await lastValueFrom(ds.runQuery(query, options));
 
             expect(processQuerySpy).toHaveBeenCalledWith(query);
         });
@@ -69,7 +70,7 @@ describe('DataFrameDataSourceV2', () => {
         it('should call transformComputedFieldsQuery when dataTableFilter is present', async () => {
             templateSrv.replace.mockReturnValue('name = "Test Table"');
 
-            await ds.runQuery(query, options);
+            await lastValueFrom(ds.runQuery(query, options));
 
             expect(templateSrv.replace).toHaveBeenCalledWith('name = "${name}"', options.scopedVars);
             expect(queryBuilderUtils.transformComputedFieldsQuery).toHaveBeenCalledWith(
@@ -88,7 +89,7 @@ describe('DataFrameDataSourceV2', () => {
             multipleValuesQuery.mockReturnValue(mockMultipleValuesExpressionTransformFunction);
             ds = new DataFrameDataSourceV2(instanceSettings, backendSrv, templateSrv);
 
-            await ds.runQuery(query, options);
+            await lastValueFrom(ds.runQuery(query, options));
 
             const dataTableComputedDataFields = transformComputedFieldsQuerySpy
                 .mock.calls[0][1] as Map<string, queryBuilderUtils.ExpressionTransformFunction>;
@@ -122,7 +123,7 @@ describe('DataFrameDataSourceV2', () => {
             });
 
             it('should return an object with empty fields array', async () => {
-                const result = await ds.runQuery(dataQuery, options);
+                const result = await lastValueFrom(ds.runQuery(dataQuery, options));
 
                 expect(result).toEqual(
                     {
@@ -136,23 +137,23 @@ describe('DataFrameDataSourceV2', () => {
             it('should not call loadWorkspaces', async () => {
                 const loadWorkspacesSpy = jest.spyOn(ds, 'loadWorkspaces');
 
-                await ds.runQuery(dataQuery, options);
+                await lastValueFrom(ds.runQuery(dataQuery, options));
 
                 expect(loadWorkspacesSpy).not.toHaveBeenCalled();
             });
 
             it('should not call queryTables', async () => {
-                await ds.runQuery(dataQuery, options);
+                await lastValueFrom(ds.runQuery(dataQuery, options));
 
                 expect(queryTablesSpy).not.toHaveBeenCalled();
             });
         });
 
         describe("when query type is properties", () => {
-            let queryTablesSpy: jest.SpyInstance;
+            let queryTables$Spy: jest.SpyInstance;
 
             beforeEach(() => {
-                queryTablesSpy = jest.spyOn(ds, 'queryTables');
+                queryTables$Spy = jest.spyOn(ds, 'queryTables$');
             });
 
             describe('when dataTableProperties and columnProperties are empty', () => {
@@ -167,19 +168,21 @@ describe('DataFrameDataSourceV2', () => {
                 it('should not call loadWorkspaces', async () => {
                     const loadWorkspacesSpy = jest.spyOn(ds, 'loadWorkspaces');
 
-                    await ds.runQuery(queryWithEmptyProperties, options);
+                    await lastValueFrom(ds.runQuery(queryWithEmptyProperties, options));
 
                     expect(loadWorkspacesSpy).not.toHaveBeenCalled();
                 });
 
-                it('should not call queryTables', async () => {
-                    await ds.runQuery(queryWithEmptyProperties, options);
+                it('should not call queryTables$', async () => {
+                    await lastValueFrom(ds.runQuery(queryWithEmptyProperties, options));
 
-                    expect(queryTablesSpy).not.toHaveBeenCalled();
+                    expect(queryTables$Spy).not.toHaveBeenCalled();
                 });
 
                 it('should return an object with empty fields array', async () => {
-                    const result = await ds.runQuery(queryWithEmptyProperties, options);
+                    const result = await lastValueFrom(
+                        ds.runQuery(queryWithEmptyProperties, options)
+                    );
 
                     expect(result).toEqual(
                         {
@@ -206,19 +209,21 @@ describe('DataFrameDataSourceV2', () => {
                     it(`should not call loadWorkspaces for take value: ${takeValue}`, async () => {
                         const loadWorkspacesSpy = jest.spyOn(ds, 'loadWorkspaces');
 
-                        await ds.runQuery(queryWithInvalidTake, options);
+                        await lastValueFrom(ds.runQuery(queryWithInvalidTake, options));
 
                         expect(loadWorkspacesSpy).not.toHaveBeenCalled();
                     });
 
-                    it(`should not call queryTables for take value: ${takeValue}`, async () => {
-                        await ds.runQuery(queryWithInvalidTake, options);
+                    it(`should not call queryTables$ for take value: ${takeValue}`, async () => {
+                        await lastValueFrom(ds.runQuery(queryWithInvalidTake, options));
 
-                        expect(queryTablesSpy).not.toHaveBeenCalled();
+                        expect(queryTables$Spy).not.toHaveBeenCalled();
                     });
 
                     it(`should return an object with empty fields array for take value: ${takeValue}`, async () => {
-                        const result = await ds.runQuery(queryWithInvalidTake, options);
+                        const result = await lastValueFrom(
+                            ds.runQuery(queryWithInvalidTake, options)
+                        );
 
                         expect(result).toEqual(
                             {
@@ -247,23 +252,23 @@ describe('DataFrameDataSourceV2', () => {
                         { id: 'table-1', name: 'Table 1' },
                         { id: 'table-2', name: 'Table 2' }
                     ];
-                    queryTablesSpy.mockResolvedValue(mockTables);
+                    queryTables$Spy.mockReturnValue(of(mockTables));
 
-                    await ds.runQuery(validQuery, options);
+                    await lastValueFrom(ds.runQuery(validQuery, options));
 
                     expect(loadWorkspacesSpy).toHaveBeenCalled();
                 });
 
-                it('should call queryTables with expected arguments and return fields', async () => {
+                it('should call queryTables$ with expected arguments and return fields', async () => {
                     const mockTables = [
                         { id: 'table-1', name: 'Table 1' },
                         { id: 'table-2', name: 'Table 2' }
                     ];
-                    queryTablesSpy.mockResolvedValue(mockTables);
+                    queryTables$Spy.mockReturnValue(of(mockTables));
 
-                    const result = await ds.runQuery(validQuery, options);
+                    const result = await lastValueFrom(ds.runQuery(validQuery, options));
 
-                    expect(queryTablesSpy).toHaveBeenCalledWith(
+                    expect(queryTables$Spy).toHaveBeenCalledWith(
                         'name = "Test Table"',
                         1000,
                         [DataTableProjections.Name]
@@ -547,12 +552,14 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     ]);
                     const loadWorkspacesSpy = jest.spyOn(ds, 'loadWorkspaces');
-                    queryTablesSpy.mockResolvedValue(mockTables);
+                    queryTables$Spy.mockReturnValue(of(mockTables));
                     loadWorkspacesSpy.mockResolvedValue(mockWorkspaces);
 
-                    const result = await ds.runQuery(queryWithAllProperties, options);
+                    const result = await lastValueFrom(
+                        ds.runQuery(queryWithAllProperties, options)
+                    );
 
-                    expect(queryTablesSpy).toHaveBeenCalledWith(
+                    expect(queryTables$Spy).toHaveBeenCalledWith(
                         'name = "Test Table"',
                         1000,
                         expectedProjections
@@ -578,10 +585,10 @@ describe('DataFrameDataSourceV2', () => {
                 name: { value: 'Test Table' }
             }
         };
-        let queryTablesSpy: jest.SpyInstance;
+        let queryTables$Spy: jest.SpyInstance;
 
         beforeEach(() => {
-            queryTablesSpy = jest.spyOn(ds, 'queryTables').mockResolvedValue([]);
+            queryTables$Spy = jest.spyOn(ds, 'queryTables$').mockReturnValue(of([]));
         });
 
         it('should call processVariableQuery with the provided query', async () => {
@@ -618,7 +625,7 @@ describe('DataFrameDataSourceV2', () => {
             timeFieldsQuery.mockReturnValue(mockTimeFieldsExpressionTransformFunction);
             multipleValuesQuery.mockReturnValue(mockMultipleValuesExpressionTransformFunction);
             ds = new DataFrameDataSourceV2(instanceSettings, backendSrv, templateSrv);
-            queryTablesSpy = jest.spyOn(ds, 'queryTables').mockResolvedValue([]);
+            queryTables$Spy = jest.spyOn(ds, 'queryTables$').mockReturnValue(of([]));
 
             await ds.metricFindQuery(query, options);
 
@@ -670,17 +677,17 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         describe('when queryType is ListDataTables', () => {
-            it('should call queryTables with expected arguments and return mapped tables', async () => {
+            it('should call queryTables$ with expected arguments and return mapped tables', async () => {
                 templateSrv.replace.mockReturnValue('name = "Test Table"');
                 const mockTables = [
                     { id: 'table-1', name: 'Table 1' },
                     { id: 'table-2', name: 'Table 2' }
                 ];
-                queryTablesSpy.mockResolvedValue(mockTables);
+                queryTables$Spy.mockReturnValue(of(mockTables));
 
                 const result = await ds.metricFindQuery(query, options);
 
-                expect(queryTablesSpy).toHaveBeenCalledWith(
+                expect(queryTables$Spy).toHaveBeenCalledWith(
                     'name = "Test Table"',
                     1000,
                     [DataTableProjections.Name]
@@ -872,8 +879,8 @@ describe('DataFrameDataSourceV2', () => {
         });
     });
 
-    describe('queryTables', () => {
-        let postMock: jest.SpyInstance;
+    describe('queryTables$', () => {
+        let post$Mock: jest.SpyInstance;
         const mockTables = [{ id: '1', name: 'Table 1' }, { id: '2', name: 'Table 2' }];
 
         function createQueryTablesError(status: number) {
@@ -883,64 +890,75 @@ describe('DataFrameDataSourceV2', () => {
         }
 
         beforeEach(() => {
-            postMock = jest.spyOn(ds, 'post').mockResolvedValue({ tables: mockTables });
+            post$Mock = jest.spyOn(ds, 'post$').mockReturnValue(of({ tables: mockTables }));
         });
 
-        it('should call the `post` method with the expected arguments and return tables', async () => {
+        it('should call the `post$` method with the expected arguments and return tables', async () => {
             const filter = 'test-filter';
             const take = 10;
             const projection = [DataTableProjections.Name, DataTableProjections.Id];
-            const result = await ds.queryTables(filter, take, projection);
-
-            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take, projection }, { useApiIngress: true });
+            const result = await lastValueFrom(ds.queryTables$(filter, take, projection));
+            expect(post$Mock).toHaveBeenCalledWith(
+                `${ds.baseUrl}/query-tables`,
+                { filter, take, projection },
+                { useApiIngress: true }
+            );
             expect(result).toBe(mockTables);
         });
 
         it('should use TAKE_LIMIT as default take value when not provided', async () => {
             const filter = 'test-filter';
-            const result = await ds.queryTables(filter);
+            const result = await lastValueFrom(ds.queryTables$(filter));
 
-            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take: TAKE_LIMIT }, { useApiIngress: true });
+            expect(post$Mock).toHaveBeenCalledWith(
+                `${ds.baseUrl}/query-tables`,
+                { filter, take: TAKE_LIMIT },
+                { useApiIngress: true }
+            );
             expect(result).toBe(mockTables);
         });
 
         it('should use undefined as default projection value when not provided', async () => {
             const filter = 'test-filter';
             const take = 15;
-            const result = await ds.queryTables(filter, take);
+            const result = await lastValueFrom(ds.queryTables$(filter, take));
 
-            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take, projection: undefined }, { useApiIngress: true });
+            expect(post$Mock).toHaveBeenCalledWith(
+                `${ds.baseUrl}/query-tables`,
+                { filter, take, projection: undefined },
+                { useApiIngress: true }
+            );
             expect(result).toBe(mockTables);
         });
 
         it('should throw error with unknown error when API returns error without status', async () => {
-            postMock.mockRejectedValueOnce(new Error('Some unknown error'));
+            post$Mock.mockReturnValue(throwError(() => new Error('Some unknown error')));
 
-            await expect(ds.queryTables('test-filter')).rejects.toThrow(
+            await expect(lastValueFrom(ds.queryTables$('test-filter'))).rejects.toThrow(
                 'The query failed due to an unknown error.'
             );
         });
 
         it('should throw too many requests error when API returns 429 status', async () => {
-            postMock.mockRejectedValueOnce(createQueryTablesError(429));
+            post$Mock.mockReturnValue(throwError(() => createQueryTablesError(429)));
 
-            await expect(ds.queryTables('test-filter')).rejects.toThrow(
+            await expect(lastValueFrom(ds.queryTables$('test-filter'))).rejects.toThrow(
                 'The query to fetch data tables failed due to too many requests. Please try again later.'
             );
         });
 
         it('should throw timeOut error when API returns 504 status', async () => {
-            postMock.mockRejectedValueOnce(createQueryTablesError(504));
+            post$Mock.mockReturnValue(throwError(() => createQueryTablesError(504)));
 
-            await expect(ds.queryTables('test-filter')).rejects.toThrow(
+            await expect(lastValueFrom(ds.queryTables$('test-filter'))).rejects.toThrow(
                 'The query to fetch data tables experienced a timeout error. Narrow your query with a more specific filter and try again.'
             );
         });
 
         it('should throw error with status code and message when API returns 500 status', async () => {
-            postMock.mockRejectedValueOnce(createQueryTablesError(500));
+            post$Mock.mockReturnValue(throwError(() => createQueryTablesError(500)));
 
-            await expect(ds.queryTables('test-filter')).rejects.toThrow(
+            await expect(lastValueFrom(ds.queryTables$('test-filter'))).rejects.toThrow(
                 'The query failed due to the following error: (status 500) "Error".'
             );
         });
@@ -948,9 +966,9 @@ describe('DataFrameDataSourceV2', () => {
         it('should publish alertError event when error occurs', async () => {
             const publishMock = jest.fn();
             (ds as any).appEvents = { publish: publishMock };
-            postMock.mockRejectedValueOnce(createQueryTablesError(429));
+            post$Mock.mockReturnValue(throwError(() => createQueryTablesError(429)));
 
-            await expect(ds.queryTables('test-filter')).rejects.toThrow();
+            await expect(lastValueFrom(ds.queryTables$('test-filter'))).rejects.toThrow();
 
             expect(publishMock).toHaveBeenCalledWith({
                 type: 'alert-error',
@@ -962,11 +980,20 @@ describe('DataFrameDataSourceV2', () => {
         });
     });
 
+    describe('queryTables', () => {
+        it('should return empty list', async () => {
+            const result = await ds.queryTables('test-filter', 5, [
+                DataTableProjections.Name,
+            ]);
+            expect(result).toEqual([]);
+        });
+    });
+
     describe('getColumnOptions', () => {
-        let queryTablesMock: jest.SpyInstance;
+        let queryTables$Mock: jest.SpyInstance;
 
         beforeEach(() => {
-            queryTablesMock = jest.spyOn(ds, 'queryTables');
+            queryTables$Mock = jest.spyOn(ds, 'queryTables$');
         });
 
         afterEach(() => {
@@ -974,7 +1001,7 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         it('should return an empty array when no tables are found', async () => {
-            queryTablesMock.mockResolvedValue([]);
+            queryTables$Mock.mockReturnValue(of([]));
 
             const result = await ds.getColumnOptions('some-filter');
 
@@ -982,10 +1009,10 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         it('should return an empty array when tables have no columns', async () => {
-            queryTablesMock.mockResolvedValue([
+            queryTables$Mock.mockReturnValue(of([
                 { id: '1', name: 'Table 1', columns: [] },
                 { id: '2', name: 'Table 2' },
-            ]);
+            ]));
 
             const result = await ds.getColumnOptions('some-filter');
 
@@ -993,7 +1020,7 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         it('should treat all numeric types as one data type -`Numeric`', async () => {
-            queryTablesMock.mockResolvedValue([
+            queryTables$Mock.mockReturnValue(of([
                 {
                     id: '1',
                     name: 'Table 1',
@@ -1023,7 +1050,7 @@ describe('DataFrameDataSourceV2', () => {
                     ]
 
                 }
-            ]);
+            ]));
 
             const result = await ds.getColumnOptions('some-filter');
             expect(result).toEqual([
@@ -1036,7 +1063,7 @@ describe('DataFrameDataSourceV2', () => {
 
         describe('when column names do not repeat', () => {
             it('should show only the name in the labels', async () => {
-                queryTablesMock.mockResolvedValue([
+                queryTables$Mock.mockReturnValue(of([
                     {
                         id: '1',
                         name: 'Table 1',
@@ -1054,7 +1081,7 @@ describe('DataFrameDataSourceV2', () => {
                             { name: 'Column 5', dataType: 'STRING' },
                         ]
                     }
-                ]);
+                ]));
 
                 const result = await ds.getColumnOptions('some-filter');
 
@@ -1070,7 +1097,7 @@ describe('DataFrameDataSourceV2', () => {
 
         describe('when column names repeat but data type differs', () => {
             it('should group numeric types as `Numeric`', async () => {
-                queryTablesMock.mockResolvedValue([
+                queryTables$Mock.mockReturnValue(of([
                     {
                         id: '1',
                         name: 'Table 1',
@@ -1092,7 +1119,7 @@ describe('DataFrameDataSourceV2', () => {
                             { name: 'Column 1', dataType: 'STRING' },
                         ]
                     }
-                ]);
+                ]));
 
                 const result = await ds.getColumnOptions('some-filter');
 
@@ -1103,7 +1130,7 @@ describe('DataFrameDataSourceV2', () => {
             });
 
             it('should show data types in label', async () => {
-                queryTablesMock.mockResolvedValue([
+                queryTables$Mock.mockReturnValue(of([
                     {
                         id: '1',
                         name: 'Table 1',
@@ -1125,7 +1152,7 @@ describe('DataFrameDataSourceV2', () => {
                             { name: 'Column E', dataType: 'FLOAT32' },
                         ]
                     }
-                ]);
+                ]));
 
                 const result = await ds.getColumnOptions('some-filter');
 
@@ -1144,7 +1171,7 @@ describe('DataFrameDataSourceV2', () => {
 
         describe('when column names repeat but data type is same', () => {
             it('should not show data types in label', async () => {
-                queryTablesMock.mockResolvedValue([
+                queryTables$Mock.mockReturnValue(of([
                     {
                         id: '1',
                         name: 'Table 1',
@@ -1165,7 +1192,7 @@ describe('DataFrameDataSourceV2', () => {
                             { name: 'Column D', dataType: 'FLOAT64' },
                         ]
                     }
-                ]);
+                ]));
 
                 const result = await ds.getColumnOptions('some-filter');
 
