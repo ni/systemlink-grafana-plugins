@@ -5,7 +5,7 @@ import { Workspace } from "core/types";
 import { Observable, of } from "rxjs";
 
 export class CurrentQueryHandler extends QueryHandler {
-    handleQuery(tagsWithValues: TagWithValue[], result: DataFrameDTO, _workspaces: Workspace[], _range: TimeRange, _maxDataPoints: number | undefined, queryProperties: boolean): Observable<DataFrameDTO> {
+    handleQuery$(tagsWithValues: TagWithValue[], result: DataFrameDTO, _workspaces: Workspace[], _range: TimeRange, _maxDataPoints: number | undefined, queryProperties: boolean): Observable<DataFrameDTO> {
         return of(this.handleCurrentQuery(queryProperties, tagsWithValues, result));
     }
 

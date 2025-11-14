@@ -51,7 +51,7 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
       switchMap(([tagsWithValues, workspaces]) => {
         const result: DataFrameDTO = { refId: query.refId, fields: [] };
 
-        return this.queryHandlerFactory.createQueryHandler(query.type).handleQuery(tagsWithValues, result, workspaces, range, maxDataPoints, query.properties);
+        return this.queryHandlerFactory.createQueryHandler(query.type).handleQuery$(tagsWithValues, result, workspaces, range, maxDataPoints, query.properties);
       }
       ))
   }

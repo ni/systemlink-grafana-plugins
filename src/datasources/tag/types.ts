@@ -93,5 +93,5 @@ export const TagFeatureTogglesDefaults: TagFeatureToggles = {
 export type PostFn = <T>(url: string, body: Record<string, any>) => Observable<T>;
 
 export abstract class QueryHandler {
-  abstract handleQuery(tagsWithValues: TagWithValue[], result: DataFrameDTO, workspaces: Workspace[], range: TimeRange, maxDataPoints: number | undefined, queryProperties: boolean): Observable<DataFrameDTO>;
+  abstract handleQuery$(tagsWithValues: TagWithValue[], result: DataFrameDTO, workspaces: Workspace[], range: TimeRange, maxDataPoints: number | undefined, queryProperties: boolean): Observable<DataFrameDTO>;
 }

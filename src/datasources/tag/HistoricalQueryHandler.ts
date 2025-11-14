@@ -13,7 +13,7 @@ export class HistoricalQueryHandler extends QueryHandler {
         super();
     }
 
-    handleQuery(tagsWithValues: TagWithValue[], result: DataFrameDTO, workspaces: Workspace[], range: TimeRange, maxDataPoints: number | undefined, _queryProperties: boolean): Observable<DataFrameDTO> {
+    handleQuery$(tagsWithValues: TagWithValue[], result: DataFrameDTO, workspaces: Workspace[], range: TimeRange, maxDataPoints: number | undefined, _queryProperties: boolean): Observable<DataFrameDTO> {
         return this.handleHistoricalQuery$(tagsWithValues, workspaces, range, maxDataPoints, result.refId || '');
     }
 
