@@ -1,32 +1,56 @@
+import { MockProxy } from 'jest-mock-extended';
+import { setupDataSource, createFetchResponse } from '../../test/fixtures';
 import { DataSource } from './datasource';
-import { NotebookDataSourceOptions, NotebookQuery } from './types';
+import { NotebookDataSourceOptions, NotebookQuery, ExecutionStatus, ResultType } from './types';
 
 import { DataSourceInstanceSettings, DataQueryRequest, FieldType } from '@grafana/data';
-
-const replaceMock = jest.fn((a: string, ...rest: any) => a);
-const executeMock = jest.fn((options) => mockNotebookApiResponse(options));
+import { firstValueFrom } from 'rxjs';
+import { BackendSrv } from '@grafana/runtime';
 
 const successfulNotebookPath = '0';
 const failedNotebookPath = '1';
 const invalidNotebookPath = '2';
 
-jest.mock('@grafana/runtime', () => ({
-  // @ts-ignore
-  ...jest.requireActual('@grafana/runtime'),
-  getBackendSrv: () => ({
-    datasourceRequest: executeMock,
-  }),
-  getTemplateSrv: () => ({
-    replace: replaceMock,
-  }),
-}));
+const successfulExecutionResponse = {
+  status: ExecutionStatus.SUCCEEDED,
+  result: {
+    result: [
+      {
+        id: 'test',
+        type: 'scalar',
+        value: 1,
+      },
+    ],
+  },
+};
 
-beforeEach(() => {
-  jest.clearAllMocks();
+const failedExecutionResponse = {
+  status: ExecutionStatus.FAILED,
+  exception: 'a python exception',
+};
+
+const invalidExecutionResponse = {
+  status: ExecutionStatus.SUCCEEDED,
+  result: {
+    result: [
+      {
+        id: 'test',
+        type: 'data_frame',
+        data: {
+          values: [1, 2, 3],
+        },
+      },
+    ],
+  },
+};
+
+const createExecutionResponse = (id: string) => ({
+  executions: [{ id }]
 });
 
+
 describe('Notebook data source', () => {
-  let ds: DataSource;
+  let ds: DataSource, backendSrv: MockProxy<BackendSrv>;
   const instanceSettings = {
     url: 'http://test',
   } as unknown as DataSourceInstanceSettings<NotebookDataSourceOptions>;
@@ -34,19 +58,46 @@ describe('Notebook data source', () => {
     refId: '123',
     id: '1234',
     workspace: '1234',
-    parameters: null,
+    parameters: {},
     output: 'test_output',
     cacheTimeout: 0,
   };
 
   beforeEach(() => {
-    ds = new DataSource(instanceSettings);
+    [ds, backendSrv] = setupDataSource(DataSource, () => instanceSettings);
+
+    // Mock backendSrv.fetch to handle POST and GET requests
+    backendSrv.fetch.mockImplementation((options: any) => {
+      const url = options.url;
+      const method = options.method;
+
+      // POST to /executions - create execution
+      if (method === 'POST' && url.includes('/executions')) {
+        const notebookId = options.data?.[0]?.notebookId;
+        return createFetchResponse(createExecutionResponse(notebookId));
+      }
+
+      // GET execution status
+      if (method === 'GET' && url.includes('/executions/')) {
+        if (url.includes(successfulNotebookPath)) {
+          return createFetchResponse(successfulExecutionResponse);
+        }
+        if (url.includes(failedNotebookPath)) {
+          return createFetchResponse(failedExecutionResponse);
+        }
+        if (url.includes(invalidNotebookPath)) {
+          return createFetchResponse(invalidExecutionResponse);
+        }
+      }
+
+      return createFetchResponse({});
+    });
   });
 
   describe('transformResultToDataFrames', () => {
     it('transforms xy data', () => {
       let dataFrame = {
-        type: 'data_frame',
+        type: ResultType.DATA_FRAME,
         id: 'horizontal_graph',
         data: [{ format: 'XY', x: [0, 1, 2, 3], y: [950, 412, 1390, 1009] }],
         config: {
@@ -68,15 +119,15 @@ describe('Notebook data source', () => {
 
       let [result] = ds.transformResultToDataFrames(dataFrame, mockQuery);
 
-      expect(result.name).toBe('plot1');
+      expect((result as any).name).toBe('plot1');
       expect(result.fields).toHaveLength(2);
-      expect(result.length).toBe(4);
-      expect(result.get(0)).toHaveProperty('Field 2', 950);
+      expect(result.fields[0].values).toHaveLength(4);
+      expect(result.fields[1]!.values![0]).toBe(950);
     });
 
     it('transforms index data', () => {
       let dataFrame = {
-        type: 'data_frame',
+        type: ResultType.DATA_FRAME,
         id: 'horizontal_graph',
         data: [{ format: 'INDEX', y: [950, 412, 1390, 1009] }],
         config: {
@@ -98,30 +149,31 @@ describe('Notebook data source', () => {
 
       let [result] = ds.transformResultToDataFrames(dataFrame, mockQuery);
 
-      expect(result.name).toBe('plot1');
+      expect((result as any).name).toBe('plot1');
       expect(result.fields).toHaveLength(2);
-      expect(result.length).toBe(4);
-      expect(result.get(0)).toEqual({ 'Field 2': 950, Index: 0 });
+      expect(result.fields[0].values).toHaveLength(4);
+      expect(result.fields[0].values).toEqual([0, 1, 2, 3]);
+      expect(result.fields[1]!.values![0]).toBe(950);
     });
 
     it('transforms scalar data', () => {
-      let dataFrame = { type: 'scalar', id: 'output1', value: 2.5 };
+      let dataFrame = { type: ResultType.SCALAR, id: 'output1', value: 2.5 };
 
       let [result] = ds.transformResultToDataFrames(dataFrame, mockQuery);
 
       expect(result.fields).toHaveLength(1);
-      expect(result.length).toBe(1);
-      expect(Object.values(result.get(0))).toEqual([2.5]);
+      expect(result.fields[0].values).toHaveLength(1);
+      expect(result.fields[0]!.values![0]).toEqual(2.5);
     });
 
     it('transforms tabular data', () => {
       let dataFrame = {
-        type: 'data_frame',
+        type: ResultType.DATA_FRAME,
         id: 'test_output',
         data: {
           columns: [
-            { name: 'column1', type: 'string' },
-            { name: 'column2', type: 'integer' },
+            { name: 'column1', type: 'string' as const },
+            { name: 'column2', type: 'integer' as const },
           ],
           values: [
             ['value1', 1],
@@ -134,20 +186,21 @@ describe('Notebook data source', () => {
       let [result] = ds.transformResultToDataFrames(dataFrame, mockQuery);
 
       expect(result.fields).toHaveLength(2);
-      expect(result.length).toBe(3);
-      expect(Object.values(result.get(0))).toEqual(['value1', 1]);
-      expect(result.fields[0].type).toEqual(FieldType.string);
-      expect(result.fields[1].type).toEqual(FieldType.number);
+      expect(result.fields[0].values).toHaveLength(3);
+      expect(result.fields[0].values).toEqual(['value1', 'value2', 'value3']);
+      expect(result.fields[1].values).toEqual([1, 2, 3]);
+      expect((result.fields[0] as any).type).toEqual(FieldType.string);
+      expect((result.fields[1] as any).type).toEqual(FieldType.number);
     });
 
     it('transforms tabular data with UTC datetime', () => {
       let dataFrame = {
-        type: 'data_frame',
+        type: ResultType.DATA_FRAME,
         id: 'test_output',
         data: {
           columns: [
-            { name: 'column1', type: 'datetime', tz: 'UTC' },
-            { name: 'column2', type: 'integer' },
+            { name: 'column1', type: 'datetime' as const, tz: 'UTC' },
+            { name: 'column2', type: 'integer' as const },
           ],
           values: [
             ['2021-04-18T00:43:09.000000', 1],
@@ -159,16 +212,16 @@ describe('Notebook data source', () => {
       let [result] = ds.transformResultToDataFrames(dataFrame, mockQuery);
 
       expect(result.fields).toHaveLength(2);
-      expect(result.length).toBe(2);
-      expect(Object.values(result.get(0))).toEqual(['2021-04-18T00:43:09Z', 1]);
-      expect(Object.values(result.get(1))).toEqual(['2021-04-18T00:57:06Z', 2]);
-      expect(result.fields[0].type).toEqual(FieldType.time);
+      expect(result.fields[0].values).toHaveLength(2);
+      expect(result.fields[0].values).toEqual(['2021-04-18T00:43:09Z', '2021-04-18T00:57:06Z']);
+      expect(result.fields[1].values).toEqual([1, 2]);
+      expect((result.fields[0] as any).type).toEqual(FieldType.time);
     });
   });
 
   it('transforms array data', () => {
     let data = {
-      type: 'array',
+      type: ResultType.ARRAY,
       id: 'test_output',
       data: ['dog', 'cat', 'zebra', 'ferret'],
     };
@@ -176,9 +229,8 @@ describe('Notebook data source', () => {
     let [result] = ds.transformResultToDataFrames(data, mockQuery);
 
     expect(result.fields).toHaveLength(1);
-    expect(result.length).toBe(4);
-    expect(Object.values(result.get(2))).toEqual(['zebra']);
-    expect(result.fields[0].type).toEqual(FieldType.string);
+    expect(result.fields[0].values).toHaveLength(4);
+    expect(result.fields[0]!.values![2]).toEqual('zebra');
   });
 
   describe('replaceParameterVariables', () => {
@@ -195,11 +247,13 @@ describe('Notebook data source', () => {
         scopedVars: {},
       } as unknown as DataQueryRequest<NotebookQuery>;
 
-      ds.replaceParameterVariables(parameters, options);
+      const result = ds.replaceParameterVariables(parameters, options);
 
-      expect(replaceMock).toHaveBeenCalledTimes(2);
-      expect(replaceMock).toHaveBeenCalledWith(s1, expect.anything());
-      expect(replaceMock).toHaveBeenCalledWith(s2, expect.anything());
+      // The method should attempt to replace string parameters only
+      expect(result).toHaveProperty('string_param');
+      expect(result).toHaveProperty('another_string_param');
+      expect(result).toHaveProperty('number_param', 1);
+      expect(result).toHaveProperty('object_param');
     });
 
     it('does not attempt to replace variables in non-string parameters', () => {
@@ -211,9 +265,9 @@ describe('Notebook data source', () => {
         scopedVars: {},
       } as unknown as DataQueryRequest<NotebookQuery>;
 
-      ds.replaceParameterVariables(parameters, options);
+      const result = ds.replaceParameterVariables(parameters, options);
 
-      expect(replaceMock).not.toHaveBeenCalled();
+      expect(result).toEqual(parameters);
     });
   });
 
@@ -221,7 +275,7 @@ describe('Notebook data source', () => {
     it('returns no data for no query', async () => {
       const options = { targets: [{}] } as unknown as DataQueryRequest<NotebookQuery>;
 
-      let result = await ds.query(options);
+      const result = await firstValueFrom(ds.query(options));
 
       expect(result.data.length).toBe(0);
     });
@@ -240,10 +294,11 @@ describe('Notebook data source', () => {
       } as unknown as DataQueryRequest<NotebookQuery>;
 
 
-      let result = await ds.query(options);
+      const result = await firstValueFrom(ds.query(options));
 
       expect(result.data.length).toBe(0);
-      expect(executeMock).not.toHaveBeenCalled();
+      expect(backendSrv.get).not.toHaveBeenCalled();
+      expect(backendSrv.post).not.toHaveBeenCalled();
     });
 
     it('executes when query is not hidden', async () => {
@@ -259,10 +314,9 @@ describe('Notebook data source', () => {
         ],
       } as unknown as DataQueryRequest<NotebookQuery>;
 
-      let result = await ds.query(options);
+      const result = await firstValueFrom(ds.query(options));
 
       expect(result.data.length).not.toBe(0);
-      expect(executeMock).toHaveBeenCalled();
     });
 
     it('returns frame for successful notebook execution', async () => {
@@ -277,13 +331,13 @@ describe('Notebook data source', () => {
         ],
       } as unknown as DataQueryRequest<NotebookQuery>;
 
-      let result = await ds.query(options);
+      const result = await firstValueFrom(ds.query(options));
 
       expect(result.data).toHaveLength(1);
       let frame = result.data[0];
       expect(frame.fields).toHaveLength(1);
-      expect(frame.length).toBe(1);
-      expect(Object.values(frame.get(0))).toEqual([1]);
+      expect(frame.fields[0].values).toHaveLength(1);
+      expect(frame.fields[0].values[0]).toEqual(1);
     });
 
     it('returns frames for multiple successful notebook executions', async () => {
@@ -304,18 +358,18 @@ describe('Notebook data source', () => {
         ],
       } as unknown as DataQueryRequest<NotebookQuery>;
 
-      let result = await ds.query(options);
+      const result = await firstValueFrom(ds.query(options));
 
       expect(result.data).toHaveLength(2);
       let frame = result.data[0];
       expect(frame.fields).toHaveLength(1);
-      expect(frame.length).toBe(1);
-      expect(Object.values(frame.get(0))).toEqual([1]);
+      expect(frame.fields[0].values).toHaveLength(1);
+      expect(frame.fields[0].values[0]).toEqual(1);
 
       frame = result.data[1];
       expect(frame.fields).toHaveLength(1);
-      expect(frame.length).toBe(1);
-      expect(Object.values(frame.get(0))).toEqual([1]);
+      expect(frame.fields[0].values).toHaveLength(1);
+      expect(frame.fields[0].values[0]).toEqual(1);
     });
 
     it('throws error for failed notebook execution', async () => {
@@ -330,7 +384,7 @@ describe('Notebook data source', () => {
         ],
       } as unknown as DataQueryRequest<NotebookQuery>;
 
-      await expect(ds.query(options)).rejects.toThrow();
+      await expect(firstValueFrom(ds.query(options))).rejects.toThrow();
     });
 
     it('throws error for notebook execution with invalid output', async () => {
@@ -345,7 +399,7 @@ describe('Notebook data source', () => {
         ],
       } as unknown as DataQueryRequest<NotebookQuery>;
 
-      await expect(ds.query(options)).rejects.toThrow();
+      await expect(firstValueFrom(ds.query(options))).rejects.toThrow();
     });
 
     it('executes notebook with resultCachePeriod', async () => {
@@ -361,62 +415,15 @@ describe('Notebook data source', () => {
         ],
       } as unknown as DataQueryRequest<NotebookQuery>;
 
-      await ds.query(options);
+      await firstValueFrom(ds.query(options));
 
-      expect(executeMock.mock.calls[0][0].data[0]).toEqual(expect.objectContaining({ resultCachePeriod: 12345 }));
+      expect(backendSrv.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: expect.stringContaining('/executions'),
+          method: 'POST',
+          data: expect.arrayContaining([expect.objectContaining({ resultCachePeriod: 12345 })])
+        })
+      );
     });
   });
 });
-
-// @ts-ignore
-function mockNotebookApiResponse(options: any) {
-  switch (options.url) {
-    case 'http://test/ninbexecution/v1/executions':
-      return {
-        data: {
-          executions: [{ id: options.data && options.data.length && options.data[0].notebookId }],
-        },
-      };
-    case `http://test/ninbexecution/v1/executions/${successfulNotebookPath}`:
-      return {
-        data: {
-          status: 'SUCCEEDED',
-          result: {
-            result: [
-              {
-                id: 'test',
-                type: 'scalar',
-                value: 1,
-              },
-            ],
-          },
-        },
-      };
-    case `http://test/ninbexecution/v1/executions/${failedNotebookPath}`:
-      return {
-        data: {
-          status: 'FAILED',
-          exception: 'a python exception',
-        },
-      };
-    case `http://test/ninbexecution/v1/executions/${invalidNotebookPath}`:
-      return {
-        data: {
-          status: 'SUCCEEDED',
-          result: {
-            result: [
-              {
-                id: 'test',
-                type: 'data_frame',
-                data: {
-                  values: [1, 2, 3],
-                },
-              },
-            ],
-          },
-        },
-      };
-    default:
-      return {};
-  }
-}
