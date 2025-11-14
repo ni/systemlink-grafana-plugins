@@ -79,6 +79,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         }
     };
 
+    const onResultsFilterChange = async (event?: Event | React.FormEvent<Element>) => {
+        if (event) {
+            const resultsFilter = (event as CustomEvent).detail.linq;
+            handleQueryChange({ ...migratedQuery, resultsFilter });
+        }
+    };
+
     const onDataTablePropertiesChange = (properties: Array<ComboboxOption<DataTableProperties>>) => {
         const dataTableProperties = properties
             .filter(property => property.value !== undefined)
@@ -213,6 +220,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                         datasource={datasource}
                         dataTableFilter={migratedQuery.dataTableFilter}
                         onDataTableFilterChange={onDataTableFilterChange}
+                        onResultsFilterChange={onResultsFilterChange}
                     />
 
                     {migratedQuery.type === DataFrameQueryType.Properties && (

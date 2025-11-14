@@ -32,6 +32,7 @@ export interface DataFrameQueryV1 extends DataQuery {
 export interface DataFrameQueryV2 extends DataQuery {
   type: DataFrameQueryType;
   dataTableFilter?: string;
+  resultsFilter?: string
   dataTableProperties?: DataTableProperties[];
   columnProperties?: DataTableProperties[];
   columns?: string[];
@@ -120,6 +121,7 @@ export const defaultDatatableProperties: DataTableProperties[] = [
 export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   type: DataFrameQueryType.Data,
   dataTableFilter: '',
+  resultsFilter: '',
   dataTableProperties: defaultDatatableProperties,
   columnProperties: [],
   columns: [],

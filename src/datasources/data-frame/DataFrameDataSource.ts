@@ -56,8 +56,8 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.getDecimatedTableData(query, columns, timeRange, intervals);
   }
 
-  public async queryTables(query: string, take?: number, projection?: DataTableProjections[]): Promise<TableProperties[]> {
-    return this.datasource.queryTables(query, take, projection);
+  public async queryTables(query: string, take?: number, projection?: DataTableProjections[], substitutions?: string[]): Promise<TableProperties[]> {
+    return this.datasource.queryTables(query, take, projection, substitutions);
   }
 
   public processQuery(query: DataFrameDataQuery): ValidDataFrameQuery {
@@ -70,5 +70,16 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
 
   public async getColumnOptions(filter: string): Promise<Option[]> {
     return this.datasource.getColumnOptions(filter);
+  }
+
+  public async queryTablesWithCombineFilters(
+    filters: {
+      dataTablesFilter: string,
+      resultsFilter: string
+    },
+    take?: number,
+    projections?: DataTableProjections[]
+  ): Promise<TableProperties[]> {
+     return this.datasource.queryTablesWithCombineFilters(filters, take, projections);
   }
 }
