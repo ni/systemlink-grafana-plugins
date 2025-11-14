@@ -154,9 +154,11 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
               const alarmKey = alarmPropertyKeyMap[property];
               value = alarm[alarmKey];
             }
+
             if (fieldType === FieldType.time) {
               return value ?? null;
             }
+
             return value ?? '';
         }
       });
