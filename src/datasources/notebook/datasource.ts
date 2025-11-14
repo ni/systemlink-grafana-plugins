@@ -287,7 +287,7 @@ export class DataSource extends DataSourceBase<NotebookQuery, NotebookDataSource
 
       return { metadata: response.metadata, parameters: response.parameters };
     } catch (error) {
-      throw new Error(`The query for notebook metadata failed with error ${error}.`);
+      throw new Error(`The query for notebook metadata failed with error: ${(error as Error).message}`);
     }
   }
 
