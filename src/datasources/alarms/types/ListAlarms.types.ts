@@ -1,3 +1,4 @@
+import { TRANSITION_SPECIFIC_PROPERTIES } from '../constants/AlarmsQueryEditor.constants';
 import { AlarmsQuery, TransitionInclusionOption } from './types';
 
 export interface ListAlarmsQuery extends AlarmsQuery {
@@ -35,8 +36,22 @@ export enum AlarmsProperties {
   source = 'source',
   // The State column is determined using the values of clear and acknowledged.
   state = 'state',
-  // TODO(AB-3356927): Add transition property support
+  transitionCondition = 'transitionCondition',
+  transitionDetailText = 'transitionDetailText',
+  transitionKeywords = 'transitionKeywords',
+  transitionOccurredAt = 'transitionOccurredAt',
   transitionOverflowCount = 'transitionOverflowCount',
+  transitionProperties = 'transitionProperties',
+  transitionSeverityLevel = 'transitionSeverityLevel',
+  transitionShortText = 'transitionShortText',
+  transitionType = 'transitionType',
+  transitionValue = 'transitionValue',
   updatedAt = 'updatedAt',
   workspace = 'workspace',
 }
+
+export type TransitionAlarmProperty = typeof TRANSITION_SPECIFIC_PROPERTIES[number];
+
+export type NonTransitionAlarmProperty = Exclude<AlarmsProperties, TransitionAlarmProperty>;
+
+export type ComputedAlarmProperty = AlarmsProperties.state | AlarmsProperties.source;
