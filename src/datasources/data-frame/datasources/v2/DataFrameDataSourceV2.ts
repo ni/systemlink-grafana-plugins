@@ -114,11 +114,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         throw new Error('Method not implemented.');
     }
 
-    async queryTables(filter: string, take = TAKE_LIMIT, projection?: DataTableProjections[]): Promise<TableProperties[]> {
+    async queryTables(filter: string, take = TAKE_LIMIT, projection?: DataTableProjections[], substitutions?: string[]): Promise<TableProperties[]> {
         try {
             const response = await this.post<TablePropertiesList>(
                 `${this.baseUrl}/query-tables`,
-                { filter, take, projection },
+                { filter, take, projection, substitutions },
                 { useApiIngress: true }
             );
             return response.tables;

@@ -58,7 +58,7 @@ export abstract class DataFrameDataSourceBase<
         intervals?: number
     ): Promise<TableDataRows>;
 
-    public abstract queryTables(query: string, take?: number, projection?: DataTableProjections[]): Promise<TableProperties[]>;
+    public abstract queryTables(query: string, take?: number, projection?: DataTableProjections[], substitutions?: string[]): Promise<TableProperties[]>;
 
     public async testDatasource(): Promise<TestDataSourceResponse> {
         await this.get(`${this.baseUrl}/tables`, { params: { take: 1 } });
@@ -78,6 +78,10 @@ export abstract class DataFrameDataSourceBase<
 
     public async getColumnOptions(filter: string): Promise<Option[]> {
         return Promise.resolve([]);
+    }
+
+    public async getTablesForResultsFilter(_resultsFilter?: string): Promise<{ tables: TableProperties[]; hasMore: boolean; }> {
+        return Promise.resolve({ tables: [], hasMore: false });
     }
 
     public async loadPartNumbers(): Promise<string[]> {

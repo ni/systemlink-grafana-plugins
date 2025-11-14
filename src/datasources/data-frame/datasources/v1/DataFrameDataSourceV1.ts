@@ -97,10 +97,15 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     });
   }
 
-  async queryTables(query: string, take = 5, projection?: DataTableProjections[]): Promise<TableProperties[]> {
+  async queryTables(
+    query: string,
+    take = 5,
+    projection?: DataTableProjections[],
+    substitutions?: string[]
+  ): Promise<TableProperties[]> {
     const filter = `name.Contains("${query}")`;
 
-    return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take, projection })).tables;
+    return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take, projection, substitutions })).tables;
   }
 
   processQuery(query: DataFrameQueryV1): ValidDataFrameQueryV1 {
