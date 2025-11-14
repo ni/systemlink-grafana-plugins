@@ -1,7 +1,7 @@
 import { MockProxy } from 'jest-mock-extended';
 import { setupDataSource, createFetchResponse } from '../../test/fixtures';
 import { DataSource } from './datasource';
-import { NotebookDataSourceOptions, NotebookQuery, ExecutionStatus } from './types';
+import { NotebookDataSourceOptions, NotebookQuery, ExecutionStatus, ResultType } from './types';
 
 import { DataSourceInstanceSettings, DataQueryRequest, FieldType } from '@grafana/data';
 import { firstValueFrom } from 'rxjs';
@@ -58,7 +58,7 @@ describe('Notebook data source', () => {
     refId: '123',
     id: '1234',
     workspace: '1234',
-    parameters: null,
+    parameters: {},
     output: 'test_output',
     cacheTimeout: 0,
   };
@@ -97,7 +97,7 @@ describe('Notebook data source', () => {
   describe('transformResultToDataFrames', () => {
     it('transforms xy data', () => {
       let dataFrame = {
-        type: 'data_frame',
+        type: ResultType.DATA_FRAME,
         id: 'horizontal_graph',
         data: [{ format: 'XY', x: [0, 1, 2, 3], y: [950, 412, 1390, 1009] }],
         config: {
@@ -122,12 +122,12 @@ describe('Notebook data source', () => {
       expect((result as any).name).toBe('plot1');
       expect(result.fields).toHaveLength(2);
       expect(result.fields[0].values).toHaveLength(4);
-      expect(result.fields[1].values[0]).toBe(950);
+      expect(result.fields[1]!.values![0]).toBe(950);
     });
 
     it('transforms index data', () => {
       let dataFrame = {
-        type: 'data_frame',
+        type: ResultType.DATA_FRAME,
         id: 'horizontal_graph',
         data: [{ format: 'INDEX', y: [950, 412, 1390, 1009] }],
         config: {
@@ -153,27 +153,27 @@ describe('Notebook data source', () => {
       expect(result.fields).toHaveLength(2);
       expect(result.fields[0].values).toHaveLength(4);
       expect(result.fields[0].values).toEqual([0, 1, 2, 3]);
-      expect(result.fields[1].values[0]).toBe(950);
+      expect(result.fields[1]!.values![0]).toBe(950);
     });
 
     it('transforms scalar data', () => {
-      let dataFrame = { type: 'scalar', id: 'output1', value: 2.5 };
+      let dataFrame = { type: ResultType.SCALAR, id: 'output1', value: 2.5 };
 
       let [result] = ds.transformResultToDataFrames(dataFrame, mockQuery);
 
       expect(result.fields).toHaveLength(1);
       expect(result.fields[0].values).toHaveLength(1);
-      expect(result.fields[0].values[0]).toEqual(2.5);
+      expect(result.fields[0]!.values![0]).toEqual(2.5);
     });
 
     it('transforms tabular data', () => {
       let dataFrame = {
-        type: 'data_frame',
+        type: ResultType.DATA_FRAME,
         id: 'test_output',
         data: {
           columns: [
-            { name: 'column1', type: 'string' },
-            { name: 'column2', type: 'integer' },
+            { name: 'column1', type: 'string' as const },
+            { name: 'column2', type: 'integer' as const },
           ],
           values: [
             ['value1', 1],
@@ -195,12 +195,12 @@ describe('Notebook data source', () => {
 
     it('transforms tabular data with UTC datetime', () => {
       let dataFrame = {
-        type: 'data_frame',
+        type: ResultType.DATA_FRAME,
         id: 'test_output',
         data: {
           columns: [
-            { name: 'column1', type: 'datetime', tz: 'UTC' },
-            { name: 'column2', type: 'integer' },
+            { name: 'column1', type: 'datetime' as const, tz: 'UTC' },
+            { name: 'column2', type: 'integer' as const },
           ],
           values: [
             ['2021-04-18T00:43:09.000000', 1],
@@ -221,7 +221,7 @@ describe('Notebook data source', () => {
 
   it('transforms array data', () => {
     let data = {
-      type: 'array',
+      type: ResultType.ARRAY,
       id: 'test_output',
       data: ['dog', 'cat', 'zebra', 'ferret'],
     };
@@ -230,7 +230,7 @@ describe('Notebook data source', () => {
 
     expect(result.fields).toHaveLength(1);
     expect(result.fields[0].values).toHaveLength(4);
-    expect(result.fields[0].values[2]).toEqual('zebra');
+    expect(result.fields[0]!.values![2]).toEqual('zebra');
   });
 
   describe('replaceParameterVariables', () => {

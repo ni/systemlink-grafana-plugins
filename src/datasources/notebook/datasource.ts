@@ -28,6 +28,9 @@ import {
   ExecutionStatus,
   ResultType,
   DataFrameFormat,
+  NotebookResult,
+  NotebookDataFrame,
+  TableColumn,
 } from './types';
 import { timeout } from './utils';
 
@@ -103,7 +106,7 @@ export class DataSource extends DataSourceBase<NotebookQuery, NotebookDataSource
     }
 
     const result = query.output
-      ? execution.result.result.find((result: any) => result.id === query.output)
+      ? execution.result.result.find((result: NotebookResult) => result.id === query.output)
       : execution.result.result[0];
 
     if (!result) {
@@ -119,7 +122,7 @@ export class DataSource extends DataSourceBase<NotebookQuery, NotebookDataSource
     return frames[0] || { refId: query.refId, fields: [] };
   }
 
-  replaceParameterVariables(parameters: any, options: DataQueryRequest<NotebookQuery>) {
+  replaceParameterVariables(parameters: Record<string, any>, options: DataQueryRequest<NotebookQuery>): Record<string, any> {
     return Object.keys(parameters).reduce((result, key) => {
       result[key] =
         typeof parameters[key] === 'string'
@@ -127,10 +130,10 @@ export class DataSource extends DataSourceBase<NotebookQuery, NotebookDataSource
           : parameters[key];
 
       return result;
-    }, {} as { [key: string]: any });
+    }, {} as Record<string, any>);
   }
 
-  transformResultToDataFrames(result: any, query: NotebookQuery) {
+  transformResultToDataFrames(result: NotebookResult, query: NotebookQuery): DataFrameDTO[] {
     const typeHandlers = {
       [ResultType.DATA_FRAME]: () => this.handleDataFrameResult(result, query),
       [ResultType.ARRAY]: () => this.handleArrayResult(result, query),
@@ -141,16 +144,16 @@ export class DataSource extends DataSourceBase<NotebookQuery, NotebookDataSource
     return handler ? handler() : [];
   }
 
-  private handleDataFrameResult(result: any, query: NotebookQuery) {
+  private handleDataFrameResult(result: NotebookResult, query: NotebookQuery): DataFrameDTO[] {
     if (Array.isArray(result.data)) {
       return this.handleArrayDataFrame(result, query);
     }
     return this.handleTableDataFrame(result, query);
   }
 
-  private handleArrayDataFrame(result: any, query: NotebookQuery) {
+  private handleArrayDataFrame(result: NotebookResult, query: NotebookQuery): DataFrameDTO[] {
     const frames = [];
-    for (let [ix, dataframe] of result.data.entries()) {
+    for (let [ix, dataframe] of (result.data as NotebookDataFrame[]).entries()) {
       const frame: DataFrameDTO = {
         refId: query.refId,
         fields: [],
@@ -163,7 +166,7 @@ export class DataSource extends DataSourceBase<NotebookQuery, NotebookDataSource
     return frames;
   }
 
-  private addDataFrameFields(frame: DataFrameDTO, dataframe: any) {
+  private addDataFrameFields(frame: DataFrameDTO, dataframe: NotebookDataFrame): void {
     if (dataframe.format === DataFrameFormat.XY) {
       this.addXYFields(frame, dataframe);
     } else if (dataframe.format === DataFrameFormat.INDEX) {
@@ -171,39 +174,40 @@ export class DataSource extends DataSourceBase<NotebookQuery, NotebookDataSource
     }
   }
 
-  private addXYFields(frame: DataFrameDTO, dataframe: any) {
-    if (typeof dataframe.x[0] === 'string') {
+  private addXYFields(frame: DataFrameDTO, dataframe: NotebookDataFrame): void {
+    if (dataframe.x && typeof dataframe.x[0] === 'string') {
       frame.fields.push({ name: '', values: dataframe.x, type: FieldType.time });
-    } else {
+    } else if (dataframe.x) {
       frame.fields.push({ name: '', values: dataframe.x });
     }
     frame.fields.push({ name: '', values: dataframe.y });
   }
 
-  private addIndexFields(frame: DataFrameDTO, dataframe: any) {
+  private addIndexFields(frame: DataFrameDTO, dataframe: NotebookDataFrame): void {
     frame.fields.push({ name: 'Index', values: range(0, dataframe.y.length) });
     frame.fields.push({ name: '', values: dataframe.y });
   }
 
-  private handleTableDataFrame(result: any, query: NotebookQuery) {
+  private handleTableDataFrame(result: NotebookResult, query: NotebookQuery): DataFrameDTO[] {
     const frame: DataFrameDTO = { refId: query.refId, fields: [] };
-    for (let [ix, column] of result.data.columns.entries()) {
-      const values = result.data.values.map((row: any) => row[ix]);
+    const tableData = result.data as { columns: TableColumn[]; values: any[][] };
+    for (let [ix, column] of tableData.columns.entries()) {
+      const values = tableData.values.map((row: any[]) => row[ix]);
       frame.fields.push({ name: column.name, ...this.getFieldTypeAndValues(column, values) });
     }
     return [frame];
   }
 
-  private handleArrayResult(result: any, query: NotebookQuery) {
-    return [{ refId: query.refId, fields: [{ name: result.id, values: result.data }] }];
+  private handleArrayResult(result: NotebookResult, query: NotebookQuery): DataFrameDTO[] {
+    return [{ refId: query.refId, fields: [{ name: result.id, values: result.data as any[] }] }];
   }
 
-  private handleScalarResult(result: any, query: NotebookQuery) {
+  private handleScalarResult(result: NotebookResult, query: NotebookQuery): DataFrameDTO[] {
     const field = { name: result.id, values: [result.value] };
     return [{ refId: query.refId, fields: [field] }];
   }
 
-  private getFieldTypeAndValues(column: any, values: any[]) {
+  private getFieldTypeAndValues(column: TableColumn, values: any[]): { type: FieldType; values: any[] } {
     const result = { type: FieldType.other, values };
     switch (column.type) {
       case 'string':
@@ -229,7 +233,7 @@ export class DataSource extends DataSourceBase<NotebookQuery, NotebookDataSource
     return result;
   }
 
-  private async executeNotebook(notebookId: string, workspaceId: string, parameters: any, cacheTimeout: number) {
+  private async executeNotebook(notebookId: string, workspaceId: string, parameters: Record<string, any>, cacheTimeout: number): Promise<Execution> {
     try {
       const response = await this.post<{ executions: Array<{ id: string }> }>(
         `${this.executionUrl}/executions`,
@@ -270,10 +274,10 @@ export class DataSource extends DataSourceBase<NotebookQuery, NotebookDataSource
     }
   }
 
-  async getNotebookMetadata(id: string): Promise<{ metadata: any; parameters: any }> {
+  async getNotebookMetadata(id: string): Promise<{ metadata: Record<string, any>; parameters: Record<string, any> }> {
     let response;
     try {
-      response = await this.get<{ metadata: any; parameters: any }>(
+      response = await this.get<{ metadata: Record<string, any>; parameters: Record<string, any> }>(
         `${this.parserUrl}/notebook/${id}`
       );
 

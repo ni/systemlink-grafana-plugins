@@ -12,7 +12,7 @@ export enum ExecutionStatus {
 export interface NotebookQuery extends DataQuery {
   id: string;
   workspace: string;
-  parameters: any;
+  parameters: Record<string, any>;
   output: string;
   cacheTimeout: number;
 }
@@ -42,8 +42,8 @@ export interface Notebook {
 }
 
 export interface NotebookWithMetadata extends Notebook {
-  parameters: { [key: string]: any };
-  metadata: { [key: string]: any };
+  parameters: Record<string, any>;
+  metadata: Record<string, any>;
 }
 
 export const isNotebookWithMeta = (notebook: Notebook | NotebookWithMetadata): notebook is NotebookWithMetadata =>
@@ -62,9 +62,9 @@ export enum ErrorCode {
 
 export interface Execution {
   notebookId: string;
-  parameters: { [key: string]: any };
+  parameters: Record<string, any>;
   status: ExecutionStatus;
-  result: any;
+  result: ExecutionResult;
   cachedResult: boolean;
   exception: string | undefined;
   errorCode: ErrorCode | undefined;
@@ -92,4 +92,45 @@ export enum ResultType {
 export enum DataFrameFormat {
   XY = 'XY',
   INDEX = 'INDEX',
+}
+
+export interface NotebookDataFrame {
+  format: DataFrameFormat;
+  x?: any[];
+  y: any[];
+}
+
+export interface TableColumn {
+  name: string;
+  type: 'string' | 'boolean' | 'number' | 'integer' | 'datetime';
+  tz?: string;
+}
+
+export interface TableData {
+  columns: TableColumn[];
+  values: any[][];
+}
+
+export interface GraphConfig {
+  plot_labels?: string[];
+  axis_labels?: string[];
+  tick_labels?: Array<{ x: number; label: string }>;
+  title?: string;
+}
+
+export interface NotebookResultConfig {
+  graph?: GraphConfig;
+  title?: string;
+}
+
+export interface NotebookResult {
+  id: string;
+  type: ResultType;
+  data?: NotebookDataFrame[] | TableData | any[];
+  value?: any;
+  config?: NotebookResultConfig;
+}
+
+export interface ExecutionResult {
+  result: NotebookResult[];
 }
