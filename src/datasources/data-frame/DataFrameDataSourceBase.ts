@@ -21,6 +21,7 @@ import { extractErrorInfo } from 'core/errors';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { ComboboxOption } from '@grafana/ui';
+import { PART_NUMBER_FIELD } from './constants';
 
 export abstract class DataFrameDataSourceBase<
     TQuery extends DataFrameQuery = DataFrameQuery,
@@ -80,21 +81,19 @@ export abstract class DataFrameDataSourceBase<
     }
 
     public async loadPartNumbers(): Promise<string[]> {
-        try {
-            if (!DataFrameDataSourceBase._partNumbersCache) {
-                DataFrameDataSourceBase._partNumbersCache = this.queryResultsValues(
-                    'partNumber',
-                    undefined
-                );
-            }
-            
-            return DataFrameDataSourceBase._partNumbersCache;
-        } catch (error) {
-            if (!this.errorTitle) {
-                this.handleDependenciesError(error);
-            }
-            return [];
+        if (!DataFrameDataSourceBase._partNumbersCache) {
+            DataFrameDataSourceBase._partNumbersCache = this.queryResultsValues(
+                PART_NUMBER_FIELD,
+                undefined
+            ).catch((error) => {
+                if (!this.errorTitle) {
+                    this.handleDependenciesError(error);
+                }
+                return [];
+            });
         }
+
+        return DataFrameDataSourceBase._partNumbersCache;
     }
 
     private async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {

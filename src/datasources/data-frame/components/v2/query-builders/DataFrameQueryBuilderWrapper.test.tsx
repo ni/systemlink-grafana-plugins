@@ -238,6 +238,14 @@ describe('DataFrameQueryBuilderWrapper', () => {
     });
 
     describe('ResultsQueryBuilder', () => {
+        it('should show the ResultsQueryBuilder component', async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                expect(screen.getByTestId('mock-results-query-builder')).toBeInTheDocument();
+            });
+        });
+
         it('should pass the filter to the ResultsQueryBuilder component', async () => {
             renderComponent('results filter');
 
@@ -285,7 +293,19 @@ describe('DataFrameQueryBuilderWrapper', () => {
             await waitFor(() => {
                 expect(ResultsQueryBuilder).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        status: expect.arrayContaining(['Done', 'Errored', 'Failed', 'Passed']),
+                        status: expect.arrayContaining([
+                            'Done',
+                            'Errored',
+                            'Failed',
+                            'Passed',
+                            'Skipped',
+                            'Terminated',
+                            'Timed out',
+                            'Custom',
+                            'Looping',
+                            'Running',
+                            'Waiting',
+                        ]),
                     }),
                     {}
                 );

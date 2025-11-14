@@ -36,6 +36,7 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
     onDataTableFilterChange,
     onColumnsFilterChange,
 }) => {
+    const STATUS_OPTIONS = enumToOptions(TestMeasurementStatus).map(option => option.value as string);
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
     const [partNumbers, setPartNumbers] = useState<string[] | null>(null);
 
@@ -75,9 +76,9 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
                 <>
                     <InlineLabel
                         width={VALUE_FIELD_WIDTH}
-                        tooltip={tooltips.queryByResults}
+                        tooltip={tooltips.queryByResultProperties}
                     >
-                        {labels.queryByResults}
+                        {labels.queryByResultProperties}
                     </InlineLabel>
                     <div
                         style={{
@@ -89,7 +90,7 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
                             filter={resultsFilter}
                             workspaces={workspaces}
                             partNumbers={partNumbers}
-                            status={enumToOptions(TestMeasurementStatus).map(option => option.value as string)}
+                            status={STATUS_OPTIONS}
                             globalVariableOptions={datasource.globalVariableOptions()}
                             onChange={onResultsFilterChange}
                         />
