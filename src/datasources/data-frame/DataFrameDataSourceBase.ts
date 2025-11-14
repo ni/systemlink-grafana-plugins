@@ -27,7 +27,7 @@ export abstract class DataFrameDataSourceBase<
     TQuery extends DataFrameQuery = DataFrameQuery,
 > extends DataSourceBase<TQuery, DataFrameDataSourceOptions> {
     public baseUrl = this.instanceSettings.url + '/nidataframe/v1';
-    public queryResultsValuesUrl = this.instanceSettings.url + '/nitestmonitor/v2/query-result-values';
+    public queryResultValuesUrl = this.instanceSettings.url + '/nitestmonitor/v2/query-result-values';
     public errorTitle = '';
     public errorDescription = '';
 
@@ -98,7 +98,7 @@ export abstract class DataFrameDataSourceBase<
 
     private async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {
         return this.post<string[]>(
-            this.queryResultsValuesUrl,
+            this.queryResultValuesUrl,
             {
                 field: fieldName,
                 filter,

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { InlineLabel } from '@grafana/ui';
 import { DataFrameDataSource } from 'datasources/data-frame/DataFrameDataSource';
 import { DataTableQueryBuilder } from 'datasources/data-frame/components/v2/query-builders/data-table-query-builder/DataTableQueryBuilder';
@@ -36,9 +36,15 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
     onDataTableFilterChange,
     onColumnsFilterChange,
 }) => {
-    const STATUS_OPTIONS = enumToOptions(TestMeasurementStatus).map(option => option.value as string);
+    const isQueryByResultAndColumnPropertiesEnabled = 
+    datasource.instanceSettings.jsonData.featureToggles.queryByResultAndColumnProperties;
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
     const [partNumbers, setPartNumbers] = useState<string[] | null>(null);
+
+    const statusOptions = useMemo(
+        () => enumToOptions(TestMeasurementStatus).map(option => option.value as string),
+        []
+    );
 
     useEffect(() => {
         const loadWorkspaces = async () => {
@@ -72,7 +78,7 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
 
     return (
         <>
-            {datasource.instanceSettings.jsonData.featureToggles.queryByResultAndColumnProperties && (
+            {isQueryByResultAndColumnPropertiesEnabled && (
                 <>
                     <InlineLabel
                         width={VALUE_FIELD_WIDTH}
@@ -90,7 +96,7 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
                             filter={resultsFilter}
                             workspaces={workspaces}
                             partNumbers={partNumbers}
-                            status={STATUS_OPTIONS}
+                            status={statusOptions}
                             globalVariableOptions={datasource.globalVariableOptions()}
                             onChange={onResultsFilterChange}
                         />
@@ -117,7 +123,7 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
                     dataTableNameLookupCallback={dataTableNameLookupCallback}
                 />
             </div>
-            {datasource.instanceSettings.jsonData.featureToggles.queryByResultAndColumnProperties && (
+            {isQueryByResultAndColumnPropertiesEnabled && (
                 <>
                     <InlineLabel
                         width={VALUE_FIELD_WIDTH}

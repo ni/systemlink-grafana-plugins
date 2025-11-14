@@ -125,7 +125,13 @@ const renderComponent = (
         );
     });
 
-    return { renderResult, onResultsFilterChange, onDataTableFilterChange, onColumnsFilterChange, datasource };
+    return {
+        renderResult,
+        onResultsFilterChange,
+        onDataTableFilterChange,
+        onColumnsFilterChange,
+        datasource
+    };
 };
 
 describe('DataFrameQueryBuilderWrapper', () => {
