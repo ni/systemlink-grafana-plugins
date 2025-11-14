@@ -73,13 +73,22 @@ describe('DataFrameDataSource', () => {
         expect(v1Mock.getDecimatedTableData).toHaveBeenCalled();
 
         await expect(ds.queryTables('query')).resolves.toEqual(['v1-tables']);
-        expect(v1Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined);
+        expect(v1Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined, undefined);
 
         expect(ds.processQuery({} as any)).toBe('v1-processed');
         expect(v1Mock.processQuery).toHaveBeenCalled();
 
         expect(ds.processVariableQuery({} as any)).toBe('v1-processed');
         expect(v1Mock.processVariableQuery).toHaveBeenCalled();
+    });
+
+    it('should pass substitutions parameter to queryTables in V1', async () => {
+        const ds = new DataFrameDataSource(mockInstanceSettings(false));
+        const substitutions = ['$workspace', '$status'];
+
+        await ds.queryTables('query', 10, undefined, substitutions);
+
+        expect(v1Mock.queryTables).toHaveBeenCalledWith('query', 10, undefined, substitutions);
     });
 
     it('should use DataFrameDataSourceV2 if feature toggle is true', async () => {
@@ -103,13 +112,22 @@ describe('DataFrameDataSource', () => {
         expect(v2Mock.getDecimatedTableData).toHaveBeenCalled();
 
         await expect(ds.queryTables('query')).resolves.toEqual(['v2-tables']);
-        expect(v2Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined);
+        expect(v2Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined, undefined);
 
         expect(ds.processQuery({} as any)).toBe('v2-processed');
         expect(v2Mock.processQuery).toHaveBeenCalled();
 
         expect(ds.processVariableQuery({} as any)).toBe('v2-processed');
         expect(v2Mock.processVariableQuery).toHaveBeenCalled();
+    });
+
+    it('should pass substitutions parameter to queryTables in V2', async () => {
+        const ds = new DataFrameDataSource(mockInstanceSettings(true));
+        const substitutions = ['$workspace', '$status'];
+
+        await ds.queryTables('query', 10, undefined, substitutions);
+
+        expect(v2Mock.queryTables).toHaveBeenCalledWith('query', 10, undefined, substitutions);
     });
 
     it('should set defaultQuery to defaultQueryV1 when datasource is DataFrameDataSourceV1 with refId "A"', () => {
@@ -147,6 +165,56 @@ describe('DataFrameDataSource', () => {
            
            expect(v2Mock.getColumnOptions).toHaveBeenCalledWith('filter');
            expect(result).toEqual(['v2-column-options']);
+       });
+   });
+
+   describe('queryTablesWithCombineFilters', () => {
+       it('should call queryTablesWithCombineFilters on DataFrameDataSourceV1 when feature toggle is false', async () => {
+           const ds = new DataFrameDataSource(mockInstanceSettings(false));
+           v1Mock.queryTablesWithCombineFilters = jest.fn().mockResolvedValue(['v1-combined-tables']);
+
+           const result = await ds.queryTablesWithCombineFilters(
+               {
+                   dataTablesFilter: 'name = "test"',
+                   resultsFilter: 'status = "passed"'
+               },
+               10,
+               ['name' as any]
+           );
+           
+           expect(v1Mock.queryTablesWithCombineFilters).toHaveBeenCalledWith(
+               {
+                   dataTablesFilter: 'name = "test"',
+                   resultsFilter: 'status = "passed"'
+               },
+               10,
+               ['name']
+           );
+           expect(result).toEqual(['v1-combined-tables']);
+       });
+
+       it('should call queryTablesWithCombineFilters on DataFrameDataSourceV2 when feature toggle is true', async () => {
+           const ds = new DataFrameDataSource(mockInstanceSettings(true));
+           v2Mock.queryTablesWithCombineFilters = jest.fn().mockResolvedValue(['v2-combined-tables']);
+
+           const result = await ds.queryTablesWithCombineFilters(
+               {
+                   dataTablesFilter: 'name = "test"',
+                   resultsFilter: 'status = "passed"'
+               },
+               10,
+               ['name' as any]
+           );
+           
+           expect(v2Mock.queryTablesWithCombineFilters).toHaveBeenCalledWith(
+               {
+                   dataTablesFilter: 'name = "test"',
+                   resultsFilter: 'status = "passed"'
+               },
+               10,
+               ['name']
+           );
+           expect(result).toEqual(['v2-combined-tables']);
        });
    });
 });

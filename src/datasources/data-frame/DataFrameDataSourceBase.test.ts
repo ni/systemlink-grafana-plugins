@@ -137,6 +137,19 @@ describe('DataFrameDataSourceBase', () => {
         expect(options).toEqual([]);
     });
 
+    describe('queryTablesWithCombineFilters', () => {
+        it('should accept take and projections parameters and return empty array by default', async () => {
+            const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+            
+            const result = await ds.queryTablesWithCombineFilters({
+                dataTablesFilter: 'name = "test"',
+                resultsFilter: 'status = "passed"'
+            });
+            
+            expect(result).toEqual([]);
+        });
+    });
+
     describe('loadWorkspaces', () => {
         let ds: DataFrameDataSourceBase;
         let getWorkspacesSpy: jest.SpyInstance;

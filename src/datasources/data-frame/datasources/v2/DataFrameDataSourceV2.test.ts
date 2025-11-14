@@ -801,6 +801,7 @@ describe('DataFrameDataSourceV2', () => {
             const expectedQuery = {
                 type: DataFrameQueryType.Data,
                 dataTableFilter: '',
+                resultsFilter: '',
                 dataTableProperties: defaultDatatableProperties,
                 columnProperties: [],
                 columns: [],
@@ -822,6 +823,7 @@ describe('DataFrameDataSourceV2', () => {
             const expectedQuery = {
                 type: DataFrameQueryType.Data,
                 dataTableFilter: '',
+                resultsFilter: '',
                 dataTableProperties: defaultDatatableProperties,
                 columnProperties: [],
                 columns: [],
@@ -836,6 +838,13 @@ describe('DataFrameDataSourceV2', () => {
             const result = ds.processQuery(query);
 
             expect(result).toEqual(expectedQuery);
+        });
+
+        it('should preserve resultsFilter when provided', () => {
+            const query = { resultsFilter: 'status = "passed"' } as DataFrameDataQuery;
+            const result = ds.processQuery(query);
+
+            expect(result.resultsFilter).toBe('status = "passed"');
         });
     });
 
@@ -909,7 +918,19 @@ describe('DataFrameDataSourceV2', () => {
             const take = 15;
             const result = await ds.queryTables(filter, take);
 
-            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take, projection: undefined }, { useApiIngress: true });
+            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take, projection: undefined, substitutions: undefined }, { useApiIngress: true });
+            expect(result).toBe(mockTables);
+        });
+
+        it('should pass substitutions parameter when provided', async () => {
+            const filter = 'test-filter';
+            const take = 15;
+            const projection = [DataTableProjections.Name];
+            const substitutions = ['$workspace', '$status'];
+            
+            const result = await ds.queryTables(filter, take, projection, substitutions);
+
+            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take, projection, substitutions }, { useApiIngress: true });
             expect(result).toBe(mockTables);
         });
 
@@ -1176,6 +1197,62 @@ describe('DataFrameDataSourceV2', () => {
                     { label: 'Column D', value: 'Column D-Numeric' },
                 ]);
             });
+        });
+    });
+
+    describe('queryTablesWithCombineFilters', () => {
+        let queryTablesMock: jest.SpyInstance;
+
+        beforeEach(() => {
+            queryTablesMock = jest.spyOn(ds, 'queryTables').mockResolvedValue([]);
+        });
+
+        it('should call queryTables with dataTablesFilter', async () => {
+            const filters = {
+                dataTablesFilter: 'name = "test"',
+                resultsFilter: ''
+            };
+
+            await ds.queryTablesWithCombineFilters(filters);
+
+            expect(queryTablesMock).toHaveBeenCalledWith(
+                filters.dataTablesFilter,
+                undefined,
+                undefined
+            );
+        });
+
+        it('should pass all parameter to queryTables', async () => {
+            const filters = {
+                dataTablesFilter: 'name = "test"',
+                resultsFilter: 'status = "passed"'
+            };
+            const take = 10;
+            const projections = [DataTableProjections.Name, DataTableProjections.Id];
+
+            await ds.queryTablesWithCombineFilters(filters, take, projections);
+
+            expect(queryTablesMock).toHaveBeenCalledWith(
+                filters.dataTablesFilter,
+                take,
+                projections
+            );
+        });
+
+        it('should return the result from queryTables', async () => {
+            const mockTables = [
+                { id: '1', name: 'Table 1' },
+                { id: '2', name: 'Table 2' }
+            ];
+            queryTablesMock.mockResolvedValue(mockTables);
+            const filters = {
+                dataTablesFilter: 'name = "test"',
+                resultsFilter: 'status = "passed"'
+            };
+
+            const result = await ds.queryTablesWithCombineFilters(filters);
+
+            expect(result).toEqual(mockTables);
         });
     });
 });
