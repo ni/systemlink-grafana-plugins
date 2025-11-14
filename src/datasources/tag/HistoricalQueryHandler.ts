@@ -3,44 +3,52 @@ import { PostFn, QueryHandler, TagHistoryResponse, TagWithValue, TimeAndTagTypeV
 import { convertTagValue } from "./utils";
 import { getWorkspaceName } from "core/utils";
 import { Workspace } from "core/types";
+import { forkJoin, map, Observable } from "rxjs";
 
 export class HistoricalQueryHandler extends QueryHandler {
     constructor(
-        private readonly post: PostFn,
+        private readonly post$: PostFn,
         private readonly baseUrl?: string
     ) {
         super();
     }
 
-    handleQuery(tagsWithValues: TagWithValue[], result: DataFrameDTO, workspaces: Workspace[], range: TimeRange, maxDataPoints: number | undefined, _queryProperties: boolean): Promise<DataFrameDTO> {
-        return this.handleHistoricalQuery(tagsWithValues, workspaces, range, maxDataPoints, result);
+    handleQuery$(tagsWithValues: TagWithValue[], result: DataFrameDTO, workspaces: Workspace[], range: TimeRange, maxDataPoints: number | undefined, _queryProperties: boolean): Observable<DataFrameDTO> {
+        return this.handleHistoricalQuery$(tagsWithValues, workspaces, range, maxDataPoints, result.refId || '');
     }
 
-    private async handleHistoricalQuery(
+    private handleHistoricalQuery$(
         tagsWithValues: TagWithValue[],
         workspaces: Workspace[],
         range: TimeRange,
         maxDataPoints: number | undefined,
-        result: DataFrameDTO,
-    ): Promise<DataFrameDTO> {
+        refId: string,
+    ): Observable<DataFrameDTO> {
         const tagPathCount = this.countTagPaths(tagsWithValues);
         const workspaceTagMap = this.groupTagsByWorkspace(tagsWithValues);
         const tagPropertiesMap = this.buildTagPropertiesMap(tagsWithValues, tagPathCount, workspaces);
 
-        const tagsDecimatedHistory = await this.fetchTagsHistory(
+        return this.fetchTagsHistory$(
             workspaceTagMap,
             workspaces,
             range,
             maxDataPoints,
             tagPathCount
-        );
+        ).pipe(
+            map((tagsDecimatedHistory) => {
+                const mergedTagValuesWithType = this.mergeTagsHistoryValues(tagsDecimatedHistory);
 
-        const mergedTagValuesWithType = this.mergeTagsHistoryValues(tagsDecimatedHistory);
+                const result: DataFrameDTO = {
+                    refId,
+                    fields: []
+                };
 
-        this.addTimeFieldToResult(result, mergedTagValuesWithType.timestamps);
-        this.addTagFieldsToResult(result, mergedTagValuesWithType.values, tagPropertiesMap);
+                this.addTimeFieldToResult(result, mergedTagValuesWithType.timestamps);
+                this.addTagFieldsToResult(result, mergedTagValuesWithType.values, tagPropertiesMap);
 
-        return result;
+                return result;
+            }
+            ));
     }
 
     private countTagPaths(tagsWithValues: TagWithValue[]): Record<string, number> {
@@ -78,35 +86,43 @@ export class HistoricalQueryHandler extends QueryHandler {
         return tagPropertiesMap;
     }
 
-    private async fetchTagsHistory(
+    private fetchTagsHistory$(
         workspaceTagMap: Record<string, TagWithValue[]>,
         workspaces: Workspace[],
         range: TimeRange,
         maxDataPoints: number | undefined,
         tagPathCount: Record<string, number>
-    ): Promise<Record<string, TypeAndValues>> {
-        const tagsDecimatedHistory: Record<string, TypeAndValues> = {};
-
-        for (const workspace in workspaceTagMap) {
-            const tagHistoryResponse = await this.getTagHistoryWithChunks(
-                workspaceTagMap[workspace],
-                workspace,
-                range,
-                maxDataPoints || 0,
+    ): Observable<Record<string, TypeAndValues>> {
+        const observables = Object.entries(workspaceTagMap).map(([workspace, tags]) => {
+            return this.getTagHistoryWithChunks$(tags, workspace, range, maxDataPoints || 0).pipe(
+                map(tagHistoryResponse => ({
+                    workspace,
+                    results: tagHistoryResponse.results
+                }))
             );
+        });
 
-            for (const path in tagHistoryResponse.results) {
-                const prefixedPath = tagPathCount[path] > 1
-                    ? `${getWorkspaceName(workspaces, workspace)}.${path}`
-                    : path;
-                tagsDecimatedHistory[prefixedPath] = tagHistoryResponse.results[path];
-            }
-        }
+        return forkJoin(observables).pipe(
+            map(responses => {
+                const tagsDecimatedHistory: Record<string, TypeAndValues> = {};
+                
+                for (const { workspace, results } of responses) {
+                    for (const path in results) {
+                        const prefixedPath =
+                            tagPathCount[path] > 1
+                                ? `${getWorkspaceName(workspaces, workspace)}.${path}`
+                                : path;
 
-        return tagsDecimatedHistory;
+                        tagsDecimatedHistory[prefixedPath] = results[path];
+                    }
+                }
+                
+                return tagsDecimatedHistory;
+            })
+        );
     }
 
-    private async getTagHistoryWithChunks(paths: TagWithValue[], workspace: string, range: TimeRange, intervals: number): Promise<TagHistoryResponse> {
+    private getTagHistoryWithChunks$(paths: TagWithValue[], workspace: string, range: TimeRange, intervals: number): Observable<TagHistoryResponse> {
         const chunkSize = 10;
         const pathChunks: TagWithValue[][] = [];
         for (let i = 0; i < paths.length; i += chunkSize) {
@@ -115,26 +131,28 @@ export class HistoricalQueryHandler extends QueryHandler {
 
         const aggregatedResults: TagHistoryResponse = { results: {} };
 
-        const chunkResults = await Promise.all(
-            pathChunks.map((chunk) => this.getTagHistoryValues(chunk.map(({ tag }) => tag.path), workspace, range, intervals))
-        );
 
-        for (const chunkResult of chunkResults) {
-            for (const [path, data] of Object.entries(chunkResult.results)) {
-                if (!aggregatedResults.results[path]) {
-                    aggregatedResults.results[path] = data;
-                } else {
-                    aggregatedResults.results[path].values.push(...data.values);
+        const chunkResults = pathChunks.map((chunk) => this.getTagHistoryValues$(chunk.map(({ tag }) => tag.path), workspace, range, intervals))
+
+        return forkJoin(chunkResults).pipe(
+            map(results => {
+                for (const chunkResult of results) {
+                    for (const [path, data] of Object.entries(chunkResult.results)) {
+                        if (!aggregatedResults.results[path]) {
+                            aggregatedResults.results[path] = data;
+                        } else {
+                            aggregatedResults.results[path].values.push(...data.values);
+                        }
+                    }
                 }
-            }
-        }
-
-        return aggregatedResults;
+                return aggregatedResults;
+            })
+        );
     }
 
-    private async getTagHistoryValues(paths: string[], workspace: string, range: TimeRange, intervals: number): Promise<TagHistoryResponse> {
+    private getTagHistoryValues$(paths: string[], workspace: string, range: TimeRange, intervals: number): Observable<TagHistoryResponse> {
         const tagHistoryUrl = this.baseUrl + '/nitaghistorian/v2/tags';
-        return await this.post<TagHistoryResponse>(`${tagHistoryUrl}/query-decimated-history`, {
+        return this.post$<TagHistoryResponse>(`${tagHistoryUrl}/query-decimated-history`, {
             paths,
             workspace,
             startTime: range.from.toISOString(),

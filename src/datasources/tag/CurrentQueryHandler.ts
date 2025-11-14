@@ -2,10 +2,11 @@ import { DataFrameDTO, FieldType, TimeRange } from "@grafana/data";
 import { QueryHandler, TagWithValue } from "./types";
 import { convertTagValue } from "./utils";
 import { Workspace } from "core/types";
+import { Observable, of } from "rxjs";
 
 export class CurrentQueryHandler extends QueryHandler {
-    handleQuery(tagsWithValues: TagWithValue[], result: DataFrameDTO, _workspaces: Workspace[], _range: TimeRange, _maxDataPoints: number | undefined, queryProperties: boolean): Promise<DataFrameDTO> {
-        return Promise.resolve(this.handleCurrentQuery(queryProperties, tagsWithValues, result));
+    handleQuery$(tagsWithValues: TagWithValue[], result: DataFrameDTO, _workspaces: Workspace[], _range: TimeRange, _maxDataPoints: number | undefined, queryProperties: boolean): Observable<DataFrameDTO> {
+        return of(this.handleCurrentQuery(queryProperties, tagsWithValues, result));
     }
 
     private handleCurrentQuery(queryProperties: boolean, tagsWithValues: TagWithValue[], result: DataFrameDTO): DataFrameDTO {
