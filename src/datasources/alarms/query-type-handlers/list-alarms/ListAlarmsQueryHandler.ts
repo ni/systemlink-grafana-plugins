@@ -147,6 +147,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
             return transition ? this.getSortedCustomProperties(transition.properties) : '';
           default:
             let value;
+
             if (this.isAlarmTransitionProperty(property)) {
               const transitionKey = TransitionPropertyKeyMap[property];
               value = transition?.[transitionKey];
