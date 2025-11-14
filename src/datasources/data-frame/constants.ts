@@ -18,7 +18,7 @@ export const decimationMethods = [
   },
 ];
 
-export const errorCodes: { [key: number]: string } = {
+export const errorCodes: { [key: number]: string; } = {
   [-255134]: 'Invalid table ID',
   [-255130]: 'Table does not exist',
 };

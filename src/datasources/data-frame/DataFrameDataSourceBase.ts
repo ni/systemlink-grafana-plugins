@@ -14,13 +14,13 @@ import {
     DataTableProjections,
     ValidDataFrameVariableQuery,
     DataFrameDataQuery,
-    DataFrameVariableQuery
+    DataFrameVariableQuery,
+    Option
 } from './types';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { extractErrorInfo } from 'core/errors';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
-import { ComboboxOption } from '@grafana/ui';
 import { PART_NUMBER_FIELD } from './constants';
 
 export abstract class DataFrameDataSourceBase<
@@ -76,7 +76,7 @@ export abstract class DataFrameDataSourceBase<
         }
     }
 
-    public async getColumnOptions(filter: string): Promise<ComboboxOption[]> {
+    public async getColumnOptions(filter: string): Promise<Option[]> {
         return Promise.resolve([]);
     }
 

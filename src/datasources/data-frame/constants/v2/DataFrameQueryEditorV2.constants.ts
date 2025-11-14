@@ -82,4 +82,5 @@ export const errorMessages = {
         lessOrEqualToTakeLimit: `The take value must be less than or equal to ${TAKE_LIMIT}.`
     },
     columnLimitExceeded: `The tables query returned too many columns. Only the first ${COLUMN_OPTIONS_LIMIT} columns are shown in the selection list.`,
+    propertiesNotSelected: 'At least one data table property or column property must be selected.',
 };

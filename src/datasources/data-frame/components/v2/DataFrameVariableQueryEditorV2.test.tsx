@@ -2,8 +2,13 @@ import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource"
 import { DataFrameVariableQuery, DataFrameVariableQueryType, defaultVariableQueryV2, ValidDataFrameVariableQuery } from "datasources/data-frame/types";
 import { DataFrameVariableQueryEditorV2 } from "./DataFrameVariableQueryEditorV2";
 import React from "react";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
+
+jest.mock("./query-builders/DataFrameQueryBuilderWrapper", () => ({
+    DataFrameQueryBuilderWrapper: jest.fn(() => <div data-testid="mock-data-frame-query-builder-wrapper" />)
+}));
 
 const renderComponent = (
     queryOverrides: Partial<DataFrameVariableQuery> = {},
@@ -100,6 +105,69 @@ describe('DataFrameVariableQueryEditorV2', () => {
                     queryType: DataFrameVariableQueryType.ListColumns,
                 })
             );
+        });
+    });
+
+    describe("query builder wrapper integration", () => {
+        it("should render the query builder wrapper and forward the props", async () => {
+            renderComponent(
+                {
+                    queryType: DataFrameVariableQueryType.ListDataTables,
+                    dataTableFilter: 'InitialFilter',
+                    refId: 'A'
+                }
+            );
+
+            expect(screen.getByTestId("mock-data-frame-query-builder-wrapper")).toBeInTheDocument();
+            expect(DataFrameQueryBuilderWrapper).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    dataTableFilter: 'InitialFilter',
+                    datasource: expect.any(Object),
+                    onDataTableFilterChange: expect.any(Function),
+                }),
+                expect.anything() // React context
+            );
+        });
+
+        it("should call onChange with updated dataTableFilter when filter changes", async () => {
+            const { onChange } = renderComponent(
+                {
+                    queryType: DataFrameVariableQueryType.ListDataTables,
+                    dataTableFilter: 'InitialFilter',
+                    refId: 'A'
+                }
+            );
+
+            // Get the onDataTableFilterChange callback from the mock
+            const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+            const { onDataTableFilterChange } = props;
+
+            // Simulate the filter change event
+            const mockEvent = {
+                detail: { linq: "NewFilter" }
+            } as Event & { detail: { linq: string; }; };
+
+            onDataTableFilterChange(mockEvent);
+
+            await waitFor(() => {
+                expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                    dataTableFilter: 'NewFilter'
+                }));
+            });
+        });
+
+        it("should verify dataTableFilter is passed correctly", () => {
+            renderComponent(
+                {
+                    queryType: DataFrameVariableQueryType.ListDataTables,
+                    dataTableFilter: 'InitialFilter',
+                    refId: 'A'
+                }
+            );
+
+            const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+
+            expect(props.dataTableFilter).toBe('InitialFilter');
         });
     });
 

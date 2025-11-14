@@ -1,3 +1,33 @@
+## [4.64.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.63.0...v4.64.0) (2025-11-13)
+
+### Features
+
+* **dataframe:** Show error when no properties are selected ([#522](https://github.com/ni/systemlink-grafana-plugins/issues/522)) ([c5ce731](https://github.com/ni/systemlink-grafana-plugins/commit/c5ce73179dcba9b5a55aff2ba308c9c006a52698))
+
+## [4.63.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.62.0...v4.63.0) (2025-11-13)
+
+### Features
+
+* **alarms:** alarms trend groupby severity ([#503](https://github.com/ni/systemlink-grafana-plugins/issues/503)) ([140faa8](https://github.com/ni/systemlink-grafana-plugins/commit/140faa81074cd67c796de9aa904c0d466da0f9a0))
+
+## [4.62.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.61.0...v4.62.0) (2025-11-12)
+
+### Features
+
+* **dataframe:** Integrate query builder wrapper to variable query editor ([#516](https://github.com/ni/systemlink-grafana-plugins/issues/516)) ([f92b087](https://github.com/ni/systemlink-grafana-plugins/commit/f92b087f441a3481ec5e013690ce485669f25721))
+
+## [4.61.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.60.0...v4.61.0) (2025-11-12)
+
+### Features
+
+* **dataframe:** Add support for list columns variable query ([#515](https://github.com/ni/systemlink-grafana-plugins/issues/515)) ([9babdc0](https://github.com/ni/systemlink-grafana-plugins/commit/9babdc06630e79060f6523b3f41e9da782f2404d))
+
+## [4.60.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.59.0...v4.60.0) (2025-11-12)
+
+### Features
+
+* **alarms:** Implement logics for trends ([#499](https://github.com/ni/systemlink-grafana-plugins/issues/499)) ([c559f09](https://github.com/ni/systemlink-grafana-plugins/commit/c559f0940c0f9f9ed336433bc39d56b844c949c2))
+
 ## [4.59.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.58.0...v4.59.0) (2025-11-12)
 
 ### Features
