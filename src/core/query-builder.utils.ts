@@ -108,7 +108,7 @@ function transformBasedOnAnyOperations(
         return transformation(extractedValue, QueryBuilderOperations.LIST_CONTAINS.name, options?.get(field));
     });
 
-    const isNegated = innerPredicate.includes('!');
+    const isNegated = /^!/.test(innerPredicate.trim());
     return isNegated ? `!${field}.Any(${transformedPredicate})` : `${field}.Any(${transformedPredicate})`;
   });
 }
@@ -116,11 +116,11 @@ function transformBasedOnAnyOperations(
 /** 
  * The function will replace fields with StartsWith and EndsWith operations with their transformation.
  * 
- * @param query Query string containing one or more instances of the Any operation to be transformed.
- * @param field Name of the field on which the Any operation is performed.
+ * @param query Query string containing one or more instances of the starts with/ ends with operation to be transformed.
+ * @param field Name of the field on which the starts with/ ends with operation is performed.
  * @param transformation callback function that transforms the value based on the operation.
  * @param options The options to be used in the transformation
- * @returns Transformed query string with Any operations processed.
+ * @returns Transformed query string with starts with/ ends with operation processed.
  */
 function transformBasedOnStartAndEndOperations(
   query: string,
