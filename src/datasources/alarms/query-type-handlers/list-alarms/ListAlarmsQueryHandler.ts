@@ -2,7 +2,7 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, 
 import { AlarmsProperties, ListAlarmsQuery, TransitionAlarmProperty } from '../../types/ListAlarms.types';
 import { AlarmsVariableQuery, QueryAlarmsRequest, TransitionInclusionOption } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
-import { alarmPropertyKeyMap, AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, TRANSITION_SPECIFIC_PROPERTIES, transitionPropertyKeyMap } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { AlarmPropertyKeyMap, AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, TRANSITION_SPECIFIC_PROPERTIES, TransitionPropertyKeyMap } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { Alarm } from 'datasources/alarms/types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
@@ -148,10 +148,10 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
           default:
             let value;
             if (this.isAlarmTransitionProperty(property)) {
-              const transitionKey = transitionPropertyKeyMap[property];
+              const transitionKey = TransitionPropertyKeyMap[property];
               value = transition?.[transitionKey];
             } else {
-              const alarmKey = alarmPropertyKeyMap[property];
+              const alarmKey = AlarmPropertyKeyMap[property];
               value = alarm[alarmKey];
             }
 

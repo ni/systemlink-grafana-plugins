@@ -230,7 +230,7 @@ export const TRANSITION_SPECIFIC_PROPERTIES = [
   AlarmsProperties.transitionValue,
 ] as const;
 
-export const transitionPropertyKeyMap: Record<
+export const TransitionPropertyKeyMap: Record<
   TransitionAlarmProperty,
   keyof AlarmTransition
 > = {
@@ -245,7 +245,7 @@ export const transitionPropertyKeyMap: Record<
   [AlarmsProperties.transitionValue]: 'value',
 };
 
-export const alarmPropertyKeyMap: Record<
+export const AlarmPropertyKeyMap: Record<
   Exclude<NonTransitionAlarmProperty, ComputedAlarmProperty>,
   keyof Alarm
 > = {
