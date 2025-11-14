@@ -1,6 +1,6 @@
 import { AlertVariant } from '@grafana/ui';
-import { AlarmsProperties } from '../types/ListAlarms.types';
-import { TransitionInclusionOption } from '../types/types';
+import { AlarmsProperties, ComputedAlarmProperty, NonTransitionAlarmProperty, TransitionAlarmProperty } from '../types/ListAlarms.types';
+import { Alarm, AlarmTransition, TransitionInclusionOption } from '../types/types';
 
 export const LABEL_WIDTH = 26;
 export const CONTROL_WIDTH = 65;
@@ -57,178 +57,143 @@ export const AlarmsPropertiesOptions: Record<
   {
     label: string;
     value: AlarmsProperties;
-    field: string;
   }
 > = {
   [AlarmsProperties.acknowledged]: {
     label: 'Acknowledged',
     value: AlarmsProperties.acknowledged,
-    field: 'acknowledged',
   },
   [AlarmsProperties.acknowledgedBy]: {
     label: 'Acknowledged by',
     value: AlarmsProperties.acknowledgedBy,
-    field: 'acknowledgedBy',
   },
   [AlarmsProperties.acknowledgedAt]: {
     label: 'Acknowledged on',
     value: AlarmsProperties.acknowledgedAt,
-    field: 'acknowledgedAt',
   },
   [AlarmsProperties.active]: {
     label: 'Active',
     value: AlarmsProperties.active,
-    field: 'active',
   },
   [AlarmsProperties.alarmId]: {
     label: 'Alarm ID',
     value: AlarmsProperties.alarmId,
-    field: 'alarmId',
   },
   [AlarmsProperties.displayName]: {
     label: 'Alarm name',
     value: AlarmsProperties.displayName,
-    field: 'displayName',
   },
   [AlarmsProperties.channel]: {
     label: 'Channel',
     value: AlarmsProperties.channel,
-    field: 'channel',
   },
   [AlarmsProperties.clear]: {
     label: 'Clear',
     value: AlarmsProperties.clear,
-    field: 'clear',
   },
   [AlarmsProperties.condition]: {
     label: 'Condition',
     value: AlarmsProperties.condition,
-    field: 'condition',
   },
   [AlarmsProperties.createdBy]: {
     label: 'Created by',
     value: AlarmsProperties.createdBy,
-    field: 'createdBy',
   },
   [AlarmsProperties.currentSeverityLevel]: {
     label: 'Current severity',
     value: AlarmsProperties.currentSeverityLevel,
-    field: 'currentSeverityLevel',
   },
   [AlarmsProperties.description]: {
     label: 'Description',
     value: AlarmsProperties.description,
-    field: 'description',
   },
   [AlarmsProperties.occurredAt]: {
     label: 'First occurrence',
     value: AlarmsProperties.occurredAt,
-    field: 'occurredAt',
   },
   [AlarmsProperties.highestSeverityLevel]: {
     label: 'Highest severity',
     value: AlarmsProperties.highestSeverityLevel,
-    field: 'highestSeverityLevel',
   },
   [AlarmsProperties.instanceId]: {
     label: 'Instance ID',
     value: AlarmsProperties.instanceId,
-    field: 'instanceId',
   },
   [AlarmsProperties.keywords]: {
     label: 'Keywords',
     value: AlarmsProperties.keywords,
-    field: 'keywords',
   },
   [AlarmsProperties.mostRecentSetOccurredAt]: {
     label: 'Last occurrence',
     value: AlarmsProperties.mostRecentSetOccurredAt,
-    field: 'mostRecentSetOccurredAt',
   },
   [AlarmsProperties.mostRecentTransitionOccurredAt]: {
     label: 'Last transition occurrence',
     value: AlarmsProperties.mostRecentTransitionOccurredAt,
-    field: 'mostRecentTransitionOccurredAt',
   },
   [AlarmsProperties.properties]: {
     label: 'Properties',
     value: AlarmsProperties.properties,
-    field: 'properties',
   },
   [AlarmsProperties.resourceType]: {
     label: 'Resource type',
     value: AlarmsProperties.resourceType,
-    field: 'resourceType',
   },
   [AlarmsProperties.source]: {
     label: 'Source',
     value: AlarmsProperties.source,
-    field: 'source',
   },
   [AlarmsProperties.state]: {
     label: 'State',
     value: AlarmsProperties.state,
-    field: 'state',
   },
   [AlarmsProperties.transitionOverflowCount]: {
     label: 'Transition overflow count',
     value: AlarmsProperties.transitionOverflowCount,
-    field: 'transitionOverflowCount',
   },
   [AlarmsProperties.transitionCondition]: {
     label: 'Transition condition',
     value: AlarmsProperties.transitionCondition,
-    field: 'condition',
   },
   [AlarmsProperties.transitionDetailText]: {
     label: 'Transition detail',
     value: AlarmsProperties.transitionDetailText,
-    field: 'detailText',
   },
   [AlarmsProperties.transitionKeywords]: {
     label: 'Transition keywords',
     value: AlarmsProperties.transitionKeywords,
-    field: 'keywords',
   },
   [AlarmsProperties.transitionOccurredAt]: {
     label: 'Transition occurred at',
     value: AlarmsProperties.transitionOccurredAt,
-    field: 'occurredAt',
   },
   [AlarmsProperties.transitionProperties]: {
     label: 'Transition properties',
     value: AlarmsProperties.transitionProperties,
-    field: 'properties',
   },
   [AlarmsProperties.transitionSeverityLevel]: {
     label: 'Transition severity',
     value: AlarmsProperties.transitionSeverityLevel,
-    field: 'severityLevel',
   },
   [AlarmsProperties.transitionShortText]: {
     label: 'Transition short text',
     value: AlarmsProperties.transitionShortText,
-    field: 'shortText',
   },
   [AlarmsProperties.transitionType]: {
     label: 'Transition type',
     value: AlarmsProperties.transitionType,
-    field: 'transitionType',
   },
   [AlarmsProperties.transitionValue]: {
     label: 'Transition value',
     value: AlarmsProperties.transitionValue,
-    field: 'value',
   },
   [AlarmsProperties.updatedAt]: {
     label: 'Updated',
     value: AlarmsProperties.updatedAt,
-    field: 'updatedAt',
   },
   [AlarmsProperties.workspace]: {
     label: 'Workspace',
     value: AlarmsProperties.workspace,
-    field: 'workspace',
   },
 }
 
@@ -263,4 +228,48 @@ export const TRANSITION_SPECIFIC_PROPERTIES = [
   AlarmsProperties.transitionShortText,
   AlarmsProperties.transitionType,
   AlarmsProperties.transitionValue,
-];
+] as const;
+
+export const transitionPropertyKeyMap: Record<
+  TransitionAlarmProperty,
+  keyof AlarmTransition
+> = {
+  [AlarmsProperties.transitionCondition]: 'condition',
+  [AlarmsProperties.transitionDetailText]: 'detailText',
+  [AlarmsProperties.transitionKeywords]: 'keywords',
+  [AlarmsProperties.transitionOccurredAt]: 'occurredAt',
+  [AlarmsProperties.transitionProperties]: 'properties',
+  [AlarmsProperties.transitionSeverityLevel]: 'severityLevel',
+  [AlarmsProperties.transitionShortText]: 'shortText',
+  [AlarmsProperties.transitionType]: 'transitionType',
+  [AlarmsProperties.transitionValue]: 'value',
+};
+
+export const alarmPropertyKeyMap: Record<
+  Exclude<NonTransitionAlarmProperty, ComputedAlarmProperty>,
+  keyof Alarm
+> = {
+  [AlarmsProperties.acknowledged]: 'acknowledged',
+  [AlarmsProperties.acknowledgedAt]: 'acknowledgedAt',
+  [AlarmsProperties.acknowledgedBy]: 'acknowledgedBy',
+  [AlarmsProperties.active]: 'active',
+  [AlarmsProperties.alarmId]: 'alarmId',
+  [AlarmsProperties.channel]: 'channel',
+  [AlarmsProperties.clear]: 'clear',
+  [AlarmsProperties.condition]: 'condition',
+  [AlarmsProperties.createdBy]: 'createdBy',
+  [AlarmsProperties.currentSeverityLevel]: 'currentSeverityLevel',
+  [AlarmsProperties.description]: 'description',
+  [AlarmsProperties.displayName]: 'displayName',
+  [AlarmsProperties.highestSeverityLevel]: 'highestSeverityLevel',
+  [AlarmsProperties.instanceId]: 'instanceId',
+  [AlarmsProperties.keywords]: 'keywords',
+  [AlarmsProperties.mostRecentSetOccurredAt]: 'mostRecentSetOccurredAt',
+  [AlarmsProperties.mostRecentTransitionOccurredAt]: 'mostRecentTransitionOccurredAt',
+  [AlarmsProperties.occurredAt]: 'occurredAt',
+  [AlarmsProperties.properties]: 'properties',
+  [AlarmsProperties.resourceType]: 'resourceType',
+  [AlarmsProperties.transitionOverflowCount]: 'transitionOverflowCount',
+  [AlarmsProperties.updatedAt]: 'updatedAt',
+  [AlarmsProperties.workspace]: 'workspace',
+};

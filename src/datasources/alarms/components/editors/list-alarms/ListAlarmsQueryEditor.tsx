@@ -16,7 +16,6 @@ import {
   SECONDARY_LABEL_WIDTH,
   takeErrorMessages,
   tooltips,
-  TRANSITION_SPECIFIC_PROPERTIES,
 } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
@@ -91,7 +90,9 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     let updatedProperties = query.properties || [];
     
     if (option.value === TransitionInclusionOption.None) {
-      updatedProperties = updatedProperties.filter(prop => !TRANSITION_SPECIFIC_PROPERTIES.includes(prop));
+      updatedProperties = updatedProperties.filter(
+        prop => !datasource.isAlarmTransitionProperty(prop)
+      );
     }
 
     setIsPropertiesControlValid(updatedProperties.length > 0);
@@ -108,11 +109,13 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     const allOptions = Object.values(AlarmsPropertiesOptions);
 
     if (transitionInclusionOption === TransitionInclusionOption.None) {
-      return allOptions.filter(option => !TRANSITION_SPECIFIC_PROPERTIES.includes(option.value));
+      return allOptions.filter(
+        option => !datasource.isAlarmTransitionProperty(option.value)
+      );
     }
 
     return allOptions;
-  }, [query.transitionInclusionOption]);
+  }, [query.transitionInclusionOption, datasource]);
 
   return (
     <Stack direction='column'>

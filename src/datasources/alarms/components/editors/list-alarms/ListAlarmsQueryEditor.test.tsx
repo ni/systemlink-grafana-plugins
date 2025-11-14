@@ -18,6 +18,7 @@ const mockDatasource = {
       ['2', { id: '2', name: 'AnotherWorkspaceName' }],
     ])
   ),
+  isAlarmTransitionProperty: ListAlarmsQueryHandler.prototype.isAlarmTransitionProperty,
 } as unknown as ListAlarmsQueryHandler;
 
 const defaultProps = {

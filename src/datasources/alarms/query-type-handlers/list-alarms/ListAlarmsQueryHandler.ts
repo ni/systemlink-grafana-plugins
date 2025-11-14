@@ -1,8 +1,8 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
-import { AlarmsProperties, ListAlarmsQuery } from '../../types/ListAlarms.types';
-import { AlarmsVariableQuery, AlarmTransition, QueryAlarmsRequest, TransitionInclusionOption } from '../../types/types';
+import { AlarmsProperties, ListAlarmsQuery, TransitionAlarmProperty } from '../../types/ListAlarms.types';
+import { AlarmsVariableQuery, QueryAlarmsRequest, TransitionInclusionOption } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
-import { AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, TRANSITION_SPECIFIC_PROPERTIES } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { alarmPropertyKeyMap, AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, TRANSITION_SPECIFIC_PROPERTIES, transitionPropertyKeyMap } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { Alarm } from 'datasources/alarms/types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
@@ -72,6 +72,10 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     }
   }
 
+  public isAlarmTransitionProperty(property: AlarmsProperties): property is TransitionAlarmProperty {
+    return (TRANSITION_SPECIFIC_PROPERTIES as readonly AlarmsProperties[]).includes(property);
+  }
+
   private isTakeValid(take?: number): boolean {
     return take !== undefined
       && take >= QUERY_EDITOR_MIN_TAKE
@@ -114,8 +118,8 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     const mappedFields = properties.map(property => {
       const field = AlarmsPropertiesOptions[property];
       const fieldName = field.label;
-      const fieldValue = field.field;
-      const fieldType = this.isTimeField(fieldValue as AlarmsProperties) ? FieldType.time : FieldType.string;
+      const fieldValue = field.value;
+      const fieldType = this.isTimeField(fieldValue) ? FieldType.time : FieldType.string;
 
       const fieldValues = flattenedAlarms.map(alarm => {
         const transition = alarm.transitions?.[0];
@@ -143,10 +147,12 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
             return transition ? this.getSortedCustomProperties(transition.properties) : '';
           default:
             let value;
-            if (TRANSITION_SPECIFIC_PROPERTIES.includes(property)) {
-              value = transition?.[fieldValue as keyof AlarmTransition];
+            if (this.isAlarmTransitionProperty(property)) {
+              const transitionKey = transitionPropertyKeyMap[property];
+              value = transition?.[transitionKey];
             } else {
-              value = alarm[fieldValue as keyof Alarm];
+              const alarmKey = alarmPropertyKeyMap[property];
+              value = alarm[alarmKey];
             }
             if (fieldType === FieldType.time) {
               return value ?? null;
@@ -161,9 +167,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   }
 
   private hasTransitionProperties(properties: AlarmsProperties[]): boolean {
-    return properties.some(prop =>
-      TRANSITION_SPECIFIC_PROPERTIES.includes(prop)
-    );
+    return properties.some(prop => this.isAlarmTransitionProperty(prop));
   }
 
   private duplicateAlarmsByTransitions(alarms: Alarm[]): Alarm[] {

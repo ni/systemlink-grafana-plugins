@@ -1,3 +1,4 @@
+import { TRANSITION_SPECIFIC_PROPERTIES } from '../constants/AlarmsQueryEditor.constants';
 import { AlarmsQuery, TransitionInclusionOption } from './types';
 
 export interface ListAlarmsQuery extends AlarmsQuery {
@@ -48,3 +49,9 @@ export enum AlarmsProperties {
   updatedAt = 'updatedAt',
   workspace = 'workspace',
 }
+
+export type TransitionAlarmProperty = typeof TRANSITION_SPECIFIC_PROPERTIES[number];
+
+export type NonTransitionAlarmProperty = Exclude<AlarmsProperties, TransitionAlarmProperty>;
+
+export type ComputedAlarmProperty = AlarmsProperties.state | AlarmsProperties.source;
