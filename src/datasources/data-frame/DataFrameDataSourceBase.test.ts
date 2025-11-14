@@ -131,10 +131,9 @@ describe('DataFrameDataSourceBase', () => {
 
     it('should return empty array for getColumnOptions', async () => {
         const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
-        
-        const options = await ds.getColumnOptions('filter');   
-        
-        expect(options).toEqual([]);
+        const result = await ds.getColumnOptions('filter');   
+
+        expect(result).toEqual({ options: [], hasMore: false });
     });
 
     describe('loadWorkspaces', () => {

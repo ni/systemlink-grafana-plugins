@@ -1,6 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetricFindQueryOptions, MetricFindValue, TimeRange } from "@grafana/data";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameFeatureTogglesDefaults, DataFrameVariableQuery, DataTableProjections, TableDataRows, TableProperties, ValidDataFrameQuery, ValidDataFrameVariableQuery } from "./types";
+import { ComboboxOption } from "@grafana/ui";
+import { Column, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameFeatureTogglesDefaults, DataFrameVariableQuery, DataTableProjections, TableDataRows, TableProperties, ValidDataFrameQuery, ValidDataFrameVariableQuery } from "./types";
 import { DataFrameDataSourceBase } from "./DataFrameDataSourceBase";
 import { DataFrameDataSourceV1 } from "./datasources/v1/DataFrameDataSourceV1";
 import { DataFrameDataSourceV2 } from "./datasources/v2/DataFrameDataSourceV2";
@@ -73,8 +74,12 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.processVariableQuery(query);
   }
 
-  public async getColumnOptions(filter: string): Promise<Option[]> {
-    return this.datasource.getColumnOptions(filter);
+  public async getColumnOptions(filter: string, resultsFilter?: string): Promise<{ options: ComboboxOption[]; hasMore: boolean; }> {
+    return this.datasource.getColumnOptions(filter, resultsFilter);
+  }
+
+  public async getTablesForResultsFilter(resultsFilter?: string): Promise<{ tables: TableProperties[]; hasMore: boolean; }> {
+    return this.datasource.getTablesForResultsFilter(resultsFilter);
   }
 
   public async getTablesForResultsFilter(resultsFilter?: string): Promise<{ tables: TableProperties[]; hasMore: boolean; }> {

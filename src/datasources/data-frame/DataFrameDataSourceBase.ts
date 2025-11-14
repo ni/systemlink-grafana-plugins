@@ -15,9 +15,9 @@ import {
     ValidDataFrameVariableQuery,
     DataFrameDataQuery,
     DataFrameVariableQuery,
-    Option
 } from './types';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
+import { ComboboxOption } from '@grafana/ui';
 import { extractErrorInfo } from 'core/errors';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
@@ -76,8 +76,12 @@ export abstract class DataFrameDataSourceBase<
         }
     }
 
-    public async getColumnOptions(filter: string): Promise<Option[]> {
-        return Promise.resolve([]);
+    public async getColumnOptions(filter: string, _resultsFilter?: string): Promise<{ options: ComboboxOption[]; hasMore: boolean; }> {
+        return Promise.resolve({ options: [], hasMore: false });
+    }
+
+    public async getTablesForResultsFilter(_resultsFilter?: string): Promise<{ tables: TableProperties[]; hasMore: boolean; }> {
+        return Promise.resolve({ tables: [], hasMore: false });
     }
 
     public async getTablesForResultsFilter(_resultsFilter?: string): Promise<{ tables: TableProperties[]; hasMore: boolean; }> {

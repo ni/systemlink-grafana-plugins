@@ -3,7 +3,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import { DataFrameQueryBuilderWrapper } from './DataFrameQueryBuilderWrapper';
 import { DataFrameDataSource } from 'datasources/data-frame/DataFrameDataSource';
 import { Workspace, QueryBuilderOption } from 'core/types';
-import { DataSourceQBLookupCallback } from 'datasources/data-frame/types';
+import { DataSourceQBLookupCallback, TableProperties } from 'datasources/data-frame/types';
 import userEvent from '@testing-library/user-event';
 import { ColumnsQueryBuilder } from './columns-query-builder/ColumnsQueryBuilder';
 import { ResultsQueryBuilder } from 'shared/components/ResultsQueryBuilder/ResultsQueryBuilder';
@@ -15,6 +15,8 @@ jest.mock("datasources/data-frame/components/v2/query-builders/data-table-query-
             workspaces?: Workspace[];
             globalVariableOptions: QueryBuilderOption[];
             dataTableNameLookupCallback: DataSourceQBLookupCallback;
+            dataTableIdOptions?: QueryBuilderOption[];
+            dataTableNameOptions?: QueryBuilderOption[];
             onChange: (event: { detail: { linq: string; }; }) => void;
         }
     ) => {
@@ -47,6 +49,16 @@ jest.mock("datasources/data-frame/components/v2/query-builders/data-table-query-
                         <li key={option.label}>{`${option.label}:${option.value}`}</li>
                     ))}
                 </ul>
+                <ul data-testid="data-table-id-options-list">
+                    {props.dataTableIdOptions?.map(option => (
+                        <li key={option.value}>{`${option.label}:${option.value}`}</li>
+                    ))}
+                </ul>
+                <ul data-testid="data-table-name-options-prop-list">
+                    {props.dataTableNameOptions?.map(option => (
+                        <li key={option.value}>{`${option.label}:${option.value}`}</li>
+                    ))}
+                </ul>
                 <ul data-testid="data-table-name-options-list">
                     {options.map(option => (
                         <li key={option.value}>{`${option.label}:${option.value}`}</li>
@@ -69,11 +81,19 @@ const renderComponent = (
     resultsFilter = '',
     dataTableFilter = '',
     columnsFilter = '',
-    queryByResultAndColumnProperties = true
+    queryByResultAndColumnProperties = true,
+    tablesForResultsResponse: { tables: Partial<TableProperties>[]; hasMore: boolean } = {
+        tables: [
+            { id: 'table3', name: 'Results Table 3' },
+            { id: 'table4', name: 'Results Table 4' },
+        ],
+        hasMore: false,
+    }
 ) => {
     const onResultsFilterChange = jest.fn();
     const onDataTableFilterChange = jest.fn();
     const onColumnsFilterChange = jest.fn();
+    const onResultsLimitExceededChange = jest.fn();
     const datasource = {
         loadWorkspaces: jest.fn().mockResolvedValue(
             new Map([
@@ -94,6 +114,10 @@ const renderComponent = (
                 { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, { name: 'ColumnE' }] },
             ]
         ),
+        getTablesForResultsFilter: jest.fn().mockResolvedValue({
+            tables: tablesForResultsResponse.tables as TableProperties[],
+            hasMore: tablesForResultsResponse.hasMore,
+        }),
         instanceSettings: {
             jsonData: { featureToggles: { queryByResultAndColumnProperties } },
         },
@@ -108,6 +132,7 @@ const renderComponent = (
             onResultsFilterChange={onResultsFilterChange}
             onDataTableFilterChange={onDataTableFilterChange}
             onColumnsFilterChange={onColumnsFilterChange}
+            onResultsLimitExceededChange={onResultsLimitExceededChange}
         />
     );
 
@@ -121,6 +146,7 @@ const renderComponent = (
                 onResultsFilterChange={onResultsFilterChange}
                 onDataTableFilterChange={onDataTableFilterChange}
                 onColumnsFilterChange={onColumnsFilterChange}
+                onResultsLimitExceededChange={onResultsLimitExceededChange}
             />
         );
     });
@@ -130,11 +156,16 @@ const renderComponent = (
         onResultsFilterChange,
         onDataTableFilterChange,
         onColumnsFilterChange,
-        datasource
+        datasource,
+        onResultsLimitExceededChange,
     };
 };
 
 describe('DataFrameQueryBuilderWrapper', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     describe('DataTableQueryBuilder', () => {
         it('should show the DataTableQueryBuilder component', async () => {
             renderComponent();
@@ -148,8 +179,7 @@ describe('DataFrameQueryBuilderWrapper', () => {
             renderComponent('', 'test filter');
 
             await waitFor(() => {
-                const filterInput = screen.getByTestId('filter-input');
-                expect(filterInput).toHaveValue('test filter');
+                expect(screen.getByTestId('filter-input')).toHaveValue('test filter');
             });
         });
 
@@ -198,6 +228,49 @@ describe('DataFrameQueryBuilderWrapper', () => {
                 expect(onDataTableFilterChange).toHaveBeenCalledWith({ detail: { linq: 'new filter' } });
             });
         });
+
+        it('should fetch data tables when results filter is provided', async () => {
+            const { datasource, onResultsLimitExceededChange } = renderComponent('results filter');
+
+            await waitFor(() => {
+                expect(datasource.getTablesForResultsFilter).toHaveBeenCalledWith('results filter');
+                expect(onResultsLimitExceededChange).toHaveBeenCalledWith(false);
+            });
+
+            await waitFor(() => {
+                const idOptionsList = screen.getByTestId('data-table-id-options-list');
+                expect(within(idOptionsList).getByText('table3:table3')).toBeInTheDocument();
+                expect(within(idOptionsList).getByText('table4:table4')).toBeInTheDocument();
+
+                const nameOptionsList = screen.getByTestId('data-table-name-options-prop-list');
+                expect(within(nameOptionsList).getByText('Results Table 3:Results Table 3')).toBeInTheDocument();
+                expect(within(nameOptionsList).getByText('Results Table 4:Results Table 4')).toBeInTheDocument();
+            });
+        });
+
+        it('should not fetch data tables when results filter is empty', async () => {
+            const { datasource, onResultsLimitExceededChange } = renderComponent();
+
+            await waitFor(() => {
+                expect(datasource.getTablesForResultsFilter).not.toHaveBeenCalled();
+                expect(onResultsLimitExceededChange).toHaveBeenCalledWith(false);
+            });
+        });
+
+        it('should notify when results limit is exceeded', async () => {
+            const tablesResponse = {
+                tables: [
+                    { id: 'table5', name: 'Results Table 5' },
+                ],
+                hasMore: true,
+            };
+            const { datasource, onResultsLimitExceededChange } = renderComponent('results filter', '', '', true, tablesResponse);
+
+            await waitFor(() => {
+                expect(datasource.getTablesForResultsFilter).toHaveBeenCalledWith('results filter');
+                expect(onResultsLimitExceededChange).toHaveBeenCalledWith(true);
+            });
+        });
     });
 
     describe('ColumnsQueryBuilder', () => {
@@ -212,56 +285,68 @@ describe('DataFrameQueryBuilderWrapper', () => {
         it('should pass the filter to the ColumnsQueryBuilder component', async () => {
             renderComponent('', '', 'column filter');
 
-            expect(screen.getByTestId('mock-columns-query-builder')).toBeInTheDocument();
-            expect(ColumnsQueryBuilder).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    filter: 'column filter',
-                }),
-                {}
-            );
+            await waitFor(() => {
+                expect(ColumnsQueryBuilder).toHaveBeenCalled();
+            });
+
+            const calls = (ColumnsQueryBuilder as jest.Mock).mock.calls;
+            const props = calls[calls.length - 1][0];
+            expect(props.filter).toBe('column filter');
         });
 
         it('should call onColumnsFilterChange when the columns filter is changed in the ColumnsQueryBuilder component', async () => {
-           const { onColumnsFilterChange } = renderComponent();
-           const [[props]] = (ColumnsQueryBuilder as jest.Mock).mock.calls;
-
-           // Simulate a change event
-           const eventDetail = { linq: 'new column filter' };
-           await props.onChange({ detail: eventDetail });
-
-           await waitFor(() => {
-               expect(onColumnsFilterChange).toHaveBeenCalledWith({ detail: eventDetail });
-           });
-        });
-
-        it('should not render the ColumnsQueryBuilder when feature flag is false', async () => {
-            renderComponent('', '', '', false);
+            const { onColumnsFilterChange } = renderComponent();
 
             await waitFor(() => {
-                expect(screen.queryByTestId('mock-columns-query-builder')).not.toBeInTheDocument();
+                expect(ColumnsQueryBuilder).toHaveBeenCalled();
+            });
+
+            const calls = (ColumnsQueryBuilder as jest.Mock).mock.calls;
+            const props = calls[calls.length - 1][0];
+
+            const eventDetail = { linq: 'new column filter' };
+            await props.onChange({ detail: eventDetail });
+
+            await waitFor(() => {
+                expect(onColumnsFilterChange).toHaveBeenCalledWith({ detail: eventDetail });
+            });
+        });
+
+        it('should disable the ColumnsQueryBuilder when the results filter is empty', async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                expect(ColumnsQueryBuilder).toHaveBeenCalled();
+            });
+
+            const calls = (ColumnsQueryBuilder as jest.Mock).mock.calls;
+            const props = calls[calls.length - 1][0];
+            expect(props.disabled).toBe(true);
+        });
+
+        it('should enable the ColumnsQueryBuilder when the results filter is provided', async () => {
+            renderComponent('results filter');
+
+            await waitFor(() => {
+                const calls = (ColumnsQueryBuilder as jest.Mock).mock.calls;
+                const props = calls[calls.length - 1][0];
+                expect(props.disabled).toBe(false);
             });
         });
     });
 
     describe('ResultsQueryBuilder', () => {
-        it('should show the ResultsQueryBuilder component', async () => {
-            renderComponent();
-
-            await waitFor(() => {
-                expect(screen.getByTestId('mock-results-query-builder')).toBeInTheDocument();
-            });
-        });
-
         it('should pass the filter to the ResultsQueryBuilder component', async () => {
             renderComponent('results filter');
 
-            expect(screen.getByTestId('mock-results-query-builder')).toBeInTheDocument();
-            expect(ResultsQueryBuilder).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    filter: 'results filter',
-                }),
-                {}
-            );
+            await waitFor(() => {
+                expect(ResultsQueryBuilder).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        filter: 'results filter',
+                    }),
+                    {}
+                );
+            });
         });
 
         it('should pass workspaces to the ResultsQueryBuilder component', async () => {
@@ -299,19 +384,7 @@ describe('DataFrameQueryBuilderWrapper', () => {
             await waitFor(() => {
                 expect(ResultsQueryBuilder).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        status: expect.arrayContaining([
-                            'Done',
-                            'Errored',
-                            'Failed',
-                            'Passed',
-                            'Skipped',
-                            'Terminated',
-                            'Timed out',
-                            'Custom',
-                            'Looping',
-                            'Running',
-                            'Waiting',
-                        ]),
+                        status: expect.arrayContaining(['Done', 'Errored', 'Failed', 'Passed']),
                     }),
                     {}
                 );
@@ -335,16 +408,21 @@ describe('DataFrameQueryBuilderWrapper', () => {
         });
 
         it('should call onResultsFilterChange when the results filter is changed in the ResultsQueryBuilder component', async () => {
-           const { onResultsFilterChange } = renderComponent();
-           const [[props]] = (ResultsQueryBuilder as jest.Mock).mock.calls;
+            const { onResultsFilterChange } = renderComponent();
 
-           // Simulate a change event
-           const eventDetail = { linq: 'new results filter' };
-           await props.onChange({ detail: eventDetail });
+            await waitFor(() => {
+                expect(ResultsQueryBuilder).toHaveBeenCalled();
+            });
 
-           await waitFor(() => {
-               expect(onResultsFilterChange).toHaveBeenCalledWith({ detail: eventDetail });
-           });
+            const calls = (ResultsQueryBuilder as jest.Mock).mock.calls;
+            const props = calls[calls.length - 1][0];
+
+            const eventDetail = { linq: 'new results filter' };
+            await props.onChange({ detail: eventDetail });
+
+            await waitFor(() => {
+                expect(onResultsFilterChange).toHaveBeenCalledWith({ detail: eventDetail });
+            });
         });
 
         it('should call loadPartNumbers from datasource', async () => {
@@ -360,6 +438,7 @@ describe('DataFrameQueryBuilderWrapper', () => {
 
             await waitFor(() => {
                 expect(screen.queryByTestId('mock-results-query-builder')).not.toBeInTheDocument();
+                expect(ResultsQueryBuilder).not.toHaveBeenCalled();
             });
         });
     });

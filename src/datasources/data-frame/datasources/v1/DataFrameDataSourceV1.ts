@@ -101,11 +101,11 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     query: string,
     take = 5,
     projection?: DataTableProjections[],
-    substitutions?: string[]
+    _substitutions?: string[]
   ): Promise<TableProperties[]> {
     const filter = `name.Contains("${query}")`;
 
-    return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take, projection, substitutions })).tables;
+    return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take, projection })).tables;
   }
 
   processQuery(query: DataFrameQueryV1): ValidDataFrameQueryV1 {

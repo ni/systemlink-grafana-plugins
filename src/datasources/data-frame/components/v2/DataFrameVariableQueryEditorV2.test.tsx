@@ -22,7 +22,19 @@ const renderComponent = (
     const datasource = {
         errorTitle,
         errorDescription,
-        processVariableQuery
+        processVariableQuery,
+        instanceSettings: {
+            jsonData: {
+                featureToggles: {
+                    queryByResultAndColumnProperties: true,
+                },
+            },
+        },
+        loadWorkspaces: jest.fn().mockResolvedValue(new Map()),
+        loadPartNumbers: jest.fn().mockResolvedValue([]),
+        globalVariableOptions: jest.fn().mockReturnValue([]),
+        queryTables: jest.fn().mockResolvedValue([]),
+        getTablesForResultsFilter: jest.fn().mockResolvedValue({ tables: [], hasMore: false }),
     } as unknown as DataFrameDataSource;
 
     const initialQuery = {

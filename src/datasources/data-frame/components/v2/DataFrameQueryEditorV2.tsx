@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery } from "../../types";
@@ -24,7 +24,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
     const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isColumnLimitExceeded, setIsColumnLimitExceeded] = useState<boolean>(false);
-    const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
+    const [isResultsLimitExceeded, setIsResultsLimitExceeded] = useState<boolean>(false);
 
     const getPropertiesOptions = (
         type: DataTableProjectionType
@@ -48,36 +48,58 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         }, [onChange, onRunQuery]
     );
 
-    const fetchAndSetColumnOptions = async (filter: string) => {
-        if (!filter) {
+    const fetchAndSetColumnOptions = async (dataTableFilter: string, resultsFilter?: string) => {
+        if (!dataTableFilter) {
             setIsColumnLimitExceeded(false);
             setColumnOptions([]);
+            setIsResultsLimitExceeded(false);
             return;
         }
-        const columnOptions = await datasource.getColumnOptions(filter);
-        const limitedColumnOptions = columnOptions.slice(0, COLUMN_OPTIONS_LIMIT);
-        setIsColumnLimitExceeded(columnOptions.length > COLUMN_OPTIONS_LIMIT);
+        const { options, hasMore } = await datasource.getColumnOptions(dataTableFilter, resultsFilter);
+        const limitedColumnOptions = options.slice(0, COLUMN_OPTIONS_LIMIT);
+        setIsColumnLimitExceeded(options.length > COLUMN_OPTIONS_LIMIT);
+        setIsResultsLimitExceeded(hasMore);
         setColumnOptions(limitedColumnOptions);
     };
-
-    useEffect(() => {
-        const isDataTablePropertiesEmpty = migratedQuery.dataTableProperties.length === 0;
-        const isColumnPropertiesEmpty = migratedQuery.columnProperties.length === 0;
-
-        setIsPropertiesNotSelected(isDataTablePropertiesEmpty && isColumnPropertiesEmpty);
-    }, [migratedQuery.dataTableProperties, migratedQuery.columnProperties]);
 
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
         handleQueryChange({ ...migratedQuery, type: queryType });
     };
 
-    const onDataTableFilterChange = async (event?: Event | React.FormEvent<Element>) => {
-        if (event) {
-            const dataTableFilter = (event as CustomEvent).detail.linq;
-            handleQueryChange({ ...migratedQuery, dataTableFilter });
-            await fetchAndSetColumnOptions(dataTableFilter);
+    const onResultsFilterChange = async (event?: Event | React.FormEvent<Element>) => {
+        if (!event) {
+            return;
         }
+
+        const resultsFilter = (event as CustomEvent).detail.linq;
+        const updatedQuery = { ...migratedQuery, resultsFilter };
+        handleQueryChange(updatedQuery);
+        await fetchAndSetColumnOptions(updatedQuery.dataTableFilter, resultsFilter);
     };
+
+    const onDataTableFilterChange = async (event?: Event | React.FormEvent<Element>) => {
+        if (!event) {
+            return;
+        }
+
+        const dataTableFilter = (event as CustomEvent).detail.linq;
+        const updatedQuery = { ...migratedQuery, dataTableFilter };
+        handleQueryChange(updatedQuery);
+        await fetchAndSetColumnOptions(dataTableFilter, updatedQuery.resultsFilter);
+    };
+
+    const onColumnsFilterChange = async (event?: Event | React.FormEvent<Element>) => {
+        if (!event) {
+            return;
+        }
+
+        const columnsFilter = (event as CustomEvent).detail.linq;
+        handleQueryChange({ ...migratedQuery, columnsFilter });
+    };
+
+    const onResultsLimitExceededChange = useCallback((exceeded: boolean) => {
+        setIsResultsLimitExceeded(exceeded);
+    }, []);
 
     const onDataTablePropertiesChange = (properties: Array<ComboboxOption<DataTableProperties>>) => {
         const dataTableProperties = properties
@@ -155,11 +177,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
             {migratedQuery.type === DataFrameQueryType.Properties && (
                 <>
-                    {isPropertiesNotSelected && (
-                        <Alert title='Error' severity='error'>
-                            {errorMessages.propertiesNotSelected}
-                        </Alert>
-                    )}
                     <InlineField
                         label={labels.dataTableProperties}
                         labelWidth={INLINE_LABEL_WIDTH}
@@ -207,12 +224,20 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             {isColumnLimitExceeded && (
                                 <Alert title='Warning' severity='warning'>{errorMessages.columnLimitExceeded}</Alert>
                             )}
+                            {isResultsLimitExceeded && (
+                                <Alert title='Warning' severity='warning'>{errorMessages.resultsFilterLimitExceeded}</Alert>
+                            )}
                         </>
                     )}
                     <DataFrameQueryBuilderWrapper
                         datasource={datasource}
+                        resultsFilter={migratedQuery.resultsFilter}
                         dataTableFilter={migratedQuery.dataTableFilter}
+                        columnsFilter={migratedQuery.columnsFilter}
+                        onResultsFilterChange={onResultsFilterChange}
                         onDataTableFilterChange={onDataTableFilterChange}
+                        onColumnsFilterChange={onColumnsFilterChange}
+                        onResultsLimitExceededChange={onResultsLimitExceededChange}
                     />
 
                     {migratedQuery.type === DataFrameQueryType.Properties && (
