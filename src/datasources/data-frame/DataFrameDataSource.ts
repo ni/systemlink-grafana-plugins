@@ -74,8 +74,8 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
 
   public async queryTablesWithCombineFilters(
     filters: {
-      dataTablesFilter: string,
-      resultsFilter: string
+      dataTablesFilter: string;
+      resultsFilter: string;
     },
     take?: number,
     projections?: DataTableProjections[]

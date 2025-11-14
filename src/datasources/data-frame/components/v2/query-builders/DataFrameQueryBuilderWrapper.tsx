@@ -68,9 +68,9 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
         const filter = `${DataTableQueryBuilderFieldNames.Name}.Contains("${query}")`;
         const response = await datasource.queryTablesWithCombineFilters({ 
             dataTablesFilter: filter, 
-            resultsFilter: resultsFilter ?? '' 
+            resultsFilter: ''
         }, 
-        5, 
+        5,
         [DataTableProjections.Name]);
 
         if (response.length === 0) {

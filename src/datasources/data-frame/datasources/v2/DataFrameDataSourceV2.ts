@@ -171,12 +171,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
 
     public async queryTablesWithCombineFilters(
         filters: {
-        dataTablesFilter: string,
-        resultsFilter: string
+        dataTablesFilter: string;
+        resultsFilter: string;
         },
         take?: number,
         projections?: DataTableProjections[]
     ): Promise<TableProperties[]>{
+        // TODO: Implement logic to combine result filter filters.
         return this.queryTables(filters.dataTablesFilter, take, projections);
     }
 

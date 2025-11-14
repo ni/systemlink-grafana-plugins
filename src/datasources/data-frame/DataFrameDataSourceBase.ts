@@ -82,8 +82,8 @@ export abstract class DataFrameDataSourceBase<
 
     public async queryTablesWithCombineFilters(
         _filters: {
-        dataTablesFilter: string,
-        resultsFilter: string
+        dataTablesFilter: string;
+        resultsFilter: string;
         },
         _take?: number,
         _projections?: DataTableProjections[]
