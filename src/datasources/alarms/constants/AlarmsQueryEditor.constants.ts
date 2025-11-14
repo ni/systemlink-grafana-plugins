@@ -147,10 +147,6 @@ export const AlarmsPropertiesOptions: Record<
     label: 'State',
     value: AlarmsProperties.state,
   },
-  [AlarmsProperties.transitionOverflowCount]: {
-    label: 'Transition overflow count',
-    value: AlarmsProperties.transitionOverflowCount,
-  },
   [AlarmsProperties.transitionCondition]: {
     label: 'Transition condition',
     value: AlarmsProperties.transitionCondition,
@@ -166,6 +162,10 @@ export const AlarmsPropertiesOptions: Record<
   [AlarmsProperties.transitionOccurredAt]: {
     label: 'Transition occurred at',
     value: AlarmsProperties.transitionOccurredAt,
+  },
+  [AlarmsProperties.transitionOverflowCount]: {
+    label: 'Transition overflow count',
+    value: AlarmsProperties.transitionOverflowCount,
   },
   [AlarmsProperties.transitionProperties]: {
     label: 'Transition properties',
