@@ -950,3 +950,45 @@ describe('shouldRunQuery', () => {
         expect(data.fields.length).toBe(expectedNumberOfFields)
     })
 });
+
+describe('List assets scan code queries', () => {
+    let processlistAssetsQuerySpy: jest.SpyInstance;
+
+    beforeEach(() => {
+        processlistAssetsQuerySpy = jest.spyOn(datastore, 'processListAssetsQuery$').mockImplementation(() => of({} as DataFrameDTO));
+    });
+
+    test('should transform SCAN_CODE field with equals operator', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: `${ListAssetsFieldNames.SCAN_CODE} = "test-scan-code-123"`,
+            outputType: OutputType.Properties,
+        });
+
+        await firstValueFrom(datastore.query(query));
+
+        expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                filter: "ScanCode = \"test-scan-code-123\""
+            })
+        );
+    });
+
+    test('should transform SCAN_CODE field with does not equal operator', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: `${ListAssetsFieldNames.SCAN_CODE} != "test-scan-code-123"`,
+            outputType: OutputType.Properties,
+        });
+
+        await firstValueFrom(datastore.query(query));
+
+        expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                filter: "ScanCode != \"test-scan-code-123\""
+            })
+        );
+    });
+});
