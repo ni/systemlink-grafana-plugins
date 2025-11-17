@@ -1,4 +1,4 @@
-import { of, Observable, firstValueFrom } from 'rxjs';
+import { of, Observable, firstValueFrom, lastValueFrom } from 'rxjs';
 import { DataQueryRequest, DataSourceInstanceSettings, dateTime, Field, FieldType } from '@grafana/data';
 import { BackendSrvRequest, FetchResponse } from '@grafana/runtime';
 
@@ -260,7 +260,7 @@ it('queryTables should pass substitutions parameter to post request', async () =
   const postSpy = jest.spyOn(ds, 'post').mockResolvedValue({ tables: [] });
   const substitutions = ['$workspace', '$status'];
 
-  await ds.queryTables('test', 10, undefined, substitutions);
+  await lastValueFrom(ds.queryTables$('test', 10, undefined, substitutions));
 
   expect(postSpy).toHaveBeenCalledWith(
     '_/nidataframe/v1/query-tables',

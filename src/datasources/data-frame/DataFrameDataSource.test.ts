@@ -79,22 +79,13 @@ describe('DataFrameDataSource', () => {
         expect(v1Mock.queryTables$).toHaveBeenCalledWith('query', undefined, undefined);
 
         await expect(ds.queryTables('query')).resolves.toEqual(['v1-tables']);
-        expect(v1Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined, undefined);
+        expect(v1Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined);
 
         expect(ds.processQuery({} as any)).toBe('v1-processed');
         expect(v1Mock.processQuery).toHaveBeenCalled();
 
         expect(ds.processVariableQuery({} as any)).toBe('v1-processed');
         expect(v1Mock.processVariableQuery).toHaveBeenCalled();
-    });
-
-    it('should pass substitutions parameter to queryTables in V1', async () => {
-        const ds = new DataFrameDataSource(mockInstanceSettings(false));
-        const substitutions = ['$workspace', '$status'];
-
-        await ds.queryTables('query', 10, undefined, substitutions);
-
-        expect(v1Mock.queryTables).toHaveBeenCalledWith('query', 10, undefined, substitutions);
     });
 
     it('should use DataFrameDataSourceV2 if feature toggle is true', async () => {
@@ -132,13 +123,13 @@ describe('DataFrameDataSource', () => {
         expect(v2Mock.processVariableQuery).toHaveBeenCalled();
     });
 
-    it('should pass substitutions parameter to queryTables in V2', async () => {
+    it('should pass substitutions parameter to queryTables$ in V2', async () => {
         const ds = new DataFrameDataSource(mockInstanceSettings(true));
         const substitutions = ['$workspace', '$status'];
 
-        await ds.queryTables('query', 10, undefined, substitutions);
+        await lastValueFrom(ds.queryTables$('query', 10, undefined, substitutions));
 
-        expect(v2Mock.queryTables).toHaveBeenCalledWith('query', 10, undefined, substitutions);
+        expect(v2Mock.queryTables$).toHaveBeenCalledWith('query', 10, undefined, substitutions);
     });
 
     it('should set defaultQuery to defaultQueryV1 when datasource is DataFrameDataSourceV1 with refId "A"', () => {

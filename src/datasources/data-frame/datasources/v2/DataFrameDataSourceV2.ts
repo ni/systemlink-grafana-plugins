@@ -117,8 +117,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     queryTables$(
         filter: string,
         take = TAKE_LIMIT,
-        projection?: DataTableProjections[]
-    , substitutions?: string[]): Observable<TableProperties[]> {
+        projection?: DataTableProjections[],
+        substitutions?: string[]): Observable<TableProperties[]> {
         const response = this.post$<TablePropertiesList>(
             `${this.baseUrl}/query-tables`,
             { filter, take, projection, substitutions },
@@ -189,7 +189,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         projections?: DataTableProjections[]
     ): Promise<TableProperties[]>{
         // TODO: Implement logic to combine result filter filters.
-        return this.queryTables(filters.dataTablesFilter, take, projections);
+        return lastValueFrom(this.queryTables$(filters.dataTablesFilter, take, projections));
     }
 
     private transformColumnType(dataType: string): string {

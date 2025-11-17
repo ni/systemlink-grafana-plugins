@@ -32,7 +32,6 @@ export interface DataFrameQueryV1 extends DataQuery {
 export interface DataFrameQueryV2 extends DataQuery {
   type: DataFrameQueryType;
   dataTableFilter?: string;
-  resultsFilter?: string
   dataTableProperties?: DataTableProperties[];
   columnProperties?: DataTableProperties[];
   columns?: string[];

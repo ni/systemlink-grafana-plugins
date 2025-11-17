@@ -63,17 +63,18 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
   public queryTables$(
     query: string,
     take?: number,
-    projection?: DataTableProjections[]
+    projection?: DataTableProjections[],
+    substitutions?: string[]
   ): Observable<TableProperties[]> {
-    return this.datasource.queryTables$(query, take, projection);
+    return this.datasource.queryTables$(query, take, projection, substitutions);
   }
 
   public queryTables(
     query: string,
     take?: number,
     projection?: DataTableProjections[]
-  , substitutions?: string[]): Promise<TableProperties[]> {
-    return this.datasource.queryTables(query, take, projection, substitutions);
+  ): Promise<TableProperties[]> {
+    return this.datasource.queryTables(query, take, projection);
   }
 
   public processQuery(query: DataFrameDataQuery): ValidDataFrameQuery {

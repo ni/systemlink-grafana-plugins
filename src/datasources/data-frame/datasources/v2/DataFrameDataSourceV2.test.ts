@@ -808,7 +808,6 @@ describe('DataFrameDataSourceV2', () => {
             const expectedQuery = {
                 type: DataFrameQueryType.Data,
                 dataTableFilter: '',
-                resultsFilter: '',
                 dataTableProperties: defaultDatatableProperties,
                 columnProperties: [],
                 columns: [],
@@ -830,7 +829,6 @@ describe('DataFrameDataSourceV2', () => {
             const expectedQuery = {
                 type: DataFrameQueryType.Data,
                 dataTableFilter: '',
-                resultsFilter: '',
                 dataTableProperties: defaultDatatableProperties,
                 columnProperties: [],
                 columns: [],
@@ -845,13 +843,6 @@ describe('DataFrameDataSourceV2', () => {
             const result = ds.processQuery(query);
 
             expect(result).toEqual(expectedQuery);
-        });
-
-        it('should preserve resultsFilter when provided', () => {
-            const query = { resultsFilter: 'status = "passed"' } as DataFrameDataQuery;
-            const result = ds.processQuery(query);
-
-            expect(result.resultsFilter).toBe('status = "passed"');
         });
     });
 
@@ -944,9 +935,9 @@ describe('DataFrameDataSourceV2', () => {
             const projection = [DataTableProjections.Name];
             const substitutions = ['$workspace', '$status'];
             
-            const result = await ds.queryTables(filter, take, projection, substitutions);
+            const result = await lastValueFrom(ds.queryTables$(filter, take, projection, substitutions));
 
-            expect(postMock).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take, projection, substitutions },
+            expect(postMock$).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take, projection, substitutions },
                 { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
