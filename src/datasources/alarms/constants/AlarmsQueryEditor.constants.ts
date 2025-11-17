@@ -58,7 +58,7 @@ export const AlarmsPropertiesOptions: Record<
   AlarmsProperties,
   {
     label: string;
-    value: AlarmsProperties
+    value: AlarmsProperties;
   }
 > = {
   [AlarmsSpecificProperties.acknowledged]: {
