@@ -2,7 +2,7 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, 
 import { AlarmsProperties, AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery } from '../../types/ListAlarms.types';
 import { AlarmsVariableQuery, QueryAlarmsRequest, TransitionInclusionOption } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
-import { AlarmPropertyKeyMap, AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, TRANSITION_SPECIFIC_PROPERTIES, TransitionPropertyKeyMap } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { AlarmPropertyKeyMap, AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, TransitionPropertyKeyMap, QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL, TRANSITION_SPECIFIC_PROPERTIES } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { Alarm } from 'datasources/alarms/types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
@@ -27,7 +27,10 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public async runQuery(query: ListAlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     let mappedFields: DataFrameDTO['fields'] | undefined;
 
-    if (this.isTakeValid(query.take) && this.isPropertiesValid(query.properties)) {
+    if (
+      this.isTakeValid(query.take, query.transitionInclusionOption) &&
+      this.isPropertiesValid(query.properties)
+    ) {
       query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
       const alarmsResponse = await this.queryAlarmsData(query);
       const flattenedAlarms  =
@@ -76,10 +79,17 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     return (TRANSITION_SPECIFIC_PROPERTIES as readonly AlarmsProperties[]).includes(property);
   }
 
-  private isTakeValid(take?: number): boolean {
-    return take !== undefined
-      && take >= QUERY_EDITOR_MIN_TAKE
-      && take <= QUERY_EDITOR_MAX_TAKE;
+  private isTakeValid(take?: number, transitionInclusionOption?: TransitionInclusionOption): boolean {
+    if (!take || take < QUERY_EDITOR_MIN_TAKE) {
+      return false;
+    }
+
+    const maxTake =
+      transitionInclusionOption === TransitionInclusionOption.All
+        ? QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL
+        : QUERY_EDITOR_MAX_TAKE;
+
+    return take <= maxTake;
   }
 
   private isPropertiesValid(properties?: AlarmsProperties[]): properties is AlarmsProperties[] {

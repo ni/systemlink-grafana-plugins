@@ -778,6 +778,7 @@ describe('ListAlarmsQueryHandler', () => {
           const query = buildAlarmsQuery({
             properties: [AlarmsSpecificProperties.occurredAt, AlarmsTransitionProperties.transitionOccurredAt],
             transitionInclusionOption: TransitionInclusionOption.All,
+            take: 500,
           });
           jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
             buildAlarmsResponse([
@@ -817,6 +818,7 @@ describe('ListAlarmsQueryHandler', () => {
           const query = buildAlarmsQuery({
             properties: [AlarmsSpecificProperties.condition, AlarmsTransitionProperties.transitionCondition],
             transitionInclusionOption: TransitionInclusionOption.All,
+            take: 500,
           });
           jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
             buildAlarmsResponse([
@@ -862,6 +864,7 @@ describe('ListAlarmsQueryHandler', () => {
           const query = buildAlarmsQuery({
             properties: [AlarmsSpecificProperties.keywords, AlarmsTransitionProperties.transitionKeywords],
             transitionInclusionOption: TransitionInclusionOption.All,
+            take: 500,
           });
           jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
             buildAlarmsResponse([
@@ -904,6 +907,7 @@ describe('ListAlarmsQueryHandler', () => {
           const query = buildAlarmsQuery({
             properties: [AlarmsSpecificProperties.properties, AlarmsTransitionProperties.transitionProperties],
             transitionInclusionOption: TransitionInclusionOption.All,
+            take: 500,
           });
           jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
             buildAlarmsResponse([
@@ -946,6 +950,7 @@ describe('ListAlarmsQueryHandler', () => {
           const query = buildAlarmsQuery({
             properties: [AlarmsSpecificProperties.displayName, ...TRANSITION_SPECIFIC_PROPERTIES],
             transitionInclusionOption: TransitionInclusionOption.All,
+            take: 500,
           });
           const spy = jest.spyOn(datastore as any, 'duplicateAlarmsByTransitions');
           jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
@@ -1031,6 +1036,7 @@ describe('ListAlarmsQueryHandler', () => {
           const query = buildAlarmsQuery({
             properties: [AlarmsSpecificProperties.displayName, ...TRANSITION_SPECIFIC_PROPERTIES],
             transitionInclusionOption: TransitionInclusionOption.All,
+            take: 500,
           });
 
           const response = await datastore.runQuery(query, options);
@@ -1097,6 +1103,7 @@ describe('ListAlarmsQueryHandler', () => {
           const query = buildAlarmsQuery({
             properties: [AlarmsSpecificProperties.displayName, ...TRANSITION_SPECIFIC_PROPERTIES],
             transitionInclusionOption: TransitionInclusionOption.MostRecentOnly,
+            take: 500,
           });
           const spy = jest.spyOn(datastore as any, 'duplicateAlarmsByTransitions');
 
@@ -1170,6 +1177,7 @@ describe('ListAlarmsQueryHandler', () => {
             const query = buildAlarmsQuery({
               properties: [AlarmsSpecificProperties.displayName, ...TRANSITION_SPECIFIC_PROPERTIES],
               transitionInclusionOption: option,
+              take: 500,
             });
             jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
               buildAlarmsResponse([
@@ -1250,6 +1258,7 @@ describe('ListAlarmsQueryHandler', () => {
               AlarmsTransitionProperties.transitionType,
             ],
             transitionInclusionOption: TransitionInclusionOption.All,
+            take: 500,
           });  
           jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
             buildAlarmsResponse([
@@ -1307,6 +1316,7 @@ describe('ListAlarmsQueryHandler', () => {
           const query = buildAlarmsQuery({
             properties: [AlarmsTransitionProperties.transitionSeverityLevel],
             transitionInclusionOption: TransitionInclusionOption.All,
+            take: 500,
           });
           jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
             buildAlarmsResponse([
@@ -1369,6 +1379,7 @@ describe('ListAlarmsQueryHandler', () => {
           const query = buildAlarmsQuery({
             properties: [AlarmsTransitionProperties.transitionOccurredAt],
             transitionInclusionOption: TransitionInclusionOption.All,
+            take: 500,
           });
 
           const result = await datastore.runQuery(query, options);
@@ -1392,6 +1403,7 @@ describe('ListAlarmsQueryHandler', () => {
           const query = buildAlarmsQuery({
             properties: [AlarmsTransitionProperties.transitionKeywords],
             transitionInclusionOption: TransitionInclusionOption.All,
+            take: 500,
           });
           jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
             buildAlarmsResponse([
@@ -1434,6 +1446,7 @@ describe('ListAlarmsQueryHandler', () => {
           const query = buildAlarmsQuery({
             properties: [AlarmsTransitionProperties.transitionProperties],
             transitionInclusionOption: TransitionInclusionOption.All,
+            take: 500,
           });
           jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
             buildAlarmsResponse([
@@ -1512,6 +1525,48 @@ describe('ListAlarmsQueryHandler', () => {
           take: 500,
         })
       );
+    });
+
+    it('should not call queryAlarmsData when take is invalid for the ALL transition inclusion option', async () => {
+      const invalidTakeQuery = buildAlarmsQuery({
+        take: 1000,
+        transitionInclusionOption: TransitionInclusionOption.All,
+      });
+      const spy = jest.spyOn(datastore as any, 'queryAlarmsData');
+
+      const result = await datastore.runQuery(invalidTakeQuery, options);
+
+      expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    [
+      {
+        take: 500,
+        transitionInclusionOption: TransitionInclusionOption.All,
+      },
+      {
+        take: 250,
+        transitionInclusionOption: TransitionInclusionOption.MostRecentOnly,
+      },
+      {
+        take: 100,
+        transitionInclusionOption: TransitionInclusionOption.None,
+      },
+    ].forEach(({ take, transitionInclusionOption }) => {
+      it(`should call queryAlarmsData when take is valid for the ${transitionInclusionOption} transition inclusion option`, async () => {
+        const validTakeQuery = buildAlarmsQuery({ take, transitionInclusionOption });
+        const spy = jest.spyOn(datastore as any, 'queryAlarmsData');
+
+        await datastore.runQuery(validTakeQuery, options);
+
+        expect(spy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            take,
+            transitionInclusionOption,
+          })
+        );
+      });
     });
   });
 

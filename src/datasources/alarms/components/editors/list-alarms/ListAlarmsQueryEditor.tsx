@@ -12,6 +12,7 @@ import {
   PROPERTIES_ERROR_MESSAGE,
   QUERY_EDITOR_MAX_TAKE,
   QUERY_EDITOR_MIN_TAKE,
+  QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL,
   SECONDARY_CONTROL_WIDTH,
   SECONDARY_LABEL_WIDTH,
   takeErrorMessages,
@@ -68,21 +69,29 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     handleQueryChange({ ...query, descending });
   };
 
-  const validateTakeValue = (take: number) => {
+  const updateTakeInvalidMessage = (take: number, transitionInclusionOption: TransitionInclusionOption) => {
     if (isNaN(take) || take < QUERY_EDITOR_MIN_TAKE) {
-      return { message: takeErrorMessages.minErrorMsg, take };
+      setTakeInvalidMessage(takeErrorMessages.minErrorMsg);
+      return;
     }
-    if (take > QUERY_EDITOR_MAX_TAKE) {
-      return { message: takeErrorMessages.maxErrorMsg, take };
+
+    const { maxTake, errorMsg } =
+      transitionInclusionOption === TransitionInclusionOption.All
+        ? { maxTake: QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL, errorMsg: takeErrorMessages.transitionAllMaxTakeErrorMsg }
+        : { maxTake: QUERY_EDITOR_MAX_TAKE, errorMsg: takeErrorMessages.maxErrorMsg };
+
+    if (take > maxTake) {
+      setTakeInvalidMessage(errorMsg);
+      return;
     }
-    return { message: '', take };
+
+    setTakeInvalidMessage('');
   };
   
   const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
-    const value = parseInt((event.target as HTMLInputElement).value, 10);
-    const { message, take } = validateTakeValue(value);
+    const take = parseInt((event.target as HTMLInputElement).value, 10);
+    updateTakeInvalidMessage(take, query.transitionInclusionOption!);
 
-    setTakeInvalidMessage(message);
     handleQueryChange({ ...query, take });
   };
 
@@ -96,6 +105,7 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     }
 
     setIsPropertiesControlValid(updatedProperties.length > 0);
+    updateTakeInvalidMessage(query.take!, option.value);
 
     handleQueryChange({
       ...query,

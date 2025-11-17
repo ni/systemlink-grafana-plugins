@@ -270,6 +270,42 @@ describe('ListAlarmsQueryEditor', () => {
         expect(screen.queryByText(takeErrorMessages.minErrorMsg)).not.toBeInTheDocument();
       }
     });
+
+    it('should display appropriate error message when take exceeds the limit for transition inclusion All', async () => {
+      await renderElement({ refId: 'A', transitionInclusionOption: TransitionInclusionOption.All });
+
+      const takeInput = screen.getByRole('spinbutton');
+      fireEvent.change(takeInput, { target: { value: '5000' } });
+      fireEvent.blur(takeInput);
+
+      expect(screen.getByText(takeErrorMessages.transitionAllMaxTakeErrorMsg)).toBeInTheDocument();
+    });
+
+    it('should display no error message when take is valid for transition inclusion All', async () => {
+      await renderElement({ refId: 'A', transitionInclusionOption: TransitionInclusionOption.All });
+
+      const takeInput = screen.getByRole('spinbutton');
+      fireEvent.change(takeInput, { target: { value: '500' } });
+      fireEvent.blur(takeInput);
+
+      expect(screen.queryByText(takeErrorMessages.transitionAllMaxTakeErrorMsg)).not.toBeInTheDocument();
+    });
+
+    it('should display error message when transition inclusion is changed from None to All and take exceeds the limit', async () => {
+      await renderElement({ refId: 'A', take: 2000, transitionInclusionOption: TransitionInclusionOption.None });
+
+      const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Include Transition' });
+      await userEvent.click(transitionInclusionCombobox);
+      await select(
+        transitionInclusionCombobox,
+        AlarmsTransitionInclusionOptions[TransitionInclusionOption.All].label,
+        {
+          container: document.body,
+        }
+      );
+
+      expect(screen.getByText(takeErrorMessages.transitionAllMaxTakeErrorMsg)).toBeInTheDocument();
+    });
   });
 
   describe('Descending', () => {
@@ -422,7 +458,8 @@ describe('ListAlarmsQueryEditor', () => {
       const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Include Transition' });
 
       await userEvent.click(transitionInclusionCombobox);
-      await select(transitionInclusionCombobox,
+      await select(
+        transitionInclusionCombobox,
         AlarmsTransitionInclusionOptions[TransitionInclusionOption.None].label,
         {
           container: document.body,
