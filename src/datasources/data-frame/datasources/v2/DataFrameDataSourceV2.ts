@@ -369,7 +369,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             map(tables => this.flattenTablesWithColumns(tables))
         );
         const workspaces$ = from(this.loadWorkspaces());
-        const fields$ = flattenedTablesWithColumns$.pipe(
+        const dataFrame$ = flattenedTablesWithColumns$.pipe(
             combineLatestWith(workspaces$),
             map(([flattenedTablesWithColumns, workspaces]) => {
                 const fields = propertiesToQuery.map(property => {
@@ -393,6 +393,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             })
         );
 
-        return fields$;
+        return dataFrame$;
     }
 }
