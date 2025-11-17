@@ -1,3 +1,9 @@
+## [4.70.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.69.0...v4.70.0) (2025-11-17)
+
+### Features
+
+* **notebook:**  refactor the base code ([#527](https://github.com/ni/systemlink-grafana-plugins/issues/527)) ([3022391](https://github.com/ni/systemlink-grafana-plugins/commit/302239100ad29c08faa73715605596fe22efb90a))
+
 ## [4.69.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.68.0...v4.69.0) (2025-11-17)
 
 ### Features
