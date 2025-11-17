@@ -17,7 +17,6 @@ import {
   SECONDARY_LABEL_WIDTH,
   takeErrorMessages,
   tooltips,
-  TRANSITION_SPECIFIC_PROPERTIES,
 } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
