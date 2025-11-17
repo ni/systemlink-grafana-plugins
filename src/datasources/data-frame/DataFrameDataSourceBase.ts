@@ -14,24 +14,28 @@ import {
     DataTableProjections,
     ValidDataFrameVariableQuery,
     DataFrameDataQuery,
-    DataFrameVariableQuery
+    DataFrameVariableQuery,
+    Option
 } from './types';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { extractErrorInfo } from 'core/errors';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
-import { ComboboxOption } from '@grafana/ui';
+import { Observable } from 'rxjs';
+import { PART_NUMBER_FIELD } from './constants';
 
 export abstract class DataFrameDataSourceBase<
     TQuery extends DataFrameQuery = DataFrameQuery,
 > extends DataSourceBase<TQuery, DataFrameDataSourceOptions> {
     public baseUrl = this.instanceSettings.url + '/nidataframe/v1';
+    public queryResultValuesUrl = this.instanceSettings.url + '/nitestmonitor/v2/query-result-values';
     public errorTitle = '';
     public errorDescription = '';
 
     public readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
     private readonly workspaceUtils: WorkspaceUtils;
+    static _partNumbersCache: Promise<string[]>;
 
     public constructor(
         public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
@@ -55,7 +59,17 @@ export abstract class DataFrameDataSourceBase<
         intervals?: number
     ): Promise<TableDataRows>;
 
-    public abstract queryTables(query: string, take?: number, projection?: DataTableProjections[]): Promise<TableProperties[]>;
+    public abstract queryTables$(
+        query: string,
+        take?: number,
+        projection?: DataTableProjections[]
+    ): Observable<TableProperties[]>;
+
+    public abstract queryTables(
+        query: string,
+        take?: number,
+        projection?: DataTableProjections[]
+    ): Promise<TableProperties[]>;
 
     public async testDatasource(): Promise<TestDataSourceResponse> {
         await this.get(`${this.baseUrl}/tables`, { params: { take: 1 } });
@@ -73,8 +87,35 @@ export abstract class DataFrameDataSourceBase<
         }
     }
 
-    public async getColumnOptions(filter: string): Promise<ComboboxOption[]> {
+    public async getColumnOptions(filter: string): Promise<Option[]> {
         return Promise.resolve([]);
+    }
+
+    public async loadPartNumbers(): Promise<string[]> {
+        if (!DataFrameDataSourceBase._partNumbersCache) {
+            DataFrameDataSourceBase._partNumbersCache = this.queryResultsValues(
+                PART_NUMBER_FIELD,
+                undefined
+            ).catch((error) => {
+                if (!this.errorTitle) {
+                    this.handleDependenciesError(error);
+                }
+                return [];
+            });
+        }
+
+        return DataFrameDataSourceBase._partNumbersCache;
+    }
+
+    private async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {
+        return this.post<string[]>(
+            this.queryResultValuesUrl,
+            {
+                field: fieldName,
+                filter,
+            },
+            { showErrorAlert: false } // suppress default error alert since we handle errors manually
+        );
     }
 
     private handleDependenciesError(error: unknown): void {

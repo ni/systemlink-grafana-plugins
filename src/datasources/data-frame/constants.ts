@@ -18,7 +18,7 @@ export const decimationMethods = [
   },
 ];
 
-export const errorCodes: { [key: number]: string } = {
+export const errorCodes: { [key: number]: string; } = {
   [-255134]: 'Invalid table ID',
   [-255130]: 'Table does not exist',
 };
@@ -27,3 +27,5 @@ export const propertiesCacheTTL = 1000 * 60 * 5; // 5 minutes
 
 export const TAKE_LIMIT = 1000;
 export const COLUMN_OPTIONS_LIMIT = 10000;
+
+export const PART_NUMBER_FIELD = 'partNumber';
