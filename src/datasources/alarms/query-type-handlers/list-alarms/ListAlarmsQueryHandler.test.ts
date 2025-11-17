@@ -6,7 +6,7 @@ import { QUERY_ALARMS_RELATIVE_PATH } from 'datasources/alarms/constants/QueryAl
 import { BackendSrv } from '@grafana/runtime';
 import { MockProxy } from 'jest-mock-extended';
 import { User } from 'shared/types/QueryUsers.types';
-import { AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
+import { AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery, OutputType } from 'datasources/alarms/types/ListAlarms.types';
 import { Workspace } from 'core/types';
 import { AlarmsPropertiesOptions, TRANSITION_SPECIFIC_PROPERTIES } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 
@@ -117,6 +117,7 @@ function buildAlarmsQuery(query?: Partial<ListAlarmsQuery>): ListAlarmsQuery {
   return {
     refId: 'A',
     queryType: QueryType.ListAlarms,
+    outputType: OutputType.Properties,
     take: 1000,
     properties: [AlarmsSpecificProperties.displayName],
     ...query,
@@ -154,6 +155,7 @@ describe('ListAlarmsQueryHandler', () => {
     const defaultQuery = datastore.defaultQuery;
 
     expect(defaultQuery).toEqual({
+      outputType: 'Properties',
       filter: '',
       properties: ['displayName', 'currentSeverityLevel', 'occurredAt', 'source', 'state', 'workspace'],
       take: 1000,
@@ -192,10 +194,9 @@ describe('ListAlarmsQueryHandler', () => {
 
     describe('Properties Mapping', () => {
       it('should return empty fields when properties is invalid', async () => {
-        const query = {
-          refId: 'A',
+        const query = buildAlarmsQuery({
           properties: [],
-        };
+        });
 
         const result = await datastore.runQuery(query, options);
 
