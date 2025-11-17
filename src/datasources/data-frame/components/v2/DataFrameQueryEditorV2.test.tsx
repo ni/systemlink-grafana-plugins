@@ -754,6 +754,7 @@ describe("DataFrameQueryEditorV2", () => {
                 // Mock offsetHeight for combobox virtualization so options render in tests
                 jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(120);
             });
+
             it('should fetch column options when switching to Data query type with existing non-empty filter', async () => {
                 const user = userEvent.setup();
                 const { onChange } = renderComponent({ type: DataFrameQueryType.Properties, dataTableFilter: 'ExistingFilter' });
@@ -763,11 +764,9 @@ describe("DataFrameQueryEditorV2", () => {
                 // Switch query type to Data
                 await user.click(screen.getByRole('radio', { name: DataFrameQueryType.Data }));
 
-                // Open columns combobox to trigger display of options
                 const columnsCombobox = screen.getAllByRole('combobox')[0];
                 await user.click(columnsCombobox);
 
-                // Assert that column options were loaded (virtualized list contains at least one known option)
                 await waitFor(() => {
                     const optionControls = within(document.body).getAllByRole('option');
                     const texts = optionControls.map(o => o.textContent);
@@ -789,13 +788,10 @@ describe("DataFrameQueryEditorV2", () => {
                 const mockEvent = { detail: { linq: 'UpdatedFilter' } } as Event & { detail: { linq: string } };
                 onDataTableFilterChange(mockEvent);
 
-                // Re-open the MultiCombobox for DataTableProperties (first combobox) - should not show column options since still Properties type
                 const dataTablePropertiesCombobox = screen.getAllByRole('combobox')[0];
                 await user.click(dataTablePropertiesCombobox);
 
-                // Column options list should not have been rendered (no ColumnA, ColumnB etc.)
                 await waitFor(() => {
-                    // Only data table property labels should appear, ensure no column option labels
                     const optionControls = within(document.body).getAllByRole('option');
                     const texts = optionControls.map(o => o.textContent);
                     expect(texts.some(t => t?.startsWith('ColumnA'))).toBe(false);
