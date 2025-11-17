@@ -1,4 +1,4 @@
-import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TimeRange } from "@grafana/data";
+import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQuery, ValidDataFrameQueryV2, ValidDataFrameVariableQuery } from "../../types";
@@ -11,6 +11,7 @@ import { catchError, combineLatestWith, from, lastValueFrom, map, Observable, of
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
     defaultQuery = defaultQueryV2;
+    private scopedVars: ScopedVars = {};
 
     public constructor(
         public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
@@ -24,12 +25,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         query: DataFrameQueryV2,
         options: DataQueryRequest<DataFrameQueryV2>
     ): Observable<DataFrameDTO> {
+        this.scopedVars = options.scopedVars;
         const processedQuery = this.processQuery(query);
 
         if (processedQuery.dataTableFilter) {
-            processedQuery.dataTableFilter = transformComputedFieldsQuery(
-                this.templateSrv.replace(processedQuery.dataTableFilter, options.scopedVars),
-                this.dataTableComputedDataFields,
+            processedQuery.dataTableFilter = this.transformQuery(
+                processedQuery.dataTableFilter,
+                options.scopedVars
             );
         }
 
@@ -51,9 +53,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         const processedQuery = this.processVariableQuery(query);
 
         if (processedQuery.dataTableFilter) {
-            processedQuery.dataTableFilter = transformComputedFieldsQuery(
-                this.templateSrv.replace(processedQuery.dataTableFilter, options.scopedVars),
-                this.dataTableComputedDataFields,
+            processedQuery.dataTableFilter = this.transformQuery(
+                processedQuery.dataTableFilter,
+                options?.scopedVars! || ''
             );
         }
 
@@ -81,7 +83,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     shouldRunQuery(query: ValidDataFrameQuery): boolean {
         const processedQuery = this.processQuery(query);
 
-        return !processedQuery.hide && processedQuery.type === DataFrameQueryType.Properties;
+        return !processedQuery.hide;
     }
 
     processQuery(query: DataFrameDataQuery): ValidDataFrameQueryV2 {
@@ -147,7 +149,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     }
 
     public async getColumnOptions(filter: string): Promise<Option[]> {
-        const tables = await lastValueFrom(this.queryTables$(filter, TAKE_LIMIT, [
+        const variableReplacedFilter = this.transformQuery(
+            filter,
+            this.scopedVars
+        );
+        const tables = await lastValueFrom(this.queryTables$(variableReplacedFilter, TAKE_LIMIT, [
             DataTableProjections.ColumnName,
             DataTableProjections.ColumnDataType,
         ]));
@@ -216,7 +222,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 });
             }
         });
-        return options;
+        const columnOptionsWithVars = [...this.getVariableOptions(), ...options];
+        return columnOptionsWithVars;
     };
 
     /**
@@ -349,6 +356,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
 
             return value;
         });
+    }
+
+    private transformQuery(query: string, scopedVars: ScopedVars) {
+        return transformComputedFieldsQuery(
+            this.templateSrv.replace(query, scopedVars),
+            this.dataTableComputedDataFields,
+        );
     }
 
     private getFieldsForPropertiesQuery$(processedQuery: ValidDataFrameQueryV2): Observable<DataFrameDTO> {
