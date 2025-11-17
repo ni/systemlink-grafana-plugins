@@ -76,10 +76,10 @@ describe('DataFrameDataSource', () => {
         expect(v1Mock.getDecimatedTableData).toHaveBeenCalled();
 
         await expect(lastValueFrom(ds.queryTables$('query'))).resolves.toEqual(['v1-tables']);
-        expect(v1Mock.queryTables$).toHaveBeenCalledWith('query', undefined, undefined);
+        expect(v1Mock.queryTables$).toHaveBeenCalledWith('query', undefined, undefined, undefined);
 
         await expect(ds.queryTables('query')).resolves.toEqual(['v1-tables']);
-        expect(v1Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined);
+        expect(v1Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined, undefined);
 
         expect(ds.processQuery({} as any)).toBe('v1-processed');
         expect(v1Mock.processQuery).toHaveBeenCalled();
@@ -111,7 +111,7 @@ describe('DataFrameDataSource', () => {
         expect(v2Mock.getDecimatedTableData).toHaveBeenCalled();
 
         await expect(lastValueFrom(ds.queryTables$('query'))).resolves.toEqual(['v2-tables']);
-        expect(v2Mock.queryTables$).toHaveBeenCalledWith('query', undefined, undefined);
+        expect(v2Mock.queryTables$).toHaveBeenCalledWith('query', undefined, undefined, undefined);
 
         await expect(ds.queryTables('query')).resolves.toEqual(['v2-tables']);
         expect(v2Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined, undefined);
@@ -173,18 +173,18 @@ describe('DataFrameDataSource', () => {
    describe('queryTablesWithCombineFilters', () => {
        it('should call queryTablesWithCombineFilters on DataFrameDataSourceV1 when feature toggle is false', async () => {
            const ds = new DataFrameDataSource(mockInstanceSettings(false));
-           v1Mock.queryTablesWithCombineFilters = jest.fn().mockResolvedValue(['v1-combined-tables']);
+           v1Mock.queryTablesWithCombinedFilters = jest.fn().mockResolvedValue(['v1-combined-tables']);
 
-           const result = await ds.queryTablesWithCombineFilters(
+           const result = await lastValueFrom(ds.queryTablesWithCombinedFilters(
                {
                    dataTablesFilter: 'name = "test"',
                    resultsFilter: 'status = "passed"'
                },
                10,
                ['name' as any]
-           );
+           ));
            
-           expect(v1Mock.queryTablesWithCombineFilters).toHaveBeenCalledWith(
+           expect(v1Mock.queryTablesWithCombinedFilters).toHaveBeenCalledWith(
                {
                    dataTablesFilter: 'name = "test"',
                    resultsFilter: 'status = "passed"'
@@ -197,18 +197,18 @@ describe('DataFrameDataSource', () => {
 
        it('should call queryTablesWithCombineFilters on DataFrameDataSourceV2 when feature toggle is true', async () => {
            const ds = new DataFrameDataSource(mockInstanceSettings(true));
-           v2Mock.queryTablesWithCombineFilters = jest.fn().mockResolvedValue(['v2-combined-tables']);
+           v2Mock.queryTablesWithCombinedFilters = jest.fn().mockResolvedValue(['v2-combined-tables']);
 
-           const result = await ds.queryTablesWithCombineFilters(
+           const result = await lastValueFrom(ds.queryTablesWithCombinedFilters(
                {
                    dataTablesFilter: 'name = "test"',
                    resultsFilter: 'status = "passed"'
                },
                10,
                ['name' as any]
-           );
+           ));
            
-           expect(v2Mock.queryTablesWithCombineFilters).toHaveBeenCalledWith(
+           expect(v2Mock.queryTablesWithCombinedFilters).toHaveBeenCalledWith(
                {
                    dataTablesFilter: 'name = "test"',
                    resultsFilter: 'status = "passed"'

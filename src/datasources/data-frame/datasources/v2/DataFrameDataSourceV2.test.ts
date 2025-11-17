@@ -1233,7 +1233,7 @@ describe('DataFrameDataSourceV2', () => {
             const take = 10;
             const projections = [DataTableProjections.Name, DataTableProjections.Id];
 
-            await ds.queryTablesWithCombineFilters(filters, take, projections);
+            await lastValueFrom(ds.queryTablesWithCombinedFilters(filters, take, projections));
 
             expect(queryTablesMock).toHaveBeenCalledWith(
                 filters.dataTablesFilter,
@@ -1253,7 +1253,7 @@ describe('DataFrameDataSourceV2', () => {
                 resultsFilter: 'status = "passed"'
             };
 
-            const result = await ds.queryTablesWithCombineFilters(filters);
+            const result = await lastValueFrom(ds.queryTablesWithCombinedFilters(filters));
 
             expect(result).toEqual(mockTables);
         });

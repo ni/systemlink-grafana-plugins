@@ -1,6 +1,6 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetricFindQueryOptions, MetricFindValue, TimeRange } from "@grafana/data";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameFeatureTogglesDefaults, DataFrameVariableQuery, DataTableProjections, TableDataRows, TableProperties, ValidDataFrameQuery, ValidDataFrameVariableQuery } from "./types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameFeatureTogglesDefaults, DataFrameVariableQuery, DataTableProjections, TableDataRows, TableProperties, ValidDataFrameQuery, ValidDataFrameVariableQuery, CombinedFilters } from "./types";
 import { DataFrameDataSourceBase } from "./DataFrameDataSourceBase";
 import { DataFrameDataSourceV1 } from "./datasources/v1/DataFrameDataSourceV1";
 import { DataFrameDataSourceV2 } from "./datasources/v2/DataFrameDataSourceV2";
@@ -72,9 +72,10 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
   public queryTables(
     query: string,
     take?: number,
-    projection?: DataTableProjections[]
+    projection?: DataTableProjections[],
+    substitutions?: string[]
   ): Promise<TableProperties[]> {
-    return this.datasource.queryTables(query, take, projection);
+    return this.datasource.queryTables(query, take, projection, substitutions);
   }
 
   public processQuery(query: DataFrameDataQuery): ValidDataFrameQuery {
@@ -89,14 +90,11 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.getColumnOptions(filter);
   }
 
-  public queryTablesWithCombineFilters(
-    filters: {
-      dataTablesFilter: string;
-      resultsFilter: string;
-    },
+  public queryTablesWithCombinedFilters(
+    filters: CombinedFilters,
     take?: number,
     projections?: DataTableProjections[]
   ): Observable<TableProperties[]> {
-    return this.datasource.queryTablesWithCombineFilters(filters, take, projections);
+    return this.datasource.queryTablesWithCombinedFilters(filters, take, projections);
   }
 }

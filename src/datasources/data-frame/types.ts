@@ -103,6 +103,11 @@ export enum DataTableProjections {
   Properties = 'PROPERTIES'
 }
 
+export interface CombinedFilters {
+  dataTablesFilter: string;
+  resultsFilter: string;
+}
+
 export enum DataTableProjectionType {
   DataTable = 'dataTable',
   Column = 'column'
