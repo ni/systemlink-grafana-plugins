@@ -1216,7 +1216,7 @@ describe('DataFrameDataSourceV2', () => {
                 templateSrv.replace.mockImplementation(
                     (target?: string, vars?: any) => (target ?? '').replace('${var1}', vars.var1.value));
 
-                queryTablesMock.mockResolvedValue([
+                queryTablesMock$.mockResolvedValue([
                     {
                         id: '1',
                         name: 'Table 1',
@@ -1229,7 +1229,7 @@ describe('DataFrameDataSourceV2', () => {
                 await ds.getColumnOptions('name = "${var1}"');
 
                 expect(templateSrv.replace).toHaveBeenCalledWith('name = "${var1}"', scopedVars);
-                expect(queryTablesMock).toHaveBeenCalledWith('name = "VarValue"', TAKE_LIMIT, [
+                expect(queryTablesMock$).toHaveBeenCalledWith('name = "VarValue"', TAKE_LIMIT, [
                     DataTableProjections.ColumnName,
                     DataTableProjections.ColumnDataType,
                 ]);
@@ -1241,7 +1241,7 @@ describe('DataFrameDataSourceV2', () => {
                     { name: 'var2' }
                 ] as any);
 
-                queryTablesMock.mockResolvedValue([
+                queryTablesMock$.mockResolvedValue([
                     {
                         id: '1',
                         name: 'Table 1',

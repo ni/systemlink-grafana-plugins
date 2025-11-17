@@ -358,11 +358,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         });
     }
 
-    private transformQuery(query: string, scopedVars: ScopedVars)  {
-     return transformComputedFieldsQuery(
-                this.templateSrv.replace(query, scopedVars),
-                this.dataTableComputedDataFields,
-            );
+    private transformQuery(query: string, scopedVars: ScopedVars) {
+        return transformComputedFieldsQuery(
+            this.templateSrv.replace(query, scopedVars),
+            this.dataTableComputedDataFields,
+        );
     }
 
     private getFieldsForPropertiesQuery$(processedQuery: ValidDataFrameQueryV2): Observable<DataFrameDTO> {
