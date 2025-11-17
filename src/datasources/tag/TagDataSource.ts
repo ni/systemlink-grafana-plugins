@@ -77,7 +77,7 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
 
   private getMostRecentTagsByMultiplePaths$(paths: string[], workspace: string): Observable<TagWithValue[]> {
     const workspaceQuery = [workspace || "*"];
-    const response = this.post$<TagsWithValues>(`${this.tagUrl}/fetch-tags-with-values`, {
+    return this.post$<TagsWithValues>(`${this.tagUrl}/fetch-tags-with-values`, {
       paths: paths,
       workspaces: workspaceQuery,
       take: 100,
