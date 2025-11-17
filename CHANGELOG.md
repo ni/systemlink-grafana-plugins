@@ -1,3 +1,27 @@
+## [4.68.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.67.0...v4.68.0) (2025-11-17)
+
+### Features
+
+* **alarms:** Implement transition-related property mapping ([#496](https://github.com/ni/systemlink-grafana-plugins/issues/496)) ([f053e4e](https://github.com/ni/systemlink-grafana-plugins/commit/f053e4e197c3775b5401ef704af83db73255dc93))
+
+## [4.67.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.66.1...v4.67.0) (2025-11-17)
+
+### Features
+
+* **tags:** Cancel the current request before progressing refresh  ([#517](https://github.com/ni/systemlink-grafana-plugins/issues/517)) ([32a3f4e](https://github.com/ni/systemlink-grafana-plugins/commit/32a3f4edf7fbf4eb0ef410781af70e00a5984753))
+
+## [4.66.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.66.0...v4.66.1) (2025-11-17)
+
+### Bug Fixes
+
+* **dataframe:** Cancel ongoing queries when refresh ([#521](https://github.com/ni/systemlink-grafana-plugins/issues/521)) ([50a9315](https://github.com/ni/systemlink-grafana-plugins/commit/50a9315b74557db8e95d5e297b282f5ea13ec2a3))
+
+## [4.66.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.65.0...v4.66.0) (2025-11-15)
+
+### Features
+
+* **asset:** add filter by Scan Code ([#525](https://github.com/ni/systemlink-grafana-plugins/issues/525)) ([2a6e1b5](https://github.com/ni/systemlink-grafana-plugins/commit/2a6e1b5fc44f13cd4ed8cf8b6df8a1397e4b3d14))
+
 ## [4.65.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.64.0...v4.65.0) (2025-11-14)
 
 ### Features

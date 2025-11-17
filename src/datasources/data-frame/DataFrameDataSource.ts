@@ -4,6 +4,7 @@ import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFra
 import { DataFrameDataSourceBase } from "./DataFrameDataSourceBase";
 import { DataFrameDataSourceV1 } from "./datasources/v1/DataFrameDataSourceV1";
 import { DataFrameDataSourceV2 } from "./datasources/v2/DataFrameDataSourceV2";
+import { Observable } from "rxjs";
 
 export class DataFrameDataSource extends DataFrameDataSourceBase {
   private queryByTablePropertiesFeatureEnabled = false;
@@ -28,7 +29,10 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     this.defaultQuery = { ...this.datasource.defaultQuery, refId: 'A' };
   }
 
-  public async runQuery(query: DataFrameDataQuery, options: DataQueryRequest<DataFrameDataQuery>): Promise<DataFrameDTO> {
+  public runQuery(
+    query: DataFrameDataQuery,
+    options: DataQueryRequest<DataFrameDataQuery>
+  ): Promise<DataFrameDTO> | Observable<DataFrameDTO> {
     return this.datasource.runQuery(query, options);
   }
 
@@ -56,7 +60,19 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.getDecimatedTableData(query, columns, timeRange, intervals);
   }
 
-  public async queryTables(query: string, take?: number, projection?: DataTableProjections[], substitutions?: string[]): Promise<TableProperties[]> {
+  public queryTables$(
+    query: string,
+    take?: number,
+    projection?: DataTableProjections[]
+  ): Observable<TableProperties[]> {
+    return this.datasource.queryTables$(query, take, projection);
+  }
+
+  public queryTables(
+    query: string,
+    take?: number,
+    projection?: DataTableProjections[]
+  , substitutions?: string[]): Promise<TableProperties[]> {
     return this.datasource.queryTables(query, take, projection, substitutions);
   }
 

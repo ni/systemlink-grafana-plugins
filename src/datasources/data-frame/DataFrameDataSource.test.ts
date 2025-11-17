@@ -1,3 +1,4 @@
+import { from, lastValueFrom, of } from 'rxjs';
 import { DataFrameDataSource } from './DataFrameDataSource';
 import { DataFrameDataSourceV1 } from './datasources/v1/DataFrameDataSourceV1';
 import { DataFrameDataSourceV2 } from './datasources/v2/DataFrameDataSourceV2';
@@ -32,17 +33,19 @@ describe('DataFrameDataSource', () => {
             metricFindQuery: jest.fn().mockResolvedValue(['v1-metric']),
             getTableProperties: jest.fn().mockResolvedValue('v1-tableProps'),
             getDecimatedTableData: jest.fn().mockResolvedValue('v1-decimated'),
+            queryTables$: jest.fn().mockReturnValue(of(['v1-tables'])),
             queryTables: jest.fn().mockResolvedValue(['v1-tables']),
             processQuery: jest.fn().mockReturnValue('v1-processed'),
             processVariableQuery: jest.fn().mockReturnValue('v1-processed'),
         } as any;
 
         v2Mock = {
-            runQuery: jest.fn().mockResolvedValue('v2-runQuery'),
+            runQuery: jest.fn().mockReturnValue(of('v2-runQuery')),
             shouldRunQuery: jest.fn().mockReturnValue(false),
             metricFindQuery: jest.fn().mockResolvedValue(['v2-metric']),
             getTableProperties: jest.fn().mockResolvedValue('v2-tableProps'),
             getDecimatedTableData: jest.fn().mockResolvedValue('v2-decimated'),
+            queryTables$: jest.fn().mockReturnValue(of(['v2-tables'])),
             queryTables: jest.fn().mockResolvedValue(['v2-tables']),
             processQuery: jest.fn().mockReturnValue('v2-processed'),
             processVariableQuery: jest.fn().mockReturnValue('v2-processed'),
@@ -72,6 +75,9 @@ describe('DataFrameDataSource', () => {
         await expect(ds.getDecimatedTableData({} as any, [], {} as TimeRange, 10)).resolves.toBe('v1-decimated');
         expect(v1Mock.getDecimatedTableData).toHaveBeenCalled();
 
+        await expect(lastValueFrom(ds.queryTables$('query'))).resolves.toEqual(['v1-tables']);
+        expect(v1Mock.queryTables$).toHaveBeenCalledWith('query', undefined, undefined);
+
         await expect(ds.queryTables('query')).resolves.toEqual(['v1-tables']);
         expect(v1Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined, undefined);
 
@@ -96,7 +102,9 @@ describe('DataFrameDataSource', () => {
         expect(DataFrameDataSourceV2).toHaveBeenCalled();
         expect(DataFrameDataSourceV1).not.toHaveBeenCalled();
 
-        await expect(ds.runQuery({} as any, {} as any)).resolves.toBe('v2-runQuery');
+        await expect(
+            lastValueFrom(from(ds.runQuery({} as any, {} as any)))
+        ).resolves.toBe('v2-runQuery');
         expect(v2Mock.runQuery).toHaveBeenCalled();
 
         expect(ds.shouldRunQuery({} as any)).toBe(false);
@@ -110,6 +118,9 @@ describe('DataFrameDataSource', () => {
 
         await expect(ds.getDecimatedTableData({} as any, [], {} as TimeRange, 10)).resolves.toBe('v2-decimated');
         expect(v2Mock.getDecimatedTableData).toHaveBeenCalled();
+
+        await expect(lastValueFrom(ds.queryTables$('query'))).resolves.toEqual(['v2-tables']);
+        expect(v2Mock.queryTables$).toHaveBeenCalledWith('query', undefined, undefined);
 
         await expect(ds.queryTables('query')).resolves.toEqual(['v2-tables']);
         expect(v2Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined, undefined);

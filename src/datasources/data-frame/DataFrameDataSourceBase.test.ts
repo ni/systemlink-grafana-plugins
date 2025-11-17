@@ -4,6 +4,7 @@ import { DataFrameDataSourceBase } from './DataFrameDataSourceBase';
 import { DataFrameQuery, DataFrameDataSourceOptions, TableProperties, TableDataRows, Column, DataFrameVariableQuery, ValidDataFrameVariableQuery, DataFrameDataQuery } from './types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { Workspace } from 'core/types';
+import { lastValueFrom, Observable, of } from 'rxjs';
 
 jest.mock('core/utils', () => ({
     ...jest.requireActual('core/utils'),
@@ -75,6 +76,10 @@ describe('DataFrameDataSourceBase', () => {
             return Promise.resolve([] as unknown as TableDataRows);
         }
 
+        public queryTables$(_query: string): Observable<TableProperties[]> {
+            return of([]);
+        }
+
         public queryTables(_query: string): Promise<TableProperties[]> {
             return Promise.resolve([]);
         }
@@ -116,6 +121,7 @@ describe('DataFrameDataSourceBase', () => {
         expect(ds.processVariableQuery({} as DataFrameVariableQuery)).toEqual({});
         await expect(ds.getTableProperties()).resolves.toEqual({});
         await expect(ds.getDecimatedTableData({} as DataFrameDataQuery, [], {} as TimeRange)).resolves.toEqual([]);
+        await expect(lastValueFrom(ds.queryTables$(''))).resolves.toEqual([]);
         await expect(ds.queryTables('')).resolves.toEqual([]);
     });
 

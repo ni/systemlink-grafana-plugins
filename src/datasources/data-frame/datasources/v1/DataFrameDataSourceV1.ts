@@ -23,6 +23,7 @@ import _ from 'lodash';
 import { DataFrameDataSourceBase } from '../../DataFrameDataSourceBase';
 import { replaceVariables } from 'core/utils';
 import { LEGACY_METADATA_TYPE } from 'core/types';
+import { Observable, of } from 'rxjs';
 
 export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQueryV1> {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
@@ -95,6 +96,14 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
         yColumns: this.getNumericColumns(columns).map(c => c.name),
       },
     });
+  }
+
+  queryTables$(
+    query: string,
+    take = 5,
+    projection?: DataTableProjections[]
+  ): Observable<TableProperties[]> {
+    return of([]);
   }
 
   async queryTables(query: string, take = 5, projection?: DataTableProjections[], substitutions?: string[]): Promise<TableProperties[]> {
