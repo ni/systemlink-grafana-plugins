@@ -114,10 +114,19 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     }
 
     public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
-        // TODO: #3259801 - Implement Migration of DataFrameQueryV1 to ValidDataFrameVariableQuery.
+        if ('dataTableFilter' in query) {
+            return {
+                ...defaultVariableQueryV2,
+                ...query
+            } as ValidDataFrameVariableQuery;
+        }
+
+        const queryV1 = query as DataFrameQueryV1;
+        const dataTableFilter = queryV1.tableId ? `id = "${queryV1.tableId}"` : '';
         return {
             ...defaultVariableQueryV2,
-            ...query
+            ...query,
+            dataTableFilter,
         } as ValidDataFrameVariableQuery;
     }
 
