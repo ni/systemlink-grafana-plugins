@@ -4,10 +4,10 @@ import { InlineField } from 'core/components/InlineField';
 import { toOption } from '@grafana/data';
 import { FloatingError, parseErrorMessage } from 'core/errors';
 import { isValidId } from 'datasources/data-frame/utils';
-import { PropsV1 } from '../../types';
+import { Props } from '../../types';
 import { DataFrameQueryEditorCommonV1 } from './DataFrameQueryEditorCommonV1';
 
-export const DataFrameVariableQueryEditorV1 = (props: PropsV1) => {
+export const DataFrameVariableQueryEditorV1 = (props: Props) => {
     const [errorMsg, setErrorMsg] = useState<string | undefined>('');
     const handleError = (error: Error) => setErrorMsg(parseErrorMessage(error));
     const common = new DataFrameQueryEditorCommonV1(props, handleError);

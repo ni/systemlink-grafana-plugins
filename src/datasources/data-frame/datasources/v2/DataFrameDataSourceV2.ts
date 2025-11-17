@@ -1,8 +1,8 @@
-import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, MetricFindValue, TimeRange } from "@grafana/data";
+import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, DataFrameDataSourceOptions, DataFrameQuery, DataFrameQueryType, DataFrameQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQuery, ValidDataFrameQueryV2 } from "../../types";
-import { TAKE_LIMIT } from "datasources/data-frame/constants";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQuery, ValidDataFrameQueryV2, ValidDataFrameVariableQuery } from "../../types";
+import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
@@ -43,9 +43,39 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         };
     }
 
-    async metricFindQuery(_query: DataFrameQueryV2): Promise<MetricFindValue[]> {
-        // TODO: Implement logic to fetch and return metric find values based on the query.
-        return [];
+    async metricFindQuery(
+        query: DataFrameVariableQuery,
+        options: LegacyMetricFindQueryOptions
+    ): Promise<MetricFindValue[]> {
+        const processedQuery = this.processVariableQuery(query);
+
+        if (processedQuery.dataTableFilter) {
+            processedQuery.dataTableFilter = transformComputedFieldsQuery(
+                this.templateSrv.replace(processedQuery.dataTableFilter, options.scopedVars),
+                this.dataTableComputedDataFields,
+            );
+        }
+
+        if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {
+            const tables = await this.queryTables(
+                processedQuery.dataTableFilter,
+                TAKE_LIMIT,
+                [DataTableProjections.Name]
+            );
+
+            return tables.map(table => ({
+                text: table.name,
+                value: table.id,
+            }));
+        }
+
+        const columns = await this.getColumnOptions(processedQuery.dataTableFilter);
+        const limitedColumns = columns.splice(0, COLUMN_OPTIONS_LIMIT);
+
+        return limitedColumns.map(column => ({
+            text: column.label,
+            value: column.value,
+        }));
     }
 
     shouldRunQuery(query: ValidDataFrameQuery): boolean {
@@ -54,12 +84,20 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         return !processedQuery.hide && processedQuery.type === DataFrameQueryType.Properties;
     }
 
-    processQuery(query: DataFrameQuery): ValidDataFrameQueryV2 {
+    processQuery(query: DataFrameDataQuery): ValidDataFrameQueryV2 {
         // TODO: #3259801 - Implement Migration of DataFrameQueryV1 to ValidDataFrameQueryV2.
         return {
             ...defaultQueryV2,
             ...query
         } as ValidDataFrameQueryV2;
+    }
+
+    public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
+        // TODO: #3259801 - Implement Migration of DataFrameQueryV1 to ValidDataFrameVariableQuery.
+        return {
+            ...defaultVariableQueryV2,
+            ...query
+        } as ValidDataFrameVariableQuery;
     }
 
     async getTableProperties(_id?: string): Promise<TableProperties> {
@@ -111,6 +149,71 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             throw new Error(errorMessage);
         }
     }
+
+    public async getColumnOptions(filter: string): Promise<Option[]> {
+        const tables = await this.queryTables(filter, TAKE_LIMIT, [
+            DataTableProjections.ColumnName,
+            DataTableProjections.ColumnDataType,
+        ]);
+
+        const hasColumns = tables.some(
+            table => Array.isArray(table.columns)
+                && table.columns.length > 0
+        );
+        if (!hasColumns) {
+            return [];
+        }
+
+        const columnTypeMap = this.createColumnNameDataTypesMap(tables);
+
+        return this.createColumnOptions(columnTypeMap);
+    }
+
+    private transformColumnType(dataType: string): string {
+        const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType)
+            ? 'Numeric'
+            : this.toSentenceCase(dataType);
+        return type;
+    }
+
+    private createColumnNameDataTypesMap(tables: TableProperties[]): Record<string, Set<string>> {
+        const columnNameDataTypeMap: Record<string, Set<string>> = {};
+        tables.forEach(table => {
+            table.columns?.forEach((column: { name: string; dataType: string; }) => {
+                if (column?.name && column.dataType) {
+                    const dataType = this.transformColumnType(column.dataType);
+                    (columnNameDataTypeMap[column.name] ??= new Set()).add(dataType);
+                }
+            });
+        });
+        return columnNameDataTypeMap;
+    };
+
+    private createColumnOptions(columnTypeMap: Record<string, Set<string>>): Option[] {
+        const options: Option[] = [];
+
+        Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
+            const columnDataType = Array.from(dataTypes);
+
+            if (columnDataType.length === 1) {
+                // Single type: show just the name as label and value as name with type in sentence case
+                options.push({ label: name, value: `${name}-${columnDataType[0]}` });
+            } else {
+                // Multiple types: show type in label and value
+                columnDataType.forEach(type => {
+                    options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
+                });
+            }
+        });
+        return options;
+    };
+
+    /**
+     * Converts a string to sentence case (e.g., 'TIMESTAMP' -> 'Timestamp').
+     */
+    private toSentenceCase(str: string) {
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    };
 
     private shouldQueryForProperties(query: ValidDataFrameQueryV2): boolean {
         const isDataTableOrColumnPropertiesSelected = (
