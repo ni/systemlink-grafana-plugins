@@ -11,10 +11,12 @@ import {
   TagQuery,
   TagQueryType,
   TagsWithValues,
+  TagWithValue,
 } from './types';
 import { Throw } from 'core/utils';
 import { expandMultipleValueVariable } from "./utils";
 import { QueryHandlerFactory } from './QueryHandlerFactory';
+import { forkJoin, map, Observable, switchMap } from 'rxjs';
 
 export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions> {
   public defaultQuery: Omit<TagQuery, 'refId'> = {
@@ -25,7 +27,7 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
   };
 
   private readonly tagUrl = this.instanceSettings.url + '/nitag/v2';
-  private readonly queryHandlerFactory = new QueryHandlerFactory(this.post.bind(this), this.instanceSettings.url);
+  private readonly queryHandlerFactory = new QueryHandlerFactory(this.post$.bind(this), this.instanceSettings.url);
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<TagDataSourceOptions>,
@@ -35,16 +37,23 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
     super(instanceSettings, backendSrv, templateSrv);
   }
 
-  async runQuery(query: TagQuery, { range, maxDataPoints, scopedVars }: DataQueryRequest): Promise<DataFrameDTO> {
-    const tagsWithValues = await this.getMostRecentTagsByMultiplePaths(
+  runQuery(query: TagQuery, { range, maxDataPoints, scopedVars }: DataQueryRequest): Observable<DataFrameDTO> {
+    const tagsWithValues$ = this.getMostRecentTagsByMultiplePaths$(
       this.generatePathsFromTemplate(query, scopedVars),
       this.templateSrv.replace(query.workspace, scopedVars)
     );
+    const workspacesPromise = this.getWorkspaces();
 
-    const workspaces = await this.getWorkspaces();
-    const result: DataFrameDTO = { refId: query.refId, fields: [] };
+    return forkJoin([
+      tagsWithValues$,
+      workspacesPromise
+    ]).pipe(
+      switchMap(([tagsWithValues, workspaces]) => {
+        const result: DataFrameDTO = { refId: query.refId, fields: [] };
 
-    return this.queryHandlerFactory.createQueryHandler(query.type).handleQuery(tagsWithValues, result, workspaces, range, maxDataPoints, query.properties);
+        return this.queryHandlerFactory.createQueryHandler(query.type).handleQuery$(tagsWithValues, result, workspaces, range, maxDataPoints, query.properties);
+      }
+      ))
   }
 
   /**
@@ -54,27 +63,29 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
    **/
   private generatePathsFromTemplate(query: TagQuery, scopedVars: Record<string, any>): string[] {
     let paths: string[] = [query.path];
-    
+
     const replacedPath = this.templateSrv.replace(
       query.path,
       scopedVars,
       (v: string | string[]): string => `{${v}}`
     );
-    
+
     paths = expandMultipleValueVariable(replacedPath);
-    
+
     return paths;
   }
 
-  private async getMostRecentTagsByMultiplePaths(paths: string[], workspace: string) {
+  private getMostRecentTagsByMultiplePaths$(paths: string[], workspace: string): Observable<TagWithValue[]> {
     const workspaceQuery = [workspace || "*"];
-    const response = await this.post<TagsWithValues>(`${this.tagUrl}/fetch-tags-with-values`, {
+    return this.post$<TagsWithValues>(`${this.tagUrl}/fetch-tags-with-values`, {
       paths: paths,
       workspaces: workspaceQuery,
       take: 100,
-    });
-
-    return response.tagsWithValues.length ? response.tagsWithValues : Throw(`No tags matched the path '${paths}'`)
+    }).pipe(
+      map((res: TagsWithValues) => {
+        return res.tagsWithValues.length ? res.tagsWithValues : Throw(`No tags matched the path '${paths}'`);
+      })
+    );
   }
 
   shouldRunQuery(query: TagQuery): boolean {
