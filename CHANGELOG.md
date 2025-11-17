@@ -1,3 +1,9 @@
+## [4.69.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.68.0...v4.69.0) (2025-11-17)
+
+### Features
+
+* **alarms:** Update take input validation based on transition option ([#506](https://github.com/ni/systemlink-grafana-plugins/issues/506)) ([b9c0dd4](https://github.com/ni/systemlink-grafana-plugins/commit/b9c0dd4542798a3f429414a7c63d74ef525323ca))
+
 ## [4.68.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.67.0...v4.68.0) (2025-11-17)
 
 ### Features
