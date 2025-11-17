@@ -1216,7 +1216,7 @@ describe('DataFrameDataSourceV2', () => {
                 templateSrv.replace.mockImplementation(
                     (target?: string, vars?: any) => (target ?? '').replace('${var1}', vars.var1.value));
 
-                queryTablesMock$.mockResolvedValue([
+                queryTablesMock$.mockReturnValue(of([
                     {
                         id: '1',
                         name: 'Table 1',
@@ -1224,7 +1224,7 @@ describe('DataFrameDataSourceV2', () => {
                             { name: 'Column1', dataType: 'STRING' }
                         ]
                     }
-                ]);
+                ]));
 
                 await ds.getColumnOptions('name = "${var1}"');
 
@@ -1241,7 +1241,7 @@ describe('DataFrameDataSourceV2', () => {
                     { name: 'var2' }
                 ] as any);
 
-                queryTablesMock$.mockResolvedValue([
+                queryTablesMock$.mockReturnValue(of([
                     {
                         id: '1',
                         name: 'Table 1',
@@ -1250,7 +1250,7 @@ describe('DataFrameDataSourceV2', () => {
                             { name: 'Column 2', dataType: 'INT32' }
                         ]
                     }
-                ]);
+                ]));
 
                 const result = await ds.getColumnOptions('some-filter');
 
