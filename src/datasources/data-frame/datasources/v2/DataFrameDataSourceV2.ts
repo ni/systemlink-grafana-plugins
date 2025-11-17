@@ -11,7 +11,9 @@ import { ComboboxOption } from "@grafana/ui";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
     defaultQuery = defaultQueryV2;
+    private _hasVariableValueChanged = false;
     private scopedVars: ScopedVars = {};
+    private queryCache: DataFrameQueryV2 | null = null;
 
     public constructor(
         public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
@@ -19,6 +21,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         public readonly templateSrv: TemplateSrv = getTemplateSrv()
     ) {
         super(instanceSettings, backendSrv, templateSrv);
+    }
+
+    public set hasVariableValueChanged(value: boolean) {
+        this._hasVariableValueChanged = value;
+    }
+    public get hasVariableValueChanged() {
+        return this._hasVariableValueChanged;
     }
 
     async runQuery(
@@ -34,6 +43,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 options.scopedVars
             );
         }
+        
+        if (this.checkQueryCacheForVariableChanges(query) && processedQuery.columns.length < 0) {
+            this.hasVariableValueChanged = true;
+        }
+        this.queryCache = processedQuery;
 
         if (this.shouldQueryForProperties(processedQuery)) {
             return this.getFieldsForPropertiesQuery(processedQuery);
@@ -231,6 +245,25 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             && isDataTableOrColumnPropertiesSelected
             && isTakeValid
         );
+    }
+
+    private checkQueryCacheForVariableChanges(currentQuery: DataFrameQueryV2): boolean {
+        if (this.queryCache?.dataTableFilter !== undefined && currentQuery.dataTableFilter !== undefined) {
+            if(this.containsVariable(currentQuery.dataTableFilter)) {
+                const previousReplacedFilter = this.queryCache.dataTableFilter;
+                const currentReplacedFilter = this.transformQuery(
+                    currentQuery.dataTableFilter,
+                    this.scopedVars
+                );
+                return previousReplacedFilter !== currentReplacedFilter;
+            }
+        }
+        return false
+    }
+
+    private containsVariable(queryPart: string): boolean {
+        const variablePattern = /\$\w+|\$\{\w+\}/;
+        return variablePattern.test(queryPart);
     }
 
     private get dataTableComputedDataFields(): Map<string, ExpressionTransformFunction> {

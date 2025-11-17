@@ -72,4 +72,12 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
   public async getColumnOptions(filter: string): Promise<ComboboxOption[]> {
     return this.datasource.getColumnOptions(filter);
   }
+
+  public set hasVariableValueChanged(value: boolean) {
+    this.datasource.hasVariableValueChanged = value;
+  }
+
+  public get hasVariableValueChanged(): boolean {
+    return this.datasource.hasVariableValueChanged;
+  }
 }

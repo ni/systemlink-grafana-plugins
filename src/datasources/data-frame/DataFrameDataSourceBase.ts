@@ -77,6 +77,14 @@ export abstract class DataFrameDataSourceBase<
         return Promise.resolve([]);
     }
 
+    public set hasVariableValueChanged(_: boolean) {
+        // do nothing
+    }
+
+    public get hasVariableValueChanged(): boolean {
+        return false;
+    }
+
     private handleDependenciesError(error: unknown): void {
         const errorDetails = extractErrorInfo((error as Error).message);
         this.errorTitle = 'Warning during dataframe query';

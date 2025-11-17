@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery } from "../../types";
@@ -24,6 +24,17 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
     const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isColumnLimitExceeded, setIsColumnLimitExceeded] = useState<boolean>(false);
+
+
+    useEffect(() => {
+        if (migratedQuery.dataTableFilter !== '' ) {
+            if (datasource.hasVariableValueChanged) {
+                fetchAndSetColumnOptions(migratedQuery.dataTableFilter);
+                datasource.hasVariableValueChanged = false;
+            }
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [datasource.hasVariableValueChanged]);
 
     const getPropertiesOptions = (
         type: DataTableProjectionType
@@ -66,8 +77,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const onDataTableFilterChange = async (event?: Event | React.FormEvent<Element>) => {
         if (event) {
             const dataTableFilter = (event as CustomEvent).detail.linq;
-            handleQueryChange({ ...migratedQuery, dataTableFilter });
-            await fetchAndSetColumnOptions(dataTableFilter);
+            if (migratedQuery.type === DataFrameQueryType.Data) {
+                handleQueryChange({ ...migratedQuery, dataTableFilter }, false);
+                await fetchAndSetColumnOptions(dataTableFilter);
+            } else {
+                handleQueryChange({ ...migratedQuery, dataTableFilter });
+            }
         }
     };
 
