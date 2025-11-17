@@ -2,7 +2,7 @@ import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryType, TransitionInclusionOption } from 'datasources/alarms/types/types';
 import { ListAlarmsQueryHandler } from 'datasources/alarms/query-type-handlers/list-alarms/ListAlarmsQueryHandler';
-import { AlarmsSpecificProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
+import { AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 import { ListAlarmsQueryEditor } from './ListAlarmsQueryEditor';
 import userEvent from '@testing-library/user-event';
 import { AlarmsPropertiesOptions, takeErrorMessages, AlarmsTransitionInclusionOptions } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
@@ -383,6 +383,90 @@ describe('ListAlarmsQueryEditor', () => {
           }),
         );
       });
+    });
+
+
+    [TransitionInclusionOption.All, TransitionInclusionOption.MostRecentOnly].forEach((option) => {
+      it(`should show transition properties in dropdown when transition inclusion is ${option}`, async () => {
+        const container = await renderElement({
+          refId: 'A',
+          queryType: QueryType.ListAlarms,
+          transitionInclusionOption: option,
+        });
+
+        const propertiesCombobox = container.getAllByRole('combobox')[0];
+        await userEvent.click(propertiesCombobox);
+        await userEvent.clear(propertiesCombobox);
+        await userEvent.type(propertiesCombobox, 'Transition value');
+
+        expect(screen.queryByText('Transition value')).toBeInTheDocument();
+      });
+    });
+
+    it('should not show transition properties in dropdown when transition inclusion is None', async () => {
+      const container = await renderElement({
+        refId: 'A',
+        queryType: QueryType.ListAlarms,
+        transitionInclusionOption: TransitionInclusionOption.None,
+      });
+
+      const propertiesCombobox = container.getAllByRole('combobox')[0];
+      await userEvent.click(propertiesCombobox);
+      await userEvent.clear(propertiesCombobox);
+      await userEvent.type(propertiesCombobox, 'Transition condition');
+
+      expect(screen.queryByText('Transition condition')).not.toBeInTheDocument();
+    });
+
+    it('should remove transition properties from selected properties when transition inclusion is changed to None', async () => {
+      await renderElement({
+        refId: 'A',
+        queryType: QueryType.ListAlarms,
+        transitionInclusionOption: TransitionInclusionOption.All,
+        properties: [ AlarmsSpecificProperties.acknowledged, AlarmsTransitionProperties.transitionCondition ],
+      });
+
+      const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Include Transition' });
+
+      await userEvent.click(transitionInclusionCombobox);
+      await select(
+        transitionInclusionCombobox,
+        AlarmsTransitionInclusionOptions[TransitionInclusionOption.None].label,
+        {
+          container: document.body,
+        }
+      );
+
+      await waitFor(() => {
+        expect(mockHandleQueryChange).toHaveBeenCalledTimes(1);
+        expect(mockHandleQueryChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            transitionInclusionOption: TransitionInclusionOption.None,
+            properties: [ AlarmsSpecificProperties.acknowledged ],
+          }),
+        );
+      });
+    });
+
+    it('should display error if transition property is selected and transition inclusion option is updated to None', async () => {
+      await renderElement({
+        refId: 'A',
+        queryType: QueryType.ListAlarms,
+        transitionInclusionOption: TransitionInclusionOption.All,
+        properties: [ AlarmsTransitionProperties.transitionCondition ],
+      });
+
+      const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Include Transition' });
+
+      await userEvent.click(transitionInclusionCombobox);
+      await select(transitionInclusionCombobox,
+        AlarmsTransitionInclusionOptions[TransitionInclusionOption.None].label,
+        {
+          container: document.body,
+        }
+      );
+
+      expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
     });
   });
 });

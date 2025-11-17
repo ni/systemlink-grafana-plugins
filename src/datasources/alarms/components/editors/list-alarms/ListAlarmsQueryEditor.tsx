@@ -108,11 +108,8 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     setIsPropertiesControlValid(updatedProperties.length > 0);
     updateTakeInvalidMessage(query.take!, option.value);
 
-
     handleQueryChange({
-     
       ...query,
-     
       transitionInclusionOption: option.value,
       properties: updatedProperties,
     });
