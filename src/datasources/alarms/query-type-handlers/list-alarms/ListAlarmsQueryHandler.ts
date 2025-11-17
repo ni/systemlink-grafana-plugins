@@ -128,8 +128,8 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     const mappedFields = properties.map(property => {
       const field = AlarmsPropertiesOptions[property];
       const fieldName = field.label;
-      const fieldValue = field.field;
-      const fieldType = this.isTimeField(fieldValue as AlarmsProperties) ? FieldType.time : FieldType.string;
+      const fieldValue = field.value;
+      const fieldType = this.isTimeField(fieldValue) ? FieldType.time : FieldType.string;
 
       const fieldValues = flattenedAlarms.map(alarm => {
         const transition = alarm.transitions?.[0];

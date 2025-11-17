@@ -29,18 +29,13 @@ export enum AlarmsSpecificProperties {
   occurredAt = 'occurredAt',
   properties = 'properties',
   resourceType = 'resourceType',
-  // The Source field is derived from properties.system, with a fallback to
-  // properties.minionId. If neither property is available, the source defaults to
-  // an empty string.
+   // The Source field is derived from properties.system, with a fallback to
+   // properties.minionId. If neither property is available, the source defaults to
+   // an empty string.
   source = 'source',
   // The State column is determined using the values of clear and acknowledged.
   state = 'state',
   transitionOverflowCount = 'transitionOverflowCount',
-  transitionProperties = 'transitionProperties',
-  transitionSeverityLevel = 'transitionSeverityLevel',
-  transitionShortText = 'transitionShortText',
-  transitionType = 'transitionType',
-  transitionValue = 'transitionValue',
   updatedAt = 'updatedAt',
   workspace = 'workspace',
 }
