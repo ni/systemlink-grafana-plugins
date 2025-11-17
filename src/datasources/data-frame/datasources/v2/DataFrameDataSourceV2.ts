@@ -1,12 +1,13 @@
 import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQuery, ValidDataFrameQueryV2, ValidDataFrameVariableQuery } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQuery, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1 } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
-import { Workspace } from "core/types";
+import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
+import _ from "lodash";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
     defaultQuery = defaultQueryV2;
@@ -85,10 +86,30 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     }
 
     processQuery(query: DataFrameDataQuery): ValidDataFrameQueryV2 {
-        // TODO: #3259801 - Implement Migration of DataFrameQueryV1 to ValidDataFrameQueryV2.
+        // Handle existing dashboards with 'MetaData' type
+        if ((query.type as any) === LEGACY_METADATA_TYPE) {
+            query.type = DataFrameQueryType.Properties;
+        }
+
+        // Migration for 1.6.0: DataFrameQuery.columns changed to string[]
+        if (query.columns && query.columns.length > 0 && _.isObject(query.columns[0])) {
+            query.columns = (query.columns as any[]).map(c => c.name);
+        }
+
+        // Check if it's already a V2 query
+        if ('dataTableFilter' in query) {
+            return {
+                ...defaultQueryV2,
+                ...query,
+            } as ValidDataFrameQueryV2;
+        }
+
+        // Convert V1 to V2
+        const { tableId, ...v1QueryWithoutTableId } = query as DataFrameQueryV1;
         return {
             ...defaultQueryV2,
-            ...query
+            ...v1QueryWithoutTableId,
+            dataTableFilter: tableId ? `id = "${tableId}"` : '',
         } as ValidDataFrameQueryV2;
     }
 

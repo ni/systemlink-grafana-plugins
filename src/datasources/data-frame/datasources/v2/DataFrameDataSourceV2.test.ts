@@ -837,6 +837,209 @@ describe('DataFrameDataSourceV2', () => {
 
             expect(result).toEqual(expectedQuery);
         });
+
+        it('should convert legacy MetaData type to Properties type', () => {
+            const query = {
+                type: 'Metadata' as any,
+                refId: 'A'
+            } as DataFrameDataQuery;
+
+            const result = ds.processQuery(query);
+
+            expect(result.type).toBe(DataFrameQueryType.Properties);
+        });
+
+        it('should migrate columns from object format to string array', () => {
+            const query = {
+                columns: [{ name: 'col1' }, { name: 'col2' }] as any,
+                refId: 'A'
+            } as DataFrameDataQuery;
+
+            const result = ds.processQuery(query);
+
+            expect(result.columns).toEqual(['col1', 'col2']);
+        });
+
+        it('should not modify columns if they are already strings', () => {
+            const query = {
+                columns: ['col1', 'col2'],
+                refId: 'A'
+            } as DataFrameDataQuery;
+
+            const result = ds.processQuery(query);
+
+            expect(result.columns).toEqual(['col1', 'col2']);
+        });
+
+        it('should return V2 query as-is when dataTableFilter is present', () => {
+            const query = {
+                type: DataFrameQueryType.Properties,
+                dataTableFilter: 'name = "test"',
+                dataTableProperties: [DataTableProperties.Name],
+                columnProperties: [],
+                columns: ['col1'],
+                includeIndexColumns: true,
+                filterNulls: true,
+                decimationMethod: 'MAX_MIN',
+                xColumn: 'timestamp',
+                applyTimeFilters: true,
+                take: 100,
+                refId: 'A'
+            } as DataFrameQueryV2;
+
+            const result = ds.processQuery(query);
+
+            expect(result).toEqual({
+                ...defaultQueryV2,
+                ...query
+            });
+        });
+
+        it('should return V2 query with default values when some of the fields are missing', () => {
+            const query = {
+                type: DataFrameQueryType.Properties,
+                dataTableFilter: 'name = "test"',
+                dataTableProperties: [DataTableProperties.Name],
+                refId: 'A'
+            } as DataFrameQueryV2;
+
+            const result = ds.processQuery(query);
+
+            expect(result).toEqual({
+                type: DataFrameQueryType.Properties,
+                dataTableFilter: 'name = "test"',
+                dataTableProperties: [DataTableProperties.Name],
+                columnProperties: [],
+                columns: [],
+                includeIndexColumns: false,
+                filterNulls: false,
+                decimationMethod: 'LOSSY',
+                xColumn: null,
+                applyTimeFilters: false,
+                take: TAKE_LIMIT,
+                refId: 'A'
+            });
+        });
+
+        it('should convert V1 query to V2 query and remove tableId', () => {
+            const query = {
+                type: DataFrameQueryType.Data,
+                tableId: 'table-123',
+                columns: ['col1', 'col2'],
+                decimationMethod: 'LOSSY',
+                filterNulls: true,
+                applyTimeFilters: true,
+                refId: 'A'
+            } as any;
+
+            const result = ds.processQuery(query);
+
+            expect(result.dataTableFilter).toBe('id = "table-123"');
+            expect(result).not.toHaveProperty('tableId');
+            expect(result.columns).toEqual(['col1', 'col2']);
+            expect(result.decimationMethod).toBe('LOSSY');
+            expect(result.filterNulls).toBe(true);
+            expect(result.applyTimeFilters).toBe(true);
+        });
+
+        it('should convert V1 query to V2 query with empty dataTableFilter when tableId is undefined', () => {
+            const query = {
+                type: DataFrameQueryType.Data,
+                columns: ['col1'],
+                refId: 'A'
+            } as any;
+
+            const result = ds.processQuery(query);
+
+            expect(result.dataTableFilter).toBe('');
+            expect(result).not.toHaveProperty('tableId');
+        });
+
+        it('should convert V1 query to V2 query with empty dataTableFilter when tableId is empty string', () => {
+            const query = {
+                type: DataFrameQueryType.Data,
+                tableId: '',
+                columns: ['col1'],
+                refId: 'A'
+            } as any;
+
+            const result = ds.processQuery(query);
+
+            expect(result.dataTableFilter).toBe('');
+            expect(result).not.toHaveProperty('tableId');
+        });
+
+        it('should handle combined migrations: legacy type, object columns, and V1 to V2 conversion', () => {
+            const query = {
+                type: 'Metadata' as any,
+                tableId: 'table-456',
+                columns: [{ name: 'col1' }, { name: 'col2' }] as any,
+                refId: 'A'
+            } as any;
+
+            const result = ds.processQuery(query);
+
+            expect(result.type).toBe(DataFrameQueryType.Properties);
+            expect(result.columns).toEqual(['col1', 'col2']);
+            expect(result.dataTableFilter).toBe('id = "table-456"');
+            expect(result).not.toHaveProperty('tableId');
+        });
+
+        it('should add default V2 values when converting V1 query with minimal properties', () => {
+            const query = {
+                type: DataFrameQueryType.Data,
+                tableId: 'table-123',
+                refId: 'A'
+            } as any;
+
+            const result = ds.processQuery(query);
+
+            expect(result).toMatchObject({
+                type: DataFrameQueryType.Data,
+                dataTableFilter: 'id = "table-123"',
+                dataTableProperties: defaultDatatableProperties,
+                columnProperties: [],
+                columns: [],
+                includeIndexColumns: false,
+                filterNulls: false,
+                decimationMethod: 'LOSSY',
+                xColumn: null,
+                applyTimeFilters: false,
+                take: TAKE_LIMIT,
+                refId: 'A'
+            });
+            expect(result).not.toHaveProperty('tableId');
+        });
+
+        it('should preserve V1 properties and add missing V2 defaults when converting', () => {
+            const query = {
+                type: DataFrameQueryType.Properties,
+                tableId: 'table-789',
+                columns: ['col1', 'col2'],
+                filterNulls: true,
+                refId: 'B'
+            } as any;
+
+            const result = ds.processQuery(query);
+
+            // V1 properties should be preserved
+            expect(result.type).toBe(DataFrameQueryType.Properties);
+            expect(result.columns).toEqual(['col1', 'col2']);
+            expect(result.filterNulls).toBe(true);
+            expect(result.refId).toBe('B');
+
+            // V2-specific property should be created from tableId
+            expect(result.dataTableFilter).toBe('id = "table-789"');
+
+            // Missing V2 properties should have defaults
+            expect(result.dataTableProperties).toEqual(defaultDatatableProperties);
+            expect(result.columnProperties).toEqual([]);
+            expect(result.includeIndexColumns).toBe(false);
+            expect(result.decimationMethod).toBe('LOSSY');
+            expect(result.xColumn).toBe(null);
+            expect(result.applyTimeFilters).toBe(false);
+            expect(result.take).toBe(TAKE_LIMIT);
+        });
     });
 
     describe('processVariableQuery', () => {
