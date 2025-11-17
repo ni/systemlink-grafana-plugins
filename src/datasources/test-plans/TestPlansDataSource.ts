@@ -226,7 +226,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   shouldRunQuery(query: TestPlansQuery): boolean {
-    return true;
+    return !query.hide;
   }
 
   private transformDurationFilters(query: string): string {

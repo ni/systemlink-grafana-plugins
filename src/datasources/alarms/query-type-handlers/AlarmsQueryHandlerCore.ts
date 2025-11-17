@@ -7,7 +7,7 @@ import { ExpressionTransformFunction, getConcatOperatorForMultiExpression, multi
 import { AlarmsQueryBuilderFields } from '../constants/AlarmsQueryBuilder.constants';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
-import { queryInBatches } from 'core/utils';
+import { queryInBatches, queryUntilComplete } from 'core/utils';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from '../constants/AlarmProperties.constants';
 import { ALARMS_TIME_FIELDS } from '../constants/AlarmsQueryEditor.constants';
@@ -104,6 +104,31 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
       requestsPerSecond: QUERY_ALARMS_REQUEST_PER_SECOND,
     };
     const response = await queryInBatches(queryRecord, batchQueryConfig, alarmsRequestBody.take);
+
+    return response.data;
+  }
+
+  protected async queryAlarmsUntilComplete(alarmsRequestBody: QueryAlarmsRequest): Promise<Alarm[]> {
+    const queryRecord = async (currentTake: number, token?: string): Promise<QueryResponse<Alarm>> => {
+      const body = {
+        ...alarmsRequestBody,
+        take: currentTake,
+        continuationToken: token,
+      };
+      const response = await this.queryAlarms(body);
+
+      return {
+        data: response.alarms,
+        continuationToken: response.continuationToken,
+        totalCount: response.totalCount,
+      };
+    };
+
+    const batchQueryConfig = {
+      maxTakePerRequest: QUERY_ALARMS_MAXIMUM_TAKE,
+      requestsPerSecond: QUERY_ALARMS_REQUEST_PER_SECOND,
+    };
+    const response = await queryUntilComplete(queryRecord, batchQueryConfig);
 
     return response.data;
   }

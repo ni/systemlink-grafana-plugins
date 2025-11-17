@@ -10,6 +10,7 @@ import {
 } from 'test/fixtures';
 import { WorkspaceDataSource } from './WorkspaceDataSource';
 import { WorkspaceQuery } from './types';
+import { firstValueFrom } from 'rxjs';
 
 let ds: WorkspaceDataSource, backendSrv: MockProxy<BackendSrv>;
 
@@ -41,7 +42,7 @@ describe('testDatasource', () => {
 
 describe('queries', () => {
   test('returns all workspaces', async () => {
-    const result = await ds.query(buildQuery({}));
+    const result = await firstValueFrom(ds.query(buildQuery({})));
 
     expect(result.data[0]).toHaveProperty('fields', [
       { name: 'name', values: ['Default workspace', 'Other workspace'] }
@@ -55,5 +56,21 @@ describe('queries', () => {
       { value: '1', text: 'Default workspace' },
       { value: '2', text: 'Other workspace' }
     ]);
+  });
+
+  test('should run query if not hidden', () => {
+    const query: WorkspaceQuery = {
+        hide: false,
+        refId: ''
+    };
+    expect(ds.shouldRunQuery(query)).toBe(true);
+  });
+
+  test('should not run query if hidden', () => {
+    const query: WorkspaceQuery = {
+        hide: true,
+        refId: ''
+    };
+    expect(ds.shouldRunQuery(query)).toBe(false);
   });
 });

@@ -1,0 +1,152 @@
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import { InlineLabel } from '@grafana/ui';
+import { DataFrameDataSource } from 'datasources/data-frame/DataFrameDataSource';
+import { DataTableQueryBuilder } from 'datasources/data-frame/components/v2/query-builders/data-table-query-builder/DataTableQueryBuilder';
+import { Workspace } from 'core/types';
+import { DataTableProjections } from 'datasources/data-frame/types';
+import { DataTableQueryBuilderFieldNames } from '../constants/DataTableQueryBuilder.constants';
+import {
+    VALUE_FIELD_WIDTH,
+    labels,
+    tooltips,
+    DEFAULT_MARGIN_BOTTOM,
+    getValuesInPixels,
+} from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
+import { ColumnsQueryBuilder } from './columns-query-builder/ColumnsQueryBuilder';
+import { lastValueFrom } from 'rxjs';
+import { ResultsQueryBuilder } from 'shared/components/ResultsQueryBuilder/ResultsQueryBuilder';
+import { enumToOptions } from 'core/utils';
+import { TestMeasurementStatus } from '../constants/ResultsQueryBuilder.constants';
+
+interface DataFrameQueryBuilderWrapperProps {
+    datasource: DataFrameDataSource;
+    resultsFilter?: string;
+    dataTableFilter?: string;
+    columnsFilter?: string;
+    onResultsFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
+    onDataTableFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
+    onColumnsFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
+}
+
+export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapperProps> = ({
+    datasource,
+    resultsFilter,
+    dataTableFilter,
+    columnsFilter,
+    onResultsFilterChange,
+    onDataTableFilterChange,
+    onColumnsFilterChange,
+}) => {
+    const isQueryByResultAndColumnPropertiesEnabled = 
+    datasource.instanceSettings.jsonData.featureToggles.queryByResultAndColumnProperties;
+    const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+    const [partNumbers, setPartNumbers] = useState<string[] | null>(null);
+
+    const statusOptions = useMemo(
+        () => enumToOptions(TestMeasurementStatus).map(option => option.value as string),
+        []
+    );
+
+    useEffect(() => {
+        const loadWorkspaces = async () => {
+            const workspaces = await datasource.loadWorkspaces();
+            setWorkspaces(Array.from(workspaces.values()));
+        };
+
+        loadWorkspaces();
+    }, [datasource]);
+
+    useEffect(() => {
+        const loadPartNumbers = async () => {
+            const partNumbers = await datasource.loadPartNumbers();
+            setPartNumbers(partNumbers);
+        };
+
+        loadPartNumbers();
+    }, [datasource]);
+
+    const dataTableNameLookupCallback = useCallback(async (query: string) => {
+        const filter = `${DataTableQueryBuilderFieldNames.Name}.Contains("${query}")`;
+        const response = await lastValueFrom(
+            datasource.queryTables$(filter, 5, [DataTableProjections.Name])
+        );
+
+        if (response.length === 0) {
+            return [];
+        }
+
+        const uniqueNames = new Set(response.map(table => table.name));
+        return Array.from(uniqueNames).map(name => ({ label: name, value: name }));
+    }, [datasource]);
+
+    return (
+        <>
+            {isQueryByResultAndColumnPropertiesEnabled && (
+                <>
+                    <InlineLabel
+                        width={VALUE_FIELD_WIDTH}
+                        tooltip={tooltips.queryByResultProperties}
+                    >
+                        {labels.queryByResultProperties}
+                    </InlineLabel>
+                    <div
+                        style={{
+                            width: getValuesInPixels(VALUE_FIELD_WIDTH),
+                            marginBottom: getValuesInPixels(DEFAULT_MARGIN_BOTTOM),
+                        }}
+                    >
+                        <ResultsQueryBuilder
+                            filter={resultsFilter}
+                            workspaces={workspaces}
+                            partNumbers={partNumbers}
+                            status={statusOptions}
+                            globalVariableOptions={datasource.globalVariableOptions()}
+                            onChange={onResultsFilterChange}
+                        />
+                    </div>
+                </>
+            )}
+            <InlineLabel
+                width={VALUE_FIELD_WIDTH}
+                tooltip={tooltips.queryByDataTableProperties}
+            >
+                {labels.queryByDataTableProperties}
+            </InlineLabel>
+            <div
+                style={{
+                    width: getValuesInPixels(VALUE_FIELD_WIDTH),
+                    marginBottom: getValuesInPixels(DEFAULT_MARGIN_BOTTOM),
+                }}
+            >
+                <DataTableQueryBuilder
+                    filter={dataTableFilter}
+                    workspaces={workspaces}
+                    globalVariableOptions={datasource.globalVariableOptions()}
+                    onChange={onDataTableFilterChange}
+                    dataTableNameLookupCallback={dataTableNameLookupCallback}
+                />
+            </div>
+            {isQueryByResultAndColumnPropertiesEnabled && (
+                <>
+                    <InlineLabel
+                        width={VALUE_FIELD_WIDTH}
+                        tooltip={tooltips.queryByColumnProperties}
+                    >
+                        {labels.queryByColumnProperties}
+                    </InlineLabel>
+                    <div
+                        style={{
+                            width: getValuesInPixels(VALUE_FIELD_WIDTH),
+                            marginBottom: getValuesInPixels(DEFAULT_MARGIN_BOTTOM),
+                        }}
+                    >
+                        <ColumnsQueryBuilder
+                            filter={columnsFilter}
+                            onChange={onColumnsFilterChange}
+                        />
+                    </div>
+                </>
+            )}
+        </>
+    );
+};

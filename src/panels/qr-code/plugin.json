@@ -1,0 +1,14 @@
+{
+  "type": "panel",
+  "name": "QR code",
+  "id": "ni-qr-panel",
+  "info": {
+    "author": {
+      "name": "NI"
+    },
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    }
+  }
+}

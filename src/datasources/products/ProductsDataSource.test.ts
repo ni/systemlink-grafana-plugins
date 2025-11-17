@@ -6,6 +6,7 @@ import { createFetchError, createFetchResponse, getQueryBuilder, requestMatching
 import { MockProxy } from 'jest-mock-extended';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
 import { Workspace } from 'core/types';
+import { firstValueFrom, throwError } from 'rxjs';
 
 const mockQueryProductResponse: QueryProductResponse = {
   products: [
@@ -74,9 +75,9 @@ describe('testDatasource', () => {
   });
 });
 
-describe('queryProducts', () => {
+describe('queryProducts$', () => {
   test('returns data when there are valid queries', async () => {
-    const response = await datastore.queryProducts();
+    const response = await firstValueFrom(datastore.queryProducts$());
 
     expect(response).toMatchSnapshot();
   });
@@ -86,7 +87,7 @@ describe('queryProducts', () => {
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
       .mockReturnValue(createFetchError(400));
 
-    await expect(datastore.queryProducts())
+    await expect(firstValueFrom(datastore.queryProducts$()))
       .rejects
       .toThrow('The query failed due to the following error: (status 400) "Error".');
   });
@@ -96,7 +97,7 @@ describe('queryProducts', () => {
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
       .mockReturnValue(createFetchError(504));
 
-    await expect(datastore.queryProducts())
+    await expect(firstValueFrom(datastore.queryProducts$()))
       .rejects
       .toThrow('The query to fetch products experienced a timeout error. Narrow your query with a more specific filter and try again.');
   })
@@ -104,9 +105,9 @@ describe('queryProducts', () => {
   it('should throw error with unknown error when API returns error without status', async () => {
     backendServer.fetch
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
-      .mockImplementation(() => { throw new Error('Error'); });
+      .mockReturnValue(throwError(() => (new Error('Error'))));
 
-    await expect(datastore.queryProducts())
+    await expect(firstValueFrom(datastore.queryProducts$()))
       .rejects
       .toThrow('The query failed due to an unknown error.');
   });
@@ -118,7 +119,7 @@ describe('queryProducts', () => {
       .calledWith(requestMatching({ url: '/nitestmonitor/v2/query-products' }))
       .mockReturnValue(createFetchError(400));
 
-    await expect(datastore.queryProducts())
+    await expect(firstValueFrom(datastore.queryProducts$()))
       .rejects
       .toThrow('The query failed due to the following error: (status 400) "Error".');
 
@@ -230,7 +231,7 @@ describe('query', () => {
       },
     );
 
-    const response = await datastore.query(query);
+    const response = await firstValueFrom(datastore.query(query));
 
     expect(response.data).toHaveLength(1);
     expect(response.data).toMatchSnapshot();
@@ -242,7 +243,7 @@ describe('query', () => {
       properties: []
     });
 
-    const response = await datastore.query(query);
+    const response = await firstValueFrom(datastore.query(query));
 
     expect(response.data).toMatchSnapshot();
   });
@@ -259,7 +260,7 @@ describe('query', () => {
       recordCount: undefined
     });
 
-    const response = await datastore.query(query);
+    const response = await firstValueFrom(datastore.query(query));
 
     expect(response.data).toMatchSnapshot();
   });
@@ -287,7 +288,7 @@ describe('query', () => {
       }
     );
 
-    const response = await datastore.query(query);
+    const response = await firstValueFrom(datastore.query(query));
 
     expect(response.data).toMatchSnapshot();
   });
@@ -309,7 +310,7 @@ describe('query', () => {
       },
     );
 
-    await expect(datastore.query(query))
+    await expect(firstValueFrom(datastore.query(query)))
       .rejects
       .toThrow('The query failed due to the following error: (status 400) \"Error\".');
   });
@@ -329,7 +330,7 @@ describe('query', () => {
       },
     );
 
-    const response = await datastore.query(query);
+    const response = await firstValueFrom(datastore.query(query));
 
     const fields = response.data[0].fields as Field[];
     expect(fields).toEqual([
@@ -354,7 +355,7 @@ describe('query', () => {
       },
     );
 
-    const response = await datastore.query(query);
+    const response = await firstValueFrom(datastore.query(query));
 
     const fields = response.data[0].fields as Field[];
     expect(fields).toEqual([
@@ -384,7 +385,7 @@ describe('query', () => {
       },
     );
 
-    const response = await datastore.query(query);
+    const response = await firstValueFrom(datastore.query(query));
     const fields = response.data[0].fields as Field[];
     expect(fields).toEqual([
       { name: 'Properties', values: [''], type: 'string' },
@@ -414,7 +415,7 @@ describe('query', () => {
       },
     );
 
-    const response = await datastore.query(query);
+    const response = await firstValueFrom(datastore.query(query));
     const fields = response.data[0].fields as Field[];
     expect(fields).toEqual([
       { name: 'Properties', values: [''], type: 'string' },
@@ -428,7 +429,7 @@ describe('query', () => {
     datastore.partNumbersCache.set('partNumber', 'value1');
     backendServer.fetch.mockClear();
 
-    await datastore.query(buildQuery())
+    await firstValueFrom(datastore.query(buildQuery()))
 
     expect(backendServer.fetch).not.toHaveBeenCalled();
   });
@@ -440,7 +441,7 @@ describe('query', () => {
     datastore.workspacesCache.set('workspace', { id: 'workspace1', name: 'workspace1', default: false, enabled: true });
     backendServer.fetch.mockClear();
 
-    await datastore.query(buildQuery())
+    await firstValueFrom(datastore.query(buildQuery()))
 
     expect(backendServer.fetch).not.toHaveBeenCalled();
   });
@@ -458,7 +459,7 @@ describe('query', () => {
         },
       );
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -485,7 +486,7 @@ describe('query', () => {
         },
       );
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -510,7 +511,7 @@ describe('query', () => {
         },
       );
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -536,7 +537,7 @@ describe('query', () => {
         },
       );
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -562,7 +563,7 @@ describe('query', () => {
         },
       );
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -588,7 +589,7 @@ describe('query', () => {
         },
       );
 
-      await datastore.query(query);
+      await firstValueFrom(datastore.query(query));
 
       expect(backendServer.fetch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -738,6 +739,22 @@ describe('query', () => {
         { text: 'A Product (456)', value: '456' },
         { text: 'B Product (123)', value: '123' }
       ]);
+    });
+
+    test('should run query if not hidden', () => {
+      const query: ProductQuery = {
+        hide: false,
+        refId: ''
+      };
+      expect(datastore.shouldRunQuery(query)).toBe(true);
+    });
+
+    test('should not run query if hidden', () => {
+      const query: ProductQuery = {
+        hide: true,
+        refId: ''
+      };
+      expect(datastore.shouldRunQuery(query)).toBe(false);
     });
   });
 });

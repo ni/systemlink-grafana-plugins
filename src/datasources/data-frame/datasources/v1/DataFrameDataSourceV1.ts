@@ -15,12 +15,15 @@ import {
   DataFrameQueryType,
   DataFrameDataSourceOptions,
   DataTableProjections,
+  DataFrameVariableQuery,
+  ValidDataFrameVariableQuery,
 } from '../../types';
 import { propertiesCacheTTL } from '../../constants';
 import _ from 'lodash';
 import { DataFrameDataSourceBase } from '../../DataFrameDataSourceBase';
 import { replaceVariables } from 'core/utils';
 import { LEGACY_METADATA_TYPE } from 'core/types';
+import { Observable, of } from 'rxjs';
 
 export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQueryV1> {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
@@ -95,6 +98,14 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     });
   }
 
+  queryTables$(
+    query: string,
+    take = 5,
+    projection?: DataTableProjections[]
+  ): Observable<TableProperties[]> {
+    return of([]);
+  }
+
   async queryTables(query: string, take = 5, projection?: DataTableProjections[]): Promise<TableProperties[]> {
     const filter = `name.Contains("${query}")`;
 
@@ -118,9 +129,13 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     return deepEqual(migratedQuery, query) ? (query as ValidDataFrameQueryV1) : migratedQuery;
   }
 
-  async metricFindQuery(tableQuery: DataFrameQueryV1): Promise<MetricFindValue[]> {
-    const tableProperties = await this.getTableProperties(tableQuery.tableId);
+  async metricFindQuery(tableQuery: DataFrameVariableQuery): Promise<MetricFindValue[]> {
+    const tableProperties = await this.getTableProperties((tableQuery as DataFrameQueryV1).tableId);
     return tableProperties.columns.map(col => ({ text: col.name, value: col.name }));
+  }
+
+  public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
+    return query as ValidDataFrameVariableQuery;
   }
 
   private getColumnTypes(columnNames: string[], tableProperties: Column[]): Column[] {

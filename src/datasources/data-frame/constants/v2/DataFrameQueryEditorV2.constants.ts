@@ -1,4 +1,4 @@
-import { TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT } from 'datasources/data-frame/constants';
 
 /**
  * Converts Grafana grid units to pixels
@@ -31,6 +31,8 @@ export const labels = {
     columnConfigurations: 'Column configurations',
     decimationSettings: 'Decimation settings',
     queryByDataTableProperties: 'Query by data table properties',
+    queryByResultProperties: 'Query by result properties',
+    queryByColumnProperties: 'Query by column properties',
     columns: 'Columns',
     filterNulls: 'Filter nulls',
     includeIndexColumns: 'Include index columns',
@@ -46,6 +48,8 @@ export const labels = {
 export const tooltips = {
     queryType: 'This field specifies the type for the query that searches the data tables. The query can retrieve row data or metadata.',
     queryByDataTableProperties: 'This optional field applies a filter to a query while searching the data tables.',
+    queryByResultProperties: 'This optional field applies a filter to a results query while searching the data tables.',
+    queryByColumnProperties: 'This optional field applies a filter to a columns query while searching the data tables.',
     take: 'This field sets the maximum number of records to return from the query.',
     columns: 'Specifies the columns to include in the response data.',
     filterNulls: `Specifies whether to filter out null and NaN values before decimating the data.`,
@@ -76,5 +80,7 @@ export const errorMessages = {
     take: {
         greaterOrEqualToZero: 'The take value must be greater than or equal to 0.',
         lessOrEqualToTakeLimit: `The take value must be less than or equal to ${TAKE_LIMIT}.`
-    }
+    },
+    columnLimitExceeded: `The tables query returned too many columns. Only the first ${COLUMN_OPTIONS_LIMIT} columns are shown in the selection list.`,
+    propertiesNotSelected: 'At least one data table property or column property must be selected.',
 };

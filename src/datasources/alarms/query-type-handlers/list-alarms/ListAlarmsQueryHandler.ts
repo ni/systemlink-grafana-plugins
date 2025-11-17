@@ -1,8 +1,8 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
-import { AlarmsProperties, ListAlarmsQuery } from '../../types/ListAlarms.types';
-import { AlarmsVariableQuery, AlarmTransition, QueryAlarmsRequest, TransitionInclusionOption } from '../../types/types';
+import { AlarmsProperties, AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery } from '../../types/ListAlarms.types';
+import { AlarmsVariableQuery, QueryAlarmsRequest, TransitionInclusionOption } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
-import { AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL, TRANSITION_SPECIFIC_PROPERTIES } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { AlarmPropertyKeyMap, AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, TransitionPropertyKeyMap, QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL, TRANSITION_SPECIFIC_PROPERTIES } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { Alarm } from 'datasources/alarms/types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
@@ -75,6 +75,10 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     }
   }
 
+  public isAlarmTransitionProperty(property: AlarmsProperties): property is AlarmsTransitionProperties {
+    return (TRANSITION_SPECIFIC_PROPERTIES as readonly AlarmsProperties[]).includes(property);
+  }
+
   private isTakeValid(take?: number, transitionInclusionOption?: TransitionInclusionOption): boolean {
     if (!take || take < QUERY_EDITOR_MIN_TAKE) {
       return false;
@@ -131,36 +135,41 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
         const transition = alarm.transitions?.[0];
 
         switch (property) {
-          case AlarmsProperties.workspace:
+          case AlarmsSpecificProperties.workspace:
             const workspace = workspaces.get(alarm.workspace);
             return workspace ? workspace.name : alarm.workspace;
-          case AlarmsProperties.acknowledgedBy:
+          case AlarmsSpecificProperties.acknowledgedBy:
             const userId = alarm.acknowledgedBy ?? '';
             const user = users.get(userId);
             return user ? UsersUtils.getUserFullName(user) : userId;
-          case AlarmsProperties.properties:
+          case AlarmsSpecificProperties.properties:
             return this.getSortedCustomProperties(alarm.properties);
-          case AlarmsProperties.highestSeverityLevel:
-          case AlarmsProperties.currentSeverityLevel:
+          case AlarmsSpecificProperties.highestSeverityLevel:
+          case AlarmsSpecificProperties.currentSeverityLevel:
             return this.getSeverityLabel(alarm[property]);
-          case AlarmsProperties.state:
+          case AlarmsSpecificProperties.state:
             return this.getAlarmState(alarm.clear, alarm.acknowledged);
-          case AlarmsProperties.source:
+          case AlarmsSpecificProperties.source:
             return this.getSource(alarm.properties);
-          case AlarmsProperties.transitionSeverityLevel:
+          case AlarmsTransitionProperties.transitionSeverityLevel:
             return transition ? this.getSeverityLabel(transition.severityLevel) : '';
-          case AlarmsProperties.transitionProperties:
+          case AlarmsTransitionProperties.transitionProperties:
             return transition ? this.getSortedCustomProperties(transition.properties) : '';
           default:
             let value;
-            if (TRANSITION_SPECIFIC_PROPERTIES.includes(property)) {
-              value = transition?.[fieldValue as keyof AlarmTransition];
+
+            if (this.isAlarmTransitionProperty(property)) {
+              const transitionKey = TransitionPropertyKeyMap[property];
+              value = transition?.[transitionKey];
             } else {
-              value = alarm[fieldValue as keyof Alarm];
+              const alarmKey = AlarmPropertyKeyMap[property];
+              value = alarm[alarmKey];
             }
+
             if (fieldType === FieldType.time) {
               return value ?? null;
             }
+
             return value ?? '';
         }
       });
@@ -171,9 +180,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   }
 
   private hasTransitionProperties(properties: AlarmsProperties[]): boolean {
-    return properties.some(prop =>
-      TRANSITION_SPECIFIC_PROPERTIES.includes(prop)
-    );
+    return properties.some(prop => this.isAlarmTransitionProperty(prop));
   }
 
   private duplicateAlarmsByTransitions(alarms: Alarm[]): Alarm[] {
