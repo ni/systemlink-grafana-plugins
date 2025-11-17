@@ -1,3 +1,9 @@
+## [4.67.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.66.1...v4.67.0) (2025-11-17)
+
+### Features
+
+* **tags:** Cancel the current request before progressing refresh  ([#517](https://github.com/ni/systemlink-grafana-plugins/issues/517)) ([32a3f4e](https://github.com/ni/systemlink-grafana-plugins/commit/32a3f4edf7fbf4eb0ef410781af70e00a5984753))
+
 ## [4.66.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.66.0...v4.66.1) (2025-11-17)
 
 ### Bug Fixes
