@@ -114,6 +114,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         throw new Error('Method not implemented.');
     }
 
+    public queryTablesWithCombineFilters(
+        filters: {
+        dataTablesFilter: string;
+        resultsFilter: string;
+        },
+        take?: number,
+        projections?: DataTableProjections[]
+    ): Observable<TableProperties[]>{
+        // TODO: Implement logic to combine result filter filters.
+        return this.queryTables$(filters.dataTablesFilter, take, projections);
+    }
+
     queryTables$(
         filter: string,
         take = TAKE_LIMIT,
@@ -178,18 +190,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             default:
                 return `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
         }
-    }
-
-    public async queryTablesWithCombineFilters(
-        filters: {
-        dataTablesFilter: string;
-        resultsFilter: string;
-        },
-        take?: number,
-        projections?: DataTableProjections[]
-    ): Promise<TableProperties[]>{
-        // TODO: Implement logic to combine result filter filters.
-        return lastValueFrom(this.queryTables$(filters.dataTablesFilter, take, projections));
     }
 
     private transformColumnType(dataType: string): string {

@@ -1,4 +1,4 @@
-import { of, Observable, firstValueFrom, lastValueFrom } from 'rxjs';
+import { of, Observable, firstValueFrom } from 'rxjs';
 import { DataQueryRequest, DataSourceInstanceSettings, dateTime, Field, FieldType } from '@grafana/data';
 import { BackendSrvRequest, FetchResponse } from '@grafana/runtime';
 
@@ -254,39 +254,6 @@ it('should migrate legacy metadata type to properties type', () => {
 
   const result = ds.processQuery(query);
   expect(result.type).toBe(DataFrameQueryType.Properties);
-});
-
-it('queryTables should pass substitutions parameter to post request', async () => {
-  const postSpy = jest.spyOn(ds, 'post').mockResolvedValue({ tables: [] });
-  const substitutions = ['$workspace', '$status'];
-
-  await lastValueFrom(ds.queryTables$('test', 10, undefined, substitutions));
-
-  expect(postSpy).toHaveBeenCalledWith(
-    '_/nidataframe/v1/query-tables',
-    {
-      filter: 'name.Contains("test")',
-      take: 10,
-      projection: undefined,
-      substitutions
-    }
-  );
-});
-
-it('queryTables should work without substitutions parameter', async () => {
-  const postSpy = jest.spyOn(ds, 'post').mockResolvedValue({ tables: [] });
-
-  await ds.queryTables('test', 10);
-
-  expect(postSpy).toHaveBeenCalledWith(
-    '_/nidataframe/v1/query-tables',
-    {
-      filter: 'name.Contains("test")',
-      take: 10,
-      projection: undefined,
-      substitutions: undefined
-    }
-  );
 });
 
 it('handles properties query when table has no properties', async () => {

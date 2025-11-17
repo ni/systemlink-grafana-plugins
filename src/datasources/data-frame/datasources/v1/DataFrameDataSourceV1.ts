@@ -101,8 +101,7 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
   queryTables$(
     query: string,
     take = 5,
-    projection?: DataTableProjections[],
-    substitutions?: string[]
+    projection?: DataTableProjections[]
   ): Observable<TableProperties[]> {
     return of([]);
   }

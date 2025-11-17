@@ -21,7 +21,7 @@ import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { extractErrorInfo } from 'core/errors';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { PART_NUMBER_FIELD } from './constants';
 
 export abstract class DataFrameDataSourceBase<
@@ -72,15 +72,15 @@ export abstract class DataFrameDataSourceBase<
         projection?: DataTableProjections[]
     ): Promise<TableProperties[]>;
     
-    public async queryTablesWithCombineFilters(
+    public queryTablesWithCombineFilters(
         _filters: {
         dataTablesFilter: string;
         resultsFilter: string;
         },
         _take?: number,
         _projections?: DataTableProjections[]
-    ): Promise<TableProperties[]>{
-        return Promise.resolve([]);
+    ): Observable<TableProperties[]>{
+        return of([]);
     }
 
     public async testDatasource(): Promise<TestDataSourceResponse> {

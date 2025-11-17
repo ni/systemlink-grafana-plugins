@@ -1225,22 +1225,7 @@ describe('DataFrameDataSourceV2', () => {
             queryTablesMock = jest.spyOn(ds, 'queryTables').mockResolvedValue([]);
         });
 
-        it('should call queryTables with dataTablesFilter', async () => {
-            const filters = {
-                dataTablesFilter: 'name = "test"',
-                resultsFilter: ''
-            };
-
-            await ds.queryTablesWithCombineFilters(filters);
-
-            expect(queryTablesMock).toHaveBeenCalledWith(
-                filters.dataTablesFilter,
-                undefined,
-                undefined
-            );
-        });
-
-        it('should pass all parameter to queryTables', async () => {
+        it('should pass all parameter to queryTables$', async () => {
             const filters = {
                 dataTablesFilter: 'name = "test"',
                 resultsFilter: 'status = "passed"'

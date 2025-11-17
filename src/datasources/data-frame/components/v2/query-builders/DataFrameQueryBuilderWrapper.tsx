@@ -13,6 +13,7 @@ import {
     getValuesInPixels,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { ColumnsQueryBuilder } from './columns-query-builder/ColumnsQueryBuilder';
+import { lastValueFrom } from 'rxjs';
 import { ResultsQueryBuilder } from 'shared/components/ResultsQueryBuilder/ResultsQueryBuilder';
 import { enumToOptions } from 'core/utils';
 import { TestMeasurementStatus } from '../constants/ResultsQueryBuilder.constants';
@@ -66,12 +67,12 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
 
     const dataTableNameLookupCallback = useCallback(async (query: string) => {
         const filter = `${DataTableQueryBuilderFieldNames.Name}.Contains("${query}")`;
-        const response = await datasource.queryTablesWithCombineFilters({ 
+        const response = await lastValueFrom(datasource.queryTablesWithCombineFilters({ 
             dataTablesFilter: filter, 
             resultsFilter: ''
         }, 
         5,
-        [DataTableProjections.Name]);
+        [DataTableProjections.Name]));
 
         if (response.length === 0) {
             return [];

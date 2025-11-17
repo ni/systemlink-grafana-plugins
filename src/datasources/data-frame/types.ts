@@ -120,7 +120,6 @@ export const defaultDatatableProperties: DataTableProperties[] = [
 export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   type: DataFrameQueryType.Data,
   dataTableFilter: '',
-  resultsFilter: '',
   dataTableProperties: defaultDatatableProperties,
   columnProperties: [],
   columns: [],

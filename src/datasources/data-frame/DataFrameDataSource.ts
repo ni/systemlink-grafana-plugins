@@ -89,14 +89,14 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.getColumnOptions(filter);
   }
 
-  public async queryTablesWithCombineFilters(
+  public queryTablesWithCombineFilters(
     filters: {
       dataTablesFilter: string;
       resultsFilter: string;
     },
     take?: number,
     projections?: DataTableProjections[]
-  ): Promise<TableProperties[]> {
-     return this.datasource.queryTablesWithCombineFilters(filters, take, projections);
+  ): Observable<TableProperties[]> {
+    return this.datasource.queryTablesWithCombineFilters(filters, take, projections);
   }
 }
