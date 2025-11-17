@@ -6,6 +6,7 @@ import { Workspace, QueryBuilderOption } from 'core/types';
 import { DataSourceQBLookupCallback } from 'datasources/data-frame/types';
 import userEvent from '@testing-library/user-event';
 import { ColumnsQueryBuilder } from './columns-query-builder/ColumnsQueryBuilder';
+import { of } from 'rxjs';
 import { ResultsQueryBuilder } from 'shared/components/ResultsQueryBuilder/ResultsQueryBuilder';
 
 jest.mock("datasources/data-frame/components/v2/query-builders/data-table-query-builder/DataTableQueryBuilder", () => ({
@@ -88,11 +89,11 @@ const renderComponent = (
                 { label: 'Var2', value: 'Value2' },
             ]
         ),
-        queryTables: jest.fn().mockResolvedValue(
-            [
+        queryTables$: jest.fn().mockReturnValue(
+            of([
                 { id: 'table1', name: 'Table 1', columns: [{ name: 'ColumnA' }, { name: 'ColumnB' }] },
                 { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, { name: 'ColumnE' }] },
-            ]
+            ])
         ),
         instanceSettings: {
             jsonData: { featureToggles: { queryByResultAndColumnProperties } },

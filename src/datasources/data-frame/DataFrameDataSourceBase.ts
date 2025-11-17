@@ -21,6 +21,7 @@ import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { extractErrorInfo } from 'core/errors';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
+import { Observable } from 'rxjs';
 import { PART_NUMBER_FIELD } from './constants';
 
 export abstract class DataFrameDataSourceBase<
@@ -58,7 +59,17 @@ export abstract class DataFrameDataSourceBase<
         intervals?: number
     ): Promise<TableDataRows>;
 
-    public abstract queryTables(query: string, take?: number, projection?: DataTableProjections[]): Promise<TableProperties[]>;
+    public abstract queryTables$(
+        query: string,
+        take?: number,
+        projection?: DataTableProjections[]
+    ): Observable<TableProperties[]>;
+
+    public abstract queryTables(
+        query: string,
+        take?: number,
+        projection?: DataTableProjections[]
+    ): Promise<TableProperties[]>;
 
     public async testDatasource(): Promise<TestDataSourceResponse> {
         await this.get(`${this.baseUrl}/tables`, { params: { take: 1 } });

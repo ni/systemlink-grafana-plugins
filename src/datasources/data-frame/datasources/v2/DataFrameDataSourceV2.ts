@@ -7,6 +7,7 @@ import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, tran
 import { Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
+import { catchError, combineLatestWith, from, lastValueFrom, map, Observable, of } from "rxjs";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
     defaultQuery = defaultQueryV2;
@@ -19,10 +20,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         super(instanceSettings, backendSrv, templateSrv);
     }
 
-    async runQuery(
+    runQuery(
         query: DataFrameQueryV2,
         options: DataQueryRequest<DataFrameQueryV2>
-    ): Promise<DataFrameDTO> {
+    ): Observable<DataFrameDTO> {
         const processedQuery = this.processQuery(query);
 
         if (processedQuery.dataTableFilter) {
@@ -33,14 +34,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         }
 
         if (this.shouldQueryForProperties(processedQuery)) {
-            return this.getFieldsForPropertiesQuery(processedQuery);
+            return this.getFieldsForPropertiesQuery$(processedQuery);
         }
 
-        return {
+        return of({
             refId: processedQuery.refId,
             name: processedQuery.refId,
             fields: []
-        };
+        });
     }
 
     async metricFindQuery(
@@ -57,12 +58,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         }
 
         if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {
-            const tables = await this.queryTables(
+            const tables = await lastValueFrom(this.queryTables$(
                 processedQuery.dataTableFilter,
                 TAKE_LIMIT,
                 [DataTableProjections.Name]
-            );
-
+            ));
             return tables.map(table => ({
                 text: table.name,
                 value: table.id,
@@ -114,47 +114,43 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         throw new Error('Method not implemented.');
     }
 
-    async queryTables(filter: string, take = TAKE_LIMIT, projection?: DataTableProjections[]): Promise<TableProperties[]> {
-        try {
-            const response = await this.post<TablePropertiesList>(
-                `${this.baseUrl}/query-tables`,
-                { filter, take, projection },
-                { useApiIngress: true }
-            );
-            return response.tables;
-        } catch (error) {
-            const errorDetails = extractErrorInfo((error as Error).message);
-            let errorMessage: string;
+    queryTables$(
+        filter: string,
+        take = TAKE_LIMIT,
+        projection?: DataTableProjections[]
+    ): Observable<TableProperties[]> {
+        const response = this.post$<TablePropertiesList>(
+            `${this.baseUrl}/query-tables`,
+            { filter, take, projection },
+            { useApiIngress: true }
+        );
 
-            switch (errorDetails.statusCode) {
-                case '':
-                    errorMessage = 'The query failed due to an unknown error.';
-                    break;
-                case '429':
-                    errorMessage = 'The query to fetch data tables failed due to too many requests. Please try again later.';
-                    break;
-                case '504':
-                    errorMessage = 'The query to fetch data tables experienced a timeout error. Narrow your query with a more specific filter and try again.';
-                    break;
-                default:
-                    errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
-                    break;
-            }
+        return response.pipe(
+            map(res => res.tables),
+            catchError(error => {
+                const errorMessage = this.getErrorMessage(error);
+                this.appEvents?.publish?.({
+                    type: AppEvents.alertError.name,
+                    payload: ['Error during data tables query', errorMessage],
+                });
+                throw new Error(errorMessage);
+            })
+        );
+    }
 
-            this.appEvents?.publish?.({
-                type: AppEvents.alertError.name,
-                payload: ['Error during data tables query', errorMessage],
-            });
-
-            throw new Error(errorMessage);
-        }
+    queryTables(
+        filter: string,
+        take = TAKE_LIMIT,
+        projection?: DataTableProjections[]
+    ): Promise<TableProperties[]> {
+        return Promise.resolve([]);
     }
 
     public async getColumnOptions(filter: string): Promise<Option[]> {
-        const tables = await this.queryTables(filter, TAKE_LIMIT, [
+        const tables = await lastValueFrom(this.queryTables$(filter, TAKE_LIMIT, [
             DataTableProjections.ColumnName,
             DataTableProjections.ColumnDataType,
-        ]);
+        ]));
 
         const hasColumns = tables.some(
             table => Array.isArray(table.columns)
@@ -167,6 +163,21 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         const columnTypeMap = this.createColumnNameDataTypesMap(tables);
 
         return this.createColumnOptions(columnTypeMap);
+    }
+
+    private getErrorMessage(error: Error): string {
+        const errorDetails = extractErrorInfo(error.message);
+
+        switch (errorDetails.statusCode) {
+            case '':
+                return 'The query failed due to an unknown error.';
+            case '429':
+                return 'The query to fetch data tables failed due to too many requests. Please try again later.';
+            case '504':
+                return 'The query to fetch data tables experienced a timeout error. Narrow your query with a more specific filter and try again.';
+            default:
+                return `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+        }
     }
 
     private transformColumnType(dataType: string): string {
@@ -340,7 +351,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         });
     }
 
-    private async getFieldsForPropertiesQuery(processedQuery: ValidDataFrameQueryV2): Promise<DataFrameDTO> {
+    private getFieldsForPropertiesQuery$(processedQuery: ValidDataFrameQueryV2): Observable<DataFrameDTO> {
         const propertiesToQuery = [
             ...processedQuery.dataTableProperties,
             ...processedQuery.columnProperties
@@ -349,31 +360,39 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             .map(property => DataTableProjectionLabelLookup[property].projection);
         const projectionExcludingId = projections
             .filter(projection => projection !== DataTableProjections.Id);
-        const tables = await this.queryTables(
+        const tables$ = this.queryTables$(
             processedQuery.dataTableFilter,
             processedQuery.take,
             projectionExcludingId
         );
-        const flattenedTablesWithColumns = this.flattenTablesWithColumns(tables);
-        const workspaces = await this.loadWorkspaces();
+        const flattenedTablesWithColumns$ = tables$.pipe(
+            map(tables => this.flattenTablesWithColumns(tables))
+        );
+        const workspaces$ = from(this.loadWorkspaces());
+        const dataFrame$ = flattenedTablesWithColumns$.pipe(
+            combineLatestWith(workspaces$),
+            map(([flattenedTablesWithColumns, workspaces]) => {
+                const fields = propertiesToQuery.map(property => {
+                    const values = this.getFieldValues(
+                        flattenedTablesWithColumns,
+                        property,
+                        workspaces
+                    );
+                    return {
+                        name: DataTableProjectionLabelLookup[property].label,
+                        type: this.getFieldType(property),
+                        values
+                    };
+                });
 
-        const fields = propertiesToQuery.map(property => {
-            const values = this.getFieldValues(
-                flattenedTablesWithColumns,
-                property,
-                workspaces
-            );
-            return {
-                name: DataTableProjectionLabelLookup[property].label,
-                type: this.getFieldType(property),
-                values
-            };
-        });
+                return {
+                    refId: processedQuery.refId,
+                    name: processedQuery.refId,
+                    fields: fields,
+                };
+            })
+        );
 
-        return {
-            refId: processedQuery.refId,
-            name: processedQuery.refId,
-            fields: fields,
-        };
+        return dataFrame$;
     }
 }
