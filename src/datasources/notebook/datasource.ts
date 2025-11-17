@@ -133,16 +133,18 @@ export class DataSource extends DataSourceBase<NotebookQuery, NotebookDataSource
     }, {} as Record<string, any>);
   }
 
-  transformResultToDataFrames(result: NotebookResult, query: NotebookQuery): DataFrameDTO[] {
-    const typeHandlers = {
-      [ResultType.DATA_FRAME]: () => this.handleDataFrameResult(result, query),
-      [ResultType.ARRAY]: () => this.handleArrayResult(result, query),
-      [ResultType.SCALAR]: () => this.handleScalarResult(result, query),
-    };
-
-    const handler = typeHandlers[result.type as keyof typeof typeHandlers];
-    return handler ? handler() : [];
+transformResultToDataFrames(result: NotebookResult, query: NotebookQuery): DataFrameDTO[] {
+  switch (result.type) {
+    case ResultType.DATA_FRAME:
+      return this.handleDataFrameResult(result, query);
+    case ResultType.ARRAY:
+      return this.handleArrayResult(result, query);
+    case ResultType.SCALAR:
+      return this.handleScalarResult(result, query);
+    default:
+      return [];
   }
+}
 
   private handleDataFrameResult(result: NotebookResult, query: NotebookQuery): DataFrameDTO[] {
     if (Array.isArray(result.data)) {
