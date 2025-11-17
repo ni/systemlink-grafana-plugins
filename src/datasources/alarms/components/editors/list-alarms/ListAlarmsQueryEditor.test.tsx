@@ -2,7 +2,7 @@ import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryType, TransitionInclusionOption } from 'datasources/alarms/types/types';
 import { ListAlarmsQueryHandler } from 'datasources/alarms/query-type-handlers/list-alarms/ListAlarmsQueryHandler';
-import { AlarmsProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
+import { AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 import { ListAlarmsQueryEditor } from './ListAlarmsQueryEditor';
 import userEvent from '@testing-library/user-event';
 import { AlarmsPropertiesOptions, takeErrorMessages, AlarmsTransitionInclusionOptions } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
@@ -117,9 +117,9 @@ describe('ListAlarmsQueryEditor', () => {
 
   describe('Properties', () => {
     it('should render the selected alarm properties in the UI', async () => {
-      await renderElement({ refId: 'A', queryType: QueryType.ListAlarms, properties: [AlarmsProperties.acknowledged] });
+      await renderElement({ refId: 'A', queryType: QueryType.ListAlarms, properties: [AlarmsSpecificProperties.acknowledged] });
 
-      expect(screen.getByText(AlarmsPropertiesOptions[AlarmsProperties.acknowledged].label)).toBeInTheDocument();
+      expect(screen.getByText(AlarmsPropertiesOptions[AlarmsSpecificProperties.acknowledged].label)).toBeInTheDocument();
     });
 
     it('should call handleQueryChange with selected property when a property is selected', async () => {
@@ -127,7 +127,7 @@ describe('ListAlarmsQueryEditor', () => {
       const propertiesControl = screen.getAllByRole('combobox')[0];
 
       await userEvent.click(propertiesControl);
-      await select(propertiesControl, AlarmsPropertiesOptions[AlarmsProperties.acknowledged].label, {
+      await select(propertiesControl, AlarmsPropertiesOptions[AlarmsSpecificProperties.acknowledged].label, {
         container: document.body,
       });
 
@@ -142,7 +142,7 @@ describe('ListAlarmsQueryEditor', () => {
     });
 
     it('should display error message when all properties are removed', async () => {
-      const propertyToBeSelected = AlarmsProperties.acknowledged;
+      const propertyToBeSelected = AlarmsSpecificProperties.acknowledged;
 
       await renderElement({ refId: 'A', queryType: QueryType.ListAlarms, properties: [propertyToBeSelected] });
       const removePropertyButton = screen.getByRole('button', {
@@ -386,7 +386,7 @@ describe('ListAlarmsQueryEditor', () => {
         refId: 'A',
         queryType: QueryType.ListAlarms,
         transitionInclusionOption: TransitionInclusionOption.All,
-        properties: [ AlarmsProperties.acknowledged, AlarmsProperties.transitionCondition ],
+        properties: [ AlarmsSpecificProperties.acknowledged, AlarmsTransitionProperties.transitionCondition ],
       });
 
       const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Include Transition' });
@@ -405,7 +405,7 @@ describe('ListAlarmsQueryEditor', () => {
         expect(mockHandleQueryChange).toHaveBeenCalledWith(
           expect.objectContaining({
             transitionInclusionOption: TransitionInclusionOption.None,
-            properties: [ AlarmsProperties.acknowledged ],
+            properties: [ AlarmsSpecificProperties.acknowledged ],
           }),
         );
       });
@@ -416,7 +416,7 @@ describe('ListAlarmsQueryEditor', () => {
         refId: 'A',
         queryType: QueryType.ListAlarms,
         transitionInclusionOption: TransitionInclusionOption.All,
-        properties: [ AlarmsProperties.transitionCondition ],
+        properties: [ AlarmsTransitionProperties.transitionCondition ],
       });
 
       const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Include Transition' });

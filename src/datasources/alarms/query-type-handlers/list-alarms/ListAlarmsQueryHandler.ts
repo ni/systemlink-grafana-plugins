@@ -1,5 +1,5 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
-import { AlarmsProperties, ListAlarmsQuery, TransitionAlarmProperty } from '../../types/ListAlarms.types';
+import { AlarmsProperties, AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery } from '../../types/ListAlarms.types';
 import { AlarmsVariableQuery, QueryAlarmsRequest, TransitionInclusionOption } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
 import { AlarmPropertyKeyMap, AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, TRANSITION_SPECIFIC_PROPERTIES, TransitionPropertyKeyMap } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
@@ -72,7 +72,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     }
   }
 
-  public isAlarmTransitionProperty(property: AlarmsProperties): property is TransitionAlarmProperty {
+  public isAlarmTransitionProperty(property: AlarmsProperties): property is AlarmsTransitionProperties {
     return (TRANSITION_SPECIFIC_PROPERTIES as readonly AlarmsProperties[]).includes(property);
   }
 
@@ -125,25 +125,25 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
         const transition = alarm.transitions?.[0];
 
         switch (property) {
-          case AlarmsProperties.workspace:
+          case AlarmsSpecificProperties.workspace:
             const workspace = workspaces.get(alarm.workspace);
             return workspace ? workspace.name : alarm.workspace;
-          case AlarmsProperties.acknowledgedBy:
+          case AlarmsSpecificProperties.acknowledgedBy:
             const userId = alarm.acknowledgedBy ?? '';
             const user = users.get(userId);
             return user ? UsersUtils.getUserFullName(user) : userId;
-          case AlarmsProperties.properties:
+          case AlarmsSpecificProperties.properties:
             return this.getSortedCustomProperties(alarm.properties);
-          case AlarmsProperties.highestSeverityLevel:
-          case AlarmsProperties.currentSeverityLevel:
+          case AlarmsSpecificProperties.highestSeverityLevel:
+          case AlarmsSpecificProperties.currentSeverityLevel:
             return this.getSeverityLabel(alarm[property]);
-          case AlarmsProperties.state:
+          case AlarmsSpecificProperties.state:
             return this.getAlarmState(alarm.clear, alarm.acknowledged);
-          case AlarmsProperties.source:
+          case AlarmsSpecificProperties.source:
             return this.getSource(alarm.properties);
-          case AlarmsProperties.transitionSeverityLevel:
+          case AlarmsTransitionProperties.transitionSeverityLevel:
             return transition ? this.getSeverityLabel(transition.severityLevel) : '';
-          case AlarmsProperties.transitionProperties:
+          case AlarmsTransitionProperties.transitionProperties:
             return transition ? this.getSortedCustomProperties(transition.properties) : '';
           default:
             let value;

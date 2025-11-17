@@ -1,4 +1,3 @@
-import { TRANSITION_SPECIFIC_PROPERTIES } from '../constants/AlarmsQueryEditor.constants';
 import { AlarmsQuery, TransitionInclusionOption } from './types';
 
 export interface ListAlarmsQuery extends AlarmsQuery {
@@ -9,7 +8,7 @@ export interface ListAlarmsQuery extends AlarmsQuery {
   transitionInclusionOption?: TransitionInclusionOption;
 }
 
-export enum AlarmsProperties {
+export enum AlarmsSpecificProperties {
   acknowledged = 'acknowledged',
   acknowledgedAt = 'acknowledgedAt',
   acknowledgedBy = 'acknowledgedBy',
@@ -36,22 +35,23 @@ export enum AlarmsProperties {
   source = 'source',
   // The State column is determined using the values of clear and acknowledged.
   state = 'state',
+  transitionOverflowCount = 'transitionOverflowCount',
+  updatedAt = 'updatedAt',
+  workspace = 'workspace',
+}
+
+export enum AlarmsTransitionProperties {
   transitionCondition = 'transitionCondition',
   transitionDetailText = 'transitionDetailText',
   transitionKeywords = 'transitionKeywords',
   transitionOccurredAt = 'transitionOccurredAt',
-  transitionOverflowCount = 'transitionOverflowCount',
   transitionProperties = 'transitionProperties',
   transitionSeverityLevel = 'transitionSeverityLevel',
   transitionShortText = 'transitionShortText',
   transitionType = 'transitionType',
   transitionValue = 'transitionValue',
-  updatedAt = 'updatedAt',
-  workspace = 'workspace',
 }
 
-export type TransitionAlarmProperty = typeof TRANSITION_SPECIFIC_PROPERTIES[number];
+export type AlarmsProperties = AlarmsSpecificProperties | AlarmsTransitionProperties;
 
-export type NonTransitionAlarmProperty = Exclude<AlarmsProperties, TransitionAlarmProperty>;
-
-export type ComputedAlarmProperty = AlarmsProperties.state | AlarmsProperties.source;
+export type ComputedAlarmProperty = AlarmsSpecificProperties.state | AlarmsSpecificProperties.source;
