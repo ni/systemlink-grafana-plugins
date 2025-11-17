@@ -385,7 +385,6 @@ describe('ListAlarmsQueryEditor', () => {
       });
     });
 
-
     [TransitionInclusionOption.All, TransitionInclusionOption.MostRecentOnly].forEach((option) => {
       it(`should show transition properties in dropdown when transition inclusion is ${option}`, async () => {
         const container = await renderElement({
@@ -459,7 +458,8 @@ describe('ListAlarmsQueryEditor', () => {
       const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Include Transition' });
 
       await userEvent.click(transitionInclusionCombobox);
-      await select(transitionInclusionCombobox,
+      await select(
+        transitionInclusionCombobox,
         AlarmsTransitionInclusionOptions[TransitionInclusionOption.None].label,
         {
           container: document.body,
