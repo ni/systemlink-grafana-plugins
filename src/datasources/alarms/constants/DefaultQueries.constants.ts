@@ -27,6 +27,7 @@ export const defaultListAlarmsQuery: Omit<ListAlarmsQuery, 'refId'> = {
 
 export const defaultAlarmsTrendQuery: Omit<AlarmsTrendQuery, 'refId'> = {
   filter: '',
+  groupBySeverity: true
 };
 
 export const defaultListAlarmsVariableQuery: Omit<AlarmsVariableQuery, 'refId'> = {

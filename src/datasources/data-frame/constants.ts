@@ -27,3 +27,5 @@ export const propertiesCacheTTL = 1000 * 60 * 5; // 5 minutes
 
 export const TAKE_LIMIT = 1000;
 export const COLUMN_OPTIONS_LIMIT = 10000;
+
+export const PART_NUMBER_FIELD = 'partNumber';

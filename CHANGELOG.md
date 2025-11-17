@@ -1,3 +1,27 @@
+## [4.66.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.65.0...v4.66.0) (2025-11-15)
+
+### Features
+
+* **asset:** add filter by Scan Code ([#525](https://github.com/ni/systemlink-grafana-plugins/issues/525)) ([2a6e1b5](https://github.com/ni/systemlink-grafana-plugins/commit/2a6e1b5fc44f13cd4ed8cf8b6df8a1397e4b3d14))
+
+## [4.65.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.64.0...v4.65.0) (2025-11-14)
+
+### Features
+
+* **dataframes:** add dummy results query builder ([#514](https://github.com/ni/systemlink-grafana-plugins/issues/514)) ([9563e7a](https://github.com/ni/systemlink-grafana-plugins/commit/9563e7add71b9f61fbebcdc0f0ebaf76c0cc4d2d))
+
+## [4.64.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.63.0...v4.64.0) (2025-11-13)
+
+### Features
+
+* **dataframe:** Show error when no properties are selected ([#522](https://github.com/ni/systemlink-grafana-plugins/issues/522)) ([c5ce731](https://github.com/ni/systemlink-grafana-plugins/commit/c5ce73179dcba9b5a55aff2ba308c9c006a52698))
+
+## [4.63.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.62.0...v4.63.0) (2025-11-13)
+
+### Features
+
+* **alarms:** alarms trend groupby severity ([#503](https://github.com/ni/systemlink-grafana-plugins/issues/503)) ([140faa8](https://github.com/ni/systemlink-grafana-plugins/commit/140faa81074cd67c796de9aa904c0d466da0f9a0))
+
 ## [4.62.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.61.0...v4.62.0) (2025-11-12)
 
 ### Features
