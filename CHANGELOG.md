@@ -1,3 +1,9 @@
+## [4.68.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.67.0...v4.68.0) (2025-11-17)
+
+### Features
+
+* **alarms:** Implement transition-related property mapping ([#496](https://github.com/ni/systemlink-grafana-plugins/issues/496)) ([f053e4e](https://github.com/ni/systemlink-grafana-plugins/commit/f053e4e197c3775b5401ef704af83db73255dc93))
+
 ## [4.67.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.66.1...v4.67.0) (2025-11-17)
 
 ### Features
