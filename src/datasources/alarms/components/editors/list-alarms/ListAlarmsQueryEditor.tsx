@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { InlineField } from 'core/components/InlineField';
 import { AlarmsQueryBuilder } from '../../query-builder/AlarmsQueryBuilder';
 import {
@@ -87,8 +87,35 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
   };
 
   const onTransitionInclusionChange = (option: ComboboxOption<TransitionInclusionOption>) => {
-    handleQueryChange({ ...query, transitionInclusionOption: option.value });
+    let updatedProperties = query.properties || [];
+    
+    if (option.value === TransitionInclusionOption.None) {
+      updatedProperties = updatedProperties.filter(
+        prop => !datasource.isAlarmTransitionProperty(prop)
+      );
+    }
+
+    setIsPropertiesControlValid(updatedProperties.length > 0);
+
+    handleQueryChange({
+      ...query,
+      transitionInclusionOption: option.value,
+      properties: updatedProperties,
+    });
   };
+
+  const propertiesOptions = useMemo(() => {
+    const transitionInclusionOption = query.transitionInclusionOption;
+    const allOptions = Object.values(AlarmsPropertiesOptions);
+
+    if (transitionInclusionOption === TransitionInclusionOption.None) {
+      return allOptions.filter(
+        option => !datasource.isAlarmTransitionProperty(option.value)
+      );
+    }
+
+    return allOptions;
+  }, [query.transitionInclusionOption, datasource]);
 
   return (
     <Stack direction='column'>
@@ -101,7 +128,7 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
       >
         <MultiCombobox
           placeholder={placeholders.properties}
-          options={Object.values(AlarmsPropertiesOptions)}
+          options={propertiesOptions}
           onChange={onPropertiesChange}
           value={query.properties}
           width='auto'
