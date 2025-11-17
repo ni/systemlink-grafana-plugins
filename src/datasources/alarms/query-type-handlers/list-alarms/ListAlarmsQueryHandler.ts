@@ -1,8 +1,8 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
-import { AlarmsProperties, ListAlarmsQuery } from '../../types/ListAlarms.types';
-import { AlarmsVariableQuery, QueryAlarmsRequest } from '../../types/types';
+import { AlarmsProperties, AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery } from '../../types/ListAlarms.types';
+import { AlarmsVariableQuery, QueryAlarmsRequest, TransitionInclusionOption } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
-import { AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
+import { AlarmPropertyKeyMap, AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, TRANSITION_SPECIFIC_PROPERTIES, TransitionPropertyKeyMap } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 import { defaultListAlarmsQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { Alarm } from 'datasources/alarms/types/types';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
@@ -30,8 +30,13 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     if (this.isTakeValid(query.take) && this.isPropertiesValid(query.properties)) {
       query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
       const alarmsResponse = await this.queryAlarmsData(query);
+      const flattenedAlarms  =
+        query.transitionInclusionOption === TransitionInclusionOption.All
+        && this.hasTransitionProperties(query.properties)
+          ? this.duplicateAlarmsByTransitions(alarmsResponse)
+          : alarmsResponse;
 
-      mappedFields = await this.mapPropertiesToSelect(query.properties, alarmsResponse);
+      mappedFields = await this.mapPropertiesToSelect(query.properties, flattenedAlarms);
     }
 
     return {
@@ -65,6 +70,10 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     } catch (error) {
       return [];
     }
+  }
+
+  public isAlarmTransitionProperty(property: AlarmsProperties): property is AlarmsTransitionProperties {
+    return (TRANSITION_SPECIFIC_PROPERTIES as readonly AlarmsProperties[]).includes(property);
   }
 
   private isTakeValid(take?: number): boolean {
@@ -101,7 +110,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
 
   private async mapPropertiesToSelect(
     properties: AlarmsProperties[],
-    alarms: Alarm[]
+    flattenedAlarms: Alarm[]
   ): Promise<DataFrameDTO['fields']> {
     const workspaces = await this.loadWorkspaces();
     const users = await this.loadUsers();
@@ -112,29 +121,45 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       const fieldValue = field.value;
       const fieldType = this.isTimeField(fieldValue) ? FieldType.time : FieldType.string;
 
-      const fieldValues = alarms.map(alarm => {
+      const fieldValues = flattenedAlarms.map(alarm => {
+        const transition = alarm.transitions?.[0];
+
         switch (property) {
-          case AlarmsProperties.workspace:
+          case AlarmsSpecificProperties.workspace:
             const workspace = workspaces.get(alarm.workspace);
             return workspace ? workspace.name : alarm.workspace;
-          case AlarmsProperties.acknowledgedBy:
+          case AlarmsSpecificProperties.acknowledgedBy:
             const userId = alarm.acknowledgedBy ?? '';
             const user = users.get(userId);
             return user ? UsersUtils.getUserFullName(user) : userId;
-          case AlarmsProperties.properties:
+          case AlarmsSpecificProperties.properties:
             return this.getSortedCustomProperties(alarm.properties);
-          case AlarmsProperties.highestSeverityLevel:
-          case AlarmsProperties.currentSeverityLevel:
+          case AlarmsSpecificProperties.highestSeverityLevel:
+          case AlarmsSpecificProperties.currentSeverityLevel:
             return this.getSeverityLabel(alarm[property]);
-          case AlarmsProperties.state:
+          case AlarmsSpecificProperties.state:
             return this.getAlarmState(alarm.clear, alarm.acknowledged);
-          case AlarmsProperties.source:
+          case AlarmsSpecificProperties.source:
             return this.getSource(alarm.properties);
+          case AlarmsTransitionProperties.transitionSeverityLevel:
+            return transition ? this.getSeverityLabel(transition.severityLevel) : '';
+          case AlarmsTransitionProperties.transitionProperties:
+            return transition ? this.getSortedCustomProperties(transition.properties) : '';
           default:
-            const value = alarm[fieldValue as keyof Alarm];
+            let value;
+
+            if (this.isAlarmTransitionProperty(property)) {
+              const transitionKey = TransitionPropertyKeyMap[property];
+              value = transition?.[transitionKey];
+            } else {
+              const alarmKey = AlarmPropertyKeyMap[property];
+              value = alarm[alarmKey];
+            }
+
             if (fieldType === FieldType.time) {
               return value ?? null;
             }
+
             return value ?? '';
         }
       });
@@ -142,6 +167,18 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     });
 
     return mappedFields;
+  }
+
+  private hasTransitionProperties(properties: AlarmsProperties[]): boolean {
+    return properties.some(prop => this.isAlarmTransitionProperty(prop));
+  }
+
+  private duplicateAlarmsByTransitions(alarms: Alarm[]): Alarm[] {
+    return alarms.flatMap(alarm => 
+      alarm.transitions?.length 
+        ? alarm.transitions.map(transition => ({ ...alarm, transitions: [transition] }))
+        : alarm
+    );
   }
 
   private getSortedCustomProperties(properties: { [key: string]: string }): string {

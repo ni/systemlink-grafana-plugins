@@ -6,11 +6,38 @@ import { QUERY_ALARMS_RELATIVE_PATH } from 'datasources/alarms/constants/QueryAl
 import { BackendSrv } from '@grafana/runtime';
 import { MockProxy } from 'jest-mock-extended';
 import { User } from 'shared/types/QueryUsers.types';
-import { AlarmsProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
+import { AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
 import { Workspace } from 'core/types';
+import { AlarmsPropertiesOptions, TRANSITION_SPECIFIC_PROPERTIES } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 
 let datastore: ListAlarmsQueryHandler, backendServer: MockProxy<BackendSrv>;
 
+const mockTransition1 = {
+  transitionType: AlarmTransitionType.Set,
+  occurredAt: '2025-09-16T09:00:00Z',
+  severityLevel: 3,
+  value: 'High',
+  condition: 'Temperature',
+  shortText: 'Temp High',
+  detailText: 'Temperature exceeded threshold',
+  keywords: ['temperature', 'high'],
+  properties: {
+    sensorId: 'SENSOR-12',
+  },
+};
+const mockTransition2 = {
+  transitionType: AlarmTransitionType.Clear,
+  occurredAt: '2025-09-16T10:00:00Z',
+  severityLevel: 0,
+  value: 'Clear',
+  condition: 'Humidity',
+  shortText: 'Humidity Normal',
+  detailText: 'Humidity back to normal',
+  keywords: ['humidity', 'normal'],
+  properties: {
+    sensorId: 'SENSOR-90',
+  },
+};
 const sampleAlarm: Alarm = {
   instanceId: 'INST-001',
   alarmId: 'ALARM-001',
@@ -24,19 +51,7 @@ const sampleAlarm: Alarm = {
   updatedAt: '2025-09-16T10:29:00Z',
   createdBy: 'admin',
   transitions: [
-    {
-      transitionType: AlarmTransitionType.Set,
-      occurredAt: '2025-09-16T09:00:00Z',
-      severityLevel: 3,
-      value: 'High',
-      condition: 'Temperature',
-      shortText: 'Temp High',
-      detailText: 'Temperature exceeded threshold',
-      keywords: ['temperature', 'high'],
-      properties: {
-        sensorId: 'SENSOR-12',
-      },
-    },
+    mockTransition1,
   ],
   transitionOverflowCount: 0,
   currentSeverityLevel: 3,
@@ -103,7 +118,7 @@ function buildAlarmsQuery(query?: Partial<ListAlarmsQuery>): ListAlarmsQuery {
     refId: 'A',
     queryType: QueryType.ListAlarms,
     take: 1000,
-    properties: [AlarmsProperties.displayName],
+    properties: [AlarmsSpecificProperties.displayName],
     ...query,
   };
 }
@@ -189,7 +204,7 @@ describe('ListAlarmsQueryHandler', () => {
 
       it('should return field without values when no alarms are returned from API', async () => {
         const query = buildAlarmsQuery({
-          properties: [AlarmsProperties.acknowledged]
+          properties: [AlarmsSpecificProperties.acknowledged]
         });
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
@@ -205,7 +220,7 @@ describe('ListAlarmsQueryHandler', () => {
 
       it('should convert workspaceIds to workspace names for workspace field', async () => {
         const query = buildAlarmsQuery({
-          properties: [AlarmsProperties.workspace]
+          properties: [AlarmsSpecificProperties.workspace]
         });
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
@@ -234,7 +249,7 @@ describe('ListAlarmsQueryHandler', () => {
 
       it('should convert acknowledgedBy userIds to user full names for acknowledgedBy field', async () => {
         const query = buildAlarmsQuery({ 
-          properties: [AlarmsProperties.acknowledgedBy]
+          properties: [AlarmsSpecificProperties.acknowledgedBy]
         });
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
@@ -256,7 +271,7 @@ describe('ListAlarmsQueryHandler', () => {
 
       it('should map and sort the custom properties field', async () => {
         const query = buildAlarmsQuery({
-          properties: [AlarmsProperties.properties],
+          properties: [AlarmsSpecificProperties.properties],
         });
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
@@ -284,7 +299,7 @@ describe('ListAlarmsQueryHandler', () => {
 
       it('should remove any custom properties that starts with nitag', async () => {
         const query = buildAlarmsQuery({
-          properties: [AlarmsProperties.properties],
+          properties: [AlarmsSpecificProperties.properties],
         });
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
@@ -313,7 +328,7 @@ describe('ListAlarmsQueryHandler', () => {
       it('should return empty strings for properties field when no custom properties exist on the alarms', async () => {
         const query = buildAlarmsQuery({
           refId: 'A',
-          properties: [AlarmsProperties.properties],
+          properties: [AlarmsSpecificProperties.properties],
         });
         jest
           .spyOn(datastore as any, 'queryAlarmsInBatches')
@@ -341,7 +356,7 @@ describe('ListAlarmsQueryHandler', () => {
 
       it('should map severity level properties correctly', async () => {
         const query = buildAlarmsQuery({
-          properties: [AlarmsProperties.highestSeverityLevel, AlarmsProperties.currentSeverityLevel],
+          properties: [AlarmsSpecificProperties.highestSeverityLevel, AlarmsSpecificProperties.currentSeverityLevel],
         });
         jest
         .spyOn(datastore as any, 'queryAlarmsInBatches')
@@ -398,7 +413,7 @@ describe('ListAlarmsQueryHandler', () => {
 
       it('should map state property correctly', async () => {
         const query = buildAlarmsQuery({
-          properties: [AlarmsProperties.state],
+          properties: [AlarmsSpecificProperties.state],
         });
         jest
         .spyOn(datastore as any, 'queryAlarmsInBatches')
@@ -428,7 +443,7 @@ describe('ListAlarmsQueryHandler', () => {
 
       it('should map source property correctly', async () => {
         const query = buildAlarmsQuery({
-          properties: [AlarmsProperties.source],
+          properties: [AlarmsSpecificProperties.source],
         });
         jest
         .spyOn(datastore as any, 'queryAlarmsInBatches')
@@ -459,11 +474,11 @@ describe('ListAlarmsQueryHandler', () => {
       it('should map time-fields properly', async () => {
         const query = buildAlarmsQuery({
           properties: [
-            AlarmsProperties.occurredAt,
-            AlarmsProperties.acknowledgedAt,
-            AlarmsProperties.updatedAt,
-            AlarmsProperties.mostRecentSetOccurredAt,
-            AlarmsProperties.mostRecentTransitionOccurredAt,
+            AlarmsSpecificProperties.occurredAt,
+            AlarmsSpecificProperties.acknowledgedAt,
+            AlarmsSpecificProperties.updatedAt,
+            AlarmsSpecificProperties.mostRecentSetOccurredAt,
+            AlarmsSpecificProperties.mostRecentTransitionOccurredAt,
           ],
         });
         jest
@@ -531,7 +546,7 @@ describe('ListAlarmsQueryHandler', () => {
 
       it('should map keyword property correctly', async () => {
         const query = buildAlarmsQuery({
-          properties: [AlarmsProperties.keywords],
+          properties: [AlarmsSpecificProperties.keywords],
         });
         jest
         .spyOn(datastore as any, 'queryAlarmsInBatches')
@@ -564,7 +579,7 @@ describe('ListAlarmsQueryHandler', () => {
 
       it('should map boolean values fields to the properties', async () => {
         const query = buildAlarmsQuery({
-          properties: [AlarmsProperties.clear, AlarmsProperties.acknowledged, AlarmsProperties.active]
+          properties: [AlarmsSpecificProperties.clear, AlarmsSpecificProperties.acknowledged, AlarmsSpecificProperties.active]
         });
         jest
         .spyOn(datastore as any, 'queryAlarmsInBatches')
@@ -603,15 +618,15 @@ describe('ListAlarmsQueryHandler', () => {
       it('should map string and number based properties', async () => {
         const query = buildAlarmsQuery({
           properties: [
-            AlarmsProperties.channel,
-            AlarmsProperties.alarmId,
-            AlarmsProperties.condition,
-            AlarmsProperties.createdBy,
-            AlarmsProperties.description,
-            AlarmsProperties.displayName,
-            AlarmsProperties.instanceId,
-            AlarmsProperties.resourceType,
-            AlarmsProperties.transitionOverflowCount,
+            AlarmsSpecificProperties.channel,
+            AlarmsSpecificProperties.alarmId,
+            AlarmsSpecificProperties.condition,
+            AlarmsSpecificProperties.createdBy,
+            AlarmsSpecificProperties.description,
+            AlarmsSpecificProperties.displayName,
+            AlarmsSpecificProperties.instanceId,
+            AlarmsSpecificProperties.resourceType,
+            AlarmsSpecificProperties.transitionOverflowCount,
           ],
         });
         jest
@@ -695,6 +710,771 @@ describe('ListAlarmsQueryHandler', () => {
               values: [5, 0],
             },
           ],
+        });
+      });
+
+      describe('Transition Properties', () => {
+        it('should map alarm and transition properties without overlap', async () => {
+          const query = buildAlarmsQuery({
+            properties: Object.values(AlarmsPropertiesOptions).map(options => options.value),
+            transitionInclusionOption: TransitionInclusionOption.MostRecentOnly,
+            take: 10,
+          });
+          jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+            buildAlarmsResponse([
+              {
+                transitions: [
+                  mockTransition2,
+                ]
+              }
+            ])
+          );
+
+          const response = await datastore.runQuery(query, options);
+
+          expect(response).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              { name: 'Acknowledged', type: 'string', values: [true] },
+              { name: 'Acknowledged by', type: 'string', values: ['user123'] },
+              { name: 'Acknowledged on', type: 'time', values: ['2025-09-16T10:30:00Z'] },
+              { name: 'Active', type: 'string', values: [true] },
+              { name: 'Alarm ID', type: 'string', values: ['ALARM-001'] },
+              { name: 'Alarm name', type: 'string', values: ['High Temperature Alarm'] },
+              { name: 'Channel', type: 'string', values: ['Main'] },
+              { name: 'Clear', type: 'string', values: [false] },
+              { name: 'Condition', type: 'string', values: ['Temperature'] },
+              { name: 'Created by', type: 'string', values: ['admin'] },
+              { name: 'Current severity', type: 'string', values: ['High (3)'] },
+              { name: 'Description', type: 'string', values: ['Alarm triggered when temperature exceeds safe limit.'] },
+              { name: 'First occurrence', type: 'time', values: ['2025-09-16T09:00:00Z'] },
+              { name: 'Highest severity', type: 'string', values: ['High (3)'] },
+              { name: 'Instance ID', type: 'string', values: ['INST-001'] },
+              { name: 'Keywords', type: 'string', values: [['temperature']] },
+              { name: 'Last occurrence', type: 'time', values: ['2025-09-16T09:00:00Z'] },
+              { name: 'Last transition occurrence', type: 'time', values: ['2025-09-16T10:00:00Z'] },
+              { name: 'Properties', type: 'string', values: ['{"location":"Lab-1"}'] },
+              { name: 'Resource type', type: 'string', values: [''] },
+              { name: 'Source', type: 'string', values: [''] },
+              { name: 'State', type: 'string', values: ['Acknowledged'] },
+              { name: 'Transition condition', type: 'string', values: ['Humidity'] },
+              { name: 'Transition detail', type: 'string', values: ['Humidity back to normal'] },
+              { name: 'Transition keywords', type: 'string', values: [['humidity', 'normal']] },
+              { name: 'Transition occurred at', type: 'time', values: ['2025-09-16T10:00:00Z'] },
+              { name: 'Transition overflow count', type: 'string', values: [0] },
+              { name: 'Transition properties', type: 'string', values: ['{"sensorId":"SENSOR-90"}'] },
+              { name: 'Transition severity', type: 'string', values: [''] },
+              { name: 'Transition short text', type: 'string', values: ['Humidity Normal'] },
+              { name: 'Transition type', type: 'string', values: ['CLEAR'] },
+              { name: 'Transition value', type: 'string', values: ['Clear'] },
+              { name: 'Updated', type: 'time', values: ['2025-09-16T10:29:00Z'] },
+              { name: 'Workspace', type: 'string', values: ['Lab-1'] },
+            ],
+          });
+        });
+
+        it('should map alarm occurredAt and transitions occurredAt properties correctly when both are selected', async () => {
+          const query = buildAlarmsQuery({
+            properties: [AlarmsSpecificProperties.occurredAt, AlarmsTransitionProperties.transitionOccurredAt],
+            transitionInclusionOption: TransitionInclusionOption.All,
+          });
+          jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+            buildAlarmsResponse([
+              {
+                transitions: [
+                  mockTransition1,
+                  {
+                    ...mockTransition2,
+                    occurredAt: '2001-01-01T11:00:00Z',
+                  }
+                ]
+              }
+            ])
+          );
+
+          const response = await datastore.runQuery(query, options);
+
+          expect(response).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              {
+                name: 'First occurrence',
+                type: 'time',
+                values: ['2025-09-16T09:00:00Z', '2025-09-16T09:00:00Z'],
+              },
+              {
+                name: 'Transition occurred at',
+                type: 'time',
+                values: ['2025-09-16T09:00:00Z', '2001-01-01T11:00:00Z'],
+              },
+            ],
+          });
+        });
+
+        it('should map alarm condition and transitions condition properties correctly when both are selected', async () => {
+          const query = buildAlarmsQuery({
+            properties: [AlarmsSpecificProperties.condition, AlarmsTransitionProperties.transitionCondition],
+            transitionInclusionOption: TransitionInclusionOption.All,
+          });
+          jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+            buildAlarmsResponse([
+              {
+                transitions: [
+                  { 
+                    ...mockTransition1, 
+                    condition: 'Greater than 90'
+                  },
+                  mockTransition2,
+                ]
+              }
+            ])
+          );
+
+          const response = await datastore.runQuery(query, options);
+
+          expect(response).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              {
+                name: 'Condition',
+                type: 'string',
+                values: [
+                  'Temperature',
+                  'Temperature',
+                ],
+              },
+              {
+                name: 'Transition condition',
+                type: 'string',
+                values: [
+                  'Greater than 90',
+                  'Humidity',
+                ],
+              },
+            ],
+          });
+        });
+
+        it('should map alarm keywords and transitions keywords properties correctly when both are selected', async () => {
+          const query = buildAlarmsQuery({
+            properties: [AlarmsSpecificProperties.keywords, AlarmsTransitionProperties.transitionKeywords],
+            transitionInclusionOption: TransitionInclusionOption.All,
+          });
+          jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+            buildAlarmsResponse([
+              {
+                transitions: [
+                  mockTransition1,
+                  mockTransition2,
+                ]
+              }
+            ])
+          );
+
+          const response = await datastore.runQuery(query, options);
+
+          expect(response).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              {
+                name: 'Keywords',
+                type: 'string',
+                values: [
+                  ['temperature'],
+                  ['temperature'],
+                ],
+              },
+              {
+                name: 'Transition keywords',
+                type: 'string',
+                values: [
+                  ['temperature', 'high'],
+                  ['humidity', 'normal'],
+                ],
+              },
+            ],
+          });
+        });
+
+        it('should map alarms properties and transitions properties correctly when both are selected', async () => {
+          const query = buildAlarmsQuery({
+            properties: [AlarmsSpecificProperties.properties, AlarmsTransitionProperties.transitionProperties],
+            transitionInclusionOption: TransitionInclusionOption.All,
+          });
+          jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+            buildAlarmsResponse([
+              {
+                transitions: [
+                  mockTransition1,
+                  mockTransition2,
+                ]
+              }
+            ])
+          );
+
+          const response = await datastore.runQuery(query, options);
+
+          expect(response).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              {
+                name: 'Properties',
+                type: 'string',
+                values: [
+                  '{"location":"Lab-1"}',
+                  '{"location":"Lab-1"}',
+                ],
+              },
+              {
+                name: 'Transition properties',
+                type: 'string',
+                values: [
+                  '{"sensorId":"SENSOR-12"}',
+                  '{"sensorId":"SENSOR-90"}',
+                ],
+              },
+            ],
+          });
+        });
+
+        it('should duplicate transition specific properties when transition inclusion option is ALL', async () => {
+          const query = buildAlarmsQuery({
+            properties: [AlarmsSpecificProperties.displayName, ...TRANSITION_SPECIFIC_PROPERTIES],
+            transitionInclusionOption: TransitionInclusionOption.All,
+          });
+          const spy = jest.spyOn(datastore as any, 'duplicateAlarmsByTransitions');
+          jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+            buildAlarmsResponse([
+              {
+                displayName: 'Alarm 1',
+                transitions: [
+                  mockTransition1,
+                  mockTransition2,
+                ]
+              }
+            ])
+          );
+
+          const response = await datastore.runQuery(query, options);
+
+          expect(spy).toHaveBeenCalledTimes(1);
+          expect(response).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              {
+                name: 'Alarm name',
+                type: 'string',
+                values: ['Alarm 1', 'Alarm 1'],
+              },
+              {
+                name: 'Transition condition',
+                type: 'string',
+                values: ['Temperature', 'Humidity'],
+              },
+              {
+                name: 'Transition detail',
+                type: 'string',
+                values: ['Temperature exceeded threshold', 'Humidity back to normal'],
+              },
+              {
+                name: 'Transition keywords',
+                type: 'string',
+                values: [
+                  ['temperature', 'high'],
+                  ['humidity', 'normal'],
+                ],
+              },
+              {
+                name: 'Transition occurred at',
+                type: 'time',
+                values: ['2025-09-16T09:00:00Z', '2025-09-16T10:00:00Z'],
+              },
+              {
+                name: 'Transition properties',
+                type: 'string',
+                values: [
+                  '{"sensorId":"SENSOR-12"}',
+                  '{"sensorId":"SENSOR-90"}',
+                ],
+              },
+              {
+                name: 'Transition severity',
+                type: 'string',
+                values: ['High (3)', ''],
+              },
+              {
+                name: 'Transition short text',
+                type: 'string',
+                values: ['Temp High', 'Humidity Normal'],
+              },
+              {
+                name: 'Transition type',
+                type: 'string',
+                values: ['SET', 'CLEAR'],
+              },
+              {
+                name: 'Transition value',
+                type: 'string',
+                values: ['High', 'Clear'],
+              },
+            ],
+          });
+        });
+
+        it('should handle alarms response with one transition when transition inclusion option is ALL', async () => {
+          const query = buildAlarmsQuery({
+            properties: [AlarmsSpecificProperties.displayName, ...TRANSITION_SPECIFIC_PROPERTIES],
+            transitionInclusionOption: TransitionInclusionOption.All,
+          });
+
+          const response = await datastore.runQuery(query, options);
+
+          expect(response).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              {
+                name: 'Alarm name',
+                type: 'string',
+                values: ['High Temperature Alarm'],
+              },
+              {
+                name: 'Transition condition',
+                type: 'string',
+                values: ['Temperature'],
+              },
+              {
+                name: 'Transition detail',
+                type: 'string',
+                values: ['Temperature exceeded threshold'],
+              },
+              {
+                name: 'Transition keywords',
+                type: 'string',
+                values: [['temperature', 'high']],
+              },
+              {
+                name: 'Transition occurred at',
+                type: 'time',
+                values: ['2025-09-16T09:00:00Z'],
+              },
+              {
+                name: 'Transition properties',
+                type: 'string',
+                values: ['{"sensorId":"SENSOR-12"}'],
+              },
+              {
+                name: 'Transition severity',
+                type: 'string',
+                values: ['High (3)'],
+              },
+              {
+                name: 'Transition short text',
+                type: 'string',
+                values: ['Temp High'],
+              },
+              {
+                name: 'Transition type',
+                type: 'string',
+                values: ['SET'],
+              },
+              {
+                name: 'Transition value',
+                type: 'string',
+                values: ['High'],
+              },
+            ],
+          });
+        });
+
+        it('should not duplicate transition specific properties when transition inclusion option is MOST_RECENT_ONLY', async () => {
+          const query = buildAlarmsQuery({
+            properties: [AlarmsSpecificProperties.displayName, ...TRANSITION_SPECIFIC_PROPERTIES],
+            transitionInclusionOption: TransitionInclusionOption.MostRecentOnly,
+          });
+          const spy = jest.spyOn(datastore as any, 'duplicateAlarmsByTransitions');
+
+          const response = await datastore.runQuery(query, options);
+
+          expect(spy).not.toHaveBeenCalled();
+          expect(response).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              {
+                name: 'Alarm name',
+                type: 'string',
+                values: ['High Temperature Alarm'],
+              },
+              {
+                name: 'Transition condition',
+                type: 'string',
+                values: ['Temperature'],
+              },
+              {
+                name: 'Transition detail',
+                type: 'string',
+                values: ['Temperature exceeded threshold'],
+              },
+              {
+                name: 'Transition keywords',
+                type: 'string',
+                values: [['temperature', 'high']],
+              },
+              {
+                name: 'Transition occurred at',
+                type: 'time',
+                values: ['2025-09-16T09:00:00Z'],
+              },
+              {
+                name: 'Transition properties',
+                type: 'string',
+                values: ['{"sensorId":"SENSOR-12"}'],
+              },
+              {
+                name: 'Transition severity',
+                type: 'string',
+                values: ['High (3)'],
+              },
+              {
+                name: 'Transition short text',
+                type: 'string',
+                values: ['Temp High'],
+              },
+              {
+                name: 'Transition type',
+                type: 'string',
+                values: ['SET'],
+              },
+              {
+                name: 'Transition value',
+                type: 'string',
+                values: ['High'],
+              },
+            ],
+          });
+        });
+
+        [
+          { option: TransitionInclusionOption.None, description: 'NONE' },
+          { option: TransitionInclusionOption.MostRecentOnly, description: 'MOST_RECENT_ONLY' },
+          { option: TransitionInclusionOption.All, description: 'ALL' },
+        ].forEach(({ option, description }) => {
+          it(`should handle alarms with no transitions when transition inclusion option is ${description}`, async () => {
+            const query = buildAlarmsQuery({
+              properties: [AlarmsSpecificProperties.displayName, ...TRANSITION_SPECIFIC_PROPERTIES],
+              transitionInclusionOption: option,
+            });
+            jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+              buildAlarmsResponse([
+                {
+                  transitions: [],
+                },
+              ])
+            );
+
+            const response = await datastore.runQuery(query, options);
+
+            expect(response).toEqual({
+              refId: 'A',
+              name: 'A',
+              fields: [
+                {
+                  name: 'Alarm name',
+                  type: 'string',
+                  values: ['High Temperature Alarm'],
+                },
+                {
+                  name: 'Transition condition',
+                  type: 'string',
+                  values: [''],
+                },
+                {
+                  name: 'Transition detail',
+                  type: 'string',
+                  values: [''],
+                },
+                {
+                  name: 'Transition keywords',
+                  type: 'string',
+                  values: [''],
+                },
+                {
+                  name: 'Transition occurred at',
+                  type: 'time',
+                  values: [null],
+                },
+                {
+                  name: 'Transition properties',
+                  type: 'string',
+                  values: [''],
+                },
+                {
+                  name: 'Transition severity',
+                  type: 'string',
+                  values: [''],
+                },
+                {
+                  name: 'Transition short text',
+                  type: 'string',
+                  values: [''],
+                },
+                {
+                  name: 'Transition type',
+                  type: 'string',
+                  values: [''],
+                },
+                {
+                  name: 'Transition value',
+                  type: 'string',
+                  values: [''],
+                },
+              ],
+            });
+          });
+        });
+
+        it('should map string based transition properties correctly', async () => {
+          const query = buildAlarmsQuery({
+            properties: [
+              AlarmsTransitionProperties.transitionCondition,
+              AlarmsTransitionProperties.transitionDetailText,
+              AlarmsTransitionProperties.transitionShortText,
+              AlarmsTransitionProperties.transitionValue,
+              AlarmsTransitionProperties.transitionType,
+            ],
+            transitionInclusionOption: TransitionInclusionOption.All,
+          });  
+          jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+            buildAlarmsResponse([
+              {
+                transitions: [
+                  mockTransition1,
+                  {
+                    ...mockTransition2,
+                    condition: '',
+                    detailText: '',
+                    shortText: '',
+                    value: '',
+                  },
+                ],
+              }
+            ])
+          );
+
+          const response = await datastore.runQuery(query, options);
+
+          expect(response).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              {
+                name: 'Transition condition',
+                type: 'string',
+                values: ['Temperature', ''],
+              },
+              {
+                name: 'Transition detail',
+                type: 'string',
+                values: ['Temperature exceeded threshold', ''],
+              },
+              {
+                name: 'Transition short text',
+                type: 'string',
+                values: ['Temp High', ''],
+              },
+              {
+                name: 'Transition value',
+                type: 'string',
+                values: ['High', ''],
+              },
+              {
+                name: 'Transition type',
+                type: 'string',
+                values: ['SET', 'CLEAR'],
+              }
+            ],
+          });
+        });
+
+        it('should map transition severity level property correctly', async () => {
+          const query = buildAlarmsQuery({
+            properties: [AlarmsTransitionProperties.transitionSeverityLevel],
+            transitionInclusionOption: TransitionInclusionOption.All,
+          });
+          jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+            buildAlarmsResponse([
+              {
+                transitions: [
+                  mockTransition1,
+                  {
+                    ...mockTransition2,
+                    severityLevel: -1,
+                  },
+                  {
+                    ...mockTransition2,
+                    severityLevel: 0,
+                  },
+                  {
+                    ...mockTransition2,
+                    severityLevel: 1,
+                  },
+                  {
+                    ...mockTransition2,
+                    severityLevel: 2,
+                  },
+                  {
+                    ...mockTransition2,
+                    severityLevel: 4,
+                  },
+                  {
+                    ...mockTransition2,
+                    severityLevel: 5,
+                  },
+                ],
+              }
+            ])
+          );
+
+          const result = await datastore.runQuery(query, options);
+
+          expect(result).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              {
+                name: 'Transition severity',
+                type: 'string',
+                values: [
+                  "High (3)",
+                  "Clear",
+                  "",
+                  "Low (1)",
+                  "Moderate (2)",
+                  "Critical (4)",
+                  "Critical (5)",
+                ]
+              },
+            ],
+          });
+        });
+
+        it('should map time based transition properties correctly', async () => {
+          const query = buildAlarmsQuery({
+            properties: [AlarmsTransitionProperties.transitionOccurredAt],
+            transitionInclusionOption: TransitionInclusionOption.All,
+          });
+
+          const result = await datastore.runQuery(query, options);
+
+          expect(result).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              {
+                name: 'Transition occurred at',
+                type: 'time',
+                values: [
+                  '2025-09-16T09:00:00Z',
+                ],
+              },
+            ],
+          });
+        });
+
+        it('should map transition keywords field correctly', async () => {
+          const query = buildAlarmsQuery({
+            properties: [AlarmsTransitionProperties.transitionKeywords],
+            transitionInclusionOption: TransitionInclusionOption.All,
+          });
+          jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+            buildAlarmsResponse([
+              {
+                transitions: [
+                  mockTransition1,
+                  {
+                    ...mockTransition2,
+                    keywords: [],
+                  },
+                  {
+                    ...mockTransition2,
+                    keywords: ['single keyword'],
+                  },
+                ],
+              }
+            ])
+          );
+
+          const result = await datastore.runQuery(query, options);
+
+          expect(result).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              {
+                name: 'Transition keywords',
+                type: 'string',
+                values: [
+                  ['temperature', 'high'],
+                  [],
+                  ['single keyword'],
+                ],
+              },
+            ],
+          });
+        });
+
+        it('should map transition properties field correctly', async () => {
+          const query = buildAlarmsQuery({
+            properties: [AlarmsTransitionProperties.transitionProperties],
+            transitionInclusionOption: TransitionInclusionOption.All,
+          });
+          jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+            buildAlarmsResponse([
+              {
+                transitions: [
+                  mockTransition1,
+                  {
+                    ...mockTransition2,
+                    properties: {},
+                  },
+                  {
+                    ...mockTransition2,
+                    properties: { zProp: 'value1', aProp: 'value2' },
+                  },
+                  {
+                    ...mockTransition2,
+                    properties: { nitagProp1: 'value1', aProp2: 'value2' },
+                  },
+                ],
+              },
+            ])
+          );
+
+          const result = await datastore.runQuery(query, options);
+
+          expect(result).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              {
+                name: 'Transition properties',
+                type: 'string',
+                values: [
+                  '{"sensorId":"SENSOR-12"}',
+                  '',
+                  '{"aProp":"value2","zProp":"value1"}',
+                  '{"aProp2":"value2"}',
+                ],
+              },
+            ],
+          });
         });
       });
     });
