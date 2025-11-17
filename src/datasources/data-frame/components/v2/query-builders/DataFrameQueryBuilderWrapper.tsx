@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { InlineLabel } from '@grafana/ui';
 import { DataFrameDataSource } from 'datasources/data-frame/DataFrameDataSource';
 import { DataTableQueryBuilder } from 'datasources/data-frame/components/v2/query-builders/data-table-query-builder/DataTableQueryBuilder';
@@ -13,23 +13,39 @@ import {
     getValuesInPixels,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { ColumnsQueryBuilder } from './columns-query-builder/ColumnsQueryBuilder';
+import { lastValueFrom } from 'rxjs';
+import { ResultsQueryBuilder } from 'shared/components/ResultsQueryBuilder/ResultsQueryBuilder';
+import { enumToOptions } from 'core/utils';
+import { TestMeasurementStatus } from '../constants/ResultsQueryBuilder.constants';
 
 interface DataFrameQueryBuilderWrapperProps {
     datasource: DataFrameDataSource;
+    resultsFilter?: string;
     dataTableFilter?: string;
     columnsFilter?: string;
+    onResultsFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
     onDataTableFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
     onColumnsFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
 }
 
 export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapperProps> = ({
     datasource,
+    resultsFilter,
     dataTableFilter,
     columnsFilter,
+    onResultsFilterChange,
     onDataTableFilterChange,
     onColumnsFilterChange,
 }) => {
+    const isQueryByResultAndColumnPropertiesEnabled = 
+    datasource.instanceSettings.jsonData.featureToggles.queryByResultAndColumnProperties;
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+    const [partNumbers, setPartNumbers] = useState<string[] | null>(null);
+
+    const statusOptions = useMemo(
+        () => enumToOptions(TestMeasurementStatus).map(option => option.value as string),
+        []
+    );
 
     useEffect(() => {
         const loadWorkspaces = async () => {
@@ -40,9 +56,20 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
         loadWorkspaces();
     }, [datasource]);
 
+    useEffect(() => {
+        const loadPartNumbers = async () => {
+            const partNumbers = await datasource.loadPartNumbers();
+            setPartNumbers(partNumbers);
+        };
+
+        loadPartNumbers();
+    }, [datasource]);
+
     const dataTableNameLookupCallback = useCallback(async (query: string) => {
         const filter = `${DataTableQueryBuilderFieldNames.Name}.Contains("${query}")`;
-        const response = await datasource.queryTables(filter, 5, [DataTableProjections.Name]);
+        const response = await lastValueFrom(
+            datasource.queryTables$(filter, 5, [DataTableProjections.Name])
+        );
 
         if (response.length === 0) {
             return [];
@@ -54,6 +81,31 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
 
     return (
         <>
+            {isQueryByResultAndColumnPropertiesEnabled && (
+                <>
+                    <InlineLabel
+                        width={VALUE_FIELD_WIDTH}
+                        tooltip={tooltips.queryByResultProperties}
+                    >
+                        {labels.queryByResultProperties}
+                    </InlineLabel>
+                    <div
+                        style={{
+                            width: getValuesInPixels(VALUE_FIELD_WIDTH),
+                            marginBottom: getValuesInPixels(DEFAULT_MARGIN_BOTTOM),
+                        }}
+                    >
+                        <ResultsQueryBuilder
+                            filter={resultsFilter}
+                            workspaces={workspaces}
+                            partNumbers={partNumbers}
+                            status={statusOptions}
+                            globalVariableOptions={datasource.globalVariableOptions()}
+                            onChange={onResultsFilterChange}
+                        />
+                    </div>
+                </>
+            )}
             <InlineLabel
                 width={VALUE_FIELD_WIDTH}
                 tooltip={tooltips.queryByDataTableProperties}
@@ -74,7 +126,7 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
                     dataTableNameLookupCallback={dataTableNameLookupCallback}
                 />
             </div>
-            {datasource.instanceSettings.jsonData.featureToggles.queryByResultAndColumnProperties && (
+            {isQueryByResultAndColumnPropertiesEnabled && (
                 <>
                     <InlineLabel
                         width={VALUE_FIELD_WIDTH}

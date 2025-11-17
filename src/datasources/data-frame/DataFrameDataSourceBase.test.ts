@@ -4,6 +4,7 @@ import { DataFrameDataSourceBase } from './DataFrameDataSourceBase';
 import { DataFrameQuery, DataFrameDataSourceOptions, TableProperties, TableDataRows, Column, DataFrameVariableQuery, ValidDataFrameVariableQuery, DataFrameDataQuery } from './types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { Workspace } from 'core/types';
+import { lastValueFrom, Observable, of } from 'rxjs';
 
 jest.mock('core/utils', () => ({
     ...jest.requireActual('core/utils'),
@@ -75,6 +76,10 @@ describe('DataFrameDataSourceBase', () => {
             return Promise.resolve([] as unknown as TableDataRows);
         }
 
+        public queryTables$(_query: string): Observable<TableProperties[]> {
+            return of([]);
+        }
+
         public queryTables(_query: string): Promise<TableProperties[]> {
             return Promise.resolve([]);
         }
@@ -116,6 +121,7 @@ describe('DataFrameDataSourceBase', () => {
         expect(ds.processVariableQuery({} as DataFrameVariableQuery)).toEqual({});
         await expect(ds.getTableProperties()).resolves.toEqual({});
         await expect(ds.getDecimatedTableData({} as DataFrameDataQuery, [], {} as TimeRange)).resolves.toEqual([]);
+        await expect(lastValueFrom(ds.queryTables$(''))).resolves.toEqual([]);
         await expect(ds.queryTables('')).resolves.toEqual([]);
     });
 
@@ -214,6 +220,118 @@ describe('DataFrameDataSourceBase', () => {
             getWorkspacesSpy.mockRejectedValue(new Error('Request failed with status code: 404'));
 
             await ds.loadWorkspaces();
+
+            expect(ds.errorTitle).toBe('Warning during dataframe query');
+            expect(ds.errorDescription).toContain(
+                `The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.`
+            );
+        });
+    });
+
+    describe('loadPartNumbers', () => {
+        let ds: DataFrameDataSourceBase;
+
+        beforeEach(() => {
+            ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+            // Clear the cache before each test
+            DataFrameDataSourceBase._partNumbersCache = undefined as any;
+        });
+
+        it('should return part numbers from API', async () => {
+            const mockPartNumbers = ['PN-001', 'PN-002', 'PN-003'];
+            ds.post = jest.fn().mockResolvedValue(mockPartNumbers);
+
+            const result = await ds.loadPartNumbers();
+
+            expect(ds.post).toHaveBeenCalledWith(
+                'http://localhost/nitestmonitor/v2/query-result-values',
+                {
+                    field: 'partNumber',
+                    filter: undefined,
+                },
+                { showErrorAlert: false }
+            );
+            expect(result).toEqual(mockPartNumbers);
+        });
+
+        it('should cache part numbers and not call API on subsequent requests', async () => {
+            const mockPartNumbers = ['PN-001', 'PN-002'];
+            ds.post = jest.fn().mockResolvedValue(mockPartNumbers);
+
+            const result1 = await ds.loadPartNumbers();
+            const result2 = await ds.loadPartNumbers();
+
+            expect(ds.post).toHaveBeenCalledTimes(1);
+            expect(result1).toEqual(mockPartNumbers);
+            expect(result2).toEqual(mockPartNumbers);
+        });
+
+        it('should handle errors and return empty array', async () => {
+            ds.post = jest.fn().mockRejectedValue(new Error('API Error'));
+
+            const result = await ds.loadPartNumbers();
+
+            expect(result).toEqual([]);
+            expect(ds.errorTitle).toBe('Warning during dataframe query');
+            expect(ds.errorDescription).toContain(
+                'Some values may not be available in the query builder lookups'
+            );
+        });
+
+        it('should handle errors and set error and innerError fields', async () => {
+            ds.post = jest.fn().mockRejectedValue(new Error('Error'));
+
+            await ds.loadPartNumbers();
+
+            expect(ds.errorTitle).toBe('Warning during dataframe query');
+            expect(ds.errorDescription).toContain(
+                'Some values may not be available in the query builder lookups due to an unknown error.'
+            );
+        });
+
+        it('should handle errors and set innerError fields with error message detail', async () => {
+            ds.errorTitle = '';
+            ds.post = jest.fn().mockRejectedValue(
+                new Error('Request failed with status code: 500, Error message: {"message": "Internal Server Error"}')
+            );
+
+            await ds.loadPartNumbers();
+
+            expect(ds.errorTitle).toBe('Warning during dataframe query');
+            expect(ds.errorDescription).toContain(
+                'Some values may not be available in the query builder lookups due to the following error: Internal Server Error.'
+            );
+        });
+
+        it('should throw timeOut error when API returns 504 status', async () => {
+            ds.errorTitle = '';
+            ds.post = jest.fn().mockRejectedValue(new Error('Request failed with status code: 504'));
+
+            await ds.loadPartNumbers();
+
+            expect(ds.errorTitle).toBe('Warning during dataframe query');
+            expect(ds.errorDescription).toContain(
+                `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`
+            );
+        });
+
+        it('should throw too many requests error when API returns 429 status', async () => {
+            ds.errorTitle = '';
+            ds.post = jest.fn().mockRejectedValue(new Error('Request failed with status code: 429'));
+
+            await ds.loadPartNumbers();
+
+            expect(ds.errorTitle).toBe('Warning during dataframe query');
+            expect(ds.errorDescription).toContain(
+                `The query builder lookups failed due to too many requests. Please try again later.`
+            );
+        });
+
+        it('should throw not found error when API returns 404 status', async () => {
+            ds.errorTitle = '';
+            ds.post = jest.fn().mockRejectedValue(new Error('Request failed with status code: 404'));
+
+            await ds.loadPartNumbers();
 
             expect(ds.errorTitle).toBe('Warning during dataframe query');
             expect(ds.errorDescription).toContain(
