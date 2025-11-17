@@ -4,7 +4,7 @@ import { DataFrameVariableQueryEditorV1 } from './v1/DataFrameVariableQueryEdito
 import { DataFrameVariableQueryEditorV2 } from './v2/DataFrameVariableQueryEditorV2';
 
 export const DataFrameVariableQueryEditorWrapper = (props: Props) => {
-  const dataFrameFeatures = useRef<DataFrameFeatureToggles>({
+  const dataFrameFeatures = useRef<Partial<DataFrameFeatureToggles>>({
     queryByDataTableProperties: props.datasource.instanceSettings.jsonData?.featureToggles?.queryByDataTableProperties
       ?? DataFrameFeatureTogglesDefaults.queryByDataTableProperties
   });
