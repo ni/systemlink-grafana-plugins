@@ -86,8 +86,6 @@ export class TagDataSource extends DataSourceBase<TagQuery, TagDataSourceOptions
         return res.tagsWithValues.length ? res.tagsWithValues : Throw(`No tags matched the path '${paths}'`);
       })
     );
-
-    return response;
   }
 
   shouldRunQuery(query: TagQuery): boolean {
