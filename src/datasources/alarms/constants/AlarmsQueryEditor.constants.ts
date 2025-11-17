@@ -1,5 +1,5 @@
 import { AlertVariant } from '@grafana/ui';
-import { AlarmsSpecificProperties, AlarmsTransitionProperties, ComputedAlarmProperty } from '../types/ListAlarms.types';
+import { AlarmsProperties, AlarmsSpecificProperties, AlarmsTransitionProperties, ComputedAlarmProperty } from '../types/ListAlarms.types';
 import { Alarm, AlarmTransition, TransitionInclusionOption } from '../types/types';
 
 export const LABEL_WIDTH = 26;
@@ -55,10 +55,10 @@ export const placeholders = {
 }
 
 export const AlarmsPropertiesOptions: Record<
-  AlarmsSpecificProperties | AlarmsTransitionProperties,
+  AlarmsProperties,
   {
     label: string;
-    value: AlarmsSpecificProperties | AlarmsTransitionProperties;
+    value: AlarmsProperties
   }
 > = {
   [AlarmsSpecificProperties.acknowledged]: {
