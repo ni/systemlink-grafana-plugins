@@ -991,4 +991,38 @@ describe('List assets scan code queries', () => {
             })
         );
     });
+
+    test('should transform SCAN_CODE field with multi-value equals operator', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: `${ListAssetsFieldNames.SCAN_CODE} = "{scan1,scan2,scan3}"`,
+            outputType: OutputType.Properties,
+        });
+
+        await firstValueFrom(datastore.query(query));
+
+        expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                filter: "(ScanCode = \"scan1\" || ScanCode = \"scan2\" || ScanCode = \"scan3\")"
+            })
+        );
+    });
+
+    test('should transform SCAN_CODE field with multi-value does not equal operator', async () => {
+        const query = buildListAssetsQuery({
+            refId: '',
+            type: AssetQueryType.ListAssets,
+            filter: `${ListAssetsFieldNames.SCAN_CODE} != "{scan1,scan2}"`,
+            outputType: OutputType.Properties,
+        });
+
+        await firstValueFrom(datastore.query(query));
+
+        expect(processlistAssetsQuerySpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                filter: "(ScanCode != \"scan1\" && ScanCode != \"scan2\")"
+            })
+        );
+    });
 });

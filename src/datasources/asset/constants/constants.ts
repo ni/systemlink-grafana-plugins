@@ -9,6 +9,7 @@ export enum AllFieldNames {
     ASSET_TYPE = 'AssetType',
     PART_NUMBER = 'PartNumber',
     CALIBRATION_DUE_DATE = 'ExternalCalibration.NextRecommendedDate',
+    SCAN_CODE = 'ScanCode'
 }
 
 export enum LocationFieldNames {
