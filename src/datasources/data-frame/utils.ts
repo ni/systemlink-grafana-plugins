@@ -15,8 +15,8 @@ export function areKeyValueArraysEqual<T extends Record<string, any>>(
   if (firstArray.length !== secondArray.length) {
     return false;
   }
-  return firstArray.every((item, i) =>
-    item?.[keyProperty] === secondArray[i]?.[keyProperty] &&
-    item?.[valueProperty] === secondArray[i]?.[valueProperty]
+  return firstArray.every((item, index) =>
+    item?.[keyProperty] === secondArray[index]?.[keyProperty] &&
+    item?.[valueProperty] === secondArray[index]?.[valueProperty]
   );
 }
