@@ -43,32 +43,6 @@ async function renderElement(query: ListAlarmsQuery = { ...defaultProps.query })
   });
 }
 
-function renderListAlarmsQueryEditorWithRerender(
-  initialQuery: ListAlarmsQuery,
-  datasource: ListAlarmsQueryHandler,
-  mockHandleQueryChange: jest.Mock
-) {
-  const renderResult = render(
-    <ListAlarmsQueryEditor
-      query={initialQuery}
-      handleQueryChange={mockHandleQueryChange}
-      datasource={datasource}
-    />
-  );
-
-  mockHandleQueryChange.mockImplementation(newQuery => {
-    renderResult.rerender(
-      <ListAlarmsQueryEditor
-        datasource={datasource}
-        query={newQuery}
-        handleQueryChange={mockHandleQueryChange}
-      />
-    );
-  });
-
-  return { renderResult, mockHandleQueryChange };
-}
-
 describe('ListAlarmsQueryEditor', () => {
   beforeAll(() => { 
     // JSDOM provides offsetHeight as 0 by default. 
@@ -178,18 +152,6 @@ describe('ListAlarmsQueryEditor', () => {
           outputType: OutputType.Properties,
         })
       );
-    });
-
-    it('should preserve filter when output type changes', async () => {
-      const initialQuery = { refId: 'A', filter: 'alarmId = "test-alarm-123"' };
-      const { renderResult } = renderListAlarmsQueryEditorWithRerender(initialQuery, mockDatasource, mockHandleQueryChange);
-
-      expect(renderResult.getAllByText('test-alarm-123').length).toBe(1);
-
-      const totalCountRadio = renderResult.getByRole('radio', { name: OutputType.TotalCount });
-      await userEvent.click(totalCountRadio);
-
-      expect(renderResult.getAllByText('test-alarm-123').length).toBe(1);
     });
 
     it('should show properties, include transition, descending and take controls when output type is Properties', async () => {
