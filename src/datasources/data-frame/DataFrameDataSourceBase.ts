@@ -70,8 +70,7 @@ export abstract class DataFrameDataSourceBase<
     public abstract queryTables(
         query: string,
         take?: number,
-        projection?: DataTableProjections[],
-        substitutions?: string[]
+        projection?: DataTableProjections[]
     ): Promise<TableProperties[]>;
 
     public queryTablesWithCombinedFilters(

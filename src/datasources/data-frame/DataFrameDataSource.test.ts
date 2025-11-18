@@ -79,7 +79,7 @@ describe('DataFrameDataSource', () => {
         expect(v1Mock.queryTables$).toHaveBeenCalledWith('query', undefined, undefined, undefined);
 
         await expect(ds.queryTables('query')).resolves.toEqual(['v1-tables']);
-        expect(v1Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined, undefined);
+        expect(v1Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined);
 
         expect(ds.processQuery({} as any)).toBe('v1-processed');
         expect(v1Mock.processQuery).toHaveBeenCalled();
@@ -114,7 +114,7 @@ describe('DataFrameDataSource', () => {
         expect(v2Mock.queryTables$).toHaveBeenCalledWith('query', undefined, undefined, undefined);
 
         await expect(ds.queryTables('query')).resolves.toEqual(['v2-tables']);
-        expect(v2Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined, undefined);
+        expect(v2Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined);
 
         expect(ds.processQuery({} as any)).toBe('v2-processed');
         expect(v2Mock.processQuery).toHaveBeenCalled();

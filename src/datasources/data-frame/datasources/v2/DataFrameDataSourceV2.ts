@@ -151,8 +151,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     queryTables(
         filter: string,
         take = TAKE_LIMIT,
-        projection?: DataTableProjections[],
-        substitutions?: string[]
+        projection?: DataTableProjections[]
     ): Promise<TableProperties[]> {
         return Promise.resolve([]);
     }

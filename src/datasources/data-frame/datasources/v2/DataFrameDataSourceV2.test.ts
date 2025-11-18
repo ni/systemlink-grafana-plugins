@@ -925,7 +925,9 @@ describe('DataFrameDataSourceV2', () => {
 
             expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
-                { filter, take, projection: undefined, substitutions: undefined }, { useApiIngress: true });
+                { filter, take, projection: undefined },
+                { useApiIngress: true }
+            );
             expect(result).toBe(mockTables);
         });
 
@@ -937,7 +939,8 @@ describe('DataFrameDataSourceV2', () => {
             
             const result = await lastValueFrom(ds.queryTables$(filter, take, projection, substitutions));
 
-            expect(postMock$).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, { filter, take, projection, substitutions },
+            expect(postMock$).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, 
+                { filter, take, projection, substitutions },
                 { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
@@ -1242,7 +1245,7 @@ describe('DataFrameDataSourceV2', () => {
             );
         });
 
-        it('should return the result from queryTables', async () => {
+        it('should return the result from queryTables$', async () => {
             const mockTables = [
                 { id: '1', name: 'Table 1' },
                 { id: '2', name: 'Table 2' }

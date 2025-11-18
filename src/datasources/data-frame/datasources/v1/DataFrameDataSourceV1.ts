@@ -107,12 +107,7 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     return of([]);
   }
 
-  async queryTables(
-    query: string,
-    take = 5,
-    projection?: DataTableProjections[],
-    substitutions?: string[]
-  ): Promise<TableProperties[]> {
+  async queryTables(query: string, take = 5, projection?: DataTableProjections[]): Promise<TableProperties[]> {
     const filter = `name.Contains("${query}")`;
 
     return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take, projection })).tables;
