@@ -82,7 +82,7 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
   }, []);
 
   return (
-    <Stack direction='column'>
+    <>
       <InlineField
         label={labels.queryType}
         labelWidth={LABEL_WIDTH}
@@ -118,6 +118,6 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
           datasource={datasource.alarmsTrendQueryHandler}
         />
       )}
-    </Stack>
+    </>
   );
 }

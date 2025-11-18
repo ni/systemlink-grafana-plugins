@@ -1,5 +1,5 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
-import { AlarmsProperties, AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery } from '../../types/ListAlarms.types';
+import { AlarmsProperties, AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery, OutputType } from '../../types/ListAlarms.types';
 import { AlarmsVariableQuery, QueryAlarmsRequest, TransitionInclusionOption } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
 import { AlarmPropertyKeyMap, AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, TransitionPropertyKeyMap, QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL, TRANSITION_SPECIFIC_PROPERTIES } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
@@ -9,6 +9,7 @@ import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana
 import { User } from 'shared/types/QueryUsers.types';
 import { UsersUtils } from 'shared/users.utils';
 import { MINION_ID_CUSTOM_PROPERTY, PROPERTY_PREFIX_TO_EXCLUDE, SYSTEM_CUSTOM_PROPERTY } from 'datasources/alarms/constants/AlarmProperties.constants';
+import { MINIMUM_TAKE } from 'datasources/alarms/constants/QueryAlarms.constants';
 
 export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultListAlarmsQuery;
@@ -25,28 +26,13 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   }
 
   public async runQuery(query: ListAlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    let mappedFields: DataFrameDTO['fields'] | undefined;
+    query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
 
-    if (
-      this.isTakeValid(query.take, query.transitionInclusionOption) &&
-      this.isPropertiesValid(query.properties)
-    ) {
-      query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
-      const alarmsResponse = await this.queryAlarmsData(query);
-      const flattenedAlarms  =
-        query.transitionInclusionOption === TransitionInclusionOption.All
-        && this.hasTransitionProperties(query.properties)
-          ? this.duplicateAlarmsByTransitions(alarmsResponse)
-          : alarmsResponse;
-
-      mappedFields = await this.mapPropertiesToSelect(query.properties, flattenedAlarms);
+    if(query.outputType === OutputType.TotalCount) {
+      return this.handleTotalCountQuery(query);
     }
 
-    return {
-      refId: query.refId,
-      name: query.refId,
-      fields: mappedFields ?? [],
-    };
+    return this.handlePropertiesQuery(query);
   }
 
   public async metricFindQuery(query: AlarmsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
@@ -78,6 +64,49 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public isAlarmTransitionProperty(property: AlarmsProperties): property is AlarmsTransitionProperties {
     return (TRANSITION_SPECIFIC_PROPERTIES as readonly AlarmsProperties[]).includes(property);
   }
+
+  private async handleTotalCountQuery(query: ListAlarmsQuery): Promise<DataFrameDTO> {
+    const requestBody = {
+      filter: query.filter ?? '',
+      take: MINIMUM_TAKE,
+      returnCount: true,
+    };
+
+    const response = await this.queryAlarms(requestBody);
+    const alarmsCount = response.totalCount ?? 0;
+
+    return {
+      refId: query.refId,
+      name: query.refId,
+      fields: [{ name: query.refId, type: FieldType.number, values: [alarmsCount] }],
+    };
+  }
+  
+  private async handlePropertiesQuery(query: ListAlarmsQuery): Promise<DataFrameDTO> {
+    let mappedFields: DataFrameDTO['fields'] | undefined;
+
+    if (
+      this.isTakeValid(query.take, query.transitionInclusionOption) &&
+      this.isPropertiesValid(query.properties)
+    ) {
+      const alarmsResponse = await this.queryAlarmsData(query);
+
+      const flattenedAlarms  =
+        query.transitionInclusionOption === TransitionInclusionOption.All
+        && this.hasTransitionProperties(query.properties)
+          ? this.duplicateAlarmsByTransitions(alarmsResponse)
+          : alarmsResponse;
+
+      mappedFields = await this.mapPropertiesToSelect(query.properties, flattenedAlarms);
+    }
+
+    return {
+      refId: query.refId,
+      name: query.refId,
+      fields: mappedFields ?? [],
+    };
+  }
+
 
   private isTakeValid(take?: number, transitionInclusionOption?: TransitionInclusionOption): boolean {
     if (!take || take < QUERY_EDITOR_MIN_TAKE) {

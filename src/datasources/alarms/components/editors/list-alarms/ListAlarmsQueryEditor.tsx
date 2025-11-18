@@ -139,7 +139,7 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
         tooltip={tooltips.outputType}
       >
         <RadioButtonGroup
-          options={enumToOptions(OutputType)}
+          options={Object.values(OutputType).map(value => ({ label: value, value }))}
           value={query.outputType}
           onChange={onOutputTypeChange}
         />

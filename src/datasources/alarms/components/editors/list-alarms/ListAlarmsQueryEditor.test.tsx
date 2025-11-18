@@ -43,6 +43,32 @@ async function renderElement(query: ListAlarmsQuery = { ...defaultProps.query })
   });
 }
 
+function renderListAlarmsQueryEditorWithRerender(
+  initialQuery: ListAlarmsQuery,
+  datasource: ListAlarmsQueryHandler,
+  mockHandleQueryChange: jest.Mock
+) {
+  const renderResult = render(
+    <ListAlarmsQueryEditor
+      query={initialQuery}
+      handleQueryChange={mockHandleQueryChange}
+      datasource={datasource}
+    />
+  );
+
+  mockHandleQueryChange.mockImplementation(newQuery => {
+    renderResult.rerender(
+      <ListAlarmsQueryEditor
+        datasource={datasource}
+        query={newQuery}
+        handleQueryChange={mockHandleQueryChange}
+      />
+    );
+  });
+
+  return { renderResult, mockHandleQueryChange };
+}
+
 describe('ListAlarmsQueryEditor', () => {
   beforeAll(() => { 
     // JSDOM provides offsetHeight as 0 by default. 
@@ -125,6 +151,64 @@ describe('ListAlarmsQueryEditor', () => {
 
     expect(screen.getByText('Test Error Title')).toBeInTheDocument();
     expect(screen.getByText('Test Error Description')).toBeInTheDocument();
+  });
+
+  describe('Output Type', () => {
+    it('should call handleQueryChange with total count as output type when switched to TotalCount', async () => {
+      const container = await renderElement();
+      const totalCountRadio = container.getByRole('radio', { name: OutputType.TotalCount });
+
+      await userEvent.click(totalCountRadio);
+
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          outputType: OutputType.TotalCount,
+        })
+      );
+    });
+
+    it('should call handleQueryChange with properties as output type when switched to Properties', async () => {
+      const container = await renderElement({ refId: 'A', outputType: OutputType.TotalCount });
+      const propertiesRadio = container.getByRole('radio', { name: OutputType.Properties });
+
+      await userEvent.click(propertiesRadio);
+
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          outputType: OutputType.Properties,
+        })
+      );
+    });
+
+    it('should preserve filter when output type changes', async () => {
+      const initialQuery = { refId: 'A', filter: 'alarmId = "test-alarm-123"' };
+      const { renderResult } = renderListAlarmsQueryEditorWithRerender(initialQuery, mockDatasource, mockHandleQueryChange);
+
+      expect(renderResult.getAllByText('test-alarm-123').length).toBe(1);
+
+      const totalCountRadio = renderResult.getByRole('radio', { name: OutputType.TotalCount });
+      await userEvent.click(totalCountRadio);
+
+      expect(renderResult.getAllByText('test-alarm-123').length).toBe(1);
+    });
+
+    it('should show properties, include transition, descending and take controls when output type is Properties', async () => {
+      const container = await renderElement({ refId: 'A', outputType: OutputType.Properties });
+      
+      expect(container.getAllByRole('combobox').length).toBe(2);
+      expect(container.getByPlaceholderText('Select the properties to query')).toBeInTheDocument();
+      expect(container.getByRole('combobox', { name: 'Include Transition' })).toBeInTheDocument();
+      expect(container.getByRole('switch', { name: 'Descending' })).toBeInTheDocument();
+      expect(container.getByRole('spinbutton', { name: 'Take' })).toBeInTheDocument();
+    });
+
+    it('should hide properties, include transition, descending and take controls when output type is TotalCount', async () => {
+      const container = await renderElement({ refId: 'A', outputType: OutputType.TotalCount });
+
+      expect(container.queryAllByRole('combobox').length).toBe(0);
+      expect(container.queryByRole('switch', { name: 'Descending' })).not.toBeInTheDocument();
+      expect(container.queryByRole('spinbutton', { name: 'Take' })).not.toBeInTheDocument();
+    });
   });
 
   describe('Properties', () => {
