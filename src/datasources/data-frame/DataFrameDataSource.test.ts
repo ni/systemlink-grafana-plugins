@@ -23,10 +23,17 @@ const mockInstanceSettings = (featureToggle = false): DataSourceInstanceSettings
 describe('DataFrameDataSource', () => {
     let v1Mock: jest.Mocked<DataFrameDataSourceV1>;
     let v2Mock: jest.Mocked<DataFrameDataSourceV2>;
+    let templateSrv: TemplateSrv;
+    let backendSrv: BackendSrv;
 
     beforeEach(() => {
         (DataFrameDataSourceV1 as unknown as jest.Mock).mockClear();
         (DataFrameDataSourceV2 as unknown as jest.Mock).mockClear();
+        backendSrv = {} as BackendSrv;
+        templateSrv = {
+            getVariables: jest.fn(() => []),
+            replace: jest.fn((input: string) => input),
+        } as unknown as TemplateSrv;
 
         v1Mock = {
             runQuery: jest.fn().mockResolvedValue('v1-runQuery'),
@@ -57,7 +64,7 @@ describe('DataFrameDataSource', () => {
     });
 
     it('should use DataFrameDataSourceV1 if feature toggle is false', async () => {
-        const ds = new DataFrameDataSource(mockInstanceSettings(false));
+        const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
         expect(DataFrameDataSourceV1).toHaveBeenCalled();
         expect(DataFrameDataSourceV2).not.toHaveBeenCalled();
 
@@ -90,7 +97,7 @@ describe('DataFrameDataSource', () => {
     });
 
     it('should use DataFrameDataSourceV2 if feature toggle is true', async () => {
-        const ds = new DataFrameDataSource(mockInstanceSettings(true));
+        const ds = new DataFrameDataSource(mockInstanceSettings(true), backendSrv, templateSrv);
         expect(DataFrameDataSourceV2).toHaveBeenCalled();
         expect(DataFrameDataSourceV1).not.toHaveBeenCalled();
 
