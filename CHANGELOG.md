@@ -1,3 +1,9 @@
+## [4.72.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.71.0...v4.72.0) (2025-11-18)
+
+### Features
+
+* **dataframes:** Pass column filter and onchange callback to the query builder ([#531](https://github.com/ni/systemlink-grafana-plugins/issues/531)) ([f246275](https://github.com/ni/systemlink-grafana-plugins/commit/f2462755b554c1cf59e371a6dd7c0b0576ba0d2b))
+
 ## [4.71.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.70.0...v4.71.0) (2025-11-17)
 
 ### Features
