@@ -35,7 +35,7 @@ export function transformComputedFieldsQuery(
     query = transformBasedOnComputedFieldSupportedOperations(query, field, transformation, options);
     query = transformBasedOnBlankOperations(query, field, transformation, options);
     query = transformBasedOnContainsOperations(query, field, transformation, options);
-    query = transformBasedOnAnyOperations(query, field, transformation, options);
+    query = transformListContainsOperations(query, field, transformation, options);
     query = transformBasedOnStartAndEndOperations(query, field, transformation, options);
   }
 
@@ -75,33 +75,33 @@ function transformBasedOnContainsOperations(query: string, field: string, transf
     });
 }
 
-/**
- * The function will replace inner query with Any operation with their transformation.
- * This will handle @see QueryBuilderOperations.LIST_CONTAINS and @see QueryBuilderOperations.LIST_DOES_NOT_CONTAIN operations.
- *
- * for example:
- * Input: keywords.Any(it.Contains({ "key1", "key2" }))
- * Output: keywords.Any(it.Contains("key1") || it.Contains("key2"))
+/** 
+ * Transforms fields using StartsWith and EndsWith operations by applying computed field transformations.
+ * This handles conversion of string operations on computed fields to their underlying property expressions.
  * 
- * Input: keywords.Any(!it.Contains({ "key1", "key2" }))
- * Output: !keywords.Any(it.Contains("key1") || it.Contains("key2"))
+ * For example:
+ * Input: Object1.StartsWith("value1")
+ * Output: obj.prop1.StartsWith(value1)
  * 
- * @param query Query string containing one or more instances of the Any operation to be transformed.
- * @param field Name of the field on which the Any operation is performed.
- * @param transformation callback function that transforms the value based on the operation.
- * @param options The options to be used in the transformation
- * @returns Transformed query string with Any operations processed.
+ * Input: Object2.EndsWith("value2")
+ * Output: obj.prop2.EndsWith(value2)
+ * 
+ * @param query Query string containing one or more StartsWith/EndsWith operations to be transformed.
+ * @param field Name of the field on which the StartsWith/EndsWith operation is performed.
+ * @param transformation Callback function that transforms the value based on the operation.
+ * @param options Optional configuration for the transformation.
+ * @returns Transformed query string with StartsWith/EndsWith operations processed.
  */
-function transformBasedOnAnyOperations(
+function transformListContainsOperations(
   query: string,
   field: string,
   transformation: ExpressionTransformFunction,
   options?: Map<string, Map<string, unknown>>
 ) {
-  const anyRegex = new RegExp(`\\b${field}\\.Any\\s*\\((.*)\\)`, 'g');
+  const listOperationRegex = new RegExp(String.raw`\b${field}\.Any\s*\((.*)\)`, 'g');
 
-  return query.replace(anyRegex, (_match, innerPredicate: string) => {
-    const containsRegex = new RegExp(String.raw`(?:!(it\.Contains\("([^"]*)"\))|(it\.Contains\("([^"]*)"\)))`, 'g');
+  return query.replace(listOperationRegex, (_match, innerPredicate: string) => {
+    const containsRegex = /(?:!(it\.Contains\("([^"]*)"\))|(it\.Contains\("([^"]*)"\)))/g;
     
     const transformedPredicate = innerPredicate.replace(containsRegex, (_match, _negatedMatch, negatedValue, _positiveMatch, positiveValue) => {
         const extractedValue = negatedValue || positiveValue;
@@ -128,7 +128,7 @@ function transformBasedOnStartAndEndOperations(
   transformation: ExpressionTransformFunction,
   options?: Map<string, Map<string, unknown>>
 ) {
-  const regex = new RegExp(`\\b${field}\\.(${startEndOperations.join('|')})\\s*\\("([^"]*)"\\)`, 'g');
+  const regex = new RegExp(String.raw`\b${field}\.(${startEndOperations.join('|')})\s*\("([^"]*)"\)`, 'g');
 
   return query.replace(regex, (_match, operation, value) => {
     const operationName = operation === 'StartsWith'

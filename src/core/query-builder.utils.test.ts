@@ -11,7 +11,7 @@ describe('QueryBuilderUtils', () => {
           return `!string.IsNullOrEmpty(obj.prop1)`;
         case QueryBuilderOperations.CONTAINS.name:
         case QueryBuilderOperations.LIST_EQUALS.name:
-          case QueryBuilderOperations.LIST_CONTAINS.name:
+        case QueryBuilderOperations.LIST_CONTAINS.name:
           return `obj.prop1.Contains(${value})`;
         case QueryBuilderOperations.DOES_NOT_CONTAIN.name:
           return `!(obj.prop1.Contains(${value}))`;
