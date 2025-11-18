@@ -127,7 +127,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         filter: string,
         take = TAKE_LIMIT,
         projection?: DataTableProjections[],
-        substitutions?: string[]): Observable<TableProperties[]> {
+        substitutions?: string[]
+    ): Observable<TableProperties[]> {
         const response = this.post$<TablePropertiesList>(
             `${this.baseUrl}/query-tables`,
             { filter, take, projection, substitutions },
