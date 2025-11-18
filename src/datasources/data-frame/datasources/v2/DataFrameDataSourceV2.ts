@@ -96,45 +96,49 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             query.columns = (query.columns as any[]).map(c => c.name);
         }
 
-        // Check if it's already a V2 query
-        if ('dataTableFilter' in query) {
+        if ('tableId' in query) {
+            // Convert V1 to V2
+            const { tableId, ...v1QueryWithoutTableId } = query as DataFrameQueryV1;
+            const dataTableProperties = query.type === DataFrameQueryType.Properties
+                ? [DataTableProperties.Properties]
+                : defaultQueryV2.dataTableProperties;
             return {
                 ...defaultQueryV2,
-                ...query,
+                ...v1QueryWithoutTableId,
+                dataTableFilter: tableId ? `id = "${tableId}"` : '',
+                dataTableProperties
             } as ValidDataFrameQueryV2;
         }
 
-        // Convert V1 to V2
-        const { tableId, ...v1QueryWithoutTableId } = query as DataFrameQueryV1;
         return {
             ...defaultQueryV2,
-            ...v1QueryWithoutTableId,
-            dataTableFilter: tableId ? `id = "${tableId}"` : '',
+            ...query,
         } as ValidDataFrameQueryV2;
     }
 
     public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
-        if ('dataTableFilter' in query) {
+        if ('tableId' in query) {
+            const {
+                tableId,
+                type,
+                columns,
+                decimationMethod,
+                filterNulls,
+                applyTimeFilters,
+                ...baseQueryProps
+            } = query as DataFrameQueryV1;
+            const dataTableFilter = tableId ? `id = "${tableId}"` : '';
+
             return {
-                ...defaultVariableQueryV2,
-                ...query
+                queryType: DataFrameVariableQueryType.ListColumns,
+                dataTableFilter,
+                ...baseQueryProps,
             } as ValidDataFrameVariableQuery;
         }
 
-        const {
-            tableId,
-            type,
-            columns,
-            decimationMethod,
-            filterNulls,
-            applyTimeFilters,
-            ...baseQueryProps
-        } = query as DataFrameQueryV1;
-        const dataTableFilter = tableId ? `id = "${tableId}"` : '';
         return {
             ...defaultVariableQueryV2,
-            ...baseQueryProps,
-            dataTableFilter,
+            ...query
         } as ValidDataFrameVariableQuery;
     }
 
