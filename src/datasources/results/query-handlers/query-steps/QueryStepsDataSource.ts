@@ -461,7 +461,7 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
   private addValueToColumn(
     columns: GrafanaColumns,
     field: string,
-    value: string | number,
+    value: string,
     type: FieldType = FieldType.string,
     normalizeOnAdd = false,
     relativeLengthToNormalize = 0
