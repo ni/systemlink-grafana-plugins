@@ -42,7 +42,7 @@ export const tooltips = {
   take: 'This field specifies the maximum number of alarms to return.',
   groupBySeverity: 'This toggle returns the alarms trend grouped by severity.',
   transitionInclusion: 'This field specifies whether to include all transitions, only the most recent, or none.',
-  outputType: 'This field specifies whether to output alarm properties or just the total count of alarms.',
+  outputType: 'This field specifies the output type to fetch alarms properties or total count.',
 };
 
 export const takeErrorMessages = {
