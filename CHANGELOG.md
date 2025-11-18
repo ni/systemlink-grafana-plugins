@@ -1,3 +1,9 @@
+## [4.73.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.72.0...v4.73.0) (2025-11-18)
+
+### Features
+
+* **notebook:** Cancel the current request before progressing refresh ([#532](https://github.com/ni/systemlink-grafana-plugins/issues/532)) ([4496746](https://github.com/ni/systemlink-grafana-plugins/commit/44967466c399cd1862b99ad3d56ef1d5f5826764))
+
 ## [4.72.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.71.0...v4.72.0) (2025-11-18)
 
 ### Features
