@@ -749,35 +749,6 @@ exports[`QueryStepsDataSource query show measurements is enabled should create c
 ]
 `;
 
-exports[`QueryStepsDataSource query show measurements is enabled should create empty cells when measurements are not available 1`] = `
-[
-  {
-    "name": "Step ID",
-    "type": "number",
-    "values": [
-      1,
-      2,
-    ],
-  },
-  {
-    "name": "Current",
-    "type": "number",
-    "values": [
-      1.2,
-      0,
-    ],
-  },
-  {
-    "name": "Voltage",
-    "type": "number",
-    "values": [
-      0,
-      3.7,
-    ],
-  },
-]
-`;
-
 exports[`QueryStepsDataSource query show measurements is enabled should create new columns when units are different in the same measurement 1`] = `
 [
   {
