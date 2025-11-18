@@ -173,7 +173,7 @@ describe('DataFrameDataSource', () => {
    describe('queryTablesWithCombineFilters', () => {
        it('should call queryTablesWithCombineFilters on DataFrameDataSourceV1 when feature toggle is false', async () => {
            const ds = new DataFrameDataSource(mockInstanceSettings(false));
-           v1Mock.queryTablesWithCombinedFilters = jest.fn().mockResolvedValue(['v1-combined-tables']);
+           v1Mock.queryTablesWithCombinedFilters = jest.fn().mockReturnValue(of(['v1-combined-tables']));
 
            const result = await lastValueFrom(ds.queryTablesWithCombinedFilters(
                {
@@ -197,7 +197,7 @@ describe('DataFrameDataSource', () => {
 
        it('should call queryTablesWithCombineFilters on DataFrameDataSourceV2 when feature toggle is true', async () => {
            const ds = new DataFrameDataSource(mockInstanceSettings(true));
-           v2Mock.queryTablesWithCombinedFilters = jest.fn().mockResolvedValue(['v2-combined-tables']);
+           v2Mock.queryTablesWithCombinedFilters = jest.fn().mockReturnValue(of(['v2-combined-tables']));
 
            const result = await lastValueFrom(ds.queryTablesWithCombinedFilters(
                {

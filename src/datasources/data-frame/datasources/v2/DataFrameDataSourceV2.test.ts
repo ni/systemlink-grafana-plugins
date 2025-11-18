@@ -1222,7 +1222,7 @@ describe('DataFrameDataSourceV2', () => {
         let queryTablesMock: jest.SpyInstance;
 
         beforeEach(() => {
-            queryTablesMock = jest.spyOn(ds, 'queryTables').mockResolvedValue([]);
+            queryTablesMock = jest.spyOn(ds, 'queryTables$').mockReturnValue(of([]));
         });
 
         it('should pass all parameter to queryTables$', async () => {
@@ -1247,7 +1247,7 @@ describe('DataFrameDataSourceV2', () => {
                 { id: '1', name: 'Table 1' },
                 { id: '2', name: 'Table 2' }
             ];
-            queryTablesMock.mockResolvedValue(mockTables);
+            queryTablesMock.mockReturnValue(of(mockTables));
             const filters = {
                 dataTablesFilter: 'name = "test"',
                 resultsFilter: 'status = "passed"'
