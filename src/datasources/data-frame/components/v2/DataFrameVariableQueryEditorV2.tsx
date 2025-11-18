@@ -24,6 +24,13 @@ export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChang
         }
     };
 
+    const onColumnsFilterChange = async (event?: Event | React.FormEvent<Element>) => {
+        if (event) {
+            const columnsFilter = (event as CustomEvent).detail.linq;
+            onChange({ ...migratedQuery, columnsFilter });
+        }
+    }
+
     return (
         <>
             <InlineField
@@ -41,7 +48,9 @@ export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChang
             <DataFrameQueryBuilderWrapper
                 datasource={datasource}
                 dataTableFilter={migratedQuery.dataTableFilter}
+                columnsFilter={migratedQuery.columnsFilter}
                 onDataTableFilterChange={onDataTableFilterChange}
+                onColumnsFilterChange={onColumnsFilterChange}
             />
             <FloatingError
                 message={datasource.errorTitle}
