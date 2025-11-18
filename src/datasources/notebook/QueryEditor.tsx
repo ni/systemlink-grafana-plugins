@@ -7,6 +7,7 @@ import React, { PureComponent } from 'react';
 import { Alert, Field, Input, Select, Label, IconButton, TextArea, LoadingPlaceholder } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { getTemplateSrv } from '@grafana/runtime';
+import { firstValueFrom } from 'rxjs';
 import { DataSource } from './datasource';
 import {
   NotebookDataSourceOptions,
@@ -43,7 +44,7 @@ export class QueryEditor extends PureComponent<Props, State> {
 
   async componentDidMount() {
     try {
-      const notebooks = await this.props.datasource.queryNotebooks('');
+      const notebooks = await firstValueFrom(this.props.datasource.queryNotebooks$(''));
       this.setState({ notebooks, loadingNotebooks: false });
 
       if (this.props.query.id) {
@@ -65,7 +66,7 @@ export class QueryEditor extends PureComponent<Props, State> {
   populateNotebookMetadata = async (notebook: Notebook) => {
     try {
       this.setState({ loadingMetadata: true, queryError: '' });
-      const metadata = await this.props.datasource.getNotebookMetadata(notebook.id);
+      const metadata = await firstValueFrom(this.props.datasource.getNotebookMetadata$(notebook.id));
       Object.assign(notebook, metadata);
     } catch (e) {
       this.setState({ queryError: (e as Error).message });
@@ -173,7 +174,9 @@ export class QueryEditor extends PureComponent<Props, State> {
             />
           ) : (
             <TestResultsQueryBuilder
-              autoComplete={this.props.datasource.queryTestResultValues.bind(this.props.datasource)}
+              autoComplete={(field: string, startsWith: string) => 
+                firstValueFrom(this.props.datasource.queryTestResultValues$(field, startsWith))
+              }
               onChange={(event: any) => this.onParameterChange(notebook, param.id, event.detail.linq)}
               defaultValue={value}
             />

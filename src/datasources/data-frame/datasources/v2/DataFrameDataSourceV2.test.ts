@@ -811,6 +811,7 @@ describe('DataFrameDataSourceV2', () => {
             const expectedQuery = {
                 type: DataFrameQueryType.Data,
                 dataTableFilter: '',
+                columnsFilter: '',
                 dataTableProperties: defaultDatatableProperties,
                 columnProperties: [],
                 columns: [],
@@ -832,6 +833,7 @@ describe('DataFrameDataSourceV2', () => {
             const expectedQuery = {
                 type: DataFrameQueryType.Data,
                 dataTableFilter: '',
+                columnsFilter: '',
                 dataTableProperties: defaultDatatableProperties,
                 columnProperties: [],
                 columns: [],
@@ -854,7 +856,8 @@ describe('DataFrameDataSourceV2', () => {
             const result = ds.processVariableQuery({} as DataFrameVariableQuery);
             expect(result).toEqual({
                 queryType: DataFrameVariableQueryType.ListDataTables,
-                dataTableFilter: ''
+                dataTableFilter: '',
+                columnsFilter: ''
             });
         });
 
@@ -863,7 +866,8 @@ describe('DataFrameDataSourceV2', () => {
             const result = ds.processVariableQuery(query);
             expect(result).toEqual({
                 queryType: DataFrameVariableQueryType.ListDataTables,
-                dataTableFilter: 'name = "test table"'
+                dataTableFilter: 'name = "test table"',
+                columnsFilter: ''
             });
         });
     });

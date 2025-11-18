@@ -749,6 +749,39 @@ describe("DataFrameQueryEditorV2", () => {
             expect(props.dataTableFilter).toBe('TestFilter');
         });
 
+        it("should pass columnsFilter to the query builder wrapper", () => {
+            renderComponent({ type: DataFrameQueryType.Data, columnsFilter: 'InitialColumnsFilter' });
+
+            expect(DataFrameQueryBuilderWrapper).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    columnsFilter: 'InitialColumnsFilter',
+                    onColumnsFilterChange: expect.any(Function),
+                }),
+                expect.anything() // React context
+            );
+        });
+
+        it("should call onChange with updated columnsFilter when columns filter changes", async () => {
+            const { onChange } = renderComponent({ type: DataFrameQueryType.Data });
+
+            // Get the onColumnsFilterChange callback from the mock
+            const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+            const { onColumnsFilterChange } = props;
+
+            // Simulate the filter change event
+            const mockEvent = {
+                detail: { linq: "NewColumnsFilter" }
+            } as Event & { detail: { linq: string; }; };
+
+            onColumnsFilterChange(mockEvent);
+
+            await waitFor(() => {
+                expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                    columnsFilter: 'NewColumnsFilter'
+                }));
+            });
+        });
+
         describe('query type & filter interaction', () => {
             beforeAll(() => {
                 // Mock offsetHeight for combobox virtualization so options render in tests
