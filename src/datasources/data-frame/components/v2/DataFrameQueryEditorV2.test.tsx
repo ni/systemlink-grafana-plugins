@@ -781,6 +781,39 @@ describe("DataFrameQueryEditorV2", () => {
                 }));
             });
         });
+
+        it('should pass resultsFilter to the query builder wrapper', () => {
+            renderComponent({ type: DataFrameQueryType.Data, resultsFilter: 'InitialResultsFilter' });
+
+            expect(DataFrameQueryBuilderWrapper).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    resultsFilter: 'InitialResultsFilter',
+                    onResultsFilterChange: expect.any(Function),
+                }),
+                expect.anything() // React context
+            );
+        });
+
+        it('should call onChange with updated resultsFilter when results filter changes', async () => {
+            const { onChange } = renderComponent({ type: DataFrameQueryType.Data });
+
+            // Get the onResultsFilterChange callback from the mock
+            const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+            const { onResultsFilterChange } = props;
+
+            // Simulate the filter change event
+            const mockEvent = {
+                detail: { linq: 'NewResultsFilter' }
+            } as Event & { detail: { linq: string; }; };
+
+            onResultsFilterChange(mockEvent);
+
+            await waitFor(() => {
+                expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                    resultsFilter: 'NewResultsFilter'
+                }));
+            });
+        });
     });
 
     describe("floating error", () => {
