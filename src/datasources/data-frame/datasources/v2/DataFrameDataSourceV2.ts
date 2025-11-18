@@ -71,7 +71,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             }));
         }
 
-        const columns = await this.getColumnOptions(processedQuery.dataTableFilter);
+        const columns = await this.getColumnOptionsWithoutVariables(processedQuery.dataTableFilter);
         const limitedColumns = columns.splice(0, COLUMN_OPTIONS_LIMIT);
 
         return limitedColumns.map(column => ({
@@ -153,7 +153,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             filter,
             this.scopedVars
         );
-        const tables = await lastValueFrom(this.queryTables$(variableReplacedFilter, TAKE_LIMIT, [
+        const columnOptionsWithoutVariabe = await this.getColumnOptionsWithoutVariables(
+            variableReplacedFilter
+        );
+        const columnOptionsWithVars = [
+            ...this.getVariableOptions(),
+            ...columnOptionsWithoutVariabe
+        ];
+        return columnOptionsWithVars;
+    }
+
+    private async getColumnOptionsWithoutVariables(filter: string): Promise<Option[]> {
+        const tables = await lastValueFrom(this.queryTables$(filter, TAKE_LIMIT, [
             DataTableProjections.ColumnName,
             DataTableProjections.ColumnDataType,
         ]));
@@ -222,8 +233,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 });
             }
         });
-        const columnOptionsWithVars = [...this.getVariableOptions(), ...options];
-        return columnOptionsWithVars;
+
+        return options;
     };
 
     /**
