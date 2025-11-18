@@ -8,7 +8,7 @@ export interface ListAlarmsQuery extends AlarmsQuery {
   transitionInclusionOption?: TransitionInclusionOption;
 }
 
-export enum AlarmsProperties {
+export enum AlarmsSpecificProperties {
   acknowledged = 'acknowledged',
   acknowledgedAt = 'acknowledgedAt',
   acknowledgedBy = 'acknowledgedBy',
@@ -35,8 +35,23 @@ export enum AlarmsProperties {
   source = 'source',
   // The State column is determined using the values of clear and acknowledged.
   state = 'state',
-  // TODO(AB-3356927): Add transition property support
   transitionOverflowCount = 'transitionOverflowCount',
   updatedAt = 'updatedAt',
   workspace = 'workspace',
 }
+
+export enum AlarmsTransitionProperties {
+  transitionCondition = 'transitionCondition',
+  transitionDetailText = 'transitionDetailText',
+  transitionKeywords = 'transitionKeywords',
+  transitionOccurredAt = 'transitionOccurredAt',
+  transitionProperties = 'transitionProperties',
+  transitionSeverityLevel = 'transitionSeverityLevel',
+  transitionShortText = 'transitionShortText',
+  transitionType = 'transitionType',
+  transitionValue = 'transitionValue',
+}
+
+export type AlarmsProperties = AlarmsSpecificProperties | AlarmsTransitionProperties;
+
+export type ComputedAlarmProperty = AlarmsSpecificProperties.state | AlarmsSpecificProperties.source;

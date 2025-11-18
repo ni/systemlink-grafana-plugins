@@ -33,7 +33,10 @@ describe('DataFrameDataSourceV2', () => {
 
         instanceSettings = { id: 1, name: 'test', type: 'test', url: '', jsonData: {} } as any;
         backendSrv = {} as any;
-        templateSrv = { replace: jest.fn((value: string) => value) } as any;
+        templateSrv = {
+            replace: jest.fn((value: string) => value),
+            getVariables: jest.fn(() => [])
+        } as any;
         ds = new DataFrameDataSourceV2(instanceSettings, backendSrv, templateSrv);
     });
 
@@ -769,14 +772,14 @@ describe('DataFrameDataSourceV2', () => {
             expect(result).toBe(true);
         });
 
-        it('should return false when query type is not Properties', () => {
+        it('should return true when query type is Data', () => {
             const query = {
                 type: DataFrameQueryType.Data,
             } as ValidDataFrameQueryV2;
 
             const result = ds.shouldRunQuery(query);
 
-            expect(result).toBe(false);
+            expect(result).toBe(true);
         });
 
         it('should return false when hide is true', () => {
@@ -855,6 +858,7 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result).toEqual({
                     type: DataFrameQueryType.Properties,
                     dataTableFilter: 'id = "table-123"',
+                    columnsFilter: '',
                     dataTableProperties: [DataTableProperties.Properties],
                     columnProperties: [],
                     columns: [],
@@ -885,6 +889,7 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result).toEqual({
                     type: DataFrameQueryType.Data,
                     dataTableFilter: 'id = "table-456"',
+                    columnsFilter: '',
                     dataTableProperties: [
                         DataTableProperties.Name,
                         DataTableProperties.Id,
@@ -947,6 +952,7 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result).toEqual({
                     type: DataFrameQueryType.Properties,
                     dataTableFilter: 'name = "test"',
+                    columnsFilter: '',
                     dataTableProperties: [DataTableProperties.Name, DataTableProperties.Id],
                     columnProperties: [DataTableProperties.ColumnName],
                     columns: [],
@@ -964,6 +970,7 @@ describe('DataFrameDataSourceV2', () => {
                 const v2Query = {
                     type: DataFrameQueryType.Data,
                     dataTableFilter: 'workspace = "ws-1"',
+                    columnsFilter: '',
                     dataTableProperties: [],
                     columnProperties: [],
                     columns: ['col1', 'col2'],
@@ -981,6 +988,7 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result).toEqual({
                     type: DataFrameQueryType.Data,
                     dataTableFilter: 'workspace = "ws-1"',
+                    columnsFilter: '',
                     dataTableProperties: [],
                     columnProperties: [],
                     columns: ['col1', 'col2'],
@@ -1014,6 +1022,7 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result).toEqual({
                     queryType: DataFrameVariableQueryType.ListColumns,
                     dataTableFilter: 'id = "table-123"',
+                    columnsFilter: '',
                     refId: 'A'
                 });
                 expect(result).not.toHaveProperty('tableId');
@@ -1066,6 +1075,7 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result).toEqual({
                     queryType: DataFrameVariableQueryType.ListColumns,
                     dataTableFilter: 'id = "table-456"',
+                    columnsFilter: '',
                     refId: 'D',
                     hide: true,
                     key: 'custom-key'
@@ -1086,6 +1096,7 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result).toEqual({
                     queryType: DataFrameVariableQueryType.ListDataTables,
                     dataTableFilter: 'name = "test"',
+                    columnsFilter: '',
                     refId: 'E'
                 });
             });
@@ -1102,6 +1113,7 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result).toEqual({
                     queryType: DataFrameVariableQueryType.ListColumns,
                     dataTableFilter: 'workspace = "ws-1"',
+                    columnsFilter: '',
                     refId: 'F'
                 });
             });
@@ -1109,7 +1121,8 @@ describe('DataFrameDataSourceV2', () => {
             it('should preserve all V2 variable query properties', () => {
                 const v2Query = {
                     queryType: DataFrameVariableQueryType.ListDataTables,
-                    dataTableFilter: '',
+                    dataTableFilter: 'workspace = "ws-1"',
+                    columnsFilter: '',
                     refId: 'G',
                     hide: false
                 } as DataFrameVariableQueryV2;
@@ -1118,9 +1131,10 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result).toEqual({
                     queryType: DataFrameVariableQueryType.ListDataTables,
-                    dataTableFilter: '',
-                    refId: 'G',
-                    hide: false
+                    dataTableFilter: 'workspace = "ws-1"',
+                    columnsFilter: '',
+                    hide: false,
+                    refId: 'G'
                 });
             });
         });
@@ -1462,6 +1476,61 @@ describe('DataFrameDataSourceV2', () => {
                     { label: 'Column B', value: 'Column B-Numeric' },
                     { label: 'Column C', value: 'Column C-Boolean' },
                     { label: 'Column D', value: 'Column D-Numeric' },
+                ]);
+            });
+        });
+
+        describe('variable handling', () => {
+            it('should replace variables in the filter before querying tables', async () => {
+                const scopedVars = { var1: { value: 'VarValue' } } as any;
+                await ds.runQuery({ type: DataFrameQueryType.Data, refId: 'A' } as DataFrameQueryV2, { scopedVars } as any);
+
+                templateSrv.replace.mockImplementation(
+                    (target?: string, vars?: any) => (target ?? '').replace('${var1}', vars.var1.value));
+
+                queryTablesMock$.mockReturnValue(of([
+                    {
+                        id: '1',
+                        name: 'Table 1',
+                        columns: [
+                            { name: 'Column1', dataType: 'STRING' }
+                        ]
+                    }
+                ]));
+
+                await ds.getColumnOptions('name = "${var1}"');
+
+                expect(templateSrv.replace).toHaveBeenCalledWith('name = "${var1}"', scopedVars);
+                expect(queryTablesMock$).toHaveBeenCalledWith('name = "VarValue"', TAKE_LIMIT, [
+                    DataTableProjections.ColumnName,
+                    DataTableProjections.ColumnDataType,
+                ]);
+            });
+
+            it('should prepend variable options to the column options list', async () => {
+                templateSrv.getVariables.mockReturnValue([
+                    { name: 'var1' },
+                    { name: 'var2' }
+                ] as any);
+
+                queryTablesMock$.mockReturnValue(of([
+                    {
+                        id: '1',
+                        name: 'Table 1',
+                        columns: [
+                            { name: 'Column 1', dataType: 'STRING' },
+                            { name: 'Column 2', dataType: 'INT32' }
+                        ]
+                    }
+                ]));
+
+                const result = await ds.getColumnOptions('some-filter');
+
+                expect(result).toEqual([
+                    { label: '$var1', value: '$var1' },
+                    { label: '$var2', value: '$var2' },
+                    { label: 'Column 1', value: 'Column 1-String' },
+                    { label: 'Column 2', value: 'Column 2-Numeric' }
                 ]);
             });
         });
