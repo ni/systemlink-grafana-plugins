@@ -769,16 +769,17 @@ describe("DataFrameQueryEditorV2", () => {
 
                 await waitFor(() => {
                     const optionControls = within(document.body).getAllByRole('option');
-                    const texts = optionControls.map(o => o.textContent);
+                    const texts = optionControls.map(option => option.textContent);
                     expect(texts).toEqual(expect.arrayContaining(['ColumnA']));
                 });
 
                 // Ensure query type changed and filter remained
-                expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ type: DataFrameQueryType.Data }));
-                expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ dataTableFilter: 'ExistingFilter' }));
+                expect(onChange).toHaveBeenCalledWith(
+                  expect.objectContaining({ type: DataFrameQueryType.Data, dataTableFilter: 'ExistingFilter' })
+                );
             });
 
-            it('should NOT fetch column options when filter changes while in Properties query type', async () => {
+            it('should not fetch column options when filter changes while in Properties query type', async () => {
                 const user = userEvent.setup();
                 renderComponent({ type: DataFrameQueryType.Properties, dataTableFilter: 'InitialFilter' });
                 const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
@@ -793,7 +794,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                 await waitFor(() => {
                     const optionControls = within(document.body).getAllByRole('option');
-                    const texts = optionControls.map(o => o.textContent);
+                    const texts = optionControls.map(option => option.textContent);
                     expect(texts.some(t => t?.startsWith('ColumnA'))).toBe(false);
                     expect(texts.some(t => t?.startsWith('ColumnB'))).toBe(false);
                 });
