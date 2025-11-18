@@ -3,6 +3,7 @@ import { DataFrameDataSource } from './DataFrameDataSource';
 import { DataFrameDataSourceV1 } from './datasources/v1/DataFrameDataSourceV1';
 import { DataFrameDataSourceV2 } from './datasources/v2/DataFrameDataSourceV2';
 import { DataSourceInstanceSettings, TimeRange } from '@grafana/data';
+import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 
 jest.mock('./datasources/v1/DataFrameDataSourceV1');
 jest.mock('./datasources/v2/DataFrameDataSourceV2');
@@ -160,4 +161,134 @@ describe('DataFrameDataSource', () => {
            expect(result).toEqual(['v2-column-options']);
        });
    });
+
+    describe('variable caching', () => {
+        const backendSrv = {} as BackendSrv;
+        const createTemplateSrv = (variables: Array<{ name: string; current: { value: any } }>): TemplateSrv => {
+            return {
+                getVariables: () => variables,
+                replace: (input: string) => input,
+            } as unknown as TemplateSrv;
+        };
+
+        const query: any = { refId: 'A' };
+        const options: any = { range: { from: new Date(), to: new Date() } };
+
+        it('caches variables on first runQuery', async () => {
+            const templateSrv = createTemplateSrv([{ name: 'varA', current: { value: '1' } }]);
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
+
+            await ds.runQuery(query, options);
+
+            expect(ds.variablesCache).toEqual([{ name: 'varA', value: '1' }]);
+        });
+
+        it('does not replace variablesCache reference when variables unchanged', async () => {
+            const initialVars = [{ name: 'varA', current: { value: '1' } }];
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, createTemplateSrv(initialVars));
+
+            await ds.runQuery(query, options);
+
+            const firstRef = ds.variablesCache;
+            (ds as any).templateSrv = createTemplateSrv([{ name: 'varA', current: { value: '1' } }]);
+
+            await ds.runQuery(query, options);
+
+            expect(ds.variablesCache).toBe(firstRef);
+        });
+
+        it('replaces variablesCache when variable value changes', async () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, createTemplateSrv([{ name: 'varA', current: { value: '1' } }]));
+
+            await ds.runQuery(query, options);
+
+            const firstRef = ds.variablesCache;
+            (ds as any).templateSrv = createTemplateSrv([{ name: 'varA', current: { value: '2' } }]);
+
+            await ds.runQuery(query, options);
+
+            expect(ds.variablesCache).not.toBe(firstRef);
+            expect(ds.variablesCache).toEqual([{ name: 'varA', value: '2' }]);
+        });
+
+        it('replaces variablesCache when variable name changes', async () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, createTemplateSrv([{ name: 'varA', current: { value: '1' } }]));
+
+            await ds.runQuery(query, options);
+
+            const firstRef = ds.variablesCache;
+            (ds as any).templateSrv = createTemplateSrv([{ name: 'varB', current: { value: '1' } }]);
+
+            await ds.runQuery(query, options);
+
+            expect(ds.variablesCache).not.toBe(firstRef);
+            expect(ds.variablesCache).toEqual([{ name: 'varB', value: '1' }]);
+        });
+
+        it('replaces variablesCache when order changes', async () => {
+            const ds = new DataFrameDataSource(
+                mockInstanceSettings(false),
+                backendSrv,
+                createTemplateSrv([
+                    { name: 'varA', current: { value: '1' } },
+                    { name: 'varB', current: { value: '2' } },
+                ])
+            );
+
+            await ds.runQuery(query, options);
+
+            const firstRef = ds.variablesCache;
+            (ds as any).templateSrv = createTemplateSrv([
+                { name: 'varB', current: { value: '2' } },
+                { name: 'varA', current: { value: '1' } },
+            ]);
+
+            await ds.runQuery(query, options);
+
+            expect(ds.variablesCache).not.toBe(firstRef);
+        });
+
+        it('replaces variablesCache when variable added', async () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, createTemplateSrv([{ name: 'varA', current: { value: '1' } }]));
+
+            await ds.runQuery(query, options);
+
+            const firstRef = ds.variablesCache;
+            (ds as any).templateSrv = createTemplateSrv([
+                { name: 'varA', current: { value: '1' } },
+                { name: 'varB', current: { value: '2' } },
+            ]);
+
+            await ds.runQuery(query, options);
+
+            expect(ds.variablesCache).not.toBe(firstRef);
+            expect(ds.variablesCache).toEqual([
+                { name: 'varA', value: '1' },
+                { name: 'varB', value: '2' },
+            ]);
+        });
+
+        it('replaces variablesCache when variable removed', async () => {
+            const ds = new DataFrameDataSource(
+                mockInstanceSettings(false),
+                backendSrv,
+                createTemplateSrv([
+                    { name: 'varA', current: { value: '1' } },
+                    { name: 'varB', current: { value: '2' } },
+                ])
+            );
+
+            await ds.runQuery(query, options);
+
+            const firstRef = ds.variablesCache;
+            (ds as any).templateSrv = createTemplateSrv([
+                { name: 'varA', current: { value: '1' } },
+            ]);
+
+            await ds.runQuery(query, options);
+
+            expect(ds.variablesCache).not.toBe(firstRef);
+            expect(ds.variablesCache).toEqual([{ name: 'varA', value: '1' }]);
+        });
+    });
 });

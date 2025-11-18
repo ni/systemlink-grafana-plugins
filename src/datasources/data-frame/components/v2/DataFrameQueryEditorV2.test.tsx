@@ -22,7 +22,8 @@ const renderComponent = (
     queryOverrides: Partial<DataFrameQueryV2> = {},
     errorTitle = '',
     errorDescription = '',
-    columnOptions: ComboboxOption[]= []
+    columnOptions: ComboboxOption[] = [],
+    variablesCache: Array<{ name: string; value: string }> = []
 ) => {
     const onChange = jest.fn();
     const onRunQuery = jest.fn();
@@ -42,7 +43,8 @@ const renderComponent = (
                 { label: 'ColumnE', value: 'ColumnE' },
                 ...columnOptions
             ]
-        )
+        ),
+        variablesCache
     } as unknown as DataFrameDataSource;
 
     const initialQuery = {
@@ -70,7 +72,7 @@ const renderComponent = (
         );
     });
 
-    return { renderResult, onChange, onRunQuery, processQuery };
+    return { renderResult, onChange, onRunQuery, processQuery, datasource };
 };
 
 describe("DataFrameQueryEditorV2", () => {
@@ -210,6 +212,146 @@ describe("DataFrameQueryEditorV2", () => {
 
                     // Assert that no options are shown
                     expect(within(document.body).queryAllByRole('option').length).toBe(0);
+                });
+
+                it('should not load column options when filter is unchanged', async () => {
+                    await changeFilterValue();
+                    await clickColumnOptions();
+                    const firstLoadOptions = getColumnOptionTexts();
+                    expect(firstLoadOptions.length).toBeGreaterThan(0);
+
+                    await clickColumnOptions();
+                    const secondLoadOptions = getColumnOptionTexts();
+
+                    expect(secondLoadOptions).toEqual(firstLoadOptions);
+                });
+
+                describe('variables cache change column fetch behavior', () => {
+                    const dataQueryOverrides = {
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: 'Name = "$var"'
+                    } as Partial<DataFrameQueryV2>;
+
+                    it('should fetch column options on mount and should not refetch on variablesCache change when filter unchanged', async () => {
+                      const { datasource } = renderComponent(
+                        dataQueryOverrides,
+                        '',
+                        '',
+                        [],
+                        [{ name: 'var', value: 'x' }]
+                      );
+
+                      await waitFor(() => expect((datasource as any).getColumnOptions).toHaveBeenCalledTimes(1));
+
+                      (datasource as any).variablesCache = [{ name: 'var', value: 'y' }];
+                      renderComponent(dataQueryOverrides, '', '', [], (datasource as any).variablesCache);
+
+                      await waitFor(() => expect((datasource as any).getColumnOptions).toHaveBeenCalledTimes(1));
+                    });
+
+                    it('should not refetch column options when variablesCache is empty', async () => {
+                        const { datasource } = renderComponent(
+                            dataQueryOverrides,
+                            '',
+                            '',
+                            [],
+                            [] 
+                        );
+
+                        await waitFor(() => {
+                            expect((datasource as any).getColumnOptions).not.toHaveBeenCalled();
+                        });
+                    });
+
+                    it('should not refetch column options when variablesCache reference changes but values are the same', async () => {
+                      const { datasource } = renderComponent(
+                        dataQueryOverrides,
+                        '',
+                        '',
+                        [],
+                        [{ name: 'var', value: 'x' }]
+                      );
+
+                      await waitFor(() => expect((datasource as any).getColumnOptions).toHaveBeenCalledTimes(1));
+                      (datasource as any).variablesCache = [{ name: 'var', value: 'x' }];
+                      renderComponent(dataQueryOverrides, '', '', [], (datasource as any).variablesCache);
+
+                      await waitFor(() => expect((datasource as any).getColumnOptions).toHaveBeenCalledTimes(1));
+                    });
+
+                    it('should not refetch column options when variables changes but filter unchanged', async () => {
+                      const first = [
+                        { name: 'varA', value: '1' },
+                        { name: 'varB', value: '2' },
+                      ];
+                      const { datasource } = renderComponent(dataQueryOverrides, '', '', [], first);
+
+                      await waitFor(() => expect((datasource as any).getColumnOptions).toHaveBeenCalledTimes(1));
+                      const reordered = [
+                        { name: 'varB', value: '2' },
+                        { name: 'varA', value: '1' },
+                      ];
+                      renderComponent(dataQueryOverrides, '', '', [], reordered);
+
+                      await waitFor(() => expect((datasource as any).getColumnOptions).toHaveBeenCalledTimes(1));
+                    });
+
+                    it('should not fetch column options when dataTableFilter is empty even if variablesCache changes', async () => {                   
+                      const emptyFilterOverrides = {
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: '',
+                      } as Partial<DataFrameQueryV2>;
+                      const { datasource } = renderComponent(
+                        emptyFilterOverrides,
+                        '',
+                        '',
+                        [],
+                        [{ name: 'var', value: 'x' }]
+                      );
+
+                      await waitFor(() => expect((datasource as any).getColumnOptions).toHaveBeenCalledTimes(0));
+                      (datasource as any).variablesCache = [{ name: 'var', value: 'y' }];
+                      renderComponent(emptyFilterOverrides, '', '', [], (datasource as any).variablesCache);
+
+                      await waitFor(() => expect((datasource as any).getColumnOptions).toHaveBeenCalledTimes(0));
+                    });
+
+                    it('should refetch column options when variablesCache changes and filter subsequently changes', async () => {
+                      const baseQuery = {
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: 'Name = "$var"',
+                      } as Partial<DataFrameQueryV2>;
+                      const { datasource, renderResult } = renderComponent(
+                        baseQuery,
+                        '',
+                        '',
+                        [],
+                        [{ name: 'var', value: 'x' }]
+                      );
+                      await waitFor(() => expect((datasource as any).getColumnOptions).toHaveBeenCalledTimes(1));
+
+                      (datasource as any).variablesCache = [{ name: 'var', value: 'y' }];
+                      renderResult.rerender(
+                        <DataFrameQueryEditorV2
+                          datasource={datasource}
+                          query={{
+                            ...defaultQueryV2,
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: 'Name = "$var"',
+                          }}
+                          onChange={() => {}}
+                          onRunQuery={() => {}}
+                        />
+                      );
+                      await waitFor(() => expect((datasource as any).getColumnOptions).toHaveBeenCalledTimes(1));
+
+                      const queryBuilderWrapperCalls = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                      const latestProps = queryBuilderWrapperCalls[queryBuilderWrapperCalls.length - 1][0];
+                      latestProps.onDataTableFilterChange({ detail: { linq: 'Name = "$var" && OtherFilter = 1' } });
+
+                      await waitFor(() => expect((datasource as any).getColumnOptions).toHaveBeenCalledTimes(2));
+                    });
                 });
 
                 describe('column limit', () => {

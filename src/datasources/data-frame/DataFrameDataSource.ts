@@ -5,6 +5,7 @@ import { DataFrameDataSourceBase } from "./DataFrameDataSourceBase";
 import { DataFrameDataSourceV1 } from "./datasources/v1/DataFrameDataSourceV1";
 import { DataFrameDataSourceV2 } from "./datasources/v2/DataFrameDataSourceV2";
 import { Observable } from "rxjs";
+import { areKeyValueArraysEqual } from "./utils";
 
 export class DataFrameDataSource extends DataFrameDataSourceBase {
   private queryByTablePropertiesFeatureEnabled = false;
@@ -33,6 +34,16 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     query: DataFrameDataQuery,
     options: DataQueryRequest<DataFrameDataQuery>
   ): Promise<DataFrameDTO> | Observable<DataFrameDTO> {
+    const dashboardVariables = this.templateSrv.getVariables().map(
+      (variable) => ({
+        name: variable.name,
+        value: (variable as any).current?.value ?? '',
+      })
+    );
+    if (!areKeyValueArraysEqual(this.variablesCache, dashboardVariables)) {
+      this.variablesCache = dashboardVariables;
+    }
+
     return this.datasource.runQuery(query, options);
   }
 

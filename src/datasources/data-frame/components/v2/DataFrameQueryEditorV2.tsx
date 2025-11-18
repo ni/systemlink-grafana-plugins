@@ -25,6 +25,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isColumnLimitExceeded, setIsColumnLimitExceeded] = useState<boolean>(false);
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
+    const [lastAppliedFilter, setLastAppliedFilter] = useState<string | undefined>(undefined);
 
     const getPropertiesOptions = (
         type: DataTableProjectionType
@@ -38,6 +39,20 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
     const dataTablePropertiesOptions = getPropertiesOptions(DataTableProjectionType.DataTable);
     const columnPropertiesOptions = getPropertiesOptions(DataTableProjectionType.Column);
+
+    useEffect(() => {   
+        if ( datasource.variablesCache.length > 0 
+            && containsVariables(migratedQuery.dataTableFilter)
+        ) {
+          fetchAndSetColumnOptions(migratedQuery.dataTableFilter);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [datasource.variablesCache]);
+
+    const containsVariables = (input: string): boolean => {
+        const variablePattern = /\$\w+/;
+        return variablePattern.test(input);
+    }
 
     const handleQueryChange = useCallback(
         (query: DataFrameQueryV2, runQuery = true): void => {
@@ -54,6 +69,10 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             setColumnOptions([]);
             return;
         }
+        if (filter === lastAppliedFilter) {
+            return;
+        }
+        setLastAppliedFilter(filter);
         const columnOptions = await datasource.getColumnOptions(filter);
         const limitedColumnOptions = columnOptions.slice(0, COLUMN_OPTIONS_LIMIT);
         setIsColumnLimitExceeded(columnOptions.length > COLUMN_OPTIONS_LIMIT);
