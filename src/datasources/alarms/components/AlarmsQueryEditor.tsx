@@ -6,7 +6,7 @@ import { AlarmsCountQueryEditor } from './editors/alarms-count/AlarmsCountQueryE
 import { AlarmsCountQuery } from '../types/AlarmsCount.types';
 import { InlineField } from 'core/components/InlineField';
 import { CONTROL_WIDTH, LABEL_WIDTH, labels, tooltips } from '../constants/AlarmsQueryEditor.constants';
-import { Combobox, Stack } from '@grafana/ui';
+import { Combobox } from '@grafana/ui';
 import { DEFAULT_QUERY_TYPE, defaultAlarmsCountQuery, defaultAlarmsTrendQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
 import { ListAlarmsQuery } from '../types/ListAlarms.types';
 import { ListAlarmsQueryEditor } from './editors/list-alarms/ListAlarmsQueryEditor';

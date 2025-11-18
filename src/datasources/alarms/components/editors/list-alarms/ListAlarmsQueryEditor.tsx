@@ -23,7 +23,7 @@ import { FloatingError } from 'core/errors';
 import { AlarmsProperties, ListAlarmsQuery, OutputType } from 'datasources/alarms/types/ListAlarms.types';
 import { ListAlarmsQueryHandler } from 'datasources/alarms/query-type-handlers/list-alarms/ListAlarmsQueryHandler';
 import { AutoSizeInput, Combobox, ComboboxOption, InlineSwitch, MultiCombobox, RadioButtonGroup, Stack } from '@grafana/ui';
-import { enumToOptions, validateNumericInput } from 'core/utils';
+import { validateNumericInput } from 'core/utils';
 import { TransitionInclusionOption } from 'datasources/alarms/types/types';
 
 type Props = {
