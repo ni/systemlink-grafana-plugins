@@ -155,6 +155,7 @@ describe("DataFrameQueryEditorV2", () => {
 
             describe('columns field', () => {
                 let columnsField: HTMLElement;
+                let datasource: DataFrameDataSource;
 
                 async function changeFilterValue(filterValue = 'NewFilter') {
                     // Get the onDataTableFilterChange callback from the mock
@@ -180,7 +181,10 @@ describe("DataFrameQueryEditorV2", () => {
                 }
 
                 beforeEach(() => {
+                    const latestQueryBuilderWrapperCall = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls.slice(-1)[0];
+                    const latestProps = latestQueryBuilderWrapperCall ? latestQueryBuilderWrapperCall[0] : undefined;
                     columnsField = screen.getAllByRole('combobox')[0];
+                    datasource = latestProps?.datasource as DataFrameDataSource;
                 });
 
                 it('should show the columns field', () => {
@@ -214,16 +218,25 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(within(document.body).queryAllByRole('option').length).toBe(0);
                 });
 
-                it('should not load column options when filter is unchanged', async () => {
+                it('should not refetch column options when filter is unchanged', async () => {
                     await changeFilterValue();
                     await clickColumnOptions();
+
+                    // wait for initial fetch
+                    await waitFor(() => {
+                        expect((datasource as any).getColumnOptions).toHaveBeenCalledTimes(1);
+                    });
                     const firstLoadOptions = getColumnOptionTexts();
                     expect(firstLoadOptions.length).toBeGreaterThan(0);
 
+                    // close dropdown by clicking outside
+                    await userEvent.click(document.body);
+                    // reopen dropdown
                     await clickColumnOptions();
                     const secondLoadOptions = getColumnOptionTexts();
 
                     expect(secondLoadOptions).toEqual(firstLoadOptions);
+                    expect((datasource as any).getColumnOptions).toHaveBeenCalledTimes(1);
                 });
 
                 describe('variables cache change column fetch behavior', () => {
