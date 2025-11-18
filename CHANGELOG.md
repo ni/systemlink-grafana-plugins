@@ -1,3 +1,10 @@
+## [4.74.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.73.0...v4.74.0) (2025-11-18)
+
+### Features
+
+* **asset:** Update filter by scan code to work with multi-select ([#535](https://github.com/ni/systemlink-grafana-plugins/issues/535)) ([892d8b0](https://github.com/ni/systemlink-grafana-plugins/commit/892d8b08a07c465a57c978bacfd83f25a575c642))
+* **systems:** add minion ID and scan code return types for system variables ([#505](https://github.com/ni/systemlink-grafana-plugins/issues/505)) ([b71ae24](https://github.com/ni/systemlink-grafana-plugins/commit/b71ae247a97a446e16f0e4cd76aff1c19ceb681e))
+
 ## [4.73.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.72.0...v4.73.0) (2025-11-18)
 
 ### Features
