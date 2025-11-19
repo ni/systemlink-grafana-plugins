@@ -1,3 +1,34 @@
+## [4.75.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.75.0...v4.75.1) (2025-11-19)
+
+### Bug Fixes
+
+* **query-builder:** Support multi-value variable for starts with, ends with and list operations ([#509](https://github.com/ni/systemlink-grafana-plugins/issues/509)) ([a45da94](https://github.com/ni/systemlink-grafana-plugins/commit/a45da942d17656c187e2f56f91dccc4a6a28d7c9))
+
+## [4.75.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.74.2...v4.75.0) (2025-11-19)
+
+### Features
+
+* **dataframes:** Pass results filter and onchange callback to the query builder ([#534](https://github.com/ni/systemlink-grafana-plugins/issues/534)) ([50e90d0](https://github.com/ni/systemlink-grafana-plugins/commit/50e90d0fc65b42855ed98a4675e51011178a5547))
+
+## [4.74.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.74.1...v4.74.2) (2025-11-19)
+
+### Bug Fixes
+
+* **dataframe:** Fix column population when query type changes ([#523](https://github.com/ni/systemlink-grafana-plugins/issues/523)) ([e10f754](https://github.com/ni/systemlink-grafana-plugins/commit/e10f754c46c95010ed2dba303ed453054d2ec980))
+
+## [4.74.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.74.0...v4.74.1) (2025-11-19)
+
+### Bug Fixes
+
+* **results:** Convert string-based numeric values to numbers for proper plotting ([#539](https://github.com/ni/systemlink-grafana-plugins/issues/539)) ([9025938](https://github.com/ni/systemlink-grafana-plugins/commit/9025938329edf98d819b1628289efa146b44bf5b))
+
+## [4.74.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.73.0...v4.74.0) (2025-11-18)
+
+### Features
+
+* **asset:** Update filter by scan code to work with multi-select ([#535](https://github.com/ni/systemlink-grafana-plugins/issues/535)) ([892d8b0](https://github.com/ni/systemlink-grafana-plugins/commit/892d8b08a07c465a57c978bacfd83f25a575c642))
+* **systems:** add minion ID and scan code return types for system variables ([#505](https://github.com/ni/systemlink-grafana-plugins/issues/505)) ([b71ae24](https://github.com/ni/systemlink-grafana-plugins/commit/b71ae247a97a446e16f0e4cd76aff1c19ceb681e))
+
 ## [4.73.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.72.0...v4.73.0) (2025-11-18)
 
 ### Features

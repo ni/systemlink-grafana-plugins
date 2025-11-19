@@ -857,6 +857,7 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result).toEqual({
                     type: DataFrameQueryType.Properties,
+                    resultsFilter: '',
                     dataTableFilter: 'id = "table-123"',
                     columnsFilter: '',
                     dataTableProperties: [DataTableProperties.Properties],
@@ -888,6 +889,7 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result).toEqual({
                     type: DataFrameQueryType.Data,
+                    resultsFilter: '',
                     dataTableFilter: 'id = "table-456"',
                     columnsFilter: '',
                     dataTableProperties: [
@@ -951,6 +953,7 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result).toEqual({
                     type: DataFrameQueryType.Properties,
+                    resultsFilter: '',
                     dataTableFilter: 'name = "test"',
                     columnsFilter: '',
                     dataTableProperties: [DataTableProperties.Name, DataTableProperties.Id],
@@ -969,6 +972,7 @@ describe('DataFrameDataSourceV2', () => {
             it('should preserve all V2 query properties', () => {
                 const v2Query = {
                     type: DataFrameQueryType.Data,
+                    resultsFilter: '',
                     dataTableFilter: 'workspace = "ws-1"',
                     columnsFilter: '',
                     dataTableProperties: [],
@@ -987,6 +991,7 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result).toEqual({
                     type: DataFrameQueryType.Data,
+                    resultsFilter: '',
                     dataTableFilter: 'workspace = "ws-1"',
                     columnsFilter: '',
                     dataTableProperties: [],
@@ -1021,6 +1026,7 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result).toEqual({
                     queryType: DataFrameVariableQueryType.ListColumns,
+                    resultsFilter: '',
                     dataTableFilter: 'id = "table-123"',
                     columnsFilter: '',
                     refId: 'A'
@@ -1074,6 +1080,7 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result).toEqual({
                     queryType: DataFrameVariableQueryType.ListColumns,
+                    resultsFilter: '',
                     dataTableFilter: 'id = "table-456"',
                     columnsFilter: '',
                     refId: 'D',
@@ -1095,6 +1102,7 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result).toEqual({
                     queryType: DataFrameVariableQueryType.ListDataTables,
+                    resultsFilter: '',
                     dataTableFilter: 'name = "test"',
                     columnsFilter: '',
                     refId: 'E'
@@ -1112,6 +1120,7 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result).toEqual({
                     queryType: DataFrameVariableQueryType.ListColumns,
+                    resultsFilter: '',
                     dataTableFilter: 'workspace = "ws-1"',
                     columnsFilter: '',
                     refId: 'F'
@@ -1121,6 +1130,7 @@ describe('DataFrameDataSourceV2', () => {
             it('should preserve all V2 variable query properties', () => {
                 const v2Query = {
                     queryType: DataFrameVariableQueryType.ListDataTables,
+                    resultsFilter: '',
                     dataTableFilter: 'workspace = "ws-1"',
                     columnsFilter: '',
                     refId: 'G',
@@ -1131,6 +1141,7 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result).toEqual({
                     queryType: DataFrameVariableQueryType.ListDataTables,
+                    resultsFilter: '',
                     dataTableFilter: 'workspace = "ws-1"',
                     columnsFilter: '',
                     hide: false,
