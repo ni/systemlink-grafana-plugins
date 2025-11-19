@@ -283,7 +283,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                   it('should fetch column options when switching to Data query type with existing non-empty filter', async () => {
                     const user = userEvent.setup();
-                    const { onChange } = renderComponent({
+                    const { datasource } =renderComponent({
                       type: DataFrameQueryType.Properties,
                       dataTableFilter: 'ExistingFilter',
                     });
@@ -297,18 +297,27 @@ describe("DataFrameQueryEditorV2", () => {
                     const columnsCombobox = screen.getAllByRole('combobox')[0];
                     await user.click(columnsCombobox);
 
+                    expect(datasource.getColumnOptions).toHaveBeenCalledWith('ExistingFilter');
+
+                    // Column options should be fetched and available
                     await waitFor(() => {
                       const optionControls = within(document.body).getAllByRole('option');
-                      const texts = optionControls.map(o => o.textContent);
-                      expect(texts).toEqual(expect.arrayContaining(['ColumnA']));
+                      const texts = optionControls.map(option => option.textContent);
+                      expect(texts).toEqual(
+                        expect.arrayContaining([
+                          'ColumnA',
+                          'ColumnB (Numeric)',
+                          'ColumnB (String)',
+                          'ColumnD (String)',
+                          'ColumnE',
+                        ])
+                      );
                     });
-
-                    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ type: DataFrameQueryType.Data }));
                   });
 
                   it('should not fetch column options when switching to Data query type with existing empty filter', async () => {
                     const user = userEvent.setup();
-                    const { onChange } = renderComponent({
+                    const { datasource } =renderComponent({
                       type: DataFrameQueryType.Properties,
                       dataTableFilter: '',
                     });
@@ -324,8 +333,7 @@ describe("DataFrameQueryEditorV2", () => {
                       const optionControls = within(document.body).queryAllByRole('option');
                       expect(optionControls.length).toBe(0);
                     });
-
-                    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ type: DataFrameQueryType.Data }));
+                    expect(datasource.getColumnOptions).not.toHaveBeenCalled();
                   });
 
                   it('should not fetch column options when filter changes while in Properties query type', async () => {
@@ -344,12 +352,54 @@ describe("DataFrameQueryEditorV2", () => {
                     // Columns combobox should not be present in Properties mode
                     expect(screen.queryByPlaceholderText('Select columns')).not.toBeInTheDocument();
                     // getColumnOptions should never have been called
-                    expect((datasource as any).getColumnOptions).not.toHaveBeenCalled();
+                    expect(datasource.getColumnOptions).not.toHaveBeenCalled();
+                  });
+
+                  it('should not fetch column options when switching to Properties query type with existing non-empty filter', async () => {
+                    const user = userEvent.setup();
+                    const { datasource } = renderComponent({
+                      type: DataFrameQueryType.Data,
+                      dataTableFilter: 'ExistingFilter',
+                    });
+
+                    // Switch query type to Properties
+                    const propertiesRadios = screen.getAllByRole('radio', {
+                      name: DataFrameQueryType.Properties,
+                    });
+                    await user.click(propertiesRadios[0]);
+
+                    // Columns combobox should not be present in Properties mode
+                    expect(screen.queryByPlaceholderText('Select columns')).not.toBeInTheDocument();
+
+                    // getColumnOptions should have been called only once (during initial Data mode render)
+                    await waitFor(() => {
+                      expect(datasource.getColumnOptions).toHaveBeenCalledTimes(1);
+                    });
+                  });
+
+                  it('should not fetch column options when switching to Properties query type with existing empty filter', async () => {
+                    const user = userEvent.setup();
+                    const { datasource } = renderComponent({
+                      type: DataFrameQueryType.Data,
+                      dataTableFilter: '',
+                    });
+
+                    // Switch query type to Properties
+                    const propertiesRadios = screen.getAllByRole('radio', {
+                      name: DataFrameQueryType.Properties,
+                    });
+                    await user.click(propertiesRadios[0]);
+
+                    // Columns combobox should not be present in Properties mode
+                    expect(screen.queryByPlaceholderText('Select columns')).not.toBeInTheDocument();
+
+                    // getColumnOptions should never have been called (empty filter in Data mode)
+                    expect(datasource.getColumnOptions).not.toHaveBeenCalled();
                   });
 
                   it('should fetch column options when filter changes while in Data query type', async () => {
                     const user = userEvent.setup();
-                    renderComponent({ type: DataFrameQueryType.Data, dataTableFilter: 'InitialFilter' });
+                    const { datasource } =renderComponent({ type: DataFrameQueryType.Data, dataTableFilter: 'InitialFilter' });
                     const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
                     const { onDataTableFilterChange } = props;
 
@@ -373,6 +423,7 @@ describe("DataFrameQueryEditorV2", () => {
                         ])
                       );
                     });
+                    expect(datasource.getColumnOptions).toHaveBeenCalledWith('UpdatedFilter');
                   });
                 });
             });
