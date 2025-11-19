@@ -1,3 +1,9 @@
+## [4.75.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.75.0...v4.75.1) (2025-11-19)
+
+### Bug Fixes
+
+* **query-builder:** Support multi-value variable for starts with, ends with and list operations ([#509](https://github.com/ni/systemlink-grafana-plugins/issues/509)) ([a45da94](https://github.com/ni/systemlink-grafana-plugins/commit/a45da942d17656c187e2f56f91dccc4a6a28d7c9))
+
 ## [4.75.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.74.2...v4.75.0) (2025-11-19)
 
 ### Features
