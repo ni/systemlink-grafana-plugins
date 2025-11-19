@@ -5,7 +5,7 @@ import { DataFrameDataSourceBase } from "./DataFrameDataSourceBase";
 import { DataFrameDataSourceV1 } from "./datasources/v1/DataFrameDataSourceV1";
 import { DataFrameDataSourceV2 } from "./datasources/v2/DataFrameDataSourceV2";
 import { Observable } from "rxjs";
-import { areKeyValuesEqual } from "./utils";
+import { areRecordsIdentical } from "./utils";
 
 export class DataFrameDataSource extends DataFrameDataSourceBase {
   private queryByTablePropertiesFeatureEnabled = false;
@@ -41,7 +41,7 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
       acc[variable.name] = (variable as any).current?.value ?? '';
       return acc;
       }, {});
-    if (!areKeyValuesEqual(this.variablesCache, dashboardVariables)) {
+    if (!areRecordsIdentical(this.variablesCache, dashboardVariables)) {
       this.variablesCache = dashboardVariables;
     }
 
