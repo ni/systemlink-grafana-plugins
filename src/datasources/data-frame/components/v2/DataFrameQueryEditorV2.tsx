@@ -67,20 +67,21 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         setIsPropertiesNotSelected(isDataTablePropertiesEmpty && isColumnPropertiesEmpty);
     }, [migratedQuery.dataTableProperties, migratedQuery.columnProperties]);
 
-    const onQueryTypeChange = async (queryType: DataFrameQueryType) => {
+        useEffect(() => {
+            if (migratedQuery.type === DataFrameQueryType.Data) {
+                fetchAndSetColumnOptions(migratedQuery.dataTableFilter);
+            }
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [migratedQuery.type, migratedQuery.dataTableFilter]);
+
+    const onQueryTypeChange = (queryType: DataFrameQueryType) => {
         handleQueryChange({ ...migratedQuery, type: queryType });
-        if(queryType === DataFrameQueryType.Data && migratedQuery.dataTableFilter !== '') {
-            await fetchAndSetColumnOptions(migratedQuery.dataTableFilter);
-        }
     };
 
     const onDataTableFilterChange = async (event?: Event | React.FormEvent<Element>) => {
         if (event) {
             const dataTableFilter = (event as CustomEvent).detail.linq;
             handleQueryChange({ ...migratedQuery, dataTableFilter });
-            if (migratedQuery.type === DataFrameQueryType.Data) {
-                await fetchAndSetColumnOptions(dataTableFilter);
-            }
         }
     };
 
