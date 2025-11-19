@@ -17,6 +17,7 @@ import {
   DataTableProjections,
   DataFrameVariableQuery,
   ValidDataFrameVariableQuery,
+  DataFrameDataQuery,
 } from '../../types';
 import { propertiesCacheTTL } from '../../constants';
 import _ from 'lodash';
@@ -37,7 +38,7 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     super(instanceSettings, backendSrv, templateSrv);
   }
 
-  async runQuery(query: DataFrameQueryV1, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
+  async runQuery(query: DataFrameDataQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
     const processedQuery = this.processQuery(query);
     processedQuery.tableId = this.templateSrv.replace(processedQuery.tableId, scopedVars);
     processedQuery.columns = replaceVariables(processedQuery.columns, this.templateSrv);
@@ -76,7 +77,12 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     return properties;
   }
 
-  async getDecimatedTableData(query: DataFrameQueryV1, columns: Column[], timeRange: TimeRange, intervals = 1000): Promise<TableDataRows> {
+  async getDecimatedTableData(
+    query: DataFrameDataQuery,
+    columns: Column[],
+    timeRange: TimeRange,
+    intervals = 1000
+  ): Promise<TableDataRows> {
     const filters: ColumnFilter[] = [];
 
     if (query.applyTimeFilters) {
@@ -87,15 +93,18 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
       filters.push(...this.constructNullFilters(columns));
     }
 
-    return await this.post<TableDataRows>(`${this.baseUrl}/tables/${query.tableId}/query-decimated-data`, {
-      columns: query.columns,
-      filters,
-      decimation: {
-        intervals,
-        method: query.decimationMethod,
-        yColumns: this.getNumericColumns(columns).map(c => c.name),
-      },
-    });
+    return await this.post<TableDataRows>(
+      `${this.baseUrl}/tables/${(query as DataFrameQueryV1).tableId}/query-decimated-data`,
+      {
+        columns: query.columns,
+        filters,
+        decimation: {
+          intervals,
+          method: query.decimationMethod,
+          yColumns: this.getNumericColumns(columns).map(c => c.name),
+        },
+      }
+    );
   }
 
   queryTables$(
@@ -112,8 +121,8 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take, projection })).tables;
   }
 
-  processQuery(query: DataFrameQueryV1): ValidDataFrameQueryV1 {
-    const migratedQuery = { ...defaultQueryV1, ...query };
+  processQuery(query: DataFrameDataQuery): ValidDataFrameQueryV1 {
+    const migratedQuery = { ...defaultQueryV1, ...query } as ValidDataFrameQueryV1;
 
     // Handle existing dashboards with 'MetaData' type
     if ((migratedQuery.type as any) === LEGACY_METADATA_TYPE) {

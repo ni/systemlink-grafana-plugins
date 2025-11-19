@@ -8,7 +8,7 @@ import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
-import { catchError, combineLatestWith, from, lastValueFrom, map, Observable, of } from "rxjs";
+import { catchError, combineLatestWith, from, isObservable, lastValueFrom, map, Observable, of } from "rxjs";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
     defaultQuery = defaultQueryV2;
@@ -23,7 +23,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     }
 
     runQuery(
-        query: DataFrameQueryV2,
+        query: DataFrameDataQuery,
         options: DataQueryRequest<DataFrameQueryV2>
     ): Observable<DataFrameDTO> {
         this.scopedVars = options.scopedVars;
@@ -94,7 +94,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         }
 
         // Migration for 1.6.0: DataFrameQuery.columns changed to string[]
-        if (query.columns && query.columns.length > 0 && _.isObject(query.columns[0])) {
+        if (
+            query.columns
+            && !isObservable(query.columns)
+            && query.columns.length > 0
+            && _.isObject(query.columns[0])
+        ) {
             query.columns = (query.columns as any[]).map(c => c.name);
         }
 
@@ -104,11 +109,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             const dataTableProperties = query.type === DataFrameQueryType.Properties
                 ? [DataTableProperties.Properties]
                 : defaultQueryV2.dataTableProperties;
+            const columns = this.getMigratedColumns(tableId, query.columns);
+
             return {
                 ...defaultQueryV2,
                 ...v1QueryWithoutTableId,
                 dataTableFilter: tableId ? `id = "${tableId}"` : '',
-                dataTableProperties
+                dataTableProperties,
+                columns,
             } as ValidDataFrameQueryV2;
         }
 
@@ -150,7 +158,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     }
 
     async getDecimatedTableData(
-        _query: DataFrameQueryV2,
+        _query: DataFrameDataQuery,
         _columns: Column[],
         _timeRange: TimeRange,
         _intervals?: number | undefined
@@ -212,6 +220,32 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         const columnTypeMap = this.createColumnNameDataTypesMap(tables);
 
         return this.createColumnOptions(columnTypeMap);
+    }
+
+    private getMigratedColumns(
+        tableId: string | undefined,
+        currentColumns: string[] | undefined
+    ): Observable<string[]> | string[] {
+        if (!tableId || !currentColumns?.length) {
+            return [];
+        }
+
+        return this.getTable(tableId).pipe(
+            map(table => this.migrateColumnsFromV1ToV2(currentColumns, table))
+        );
+    }
+
+    private getTable(id: string): Observable<TableProperties> {
+        return this.get$<TableProperties>(`${this.baseUrl}/tables/${id}`);
+    }
+
+    private migrateColumnsFromV1ToV2(columns: string[], table: TableProperties): string[] {
+        return columns.map(column => {
+            const matchingColumn = table.columns.find(col => col.name === column);
+            return matchingColumn
+                ? `${matchingColumn.name}-${this.transformColumnType(matchingColumn.dataType)}`
+                : column;
+        });
     }
 
     private getErrorMessage(error: Error): string {

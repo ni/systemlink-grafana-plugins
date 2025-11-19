@@ -139,6 +139,15 @@ describe('DataFrameDataSource', () => {
         expect(dsV2.defaultQuery).toEqual(expectedV2Default);
     });
 
+    describe('prepareQuery', () => {
+        it('should return the same query object', () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings());
+            const query = { someField: 'someValue' };
+            const preparedQuery = ds.prepareQuery(query as any);
+            expect(preparedQuery).toBe(query);
+        });
+    });
+
    describe('getColumnOptions', () => {
        it('should call getColumnOptions on DataFrameDataSourceV1 when feature toggle is false', async () => {
            const ds = new DataFrameDataSource(mockInstanceSettings(false));

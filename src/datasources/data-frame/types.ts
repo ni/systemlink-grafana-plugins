@@ -4,6 +4,7 @@ import { DataSourceJsonData, QueryEditorProps } from '@grafana/data';
 import { DataFrameDataSource } from './DataFrameDataSource';
 import { TAKE_LIMIT } from './constants';
 import { QueryBuilderField } from 'smart-webcomponents-react';
+import { Observable } from 'rxjs';
 
 export enum DataFrameQueryType {
   Data = 'Data',
@@ -36,7 +37,7 @@ export interface DataFrameQueryV2 extends DataQuery {
   columnsFilter?: string;
   dataTableProperties?: DataTableProperties[];
   columnProperties?: DataTableProperties[];
-  columns?: string[];
+  columns?: string[] | Observable<string[]>;
   includeIndexColumns?: boolean;
   filterNulls?: boolean;
   decimationMethod?: string;

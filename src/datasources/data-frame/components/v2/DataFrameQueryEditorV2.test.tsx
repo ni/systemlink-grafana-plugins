@@ -7,26 +7,28 @@ import React from "react";
 import { cleanup, render, RenderResult, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
-import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties, DataFrameDataQuery } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { COLUMN_OPTIONS_LIMIT } from "datasources/data-frame/constants";
 import { ComboboxOption } from "@grafana/ui";
 import { errorMessages } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
+import { of } from "rxjs";
 
 jest.mock("./query-builders/DataFrameQueryBuilderWrapper", () => ({
     DataFrameQueryBuilderWrapper: jest.fn(() => <div data-testid="mock-data-frame-query-builder-wrapper" />)
 }));
 
 const renderComponent = (
-    queryOverrides: Partial<DataFrameQueryV2> = {},
+    queryOverrides: Partial<DataFrameDataQuery> = {},
     errorTitle = '',
     errorDescription = '',
-    columnOptions: ComboboxOption[]= []
+    columnOptions: ComboboxOption[] = [],
+    processQueryOverride?: jest.Mock<DataFrameQuery, [ValidDataFrameQueryV2]>
 ) => {
     const onChange = jest.fn();
     const onRunQuery = jest.fn();
-    const processQuery = jest
+    const processQuery = processQueryOverride ?? jest
         .fn<DataFrameQuery, [ValidDataFrameQueryV2]>()
         .mockImplementation(query => ({ ...defaultQueryV2, ...query }));
     const datasource = {
@@ -74,6 +76,18 @@ const renderComponent = (
 };
 
 describe("DataFrameQueryEditorV2", () => {
+    it("should call processQuery with the initial query", () => {
+        const { processQuery } = renderComponent({
+            type: DataFrameQueryType.Data,
+            tableId: 'ExistingFilter',
+        });
+
+        expect(processQuery).toHaveBeenCalledWith(expect.objectContaining({
+            type: DataFrameQueryType.Data,
+            tableId: 'ExistingFilter',
+        }));
+    });
+
     it("should render query type options", () => {
         renderComponent();
 
@@ -425,6 +439,108 @@ describe("DataFrameQueryEditorV2", () => {
                     });
                     expect(datasource.getColumnOptions).toHaveBeenCalledWith('UpdatedFilter');
                   });
+                });
+
+                describe("columns value setting", () => {
+                    beforeAll(() => {
+                        // Mock offsetHeight for combobox virtualization so options render in tests
+                        jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
+                    });
+
+                    it("should be set with a value when a list of columns is provided in the query", async () => {
+                        renderComponent({
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: 'name = "TestTable"',
+                            columns: ['ColumnD-String']
+                        });
+
+                        await waitFor(() => {
+                            expect(document.body).toHaveTextContent('ColumnD (String)');
+                        });
+                    });
+
+                    it("should be set with a value when the processQuery returns an observable", async () => {
+                        const columns = of(['ColumnB-Numeric']);
+                        const processQueryOverride = jest
+                            .fn<DataFrameQuery, [ValidDataFrameQueryV2]>()
+                            .mockImplementation(query => ({
+                                ...defaultQueryV2,
+                                ...query,
+                                columns
+                            }));
+
+                        renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                dataTableFilter: 'name = "TestTable"',
+                                columns: ['ColumnB']
+                            },
+                            '',
+                            '',
+                            [],
+                            processQueryOverride
+                        );
+
+                        await waitFor(() => {
+                            expect(document.body).toHaveTextContent('ColumnB (Numeric)');
+                        });
+                    });
+
+                    it("should call onChange with a list of columns when processQuery returns an observable", async () => {
+                        const columns = of(['ColumnB-Numeric', 'ColumnD-String']);
+                        const processQueryOverride = jest
+                            .fn<DataFrameQuery, [ValidDataFrameQueryV2]>()
+                            .mockImplementation(query => ({
+                                ...defaultQueryV2,
+                                ...query,
+                                columns
+                            }));
+
+                        const { onChange } = renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                dataTableFilter: 'name = "TestTable"',
+                                columns: ['ColumnB', 'ColumnD']
+                            },
+                            '',
+                            '',
+                            [],
+                            processQueryOverride
+                        );
+
+                        await waitFor(() => {
+                            expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                                columns: ['ColumnB-Numeric', 'ColumnD-String']
+                            }));
+                        });
+                    });
+
+                    it("should call onRunQuery with a list of columns when processQuery returns an observable", async () => {
+                        const columns = of(['ColumnB-Numeric', 'ColumnD-String']);
+                        const processQueryOverride = jest
+                            .fn<DataFrameQuery, [ValidDataFrameQueryV2]>()
+                            .mockImplementation(query => ({
+                                ...defaultQueryV2,
+                                ...query,
+                                columns
+                            }));
+
+                        const { onRunQuery } = renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                dataTableFilter: 'name = "TestTable"',
+                                columns: ['ColumnB', 'ColumnD']
+                            },
+                            '',
+                            '',
+                            [],
+                            processQueryOverride
+                        );
+
+                        await waitFor(() => {
+                            expect(onRunQuery).toHaveBeenCalled();
+                        });
+                    });
                 });
             });
 
