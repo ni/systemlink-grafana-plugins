@@ -179,7 +179,7 @@ describe('DataFrameDataSource', () => {
                {
                    dataTableFilter: 'name = "test"',
                    resultsFilter: 'status = "passed"',
-                   columnsFilter: ''
+                   columnsFilter: 'name = "column1"'
                },
                10,
                ['name' as any]
