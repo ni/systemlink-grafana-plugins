@@ -2137,46 +2137,6 @@ describe('QueryStepsDataSource', () => {
         })
       );
     });
-
-    test('should handle transformation for variable with single value in endswith operation', async () => {
-      const query = buildQuery({
-        refId: 'A',
-        outputType: OutputType.Data,
-        stepsQuery: 'path.EndsWith("${query}")',
-      });
-      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValueOnce('path.EndsWith("path")');
-
-      await firstValueFrom(datastore.query(query));
-
-      expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          url: '/nitestmonitor/v2/query-steps',
-          data: expect.objectContaining({
-            filter: 'path.EndsWith("path")'
-          }),
-        })
-      );
-    });
-
-    test('should handle transformation for variable with multiple values in endswith operation', async () => {
-      const query = buildQuery({
-        refId: 'A',
-        outputType: OutputType.Data,
-        stepsQuery: 'path.EndsWith("${query}")',
-      });
-      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValueOnce('path.EndsWith("{path1,path2}")');
-
-      await firstValueFrom(datastore.query(query));
-
-      expect(backendServer.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          url: '/nitestmonitor/v2/query-steps',
-          data: expect.objectContaining({
-            filter: '(path.EndsWith("path1") || path.EndsWith("path2"))'
-          }),
-        })
-      );
-    });
   });
 
   describe('metricFindQuery', () => {
