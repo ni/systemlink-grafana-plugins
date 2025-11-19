@@ -1,3 +1,9 @@
+## [4.74.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.74.1...v4.74.2) (2025-11-19)
+
+### Bug Fixes
+
+* **dataframe:** Fix column population when query type changes ([#523](https://github.com/ni/systemlink-grafana-plugins/issues/523)) ([e10f754](https://github.com/ni/systemlink-grafana-plugins/commit/e10f754c46c95010ed2dba303ed453054d2ec980))
+
 ## [4.74.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.74.0...v4.74.1) (2025-11-19)
 
 ### Bug Fixes
