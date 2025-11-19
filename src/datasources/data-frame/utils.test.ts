@@ -1,57 +1,39 @@
-import { areKeyValueArraysEqual } from "./utils";
+import { areKeyValuesEqual } from "./utils";
 
-describe('areKeyValueArraysEqual', () => {
-  it('returns true for identical arrays', () => {
-    const a = [
-      { name: 'alpha', value: 1 },
-      { name: 'beta', value: 'two' },
-    ];
-    const b = [
-      { name: 'alpha', value: 1 },
-      { name: 'beta', value: 'two' },
-    ];
-    expect(areKeyValueArraysEqual(a, b)).toBe(true);
+describe('areKeyValuesEqual', () => {
+  it('returns true for identical flat objects', () => {
+    const a = { alpha: 1, beta: 'two' };
+    const b = { alpha: 1, beta: 'two' };
+    expect(areKeyValuesEqual(a, b)).toBe(true);
   });
 
-  it('returns false when lengths differ', () => {
-    const a = [ { name: 'alpha', value: 1 } ];
-    const b = [ { name: 'alpha', value: 1 }, { name: 'beta', value: 2 } ];
-    expect(areKeyValueArraysEqual(a, b)).toBe(false);
+  it('returns true when property order differs', () => {
+    const a: Record<string, any> = { alpha: 1, beta: 2, gamma: 'x' };
+    const b: Record<string, any> = { gamma: 'x', beta: 2, alpha: 1 };
+    expect(areKeyValuesEqual(a, b)).toBe(true);
   });
 
-  it('returns false when any name differs', () => {
-    const a = [ { name: 'alpha', value: 1 } ];
-    const b = [ { name: 'ALPHA', value: 1 } ];
-    expect(areKeyValueArraysEqual(a, b)).toBe(false);
+  it('returns false when a key set differs (missing key)', () => {
+    const a = { alpha: 1 };
+    const b = { alpha: 1, beta: 2 };
+    expect(areKeyValuesEqual(a, b)).toBe(false);
   });
 
   it('returns false when any value differs', () => {
-    const a = [ { name: 'alpha', value: 1 } ];
-    const b = [ { name: 'alpha', value: 2 } ];
-    expect(areKeyValueArraysEqual(a, b)).toBe(false);
+    const a = { alpha: 1 };
+    const b = { alpha: 2 };
+    expect(areKeyValuesEqual(a, b)).toBe(false);
   });
 
-  it('returns false when order differs (order sensitive)', () => {
-    const a = [
-      { name: 'alpha', value: 1 },
-      { name: 'beta', value: 2 },
-    ];
-    const b = [
-      { name: 'beta', value: 2 },
-      { name: 'alpha', value: 1 },
-    ];
-    expect(areKeyValueArraysEqual(a, b)).toBe(false);
+  it('returns true for deep equal nested structures', () => {
+    const a = { alpha: { nested: [1, 2, { z: 'ok' }] }, beta: 'two' };
+    const b = { beta: 'two', alpha: { nested: [1, 2, { z: 'ok' }] } };
+    expect(areKeyValuesEqual(a, b)).toBe(true);
   });
 
-  it('supports custom key/value property names', () => {
-    const a = [ { key: 'alpha', val: 1 }, { key: 'beta', val: 2 } ];
-    const b = [ { key: 'alpha', val: 1 }, { key: 'beta', val: 2 } ];
-    expect(areKeyValueArraysEqual(a, b, 'key', 'val')).toBe(true);
-  });
-
-  it('returns false if custom key/value mismatch', () => {
-    const a = [ { key: 'alpha', val: 1 } ];
-    const b = [ { key: 'alpha', val: 2 } ];
-    expect(areKeyValueArraysEqual(a, b, 'key', 'val')).toBe(false);
+  it('returns false for deep unequal nested structures', () => {
+    const a = { alpha: { nested: [1, 2, { z: 'ok' }] } };
+    const b = { alpha: { nested: [1, 2, { z: 'NOPE' }] } };
+    expect(areKeyValuesEqual(a, b)).toBe(false);
   });
 });

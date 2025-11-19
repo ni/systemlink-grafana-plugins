@@ -6,17 +6,9 @@ export const nbsp = (strings: TemplateStringsArray, ...values: string[]) =>
 
 export const isValidId = (id: string) => /^[0-9a-fA-F]{24}$/.test(id);
 
-export function areKeyValueArraysEqual<T extends Record<string, any>>(
-  firstArray: T[],
-  secondArray: T[],
-  keyProperty = 'name',
-  valueProperty = 'value'
+export function areKeyValuesEqual<T extends Record<string, any>>(
+  first: T,
+  second: T
 ): boolean {
-  if (firstArray.length !== secondArray.length) {
-    return false;
-  }
-  return firstArray.every((item, index) =>
-    item?.[keyProperty] === secondArray[index]?.[keyProperty] &&
-    item?.[valueProperty] === secondArray[index]?.[valueProperty]
-  );
+  return _.isEqual(first, second);
 }

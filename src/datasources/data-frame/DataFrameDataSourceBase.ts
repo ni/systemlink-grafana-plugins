@@ -31,7 +31,6 @@ export abstract class DataFrameDataSourceBase<
     public queryResultValuesUrl = this.instanceSettings.url + '/nitestmonitor/v2/query-result-values';
     public errorTitle = '';
     public errorDescription = '';
-    public variablesCache: Array<{ name: string; value: string }> = [];
 
     public readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 

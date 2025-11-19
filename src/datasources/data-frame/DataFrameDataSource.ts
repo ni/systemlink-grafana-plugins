@@ -5,12 +5,13 @@ import { DataFrameDataSourceBase } from "./DataFrameDataSourceBase";
 import { DataFrameDataSourceV1 } from "./datasources/v1/DataFrameDataSourceV1";
 import { DataFrameDataSourceV2 } from "./datasources/v2/DataFrameDataSourceV2";
 import { Observable } from "rxjs";
-import { areKeyValueArraysEqual } from "./utils";
+import { areKeyValuesEqual } from "./utils";
 
 export class DataFrameDataSource extends DataFrameDataSourceBase {
   private queryByTablePropertiesFeatureEnabled = false;
   private datasource: DataFrameDataSourceV1 | DataFrameDataSourceV2;
   public defaultQuery: ValidDataFrameQuery;
+  public variablesCache: Record<string, string> = {};
 
   constructor(
     public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
@@ -34,13 +35,13 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     query: DataFrameDataQuery,
     options: DataQueryRequest<DataFrameDataQuery>
   ): Promise<DataFrameDTO> | Observable<DataFrameDTO> {
-    const dashboardVariables = this.templateSrv.getVariables().map(
-      (variable) => ({
-        name: variable.name,
-        value: (variable as any).current?.value ?? '',
-      })
-    );
-    if (!areKeyValueArraysEqual(this.variablesCache, dashboardVariables)) {
+    const dashboardVariables = this.templateSrv
+      .getVariables()
+      .reduce<Record<string, string>>((acc, variable) => {
+      acc[variable.name] = (variable as any).current?.value ?? '';
+      return acc;
+      }, {});
+    if (!areKeyValuesEqual(this.variablesCache, dashboardVariables)) {
       this.variablesCache = dashboardVariables;
     }
 

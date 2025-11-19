@@ -41,7 +41,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const columnPropertiesOptions = getPropertiesOptions(DataTableProjectionType.Column);
 
     useEffect(() => {   
-        if ( datasource.variablesCache.length > 0 
+        if ( datasource.variablesCache 
             && containsVariables(migratedQuery.dataTableFilter)
         ) {
           fetchAndSetColumnOptions(migratedQuery.dataTableFilter);

@@ -187,7 +187,7 @@ describe('DataFrameDataSource', () => {
 
             await ds.runQuery(query, options);
 
-            expect(ds.variablesCache).toEqual([{ name: 'varA', value: '1' }]);
+            expect(ds.variablesCache).toEqual({ varA: '1' });
         });
 
         it('does not replace variablesCache reference when variables unchanged', async () => {
@@ -215,7 +215,7 @@ describe('DataFrameDataSource', () => {
             await ds.runQuery(query, options);
 
             expect(ds.variablesCache).not.toBe(firstRef);
-            expect(ds.variablesCache).toEqual([{ name: 'varA', value: '2' }]);
+            expect(ds.variablesCache).toEqual({ varA: '2' });
         });
 
         it('replaces variablesCache when variable name changes', async () => {
@@ -229,10 +229,10 @@ describe('DataFrameDataSource', () => {
             await ds.runQuery(query, options);
 
             expect(ds.variablesCache).not.toBe(firstRef);
-            expect(ds.variablesCache).toEqual([{ name: 'varB', value: '1' }]);
+            expect(ds.variablesCache).toEqual({ varB: '1' });
         });
 
-        it('replaces variablesCache when order changes', async () => {
+        it('does not replace variablesCache when only variable order changes', async () => {
             const ds = new DataFrameDataSource(
                 mockInstanceSettings(false),
                 backendSrv,
@@ -252,7 +252,7 @@ describe('DataFrameDataSource', () => {
 
             await ds.runQuery(query, options);
 
-            expect(ds.variablesCache).not.toBe(firstRef);
+            expect(ds.variablesCache).toBe(firstRef);
         });
 
         it('replaces variablesCache when variable added', async () => {
@@ -269,10 +269,10 @@ describe('DataFrameDataSource', () => {
             await ds.runQuery(query, options);
 
             expect(ds.variablesCache).not.toBe(firstRef);
-            expect(ds.variablesCache).toEqual([
-                { name: 'varA', value: '1' },
-                { name: 'varB', value: '2' },
-            ]);
+            expect(ds.variablesCache).toEqual({
+                varA: '1',
+                varB: '2',
+            });
         });
 
         it('replaces variablesCache when variable removed', async () => {
@@ -295,7 +295,7 @@ describe('DataFrameDataSource', () => {
             await ds.runQuery(query, options);
 
             expect(ds.variablesCache).not.toBe(firstRef);
-            expect(ds.variablesCache).toEqual([{ name: 'varA', value: '1' }]);
+            expect(ds.variablesCache).toEqual({ varA: '1' });
         });
     });
 });
