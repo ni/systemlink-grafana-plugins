@@ -29,7 +29,7 @@ import {
   TAKE_LIMIT,
 } from 'datasources/results/constants/QuerySteps.constants';
 import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/StepsQueryBuilder.constants';
-import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
 import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
 import { QueryResponse, Workspace } from 'core/types';
@@ -211,11 +211,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     query.resultsQuery =
       this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options.scopedVars) || '';
 
-    const transformStepsQuery = query.stepsQuery
-      ? this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options.scopedVars)
-      : undefined;
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, defaultStepsQuery.useTimeRangeFor);
-    query.stepsQuery = this.buildQueryFilter(transformStepsQuery, useTimeRangeFilter);
+    query.stepsQuery = this.buildQueryFilter(query.stepsQuery, useTimeRangeFilter);
 
     const projection = query.showMeasurements
       ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
@@ -578,22 +575,22 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
    * A map linking each steps field name to its corresponding query transformation function.
    */
   private readonly stepsComputedDataFields = new Map<string, ExpressionTransformFunction>(
-    Object.values(StepsQueryBuilderFieldNames).map(field => [
-      field,
-      field === StepsQueryBuilderFieldNames.UPDATED_AT ? timeFieldsQuery(field) : multipleValuesQuery(field),
-    ])
-  );
+    Object.values(StepsQueryBuilderFieldNames).map(field => {
+      let callback;
+      
+      switch (field) {
+        case StepsQueryBuilderFieldNames.UPDATED_AT:
+          callback = timeFieldsQuery(field);
+          break;
+        case StepsQueryBuilderFieldNames.KEYWORDS:
+          callback = listFieldsQuery(field);
+          break;
+        default:
+          callback = multipleValuesQuery(field);
+      }
 
-  /**
-   * A map linking each results field name to its corresponding query transformation function.
-   */
-  private readonly resultsComputedDataFields = new Map<string, ExpressionTransformFunction>(
-    Object.values(ResultsQueryBuilderFieldNames).map(field => [
-      field,
-      field === ResultsQueryBuilderFieldNames.UPDATED_AT || field === ResultsQueryBuilderFieldNames.STARTED_AT
-        ? timeFieldsQuery(field)
-        : multipleValuesQuery(field),
-    ])
+      return [field, callback];
+    })
   );
 
   /**
