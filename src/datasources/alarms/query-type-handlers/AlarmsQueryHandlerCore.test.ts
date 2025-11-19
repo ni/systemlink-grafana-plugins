@@ -53,7 +53,7 @@ class TestAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   }
 
   readonly defaultQuery = {
-    queryType: QueryType.AlarmsCount,
+    queryType: QueryType.ListAlarms,
   };
 }
 
