@@ -1,6 +1,6 @@
 import { areObjectsEqual } from "./utils";
 
-describe('areRecordsIdentical', () => {
+describe('areObjectsEqual', () => {
   it('returns true for identical flat objects', () => {
     const a = { alpha: 1, beta: 'two' };
     const b = { alpha: 1, beta: 'two' };
