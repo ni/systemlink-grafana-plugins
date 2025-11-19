@@ -49,7 +49,7 @@ import {
 } from 'datasources/results/constants/stepMeasurements.constants';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 
-type GrafanaColumns = Array<{ name: string; values: string[]; type: FieldType }>;
+type GrafanaColumns = Array<{ name: string; values: Array<string | number>; type: FieldType }>;
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
 
@@ -475,7 +475,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         this.normalizeColumns(columns, relativeLengthToNormalize);
       }
     }
-    column.values.push(value);
+    const convertedValue = type === FieldType.number ? Number(value) : value;
+    column.values.push(convertedValue);
   }
 
   /**
@@ -484,14 +485,15 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
    * @param relativeLength Additional length to add to the maximum column length.
    */
   private normalizeColumns(
-    columns: Array<{ name: string; values: string[]; type: FieldType }>,
+    columns: GrafanaColumns,
     relativeLength = 0
   ): void {
     const targetLength = Math.max(0, ...columns.map(c => c.values.length)) + relativeLength;
     columns.forEach(col => {
       const missing = targetLength - col.values.length;
       if (missing > 0) {
-        col.values.push(...Array(missing).fill(''));
+        const defaultValue = col.type === FieldType.number ? 0 : '';
+        col.values.push(...Array(missing).fill(defaultValue));
       }
     });
   }

@@ -540,7 +540,7 @@ describe('QueryStepsDataSource', () => {
         });
       });
 
-      test('should create empty cells when measurements are not available', async () => {
+      test('should create cells with 0 when measurements are not available', async () => {
         const mockQueryStepsMeasurementResponse = {
           steps: [
             {
