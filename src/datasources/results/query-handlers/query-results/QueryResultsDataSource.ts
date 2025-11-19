@@ -124,7 +124,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       }
 
       const fields = selectedFields.map((field) => {
-        const fieldType = this.findFieldType(field);
+        const fieldType = this.getFieldTypeForProperty(field);
         const values = results.map(
           (result) => result[field as keyof ResultsResponseProperties]
         );
@@ -236,7 +236,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     return !query.hide;
   }
 
-  private findFieldType(field: ResultsProperties): FieldType {
+  private getFieldTypeForProperty(field: ResultsProperties): FieldType {
     if (
       field === ResultsPropertiesOptions.UPDATED_AT ||
       field === ResultsPropertiesOptions.STARTED_AT
