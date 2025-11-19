@@ -131,7 +131,9 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
           callback = listFieldsQuery(dataField);
           break;
         default:
-          callback = this.isTimeField(dataField as AlarmsProperties) ? timeFieldsQuery(dataField) : multipleValuesQuery(dataField);
+          callback = this.isTimeField(dataField as AlarmsProperties)
+            ? timeFieldsQuery(dataField)
+            : multipleValuesQuery(dataField);
       }
 
       return [dataField, callback];
