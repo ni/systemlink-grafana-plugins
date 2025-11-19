@@ -33,7 +33,7 @@ const renderComponent = (
         errorTitle,
         errorDescription,
         processQuery,
-        getColumnOptions: jest.fn().mockResolvedValue(
+        getColumnOptionsWithVariables: jest.fn().mockResolvedValue(
             [
                 { label: 'ColumnA', value: 'ColumnA' },
                 { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },

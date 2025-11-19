@@ -54,7 +54,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             setColumnOptions([]);
             return;
         }
-        const columnOptions = await datasource.getColumnOptions(filter);
+        const columnOptions = await datasource.getColumnOptionsWithVariables(filter);
         const limitedColumnOptions = columnOptions.slice(0, COLUMN_OPTIONS_LIMIT);
         setIsColumnLimitExceeded(columnOptions.length > COLUMN_OPTIONS_LIMIT);
         setColumnOptions(limitedColumnOptions);
