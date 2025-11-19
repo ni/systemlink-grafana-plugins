@@ -36,13 +36,13 @@ export const labels = {
 
 export const tooltips = {
   queryType: 'This field specifies the query type to display alarms data, count or trend.',
+  outputType: 'This field specifies the output type to fetch alarms properties or total count.',
   queryBy: 'This optional field specifies the query filters.',
   properties: 'This field specifies the properties to use in the query.',
   descending: 'This toggle returns the alarms query in descending order.',
   take: 'This field specifies the maximum number of alarms to return.',
   groupBySeverity: 'This toggle returns the alarms trend grouped by severity.',
   transitionInclusion: 'This field specifies whether to include all transitions, only the most recent, or none.',
-  outputType: 'This field specifies the output type to fetch alarms properties or total count.',
 };
 
 export const takeErrorMessages = {

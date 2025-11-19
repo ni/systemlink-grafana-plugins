@@ -247,14 +247,14 @@ describe('ListAlarmsQueryEditor', () => {
       fireEvent.change(takeInput, { target: { value: '300' } });
       fireEvent.blur(takeInput);
 
-      expect(mockHandleQueryChange).toHaveBeenCalledWith(
-        expect.objectContaining({
-          refId: 'A',
-          filter: 'existing filter',
-          descending: true,
-          take: 300
-        })
-      );
+      expect(mockHandleQueryChange).toHaveBeenCalledWith({
+        refId: 'A',
+        queryType: QueryType.ListAlarms,
+        outputType: OutputType.Properties,
+        filter: 'existing filter',
+        descending: true,
+        take: 300
+      });
     });
 
     it('should display minimum take error message when take value is below 1', async () => {
@@ -402,14 +402,14 @@ describe('ListAlarmsQueryEditor', () => {
       const descendingSwitch = screen.getByRole('switch');
       fireEvent.click(descendingSwitch);
 
-      expect(mockHandleQueryChange).toHaveBeenCalledWith(
-        expect.objectContaining({
-          refId: 'A',
-          filter: 'test filter',
-          take: 500,
-          descending: true
-        })
-      );
+      expect(mockHandleQueryChange).toHaveBeenCalledWith({
+        refId: 'A',
+        queryType: QueryType.ListAlarms,
+        outputType: OutputType.Properties,
+        filter: 'test filter',
+        take: 500,
+        descending: true,
+      });
     });
   });
 

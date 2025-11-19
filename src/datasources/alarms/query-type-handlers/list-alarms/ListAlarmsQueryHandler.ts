@@ -28,7 +28,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public async runQuery(query: ListAlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     query.filter = this.transformAlarmsQuery(options.scopedVars, query.filter);
 
-    if(query.outputType === OutputType.TotalCount) {
+    if (query.outputType === OutputType.TotalCount) {
       return this.handleTotalCountQuery(query);
     }
 
