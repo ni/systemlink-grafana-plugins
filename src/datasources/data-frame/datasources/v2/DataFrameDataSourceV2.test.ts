@@ -810,8 +810,8 @@ describe('DataFrameDataSourceV2', () => {
             const query = {} as DataFrameDataQuery;
             const expectedQuery = {
                 type: DataFrameQueryType.Data,
-                dataTableFilter: '',
                 resultsFilter: '',
+                dataTableFilter: '',
                 columnsFilter: '',
                 dataTableProperties: defaultDatatableProperties,
                 columnProperties: [],
@@ -833,8 +833,8 @@ describe('DataFrameDataSourceV2', () => {
             const query = { decimationMethod: 'MAX_MIN', applyTimeFilters: true } as DataFrameDataQuery;
             const expectedQuery = {
                 type: DataFrameQueryType.Data,
-                dataTableFilter: '',
                 resultsFilter: '',
+                dataTableFilter: '',
                 columnsFilter: '',
                 dataTableProperties: defaultDatatableProperties,
                 columnProperties: [],
@@ -858,8 +858,8 @@ describe('DataFrameDataSourceV2', () => {
             const result = ds.processVariableQuery({} as DataFrameVariableQuery);
             expect(result).toEqual({
                 queryType: DataFrameVariableQueryType.ListDataTables,
-                dataTableFilter: '',
                 resultsFilter: '',
+                dataTableFilter: '',
                 columnsFilter: ''
             });
         });
@@ -869,8 +869,8 @@ describe('DataFrameDataSourceV2', () => {
             const result = ds.processVariableQuery(query);
             expect(result).toEqual({
                 queryType: DataFrameVariableQueryType.ListDataTables,
-                dataTableFilter: 'name = "test table"',
                 resultsFilter: '',
+                dataTableFilter: 'name = "test table"',
                 columnsFilter: ''
             });
         });

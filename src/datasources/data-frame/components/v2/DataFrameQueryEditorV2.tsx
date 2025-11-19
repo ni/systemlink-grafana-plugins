@@ -225,11 +225,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                     )}
                     <DataFrameQueryBuilderWrapper
                         datasource={datasource}
-                        dataTableFilter={migratedQuery.dataTableFilter}
                         resultsFilter={migratedQuery.resultsFilter}
+                        dataTableFilter={migratedQuery.dataTableFilter}
                         columnsFilter={migratedQuery.columnsFilter}
-                        onDataTableFilterChange={onDataTableFilterChange}
                         onResultsFilterChange={onResultsFilterChange}
+                        onDataTableFilterChange={onDataTableFilterChange}
                         onColumnsFilterChange={onColumnsFilterChange}
                     />
 

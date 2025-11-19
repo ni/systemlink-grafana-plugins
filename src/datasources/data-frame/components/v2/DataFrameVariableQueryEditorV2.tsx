@@ -24,14 +24,14 @@ export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChang
         }
     };
 
-    const onResultsFilterChange = async (event?: Event | React.FormEvent<Element>) => {
+    const onResultsFilterChange = (event?: Event | React.FormEvent<Element>) => {
         if (event) {
             const resultsFilter = (event as CustomEvent).detail.linq;
             onChange({ ...migratedQuery, resultsFilter });
         }
     }
 
-    const onColumnsFilterChange = async (event?: Event | React.FormEvent<Element>) => {
+    const onColumnsFilterChange = (event?: Event | React.FormEvent<Element>) => {
         if (event) {
             const columnsFilter = (event as CustomEvent).detail.linq;
             onChange({ ...migratedQuery, columnsFilter });
@@ -54,11 +54,11 @@ export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChang
             </InlineField>
             <DataFrameQueryBuilderWrapper
                 datasource={datasource}
-                dataTableFilter={migratedQuery.dataTableFilter}
                 resultsFilter={migratedQuery.resultsFilter}
+                dataTableFilter={migratedQuery.dataTableFilter}
                 columnsFilter={migratedQuery.columnsFilter}
-                onDataTableFilterChange={onDataTableFilterChange}
                 onResultsFilterChange={onResultsFilterChange}
+                onDataTableFilterChange={onDataTableFilterChange}
                 onColumnsFilterChange={onColumnsFilterChange}
             />
             <FloatingError
