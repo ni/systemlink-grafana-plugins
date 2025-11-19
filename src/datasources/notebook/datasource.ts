@@ -16,8 +16,8 @@ import {
 } from '@grafana/data';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { Observable, forkJoin, of, from } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, forkJoin, of, timer, throwError } from 'rxjs';
+import { map, switchMap, catchError } from 'rxjs/operators';
 import {
   NotebookQuery,
   NotebookDataSourceOptions,
@@ -32,7 +32,6 @@ import {
   NotebookDataFrame,
   TableColumn,
 } from './types';
-import { timeout } from './utils';
 
 import { NotebookVariableSupport } from './variables';
 import { notebookMetadataSchema, executionResultSchema } from './data/schema';
@@ -80,7 +79,7 @@ export class DataSource extends DataSourceBase<NotebookQuery, NotebookDataSource
     const queries$ = request.targets
       .map(this.prepareQuery, this)
       .filter(this.shouldRunQuery, this)
-      .map(q => from(this.runQueryInternal(q, request)), this);
+      .map(q => this.runQueryInternal$(q, request), this);
 
     if (queries$.length === 0) {
       return of({ data: [] });
@@ -91,35 +90,38 @@ export class DataSource extends DataSourceBase<NotebookQuery, NotebookDataSource
     );
   }
 
-  private async runQueryInternal(query: NotebookQuery, options: DataQueryRequest<NotebookQuery>): Promise<DataFrameDTO[]> {
+  private runQueryInternal$(query: NotebookQuery, options: DataQueryRequest<NotebookQuery>): Observable<DataFrameDTO[]> {
     const parameters = this.replaceParameterVariables(query.parameters, options);
-    const execution = await this.executeNotebook(query.id, query.workspace, parameters, query.cacheTimeout);
+    return this.executeNotebook$(query.id, query.workspace, parameters, query.cacheTimeout).pipe(
+      map(execution => {
+        if (execution.status !== ExecutionStatus.SUCCEEDED) {
+          throw new Error(
+            `Notebook execution failed with status: ${execution.status} and error code: ${execution.errorCode}. Exception: ${execution.exception}.`
+          );
+        }
 
-    if (execution.status !== ExecutionStatus.SUCCEEDED) {
-      throw new Error(
-        `Notebook execution failed with status: ${execution.status} and error code: ${execution.errorCode}. Exception: ${execution.exception}.`
-      );
-    }
+        if (!this.validateExecution(execution.result)) {
+          throw new Error('The output for the notebook does not match the expected SystemLink format.');
+        }
 
-    if (!this.validateExecution(execution.result)) {
-      throw new Error('The output for the notebook does not match the expected SystemLink format.');
-    }
+        const result = query.output
+          ? execution.result.result.find((result: NotebookResult) => result.id === query.output)
+          : execution.result.result[0];
 
-    const result = query.output
-      ? execution.result.result.find((result: NotebookResult) => result.id === query.output)
-      : execution.result.result[0];
+        if (!result) {
+          throw new Error(`The output of the notebook does not contain an output with id '${query.output}'.`);
+        }
 
-    if (!result) {
-      throw new Error(`The output of the notebook does not contain an output with id '${query.output}'.`);
-    }
-
-    const frames = this.transformResultToDataFrames(result, query);
-    return frames.length > 0 ? frames : [{ refId: query.refId, fields: [] }];
+        const frames = this.transformResultToDataFrames(result, query);
+        return frames.length > 0 ? frames : [{ refId: query.refId, fields: [] }];
+      })
+    );
   }
 
-  async runQuery(query: NotebookQuery, options: DataQueryRequest<NotebookQuery>): Promise<DataFrameDTO> {
-    const frames = await this.runQueryInternal(query, options);
-    return frames[0] || { refId: query.refId, fields: [] };
+  runQuery(query: NotebookQuery, options: DataQueryRequest<NotebookQuery>): Observable<DataFrameDTO> {
+    return this.runQueryInternal$(query, options).pipe(
+      map(frames => frames[0] || { refId: query.refId, fields: [] })
+    );
   }
 
   replaceParameterVariables(parameters: Record<string, any>, options: DataQueryRequest<NotebookQuery>): Record<string, any> {
@@ -133,18 +135,18 @@ export class DataSource extends DataSourceBase<NotebookQuery, NotebookDataSource
     }, {} as Record<string, any>);
   }
 
-transformResultToDataFrames(result: NotebookResult, query: NotebookQuery): DataFrameDTO[] {
-  switch (result.type) {
-    case ResultType.DATA_FRAME:
-      return this.handleDataFrameResult(result, query);
-    case ResultType.ARRAY:
-      return this.handleArrayResult(result, query);
-    case ResultType.SCALAR:
-      return this.handleScalarResult(result, query);
-    default:
-      return [];
+  transformResultToDataFrames(result: NotebookResult, query: NotebookQuery): DataFrameDTO[] {
+    switch (result.type) {
+      case ResultType.DATA_FRAME:
+        return this.handleDataFrameResult(result, query);
+      case ResultType.ARRAY:
+        return this.handleArrayResult(result, query);
+      case ResultType.SCALAR:
+        return this.handleScalarResult(result, query);
+      default:
+        return [];
+    }
   }
-}
 
   private handleDataFrameResult(result: NotebookResult, query: NotebookQuery): DataFrameDTO[] {
     if (Array.isArray(result.data)) {
@@ -235,71 +237,67 @@ transformResultToDataFrames(result: NotebookResult, query: NotebookQuery): DataF
     return result;
   }
 
-  private async executeNotebook(notebookId: string, workspaceId: string, parameters: Record<string, any>, cacheTimeout: number): Promise<Execution> {
-    try {
-      const response = await this.post<{ executions: Array<{ id: string }> }>(
-        `${this.executionUrl}/executions`,
-        [{ notebookId, workspaceId, parameters, resultCachePeriod: cacheTimeout, priority: ExecutionPriority.MEDIUM }]
-      );
-
-      return this.handleNotebookExecution(response.executions[0].id);
-    } catch (e) {
-      throw new Error(
+  private executeNotebook$(notebookId: string, workspaceId: string, parameters: Record<string, any>, cacheTimeout: number): Observable<Execution> {
+    return this.post$<{ executions: Array<{ id: string }> }>(
+      `${this.executionUrl}/executions`,
+      [{ notebookId, workspaceId, parameters, resultCachePeriod: cacheTimeout, priority: ExecutionPriority.MEDIUM }]
+    ).pipe(
+      switchMap(response => this.handleNotebookExecution$(response.executions[0].id)),
+      catchError((e) => throwError(() => new Error(
         `The request to execute the notebook failed with error: ${(e as Error).message}`
-      );
-    }
+      )))
+    );
   }
 
-  private async handleNotebookExecution(id: string): Promise<Execution> {
-    const execution = await this.get<Execution>(`${this.executionUrl}/executions/${id}`);
+  private handleNotebookExecution$(id: string): Observable<Execution> {
+    return this.get$<Execution>(`${this.executionUrl}/executions/${id}`).pipe(
+      switchMap(execution => {
+        if (execution.status === ExecutionStatus.QUEUED || execution.status === ExecutionStatus.IN_PROGRESS) {
+          return timer(3000).pipe(switchMap(() => this.handleNotebookExecution$(id)));
+        }
 
-    if (execution.status === ExecutionStatus.QUEUED || execution.status === ExecutionStatus.IN_PROGRESS) {
-      await timeout(3000);
-      return this.handleNotebookExecution(id);
-    }
-
-    return execution;
+        return of(execution);
+      })
+    );
   }
 
-  async queryNotebooks(path: string): Promise<Notebook[]> {
+  queryNotebooks$(path: string): Observable<Notebook[]> {
     const filter = `name.Contains("${path}") && type == "Notebook"`;
-    try {
-      const response = await this.post<{ webapps: Notebook[] }>(
-        `${this.webappsUrl}/webapps/query`,
-        { filter, take: 1000 }
-      );
-      return response.webapps;
-    } catch (e) {
-      throw new Error(
+    return this.post$<{ webapps: Notebook[] }>(
+      `${this.webappsUrl}/webapps/query`,
+      { filter, take: 1000 }
+    ).pipe(
+      map(response => response.webapps),
+      catchError((e) => throwError(() => new Error(
         `The query for SystemLink notebooks failed with error: ${(e as Error).message}`
-      );
-    }
+      )))
+    );
   }
 
-  async getNotebookMetadata(id: string): Promise<{ metadata: Record<string, any>; parameters: Record<string, any> }> {
-    let response;
-    try {
-      response = await this.get<{ metadata: Record<string, any>; parameters: Record<string, any> }>(
-        `${this.parserUrl}/notebook/${id}`
-      );
-
-      if (!this.validateMetadata(response)) {
-        throw new Error('The metadata of the notebook does not match the expected SystemLink format.');
-      }
-
-      return { metadata: response.metadata, parameters: response.parameters };
-    } catch (error) {
-      throw new Error(`The query for notebook metadata failed with error: ${(error as Error).message}`);
-    }
+  getNotebookMetadata$(id: string): Observable<{ metadata: Record<string, any>; parameters: Record<string, any> }> {
+    return this.get$<{ metadata: Record<string, any>; parameters: Record<string, any> }>(
+      `${this.parserUrl}/notebook/${id}`
+    ).pipe(
+      map(response => {
+        if (!this.validateMetadata(response)) {
+          throw new Error('The metadata of the notebook does not match the expected SystemLink format.');
+        }
+        return { metadata: response.metadata, parameters: response.parameters };
+      }),
+      catchError((error) => throwError(() => new Error(
+        `The query for notebook metadata failed with error: ${(error as Error).message}`
+      )))
+    );
   }
 
-  async queryTestResultValues(field: string, startsWith: string): Promise<string[]> {
-    const values = await this.post<string[]>(
+  queryTestResultValues$(field: string, startsWith: string): Observable<string[]> {
+    return this.post$<string[]>(
       `${this.testMonitorUrl}/query-result-values`,
       { field, startsWith }
+    ).pipe(
+      // Filter out values that are '' or null
+      map(values => values.slice(0, 20).filter((value: string) => value))
     );
-    // Filter out values that are '' or null
-    return values.slice(0, 20).filter((value: string) => value);
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

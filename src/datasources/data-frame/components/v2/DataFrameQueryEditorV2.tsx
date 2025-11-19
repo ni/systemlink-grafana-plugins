@@ -81,6 +81,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         setIsPropertiesNotSelected(isDataTablePropertiesEmpty && isColumnPropertiesEmpty);
     }, [migratedQuery.dataTableProperties, migratedQuery.columnProperties]);
 
+        useEffect(() => {
+            if (migratedQuery.type === DataFrameQueryType.Data) {
+                fetchAndSetColumnOptions(migratedQuery.dataTableFilter);
+            }
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [migratedQuery.type, migratedQuery.dataTableFilter]);
+
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
         handleQueryChange({ ...migratedQuery, type: queryType });
     };
@@ -89,7 +96,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         if (event) {
             const dataTableFilter = (event as CustomEvent).detail.linq;
             handleQueryChange({ ...migratedQuery, dataTableFilter });
-            await fetchAndSetColumnOptions(dataTableFilter);
         }
     };
 

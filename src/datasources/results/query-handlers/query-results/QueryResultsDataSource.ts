@@ -124,10 +124,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       }
 
       const fields = selectedFields.map((field) => {
-        const isTimeField =
-          field === ResultsPropertiesOptions.UPDATED_AT ||
-          field === ResultsPropertiesOptions.STARTED_AT;
-        const fieldType = isTimeField ? FieldType.time : FieldType.string;
+        const fieldType = this.getFieldTypeForProperty(field);
         const values = results.map(
           (result) => result[field as keyof ResultsResponseProperties]
         );
@@ -161,7 +158,9 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
           default:
             return {
               name: resultsProjectionLabelLookup[field].label,
-              values: values.map(value => value?.toString()),
+              values: fieldType === FieldType.number
+                ? values.map(value => Number(value))
+                : values.map(value => value?.toString()),
               type: fieldType
             };
         }
@@ -235,6 +234,19 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
 
   shouldRunQuery(query: QueryResults): boolean {
     return !query.hide;
+  }
+
+  private getFieldTypeForProperty(field: ResultsProperties): FieldType {
+    if (
+      field === ResultsPropertiesOptions.UPDATED_AT ||
+      field === ResultsPropertiesOptions.STARTED_AT
+    ) {
+      return FieldType.time;
+    }
+    if (field === ResultsPropertiesOptions.TOTAL_TIME_IN_SECONDS) {
+      return FieldType.number;
+    }
+    return FieldType.string;
   }
 }
 
