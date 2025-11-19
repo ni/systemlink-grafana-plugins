@@ -35,12 +35,13 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     query: DataFrameDataQuery,
     options: DataQueryRequest<DataFrameDataQuery>
   ): Promise<DataFrameDTO> | Observable<DataFrameDTO> {
-    const dashboardVariables = this.templateSrv
-      .getVariables()
-      .reduce<Record<string, string>>((acc, variable) => {
-      acc[variable.name] = (variable as any).current?.value ?? '';
-      return acc;
-      }, {});
+    const dashboardVariables = Object.fromEntries(
+      this.templateSrv.getVariables().map(variable => [
+      variable.name,
+      (variable as any).current?.value ?? ''
+      ])
+    );
+
     if (!areRecordsIdentical(this.variablesCache, dashboardVariables)) {
       this.variablesCache = dashboardVariables;
     }

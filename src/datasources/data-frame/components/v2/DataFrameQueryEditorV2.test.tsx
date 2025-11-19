@@ -239,7 +239,7 @@ describe("DataFrameQueryEditorV2", () => {
                     expect((datasource as any).getColumnOptions).toHaveBeenCalledTimes(1);
                 });
 
-                describe('variables cache change column fetch behavior', () => {
+                describe('update column options when variablesCache changes', () => {
                     const dataQueryOverrides = {
                     type: DataFrameQueryType.Data,
                     dataTableFilter: 'Name = "$var"',
