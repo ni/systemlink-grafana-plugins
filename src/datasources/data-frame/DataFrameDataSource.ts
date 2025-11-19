@@ -73,15 +73,6 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.getDecimatedTableData(query, columns, timeRange, intervals);
   }
 
-  
-  public queryTablesWithCombinedFilters(
-    filters: CombinedFilters,
-    take?: number,
-    projections?: DataTableProjections[]
-  ): Observable<TableProperties[]> {
-    return this.datasource.queryTablesWithCombinedFilters(filters, take, projections);
-  }
-
   public queryTables$(
     query: string,
     take?: number,
@@ -89,6 +80,14 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     substitutions?: string[]
   ): Observable<TableProperties[]> {
     return this.datasource.queryTables$(query, take, projection, substitutions);
+  }
+
+  public queryTablesWithCombinedFilters$(
+    filters: CombinedFilters,
+    take?: number,
+    projections?: DataTableProjections[]
+  ): Observable<TableProperties[]> {
+    return this.datasource.queryTablesWithCombinedFilters$(filters, take, projections);
   }
 
   public queryTables(

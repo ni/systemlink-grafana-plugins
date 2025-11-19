@@ -173,21 +173,23 @@ describe('DataFrameDataSource', () => {
    describe('queryTablesWithCombineFilters', () => {
        it('should call queryTablesWithCombineFilters on DataFrameDataSourceV1 when feature toggle is false', async () => {
            const ds = new DataFrameDataSource(mockInstanceSettings(false));
-           v1Mock.queryTablesWithCombinedFilters = jest.fn().mockReturnValue(of(['v1-combined-tables']));
+           v1Mock.queryTablesWithCombinedFilters$ = jest.fn().mockReturnValue(of(['v1-combined-tables']));
 
-           const result = await lastValueFrom(ds.queryTablesWithCombinedFilters(
+           const result = await lastValueFrom(ds.queryTablesWithCombinedFilters$(
                {
-                   dataTablesFilter: 'name = "test"',
-                   resultsFilter: 'status = "passed"'
+                   dataTableFilter: 'name = "test"',
+                   resultsFilter: 'status = "passed"',
+                   columnsFilter: ''
                },
                10,
                ['name' as any]
            ));
            
-           expect(v1Mock.queryTablesWithCombinedFilters).toHaveBeenCalledWith(
+           expect(v1Mock.queryTablesWithCombinedFilters$).toHaveBeenCalledWith(
                {
-                   dataTablesFilter: 'name = "test"',
-                   resultsFilter: 'status = "passed"'
+                   dataTableFilter: 'name = "test"',
+                   resultsFilter: 'status = "passed"',
+                   columnsFilter: 'name = "column1"'
                },
                10,
                ['name']
@@ -197,21 +199,23 @@ describe('DataFrameDataSource', () => {
 
        it('should call queryTablesWithCombineFilters on DataFrameDataSourceV2 when feature toggle is true', async () => {
            const ds = new DataFrameDataSource(mockInstanceSettings(true));
-           v2Mock.queryTablesWithCombinedFilters = jest.fn().mockReturnValue(of(['v2-combined-tables']));
+           v2Mock.queryTablesWithCombinedFilters$ = jest.fn().mockReturnValue(of(['v2-combined-tables']));
 
-           const result = await lastValueFrom(ds.queryTablesWithCombinedFilters(
+           const result = await lastValueFrom(ds.queryTablesWithCombinedFilters$(
                {
-                   dataTablesFilter: 'name = "test"',
-                   resultsFilter: 'status = "passed"'
+                   dataTableFilter: 'name = "test"',
+                   resultsFilter: 'status = "passed"',
+                   columnsFilter: 'name = "column1"'
                },
                10,
                ['name' as any]
            ));
            
-           expect(v2Mock.queryTablesWithCombinedFilters).toHaveBeenCalledWith(
+           expect(v2Mock.queryTablesWithCombinedFilters$).toHaveBeenCalledWith(
                {
-                   dataTablesFilter: 'name = "test"',
-                   resultsFilter: 'status = "passed"'
+                   dataTableFilter: 'name = "test"',
+                   resultsFilter: 'status = "passed"',
+                   columnsFilter: 'name = "column1"'
                },
                10,
                ['name']

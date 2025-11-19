@@ -114,13 +114,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         throw new Error('Method not implemented.');
     }
 
-    public queryTablesWithCombinedFilters(
+    public queryTablesWithCombinedFilters$(
         filters: CombinedFilters,
         take?: number,
         projections?: DataTableProjections[]
     ): Observable<TableProperties[]> {
         // TODO: Implement logic to combine result filter filters.
-        return this.queryTables$(filters.dataTablesFilter, take, projections);
+        return this.queryTables$(filters.dataTableFilter, take, projections);
     }
 
     queryTables$(

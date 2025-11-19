@@ -147,9 +147,10 @@ describe('DataFrameDataSourceBase', () => {
         it('should accept take and projections parameters and return empty array by default', async () => {
             const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
             
-            const result = await lastValueFrom(ds.queryTablesWithCombinedFilters({
-                dataTablesFilter: 'name = "test"',
-                resultsFilter: 'status = "passed"'
+            const result = await lastValueFrom(ds.queryTablesWithCombinedFilters$({
+                dataTableFilter: 'name = "test"',
+                resultsFilter: 'status = "passed"',
+                columnsFilter: 'name = "column1"'
             }));
             
             expect(result).toEqual([]);

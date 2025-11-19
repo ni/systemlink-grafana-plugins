@@ -1230,16 +1230,17 @@ describe('DataFrameDataSourceV2', () => {
 
         it('should pass all parameter to queryTables$', async () => {
             const filters = {
-                dataTablesFilter: 'name = "test"',
-                resultsFilter: 'status = "passed"'
+                dataTableFilter: 'name = "test"',
+                resultsFilter: 'status = "passed"',
+                columnsFilter: 'name = "column2"'
             };
             const take = 10;
             const projections = [DataTableProjections.Name, DataTableProjections.Id];
 
-            await lastValueFrom(ds.queryTablesWithCombinedFilters(filters, take, projections));
+            await lastValueFrom(ds.queryTablesWithCombinedFilters$(filters, take, projections));
 
             expect(queryTablesMock).toHaveBeenCalledWith(
-                filters.dataTablesFilter,
+                filters.dataTableFilter,
                 take,
                 projections
             );
@@ -1252,11 +1253,12 @@ describe('DataFrameDataSourceV2', () => {
             ];
             queryTablesMock.mockReturnValue(of(mockTables));
             const filters = {
-                dataTablesFilter: 'name = "test"',
-                resultsFilter: 'status = "passed"'
+                dataTableFilter: 'name = "test"',
+                resultsFilter: 'status = "passed"',
+                columnsFilter: 'name = "column2"'
             };
 
-            const result = await lastValueFrom(ds.queryTablesWithCombinedFilters(filters));
+            const result = await lastValueFrom(ds.queryTablesWithCombinedFilters$(filters));
 
             expect(result).toEqual(mockTables);
         });

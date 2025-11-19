@@ -73,7 +73,7 @@ export abstract class DataFrameDataSourceBase<
         projection?: DataTableProjections[]
     ): Promise<TableProperties[]>;
 
-    public queryTablesWithCombinedFilters(
+    public queryTablesWithCombinedFilters$(
         filters: CombinedFilters,
         take?: number,
         projections?: DataTableProjections[]
