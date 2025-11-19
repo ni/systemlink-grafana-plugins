@@ -25,7 +25,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isColumnLimitExceeded, setIsColumnLimitExceeded] = useState<boolean>(false);
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
-    const [lastAppliedFilter, setLastAppliedFilter] = useState<string | undefined>(undefined);
 
     const getPropertiesOptions = (
         type: DataTableProjectionType
@@ -69,10 +68,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             setColumnOptions([]);
             return;
         }
-        if (filter === lastAppliedFilter) {
-            return;
-        }
-        setLastAppliedFilter(filter);
         const columnOptions = await datasource.getColumnOptions(filter);
         const limitedColumnOptions = columnOptions.slice(0, COLUMN_OPTIONS_LIMIT);
         setIsColumnLimitExceeded(columnOptions.length > COLUMN_OPTIONS_LIMIT);

@@ -6,7 +6,7 @@ export const nbsp = (strings: TemplateStringsArray, ...values: string[]) =>
 
 export const isValidId = (id: string) => /^[0-9a-fA-F]{24}$/.test(id);
 
-export function areRecordsIdentical<T extends Record<string, any>>(
+export function areObjectsEqual<T extends Record<string, any>>(
   first: T,
   second: T
 ): boolean {
