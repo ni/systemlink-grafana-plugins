@@ -1,3 +1,9 @@
+## [4.74.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.74.0...v4.74.1) (2025-11-19)
+
+### Bug Fixes
+
+* **results:** Convert string-based numeric values to numbers for proper plotting ([#539](https://github.com/ni/systemlink-grafana-plugins/issues/539)) ([9025938](https://github.com/ni/systemlink-grafana-plugins/commit/9025938329edf98d819b1628289efa146b44bf5b))
+
 ## [4.74.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.73.0...v4.74.0) (2025-11-18)
 
 ### Features
