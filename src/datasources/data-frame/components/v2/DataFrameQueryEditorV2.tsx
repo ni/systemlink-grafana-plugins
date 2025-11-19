@@ -39,17 +39,19 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const dataTablePropertiesOptions = getPropertiesOptions(DataTableProjectionType.DataTable);
     const columnPropertiesOptions = getPropertiesOptions(DataTableProjectionType.Column);
 
-    useEffect(() => {   
-        if ( datasource.variablesCache 
-            && containsVariables(migratedQuery.dataTableFilter)
-        ) {
-          fetchAndSetColumnOptions(migratedQuery.dataTableFilter);
+    useEffect(() => {
+        const shouldFetchColumns = 
+            migratedQuery.type === DataFrameQueryType.Data &&
+            (!containsVariables(migratedQuery.dataTableFilter) || Object.keys(datasource.variablesCache).length > 0);
+        
+        if (shouldFetchColumns) {
+            fetchAndSetColumnOptions(migratedQuery.dataTableFilter);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [datasource.variablesCache]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [migratedQuery.type, migratedQuery.dataTableFilter, datasource.variablesCache]);
 
     const containsVariables = (input: string): boolean => {
-        const variablePattern = /\$\w+/;
+        const variablePattern = /\$(\w+|\{[^}]+\})/;
         return variablePattern.test(input);
     }
 
@@ -80,13 +82,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
         setIsPropertiesNotSelected(isDataTablePropertiesEmpty && isColumnPropertiesEmpty);
     }, [migratedQuery.dataTableProperties, migratedQuery.columnProperties]);
-
-        useEffect(() => {
-            if (migratedQuery.type === DataFrameQueryType.Data) {
-                fetchAndSetColumnOptions(migratedQuery.dataTableFilter);
-            }
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [migratedQuery.type, migratedQuery.dataTableFilter]);
 
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
         handleQueryChange({ ...migratedQuery, type: queryType });
