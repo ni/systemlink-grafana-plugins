@@ -67,6 +67,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         setIsPropertiesNotSelected(isDataTablePropertiesEmpty && isColumnPropertiesEmpty);
     }, [migratedQuery.dataTableProperties, migratedQuery.columnProperties]);
 
+        useEffect(() => {
+            if (migratedQuery.type === DataFrameQueryType.Data) {
+                fetchAndSetColumnOptions(migratedQuery.dataTableFilter);
+            }
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [migratedQuery.type, migratedQuery.dataTableFilter]);
+
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
         handleQueryChange({ ...migratedQuery, type: queryType });
     };
@@ -75,7 +82,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         if (event) {
             const dataTableFilter = (event as CustomEvent).detail.linq;
             handleQueryChange({ ...migratedQuery, dataTableFilter });
-            await fetchAndSetColumnOptions(dataTableFilter);
+        }
+    };
+
+    const onResultsFilterChange = async (event?: Event | React.FormEvent<Element>) => {
+        if (event) {
+            const resultsFilter = (event as CustomEvent).detail.linq;
+            handleQueryChange({ ...migratedQuery, resultsFilter });
         }
     };
 
@@ -160,46 +173,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                 />
             </InlineField>
 
-            {migratedQuery.type === DataFrameQueryType.Properties && (
-                <>
-                    {isPropertiesNotSelected && (
-                        <Alert title='Error' severity='error'>
-                            {errorMessages.propertiesNotSelected}
-                        </Alert>
-                    )}
-                    <InlineField
-                        label={labels.dataTableProperties}
-                        labelWidth={INLINE_LABEL_WIDTH}
-                        tooltip={tooltips.dataTableProperties}
-                    >
-                        <MultiCombobox
-                            placeholder={placeholders.dataTableProperties}
-                            width="auto"
-                            minWidth={VALUE_FIELD_WIDTH}
-                            maxWidth={VALUE_FIELD_WIDTH}
-                            value={migratedQuery.dataTableProperties}
-                            onChange={onDataTablePropertiesChange}
-                            options={dataTablePropertiesOptions}
-                        />
-                    </InlineField>
-                    <InlineField
-                        label={labels.columnProperties}
-                        labelWidth={INLINE_LABEL_WIDTH}
-                        tooltip={tooltips.columnProperties}
-                    >
-                        <MultiCombobox
-                            placeholder={placeholders.columnProperties}
-                            width="auto"
-                            minWidth={VALUE_FIELD_WIDTH}
-                            maxWidth={VALUE_FIELD_WIDTH}
-                            value={migratedQuery.columnProperties}
-                            onChange={onColumnPropertiesChange}
-                            options={columnPropertiesOptions}
-                        />
-                    </InlineField>
-                </>
-            )}
-
             <div
                 style={{ width: getValuesInPixels(SECTION_WIDTH) }}
             >
@@ -218,8 +191,10 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                     )}
                     <DataFrameQueryBuilderWrapper
                         datasource={datasource}
+                        resultsFilter={migratedQuery.resultsFilter}
                         dataTableFilter={migratedQuery.dataTableFilter}
                         columnsFilter={migratedQuery.columnsFilter}
+                        onResultsFilterChange={onResultsFilterChange}
                         onDataTableFilterChange={onDataTableFilterChange}
                         onColumnsFilterChange={onColumnsFilterChange}
                     />
@@ -342,6 +317,47 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                     </Collapse>
                 </div >
             )}
+
+            {migratedQuery.type === DataFrameQueryType.Properties && (
+                <>
+                    {isPropertiesNotSelected && (
+                        <Alert title='Error' severity='error'>
+                            {errorMessages.propertiesNotSelected}
+                        </Alert>
+                    )}
+                    <InlineField
+                        label={labels.dataTableProperties}
+                        labelWidth={INLINE_LABEL_WIDTH}
+                        tooltip={tooltips.dataTableProperties}
+                    >
+                        <MultiCombobox
+                            placeholder={placeholders.dataTableProperties}
+                            width="auto"
+                            minWidth={VALUE_FIELD_WIDTH}
+                            maxWidth={VALUE_FIELD_WIDTH}
+                            value={migratedQuery.dataTableProperties}
+                            onChange={onDataTablePropertiesChange}
+                            options={dataTablePropertiesOptions}
+                        />
+                    </InlineField>
+                    <InlineField
+                        label={labels.columnProperties}
+                        labelWidth={INLINE_LABEL_WIDTH}
+                        tooltip={tooltips.columnProperties}
+                    >
+                        <MultiCombobox
+                            placeholder={placeholders.columnProperties}
+                            width="auto"
+                            minWidth={VALUE_FIELD_WIDTH}
+                            maxWidth={VALUE_FIELD_WIDTH}
+                            value={migratedQuery.columnProperties}
+                            onChange={onColumnPropertiesChange}
+                            options={columnPropertiesOptions}
+                        />
+                    </InlineField>
+                </>
+            )}
+
             <FloatingError
                 message={datasource.errorTitle}
                 innerMessage={datasource.errorDescription}

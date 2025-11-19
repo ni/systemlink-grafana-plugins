@@ -1,5 +1,5 @@
 import { QueryBuilderOperations } from "./query-builder.constants";
-import { buildExpressionFromTemplate, expressionBuilderCallback, expressionBuilderCallbackWithRef, expressionReaderCallback, expressionReaderCallbackWithRef, ExpressionTransformFunction, getConcatOperatorForMultiExpression, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "./query-builder.utils"
+import { buildExpressionFromTemplate, expressionBuilderCallback, expressionBuilderCallbackWithRef, expressionReaderCallback, expressionReaderCallbackWithRef, ExpressionTransformFunction, getConcatOperatorForMultiExpression, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "./query-builder.utils"
 
 describe('QueryBuilderUtils', () => {
   describe('transformComputedFieldsQuery', () => {
@@ -10,9 +10,15 @@ describe('QueryBuilderUtils', () => {
         case QueryBuilderOperations.IS_NOT_BLANK.name:
           return `!string.IsNullOrEmpty(obj.prop1)`;
         case QueryBuilderOperations.CONTAINS.name:
+        case QueryBuilderOperations.LIST_EQUALS.name:
+        case QueryBuilderOperations.LIST_CONTAINS.name:
           return `obj.prop1.Contains(${value})`;
         case QueryBuilderOperations.DOES_NOT_CONTAIN.name:
           return `!(obj.prop1.Contains(${value}))`;
+        case QueryBuilderOperations.STARTS_WITH.name:
+          return `obj.prop1.StartsWith(${value})`;
+        case QueryBuilderOperations.ENDS_WITH.name:
+          return `obj.prop1.EndsWith(${value})`;
         default:
           return `obj.prop1 ${operation} ${value}`;
       }
@@ -68,6 +74,42 @@ describe('QueryBuilderUtils', () => {
 
     it('should handle Contains operations correctly if no computed fields are present', () => {
       const query = 'field1.Contains("value1") OR !(field2.Contains("value2"))';
+      const result = transformComputedFieldsQuery(query, computedDataFields);
+      expect(result).toBe(query);
+    });
+
+    it('should handle Any.Contains operations correctly with computed fields', () => {
+      const query = 'Object1.Any(it.Contains("value1"))';
+      const result = transformComputedFieldsQuery(query, computedDataFields);
+      expect(result).toBe('Object1.Any(obj.prop1.Contains(value1))');
+    });
+    
+    it('should handle Any.Contains operations correctly if no computed fields are present', () => {
+      const query = 'field1.Any(!it.Contains("value1"))';
+      const result = transformComputedFieldsQuery(query, computedDataFields);
+      expect(result).toBe(query);
+    });
+
+    it('should handle StartsWith operations correctly with computed fields', () => {
+      const query = 'Object1.StartsWith("value1") AND Object2.EndsWith("value2")';
+      const result = transformComputedFieldsQuery(query, computedDataFields);
+      expect(result).toBe('obj.prop1.StartsWith(value1) AND obj.prop1.EndsWith(value2)');
+    });
+
+    it('should handle StartsWith operations correctly if no computed fields are present', () => {
+      const query = 'field1.StartsWith("value1") AND field2.EndsWith("value2")';
+      const result = transformComputedFieldsQuery(query, computedDataFields);
+      expect(result).toBe(query);
+    });
+
+    it('should handle EndsWith operations correctly with computed fields', () => {
+      const query = 'Object1.EndsWith("value1") OR Object2.StartsWith("value2")';
+      const result = transformComputedFieldsQuery(query, computedDataFields);
+      expect(result).toBe('obj.prop1.EndsWith(value1) OR obj.prop1.StartsWith(value2)');
+    });
+
+    it('should handle EndsWith operations correctly if no computed fields are present', () => {
+      const query = 'field1.EndsWith("value1") OR field2.StartsWith("value2")';
       const result = transformComputedFieldsQuery(query, computedDataFields);
       expect(result).toBe(query);
     });
@@ -294,6 +336,32 @@ describe('QueryBuilderUtils', () => {
     });
   });
 
+  describe('listFieldsQuery', () => {
+    it('should build expression for list field with single value when operation is listcontains', () => {
+      const transform = listFieldsQuery('listField');
+      const result = transform('value1', 'listcontains');
+      expect(result).toBe('it.Contains(\"value1\")');
+    });
+
+    it('should build expression for list field with single value', () => {
+      const transform = listFieldsQuery('listField');
+      const result = transform('{value1}', 'contains');
+      expect(result).toBe('(listField.Contains("value1"))');
+    });
+
+    it('should build expression for list field with multiple values when operation is listcontains', () => {
+      const transform = listFieldsQuery('listField');
+      const result = transform('{value1,value2}', 'contains');
+      expect(result).toBe('(listField.Contains(\"value1\") || listField.Contains(\"value2\"))');
+    });
+
+    it('should build expression for list field with multiple values', () => {
+      const transform = listFieldsQuery('listField');
+      const result = transform('{value1}', 'contains');
+      expect(result).toBe('(listField.Contains("value1"))');
+    });
+  });
+
   describe('multipleValuesQuery', () => {
     it('should build expression for single value query', () => {
       const buildExpression = multipleValuesQuery('field');
@@ -357,6 +425,14 @@ describe('QueryBuilderUtils', () => {
       {
         name: 'contains',
         operator: 'contains',
+      },
+      {
+        name: 'starts with',
+        operator: 'startswith',
+      },
+      {
+        name: 'ends with',
+        operator: 'endswith',
       }
     ].forEach(testCase => {
       it(`should return OR for ${testCase.name} operator`, () => {

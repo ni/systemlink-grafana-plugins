@@ -13,6 +13,7 @@ export interface SystemQuery extends DataQuery {
 
 export interface SystemVariableQuery {
   workspace: string;
+  queryReturnType?: SystemQueryReturnType;
 }
 
 export interface SystemSummary {
@@ -33,4 +34,10 @@ export interface SystemProperties {
   ip6Interfaces?: Record<string, string[]>;
   workspace: string;
   scanCode?: string;
+  minionId?: string;
+}
+
+export enum SystemQueryReturnType {
+  MinionId = 'Minion Id',
+  ScanCode = 'Scan Code'
 }

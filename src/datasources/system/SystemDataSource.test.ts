@@ -98,8 +98,8 @@ test('query properties with templated system name', async () => {
 
 test('queries for system variable values - all workspaces', async () => {
   backendSrv.fetch
-    .calledWith(requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { projection: 'new(id,alias)' } }))
-    .mockReturnValue(createFetchResponse({ data: fakeSystems.map(({ id, alias }) => ({ id, alias })) }));
+    .calledWith(requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { projection: 'new(id,alias,scanCode)' } }))
+    .mockReturnValue(createFetchResponse({ data: fakeSystems.map(({ id, alias, scanCode }) => ({ id, alias, scanCode })) }));
 
   const result = await ds.metricFindQuery({ workspace: '' });
 
