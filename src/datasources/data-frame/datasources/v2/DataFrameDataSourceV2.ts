@@ -94,8 +94,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         }
 
         // Migration for 1.6.0: DataFrameQuery.columns changed to string[]
-        if (query.columns && query.columns.length > 0 && _.isObject(query.columns[0])) {
-            query.columns = (query.columns as any[]).map(c => c.name);
+        if (Array.isArray(query.columns) && this.areAllObjectsWithNameProperty(query.columns)) {
+            query.columns = (query.columns as Array<{ name: string; }>).map(c => c.name);
         }
 
         if ('tableId' in query) {
@@ -109,17 +109,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 ...v1QueryWithoutTableId,
                 dataTableFilter: tableId ? `id = "${tableId}"` : '',
                 dataTableProperties
-            } as ValidDataFrameQueryV2;
+            };
         }
 
         return {
             ...defaultQueryV2,
-            ...query,
-        } as ValidDataFrameQueryV2;
+            ...query
+        };
     }
 
     public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
         if ('tableId' in query) {
+            // Convert V1 to V2
             const {
                 tableId,
                 type,
@@ -133,10 +134,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
 
             return {
                 ...defaultVariableQueryV2,
+                ...baseQueryProps,
                 queryType: DataFrameVariableQueryType.ListColumns,
                 dataTableFilter,
-                ...baseQueryProps,
-            } as ValidDataFrameVariableQuery;
+            };
         }
 
         return {
@@ -212,6 +213,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         const columnTypeMap = this.createColumnNameDataTypesMap(tables);
 
         return this.createColumnOptions(columnTypeMap);
+    }
+
+    private areAllObjectsWithNameProperty(object: any[]): object is Array<{ name: string; }> {
+        return _.every(
+            object,
+            entry => _.isPlainObject(entry) && 'name' in (entry as {})
+        );
     }
 
     private getErrorMessage(error: Error): string {
