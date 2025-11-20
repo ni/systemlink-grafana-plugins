@@ -786,20 +786,6 @@ describe('DataFrameDataSourceV2', () => {
     });
 
     describe('shouldRunQuery', () => {
-        it('should call processQuery with the provided query', () => {
-            const query = {
-                type: DataFrameQueryType.Data,
-                dataTableFilter: 'name = "Test Table"',
-                dataTableProperties: [DataTableProperties.Name],
-                take: 1000
-            } as ValidDataFrameQueryV2;
-            const processQuerySpy = jest.spyOn(ds, 'processQuery');
-
-            ds.shouldRunQuery(query);
-
-            expect(processQuerySpy).toHaveBeenCalledWith(query);
-        });
-
         it('should return true when query type is Properties', () => {
             const query = {
                 type: DataFrameQueryType.Properties,

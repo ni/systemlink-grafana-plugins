@@ -8,7 +8,7 @@ import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
-import { catchError, combineLatestWith, from, isObservable, lastValueFrom, map, Observable, of } from "rxjs";
+import { catchError, combineLatestWith, from, lastValueFrom, map, Observable, of } from "rxjs";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
     defaultQuery = defaultQueryV2;
@@ -82,9 +82,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     }
 
     shouldRunQuery(query: ValidDataFrameQuery): boolean {
-        const processedQuery = this.processQuery(query);
-
-        return !processedQuery.hide;
+        return !query.hide;
     }
 
     processQuery(query: DataFrameDataQuery): ValidDataFrameQueryV2 {
@@ -248,11 +246,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     }
 
     private migrateColumnsFromV1ToV2(columns: string[], table: TableProperties): string[] {
-        return columns.map(column => {
-            const matchingColumn = table.columns.find(col => col.name === column);
+        return columns.map(selectedColumn => {
+            const matchingColumn = table.columns.find(
+                tableColumn => tableColumn.name === selectedColumn
+            );
             return matchingColumn
                 ? `${matchingColumn.name}-${this.transformColumnType(matchingColumn.dataType)}`
-                : column;
+                : selectedColumn;
         });
     }
 
