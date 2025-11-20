@@ -94,13 +94,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         }
 
         // Migration for 1.6.0: DataFrameQuery.columns changed to string[]
-        if (
-            query.columns
-            && !isObservable(query.columns)
-            && query.columns.length > 0
-            && _.isObject(query.columns[0])
-        ) {
-            query.columns = (query.columns as any[]).map(c => c.name);
+        if (Array.isArray(query.columns) && this.areAllObjectsWithNameProperty(query.columns)) {
+            query.columns = (query.columns as Array<{ name: string; }>).map(column => column.name);
         }
 
         if ('tableId' in query) {
@@ -116,18 +111,19 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 ...v1QueryWithoutTableId,
                 dataTableFilter: tableId ? `id = "${tableId}"` : '',
                 dataTableProperties,
-                columns,
-            } as ValidDataFrameQueryV2;
+                columns
+            };
         }
 
         return {
             ...defaultQueryV2,
-            ...query,
-        } as ValidDataFrameQueryV2;
+            ...query
+        };
     }
 
     public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
         if ('tableId' in query) {
+            // Convert V1 to V2
             const {
                 tableId,
                 type,
@@ -135,16 +131,17 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 decimationMethod,
                 filterNulls,
                 applyTimeFilters,
+                queryType,
                 ...baseQueryProps
             } = query as DataFrameQueryV1;
             const dataTableFilter = tableId ? `id = "${tableId}"` : '';
 
             return {
                 ...defaultVariableQueryV2,
+                ...baseQueryProps,
                 queryType: DataFrameVariableQueryType.ListColumns,
                 dataTableFilter,
-                ...baseQueryProps,
-            } as ValidDataFrameVariableQuery;
+            };
         }
 
         return {
@@ -199,12 +196,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         return Promise.resolve([]);
     }
 
-    public async getColumnOptions(filter: string): Promise<Option[]> {
+    public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
         const variableReplacedFilter = this.transformQuery(
             filter,
             this.scopedVars
         );
-        const tables = await lastValueFrom(this.queryTables$(variableReplacedFilter, TAKE_LIMIT, [
+        const columnOptionsWithoutVariables = await this.getColumnOptions(
+            variableReplacedFilter
+        );
+        const columnOptionsWithVariables = [
+            ...this.getVariableOptions(),
+            ...columnOptionsWithoutVariables
+        ];
+        return columnOptionsWithVariables;
+    }
+
+    private async getColumnOptions(filter: string): Promise<Option[]> {
+        const tables = await lastValueFrom(this.queryTables$(filter, TAKE_LIMIT, [
             DataTableProjections.ColumnName,
             DataTableProjections.ColumnDataType,
         ]));
@@ -246,6 +254,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 ? `${matchingColumn.name}-${this.transformColumnType(matchingColumn.dataType)}`
                 : column;
         });
+    }
+
+    private areAllObjectsWithNameProperty(object: any[]): object is Array<{ name: string; }> {
+        return _.every(
+            object,
+            entry => _.isPlainObject(entry) && 'name' in (entry as {})
+        );
     }
 
     private getErrorMessage(error: Error): string {
@@ -299,8 +314,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 });
             }
         });
-        const columnOptionsWithVars = [...this.getVariableOptions(), ...options];
-        return columnOptionsWithVars;
+
+        return options;
     };
 
     /**

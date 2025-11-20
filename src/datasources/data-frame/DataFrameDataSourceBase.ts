@@ -87,7 +87,7 @@ export abstract class DataFrameDataSourceBase<
         }
     }
 
-    public async getColumnOptions(filter: string): Promise<Option[]> {
+    public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
         return Promise.resolve([]);
     }
 

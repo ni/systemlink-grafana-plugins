@@ -56,7 +56,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             setColumnOptions([]);
             return;
         }
-        const columnOptions = await datasource.getColumnOptions(filter);
+        const columnOptions = await datasource.getColumnOptionsWithVariables(filter);
         const limitedColumnOptions = columnOptions.slice(0, COLUMN_OPTIONS_LIMIT);
         setIsColumnLimitExceeded(columnOptions.length > COLUMN_OPTIONS_LIMIT);
         setColumnOptions(limitedColumnOptions);
@@ -69,12 +69,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         setIsPropertiesNotSelected(isDataTablePropertiesEmpty && isColumnPropertiesEmpty);
     }, [migratedQuery.dataTableProperties, migratedQuery.columnProperties]);
 
-        useEffect(() => {
-            if (migratedQuery.type === DataFrameQueryType.Data) {
-                fetchAndSetColumnOptions(migratedQuery.dataTableFilter);
-            }
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [migratedQuery.type, migratedQuery.dataTableFilter]);
+    useEffect(() => {
+        if (migratedQuery.type === DataFrameQueryType.Data) {
+            fetchAndSetColumnOptions(migratedQuery.dataTableFilter);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [migratedQuery.type, migratedQuery.dataTableFilter]);
 
     useEffect(() => {
         if (isObservable(migratedQuery.columns)) {

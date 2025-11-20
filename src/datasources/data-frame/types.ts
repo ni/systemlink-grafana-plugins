@@ -53,7 +53,7 @@ export interface DataFrameVariableQueryV2 extends DataQuery {
   columnsFilter?: string;
 }
 
-export const defaultVariableQueryV2: Omit<DataFrameVariableQueryV2, 'refId'> = {
+export const defaultVariableQueryV2: Omit<ValidDataFrameVariableQuery, 'refId'> = {
   queryType: DataFrameVariableQueryType.ListDataTables,
   resultsFilter: '',
   dataTableFilter: '',

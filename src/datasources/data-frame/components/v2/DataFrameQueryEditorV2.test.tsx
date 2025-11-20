@@ -35,7 +35,7 @@ const renderComponent = (
         errorTitle,
         errorDescription,
         processQuery,
-        getColumnOptions: jest.fn().mockResolvedValue(
+        getColumnOptionsWithVariables: jest.fn().mockResolvedValue(
             [
                 { label: 'ColumnA', value: 'ColumnA' },
                 { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
@@ -127,12 +127,12 @@ describe("DataFrameQueryEditorV2", () => {
     describe("when the query type is data", () => {
         let onChange: jest.Mock;
         let onRunQuery: jest.Mock;
-        
-        beforeAll(() => { 
+
+        beforeAll(() => {
             // JSDOM provides offsetHeight as 0 by default. 
             // Mocking it to return 30 because the ComboBox virtualization relies on this value 
             // to correctly calculate and render the dropdown options. 
-            jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30); 
+            jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
         });
 
         beforeEach(() => {
@@ -285,160 +285,160 @@ describe("DataFrameQueryEditorV2", () => {
                 });
 
                 describe('column options population based on query type', () => {
-                  beforeAll(() => {
-                    // Mock offsetHeight for combobox virtualization so options render in tests
-                    jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(120);
-                  });
-
-                  beforeEach(() => {
-                    cleanup();
-                    jest.clearAllMocks();
-                  });
-
-                  it('should fetch column options when switching to Data query type with existing non-empty filter', async () => {
-                    const user = userEvent.setup();
-                    const { datasource } =renderComponent({
-                      type: DataFrameQueryType.Properties,
-                      dataTableFilter: 'ExistingFilter',
+                    beforeAll(() => {
+                        // Mock offsetHeight for combobox virtualization so options render in tests
+                        jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(120);
                     });
 
-                    // Switch query type to Data (use first matching radio)
-                    const dataRadios = screen.getAllByRole('radio', {
-                      name: DataFrameQueryType.Data,
-                    });
-                    await user.click(dataRadios[0]);
-
-                    const columnsCombobox = screen.getAllByRole('combobox')[0];
-                    await user.click(columnsCombobox);
-
-                    expect(datasource.getColumnOptions).toHaveBeenCalledWith('ExistingFilter');
-
-                    // Column options should be fetched and available
-                    await waitFor(() => {
-                      const optionControls = within(document.body).getAllByRole('option');
-                      const texts = optionControls.map(option => option.textContent);
-                      expect(texts).toEqual(
-                        expect.arrayContaining([
-                          'ColumnA',
-                          'ColumnB (Numeric)',
-                          'ColumnB (String)',
-                          'ColumnD (String)',
-                          'ColumnE',
-                        ])
-                      );
-                    });
-                  });
-
-                  it('should not fetch column options when switching to Data query type with existing empty filter', async () => {
-                    const user = userEvent.setup();
-                    const { datasource } =renderComponent({
-                      type: DataFrameQueryType.Properties,
-                      dataTableFilter: '',
-                    });
-                    const dataRadios = screen.getAllByRole('radio', {
-                      name: DataFrameQueryType.Data,
-                    });
-                    await user.click(dataRadios[0]);
-
-                    const columnsCombobox = screen.getAllByRole('combobox')[0];
-                    await user.click(columnsCombobox);
-
-                    await waitFor(() => {
-                      const optionControls = within(document.body).queryAllByRole('option');
-                      expect(optionControls.length).toBe(0);
-                    });
-                    expect(datasource.getColumnOptions).not.toHaveBeenCalled();
-                  });
-
-                  it('should not fetch column options when filter changes while in Properties query type', async () => {
-                    const { datasource } = renderComponent({
-                      type: DataFrameQueryType.Properties,
-                      dataTableFilter: 'InitialFilter',
-                    });
-                    const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
-                    const { onDataTableFilterChange } = props;
-
-                    const mockEvent = { detail: { linq: 'UpdatedFilter' } } as Event & {
-                      detail: { linq: string };
-                    };
-                    onDataTableFilterChange(mockEvent);
-
-                    // Columns combobox should not be present in Properties mode
-                    expect(screen.queryByPlaceholderText('Select columns')).not.toBeInTheDocument();
-                    // getColumnOptions should never have been called
-                    expect(datasource.getColumnOptions).not.toHaveBeenCalled();
-                  });
-
-                  it('should not fetch column options when switching to Properties query type with existing non-empty filter', async () => {
-                    const user = userEvent.setup();
-                    const { datasource } = renderComponent({
-                      type: DataFrameQueryType.Data,
-                      dataTableFilter: 'ExistingFilter',
+                    beforeEach(() => {
+                        cleanup();
+                        jest.clearAllMocks();
                     });
 
-                    // Switch query type to Properties
-                    const propertiesRadios = screen.getAllByRole('radio', {
-                      name: DataFrameQueryType.Properties,
+                    it('should fetch column options when switching to Data query type with existing non-empty filter', async () => {
+                        const user = userEvent.setup();
+                        const { datasource } = renderComponent({
+                            type: DataFrameQueryType.Properties,
+                            dataTableFilter: 'ExistingFilter',
+                        });
+
+                        // Switch query type to Data (use first matching radio)
+                        const dataRadios = screen.getAllByRole('radio', {
+                            name: DataFrameQueryType.Data,
+                        });
+                        await user.click(dataRadios[0]);
+
+                        const columnsCombobox = screen.getAllByRole('combobox')[0];
+                        await user.click(columnsCombobox);
+
+                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('ExistingFilter');
+
+                        // Column options should be fetched and available
+                        await waitFor(() => {
+                            const optionControls = within(document.body).getAllByRole('option');
+                            const texts = optionControls.map(option => option.textContent);
+                            expect(texts).toEqual(
+                                expect.arrayContaining([
+                                    'ColumnA',
+                                    'ColumnB (Numeric)',
+                                    'ColumnB (String)',
+                                    'ColumnD (String)',
+                                    'ColumnE',
+                                ])
+                            );
+                        });
                     });
-                    await user.click(propertiesRadios[0]);
 
-                    // Columns combobox should not be present in Properties mode
-                    expect(screen.queryByPlaceholderText('Select columns')).not.toBeInTheDocument();
+                    it('should not fetch column options when switching to Data query type with existing empty filter', async () => {
+                        const user = userEvent.setup();
+                        const { datasource } = renderComponent({
+                            type: DataFrameQueryType.Properties,
+                            dataTableFilter: '',
+                        });
+                        const dataRadios = screen.getAllByRole('radio', {
+                            name: DataFrameQueryType.Data,
+                        });
+                        await user.click(dataRadios[0]);
 
-                    // getColumnOptions should have been called only once (during initial Data mode render)
-                    await waitFor(() => {
-                      expect(datasource.getColumnOptions).toHaveBeenCalledTimes(1);
+                        const columnsCombobox = screen.getAllByRole('combobox')[0];
+                        await user.click(columnsCombobox);
+
+                        await waitFor(() => {
+                            const optionControls = within(document.body).queryAllByRole('option');
+                            expect(optionControls.length).toBe(0);
+                        });
+                        expect(datasource.getColumnOptionsWithVariables).not.toHaveBeenCalled();
                     });
-                  });
 
-                  it('should not fetch column options when switching to Properties query type with existing empty filter', async () => {
-                    const user = userEvent.setup();
-                    const { datasource } = renderComponent({
-                      type: DataFrameQueryType.Data,
-                      dataTableFilter: '',
+                    it('should not fetch column options when filter changes while in Properties query type', async () => {
+                        const { datasource } = renderComponent({
+                            type: DataFrameQueryType.Properties,
+                            dataTableFilter: 'InitialFilter',
+                        });
+                        const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                        const { onDataTableFilterChange } = props;
+
+                        const mockEvent = { detail: { linq: 'UpdatedFilter' } } as Event & {
+                            detail: { linq: string; };
+                        };
+                        onDataTableFilterChange(mockEvent);
+
+                        // Columns combobox should not be present in Properties mode
+                        expect(screen.queryByPlaceholderText('Select columns')).not.toBeInTheDocument();
+                        // getColumnOptionsWithVariables should never have been called
+                        expect(datasource.getColumnOptionsWithVariables).not.toHaveBeenCalled();
                     });
 
-                    // Switch query type to Properties
-                    const propertiesRadios = screen.getAllByRole('radio', {
-                      name: DataFrameQueryType.Properties,
+                    it('should not fetch column options when switching to Properties query type with existing non-empty filter', async () => {
+                        const user = userEvent.setup();
+                        const { datasource } = renderComponent({
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: 'ExistingFilter',
+                        });
+
+                        // Switch query type to Properties
+                        const propertiesRadios = screen.getAllByRole('radio', {
+                            name: DataFrameQueryType.Properties,
+                        });
+                        await user.click(propertiesRadios[0]);
+
+                        // Columns combobox should not be present in Properties mode
+                        expect(screen.queryByPlaceholderText('Select columns')).not.toBeInTheDocument();
+
+                        // getColumnOptionsWithVariables should have been called only once (during initial Data mode render)
+                        await waitFor(() => {
+                            expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1);
+                        });
                     });
-                    await user.click(propertiesRadios[0]);
 
-                    // Columns combobox should not be present in Properties mode
-                    expect(screen.queryByPlaceholderText('Select columns')).not.toBeInTheDocument();
+                    it('should not fetch column options when switching to Properties query type with existing empty filter', async () => {
+                        const user = userEvent.setup();
+                        const { datasource } = renderComponent({
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: '',
+                        });
 
-                    // getColumnOptions should never have been called (empty filter in Data mode)
-                    expect(datasource.getColumnOptions).not.toHaveBeenCalled();
-                  });
+                        // Switch query type to Properties
+                        const propertiesRadios = screen.getAllByRole('radio', {
+                            name: DataFrameQueryType.Properties,
+                        });
+                        await user.click(propertiesRadios[0]);
 
-                  it('should fetch column options when filter changes while in Data query type', async () => {
-                    const user = userEvent.setup();
-                    const { datasource } =renderComponent({ type: DataFrameQueryType.Data, dataTableFilter: 'InitialFilter' });
-                    const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
-                    const { onDataTableFilterChange } = props;
+                        // Columns combobox should not be present in Properties mode
+                        expect(screen.queryByPlaceholderText('Select columns')).not.toBeInTheDocument();
 
-                    // Simulate filter change while in Data type
-                    const mockEvent = { detail: { linq: 'UpdatedFilter' } } as Event & { detail: { linq: string } };
-                    onDataTableFilterChange(mockEvent);
-
-                    const columnsCombobox = screen.getAllByRole('combobox')[0];
-                    await user.click(columnsCombobox);
-
-                    await waitFor(() => {
-                      const optionControls = within(document.body).getAllByRole('option');
-                      const texts = optionControls.map(option => option.textContent);
-                      expect(texts).toEqual(
-                        expect.arrayContaining([
-                          'ColumnA',
-                          'ColumnB (Numeric)',
-                          'ColumnB (String)',
-                          'ColumnD (String)',
-                          'ColumnE',
-                        ])
-                      );
+                        // getColumnOptionsWithVariables should never have been called (empty filter in Data mode)
+                        expect(datasource.getColumnOptionsWithVariables).not.toHaveBeenCalled();
                     });
-                    expect(datasource.getColumnOptions).toHaveBeenCalledWith('UpdatedFilter');
-                  });
+
+                    it('should fetch column options when filter changes while in Data query type', async () => {
+                        const user = userEvent.setup();
+                        const { datasource } = renderComponent({ type: DataFrameQueryType.Data, dataTableFilter: 'InitialFilter' });
+                        const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                        const { onDataTableFilterChange } = props;
+
+                        // Simulate filter change while in Data type
+                        const mockEvent = { detail: { linq: 'UpdatedFilter' } } as Event & { detail: { linq: string; }; };
+                        onDataTableFilterChange(mockEvent);
+
+                        const columnsCombobox = screen.getAllByRole('combobox')[0];
+                        await user.click(columnsCombobox);
+
+                        await waitFor(() => {
+                            const optionControls = within(document.body).getAllByRole('option');
+                            const texts = optionControls.map(option => option.textContent);
+                            expect(texts).toEqual(
+                                expect.arrayContaining([
+                                    'ColumnA',
+                                    'ColumnB (Numeric)',
+                                    'ColumnB (String)',
+                                    'ColumnD (String)',
+                                    'ColumnE',
+                                ])
+                            );
+                        });
+                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('UpdatedFilter');
+                    });
                 });
 
                 describe("columns value setting", () => {
