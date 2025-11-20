@@ -1555,7 +1555,7 @@ describe('DataFrameDataSourceV2', () => {
             expect(result).toBe('(name = "Table1" || name = "Table2") AND id != "abc"');
         });
 
-        it('should replace ${__now:date} placeholder in time field comparisons', () => {
+        it('should replace ${__now:date} placeholder in time fields', () => {
             const input = 'createdAt >= "${__now:date}"';
 
             const result = ds.transformQuery(input);
