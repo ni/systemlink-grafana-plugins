@@ -36,9 +36,10 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     options: DataQueryRequest<DataFrameDataQuery>
   ): Promise<DataFrameDTO> | Observable<DataFrameDTO> {
     const dashboardVariables = Object.fromEntries(
-      this.templateSrv.getVariables().map(variable => [
-        variable.name,
-        this.templateSrv.replace(`\$${variable.name}`)
+      this.templateSrv.getVariables()
+        .map(variable => [
+          variable.name,
+          this.templateSrv.replace(`\$${variable.name}`)
       ])
     );
 

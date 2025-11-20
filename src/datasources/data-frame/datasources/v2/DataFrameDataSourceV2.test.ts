@@ -1285,7 +1285,16 @@ describe('DataFrameDataSourceV2', () => {
     });
 
     describe('transformQuery', () => {
-        it('expands multi-value expressions into OR chained equality operations', () => {
+        it('should replace single-value variables', () => {
+            const input = 'name = "${Table}" AND id != "abc"';
+            templateSrv.replace.mockReturnValue('name = "Table1" AND id != "abc"');
+            
+            const result = ds.transformQuery(input);
+
+            expect(result).toBe('name = "Table1" AND id != "abc"');
+        })
+
+        it('should transform and expand multi-value variables', () => {
             const input = 'name = "{Table1,Table2}" AND id != "abc"';
 
             const result = ds.transformQuery(input);
@@ -1293,7 +1302,7 @@ describe('DataFrameDataSourceV2', () => {
             expect(result).toBe('(name = "Table1" || name = "Table2") AND id != "abc"');
         });
 
-        it('replaces ${__now:date} placeholder in time field comparisons', () => {
+        it('should replace ${__now:date} placeholder in time field comparisons', () => {
             const input = 'createdAt >= "${__now:date}"';
 
             const result = ds.transformQuery(input);

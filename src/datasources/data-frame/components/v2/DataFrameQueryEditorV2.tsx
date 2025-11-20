@@ -43,46 +43,52 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
     const fetchAndSetColumnOptions = useCallback(
       async (filter: string) => {
-        if (filter) {
-          try {
+        if (!filter) {
+            return;
+        }
+
+        try {
             const columnOptions = await datasource.getColumnOptionsWithVariables(filter);
             const limitedColumnOptions = columnOptions.slice(0, COLUMN_OPTIONS_LIMIT);
             setIsColumnLimitExceeded(columnOptions.length > COLUMN_OPTIONS_LIMIT);
             setColumnOptions(limitedColumnOptions);
-          } catch (error) {
+        } catch (error) {
             setColumnOptions([]);
-          }
         }
+        
       },
       [datasource]
     );
 
-    useEffect(() => {
-      if (migratedQuery.type !== DataFrameQueryType.Data) {
-        return;
-      }
+    useEffect(
+        () => {
+            if (migratedQuery.type !== DataFrameQueryType.Data) {
+                return;
+            }
 
-      const filter = migratedQuery.dataTableFilter;
-      if (!filter) {
-        setIsColumnLimitExceeded(false);
-        setColumnOptions([]);
-        return;
-      }
+            const filter = migratedQuery.dataTableFilter;
+            if (!filter) {
+                setIsColumnLimitExceeded(false);
+                setColumnOptions([]);
+                return;
+            }
 
-      const transformedFilter = datasource.transformQuery(filter);
-      const filterChanged = lastFilterRef.current !== transformedFilter;
-      lastFilterRef.current = transformedFilter;
+            const transformedFilter = datasource.transformQuery(filter);
+            const filterChanged = lastFilterRef.current !== transformedFilter;
+            lastFilterRef.current = transformedFilter;
 
-      if (filterChanged) {
-        fetchAndSetColumnOptions(transformedFilter);
-      }
-    }, [
-      migratedQuery.type,
-      migratedQuery.dataTableFilter,
-      datasource.variablesCache,
-      fetchAndSetColumnOptions,
-      datasource,
-    ]);
+            if (filterChanged) {
+                fetchAndSetColumnOptions(transformedFilter);
+            }
+        },
+        [
+            migratedQuery.type,
+            migratedQuery.dataTableFilter,
+            datasource.variablesCache,
+            fetchAndSetColumnOptions,
+            datasource,
+        ]
+    );
 
     const handleQueryChange = useCallback(
         (query: DataFrameQueryV2, runQuery = true): void => {

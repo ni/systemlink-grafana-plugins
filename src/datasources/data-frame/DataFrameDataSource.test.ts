@@ -171,16 +171,16 @@ describe('DataFrameDataSource', () => {
        });
    });
 
-    describe('variable caching', () => {
+    describe('dashboard variables caching', () => {
         const backendSrv = {} as BackendSrv;
-        const createTemplateSrv = (variables: Array<{ name: string; current: { value: any } }>): TemplateSrv => {
+        const createTemplateSrv = (variables: Array<{ name: string; value: string }>): TemplateSrv => {
             return {
                 getVariables: () => variables,
                 replace: (input: string) => {
                     const match = input.match(/^\$(.+)$/);
                     if (match) {
                         const variable = variables.find(variable => variable.name === match[1]);
-                        return variable ? variable.current.value : input;
+                        return variable ? variable.value : input;
                     }
                     return input;
                 },
@@ -190,8 +190,8 @@ describe('DataFrameDataSource', () => {
         const query: any = { refId: 'A' };
         const options: any = { range: { from: new Date(), to: new Date() } };
 
-        it('caches variables on first runQuery', async () => {
-            const templateSrv = createTemplateSrv([{ name: 'varA', current: { value: '1' } }]);
+        it('should cache variables on first runQuery', async () => {
+            const templateSrv = createTemplateSrv([{ name: 'varA',value: '1' }]);
             const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
 
             await ds.runQuery(query, options);
@@ -199,14 +199,15 @@ describe('DataFrameDataSource', () => {
             expect(ds.variablesCache).toEqual({ varA: '1' });
         });
 
-        it('does not replace variablesCache reference when variables unchanged', async () => {
-            const initialVars = [{ name: 'varA', current: { value: '1' } }];
-            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, createTemplateSrv(initialVars));
+        it('should not replace variablesCache reference when variables unchanged', async () => {
+            const initialVars = [{ name: 'varA',value: '1' }];
+            const templateSrv = createTemplateSrv(initialVars);
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
 
             await ds.runQuery(query, options);
 
             const firstRef = ds.variablesCache;
-            (ds as any).templateSrv = createTemplateSrv([{ name: 'varA', current: { value: '1' } }]);
+            (ds as any).templateSrv = createTemplateSrv([{ name: 'varA',value: '1' }]);
 
             await ds.runQuery(query, options);
 
@@ -214,12 +215,11 @@ describe('DataFrameDataSource', () => {
         });
 
         it('replaces variablesCache when variable value changes', async () => {
-            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, createTemplateSrv([{ name: 'varA', current: { value: '1' } }]));
-
+            const templateSrv = createTemplateSrv([{ name: 'varA',value: '1' }]);
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
             await ds.runQuery(query, options);
-
             const firstRef = ds.variablesCache;
-            (ds as any).templateSrv = createTemplateSrv([{ name: 'varA', current: { value: '2' } }]);
+            (ds as any).templateSrv = createTemplateSrv([{ name: 'varA', value: '2' }]);
 
             await ds.runQuery(query, options);
 
@@ -228,12 +228,11 @@ describe('DataFrameDataSource', () => {
         });
 
         it('replaces variablesCache when variable name changes', async () => {
-            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, createTemplateSrv([{ name: 'varA', current: { value: '1' } }]));
-
+            const templateSrv = createTemplateSrv([{ name: 'varA',value: '1' }]);
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
             await ds.runQuery(query, options);
-
             const firstRef = ds.variablesCache;
-            (ds as any).templateSrv = createTemplateSrv([{ name: 'varB', current: { value: '1' } }]);
+            (ds as any).templateSrv = createTemplateSrv([{ name: 'varB',value: '1' }]);
 
             await ds.runQuery(query, options);
 
@@ -242,21 +241,22 @@ describe('DataFrameDataSource', () => {
         });
 
         it('does not replace variablesCache when only variable order changes', async () => {
+            const templateSrv = createTemplateSrv([
+                { name: 'varA',value: '1' },
+                { name: 'varB', value: '2' }
+            ]);
             const ds = new DataFrameDataSource(
                 mockInstanceSettings(false),
                 backendSrv,
-                createTemplateSrv([
-                    { name: 'varA', current: { value: '1' } },
-                    { name: 'varB', current: { value: '2' } },
-                ])
+                templateSrv
             );
 
             await ds.runQuery(query, options);
 
             const firstRef = ds.variablesCache;
             (ds as any).templateSrv = createTemplateSrv([
-                { name: 'varB', current: { value: '2' } },
-                { name: 'varA', current: { value: '1' } },
+                { name: 'varB', value: '2' },
+                { name: 'varA',value: '1' },
             ]);
 
             await ds.runQuery(query, options);
@@ -265,14 +265,13 @@ describe('DataFrameDataSource', () => {
         });
 
         it('replaces variablesCache when variable added', async () => {
-            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, createTemplateSrv([{ name: 'varA', current: { value: '1' } }]));
-
+            const templateSrv = createTemplateSrv([{ name: 'varA',value: '1' }]);
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
             await ds.runQuery(query, options);
-
             const firstRef = ds.variablesCache;
             (ds as any).templateSrv = createTemplateSrv([
-                { name: 'varA', current: { value: '1' } },
-                { name: 'varB', current: { value: '2' } },
+                { name: 'varA', value: '1' },
+                { name: 'varB', value: '2' },
             ]);
 
             await ds.runQuery(query, options);
@@ -285,20 +284,19 @@ describe('DataFrameDataSource', () => {
         });
 
         it('replaces variablesCache when variable removed', async () => {
+            const templateSrv = createTemplateSrv([
+                { name: 'varA',value: '1' },
+                { name: 'varB', value: '2' }
+            ]);
             const ds = new DataFrameDataSource(
                 mockInstanceSettings(false),
                 backendSrv,
-                createTemplateSrv([
-                    { name: 'varA', current: { value: '1' } },
-                    { name: 'varB', current: { value: '2' } },
-                ])
+                templateSrv
             );
-
             await ds.runQuery(query, options);
-
             const firstRef = ds.variablesCache;
             (ds as any).templateSrv = createTemplateSrv([
-                { name: 'varA', current: { value: '1' } },
+                { name: 'varA',value: '1' },
             ]);
 
             await ds.runQuery(query, options);
@@ -311,6 +309,7 @@ describe('DataFrameDataSource', () => {
     describe('transformQuery', () => {
         it('delegates to v2 transformQuery when feature toggle true', () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(true), backendSrv, templateSrv);
+            v2Mock.transformQuery.mockClear();
             
             const result = ds.transformQuery('filter');
             
@@ -320,6 +319,7 @@ describe('DataFrameDataSource', () => {
 
         it('delegates to v1 base transformQuery when feature toggle false', () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
+            v1Mock.transformQuery.mockClear();
             
             const result = ds.transformQuery('filter');
             

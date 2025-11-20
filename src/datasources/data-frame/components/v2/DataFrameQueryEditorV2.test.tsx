@@ -241,23 +241,21 @@ describe("DataFrameQueryEditorV2", () => {
                 });
 
                 describe('fetchColumnOptions', () => {
-                  it('fetches on initial mount with non-empty filter', async () => {
+                  it('should fetch on initial mount with non-empty filter', async () => {
                     const { datasource } = renderComponent({
                       type: DataFrameQueryType.Data,
                       dataTableFilter: 'InitialFilter',
                     });
-                    
                     await waitFor(() => expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1));
                     
                     expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('InitialFilter');
                   });
 
-                  it('does not refetch on rerender with same filter', async () => {
+                  it('should not refetch on rerender with same filter', async () => {
                     const { datasource, renderResult } = renderComponent({
                       type: DataFrameQueryType.Data,
                       dataTableFilter: 'InitialFilter',
                     });
-                    
                     await waitFor(() => expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1));
                     
                     renderResult.rerender(
@@ -277,7 +275,7 @@ describe("DataFrameQueryEditorV2", () => {
                     await waitFor(() => expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1));
                   });
 
-                  it('clears options and does not fetch when filter becomes empty', async () => {
+                  it('should cache options and does not fetch when filter becomes empty', async () => {
                     const { datasource, renderResult } = renderComponent({
                       type: DataFrameQueryType.Data,
                       dataTableFilter: 'InitialFilter',
@@ -296,13 +294,13 @@ describe("DataFrameQueryEditorV2", () => {
                     await waitFor(() => expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1));
                   });
 
-                  it('fetches again when filter text changes', async () => {
+                  it('should fetch again when filter text changes', async () => {
                     const { datasource, renderResult } = renderComponent({
                       type: DataFrameQueryType.Data,
                       dataTableFilter: 'InitialFilter',
                     });
-                    
                     await waitFor(() => expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1));
+
                     renderResult.rerender(
                       <DataFrameQueryEditorV2
                         datasource={datasource}
@@ -320,7 +318,7 @@ describe("DataFrameQueryEditorV2", () => {
                     await waitFor(() => expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(2));
                   });
 
-                  it('calls transformQuery before deciding to fetch', async () => {
+                  it('should call transformQuery before deciding to fetch', async () => {
                     const datasource = {
                       processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                       getColumnOptionsWithVariables: jest.fn().mockResolvedValue([{ label: 'Col1', value: 'Col1' }]),

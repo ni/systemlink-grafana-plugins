@@ -349,12 +349,12 @@ describe('DataFrameDataSourceBase', () => {
         });
 
         it('should return the replaced query string', () => {
-            const query = 'id = $__var';
-            (templateSrv.replace as jest.Mock).mockReturnValue('FROM replaced');
+            const query = 'id = $var';
+            (templateSrv.replace as jest.Mock).mockReturnValue('id = <valid-id-value>');  
             
             const result = ds.transformQuery(query);
             
-            expect(result).toBe('FROM replaced');
+            expect(result).toBe('id = <valid-id-value>');
         });
 
         it('should propagate errors thrown by templateSrv.replace', () => {
