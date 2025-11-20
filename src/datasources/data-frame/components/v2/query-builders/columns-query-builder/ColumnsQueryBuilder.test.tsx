@@ -54,15 +54,7 @@ describe('ColumnsQueryBuilder', () => {
     });
 
     describe('disabled prop', () => {
-        it('should pass disabled=true to SlQueryBuilder by default', async () => {
-            const { renderResult } = await renderElement('');
-            const queryBuilder = renderResult.getByRole('dialog');
-            
-            expect(queryBuilder).toBeInTheDocument();
-            expect(queryBuilder).toHaveAttribute('disabled');
-        });
-
-        it('should pass disabled=true to SlQueryBuilder when disabled prop is true', async () => {
+        it('should render with enabled state when disabled prop is true', async () => {
             const { renderResult } = await renderElement('', true);
             const queryBuilder = renderResult.getByRole('dialog');
             
@@ -70,11 +62,11 @@ describe('ColumnsQueryBuilder', () => {
             expect(queryBuilder).toHaveAttribute('disabled');
         });
 
-        it('should render with disabled state when disabled prop is true', async () => {
-            const { renderResult } = await renderElement('columnName = "test"', true);
+        it('should render with enabled state when disabled prop is false', async () => {
+            const { renderResult } = await renderElement('columnName = "test"', false);
             const queryBuilder = renderResult.getByRole('dialog');
             
-            expect(queryBuilder).toHaveAttribute('disabled');
+            expect(queryBuilder).not.toHaveAttribute('disabled');
         });
     });
 });

@@ -15,7 +15,7 @@ type ColumnsQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element
 export const ColumnsQueryBuilder: React.FC<ColumnsQueryBuilderProps> = ({
     filter,
     onChange,
-    disabled = true
+    disabled
 }) => {
     const [fields, setFields] = useState<QBField[]>([]);
     const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
