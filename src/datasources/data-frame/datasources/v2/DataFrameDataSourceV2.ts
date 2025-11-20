@@ -148,12 +148,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         return Promise.resolve([]);
     }
 
-    public async getColumnOptions(filter: string): Promise<Option[]> {
+    public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
         const variableReplacedFilter = this.transformQuery(
             filter,
             this.scopedVars
         );
-        const tables = await lastValueFrom(this.queryTables$(variableReplacedFilter, TAKE_LIMIT, [
+        const columnOptionsWithoutVariables = await this.getColumnOptions(
+            variableReplacedFilter
+        );
+        const columnOptionsWithVariables = [
+            ...this.getVariableOptions(),
+            ...columnOptionsWithoutVariables
+        ];
+        return columnOptionsWithVariables;
+    }
+
+    private async getColumnOptions(filter: string): Promise<Option[]> {
+        const tables = await lastValueFrom(this.queryTables$(filter, TAKE_LIMIT, [
             DataTableProjections.ColumnName,
             DataTableProjections.ColumnDataType,
         ]));
@@ -229,8 +240,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 });
             }
         });
-        const columnOptionsWithVars = [...this.getVariableOptions(), ...options];
-        return columnOptionsWithVars;
+
+        return options;
     };
 
     /**

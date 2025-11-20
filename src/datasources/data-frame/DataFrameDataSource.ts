@@ -97,8 +97,8 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.processVariableQuery(query);
   }
 
-  public async getColumnOptions(filter: string): Promise<Option[]> {
-    return this.datasource.getColumnOptions(filter);
+  public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
+    return this.datasource.getColumnOptionsWithVariables(filter);
   }
 
   public transformQuery(query: string) {

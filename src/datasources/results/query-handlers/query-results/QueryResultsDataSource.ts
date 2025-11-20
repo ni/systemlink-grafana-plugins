@@ -3,8 +3,7 @@ import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase
 import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents, DataSourceInstanceSettings } from "@grafana/data";
 import { OutputType } from "datasources/results/types/types";
 import { defaultResultsQuery } from "datasources/results/defaultQueries";
-import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
-import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
+import { transformComputedFieldsQuery } from "core/query-builder.utils";
 import { TAKE_LIMIT } from "datasources/results/constants/QuerySteps.constants";
 import { extractErrorInfo } from "core/errors";
 import { getWorkspaceName } from "core/utils";
@@ -179,19 +178,6 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     };
   }
 
-  /**
-   * A map linking each field name to its corresponding query transformation function.
-   * It dynamically processes and formats query expressions based on the field type.
-   */
-  readonly resultsComputedDataFields = new Map<string, ExpressionTransformFunction>(
-    Object.values(ResultsQueryBuilderFieldNames).map(field => [
-      field,
-      field === (ResultsQueryBuilderFieldNames.UPDATED_AT) || field === (ResultsQueryBuilderFieldNames.STARTED_AT)
-        ? timeFieldsQuery(field)
-        : multipleValuesQuery(field),
-    ])
-  );
-
   async metricFindQuery(query: ResultsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     if (query.properties !== undefined && this.isTakeValid(query.resultsTake!)) {
       const filter = query.queryBy ? transformComputedFieldsQuery(
@@ -249,5 +235,3 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
     return FieldType.string;
   }
 }
-
-
