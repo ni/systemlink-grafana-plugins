@@ -74,7 +74,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
       lastFilterRef.current = transformedFilter;
 
       if (filterChanged) {
-        fetchAndSetColumnOptions(filter);
+        fetchAndSetColumnOptions(transformedFilter);
       }
     }, [
       migratedQuery.type,

@@ -311,14 +311,18 @@ describe('DataFrameDataSource', () => {
     describe('transformQuery', () => {
         it('delegates to v2 transformQuery when feature toggle true', () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(true), backendSrv, templateSrv);
+            
             const result = ds.transformQuery('filter');
+            
             expect(v2Mock.transformQuery).toHaveBeenCalledWith('filter');
             expect(result).toBe('v2-filter');
         });
 
         it('delegates to v1 base transformQuery when feature toggle false', () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
+            
             const result = ds.transformQuery('filter');
+            
             expect(v1Mock.transformQuery).toHaveBeenCalledWith('filter');
             expect(result).toBe('filter');
         });

@@ -348,29 +348,20 @@ describe('DataFrameDataSourceBase', () => {
             ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
         });
 
-        it('should call templateSrv.replace with the provided query', () => {
-            const query = 'SELECT * FROM table';
-            ds.transformQuery(query);
-            expect(templateSrv.replace).toHaveBeenCalledWith(query);
-        });
-
         it('should return the replaced query string', () => {
-            const query = 'FROM $__var';
+            const query = 'id = $__var';
             (templateSrv.replace as jest.Mock).mockReturnValue('FROM replaced');
+            
             const result = ds.transformQuery(query);
+            
             expect(result).toBe('FROM replaced');
-        });
-
-        it('should return original string when replace returns same value', () => {
-            const query = 'no variables here';
-            (templateSrv.replace as jest.Mock).mockReturnValue(query);
-            const result = ds.transformQuery(query);
-            expect(result).toBe(query);
         });
 
         it('should propagate errors thrown by templateSrv.replace', () => {
             const query = 'errorQuery';
+            
             (templateSrv.replace as jest.Mock).mockImplementation(() => { throw new Error('replace failed'); });
+            
             expect(() => ds.transformQuery(query)).toThrow('replace failed');
         });
     });

@@ -149,12 +149,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     }
 
     public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
-        const variableReplacedFilter = this.transformQuery(
-            filter,
-            this.scopedVars
-        );
         const columnOptionsWithoutVariables = await this.getColumnOptions(
-            variableReplacedFilter
+            filter
         );
         const columnOptionsWithVariables = [
             ...this.getVariableOptions(),

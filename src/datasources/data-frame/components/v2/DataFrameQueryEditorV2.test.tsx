@@ -246,7 +246,9 @@ describe("DataFrameQueryEditorV2", () => {
                       type: DataFrameQueryType.Data,
                       dataTableFilter: 'InitialFilter',
                     });
+                    
                     await waitFor(() => expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1));
+                    
                     expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('InitialFilter');
                   });
 
@@ -255,7 +257,9 @@ describe("DataFrameQueryEditorV2", () => {
                       type: DataFrameQueryType.Data,
                       dataTableFilter: 'InitialFilter',
                     });
+                    
                     await waitFor(() => expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1));
+                    
                     renderResult.rerender(
                       <DataFrameQueryEditorV2
                         datasource={datasource}
@@ -269,6 +273,7 @@ describe("DataFrameQueryEditorV2", () => {
                         onRunQuery={() => {}}
                       />
                     );
+                    
                     await waitFor(() => expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1));
                   });
 
@@ -278,6 +283,7 @@ describe("DataFrameQueryEditorV2", () => {
                       dataTableFilter: 'InitialFilter',
                     });
                     await waitFor(() => expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1));
+                    
                     renderResult.rerender(
                       <DataFrameQueryEditorV2
                         datasource={datasource}
@@ -286,6 +292,7 @@ describe("DataFrameQueryEditorV2", () => {
                         onRunQuery={() => {}}
                       />
                     );
+                    
                     await waitFor(() => expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1));
                   });
 
@@ -294,6 +301,7 @@ describe("DataFrameQueryEditorV2", () => {
                       type: DataFrameQueryType.Data,
                       dataTableFilter: 'InitialFilter',
                     });
+                    
                     await waitFor(() => expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1));
                     renderResult.rerender(
                       <DataFrameQueryEditorV2
@@ -308,6 +316,7 @@ describe("DataFrameQueryEditorV2", () => {
                         onRunQuery={() => {}}
                       />
                     );
+                    
                     await waitFor(() => expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(2));
                   });
 
@@ -330,7 +339,9 @@ describe("DataFrameQueryEditorV2", () => {
                         onRunQuery={() => {}}
                       />
                     );
+                    
                     await waitFor(() => expect(datasource.transformQuery).toHaveBeenCalledWith('FilterX'));
+                    
                     expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('FilterX');
                   });
                 });
@@ -341,6 +352,7 @@ describe("DataFrameQueryEditorV2", () => {
                         await clickColumnOptions();
 
                         const optionTexts = getColumnOptionTexts();
+                        
                         expect(optionTexts.length).toBeLessThanOrEqual(COLUMN_OPTIONS_LIMIT);
                         await waitFor(() => {
                             expect(screen.queryByRole('alert')).not.toBeInTheDocument();
