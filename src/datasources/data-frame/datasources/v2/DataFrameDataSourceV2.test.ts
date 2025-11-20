@@ -856,6 +856,32 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.columns).toEqual(['col1', 'col2']);
             });
 
+            it('should return empty array when columns array is empty', () => {
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-123',
+                    columns: [],
+                    refId: 'A'
+                } as DataFrameDataQuery;
+
+                const result = ds.processQuery(query);
+
+                expect(result.columns).toEqual([]);
+            });
+
+            it('should return empty array when columns array contains objects without name property', () => {
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-123',
+                    columns: [{dataType: 'string'}, { dataType: 'string' }] as any,
+                    refId: 'A'
+                } as DataFrameDataQuery;
+
+                const result = ds.processQuery(query);
+
+                expect(result.columns).toEqual([]);
+            });
+
             it('should not convert columns if they are already strings', () => {
                 const query = {
                     type: DataFrameQueryType.Data,

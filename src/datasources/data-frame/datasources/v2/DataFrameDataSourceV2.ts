@@ -230,9 +230,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
 
     private getMigratedColumns(
         tableId: string | undefined,
-        currentColumns: string[] | undefined
+        currentColumns: any[] | undefined
     ): Observable<string[]> | string[] {
-        if (!tableId || !currentColumns?.length) {
+        if (!tableId || !currentColumns?.length || typeof currentColumns[0] !== 'string') {
             return [];
         }
 
