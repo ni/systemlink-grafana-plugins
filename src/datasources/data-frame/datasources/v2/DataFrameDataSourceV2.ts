@@ -95,7 +95,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
 
         // Migration for 1.6.0: DataFrameQuery.columns changed to string[]
         if (Array.isArray(query.columns) && this.areAllObjectsWithNameProperty(query.columns)) {
-            query.columns = (query.columns as Array<{ name: string; }>).map(c => c.name);
+            query.columns = (query.columns as Array<{ name: string; }>).map(column => column.name);
         }
 
         if ('tableId' in query) {
@@ -128,6 +128,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 decimationMethod,
                 filterNulls,
                 applyTimeFilters,
+                queryType,
                 ...baseQueryProps
             } = query as DataFrameQueryV1;
             const dataTableFilter = tableId ? `id = "${tableId}"` : '';

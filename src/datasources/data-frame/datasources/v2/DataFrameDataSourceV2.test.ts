@@ -980,7 +980,7 @@ describe('DataFrameDataSourceV2', () => {
                     columns: ['col1', 'col2'],
                     includeIndexColumns: true,
                     filterNulls: true,
-                    decimationMethod: 'LOSSLESS',
+                    decimationMethod: 'LOSSY',
                     xColumn: 'time',
                     applyTimeFilters: true,
                     take: 100,
@@ -989,22 +989,7 @@ describe('DataFrameDataSourceV2', () => {
 
                 const result = ds.processQuery(v2Query);
 
-                expect(result).toEqual({
-                    type: DataFrameQueryType.Data,
-                    resultsFilter: '',
-                    dataTableFilter: 'workspace = "ws-1"',
-                    columnsFilter: '',
-                    dataTableProperties: [],
-                    columnProperties: [],
-                    columns: ['col1', 'col2'],
-                    includeIndexColumns: true,
-                    filterNulls: true,
-                    decimationMethod: 'LOSSLESS',
-                    xColumn: 'time',
-                    applyTimeFilters: true,
-                    take: 100,
-                    refId: 'F'
-                });
+                expect(result).toEqual(v2Query);
             });
         });
     });
@@ -1068,7 +1053,7 @@ describe('DataFrameDataSourceV2', () => {
                     tableId: 'table-456',
                     type: DataFrameQueryType.Properties,
                     columns: ['col1', 'col2'],
-                    decimationMethod: 'LOSSLESS',
+                    decimationMethod: 'LOSSY',
                     filterNulls: false,
                     applyTimeFilters: false,
                     refId: 'D',
@@ -1139,14 +1124,7 @@ describe('DataFrameDataSourceV2', () => {
 
                 const result = ds.processVariableQuery(v2Query);
 
-                expect(result).toEqual({
-                    queryType: DataFrameVariableQueryType.ListDataTables,
-                    resultsFilter: '',
-                    dataTableFilter: 'workspace = "ws-1"',
-                    columnsFilter: '',
-                    hide: false,
-                    refId: 'G'
-                });
+                expect(result).toEqual(v2Query);
             });
         });
     });
