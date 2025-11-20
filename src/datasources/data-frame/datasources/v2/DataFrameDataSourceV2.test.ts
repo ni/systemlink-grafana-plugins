@@ -1,7 +1,7 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
-import { DataFrameDataQuery, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultDatatableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
+import { DataFrameDataQuery, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
 import { TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
@@ -844,72 +844,325 @@ describe('DataFrameDataSourceV2', () => {
     });
 
     describe('processQuery', () => {
-        it('should return the query with default values when all the fields from `ValidDataFrameQueryV2` are missing', () => {
-            const query = {} as DataFrameDataQuery;
-            const expectedQuery = {
-                type: DataFrameQueryType.Data,
-                resultsFilter: '',
-                dataTableFilter: '',
-                columnsFilter: '',
-                dataTableProperties: defaultDatatableProperties,
-                columnProperties: [],
-                columns: [],
-                includeIndexColumns: false,
-                filterNulls: false,
-                decimationMethod: 'LOSSY',
-                xColumn: null,
-                applyTimeFilters: false,
-                take: TAKE_LIMIT
-            };
+        describe('when query has legacy MetaData type', () => {
+            it('should convert MetaData type to Properties type', () => {
+                const query = {
+                    type: 'Metadata' as any,
+                    refId: 'A'
+                } as DataFrameDataQuery;
 
-            const result = ds.processQuery(query);
+                const result = ds.processQuery(query);
 
-            expect(result).toEqual(expectedQuery);
+                expect(result.type).toBe(DataFrameQueryType.Properties);
+            });
         });
 
-        it('should return the query with default values for missing fields when some of the fields from `ValidDataFrameQueryV2` are missing', () => {
-            const query = { decimationMethod: 'MAX_MIN', applyTimeFilters: true } as DataFrameDataQuery;
-            const expectedQuery = {
-                type: DataFrameQueryType.Data,
-                resultsFilter: '',
-                dataTableFilter: '',
-                columnsFilter: '',
-                dataTableProperties: defaultDatatableProperties,
-                columnProperties: [],
-                columns: [],
-                includeIndexColumns: false,
-                filterNulls: false,
-                decimationMethod: 'MAX_MIN',
-                xColumn: null,
-                applyTimeFilters: true,
-                take: TAKE_LIMIT
-            };
+        describe('when query has columns as objects', () => {
+            it('should convert column objects to string array', () => {
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    columns: [{ name: 'col1' }, { name: 'col2' }] as any,
+                    refId: 'A'
+                } as DataFrameDataQuery;
 
-            const result = ds.processQuery(query);
+                const result = ds.processQuery(query);
 
-            expect(result).toEqual(expectedQuery);
+                expect(result.columns).toEqual(['col1', 'col2']);
+            });
+
+            it('should not convert columns if they are already strings', () => {
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    columns: ['col1', 'col2'],
+                    refId: 'A'
+                } as DataFrameQueryV2;
+
+                const result = ds.processQuery(query);
+
+                expect(result.columns).toEqual(['col1', 'col2']);
+            });
+        });
+
+        describe('when query contains tableId', () => {
+            it('should convert V1 query to V2 format when query type is properties', () => {
+                const v1Query = {
+                    type: DataFrameQueryType.Properties,
+                    tableId: 'table-123',
+                    refId: 'A'
+                } as DataFrameQueryV1;
+
+                const result = ds.processQuery(v1Query);
+
+                expect(result).toEqual({
+                    type: DataFrameQueryType.Properties,
+                    resultsFilter: '',
+                    dataTableFilter: 'id = "table-123"',
+                    columnsFilter: '',
+                    dataTableProperties: [DataTableProperties.Properties],
+                    columnProperties: [],
+                    columns: [],
+                    includeIndexColumns: false,
+                    filterNulls: false,
+                    decimationMethod: 'LOSSY',
+                    xColumn: null,
+                    applyTimeFilters: false,
+                    take: 1000,
+                    refId: 'A'
+                });
+                expect(result).not.toHaveProperty('tableId');
+            });
+
+            it('should convert V1 query to V2 format when query type is data', () => {
+                const v1Query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-456',
+                    columns: ['col1', 'col2'],
+                    decimationMethod: 'LOSSY',
+                    filterNulls: true,
+                    applyTimeFilters: true,
+                    refId: 'B'
+                } as DataFrameQueryV1;
+
+                const result = ds.processQuery(v1Query);
+
+                expect(result).toEqual({
+                    type: DataFrameQueryType.Data,
+                    resultsFilter: '',
+                    dataTableFilter: 'id = "table-456"',
+                    columnsFilter: '',
+                    dataTableProperties: [
+                        DataTableProperties.Name,
+                        DataTableProperties.Id,
+                        DataTableProperties.RowCount,
+                        DataTableProperties.ColumnCount,
+                        DataTableProperties.CreatedAt,
+                        DataTableProperties.Workspace
+                    ],
+                    columnProperties: [],
+                    columns: ['col1', 'col2'],
+                    includeIndexColumns: false,
+                    filterNulls: true,
+                    decimationMethod: 'LOSSY',
+                    xColumn: null,
+                    applyTimeFilters: true,
+                    take: 1000,
+                    refId: 'B'
+                });
+                expect(result).not.toHaveProperty('tableId');
+            });
+
+            it('should handle empty tableId by setting empty dataTableFilter', () => {
+                const v1Query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: '',
+                    refId: 'C'
+                } as any;
+
+                const result = ds.processQuery(v1Query);
+
+                expect(result.dataTableFilter).toBe('');
+            });
+
+            it('should handle undefined tableId by setting empty dataTableFilter', () => {
+                const v1Query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: undefined,
+                    refId: 'D'
+                } as any;
+
+                const result = ds.processQuery(v1Query);
+
+                expect(result.dataTableFilter).toBe('');
+            });
+        });
+
+        describe('when query does not contain tableId', () => {
+            it('should return query merged with defaults', () => {
+                const v2Query = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableFilter: 'name = "test"',
+                    dataTableProperties: [DataTableProperties.Name, DataTableProperties.Id],
+                    columnProperties: [DataTableProperties.ColumnName],
+                    take: 500,
+                    refId: 'E'
+                } as DataFrameQueryV2;
+
+                const result = ds.processQuery(v2Query);
+
+                expect(result).toEqual({
+                    type: DataFrameQueryType.Properties,
+                    resultsFilter: '',
+                    dataTableFilter: 'name = "test"',
+                    columnsFilter: '',
+                    dataTableProperties: [DataTableProperties.Name, DataTableProperties.Id],
+                    columnProperties: [DataTableProperties.ColumnName],
+                    columns: [],
+                    includeIndexColumns: false,
+                    filterNulls: false,
+                    decimationMethod: 'LOSSY',
+                    xColumn: null,
+                    applyTimeFilters: false,
+                    take: 500,
+                    refId: 'E'
+                });
+            });
+
+            it('should preserve all V2 query properties', () => {
+                const v2Query = {
+                    type: DataFrameQueryType.Data,
+                    resultsFilter: '',
+                    dataTableFilter: 'workspace = "ws-1"',
+                    columnsFilter: '',
+                    dataTableProperties: [],
+                    columnProperties: [],
+                    columns: ['col1', 'col2'],
+                    includeIndexColumns: true,
+                    filterNulls: true,
+                    decimationMethod: 'LOSSY',
+                    xColumn: 'time',
+                    applyTimeFilters: true,
+                    take: 100,
+                    refId: 'F'
+                } as DataFrameQueryV2;
+
+                const result = ds.processQuery(v2Query);
+
+                expect(result).toEqual(v2Query);
+            });
         });
     });
 
     describe('processVariableQuery', () => {
-        it('should return the query with default values when all the fields from `ValidDataFrameVariableQueryV2` are missing', () => {
-            const result = ds.processVariableQuery({} as DataFrameVariableQuery);
-            expect(result).toEqual({
-                queryType: DataFrameVariableQueryType.ListDataTables,
-                resultsFilter: '',
-                dataTableFilter: '',
-                columnsFilter: ''
+        describe('when query contains tableId', () => {
+            it('should convert V1 query to V2 format', () => {
+                const v1Query = {
+                    tableId: 'table-123',
+                    type: DataFrameQueryType.Data,
+                    columns: ['col1'],
+                    decimationMethod: 'LOSSY',
+                    filterNulls: true,
+                    applyTimeFilters: true,
+                    refId: 'A'
+                } as any;
+
+                const result = ds.processVariableQuery(v1Query);
+
+                expect(result).toEqual({
+                    queryType: DataFrameVariableQueryType.ListColumns,
+                    resultsFilter: '',
+                    dataTableFilter: 'id = "table-123"',
+                    columnsFilter: '',
+                    refId: 'A'
+                });
+                expect(result).not.toHaveProperty('tableId');
+                expect(result).not.toHaveProperty('type');
+                expect(result).not.toHaveProperty('columns');
+                expect(result).not.toHaveProperty('decimationMethod');
+                expect(result).not.toHaveProperty('filterNulls');
+                expect(result).not.toHaveProperty('applyTimeFilters');
+            });
+
+            it('should handle empty tableId by setting empty dataTableFilter', () => {
+                const v1Query = {
+                    tableId: '',
+                    type: DataFrameQueryType.Data,
+                    refId: 'B'
+                } as any;
+
+                const result = ds.processVariableQuery(v1Query);
+
+                expect(result.dataTableFilter).toBe('');
+            });
+
+            it('should handle undefined tableId by setting empty dataTableFilter', () => {
+                const v1Query = {
+                    tableId: undefined,
+                    type: DataFrameQueryType.Data,
+                    refId: 'C'
+                } as any;
+
+                const result = ds.processVariableQuery(v1Query);
+
+                expect(result.dataTableFilter).toBe('');
+            });
+
+            it('should preserve other base query properties during migration', () => {
+                const v1Query = {
+                    tableId: 'table-456',
+                    type: DataFrameQueryType.Properties,
+                    columns: ['col1', 'col2'],
+                    decimationMethod: 'LOSSY',
+                    filterNulls: false,
+                    applyTimeFilters: false,
+                    refId: 'D',
+                    hide: true,
+                    key: 'custom-key'
+                } as any;
+
+                const result = ds.processVariableQuery(v1Query);
+
+                expect(result).toEqual({
+                    queryType: DataFrameVariableQueryType.ListColumns,
+                    resultsFilter: '',
+                    dataTableFilter: 'id = "table-456"',
+                    columnsFilter: '',
+                    refId: 'D',
+                    hide: true,
+                    key: 'custom-key'
+                });
             });
         });
 
-        it('should return the query with default values for missing fields when some of the fields from `ValidDataFrameVariableQueryV2` are missing', () => {
-            const query = { dataTableFilter: 'name = "test table"' } as DataFrameVariableQuery;
-            const result = ds.processVariableQuery(query);
-            expect(result).toEqual({
-                queryType: DataFrameVariableQueryType.ListDataTables,
-                resultsFilter: '',
-                dataTableFilter: 'name = "test table"',
-                columnsFilter: ''
+        describe('when query does not contain tableId', () => {
+            it('should return query merged with defaults for ListDataTables type', () => {
+                const v2Query = {
+                    queryType: DataFrameVariableQueryType.ListDataTables,
+                    dataTableFilter: 'name = "test"',
+                    refId: 'E'
+                } as DataFrameVariableQueryV2;
+
+                const result = ds.processVariableQuery(v2Query);
+
+                expect(result).toEqual({
+                    queryType: DataFrameVariableQueryType.ListDataTables,
+                    resultsFilter: '',
+                    dataTableFilter: 'name = "test"',
+                    columnsFilter: '',
+                    refId: 'E'
+                });
+            });
+
+            it('should return query merged with defaults for ListColumns type', () => {
+                const v2Query = {
+                    queryType: DataFrameVariableQueryType.ListColumns,
+                    dataTableFilter: 'workspace = "ws-1"',
+                    refId: 'F'
+                } as DataFrameVariableQueryV2;
+
+                const result = ds.processVariableQuery(v2Query);
+
+                expect(result).toEqual({
+                    queryType: DataFrameVariableQueryType.ListColumns,
+                    resultsFilter: '',
+                    dataTableFilter: 'workspace = "ws-1"',
+                    columnsFilter: '',
+                    refId: 'F'
+                });
+            });
+
+            it('should preserve all V2 variable query properties', () => {
+                const v2Query = {
+                    queryType: DataFrameVariableQueryType.ListDataTables,
+                    resultsFilter: '',
+                    dataTableFilter: 'workspace = "ws-1"',
+                    columnsFilter: '',
+                    refId: 'G',
+                    hide: false
+                } as DataFrameVariableQueryV2;
+
+                const result = ds.processVariableQuery(v2Query);
+
+                expect(result).toEqual(v2Query);
             });
         });
     });
