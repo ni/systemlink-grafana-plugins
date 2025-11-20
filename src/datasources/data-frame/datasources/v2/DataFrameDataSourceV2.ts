@@ -1,7 +1,7 @@
 import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQuery, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1 } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQuery, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, CombinedFilters } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
@@ -62,7 +62,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
 
         if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {
             const tables = await lastValueFrom(this.queryTables$(
-                processedQuery.dataTableFilter,
+                { dataTableFilter: processedQuery.dataTableFilter },
                 TAKE_LIMIT,
                 [DataTableProjections.Name]
             ));
@@ -161,14 +161,55 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         throw new Error('Method not implemented.');
     }
 
-    queryTables$(
+    queryTables(
         filter: string,
         take = TAKE_LIMIT,
         projection?: DataTableProjections[]
+    ): Promise<TableProperties[]> {
+        return Promise.resolve([]);
+    }
+
+    public async getColumnOptions(filter: string): Promise<Option[]> {
+        const tables = await lastValueFrom(this.queryTables$(
+            { dataTableFilter: filter },
+            TAKE_LIMIT,
+            [
+                DataTableProjections.ColumnName,
+                DataTableProjections.ColumnDataType,
+            ]
+        ));
+
+        const hasColumns = tables.some(
+            table => Array.isArray(table.columns)
+                && table.columns.length > 0
+        );
+        if (!hasColumns) {
+            return [];
+        }
+
+        const columnTypeMap = this.createColumnNameDataTypesMap(tables);
+
+        return this.createColumnOptions(columnTypeMap);
+    }
+
+    public queryTables$(
+        filters: CombinedFilters,
+        take?: number,
+        projections?: DataTableProjections[]
+    ): Observable<TableProperties[]> {
+        // TODO: Implement logic to combine with result and column filters.
+        return this.queryTablesInternal$(filters.dataTableFilter!, take, projections);
+    }
+
+    private queryTablesInternal$(
+        filter: string,
+        take = TAKE_LIMIT,
+        projection?: DataTableProjections[],
+        substitutions?: string[]
     ): Observable<TableProperties[]> {
         const response = this.post$<TablePropertiesList>(
             `${this.baseUrl}/query-tables`,
-            { filter, take, projection },
+            { filter, take, projection, substitutions },
             { useApiIngress: true }
         );
 
@@ -183,48 +224,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 throw new Error(errorMessage);
             })
         );
-    }
-
-    queryTables(
-        filter: string,
-        take = TAKE_LIMIT,
-        projection?: DataTableProjections[]
-    ): Promise<TableProperties[]> {
-        return Promise.resolve([]);
-    }
-
-    public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
-        const variableReplacedFilter = this.transformQuery(
-            filter,
-            this.scopedVars
-        );
-        const columnOptionsWithoutVariables = await this.getColumnOptions(
-            variableReplacedFilter
-        );
-        const columnOptionsWithVariables = [
-            ...this.getVariableOptions(),
-            ...columnOptionsWithoutVariables
-        ];
-        return columnOptionsWithVariables;
-    }
-
-    private async getColumnOptions(filter: string): Promise<Option[]> {
-        const tables = await lastValueFrom(this.queryTables$(filter, TAKE_LIMIT, [
-            DataTableProjections.ColumnName,
-            DataTableProjections.ColumnDataType,
-        ]));
-
-        const hasColumns = tables.some(
-            table => Array.isArray(table.columns)
-                && table.columns.length > 0
-        );
-        if (!hasColumns) {
-            return [];
-        }
-
-        const columnTypeMap = this.createColumnNameDataTypesMap(tables);
-
-        return this.createColumnOptions(columnTypeMap);
     }
 
     private areAllObjectsWithNameProperty(object: any[]): object is Array<{ name: string; }> {
@@ -438,7 +437,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         const projectionExcludingId = projections
             .filter(projection => projection !== DataTableProjections.Id);
         const tables$ = this.queryTables$(
-            processedQuery.dataTableFilter,
+            { dataTableFilter: processedQuery.dataTableFilter },
             processedQuery.take,
             projectionExcludingId
         );
