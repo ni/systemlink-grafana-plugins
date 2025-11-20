@@ -41,7 +41,7 @@ describe('DataFrameDataSourceBase', () => {
                 { name: 'Var1' },
                 { name: 'Var2' },
             ]),
-            replace: jest.fn((s: string) => s),
+            replace: jest.fn((query: string) => query),
         } as any;
     });
 

@@ -313,7 +313,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                   it('calls transformQuery before deciding to fetch', async () => {
                     const datasource = {
-                      processQuery: jest.fn(q => ({ ...defaultQueryV2, ...q })),
+                      processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                       getColumnOptions: jest.fn().mockResolvedValue([{ label: 'Col1', value: 'Col1' }]),
                       transformQuery: jest.fn(f => f),
                     } as any;
