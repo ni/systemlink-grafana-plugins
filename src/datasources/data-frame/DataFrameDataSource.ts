@@ -5,7 +5,7 @@ import { DataFrameDataSourceBase } from "./DataFrameDataSourceBase";
 import { DataFrameDataSourceV1 } from "./datasources/v1/DataFrameDataSourceV1";
 import { DataFrameDataSourceV2 } from "./datasources/v2/DataFrameDataSourceV2";
 import { Observable } from "rxjs";
-import { areObjectsEqual } from "./utils";
+import _ from "lodash";
 
 export class DataFrameDataSource extends DataFrameDataSourceBase {
   private queryByTablePropertiesFeatureEnabled = false;
@@ -42,7 +42,7 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
       ])
     );
 
-    if (!areObjectsEqual(this.variablesCache, dashboardVariables)) {
+    if (!_.isEqual(this.variablesCache, dashboardVariables)) {
       this.variablesCache = dashboardVariables;
     }
 
@@ -99,5 +99,9 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
 
   public async getColumnOptions(filter: string): Promise<Option[]> {
     return this.datasource.getColumnOptions(filter);
+  }
+
+  public transformQuery(query: string) {
+    return this.datasource.transformQuery(query);
   }
 }

@@ -107,6 +107,10 @@ export abstract class DataFrameDataSourceBase<
         return DataFrameDataSourceBase._partNumbersCache;
     }
 
+    public transformQuery(query: string) {
+        return this.templateSrv.replace(query);
+    }
+
     private async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {
         return this.post<string[]>(
             this.queryResultValuesUrl,

@@ -39,45 +39,50 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const dataTablePropertiesOptions = getPropertiesOptions(DataTableProjectionType.DataTable);
     const columnPropertiesOptions = getPropertiesOptions(DataTableProjectionType.Column);
 
-    const lastFilterRef = useRef<string | null>(null);
+    const lastFilterRef = useRef<string>('');
+
+    const fetchAndSetColumnOptions = useCallback(
+      async (filter: string) => {
+        if (filter) {
+          try {
+            const columnOptions = await datasource.getColumnOptions(filter);
+            const limitedColumnOptions = columnOptions.slice(0, COLUMN_OPTIONS_LIMIT);
+            setIsColumnLimitExceeded(columnOptions.length > COLUMN_OPTIONS_LIMIT);
+            setColumnOptions(limitedColumnOptions);
+          } catch (error) {
+            setColumnOptions([]);
+          }
+        }
+      },
+      [datasource]
+    );
 
     useEffect(() => {
-        // Only applies to Data query type
-        if (migratedQuery.type !== DataFrameQueryType.Data) {
-            return;
-        }
+      if (migratedQuery.type !== DataFrameQueryType.Data) {
+        return;
+      }
 
-        const filter = migratedQuery.dataTableFilter;
-        if (!filter) {
-            // Reset state when filter cleared
-            setIsColumnLimitExceeded(false);
-            setColumnOptions([]);
-            lastFilterRef.current = null;
-            return;
-        }
+      const filter = migratedQuery.dataTableFilter;
+      if (!filter) {
+        setIsColumnLimitExceeded(false);
+        setColumnOptions([]);
+        return;
+      }
 
-        const hasVariables = containsVariables(filter);
-        const variablesPopulated = Object.keys(datasource.variablesCache || {}).length > 0;
-        const filterChanged = lastFilterRef.current !== filter;
-        const isInitialLoad = lastFilterRef.current === null;
+      const transformedFilter = datasource.transformQuery(filter);
+      const filterChanged = lastFilterRef.current !== transformedFilter;
+      lastFilterRef.current = transformedFilter;
 
-        const shouldFetch = hasVariables
-            ? variablesPopulated
-            : isInitialLoad || filterChanged;
-
-        if (shouldFetch) {
-            fetchAndSetColumnOptions(filter);
-        }
-
-        // Always update refs to track state
-        lastFilterRef.current = filter;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [migratedQuery.type, migratedQuery.dataTableFilter, datasource.variablesCache]);
-
-    const containsVariables = (input: string): boolean => {
-        const variablePattern = /\$(\w+|\{[^}]+\})/;
-        return variablePattern.test(input);
-    }
+      if (filterChanged) {
+        fetchAndSetColumnOptions(filter);
+      }
+    }, [
+      migratedQuery.type,
+      migratedQuery.dataTableFilter,
+      datasource.variablesCache,
+      fetchAndSetColumnOptions,
+      datasource,
+    ]);
 
     const handleQueryChange = useCallback(
         (query: DataFrameQueryV2, runQuery = true): void => {
@@ -87,13 +92,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             }
         }, [onChange, onRunQuery]
     );
-
-    const fetchAndSetColumnOptions = async (filter: string) => {
-        const columnOptions = await datasource.getColumnOptions(filter);
-        const limitedColumnOptions = columnOptions.slice(0, COLUMN_OPTIONS_LIMIT);
-        setIsColumnLimitExceeded(columnOptions.length > COLUMN_OPTIONS_LIMIT);
-        setColumnOptions(limitedColumnOptions);
-    };
 
     useEffect(() => {
         const isDataTablePropertiesEmpty = migratedQuery.dataTableProperties.length === 0;

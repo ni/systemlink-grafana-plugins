@@ -41,6 +41,7 @@ describe('DataFrameDataSourceBase', () => {
                 { name: 'Var1' },
                 { name: 'Var2' },
             ]),
+            replace: jest.fn((s: string) => s),
         } as any;
     });
 
@@ -337,6 +338,40 @@ describe('DataFrameDataSourceBase', () => {
             expect(ds.errorDescription).toContain(
                 `The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.`
             );
+        });
+    });
+
+    describe('transformQuery', () => {
+        let ds: TestDataFrameDataSource;
+
+        beforeEach(() => {
+            ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+        });
+
+        it('should call templateSrv.replace with the provided query', () => {
+            const query = 'SELECT * FROM table';
+            ds.transformQuery(query);
+            expect(templateSrv.replace).toHaveBeenCalledWith(query);
+        });
+
+        it('should return the replaced query string', () => {
+            const query = 'FROM $__var';
+            (templateSrv.replace as jest.Mock).mockReturnValue('FROM replaced');
+            const result = ds.transformQuery(query);
+            expect(result).toBe('FROM replaced');
+        });
+
+        it('should return original string when replace returns same value', () => {
+            const query = 'no variables here';
+            (templateSrv.replace as jest.Mock).mockReturnValue(query);
+            const result = ds.transformQuery(query);
+            expect(result).toBe(query);
+        });
+
+        it('should propagate errors thrown by templateSrv.replace', () => {
+            const query = 'errorQuery';
+            (templateSrv.replace as jest.Mock).mockImplementation(() => { throw new Error('replace failed'); });
+            expect(() => ds.transformQuery(query)).toThrow('replace failed');
         });
     });
 });

@@ -171,6 +171,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         return this.createColumnOptions(columnTypeMap);
     }
 
+    public transformQuery(query: string, scopedVars: ScopedVars = this.scopedVars) {
+        return transformComputedFieldsQuery(
+            this.templateSrv.replace(query, scopedVars),
+            this.dataTableComputedDataFields,
+        );
+    }
+
     private getErrorMessage(error: Error): string {
         const errorDetails = extractErrorInfo(error.message);
 
@@ -356,13 +363,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
 
             return value;
         });
-    }
-
-    private transformQuery(query: string, scopedVars: ScopedVars) {
-        return transformComputedFieldsQuery(
-            this.templateSrv.replace(query, scopedVars),
-            this.dataTableComputedDataFields,
-        );
     }
 
     private getFieldsForPropertiesQuery$(processedQuery: ValidDataFrameQueryV2): Observable<DataFrameDTO> {

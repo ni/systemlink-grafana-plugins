@@ -1267,4 +1267,23 @@ describe('DataFrameDataSourceV2', () => {
             });
         });
     });
+
+    describe('transformQuery', () => {
+        it('expands multi-value expressions into OR chained equality operations', () => {
+            const input = 'name = "{Table1,Table2}" AND id != "abc"';
+
+            const result = ds.transformQuery(input);
+
+            expect(result).toBe('(name = "Table1" || name = "Table2") AND id != "abc"');
+        });
+
+        it('replaces ${__now:date} placeholder in time field comparisons', () => {
+            const input = 'createdAt >= "${__now:date}"';
+
+            const result = ds.transformQuery(input);
+
+            expect(result).toMatch(/^createdAt >= "\d{4}-\d{2}-\d{2}T.+Z"$/);
+            expect(result).not.toContain('${__now:date}');
+        });
+    });
 });
