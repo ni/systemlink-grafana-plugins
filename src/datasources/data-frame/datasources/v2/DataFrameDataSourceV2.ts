@@ -153,14 +153,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             filter,
             this.scopedVars
         );
-        const columnOptionsWithoutVariabe = await this.getColumnOptions(
+        const columnOptionsWithoutVariables = await this.getColumnOptions(
             variableReplacedFilter
         );
-        const columnOptionsWithVars = [
+        const columnOptionsWithVariables = [
             ...this.getVariableOptions(),
-            ...columnOptionsWithoutVariabe
+            ...columnOptionsWithoutVariables
         ];
-        return columnOptionsWithVars;
+        return columnOptionsWithVariables;
     }
 
     private async getColumnOptions(filter: string): Promise<Option[]> {
