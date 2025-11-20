@@ -1,4 +1,3 @@
-# Alarms Data Source Query Help
 
 ### SystemLink Alarms data source
 
