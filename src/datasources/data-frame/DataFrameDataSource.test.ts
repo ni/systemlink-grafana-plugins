@@ -191,7 +191,7 @@ describe('DataFrameDataSource', () => {
         const options: any = { range: { from: new Date(), to: new Date() } };
 
         it('should cache variables on first runQuery', async () => {
-            const templateSrv = createTemplateSrv([{ name: 'varA',value: '1' }]);
+            const templateSrv = createTemplateSrv([{ name: 'varA', value: '1' }]);
             const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
 
             await ds.runQuery(query, options);
@@ -200,14 +200,14 @@ describe('DataFrameDataSource', () => {
         });
 
         it('should not replace variablesCache reference when variables unchanged', async () => {
-            const initialVars = [{ name: 'varA',value: '1' }];
+            const initialVars = [{ name: 'varA', value: '1' }];
             const templateSrv = createTemplateSrv(initialVars);
             const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
 
             await ds.runQuery(query, options);
 
             const firstRef = ds.variablesCache;
-            (ds as any).templateSrv = createTemplateSrv([{ name: 'varA',value: '1' }]);
+            (ds as any).templateSrv = createTemplateSrv([{ name: 'varA', value: '1' }]);
 
             await ds.runQuery(query, options);
 
@@ -215,7 +215,7 @@ describe('DataFrameDataSource', () => {
         });
 
         it('replaces variablesCache when variable value changes', async () => {
-            const templateSrv = createTemplateSrv([{ name: 'varA',value: '1' }]);
+            const templateSrv = createTemplateSrv([{ name: 'varA', value: '1' }]);
             const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
             await ds.runQuery(query, options);
             const firstRef = ds.variablesCache;
@@ -228,11 +228,11 @@ describe('DataFrameDataSource', () => {
         });
 
         it('replaces variablesCache when variable name changes', async () => {
-            const templateSrv = createTemplateSrv([{ name: 'varA',value: '1' }]);
+            const templateSrv = createTemplateSrv([{ name: 'varA', value: '1' }]);
             const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
             await ds.runQuery(query, options);
             const firstRef = ds.variablesCache;
-            (ds as any).templateSrv = createTemplateSrv([{ name: 'varB',value: '1' }]);
+            (ds as any).templateSrv = createTemplateSrv([{ name: 'varB', value: '1' }]);
 
             await ds.runQuery(query, options);
 
@@ -242,7 +242,7 @@ describe('DataFrameDataSource', () => {
 
         it('does not replace variablesCache when only variable order changes', async () => {
             const templateSrv = createTemplateSrv([
-                { name: 'varA',value: '1' },
+                { name: 'varA', value: '1' },
                 { name: 'varB', value: '2' }
             ]);
             const ds = new DataFrameDataSource(
@@ -256,7 +256,7 @@ describe('DataFrameDataSource', () => {
             const firstRef = ds.variablesCache;
             (ds as any).templateSrv = createTemplateSrv([
                 { name: 'varB', value: '2' },
-                { name: 'varA',value: '1' },
+                { name: 'varA', value: '1' },
             ]);
 
             await ds.runQuery(query, options);
@@ -265,7 +265,7 @@ describe('DataFrameDataSource', () => {
         });
 
         it('replaces variablesCache when variable added', async () => {
-            const templateSrv = createTemplateSrv([{ name: 'varA',value: '1' }]);
+            const templateSrv = createTemplateSrv([{ name: 'varA', value: '1' }]);
             const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
             await ds.runQuery(query, options);
             const firstRef = ds.variablesCache;
@@ -285,7 +285,7 @@ describe('DataFrameDataSource', () => {
 
         it('replaces variablesCache when variable removed', async () => {
             const templateSrv = createTemplateSrv([
-                { name: 'varA',value: '1' },
+                { name: 'varA', value: '1' },
                 { name: 'varB', value: '2' }
             ]);
             const ds = new DataFrameDataSource(
@@ -296,7 +296,7 @@ describe('DataFrameDataSource', () => {
             await ds.runQuery(query, options);
             const firstRef = ds.variablesCache;
             (ds as any).templateSrv = createTemplateSrv([
-                { name: 'varA',value: '1' },
+                { name: 'varA', value: '1' },
             ]);
 
             await ds.runQuery(query, options);

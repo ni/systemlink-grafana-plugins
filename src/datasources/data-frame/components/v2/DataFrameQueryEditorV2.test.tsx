@@ -44,7 +44,7 @@ const renderComponent = (
                 ...columnOptions
             ]
         ),
-        transformQuery: jest.fn((f: string) => f),
+        transformQuery: jest.fn((filter: string) => filter),
         variablesCache
     } as unknown as DataFrameDataSource;
 
@@ -350,7 +350,7 @@ describe("DataFrameQueryEditorV2", () => {
                         await clickColumnOptions();
 
                         const optionTexts = getColumnOptionTexts();
-                        
+                    
                         expect(optionTexts.length).toBeLessThanOrEqual(COLUMN_OPTIONS_LIMIT);
                         await waitFor(() => {
                             expect(screen.queryByRole('alert')).not.toBeInTheDocument();
