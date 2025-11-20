@@ -54,7 +54,7 @@ describe('ColumnsQueryBuilder', () => {
     });
 
     describe('disabled prop', () => {
-        it('should render with enabled state when disabled prop is true', async () => {
+        it('should render with disabled state when disabled prop is true', async () => {
             const { renderResult } = await renderElement('', true);
             const queryBuilder = renderResult.getByRole('dialog');
             
